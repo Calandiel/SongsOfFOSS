@@ -1,3 +1,14 @@
+All files *except* those located in:
+/sote/emblems/
+/sote/engine/
+/sote/icons/
+/sote/music/
+/sote/emblems/
+/sote/data/
+are licensed under GNU GENERAL PUBLIC LICENSE v3.
+For licensing of files in the aforementioned directories, see
+/sote/licensed_libraries_and_assets.txt
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 

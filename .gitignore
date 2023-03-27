@@ -1,6 +1,16 @@
 # Compiled Lua sources
 luac.out
 
+.vscode
+sote/.vscode
+
+# Love2D files
+*.love
+
+# Binaries for Love
+love-windows
+release
+
 # luarocks build files
 *.src.rock
 *.zip
@@ -39,3 +49,4 @@ luac.out
 *.x86_64
 *.hex
 
+token.txt

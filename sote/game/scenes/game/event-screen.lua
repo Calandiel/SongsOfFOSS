@@ -1,0 +1,67 @@
+local ui = require "engine.ui"
+local uit = require "game.ui-utils"
+local ev = {}
+
+local loaded_image = nil
+local loaded_image_name = nil
+
+---@param gam table
+function ev.draw(gam)
+
+	if WORLD.pending_player_event_reaction then
+		local peek = WORLD.events_queue:peek()
+
+		---@type Event
+		local eve = peek[1]
+		---@type Realm
+		local rea = peek[2]
+		local dat = peek[3]
+
+		if rea == WORLD.player_realm then
+			local fs = ui.fullscreen()
+			local opts = eve:options(rea, dat)
+
+			if eve.event_background_path ~= loaded_image_name then
+				loaded_image_name = eve.event_background_path
+				loaded_image = love.graphics.newImage(loaded_image_name)
+			end
+
+			-- Draw the background
+			ui.background(loaded_image)
+
+			local left = fs:subrect(0, 0, uit.BASE_HEIGHT * 10, fs.height, "left", 'up')
+			local top = left:copy()
+			top.height = top.height / 2
+			top:shrink(5)
+			ui.panel(top)
+			top:shrink(5)
+			ui.text(eve:event_text(rea, dat), top, "left", 'up')
+
+			local bot = left:copy()
+			bot.height = bot.height / 2
+			bot.y = bot.y + bot.height
+			bot:shrink(5)
+			gam.event_scrollbar = gam.event_scrollbar or 0
+			gam.event_scrollbar = ui.scrollview(bot, function(i, rect)
+				if i > 0 then
+					---@type EventOption
+					local opt = opts[i]
+					if ui.text_button(opt.text, rect, opt.tooltip) then
+						opt.outcome()
+						-- Clear the event from the queue!
+						WORLD.events_queue:dequeue()
+						WORLD.pending_player_event_reaction = false
+					end
+				end
+			end, uit.BASE_HEIGHT, #opts, uit.BASE_HEIGHT, gam.event_scrollbar)
+		else
+			print("We're trying to draw the event screen but the next event isn't meant for the player!")
+			love.event.quit()
+		end
+	else
+		print("We're trying to draw the event screen but we're not pending player events!")
+		love.event.quit()
+	end
+end
+
+return ev

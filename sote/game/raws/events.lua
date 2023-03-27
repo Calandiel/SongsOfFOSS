@@ -1,0 +1,85 @@
+---@class Event
+---@field name string
+---@field new fun(self:Event, e:Event):Event
+---@field automatic boolean Automatic events are rolled each month on every realm in the game
+---@field base_probability number For automatic events, controlls the base chance for an event to occur
+---@field trigger fun(self:Event, realm:Realm):boolean A closure that returns whether or not an event will trigger
+---@field on_trigger fun(self:Event, realm:Realm, associated_data:table|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
+---@field event_text fun(self:Event, realmn:Realm, associated_data:table|nil):string Text to display with the event, for the player.
+---@field event_background_path string
+---@field options fun(self:Event, realm:Realm, associated_data:table|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
+
+---@class EventOption
+---@field text string
+---@field tooltip string
+---@field viable fun():boolean Returns whether or not an action can be taken at all
+---@field outcome fun() Applies action outcome.
+---@field ai_preference fun():number Returns a number larger than 0 that represents the "weight" of the option. The AI will select the one with the highest weight.
+
+---@type Event
+local Event = {}
+Event.__index = Event
+---@param e Event
+---@return Event
+function Event:new(e)
+	print("Event: " .. tostring(e.name))
+	---@type Event
+	local o = {}
+
+	o.name = "<event>"
+	o.automatic = true
+	o.base_probability = 1 / 12 / 5 -- Once every 5 years
+	o.event_text = function(self, realm, data)
+		return "This is an event!"
+	end
+	o.trigger = function(self, realm)
+		return true
+	end
+	o.on_trigger = function(self, realm)
+		WORLD:emit_event(self, realm, nil)
+	end
+	o.options = function(self, realm, associated_data)
+		return {
+			{
+				text = "Default option",
+				viable = function()
+					return true
+				end,
+				outcome = function()
+					print("Default event option selected!")
+				end,
+				ai_preference = function()
+					return 1
+				end
+			},
+			{
+				text = "A special option!",
+				viable = function()
+					return true
+				end,
+				outcome = function()
+					print("Special default event option selected!")
+				end,
+				ai_preference = function()
+					return 0
+				end
+			}
+		}
+	end
+
+	for k, v in pairs(e) do
+		o[k] = v
+	end
+	setmetatable(o, Event)
+
+	if WORLD.events_by_name[o.name] ~= nil then
+		local msg = "Failed to load an event (" .. tostring(o.name) .. ")"
+		print(msg)
+		error(msg)
+	end
+	WORLD.events_by_name[o.name] = o
+
+	return o
+end
+
+return Event
