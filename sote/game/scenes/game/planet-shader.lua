@@ -18,6 +18,7 @@ function pla.get_shader()
 	local fs = [[
 		uniform float world_size;
 		uniform sampler2D tile_colors;
+        uniform sampler2D tile_improvement_texture;
 		uniform sampler2D tile_provinces;
 		uniform float clicked_tile;
 		uniform float camera_distance_from_sphere;
@@ -69,19 +70,7 @@ function pla.get_shader()
 			clicked_x /= world_size;
 			vec2 clickedcoords = vec2(clicked_x, clicked_y);
 
-			if (camera_distance_from_sphere < 0.35) {
-				// Clicked tile!
-				if (abs(tile_id - clicked_tile) < 0.05) {
-					float d = sin(time) * 0.025;
-					if (abs(tile_uv.x - 0.5) > 0.43 + d || abs(tile_uv.y - 0.5) > 0.43 + d) {
-						return vec4(0.85, 0.4, 0.2, 1);
-					}
-				}
-				// Tile borders!
-				//if (abs(tile_uv.x - 0.5) > 0.47 || abs(tile_uv.y - 0.5) > 0.47) {
-				//	return vec4(0.4, 0.4, 0.4, 1);
-				//}
-			}
+			
 			vec2 up = texcoord / 3;
 			vec2 down = texcoord / 3;
 			vec2 left = texcoord / 3;
@@ -99,6 +88,30 @@ function pla.get_shader()
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			vec4 texcolor = Texel(tile_colors, face_offset);
+            vec4 texcolor_improv = Texel(tile_improvement_texture, face_offset);
+            
+            
+            if (camera_distance_from_sphere < 1) {
+				// Clicked tile!
+				if (abs(tile_id - clicked_tile) < 0.05) {
+					float d = sin(time) * 0.025;
+					if (abs(tile_uv.x - 0.5) > 0.40 + d || abs(tile_uv.y - 0.5) > 0.40 + d) {
+						return vec4(0.85, 0.4, 0.8, 1);
+					}
+				}
+                
+                
+                
+				// Tile borders!
+                
+				if ((abs(tile_uv.x - 0.5) < 0.40) && (abs(tile_uv.y - 0.5) < 0.40) && (texcolor_improv.r > 0.5)) {
+                    if (abs(tile_uv.x - 0.5) > 0.20 || abs(tile_uv.y - 0.5) > 0.20) {
+						return vec4(0.1, 0.1, 0.1, 1);
+					}					
+				}
+			}
+            
+            
 			if (texcolor.a < 0.5) {
 				// this tile is covered by fog of war -- ignore province and river information!
 				texcolor.a = 1.0;
@@ -137,7 +150,9 @@ function pla.get_shader()
 						return province_border_color;
 					}
 				}
+                
 			}
+            
 			return texcolor * color;
 		}
 	]]

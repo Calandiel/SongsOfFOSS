@@ -120,6 +120,7 @@ function prov.Province:new()
 	o.throughput_boosts = {}
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
+	o.on_a_river = false
 	WORLD.entity_counter = WORLD.entity_counter + 1
 	WORLD.provinces[o.province_id] = o
 

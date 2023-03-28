@@ -107,16 +107,22 @@ function st.run()
 		local prov = queue:dequeue()
 		-- First, check for rng based on movement cost.
 		-- This will make it so culture "expand" slowly through mountains and such.
-		if love.math.random() < 0.001 + prov.movement_cost / 1000.0 then
+		if (love.math.random() > 0.001 + prov.movement_cost / 1000.0) or prov.on_a_river then
 			for _, neigh in pairs(prov.neighbors) do
-				if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 5.5 then
-					-- We can spawn a new realm in this province! It's unused!
-					make_new_realm(neigh, prov.realm.primary_race, prov.realm.primary_culture, prov.realm.primary_faith)
-					queue:enqueue(neigh)
+				local river_bonus = 1
+				if prov.on_a_river and neigh.on_a_river then
+					river_bonus = 0.25
+				end
+				if (love.math.random() > 0.001 + neigh.movement_cost / 1000.0 * river_bonus) then
+					if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 5.5 then
+						-- We can spawn a new realm in this province! It's unused!
+						make_new_realm(neigh, prov.realm.primary_race, prov.realm.primary_culture, prov.realm.primary_faith)
+						queue:enqueue(neigh)
+					end
 				end
 			end
 		else
-			queue:enqueue(prov)
+			-- queue:enqueue(prov)
 		end
 	end
 

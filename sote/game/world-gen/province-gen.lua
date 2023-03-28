@@ -92,7 +92,10 @@ function pro.run()
 	local queue = (require "engine.queue"):new()
 	--local visited = {}
 	--local visited_count = 0
-	local fill_out = function()
+
+	---comment
+	---@param strict_flag boolean
+	local function fill_out(strict_flag)
 		while queue:length() > 0 do
 			---@type Tile
 			local tile = queue:dequeue()
@@ -119,8 +122,10 @@ function pro.run()
 				if love.math.random() > 0.5 then
 					for n in tile:iter_neighbors() do
 						if n.province == nil and n.is_land == tile.is_land then
-							tile.province:add_tile(n)
-							queue:enqueue(n)
+							if (not strict_flag) or (math.abs(tile.elevation - n.elevation) < 350) then
+								tile.province:add_tile(n)
+								queue:enqueue(n)	
+							end
 						end
 					end
 				else
@@ -129,10 +134,135 @@ function pro.run()
 			end
 		end
 	end
-	for _ = 1, prov_count do
-		-- Get a random water tile with no province assigned to it
+
+	---adds local coastal tiles to this province
+	---@param tile Tile
+	---@param depth number
+	local function coastal_recursion(tile, depth, province)
+		if depth == 0 then return end
+		if (not tile:is_coast()) and (depth > 1) then return end
+		-- if (not check_neighs(tile)) then return end
+		if (tile.province ~= nil) then return end
+
+		province:add_tile(tile)
+		if depth == 1 then
+			queue:enqueue(tile)
+		end
+
+		for n in tile:iter_neighbors() do
+			if n.is_land == tile.is_land then
+				coastal_recursion(n, depth - 1, province)
+			end
+		end
+	end
+
+	local water_thre = 2000
+	local water_seek = 3
+
+	---comment
+	---@param tile Tile
+	---@param depth number
+	---@param province Province
+	local function waterflow_recursion(tile, depth, low_waterflow_counter, province) 
+		if depth == 0 then return end
+		-- print(tile:average_waterflow(), low_waterflow_counter, tile.province ~= nil)
+		if (tile:average_waterflow() < water_thre) and (low_waterflow_counter == 0) then return end
+		-- if (not check_neighs(tile)) then return end
+		if (tile.province ~= nil) then return end
+
+		province:add_tile(tile)		
+		-- queue:enqueue(tile)
+		local d = water_seek
+		if tile:average_waterflow() < water_thre then
+			d = -1
+		end
+		if depth == 1 then
+			queue:enqueue(tile)
+		end
+
+		-- print('???')
+		tile:set_debug_color(1, 1, 1)
+		tile.temp = true
+
+		for n in tile:iter_neighbors() do
+			if n.is_land == tile.is_land then
+				waterflow_recursion(n, depth - 1, math.min(water_seek, low_waterflow_counter + d), province)
+			end
+		end
+	end
+
+	print('creating river-like provinces')
+	local riverlike_prov_count = math.floor(prov_count / 10)
+	for _ = 1, riverlike_prov_count  do
+		if _ % 100 == 0 then
+			print(_ / riverlike_prov_count * 100)
+		end
+		-- Get a random soil rich tile with no province assigned to it
 		local tile = WORLD:random_tile()
-		while not tile.is_land or tile.province ~= nil or not check_neighs(tile) do tile = WORLD:random_tile() end
+		local failsafe = 0
+		while not tile.is_land or (tile:average_waterflow() < water_thre) or tile.province ~= nil or not check_neighs(tile) do 
+			tile = WORLD:random_tile() 
+			failsafe = failsafe + 1
+			if failsafe > WORLD:tile_count() / 2 then break end
+		end
+		
+		local new_province = pp.Province:new()
+		new_province.center = tile
+		-- new_province:add_tile(tile)
+		-- for n in tile:iter_neighbors() do
+		-- 	if n.is_land == tile.is_land then
+		-- 		new_province:add_tile(n)
+		-- 		-- queue:enqueue(n)
+		-- 	end
+		-- end
+		waterflow_recursion(tile, 60, water_seek, new_province)
+
+		new_province.on_a_river = true
+	end
+
+	print('creating coastal provinces')
+	local coastal_count = math.floor(prov_count / 5)
+    for _ = 1, coastal_count  do
+		if _ % 100 == 0 then
+			print(_ / coastal_count * 100)
+		end
+		
+		-- Get a random coastal tile with no province assigned to it
+		local tile = WORLD:random_tile()
+		local failsafe = 0
+		while not tile.is_land or not tile:is_coast() or tile.province ~= nil or not check_neighs(tile) do 
+			tile = WORLD:random_tile()
+			failsafe = failsafe + 1
+			if failsafe > WORLD:tile_count() / 2 then break end
+		end
+		local new_province = pp.Province:new()
+		new_province.center = tile
+		-- new_province:add_tile(tile)
+		-- for n in tile:iter_neighbors() do
+		-- 	if n.is_land == tile.is_land then
+		-- 		new_province:add_tile(n)
+		-- 		queue:enqueue(n)
+		-- 	end
+		-- end
+		coastal_recursion(tile, 60, new_province)
+		-- new_province.r = 0
+		-- new_province.g = 0
+		-- new_province.b = 1 - math.random() / 5
+	end
+
+	print('create rest of provinces')
+	for _ = 1, prov_count - coastal_count - riverlike_prov_count do
+		if _ % 100 == 0 then
+			print(_ / (prov_count - coastal_count - riverlike_prov_count) * 100)
+		end
+		-- Get a random land tile with no province assigned to it
+		local tile = WORLD:random_tile()
+		local failsafe = 0
+		while not tile.is_land or tile.province ~= nil or not check_neighs(tile) do
+			tile = WORLD:random_tile()
+			failsafe = failsafe + 1
+			if failsafe > WORLD:tile_count() / 2 then break end
+		end
 
 		local new_province = pp.Province:new()
 		new_province.center = tile
@@ -144,9 +274,12 @@ function pro.run()
 			end
 		end
 	end
-	fill_out()
+	fill_out(true)
+
+
+	-- sea provinces
 	for _ = 1, prov_count do
-		-- Get a random land tile with no province assigned to it
+		-- Get a random sea tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		while tile.is_land or tile.province ~= nil do tile = WORLD:random_tile() end
 		local new_province = pp.Province:new()
@@ -154,7 +287,8 @@ function pro.run()
 		new_province:add_tile(tile)
 		queue:enqueue(tile)
 	end
-	fill_out()
+	fill_out(false)
+
 	-- at the end, fill in the gaps!
 	for _, tile in pairs(WORLD.tiles) do
 		if tile.province == nil then
@@ -162,7 +296,7 @@ function pro.run()
 			new_province.center = tile
 			new_province:add_tile(tile)
 			queue:enqueue(tile)
-			fill_out()
+			fill_out(false)
 		end
 	end
 

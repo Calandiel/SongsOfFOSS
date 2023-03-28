@@ -143,6 +143,18 @@ function gam.init()
 	end
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
+    
+    
+    local imd2 = love.image.newImageData(dim, dim, "rgba8")
+	for x = 1, dim do
+		for y = 1, dim do
+			imd2:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
+		end
+	end
+	gam.tile_improvement_texture_data = imd2
+	gam.tile_improvement_texture = love.graphics.newImage(imd2)
+    
+    
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
 
@@ -202,6 +214,10 @@ function gam.handle_camera_controls()
 		if ui.is_key_held('lshift') then
 			camera_speed = camera_speed * 3
 			zoom_speed = zoom_speed * 3
+		end
+		if ui.is_key_held('lctrl') then
+			camera_speed = camera_speed / 6
+			zoom_speed = zoom_speed / 6
 		end
 		local mouse_zoom_sensor_size = 3
 		local mouse_x, mouse_y = ui.mouse_position()
@@ -329,6 +345,9 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("tile_colors") then
 		gam.planet_shader:send('tile_colors', gam.tile_color_texture)
 	end
+    if gam.planet_shader:hasUniform("tile_improvement_texture") then
+		gam.planet_shader:send('tile_improvement_texture', gam.tile_improvement_texture)
+	end
 	if gam.planet_shader:hasUniform("world_size") then
 		gam.planet_shader:send('world_size', WORLD.world_size)
 	end
@@ -354,6 +373,84 @@ function gam.draw()
 	love.graphics.setCanvas()
 	love.graphics.draw(gam.game_canvas)
 
+	-- Just for debugging of tile graphics rendering
+	if gam.camera_position:len() < 1.25 then
+		local mpfx = 0.5
+		local mpfy = 0.5
+		local vp = projection * view
+		local inv_vp = cpml.mat4.identity()
+		inv_vp:invert(vp)
+		local cp = inv_vp * cpml.vec3.new(
+			2 * mpfx - 1,
+			2 * mpfy - 1,
+			0
+		)
+		local coll_point, dist = cpml.intersect.ray_sphere({
+			position = gam.camera_position,
+			direction = (cp - gam.camera_position):normalize()
+		}, {
+			position = origin_point,
+			radius = 1.0
+		})
+		if coll_point then
+			local refx, refy = ui.get_reference_screen_dimensions()
+			local size = 35
+			local draw_tile = function(tile)
+				---@type Tile
+				local tile = tile
+				local lat, lon = tile:latlon()
+				local ll = require "game.latlon"
+				local cartx, carty, cartz = ll.lat_lon_to_cart(lat, lon)
+				coll_point.x = cartx
+				coll_point.y = carty
+				coll_point.z = cartz
+				local cart = coll_point;
+				local vv = vp * cart
+				vv.x = vv.x / 2
+				vv.y = vv.y / 2
+				vv.z = vv.z / 2
+				local x = (vv.x + 0.5) * refx
+				local y = (vv.y + 0.5) * refy
+				local rect = ui.rect(x - size / 2, y - size / 2, size, size)
+				if tile.is_land then
+					if tile.province.realm and tile.province.center == tile then
+						ui.image(ASSETS.get_icon('village.png'), rect)
+					elseif tile.resource then
+						ui.image(ASSETS.get_icon(tile.resource.icon), rect)
+						--elseif tile.tile_improvement then
+						--ui.image(ASSETS.get_icon(tile.tile_improvement.type.map_texture), rect)
+					else
+						--[[
+						if tile.elevation > 2500.0 then
+							ui.image(ASSETS.get_icon("0_mountain.png"), rect)
+						else
+							ui.image(ASSETS.get_icon("oak.png"), rect)
+						end
+						--]]
+					end
+				end
+			end
+			local visited = {}
+			local qq = require "engine.queue":new()
+			local to_draw = 3500
+			local center_tile = WORLD.tiles[tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)]
+			visited[center_tile] = center_tile
+			qq:enqueue(center_tile)
+			while qq:length() > 0 and to_draw > 0 do
+				to_draw = to_draw - 1
+				---@type Tile
+				local td = qq:dequeue()
+				draw_tile(td)
+				for n in td:iter_neighbors() do
+					if visited[n] then
+					else
+						visited[n] = n
+						qq:enqueue(n)
+					end
+				end
+			end
+		end
+	end
 
 	-- ##########
 	-- ### UI ###
@@ -766,6 +863,12 @@ function gam.refresh_map_mode()
 			local g = tile.real_g
 			local b = tile.real_b
 			gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+            if tile.tile_improvement and gam.map_mode == "atlas" then
+                gam.tile_improvement_texture_data:setPixel(x, y, 1, 0, 0, 1)
+            else 
+                gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
+            end
+            
 		else
 			gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 		end
@@ -773,6 +876,10 @@ function gam.refresh_map_mode()
 	-- Update the texture
 	gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 	gam.tile_color_texture:setFilter("nearest", "nearest")
+    
+    gam.tile_improvement_texture = love.graphics.newImage(gam.tile_improvement_texture_data)
+    gam.tile_improvement_texture:setFilter("nearest", "nearest")
+    
 	-- Update the minimap
 	gam.minimap = require "game.minimap".make_minimap()
 
