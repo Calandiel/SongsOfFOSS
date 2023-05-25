@@ -129,24 +129,24 @@ function realm.Realm:new()
 	o.coa_emblem_r = love.math.random()
 	o.coa_emblem_g = love.math.random()
 	o.coa_emblem_b = love.math.random()
-	print("bbb")
+	-- print("bbb")
 	o.coa_background_image = love.math.random(#ASSETS.coas)
 	o.coa_foreground_image = love.math.random(#ASSETS.coas)
 	o.resources = {}
 	o.production = {}
 	o.armies = {}
-	print("bb")
+	-- print("bb")
 	if love.math.random() < 0.6 then
 		o.coa_emblem_image = love.math.random(#ASSETS.emblems)
 	else
 		o.coa_emblem_image = 0 -- have a lot of "empty" emblems so that not everything is a frog
 	end
 
-	print("b")
+	-- print("b")
 	o.realm_id = WORLD.entity_counter
 	WORLD.entity_counter = WORLD.entity_counter + 1
 	WORLD.realms[o.realm_id] = o
-	print("c")
+	-- print("c")
 	setmetatable(o, realm.Realm)
 	return o
 end

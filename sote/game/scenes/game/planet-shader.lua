@@ -125,28 +125,62 @@ function pla.get_shader()
 				vec4 left_bord = Texel(tile_provinces, left);
 				vec4 right_bord = Texel(tile_provinces, right);
 
-				float province_border_thickness = 0.15;
+				vec4 upleft_bord = Texel(tile_provinces, (up + left) * 0.5);
+				vec4 upright_bord = Texel(tile_provinces, (up + right) * 0.5);
+				vec4 downleft_bord = Texel(tile_provinces, (down + left) * 0.5);
+				vec4 downright_bord = Texel(tile_provinces, (down + right) * 0.5);
+
+				float province_border_thickness = 0.1;
 				vec4 province_border_color = vec4(0.4, 0.4, 0.4, 1);
 				if (max3(abs(my_bord - clicked_bord)) < 0.0001) {
 					province_border_color = vec4(0.85, 0.4, 0.2, 1);
+					province_border_thickness = 0.6;
 				}
+
+				float up_b = (province_border_thickness - tile_uv.y);
+				float down_b = (tile_uv.y - (1 - province_border_thickness));
+				float left_b = (tile_uv.x - (1 - province_border_thickness));
+				float right_b = (province_border_thickness - tile_uv.x);
+
+
 				if (max3(abs(my_bord - up_bord)) > 0.01) {
-					if (tile_uv.y < province_border_thickness) {
+					if (up_b > 0) {
 						return province_border_color;
 					}
 				}
 				if (max3(abs(my_bord - down_bord)) > 0.01) {
-					if (tile_uv.y > 1 - province_border_thickness) {
+					if (down_b > 0) {
 						return province_border_color;
 					}
 				}
 				if (max3(abs(my_bord - left_bord)) > 0.01) {
-					if (tile_uv.x > 1 - province_border_thickness) {
+					if (left_b > 0) {
 						return province_border_color;
 					}
 				}
 				if (max3(abs(my_bord - right_bord)) > 0.01) {
-					if (tile_uv.x < province_border_thickness) {
+					if (right_b > 0) {
+						return province_border_color;
+					}
+				}
+
+				if (max3(abs(my_bord - upleft_bord)) > 0.01) {
+					if ((up_b > 0) && (left_b > 0)) {
+						return province_border_color;
+					}
+				}
+				if (max3(abs(my_bord - upright_bord)) > 0.01) {
+					if ((up_b > 0) && (right_b > 0)) {
+						return province_border_color;
+					}
+				}
+				if (max3(abs(my_bord - downleft_bord)) > 0.01) {
+					if ((down_b > 0) && (left_b > 0)) {
+						return province_border_color;
+					}
+				}
+				if (max3(abs(my_bord - downright_bord)) > 0.01) {
+					if ((down_b > 0) && (right_b > 0)) {
 						return province_border_color;
 					}
 				}
