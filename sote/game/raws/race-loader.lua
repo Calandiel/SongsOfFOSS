@@ -53,7 +53,9 @@ function ll.load()
 		male_meat_needs = 1,
 		male_clothing_needs = 0.3,
 		male_infrastructure_needs = 2,
-		carrying_capacity_weight = 1.1
+		carrying_capacity_weight = 1.1,
+		
+		requires_large_river = true
 	}
 	Race:new {
 		name = 'elf',

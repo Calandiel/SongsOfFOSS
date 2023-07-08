@@ -67,6 +67,7 @@ local prov = {}
 ---@field throughput_boosts table<ProductionMethod, number>
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
+---@field on_a_river boolean
 
 local col = require "game.color"
 

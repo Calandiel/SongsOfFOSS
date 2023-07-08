@@ -54,6 +54,17 @@ local function make_new_realm(capitol, race, culture, faith)
 	capitol:research(WORLD.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
 end
 
+
+---Checks if province is eligible for spawn
+---@param race Race
+---@param province Province
+function ProvinceCheck(race, province) 
+	if not province.center.is_land then return false end
+	if province.realm ~= nil then return false end
+	if (not province.on_a_river) and race.requires_large_river then return false end
+	return true
+end
+
 ---Spawns initial tribes and initializes their data (such as characters, cultures, religions, races, etc)
 function st.run()
 	local queue = require "engine.queue":new()
@@ -62,7 +73,8 @@ function st.run()
 		for _, r in pairs(WORLD.races_by_name) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile().province
-			while not prov.center.is_land or prov.realm ~= nil do prov = WORLD:random_tile().province end
+			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile().province end
+
 			-- An unowned province -- it means we can spawn a new realm here!
 			local cg = cult.CultureGroup:new()
 			local culture = cult.Culture:new(cg)
@@ -112,6 +124,13 @@ function st.run()
 				local river_bonus = 1
 				if prov.on_a_river and neigh.on_a_river then
 					river_bonus = 0.25
+				end
+				if prov.realm.primary_race.requires_large_river then
+				 	if neigh.on_a_river then
+						river_bonus = 0.001
+					else
+						river_bonus = 1000
+					end
 				end
 				if (love.math.random() > 0.001 + neigh.movement_cost / 1000.0 * river_bonus) then
 					if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 5.5 then
