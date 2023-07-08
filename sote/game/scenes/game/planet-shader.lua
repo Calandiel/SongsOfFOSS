@@ -196,7 +196,7 @@ function pla.get_shader()
 
 			float raiding_target_indicator = 0.0;
 			if (texcolor_raiding.r > 0.5) {
-				raiding_target_indicator = abs(fract(time * 0.2) - 0.5);
+				raiding_target_indicator = abs(fract(time * 0.4) - 0.5) * 2.0;
 			}
 			vec4 red_overlay = vec4(1, 0, 0, 1);            
 			return texcolor * mix(color, red_overlay, raiding_target_indicator);
