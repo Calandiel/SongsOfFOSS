@@ -831,42 +831,43 @@ function re.draw(gam)
 				tooltip = "Economy",
 				closure = function()
 					local consumption = tile.province.local_consumption
+					local production = tile.province.local_production
 					local uip = ui_panel:copy()
 					uip.height = uit.BASE_HEIGHT
-					ui.centered_text("Consumption", uip)
-					uip.y = uip.y + uit.BASE_HEIGHT
-					local data = {}
-					for good, amount in pairs(consumption) do
-						data[#data + 1] = {
-							weight = amount,
-							tooltip = good.name .. ", " .. tostring(math.floor(100 * amount) / 100),
-							r = good.r,
-							g = good.g,
-							b = good.b,
-						}
-					end
-					uit.graph(data, uip)
+					-- ui.centered_text("Consumption", uip)
+					-- uip.y = uip.y + uit.BASE_HEIGHT
+					-- local data = {}
+					-- for good, amount in pairs(consumption) do
+					-- 	data[#data + 1] = {
+					-- 		weight = amount,
+					-- 		tooltip = good.name .. ", " .. tostring(math.floor(100 * amount) / 100),
+					-- 		r = good.r,
+					-- 		g = good.g,
+					-- 		b = good.b,
+					-- 	}
+					-- end
+					-- uit.graph(data, uip)
 
-					local production = tile.province.local_production
-					uip.y = uip.y + uit.BASE_HEIGHT
-					ui.centered_text("Production", uip)
-					uip.y = uip.y + uit.BASE_HEIGHT
-					local data = {}
-					if tile.province.realm then
-						for good, amount in pairs(production) do
-							data[#data + 1] = {
-								weight = amount * tile.province.realm:get_price(good),
-								tooltip = good.name ..
-									", " ..
-									tostring(math.floor(100 * amount * tile.province.realm:get_price(good)) / 100) ..
-									MONEY_SYMBOL .. ' (' .. tostring(math.floor(100 * amount) / 100) .. ')',
-								r = good.r,
-								g = good.g,
-								b = good.b,
-							}
-						end
-					end
-					uit.graph(data, uip)
+					
+					-- uip.y = uip.y + uit.BASE_HEIGHT
+					-- ui.centered_text("Production", uip)
+					-- uip.y = uip.y + uit.BASE_HEIGHT
+					-- local data = {}
+					-- if tile.province.realm then
+					-- 	for good, amount in pairs(production) do
+					-- 		data[#data + 1] = {
+					-- 			weight = amount * tile.province.realm:get_price(good),
+					-- 			tooltip = good.name ..
+					-- 				", " ..
+					-- 				tostring(math.floor(100 * amount * tile.province.realm:get_price(good)) / 100) ..
+					-- 				MONEY_SYMBOL .. ' (' .. tostring(math.floor(100 * amount) / 100) .. ')',
+					-- 			r = good.r,
+					-- 			g = good.g,
+					-- 			b = good.b,
+					-- 		}
+					-- 	end
+					-- end
+					-- uit.graph(data, uip)
 					--uit.graph(data, uip)
 
 					uip.y = uip.y + uit.BASE_HEIGHT
@@ -886,18 +887,25 @@ function re.draw(gam)
 					uip.y = uip.y + uit.BASE_HEIGHT
 					uip.height = uip.height * 6
 					local supply_data = {}
+					local demand_data = {}
+					local balance_data = {}
 					for good, amount in pairs(production) do
 						supply_data[good] = amount
+						balance_data[good] = amount
 					end
 					for good, amount in pairs(consumption) do
-						local old = supply_data[good] or 0
-						supply_data[good] = old - amount
+						local old = balance_data[good] or 0
+						balance_data[good] = old - amount
+						demand_data[good] = amount
 					end
 					gam.province_supply_balance_scrollbar = gam.province_supply_balance_scrollbar or 0
 					gam.province_supply_balance_scrollbar = ui.scrollview(
 						uip, function(entry, rect)
 							if entry > 0 then
-								local good, balance = tabb.nth(supply_data, entry)
+								local good, balance = tabb.nth(balance_data, entry)
+								local supply = supply_data[good] or 0
+								local demand = demand_data[good] or 0
+								local price = tile.province.realm:get_price(good)
 								local w = rect.width
 								rect.width = uit.BASE_HEIGHT
 								ui.image(ASSETS.get_icon(good.icon), rect)
@@ -905,9 +913,17 @@ function re.draw(gam)
 								rect.width = w
 								ui.left_text(good.name, rect)
 								rect.x = rect.x - 5 - uit.BASE_HEIGHT
+
+								rect.width = w / 4
+								ui.right_text(tostring(math.floor(100 * supply) / 100), rect)
+								rect.width = 2 * w / 4
+								ui.right_text(tostring(math.floor(100 * demand) / 100), rect)
+								rect.width = 3 * w / 4
 								ui.right_text(tostring(math.floor(100 * balance) / 100), rect)
+								rect.width = w
+								ui.right_text(tostring(math.floor(100 * price) / 100) .. MONEY_SYMBOL, rect)
 							end
-						end, uit.BASE_HEIGHT, tabb.size(supply_data), uit.BASE_HEIGHT, gam.province_supply_balance_scrollbar
+						end, uit.BASE_HEIGHT, tabb.size(balance_data), uit.BASE_HEIGHT, gam.province_supply_balance_scrollbar
 					)
 				end
 			},

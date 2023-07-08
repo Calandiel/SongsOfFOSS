@@ -314,9 +314,11 @@ function gam.draw()
 	local projection_z = z.x * z.x + z.z * z.z
 	local projection_shift = shift.x * shift.x + shift.z * shift.z
 	local sign = 1
-	if (projection_shift > projection_z) then
+	if ((projection_shift > projection_z) and (z.y > 0)) then
 		sign = -1
 	end
+
+	-- love.graphics.print(tostring(projection_z) .. " " .. tostring(projection_shift) .. " " .. tostring(z.y) .. " " .. tostring(sign), 0, 0, 0)
 	
 	view:look_at(gam.camera_position, origin_point:add(shift), up_direction:scale(sign))
 	
@@ -454,7 +456,15 @@ function gam.draw()
 				local name_rect = ui.rect(x - size / 5, y - size / 2 - 50, size * 2.5, size / 2)
 				local population_rect = ui.rect(x - size / 5, y - 50, size * 2.5, size / 2)
 				local line_rect = ui.rect(x - 1, y - 50 + size / 2, 2, 50 - size / 2)
-				if tile.is_land then
+
+				local province_visible = true
+				if WORLD.player_realm then
+					province_visible = false
+					if WORLD.player_realm.known_provinces[tile.province] then
+						province_visible = true
+					end
+				end
+				if (tile.is_land and province_visible) then
 					if tile.province.realm and tile.province.center == tile then
 						ui.image(ASSETS.get_icon('village.png'), rect)
 						ui.rectangle(line_rect)
