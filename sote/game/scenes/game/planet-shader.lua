@@ -18,6 +18,8 @@ function pla.get_shader()
 	local fs = [[
 		uniform float world_size;
 		uniform sampler2D tile_colors;
+        uniform sampler2D tile_improvement_texture;
+		uniform sampler2D tile_raiding_targets;
 		uniform sampler2D tile_provinces;
 		uniform float clicked_tile;
 		uniform float camera_distance_from_sphere;
@@ -51,6 +53,11 @@ function pla.get_shader()
 			return max(a.r, max(a.g, a.b));
 		}
 
+
+		vec4 mix(vec4 a, vec4 b, float alpha) {
+			return a * (1 - alpha) + b * alpha;
+		}
+
 		vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord)
 		{
 			float y = floor(texcoord.y * world_size);
@@ -69,19 +76,7 @@ function pla.get_shader()
 			clicked_x /= world_size;
 			vec2 clickedcoords = vec2(clicked_x, clicked_y);
 
-			if (camera_distance_from_sphere < 0.35) {
-				// Clicked tile!
-				if (abs(tile_id - clicked_tile) < 0.05) {
-					float d = sin(time) * 0.025;
-					if (abs(tile_uv.x - 0.5) > 0.43 + d || abs(tile_uv.y - 0.5) > 0.43 + d) {
-						return vec4(0.85, 0.4, 0.2, 1);
-					}
-				}
-				// Tile borders!
-				//if (abs(tile_uv.x - 0.5) > 0.47 || abs(tile_uv.y - 0.5) > 0.47) {
-				//	return vec4(0.4, 0.4, 0.4, 1);
-				//}
-			}
+			
 			vec2 up = texcoord / 3;
 			vec2 down = texcoord / 3;
 			vec2 left = texcoord / 3;
@@ -99,6 +94,31 @@ function pla.get_shader()
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			vec4 texcolor = Texel(tile_colors, face_offset);
+            vec4 texcolor_improv = Texel(tile_improvement_texture, face_offset);
+			vec4 texcolor_raiding = Texel(tile_raiding_targets, face_offset);
+            
+            
+            if (camera_distance_from_sphere < 1) {
+				// Clicked tile!
+				if (abs(tile_id - clicked_tile) < 0.05) {
+					float d = sin(time) * 0.025;
+					if (abs(tile_uv.x - 0.5) > 0.40 + d || abs(tile_uv.y - 0.5) > 0.40 + d) {
+						return vec4(0.85, 0.4, 0.8, 1);
+					}
+				}
+                
+                
+                
+				// Tile borders!
+                
+				if ((abs(tile_uv.x - 0.5) < 0.40) && (abs(tile_uv.y - 0.5) < 0.40) && (texcolor_improv.r > 0.5)) {
+                    if (abs(tile_uv.x - 0.5) > 0.20 || abs(tile_uv.y - 0.5) > 0.20) {
+						return vec4(0.1, 0.1, 0.1, 1);
+					}					
+				}
+			}
+            
+            
 			if (texcolor.a < 0.5) {
 				// this tile is covered by fog of war -- ignore province and river information!
 				texcolor.a = 1.0;
@@ -112,33 +132,74 @@ function pla.get_shader()
 				vec4 left_bord = Texel(tile_provinces, left);
 				vec4 right_bord = Texel(tile_provinces, right);
 
-				float province_border_thickness = 0.15;
+				vec4 upleft_bord = Texel(tile_provinces, (up + left) * 0.5);
+				vec4 upright_bord = Texel(tile_provinces, (up + right) * 0.5);
+				vec4 downleft_bord = Texel(tile_provinces, (down + left) * 0.5);
+				vec4 downright_bord = Texel(tile_provinces, (down + right) * 0.5);
+
+				float province_border_thickness = 0.1;
 				vec4 province_border_color = vec4(0.4, 0.4, 0.4, 1);
 				if (max3(abs(my_bord - clicked_bord)) < 0.0001) {
 					province_border_color = vec4(0.85, 0.4, 0.2, 1);
+					province_border_thickness = 0.6;
 				}
+
+				float up_b = (province_border_thickness - tile_uv.y);
+				float down_b = (tile_uv.y - (1 - province_border_thickness));
+				float left_b = (tile_uv.x - (1 - province_border_thickness));
+				float right_b = (province_border_thickness - tile_uv.x);
+
+
 				if (max3(abs(my_bord - up_bord)) > 0.01) {
-					if (tile_uv.y < province_border_thickness) {
+					if (up_b > 0) {
 						return province_border_color;
 					}
 				}
 				if (max3(abs(my_bord - down_bord)) > 0.01) {
-					if (tile_uv.y > 1 - province_border_thickness) {
+					if (down_b > 0) {
 						return province_border_color;
 					}
 				}
 				if (max3(abs(my_bord - left_bord)) > 0.01) {
-					if (tile_uv.x > 1 - province_border_thickness) {
+					if (left_b > 0) {
 						return province_border_color;
 					}
 				}
 				if (max3(abs(my_bord - right_bord)) > 0.01) {
-					if (tile_uv.x < province_border_thickness) {
+					if (right_b > 0) {
 						return province_border_color;
 					}
 				}
+
+				if (max3(abs(my_bord - upleft_bord)) > 0.01) {
+					if ((up_b > 0) && (left_b > 0)) {
+						return province_border_color;
+					}
+				}
+				if (max3(abs(my_bord - upright_bord)) > 0.01) {
+					if ((up_b > 0) && (right_b > 0)) {
+						return province_border_color;
+					}
+				}
+				if (max3(abs(my_bord - downleft_bord)) > 0.01) {
+					if ((down_b > 0) && (left_b > 0)) {
+						return province_border_color;
+					}
+				}
+				if (max3(abs(my_bord - downright_bord)) > 0.01) {
+					if ((down_b > 0) && (right_b > 0)) {
+						return province_border_color;
+					}
+				}
+                
 			}
-			return texcolor * color;
+
+			float raiding_target_indicator = 0.0;
+			if (texcolor_raiding.r > 0.5) {
+				raiding_target_indicator = abs(fract(time * 0.4) - 0.5) * 2.0;
+			}
+			vec4 red_overlay = vec4(1, 0, 0, 1);            
+			return texcolor * mix(color, red_overlay, raiding_target_indicator);
 		}
 	]]
 

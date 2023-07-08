@@ -7,7 +7,7 @@ local ll_utils = require "game.latlon"
 ---@field tile_id number
 ---@field is_land boolean
 ---@field is_fresh boolean
----@field is_coast fun():boolean
+---@field is_coast fun(self:Tile):boolean
 ---@field plate ?Plate
 ---@field elevation number
 ---@field grass number
@@ -17,8 +17,8 @@ local ll_utils = require "game.latlon"
 ---@field silt number
 ---@field clay number
 ---@field sand number
----@field soil_depth fun(): number Returns the soil depth, in meters
----@field soil_permeability fun(): number Returns soil permeability, as an abstract D-value (Demian value)
+---@field soil_depth fun(self:Tile): number Returns the soil depth, in meters
+---@field soil_permeability fun(self:Tile): number Returns soil permeability, as an abstract D-value (Demian value)
 ---@field soil_minerals number
 ---@field soil_organics number
 ---@field january_waterflow number
@@ -39,12 +39,12 @@ local ll_utils = require "game.latlon"
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
 ---@field perlin fun(self:Tile, frequency:number, seed:number):number returns a random perlin number
 ---@field get_neighbor fun(self:Tile, neighbor_index:number):Tile
----@field iter_neighbors fun():(fun():Tile|nil) iterates over neighbors
+---@field iter_neighbors fun(self:Tile):(fun():Tile|nil) iterates over neighbors
 ---@field set_debug_color fun(self:Tile, r:number, g:number, b:number) sets tiles debug color
 ---@field set_real_color fun(self:Tile, r:number, g:number, b:number) sets tiles real color
----@field latlon fun():number, number returns tiles latitude and longitude, in radians
----@field average_waterflow fun():number returns average waterflow
----@field get_climate_data fun():number,number,number,number january_rainfall, january_temperature, july_rainfall, july_temperature
+---@field latlon fun(self:Tile):number, number returns tiles latitude and longitude, in radians
+---@field average_waterflow fun(self:Tile):number returns average waterflow
+---@field get_climate_data fun(self:Tile):number,number,number,number january_rainfall, january_temperature, july_rainfall, july_temperature
 ---@field move_across_face fun(self:Tile, neighbor_index:number):Tile,number
 ---@field line_iterator fun(self:Tile, direction:number, length:number):(fun():Tile|nil)
 ---@field distance_to fun(self:Tile, other:Tile):number

@@ -1,6 +1,8 @@
-local path = require "game.ai.pathfinding"
+
 local tabb = require "engine.table"
 local ll = {}
+local MilitaryEffects = require "game.raws.effects.military"
+local utils = require "game.raws.raws-utils"
 
 function ll.load()
 	local Decision = require "game.raws.decisions"
@@ -72,7 +74,7 @@ function ll.load()
 	Decision:new {
 		name = 'give-gifts',
 		ui_name = "Hand out gifts",
-		tooltip = "Hand out gifts to the local population, effectively bribing them for support.",
+		tooltip = utils.constant_string("Hand out gifts to the local population, effectively bribing them for support."),
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -135,7 +137,7 @@ function ll.load()
 	Decision:new {
 		name = 'explore-province',
 		ui_name = "Explore province",
-		tooltip = "Explore province",
+		tooltip = utils.constant_string("Explore province"),
 		sorting = 1,
 		primary_target = 'province',
 		secondary_target = 'none',
@@ -192,7 +194,7 @@ function ll.load()
 	Decision:new {
 		name = 'offend-locals',
 		ui_name = "Offend locals",
-		tooltip = "(DEBUG EVENT) Sometimes, offending the people you rule over is just the thing you want to do!.",
+		tooltip = utils.constant_string("(DEBUG EVENT) Sometimes, offending the people you rule over is just the thing you want to do!."),
 		sorting = 1,
 		primary_target = 'province',
 		secondary_target = 'none',
@@ -254,7 +256,7 @@ function ll.load()
 	Decision:new {
 		name = 'covert-raid',
 		ui_name = "Covert raid",
-		tooltip = "Loots the province covertly with small forces. Can avoid diplomatic issues. Loots only from the local provincial wealth pool.",
+		tooltip = utils.constant_string("Loots the province covertly with small forces. Can avoid diplomatic issues. Loots only from the local provincial wealth pool."),
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -314,32 +316,11 @@ function ll.load()
 			return nil, true
 		end,
 		effect = function(root, primary_target, secondary_target)
-			--print("eff")
 			---@type Realm
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.capitol, primary_target))
-
-			if root == WORLD.player_realm then
-				WORLD:emit_notification("We sent out our warriors to " ..
-					primary_target.name ..
-					", they should arrive in " ..
-					travel_time .. " days. We can expect to hear back from them in " .. (travel_time * 2) .. " days.")
-			end
-
-			-- A raid will raise up to a certain number of troops
-			local max_covert_raid_size = 10
-			local army = root:raise_army_of_size(max_covert_raid_size)
-			army.destination = primary_target
-
-			WORLD:emit_action(
-				WORLD.events_by_name["covert-raid"],
-				primary_target.realm,
-				{ target = primary_target, raider = root, travel_time = travel_time, army = army },
-				travel_time
-			)
-			--print("done")
+			MilitaryEffects.covert_raid(root, primary_target)
 		end
 	}
 end

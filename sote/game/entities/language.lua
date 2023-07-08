@@ -9,16 +9,16 @@ local SyllableType = { 'V', 'CV', 'CrV', 'CVn', 'CnV', 'ClV', 'CVC', 'VC' }
 ---@field syllables table<number, string>
 ---@field consonants table<number, string>
 ---@field vowels table<number, string>
----@field new fun():Language
----@field random_vowel fun():string
----@field random_consonant fun():string
----@field random_syllable fun():string
+---@field new fun(self:Language):Language
+---@field random_vowel fun(self:Language):string
+---@field random_consonant fun(self:Language):string
+---@field random_syllable fun(self:Language):string
 ---@field random_word fun(self:Language, word_length:number):string
----@field get_random_culture_name fun():string
----@field get_random_faith_name fun():string
----@field get_random_realm_name fun():string
----@field get_random_province_name fun():string
----@field get_random_name fun():string
+---@field get_random_culture_name fun(self:Language):string
+---@field get_random_faith_name fun(self:Language):string
+---@field get_random_realm_name fun(self:Language):string
+---@field get_random_province_name fun(self:Language):string
+---@field get_random_name fun(self:Language):string
 
 ---@type Language
 lang.Language = {}

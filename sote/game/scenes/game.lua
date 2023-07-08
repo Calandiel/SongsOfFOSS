@@ -115,6 +115,7 @@ function gam.init()
 	gam.planet_shader = require "game.scenes.game.planet-shader".get_shader()
 	gam.paused = true
 	gam.speed = 1
+	
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
 	gam.inspector = nil
@@ -143,6 +144,20 @@ function gam.init()
 	end
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
+    
+	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
+	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
+    
+    local imd2 = love.image.newImageData(dim, dim, "rgba8")
+	for x = 1, dim do
+		for y = 1, dim do
+			imd2:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
+		end
+	end
+	gam.tile_improvement_texture_data = imd2
+	gam.tile_improvement_texture = love.graphics.newImage(imd2)
+    
+    
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
 
@@ -202,6 +217,10 @@ function gam.handle_camera_controls()
 		if ui.is_key_held('lshift') then
 			camera_speed = camera_speed * 3
 			zoom_speed = zoom_speed * 3
+		end
+		if ui.is_key_held('lctrl') then
+			camera_speed = camera_speed / 6
+			zoom_speed = zoom_speed / 6
 		end
 		local mouse_zoom_sensor_size = 3
 		local mouse_x, mouse_y = ui.mouse_position()
@@ -285,8 +304,43 @@ function gam.draw()
 
 	local model = cpml.mat4.identity()
 	local view = cpml.mat4.identity()
-	view:look_at(gam.camera_position, origin_point, up_direction)
-	local projection = cpml.mat4.from_perspective(45, love.graphics.getWidth() / love.graphics.getHeight(), 0.01, 10)
+	-- local old_view = cpml.mat4.identity()
+
+	local l = gam.camera_position:len()
+	local t = math.min(math.max((2 - l), 0), 0.5)
+
+	local z = gam.camera_position
+	local x = cpml.vec3.cross(up_direction, gam.camera_position)
+	local y = cpml.vec3.cross(x, z):normalize()
+	local shift = y:scale(t)
+
+	local projection_z = z.x * z.x + z.z * z.z
+	local projection_shift = shift.x * shift.x + shift.z * shift.z
+	local sign = 1
+	if ((projection_shift > projection_z) and (z.y > 0)) then
+		sign = -1
+	end
+
+	-- love.graphics.print(tostring(projection_z) .. " " .. tostring(projection_shift) .. " " .. tostring(z.y) .. " " .. tostring(sign), 0, 0, 0)
+	
+	view:look_at(gam.camera_position, origin_point:add(shift), up_direction:scale(sign))
+	
+
+	-- local z = gam.camera_position:clone():normalize():rotate(t, rotation_axis)
+	-- local x = cpml.vec3.cross(up_direction, z):normalize()
+	-- local y = cpml.vec3.cross(z, x):normalize()
+	-- local shift = {0, 0, -l}
+
+	-- view[1], view[5], view[9] = x:unpack()
+	-- view[2], view[6], view[10] = y:unpack()
+	-- view[3], view[7], view[11] = z:unpack()
+	-- view[13], view[14], view[15] = unpack(shift)
+
+	-- view[13] = 0
+	-- view[14] = 0 * (t) - (1.015) * (1 - t)
+	-- view[15] = -l * (t) + 0.05 * (1 - t)
+	-- view[16] = 1
+	local projection = cpml.mat4.from_perspective(60, love.graphics.getWidth() / love.graphics.getHeight(), 0.01, 10)
 
 	-- Screen point to ray maths!
 	-- First, get the mouse position in a [0, 1] space
@@ -329,6 +383,9 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("tile_colors") then
 		gam.planet_shader:send('tile_colors', gam.tile_color_texture)
 	end
+    if gam.planet_shader:hasUniform("tile_improvement_texture") then
+		gam.planet_shader:send('tile_improvement_texture', gam.tile_improvement_texture)
+	end
 	if gam.planet_shader:hasUniform("world_size") then
 		gam.planet_shader:send('world_size', WORLD.world_size)
 	end
@@ -347,6 +404,14 @@ function gam.draw()
 		end
 		gam.planet_shader:send('tile_provinces', gam.tile_province_texture)
 	end
+	if gam.planet_shader:hasUniform("tile_raiding_targets") then
+		if gam.map_mode == "atlas" then
+			gam.planet_shader:send('tile_raiding_targets', gam.tile_raiding_targets_texture or gam.empty_texture)
+		else
+			gam.planet_shader:send('tile_raiding_targets', gam.empty_texture)
+		end
+	end
+
 	love.graphics.setDepthMode("lequal", true)
 	love.graphics.clear()
 	love.graphics.draw(gam.planet_mesh)
@@ -354,10 +419,130 @@ function gam.draw()
 	love.graphics.setCanvas()
 	love.graphics.draw(gam.game_canvas)
 
+	-- love.graphics.print(old_view:to_string(), 10, 10)
+	-- love.graphics.print(view:to_string(), 10, 30)
+	-- love.graphics.print(z:to_string(), 10, 30)
+	-- love.graphics.print(x:to_string(), 10, 50)
+	-- love.graphics.print(y:to_string(), 10, 80)
+
+
+
 
 	-- ##########
 	-- ### UI ###
 	-- ##########
+
+
+
+	-- Just for debugging of tile graphics rendering
+	local province_on_map_interaction = false
+
+	if gam.camera_position:len() < 1.25 then
+		local mpfx = 0.5
+		local mpfy = 0.5
+		local vp = projection * view
+		local inv_vp = cpml.mat4.identity()
+		inv_vp:invert(vp)
+		local cp = inv_vp * cpml.vec3.new(
+			2 * mpfx - 1,
+			2 * mpfy - 1,
+			0
+		)
+		local coll_point, dist = cpml.intersect.ray_sphere({
+			position = gam.camera_position,
+			direction = (cp - gam.camera_position):normalize()
+		}, {
+			position = origin_point,
+			radius = 1.0
+		})
+		if coll_point then
+			local refx, refy = ui.get_reference_screen_dimensions()
+			local size = 35
+			local draw_tile = function(tile)
+				---@type Tile
+				local tile = tile
+				local lat, lon = tile:latlon()
+				local ll = require "game.latlon"
+				local cartx, carty, cartz = ll.lat_lon_to_cart(lat, lon)
+				coll_point.x = cartx
+				coll_point.y = carty
+				coll_point.z = cartz
+				local cart = coll_point;
+				local vv = vp * cart
+				vv.x = vv.x / 2
+				vv.y = vv.y / 2
+				vv.z = vv.z / 2
+				local x = (vv.x + 0.5) * refx
+				local y = (vv.y + 0.5) * refy
+
+				local province_visible = true
+				if WORLD.player_realm then
+					province_visible = false
+					if WORLD.player_realm.known_provinces[tile.province] then
+						province_visible = true
+					end
+				end
+				if (tile.is_land and province_visible) then
+					local rect = ui.rect(x - size / 2, y - size / 2, size, size)
+					if tile.province.realm and tile.province.center == tile then
+						ui.image(ASSETS.get_icon('village.png'), rect)
+						local name_width = size * 3
+						local name_rect = ui.rect(x - size / 5, y - size / 2 - 50, name_width, size / 2)
+						local population_rect = ui.rect(x - size / 5, y - 50, name_width, size / 2)				
+						local button_rect = ui.rect(x - size / 5 + name_width, y - size / 2 - 50, size, size)
+						local line_rect = ui.rect(x - 1, y - 50 + size / 2, 2, 50 - size / 2)			
+						ui.rectangle(line_rect)
+						local population = tile.province:population()
+						ui.name_panel(tile.province.name, name_rect)
+						ui.field_panel(tostring(population), population_rect)
+						if WORLD.player_realm then
+							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
+								WORLD.player_realm:toggle_raiding_target(tile.province)
+								gam.recalculate_raiding_targets_map()
+								province_on_map_interaction = true
+								return true
+							end
+						end
+					elseif tile.resource then
+						ui.image(ASSETS.get_icon(tile.resource.icon), rect)
+						--elseif tile.tile_improvement then
+						--ui.image(ASSETS.get_icon(tile.tile_improvement.type.map_texture), rect)
+					else
+						--[[
+						if tile.elevation > 2500.0 then
+							ui.image(ASSETS.get_icon("0_mountain.png"), rect)
+						else
+							ui.image(ASSETS.get_icon("oak.png"), rect)
+						end
+						--]]
+					end
+				end
+
+				return false
+			end
+
+			local visited = {}
+			local qq = require "engine.queue":new()
+			local to_draw = 3500
+			local center_tile = WORLD.tiles[tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)]
+			visited[center_tile] = center_tile
+			qq:enqueue(center_tile)
+			while qq:length() > 0 and to_draw > 0 do
+				to_draw = to_draw - 1
+				---@type Tile
+				local td = qq:dequeue()
+				draw_tile(td)
+				for n in td:iter_neighbors() do
+					if visited[n] then
+					else
+						visited[n] = n
+						qq:enqueue(n)
+					end
+				end
+			end
+		end
+	end
+
 	local ut = require "game.ui-utils"
 
 	local fs = ui.fullscreen()
@@ -375,6 +560,7 @@ function gam.draw()
 		:flipped()
 		:build()
 	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT) -- skip!
+
 
 	-- Bottom bar
 	local bottom_bar = ui.layout_builder()
@@ -619,7 +805,7 @@ function gam.draw()
 			click_success = require "game.scenes.game.war-inspector".mask()
 		end
 
-		if click_success and not mouse_in_bottom_right and (require "game.scenes.game.top-bar".mask(gam)) then
+		if click_success and not mouse_in_bottom_right and (require "game.scenes.game.top-bar".mask(gam)) and not province_on_map_interaction then
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false
@@ -743,6 +929,25 @@ function gam.recalculate_province_map()
 	gam.tile_province_texture:setFilter("nearest", "nearest")
 end
 
+function gam.recalculate_raiding_targets_map()
+	local dim = WORLD.world_size * 3
+	gam.tile_raiding_targets_image_data = love.image.newImageData(dim, dim, "rgba8")
+	for _, tile in pairs(WORLD.tiles) do
+		local x, y = gam.tile_id_to_color_coords(tile)
+		if tile.province and WORLD.player_realm and WORLD.player_realm.raiding_targets[tile.province] then
+			local r = 1
+			local g = 0
+			local b = 0
+			gam.tile_raiding_targets_image_data:setPixel(x, y, r, g, b, 1)
+		end
+	end
+	gam.tile_raiding_targets_texture = love.graphics.newImage(gam.tile_raiding_targets_image_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_province_texture:setFilter("nearest", "nearest")
+end
+
 ---Refreshes the map mode
 function gam.refresh_map_mode()
 	local tim = love.timer.getTime()
@@ -766,6 +971,12 @@ function gam.refresh_map_mode()
 			local g = tile.real_g
 			local b = tile.real_b
 			gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+            if tile.tile_improvement and gam.map_mode == "atlas" then
+                gam.tile_improvement_texture_data:setPixel(x, y, 1, 0, 0, 1)
+            else 
+                gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
+            end
+            
 		else
 			gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 		end
@@ -773,6 +984,10 @@ function gam.refresh_map_mode()
 	-- Update the texture
 	gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 	gam.tile_color_texture:setFilter("nearest", "nearest")
+    
+    gam.tile_improvement_texture = love.graphics.newImage(gam.tile_improvement_texture_data)
+    gam.tile_improvement_texture:setFilter("nearest", "nearest")
+    
 	-- Update the minimap
 	gam.minimap = require "game.minimap".make_minimap()
 

@@ -20,7 +20,7 @@ local tabb = require "engine.table"
 ---@field ai_weight number how much the AI will prioritize building this building
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 ---@field new fun(self:BuildingType, o:BuildingType):BuildingType
----@field get_tooltip fun():string
+---@field get_tooltip fun(self:BuildingType):string
 
 ---@type BuildingType
 BuildingType = {}

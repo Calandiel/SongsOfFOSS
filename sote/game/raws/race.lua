@@ -42,6 +42,7 @@
 ---@field male_meat_needs number
 ---@field male_clothing_needs number
 ---@field male_infrastructure_needs number
+---@field requires_large_river boolean
 
 ---@type Race
 local Race = {}
@@ -95,6 +96,8 @@ function Race:new(o)
 	r.male_clothing_needs = 0.1
 	r.male_infrastructure_needs = 1
 	r.carrying_capacity_weight = 1
+
+	r.requires_large_river = false
 
 	for k, v in pairs(o) do
 		r[k] = v

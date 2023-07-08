@@ -15,14 +15,14 @@
 ---@field education_investment number
 ---@field education_endowment_needed number
 ---@field monthly_education_investment number
----@field get_education_efficiency fun():number
----@field get_average_mood fun():number
----@field get_total_population fun():number
+---@field get_education_efficiency fun(self:Realm):number
+---@field get_average_mood fun(self:Realm):number
+---@field get_total_population fun(self:Realm):number
 ---@field court_wealth number
 ---@field court_investment number
 ---@field court_wealth_needed number
 ---@field monthly_court_investment number
----@field get_court_efficiency fun():number
+---@field get_court_efficiency fun(self:Realm):number
 ---@field r number
 ---@field g number
 ---@field b number
@@ -31,8 +31,13 @@
 ---@field primary_faith Faith
 ---@field capitol Province
 ---@field provinces table<Province, Province>
+---@field raiding_targets table<Province, Province>
+---@field toggle_raiding_target fun(self:Realm, province:Province)
+---@field add_raiding_target fun(self:Realm, province:Province)
+---@field remove_raiding_target fun(self:Realm, province:Province)
+---@field random_raiding_target fun(self:Realm): Province
 ---@field add_province fun(self:Realm, province:Province)
----@field new fun():Realm
+---@field new fun(self:Realm):Realm
 ---@field known_provinces table<Province, Province> For terra incognita.
 ---@field explore fun(self:Realm, province:Province)
 ---@field get_explore_cost fun(self:Realm, province:Province): number
@@ -60,7 +65,7 @@
 ---@field expected_food_consumption number
 ---@field get_realm_population fun(self:Realm):number
 ---@field get_realm_military fun(self:Realm):number Returns a sum of "unraised" military and active armies
----@field get_realm_ready_military fun(self:Rect):number Returns the "unraised" military
+---@field get_realm_ready_military fun(self:Realm):number Returns the "unraised" military
 ---@field get_realm_military_target fun(self:Realm):number Returns the sum of military targets, not that it DOESNT include active armies.
 ---@field get_realm_active_army_size fun(self:Realm):number Returns the size of active armies on the field
 ---@field get_realm_militarization fun(self:Realm):number
@@ -87,7 +92,7 @@ function realm.Realm:new()
 	---@type Realm
 	local o = {}
 
-	print("a")
+	-- print("a")
 
 	o.name = "<realm>"
 	o.wars = {}
@@ -114,6 +119,7 @@ function realm.Realm:new()
 	o.military_spending = 0
 	o.realized_military_spending = 1
 	o.provinces = {}
+	o.raiding_targets = {}
 	o.bought = {}
 	o.sold = {}
 	o.known_provinces = {}
@@ -129,24 +135,24 @@ function realm.Realm:new()
 	o.coa_emblem_r = love.math.random()
 	o.coa_emblem_g = love.math.random()
 	o.coa_emblem_b = love.math.random()
-	print("bbb")
+	-- print("bbb")
 	o.coa_background_image = love.math.random(#ASSETS.coas)
 	o.coa_foreground_image = love.math.random(#ASSETS.coas)
 	o.resources = {}
 	o.production = {}
 	o.armies = {}
-	print("bb")
+	-- print("bb")
 	if love.math.random() < 0.6 then
 		o.coa_emblem_image = love.math.random(#ASSETS.emblems)
 	else
 		o.coa_emblem_image = 0 -- have a lot of "empty" emblems so that not everything is a frog
 	end
 
-	print("b")
+	-- print("b")
 	o.realm_id = WORLD.entity_counter
 	WORLD.entity_counter = WORLD.entity_counter + 1
 	WORLD.realms[o.realm_id] = o
-	print("c")
+	-- print("c")
 	setmetatable(o, realm.Realm)
 	return o
 end
@@ -159,6 +165,32 @@ function realm.Realm:add_province(prov)
 	end
 	self.provinces[prov] = prov
 	prov.realm = self
+end
+
+---Adds a province to the realm's raiding targets.
+---@param prov Province
+function realm.Realm:add_raiding_target(prov)
+	self.raiding_targets[prov] = prov
+end
+
+function realm.Realm:remove_raiding_target(prov)
+	self.raiding_targets[prov] = nil
+end
+
+function realm.Realm:toggle_raiding_target(prov)
+	if self.raiding_targets[prov] then
+		self:remove_raiding_target(prov)
+	else
+		self:add_raiding_target(prov)
+	end
+end
+
+function realm.Realm:random_raiding_target()
+	local targets = {}
+	for k in pairs(self.raiding_targets) do
+		table.insert(targets, k)
+	end
+	return self.raiding_targets[targets[math.random(#targets)]]
 end
 
 ---Adds a province to the explored provinces list.

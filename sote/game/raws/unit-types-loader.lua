@@ -5,8 +5,8 @@ function d.load()
 	local tec = require "game.raws.raws-utils".technology
 
 	UnitType:new {
-		name = 'light-infantry',
-		description = 'light infantry',
+		name = 'raiders',
+		description = 'Raiders',
 		icon = 'round-shield.png',
 		r = 0.32,
 		g = 0.42,
@@ -16,17 +16,17 @@ function d.load()
 		supply_useds = 1,
 		trade_good_requirements = {},
 		base_health = 40,
-		base_attack = 5,
+		base_attack = 5.5,
 		base_armor = 1,
-		speed = 1,
-		foraging = 0.1,
+		speed = 1.5,
+		foraging = 0.2,
 		bonuses = {},
-		supply_capacity = 3,
+		supply_capacity = 4,
 		unlocked_by = tec('paleolithic-knowledge')
 	}
 	UnitType:new {
-		name = 'spearmen',
-		description = 'spearmen',
+		name = 'guards',
+		description = 'Guards',
 		icon = 'stone-spear.png',
 		r = 0.42,
 		g = 0.42,
@@ -45,8 +45,8 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge')
 	}
 	UnitType:new {
-		name = 'archers',
-		description = 'archers',
+		name = 'skirmishers',
+		description = 'Skirmishers',
 		icon = 'bow-arrow.png',
 		r = 0.32,
 		g = 0.92,

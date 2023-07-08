@@ -36,7 +36,8 @@ function dem.population()
 	ut.simple_hue_map_mode(function(tile)
 		---@type Tile
 		local t = tile
-		return math.max(0, t.province:population() - 10) / 100
+		if (t.province.size == 0) then return 0 end
+		return math.max(0, t.province:population() - 10) / t.province.size
 	end)
 end
 

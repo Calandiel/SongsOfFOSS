@@ -11,6 +11,10 @@
 ---@field done_expanding boolean
 ---@field current_tiles table
 ---@field next_tiles table
+---@field expansion_rate number
+---@field plate_neighbors Plate[]
+---@field plate_edge Tile[]
+---@field plate_boundaries Tile[]
 
 local plate = {}
 

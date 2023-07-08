@@ -244,6 +244,12 @@ function mm.set_up_map_modes(game_thingy)
 			"A debug map mode showing the debug color that was set on tiles by the developers!",
 			debug_map_modes.debug_color
 		},
+        atlas = {
+			"Atlas",
+			"flying-flag.png",
+			"Shows combined information.",
+			political_map_modes.atlas
+		},
 	}
 	game_thingy.map_mode_tabs = {}
 	game_thingy.map_mode_selected_tab = "all"
@@ -256,7 +262,7 @@ function mm.set_up_map_modes(game_thingy)
 		'races', 'cultures', 'faiths', "military_target", "military", 'diplomacy'
 	}
 	game_thingy.map_mode_tabs.political = {
-		"realms", "province", "diplomacy",
+		"realms", "province", "atlas", "diplomacy"
 	}
 	game_thingy.map_mode_tabs.demographic = {
 		"population", 'technologies', 'races', 'cultures', 'faiths',

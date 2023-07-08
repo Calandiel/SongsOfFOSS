@@ -151,4 +151,10 @@ function ut.event(id)
 	return r
 end
 
+---@param x string
+---@return fun(): string
+function ut.constant_string(x)
+	return function () return x end
+end
+
 return ut

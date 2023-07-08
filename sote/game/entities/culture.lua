@@ -6,7 +6,7 @@ local cl = {}
 ---@field g number
 ---@field b number
 ---@field language Language
----@field new fun():CultureGroup
+---@field new fun(self:CultureGroup):CultureGroup
 
 ---@class Culture
 ---@field name string

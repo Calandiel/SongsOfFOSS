@@ -8,8 +8,9 @@ local prov = {}
 ---@field g number
 ---@field b number
 ---@field province_id number
----@field new fun():Province
+---@field new fun(self:Province):Province
 ---@field add_tile fun(self: Province, tile: Tile)
+---@field size number
 ---@field tiles table<Tile, Tile>
 ---@field hydration number Number of humans that can live of off this provinces innate water
 ---@field neighbors table<Province, Province>
@@ -18,15 +19,15 @@ local prov = {}
 ---@field infrastructure_needed number
 ---@field infrastructure number
 ---@field infrastructure_investment number
----@field get_infrastructure_efficiency fun():number
+---@field get_infrastructure_efficiency fun(self:Province):number
 ---@field realm Realm?
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
 ---@field neighbors_realm fun(self:Province, realm:Realm):boolean Returns whether or not a province borders a given realm
----@field military fun():number
----@field military_target fun():number
----@field population fun():number
----@field population_weight fun():number
+---@field military fun(self:Province):number
+---@field military_target fun(self:Province):number
+---@field population fun(self:Province):number
+---@field population_weight fun(self:Province):number
 ---@field add_pop fun(self:Province, pop:POP)
 ---@field kill_pop fun(self:Province, pop:POP)
 ---@field fire_pop fun(self:Province, pop:POP)
@@ -51,21 +52,22 @@ local prov = {}
 ---@field outlaws table<POP, POP>
 ---@field outlaw_pop fun(self:Province, pop:POP) Marks a pop as an outlaw
 ---@field recruit fun(self:Province, pop:POP, unit_type:UnitType) Marks a pop as a soldier of a given type
----@field get_dominant_culture fun():Culture|nil
----@field get_dominant_faith fun():Faith|nil
----@field get_dominant_race fun():Race|nil
+---@field get_dominant_culture fun(self:Province):Culture|nil
+---@field get_dominant_faith fun(self:Province):Faith|nil
+---@field get_dominant_race fun(self:Province):Race|nil
 ---@field soldiers table<POP, UnitType>
 ---@field unit_types table<UnitType, UnitType>
 ---@field units table<UnitType, table<POP, POP>> Recruited units
 ---@field units_target table<UnitType, number> Units to recruit
----@field get_spotting fun():number Returns the local "spotting" power
----@field get_hiding fun():number Returns the local "hiding" space
+---@field get_spotting fun(self:Province):number Returns the local "spotting" power
+---@field get_hiding fun(self:Province):number Returns the local "hiding" space
 ---@field army_spot_test fun(self:Province, army:Army):boolean Performs an army spotting test in this province.
----@field get_job_ratios fun():table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
----@field get_unemployment fun():number Returns the number of unemployed people in the province.
+---@field get_job_ratios fun(self:Province):table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
+---@field get_unemployment fun(self:Province):number Returns the number of unemployed people in the province.
 ---@field throughput_boosts table<ProductionMethod, number>
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
+---@field on_a_river boolean
 
 local col = require "game.color"
 
@@ -93,6 +95,7 @@ function prov.Province:new()
 	o.mood = 0
 	o.province_id = WORLD.entity_counter
 	o.tiles = {}
+	o.size = 0
 	o.neighbors = {}
 	o.movement_cost = 1
 	o.foragers_limit = 0
@@ -120,6 +123,7 @@ function prov.Province:new()
 	o.throughput_boosts = {}
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
+	o.on_a_river = false
 	WORLD.entity_counter = WORLD.entity_counter + 1
 	WORLD.provinces[o.province_id] = o
 
@@ -131,9 +135,11 @@ end
 ---@param tile Tile
 function prov.Province:add_tile(tile)
 	if tile.province ~= nil then
+		tile.province.size = tile.province.size - 1
 		tile.province.tiles[tile] = nil
 	end
 	self.tiles[tile] = tile
+	self.size = self.size + 1
 	tile.province = self
 end
 
