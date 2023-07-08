@@ -16,7 +16,7 @@ local tabb = require "engine.table"
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
 ---@field unlocked_unit_types table<number, UnitType>
 ---@field associated_job Job|nil The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
----@field get_tooltip fun():string
+---@field get_tooltip fun(self:Technology):string
 ---@field throughput_boosts table<ProductionMethod, number>
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>

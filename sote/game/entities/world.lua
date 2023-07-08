@@ -355,7 +355,7 @@ function world.World:tick()
 							explore.run(settled_province.realm)
 							treasury.run(settled_province.realm)
 							military.run(settled_province.realm)
-						end
+						end						
 						--print("Construct")
 						construct.run(settled_province.realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 						--print("Court")
@@ -371,6 +371,13 @@ function world.World:tick()
 						if settled_province.realm ~= WORLD.player_realm then
 							--print("Decide")
 							decide.run(settled_province.realm)
+						end
+
+
+						--- update raiding 
+						local target = settled_province.realm:random_raiding_target()
+						if target ~= nil then
+							MilitaryEffects.covert_raid(settled_province.realm, target)
 						end
 					end
 				end

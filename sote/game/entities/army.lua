@@ -39,7 +39,7 @@ function army:get_loot_capacity()
 		if pop.female then
 			c = pop.race.female_body_size
 		end
-		cap = cap + c
+		cap = cap + c + unit.supply_capacity / 4
 	end
 	return cap
 end

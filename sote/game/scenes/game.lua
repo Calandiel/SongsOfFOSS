@@ -115,6 +115,7 @@ function gam.init()
 	gam.planet_shader = require "game.scenes.game.planet-shader".get_shader()
 	gam.paused = true
 	gam.speed = 1
+	
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
 	gam.inspector = nil
@@ -144,6 +145,8 @@ function gam.init()
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
     
+	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
+	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
     
     local imd2 = love.image.newImageData(dim, dim, "rgba8")
 	for x = 1, dim do
@@ -401,6 +404,14 @@ function gam.draw()
 		end
 		gam.planet_shader:send('tile_provinces', gam.tile_province_texture)
 	end
+	if gam.planet_shader:hasUniform("tile_raiding_targets") then
+		if gam.map_mode == "atlas" then
+			gam.planet_shader:send('tile_raiding_targets', gam.tile_raiding_targets_texture or gam.empty_texture)
+		else
+			gam.planet_shader:send('tile_raiding_targets', gam.empty_texture)
+		end
+	end
+
 	love.graphics.setDepthMode("lequal", true)
 	love.graphics.clear()
 	love.graphics.draw(gam.planet_mesh)
@@ -414,7 +425,18 @@ function gam.draw()
 	-- love.graphics.print(x:to_string(), 10, 50)
 	-- love.graphics.print(y:to_string(), 10, 80)
 
+
+
+
+	-- ##########
+	-- ### UI ###
+	-- ##########
+
+
+
 	-- Just for debugging of tile graphics rendering
+	local province_on_map_interaction = false
+
 	if gam.camera_position:len() < 1.25 then
 		local mpfx = 0.5
 		local mpfy = 0.5
@@ -452,10 +474,6 @@ function gam.draw()
 				vv.z = vv.z / 2
 				local x = (vv.x + 0.5) * refx
 				local y = (vv.y + 0.5) * refy
-				local rect = ui.rect(x - size / 2, y - size / 2, size, size)
-				local name_rect = ui.rect(x - size / 5, y - size / 2 - 50, size * 2.5, size / 2)
-				local population_rect = ui.rect(x - size / 5, y - 50, size * 2.5, size / 2)
-				local line_rect = ui.rect(x - 1, y - 50 + size / 2, 2, 50 - size / 2)
 
 				local province_visible = true
 				if WORLD.player_realm then
@@ -465,12 +483,26 @@ function gam.draw()
 					end
 				end
 				if (tile.is_land and province_visible) then
+					local rect = ui.rect(x - size / 2, y - size / 2, size, size)
 					if tile.province.realm and tile.province.center == tile then
 						ui.image(ASSETS.get_icon('village.png'), rect)
+						local name_width = size * 3
+						local name_rect = ui.rect(x - size / 5, y - size / 2 - 50, name_width, size / 2)
+						local population_rect = ui.rect(x - size / 5, y - 50, name_width, size / 2)				
+						local button_rect = ui.rect(x - size / 5 + name_width, y - size / 2 - 50, size, size)
+						local line_rect = ui.rect(x - 1, y - 50 + size / 2, 2, 50 - size / 2)			
 						ui.rectangle(line_rect)
 						local population = tile.province:population()
 						ui.name_panel(tile.province.name, name_rect)
 						ui.field_panel(tostring(population), population_rect)
+						if WORLD.player_realm then
+							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
+								WORLD.player_realm:toggle_raiding_target(tile.province)
+								gam.recalculate_raiding_targets_map()
+								province_on_map_interaction = true
+								return true
+							end
+						end
 					elseif tile.resource then
 						ui.image(ASSETS.get_icon(tile.resource.icon), rect)
 						--elseif tile.tile_improvement then
@@ -485,7 +517,10 @@ function gam.draw()
 						--]]
 					end
 				end
+
+				return false
 			end
+
 			local visited = {}
 			local qq = require "engine.queue":new()
 			local to_draw = 3500
@@ -508,9 +543,6 @@ function gam.draw()
 		end
 	end
 
-	-- ##########
-	-- ### UI ###
-	-- ##########
 	local ut = require "game.ui-utils"
 
 	local fs = ui.fullscreen()
@@ -528,6 +560,7 @@ function gam.draw()
 		:flipped()
 		:build()
 	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT) -- skip!
+
 
 	-- Bottom bar
 	local bottom_bar = ui.layout_builder()
@@ -772,7 +805,7 @@ function gam.draw()
 			click_success = require "game.scenes.game.war-inspector".mask()
 		end
 
-		if click_success and not mouse_in_bottom_right and (require "game.scenes.game.top-bar".mask(gam)) then
+		if click_success and not mouse_in_bottom_right and (require "game.scenes.game.top-bar".mask(gam)) and not province_on_map_interaction then
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false
@@ -890,6 +923,25 @@ function gam.recalculate_province_map()
 		end
 	end
 	gam.tile_province_texture = love.graphics.newImage(gam.tile_province_image_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_province_texture:setFilter("nearest", "nearest")
+end
+
+function gam.recalculate_raiding_targets_map()
+	local dim = WORLD.world_size * 3
+	gam.tile_raiding_targets_image_data = love.image.newImageData(dim, dim, "rgba8")
+	for _, tile in pairs(WORLD.tiles) do
+		local x, y = gam.tile_id_to_color_coords(tile)
+		if tile.province and WORLD.player_realm and WORLD.player_realm.raiding_targets[tile.province] then
+			local r = 1
+			local g = 0
+			local b = 0
+			gam.tile_raiding_targets_image_data:setPixel(x, y, r, g, b, 1)
+		end
+	end
+	gam.tile_raiding_targets_texture = love.graphics.newImage(gam.tile_raiding_targets_image_data, {
 		mipmaps = false,
 		linear = true
 	})

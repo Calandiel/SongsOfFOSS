@@ -19,6 +19,7 @@ function pla.get_shader()
 		uniform float world_size;
 		uniform sampler2D tile_colors;
         uniform sampler2D tile_improvement_texture;
+		uniform sampler2D tile_raiding_targets;
 		uniform sampler2D tile_provinces;
 		uniform float clicked_tile;
 		uniform float camera_distance_from_sphere;
@@ -50,6 +51,11 @@ function pla.get_shader()
 
 		float max3(vec4 a) {
 			return max(a.r, max(a.g, a.b));
+		}
+
+
+		vec4 mix(vec4 a, vec4 b, float alpha) {
+			return a * (1 - alpha) + b * alpha;
 		}
 
 		vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord)
@@ -89,6 +95,7 @@ function pla.get_shader()
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			vec4 texcolor = Texel(tile_colors, face_offset);
             vec4 texcolor_improv = Texel(tile_improvement_texture, face_offset);
+			vec4 texcolor_raiding = Texel(tile_raiding_targets, face_offset);
             
             
             if (camera_distance_from_sphere < 1) {
@@ -186,8 +193,13 @@ function pla.get_shader()
 				}
                 
 			}
-            
-			return texcolor * color;
+
+			float raiding_target_indicator = 0.0;
+			if (texcolor_raiding.r > 0.5) {
+				raiding_target_indicator = abs(fract(time * 0.2) - 0.5);
+			}
+			vec4 red_overlay = vec4(1, 0, 0, 1);            
+			return texcolor * mix(color, red_overlay, raiding_target_indicator);
 		}
 	]]
 

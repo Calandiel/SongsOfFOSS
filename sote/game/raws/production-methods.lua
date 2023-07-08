@@ -6,7 +6,7 @@
 ---@field g number
 ---@field b number
 ---@field jobs table<Job, number>
----@field total_jobs fun():number
+---@field total_jobs fun(self:ProductionMethod):number
 ---@field inputs table<TradeGood, number>
 ---@field outputs table<TradeGood, number>
 ---@field new fun(self:ProductionMethod, o:ProductionMethod):ProductionMethod
