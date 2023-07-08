@@ -1,3 +1,5 @@
+local utils = require "game.raws.raws-utils"
+
 ---@alias DecisionTarget 'none' | 'character' | 'tile' | 'province' | 'realm' | 'building'
 
 ---@class Decision
@@ -7,7 +9,7 @@
 ---@field sorting number Controls how high or how low on the list of available decisions this decision is in the UI
 ---@field name string
 ---@field ui_name string
----@field tooltip string|fun(root:Realm, primary_target:any):string
+---@field tooltip fun(root:Realm, primary_target:any):string
 ---@field effect fun(root:Realm, primary_target:any, secondary_target:any) Called when the action is taken
 ---@field pretrigger fun(root:Realm):boolean A quick check before any other checks to cull potential decision takers
 ---@field clickable fun(root:Realm, primary_target:any):boolean Determines whether or not the decision is visible to the player
@@ -29,7 +31,7 @@ function Decision:new(i)
 
 	o.name = "<decision>"
 	o.ui_name = "decision"
-	o.tooltip = "This is a decision!"
+	o.tooltip = utils.constant_string("This is a decision!")
 	o.primary_target = 'none'
 	o.secondary_target = 'none'
 	o.sorting = 1

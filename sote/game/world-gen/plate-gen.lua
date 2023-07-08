@@ -235,6 +235,8 @@ function plate_gen.run()
 			iterator = iterator + 1
 			---@type Tile -- a type hint for autocompletion
 			---@type Plate -- a type hint for autocompletion
+			plate = plate
+
 			local plate_direction = love.math.random(4) -- create a random number between 1 and 4 (both inclusive)
 			local plate_speed_floor = love.math.random(speed_floor, speed_ceiling) -- a random integer betweeen speed floor and speed ceil
 
@@ -490,8 +492,9 @@ function plate_gen.run()
 				end
 			end
 		until (recalculate_due_to_envelopment == false)
+		print("Plates removed due to envelopment: " .. tostring(plates_removed))
 	end
-	print("Plates removed due to envelopment: " .. tostring(plates_removed))
+		
 	--- We want to first check to see if envelopment is a problem at all, because there is no need to run the rejigger 
 	--- if there is no problem!
 	--- So first we check for problem plates.  If plate is a problem, immediately transfer all tiles to enveloping plate.

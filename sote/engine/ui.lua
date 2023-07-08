@@ -650,15 +650,15 @@ function Layout:next(width, height)
 end
 
 ---@class LayoutBuilder
----@field new fun():LayoutBuilder
+---@field new fun(self: LayoutBuilder):LayoutBuilder
 ---@field position fun(self:LayoutBuilder,x:number,y:number):LayoutBuilder
 ---@field spacing fun(self:LayoutBuilder,space:number):LayoutBuilder
 ---@field horizontal fun(self:LayoutBuilder,left:boolean|nil):LayoutBuilder
 ---@field vertical fun(self:LayoutBuilder,up:boolean|nil):LayoutBuilder
 ---@field grid fun(self:LayoutBuilder,entries_per_row:number):LayoutBuilder
----@field flipped fun():LayoutBuilder
----@field centered fun():LayoutBuilder
----@field build fun():Layout
+---@field flipped fun(self: LayoutBuilder):LayoutBuilder
+---@field centered fun(self: LayoutBuilder):LayoutBuilder
+---@field build fun(self: LayoutBuilder):Layout
 local LayoutBuilder = {}
 LayoutBuilder.__index = LayoutBuilder
 function LayoutBuilder:new()

@@ -162,9 +162,34 @@ function pro.run()
 	---comment
 	---@param tile Tile
 	---@param depth number
+	---@param searched table<Tile, boolean>
+	---@return Tile?
+	local function river_search(tile, depth, searched)
+		if depth == 0 then return nil end
+		if tile:average_waterflow() >= water_thre then
+			return tile
+		end
+		searched[tile] = true
+		for n in tile:iter_neighbors() do
+			if n.is_land == tile.is_land and not searched[n] then
+				local response = river_search(n, depth - 1, searched)
+				if response then
+					return response
+				end
+			end
+		end
+		return nil
+	end
+
+	---comment
+	---@param tile Tile
+	---@param depth number
 	---@param province Province
 	local function waterflow_recursion(tile, depth, low_waterflow_counter, province) 
-		if depth == 0 then return end
+		if depth == 0 then 
+			return river_search(tile, 4, {})
+		end
+
 		-- print(tile:average_waterflow(), low_waterflow_counter, tile.province ~= nil)
 		if (tile:average_waterflow() < water_thre) and (low_waterflow_counter == 0) then return end
 		-- if (not check_neighs(tile)) then return end
@@ -184,10 +209,28 @@ function pro.run()
 		tile:set_debug_color(1, 1, 1)
 		tile.temp = true
 
+		local response = nil
 		for n in tile:iter_neighbors() do
 			if n.is_land == tile.is_land then
-				waterflow_recursion(n, depth - 1, math.min(water_seek, low_waterflow_counter + d), province)
+				local next_tile =  waterflow_recursion(n, depth - 1, math.min(water_seek, low_waterflow_counter + d), province)
+				if next_tile then
+					response = next_tile
+				end
 			end
+		end
+		return response
+	end
+
+	---comment
+	---@param tile Tile
+	local function river_gen_province_recursion(tile) 
+		local new_province = pp.Province:new()
+		new_province.center = tile
+		local next_tile = waterflow_recursion(tile, 40, water_seek, new_province)
+		new_province.on_a_river = true
+
+		if next_tile ~= nil then
+			river_gen_province_recursion(next_tile)
 		end
 	end
 
@@ -205,19 +248,7 @@ function pro.run()
 			failsafe = failsafe + 1
 			if failsafe > WORLD:tile_count() / 2 then break end
 		end
-		
-		local new_province = pp.Province:new()
-		new_province.center = tile
-		-- new_province:add_tile(tile)
-		-- for n in tile:iter_neighbors() do
-		-- 	if n.is_land == tile.is_land then
-		-- 		new_province:add_tile(n)
-		-- 		-- queue:enqueue(n)
-		-- 	end
-		-- end
-		waterflow_recursion(tile, 60, water_seek, new_province)
-
-		new_province.on_a_river = true
+		river_gen_province_recursion(tile)
 	end
 
 	print('creating coastal provinces')

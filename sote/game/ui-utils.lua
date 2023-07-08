@@ -7,7 +7,7 @@ ut.BASE_HEIGHT = 30
 
 ---@class Entry
 ---@field weight number
----@field tooltip number
+---@field tooltip string
 ---@field r number
 ---@field g number
 ---@field b number
@@ -279,9 +279,9 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 							if dec[2] then
 								if decis == gam.selected_decision then
 									ui.text_panel(decis.ui_name .. " (*)", rect)
-									ui.tooltip(decis.tooltip, rect)
+									ui.tooltip(decis.tooltip(WORLD.player_realm, primary_target), rect)
 								else
-									if ui.text_button(decis.ui_name, rect, decis.tooltip) then
+									if ui.text_button(decis.ui_name, rect, decis.tooltip(WORLD.player_realm, primary_target)) then
 										-- We need to draw this specific decisions UI now!
 										print("Player selected the decision: " .. decis.name)
 										-- We'll be auto pausing the game when selected decision isn't nil so this is fine
@@ -293,7 +293,7 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 								end
 							else
 								ui.text_panel(decis.ui_name, rect)
-								ui.tooltip(decis.tooltip, rect)
+								ui.tooltip(decis.tooltip(WORLD.player_realm, primary_target), rect)
 							end
 						end
 					end, ut.BASE_HEIGHT, #decisions, ut.BASE_HEIGHT, gam.decisions_scrollbar

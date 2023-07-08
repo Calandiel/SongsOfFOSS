@@ -18,12 +18,12 @@ local plate_utils = require "game.entities.plate"
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
----@field tile_count fun():number returns number of tiles
----@field random_tile fun():Tile returns a random tile
----@field new_plate fun():Plate creates and returns a new plate
----@field new fun():World
+---@field tile_count fun(self:World):number returns number of tiles
+---@field random_tile fun(self:World):Tile returns a random tile
+---@field new_plate fun(self:World):Plate creates and returns a new plate
+---@field new fun(self:World):World
 ---@field entity_counter number -- a global counter for entities...
----@field tick fun()
+---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
 ---@field emit_event fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number|nil)
 ---@field emit_action fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number)

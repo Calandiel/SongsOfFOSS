@@ -2,6 +2,7 @@
 local tabb = require "engine.table"
 local ll = {}
 local MilitaryEffects = require "game.raws.effects.military"
+local utils = require "game.raws.raws-utils"
 
 function ll.load()
 	local Decision = require "game.raws.decisions"
@@ -73,7 +74,7 @@ function ll.load()
 	Decision:new {
 		name = 'give-gifts',
 		ui_name = "Hand out gifts",
-		tooltip = "Hand out gifts to the local population, effectively bribing them for support.",
+		tooltip = utils.constant_string("Hand out gifts to the local population, effectively bribing them for support."),
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -136,7 +137,7 @@ function ll.load()
 	Decision:new {
 		name = 'explore-province',
 		ui_name = "Explore province",
-		tooltip = "Explore province",
+		tooltip = utils.constant_string("Explore province"),
 		sorting = 1,
 		primary_target = 'province',
 		secondary_target = 'none',
@@ -193,7 +194,7 @@ function ll.load()
 	Decision:new {
 		name = 'offend-locals',
 		ui_name = "Offend locals",
-		tooltip = "(DEBUG EVENT) Sometimes, offending the people you rule over is just the thing you want to do!.",
+		tooltip = utils.constant_string("(DEBUG EVENT) Sometimes, offending the people you rule over is just the thing you want to do!."),
 		sorting = 1,
 		primary_target = 'province',
 		secondary_target = 'none',
@@ -255,7 +256,7 @@ function ll.load()
 	Decision:new {
 		name = 'covert-raid',
 		ui_name = "Covert raid",
-		tooltip = "Loots the province covertly with small forces. Can avoid diplomatic issues. Loots only from the local provincial wealth pool.",
+		tooltip = utils.constant_string("Loots the province covertly with small forces. Can avoid diplomatic issues. Loots only from the local provincial wealth pool."),
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
