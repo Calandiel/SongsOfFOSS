@@ -4,6 +4,7 @@ local cpml = require "cpml"
 local world = require "game.entities.world"
 local cube = require "game.cube"
 local tile = require "game.entities.tile"
+local tb = require "game.scenes.game.top-bar"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
@@ -198,6 +199,7 @@ function gam.update(dt)
 			-- the game is paused, nothing to do!
 		end
 	end
+	tb.update(dt)
 end
 
 local up_direction = cpml.vec3.new(0, 1, 0)
@@ -781,7 +783,7 @@ function gam.draw()
 	end
 
 	-- Draw the top bar
-	require "game.scenes.game.top-bar".draw(gam)
+	tb.draw(gam)
 
 	-- Debugging screen thingy in top left
 	local tt = require "engine.table"
@@ -805,7 +807,7 @@ function gam.draw()
 			click_success = require "game.scenes.game.war-inspector".mask()
 		end
 
-		if click_success and not mouse_in_bottom_right and (require "game.scenes.game.top-bar".mask(gam)) and not province_on_map_interaction then
+		if click_success and not mouse_in_bottom_right and (tb.mask(gam)) and not province_on_map_interaction then
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false

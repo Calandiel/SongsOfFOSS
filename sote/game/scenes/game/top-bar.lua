@@ -14,6 +14,70 @@ function tb.mask(gam)
 	end
 end
 
+
+---@class TreasuryDisplayEffect
+---@field reason EconomicReason
+---@field amount number
+---@field timer number
+
+---@type TreasuryDisplayEffect[]
+CURRENT_EFFECTS = {}
+MAX_TREASURY_TIMER = 2.0
+MIN_DELAY = 0.7
+
+
+function HANDLE_EFFECTS()
+	local counter = 0
+	while WORLD.treasury_effects:length() > 0 do
+		local temp = WORLD.treasury_effects:dequeue()
+		---@type TreasuryDisplayEffect
+		local new_effect = {
+			reason = temp.reason,
+			amount = temp.amount,
+			timer = MAX_TREASURY_TIMER + counter * MIN_DELAY
+		} 
+		table.insert(CURRENT_EFFECTS, new_effect)
+		counter = counter + 1
+	end
+end
+
+function DRAW_EFFECTS(parent_rect)
+	local new_rect = parent_rect:copy()
+	for _, effect in pairs(CURRENT_EFFECTS) do
+		if (effect.timer < MAX_TREASURY_TIMER) then
+			local r, g, b, a = love.graphics.getColor()
+			if effect.amount > 0 then
+				love.graphics.setColor(1, 1, 0, (effect.timer) / MAX_TREASURY_TIMER)
+			else 
+				love.graphics.setColor(1, 0, 0, (effect.timer) / MAX_TREASURY_TIMER)
+			end
+
+			new_rect.x = parent_rect.x
+			new_rect.y = parent_rect.y + uit.BASE_HEIGHT * (1 + 2 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
+			ui.right_text(uit.to_fixed_point2(effect.amount) .. MONEY_SYMBOL, new_rect)
+
+			new_rect.x = parent_rect.x - parent_rect.width
+			ui.left_text(effect.reason, new_rect)
+			love.graphics.setColor(r, g, b, a)
+		end
+	end
+end
+
+---@param dt number
+function tb.update(dt)
+	EFFECTS_TO_REMOVE = {}
+	for _, effect in pairs(CURRENT_EFFECTS) do
+		effect.timer = effect.timer - dt
+		if effect.timer < 0 then
+			table.insert(EFFECTS_TO_REMOVE, _)
+		end
+	end
+
+	for _, key in pairs(EFFECTS_TO_REMOVE) do
+		table.remove(CURRENT_EFFECTS, key)
+	end
+end
+
 ---Draws the bar at the top of the screen (if a player realm has been selected...)
 ---@param gam table
 function tb.draw(gam)
@@ -42,8 +106,11 @@ function tb.draw(gam)
 		ui.image(ASSETS.icons['coins.png'], tr)
 		ui.tooltip(trs, tr)
 		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		ui.right_text(tostring(math.floor(WORLD.player_realm.treasury * 100) / 100) .. MONEY_SYMBOL, trt)
+		ui.right_text(uit.to_fixed_point2(WORLD.player_realm.treasury) .. MONEY_SYMBOL, trt)
 		ui.tooltip(trs, trt)
+
+		HANDLE_EFFECTS()
+		DRAW_EFFECTS(trt)
 
 		-- Food
 		local amount = WORLD.player_realm.resources[WORLD.trade_goods_by_name['food']] or 0

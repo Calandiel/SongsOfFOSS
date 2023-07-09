@@ -32,6 +32,8 @@ local plate_utils = require "game.entities.plate"
 ---@field events_queue Queue
 ---@field deferred_events_queue Queue
 ---@field deferred_actions_queue Queue
+---@field treasury_effects Queue
+---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string)
 ---@field pending_player_event_reaction boolean
 --- RAWS
 ---@field biomes_by_name table<string, Biome>
@@ -92,6 +94,7 @@ function world.World:new()
 	w.events_queue = require "engine.queue":new()
 	w.deferred_events_queue = require "engine.queue":new()
 	w.deferred_actions_queue = require "engine.queue":new()
+	w.treasury_effects = require "engine.queue":new()
 
 	for tile_id = 1, 6 * ws * ws do
 		table.insert(w.tiles, tile.Tile:new(tile_id))
@@ -413,6 +416,10 @@ end
 ---@param notification string
 function world.World:emit_notification(notification)
 	self.notification_queue:enqueue(notification)
+end
+
+function world.World:emit_treasury_change_effect(amount, reason)
+	self.treasury_effects:enqueue({amount = amount, reason = reason})
 end
 
 world.ticks_per_hour = 120

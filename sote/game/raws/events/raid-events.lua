@@ -1,5 +1,6 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
+local ef = require "game.raws.effects.economic"
 
 
 local function load()
@@ -135,7 +136,9 @@ local function load()
 
 			realm:disband_army(army)
 			realm.capitol.mood = realm.capitol.mood + 1 / (3 * math.max(0, realm.capitol.mood) + 1)
-			realm.treasury = realm.treasury + loot
+
+			ef.add_treasury(realm, loot, ef.reasons.Raid)
+			-- realm.treasury = realm.treasury + loot
 
 			if realm == WORLD.player_realm then
 				WORLD:emit_notification("Our raid attempt in " ..

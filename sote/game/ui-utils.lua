@@ -383,4 +383,8 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 	}, ui_panel, ui_panel.width / 2)
 end
 
+function ut.to_fixed_point2(x) 
+	return tostring(math.floor(x)) .. '.' .. tostring(math.floor((x - math.floor(x)) * 100))
+end
+
 return ut
