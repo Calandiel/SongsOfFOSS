@@ -383,8 +383,15 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 	}, ui_panel, ui_panel.width / 2)
 end
 
-function ut.to_fixed_point2(x) 
-	return tostring(math.floor(x)) .. '.' .. tostring(math.floor((x - math.floor(x)) * 100))
+function ut.to_fixed_point2(x)
+	local temp = math.abs(x)
+	local sign = ''
+	if x < 0 then
+		sign = '-'
+	end
+	local frac_1 = math.floor((temp - math.floor(temp)) * 10)
+	local frac_2 = math.floor((temp * 10 - math.floor(temp * 10)) * 10)
+	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
 end
 
 return ut

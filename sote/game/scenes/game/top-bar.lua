@@ -23,7 +23,7 @@ end
 ---@type TreasuryDisplayEffect[]
 CURRENT_EFFECTS = {}
 MAX_TREASURY_TIMER = 2.0
-MIN_DELAY = 0.7
+MIN_DELAY = 0.5
 
 
 function HANDLE_EFFECTS()
