@@ -5,10 +5,24 @@ local CONSONANTS = { 'q', 'w', 'r', 't', 'y', 'p', 's', 'd', 'f', 'g', 'h', 'j',
 	'm' }
 local SyllableType = { 'V', 'CV', 'CrV', 'CVn', 'CnV', 'ClV', 'CVC', 'VC' }
 
+local endings_province = {
+	'pol', 'gard', 'holm', 'hold', 'is', 'on',
+	'ow', 'ice', 'an', ''
+}
+
+local endings_realm = {
+	'land', 'land', 'land', 'land',
+	'ance', 'ance', 'ance',
+	'ia', 'ia', 'ia', 'ia',
+	'gard', 'gard', 'stan', ''
+}
+
 ---@class Language
 ---@field syllables table<number, string>
 ---@field consonants table<number, string>
 ---@field vowels table<number, string>
+---@field ending_province string
+---@field ending_realm string
 ---@field new fun(self:Language):Language
 ---@field random_vowel fun(self:Language):string
 ---@field random_consonant fun(self:Language):string
@@ -67,6 +81,9 @@ function lang.random()
 	if #l.syllables == 0 then
 		table.insert(l.syllables, SyllableType[1])
 	end
+
+	l.ending_province = endings_province[love.math.random(#endings_province)]
+	l.ending_realm = endings_realm[love.math.random(#endings_realm)]
 
 	return l
 end
@@ -137,25 +154,13 @@ end
 function lang.Language:get_random_realm_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	local endings = {
-		'', '', '', '', '', '', '', '',
-		'land', 'land', 'land', 'land',
-		'ance', 'ance', 'ance',
-		'ia', 'ia', 'ia', 'ia',
-		'gard', 'gard', 'stan'
-	}
-	return n .. endings[love.math.random(#endings)]
+	return n .. self.ending_realm
 end
 
 function lang.Language:get_random_province_name()
 	local ll = love.math.random(3)
-	local n = self:random_word(ll)
-	local endings = {
-		'', '', '', '', '', '', '', '',
-		'pol', 'gard', 'holm', 'hold', 'is', 'on',
-		'ow', 'ice', 'an'
-	}
-	return n .. endings[love.math.random(#endings)]
+	local n = self:random_word(ll)	
+	return n .. self.ending_province
 end
 
 function lang.Language:get_random_name()

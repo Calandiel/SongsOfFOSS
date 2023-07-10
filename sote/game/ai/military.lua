@@ -43,7 +43,9 @@ function mi.run(realm)
 				-- Select a random unit and decrease the counter for it
 				local unit = tabb.random_select(prov.units_target)
 				if unit then
-					if prov.units_target[unit] == 1 then
+					if prov.units_target[unit] < 1 then
+						prov.units_target[unit] = 0
+					elseif prov.units_target[unit] == 1 then
 						prov.units_target[unit] = 0 -- nil?
 					else
 						prov.units_target[unit] = prov.units_target[unit] - 1
