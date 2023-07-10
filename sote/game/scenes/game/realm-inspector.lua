@@ -412,10 +412,14 @@ function re.draw(gam)
 					ui.panel(ui_panel)
 
 					-- display warbands
-					ui_panel.height = ui_panel.height / 2
+					-- header
+					ui_panel.height = ui_panel.height / 2 - uit.BASE_HEIGHT
+					ui.text("Warbands", ui_panel, "left", 'up')
+
+					-- substance
+					ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
 					local warbands = realm:get_warbands()
 					local sl = gam.warbands_slider_level or 0
-					-- local height = uit.BASE_HEIGHT
 					gam.warbands_slider_level = ui.scrollview(ui_panel, function(i, rect) 
 						if i > 0 then
 							---@type Rect
@@ -426,7 +430,7 @@ function re.draw(gam)
 							r.width = width_unit * 2
 							---@type Warband
 							local warband = warbands[i]
-							ui.left_text("Band" .. "  " .. warband.name, r)							
+							ui.left_text(warband.name, r)
 							
 							r.width = width_unit
 							r.x = x + width_unit * 2
@@ -439,10 +443,13 @@ function re.draw(gam)
 					end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, sl)
 
 					-- display raiding targets
+					-- header
 					ui_panel.y = ui_panel.y + ui_panel.height
 					ui.text("Raiding targets", ui_panel, "left", 'up')
+					ui.text("Prepared forces", ui_panel, "right", 'up')
+					
+					-- substance
 					ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
-					ui_panel.height = ui_panel.height - uit.BASE_HEIGHT
 					local targets = realm.raiding_targets
 					local sl = gam.raiding_targets_slider_level or 0
 					gam.raiding_targets_slider_level = ui.scrollview(ui_panel, function(i, rect)
@@ -456,10 +463,7 @@ function re.draw(gam)
 							---@type Province
 							local target = tabb.nth(targets, i)
 							ui.left_text(target.name, r)
-
-
 							r.x = x + 4 * width_unit
-							ui.left_text("Gathered forces:", r)
 							local warbands = realm.raiders_preparing[target]
 							local size = 0
 							for _, warband in pairs(warbands) do
