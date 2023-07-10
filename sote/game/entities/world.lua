@@ -349,38 +349,61 @@ function world.World:tick()
 				local court = require "game.society.court"
 				local construct = require "game.ai.construction"
 				for _, settled_province in pairs(ta) do
-					if settled_province.realm.capitol == settled_province then
+					local realm = settled_province.realm
+					if realm ~= nil and settled_province.realm.capitol == settled_province then
 						-- Run the realm AI once a month
-						if settled_province.realm ~= WORLD.player_realm then
+						if realm ~= WORLD.player_realm then
 							local explore = require "game.ai.exploration"
 							local treasury = require "game.ai.treasury"
 							local military = require "game.ai.military"
-							explore.run(settled_province.realm)
-							treasury.run(settled_province.realm)
-							military.run(settled_province.realm)
+							explore.run(realm)
+							treasury.run(realm)
+							military.run(realm)
 						end						
 						--print("Construct")
-						construct.run(settled_province.realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+						construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 						--print("Court")
-						court.run(settled_province.realm)
+						court.run(realm)
 						--print("Edu")
-						education.run(settled_province.realm)
+						education.run(realm)
 						--print("Econ")
-						realm_economic_update.run(settled_province.realm)
+						realm_economic_update.run(realm)
 						-- Handle events!
 						--print("Event handling")
-						events.run(settled_province.realm)
-						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
-						if settled_province.realm ~= WORLD.player_realm then
-							--print("Decide")
-							decide.run(settled_province.realm)
+						events.run(realm)
+
+
+						-- assign raiders to targets
+						for _, province in pairs(realm.provinces) do
+							for _, warband in pairs(province.warbands) do
+								if warband.status == "idle" then
+									local target = realm:random_raiding_target()
+									realm:add_raider(target, warband)
+								end
+							end
+						end
+
+						-- launch raids
+						local launched_raids = {}
+						for _, target in pairs(realm.raiding_targets) do
+							local warbands = realm.raiders_preparing[target]
+							local units = 0
+							for _, warband in pairs(warbands) do
+								units = units + warband:size()
+							end
+							
+							-- with some probability, launch the raid
+							-- larger groups launch raids faster
+							if (units > 0) and (math.random() > 0.5 + 1 / (units + 10)) then
+								MilitaryEffects.covert_raid(realm, target)
+							end
 						end
 
 
-						--- update raiding 
-						local target = settled_province.realm:random_raiding_target()
-						if target ~= nil then
-							MilitaryEffects.covert_raid(settled_province.realm, target)
+						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
+						if realm ~= WORLD.player_realm then
+							--print("Decide")
+							decide.run(realm)
 						end
 					end
 				end

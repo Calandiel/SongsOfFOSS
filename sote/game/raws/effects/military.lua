@@ -17,9 +17,14 @@ function MilitaryEffects.covert_raid(root, primary_target)
     end
 
     -- A raid will raise up to a certain number of troops
-    local max_covert_raid_size = 10
-    local army = root:raise_army_of_size(max_covert_raid_size)
+    -- local max_covert_raid_size = 10
+    local army = root:raise_army(root.raiders_preparing[primary_target])
     army.destination = primary_target
+
+    for _, warband in pairs(army.warbands) do
+        root:remove_raider(primary_target, warband)
+        warband.status = "raiding"
+    end
 
     WORLD:emit_action(
         WORLD.events_by_name["covert-raid"],
@@ -27,6 +32,9 @@ function MilitaryEffects.covert_raid(root, primary_target)
         { target = primary_target, raider = root, travel_time = travel_time, army = army },
         travel_time
     )
+
+
+
 end
 
 return MilitaryEffects

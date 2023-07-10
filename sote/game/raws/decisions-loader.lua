@@ -256,7 +256,7 @@ function ll.load()
 	Decision:new {
 		name = 'covert-raid',
 		ui_name = "Covert raid",
-		tooltip = utils.constant_string("Loots the province covertly with small forces. Can avoid diplomatic issues. Loots only from the local provincial wealth pool."),
+		tooltip = utils.constant_string("Declare province as target for future raids. Can avoid diplomatic issues. Loots only from the local provincial wealth pool."),
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -320,7 +320,8 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			MilitaryEffects.covert_raid(root, primary_target)
+
+			root:add_raiding_target(primary_target)
 		end
 	}
 end

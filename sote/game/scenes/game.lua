@@ -635,9 +635,9 @@ function gam.draw()
 		gam.show_map_mode_panel = true
 	end
 	if ui.icon_button(
-		ASSETS.icons[gam.map_mode_data['realms'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['realms'][3]) then
-		gam.update_map_mode("realms")
+		ASSETS.icons[gam.map_mode_data['atlas'][2]],
+		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['atlas'][3]) then
+		gam.update_map_mode("atlas")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['elevation'][2]],

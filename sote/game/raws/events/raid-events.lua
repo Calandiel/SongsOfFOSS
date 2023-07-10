@@ -2,21 +2,41 @@ local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local ef = require "game.raws.effects.economic"
 
+---@class RaidData 
+---@field raider Realm
+---@field target Province
+---@field travel_time number
+---@field army Army
+
+---@class RaidResultSuccess
+---@field losses number
+---@field army Army
+---@field loot number
+---@field target Province
+
+---@class RaidResultFail
+---@field losses number
+---@field army Army
+---@field target Province
+
+---@class RaidResultRetreat
+---@field army Army
+---@field target Province
+
 
 local function load()
 	Event:new {
 		name = "covert-raid",
 		automatic = false,
 		on_trigger = function(self, realm, associated_data)
+			---@type RaidData
+			associated_data = associated_data
 			---@type Realm
 			local realm = realm
-			---@type Realm
+
 			local raider = associated_data.raider
-			---@type Province
 			local target = associated_data.target
-			---@type number
 			local travel_time = associated_data.travel_time
-			---@type Army
 			local army = associated_data.army
 
 			local retreat = false
@@ -35,7 +55,7 @@ local function load()
 				else
 					-- Battle time!
 					-- First, raise the defending army.
-					local def = realm:raise_army_of_size(15)
+					local def = realm:raise_local_army(target)
 					local attack_succeed, attack_losses, def_losses = army:attack(target, true, def)
 					realm:disband_army(def) -- disband the army after battle
 					losses = attack_losses
@@ -102,13 +122,13 @@ local function load()
 		name = "covert-raid-fail",
 		automatic = false,
 		on_trigger = function(self, realm, associated_data)
+			---@type RaidResultFail
+			associated_data = associated_data
 			---@type Realm
 			local realm = realm
-			---@type Province
+
 			local target = associated_data.target
-			---@type number
 			local losses = associated_data.losses
-			---@type Army
 			local army = associated_data.army
 
 			realm:disband_army(army)
@@ -123,15 +143,14 @@ local function load()
 		name = "covert-raid-success",
 		automatic = false,
 		on_trigger = function(self, realm, associated_data)
+			---@type RaidResultSuccess
+			associated_data = associated_data
 			---@type Realm
 			local realm = realm
-			---@type number
+
 			local loot = associated_data.loot
-			---@type Province
 			local target = associated_data.target
-			---@type number
 			local losses = associated_data.losses
-			---@type Army
 			local army = associated_data.army
 
 			realm:disband_army(army)
@@ -152,11 +171,12 @@ local function load()
 		name = "covert-raid-retreat",
 		automatic = false,
 		on_trigger = function(self, realm, associated_data)
+			---@type RaidResultRetreat
+			associated_data = associated_data
 			---@type Realm
 			local realm = realm
-			---@type Army
+
 			local army = associated_data.army
-			---@type Province
 			local target = associated_data.target
 			realm.capitol.mood = realm.capitol.mood - 0.025
 

@@ -3,6 +3,7 @@ local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local tg = require "game.raws.raws-utils".trade_good
 local ev = require "game.raws.raws-utils".event
+local utils = require "game.raws.raws-utils"
 local path = require "game.ai.pathfinding"
 
 local function load()
@@ -10,7 +11,7 @@ local function load()
 	Decision:new {
 		name = 'declare-war',
 		ui_name = "Send envoys to declare war",
-		tooltip = "<tooltip>",
+		tooltip = utils.constant_string("<tooltip>"),
 		sorting = 1,
 		primary_target = "realm",
 		secondary_target = 'none',

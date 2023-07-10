@@ -1,7 +1,16 @@
 ---@class Army
+---@field destination Province|nil
+---@field warbands table<Warband, Warband>
+---@field units fun(self: Army): table<POP, UnitType>
+---@field kill_off fun(self: Army, ratio: number): number
+---@field pops fun(self: Army): table<POP, Province>
+---@field get_visibility fun(self: Army): number
+---@field attack fun(self: Army, prov: Province, spotted: boolean, defender: Army)
+---@field get_loot_capacity fun(self: Army): number
+---@field decimate fun(self: Army)
+
 local army = {
-	pops = {}, ---@type table<POP, Province> A table mapping pops to their home provinces.
-	units = {}, ---@type table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
+	warbands = {}, ---@type Warband[]
 	destination = nil, ---@type Province|nil
 }
 army.__index = army
@@ -9,15 +18,8 @@ army.__index = army
 ---@return Army
 function army:new()
 	local o = {}
-	for k, v in pairs(self) do
-		if type(v) == "table" then
-			o[k] = {}
-		elseif type(v) == "function" then
-			-- nothing to do, we're setting a metatable
-		else
-			o[k] = v
-		end
-	end
+	o.destination = nil
+	o.warbands = {}
 	setmetatable(o, army)
 	return o
 end
@@ -25,7 +27,7 @@ end
 ---@return number
 function army:get_visibility()
 	local vis = 0
-	for pop, unit in pairs(self.units) do
+	for pop, unit in pairs(self:units()) do
 		vis = vis + pop.race.visibility * unit.visibility
 	end
 	return vis
@@ -34,7 +36,7 @@ end
 ---@return number
 function army:get_loot_capacity()
 	local cap = 0.01
-	for pop, unit in pairs(self.units) do
+	for pop, unit in pairs(self:units()) do
 		local c = pop.race.male_body_size
 		if pop.female then
 			c = pop.race.female_body_size
@@ -46,8 +48,46 @@ end
 
 ---Kill everyone in the army
 function army:decimate()
-	self.units = {}
-	self.pops = {}
+	for _, warband in pairs(self.warbands) do
+		warband:decimate()
+	end
+end
+
+---Returns the units in the army
+---@return table<POP, UnitType>
+function army:units()
+	local res = {}
+	for _, warband in pairs(self.warbands) do
+		for pop, unit in pairs(warband.units) do
+			res[pop] = unit
+		end
+	end
+
+	return res
+end
+
+
+---Returns pops in the army
+---@return table<POP, Province>
+function army:pops()
+	local res = {}
+	for _, warband in pairs(self.warbands) do
+		for pop, province in pairs(warband.pops) do
+			res[pop] = province
+		end
+	end
+	return res
+end
+
+---kills of a ratio of army and returns the losses
+---@param ratio number
+---@return number
+function army:kill_off(ratio)
+	local losses = 0
+	for _, warband in pairs(self.warbands) do
+		losses = losses + warband:kill_off(ratio)
+	end
+	return losses
 end
 
 ---Fights a location, returns whether or not the attack was a success.
@@ -61,7 +101,7 @@ function army:attack(prov, spotted, defender)
 	local attack = 0
 	local hp = 0
 	local stack = 0
-	for pop, unit in pairs(self.units) do
+	for pop, unit in pairs(self:units()) do
 		local size = pop.race.male_body_size
 		if pop.female then
 			size = pop.race.female_body_size
@@ -84,7 +124,7 @@ function army:attack(prov, spotted, defender)
 	local def_attack = 0
 	local def_hp = 0
 	local def_stack = 0
-	for pop, unit in pairs(defender.units) do
+	for pop, unit in pairs(defender:units()) do
 		local size = pop.race.male_body_size
 		if pop.female then
 			size = pop.race.female_body_size
@@ -140,23 +180,8 @@ function army:attack(prov, spotted, defender)
 	-- After the battle, kill people!
 	local frac = power
 	local def_frac = defpower / (def_stack / stack)
-	local losses = 0
-	local def_losses = 0
-	for u in pairs(self.units) do
-		if love.math.random() < frac then
-			self.units[u] = nil
-			self.pops[u] = nil
-			losses = losses + 1
-		end
-	end
-	for u in pairs(defender) do
-		if love.math.random() < def_frac then
-			self.units[u] = nil
-			self.pops[u] = nil
-			def_losses = def_losses + 1
-		end
-	end
-
+	local losses = self:kill_off(frac)
+	local def_losses = self:kill_off(def_frac)
 	return victory, losses, def_losses
 end
 

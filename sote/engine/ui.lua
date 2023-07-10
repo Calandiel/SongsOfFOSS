@@ -1098,6 +1098,34 @@ function ui.scrollview(
 	return ui.slider(sl, slider_level, 0, 1, true)
 end
 
+---@param rect Rect rect for the entire scroll view
+---@param render_closure fun(number, Rect) fun(number, Rect) -- a drawing function for a given entry
+---@param individual_height number height of a single entry, in pixels
+---@param entries_count number number of entries in the scrollview
+function ui.listview(
+    rect,
+    render_closure,
+    individual_height,
+    entries_count
+)
+	-- Draw the main panel
+	local main_panel = ui.rect(rect.x, rect.y, rect.width, rect.height)
+	ui.panel(main_panel)
+	-- Draw the contents
+	local layout = ui.layout_builder()
+		:position(main_panel.x, main_panel.y)
+		:vertical()
+		:build()
+	for i = 1, entries_count do
+		render_closure(i,
+			layout:next(
+				main_panel.width,
+				individual_height
+			)
+		)
+	end
+end
+
 -- ###############
 -- ### TOOLTIP ###
 -- ###############

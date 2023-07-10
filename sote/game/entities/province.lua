@@ -1,4 +1,5 @@
 local tabb = require "engine.table"
+local wb = require "game.entities.warband"
 
 local prov = {}
 
@@ -59,6 +60,8 @@ local prov = {}
 ---@field unit_types table<UnitType, UnitType>
 ---@field units table<UnitType, table<POP, POP>> Recruited units
 ---@field units_target table<UnitType, number> Units to recruit
+---@field warbands table<Warband, Warband>
+---@field vacant_warbands fun(self: Province): Warband[]
 ---@field get_spotting fun(self:Province):number Returns the local "spotting" power
 ---@field get_hiding fun(self:Province):number Returns the local "hiding" space
 ---@field army_spot_test fun(self:Province, army:Army):boolean Performs an army spotting test in this province.
@@ -68,6 +71,8 @@ local prov = {}
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field on_a_river boolean
+---@field take_away_pop fun(self:Province, pop:POP): POP
+---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
 
 local col = require "game.color"
 
@@ -124,6 +129,8 @@ function prov.Province:new()
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
 	o.on_a_river = false
+	o.warbands = {}
+
 	WORLD.entity_counter = WORLD.entity_counter + 1
 	WORLD.provinces[o.province_id] = o
 
@@ -201,7 +208,34 @@ function prov.Province:unregister_military_pop(pop)
 		self.units[ut][pop] = nil
 		pop.drafted = false
 	end
+	for _, warband in pairs(self.warbands) do
+		warband.units[pop] = nil
+		warband.pops[pop] = nil
+	end
 	self.soldiers[pop] = nil
+end
+
+
+---Removes the pop from the province without killing it
+function prov.Province:take_away_pop(pop)
+	if self.soldiers[pop] then
+		local unit_type = self.soldiers[pop]
+		self.units[unit_type][pop] = nil
+		self.units_target[unit_type] = self.units_target[unit_type] - 1
+	end
+	self.soldiers[pop] = nil
+	self.all_pops[pop] = nil
+
+	return pop
+end
+
+function prov.Province:return_pop_from_army(pop, unit_type)
+	self.units[unit_type][pop] = pop
+	self.units_target[unit_type] = self.units_target[unit_type] + 1
+	self.soldiers[pop] = unit_type
+	self.all_pops[pop] = pop
+	
+	return pop
 end
 
 ---Fires an employed pop and adds it to the unemployed pops list.
@@ -439,6 +473,11 @@ end
 ---@param pop POP
 ---@param unit_type UnitType
 function prov.Province:recruit(pop, unit_type)
+	-- if pop is already drafted, do nothing
+	if pop.drafted then
+		return
+	end
+
 	self:fire_pop(pop)
 	self:unregister_military_pop(pop)
 	pop.drafted = true
@@ -447,7 +486,22 @@ function prov.Province:recruit(pop, unit_type)
 	end
 	self.units[unit_type][pop] = pop
 	self.soldiers[pop] = unit_type
+
+	-- assign pop to random warband
+	local vacant_warbands = self:vacant_warbands()
+	local warband = nil
+	if tabb.size(vacant_warbands) == 0 then
+		warband = self:new_warband()
+		warband.name = pop.culture.language:get_random_name()
+	else
+		warband = vacant_warbands[tabb.random_select_from_set(vacant_warbands)]
+	end
+
+	warband.pops[pop] = self
+	warband.units[pop] = unit_type
 end
+
+
 
 ---@return Culture|nil
 function prov.Province:get_dominant_culture()
@@ -598,6 +652,28 @@ function prov.Province:get_unemployment()
 	end
 
 	return u
+end
+
+function prov.Province:new_warband()
+	local warband = wb:new()
+	self.warbands[warband] = warband
+	return warband
+end
+
+function prov.Province:num_of_warbands()
+	return tabb.size(self.warbands)
+end
+
+function prov.Province:vacant_warbands()
+	local res = {}
+
+	for k, v in pairs(self.warbands) do
+		if v:size() < 6 then
+			table.insert(res, k)
+		end
+	end
+
+	return res
 end
 
 return prov
