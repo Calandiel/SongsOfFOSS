@@ -657,7 +657,7 @@ function gam.draw()
 	-- Map modes tab
 	if gam.show_map_mode_panel then
 		local ttab = require "engine.table"
-		local mm_panel_height = ut.BASE_HEIGHT * (1 + 10)
+		local mm_panel_height = ut.BASE_HEIGHT * (1 + 5)
 		local panel = bottom_right_main_layout:next(300, mm_panel_height)
 		if ui.trigger(panel) then
 			mouse_in_bottom_right = true
@@ -755,32 +755,100 @@ function gam.draw()
 	-- Draw the calendar
 	mouse_in_bottom_right = ut.calendar(gam) or mouse_in_bottom_right
 	-- Draw notifications
-	if WORLD.notification_queue:length() > 0 then
+	
 		-- "Mask" the mouse interaction
-		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 4, "right", 'up')
+		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
 		if ui.trigger(notif_panel) then
 			mouse_in_bottom_right = true
 		end
 
 		-- Draw gfx
 		ui.panel(notif_panel)
-		ui.left_text("Notifications (" .. tostring(WORLD.notification_queue:length()) .. ")",
-			notif_panel:subrect(0, 0, ut.BASE_HEIGHT * 8, ut.BASE_HEIGHT, "left", 'up'))
-		notif_panel.y = notif_panel.y + ut.BASE_HEIGHT
-		notif_panel:shrink(5)
-		ui.text(WORLD.notification_queue:peek(), notif_panel, "left", 'up')
-		notif_panel:shrink(-5)
-		notif_panel.y = notif_panel.y - ut.BASE_HEIGHT
-		local button_rect = notif_panel:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", 'up')
+		-- ui.left_text("Notifications (" .. tostring(WORLD.notification_queue:length()) .. ")",
+		-- 	notif_panel:subrect(0, 0, ut.BASE_HEIGHT * 8, ut.BASE_HEIGHT, "left", 'up'))
+		-- notif_panel.y = notif_panel.y + ut.BASE_HEIGHT
+		-- notif_panel:shrink(5)
+
+		-- if WORLD.notification_queue:length() > 0 then
+			
+			if gam.notifications_list == nil then
+				gam.notifications_list = require "engine.queue":new()
+			end
+
+			while WORLD.notification_queue:length() > 0 do
+				local item = WORLD.notification_queue:dequeue()
+				gam.notifications_list:enqueue(item)
+			end
+
+			-- while gam.notifications_list:length() > 10 do
+			-- 	gam.notifications_list:dequeue()
+			-- end
+
+			-- local r = notif_panel:copy()
+			-- r.height = notif_panel.height / 4
+
+			local function render_notification(index, rect)
+				local first = gam.notifications_list.first
+				local item = gam.notifications_list.data[first + index - 1]
+				ui.panel(rect)
+				rect:shrink(5)
+				if item then
+					ui.left_text(item, rect)
+				end
+			end
+
+
+			gam.notif_slider = gam.notif_slider or 1
+			gam.notif_slider = ui.scrollview(
+				notif_panel,
+				render_notification,
+				ut.BASE_HEIGHT * 2,
+				gam.notifications_list:length(),
+				10,
+				gam.notif_slider)
+
+			-- for count = 1, 10 do
+			-- 	local first = gam.notifications_list.first
+			-- 	local item = gam.notifications_list.data[first + count - 1]
+			-- 	if item then
+			-- 		r.y = notif_panel.y + count * r.height
+			-- 		ui.left_text(item, r)
+			-- 		ui.panel(r)
+			-- 	end
+			-- end
+
+			-- ui.text(WORLD.notification_queue:peek(), notif_panel, "left", 'up')
+
+		-- end
+
+		-- local function render_notification(notification_index, rect)
+		-- 	ui.text('test', rect, "center", 'up')
+		-- 	-- if (notification_index < WORLD.notification_queue.last - 10) then return end
+		-- 	if (notification_index < 1) then return end
+		-- 	-- if (notification_index < WORLD.notification_queue.first) then return end
+		-- 	ui.panel(rect)
+		-- 	ui.text(WORLD.notification_queue[notification_index], rect, "left", "up")
+		-- end
+
+		-- gam.notif_slider = gam.notif_slider or 0
+		-- gam.notif_slider = ui.scrollview(notif_panel, render_notification, ut.BASE_HEIGHT * 4, WORLD.notification_queue.last, 10, gam.notif_slider)
+		-- if WORLD.notification_queue:length() > 20 then
+		-- 	WORLD.notification_queue:dequeue()
+		-- end
+		-- ui.text(WORLD.notification_queue:peek(), notif_panel, "left", 'up')
+		-- notif_panel:shrink(-5)
+		-- notif_panel.y = notif_panel.y - ut.BASE_HEIGHT
+
+		-- local button_rect = notif_panel:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", 'up')
 		-- Interaction buttons
-		if ui.icon_button(ASSETS.icons['circle.png'], button_rect, "Close all notifications") then
-			WORLD.notification_queue:clear()
-		end
-		button_rect.x = button_rect.x - ut.BASE_HEIGHT
-		if ui.icon_button(ASSETS.icons['cancel.png'], button_rect, "Close the notification") then
-			WORLD.notification_queue:dequeue()
-		end
-	end
+		-- if ui.icon_button(ASSETS.icons['circle.png'], button_rect, "Close all notifications") then
+		-- 	WORLD.notification_queue:clear()
+		-- end
+		-- button_rect.x = button_rect.x - ut.BASE_HEIGHT
+		-- if ui.icon_button(ASSETS.icons['cancel.png'], button_rect, "Close the notification") then
+		-- 	WORLD.notification_queue:dequeue()
+		-- end
+	-- end
 
 	-- Draw the top bar
 	tb.draw(gam)

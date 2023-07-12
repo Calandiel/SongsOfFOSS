@@ -1,4 +1,5 @@
 local path = require "game.ai.pathfinding"
+local ui_utils = require "game.ui-utils"
 
 MilitaryEffects = {}
 
@@ -10,10 +11,10 @@ function MilitaryEffects.covert_raid(root, primary_target)
     local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.capitol, primary_target))
 
     if root == WORLD.player_realm then
-        WORLD:emit_notification("We sent out our warriors to " ..
+        WORLD:emit_notification("Our warriors move toward " ..
             primary_target.name ..
             ", they should arrive in " ..
-            travel_time .. " days. We can expect to hear back from them in " .. (travel_time * 2) .. " days.")
+            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time + 0.5) .. " days.")
     end
 
     -- A raid will raise up to a certain number of troops
