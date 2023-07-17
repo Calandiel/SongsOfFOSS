@@ -95,27 +95,23 @@ local function load()
 					realm.treasury = realm.treasury - extra
 					real_loot = real_loot + extra
 				end
-				WORLD:emit_action(WORLD.events_by_name["covert-raid-success"], raider,
+				WORLD:emit_action(WORLD.events_by_name["covert-raid-success"], raider, raider,
 					{ army = army, target = target, loot = real_loot, losses = losses },
-					travel_time)
+					travel_time, true)
 				if target.realm == WORLD.player_realm then
 					WORLD:emit_notification("An unknown adversary raided our province " ..
 						target.name .. " and stole " .. real_loot .. MONEY_SYMBOL .. " worth of goods!")
 				end
 			else
 				if retreat then
-					WORLD:emit_action(WORLD.events_by_name["covert-raid-retreat"], raider, { army = army, target = target },
-						travel_time)
+					WORLD:emit_action(WORLD.events_by_name["covert-raid-retreat"], raider, raider, { army = army, target = target },
+						travel_time, true)
 				else
-					WORLD:emit_action(WORLD.events_by_name["covert-raid-fail"], raider,
+					WORLD:emit_action(WORLD.events_by_name["covert-raid-fail"], raider, raider,
 						{ army = army, target = target, losses = losses },
-						travel_time)
+						travel_time, true)
 				end
 			end
-
-			-- We need to resolve the covert raid.
-			--WORLD:emit_action(WORLD.events_by_name["covert-raid-fail"], raider, { target = target }, travel_time)
-			----WORLD:emit_action(WORLD.events_by_name["covert-raid-no-info"], raider, { target = target }, travel_time)
 		end,
 	}
 	Event:new {

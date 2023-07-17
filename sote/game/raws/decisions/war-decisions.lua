@@ -102,9 +102,9 @@ local function load()
 			primary_target.wars[war] = war
 
 			if primary_target == WORLD.player_realm then
-				WORLD:emit_action(WORLD.events_by_name['war-declaration'], primary_target, {
+				WORLD:emit_action(WORLD.events_by_name['war-declaration'], root, primary_target, {
 					aggresor = root
-				}, travel_time)
+				}, travel_time, false)
 			end
 		end
 	}

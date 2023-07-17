@@ -5,6 +5,8 @@ local world = require "game.entities.world"
 local cube = require "game.cube"
 local tile = require "game.entities.tile"
 local tb = require "game.scenes.game.top-bar"
+local callback = require "game.scenes.callbacks"
+local tabb = require "engine.table"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
@@ -284,6 +286,8 @@ end
 
 ---
 function gam.draw()
+	gam.click_callback = nil
+
 	if WORLD == nil then
 		return
 	end
@@ -499,10 +503,7 @@ function gam.draw()
 						ui.field_panel(tostring(population), population_rect)
 						if WORLD.player_realm then
 							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
-								WORLD.player_realm:toggle_raiding_target(tile.province)
-								gam.recalculate_raiding_targets_map()
-								province_on_map_interaction = true
-								return true
+								gam.click_callback = callback.toggle_raiding_target(gam, tile.province)
 							end
 						end
 					elseif tile.resource then
@@ -579,6 +580,7 @@ function gam.draw()
 		WORLD = nil -- drop the world so that it gets garbage collected..
 		local manager = require "game.scene-manager"
 		manager.transition("main-menu")
+		gam.click_callback = callback.nothing()
 		return
 	end
 	if ui.icon_button(
@@ -587,6 +589,7 @@ function gam.draw()
 		"Save"
 	) then
 		world.save("quicksave.binbeaver")
+		gam.click_callback = callback.nothing()
 		gam.refresh_map_mode()
 	end
 	if ui.icon_button(
@@ -595,6 +598,7 @@ function gam.draw()
 		"Load"
 	) then
 		world.load("quicksave.binbeaver")
+		gam.click_callback = callback.nothing()
 		gam.refresh_map_mode()
 	end
 	if ui.icon_button(
@@ -604,24 +608,106 @@ function gam.draw()
 	) then
 		local to_save = require "game.minimap".make_minimap_image_data(1600, 800)
 		to_save:encode("png", gam.map_mode .. ".png")
+		gam.click_callback = callback.nothing()
 	end
 	if WORLD.player_realm then
 		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
 			"Change country") then
 			WORLD.player_realm = nil
 			gam.refresh_map_mode()
+			gam.click_callback = callback.nothing()
 		end
 	end
 	-- Minimap
-	require "game.minimap".draw(
+	if require "game.minimap".draw(
 		gam.minimap,
 		gam.camera_position,
 		bottom_right_main_layout:next(300, 150)
-	)
-	-- Map mode tab
-	local mouse_in_bottom_right = ui.trigger(ui.fullscreen():subrect(
+	) then
+		gam.click_callback = callback.nothing()
+	end
+
+
+	-- Draw the calendar
+	if ut.calendar(gam) then
+		gam.click_callback = callback.nothing()
+	end
+
+
+	-- Draw notifications	
+
+	if WORLD.player_realm ~= nil then
+		-- "Mask" the mouse interaction
+		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
+		if ui.trigger(notif_panel) then
+			gam.click_callback = callback.nothing()
+		end
+
+		-- Draw gfx
+
+		ui.panel(notif_panel)	
+		if gam.notifications_list == nil then
+			gam.notifications_list = require "engine.queue":new()
+		end
+		while WORLD.notification_queue:length() > 0 do
+			local item = WORLD.notification_queue:dequeue()
+			gam.notifications_list:enqueue(item)
+		end
+		local function render_notification(index, rect)
+			local first = gam.notifications_list.first
+			local item = gam.notifications_list.data[first + index - 1]
+			ui.panel(rect)
+			rect:shrink(5)
+			if item then
+				ui.left_text(item, rect)
+			end
+		end
+		gam.notif_slider = gam.notif_slider or 1
+		gam.notif_slider = ui.scrollview(
+			notif_panel,
+			render_notification,
+			ut.BASE_HEIGHT * 2,
+			gam.notifications_list:length(),
+			10,
+			gam.notif_slider)
+
+
+		--- Draw outliner
+		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 8, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
+		if ui.trigger(outliner_panel) then
+			gam.click_callback = callback.nothing()
+		end
+
+		local function render_action(index, rect)
+			---@type ActionData
+			local action = tabb.nth(WORLD.player_deferred_actions, index)
+			if action == nil then
+				return
+			end
+			ui.left_text(action[1].name, rect)
+			ui.right_text(tostring(math.floor(action[4])), rect)
+			ui.centered_text(action[2].name, rect)
+		end
+
+		gam.outliner_slider = gam.outliner_slider or 0
+
+		gam.outliner_slider = ui.scrollview(
+			outliner_panel,
+			render_action,
+			ut.BASE_HEIGHT * 1,
+			tabb.size(WORLD.player_deferred_actions),
+			10,
+			gam.outliner_slider
+		)
+	end
+
+		-- Map mode tab
+	if ui.trigger(ui.fullscreen():subrect(
 		0, 0, 300, ut.BASE_HEIGHT * 2 + 150, "right", 'down'
-	))
+	)) then
+		gam.click_callback = callback.nothing()
+	end
+
 	local map_mode_bar = bottom_right_main_layout:next(300, ut.BASE_HEIGHT)
 	local map_mode_bar_layout = ui.layout_builder()
 		:horizontal()
@@ -634,33 +720,35 @@ function gam.draw()
 	) then
 		gam.show_map_mode_panel = true
 	end
+
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['atlas'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['atlas'][3]) then
-		gam.update_map_mode("atlas")
+		gam.click_callback = callback.update_map_mode(gam, "atlas")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['elevation'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['elevation'][3]) then
-		gam.update_map_mode("elevation")
+		gam.click_callback = callback.update_map_mode(gam, "elevation")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['biomes'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['biomes'][3]) then
-		gam.update_map_mode("biomes")
+		gam.click_callback = callback.update_map_mode(gam, "biomes")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['koppen'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['koppen'][3]) then
-		gam.update_map_mode("koppen")
+		gam.click_callback = callback.update_map_mode(gam, "koppen")
 	end
+
 	-- Map modes tab
 	if gam.show_map_mode_panel then
 		local ttab = require "engine.table"
 		local mm_panel_height = ut.BASE_HEIGHT * (1 + 5)
 		local panel = bottom_right_main_layout:next(300, mm_panel_height)
 		if ui.trigger(panel) then
-			mouse_in_bottom_right = true
+			gam.click_callback = callback.nothing()
 		end
 		ui.panel(panel)
 
@@ -668,7 +756,8 @@ function gam.draw()
 		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(
 			0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", "up"
 		)) then
-			gam.show_map_mode_panel = false
+			gam.click_callback = callback.close_map_mode_panel(gam)
+			-- gam.show_map_mode_panel = false
 		end
 		-- buttons for map mode tabs
 		local top_panels = {
@@ -686,6 +775,7 @@ function gam.draw()
 			ui.centered_text("ALL", top_panels[1])
 		else
 			if ui.text_button("ALL", top_panels[1]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'all'
 			end
 		end
@@ -694,6 +784,7 @@ function gam.draw()
 			ui.centered_text("POL", top_panels[2])
 		else
 			if ui.text_button("POL", top_panels[2]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'political'
 			end
 		end
@@ -702,6 +793,7 @@ function gam.draw()
 			ui.centered_text("DEM", top_panels[3])
 		else
 			if ui.text_button("DEM", top_panels[3]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'demographic'
 			end
 		end
@@ -710,6 +802,7 @@ function gam.draw()
 			ui.centered_text("ECN", top_panels[4])
 		else
 			if ui.text_button("ECN", top_panels[4]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'economic'
 			end
 		end
@@ -718,6 +811,7 @@ function gam.draw()
 			ui.centered_text("DEB", top_panels[7])
 		else
 			if ui.text_button("DEB", top_panels[7]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'debug'
 			end
 		end
@@ -737,6 +831,7 @@ function gam.draw()
 						], button_rect,
 						mm_data[3]
 					) then
+						gam.click_callback = callback.update_map_mode(gam, mm_key)
 						gam.update_map_mode(mm_key)
 					end
 					rect.x = rect.x + rect.height
@@ -751,104 +846,6 @@ function gam.draw()
 			gam.map_mode_slider
 		)
 	end
-
-	-- Draw the calendar
-	mouse_in_bottom_right = ut.calendar(gam) or mouse_in_bottom_right
-	-- Draw notifications
-	
-		-- "Mask" the mouse interaction
-		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
-		if ui.trigger(notif_panel) then
-			mouse_in_bottom_right = true
-		end
-
-		-- Draw gfx
-		ui.panel(notif_panel)
-		-- ui.left_text("Notifications (" .. tostring(WORLD.notification_queue:length()) .. ")",
-		-- 	notif_panel:subrect(0, 0, ut.BASE_HEIGHT * 8, ut.BASE_HEIGHT, "left", 'up'))
-		-- notif_panel.y = notif_panel.y + ut.BASE_HEIGHT
-		-- notif_panel:shrink(5)
-
-		-- if WORLD.notification_queue:length() > 0 then
-			
-			if gam.notifications_list == nil then
-				gam.notifications_list = require "engine.queue":new()
-			end
-
-			while WORLD.notification_queue:length() > 0 do
-				local item = WORLD.notification_queue:dequeue()
-				gam.notifications_list:enqueue(item)
-			end
-
-			-- while gam.notifications_list:length() > 10 do
-			-- 	gam.notifications_list:dequeue()
-			-- end
-
-			-- local r = notif_panel:copy()
-			-- r.height = notif_panel.height / 4
-
-			local function render_notification(index, rect)
-				local first = gam.notifications_list.first
-				local item = gam.notifications_list.data[first + index - 1]
-				ui.panel(rect)
-				rect:shrink(5)
-				if item then
-					ui.left_text(item, rect)
-				end
-			end
-
-
-			gam.notif_slider = gam.notif_slider or 1
-			gam.notif_slider = ui.scrollview(
-				notif_panel,
-				render_notification,
-				ut.BASE_HEIGHT * 2,
-				gam.notifications_list:length(),
-				10,
-				gam.notif_slider)
-
-			-- for count = 1, 10 do
-			-- 	local first = gam.notifications_list.first
-			-- 	local item = gam.notifications_list.data[first + count - 1]
-			-- 	if item then
-			-- 		r.y = notif_panel.y + count * r.height
-			-- 		ui.left_text(item, r)
-			-- 		ui.panel(r)
-			-- 	end
-			-- end
-
-			-- ui.text(WORLD.notification_queue:peek(), notif_panel, "left", 'up')
-
-		-- end
-
-		-- local function render_notification(notification_index, rect)
-		-- 	ui.text('test', rect, "center", 'up')
-		-- 	-- if (notification_index < WORLD.notification_queue.last - 10) then return end
-		-- 	if (notification_index < 1) then return end
-		-- 	-- if (notification_index < WORLD.notification_queue.first) then return end
-		-- 	ui.panel(rect)
-		-- 	ui.text(WORLD.notification_queue[notification_index], rect, "left", "up")
-		-- end
-
-		-- gam.notif_slider = gam.notif_slider or 0
-		-- gam.notif_slider = ui.scrollview(notif_panel, render_notification, ut.BASE_HEIGHT * 4, WORLD.notification_queue.last, 10, gam.notif_slider)
-		-- if WORLD.notification_queue:length() > 20 then
-		-- 	WORLD.notification_queue:dequeue()
-		-- end
-		-- ui.text(WORLD.notification_queue:peek(), notif_panel, "left", 'up')
-		-- notif_panel:shrink(-5)
-		-- notif_panel.y = notif_panel.y - ut.BASE_HEIGHT
-
-		-- local button_rect = notif_panel:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", 'up')
-		-- Interaction buttons
-		-- if ui.icon_button(ASSETS.icons['circle.png'], button_rect, "Close all notifications") then
-		-- 	WORLD.notification_queue:clear()
-		-- end
-		-- button_rect.x = button_rect.x - ut.BASE_HEIGHT
-		-- if ui.icon_button(ASSETS.icons['cancel.png'], button_rect, "Close the notification") then
-		-- 	WORLD.notification_queue:dequeue()
-		-- end
-	-- end
 
 	-- Draw the top bar
 	tb.draw(gam)
@@ -875,7 +872,11 @@ function gam.draw()
 			click_success = require "game.scenes.game.war-inspector".mask()
 		end
 
-		if click_success and not mouse_in_bottom_right and (tb.mask(gam)) and not province_on_map_interaction then
+		if (gam.click_callback ~= nil) and click_success then
+			gam.click_callback()
+		end
+
+		if click_success and (gam.click_callback == nil) and (tb.mask(gam)) and not province_on_map_interaction then
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false

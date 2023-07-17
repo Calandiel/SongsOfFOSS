@@ -14,7 +14,7 @@ function MilitaryEffects.covert_raid(root, primary_target)
         WORLD:emit_notification("Our warriors move toward " ..
             primary_target.name ..
             ", they should arrive in " ..
-            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time + 0.5) .. " days.")
+            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
     end
 
     -- A raid will raise up to a certain number of troops
@@ -28,10 +28,10 @@ function MilitaryEffects.covert_raid(root, primary_target)
     end
 
     WORLD:emit_action(
-        WORLD.events_by_name["covert-raid"],
+        WORLD.events_by_name["covert-raid"], root,
         primary_target.realm,
         { target = primary_target, raider = root, travel_time = travel_time, army = army },
-        travel_time
+        travel_time, false
     )
 
 

@@ -62,6 +62,10 @@ function mm.draw(img, camera_position, rect)
 	handle.width = handle_size
 	handle.height = handle_size
 
+	local active_flag = false
+	if ui.trigger(rect) then
+		active_flag = true
+	end
 
 	if ui.trigger_press(rect, 1) then
 		if ui.trigger(rect) then
@@ -95,6 +99,8 @@ function mm.draw(img, camera_position, rect)
 	love.graphics.setColor(0.35, 0.35, 0, 1)
 	ui.image(ASSETS.icons["circle.png"], handle)
 	love.graphics.setColor(1, 1, 1, 1)
+
+	return active_flag
 end
 
 

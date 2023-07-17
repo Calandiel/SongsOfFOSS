@@ -2,6 +2,8 @@ local world = {}
 
 local plate_utils = require "game.entities.plate"
 
+---@alias ActionData { [1]: Event, [2]: Realm, [3]: table, [4]: number}
+
 ---@class World
 ---@field player_realm Realm?
 ---@field sub_hourly_tick number
@@ -26,12 +28,13 @@ local plate_utils = require "game.entities.plate"
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
 ---@field emit_event fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number)
+---@field emit_action fun(self:World, event:Event, origin: Realm, target:Realm, associated_data:table|nil, delay: number, hidden: boolean)
 ---@field emit_immediate_event fun(self:World, event:Event, target:Realm, associated_data:table|nil)
 ---@field notification_queue Queue
 ---@field events_queue Queue
 ---@field deferred_events_queue Queue
 ---@field deferred_actions_queue Queue
+---@field player_deferred_actions table<ActionData, ActionData>
 ---@field treasury_effects Queue
 ---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string)
 ---@field pending_player_event_reaction boolean
@@ -94,6 +97,7 @@ function world.World:new()
 	w.events_queue = require "engine.queue":new()
 	w.deferred_events_queue = require "engine.queue":new()
 	w.deferred_actions_queue = require "engine.queue":new()
+	w.player_deferred_actions = {}
 	w.treasury_effects = require "engine.queue":new()
 
 	for tile_id = 1, 6 * ws * ws do
@@ -203,13 +207,22 @@ end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event Event
+---@param origin Realm
 ---@param target_realm Realm
 ---@param associated_data table
 ---@param delay number In days
-function world.World:emit_action(event, target_realm, associated_data, delay)
-	self.deferred_actions_queue:enqueue({
-		event, target_realm, associated_data, delay
-	})
+---@param hidden boolean
+function world.World:emit_action(event, origin, target_realm, associated_data, delay, hidden)
+	local action_data = {
+		event,
+		target_realm, 
+		associated_data, 
+		delay
+	}
+	self.deferred_actions_queue:enqueue(action_data)
+	if WORLD.player_realm == origin and not hidden then
+		self.player_deferred_actions[action_data] = action_data
+	end	
 end
 
 local function handle_event(event, target_realm, associated_data)
@@ -273,6 +286,8 @@ function world.World:tick()
 			WORLD.hour = 0
 			WORLD.day = WORLD.day + 1
 			-- daily tick
+
+			-- events
 			local l = WORLD.deferred_events_queue:length()
 			for i = 1, l do
 				--print("def. event" .. tostring(i))
@@ -286,6 +301,8 @@ function world.World:tick()
 					WORLD.deferred_events_queue:enqueue(check)
 				end
 			end
+
+			-- actionas
 			local l = WORLD.deferred_actions_queue:length()
 			for i = 1, l do
 				--print("def. action " .. tostring(i))
@@ -296,6 +313,7 @@ function world.World:tick()
 					local event = check[1]
 					event:on_trigger(check[2], check[3])
 					--print("ontrig")
+					self.player_deferred_actions[check] = nil
 				else
 					WORLD.deferred_actions_queue:enqueue(check)
 				end
