@@ -21,9 +21,9 @@ local function make_new_realm(capitol, race, culture, faith)
 	r.primary_faith = faith
 
 	-- Initialize realm colors
-	r.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.2 - 0.1))))
-	r.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.2 - 0.1))))
-	r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.2 - 0.1))))
+	r.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.4 - 0.2))))
+	r.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.4 - 0.2))))
+	r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.4 - 0.2))))
 
 	r.name = culture.language:get_random_realm_name()
 	for _, neigh in pairs(capitol.neighbors) do

@@ -217,14 +217,11 @@ function gam.handle_camera_controls()
 		-- Handle camera controls...
 		local up = up_direction
 		local camera_speed = (gam.camera_position:len() - 0.75) * 0.006
-		local zoom_speed = 0.02
 		if ui.is_key_held('lshift') then
 			camera_speed = camera_speed * 3
-			zoom_speed = zoom_speed * 3
 		end
 		if ui.is_key_held('lctrl') then
 			camera_speed = camera_speed / 6
-			zoom_speed = zoom_speed / 6
 		end
 		local mouse_zoom_sensor_size = 3
 		local mouse_x, mouse_y = ui.mouse_position()
@@ -244,14 +241,33 @@ function gam.handle_camera_controls()
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(camera_speed, rot)
 		end
-		if ui.is_key_held('e') or ui.mouse_wheel() < 0 then
+		CACHED_CAMERA_POSITION = gam.camera_position
+	end
+	if ui.is_key_pressed("f8") then
+		print("!")
+		gam.camera_lock = not gam.camera_lock
+		CACHED_LOCK_STATE = gam.camera_lock
+	end
+end
+
+function gam.handle_zoom()
+	local ui = require "engine.ui"
+	if not gam.camera_lock then
+		local zoom_speed = 0.02
+		if ui.is_key_held('lshift') then
+			zoom_speed = zoom_speed * 3
+		end
+		if ui.is_key_held('lctrl') then
+			zoom_speed = zoom_speed / 6
+		end
+		if ui.is_key_held('e') or (ui.mouse_wheel() < 0) then
 			gam.camera_position = gam.camera_position * (1 + zoom_speed)
 			local l = gam.camera_position:len()
 			if l > 3 then
 				gam.camera_position = gam.camera_position:normalize() * 3
 			end
 		end
-		if ui.is_key_held('q') or ui.mouse_wheel() > 0 then
+		if ui.is_key_held('q') or (ui.mouse_wheel() > 0) then
 			gam.camera_position = gam.camera_position * (1 - zoom_speed)
 			local l = gam.camera_position:len()
 			if l < 1.015 then
@@ -259,11 +275,6 @@ function gam.handle_camera_controls()
 			end
 		end
 		CACHED_CAMERA_POSITION = gam.camera_position
-	end
-	if ui.is_key_pressed("f8") then
-		print("!")
-		gam.camera_lock = not gam.camera_lock
-		CACHED_LOCK_STATE = gam.camera_lock
 	end
 end
 
@@ -858,6 +869,25 @@ function gam.draw()
 
 	-- At the end, handle tile clicks.
 	-- Make sure you add triggers for detecting clicks over UI!
+
+	if gam.click_callback == nil then
+		local click_success = false
+		if gam.inspector == nil then
+			click_success = true
+		elseif gam.inspector == "tile" then
+			click_success = require "game.scenes.game.tile-inspector".mask()
+		elseif gam.inspector == "realm" then
+			click_success = require "game.scenes.game.realm-inspector".mask()
+		elseif gam.inspector == "building" then
+			click_success = require "game.scenes.game.building-inspector".mask()
+		elseif gam.inspector == "war" then
+			click_success = require "game.scenes.game.war-inspector".mask()
+		end
+		if click_success then 
+			gam.handle_zoom()
+		end
+	end
+
 	if click_detected then
 		local click_success = false
 		if gam.inspector == nil then
@@ -877,6 +907,7 @@ function gam.draw()
 		end
 
 		if click_success and (gam.click_callback == nil) and (tb.mask(gam)) and not province_on_map_interaction then
+			
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false

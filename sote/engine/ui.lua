@@ -920,8 +920,9 @@ end
 ---@param min_value number
 ---@param max_value number
 ---@param vertical ?boolean
+---@param height number
 ---@return number new_value
-function ui.slider(rect, current_value, min_value, max_value, vertical)
+function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 	local ret = current_value
 
 	local lr = ui.rect(rect.x, rect.y, rect.height, rect.height)
@@ -939,28 +940,32 @@ function ui.slider(rect, current_value, min_value, max_value, vertical)
 		end
 	end
 
-	local fill = (current_value - min_value) / (max_value - min_value)
+	local start = math.min((current_value - min_value) / (max_value - min_value), 1 - height)
+	local fill = height
+	local active_zone = (rect.width - rect.height * 2)
 	local background = ui.rect(
 		rect.x + rect.height,
 		rect.y,
-		rect.width - rect.height * 2,
+		active_zone,
 		rect.height
 	)
 	local filled = ui.rect(
-		rect.x + rect.height,
+		rect.x + rect.height + (active_zone - fill) * start,
 		rect.y,
-		fill * (rect.width - rect.height * 2),
+		fill * active_zone,
 		rect.height
 	)
+
 	if vertical then
+		local active_zone = (rect.height - rect.width * 2)
 		background.x = rect.x
 		background.y = rect.y + rect.width
 		background.width = rect.width
-		background.height = rect.height - rect.width * 2
+		background.height = active_zone
 		filled.x = rect.x
-		filled.y = rect.y + rect.width
+		filled.y = rect.y + rect.width + (active_zone - fill) * start
 		filled.width = rect.width
-		filled.height = fill * (rect.height - rect.width * 2)
+		filled.height = fill * active_zone
 	end
 	ui.slider_panel(filled, background)
 
@@ -1003,11 +1008,11 @@ end
 ---@param min_value number
 ---@param max_value number
 ---@return number new_value
-function ui.named_slider(slider_name, rect, current_value, min_value, max_value)
+function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height)
 	local up = ui.rect(rect.x, rect.y, rect.width, rect.height / 2)
 	local down = ui.rect(rect.x, rect.y + rect.height / 2, rect.width, rect.height / 2)
 	ui.text_panel(slider_name, up)
-	return ui.slider(down, current_value, min_value, max_value)
+	return ui.slider(down, current_value, min_value, max_value, false, height)
 end
 
 ---Draws a checkbox in a given rect.
@@ -1065,12 +1070,23 @@ function ui.scrollview(
     slider_width,
     slider_level
 )
+
+	
+	-- "mouse scroll"
+	if ui.trigger(rect) then
+		slider_level = math.min(math.max(0, slider_level - ui.mouse_wheel() / entries_count), 1)
+	end
+
 	-- "Current" top-most level
+	local max_fit = math.floor(rect.height / individual_height)
+
+	local slider_height = math.min(max_fit / entries_count, 1)
+
 	local current = math.min(
-		entries_count,
+		math.max(1, entries_count - max_fit + 1),
 		1 + math.floor(slider_level * entries_count)
 	)
-	local max_fit = math.floor(rect.height / individual_height)
+
 	local last = math.min(entries_count, (current - 1) + max_fit)
 
 	-- Draw the main panel
@@ -1095,7 +1111,7 @@ function ui.scrollview(
 	local sl = rect:copy()
 	sl.x = sl.x + sl.width - slider_width
 	sl.width = slider_width
-	return ui.slider(sl, slider_level, 0, 1, true)
+	return ui.slider(sl, slider_level, 0, 1, true, slider_height)
 end
 
 ---@param rect Rect rect for the entire scroll view
