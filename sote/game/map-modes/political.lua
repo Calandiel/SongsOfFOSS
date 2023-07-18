@@ -59,13 +59,13 @@ end
 
 local cp = require "cpml".color
 ---Returns a [0-1]^3 RGB color based on a hsv color.
----@param h number hue [0-1]
+---@param h number hue [0-360]
 ---@param s number saturation [0-1]
 ---@param v number value [0-1]
 ---@return number r
 ---@return number g
 ---@return number b
-local function hsv_to_rgb(h, s, v)
+function pol.hsv_to_rgb(h, s, v)
     local c = v * s;
     local x = c * (1 - math.abs((h / 60) % 2 - 1));
     local m = v - c;
@@ -128,7 +128,7 @@ function pol.atlas()
 			if tile.province.realm ~= nil then
                 local ele_h, ele_s, ele_v = rgb_to_hsv(tile.real_r, tile.real_g, tile.real_b)
                 local pol_h, pol_s, pol_v = rgb_to_hsv(tile.province.realm.r, tile.province.realm.g, tile.province.realm.b)
-                local r, g, b = hsv_to_rgb(mix(ele_h, pol_h, 0.9), mix(ele_s, pol_s, 0.6), mix(ele_v, pol_v, 0.3))
+                local r, g, b = pol.hsv_to_rgb(mix(ele_h, pol_h, 0.9), mix(ele_s, pol_s, 0.6), mix(ele_v, pol_v, 0.3))
             
 				tile:set_real_color(
 					r,

@@ -781,9 +781,17 @@ function re.draw(gam)
 										ui.left_text(building_type.name, r)
 									end
 
+									r.x = r.x + r.width - 3 * uit.BASE_HEIGHT
+									r.width = uit.BASE_HEIGHT
+									if ui.icon_button(ASSETS.icons['help.png'], r,
+										"Local efficiency") then
+										gam.selected_building_type = building_type
+										gam.refresh_map_mode(true)
+									end
+
 									if WORLD.player_realm then
 										if WORLD.player_realm == tile.province.realm then
-											r.x = r.x + r.width - 2 * uit.BASE_HEIGHT
+											r.x = r.x + uit.BASE_HEIGHT
 											r.width = uit.BASE_HEIGHT
 
 											local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)

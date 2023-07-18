@@ -7,6 +7,7 @@ local tile = require "game.entities.tile"
 local tb = require "game.scenes.game.top-bar"
 local callback = require "game.scenes.callbacks"
 local tabb = require "engine.table"
+local political = require "game.map-modes.political"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
@@ -1136,13 +1137,23 @@ function gam.recalculate_raiding_targets_map()
 end
 
 ---Refreshes the map mode
-function gam.refresh_map_mode()
+function gam.refresh_map_mode(preserve_efficiency)
 	local tim = love.timer.getTime()
+
+	if not preserve_efficiency then
+		gam.selected_building_type = nil
+	end
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
 	local func = dat[4]
 	func(gam.clicked_tile_id) -- set "real color" on tiles
+
+	local province = nil
+	if (gam.clicked_tile) then
+		province = gam.clicked_tile.province
+	end
+
 	-- Apply the color
 	for _, tile in pairs(WORLD.tiles) do
 		local can_set = true
@@ -1163,7 +1174,30 @@ function gam.refresh_map_mode()
             else 
                 gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
             end
-            
+
+			if gam.selected_building_type ~= nil then
+				if tile.tile_improvement then
+					gam.tile_color_image_data:setPixel(x, y, 0.4, 0.5, 0.9, 1)
+				else
+					local eff = gam.selected_building_type.production_method:get_efficiency(tile)
+					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
+					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+
+					if tile.province == province then
+						local flag = true
+						for n in tile:iter_neighbors() do
+							if n.province == province and  gam.selected_building_type.production_method:get_efficiency(n) > eff then
+								flag = false
+							end
+						end
+
+						if flag then
+							local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
+							gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+						end
+					end
+				end
+			end
 		else
 			gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 		end
