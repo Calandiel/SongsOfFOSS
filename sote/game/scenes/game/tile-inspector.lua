@@ -11,7 +11,7 @@ re.cached_scrollbar = 0
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, 0, 650, 500, "left", 'down')
+	local panel = fs:subrect(0, 0, 550, 250, "left", 'down')
 	return panel
 end
 
@@ -215,7 +215,7 @@ function re.draw(gam)
 								function(rect)
 									uit.data_entry("Biome", tile.biome.name, rect)
 								end
-							}, rect, uit.BASE_HEIGHT * 6)
+							}, rect, uit.BASE_HEIGHT * 10)
 						end,
 						function(rect)
 							uit.data_entry("Local carrying capacity",
@@ -272,7 +272,7 @@ function re.draw(gam)
 								end,
 							}, rect)
 						end
-					}, ui_panel, uit.BASE_HEIGHT * 3.5)
+					}, ui_panel, uit.BASE_HEIGHT * 7)
 				end
 			},
 			{
@@ -715,7 +715,7 @@ function re.draw(gam)
 													ui.centered_text('+100' .. MONEY_SYMBOL, rect)
 												end
 											end,
-										}, rect, uit.BASE_HEIGHT)
+										}, rect, uit.BASE_HEIGHT * 2)
 										tile.province.infrastructure_investment = cinf
 										WORLD.player_realm.treasury = ctre
 									end
@@ -834,43 +834,7 @@ function re.draw(gam)
 					local production = tile.province.local_production
 					local uip = ui_panel:copy()
 					uip.height = uit.BASE_HEIGHT
-					-- ui.centered_text("Consumption", uip)
-					-- uip.y = uip.y + uit.BASE_HEIGHT
-					-- local data = {}
-					-- for good, amount in pairs(consumption) do
-					-- 	data[#data + 1] = {
-					-- 		weight = amount,
-					-- 		tooltip = good.name .. ", " .. tostring(math.floor(100 * amount) / 100),
-					-- 		r = good.r,
-					-- 		g = good.g,
-					-- 		b = good.b,
-					-- 	}
-					-- end
-					-- uit.graph(data, uip)
 
-					
-					-- uip.y = uip.y + uit.BASE_HEIGHT
-					-- ui.centered_text("Production", uip)
-					-- uip.y = uip.y + uit.BASE_HEIGHT
-					-- local data = {}
-					-- if tile.province.realm then
-					-- 	for good, amount in pairs(production) do
-					-- 		data[#data + 1] = {
-					-- 			weight = amount * tile.province.realm:get_price(good),
-					-- 			tooltip = good.name ..
-					-- 				", " ..
-					-- 				tostring(math.floor(100 * amount * tile.province.realm:get_price(good)) / 100) ..
-					-- 				MONEY_SYMBOL .. ' (' .. tostring(math.floor(100 * amount) / 100) .. ')',
-					-- 			r = good.r,
-					-- 			g = good.g,
-					-- 			b = good.b,
-					-- 		}
-					-- 	end
-					-- end
-					-- uit.graph(data, uip)
-					--uit.graph(data, uip)
-
-					uip.y = uip.y + uit.BASE_HEIGHT
 					ui.left_text("Local wealth:", uip)
 					ui.right_text(tostring(math.floor(100 * tile.province.local_wealth) / 100) .. MONEY_SYMBOL, uip)
 

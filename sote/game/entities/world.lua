@@ -36,6 +36,7 @@ local plate_utils = require "game.entities.plate"
 ---@field deferred_actions_queue Queue
 ---@field player_deferred_actions table<ActionData, ActionData>
 ---@field treasury_effects Queue
+---@field old_treasury_effects Queue
 ---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string)
 ---@field pending_player_event_reaction boolean
 --- RAWS
@@ -99,6 +100,7 @@ function world.World:new()
 	w.deferred_actions_queue = require "engine.queue":new()
 	w.player_deferred_actions = {}
 	w.treasury_effects = require "engine.queue":new()
+	w.old_treasury_effects =require "engine.queue":new()
 
 	for tile_id = 1, 6 * ws * ws do
 		table.insert(w.tiles, tile.Tile:new(tile_id))

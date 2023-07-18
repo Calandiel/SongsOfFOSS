@@ -3,7 +3,7 @@ local ui = require "engine.ui"
 local ut = {}
 
 
-ut.BASE_HEIGHT = 30
+ut.BASE_HEIGHT = 20
 
 ---@class Entry
 ---@field weight number
@@ -161,7 +161,7 @@ function ut.calendar(gam)
 		:horizontal(true)
 		:position(rx, 0)
 		:build()
-	local main = hor:next(ut.BASE_HEIGHT * 6, ut.BASE_HEIGHT)
+	local main = hor:next(ut.BASE_HEIGHT * 12, ut.BASE_HEIGHT)
 	ui.panel(main)
 	local www = (require "game.entities.world").ticks_per_hour
 	local sht = WORLD.sub_hourly_tick
@@ -222,7 +222,7 @@ end
 function ut.tabs(current_tab, layout, tabs)
 	local new_tab = current_tab
 	for _, tab in pairs(tabs) do
-		local rect = layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
+		local rect = layout:next(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT)
 		if current_tab == tab.text then
 			ui.tooltip(tab.tooltip, rect)
 			ui.centered_text(tab.text, rect)

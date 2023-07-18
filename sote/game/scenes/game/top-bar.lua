@@ -37,6 +37,10 @@ function HANDLE_EFFECTS()
 			timer = MAX_TREASURY_TIMER + counter * MIN_DELAY
 		} 
 		table.insert(CURRENT_EFFECTS, new_effect)
+		WORLD.old_treasury_effects:enqueue(temp)
+		if WORLD.old_treasury_effects:length() > 300 then
+			WORLD.old_treasury_effects:dequeue()
+		end
 		counter = counter + 1
 	end
 end
@@ -98,14 +102,14 @@ function tb.draw(gam)
 			local captile = tabb.nth(WORLD.player_realm.capitol.tiles, 1)
 			gam.click_tile(captile.tile_id)
 		end
-		ui.left_text(WORLD.player_realm.name, layout:next(uit.BASE_HEIGHT * 2.5, uit.BASE_HEIGHT))
+		ui.left_text(WORLD.player_realm.name, layout:next(uit.BASE_HEIGHT * 5.5, uit.BASE_HEIGHT))
 
 		-- Treasury
 		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		local trs = "Treasury"
 		ui.image(ASSETS.icons['coins.png'], tr)
 		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
+		local trt = layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)
 		ui.right_text(uit.to_fixed_point2(WORLD.player_realm.treasury) .. MONEY_SYMBOL, trt)
 		ui.tooltip(trs, trt)
 
@@ -118,7 +122,7 @@ function tb.draw(gam)
 		local trs = "Food"
 		ui.image(ASSETS.icons['noodles.png'], tr)
 		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
+		local trt = layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)
 		ui.right_text(tostring(math.floor(amount * 100) / 100), trt)
 		ui.tooltip(trs, trt)
 

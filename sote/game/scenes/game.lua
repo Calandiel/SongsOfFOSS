@@ -334,6 +334,10 @@ function gam.draw()
 	local y = cpml.vec3.cross(x, z):normalize()
 	local shift = y:scale(t)
 
+	if not OPTIONS.rotation then
+		shift = shift:scale(0)
+	end
+
 	local projection_z = z.x * z.x + z.z * z.z
 	local projection_shift = shift.x * shift.x + shift.z * shift.z
 	local sign = 1
@@ -580,16 +584,21 @@ function gam.draw()
 		)
 	end
 
+	-- Bottom UI
+	local bottom_button_size = ut.BASE_HEIGHT * 2
+
+
 	local bottom_right = fs:subrect(0, 0, 0, 0, "right", "down")
 	local bottom_right_main_layout = ui.layout_builder()
 		:vertical(true)
 		:position(bottom_right.x, bottom_right.y)
 		:flipped()
 		:build()
-	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT) -- skip!
-
+	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, bottom_button_size) -- skip!
 
 	-- Bottom bar
+	
+	
 	local bottom_bar = ui.layout_builder()
 		:horizontal(true)
 		:position(bottom_right.x, bottom_right.y)
@@ -597,7 +606,7 @@ function gam.draw()
 		:build()
 	if ui.icon_button(
 		ASSETS.icons["exit-door.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Quit"
 	) then
 		---@type World|nil
@@ -609,7 +618,7 @@ function gam.draw()
 	end
 	if ui.icon_button(
 		ASSETS.icons["save.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Save"
 	) then
 		world.save("quicksave.binbeaver")
@@ -618,7 +627,7 @@ function gam.draw()
 	end
 	if ui.icon_button(
 		ASSETS.icons["load.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Load"
 	) then
 		world.load("quicksave.binbeaver")
@@ -627,15 +636,23 @@ function gam.draw()
 	end
 	if ui.icon_button(
 		ASSETS.icons["treasure-map.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Export map"
 	) then
 		local to_save = require "game.minimap".make_minimap_image_data(1600, 800)
 		to_save:encode("png", gam.map_mode .. ".png")
 		gam.click_callback = callback.nothing()
 	end
+	if ui.icon_button(
+		ASSETS.icons["war-pick.png"],
+		bottom_bar:next(bottom_button_size, bottom_button_size),
+		"Options"
+	) then
+		gam.inspector = "options"
+		gam.click_callback = callback.nothing()
+	end
 	if WORLD.player_realm then
-		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
 			"Change country") then
 			WORLD.player_realm = nil
 			gam.refresh_map_mode()
@@ -662,7 +679,7 @@ function gam.draw()
 
 	if WORLD.player_realm ~= nil then
 		-- "Mask" the mouse interaction
-		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
+		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 9, "right", 'up')
 		if ui.trigger(notif_panel) then
 			gam.click_callback = callback.nothing()
 		end
@@ -690,14 +707,14 @@ function gam.draw()
 		gam.notif_slider = ui.scrollview(
 			notif_panel,
 			render_notification,
-			ut.BASE_HEIGHT * 2,
+			ut.BASE_HEIGHT * 3,
 			gam.notifications_list:length(),
 			10,
 			gam.notif_slider)
 
 
 		--- Draw outliner
-		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 8, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
+		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
 		if ui.trigger(outliner_panel) then
 			gam.click_callback = callback.nothing()
 		end
@@ -784,15 +801,16 @@ function gam.draw()
 			-- gam.show_map_mode_panel = false
 		end
 		-- buttons for map mode tabs
+		local map_tabs_buttons_width = ut.BASE_HEIGHT * 2
 		local top_panels = {
-			panel:subrect(0 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(1 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(2 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(3 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(4 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(5 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(6 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(7 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(0 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(1 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(2 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(4 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(3 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(5 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(6 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(7 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
 		}
 		ui.tooltip("All", top_panels[1])
 		if gam.map_mode_selected_tab == 'all' then
@@ -894,6 +912,8 @@ function gam.draw()
 		click_success = require "game.scenes.game.building-inspector".mask()
 	elseif gam.inspector == "war" then
 		click_success = require "game.scenes.game.war-inspector".mask()
+	elseif gam.inspector == "options" then
+		click_success = require "game.scenes.main-menu.options".mask()
 	end
 
 	if gam.click_callback == nil then
@@ -946,7 +966,12 @@ function gam.draw()
 		end
 	end
 
-	if tile_data_viewable then
+	if gam.inspector == "options" then
+		local response = require "game.scenes.main-menu.options".draw()
+		if response == "main" then
+			gam.inspector = nil
+		end
+	elseif tile_data_viewable then
 		if gam.inspector == "tile" then
 			require "game.scenes.game.tile-inspector".draw(gam)
 		elseif gam.inspector == "realm" then
