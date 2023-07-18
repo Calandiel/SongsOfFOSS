@@ -112,6 +112,9 @@ function army:attack(prov, spotted, defender)
 		hp = hp + unit.base_health * size
 		stack = stack + 1
 	end
+	if stack == 0 then
+		return false, 0, 0
+	end
 	stack = math.max(1, stack)
 
 	armor = armor / stack
@@ -134,6 +137,9 @@ function army:attack(prov, spotted, defender)
 		def_speed = def_speed + unit.speed
 		def_hp = def_hp + unit.base_health * size
 		def_stack = def_stack + 1
+	end
+	if def_stack == 0 then
+		return true, 0, 0
 	end
 	def_stack = math.max(1, def_stack)
 
@@ -181,7 +187,7 @@ function army:attack(prov, spotted, defender)
 	local frac = power
 	local def_frac = defpower / (def_stack / stack)
 	local losses = self:kill_off(frac)
-	local def_losses = self:kill_off(def_frac)
+	local def_losses = defender:kill_off(def_frac)
 	return victory, losses, def_losses
 end
 
