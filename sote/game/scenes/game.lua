@@ -883,43 +883,31 @@ function gam.draw()
 	-- At the end, handle tile clicks.
 	-- Make sure you add triggers for detecting clicks over UI!
 
+	local click_success = false
+	if gam.inspector == nil then
+		click_success = true
+	elseif gam.inspector == "tile" then
+		click_success = require "game.scenes.game.tile-inspector".mask()
+	elseif gam.inspector == "realm" then
+		click_success = require "game.scenes.game.realm-inspector".mask()
+	elseif gam.inspector == "building" then
+		click_success = require "game.scenes.game.building-inspector".mask()
+	elseif gam.inspector == "war" then
+		click_success = require "game.scenes.game.war-inspector".mask()
+	end
+
 	if gam.click_callback == nil then
-		local click_success = false
-		if gam.inspector == nil then
-			click_success = true
-		elseif gam.inspector == "tile" then
-			click_success = require "game.scenes.game.tile-inspector".mask()
-		elseif gam.inspector == "realm" then
-			click_success = require "game.scenes.game.realm-inspector".mask()
-		elseif gam.inspector == "building" then
-			click_success = require "game.scenes.game.building-inspector".mask()
-		elseif gam.inspector == "war" then
-			click_success = require "game.scenes.game.war-inspector".mask()
-		end
 		if click_success then 
 			gam.handle_zoom()
 		end
-	end
-
-	if click_detected then
-		local click_success = false
-		if gam.inspector == nil then
-			click_success = true
-		elseif gam.inspector == "tile" then
-			click_success = require "game.scenes.game.tile-inspector".mask()
-		elseif gam.inspector == "realm" then
-			click_success = require "game.scenes.game.realm-inspector".mask()
-		elseif gam.inspector == "building" then
-			click_success = require "game.scenes.game.building-inspector".mask()
-		elseif gam.inspector == "war" then
-			click_success = require "game.scenes.game.war-inspector".mask()
-		end
-
-		if (gam.click_callback ~= nil) and click_success then
+	else
+		if click_success then
 			gam.click_callback()
 		end
+	end
 
-		if click_success and (gam.click_callback == nil) and (tb.mask(gam)) and not province_on_map_interaction then
+	if click_detected and click_success then
+		if (gam.click_callback == nil) and (tb.mask(gam)) and not province_on_map_interaction then
 			
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
