@@ -84,7 +84,7 @@ function re.draw(gam)
 						ui.panel(treasury_ledger_rect)
 
 						gam.treasury_ledger_slider = gam.treasury_ledger_slider or 0
-						gam.treasury_ledger_slider = ui.scrollview(treasury_ledger_rect, render_treasury_change, 10, WORLD.old_treasury_effects:length(), 10, gam.treasury_ledger_slider)
+						gam.treasury_ledger_slider = ui.scrollview(treasury_ledger_rect, render_treasury_change, 12, WORLD.old_treasury_effects:length(), 10, gam.treasury_ledger_slider)
 
 					end
 

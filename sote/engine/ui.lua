@@ -1098,14 +1098,24 @@ function ui.scrollview(
 		:position(main_panel.x, main_panel.y)
 		:vertical()
 		:build()
+	
 	for i = current, last do
-		render_closure(i,
-			layout:next(
-				main_panel.width,
-				individual_height
-			)
+		local item_rect = layout:next(
+			main_panel.width,
+			individual_height
 		)
+		if (i % 2) == 0 then
+			local prev_in = ui.style.panel_inside
+			local prev_outl = ui.style.panel_outline
+			ui.style.panel_inside = {r=1, g=1, b=1, a=0.05}
+			ui.style.panel_outline = {r=0, g=0, b=0, a=0.0}
+			ui.panel(item_rect)
+			ui.style.panel_inside = prev_in
+			ui.style.panel_outline = prev_outl
+		end
+		render_closure(i, item_rect)
 	end
+
 
 	-- Draw the slider bar
 	local sl = rect:copy()
