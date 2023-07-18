@@ -679,7 +679,7 @@ function gam.draw()
 		end
 		local function render_notification(index, rect)
 			local first = gam.notifications_list.first
-			local item = gam.notifications_list.data[first + index - 1]
+			local item = gam.notifications_list.data[first + index]
 			ui.panel(rect)
 			rect:shrink(5)
 			if item then
