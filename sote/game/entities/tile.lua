@@ -176,6 +176,12 @@ function tile.Tile:get_climate_data()
 	return r_ja, t_ja - TEMP_DELTA_PER_KM * dd, r_ju, t_ju - TEMP_DELTA_PER_KM * dd
 end
 
+---@alias neighbourID 
+---|1 top
+---|2 bottom
+---|3 right
+---|4 left
+
 -- constants for the neighbor ID
 local NEIGH_TOP = 1
 local NEIGH_BOTTOM = 2
@@ -183,7 +189,7 @@ local NEIGH_RIGHT = 3
 local NEIGH_LEFT = 4
 ---Returns a neighbor tile (as a reference!)
 ---@param self Tile
----@param neighbor_index number Ranges from 1 to 4 (both inclusive)
+---@param neighbor_index neighbourID Ranges from 1 to 4 (both inclusive)
 ---@return Tile neigbhbor
 function tile.Tile.get_neighbor(self, neighbor_index)
 	local id = self.tile_id

@@ -121,6 +121,10 @@ function gam.init()
 	
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
+
+	gam.tile_neighbor_provinces_data = nil
+	gam.tile_neighbor_provinces_texture = nil
+
 	gam.inspector = nil
 	gam.load_camera_position_or_set_to_default()
 	local default_map_mode = "elevation"
@@ -159,7 +163,6 @@ function gam.init()
 	end
 	gam.tile_improvement_texture_data = imd2
 	gam.tile_improvement_texture = love.graphics.newImage(imd2)
-    
     
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
@@ -409,6 +412,13 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("clicked_tile") then
 		gam.planet_shader:send('clicked_tile', gam.clicked_tile_id - 1) -- shaders use 0-indexed arrays!
 	end
+	if gam.planet_shader:hasUniform("player_tile") then
+		if WORLD.player_realm then
+			gam.planet_shader:send('player_tile', WORLD.player_realm.capitol.center.tile_id - 1)
+		else 
+			gam.planet_shader:send('player_tile', 0)
+		end
+	end
 	if gam.planet_shader:hasUniform("camera_distance_from_sphere") then
 		gam.planet_shader:send("camera_distance_from_sphere", gam.camera_position:len() - 1)
 	end
@@ -420,6 +430,9 @@ function gam.draw()
 			gam.recalculate_province_map()
 		end
 		gam.planet_shader:send('tile_provinces', gam.tile_province_texture)
+	end
+	if gam.planet_shader:hasUniform("tile_neighbor_province") then
+		gam.planet_shader:send('tile_neighbor_province', gam.tile_neighbor_provinces_texture)
 	end
 	if gam.planet_shader:hasUniform("tile_raiding_targets") then
 		if gam.map_mode == "atlas" then
@@ -1012,9 +1025,53 @@ function gam.update_map_mode(new_map_mode)
 	CACHED_MAP_MODE = new_map_mode
 end
 
+local function neighbor_data(tile)
+	local up_neigh = tile.get_neighbor(tile, 1)
+	local down_neigh = tile.get_neighbor(tile, 2)
+	local right_neigh = tile.get_neighbor(tile, 3)
+	local left_neigh = tile.get_neighbor(tile, 4)
+	local r = 0
+	local g = 0
+	local b = 0
+	local a = 0
+	if up_neigh.province ~= tile.province then
+		r = 1
+	end
+	if down_neigh.province ~= tile.province then
+		g = 1
+	end
+	if right_neigh.province ~= tile.province then
+		b = 1
+	end
+	if left_neigh.province ~= tile.province then
+		a = 1
+	end
+	return r, g, b, a
+end
+
+local function neighbor_neighbor_data(tile)
+	local up_neigh = tile.get_neighbor(tile, 1)
+	local down_neigh = tile.get_neighbor(tile, 2)
+	local right_neigh = tile.get_neighbor(tile, 3)
+	local left_neigh = tile.get_neighbor(tile, 4)
+
+	local up_r, up_g, up_b, up_a = neighbor_data(up_neigh)
+	local down_r, down_g, down_b, down_a = neighbor_data(down_neigh)
+	local right_r, right_g, right_b, right_a = neighbor_data(right_neigh)
+	local left_r, left_g, left_b, left_a = neighbor_data(left_neigh)
+
+	local r = (up_r + down_r + right_r + left_r) / 4
+	local g = (up_g + down_g + right_g + left_g) / 4
+	local b = (up_b + down_b + right_b + left_b) / 4
+	local a = (up_a + down_a + right_a + left_a) / 4
+
+	return r, g, b, a
+end
+
 function gam.recalculate_province_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim, dim, "rgba8")
+	gam.tile_neighbor_provinces_data = gam.tile_neighbor_provinces_data or love.image.newImageData(dim, dim, "rgba8")
 	for _, tile in pairs(WORLD.tiles) do
 		local x, y = gam.tile_id_to_color_coords(tile)
 		if tile.province then
@@ -1023,12 +1080,27 @@ function gam.recalculate_province_map()
 			local b = tile.province.b
 			gam.tile_province_image_data:setPixel(x, y, r, g, b, 1)
 		end
+
+		local r, g, b, a = neighbor_data(tile)
+
+		if (math.max(r, g, b, a) < 0.1) then
+			r, g, b, a = neighbor_neighbor_data(tile)
+		end
+
+		gam.tile_neighbor_provinces_data:setPixel(x, y, r, g, b, a)
 	end
+
 	gam.tile_province_texture = love.graphics.newImage(gam.tile_province_image_data, {
 		mipmaps = false,
 		linear = true
 	})
 	gam.tile_province_texture:setFilter("nearest", "nearest")
+
+	gam.tile_neighbor_provinces_texture = love.graphics.newImage(gam.tile_neighbor_provinces_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_neighbor_provinces_texture:setFilter("nearest", "nearest")
 end
 
 function gam.recalculate_raiding_targets_map()
@@ -1047,7 +1119,7 @@ function gam.recalculate_raiding_targets_map()
 		mipmaps = false,
 		linear = true
 	})
-	gam.tile_province_texture:setFilter("nearest", "nearest")
+	gam.tile_raiding_targets_texture:setFilter("nearest", "nearest")
 end
 
 ---Refreshes the map mode

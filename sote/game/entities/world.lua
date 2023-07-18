@@ -412,7 +412,7 @@ function world.World:tick()
 							
 							-- with some probability, launch the raid
 							-- larger groups launch raids faster
-							if (units > 0) and (math.random() > 0.5 + 1 / (units + 10)) then
+							if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
 								MilitaryEffects.covert_raid(realm, target)
 							end
 						end
