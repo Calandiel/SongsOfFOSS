@@ -456,7 +456,8 @@ end
 ---Emits a notification
 ---@param notification string
 function world.World:emit_notification(notification)
-	self.notification_queue:enqueue(notification)
+	local date = tostring(WORLD.day) .. '.' .. tostring(WORLD.month + 1) .. '.' .. tostring(WORLD.year)
+	self.notification_queue:enqueue(date .. '  ' .. notification)
 end
 
 function world.World:emit_treasury_change_effect(amount, reason)

@@ -149,6 +149,7 @@ local months = {
 	'December'
 }
 
+
 ---Draws the calendar and returns whether or not the mouse if over it
 ---@param gam table
 ---@return boolean
