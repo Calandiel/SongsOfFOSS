@@ -784,7 +784,7 @@ function re.draw(gam)
 									r.x = r.x + r.width - 3 * uit.BASE_HEIGHT
 									r.width = uit.BASE_HEIGHT
 									if ui.icon_button(ASSETS.icons['help.png'], r,
-										"Local efficiency") then
+										"Show local efficiency on map") then
 										gam.selected_building_type = building_type
 										gam.refresh_map_mode(true)
 									end

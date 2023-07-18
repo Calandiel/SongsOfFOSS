@@ -1150,8 +1150,14 @@ function gam.refresh_map_mode(preserve_efficiency)
 	func(gam.clicked_tile_id) -- set "real color" on tiles
 
 	local province = nil
+	local best_eff = 0
 	if (gam.clicked_tile) then
 		province = gam.clicked_tile.province
+		if province and gam.selected_building_type then
+			for _, tile in pairs(province.tiles) do
+				best_eff = math.max(best_eff, gam.selected_building_type.production_method:get_efficiency(tile))
+			end
+		end
 	end
 
 	-- Apply the color
@@ -1183,18 +1189,9 @@ function gam.refresh_map_mode(preserve_efficiency)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
 					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
 
-					if tile.province == province then
-						local flag = true
-						for n in tile:iter_neighbors() do
-							if n.province == province and  gam.selected_building_type.production_method:get_efficiency(n) > eff then
-								flag = false
-							end
-						end
-
-						if flag then
-							local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-							gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
-						end
+					if tile.province == province and eff == best_eff then
+						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
+						gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
 					end
 				end
 			end
