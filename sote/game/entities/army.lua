@@ -165,12 +165,15 @@ function army:attack(prov, spotted, defender)
 	local power = 1
 	local defpower = def_stack / stack
 	local victory = true
+	-- print(power, defpower)
 	while true do
 		local dt = 0.5
 		local p = power
 		local dp = defpower
 		power = power - damage_defender * dt * dp ^ exponent
 		defpower = defpower - damage_attacker * dt * p ^ exponent
+
+		-- print(power, defpower)
 
 		if power < stop_battle_threshold then
 			victory = false
@@ -184,10 +187,13 @@ function army:attack(prov, spotted, defender)
 	defpower = math.max(0, defpower)
 
 	-- After the battle, kill people!
+	--- fraction of people who survived
 	local frac = power
 	local def_frac = defpower / (def_stack / stack)
-	local losses = self:kill_off(frac)
-	local def_losses = defender:kill_off(def_frac)
+
+	--- kill dead ones
+	local losses = self:kill_off(1 - frac)
+	local def_losses = defender:kill_off(1 - def_frac)
 	return victory, losses, def_losses
 end
 
