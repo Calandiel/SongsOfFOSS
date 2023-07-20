@@ -93,9 +93,20 @@ function ut.data_entry(name, data, rect, tooltip)
 	end
 end
 
-function ut.data_entry_percentage(name, data, rect, tooltip)
+
+---Draws a data field
+---@param name string
+---@param data number ratio
+---@param rect Rect
+---@param tooltip string?
+---@param positive boolean? Is big number good?
+function ut.data_entry_percentage(name, data, rect, tooltip, positive)
+	if positive == nil then
+		positive = true
+	end
+
 	ui.left_text(name, rect)
-	ut.color_coded_percentage(data, rect)
+	ut.color_coded_percentage(data, rect, positive)
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end
@@ -403,8 +414,16 @@ function ut.to_fixed_point2(x)
 	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
 end
 
-function ut.color_coded_percentage(value, rect)
-	local hue = value * 120
+function ut.color_coded_percentage(value, rect, positive)
+	if positive == nil then
+		positive = true
+	end
+
+	local hue = math.min(value * 120, 359)
+	if not positive then
+		hue = math.max(0, 120 - value * 120)
+	end
+
 	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)

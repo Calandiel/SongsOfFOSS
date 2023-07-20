@@ -405,7 +405,7 @@ function world.World:tick()
 						-- assign warbands to patrols
 						for _, province in pairs(realm.provinces) do
 							for _, warband in pairs(province.warbands) do
-								if warband.status == "idle" and love.math.random() > 0.5 and warband:size() > 0 then
+								if (warband.status == "idle") and (love.math.random() > 0.5) and (warband:size() > 0) then
 									realm:add_patrol(province, warband)
 								end
 							end

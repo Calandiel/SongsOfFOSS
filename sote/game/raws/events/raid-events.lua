@@ -44,7 +44,7 @@ local function load()
 				WORLD:emit_notification("Several of our warbands had finished patrolling of " .. associated_data.target.name .. ". Local people feel safety")
 			end
 
-			for _, w in pairs(associated_data.target.warbands) do
+			for _, w in pairs(associated_data.patrol) do
 				w.status = 'idle'
 			end
 		end

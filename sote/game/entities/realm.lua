@@ -418,14 +418,9 @@ function realm.Realm:raise_local_army(province)
 			self:raise_warband(w)
 			army.warbands[w] = w
 		end
-	end
-
-	if self.patrols[province] then
-		for _, w in pairs(self.patrols[province]) do
-			if w.status == 'patrol' then
-				self:raise_warband(w)
-				army.warbands[w] = w
-			end
+		if w.status == 'patrol' then
+			self:raise_warband(w)
+			army.warbands[w] = w
 		end
 	end
 

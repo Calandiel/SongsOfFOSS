@@ -60,7 +60,7 @@ function re.draw(gam)
 			},
 			{
 				text = "TRE",
-				tooltip = "Treasury",
+				tooltip = "Realm treasury",
 				closure = function()
 					local column_width = uit.BASE_HEIGHT * 12
 
@@ -93,7 +93,7 @@ function re.draw(gam)
 					end
 
 					local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Treasury", tostring(math.floor(100 * realm.treasury) / 100) .. MONEY_SYMBOL, panel_rect, "Treasury")
+					uit.data_entry("Realm treasury", tostring(math.floor(100 * realm.treasury) / 100) .. MONEY_SYMBOL, panel_rect, "Treasury")
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Voluntary contributions",
 						tostring(math.floor(100 * realm.voluntary_contributions) / 100) .. MONEY_SYMBOL,

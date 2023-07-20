@@ -214,6 +214,7 @@ end
 local up_direction = cpml.vec3.new(0, 1, 0)
 local origin_point = cpml.vec3.new(0, 0, 0)
 
+
 function gam.handle_camera_controls()
 	local ui = require "engine.ui"
 	if not gam.camera_lock then
@@ -711,6 +712,10 @@ function gam.draw()
 			gam.notifications_list:length(),
 			10,
 			gam.notif_slider)
+
+		while gam.notifications_list:length() > 100 do
+			gam.notifications_list:dequeue()
+		end
 
 
 		--- Draw outliner

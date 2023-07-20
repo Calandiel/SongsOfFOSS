@@ -145,7 +145,7 @@ function tb.draw(gam)
 		ui.image(ASSETS.icons['erlenmeyer.png'], tr)
 		ui.tooltip(trs, tr)
 		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		ui.right_text(tostring(math.floor(amount * 100)) .. '%', trt)
+		uit.color_coded_percentage(amount, trt)
 		ui.tooltip(trs, trt)
 
 		-- Happiness

@@ -172,19 +172,19 @@ function re.draw(gam)
 								function(rect)
 									ui.panel(rect)
 									local visibility = WORLD:base_visibility(1)
-									uit.data_entry_percentage("Spotting 1: ", tile.province:spot_chance(visibility), rect,
+									uit.data_entry_percentage("Spotting (1): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 1 human raider.")
 								end,
 								function(rect)
 									ui.panel(rect)
 									local visibility = WORLD:base_visibility(10)
-									uit.data_entry_percentage("Spotting 10: ", tile.province:spot_chance(visibility), rect,
+									uit.data_entry_percentage("Spotting (10): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 10 human raiders.")
 								end,
 								function(rect)
 									ui.panel(rect)
 									local visibility = WORLD:base_visibility(50)
-									uit.data_entry_percentage("Spotting 50: ", tile.province:spot_chance(visibility), rect,
+									uit.data_entry_percentage("Spotting (50): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 50 human raiders.")
 								end,
 								function(rect)
@@ -643,16 +643,17 @@ function re.draw(gam)
 									local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 									ui.image(ASSETS.get_icon(building_type.icon), im)
 									r.x = r.x + base_unit
+									r.width = r.width - 2 * base_unit
 									if building_type.tile_improvement then
-										ui.left_text(building_type.name ..
-											" (" .. tostring(math.floor(100 * building_type.production_method:get_efficiency(tile))) .. "%)", r)
+										ui.left_text(building_type.name, r)
+										uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
 									else
 										ui.left_text(building_type.name, r)
 									end
 
 									if WORLD.player_realm then
 										if WORLD.player_realm == tile.province.realm then
-											r.x = r.x + r.width - 2 * base_unit
+											r.x = r.x + r.width
 											r.width = base_unit
 
 											local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type)
@@ -764,8 +765,8 @@ function re.draw(gam)
 									if tile.province.infrastructure_needed > 0 then
 										sat = tile.province.infrastructure / tile.province.infrastructure_needed
 									end
-									uit.data_entry('Inf. satisfaction: ',
-										tostring(math.floor(100 * sat)) .. '%', rect)
+									uit.data_entry_percentage('Inf. satisfaction: ',
+										sat, rect)
 								end,
 								function(rect)
 									local impr = "none"
@@ -809,14 +810,16 @@ function re.draw(gam)
 									local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 									ui.image(ASSETS.get_icon(building_type.icon), im)
 									r.x = r.x + base_unit
+									r.width = r.width - base_unit * 3
+
 									if building_type.tile_improvement then
-										ui.left_text(building_type.name ..
-											" (" .. tostring(math.floor(100 * building_type.production_method:get_efficiency(tile))) .. "%)", r)
+										ui.left_text(building_type.name, r)
+										uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
 									else
 										ui.left_text(building_type.name, r)
 									end
 
-									r.x = r.x + r.width - 3 * base_unit
+									r.x = r.x + r.width
 									r.width = base_unit
 									if ui.icon_button(ASSETS.icons['mesh-ball.png'], r,
 										"Show local efficiency on map") then
