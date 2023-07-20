@@ -1,4 +1,4 @@
----@alias WarbandStatus 'idle' | 'raiding' | 'preparing_raid'
+---@alias WarbandStatus 'idle' | 'raiding' | 'preparing_raid' | 'preparing_patrol' | 'patrol'
 
 ---@class Warband
 local warband = {
@@ -26,6 +26,22 @@ function warband:new()
 	return o
 end
 
+function warband:spotting()
+	local result = 0
+	for p, pr in pairs(self.pops) do
+		result = result + p.race.spotting
+	end
+
+	if self.status == 'idle' then
+		result = result * 5
+	end
+
+	if self.status == 'patrol' then
+		result = result * 10
+	end
+
+	return result
+end
 
 function warband:size()
     local tabb = require "engine.table"

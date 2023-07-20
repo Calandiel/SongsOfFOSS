@@ -3,6 +3,35 @@ local ui_utils = require "game.ui-utils"
 
 MilitaryEffects = {}
 
+---Starts a patrol in primary_target province
+---@param root Realm
+---@param primary_target Province
+function MilitaryEffects.patrol(root, primary_target)
+    if root == WORLD.player_realm then
+        WORLD:emit_notification("Our warriors will patrol " ..
+            primary_target.name ..
+            " for a few months.")
+    end
+
+    local patrol = {}
+
+    for _, warband in pairs(root.patrols[primary_target]) do
+        patrol[warband] = warband
+    end
+
+    for _, warband in pairs(patrol) do
+         root:remove_patrol(primary_target, warband)
+         warband.status = "patrol"
+    end
+
+    WORLD:emit_action(
+        WORLD.events_by_name["patrol-province"], root,
+        primary_target.realm,
+        { target = primary_target, defender = root, travel_time = 29, patrol = patrol },
+        90, false
+    )
+end
+
 ---Starts a raid from root to primary_target
 ---@param root Realm
 ---@param primary_target Province
@@ -33,9 +62,6 @@ function MilitaryEffects.covert_raid(root, primary_target)
         { target = primary_target, raider = root, travel_time = travel_time, army = army },
         travel_time, false
     )
-
-
-
 end
 
 return MilitaryEffects

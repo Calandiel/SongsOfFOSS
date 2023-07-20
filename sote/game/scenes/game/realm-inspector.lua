@@ -64,18 +64,22 @@ function re.draw(gam)
 				closure = function()
 					local column_width = uit.BASE_HEIGHT * 12
 
-					local function render_treasury_change(i, rect)
+					local function render_treasury_change(i, rect)						
 						local effect = WORLD.old_treasury_effects.data[WORLD.old_treasury_effects.last - i + 1]
 						if effect ~= nil then
 							local r, g, b, a = love.graphics.getColor()
-							if effect.amount > 0 then
-								love.graphics.setColor(1, 1, 0, 1)
-							else 
-								love.graphics.setColor(1, 0, 0, 1)
+							if effect.reason == "new month" then
+								ui.left_text(tostring(effect.day) .. " " .. uit.months[effect.month + 1] .. ' of year ' .. effect.year, rect)
+							else
+								if effect.amount > 0 then
+									love.graphics.setColor(1, 1, 0, 1)
+								else 
+									love.graphics.setColor(1, 0, 0, 1)
+								end
+								ui.left_text(effect.reason, rect)
+								ui.right_text(uit.to_fixed_point2(effect.amount), rect)
+								love.graphics.setColor(r, g, b, a)
 							end
-							ui.left_text(effect.reason, rect)
-							ui.right_text(uit.to_fixed_point2(effect.amount), rect)
-							love.graphics.setColor(r, g, b, a)
 						end
 					end
 
@@ -440,83 +444,13 @@ function re.draw(gam)
 					end, uit.BASE_HEIGHT, tabb.size(realm.wars), uit.BASE_HEIGHT, sl)
 				end
 			},
-			{
-				text="MIL",
-				tooltip="Military",
-				closure = function()
-					-- draw a panel
-					ui.panel(ui_panel)
-
-					-- display warbands
-					-- header
-					ui_panel.height = ui_panel.height / 2 - uit.BASE_HEIGHT
-					ui.text("Warbands", ui_panel, "left", 'up')
-
-					-- substance
-					ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
-					local warbands = realm:get_warbands()
-					local sl = gam.warbands_slider_level or 0
-					gam.warbands_slider_level = ui.scrollview(ui_panel, function(i, rect) 
-						if i > 0 then
-							---@type Rect
-							local r = rect
-							local width_unit = r.width / 4
-							local x = r.x
-							
-							r.width = width_unit * 2
-							---@type Warband
-							local warband = warbands[i]
-							ui.left_text(warband.name, r)
-							
-							r.width = width_unit
-							r.x = x + width_unit * 2
-							ui.left_text(warband.status, r)
-
-							r.x = x + width_unit * 3
-							ui.left_text("units: ", r)
-							ui.right_text(' ' .. warband:size(), r)
-						end
-					end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, sl)
-
-					-- display raiding targets
-					-- header
-					ui_panel.y = ui_panel.y + ui_panel.height
-					ui.text("Raiding targets", ui_panel, "left", 'up')
-					ui.text("Prepared forces", ui_panel, "right", 'up')
-					
-					-- substance
-					ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
-					local targets = realm.raiding_targets
-					local sl = gam.raiding_targets_slider_level or 0
-					gam.raiding_targets_slider_level = ui.scrollview(ui_panel, function(i, rect)
-						if i > 0 then
-							---@type Rect
-							local r = rect
-							local width_unit = r.width / 5
-							local x = r.x
-							r.width = width_unit
-
-							---@type Province
-							local target = tabb.nth(targets, i)
-							ui.left_text(target.name, r)
-							r.x = x + 4 * width_unit
-							local warbands = realm.raiders_preparing[target]
-							local size = 0
-							for _, warband in pairs(warbands) do
-								size = size  + warband:size()
-							end
-							ui.right_text(tostring(size), r)
-						end
-					end,  uit.BASE_HEIGHT, tabb.size(targets), uit.BASE_HEIGHT, sl)
-				end
-			}
 		}
 		local layout = ui.layout_builder()
 			:position(panel.x, panel.y + uit.BASE_HEIGHT)
 			:spacing(2)
 			:horizontal()
 			:build()
-		gam.realm_inspector_tab = uit.tabs(gam.realm_inspector_tab, layout, tabs)
+		gam.realm_inspector_tab = uit.tabs(gam.realm_inspector_tab, layout, tabs, 1)
 	end
 end
 

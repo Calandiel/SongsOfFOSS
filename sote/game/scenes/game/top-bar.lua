@@ -38,7 +38,7 @@ function HANDLE_EFFECTS()
 		} 
 		table.insert(CURRENT_EFFECTS, new_effect)
 		WORLD.old_treasury_effects:enqueue(temp)
-		if WORLD.old_treasury_effects:length() > 300 then
+		while WORLD.old_treasury_effects:length() > OPTIONS['treasury_ledger'] do
 			WORLD.old_treasury_effects:dequeue()
 		end
 		counter = counter + 1
@@ -88,6 +88,18 @@ function tb.draw(gam)
 	if WORLD.player_realm ~= nil then
 		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
 		ui.panel(tr)
+
+
+		--- current character
+		local character_panel = ui.rect(uit.BASE_HEIGHT * 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT * 11.5, uit.BASE_HEIGHT)
+		ui.panel(character_panel)
+		ui.left_text(WORLD.player_character.name .. "(You)", character_panel)
+		character_panel.x = character_panel.x + 6.5 * uit.BASE_HEIGHT
+		character_panel.width = uit.BASE_HEIGHT
+		ui.image(ASSETS.icons['coins.png'], character_panel)
+		character_panel.width = 4 * uit.BASE_HEIGHT
+		character_panel.x = character_panel.x + uit.BASE_HEIGHT
+		ui.right_text(uit.to_fixed_point2(WORLD.player_character.savings) .. MONEY_SYMBOL, character_panel)
 
 		-- COA + name
 		local layout = ui.layout_builder()
@@ -167,6 +179,11 @@ function tb.draw(gam)
 		ui.right_text(tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), trt)
 		ui.tooltip(trs, trt)
 
+		layout:next(uit.BASE_HEIGHT * 0.5, uit.BASE_HEIGHT)
+
+		if ui.text_button("Military tab", layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)) then
+			gam.inspector = "army"
+		end
 	end
 end
 

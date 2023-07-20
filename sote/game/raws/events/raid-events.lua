@@ -2,6 +2,12 @@ local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local ef = require "game.raws.effects.economic"
 
+---@class PatrolData
+---@field defender Realm
+---@field target Province
+---@field travel_time number
+---@field patrol table<Warband, Warband>
+
 ---@class RaidData 
 ---@field raider Realm
 ---@field target Province
@@ -25,6 +31,25 @@ local ef = require "game.raws.effects.economic"
 
 
 local function load()
+	Event:new {
+		name = "patrol-province",
+		automatic = false,
+		on_trigger = function(self, realm, associated_data) 
+			---@type PatrolData
+			associated_data = associated_data
+			---@type Realm
+			local realm = realm
+			associated_data.target.mood = associated_data.target.mood + 0.025
+			if realm == WORLD.player_realm then
+				WORLD:emit_notification("Several of our warbands had finished patrolling of " .. associated_data.target.name .. ". Local people feel safety")
+			end
+
+			for _, w in pairs(associated_data.target.warbands) do
+				w.status = 'idle'
+			end
+		end
+	}
+	
 	Event:new {
 		name = "covert-raid",
 		automatic = false,

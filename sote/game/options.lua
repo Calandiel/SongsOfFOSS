@@ -8,6 +8,7 @@ function opt.init()
 		['volume'] = 0,
 		['fullscreen'] = true,
 		['rotation'] = false,
+		['treasury_ledger'] = 120,
 	}
 end
 

@@ -1,6 +1,8 @@
 local tabb = require "engine.table"
 local wb = require "game.entities.warband"
 
+---@alias Character POP
+
 local prov = {}
 
 ---@class Province
@@ -24,12 +26,14 @@ local prov = {}
 ---@field realm Realm?
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
+---@field characters table<Character, Character>
 ---@field neighbors_realm fun(self:Province, realm:Realm):boolean Returns whether or not a province borders a given realm
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
 ---@field population_weight fun(self:Province):number
 ---@field add_pop fun(self:Province, pop:POP)
+---@field add_character fun(self:Province, pop:Character)
 ---@field kill_pop fun(self:Province, pop:POP)
 ---@field fire_pop fun(self:Province, pop:POP)
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
@@ -64,6 +68,7 @@ local prov = {}
 ---@field vacant_warbands fun(self: Province): Warband[]
 ---@field get_spotting fun(self:Province):number Returns the local "spotting" power
 ---@field get_hiding fun(self:Province):number Returns the local "hiding" space
+---@field spot_chance fun(self:Province, visibility: number): number Returns a chance to spot an army with given visibility.
 ---@field army_spot_test fun(self:Province, army:Army):boolean Performs an army spotting test in this province.
 ---@field get_job_ratios fun(self:Province):table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
 ---@field get_unemployment fun(self:Province):number Returns the number of unemployed people in the province.
@@ -107,6 +112,7 @@ function prov.Province:new()
 	o.is_land = false
 	o.buildings = {}
 	o.all_pops = {}
+	o.characters = {}
 	o.technologies_present = {}
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
@@ -191,6 +197,12 @@ function prov.Province:add_pop(pop)
 	self.all_pops[pop] = pop
 end
 
+---Adds a character to the province
+---@param character Character
+function prov.Province:add_character(character)
+	self.characters[character] = character
+end
+
 ---Kills a single pop and removes it from all relevant references.
 ---@param pop POP
 function prov.Province:kill_pop(pop)
@@ -234,7 +246,6 @@ function prov.Province:return_pop_from_army(pop, unit_type)
 	self.units_target[unit_type] = self.units_target[unit_type] + 1
 	self.soldiers[pop] = unit_type
 	self.all_pops[pop] = pop
-	
 	return pop
 end
 
@@ -579,6 +590,12 @@ function prov.Province:get_spotting()
 		s = s + b.type.spotting
 	end
 
+	for _, w in pairs(self.warbands) do
+		if w.status == 'idle' or w.status == 'patrol' then
+			s = s + w:spotting()
+		end
+	end
+
 	return s
 end
 
@@ -591,17 +608,11 @@ function prov.Province:get_hiding()
 	return hide
 end
 
----@param army Army
----@return boolean True if the army was spotted.
-function prov.Province:army_spot_test(army)
-	-- To resolve this event we need to perform some checks.
-	-- First, we should have a "scouting" check.
-	-- Them, a potential battle ought to take place.`
-	local spot = self:get_spotting() + love.math.random(20)
-	local visib = army:get_visibility() + love.math.random(20)
+function prov.Province:spot_chance(visibility)
+	local spot = self:get_spotting()
 	local hiding = self:get_hiding()
-	local actual_hiding = hiding - visib
-	local size = spot + visib + hiding
+	local actual_hiding = hiding - visibility
+	local size = spot + visibility + hiding
 	-- If spot == hide, we should get 50:50 odds.
 	-- If spot > hide, we should get higher odds of spotting
 	-- If spot < hide, we should get lower odds of spotting
@@ -613,7 +624,17 @@ function prov.Province:army_spot_test(army)
 		delta = delta / size
 	end
 	odds = math.max(0, math.min(1, odds + 0.5 * delta))
+	return odds
+end
 
+---@param army Army
+---@return boolean True if the army was spotted.
+function prov.Province:army_spot_test(army)
+	-- To resolve this event we need to perform some checks.
+	-- First, we should have a "scouting" check.
+	-- Them, a potential battle ought to take place.`	
+	local visib = army:get_visibility() + love.math.random(20)
+	local odds = self:spot_chance(visib)
 	if love.math.random() < odds then
 		-- Spot!
 		return true

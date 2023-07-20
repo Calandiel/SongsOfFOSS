@@ -2,7 +2,8 @@ local mm = {}
 
 local ui = require "engine.ui"
 
-function mm.rect() return ui.fullscreen():subrect(0, 20, 250, 300, "center", "center")
+function mm.rect() 
+	return ui.fullscreen():subrect(0, 20, 300, 400, "center", "center")
 end
 
 function mm.mask()
@@ -58,6 +59,17 @@ function mm.draw()
 		layout:next(menu_button_width, menu_button_height), OPTIONS.rotation,
 		5
 	)
+
+	--- treasury ledger
+	ui.centered_text("Saved treasury history", layout:next(menu_button_width, menu_button_height))
+	local flag_120 = ui.named_checkbox("120 lines", layout:next(menu_button_width, menu_button_height), OPTIONS['treasury_ledger'] == 120, 5)
+	local flag_600 = ui.named_checkbox("600 lines", layout:next(menu_button_width, menu_button_height), OPTIONS['treasury_ledger'] == 600, 5)
+
+	if flag_120 then
+		OPTIONS['treasury_ledger'] = 120
+	elseif flag_600 then
+		OPTIONS['treasury_ledger'] = 600
+	end
 
 	-- RETURN
 	if ui.text_button(

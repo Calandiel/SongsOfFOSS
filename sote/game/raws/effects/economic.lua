@@ -11,7 +11,8 @@ EconomicEffects.reasons = {
     Court = "court",
     Military = "military",
     Exploration = "exploration",
-    Upkeep = "upkeep"
+    Upkeep = "upkeep",
+    NewMonth = "new month"
 }
 
 ---Changes realm treasury and display effects to player

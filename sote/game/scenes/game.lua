@@ -169,6 +169,9 @@ function gam.init()
 	gam.click_tile(-1)
 
 	gam.minimap = require "game.minimap".make_minimap()
+
+
+	gam.tile_inspector_scale = 1
 end
 
 ---Call this to make sure that a camera position exists.
@@ -610,12 +613,8 @@ function gam.draw()
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Quit"
 	) then
-		---@type World|nil
-		WORLD = nil -- drop the world so that it gets garbage collected..
-		local manager = require "game.scene-manager"
-		manager.transition("main-menu")
+		gam.inspector = "confirm-exit"
 		gam.click_callback = callback.nothing()
-		return
 	end
 	if ui.icon_button(
 		ASSETS.icons["save.png"],
@@ -715,7 +714,7 @@ function gam.draw()
 
 
 		--- Draw outliner
-		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 6, "right", 'up')
+		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 6, "right", 'up')
 		if ui.trigger(outliner_panel) then
 			gam.click_callback = callback.nothing()
 		end
@@ -761,6 +760,7 @@ function gam.draw()
 		"Show all map modes"
 	) then
 		gam.show_map_mode_panel = true
+		gam.click_callback = callback.nothing()
 	end
 
 	if ui.icon_button(
@@ -905,8 +905,10 @@ function gam.draw()
 	local click_success = false
 	if gam.inspector == nil then
 		click_success = true
+	elseif gam.inspector == "characters" then
+		click_success = require "game.scenes.game.inspector-province-characters".mask()
 	elseif gam.inspector == "tile" then
-		click_success = require "game.scenes.game.tile-inspector".mask()
+		click_success = require "game.scenes.game.tile-inspector".mask(gam)
 	elseif gam.inspector == "realm" then
 		click_success = require "game.scenes.game.realm-inspector".mask()
 	elseif gam.inspector == "building" then
@@ -914,7 +916,11 @@ function gam.draw()
 	elseif gam.inspector == "war" then
 		click_success = require "game.scenes.game.war-inspector".mask()
 	elseif gam.inspector == "options" then
-		click_success = require "game.scenes.main-menu.options".mask()
+		click_success = require "game.scenes.main-menu.options".mask() 
+	elseif gam.inspector == "confirm-exit" then
+		click_success = require "game.scenes.game.confirm-exit".mask()
+	elseif gam.inspector == "army" then
+		click_success = require "game.scenes.game.inspector-military".mask()
 	end
 
 	if gam.click_callback == nil then
@@ -972,6 +978,17 @@ function gam.draw()
 		if response == "main" then
 			gam.inspector = nil
 		end
+	elseif gam.inspector == "confirm-exit" then
+		local response = require "game.scenes.game.confirm-exit".draw(gam)
+		if response then
+			---@type World|nil
+			WORLD = nil -- drop the world so that it gets garbage collected..
+			local manager = require "game.scene-manager"
+			manager.transition("main-menu")
+			return
+		end
+	elseif gam.inspector == "characters" then
+		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
 	elseif tile_data_viewable then
 		if gam.inspector == "tile" then
 			require "game.scenes.game.tile-inspector".draw(gam)
@@ -981,6 +998,8 @@ function gam.draw()
 			require "game.scenes.game.building-inspector".draw(gam)
 		elseif gam.inspector == "war" then
 			require "game.scenes.game.war-inspector".draw(gam)
+		elseif gam.inspector == "army" then
+			require "game.scenes.game.inspector-military".draw(gam, WORLD.player_realm)
 		end
 	end
 
@@ -1154,8 +1173,10 @@ function gam.refresh_map_mode(preserve_efficiency)
 	if (gam.clicked_tile) then
 		province = gam.clicked_tile.province
 		if province and gam.selected_building_type then
-			for _, tile in pairs(province.tiles) do
-				best_eff = math.max(best_eff, gam.selected_building_type.production_method:get_efficiency(tile))
+			for _, p_tile in pairs(province.tiles) do
+				if not p_tile.tile_improvement then
+					best_eff = math.max(best_eff, gam.selected_building_type.production_method:get_efficiency(p_tile))
+				end
 			end
 		end
 	end

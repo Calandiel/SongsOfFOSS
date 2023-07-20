@@ -1,11 +1,14 @@
 local world = {}
 
 local plate_utils = require "game.entities.plate"
+local utils       = require "game.ui-utils"
 
 ---@alias ActionData { [1]: Event, [2]: Realm, [3]: table, [4]: number}
 
 ---@class World
 ---@field player_realm Realm?
+---@field player_character Character?
+---@field player_province Province?
 ---@field sub_hourly_tick number
 ---@field hour number
 ---@field day number
@@ -56,6 +59,7 @@ local plate_utils = require "game.entities.plate"
 ---@field decisions_by_name table<string, Decision>
 ---@field events_by_name table<string, Event>
 ---@field unit_types_by_name table<string, UnitType>
+---@field base_visibility fun(self:World, size: number):number
 
 ---@type World
 world.World = {}
@@ -131,9 +135,12 @@ function world.World:new()
 	w.decisions_by_name = {}
 	w.events_by_name = {}
 	w.unit_types_by_name = {}
-
 	setmetatable(w, self)
 	return w
+end
+
+function world.World:base_visibility(size)
+	return self.races_by_name['human'].visibility * WORLD.unit_types_by_name["raiders"].visibility * size
 end
 
 ---Returns number of tiles in the world
@@ -379,7 +386,9 @@ function world.World:tick()
 							explore.run(realm)
 							treasury.run(realm)
 							military.run(realm)
-						end						
+						else
+							self:emit_treasury_change_effect(0, "new month")
+						end
 						--print("Construct")
 						construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 						--print("Court")
@@ -393,10 +402,34 @@ function world.World:tick()
 						events.run(realm)
 
 
+						-- assign warbands to patrols
+						for _, province in pairs(realm.provinces) do
+							for _, warband in pairs(province.warbands) do
+								if warband.status == "idle" and love.math.random() > 0.5 and warband:size() > 0 then
+									realm:add_patrol(province, warband)
+								end
+							end
+						end
+
+						-- launch patrols
+						for _, target in pairs(realm.provinces) do
+							local warbands = realm.patrols[target]
+							local units = 0
+							if warbands ~= nil then
+								for _, warband in pairs(warbands) do
+									units = units + warband:size()
+								end
+							end
+							-- launch the patrol
+							if (units > 0) then
+								MilitaryEffects.patrol(realm, target)
+							end
+						end
+
 						-- assign raiders to targets
 						for _, province in pairs(realm.provinces) do
 							for _, warband in pairs(province.warbands) do
-								if warband.status == "idle" then
+								if warband.status == "idle" and warband:size() > 0 then
 									local target = realm:random_raiding_target()
 									realm:add_raider(target, warband)
 								end
@@ -404,7 +437,6 @@ function world.World:tick()
 						end
 
 						-- launch raids
-						local launched_raids = {}
 						for _, target in pairs(realm.raiding_targets) do
 							local warbands = realm.raiders_preparing[target]
 							local units = 0
@@ -458,12 +490,15 @@ end
 ---Emits a notification
 ---@param notification string
 function world.World:emit_notification(notification)
-	local date = tostring(WORLD.day) .. '.' .. tostring(WORLD.month + 1) .. '.' .. tostring(WORLD.year)
-	self.notification_queue:enqueue(date .. '  ' .. notification)
+	local date = tostring(WORLD.day) .. ' ' .. utils.months[WORLD.month + 1] .. ' of ' .. tostring(WORLD.year)
+	self.notification_queue:enqueue(date .. ':  ' .. notification)
 end
 
+---Emits a treasury change to player
+---@param amount number
+---@param reason EconomicReason
 function world.World:emit_treasury_change_effect(amount, reason)
-	self.treasury_effects:enqueue({amount = amount, reason = reason})
+	self.treasury_effects:enqueue({amount = amount, reason = reason, day = self.day, month = self.month, year = self.year})
 end
 
 world.ticks_per_hour = 120

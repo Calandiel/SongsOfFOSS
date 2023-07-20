@@ -33,6 +33,7 @@
 ---@field provinces table<Province, Province>
 ---@field raiding_targets table<Province, Province|nil>
 ---@field raiders_preparing table<Province, table<Warband, Warband>>
+---@field patrols table<Province, table<Warband, Warband>>
 ---@field toggle_raiding_target fun(self:Realm, province:Province)
 ---@field add_raiding_target fun(self:Realm, province:Province)
 ---@field remove_raiding_target fun(self:Realm, province:Province)
@@ -87,6 +88,8 @@
 ---@field get_warbands fun(self:Realm): Warband[]
 ---@field add_raider fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_raider fun(self:Realm, prov: Province, warband: Warband)
+---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
+---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
 
 local realm = {}
 local tabb = require "engine.table"
@@ -149,6 +152,7 @@ function realm.Realm:new()
 	o.production = {}
 	o.armies = {}
 	o.raiders_preparing = {}
+	o.patrols = {}
 	-- print("bb")
 	if love.math.random() < 0.6 then
 		o.coa_emblem_image = love.math.random(#ASSETS.emblems)
@@ -219,6 +223,31 @@ end
 function realm.Realm:remove_raider(prov, warband)
 	if self.raiding_targets[prov] then
 		self.raiders_preparing[prov][warband] = nil
+		warband.status = "idle"
+	end
+end
+
+---Adds warband as potential raider of province
+---@param prov Province
+---@param warband Warband
+function realm.Realm:add_patrol(prov, warband)
+	if warband.status ~= 'idle' then return end
+	if self.patrols[prov] then
+		self.patrols[prov][warband] = warband
+		warband.status = 'preparing_patrol'
+	else 
+		self.patrols[prov] = {}
+		self.patrols[prov][warband] = warband
+		warband.status = 'preparing_patrol'
+	end
+end
+
+---Removes warband as potential patrol of province
+---@param prov Province
+---@param warband Warband
+function realm.Realm:remove_patrol(prov, warband)
+	if self.patrols[prov] then
+		self.patrols[prov][warband] = nil
 		warband.status = "idle"
 	end
 end
@@ -391,6 +420,15 @@ function realm.Realm:raise_local_army(province)
 		end
 	end
 
+	if self.patrols[province] then
+		for _, w in pairs(self.patrols[province]) do
+			if w.status == 'patrol' then
+				self:raise_warband(w)
+				army.warbands[w] = w
+			end
+		end
+	end
+
 	return army
 end
 
@@ -414,16 +452,21 @@ function realm.Realm:disband_army(army)
 	self.armies[army] = nil
 
 	for _, warband in pairs(army.warbands) do
-		for pop, province in pairs(warband.pops) do
-			local unit = warband.units[pop]
-			if province.realm then
-				province:return_pop_from_army(pop, unit)
-			else
-				self.capitol:return_pop_from_army(pop, unit)
+		-- if warband was patrolling, let it continue
+
+			for pop, province in pairs(warband.pops) do
+				local unit = warband.units[pop]
+				if province.realm then
+					province:return_pop_from_army(pop, unit)
+				else
+					self.capitol:return_pop_from_army(pop, unit)
+				end
+				pop.drafted = true
 			end
-			pop.drafted = true
+
+		if warband.status ~= 'patrol' then
+			warband.status = 'idle'
 		end
-		warband.status = 'idle'
 	end
 end
 

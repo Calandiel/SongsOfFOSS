@@ -81,7 +81,9 @@ local function load()
 			if tabb.size(root.wars) > 0 then
 				return 0
 			end
-			return 1
+			--return 1
+			-- DISABLE WARS FOR NOW
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			--print("eff")
