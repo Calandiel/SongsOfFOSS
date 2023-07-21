@@ -6,7 +6,7 @@ local uit = require "game.ui-utils"
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, 0, 500, 500, "left", 'down')
+	local panel = fs:subrect(0, uit.BASE_HEIGHT, 500, 250, "left", 'up')
 	return panel
 end
 
@@ -49,7 +49,7 @@ function re.draw(gam)
 				text = "GEN",
 				tooltip = "General",
 				closure = function()
-					local panel_rect = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", 'up')
+					local panel_rect = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
 					uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect)
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
@@ -60,10 +60,40 @@ function re.draw(gam)
 			},
 			{
 				text = "TRE",
-				tooltip = "Treasury",
+				tooltip = "Realm treasury",
 				closure = function()
-					local panel_rect = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Treasury", tostring(math.floor(100 * realm.treasury) / 100) .. MONEY_SYMBOL, panel_rect, "Treasury")
+					local column_width = uit.BASE_HEIGHT * 12
+
+					local function render_treasury_change(i, rect)						
+						local effect = WORLD.old_treasury_effects.data[WORLD.old_treasury_effects.last - i + 1]
+						if effect ~= nil then
+							local r, g, b, a = love.graphics.getColor()
+							if effect.reason == "new month" then
+								ui.left_text(tostring(effect.day) .. " " .. uit.months[effect.month + 1] .. ' of year ' .. effect.year, rect)
+							else
+								if effect.amount > 0 then
+									love.graphics.setColor(1, 1, 0, 1)
+								else 
+									love.graphics.setColor(1, 0, 0, 1)
+								end
+								ui.left_text(effect.reason, rect)
+								ui.right_text(uit.to_fixed_point2(effect.amount), rect)
+								love.graphics.setColor(r, g, b, a)
+							end
+						end
+					end
+
+					if WORLD:does_player_control_realm(realm) then
+						local treasury_ledger_rect = ui_panel:subrect(column_width + 10, 0, column_width, uit.BASE_HEIGHT * 6, "left", 'up')
+						ui.panel(treasury_ledger_rect)
+
+						gam.treasury_ledger_slider = gam.treasury_ledger_slider or 0
+						gam.treasury_ledger_slider = ui.scrollview(treasury_ledger_rect, render_treasury_change, 12, WORLD.old_treasury_effects:length(), 10, gam.treasury_ledger_slider)
+
+					end
+
+					local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
+					uit.data_entry("Realm treasury", tostring(math.floor(100 * realm.treasury) / 100) .. MONEY_SYMBOL, panel_rect, "Treasury")
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Voluntary contributions",
 						tostring(math.floor(100 * realm.voluntary_contributions) / 100) .. MONEY_SYMBOL,
@@ -76,92 +106,96 @@ function re.draw(gam)
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Waste", tostring(math.floor(100 * realm.wasted_treasury) / 100) .. MONEY_SYMBOL, panel_rect,
 						"Keeping large stockpiles of wealth is inherently inefficient. Whether through corruption, spoilage, wear or accidents, a small fraction of accumulated wealth is lost. The process can be countered by creation of storage buildings.")
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 1
+
+					uit.data_entry("Military upkeep",
+						tostring(math.floor(100 * realm.military_spending) / 100) .. MONEY_SYMBOL,
+						panel_rect,
+						"Costs of upkeep for current units.")
+					
+					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 2
 					uit.data_entry("Inf. investment",
 						tostring(math.floor(100 * realm.monthly_infrastructure_investment) / 100) .. MONEY_SYMBOL,
 						panel_rect,
 						"Automatic infrastructure investments each month.")
-					if WORLD.player_realm then
-						if WORLD.player_realm == realm then
-							panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-							local pr = panel_rect:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
-							-- Make a closure for easier button creation
-							local function do_one(amount)
-								if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-									"Change monthly infrastructure investment by " .. tostring(amount)) then
-									WORLD.player_realm.monthly_infrastructure_investment = math.max(0,
-										WORLD.player_realm.monthly_infrastructure_investment + amount)
-								end
-								pr.x = pr.x + uit.BASE_HEIGHT
+					if WORLD:does_player_control_realm(realm) then
+						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+						local pr = panel_rect:copy()
+						pr.x = pr.x + column_width + 10
+						pr.width = uit.BASE_HEIGHT * 2
+						-- Make a closure for easier button creation
+						local function do_one(amount)
+							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
+								"Change monthly infrastructure investment by " .. tostring(amount)) then
+								WORLD.player_realm.monthly_infrastructure_investment = math.max(0,
+									WORLD.player_realm.monthly_infrastructure_investment + amount)
 							end
-
-							do_one(-10)
-							do_one(-1)
-							do_one(-0.1)
-							do_one(0.1)
-							do_one(1)
-							do_one(10)
+							pr.x = pr.x + uit.BASE_HEIGHT * 2
 						end
+
+						do_one(-10)
+						do_one(-1)
+						do_one(-0.1)
+						do_one(0.1)
+						do_one(1)
+						do_one(10)
 					end
+
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Edu. investment",
 						tostring(math.floor(100 * realm.monthly_education_investment) / 100) .. MONEY_SYMBOL,
 						panel_rect,
 						"Automatic education investments each month.")
-					if WORLD.player_realm then
-						if WORLD.player_realm == realm then
-							panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-							local pr = panel_rect:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
-							-- Make a closure for easier button creation
-							local function do_one(amount)
-								if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-									"Change monthly education investment by " .. tostring(amount)) then
-									WORLD.player_realm.monthly_education_investment = math.max(0,
-										WORLD.player_realm.monthly_education_investment + amount)
-								end
-								pr.x = pr.x + uit.BASE_HEIGHT
+					if WORLD:does_player_control_realm(realm) then
+						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+						local pr = panel_rect:copy()
+						pr.x = pr.x + column_width + 10
+						pr.width = uit.BASE_HEIGHT * 2
+						-- Make a closure for easier button creation
+						local function do_one(amount)
+							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
+								"Change monthly education investment by " .. tostring(amount)) then
+								WORLD.player_realm.monthly_education_investment = math.max(0,
+									WORLD.player_realm.monthly_education_investment + amount)
 							end
-
-							do_one(-10)
-							do_one(-1)
-							do_one(-0.1)
-							do_one(0.1)
-							do_one(1)
-							do_one(10)
+							pr.x = pr.x + uit.BASE_HEIGHT * 2
 						end
+
+						do_one(-10)
+						do_one(-1)
+						do_one(-0.1)
+						do_one(0.1)
+						do_one(1)
+						do_one(10)
 					end
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Court investment",
 						tostring(math.floor(100 * realm.monthly_court_investment) / 100) .. MONEY_SYMBOL,
 						panel_rect,
 						"Automatic court investments each month.")
-					if WORLD.player_realm then
-						if WORLD.player_realm == realm then
-							panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-							local pr = panel_rect:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
-							-- Make a closure for easier button creation
-							local function do_one(amount)
-								if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-									"Change monthly court investment by " .. tostring(amount)) then
-									WORLD.player_realm.monthly_court_investment = math.max(0,
-										WORLD.player_realm.monthly_court_investment + amount)
-								end
-								pr.x = pr.x + uit.BASE_HEIGHT
+					if WORLD:does_player_control_realm(realm) then
+						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+						local pr = panel_rect:copy()
+						pr.x = pr.x + column_width + 10
+						pr.width = uit.BASE_HEIGHT * 2
+						-- Make a closure for easier button creation
+						local function do_one(amount)
+							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
+								"Change monthly court investment by " .. tostring(amount)) then
+								WORLD.player_realm.monthly_court_investment = math.max(0,
+									WORLD.player_realm.monthly_court_investment + amount)
 							end
-
-							do_one(-10)
-							do_one(-1)
-							do_one(-0.1)
-							do_one(0.1)
-							do_one(1)
-							do_one(10)
+							pr.x = pr.x + uit.BASE_HEIGHT * 2
 						end
+
+						do_one(-10)
+						do_one(-1)
+						do_one(-0.1)
+						do_one(0.1)
+						do_one(1)
+						do_one(10)
 					end
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Military upkeep",
-						tostring(math.floor(100 * realm.military_spending) / 100) .. MONEY_SYMBOL,
-						panel_rect,
-						"Costs of upkeep for current units.")
+					
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Treasury change", tostring(math.floor(100 * realm.treasury_real_delta) / 100) .. MONEY_SYMBOL,
 						panel_rect,
@@ -235,7 +269,7 @@ function re.draw(gam)
 				text = "COU",
 				tooltip = "Court",
 				closure = function()
-					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", 'up')
+					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
 					uit.data_entry("Court wealth: ", tostring(math.floor(100 * realm.court_wealth) / 100) .. MONEY_SYMBOL, a,
 						"Investment.")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -249,9 +283,9 @@ function re.draw(gam)
 						, a,
 						"Amount of funds spent supporting the court through any variety of means.")
 					a.y = a.y + uit.BASE_HEIGHT
-					if WORLD.player_realm == realm then
+					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
-						p.width = p.height
+						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
 							if WORLD.player_realm.treasury > 0.1 then
@@ -263,7 +297,7 @@ function re.draw(gam)
 							else
 								ui.centered_text(ah .. MONEY_SYMBOL, rect)
 							end
-							rect.x = rect.x + rect.height
+							rect.x = rect.x + rect.height * 2
 						end
 						do_one(p, 0.1)
 						do_one(p, 1)
@@ -307,7 +341,7 @@ function re.draw(gam)
 				text = "EDU",
 				tooltip = "Education and research",
 				closure = function()
-					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", 'up')
+					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
 					uit.data_entry("Endowment: ", tostring(math.floor(100 * realm.education_endowment) / 100) .. MONEY_SYMBOL, a,
 						"Investment.")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -321,9 +355,9 @@ function re.draw(gam)
 						, a,
 						"Amount of funds spent supporting research through any variety of means, ranging from funding private alchemists to gifting tribe shamans.")
 					a.y = a.y + uit.BASE_HEIGHT
-					if WORLD.player_realm == realm then
+					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
-						p.width = p.height
+						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
 							if WORLD.player_realm.treasury > 0.1 then
@@ -335,7 +369,7 @@ function re.draw(gam)
 							else
 								ui.centered_text(ah .. MONEY_SYMBOL, rect)
 							end
-							rect.x = rect.x + rect.height
+							rect.x = rect.x + rect.height * 2
 						end
 						do_one(p, 0.1)
 						do_one(p, 1)
@@ -404,14 +438,13 @@ function re.draw(gam)
 					end, uit.BASE_HEIGHT, tabb.size(realm.wars), uit.BASE_HEIGHT, sl)
 				end
 			},
-
 		}
 		local layout = ui.layout_builder()
 			:position(panel.x, panel.y + uit.BASE_HEIGHT)
 			:spacing(2)
 			:horizontal()
 			:build()
-		gam.realm_inspector_tab = uit.tabs(gam.realm_inspector_tab, layout, tabs)
+		gam.realm_inspector_tab = uit.tabs(gam.realm_inspector_tab, layout, tabs, 1)
 	end
 end
 

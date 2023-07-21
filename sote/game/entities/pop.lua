@@ -4,6 +4,9 @@
 ---@field culture Culture
 ---@field female boolean
 ---@field age number
+---@field name string
+---@field savings number
+---@field popularity number
 ---@field employer Building?
 ---@field job Job?
 ---@field new fun(self:POP, race:Race, faith:Faith, culture:Culture, female:boolean, age:number?):POP
@@ -32,6 +35,10 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.culture = culture
 	r.female = female
 	r.age = age
+
+	r.name = culture.language:get_random_name()
+	r.savings = 0
+	r.popularity = 0
 
 	setmetatable(r, rtab.POP)
 

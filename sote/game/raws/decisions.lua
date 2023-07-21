@@ -12,8 +12,8 @@ local utils = require "game.raws.raws-utils"
 ---@field tooltip fun(root:Realm, primary_target:any):string
 ---@field effect fun(root:Realm, primary_target:any, secondary_target:any) Called when the action is taken
 ---@field pretrigger fun(root:Realm):boolean A quick check before any other checks to cull potential decision takers
----@field clickable fun(root:Realm, primary_target:any):boolean Determines whether or not the decision is visible to the player
----@field available fun(root:Realm, primary_target:any, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player)
+---@field clickable fun(root:Realm, primary_target:any):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
+---@field available fun(root:Realm, primary_target:any, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
 ---@field ai_will_do fun(root:Realm, primary_target:any, secondary_target:any):number Returns a probability that an AI will take the decision
 ---@field ai_targetting_attempts number Number of attempts an AI will take to find a secondary target
 ---@field ai_target fun(root:Realm):any,boolean Selects the primary target for the AI
@@ -73,7 +73,12 @@ function Decision:new(i)
 		print(msg)
 		error(msg)
 	end
-	WORLD.decisions_by_name[o.name] = o
+
+	if o.primary_target == 'character' then
+		WORLD.decisions_characters_by_name[o.name] = o
+	else
+		WORLD.decisions_by_name[o.name] = o
+	end
 
 	return o
 end

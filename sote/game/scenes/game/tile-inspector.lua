@@ -9,16 +9,17 @@ local tabb = require "engine.table"
 re.cached_scrollbar = 0
 
 ---@return Rect
-local function get_main_panel()
+local function get_main_panel(scale)
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, 0, 650, 500, "left", 'down')
+	local base_unit = uit.BASE_HEIGHT * scale
+	local panel = fs:subrect(0, 0, base_unit * 28, base_unit * 12, "left", 'down')
 	return panel
 end
 
 ---Returns whether or not clicks on the planet can be registered.
 ---@return boolean
-function re.mask()
-	if ui.trigger(get_main_panel()) then
+function re.mask(gam)
+	if ui.trigger(get_main_panel(gam.tile_inspector_scale)) then
 		return false
 	else
 		return true
@@ -36,39 +37,60 @@ function re.draw(gam)
 			return -- the world isn't fully generated... return
 		end
 		-- The clicked tile exists!
-		local panel = get_main_panel()
+		local panel = get_main_panel(gam.tile_inspector_scale)
+		local scale = gam.tile_inspector_scale
+		local base_unit = uit.BASE_HEIGHT * scale
+		
 		ui.panel(panel)
 
-		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
 			gam.click_tile(-1)
 			gam.inspector = nil
 		end
 
+		if ui.icon_button(ASSETS.icons["plus.png"], panel:subrect(- 2 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
+			if gam.tile_inspector_scale == 1 then
+				gam.tile_inspector_scale = 1.3
+			elseif gam.tile_inspector_scale == 1.3 then
+				gam.tile_inspector_scale = 1.7
+			end
+		end
+
+		if ui.icon_button(ASSETS.icons["minus.png"], panel:subrect(- 3 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
+			if gam.tile_inspector_scale == 1.7 then
+				gam.tile_inspector_scale = 1.3
+			elseif gam.tile_inspector_scale == 1.3 then
+				gam.tile_inspector_scale = 1
+			end
+		end
+
 		-- COA
 		if tile.province.realm then
-			if uit.coa(tile.province.realm, panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')) then
+			if uit.coa(tile.province.realm, panel:subrect(0, 0, base_unit, base_unit, "left", 'up')) then
 				gam.inspector = "realm"
 				gam.selected_realm = tile.province.realm
 			end
 			ui.left_text(tile.province.name .. ' (' .. tile.province.realm.name .. ')',
-				panel:subrect(uit.BASE_HEIGHT + 5, 0, 10 * uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up'))
+				panel:subrect(base_unit + 5, 0, 10 * base_unit, base_unit, "left", 'up'))
 		end
 		if tile.province.realm then
 			if WORLD.player_realm == nil then
-				local bp = panel:subrect(-uit.BASE_HEIGHT, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up")
+				local bp = panel:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
 				if ui.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over this country") then
-					WORLD.player_realm = tile.province.realm
-					gam.refresh_map_mode()
+					-- WORLD.player_realm = tile.province.realm
+					-- gam.refresh_map_mode()
+					gam.inspector = "characters"
+					gam.selected_province = tile.province
 				end
 			end
 		end
 
 
 		-- All the other data (as in, tabs)
-		local ui_panel = panel:subrect(5, uit.BASE_HEIGHT * 2, panel.width - 10, panel.height - 10 - uit.BASE_HEIGHT * 2,
+		local ui_panel = panel:subrect(5, base_unit * 2, panel.width - 10, panel.height - 10 - base_unit * 2,
 			"left", 'up')
 		ui.panel(ui_panel)
-		local origin = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT, "left", 'up')
+		local origin = ui_panel:subrect(0, 0, base_unit * 3, base_unit, "left", 'up')
 		gam.tile_inspector_tab = gam.tile_inspector_tab or "GEN"
 		local tabs = {
 			{
@@ -96,7 +118,7 @@ function re.draw(gam)
 									uit.data_entry("Local resources:", rr, rect, "Local resources.")
 								end,
 								function(rect)
-									if WORLD.player_realm then
+									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local explore_cost = WORLD.player_realm:get_explore_cost(tile.province)
 										local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
 										if WORLD.player_realm.treasury > explore_cost then
@@ -149,8 +171,21 @@ function re.draw(gam)
 								end,
 								function(rect)
 									ui.panel(rect)
-									uit.data_entry("Spotting: ", tostring(tile.province:get_spotting()), rect,
-										"The spotting power of local population, as an abstract number")
+									local visibility = WORLD:base_visibility(1)
+									uit.data_entry_percentage("Spotting (1): ", tile.province:spot_chance(visibility), rect,
+										"Chance to spot an army of 1 human raider.")
+								end,
+								function(rect)
+									ui.panel(rect)
+									local visibility = WORLD:base_visibility(10)
+									uit.data_entry_percentage("Spotting (10): ", tile.province:spot_chance(visibility), rect,
+										"Chance to spot an army of 10 human raiders.")
+								end,
+								function(rect)
+									ui.panel(rect)
+									local visibility = WORLD:base_visibility(50)
+									uit.data_entry_percentage("Spotting (50): ", tile.province:spot_chance(visibility), rect,
+										"Chance to spot an army of 50 human raiders.")
 								end,
 								function(rect)
 									ui.panel(rect)
@@ -159,7 +194,7 @@ function re.draw(gam)
 								end
 							}, rect)
 						end,
-					}, ui_panel, uit.BASE_HEIGHT * 7)
+					}, ui_panel, base_unit * 7)
 				end
 			},
 			{
@@ -215,7 +250,7 @@ function re.draw(gam)
 								function(rect)
 									uit.data_entry("Biome", tile.biome.name, rect)
 								end
-							}, rect, uit.BASE_HEIGHT * 6)
+							}, rect, base_unit * 10)
 						end,
 						function(rect)
 							uit.data_entry("Local carrying capacity",
@@ -272,7 +307,7 @@ function re.draw(gam)
 								end,
 							}, rect)
 						end
-					}, ui_panel, uit.BASE_HEIGHT * 3.5)
+					}, ui_panel, base_unit * 7)
 				end
 			},
 			{
@@ -477,8 +512,8 @@ function re.draw(gam)
 				text = "POP",
 				tooltip = "List of POPs ('parts of population')",
 				closure = function()
-					local top = ui_panel:subrect(0, 0, ui_panel.width, uit.BASE_HEIGHT, "left", 'up')
-					local bottom = ui_panel:subrect(0, uit.BASE_HEIGHT, ui_panel.width, ui_panel.height - uit.BASE_HEIGHT, "left", 'up')
+					local top = ui_panel:subrect(0, 0, ui_panel.width, base_unit, "left", 'up')
+					local bottom = ui_panel:subrect(0, base_unit, ui_panel.width, ui_panel.height - base_unit, "left", 'up')
 					ui.centered_text("Population", top)
 					re.cached_scrollbar = re.cached_scrollbar or 0
 					local ttab = require "engine.table"
@@ -503,7 +538,7 @@ function re.draw(gam)
 							end
 							ui.left_text(pp.race.name .. ' (' .. tostring(pp.age) .. ', ' .. f .. ', ' .. job .. ')', rect)
 						end
-					end, uit.BASE_HEIGHT, ttab.size(tile.province.all_pops), uit.BASE_HEIGHT, re.cached_scrollbar)
+					end, base_unit, ttab.size(tile.province.all_pops), base_unit, re.cached_scrollbar)
 				end
 			},
 			{
@@ -518,9 +553,9 @@ function re.draw(gam)
 
 							local rr = rect.height
 							local rw = rect.width
-							rect.height = uit.BASE_HEIGHT
+							rect.height = base_unit
 							ui.centered_text("Buildings", rect)
-							rect.width = uit.BASE_HEIGHT
+							rect.width = base_unit
 							if re.building_stacks then
 								if ui.icon_button(ASSETS.icons['cubes.png'], rect, "Show individual buildings") then
 									re.building_stacks = not re.building_stacks
@@ -532,8 +567,8 @@ function re.draw(gam)
 							end
 							rect.width = rw
 
-							rect.height = rr - uit.BASE_HEIGHT
-							rect.y = rect.y + uit.BASE_HEIGHT
+							rect.height = rr - base_unit
+							rect.y = rect.y + base_unit
 
 							if re.building_stacks then
 								-- Show buildings at stacks
@@ -553,12 +588,12 @@ function re.draw(gam)
 										ui.tooltip(building_type:get_tooltip(), rect)
 										---@type Rect
 										local r = rect
-										local im = r:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+										local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 										ui.image(ASSETS.icons[building_type.icon], im)
-										rect.x = rect.x + uit.BASE_HEIGHT
+										rect.x = rect.x + base_unit
 										ui.left_text(building_type.name .. " (" .. tostring(amount) .. ")", rect)
 									end
-								end, uit.BASE_HEIGHT, tabb.size(stacks), uit.BASE_HEIGHT,
+								end, base_unit, tabb.size(stacks), base_unit,
 									re.buildings_scrollbar)
 							else
 								-- Show individual buildings
@@ -570,15 +605,15 @@ function re.draw(gam)
 										ui.tooltip(building.type:get_tooltip(), rect)
 										---@type Rect
 										local r = rect
-										local im = r:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+										local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 										if ui.icon_button(ASSETS.icons[building.type.icon], im) then
 											gam.inspector = 'building'
 											gam.selected_building = building
 										end
-										rect.x = rect.x + uit.BASE_HEIGHT
+										rect.x = rect.x + base_unit
 										ui.left_text(building.type.name, rect)
-										if WORLD.player_realm == tile.province.realm then
-											local button = r:subrect(-uit.BASE_HEIGHT, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')
+										if WORLD:does_player_control_realm(tile.province.realm) then
+											local button = r:subrect(-base_unit, 0, base_unit, base_unit, "right", 'up')
 											if ui.icon_button(ASSETS.get_icon('hammer-drop.png'), button, "Destroy the building") then
 												-- remove the building!
 												building:remove_from_province(tile.province)
@@ -587,16 +622,16 @@ function re.draw(gam)
 											-- ???
 										end
 									end
-								end, uit.BASE_HEIGHT, tabb.size(tile.province.buildings), uit.BASE_HEIGHT,
+								end, base_unit, tabb.size(tile.province.buildings), base_unit,
 									re.buildings_scrollbar)
 							end
 						end,
 						function(rect)
 							local rr = rect.height
-							rect.height = uit.BASE_HEIGHT
+							rect.height = base_unit
 							ui.centered_text("Construction", rect)
-							rect.height = rr - uit.BASE_HEIGHT
-							rect.y = rect.y + uit.BASE_HEIGHT
+							rect.height = rr - base_unit
+							rect.y = rect.y + base_unit
 							re.building_construction_scrollbar = re.building_construction_scrollbar or 0
 							re.building_construction_scrollbar = ui.scrollview(rect, function(number, rect)
 								if number > 0 then
@@ -605,51 +640,50 @@ function re.draw(gam)
 									ui.tooltip(building_type:get_tooltip(), rect)
 									---@type Rect
 									local r = rect
-									local im = r:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+									local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 									ui.image(ASSETS.get_icon(building_type.icon), im)
-									r.x = r.x + uit.BASE_HEIGHT
+									r.x = r.x + base_unit
+									r.width = r.width - 2 * base_unit
 									if building_type.tile_improvement then
-										ui.left_text(building_type.name ..
-											" (" .. tostring(math.floor(100 * building_type.production_method:get_efficiency(tile))) .. "%)", r)
+										ui.left_text(building_type.name, r)
+										uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
 									else
 										ui.left_text(building_type.name, r)
 									end
 
-									if WORLD.player_realm then
-										if WORLD.player_realm == tile.province.realm then
-											r.x = r.x + r.width - 2 * uit.BASE_HEIGHT
-											r.width = uit.BASE_HEIGHT
+									if WORLD:does_player_control_realm(tile.province.realm) then
+										r.x = r.x + r.width
+										r.width = base_unit
 
-											local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type)
-											if not success then
-												if reason == 'unique_duplicate' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('There can be at most a single building of this type per province!', r)
-												elseif reason == 'tile_improvement' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
-												elseif reason == 'not_enough_funds' then
-													ui.image(ASSETS.icons['uncertainty.png'], r)
-													ui.tooltip('Not enough funds: ' ..
-														tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
-														" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
-												elseif reason == 'missing_local_resources' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Missing local resources!', r)
-												end
-											else
-												if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-													"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-													local Building = require "game.entities.building".Building
-													Building:new(tile.province, building_type, tile)
-													WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-													WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
-												end
+										local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type)
+										if not success then
+											if reason == 'unique_duplicate' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('There can be at most a single building of this type per province!', r)
+											elseif reason == 'tile_improvement' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
+											elseif reason == 'not_enough_funds' then
+												ui.image(ASSETS.icons['uncertainty.png'], r)
+												ui.tooltip('Not enough funds: ' ..
+													tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
+													" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
+											elseif reason == 'missing_local_resources' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Missing local resources!', r)
+											end
+										else
+											if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
+												"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
+												local Building = require "game.entities.building".Building
+												Building:new(tile.province, building_type, tile)
+												WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
+												WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
 											end
 										end
 									end
 								end
-							end, uit.BASE_HEIGHT, tabb.size(tile.province.buildable_buildings), uit.BASE_HEIGHT,
+							end, base_unit, tabb.size(tile.province.buildable_buildings), base_unit,
 								re.building_construction_scrollbar)
 						end,
 					}, ui_panel, ui_panel.width / 2 - 5)
@@ -671,7 +705,7 @@ function re.draw(gam)
 										tostring(math.floor(100 * tile.province.infrastructure_investment) / 100) .. MONEY_SYMBOL, rect)
 								end,
 								function(rect)
-									if WORLD.player_realm then
+									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local cinf = tile.province.infrastructure_investment
 										local ctre = WORLD.player_realm.treasury
 										uit.columns({
@@ -715,7 +749,7 @@ function re.draw(gam)
 													ui.centered_text('+100' .. MONEY_SYMBOL, rect)
 												end
 											end,
-										}, rect, uit.BASE_HEIGHT)
+										}, rect, base_unit * 2)
 										tile.province.infrastructure_investment = cinf
 										WORLD.player_realm.treasury = ctre
 									end
@@ -729,8 +763,8 @@ function re.draw(gam)
 									if tile.province.infrastructure_needed > 0 then
 										sat = tile.province.infrastructure / tile.province.infrastructure_needed
 									end
-									uit.data_entry('Inf. satisfaction: ',
-										tostring(math.floor(100 * sat)) .. '%', rect)
+									uit.data_entry_percentage('Inf. satisfaction: ',
+										sat, rect)
 								end,
 								function(rect)
 									local impr = "none"
@@ -741,14 +775,14 @@ function re.draw(gam)
 								end,
 								function(rect)
 									if tile.tile_improvement then
-										if WORLD.player_realm == tile.province.realm then
+										if WORLD:does_player_control_realm(tile.province.realm) then
 											if ui.text_button("Destroy", rect, "Destroy the local tile improvement") then
 												tile.tile_improvement:remove_from_province(tile.province)
 											end
 										end
 									end
 								end
-							}, rect, uit.BASE_HEIGHT)
+							}, rect, base_unit)
 						end,
 						function(rect)
 							local tile_improvs = {}
@@ -759,10 +793,10 @@ function re.draw(gam)
 							end
 
 							local rr = rect.height
-							rect.height = uit.BASE_HEIGHT
+							rect.height = base_unit
 							ui.centered_text("Construction", rect)
-							rect.height = rr - uit.BASE_HEIGHT
-							rect.y = rect.y + uit.BASE_HEIGHT
+							rect.height = rr - base_unit
+							rect.y = rect.y + base_unit
 							re.building_tile_improvements_scrollbar = re.building_tile_improvements_scrollbar or 0
 							re.building_tile_improvements_scrollbar = ui.scrollview(rect, function(number, rect)
 								if number > 0 then
@@ -771,56 +805,69 @@ function re.draw(gam)
 									ui.tooltip(building_type:get_tooltip(), rect)
 									---@type Rect
 									local r = rect
-									local im = r:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+									local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 									ui.image(ASSETS.get_icon(building_type.icon), im)
-									r.x = r.x + uit.BASE_HEIGHT
+									r.x = r.x + base_unit
+									r.width = r.width - base_unit * 3
+
 									if building_type.tile_improvement then
-										ui.left_text(building_type.name ..
-											" (" .. tostring(math.floor(100 * building_type.production_method:get_efficiency(tile))) .. "%)", r)
+										ui.left_text(building_type.name, r)
+										uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
 									else
 										ui.left_text(building_type.name, r)
 									end
 
-									if WORLD.player_realm then
-										if WORLD.player_realm == tile.province.realm then
-											r.x = r.x + r.width - 2 * uit.BASE_HEIGHT
-											r.width = uit.BASE_HEIGHT
+									r.x = r.x + r.width
+									r.width = base_unit
+									if ui.icon_button(ASSETS.icons['mesh-ball.png'], r,
+										"Show local efficiency on map") then
+										gam.selected_building_type = building_type
+										gam.refresh_map_mode(true)
+									end
 
-											local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)
-											if not success then
-												if reason == 'unique_duplicate' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('There can be at most a single building of this type per province!', r)
-												elseif reason == 'tile_improvement' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
-												elseif reason == 'not_enough_funds' then
-													ui.image(ASSETS.icons['uncertainty.png'], r)
-													ui.tooltip('Not enough funds: ' ..
-														tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
-														" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
-												elseif reason == 'missing_local_resources' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Missing local resources!', r)
-												end
+									if WORLD:does_player_control_realm(tile.province.realm) then
+										r.x = r.x + base_unit
+										r.width = base_unit
+
+										local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)
+										if not success then
+											if reason == 'unique_duplicate' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('There can be at most a single building of this type per province!', r)
+											elseif reason == 'tile_improvement' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
+											elseif reason == 'not_enough_funds' then
+												ui.image(ASSETS.icons['uncertainty.png'], r)
+												ui.tooltip('Not enough funds: ' ..
+													tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
+													" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
+											elseif reason == 'missing_local_resources' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Missing local resources!', r)
+											end
+										else
+											if tile.tile_improvement then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('There already is a tile improvement on here!', r)
 											else
-												if tile.tile_improvement then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('There already is a tile improvement on here!', r)
-												else
-													if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-														"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-														local Building = require "game.entities.building".Building
-														Building:new(tile.province, building_type, tile)
-														WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-														WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
+												if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
+													"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
+													local Building = require "game.entities.building".Building
+													Building:new(tile.province, building_type, tile)
+													WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
+													WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
+
+													if gam.selected_building_type == building_type then
+														gam.selected_building_type = building_type
+														gam.refresh_map_mode(true)
 													end
 												end
 											end
 										end
 									end
 								end
-							end, uit.BASE_HEIGHT, tabb.size(tile_improvs), uit.BASE_HEIGHT,
+							end, base_unit, tabb.size(tile_improvs), base_unit,
 								re.building_tile_improvements_scrollbar)
 						end,
 					}, ui_panel, ui_panel.width / 2 - 5)
@@ -833,59 +880,23 @@ function re.draw(gam)
 					local consumption = tile.province.local_consumption
 					local production = tile.province.local_production
 					local uip = ui_panel:copy()
-					uip.height = uit.BASE_HEIGHT
-					-- ui.centered_text("Consumption", uip)
-					-- uip.y = uip.y + uit.BASE_HEIGHT
-					-- local data = {}
-					-- for good, amount in pairs(consumption) do
-					-- 	data[#data + 1] = {
-					-- 		weight = amount,
-					-- 		tooltip = good.name .. ", " .. tostring(math.floor(100 * amount) / 100),
-					-- 		r = good.r,
-					-- 		g = good.g,
-					-- 		b = good.b,
-					-- 	}
-					-- end
-					-- uit.graph(data, uip)
-
-					
-					-- uip.y = uip.y + uit.BASE_HEIGHT
-					-- ui.centered_text("Production", uip)
-					-- uip.y = uip.y + uit.BASE_HEIGHT
-					-- local data = {}
-					-- if tile.province.realm then
-					-- 	for good, amount in pairs(production) do
-					-- 		data[#data + 1] = {
-					-- 			weight = amount * tile.province.realm:get_price(good),
-					-- 			tooltip = good.name ..
-					-- 				", " ..
-					-- 				tostring(math.floor(100 * amount * tile.province.realm:get_price(good)) / 100) ..
-					-- 				MONEY_SYMBOL .. ' (' .. tostring(math.floor(100 * amount) / 100) .. ')',
-					-- 			r = good.r,
-					-- 			g = good.g,
-					-- 			b = good.b,
-					-- 		}
-					-- 	end
-					-- end
-					-- uit.graph(data, uip)
-					--uit.graph(data, uip)
-
-					uip.y = uip.y + uit.BASE_HEIGHT
+					uip.height = base_unit
+					uip.width = base_unit * 8
 					ui.left_text("Local wealth:", uip)
 					ui.right_text(tostring(math.floor(100 * tile.province.local_wealth) / 100) .. MONEY_SYMBOL, uip)
 
-					uip.y = uip.y + uit.BASE_HEIGHT
+					uip.x = uip.x + uip.width + base_unit
 					ui.left_text("Local income:", uip)
 					ui.right_text(tostring(math.floor(100 * tile.province.local_income) / 100) .. MONEY_SYMBOL, uip)
 
-					uip.y = uip.y + uit.BASE_HEIGHT
+					uip.x = uip.x + uip.width + base_unit
 					ui.left_text("Local building upkeep:", uip)
 					ui.right_text(tostring(math.floor(100 * tile.province.local_building_upkeep) / 100) .. MONEY_SYMBOL, uip)
 
-					uip.y = uip.y + uit.BASE_HEIGHT
-					ui.left_text("Province supply balance:", uip)
-					uip.y = uip.y + uit.BASE_HEIGHT
-					uip.height = uip.height * 6
+					uip.y = uip.y + base_unit
+					uip.x = ui_panel.x
+					uip.width = ui_panel.width
+					uip.height = uip.height * 8
 					local supply_data = {}
 					local demand_data = {}
 					local balance_data = {}
@@ -907,12 +918,12 @@ function re.draw(gam)
 								local demand = demand_data[good] or 0
 								local price = tile.province.realm:get_price(good)
 								local w = rect.width
-								rect.width = uit.BASE_HEIGHT
+								rect.width = base_unit
 								ui.image(ASSETS.get_icon(good.icon), rect)
-								rect.x = rect.x + 5 + uit.BASE_HEIGHT
+								rect.x = rect.x + 5 + base_unit
 								rect.width = w
 								ui.left_text(good.name, rect)
-								rect.x = rect.x - 5 - uit.BASE_HEIGHT
+								rect.x = rect.x - 5 - base_unit
 
 								rect.width = w / 4
 								ui.right_text(tostring(math.floor(100 * supply) / 100), rect)
@@ -923,7 +934,7 @@ function re.draw(gam)
 								rect.width = w
 								ui.right_text(tostring(math.floor(100 * price) / 100) .. MONEY_SYMBOL, rect)
 							end
-						end, uit.BASE_HEIGHT, tabb.size(balance_data), uit.BASE_HEIGHT, gam.province_supply_balance_scrollbar
+						end, base_unit, tabb.size(balance_data), base_unit, gam.province_supply_balance_scrollbar
 					)
 				end
 			},
@@ -938,8 +949,8 @@ function re.draw(gam)
 									ui.centered_text("Researched technologies", rect)
 								end,
 								function(_)
-									rect.y = rect.y + uit.BASE_HEIGHT
-									rect.height = rect.height - uit.BASE_HEIGHT
+									rect.y = rect.y + base_unit
+									rect.height = rect.height - base_unit
 									re.researched_technologies_scrollbar = re.researched_technologies_scrollbar or 0
 									re.researched_technologies_scrollbar = ui.scrollview(rect, function(number, rect)
 										if number > 0 then
@@ -948,18 +959,18 @@ function re.draw(gam)
 											ui.tooltip(tech:get_tooltip(), rect)
 											---@type Rect
 											local r = rect
-											local im = r:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 											if ui.icon_button(ASSETS.icons[tech.icon], im) then
 												gam.cached_selected_tech = tech
 												gam.update_map_mode("selected_technology")
 											end
-											rect.x = rect.x + uit.BASE_HEIGHT
+											rect.x = rect.x + base_unit
 											ui.left_text(tech.name, rect)
 										end
-									end, uit.BASE_HEIGHT, tabb.size(tile.province.technologies_present), uit.BASE_HEIGHT,
+									end, base_unit, tabb.size(tile.province.technologies_present), base_unit,
 										re.researched_technologies_scrollbar)
 								end
-							}, rect, uit.BASE_HEIGHT)
+							}, rect, base_unit)
 						end,
 						function(rect)
 							uit.rows({
@@ -967,8 +978,8 @@ function re.draw(gam)
 									ui.centered_text("Researchable technologies", rect)
 								end,
 								function(_)
-									rect.y = rect.y + uit.BASE_HEIGHT
-									rect.height = rect.height - uit.BASE_HEIGHT
+									rect.y = rect.y + base_unit
+									rect.height = rect.height - base_unit
 									re.researchable_technologies_scrollbar = re.researchable_technologies_scrollbar or 0
 									re.researchable_technologies_scrollbar = ui.scrollview(rect, function(number, rect)
 										if number > 0 then
@@ -977,18 +988,18 @@ function re.draw(gam)
 											ui.tooltip(tech:get_tooltip(), rect)
 											---@type Rect
 											local r = rect
-											local im = r:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 											if ui.icon_button(ASSETS.icons[tech.icon], im) then
 												gam.cached_selected_tech = tech
 												gam.update_map_mode("selected_technology")
 											end
-											rect.x = rect.x + uit.BASE_HEIGHT
+											rect.x = rect.x + base_unit
 											ui.left_text(tech.name, rect)
 										end
-									end, uit.BASE_HEIGHT, tabb.size(tile.province.technologies_researchable), uit.BASE_HEIGHT,
+									end, base_unit, tabb.size(tile.province.technologies_researchable), base_unit,
 										re.researchable_technologies_scrollbar)
 								end
-							}, rect, uit.BASE_HEIGHT)
+							}, rect, base_unit)
 						end
 					}, ui_panel, ui_panel.width / 2 - 5)
 				end
@@ -1017,8 +1028,8 @@ function re.draw(gam)
 				text = "MIL",
 				tooltip = "Military",
 				closure = function()
-					local top = ui_panel:subrect(0, 0, ui_panel.width, uit.BASE_HEIGHT, "left", 'up')
-					local bottom = ui_panel:subrect(0, uit.BASE_HEIGHT, ui_panel.width, ui_panel.height - uit.BASE_HEIGHT, "left", 'up')
+					local top = ui_panel:subrect(0, 0, ui_panel.width, base_unit, "left", 'up')
+					local bottom = ui_panel:subrect(0, base_unit, ui_panel.width, ui_panel.height - base_unit, "left", 'up')
 					ui.centered_text("Military", top)
 					re.units_scrollbar = re.units_scrollbar or 0
 					local ttab = require "engine.table"
@@ -1037,7 +1048,7 @@ function re.draw(gam)
 							ui.left_text(unit.name, rect)
 							rect.x = rect.x + rect.width
 							rect.width = rect.height
-							if WORLD.player_realm == tile.province.realm then
+							if WORLD:does_player_control_realm(tile.province.realm) then
 								if target > 0 then
 									if ui.text_button('-1', rect, "Decrease the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target - 1)
@@ -1049,7 +1060,7 @@ function re.draw(gam)
 							ui.centered_text(tostring(current) .. '/' .. tostring(target), rect)
 							rect.x = rect.x + rect.width + 5
 							rect.width = rect.height
-							if WORLD.player_realm == tile.province.realm then
+							if WORLD:does_player_control_realm(tile.province.realm) then
 								if WORLD.player_realm.treasury > unit.base_price then
 									if ui.text_button('+1', rect, "Increase the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target + 1)
@@ -1061,16 +1072,16 @@ function re.draw(gam)
 							rect.width = 150
 							ui.left_text("Cost: " .. tostring(unit.base_price) .. MONEY_SYMBOL, rect)
 						end
-					end, uit.BASE_HEIGHT, ttab.size(tile.province.units), uit.BASE_HEIGHT, re.units_scrollbar)
+					end, base_unit, ttab.size(tile.province.units), base_unit, re.units_scrollbar)
 				end
 			}
 		}
 		local layout = ui.layout_builder()
-			:position(panel.x, panel.y + uit.BASE_HEIGHT)
+			:position(panel.x, panel.y + base_unit)
 			:spacing(2)
 			:horizontal()
 			:build()
-		gam.tile_inspector_tab = uit.tabs(gam.tile_inspector_tab, layout, tabs)
+		gam.tile_inspector_tab = uit.tabs(gam.tile_inspector_tab, layout, tabs, scale)
 	end
 end
 

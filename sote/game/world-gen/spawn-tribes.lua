@@ -6,6 +6,19 @@ local tabb = require "engine.table"
 
 local st = {}
 
+local function generate_test_army(x, race, faith, culture, capitol)
+	local warband = require "game.entities.warband":new()
+	for i = 1, x do
+		local army_pop = require "game.entities.pop".POP:new(race, faith, culture, true, 20)
+		local unit_type = WORLD.unit_types_by_name['raiders']
+		warband.pops[army_pop] = capitol
+		warband.units[army_pop] = unit_type
+	end
+	local army = require "game.entities.army":new()
+	army.warbands[warband] = warband
+	return army
+end
+
 ---Makes a new realm, one province large.
 ---@param race Race
 ---@param capitol Province
@@ -21,9 +34,9 @@ local function make_new_realm(capitol, race, culture, faith)
 	r.primary_faith = faith
 
 	-- Initialize realm colors
-	r.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.2 - 0.1))))
-	r.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.2 - 0.1))))
-	r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.2 - 0.1))))
+	r.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.4 - 0.2))))
+	r.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.4 - 0.2))))
+	r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.4 - 0.2))))
 
 	r.name = culture.language:get_random_realm_name()
 	for _, neigh in pairs(capitol.neighbors) do
@@ -50,8 +63,33 @@ local function make_new_realm(capitol, race, culture, faith)
 		)
 		capitol:add_pop(p)
 	end
+
+	local elite_character = pop.POP:new(race, faith, culture, 
+	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
+	love.math.random(race.max_age))
+
+	elite_character.popularity = 1
+	capitol:add_character(elite_character)
+	r.leader = elite_character
+
+	local contender = pop.POP:new(race, faith, culture,
+	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
+	love.math.random(race.max_age))
+	contender.popularity = 0.5
+	capitol:add_character(contender)
+
 	capitol.name = culture.language:get_random_province_name()
 	capitol:research(WORLD.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
+
+
+	-- print("test battle")
+	-- local size_1, size_2 = love.math.random(50) + 10, love.math.random(50) + 10
+	-- local army_1 = generate_test_army(size_1, race, faith, culture, capitol)
+	-- local army_2 = generate_test_army(size_2, race, faith, culture, capitol)
+
+	-- print(size_2, size_1)
+	-- local victory, losses, def_losses = army_2:attack(capitol, true, army_1)
+	-- print(victory, losses, def_losses)
 end
 
 

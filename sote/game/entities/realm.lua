@@ -30,8 +30,11 @@
 ---@field primary_culture Culture
 ---@field primary_faith Faith
 ---@field capitol Province
+---@field leader Character?
 ---@field provinces table<Province, Province>
----@field raiding_targets table<Province, Province>
+---@field raiding_targets table<Province, Province|nil>
+---@field raiders_preparing table<Province, table<Warband, Warband>>
+---@field patrols table<Province, table<Warband, Warband>>
 ---@field toggle_raiding_target fun(self:Realm, province:Province)
 ---@field add_raiding_target fun(self:Realm, province:Province)
 ---@field remove_raiding_target fun(self:Realm, province:Province)
@@ -69,7 +72,10 @@
 ---@field get_realm_military_target fun(self:Realm):number Returns the sum of military targets, not that it DOESNT include active armies.
 ---@field get_realm_active_army_size fun(self:Realm):number Returns the size of active armies on the field
 ---@field get_realm_militarization fun(self:Realm):number
----@field raise_army_of_size fun(self:Realm, size:number):Army Raises an army of a given size
+--@field raise_army_of_size fun(self:Realm, size:number):Army Raises an army of a given size
+---@field raise_army fun(self:Realm, warbands: table<Warband, Warband>): Army
+---@field raise_warband fun(self: Realm, warband: Warband)
+---@field raise_local_army fun(self: Realm, province: Province): Army
 ---@field disband_army fun(self:Realm, army:Army)
 ---@field get_speechcraft_efficiency fun(self:Realm):number
 ---@field get_province_pop_weights fun(self:Realm):table<Province, number> Returns a table mapping provinces to numbers that add up to 1 and which represent the 'weight' of a province based on its population. Useful for pop weighted selections of provinces
@@ -80,6 +86,11 @@
 ---@field neighbors_realm fun(self:Realm, other:Realm):boolean
 ---@field wars table<War, War> Wars
 ---@field at_war_with fun(self:Realm, other:Realm):boolean Wars
+---@field get_warbands fun(self:Realm): Warband[]
+---@field add_raider fun(self:Realm, prov: Province, warband: Warband)
+---@field remove_raider fun(self:Realm, prov: Province, warband: Warband)
+---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
+---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
 
 local realm = {}
 local tabb = require "engine.table"
@@ -141,6 +152,8 @@ function realm.Realm:new()
 	o.resources = {}
 	o.production = {}
 	o.armies = {}
+	o.raiders_preparing = {}
+	o.patrols = {}
 	-- print("bb")
 	if love.math.random() < 0.6 then
 		o.coa_emblem_image = love.math.random(#ASSETS.emblems)
@@ -171,10 +184,19 @@ end
 ---@param prov Province
 function realm.Realm:add_raiding_target(prov)
 	self.raiding_targets[prov] = prov
+	if self.raiders_preparing[prov] == nil then
+		self.raiders_preparing[prov] = {}
+	end
 end
 
 function realm.Realm:remove_raiding_target(prov)
 	self.raiding_targets[prov] = nil
+	for _, warband in pairs(self.raiders_preparing[prov]) do
+		if warband.status == 'preparing_raid' then
+			warband.status = 'idle'
+		end
+	end
+	self.raiders_preparing[prov] = {}
 end
 
 function realm.Realm:toggle_raiding_target(prov)
@@ -182,6 +204,52 @@ function realm.Realm:toggle_raiding_target(prov)
 		self:remove_raiding_target(prov)
 	else
 		self:add_raiding_target(prov)
+	end
+end
+
+---Adds warband as potential raider of province
+---@param prov Province
+---@param warband Warband
+function realm.Realm:add_raider(prov, warband)
+	if warband.status ~= 'idle' then return end
+	if self.raiding_targets[prov] then
+		self.raiders_preparing[prov][warband] = warband
+		warband.status = 'preparing_raid'
+	end
+end
+
+---Removes warband as potential raider of province
+---@param prov Province
+---@param warband Warband
+function realm.Realm:remove_raider(prov, warband)
+	if self.raiding_targets[prov] then
+		self.raiders_preparing[prov][warband] = nil
+		warband.status = "idle"
+	end
+end
+
+---Adds warband as potential raider of province
+---@param prov Province
+---@param warband Warband
+function realm.Realm:add_patrol(prov, warband)
+	if warband.status ~= 'idle' then return end
+	if self.patrols[prov] then
+		self.patrols[prov][warband] = warband
+		warband.status = 'preparing_patrol'
+	else 
+		self.patrols[prov] = {}
+		self.patrols[prov][warband] = warband
+		warband.status = 'preparing_patrol'
+	end
+end
+
+---Removes warband as potential patrol of province
+---@param prov Province
+---@param warband Warband
+function realm.Realm:remove_patrol(prov, warband)
+	if self.patrols[prov] then
+		self.patrols[prov][warband] = nil
+		warband.status = "idle"
 	end
 end
 
@@ -295,7 +363,7 @@ function realm.Realm:get_realm_military()
 		total = total + p:military()
 	end
 	for _, a in pairs(self.armies) do
-		total = total + tabb.size(a.pops)
+		total = total + tabb.size(a:pops())
 	end
 	return total
 end
@@ -322,7 +390,7 @@ end
 function realm.Realm:get_realm_active_army_size()
 	local total = 0
 	for _, a in pairs(self.armies) do
-		total = total + tabb.size(a.pops)
+		total = total + tabb.size(a:pops())
 	end
 	return total
 end
@@ -332,38 +400,45 @@ function realm.Realm:get_realm_militarization()
 	return self:get_realm_military() / self:get_realm_population()
 end
 
----@param size number
----@return Army
-function realm.Realm:raise_army_of_size(size)
-	--print("army")
-	local army = require "game.entities.army":new()
-	local actual_size = math.min(size, self:get_realm_ready_military())
-	--print(tostring(size) .. " vs " .. tostring(actual_size))
-	for _ = 1, actual_size do
-		-- Select a random province and until you get a hit
-		local fails = 0
-		while true do
-			---@type Province
-			local prov = tabb.random_select_from_set(self.provinces)
-			if prov:military() > 0 then
-				local warr, ut = tabb.random_select_from_set(prov.soldiers)
-				prov:unregister_military_pop(warr)
-				prov.units_target[ut] = prov.units_target[ut] - 1
-				prov.all_pops[warr] = nil -- hide the pop
-				army.pops[warr] = prov
-				army.units[warr] = ut
-				break
-			end
+function realm.Realm:raise_warband(warband)
+	for pop, unit_type in pairs(warband.units) do
+		local province = warband.pops[pop]
+		province:take_away_pop(pop)
+	end
+end
 
-			fails = fails + 1
-			if fails > 1000000 then
-				error("Failed to raise an army of size: " ..
-					tostring(size) .. ", actual raisable army size of the realm is: " .. tostring(actual_size))
-			end
+function realm.Realm:raise_local_army(province)
+	local army = require "game.entities.army":new()
+
+	if self.provinces[province] == nil then
+		return army
+	end
+
+	for _, w in pairs(province.warbands) do
+		if w.status == 'idle' then
+			self:raise_warband(w)
+			army.warbands[w] = w
+		end
+		if w.status == 'patrol' then
+			self:raise_warband(w)
+			army.warbands[w] = w
 		end
 	end
+
+	return army
+end
+
+
+---@param warbands table<Warband, Warband>
+---@return Army
+function realm.Realm:raise_army(warbands)
+	--print("army")
+	local army = require "game.entities.army":new()
+	for _, w in pairs(warbands) do
+		self:raise_warband(w)
+		army.warbands[w] = w
+	end
 	self.armies[army] = army
-	--print("army done")
 	return army
 end
 
@@ -371,18 +446,23 @@ end
 ---@param army Army
 function realm.Realm:disband_army(army)
 	self.armies[army] = nil
-	for pop, province in pairs(army.pops) do
-		local unit = army.units[pop]
-		if province.realm then
-			province:add_pop(pop)
-			province:recruit(pop, unit)
-			province.units_target[unit] = province.units_target[unit] + 1
-		else
-			self.capitol:add_pop(pop)
-			self.capitol:recruit(pop, unit)
-			self.capitol.units_target[unit] = self.capitol.units_target[unit] + 1
+
+	for _, warband in pairs(army.warbands) do
+		-- if warband was patrolling, let it continue
+
+			for pop, province in pairs(warband.pops) do
+				local unit = warband.units[pop]
+				if province.realm then
+					province:return_pop_from_army(pop, unit)
+				else
+					self.capitol:return_pop_from_army(pop, unit)
+				end
+				pop.drafted = true
+			end
+
+		if warband.status ~= 'patrol' then
+			warband.status = 'idle'
 		end
-		pop.drafted = true
 	end
 end
 
@@ -434,13 +514,26 @@ function realm.Realm:get_total_population()
 	local pop = 0
 
 	for _, army in pairs(self.armies) do
-		pop = pop + tabb.size(army.pops)
+		pop = pop + tabb.size(army:pops())
 	end
 	for _, prov in pairs(self.provinces) do
 		pop = pop + tabb.size(prov.all_pops)
 	end
 
 	return pop
+end
+
+---@return Warband[]
+function realm.Realm:get_warbands()
+	local res = {}
+
+	for _, prov in pairs(self.provinces) do
+		for _, warband in pairs(prov.warbands) do
+			table.insert(res, warband)
+		end
+	end
+
+	return res
 end
 
 ---Returns true if the realm neighbors other

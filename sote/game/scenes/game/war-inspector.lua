@@ -123,7 +123,7 @@ function re.draw(gam)
 			:horizontal()
 			:build()
 		gam.war_inspector_tab = gam.war_inspector_tab or "GEN"
-		gam.war_inspector_tab = uit.tabs(gam.war_inspector_tab, layout, tabs)
+		gam.war_inspector_tab = uit.tabs(gam.war_inspector_tab, layout, tabs, 1)
 
 	end
 end

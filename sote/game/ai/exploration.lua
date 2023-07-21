@@ -1,4 +1,5 @@
 local tabb = require "engine.table"
+local EconomicEffects = require "game.raws.effects.economic"
 local ex = {}
 
 ---@param realm Realm
@@ -10,11 +11,11 @@ function ex.run(realm)
 
 		if prov then
 			local cost = realm:get_explore_cost(prov)
-			if realm.treasury > 0 then
-				if love.math.random() < cost / realm.treasury then
-					realm.treasury = math.max(0, realm.treasury - cost)
+			if realm.treasury > cost then
+				-- if love.math.random() < cost / realm.treasury then
+					EconomicEffects.add_treasury(realm, -cost, EconomicEffects.reasons.Exploration)
 					realm:explore(prov)
-				end
+				-- end
 			end
 		end
 	end

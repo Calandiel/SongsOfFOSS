@@ -4,6 +4,10 @@ local cpml = require "cpml"
 local world = require "game.entities.world"
 local cube = require "game.cube"
 local tile = require "game.entities.tile"
+local tb = require "game.scenes.game.top-bar"
+local callback = require "game.scenes.callbacks"
+local tabb = require "engine.table"
+local political = require "game.map-modes.political"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
@@ -118,6 +122,10 @@ function gam.init()
 	
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
+
+	gam.tile_neighbor_provinces_data = nil
+	gam.tile_neighbor_provinces_texture = nil
+
 	gam.inspector = nil
 	gam.load_camera_position_or_set_to_default()
 	local default_map_mode = "elevation"
@@ -157,11 +165,13 @@ function gam.init()
 	gam.tile_improvement_texture_data = imd2
 	gam.tile_improvement_texture = love.graphics.newImage(imd2)
     
-    
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
 
 	gam.minimap = require "game.minimap".make_minimap()
+
+
+	gam.tile_inspector_scale = 1
 end
 
 ---Call this to make sure that a camera position exists.
@@ -198,10 +208,12 @@ function gam.update(dt)
 			-- the game is paused, nothing to do!
 		end
 	end
+	tb.update(dt)
 end
 
 local up_direction = cpml.vec3.new(0, 1, 0)
 local origin_point = cpml.vec3.new(0, 0, 0)
+
 
 function gam.handle_camera_controls()
 	local ui = require "engine.ui"
@@ -213,14 +225,11 @@ function gam.handle_camera_controls()
 		-- Handle camera controls...
 		local up = up_direction
 		local camera_speed = (gam.camera_position:len() - 0.75) * 0.006
-		local zoom_speed = 0.02
 		if ui.is_key_held('lshift') then
 			camera_speed = camera_speed * 3
-			zoom_speed = zoom_speed * 3
 		end
 		if ui.is_key_held('lctrl') then
 			camera_speed = camera_speed / 6
-			zoom_speed = zoom_speed / 6
 		end
 		local mouse_zoom_sensor_size = 3
 		local mouse_x, mouse_y = ui.mouse_position()
@@ -240,14 +249,33 @@ function gam.handle_camera_controls()
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(camera_speed, rot)
 		end
-		if ui.is_key_held('e') or ui.mouse_wheel() < 0 then
+		CACHED_CAMERA_POSITION = gam.camera_position
+	end
+	if ui.is_key_pressed("f8") then
+		print("!")
+		gam.camera_lock = not gam.camera_lock
+		CACHED_LOCK_STATE = gam.camera_lock
+	end
+end
+
+function gam.handle_zoom()
+	local ui = require "engine.ui"
+	if not gam.camera_lock then
+		local zoom_speed = 0.02
+		if ui.is_key_held('lshift') then
+			zoom_speed = zoom_speed * 3
+		end
+		if ui.is_key_held('lctrl') then
+			zoom_speed = zoom_speed / 6
+		end
+		if ui.is_key_held('e') or (ui.mouse_wheel() < 0) then
 			gam.camera_position = gam.camera_position * (1 + zoom_speed)
 			local l = gam.camera_position:len()
 			if l > 3 then
 				gam.camera_position = gam.camera_position:normalize() * 3
 			end
 		end
-		if ui.is_key_held('q') or ui.mouse_wheel() > 0 then
+		if ui.is_key_held('q') or (ui.mouse_wheel() > 0) then
 			gam.camera_position = gam.camera_position * (1 - zoom_speed)
 			local l = gam.camera_position:len()
 			if l < 1.015 then
@@ -255,11 +283,6 @@ function gam.handle_camera_controls()
 			end
 		end
 		CACHED_CAMERA_POSITION = gam.camera_position
-	end
-	if ui.is_key_pressed("f8") then
-		print("!")
-		gam.camera_lock = not gam.camera_lock
-		CACHED_LOCK_STATE = gam.camera_lock
 	end
 end
 
@@ -282,6 +305,8 @@ end
 
 ---
 function gam.draw()
+	gam.click_callback = nil
+
 	if WORLD == nil then
 		return
 	end
@@ -313,6 +338,10 @@ function gam.draw()
 	local x = cpml.vec3.cross(up_direction, gam.camera_position)
 	local y = cpml.vec3.cross(x, z):normalize()
 	local shift = y:scale(t)
+
+	if not OPTIONS.rotation then
+		shift = shift:scale(0)
+	end
 
 	local projection_z = z.x * z.x + z.z * z.z
 	local projection_shift = shift.x * shift.x + shift.z * shift.z
@@ -392,6 +421,13 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("clicked_tile") then
 		gam.planet_shader:send('clicked_tile', gam.clicked_tile_id - 1) -- shaders use 0-indexed arrays!
 	end
+	if gam.planet_shader:hasUniform("player_tile") then
+		if WORLD.player_realm then
+			gam.planet_shader:send('player_tile', WORLD.player_realm.capitol.center.tile_id - 1)
+		else 
+			gam.planet_shader:send('player_tile', 0)
+		end
+	end
 	if gam.planet_shader:hasUniform("camera_distance_from_sphere") then
 		gam.planet_shader:send("camera_distance_from_sphere", gam.camera_position:len() - 1)
 	end
@@ -403,6 +439,9 @@ function gam.draw()
 			gam.recalculate_province_map()
 		end
 		gam.planet_shader:send('tile_provinces', gam.tile_province_texture)
+	end
+	if gam.planet_shader:hasUniform("tile_neighbor_province") then
+		gam.planet_shader:send('tile_neighbor_province', gam.tile_neighbor_provinces_texture)
 	end
 	if gam.planet_shader:hasUniform("tile_raiding_targets") then
 		if gam.map_mode == "atlas" then
@@ -495,12 +534,9 @@ function gam.draw()
 						local population = tile.province:population()
 						ui.name_panel(tile.province.name, name_rect)
 						ui.field_panel(tostring(population), population_rect)
-						if WORLD.player_realm then
+						if WORLD:does_player_control_realm(WORLD.player_realm) then
 							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
-								WORLD.player_realm:toggle_raiding_target(tile.province)
-								gam.recalculate_raiding_targets_map()
-								province_on_map_interaction = true
-								return true
+								gam.click_callback = callback.toggle_raiding_target(gam, tile.province)
 							end
 						end
 					elseif tile.resource then
@@ -553,16 +589,21 @@ function gam.draw()
 		)
 	end
 
+	-- Bottom UI
+	local bottom_button_size = ut.BASE_HEIGHT * 2
+
+
 	local bottom_right = fs:subrect(0, 0, 0, 0, "right", "down")
 	local bottom_right_main_layout = ui.layout_builder()
 		:vertical(true)
 		:position(bottom_right.x, bottom_right.y)
 		:flipped()
 		:build()
-	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT) -- skip!
-
+	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, bottom_button_size) -- skip!
 
 	-- Bottom bar
+	
+	
 	local bottom_bar = ui.layout_builder()
 		:horizontal(true)
 		:position(bottom_right.x, bottom_right.y)
@@ -570,56 +611,150 @@ function gam.draw()
 		:build()
 	if ui.icon_button(
 		ASSETS.icons["exit-door.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Quit"
 	) then
-		---@type World|nil
-		WORLD = nil -- drop the world so that it gets garbage collected..
-		local manager = require "game.scene-manager"
-		manager.transition("main-menu")
-		return
+		gam.inspector = "confirm-exit"
+		gam.click_callback = callback.nothing()
 	end
 	if ui.icon_button(
 		ASSETS.icons["save.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Save"
 	) then
 		world.save("quicksave.binbeaver")
+		gam.click_callback = callback.nothing()
 		gam.refresh_map_mode()
 	end
 	if ui.icon_button(
 		ASSETS.icons["load.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Load"
 	) then
 		world.load("quicksave.binbeaver")
+		gam.click_callback = callback.nothing()
 		gam.refresh_map_mode()
 	end
 	if ui.icon_button(
 		ASSETS.icons["treasure-map.png"],
-		bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Export map"
 	) then
 		local to_save = require "game.minimap".make_minimap_image_data(1600, 800)
 		to_save:encode("png", gam.map_mode .. ".png")
+		gam.click_callback = callback.nothing()
+	end
+	if ui.icon_button(
+		ASSETS.icons["war-pick.png"],
+		bottom_bar:next(bottom_button_size, bottom_button_size),
+		"Options"
+	) then
+		gam.inspector = "options"
+		gam.click_callback = callback.nothing()
 	end
 	if WORLD.player_realm then
-		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
 			"Change country") then
 			WORLD.player_realm = nil
+			WORLD.player_character = nil
 			gam.refresh_map_mode()
+			gam.click_callback = callback.nothing()
 		end
 	end
 	-- Minimap
-	require "game.minimap".draw(
+	if require "game.minimap".draw(
 		gam.minimap,
 		gam.camera_position,
 		bottom_right_main_layout:next(300, 150)
-	)
-	-- Map mode tab
-	local mouse_in_bottom_right = ui.trigger(ui.fullscreen():subrect(
+	) then
+		gam.click_callback = callback.nothing()
+	end
+
+
+	-- Draw the calendar
+	if ut.calendar(gam) then
+		gam.click_callback = callback.nothing()
+	end
+
+
+	-- Draw notifications	
+
+	if WORLD.player_realm ~= nil then
+		-- "Mask" the mouse interaction
+		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 9, "right", 'up')
+		if ui.trigger(notif_panel) then
+			gam.click_callback = callback.nothing()
+		end
+
+		-- Draw gfx
+
+		ui.panel(notif_panel)	
+		if gam.notifications_list == nil then
+			gam.notifications_list = require "engine.queue":new()
+		end
+		while WORLD.notification_queue:length() > 0 do
+			local item = WORLD.notification_queue:dequeue()
+			gam.notifications_list:enqueue(item)
+		end
+		local function render_notification(index, rect)
+			local first = gam.notifications_list.first
+			local item = gam.notifications_list.data[first + index]
+			ui.panel(rect)
+			rect:shrink(5)
+			if item then
+				ui.left_text(item, rect)
+			end
+		end
+		gam.notif_slider = gam.notif_slider or 1
+		gam.notif_slider = ui.scrollview(
+			notif_panel,
+			render_notification,
+			ut.BASE_HEIGHT * 3,
+			gam.notifications_list:length(),
+			10,
+			gam.notif_slider)
+
+		while gam.notifications_list:length() > 100 do
+			gam.notifications_list:dequeue()
+		end
+
+
+		--- Draw outliner
+		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 6, "right", 'up')
+		if ui.trigger(outliner_panel) then
+			gam.click_callback = callback.nothing()
+		end
+
+		local function render_action(index, rect)
+			---@type ActionData
+			local action = tabb.nth(WORLD.player_deferred_actions, index)
+			if action == nil then
+				return
+			end
+			ui.left_text(action[1].name, rect)
+			ui.right_text(tostring(math.floor(action[4])), rect)
+			ui.centered_text(action[2].name, rect)
+		end
+
+		gam.outliner_slider = gam.outliner_slider or 0
+
+		gam.outliner_slider = ui.scrollview(
+			outliner_panel,
+			render_action,
+			ut.BASE_HEIGHT * 1,
+			tabb.size(WORLD.player_deferred_actions),
+			10,
+			gam.outliner_slider
+		)
+	end
+
+		-- Map mode tab
+	if ui.trigger(ui.fullscreen():subrect(
 		0, 0, 300, ut.BASE_HEIGHT * 2 + 150, "right", 'down'
-	))
+	)) then
+		gam.click_callback = callback.nothing()
+	end
+
 	local map_mode_bar = bottom_right_main_layout:next(300, ut.BASE_HEIGHT)
 	local map_mode_bar_layout = ui.layout_builder()
 		:horizontal()
@@ -631,34 +766,37 @@ function gam.draw()
 		"Show all map modes"
 	) then
 		gam.show_map_mode_panel = true
+		gam.click_callback = callback.nothing()
 	end
+
 	if ui.icon_button(
-		ASSETS.icons[gam.map_mode_data['realms'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['realms'][3]) then
-		gam.update_map_mode("realms")
+		ASSETS.icons[gam.map_mode_data['atlas'][2]],
+		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['atlas'][3]) then
+		gam.click_callback = callback.update_map_mode(gam, "atlas")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['elevation'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['elevation'][3]) then
-		gam.update_map_mode("elevation")
+		gam.click_callback = callback.update_map_mode(gam, "elevation")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['biomes'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['biomes'][3]) then
-		gam.update_map_mode("biomes")
+		gam.click_callback = callback.update_map_mode(gam, "biomes")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['koppen'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['koppen'][3]) then
-		gam.update_map_mode("koppen")
+		gam.click_callback = callback.update_map_mode(gam, "koppen")
 	end
+
 	-- Map modes tab
 	if gam.show_map_mode_panel then
 		local ttab = require "engine.table"
-		local mm_panel_height = ut.BASE_HEIGHT * (1 + 10)
+		local mm_panel_height = ut.BASE_HEIGHT * (1 + 5)
 		local panel = bottom_right_main_layout:next(300, mm_panel_height)
 		if ui.trigger(panel) then
-			mouse_in_bottom_right = true
+			gam.click_callback = callback.nothing()
 		end
 		ui.panel(panel)
 
@@ -666,24 +804,27 @@ function gam.draw()
 		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(
 			0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", "up"
 		)) then
-			gam.show_map_mode_panel = false
+			gam.click_callback = callback.close_map_mode_panel(gam)
+			-- gam.show_map_mode_panel = false
 		end
 		-- buttons for map mode tabs
+		local map_tabs_buttons_width = ut.BASE_HEIGHT * 2
 		local top_panels = {
-			panel:subrect(0 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(1 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(2 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(3 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(4 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(5 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(6 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
-			panel:subrect(7 * ut.BASE_HEIGHT, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(0 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(1 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(2 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(4 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(3 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(5 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(6 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
+			panel:subrect(7 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
 		}
 		ui.tooltip("All", top_panels[1])
 		if gam.map_mode_selected_tab == 'all' then
 			ui.centered_text("ALL", top_panels[1])
 		else
 			if ui.text_button("ALL", top_panels[1]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'all'
 			end
 		end
@@ -692,6 +833,7 @@ function gam.draw()
 			ui.centered_text("POL", top_panels[2])
 		else
 			if ui.text_button("POL", top_panels[2]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'political'
 			end
 		end
@@ -700,6 +842,7 @@ function gam.draw()
 			ui.centered_text("DEM", top_panels[3])
 		else
 			if ui.text_button("DEM", top_panels[3]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'demographic'
 			end
 		end
@@ -708,6 +851,7 @@ function gam.draw()
 			ui.centered_text("ECN", top_panels[4])
 		else
 			if ui.text_button("ECN", top_panels[4]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'economic'
 			end
 		end
@@ -716,6 +860,7 @@ function gam.draw()
 			ui.centered_text("DEB", top_panels[7])
 		else
 			if ui.text_button("DEB", top_panels[7]) then
+				gam.click_callback = callback.nothing()
 				gam.map_mode_selected_tab = 'debug'
 			end
 		end
@@ -735,6 +880,7 @@ function gam.draw()
 						], button_rect,
 						mm_data[3]
 					) then
+						gam.click_callback = callback.update_map_mode(gam, mm_key)
 						gam.update_map_mode(mm_key)
 					end
 					rect.x = rect.x + rect.height
@@ -750,38 +896,8 @@ function gam.draw()
 		)
 	end
 
-	-- Draw the calendar
-	mouse_in_bottom_right = ut.calendar(gam) or mouse_in_bottom_right
-	-- Draw notifications
-	if WORLD.notification_queue:length() > 0 then
-		-- "Mask" the mouse interaction
-		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 11, ut.BASE_HEIGHT * 4, "right", 'up')
-		if ui.trigger(notif_panel) then
-			mouse_in_bottom_right = true
-		end
-
-		-- Draw gfx
-		ui.panel(notif_panel)
-		ui.left_text("Notifications (" .. tostring(WORLD.notification_queue:length()) .. ")",
-			notif_panel:subrect(0, 0, ut.BASE_HEIGHT * 8, ut.BASE_HEIGHT, "left", 'up'))
-		notif_panel.y = notif_panel.y + ut.BASE_HEIGHT
-		notif_panel:shrink(5)
-		ui.text(WORLD.notification_queue:peek(), notif_panel, "left", 'up')
-		notif_panel:shrink(-5)
-		notif_panel.y = notif_panel.y - ut.BASE_HEIGHT
-		local button_rect = notif_panel:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", 'up')
-		-- Interaction buttons
-		if ui.icon_button(ASSETS.icons['circle.png'], button_rect, "Close all notifications") then
-			WORLD.notification_queue:clear()
-		end
-		button_rect.x = button_rect.x - ut.BASE_HEIGHT
-		if ui.icon_button(ASSETS.icons['cancel.png'], button_rect, "Close the notification") then
-			WORLD.notification_queue:dequeue()
-		end
-	end
-
 	-- Draw the top bar
-	require "game.scenes.game.top-bar".draw(gam)
+	tb.draw(gam)
 
 	-- Debugging screen thingy in top left
 	local tt = require "engine.table"
@@ -791,21 +907,41 @@ function gam.draw()
 
 	-- At the end, handle tile clicks.
 	-- Make sure you add triggers for detecting clicks over UI!
-	if click_detected then
-		local click_success = false
-		if gam.inspector == nil then
-			click_success = true
-		elseif gam.inspector == "tile" then
-			click_success = require "game.scenes.game.tile-inspector".mask()
-		elseif gam.inspector == "realm" then
-			click_success = require "game.scenes.game.realm-inspector".mask()
-		elseif gam.inspector == "building" then
-			click_success = require "game.scenes.game.building-inspector".mask()
-		elseif gam.inspector == "war" then
-			click_success = require "game.scenes.game.war-inspector".mask()
-		end
 
-		if click_success and not mouse_in_bottom_right and (require "game.scenes.game.top-bar".mask(gam)) and not province_on_map_interaction then
+	local click_success = false
+	if gam.inspector == nil then
+		click_success = true
+	elseif gam.inspector == "characters" then
+		click_success = require "game.scenes.game.inspector-province-characters".mask()
+	elseif gam.inspector == "tile" then
+		click_success = require "game.scenes.game.tile-inspector".mask(gam)
+	elseif gam.inspector == "realm" then
+		click_success = require "game.scenes.game.realm-inspector".mask()
+	elseif gam.inspector == "building" then
+		click_success = require "game.scenes.game.building-inspector".mask()
+	elseif gam.inspector == "war" then
+		click_success = require "game.scenes.game.war-inspector".mask()
+	elseif gam.inspector == "options" then
+		click_success = require "game.scenes.main-menu.options".mask() 
+	elseif gam.inspector == "confirm-exit" then
+		click_success = require "game.scenes.game.confirm-exit".mask()
+	elseif gam.inspector == "army" then
+		click_success = require "game.scenes.game.inspector-military".mask()
+	end
+
+	if gam.click_callback == nil then
+		if click_success then 
+			gam.handle_zoom()
+		end
+	else
+		if click_success then
+			gam.click_callback()
+		end
+	end
+
+	if click_detected and click_success then
+		if (gam.click_callback == nil) and (tb.mask(gam)) and not province_on_map_interaction then
+			
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false
@@ -843,7 +979,23 @@ function gam.draw()
 		end
 	end
 
-	if tile_data_viewable then
+	if gam.inspector == "options" then
+		local response = require "game.scenes.main-menu.options".draw()
+		if response == "main" then
+			gam.inspector = nil
+		end
+	elseif gam.inspector == "confirm-exit" then
+		local response = require "game.scenes.game.confirm-exit".draw(gam)
+		if response then
+			---@type World|nil
+			WORLD = nil -- drop the world so that it gets garbage collected..
+			local manager = require "game.scene-manager"
+			manager.transition("main-menu")
+			return
+		end
+	elseif gam.inspector == "characters" then
+		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
+	elseif tile_data_viewable then
 		if gam.inspector == "tile" then
 			require "game.scenes.game.tile-inspector".draw(gam)
 		elseif gam.inspector == "realm" then
@@ -852,6 +1004,8 @@ function gam.draw()
 			require "game.scenes.game.building-inspector".draw(gam)
 		elseif gam.inspector == "war" then
 			require "game.scenes.game.war-inspector".draw(gam)
+		elseif gam.inspector == "army" then
+			require "game.scenes.game.inspector-military".draw(gam, WORLD.player_realm)
 		end
 	end
 
@@ -910,9 +1064,53 @@ function gam.update_map_mode(new_map_mode)
 	CACHED_MAP_MODE = new_map_mode
 end
 
+local function neighbor_data(tile)
+	local up_neigh = tile.get_neighbor(tile, 1)
+	local down_neigh = tile.get_neighbor(tile, 2)
+	local right_neigh = tile.get_neighbor(tile, 3)
+	local left_neigh = tile.get_neighbor(tile, 4)
+	local r = 0
+	local g = 0
+	local b = 0
+	local a = 0
+	if up_neigh.province ~= tile.province then
+		r = 1
+	end
+	if down_neigh.province ~= tile.province then
+		g = 1
+	end
+	if right_neigh.province ~= tile.province then
+		b = 1
+	end
+	if left_neigh.province ~= tile.province then
+		a = 1
+	end
+	return r, g, b, a
+end
+
+local function neighbor_neighbor_data(tile)
+	local up_neigh = tile.get_neighbor(tile, 1)
+	local down_neigh = tile.get_neighbor(tile, 2)
+	local right_neigh = tile.get_neighbor(tile, 3)
+	local left_neigh = tile.get_neighbor(tile, 4)
+
+	local up_r, up_g, up_b, up_a = neighbor_data(up_neigh)
+	local down_r, down_g, down_b, down_a = neighbor_data(down_neigh)
+	local right_r, right_g, right_b, right_a = neighbor_data(right_neigh)
+	local left_r, left_g, left_b, left_a = neighbor_data(left_neigh)
+
+	local r = (up_r + down_r + right_r + left_r) / 4
+	local g = (up_g + down_g + right_g + left_g) / 4
+	local b = (up_b + down_b + right_b + left_b) / 4
+	local a = (up_a + down_a + right_a + left_a) / 4
+
+	return r, g, b, a
+end
+
 function gam.recalculate_province_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim, dim, "rgba8")
+	gam.tile_neighbor_provinces_data = gam.tile_neighbor_provinces_data or love.image.newImageData(dim, dim, "rgba8")
 	for _, tile in pairs(WORLD.tiles) do
 		local x, y = gam.tile_id_to_color_coords(tile)
 		if tile.province then
@@ -921,12 +1119,27 @@ function gam.recalculate_province_map()
 			local b = tile.province.b
 			gam.tile_province_image_data:setPixel(x, y, r, g, b, 1)
 		end
+
+		local r, g, b, a = neighbor_data(tile)
+
+		if (math.max(r, g, b, a) < 0.1) then
+			r, g, b, a = neighbor_neighbor_data(tile)
+		end
+
+		gam.tile_neighbor_provinces_data:setPixel(x, y, r, g, b, a)
 	end
+
 	gam.tile_province_texture = love.graphics.newImage(gam.tile_province_image_data, {
 		mipmaps = false,
 		linear = true
 	})
 	gam.tile_province_texture:setFilter("nearest", "nearest")
+
+	gam.tile_neighbor_provinces_texture = love.graphics.newImage(gam.tile_neighbor_provinces_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_neighbor_provinces_texture:setFilter("nearest", "nearest")
 end
 
 function gam.recalculate_raiding_targets_map()
@@ -945,17 +1158,35 @@ function gam.recalculate_raiding_targets_map()
 		mipmaps = false,
 		linear = true
 	})
-	gam.tile_province_texture:setFilter("nearest", "nearest")
+	gam.tile_raiding_targets_texture:setFilter("nearest", "nearest")
 end
 
 ---Refreshes the map mode
-function gam.refresh_map_mode()
+function gam.refresh_map_mode(preserve_efficiency)
 	local tim = love.timer.getTime()
+
+	if not preserve_efficiency then
+		gam.selected_building_type = nil
+	end
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
 	local func = dat[4]
 	func(gam.clicked_tile_id) -- set "real color" on tiles
+
+	local province = nil
+	local best_eff = 0
+	if (gam.clicked_tile) then
+		province = gam.clicked_tile.province
+		if province and gam.selected_building_type then
+			for _, p_tile in pairs(province.tiles) do
+				if not p_tile.tile_improvement then
+					best_eff = math.max(best_eff, gam.selected_building_type.production_method:get_efficiency(p_tile))
+				end
+			end
+		end
+	end
+
 	-- Apply the color
 	for _, tile in pairs(WORLD.tiles) do
 		local can_set = true
@@ -976,7 +1207,21 @@ function gam.refresh_map_mode()
             else 
                 gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
             end
-            
+
+			if gam.selected_building_type ~= nil then
+				if tile.tile_improvement then
+					gam.tile_color_image_data:setPixel(x, y, 0.4, 0.5, 0.9, 1)
+				else
+					local eff = gam.selected_building_type.production_method:get_efficiency(tile)
+					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
+					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+
+					if tile.province == province and eff == best_eff then
+						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
+						gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+					end
+				end
+			end
 		else
 			gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 		end

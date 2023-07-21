@@ -67,7 +67,7 @@ function rea.run(realm)
 				total_infrastructure_needed
 			invested = math.min(invested, realm.treasury)
 			province.infrastructure_investment = province.infrastructure_investment + invested
-			realm.treasury = realm.treasury - invested
+			EconomicEffects.add_treasury(realm, -invested, EconomicEffects.reasons.Infrastructure)
 		end
 	end
 
@@ -76,7 +76,7 @@ function rea.run(realm)
 	if total_education_needed > 0 then
 		local invested = math.min(realm.monthly_education_investment, realm.treasury)
 		realm.education_investment = realm.education_investment + invested
-		realm.treasury = realm.treasury - invested
+		EconomicEffects.add_treasury(realm, -invested, EconomicEffects.reasons.Education)
 	end
 
 	-- Handle court investments
@@ -84,10 +84,8 @@ function rea.run(realm)
 	if total_court_needed > 0 then
 		local invested = math.min(realm.monthly_court_investment, realm.treasury)
 		realm.court_investment = realm.court_investment + invested
-		realm.treasury = realm.treasury - invested
+		EconomicEffects.add_treasury(realm, -invested, EconomicEffects.reasons.Court)
 	end
-
-	realm.treasury = math.max(0, realm.treasury)
 
 	-- #######################
 	-- ## Military spending ##
@@ -105,7 +103,7 @@ function rea.run(realm)
 		mil_fulf = realm.treasury / realm.military_spending
 	end
 	realm.realized_military_spending = mil_fulf
-	realm.treasury = math.max(0, realm.treasury - realm.military_spending)
+	EconomicEffects.add_treasury(realm, -realm.military_spending, EconomicEffects.reasons.Military)
 
 	-- "wealth decay" -- to prevent the AI from accidentally overstockpiling so much that the numbers overflow...
 	realm.treasury_real_delta = realm.treasury - realm.old_treasury

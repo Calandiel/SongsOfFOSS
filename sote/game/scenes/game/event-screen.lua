@@ -17,7 +17,7 @@ function ev.draw(gam)
 		local rea = peek[2]
 		local dat = peek[3]
 
-		if rea == WORLD.player_realm then
+		if WORLD:does_player_control_realm(WORLD.player_realm) then
 			local fs = ui.fullscreen()
 			local opts = eve:options(rea, dat)
 

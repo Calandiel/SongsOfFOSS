@@ -1,3 +1,4 @@
+EconomicEffects = require "game.raws.effects.economic"
 local upk = {}
 
 ---Runs upkeep on buildings in a province and destroys buildings if upkeep needs aren't met!
@@ -31,6 +32,7 @@ function upk.run(province)
 			end
 		end
 	end
+	EconomicEffects.display_treasury_change(province.realm, -province.local_building_upkeep, EconomicEffects.reasons.Upkeep)
 end
 
 return upk

@@ -1,4 +1,5 @@
 local tabb = require "engine.table"
+local EconomicEffects = require "game.raws.effects.economic"
 local pro = {}
 
 ---Runs production on a single province!
@@ -40,7 +41,11 @@ function pro.run(province)
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = tabb.size(province.all_pops)
 	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
+
+	-- IMPLEMENT CULTURAL VALUE
 	local fraction_of_income_given_voluntarily = 0.1 * math.max(0, math.min(1.0, 1.0 - population / min_income_pop))
+
+	local total_donations = 0
 	for _, pop in pairs(province.all_pops) do
 		-- Drafted pops don't work -- they may not even be in the province in the first place...
 		if not pop.drafted then
@@ -80,8 +85,8 @@ function pro.run(province)
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
-					province.realm.treasury = province.realm.treasury + contrib
-					province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
+					total_donations = total_donations + contrib
+					-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 				end
 			else
 				if pop.age > pop.race.teen_age then
@@ -93,14 +98,13 @@ function pro.run(province)
 					if income > 0 then
 						province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 						local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
-						province.realm.treasury = province.realm.treasury + contrib
-						province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
+						total_donations = total_donations + contrib
+						-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 					end
 					record_production(food, food_produced)
 				end
 			end
 		end
-
 		-- Record POP consumption
 		local age_multiplier = pop:get_age_multiplier()
 
@@ -126,6 +130,24 @@ function pro.run(province)
 
 		record_consumption(WORLD.trade_goods_by_name['meat'], 0.25 * age_multiplier)
 	end
+
+	--- DISTRIBUTION OF DONATIONS
+	local total_popularity = 0
+	for _, c in pairs(province.characters) do
+		total_popularity = total_popularity + c.popularity
+	end
+	local realm_share = total_donations
+	if total_popularity > 0 then
+		realm_share = total_donations * 0.5
+		local elites_share = total_donations - realm_share
+		for _, c in pairs(province.characters) do
+			EconomicEffects.add_pop_savings(c, elites_share * c.popularity / total_popularity, EconomicEffects.reasons.Donation)
+		end
+	end
+	EconomicEffects.add_treasury(province.realm, realm_share, EconomicEffects.reasons.Donation)
+	province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + realm_share
+
+
 	province.local_income = province.local_wealth - old_wealth
 	province.foragers = foragers_count -- Record the new number of foragers
 

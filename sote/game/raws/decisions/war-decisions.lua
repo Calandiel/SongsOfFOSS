@@ -3,6 +3,7 @@ local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local tg = require "game.raws.raws-utils".trade_good
 local ev = require "game.raws.raws-utils".event
+local utils = require "game.raws.raws-utils"
 local path = require "game.ai.pathfinding"
 
 local function load()
@@ -10,7 +11,7 @@ local function load()
 	Decision:new {
 		name = 'declare-war',
 		ui_name = "Send envoys to declare war",
-		tooltip = "<tooltip>",
+		tooltip = utils.constant_string("<tooltip>"),
 		sorting = 1,
 		primary_target = "realm",
 		secondary_target = 'none',
@@ -80,7 +81,9 @@ local function load()
 			if tabb.size(root.wars) > 0 then
 				return 0
 			end
-			return 1
+			--return 1
+			-- DISABLE WARS FOR NOW
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			--print("eff")
@@ -100,10 +103,10 @@ local function load()
 			root.wars[war] = war
 			primary_target.wars[war] = war
 
-			if primary_target == WORLD.player_realm then
-				WORLD:emit_action(WORLD.events_by_name['war-declaration'], primary_target, {
+			if not WORLD:does_player_control_realm(primary_target) then
+				WORLD:emit_action(WORLD.events_by_name['war-declaration'], root, primary_target, {
 					aggresor = root
-				}, travel_time)
+				}, travel_time, false)
 			end
 		end
 	}

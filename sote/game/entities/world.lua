@@ -1,9 +1,14 @@
 local world = {}
 
 local plate_utils = require "game.entities.plate"
+local utils       = require "game.ui-utils"
+
+---@alias ActionData { [1]: Event, [2]: Realm, [3]: table, [4]: number}
 
 ---@class World
 ---@field player_realm Realm?
+---@field player_character Character?
+---@field player_province Province?
 ---@field sub_hourly_tick number
 ---@field hour number
 ---@field day number
@@ -26,13 +31,19 @@ local plate_utils = require "game.entities.plate"
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
 ---@field emit_event fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number)
+---@field emit_action fun(self:World, event:Event, origin: Realm, target:Realm, associated_data:table|nil, delay: number, hidden: boolean)
 ---@field emit_immediate_event fun(self:World, event:Event, target:Realm, associated_data:table|nil)
 ---@field notification_queue Queue
 ---@field events_queue Queue
 ---@field deferred_events_queue Queue
 ---@field deferred_actions_queue Queue
+---@field player_deferred_actions table<ActionData, ActionData>
+---@field treasury_effects Queue
+---@field old_treasury_effects Queue
+---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
+---@field does_player_control_realm fun(self:World, realm:Realm?):boolean
+---@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
 --- RAWS
 ---@field biomes_by_name table<string, Biome>
 ---@field biomes_load_order table<number, Biome>
@@ -48,8 +59,10 @@ local plate_utils = require "game.entities.plate"
 ---@field production_methods_by_name table<string, ProductionMethod>
 ---@field resources_by_name table<string, Resource>
 ---@field decisions_by_name table<string, Decision>
+---@field decisions_characters_by_name table<string, Decision>
 ---@field events_by_name table<string, Event>
 ---@field unit_types_by_name table<string, UnitType>
+---@field base_visibility fun(self:World, size: number):number
 
 ---@type World
 world.World = {}
@@ -92,6 +105,9 @@ function world.World:new()
 	w.events_queue = require "engine.queue":new()
 	w.deferred_events_queue = require "engine.queue":new()
 	w.deferred_actions_queue = require "engine.queue":new()
+	w.player_deferred_actions = {}
+	w.treasury_effects = require "engine.queue":new()
+	w.old_treasury_effects =require "engine.queue":new()
 
 	for tile_id = 1, 6 * ws * ws do
 		table.insert(w.tiles, tile.Tile:new(tile_id))
@@ -120,11 +136,15 @@ function world.World:new()
 	w.production_methods_by_name = {}
 	w.resources_by_name = {}
 	w.decisions_by_name = {}
+	w.decisions_characters_by_name = {}
 	w.events_by_name = {}
 	w.unit_types_by_name = {}
-
 	setmetatable(w, self)
 	return w
+end
+
+function world.World:base_visibility(size)
+	return self.races_by_name['human'].visibility * WORLD.unit_types_by_name["raiders"].visibility * size
 end
 
 ---Returns number of tiles in the world
@@ -200,13 +220,22 @@ end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event Event
+---@param origin Realm
 ---@param target_realm Realm
 ---@param associated_data table
 ---@param delay number In days
-function world.World:emit_action(event, target_realm, associated_data, delay)
-	self.deferred_actions_queue:enqueue({
-		event, target_realm, associated_data, delay
-	})
+---@param hidden boolean
+function world.World:emit_action(event, origin, target_realm, associated_data, delay, hidden)
+	local action_data = {
+		event,
+		target_realm, 
+		associated_data, 
+		delay
+	}
+	self.deferred_actions_queue:enqueue(action_data)
+	if WORLD:does_player_control_realm(origin) and not hidden then
+		self.player_deferred_actions[action_data] = action_data
+	end	
 end
 
 local function handle_event(event, target_realm, associated_data)
@@ -245,7 +274,7 @@ function world.World:tick()
 		local rea = ev[2]
 		local dat = ev[3]
 
-		if rea == WORLD.player_realm then
+		if WORLD:does_player_control_realm(rea) then
 			-- This is a player event!
 			WORLD.pending_player_event_reaction = true
 			return
@@ -270,6 +299,8 @@ function world.World:tick()
 			WORLD.hour = 0
 			WORLD.day = WORLD.day + 1
 			-- daily tick
+
+			-- events
 			local l = WORLD.deferred_events_queue:length()
 			for i = 1, l do
 				--print("def. event" .. tostring(i))
@@ -283,6 +314,8 @@ function world.World:tick()
 					WORLD.deferred_events_queue:enqueue(check)
 				end
 			end
+
+			-- actionas
 			local l = WORLD.deferred_actions_queue:length()
 			for i = 1, l do
 				--print("def. action " .. tostring(i))
@@ -293,6 +326,7 @@ function world.World:tick()
 					local event = check[1]
 					event:on_trigger(check[2], check[3])
 					--print("ontrig")
+					self.player_deferred_actions[check] = nil
 				else
 					WORLD.deferred_actions_queue:enqueue(check)
 				end
@@ -346,38 +380,86 @@ function world.World:tick()
 				local court = require "game.society.court"
 				local construct = require "game.ai.construction"
 				for _, settled_province in pairs(ta) do
-					if settled_province.realm.capitol == settled_province then
+					local realm = settled_province.realm
+					if realm ~= nil and settled_province.realm.capitol == settled_province then
 						-- Run the realm AI once a month
-						if settled_province.realm ~= WORLD.player_realm then
+						if not WORLD:does_player_control_realm(realm) then
 							local explore = require "game.ai.exploration"
 							local treasury = require "game.ai.treasury"
 							local military = require "game.ai.military"
-							explore.run(settled_province.realm)
-							treasury.run(settled_province.realm)
-							military.run(settled_province.realm)
-						end						
+							explore.run(realm)
+							treasury.run(realm)
+							military.run(realm)
+						else
+							self:emit_treasury_change_effect(0, "new month")
+						end
 						--print("Construct")
-						construct.run(settled_province.realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+						construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 						--print("Court")
-						court.run(settled_province.realm)
+						court.run(realm)
 						--print("Edu")
-						education.run(settled_province.realm)
+						education.run(realm)
 						--print("Econ")
-						realm_economic_update.run(settled_province.realm)
+						realm_economic_update.run(realm)
 						-- Handle events!
 						--print("Event handling")
-						events.run(settled_province.realm)
-						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
-						if settled_province.realm ~= WORLD.player_realm then
-							--print("Decide")
-							decide.run(settled_province.realm)
+						events.run(realm)
+
+
+						-- assign warbands to patrols
+						for _, province in pairs(realm.provinces) do
+							for _, warband in pairs(province.warbands) do
+								if (warband.status == "idle") and (love.math.random() > 0.5) and (warband:size() > 0) then
+									realm:add_patrol(province, warband)
+								end
+							end
+						end
+
+						-- launch patrols
+						for _, target in pairs(realm.provinces) do
+							local warbands = realm.patrols[target]
+							local units = 0
+							if warbands ~= nil then
+								for _, warband in pairs(warbands) do
+									units = units + warband:size()
+								end
+							end
+							-- launch the patrol
+							if (units > 0) then
+								MilitaryEffects.patrol(realm, target)
+							end
+						end
+
+						-- assign raiders to targets
+						for _, province in pairs(realm.provinces) do
+							for _, warband in pairs(province.warbands) do
+								if warband.status == "idle" and warband:size() > 0 then
+									local target = realm:random_raiding_target()
+									realm:add_raider(target, warband)
+								end
+							end
+						end
+
+						-- launch raids
+						for _, target in pairs(realm.raiding_targets) do
+							local warbands = realm.raiders_preparing[target]
+							local units = 0
+							for _, warband in pairs(warbands) do
+								units = units + warband:size()
+							end
+							
+							-- with some probability, launch the raid
+							-- larger groups launch raids faster
+							if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
+								MilitaryEffects.covert_raid(realm, target)
+							end
 						end
 
 
-						--- update raiding 
-						local target = settled_province.realm:random_raiding_target()
-						if target ~= nil then
-							MilitaryEffects.covert_raid(settled_province.realm, target)
+						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
+						if not WORLD:does_player_control_realm(realm) then
+							--print("Decide")
+							decide.run(realm)
 						end
 					end
 				end
@@ -412,7 +494,27 @@ end
 ---Emits a notification
 ---@param notification string
 function world.World:emit_notification(notification)
-	self.notification_queue:enqueue(notification)
+	local date = tostring(WORLD.day) .. ' ' .. utils.months[WORLD.month + 1] .. ' of ' .. tostring(WORLD.year)
+	self.notification_queue:enqueue(date .. ':  ' .. notification)
+end
+
+---Emits a treasury change to player
+---@param amount number
+---@param reason EconomicReason
+---@param character_flag boolean?
+function world.World:emit_treasury_change_effect(amount, reason, character_flag)
+	if character_flag == nil then
+		character_flag = false
+	end
+	self.treasury_effects:enqueue({amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag})
+end
+
+function world.World:does_player_control_realm(realm)
+	return (realm ~= nil) and (self.player_character == realm.leader) and (self.player_character ~= nil)
+end
+
+function world.World:does_player_see_realm_news(realm)
+	return (self.player_realm == realm) and (self.player_realm ~= nil)
 end
 
 world.ticks_per_hour = 120

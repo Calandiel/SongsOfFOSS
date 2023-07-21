@@ -1,4 +1,7 @@
 local tabb = require "engine.table"
+local wb = require "game.entities.warband"
+
+---@alias Character POP
 
 local prov = {}
 
@@ -23,12 +26,14 @@ local prov = {}
 ---@field realm Realm?
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
+---@field characters table<Character, Character>
 ---@field neighbors_realm fun(self:Province, realm:Realm):boolean Returns whether or not a province borders a given realm
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
 ---@field population_weight fun(self:Province):number
 ---@field add_pop fun(self:Province, pop:POP)
+---@field add_character fun(self:Province, pop:Character)
 ---@field kill_pop fun(self:Province, pop:POP)
 ---@field fire_pop fun(self:Province, pop:POP)
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
@@ -59,8 +64,11 @@ local prov = {}
 ---@field unit_types table<UnitType, UnitType>
 ---@field units table<UnitType, table<POP, POP>> Recruited units
 ---@field units_target table<UnitType, number> Units to recruit
+---@field warbands table<Warband, Warband>
+---@field vacant_warbands fun(self: Province): Warband[]
 ---@field get_spotting fun(self:Province):number Returns the local "spotting" power
 ---@field get_hiding fun(self:Province):number Returns the local "hiding" space
+---@field spot_chance fun(self:Province, visibility: number): number Returns a chance to spot an army with given visibility.
 ---@field army_spot_test fun(self:Province, army:Army):boolean Performs an army spotting test in this province.
 ---@field get_job_ratios fun(self:Province):table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
 ---@field get_unemployment fun(self:Province):number Returns the number of unemployed people in the province.
@@ -68,6 +76,8 @@ local prov = {}
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field on_a_river boolean
+---@field take_away_pop fun(self:Province, pop:POP): POP
+---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
 
 local col = require "game.color"
 
@@ -102,6 +112,7 @@ function prov.Province:new()
 	o.is_land = false
 	o.buildings = {}
 	o.all_pops = {}
+	o.characters = {}
 	o.technologies_present = {}
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
@@ -124,6 +135,8 @@ function prov.Province:new()
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
 	o.on_a_river = false
+	o.warbands = {}
+
 	WORLD.entity_counter = WORLD.entity_counter + 1
 	WORLD.provinces[o.province_id] = o
 
@@ -184,6 +197,12 @@ function prov.Province:add_pop(pop)
 	self.all_pops[pop] = pop
 end
 
+---Adds a character to the province
+---@param character Character
+function prov.Province:add_character(character)
+	self.characters[character] = character
+end
+
 ---Kills a single pop and removes it from all relevant references.
 ---@param pop POP
 function prov.Province:kill_pop(pop)
@@ -201,7 +220,33 @@ function prov.Province:unregister_military_pop(pop)
 		self.units[ut][pop] = nil
 		pop.drafted = false
 	end
+	for _, warband in pairs(self.warbands) do
+		warband.units[pop] = nil
+		warband.pops[pop] = nil
+	end
 	self.soldiers[pop] = nil
+end
+
+
+---Removes the pop from the province without killing it
+function prov.Province:take_away_pop(pop)
+	if self.soldiers[pop] then
+		local unit_type = self.soldiers[pop]
+		self.units[unit_type][pop] = nil
+		self.units_target[unit_type] = self.units_target[unit_type] - 1
+	end
+	self.soldiers[pop] = nil
+	self.all_pops[pop] = nil
+
+	return pop
+end
+
+function prov.Province:return_pop_from_army(pop, unit_type)
+	self.units[unit_type][pop] = pop
+	self.units_target[unit_type] = self.units_target[unit_type] + 1
+	self.soldiers[pop] = unit_type
+	self.all_pops[pop] = pop
+	return pop
 end
 
 ---Fires an employed pop and adds it to the unemployed pops list.
@@ -355,7 +400,7 @@ function prov.Province:research(technology)
 		self.output_efficiency_boosts[prod] = old + am
 	end
 
-	if WORLD.player_realm == self.realm then
+	if WORLD:does_player_see_realm_news(self.realm) then
 		WORLD:emit_notification("Technology unlocked: " .. technology.name)
 	end
 end
@@ -439,6 +484,11 @@ end
 ---@param pop POP
 ---@param unit_type UnitType
 function prov.Province:recruit(pop, unit_type)
+	-- if pop is already drafted, do nothing
+	if pop.drafted then
+		return
+	end
+
 	self:fire_pop(pop)
 	self:unregister_military_pop(pop)
 	pop.drafted = true
@@ -447,7 +497,22 @@ function prov.Province:recruit(pop, unit_type)
 	end
 	self.units[unit_type][pop] = pop
 	self.soldiers[pop] = unit_type
+
+	-- assign pop to random warband
+	local vacant_warbands = self:vacant_warbands()
+	local warband = nil
+	if tabb.size(vacant_warbands) == 0 then
+		warband = self:new_warband()
+		warband.name = pop.culture.language:get_random_name()
+	else
+		warband = vacant_warbands[tabb.random_select_from_set(vacant_warbands)]
+	end
+
+	warband.pops[pop] = self
+	warband.units[pop] = unit_type
 end
+
+
 
 ---@return Culture|nil
 function prov.Province:get_dominant_culture()
@@ -525,6 +590,12 @@ function prov.Province:get_spotting()
 		s = s + b.type.spotting
 	end
 
+	for _, w in pairs(self.warbands) do
+		if w.status == 'idle' or w.status == 'patrol' then
+			s = s + w:spotting()
+		end
+	end
+
 	return s
 end
 
@@ -537,17 +608,11 @@ function prov.Province:get_hiding()
 	return hide
 end
 
----@param army Army
----@return boolean True if the army was spotted.
-function prov.Province:army_spot_test(army)
-	-- To resolve this event we need to perform some checks.
-	-- First, we should have a "scouting" check.
-	-- Them, a potential battle ought to take place.`
-	local spot = self:get_spotting() + love.math.random(20)
-	local visib = army:get_visibility() + love.math.random(20)
+function prov.Province:spot_chance(visibility)
+	local spot = self:get_spotting()
 	local hiding = self:get_hiding()
-	local actual_hiding = hiding - visib
-	local size = spot + visib + hiding
+	local actual_hiding = hiding - visibility
+	local size = spot + visibility + hiding
 	-- If spot == hide, we should get 50:50 odds.
 	-- If spot > hide, we should get higher odds of spotting
 	-- If spot < hide, we should get lower odds of spotting
@@ -559,7 +624,17 @@ function prov.Province:army_spot_test(army)
 		delta = delta / size
 	end
 	odds = math.max(0, math.min(1, odds + 0.5 * delta))
+	return odds
+end
 
+---@param army Army
+---@return boolean True if the army was spotted.
+function prov.Province:army_spot_test(army)
+	-- To resolve this event we need to perform some checks.
+	-- First, we should have a "scouting" check.
+	-- Them, a potential battle ought to take place.`	
+	local visib = army:get_visibility() + love.math.random(20)
+	local odds = self:spot_chance(visib)
 	if love.math.random() < odds then
 		-- Spot!
 		return true
@@ -598,6 +673,28 @@ function prov.Province:get_unemployment()
 	end
 
 	return u
+end
+
+function prov.Province:new_warband()
+	local warband = wb:new()
+	self.warbands[warband] = warband
+	return warband
+end
+
+function prov.Province:num_of_warbands()
+	return tabb.size(self.warbands)
+end
+
+function prov.Province:vacant_warbands()
+	local res = {}
+
+	for k, v in pairs(self.warbands) do
+		if v:size() < 6 then
+			table.insert(res, k)
+		end
+	end
+
+	return res
 end
 
 return prov

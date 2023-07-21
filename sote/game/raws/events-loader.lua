@@ -64,7 +64,7 @@ function ll.load()
 						return true
 					end,
 					outcome = function()
-						if realm == WORLD.player_realm then
+						if WORLD:does_player_control_realm(realm) then
 							WORLD:emit_notification("People complained and grumbled but eventually left and returned to their homes.")
 						end
 						realm.capitol.mood = realm.capitol.mood - 2
@@ -82,13 +82,13 @@ function ll.load()
 					outcome = function()
 						local flip = love.math.random() < 0.25
 						if flip then
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification("After a lengthy discussion " ..
 									name .. " was convinced of your ability to rule. People praised your wisdom and were brought closer together.")
 							end
 							realm.capitol.mood = realm.capitol.mood + 3
 						else
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification(name ..
 									" wasn't very impressed with your arguments. He and his family stayed but kept complaining and soon even more people were unhappy with our rule.")
 							end
@@ -107,13 +107,13 @@ function ll.load()
 					outcome = function()
 						local flip = love.math.random() < 0.5
 						if flip then
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification(name ..
 									" grumbled but didn't do anything. Eventually, people stopped listening to his constant complaints.")
 							end
 							realm.capitol.mood = realm.capitol.mood + 1
 						else
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification(name ..
 									" and his family left. Others soon followed and the ones who remained were upset by our decision.")
 							end
@@ -137,7 +137,7 @@ function ll.load()
 						return true
 					end,
 					outcome = function()
-						if realm == WORLD.player_realm then
+						if WORLD:does_player_control_realm(realm) then
 							WORLD:emit_notification("People complained and grumbled but eventually left and returned to their homes.")
 						end
 						realm.capitol.mood = realm.capitol.mood - 1
@@ -156,13 +156,13 @@ function ll.load()
 						realm.treasury = realm.treasury - 5 * gift_cost_per_pop
 						local flip = love.math.random() < 0.75
 						if flip then
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification("Swayed by gifts, " ..
 									name .. " was satisfied but people complained that we're choosing favourites.")
 							end
 							realm.capitol.mood = realm.capitol.mood - 1
 						else
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification("Swayed by gifts, " ..
 									name .. " was satisfied and soon everyone forgot about the whole affair.")
 							end
@@ -183,7 +183,7 @@ function ll.load()
 						realm.treasury = realm.treasury - pop * gift_cost_per_pop
 						local flip = love.math.random() < 0.75
 						if flip then
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification("Swayed by gifts, " ..
 									name .. " was satisfied and soon everyone forgot about the whole affair.")
 							end
@@ -203,12 +203,12 @@ function ll.load()
 					outcome = function()
 						local flip = love.math.random() * realm:get_speechcraft_efficiency() > 0.5
 						if flip then
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification("People were convinced of our words and returned to their daily lives with new-found energy")
 							end
 							realm.capitol.mood = realm.capitol.mood + 1
 						else
-							if realm == WORLD.player_realm then
+							if WORLD:does_player_control_realm(realm) then
 								WORLD:emit_notification("People were unhappy and didn't believe our words but returned to their daily lives for now.")
 							end
 							realm.capitol.mood = realm.capitol.mood - 2

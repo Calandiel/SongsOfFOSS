@@ -25,7 +25,7 @@ function rec.run(province)
 			-- Too few soldiers hire some
 			local delta = target - current_count
 			for pop, _ in pairs(province.all_pops) do
-				if not pop.drafted then
+				if (not pop.drafted) and (pop.age > pop.race.teen_age) and (pop.age < pop.race.elder_age) then
 					province:recruit(pop, unit)
 					delta = delta - 1
 				end

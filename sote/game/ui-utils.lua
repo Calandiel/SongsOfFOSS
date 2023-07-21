@@ -3,7 +3,7 @@ local ui = require "engine.ui"
 local ut = {}
 
 
-ut.BASE_HEIGHT = 30
+ut.BASE_HEIGHT = 20
 
 ---@class Entry
 ---@field weight number
@@ -93,6 +93,25 @@ function ut.data_entry(name, data, rect, tooltip)
 	end
 end
 
+
+---Draws a data field
+---@param name string
+---@param data number ratio
+---@param rect Rect
+---@param tooltip string?
+---@param positive boolean? Is big number good?
+function ut.data_entry_percentage(name, data, rect, tooltip, positive)
+	if positive == nil then
+		positive = true
+	end
+
+	ui.left_text(name, rect)
+	ut.color_coded_percentage(data, rect, positive)
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+end
+
 function ut.reload_font()
 	ASSETS.main_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))
 	love.graphics.setFont(ASSETS.main_font)
@@ -134,7 +153,7 @@ function ut.coa(realm, rect)
 	return rr
 end
 
-local months = {
+ut.months = {
 	'January',
 	'February',
 	'March',
@@ -149,6 +168,7 @@ local months = {
 	'December'
 }
 
+
 ---Draws the calendar and returns whether or not the mouse if over it
 ---@param gam table
 ---@return boolean
@@ -160,7 +180,7 @@ function ut.calendar(gam)
 		:horizontal(true)
 		:position(rx, 0)
 		:build()
-	local main = hor:next(ut.BASE_HEIGHT * 6, ut.BASE_HEIGHT)
+	local main = hor:next(ut.BASE_HEIGHT * 12, ut.BASE_HEIGHT)
 	ui.panel(main)
 	local www = (require "game.entities.world").ticks_per_hour
 	local sht = WORLD.sub_hourly_tick
@@ -169,7 +189,7 @@ function ut.calendar(gam)
 	main.x = main.x - 5 -- shift it slightly so that the numbers dont touch the edge of the screen...
 	ui.right_text(tostring(WORLD.hour) ..
 		' : ' .. tostring(minutes) .. ' : ' .. tostring(seconds) .. ' -- ' ..
-		tostring(WORLD.day) .. '.' .. months[WORLD.month + 1] .. '.' .. tostring(WORLD.year), main)
+		tostring(WORLD.day) .. '.' .. ut.months[WORLD.month + 1] .. '.' .. tostring(WORLD.year), main)
 	main.x = main.x + 5 -- move it back so that the trigger isnt broken
 
 	local main_button = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
@@ -218,10 +238,10 @@ end
 ---@param layout Layout A layout for placing tabs
 ---@param tabs table<number, Tab> a table with tabs
 ---@return string new_tab
-function ut.tabs(current_tab, layout, tabs)
+function ut.tabs(current_tab, layout, tabs, scale)
 	local new_tab = current_tab
 	for _, tab in pairs(tabs) do
-		local rect = layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
+		local rect = layout:next(ut.BASE_HEIGHT * 2 * scale, ut.BASE_HEIGHT * scale)
 		if current_tab == tab.text then
 			ui.tooltip(tab.tooltip, rect)
 			ui.centered_text(tab.text, rect)
@@ -238,6 +258,7 @@ function ut.tabs(current_tab, layout, tabs)
 	return new_tab
 end
 
+
 ---Renders the decision tab
 ---@param ui_panel Rect
 ---@param primary_target any
@@ -247,7 +268,7 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 	ut.columns({
 		function(rect)
 			-- First, we need to check if the player is controlling a realm
-			if WORLD.player_realm then
+			if WORLD:does_player_control_realm(WORLD.player_realm) then
 				-- Maps decisions to whether or not they can be clicked.
 				---@type table<number, table<Decision, boolean>>
 				local decisions = {}
@@ -307,7 +328,7 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 			local r = rect
 			r.height = r.height - ut.BASE_HEIGHT
 			-- Here, we need to check for the decision to render
-			if WORLD.player_realm then
+			if WORLD:does_player_control_realm(WORLD.player_realm) then
 				---@type Decision|nil
 				local dec = gam.selected_decision
 				if dec then
@@ -381,6 +402,34 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 			end
 		end
 	}, ui_panel, ui_panel.width / 2)
+end
+
+function ut.to_fixed_point2(x)
+	local temp = math.abs(x)
+	local sign = ''
+	if x < 0 then
+		sign = '-'
+	end
+	local frac_1 = math.floor((temp - math.floor(temp)) * 10)
+	local frac_2 = math.floor((temp * 10 - math.floor(temp * 10)) * 10)
+	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
+end
+
+function ut.color_coded_percentage(value, rect, positive)
+	if positive == nil then
+		positive = true
+	end
+
+	local hue = math.min(value * 120, 359)
+	if not positive then
+		hue = math.max(0, 120 - value * 120)
+	end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ui.right_text( tostring(math.floor(value * 100)) .. '%', rect)
+	love.graphics.setColor(cr, cg, cb, ca)
 end
 
 return ut
