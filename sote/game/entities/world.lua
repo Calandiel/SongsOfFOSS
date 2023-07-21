@@ -40,8 +40,10 @@ local utils       = require "game.ui-utils"
 ---@field player_deferred_actions table<ActionData, ActionData>
 ---@field treasury_effects Queue
 ---@field old_treasury_effects Queue
----@field emit_treasury_change_effect fun(self:World, amount:number, reason: string)
+---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
+---@field does_player_control_realm fun(self:World, realm:Realm?):boolean
+---@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
 --- RAWS
 ---@field biomes_by_name table<string, Biome>
 ---@field biomes_load_order table<number, Biome>
@@ -57,6 +59,7 @@ local utils       = require "game.ui-utils"
 ---@field production_methods_by_name table<string, ProductionMethod>
 ---@field resources_by_name table<string, Resource>
 ---@field decisions_by_name table<string, Decision>
+---@field decisions_characters_by_name table<string, Decision>
 ---@field events_by_name table<string, Event>
 ---@field unit_types_by_name table<string, UnitType>
 ---@field base_visibility fun(self:World, size: number):number
@@ -133,6 +136,7 @@ function world.World:new()
 	w.production_methods_by_name = {}
 	w.resources_by_name = {}
 	w.decisions_by_name = {}
+	w.decisions_characters_by_name = {}
 	w.events_by_name = {}
 	w.unit_types_by_name = {}
 	setmetatable(w, self)
@@ -229,7 +233,7 @@ function world.World:emit_action(event, origin, target_realm, associated_data, d
 		delay
 	}
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD.player_realm == origin and not hidden then
+	if WORLD:does_player_control_realm(origin) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end	
 end
@@ -270,7 +274,7 @@ function world.World:tick()
 		local rea = ev[2]
 		local dat = ev[3]
 
-		if rea == WORLD.player_realm then
+		if WORLD:does_player_control_realm(rea) then
 			-- This is a player event!
 			WORLD.pending_player_event_reaction = true
 			return
@@ -379,7 +383,7 @@ function world.World:tick()
 					local realm = settled_province.realm
 					if realm ~= nil and settled_province.realm.capitol == settled_province then
 						-- Run the realm AI once a month
-						if realm ~= WORLD.player_realm then
+						if not WORLD:does_player_control_realm(realm) then
 							local explore = require "game.ai.exploration"
 							local treasury = require "game.ai.treasury"
 							local military = require "game.ai.military"
@@ -453,7 +457,7 @@ function world.World:tick()
 
 
 						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
-						if realm ~= WORLD.player_realm then
+						if not WORLD:does_player_control_realm(realm) then
 							--print("Decide")
 							decide.run(realm)
 						end
@@ -497,8 +501,20 @@ end
 ---Emits a treasury change to player
 ---@param amount number
 ---@param reason EconomicReason
-function world.World:emit_treasury_change_effect(amount, reason)
-	self.treasury_effects:enqueue({amount = amount, reason = reason, day = self.day, month = self.month, year = self.year})
+---@param character_flag boolean?
+function world.World:emit_treasury_change_effect(amount, reason, character_flag)
+	if character_flag == nil then
+		character_flag = false
+	end
+	self.treasury_effects:enqueue({amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag})
+end
+
+function world.World:does_player_control_realm(realm)
+	return (realm ~= nil) and (self.player_character == realm.leader) and (self.player_character ~= nil)
+end
+
+function world.World:does_player_see_realm_news(realm)
+	return (self.player_realm == realm) and (self.player_realm ~= nil)
 end
 
 world.ticks_per_hour = 120

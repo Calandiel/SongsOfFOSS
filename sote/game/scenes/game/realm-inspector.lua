@@ -83,7 +83,7 @@ function re.draw(gam)
 						end
 					end
 
-					if realm == WORLD.player_realm then
+					if WORLD:does_player_control_realm(realm) then
 						local treasury_ledger_rect = ui_panel:subrect(column_width + 10, 0, column_width, uit.BASE_HEIGHT * 6, "left", 'up')
 						ui.panel(treasury_ledger_rect)
 
@@ -118,29 +118,27 @@ function re.draw(gam)
 						tostring(math.floor(100 * realm.monthly_infrastructure_investment) / 100) .. MONEY_SYMBOL,
 						panel_rect,
 						"Automatic infrastructure investments each month.")
-					if WORLD.player_realm then
-						if WORLD.player_realm == realm then
-							-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-							local pr = panel_rect:copy()
-							pr.x = pr.x + column_width + 10
-							pr.width = uit.BASE_HEIGHT * 2
-							-- Make a closure for easier button creation
-							local function do_one(amount)
-								if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-									"Change monthly infrastructure investment by " .. tostring(amount)) then
-									WORLD.player_realm.monthly_infrastructure_investment = math.max(0,
-										WORLD.player_realm.monthly_infrastructure_investment + amount)
-								end
-								pr.x = pr.x + uit.BASE_HEIGHT * 2
+					if WORLD:does_player_control_realm(realm) then
+						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+						local pr = panel_rect:copy()
+						pr.x = pr.x + column_width + 10
+						pr.width = uit.BASE_HEIGHT * 2
+						-- Make a closure for easier button creation
+						local function do_one(amount)
+							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
+								"Change monthly infrastructure investment by " .. tostring(amount)) then
+								WORLD.player_realm.monthly_infrastructure_investment = math.max(0,
+									WORLD.player_realm.monthly_infrastructure_investment + amount)
 							end
-
-							do_one(-10)
-							do_one(-1)
-							do_one(-0.1)
-							do_one(0.1)
-							do_one(1)
-							do_one(10)
+							pr.x = pr.x + uit.BASE_HEIGHT * 2
 						end
+
+						do_one(-10)
+						do_one(-1)
+						do_one(-0.1)
+						do_one(0.1)
+						do_one(1)
+						do_one(10)
 					end
 
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
@@ -148,58 +146,54 @@ function re.draw(gam)
 						tostring(math.floor(100 * realm.monthly_education_investment) / 100) .. MONEY_SYMBOL,
 						panel_rect,
 						"Automatic education investments each month.")
-					if WORLD.player_realm then
-						if WORLD.player_realm == realm then
-							-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-							local pr = panel_rect:copy()
-							pr.x = pr.x + column_width + 10
-							pr.width = uit.BASE_HEIGHT * 2
-							-- Make a closure for easier button creation
-							local function do_one(amount)
-								if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-									"Change monthly education investment by " .. tostring(amount)) then
-									WORLD.player_realm.monthly_education_investment = math.max(0,
-										WORLD.player_realm.monthly_education_investment + amount)
-								end
-								pr.x = pr.x + uit.BASE_HEIGHT * 2
+					if WORLD:does_player_control_realm(realm) then
+						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+						local pr = panel_rect:copy()
+						pr.x = pr.x + column_width + 10
+						pr.width = uit.BASE_HEIGHT * 2
+						-- Make a closure for easier button creation
+						local function do_one(amount)
+							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
+								"Change monthly education investment by " .. tostring(amount)) then
+								WORLD.player_realm.monthly_education_investment = math.max(0,
+									WORLD.player_realm.monthly_education_investment + amount)
 							end
-
-							do_one(-10)
-							do_one(-1)
-							do_one(-0.1)
-							do_one(0.1)
-							do_one(1)
-							do_one(10)
+							pr.x = pr.x + uit.BASE_HEIGHT * 2
 						end
+
+						do_one(-10)
+						do_one(-1)
+						do_one(-0.1)
+						do_one(0.1)
+						do_one(1)
+						do_one(10)
 					end
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 					uit.data_entry("Court investment",
 						tostring(math.floor(100 * realm.monthly_court_investment) / 100) .. MONEY_SYMBOL,
 						panel_rect,
 						"Automatic court investments each month.")
-					if WORLD.player_realm then
-						if WORLD.player_realm == realm then
-							-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-							local pr = panel_rect:copy()
-							pr.x = pr.x + column_width + 10
-							pr.width = uit.BASE_HEIGHT * 2
-							-- Make a closure for easier button creation
-							local function do_one(amount)
-								if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-									"Change monthly court investment by " .. tostring(amount)) then
-									WORLD.player_realm.monthly_court_investment = math.max(0,
-										WORLD.player_realm.monthly_court_investment + amount)
-								end
-								pr.x = pr.x + uit.BASE_HEIGHT * 2
+					if WORLD:does_player_control_realm(realm) then
+						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+						local pr = panel_rect:copy()
+						pr.x = pr.x + column_width + 10
+						pr.width = uit.BASE_HEIGHT * 2
+						-- Make a closure for easier button creation
+						local function do_one(amount)
+							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
+								"Change monthly court investment by " .. tostring(amount)) then
+								WORLD.player_realm.monthly_court_investment = math.max(0,
+									WORLD.player_realm.monthly_court_investment + amount)
 							end
-
-							do_one(-10)
-							do_one(-1)
-							do_one(-0.1)
-							do_one(0.1)
-							do_one(1)
-							do_one(10)
+							pr.x = pr.x + uit.BASE_HEIGHT * 2
 						end
+
+						do_one(-10)
+						do_one(-1)
+						do_one(-0.1)
+						do_one(0.1)
+						do_one(1)
+						do_one(10)
 					end
 					
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
@@ -289,7 +283,7 @@ function re.draw(gam)
 						, a,
 						"Amount of funds spent supporting the court through any variety of means.")
 					a.y = a.y + uit.BASE_HEIGHT
-					if WORLD.player_realm == realm then
+					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
@@ -361,7 +355,7 @@ function re.draw(gam)
 						, a,
 						"Amount of funds spent supporting research through any variety of means, ranging from funding private alchemists to gifting tribe shamans.")
 					a.y = a.y + uit.BASE_HEIGHT
-					if WORLD.player_realm == realm then
+					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)

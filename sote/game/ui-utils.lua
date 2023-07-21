@@ -258,6 +258,7 @@ function ut.tabs(current_tab, layout, tabs, scale)
 	return new_tab
 end
 
+
 ---Renders the decision tab
 ---@param ui_panel Rect
 ---@param primary_target any
@@ -267,7 +268,7 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 	ut.columns({
 		function(rect)
 			-- First, we need to check if the player is controlling a realm
-			if WORLD.player_realm then
+			if WORLD:does_player_control_realm(WORLD.player_realm) then
 				-- Maps decisions to whether or not they can be clicked.
 				---@type table<number, table<Decision, boolean>>
 				local decisions = {}
@@ -327,7 +328,7 @@ function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
 			local r = rect
 			r.height = r.height - ut.BASE_HEIGHT
 			-- Here, we need to check for the decision to render
-			if WORLD.player_realm then
+			if WORLD:does_player_control_realm(WORLD.player_realm) then
 				---@type Decision|nil
 				local dec = gam.selected_decision
 				if dec then

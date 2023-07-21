@@ -62,7 +62,7 @@ function co.run(realm)
 		if true or love.math.random() < 1.0 / 6.0 then
 			for province in pairs(realm.provinces) do
 
-				if realm == WORLD.player_realm then
+				if WORLD:does_player_control_realm(realm) then
 					-- Player realms shouldn't run their AI for building construction...
 				else
 					funds = construction_in_province(province, funds, excess)

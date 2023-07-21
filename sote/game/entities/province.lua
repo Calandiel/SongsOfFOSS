@@ -400,7 +400,7 @@ function prov.Province:research(technology)
 		self.output_efficiency_boosts[prod] = old + am
 	end
 
-	if WORLD.player_realm == self.realm then
+	if WORLD:does_player_see_realm_news(self.realm) then
 		WORLD:emit_notification("Technology unlocked: " .. technology.name)
 	end
 end

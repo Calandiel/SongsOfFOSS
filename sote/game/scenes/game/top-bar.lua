@@ -7,7 +7,7 @@ local tb = {}
 ---@return boolean
 function tb.mask(gam)
 	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
-	if WORLD.player_realm then
+	if WORLD:does_player_control_realm(WORLD.player_realm) then
 		return not ui.trigger(tr)
 	else
 		return true

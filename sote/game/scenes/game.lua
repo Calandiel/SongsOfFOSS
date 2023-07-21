@@ -534,7 +534,7 @@ function gam.draw()
 						local population = tile.province:population()
 						ui.name_panel(tile.province.name, name_rect)
 						ui.field_panel(tostring(population), population_rect)
-						if WORLD.player_realm then
+						if WORLD:does_player_control_realm(WORLD.player_realm) then
 							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
 								gam.click_callback = callback.toggle_raiding_target(gam, tile.province)
 							end
@@ -656,6 +656,7 @@ function gam.draw()
 		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
 			"Change country") then
 			WORLD.player_realm = nil
+			WORLD.player_character = nil
 			gam.refresh_map_mode()
 			gam.click_callback = callback.nothing()
 		end

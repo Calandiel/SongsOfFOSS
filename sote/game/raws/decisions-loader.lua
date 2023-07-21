@@ -129,7 +129,7 @@ function ll.load()
 			local primary_target = primary_target
 			primary_target.mood = math.min(10, primary_target.mood + 1)
 			root.treasury = math.max(0, root.treasury - primary_target:population() * gift_cost_per_pop)
-			if root == WORLD.player_realm then
+			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("Population of " .. primary_target.name .. " is jubilant after receiving our gifts!")
 			end
 		end
@@ -246,7 +246,7 @@ function ll.load()
 			---@type Province
 			local primary_target = primary_target
 			primary_target.mood = primary_target.mood - 1
-			if root == WORLD.player_realm then
+			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("People were greatly upset!")
 			end
 		end

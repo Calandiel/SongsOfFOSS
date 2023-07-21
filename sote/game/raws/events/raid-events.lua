@@ -40,7 +40,7 @@ local function load()
 			---@type Realm
 			local realm = realm
 			associated_data.target.mood = associated_data.target.mood + 0.025
-			if realm == WORLD.player_realm then
+			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Several of our warbands had finished patrolling of " .. associated_data.target.name .. ". Local people feel safety")
 			end
 
@@ -72,7 +72,7 @@ local function load()
 				if love.math.random() < 0.5 then
 					-- Let's just return and do nothing
 					success = false
-					if target.realm == WORLD.player_realm then
+					if WORLD:does_player_see_realm_news(realm) then
 						WORLD:emit_notification("Our neighbor, " ..
 							raider.name .. ", sent warriors to raid us but they were spotted and returned home.")
 					end
@@ -86,7 +86,7 @@ local function load()
 					losses = attack_losses
 					if attack_succeed then
 						success = true
-						if target.realm == WORLD.player_realm then
+						if WORLD:does_player_see_realm_news(realm) then
 							WORLD:emit_notification("Our neighbor, " ..
 								raider.name ..
 								", sent warriors to raid us. We lost " ..
@@ -94,7 +94,7 @@ local function load()
 								" warriors and our enemies lost " .. tostring(attack_losses) .. " and our province was looted.")
 						end
 					else
-						if target.realm == WORLD.player_realm then
+						if WORLD:does_player_see_realm_news(realm) then
 							WORLD:emit_notification("Our neighbor, " ..
 								raider.name ..
 								", sent warriors to raid us. We lost " ..
@@ -123,7 +123,7 @@ local function load()
 				WORLD:emit_action(WORLD.events_by_name["covert-raid-success"], raider, raider,
 					{ army = army, target = target, loot = real_loot, losses = losses },
 					travel_time, true)
-				if target.realm == WORLD.player_realm then
+				if WORLD:does_player_see_realm_news(realm) then
 					WORLD:emit_notification("An unknown adversary raided our province " ..
 						target.name .. " and stole " .. real_loot .. MONEY_SYMBOL .. " worth of goods!")
 				end
@@ -154,7 +154,7 @@ local function load()
 
 			realm:disband_army(army)
 			realm.capitol.mood = realm.capitol.mood - 1
-			if realm == WORLD.player_realm then
+			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
 					target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
 			end
@@ -180,7 +180,7 @@ local function load()
 			ef.add_treasury(realm, loot, ef.reasons.Raid)
 			-- realm.treasury = realm.treasury + loot
 
-			if realm == WORLD.player_realm then
+			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
 					target.name ..
 					" succeeded. People are rejoiced! Our warriors brought home " ..
@@ -202,7 +202,7 @@ local function load()
 			realm.capitol.mood = realm.capitol.mood - 0.025
 
 			realm:disband_army(army)
-			if realm == WORLD.player_realm then
+			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
 					target.name .. " failed. We were spotted but our warriors returned home safely")
 			end

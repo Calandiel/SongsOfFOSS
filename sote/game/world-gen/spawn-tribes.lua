@@ -67,7 +67,16 @@ local function make_new_realm(capitol, race, culture, faith)
 	local elite_character = pop.POP:new(race, faith, culture, 
 	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
 	love.math.random(race.max_age))
+
+	elite_character.popularity = 1
 	capitol:add_character(elite_character)
+	r.leader = elite_character
+
+	local contender = pop.POP:new(race, faith, culture,
+	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
+	love.math.random(race.max_age))
+	contender.popularity = 0.5
+	capitol:add_character(contender)
 
 	capitol.name = culture.language:get_random_province_name()
 	capitol:research(WORLD.technologies_by_name['paleolithic-knowledge']) -- initialize technology...

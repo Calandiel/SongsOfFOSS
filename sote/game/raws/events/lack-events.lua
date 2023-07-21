@@ -40,7 +40,7 @@ Clearly the scarcity of water has become so severe that a little old lady now fe
 						return true
 					end,
 					outcome = function()
-						if realm == WORLD.player_realm then
+						if WORLD:does_player_control_realm(realm) then
 							WORLD:emit_notification("People are concerned that their rulers may prove unable to help them.")
 						end
 						realm.capitol.mood = realm.capitol.mood - 10
@@ -71,7 +71,7 @@ Clearly the scarcity of water has become so severe that a little old lady now fe
 						return true
 					end,
 					outcome = function()
-						if realm == WORLD.player_realm then
+						if WORLD:does_player_control_realm(realm)then
 							WORLD:emit_notification("People heavily disapproved of your decision. Social unrest may soon become an issue.")
 						end
 						realm.capitol.mood = realm.capitol.mood - 20

@@ -7,7 +7,7 @@ MilitaryEffects = {}
 ---@param root Realm
 ---@param primary_target Province
 function MilitaryEffects.patrol(root, primary_target)
-    if root == WORLD.player_realm then
+    if WORLD:does_player_see_realm_news(root) then
         WORLD:emit_notification("Our warriors will patrol " ..
             primary_target.name ..
             " for a few months.")
@@ -39,7 +39,7 @@ function MilitaryEffects.covert_raid(root, primary_target)
 
     local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.capitol, primary_target))
 
-    if root == WORLD.player_realm then
+    if WORLD:does_player_see_realm_news(root) then
         WORLD:emit_notification("Our warriors move toward " ..
             primary_target.name ..
             ", they should arrive in " ..

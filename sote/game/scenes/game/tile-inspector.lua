@@ -118,7 +118,7 @@ function re.draw(gam)
 									uit.data_entry("Local resources:", rr, rect, "Local resources.")
 								end,
 								function(rect)
-									if WORLD.player_realm then
+									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local explore_cost = WORLD.player_realm:get_explore_cost(tile.province)
 										local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
 										if WORLD.player_realm.treasury > explore_cost then
@@ -612,7 +612,7 @@ function re.draw(gam)
 										end
 										rect.x = rect.x + base_unit
 										ui.left_text(building.type.name, rect)
-										if WORLD.player_realm == tile.province.realm then
+										if WORLD:does_player_control_realm(tile.province.realm) then
 											local button = r:subrect(-base_unit, 0, base_unit, base_unit, "right", 'up')
 											if ui.icon_button(ASSETS.get_icon('hammer-drop.png'), button, "Destroy the building") then
 												-- remove the building!
@@ -651,36 +651,34 @@ function re.draw(gam)
 										ui.left_text(building_type.name, r)
 									end
 
-									if WORLD.player_realm then
-										if WORLD.player_realm == tile.province.realm then
-											r.x = r.x + r.width
-											r.width = base_unit
+									if WORLD:does_player_control_realm(tile.province.realm) then
+										r.x = r.x + r.width
+										r.width = base_unit
 
-											local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type)
-											if not success then
-												if reason == 'unique_duplicate' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('There can be at most a single building of this type per province!', r)
-												elseif reason == 'tile_improvement' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
-												elseif reason == 'not_enough_funds' then
-													ui.image(ASSETS.icons['uncertainty.png'], r)
-													ui.tooltip('Not enough funds: ' ..
-														tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
-														" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
-												elseif reason == 'missing_local_resources' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Missing local resources!', r)
-												end
-											else
-												if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-													"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-													local Building = require "game.entities.building".Building
-													Building:new(tile.province, building_type, tile)
-													WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-													WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
-												end
+										local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type)
+										if not success then
+											if reason == 'unique_duplicate' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('There can be at most a single building of this type per province!', r)
+											elseif reason == 'tile_improvement' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
+											elseif reason == 'not_enough_funds' then
+												ui.image(ASSETS.icons['uncertainty.png'], r)
+												ui.tooltip('Not enough funds: ' ..
+													tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
+													" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
+											elseif reason == 'missing_local_resources' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Missing local resources!', r)
+											end
+										else
+											if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
+												"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
+												local Building = require "game.entities.building".Building
+												Building:new(tile.province, building_type, tile)
+												WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
+												WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
 											end
 										end
 									end
@@ -707,7 +705,7 @@ function re.draw(gam)
 										tostring(math.floor(100 * tile.province.infrastructure_investment) / 100) .. MONEY_SYMBOL, rect)
 								end,
 								function(rect)
-									if WORLD.player_realm then
+									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local cinf = tile.province.infrastructure_investment
 										local ctre = WORLD.player_realm.treasury
 										uit.columns({
@@ -777,7 +775,7 @@ function re.draw(gam)
 								end,
 								function(rect)
 									if tile.tile_improvement then
-										if WORLD.player_realm == tile.province.realm then
+										if WORLD:does_player_control_realm(tile.province.realm) then
 											if ui.text_button("Destroy", rect, "Destroy the local tile improvement") then
 												tile.tile_improvement:remove_from_province(tile.province)
 											end
@@ -827,44 +825,42 @@ function re.draw(gam)
 										gam.refresh_map_mode(true)
 									end
 
-									if WORLD.player_realm then
-										if WORLD.player_realm == tile.province.realm then
-											r.x = r.x + base_unit
-											r.width = base_unit
+									if WORLD:does_player_control_realm(tile.province.realm) then
+										r.x = r.x + base_unit
+										r.width = base_unit
 
-											local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)
-											if not success then
-												if reason == 'unique_duplicate' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('There can be at most a single building of this type per province!', r)
-												elseif reason == 'tile_improvement' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
-												elseif reason == 'not_enough_funds' then
-													ui.image(ASSETS.icons['uncertainty.png'], r)
-													ui.tooltip('Not enough funds: ' ..
-														tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
-														" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
-												elseif reason == 'missing_local_resources' then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('Missing local resources!', r)
-												end
+										local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)
+										if not success then
+											if reason == 'unique_duplicate' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('There can be at most a single building of this type per province!', r)
+											elseif reason == 'tile_improvement' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
+											elseif reason == 'not_enough_funds' then
+												ui.image(ASSETS.icons['uncertainty.png'], r)
+												ui.tooltip('Not enough funds: ' ..
+													tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
+													" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
+											elseif reason == 'missing_local_resources' then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('Missing local resources!', r)
+											end
+										else
+											if tile.tile_improvement then
+												ui.image(ASSETS.icons['triangle-target.png'], r)
+												ui.tooltip('There already is a tile improvement on here!', r)
 											else
-												if tile.tile_improvement then
-													ui.image(ASSETS.icons['triangle-target.png'], r)
-													ui.tooltip('There already is a tile improvement on here!', r)
-												else
-													if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-														"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-														local Building = require "game.entities.building".Building
-														Building:new(tile.province, building_type, tile)
-														WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-														WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
+												if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
+													"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
+													local Building = require "game.entities.building".Building
+													Building:new(tile.province, building_type, tile)
+													WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
+													WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
 
-														if gam.selected_building_type == building_type then
-															gam.selected_building_type = building_type
-															gam.refresh_map_mode(true)
-														end
+													if gam.selected_building_type == building_type then
+														gam.selected_building_type = building_type
+														gam.refresh_map_mode(true)
 													end
 												end
 											end
@@ -1052,7 +1048,7 @@ function re.draw(gam)
 							ui.left_text(unit.name, rect)
 							rect.x = rect.x + rect.width
 							rect.width = rect.height
-							if WORLD.player_realm == tile.province.realm then
+							if WORLD:does_player_control_realm(tile.province.realm) then
 								if target > 0 then
 									if ui.text_button('-1', rect, "Decrease the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target - 1)
@@ -1064,7 +1060,7 @@ function re.draw(gam)
 							ui.centered_text(tostring(current) .. '/' .. tostring(target), rect)
 							rect.x = rect.x + rect.width + 5
 							rect.width = rect.height
-							if WORLD.player_realm == tile.province.realm then
+							if WORLD:does_player_control_realm(tile.province.realm) then
 								if WORLD.player_realm.treasury > unit.base_price then
 									if ui.text_button('+1', rect, "Increase the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target + 1)

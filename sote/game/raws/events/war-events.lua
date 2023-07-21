@@ -12,7 +12,7 @@ local function load()
 			local realm = realm
 			---@type Realm
 			local agg = associated_data.aggresor
-			if realm == WORLD.player_realm then
+			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification(agg.name .. " declared war against us!")
 			end
 		end,

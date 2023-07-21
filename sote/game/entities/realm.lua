@@ -30,6 +30,7 @@
 ---@field primary_culture Culture
 ---@field primary_faith Faith
 ---@field capitol Province
+---@field leader Character?
 ---@field provinces table<Province, Province>
 ---@field raiding_targets table<Province, Province|nil>
 ---@field raiders_preparing table<Province, table<Warband, Warband>>

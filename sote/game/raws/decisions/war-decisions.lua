@@ -103,7 +103,7 @@ local function load()
 			root.wars[war] = war
 			primary_target.wars[war] = war
 
-			if primary_target == WORLD.player_realm then
+			if not WORLD:does_player_control_realm(primary_target) then
 				WORLD:emit_action(WORLD.events_by_name['war-declaration'], root, primary_target, {
 					aggresor = root
 				}, travel_time, false)
