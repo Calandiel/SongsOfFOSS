@@ -105,9 +105,17 @@ end
 ---@param data number
 ---@param rect Rect
 ---@param tooltip string?
-function ut.money_entry(name, data, rect, tooltip)
+---@param negative boolean?
+function ut.money_entry(name, data, rect, tooltip, negative)
+	if negative == nil then
+		negative = false
+	end
+
 	ui.left_text(name, rect)
 	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
+	if data < 0 and not negative or data > 0 and negative then
+		r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, 1, 1)
+	end
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ui.right_text(ut.to_fixed_point2(data) .. MONEY_SYMBOL, rect)
