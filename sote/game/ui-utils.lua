@@ -139,6 +139,18 @@ function ut.data_entry_icon(icon, data, rect, tooltip)
 end
 
 
+---Draws a money field with icon
+---@param data number
+---@param rect Rect
+---@param tooltip string
+---@param negative boolean?
+function ut.money_entry_icon(data, rect, tooltip, negative)
+	local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+	ui.image(ASSETS.icons['coins.png'], icon_rect)
+	ut.money_entry("", data, rect, tooltip, negative)
+end
+
+
 ---Draws a data field
 ---@param name string
 ---@param data number ratio

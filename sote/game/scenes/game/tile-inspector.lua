@@ -697,12 +697,12 @@ function re.draw(gam)
 						function(rect)
 							uit.rows({
 								function(rect)
-									uit.data_entry('Infrastructure: ',
-										tostring(math.floor(100 * tile.province.infrastructure) / 100) .. MONEY_SYMBOL, rect)
+									uit.money_entry('Infrastructure: ',
+										tile.province.infrastructure, rect)
 								end,
 								function(rect)
-									uit.data_entry('Inf. investment: ',
-										tostring(math.floor(100 * tile.province.infrastructure_investment) / 100) .. MONEY_SYMBOL, rect)
+									uit.money_entry('Inf. investment: ',
+										tile.province.infrastructure_investment, rect)
 								end,
 								function(rect)
 									if WORLD:does_player_control_realm(WORLD.player_realm) then
@@ -755,8 +755,8 @@ function re.draw(gam)
 									end
 								end,
 								function(rect)
-									uit.data_entry('Needed inf.: ',
-										tostring(math.floor(100 * tile.province.infrastructure_needed) / 100) .. MONEY_SYMBOL, rect)
+									uit.money_entry('Needed inf.: ',
+										tile.province.infrastructure_needed, rect)
 								end,
 								function(rect)
 									local sat = 0
@@ -882,17 +882,11 @@ function re.draw(gam)
 					local uip = ui_panel:copy()
 					uip.height = base_unit
 					uip.width = base_unit * 8
-					ui.left_text("Local wealth:", uip)
-					ui.right_text(tostring(math.floor(100 * tile.province.local_wealth) / 100) .. MONEY_SYMBOL, uip)
-
+					uit.money_entry("Local wealth:", tile.province.local_wealth, uip)
 					uip.x = uip.x + uip.width + base_unit
-					ui.left_text("Local income:", uip)
-					ui.right_text(tostring(math.floor(100 * tile.province.local_income) / 100) .. MONEY_SYMBOL, uip)
-
+					uit.money_entry("Local income:", tile.province.local_income, uip)
 					uip.x = uip.x + uip.width + base_unit
-					ui.left_text("Local building upkeep:", uip)
-					ui.right_text(tostring(math.floor(100 * tile.province.local_building_upkeep) / 100) .. MONEY_SYMBOL, uip)
-
+					uit.money_entry("Local building upkeep:", tile.province.local_building_upkeep, uip)
 					uip.y = uip.y + base_unit
 					uip.x = ui_panel.x
 					uip.width = ui_panel.width
@@ -932,7 +926,7 @@ function re.draw(gam)
 								rect.width = 3 * w / 4
 								ui.right_text(tostring(math.floor(100 * balance) / 100), rect)
 								rect.width = w
-								ui.right_text(tostring(math.floor(100 * price) / 100) .. MONEY_SYMBOL, rect)
+								uit.money_entry("", price, rect, "Price")
 							end
 						end, base_unit, tabb.size(balance_data), base_unit, gam.province_supply_balance_scrollbar
 					)
@@ -1070,7 +1064,7 @@ function re.draw(gam)
 							end
 							rect.x = rect.x + rect.width + 5
 							rect.width = 150
-							ui.left_text("Cost: " .. tostring(unit.base_price) .. MONEY_SYMBOL, rect)
+							uit.money_entry('Cost', unit.base_price, rect)
 						end
 					end, base_unit, ttab.size(tile.province.units), base_unit, re.units_scrollbar)
 				end

@@ -105,9 +105,8 @@ function tb.draw(gam)
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		ui.left_text(WORLD.player_character.name .. "(You)", name_rect)
 
-		uit.data_entry_icon(
-			'coins.png',
-			uit.to_fixed_point2(WORLD.player_character.savings) .. MONEY_SYMBOL,
+		uit.money_entry_icon(
+			WORLD.player_character.savings,
 			layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT),
 			"Your personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
@@ -136,9 +135,8 @@ function tb.draw(gam)
 
 		-- Treasury
 		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
-		uit.data_entry_icon(
-			'coins.png',
-			uit.to_fixed_point2(WORLD.player_realm.treasury) .. MONEY_SYMBOL,
+		uit.money_entry_icon(
+			WORLD.player_realm.treasury,
 			trt,
 			"Treasury")
 		HANDLE_EFFECTS()
