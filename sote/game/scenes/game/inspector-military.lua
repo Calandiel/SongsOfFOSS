@@ -68,26 +68,33 @@ function window.draw(game, realm)
     
     -- substance
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
-    local targets = realm.raiding_targets
+    local targets = realm.reward_flags
     local sl = game.raiding_targets_slider_level or 0
     game.raiding_targets_slider_level = ui.scrollview(ui_panel, function(i, rect)
         if i > 0 then
             ---@type Rect
             local r = rect
-            local width_unit = r.width / 5
-            local x = r.x
-            r.width = width_unit
-
-            ---@type Province
+            ---@type RewardFlag
             local target = tabb.nth(targets, i)
-            ui.left_text(target.name, r)
-            r.x = x + 4 * width_unit
             local warbands = realm.raiders_preparing[target]
             local size = 0
             for _, warband in pairs(warbands) do
                 size = size  + warband:size()
             end
-            ui.right_text(tostring(size), r)
+            uit.columns({
+                -- target
+                function (rect)
+                    ui.left_text(target.target.name, rect)
+                end,
+                -- reward
+                function (rect)
+                    uit.money_entry("", target.reward, rect, nil)
+                end,
+
+                function (rect)
+                    ui.right_text("Raiders queue: " .. tostring(size), rect)
+                end,
+            }, rect, rect.width / 4)
         end
     end,  uit.BASE_HEIGHT, tabb.size(targets), uit.BASE_HEIGHT, sl)
 

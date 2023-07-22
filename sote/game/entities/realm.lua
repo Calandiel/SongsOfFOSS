@@ -1,3 +1,11 @@
+---@class RewardFlag
+---@field flag_type 'explore'|'raid'|'destroy'|'kill'|'devastate'
+---@field reward number
+-- -@field reward_per_unit number
+-- -@field loot_share_to_owner number
+---@field owner Character
+---@field target Province
+
 ---@class Realm
 ---@field realm_id number
 ---@field name string
@@ -32,13 +40,12 @@
 ---@field capitol Province
 ---@field leader Character?
 ---@field provinces table<Province, Province>
----@field raiding_targets table<Province, Province|nil>
----@field raiders_preparing table<Province, table<Warband, Warband>>
+---@field reward_flags table<RewardFlag, RewardFlag>
+---@field raiders_preparing table<RewardFlag, table<Warband, Warband>>
 ---@field patrols table<Province, table<Warband, Warband>>
----@field toggle_raiding_target fun(self:Realm, province:Province)
----@field add_raiding_target fun(self:Realm, province:Province)
----@field remove_raiding_target fun(self:Realm, province:Province)
----@field random_raiding_target fun(self:Realm): Province
+---@field add_reward_flag fun(self:Realm, target:RewardFlag)
+---@field remove_reward_flag fun(self:Realm, target:RewardFlag)
+---@field roll_reward_flag fun(self:Realm): RewardFlag
 ---@field add_province fun(self:Realm, province:Province)
 ---@field new fun(self:Realm):Realm
 ---@field known_provinces table<Province, Province> For terra incognita.
@@ -87,13 +94,28 @@
 ---@field wars table<War, War> Wars
 ---@field at_war_with fun(self:Realm, other:Realm):boolean Wars
 ---@field get_warbands fun(self:Realm): Warband[]
----@field add_raider fun(self:Realm, prov: Province, warband: Warband)
----@field remove_raider fun(self:Realm, prov: Province, warband: Warband)
+---@field add_raider fun(self:Realm, f: RewardFlag, warband: Warband)
+---@field remove_raider fun(self:Realm, f: RewardFlag, warband: Warband)
 ---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
 
 local realm = {}
 local tabb = require "engine.table"
+
+---@type RewardFlag
+realm.RewardFlag = {}
+realm.RewardFlag.__index = realm.RewardFlag
+
+---@param i RewardFlag
+---@return RewardFlag
+function realm.RewardFlag:new(i)
+	local o = {}
+	for k, v in pairs(i) do
+		o[k] = v
+	end
+	setmetatable(o, realm.RewardFlag)
+	return o
+end
 
 ---@type Realm
 realm.Realm = {}
@@ -130,7 +152,7 @@ function realm.Realm:new()
 	o.military_spending = 0
 	o.realized_military_spending = 1
 	o.provinces = {}
-	o.raiding_targets = {}
+	o.reward_flags = {}
 	o.bought = {}
 	o.sold = {}
 	o.known_provinces = {}
@@ -181,49 +203,49 @@ function realm.Realm:add_province(prov)
 end
 
 ---Adds a province to the realm's raiding targets.
----@param prov Province
-function realm.Realm:add_raiding_target(prov)
-	self.raiding_targets[prov] = prov
-	if self.raiders_preparing[prov] == nil then
-		self.raiders_preparing[prov] = {}
+---@param f RewardFlag
+function realm.Realm:add_reward_flag(f)
+	self.reward_flags[f] = f
+	if self.raiders_preparing[f] == nil then
+		self.raiders_preparing[f] = {}
 	end
 end
 
-function realm.Realm:remove_raiding_target(prov)
-	self.raiding_targets[prov] = nil
-	for _, warband in pairs(self.raiders_preparing[prov]) do
+function realm.Realm:remove_reward_flag(f)
+	self.reward_flags[f] = nil
+	for _, warband in pairs(self.raiders_preparing[f]) do
 		if warband.status == 'preparing_raid' then
 			warband.status = 'idle'
 		end
 	end
-	self.raiders_preparing[prov] = {}
+	self.raiders_preparing[f] = {}
 end
 
-function realm.Realm:toggle_raiding_target(prov)
-	if self.raiding_targets[prov] then
-		self:remove_raiding_target(prov)
-	else
-		self:add_raiding_target(prov)
-	end
-end
+-- function realm.Realm:toggle_reward_flag(f)
+-- 	if self.reward_flags[f] then
+-- 		self:remove_reward_flag(f)
+-- 	else
+-- 		self:add_reward_flag(f)
+-- 	end
+-- end
 
 ---Adds warband as potential raider of province
----@param prov Province
+---@param f RewardFlag
 ---@param warband Warband
-function realm.Realm:add_raider(prov, warband)
+function realm.Realm:add_raider(f, warband)
 	if warband.status ~= 'idle' then return end
-	if self.raiding_targets[prov] then
-		self.raiders_preparing[prov][warband] = warband
+	if self.reward_flags[f] then
+		self.raiders_preparing[f][warband] = warband
 		warband.status = 'preparing_raid'
 	end
 end
 
 ---Removes warband as potential raider of province
----@param prov Province
+---@param f RewardFlag
 ---@param warband Warband
-function realm.Realm:remove_raider(prov, warband)
-	if self.raiding_targets[prov] then
-		self.raiders_preparing[prov][warband] = nil
+function realm.Realm:remove_raider(f, warband)
+	if self.reward_flags[f] then
+		self.raiders_preparing[f][warband] = nil
 		warband.status = "idle"
 	end
 end
@@ -253,12 +275,12 @@ function realm.Realm:remove_patrol(prov, warband)
 	end
 end
 
-function realm.Realm:random_raiding_target()
+function realm.Realm:roll_reward_flag()
 	local targets = {}
-	for k in pairs(self.raiding_targets) do
+	for k in pairs(self.reward_flags) do
 		table.insert(targets, k)
 	end
-	return self.raiding_targets[targets[math.random(#targets)]]
+	return self.reward_flags[targets[math.random(#targets)]]
 end
 
 ---Adds a province to the explored provinces list.

@@ -391,7 +391,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					uit.decision_tab(ui_panel, nil, 'none', gam)
+					require "game.scenes.game.widget-decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{
@@ -401,7 +401,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					uit.decision_tab(ui_panel, realm, 'realm', gam)
+					require "game.scenes.game.widget-decision-tab" (ui_panel, realm, 'realm', gam)
 				end
 			},
 			{

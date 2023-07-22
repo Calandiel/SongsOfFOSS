@@ -52,12 +52,16 @@ end
 ---@param columns table<number, fun(rect:Rect)>
 ---@param rect Rect
 ---@param column_width number?
-function ut.columns(columns, rect, column_width)
+---@param spacing number?
+function ut.columns(columns, rect, column_width, spacing)
+	if spacing == nil then
+		spacing = 3
+	end
 	column_width = column_width or ut.BASE_HEIGHT * 5
 	local layout = ui.layout_builder()
 		:horizontal()
 		:position(rect.x, rect.y)
-		:spacing(5)
+		:spacing(spacing)
 		:build()
 	for _, col in ipairs(columns) do
 		col(layout:next(column_width, rect.height))
@@ -68,12 +72,16 @@ end
 ---@param rows table<number, fun(rect:Rect)>
 ---@param rect Rect
 ---@param row_height number?
-function ut.rows(rows, rect, row_height)
+---@param spacing number?
+function ut.rows(rows, rect, row_height, spacing)
+	if spacing == nil then
+		spacing = 3
+	end
 	row_height = row_height or ut.BASE_HEIGHT
 	local layout = ui.layout_builder()
 		:vertical()
 		:position(rect.x, rect.y)
-		:spacing(3)
+		:spacing(spacing)
 		:build()
 	for _, col in ipairs(rows) do
 		col(layout:next(rect.width, row_height))
@@ -91,6 +99,35 @@ function ut.data_entry(name, data, rect, tooltip)
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+function ut.money_entry(name, data, rect, tooltip)
+	ui.left_text(name, rect)
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ui.right_text(ut.to_fixed_point2(data) .. MONEY_SYMBOL, rect)
+	love.graphics.setColor(cr, cg, cb, ca)
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+end
+
+
+---Draws a data field with icon
+---@param icon string
+---@param data string
+---@param rect Rect
+---@param tooltip string?
+function ut.data_entry_icon(icon, data, rect, tooltip)
+	local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+	-- local data_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height, "right", "center")
+	ui.image(ASSETS.icons[icon], icon_rect)
+	ut.data_entry("", data, rect, tooltip)
 end
 
 
@@ -256,152 +293,6 @@ function ut.tabs(current_tab, layout, tabs, scale)
 		end
 	end
 	return new_tab
-end
-
-
----Renders the decision tab
----@param ui_panel Rect
----@param primary_target any
----@param decision_type DecisionTarget
----@param gam table the "game" ui table
-function ut.decision_tab(ui_panel, primary_target, decision_type, gam)
-	ut.columns({
-		function(rect)
-			-- First, we need to check if the player is controlling a realm
-			if WORLD:does_player_control_realm(WORLD.player_realm) then
-				-- Maps decisions to whether or not they can be clicked.
-				---@type table<number, table<Decision, boolean>>
-				local decisions = {}
-				for _, decision in pairs(WORLD.decisions_by_name) do
-					--
-					if decision.primary_target == decision_type then
-						if decision.pretrigger(WORLD.player_realm) then
-							if decision.clickable(WORLD.player_realm, primary_target) then
-								-- Decision is visible
-								decisions[#decisions + 1] = { decision, true }
-							else
-								decisions[#decisions + 1] = { decision, false }
-							end
-						end
-					end
-				end
-				-- Once the list of decisions is known, we can sort it by the decisions sorting order
-				table.sort(decisions, function(a, b)
-					return a[1].sorting < b[1].sorting
-				end)
-
-				gam.decisions_scrollbar = gam.decisions_scrollbar or 0
-				gam.decisions_scrollbar = ui.scrollview(
-					rect, function(i, rect)
-						if i > 0 then
-							local dec = decisions[i]
-							---@type Decision
-							local decis = dec[1]
-							if dec[2] then
-								if decis == gam.selected_decision then
-									ui.text_panel(decis.ui_name .. " (*)", rect)
-									ui.tooltip(decis.tooltip(WORLD.player_realm, primary_target), rect)
-								else
-									if ui.text_button(decis.ui_name, rect, decis.tooltip(WORLD.player_realm, primary_target)) then
-										-- We need to draw this specific decisions UI now!
-										print("Player selected the decision: " .. decis.name)
-										-- We'll be auto pausing the game when selected decision isn't nil so this is fine
-										gam.selected_decision = decis
-										gam.decision_target_primary = nil
-										gam.decision_target_primary = primary_target
-										gam.decision_target_secondary = nil
-									end
-								end
-							else
-								ui.text_panel(decis.ui_name, rect)
-								ui.tooltip(decis.tooltip(WORLD.player_realm, primary_target), rect)
-							end
-						end
-					end, ut.BASE_HEIGHT, #decisions, ut.BASE_HEIGHT, gam.decisions_scrollbar
-				)
-			else
-				-- No player realm: no decisions to draw
-			end
-		end,
-		function(rect)
-			---@type Rect
-			local r = rect
-			r.height = r.height - ut.BASE_HEIGHT
-			-- Here, we need to check for the decision to render
-			if WORLD:does_player_control_realm(WORLD.player_realm) then
-				---@type Decision|nil
-				local dec = gam.selected_decision
-				if dec then
-					local needs_secondary = dec.secondary_target ~= 'none'
-					local can_check_viability = true
-					if needs_secondary then
-						if gam.decision_target_primary then
-
-
-							-- Secondary target search
-							if gam.decision_target_secondary then
-								can_check_viability = true
-							else
-								can_check_viability = false
-							end
-
-							-- Since the decision needs potential targets, let's just search for some!
-							local secondaries = dec.get_secondary_targets(WORLD.player_realm, gam.decision_target_primary)
-							if #secondaries > 0 then
-								gam.decision_secondaries_scrollbar = gam.decision_secondaries_scrollbar or 0
-								gam.decision_secondaries_scrollbar = ui.scrollview(
-									r, function(i, rect)
-										if i > 0 then
-											local s = secondaries[i]
-											local secondary_name = '---'
-											if dec.secondary_target == 'tile' then
-												secondary_name = tostring(s.tile_id)
-											elseif dec.secondary_target == 'character' or dec.secondary_target == 'province' or
-												dec.secondary_target == 'realm' then
-												secondary_name = s.name
-											elseif dec.secondary_target == 'building' then
-												secondary_name = s.type.name
-											end
-											if s == gam.decision_target_secondary then
-												ui.text_panel(secondary_name .. " (*)", rect)
-											else
-												if ui.text_button(secondary_name, rect) then
-													gam.decision_target_secondary = s
-												end
-											end
-										end
-									end, ut.BASE_HEIGHT, #secondaries, ut.BASE_HEIGHT, gam.decision_secondaries_scrollbar
-								)
-							end
-						end
-					end
-
-					r.height = r.height + ut.BASE_HEIGHT
-					-- If a decision is present, draw two button at the bottom
-					local exit = r:subrect(0, 0, ut.BASE_HEIGHT * 3, ut.BASE_HEIGHT, "left", 'down')
-					local confirm = r:subrect(0, 0, ut.BASE_HEIGHT * 3, ut.BASE_HEIGHT, "right", 'down')
-					if ui.text_button("Cancel", exit) then
-						-- Clear the decision data, it's not needed anymore
-						gam.selected_decision = nil
-						gam.decision_target_primary = nil
-						gam.decision_target_secondary = nil
-					elseif can_check_viability then
-						if dec.available(WORLD.player_realm, gam.decision_target_primary, gam.decision_target_secondary) then
-							if ui.text_button("Select", confirm) then
-								dec.effect(WORLD.player_realm, gam.decision_target_primary, gam.decision_target_secondary)
-								gam.selected_decision = nil
-								gam.decision_target_primary = nil
-								gam.decision_target_secondary = nil
-							end
-						else
-							ui.text_panel("Select", confirm)
-							ui.tooltip("Conditions not met!", confirm)
-						end
-					end
-				end
-			end
-		end
-	}, ui_panel, ui_panel.width / 2)
 end
 
 function ut.to_fixed_point2(x)

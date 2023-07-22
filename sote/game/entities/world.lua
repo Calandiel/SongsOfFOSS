@@ -1,5 +1,7 @@
 local world = {}
 
+local decide = require "game.ai.decide"
+
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
@@ -58,8 +60,8 @@ local utils       = require "game.ui-utils"
 ---@field technologies_by_name table<string, Technology>
 ---@field production_methods_by_name table<string, ProductionMethod>
 ---@field resources_by_name table<string, Resource>
----@field decisions_by_name table<string, Decision>
----@field decisions_characters_by_name table<string, Decision>
+---@field decisions_by_name table<string, DecisionRealm>
+---@field decisions_characters_by_name table<string, DecisionCharacter>
 ---@field events_by_name table<string, Event>
 ---@field unit_types_by_name table<string, UnitType>
 ---@field base_visibility fun(self:World, size: number):number
@@ -374,7 +376,7 @@ function world.World:tick()
 				end
 
 				-- "Realm" update
-				local decide = require "game.ai.decide"
+				-- local decide = require "game.ai.decide"
 				local events = require "game.ai.events"
 				local education = require "game.society.education"
 				local court = require "game.society.court"
@@ -434,14 +436,14 @@ function world.World:tick()
 						for _, province in pairs(realm.provinces) do
 							for _, warband in pairs(province.warbands) do
 								if warband.status == "idle" and warband:size() > 0 then
-									local target = realm:random_raiding_target()
+									local target = realm:roll_reward_flag()
 									realm:add_raider(target, warband)
 								end
 							end
 						end
 
 						-- launch raids
-						for _, target in pairs(realm.raiding_targets) do
+						for _, target in pairs(realm.reward_flags) do
 							local warbands = realm.raiders_preparing[target]
 							local units = 0
 							for _, warband in pairs(warbands) do
@@ -461,6 +463,15 @@ function world.World:tick()
 							--print("Decide")
 							decide.run(realm)
 						end
+					end
+				end
+
+				
+				for _, settled_province in pairs(ta) do
+					for _, character in pairs(settled_province.characters) do
+						if character ~= WORLD.player_character then
+							decide.run_character(character)
+						end			
 					end
 				end
 			end

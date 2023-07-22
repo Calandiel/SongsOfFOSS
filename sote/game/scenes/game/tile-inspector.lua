@@ -1011,7 +1011,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					uit.decision_tab(ui_panel, tile, 'tile', gam)
+					require "game.scenes.game.widget-decision-tab"(ui_panel, tile, 'tile', gam)
 				end
 			},
 			{
@@ -1021,7 +1021,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					uit.decision_tab(ui_panel, tile.province, 'province', gam)
+					require "game.scenes.game.widget-decision-tab"(ui_panel, tile.province, 'province', gam)
 				end
 			},
 			{

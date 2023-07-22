@@ -534,7 +534,7 @@ function gam.draw()
 						local population = tile.province:population()
 						ui.name_panel(tile.province.name, name_rect)
 						ui.field_panel(tostring(population), population_rect)
-						if WORLD:does_player_control_realm(WORLD.player_realm) then
+						if WORLD.player_character then
 							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
 								gam.click_callback = callback.toggle_raiding_target(gam, tile.province)
 							end
@@ -927,6 +927,10 @@ function gam.draw()
 		click_success = require "game.scenes.game.confirm-exit".mask()
 	elseif gam.inspector == "army" then
 		click_success = require "game.scenes.game.inspector-military".mask()
+	elseif gam.inspector == "character-decisions" then
+		click_success = require "game.scenes.game.inspector-character-decisions".mask()
+	elseif gam.inspector == 'reward-flag' then
+		click_success = require "game.scenes.game.inspector-reward-flag".mask()
 	end
 
 	if gam.click_callback == nil then
@@ -995,6 +999,12 @@ function gam.draw()
 		end
 	elseif gam.inspector == "characters" then
 		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
+	elseif gam.inspector == "reward-flag" then
+		require "game.scenes.game.inspector-reward-flag".draw(gam)
+	elseif gam.inspector == "army" then
+		require "game.scenes.game.inspector-military".draw(gam, WORLD.player_realm)
+	elseif gam.inspector == "character-decisions" then
+		require "game.scenes.game.inspector-character-decisions".draw(gam)
 	elseif tile_data_viewable then
 		if gam.inspector == "tile" then
 			require "game.scenes.game.tile-inspector".draw(gam)
@@ -1004,8 +1014,6 @@ function gam.draw()
 			require "game.scenes.game.building-inspector".draw(gam)
 		elseif gam.inspector == "war" then
 			require "game.scenes.game.war-inspector".draw(gam)
-		elseif gam.inspector == "army" then
-			require "game.scenes.game.inspector-military".draw(gam, WORLD.player_realm)
 		end
 	end
 
@@ -1145,15 +1153,15 @@ end
 function gam.recalculate_raiding_targets_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_raiding_targets_image_data = love.image.newImageData(dim, dim, "rgba8")
-	for _, tile in pairs(WORLD.tiles) do
-		local x, y = gam.tile_id_to_color_coords(tile)
-		if tile.province and WORLD.player_realm and WORLD.player_realm.raiding_targets[tile.province] then
-			local r = 1
-			local g = 0
-			local b = 0
-			gam.tile_raiding_targets_image_data:setPixel(x, y, r, g, b, 1)
-		end
-	end
+	-- for _, tile in pairs(WORLD.tiles) do
+	-- 	local x, y = gam.tile_id_to_color_coords(tile)
+	-- 	if tile.province and WORLD.player_realm and WORLD.player_realm.raiding_targets[tile.province] then
+	-- 		local r = 1
+	-- 		local g = 0
+	-- 		local b = 0
+	-- 		gam.tile_raiding_targets_image_data:setPixel(x, y, r, g, b, 1)
+	-- 	end
+	-- end
 	gam.tile_raiding_targets_texture = love.graphics.newImage(gam.tile_raiding_targets_image_data, {
 		mipmaps = false,
 		linear = true
