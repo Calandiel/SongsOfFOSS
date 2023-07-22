@@ -259,7 +259,6 @@ local function load()
 			return nil, true
 		end,
 		effect = function(root, primary_target, secondary_target)
-			print('decision to create reward flag was taken')
 			---@type Character
 			local root = root
 			---@type Province

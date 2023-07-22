@@ -903,9 +903,12 @@ function re.draw(gam)
 						balance_data[good] = old - amount
 						demand_data[good] = amount
 					end
+					ui.panel(uip)
+					uip:shrink(5)
+					ui.panel(uip)
 					gam.province_supply_balance_scrollbar = gam.province_supply_balance_scrollbar or 0
 					gam.province_supply_balance_scrollbar = ui.scrollview(
-						uip, function(entry, rect)
+						uip:shrink(5), function(entry, rect)
 							if entry > 0 then
 								local good, balance = tabb.nth(balance_data, entry)
 								local supply = supply_data[good] or 0

@@ -197,6 +197,10 @@ local function load()
 			-- pay the remaining half of loot to population
 			target.owner.province.local_wealth = target.owner.province.local_wealth + loot
 
+			if target.reward == 0 then
+				realm:remove_reward_flag(target)
+			end
+
 			-- target.owner.province.realm:remove_reward_flag(target)
 
 			if WORLD:does_player_see_realm_news(realm) then

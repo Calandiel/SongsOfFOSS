@@ -931,6 +931,8 @@ function gam.draw()
 		click_success = require "game.scenes.game.inspector-character-decisions".mask()
 	elseif gam.inspector == 'reward-flag' then
 		click_success = require "game.scenes.game.inspector-reward-flag".mask()
+	elseif gam.inspector == 'reward-flag-edit' then
+		click_success = require "game.scenes.game.inspector-reward-flag-edit".mask()
 	end
 
 	if gam.click_callback == nil then
@@ -1001,6 +1003,8 @@ function gam.draw()
 		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
 	elseif gam.inspector == "reward-flag" then
 		require "game.scenes.game.inspector-reward-flag".draw(gam)
+	elseif gam.inspector == 'reward-flag-edit' then
+		require "game.scenes.game.inspector-reward-flag-edit".draw(gam, gam.selected_reward_flag)
 	elseif gam.inspector == "army" then
 		require "game.scenes.game.inspector-military".draw(gam, WORLD.player_realm)
 	elseif gam.inspector == "character-decisions" then

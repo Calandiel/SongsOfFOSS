@@ -235,7 +235,7 @@ function world.World:emit_action(event, origin, target_realm, associated_data, d
 		delay
 	}
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD:does_player_control_realm(origin) and not hidden then
+	if WORLD:does_player_see_realm_news(origin) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end	
 end

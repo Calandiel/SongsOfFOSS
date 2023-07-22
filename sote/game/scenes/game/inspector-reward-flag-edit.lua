@@ -7,14 +7,13 @@ local EconomicEffects = require "game.raws.effects.economic"
 
 local window = {}
 
-local reward = 0.0
-local flag_type = 'raid'
+local reward = nil
 
 local base_unit = ut.BASE_HEIGHT
 
 ---@return Rect
 function window.rect() 
-    return ui.fullscreen():subrect(0, 0, base_unit * 12, base_unit * 13, "center", "center")
+    return ui.fullscreen():subrect(0, 0, base_unit * 13, base_unit * 7, "center", "center")
 end
 
 function window.mask()
@@ -34,61 +33,45 @@ local function change_reward_button(x)
     end
 end
 
-local function create_flag(province)
+---comment
+---@param flag RewardFlag
+local function save_flag(flag)
     local current_savings = WORLD.player_character.savings
-    if reward > current_savings then
-        reward = current_savings
+    local reward_change = reward - flag.reward
+    if reward_change > current_savings then
+        reward_change = current_savings
     end
-    if reward == 0 then
+    if reward_change == 0 then
         return
     end
-    local reward_flag = realm.RewardFlag:new {
-        target = province,
-        reward = reward,
-        flag_type = flag_type,
-        owner = WORLD.player_character
-    }
-    WORLD.player_character.province.realm:add_reward_flag(reward_flag)
-    EconomicEffects.add_pop_savings(WORLD.player_character, -reward, EconomicEffects.reasons.RewardFlag)
+    flag.reward = flag.reward + reward_change
+    EconomicEffects.add_pop_savings(WORLD.player_character, -reward_change, EconomicEffects.reasons.RewardFlag)
 end
 
----Draw flag creation window
+---comment
+---@param flag RewardFlag
+local function delete_flag(flag)
+    local reward = flag.reward
+    flag.owner.province.realm:remove_reward_flag(flag)
+    EconomicEffects.add_pop_savings(WORLD.player_character, reward, EconomicEffects.reasons.RewardFlag)
+end
+
+
+---Draw flag edit window
 ---@param game table
-function window.draw(game)
+---@param reward_flag RewardFlag
+function window.draw(game, reward_flag)
+    if reward == nil then
+        reward = reward_flag.reward
+    end
     local ui_panel = window.rect()
     -- draw a panel
     ui.panel(ui_panel)
-    ui.text("Reward flag", ui_panel, "left", 'up')
+    ui.text("Reward settings", ui_panel, "left", 'up')
     if ui.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
         game.inspector = nil
     end
     ui_panel.y = ui_panel.y + base_unit
-    ui_panel.height = base_unit * 6
-
-    ut.rows ({
-        function (rect)
-            ---@type Rect
-            rect = rect
-            ui.panel(rect)
-            rect:shrink(10)
-            ui.left_text('Explore', rect)            
-            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'center'), flag_type == 'explore', 4)
-        end,
-        function (rect)
-            ui.panel(rect)
-            rect:shrink(10)
-            ui.left_text('Raid', rect)
-            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'center'), flag_type == 'raid', 4)
-        end,
-        function (rect)
-            ui.panel(rect)
-            rect:shrink(10)
-            ui.left_text('Devastate', rect)
-            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'center'), flag_type == 'devastate', 4)
-        end
-    }, ui_panel, ui_panel.height / 3, 0)
-
-    ui_panel.y = ui_panel.y + ui_panel.height
     ui_panel.height = base_unit * 4
 
     ut.rows({
@@ -123,16 +106,25 @@ function window.draw(game)
     ut.columns({
         function (rect)
             if ui.text_button('Save', rect) then
-                create_flag(game.flagged_province)
+                save_flag(reward_flag)
                 game.inspector = nil
+                reward = nil
+            end
+        end,
+        function (rect)
+            if ui.text_button('Delete', rect) then
+                delete_flag(reward_flag)
+                game.inspector = nil
+                reward = nil
             end
         end,
         function (rect)
             if ui.text_button('Cancel', rect) then
                 game.inspector = nil
+                reward = nil
             end
         end
-    }, ui_panel, ui_panel.width / 2, 0)
+    }, ui_panel, ui_panel.width / 3, 0)
 end
 
 return window
