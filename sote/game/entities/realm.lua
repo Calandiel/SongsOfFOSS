@@ -277,10 +277,10 @@ end
 
 function realm.Realm:roll_reward_flag()
 	local targets = {}
-	for k in pairs(self.reward_flags) do
-		table.insert(targets, k)
+	for _, k in pairs(self.reward_flags) do
+		targets[k] = k.reward * k.owner.popularity
 	end
-	return self.reward_flags[targets[math.random(#targets)]]
+	return tabb.random_select(targets)
 end
 
 ---Adds a province to the explored provinces list.
