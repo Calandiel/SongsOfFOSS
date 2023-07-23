@@ -126,6 +126,28 @@ function ut.money_entry(name, data, rect, tooltip, negative)
 end
 
 
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+function ut.balance_entry(name, data, rect, tooltip, negative)
+	if negative == nil then
+		negative = false
+	end
+
+	ui.left_text(name, rect)
+	local cr, cg, cb, ca = love.graphics.getColor()
+
+	local h = math.atan(data / 100) / math.pi * 120 + 60
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
+	love.graphics.setColor(r, g, b, a)
+	ui.right_text(ut.to_fixed_point2(data), rect)
+
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+
 ---Draws a data field with icon
 ---@param icon string
 ---@param data string

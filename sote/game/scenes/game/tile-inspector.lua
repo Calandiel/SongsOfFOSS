@@ -511,35 +511,7 @@ function re.draw(gam)
 			{
 				text = "POP",
 				tooltip = "List of POPs ('parts of population')",
-				closure = function()
-					local top = ui_panel:subrect(0, 0, ui_panel.width, base_unit, "left", 'up')
-					local bottom = ui_panel:subrect(0, base_unit, ui_panel.width, ui_panel.height - base_unit, "left", 'up')
-					ui.centered_text("Population", top)
-					re.cached_scrollbar = re.cached_scrollbar or 0
-					local ttab = require "engine.table"
-					re.cached_scrollbar = ui.scrollview(bottom, function(number, rect)
-						if number > 0 then
-							--print(number, ttab.size(tile.province.all_pops))
-							---@type POP
-							local pp = ttab.nth(tile.province.all_pops, number) -- +1 to avoid off-1 errors
-							rect.width = rect.height
-							ui.image(ASSETS.icons[pp.race.icon], rect)
-							rect.x = rect.x + rect.width + 5
-							rect.width = 300
-							local f = 'm'
-							if pp.female then f = 'f' end
-							local job = 'unemployed'
-							if pp.job then
-								job = pp.job.name
-							elseif pp.age < pp.race.teen_age then
-								job = 'child'
-							elseif pp.drafted then
-								job = 'warrior'
-							end
-							ui.left_text(pp.race.name .. ' (' .. tostring(pp.age) .. ', ' .. f .. ', ' .. job .. ')', rect)
-						end
-					end, base_unit, ttab.size(tile.province.all_pops), base_unit, re.cached_scrollbar)
-				end
+				closure = require "game.scenes.game.widget-pop-list"(ui_panel, base_unit, tile)
 			},
 			{
 				text = "BLD",
@@ -876,64 +848,7 @@ function re.draw(gam)
 			{
 				text = "ECN",
 				tooltip = "Economy",
-				closure = function()
-					local consumption = tile.province.local_consumption
-					local production = tile.province.local_production
-					local uip = ui_panel:copy()
-					uip.height = base_unit
-					uip.width = base_unit * 8
-					uit.money_entry("Local wealth:", tile.province.local_wealth, uip)
-					uip.x = uip.x + uip.width + base_unit
-					uit.money_entry("Local income:", tile.province.local_income, uip)
-					uip.x = uip.x + uip.width + base_unit
-					uit.money_entry("Local building upkeep:", tile.province.local_building_upkeep, uip)
-					uip.y = uip.y + base_unit
-					uip.x = ui_panel.x
-					uip.width = ui_panel.width
-					uip.height = uip.height * 8
-					local supply_data = {}
-					local demand_data = {}
-					local balance_data = {}
-					for good, amount in pairs(production) do
-						supply_data[good] = amount
-						balance_data[good] = amount
-					end
-					for good, amount in pairs(consumption) do
-						local old = balance_data[good] or 0
-						balance_data[good] = old - amount
-						demand_data[good] = amount
-					end
-					ui.panel(uip)
-					uip:shrink(5)
-					ui.panel(uip)
-					gam.province_supply_balance_scrollbar = gam.province_supply_balance_scrollbar or 0
-					gam.province_supply_balance_scrollbar = ui.scrollview(
-						uip:shrink(5), function(entry, rect)
-							if entry > 0 then
-								local good, balance = tabb.nth(balance_data, entry)
-								local supply = supply_data[good] or 0
-								local demand = demand_data[good] or 0
-								local price = tile.province.realm:get_price(good)
-								local w = rect.width
-								rect.width = base_unit
-								ui.image(ASSETS.get_icon(good.icon), rect)
-								rect.x = rect.x + 5 + base_unit
-								rect.width = w
-								ui.left_text(good.name, rect)
-								rect.x = rect.x - 5 - base_unit
-
-								rect.width = w / 4
-								ui.right_text(tostring(math.floor(100 * supply) / 100), rect)
-								rect.width = 2 * w / 4
-								ui.right_text(tostring(math.floor(100 * demand) / 100), rect)
-								rect.width = 3 * w / 4
-								ui.right_text(tostring(math.floor(100 * balance) / 100), rect)
-								rect.width = w
-								uit.money_entry("", price, rect, "Price")
-							end
-						end, base_unit, tabb.size(balance_data), base_unit, gam.province_supply_balance_scrollbar
-					)
-				end
+				closure = require "game.scenes.game.widget-local-market" (tile, ui_panel, base_unit)
 			},
 			{
 				text = "TEC",
