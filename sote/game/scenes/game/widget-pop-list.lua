@@ -27,7 +27,7 @@ local function render_name(rect, k, v)
 end
 
 local function render_race(rect, k, v)
-    ut.data_entry_icon(v.race.icon, v.race.name, rect)
+    ui.centered_text(v.race.name, rect)
 end
 
 local function pop_display_occupation(pop)
@@ -49,61 +49,73 @@ local function pop_sex(pop)
 end
 
 return function(rect, base_unit, tile)
-    ---@type TableColumn[]
-    local columns = {
-        {
-            header = 'name',
-            render_closure = render_name,
-            width = base_unit * 6,
-            value = function(k, v)
-                ---@type POP
-                v = v
-                return v.name
-            end
-        },
-        {
-            header = 'race',
-            render_closure = render_race,
-            width = base_unit * 8,
-            value = function(k, v)
-                ---@type POP
-                v = v
-                return v.race.name
-            end
-        },
-        {
-            header = 'job',
-            render_closure = function (rect, k, v)
-                ui.centered_text(pop_display_occupation(v), rect)
-            end,
-            width = base_unit * 8,
-            value = function(k, v)
-                return pop_display_occupation(v)
-            end
-        },
-        {
-            header = 'age',
-            render_closure = function (rect, k, v)
-                ui.right_text(tostring(v.age), rect)
-            end,
-            width = base_unit * 3,
-            value = function(k, v)
-                return v.age
-            end
-        },
-        {
-            header = 'sex',
-            render_closure = function (rect, k, v)
-                ui.centered_text(pop_sex(v), rect)
-            end,
-            width = base_unit * 1.5,
-            value = function(k, v)
-                return pop_sex(v)
-            end
-        }
-    }
-    init_state(base_unit)
     return function()
+        ---@type TableColumn[]
+        local columns = {
+            {
+                header = '.',
+                render_closure = function(rect, k, v)
+                    ui.image(ASSETS.get_icon(v.race.icon), rect)
+                end,
+                width = base_unit * 1,
+                value = function(k, v)
+                    ---@type POP
+                    v = v
+                    return v.name
+                end
+            },
+            {
+                header = 'name',
+                render_closure = render_name,
+                width = base_unit * 6,
+                value = function(k, v)
+                    ---@type POP
+                    v = v
+                    return v.name
+                end
+            },
+            {
+                header = 'race',
+                render_closure = render_race,
+                width = base_unit * 6,
+                value = function(k, v)
+                    ---@type POP
+                    v = v
+                    return v.race.name
+                end
+            },
+            {
+                header = 'job',
+                render_closure = function (rect, k, v)
+                    ui.centered_text(pop_display_occupation(v), rect)
+                end,
+                width = base_unit * 8,
+                value = function(k, v)
+                    return pop_display_occupation(v)
+                end
+            },
+            {
+                header = 'age',
+                render_closure = function (rect, k, v)
+                    ui.right_text(tostring(v.age), rect)
+                end,
+                width = base_unit * 3,
+                value = function(k, v)
+                    return v.age
+                end
+            },
+            {
+                header = 'sex',
+                render_closure = function (rect, k, v)
+                    ui.centered_text(pop_sex(v), rect)
+                end,
+                width = base_unit * 1.5,
+                value = function(k, v)
+                    return pop_sex(v)
+                end
+            }
+        }
+        init_state(base_unit)
         local top = rect:subrect(0, 0, rect.width, base_unit, "left", 'up')
         local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", 'up')
         ui.centered_text("Population", top)
