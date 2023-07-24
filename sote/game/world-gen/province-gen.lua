@@ -73,7 +73,8 @@ function pro.run()
 	local prov_count = 5000
 	local tile_count = WORLD.world_size * WORLD.world_size * 6
 	local expected_land_province_size = tile_count * 0.3 / prov_count
-	local expected_water_province_size = tile_count * 0.7 / prov_count
+	-- local expected_water_province_size = tile_count * 0.7 / prov_count
+	local expected_water_province_size = tile_count * 2 / prov_count
 
 	-- Returns true if all neighbors are "free"
 	local check_neighs = function(tile)
@@ -116,28 +117,52 @@ function pro.run()
 			end
 
 			-- NO PROVINCE SIZE LIMIT
-			expected_size = math.huge
-
+			-- expected_size = math.huge
+			-- expected_size = 300
 			if tabb.size(tile.province.tiles) < expected_size then
-				if love.math.random() > 0.5 then
-					for n in tile:iter_neighbors() do
-						if n.province == nil and n.is_land == tile.is_land then
-							if (not strict_flag) or (math.abs(tile.elevation - n.elevation) < 350) then
-								tile.province:add_tile(n)
-								queue:enqueue(n)	
+				if tile.is_land then
+					local growth_probability = 0.5
+					if tile.province.on_a_river then
+						growth_probability = 0.3
+					end
+					if love.math.random() < growth_probability then
+						for n in tile:iter_neighbors() do
+							if n.province == nil and n.is_land == tile.is_land then
+								if (not strict_flag) or (math.abs(tile.elevation - n.elevation) < 350) then
+									tile.province:add_tile(n)
+									queue:enqueue(n)
+								end
 							end
 						end
+					else
+						queue:enqueue(tile)
 					end
 				else
-					queue:enqueue(tile)
+					local growth_probability = 0.6
+					if love.math.random() < growth_probability then
+						for n in tile:iter_neighbors() do
+							if n.province == nil and n.is_land == tile.is_land then
+								if (not strict_flag) or (math.abs(tile.elevation - n.elevation) < 700) then
+									tile.province:add_tile(n)
+									queue:enqueue(n)
+								end
+							end
+						end
+					else
+						queue:enqueue(tile)
+					end
 				end
 			end
 		end
 	end
 
+	local water_thre = 2000
+	local water_seek = 3
+
 	---adds local coastal tiles to this province
 	---@param tile Tile
 	---@param depth number
+	---@param province Province
 	local function coastal_recursion(tile, depth, province)
 		if depth == 0 then return end
 		if (not tile:is_coast()) and (depth > 1) then return end
@@ -145,6 +170,9 @@ function pro.run()
 		if (tile.province ~= nil) then return end
 
 		province:add_tile(tile)
+		if tile:average_waterflow() > water_thre then
+			province.on_a_river = true
+		end
 		if depth == 1 then
 			queue:enqueue(tile)
 		end
@@ -156,8 +184,7 @@ function pro.run()
 		end
 	end
 
-	local water_thre = 2000
-	local water_seek = 3
+	
 
 	---comment
 	---@param tile Tile
@@ -198,7 +225,7 @@ function pro.run()
 		province:add_tile(tile)		
 		-- queue:enqueue(tile)
 		local d = water_seek
-		if tile:average_waterflow() < water_thre then
+		if (tile:average_waterflow() < water_thre) and (not tile:is_coast()) then
 			d = -1
 		end
 		if depth == 1 then
@@ -226,7 +253,7 @@ function pro.run()
 	local function river_gen_province_recursion(tile) 
 		local new_province = pp.Province:new()
 		new_province.center = tile
-		local next_tile = waterflow_recursion(tile, 40, water_seek, new_province)
+		local next_tile = waterflow_recursion(tile, 20, water_seek, new_province)
 		new_province.on_a_river = true
 
 		if next_tile ~= nil then
@@ -276,9 +303,6 @@ function pro.run()
 		-- 	end
 		-- end
 		coastal_recursion(tile, 60, new_province)
-		-- new_province.r = 0
-		-- new_province.g = 0
-		-- new_province.b = 1 - math.random() / 5
 	end
 
 	print('create rest of provinces')

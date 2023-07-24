@@ -100,11 +100,16 @@ function ProvinceCheck(race, province)
 	if not province.center.is_land then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
+	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
+	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
+	if race.minimum_absolute_temperature > ja_r then return false end
+
 	return true
 end
 
 ---Spawns initial tribes and initializes their data (such as characters, cultures, religions, races, etc)
 function st.run()
+	love.math.setRandomSeed(1)
 	local queue = require "engine.queue":new()
 	local civs = 500 / tabb.size(WORLD.races_by_name) -- one per race...
 	for _ = 1, civs do
