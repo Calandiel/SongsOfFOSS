@@ -78,6 +78,7 @@ local prov = {}
 ---@field on_a_river boolean
 ---@field take_away_pop fun(self:Province, pop:POP): POP
 ---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
+---@field local_army_size fun(self:Province):number
 
 local col = require "game.color"
 
@@ -201,6 +202,7 @@ end
 ---@param character Character
 function prov.Province:add_character(character)
 	self.characters[character] = character
+	character.province = self
 end
 
 ---Kills a single pop and removes it from all relevant references.
@@ -210,6 +212,16 @@ function prov.Province:kill_pop(pop)
 	self:unregister_military_pop(pop)
 	self.all_pops[pop] = nil
 	self.outlaws[pop] = nil
+end
+
+function prov.Province:local_army_size()
+	local total = 0
+	for _, w in pairs(self.warbands) do
+		if w.status == 'idle' or w.status == 'patrol' then
+			total = total + w:size()
+		end
+	end
+	return total
 end
 
 ---Unregisters a pop as a military pop.

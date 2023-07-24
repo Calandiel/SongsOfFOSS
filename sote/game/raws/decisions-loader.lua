@@ -8,6 +8,7 @@ function ll.load()
 	local Decision = require "game.raws.decisions"
 
 	require "game.raws.decisions.war-decisions" ()
+	require "game.raws.decisions.character-decisions" ()
 
 	-- Logic flow:
 	-- 1. Loop through all realms
@@ -23,7 +24,7 @@ function ll.load()
 	-- 10. Apply decisions << effect >>
 
 	--[[
-	Decision:new {
+	Decision.Realm:new {
 		name = 'cheat-for-money',
 		ui_name = 'Money Cheat',
 		tooltip = "Because developers don't wanna wait for monthly income when testing buildings",
@@ -33,7 +34,7 @@ function ll.load()
 			realm.treasury = realm.treasury + 1000
 		end,
 	}
-	Decision:new {
+	Decision.Realm:new {
 		name = 'never-possible',
 		ui_name = 'this should never be visible',
 		sorting = 0,
@@ -46,7 +47,7 @@ function ll.load()
 			return false
 		end
 	}
-	Decision:new {
+	Decision.Realm:new {
 		name = 'target-debug',
 		ui_name = 'debugging (province selection)',
 		tooltip = "This decision does nothing. It exists only to debug secondary target selection",
@@ -71,7 +72,7 @@ function ll.load()
 	}
 	--]]
 	local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
-	Decision:new {
+	Decision.Realm:new {
 		name = 'give-gifts',
 		ui_name = "Hand out gifts",
 		tooltip = utils.constant_string("Hand out gifts to the local population, effectively bribing them for support."),
@@ -134,7 +135,7 @@ function ll.load()
 			end
 		end
 	}
-	Decision:new {
+	Decision.Realm:new {
 		name = 'explore-province',
 		ui_name = "Explore province",
 		tooltip = utils.constant_string("Explore province"),
@@ -191,7 +192,7 @@ function ll.load()
 			--print("Exploration from decision! Tresury: ", root.treasury)
 		end
 	}
-	Decision:new {
+	Decision.Realm:new {
 		name = 'offend-locals',
 		ui_name = "Offend locals",
 		tooltip = utils.constant_string("(DEBUG EVENT) Sometimes, offending the people you rule over is just the thing you want to do!."),
@@ -249,79 +250,6 @@ function ll.load()
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("People were greatly upset!")
 			end
-		end
-	}
-
-	-- War related events
-	Decision:new {
-		name = 'covert-raid',
-		ui_name = "Covert raid",
-		tooltip = utils.constant_string("Declare province as target for future raids. Can avoid diplomatic issues. Loots only from the local provincial wealth pool."),
-		sorting = 1,
-		primary_target = "province",
-		secondary_target = 'none',
-		base_probability = 1 / 25,
-		pretrigger = function(root)
-			--print("pre")
-			---@type Realm
-			local root = root
-			return root:get_realm_ready_military() > 0
-		end,
-		clickable = function(root, primary_target)
-			--print("cli")
-			---@type Realm
-			local root = root
-			---@type Province
-			local primary_target = primary_target
-			if primary_target.realm == root then
-				return false
-			end
-			return primary_target:neighbors_realm(root)
-		end,
-		available = function(root, primary_target)
-			--print("avl")
-			---@type Realm
-			local root = root
-			---@type Province
-			local primary_target = primary_target
-			return true
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
-			--print("aiw")
-			return 1
-		end,
-		ai_targetting_attempts = 2,
-		ai_target = function(root)
-			--print("ait")
-			---@type Realm
-			local root = root
-			local n = tabb.size(root.provinces)
-			---@type Province
-			local p = tabb.nth(root.provinces, love.math.random(n))
-			if p then
-				-- Once you target a province, try selecting a random neighbor
-				local s = tabb.size(p.neighbors)
-				---@type Province
-				local ne = tabb.nth(p.neighbors, love.math.random(s))
-				if ne then
-					if ne.realm then
-						return ne, true
-					end
-				end
-			end
-			return nil, false
-		end,
-		ai_secondary_target = function(root, primary_target)
-			--print("ais")
-			return nil, true
-		end,
-		effect = function(root, primary_target, secondary_target)
-			---@type Realm
-			local root = root
-			---@type Province
-			local primary_target = primary_target
-
-			root:add_raiding_target(primary_target)
 		end
 	}
 end

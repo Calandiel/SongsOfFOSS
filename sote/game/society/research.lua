@@ -31,7 +31,7 @@ function re.run(province)
 		-- Only research if we have more than 100% invested research...
 		local n = tabb.size(province.technologies_researchable)
 		if n > 0 then
-			local i = math.random(n)
+			local i = love.math.random(n)
 			---@type Technology
 			local tech = tabb.nth(province.technologies_researchable, i)
 			local probability = 1.0 / (12 * 50) * get_probability_multiplier(province, tech, jobs)

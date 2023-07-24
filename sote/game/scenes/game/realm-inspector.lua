@@ -93,31 +93,31 @@ function re.draw(gam)
 					end
 
 					local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Realm treasury", tostring(math.floor(100 * realm.treasury) / 100) .. MONEY_SYMBOL, panel_rect, "Treasury")
+					uit.money_entry("Realm treasury", realm.treasury, panel_rect, "Treasury")
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Voluntary contributions",
-						tostring(math.floor(100 * realm.voluntary_contributions) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Voluntary contributions",
+						realm.voluntary_contributions,
 						panel_rect,
 						"Voluntary contributions")
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Building upkeep", tostring(math.floor(100 * realm.building_upkeep) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Building upkeep", realm.building_upkeep,
 						panel_rect,
-						"Building upkeep")
+						"Building upkeep", true)
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Waste", tostring(math.floor(100 * realm.wasted_treasury) / 100) .. MONEY_SYMBOL, panel_rect,
-						"Keeping large stockpiles of wealth is inherently inefficient. Whether through corruption, spoilage, wear or accidents, a small fraction of accumulated wealth is lost. The process can be countered by creation of storage buildings.")
+					uit.money_entry("Waste", realm.wasted_treasury, panel_rect,
+						"Keeping large stockpiles of wealth is inherently inefficient. Whether through corruption, spoilage, wear or accidents, a small fraction of accumulated wealth is lost. The process can be countered by creation of storage buildings.", true)
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 1
 
-					uit.data_entry("Military upkeep",
-						tostring(math.floor(100 * realm.military_spending) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Military upkeep",
+						realm.military_spending,
 						panel_rect,
-						"Costs of upkeep for current units.")
+						"Costs of upkeep for current units.", true)
 					
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 2
-					uit.data_entry("Inf. investment",
-						tostring(math.floor(100 * realm.monthly_infrastructure_investment) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Inf. investment",
+						realm.monthly_infrastructure_investment,
 						panel_rect,
-						"Automatic infrastructure investments each month.")
+						"Automatic infrastructure investments each month.", true)
 					if WORLD:does_player_control_realm(realm) then
 						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 						local pr = panel_rect:copy()
@@ -142,10 +142,10 @@ function re.draw(gam)
 					end
 
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Edu. investment",
-						tostring(math.floor(100 * realm.monthly_education_investment) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Edu. investment",
+						realm.monthly_education_investment,
 						panel_rect,
-						"Automatic education investments each month.")
+						"Automatic education investments each month.", true)
 					if WORLD:does_player_control_realm(realm) then
 						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 						local pr = panel_rect:copy()
@@ -169,10 +169,10 @@ function re.draw(gam)
 						do_one(10)
 					end
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Court investment",
-						tostring(math.floor(100 * realm.monthly_court_investment) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Court investment",
+						realm.monthly_court_investment,
 						panel_rect,
-						"Automatic court investments each month.")
+						"Automatic court investments each month.", true)
 					if WORLD:does_player_control_realm(realm) then
 						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 						local pr = panel_rect:copy()
@@ -197,7 +197,7 @@ function re.draw(gam)
 					end
 					
 					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Treasury change", tostring(math.floor(100 * realm.treasury_real_delta) / 100) .. MONEY_SYMBOL,
+					uit.money_entry("Treasury change", realm.treasury_real_delta,
 						panel_rect,
 						"Actual change compared to last month. Takes into account factors that may otherwise be hidden.")
 				end
@@ -270,16 +270,16 @@ function re.draw(gam)
 				tooltip = "Court",
 				closure = function()
 					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Court wealth: ", tostring(math.floor(100 * realm.court_wealth) / 100) .. MONEY_SYMBOL, a,
+					uit.money_entry("Court wealth: ", realm.court_wealth, a,
 						"Investment.")
 					a.y = a.y + uit.BASE_HEIGHT
 
-					uit.data_entry("Court wealth. needed: ", tostring(math.floor(100 * realm.court_wealth_needed) / 100) .. MONEY_SYMBOL
+					uit.money_entry("Court wealth. needed: ", realm.court_wealth_needed
 						, a,
 						"Needed court wealth.")
 					a.y = a.y + uit.BASE_HEIGHT
-					uit.data_entry("Court investments: ",
-						tostring(math.floor(100 * realm.court_investment) / 100) .. MONEY_SYMBOL
+					uit.money_entry("Court investments: ",
+						realm.court_investment
 						, a,
 						"Amount of funds spent supporting the court through any variety of means.")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -331,8 +331,7 @@ function re.draw(gam)
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							ui.left_text(good.name, rect)
-							ui.right_text(tostring(math.floor(100 * price) / 100) .. MONEY_SYMBOL, rect)
+							uit.money_entry(good.name, price, rect, 'price')
 						end
 					end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_market_scrollbar)
 				end
@@ -342,16 +341,16 @@ function re.draw(gam)
 				tooltip = "Education and research",
 				closure = function()
 					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Endowment: ", tostring(math.floor(100 * realm.education_endowment) / 100) .. MONEY_SYMBOL, a,
+					uit.money_entry("Endowment: ", realm.education_endowment, a,
 						"Investment.")
 					a.y = a.y + uit.BASE_HEIGHT
 
-					uit.data_entry("Endwm. needed: ", tostring(math.floor(100 * realm.education_endowment_needed) / 100) .. MONEY_SYMBOL
+					uit.money_entry("Endwm. needed: ", realm.education_endowment_needed
 						, a,
 						"Needed endowment to support current technologies.")
 					a.y = a.y + uit.BASE_HEIGHT
-					uit.data_entry("Education investments: ",
-						tostring(math.floor(100 * realm.education_investment) / 100) .. MONEY_SYMBOL
+					uit.money_entry("Education investments: ",
+						realm.education_investment
 						, a,
 						"Amount of funds spent supporting research through any variety of means, ranging from funding private alchemists to gifting tribe shamans.")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -377,8 +376,8 @@ function re.draw(gam)
 						do_one(p, 100)
 					end
 					a.y = a.y + uit.BASE_HEIGHT
-					uit.data_entry("Education efficiency: ",
-						tostring(math.floor(100 * realm:get_education_efficiency())) .. '%'
+					uit.data_entry_percentage("Education efficiency: ",
+						realm:get_education_efficiency()
 						, a,
 						"A percentage value. Endowment present over endowment needed")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -391,7 +390,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					uit.decision_tab(ui_panel, nil, 'none', gam)
+					require "game.scenes.game.widget-decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{
@@ -401,7 +400,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					uit.decision_tab(ui_panel, realm, 'realm', gam)
+					require "game.scenes.game.widget-decision-tab" (ui_panel, realm, 'realm', gam)
 				end
 			},
 			{

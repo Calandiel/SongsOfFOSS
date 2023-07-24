@@ -8,10 +8,12 @@
 ---@field savings number
 ---@field popularity number
 ---@field employer Building?
+---@field leading_warband Warband?
 ---@field job Job?
 ---@field new fun(self:POP, race:Race, faith:Faith, culture:Culture, female:boolean, age:number?):POP
 ---@field get_age_multiplier fun(self:POP):number
 ---@field drafted boolean "Drafted" state refers to whether or not a pop is currently drafted for military duty. For example, for raids or "real" warfare.
+---@field province Province? Only for characters
 
 local rtab = {}
 

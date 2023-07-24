@@ -8,7 +8,7 @@ local path = require "game.ai.pathfinding"
 
 local function load()
 
-	Decision:new {
+	Decision.Realm:new {
 		name = 'declare-war',
 		ui_name = "Send envoys to declare war",
 		tooltip = utils.constant_string("<tooltip>"),

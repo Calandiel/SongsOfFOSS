@@ -43,6 +43,7 @@ bs.registerClass("Plate", require "game.entities.plate".Plate)
 bs.registerClass("POP", require "game.entities.pop".POP)
 bs.registerClass("Province", require "game.entities.province".Province)
 bs.registerClass("Realm", require "game.entities.realm".Realm)
+bs.registerClass("RewardFlag", require "game.entities.realm".RewardFlag)
 bs.registerClass("Religion", require "game.entities.religion".Religion)
 bs.registerClass("Faith", require "game.entities.religion".Faith)
 bs.registerClass("Tile", require "game.entities.tile".Tile)
@@ -59,6 +60,8 @@ error("DONE!")
 --]]
 
 function love.load(args)
+	love.math.setRandomSeed(1)
+
 	tab.print(args)
 	ARGS = tab.copy(args)
 	-- Possible args:

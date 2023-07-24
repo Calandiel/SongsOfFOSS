@@ -4,6 +4,7 @@
 local warband = {
     name = "Warband",  ---@type string
     treasury = 0, ---@type number
+	leader = nil, ---@type Character?
 	pops = {}, ---@type table<POP, Province> A table mapping pops to their home provinces.
 	units = {}, ---@type table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
 	status = "idle"  ---@type WarbandStatus

@@ -1054,7 +1054,8 @@ end
 -- ########################
 -- ### ADVANCED WIDGETS ###
 -- ########################
----
+
+---SCROLLVIEW
 ---@param rect Rect rect for the entire scroll view
 ---@param render_closure fun(number, Rect) fun(number, Rect) -- a drawing function for a given entry
 ---@param individual_height number height of a single entry, in pixels
@@ -1122,6 +1123,92 @@ function ui.scrollview(
 	sl.x = sl.x + sl.width - slider_width
 	sl.width = slider_width
 	return ui.slider(sl, slider_level, 0, 1, true, slider_height)
+end
+
+---@class TableState
+---@field sorted_field number
+---@field sorting_order boolean
+---@field individual_height number
+---@field slider_width number
+---@field slider_level number
+---@field header_height number
+
+---@class TableColumn
+---@field render_closure fun(rect: Rect, k:TableKey, v:TableEntry)
+---@field header string
+---@field width number
+---@field value (fun(k: TableKey, v: TableEntry): TableField)
+
+---@alias TableField number|string
+
+---@alias TableKey table
+---@alias TableEntry table
+---@alias TablePair {key: TableKey, value: TableEntry}
+
+---TABLE
+---Renders a sortable table with header and scroll. Mutates state in place.
+---@param rect Rect
+---@param data table<TableKey, TableEntry>
+---@param columns TableColumn[]
+---@param state TableState
+function ui.table(rect, data, columns, state)
+	--- data sorting
+	---@type TablePair[]
+	local sorted_data = {}
+	for _, entry in pairs(data) do
+		table.insert(sorted_data, {key = _, value = entry})
+	end
+	table.sort(sorted_data, function(a, b)
+		local value_a = columns[state.sorted_field].value(a.key, a.value)
+		local value_b = columns[state.sorted_field].value(b.key, b.value)
+		-- xor
+		-- print(value_a, value_b, state.sorting_order, not ((value_a > value_b) == state.sorting_order))
+		-- print(state.sorted_field, value_a, value_b)
+		if state.sorting_order then
+			return (value_a > value_b)
+		else 
+			return (value_a < value_b)
+		end
+	end)
+
+	--- header
+	local layout = ui.layout_builder()
+		:horizontal()
+		:position(rect.x, rect.y)
+		:spacing(0)
+		:build()
+	for index = 1, #columns do
+		local header_rect =  layout:next(columns[index].width, state.individual_height)
+		header_rect.height = rect.height
+		if ui.text_button("", header_rect) then
+			if state.sorted_field == index then
+				state.sorting_order = not state.sorting_order
+			else
+				state.sorted_field = index
+				state.sorting_order = true
+			end
+		end
+		header_rect.height = state.header_height
+		ui.centered_text(columns[index].header, header_rect)
+		-- ui.right_text(tostring(columns[index].width), header_rect)
+	end
+
+	rect.y = rect.y + state.header_height
+	rect.height = rect.height - state.header_height
+
+	local function render_closure(i, rect)
+		local entry = sorted_data[i]
+		if entry == nil then return end
+		local layout = ui.layout_builder()
+			:horizontal()
+			:position(rect.x, rect.y)
+			:spacing(0)
+			:build()
+		for index = 1, #columns do
+			columns[index].render_closure(layout:next(columns[index].width, state.individual_height), entry.key, entry.value)
+		end
+	end
+	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level)
 end
 
 ---@param rect Rect rect for the entire scroll view

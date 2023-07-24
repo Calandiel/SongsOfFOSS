@@ -103,6 +103,7 @@ function rea.run(realm)
 		mil_fulf = realm.treasury / realm.military_spending
 	end
 	realm.realized_military_spending = mil_fulf
+	realm.military_spending = math.min(realm.military_spending, realm.treasury)
 	EconomicEffects.add_treasury(realm, -realm.military_spending, EconomicEffects.reasons.Military)
 
 	-- "wealth decay" -- to prevent the AI from accidentally overstockpiling so much that the numbers overflow...

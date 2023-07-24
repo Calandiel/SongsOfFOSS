@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local ef = require "game.raws.effects.economic"
+local ut = require "game.ui-utils"
 
 ---@class PatrolData
 ---@field defender Realm
@@ -10,7 +11,7 @@ local ef = require "game.raws.effects.economic"
 
 ---@class RaidData 
 ---@field raider Realm
----@field target Province
+---@field target RewardFlag
 ---@field travel_time number
 ---@field army Army
 
@@ -18,16 +19,16 @@ local ef = require "game.raws.effects.economic"
 ---@field losses number
 ---@field army Army
 ---@field loot number
----@field target Province
+---@field target RewardFlag
 
 ---@class RaidResultFail
 ---@field losses number
 ---@field army Army
----@field target Province
+---@field target RewardFlag
 
 ---@class RaidResultRetreat
 ---@field army Army
----@field target Province
+---@field target RewardFlag
 
 
 local function load()
@@ -49,7 +50,7 @@ local function load()
 			end
 		end
 	}
-	
+
 	Event:new {
 		name = "covert-raid",
 		automatic = false,
@@ -67,9 +68,10 @@ local function load()
 			local retreat = false
 			local success = true
 			local losses = 0
-			if target:army_spot_test(army) then
+			local province = target.target
+			if province:army_spot_test(army) then
 				-- The army was spotted!
-				if love.math.random() < 0.5 then
+				if (love.math.random() < 0.5) and (province:local_army_size() > 0) then
 					-- Let's just return and do nothing
 					success = false
 					if WORLD:does_player_see_realm_news(realm) then
@@ -80,8 +82,8 @@ local function load()
 				else
 					-- Battle time!
 					-- First, raise the defending army.
-					local def = realm:raise_local_army(target)
-					local attack_succeed, attack_losses, def_losses = army:attack(target, true, def)
+					local def = realm:raise_local_army(province)
+					local attack_succeed, attack_losses, def_losses = army:attack(province, true, def)
 					realm:disband_army(def) -- disband the army after battle
 					losses = attack_losses
 					if attack_succeed then
@@ -102,7 +104,6 @@ local function load()
 								" warriors and our enemies lost " .. tostring(attack_losses) .. ". We managed to fight off the aggresors.")
 						end
 					end
-
 				end
 			else
 				-- The army wasn't spotted. Nothing to do!
@@ -112,8 +113,8 @@ local function load()
 				-- The army wasn't spotted!
 				-- Therefore, it's a sure success.
 				local max_loot = army:get_loot_capacity()
-				local real_loot = math.min(max_loot, target.local_wealth)
-				target.local_wealth = target.local_wealth - real_loot
+				local real_loot = math.min(max_loot, province.local_wealth)
+				province.local_wealth = province.local_wealth - real_loot
 				if max_loot > real_loot then
 					local leftover = max_loot - real_loot
 					local extra = math.min(0.1 * realm.treasury, leftover)
@@ -125,7 +126,7 @@ local function load()
 					travel_time, true)
 				if WORLD:does_player_see_realm_news(realm) then
 					WORLD:emit_notification("An unknown adversary raided our province " ..
-						target.name .. " and stole " .. real_loot .. MONEY_SYMBOL .. " worth of goods!")
+						province.name .. " and stole " .. real_loot .. MONEY_SYMBOL .. " worth of goods!")
 				end
 			else
 				if retreat then
@@ -156,7 +157,7 @@ local function load()
 			realm.capitol.mood = realm.capitol.mood - 1
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
-					target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
+					target.target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
 			end
 		end,
 	}
@@ -176,15 +177,40 @@ local function load()
 
 			realm:disband_army(army)
 			realm.capitol.mood = realm.capitol.mood + 1 / (3 * math.max(0, realm.capitol.mood) + 1)
+			target.owner.popularity = target.owner.popularity + 0.1
 
-			ef.add_treasury(realm, loot, ef.reasons.Raid)
-			-- realm.treasury = realm.treasury + loot
+			-- initiator gets 2 "coins" for each invested "coin"
+			-- so one part of loot goes to pay his expenses on raid
+			-- second part of loot goes to his income
+			-- remaining half goes to population
+			local total_loot = loot
+			local initiator_share = loot * 0.5
+			if initiator_share / 2 > target.reward then
+				initiator_share = target.reward * 2
+			end
+			-- pay share to raid initiator
+			ef.add_pop_savings(target.owner, initiator_share, ef.reasons.Raid)
+			loot = loot - initiator_share
+			-- pay the reward to population TODO: pay these money to warbands
+			target.reward = target.reward - initiator_share / 2
+			target.owner.province.local_wealth = target.owner.province.local_wealth + initiator_share / 2
+			-- pay the remaining half of loot to population
+			target.owner.province.local_wealth = target.owner.province.local_wealth + loot
+
+			if target.reward == 0 then
+				realm:remove_reward_flag(target)
+			end
+
+			-- target.owner.province.realm:remove_reward_flag(target)
 
 			if WORLD:does_player_see_realm_news(realm) then
-				WORLD:emit_notification("Our raid attempt in " ..
-					target.name ..
-					" succeeded. People are rejoiced! Our warriors brought home " ..
-					tostring(math.floor(100 * loot) / 100) .. MONEY_SYMBOL .. " worth of loot. " .. tostring(losses) .. " people died.")
+				WORLD:emit_notification("Our raid in " ..
+					target.target.name ..
+					" succeeded. Warriors brought home " ..
+					ut.to_fixed_point2(total_loot) .. MONEY_SYMBOL .. " worth of loot. " ..
+					target.owner.name .. ' receives ' .. ut.to_fixed_point2(initiator_share) .. MONEY_SYMBOL .. ' as initialtor.' ..
+					' Warriors were additionally rewarded with ' .. ut.to_fixed_point2(initiator_share / 2) .. MONEY_SYMBOL .. '. '
+					 .. tostring(losses) .. " warriors died.")
 			end
 		end,
 	}
@@ -200,11 +226,12 @@ local function load()
 			local army = associated_data.army
 			local target = associated_data.target
 			realm.capitol.mood = realm.capitol.mood - 0.025
+			target.owner.popularity = target.owner.popularity - 0.01
 
 			realm:disband_army(army)
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
-					target.name .. " failed. We were spotted but our warriors returned home safely")
+					target.target.name .. " failed. We were spotted but our warriors returned home safely")
 			end
 		end,
 	}

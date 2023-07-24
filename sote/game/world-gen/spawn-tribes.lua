@@ -66,16 +66,16 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	local elite_character = pop.POP:new(race, faith, culture, 
 	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-	love.math.random(race.max_age))
+	love.math.random(race.adult_age, race.max_age))
 
-	elite_character.popularity = 1
+	elite_character.popularity = elite_character.age / 10
 	capitol:add_character(elite_character)
 	r.leader = elite_character
 
 	local contender = pop.POP:new(race, faith, culture,
 	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-	love.math.random(race.max_age))
-	contender.popularity = 0.5
+	love.math.random(race.adult_age, race.max_age))
+	contender.popularity = contender.age / 15
 	capitol:add_character(contender)
 
 	capitol.name = culture.language:get_random_province_name()

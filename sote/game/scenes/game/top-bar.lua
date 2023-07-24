@@ -6,7 +6,7 @@ local tb = {}
 
 ---@return boolean
 function tb.mask(gam)
-	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
+	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
 	if WORLD:does_player_control_realm(WORLD.player_realm) then
 		return not ui.trigger(tr)
 	else
@@ -89,17 +89,37 @@ function tb.draw(gam)
 		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
 		ui.panel(tr)
 
+		if ui.trigger(tr) then
+			gam.click_callback = function() return end
+		end
 
 		--- current character
-		local character_panel = ui.rect(uit.BASE_HEIGHT * 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT * 11.5, uit.BASE_HEIGHT)
+		
+		local character_panel = ui.rect(uit.BASE_HEIGHT * 0, uit.BASE_HEIGHT, 800, uit.BASE_HEIGHT)
 		ui.panel(character_panel)
-		ui.left_text(WORLD.player_character.name .. "(You)", character_panel)
-		character_panel.x = character_panel.x + 6.5 * uit.BASE_HEIGHT
-		character_panel.width = uit.BASE_HEIGHT
-		ui.image(ASSETS.icons['coins.png'], character_panel)
-		character_panel.width = 4 * uit.BASE_HEIGHT
-		character_panel.x = character_panel.x + uit.BASE_HEIGHT
-		ui.right_text(uit.to_fixed_point2(WORLD.player_character.savings) .. MONEY_SYMBOL, character_panel)
+		local layout = ui.layout_builder()
+			:position(character_panel.x, character_panel.y)
+			:horizontal()
+			:build()
+
+		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+		if ui.text_button(WORLD.player_character.name .. "(You)", name_rect) then
+			gam.selected_character = WORLD.player_character
+			gam.inspector = "character"
+		end
+
+		uit.money_entry_icon(
+			WORLD.player_character.savings,
+			layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT),
+			"Your personal savings")
+		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+
+		uit.data_entry_icon(
+			'duality-mask.png',
+			uit.to_fixed_point2(WORLD.player_character.popularity),
+			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
+			"Your popularity")
+
 
 		-- COA + name
 		local layout = ui.layout_builder()
@@ -114,29 +134,24 @@ function tb.draw(gam)
 			local captile = tabb.nth(WORLD.player_realm.capitol.tiles, 1)
 			gam.click_tile(captile.tile_id)
 		end
-		ui.left_text(WORLD.player_realm.name, layout:next(uit.BASE_HEIGHT * 5.5, uit.BASE_HEIGHT))
+		ui.left_text(WORLD.player_realm.name, layout:next(uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT))
 
 		-- Treasury
-		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		local trs = "Treasury"
-		ui.image(ASSETS.icons['coins.png'], tr)
-		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)
-		ui.right_text(uit.to_fixed_point2(WORLD.player_realm.treasury) .. MONEY_SYMBOL, trt)
-		ui.tooltip(trs, trt)
-
+		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
+		uit.money_entry_icon(
+			WORLD.player_realm.treasury,
+			trt,
+			"Treasury")
 		HANDLE_EFFECTS()
 		DRAW_EFFECTS(trt)
 
 		-- Food
 		local amount = WORLD.player_realm.resources[WORLD.trade_goods_by_name['food']] or 0
-		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		local trs = "Food"
-		ui.image(ASSETS.icons['noodles.png'], tr)
-		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)
-		ui.right_text(tostring(math.floor(amount * 100) / 100), trt)
-		ui.tooltip(trs, trt)
+		uit.data_entry_icon(
+			'noodles.png',
+			uit.to_fixed_point2(amount),
+			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
+			"Food")
 
 		-- Technology
 		local amount = WORLD.player_realm:get_education_efficiency()
@@ -155,7 +170,7 @@ function tb.draw(gam)
 		ui.image(ASSETS.icons['duality-mask.png'], tr)
 		ui.tooltip(trs, tr)
 		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		ui.right_text(tostring(math.floor(amount)), trt)
+		ui.right_text(uit.to_fixed_point2(amount), trt)
 		ui.tooltip(trs, trt)
 
 		-- POP
@@ -183,6 +198,10 @@ function tb.draw(gam)
 
 		if ui.text_button("Military tab", layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)) then
 			gam.inspector = "army"
+		end
+
+		if ui.text_button("Character decisions", layout:next(uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT)) then
+			gam.inspector = "character-decisions"
 		end
 	end
 end
