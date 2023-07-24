@@ -6,7 +6,7 @@ local tb = {}
 
 ---@return boolean
 function tb.mask(gam)
-	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
+	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
 	if WORLD:does_player_control_realm(WORLD.player_realm) then
 		return not ui.trigger(tr)
 	else
@@ -103,7 +103,10 @@ function tb.draw(gam)
 			:build()
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		ui.left_text(WORLD.player_character.name .. "(You)", name_rect)
+		if ui.text_button(WORLD.player_character.name .. "(You)", name_rect) then
+			gam.selected_character = WORLD.player_character
+			gam.inspector = "character"
+		end
 
 		uit.money_entry_icon(
 			WORLD.player_character.savings,
