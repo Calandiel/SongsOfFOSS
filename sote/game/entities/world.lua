@@ -394,6 +394,7 @@ function world.World:tick()
 							military.run(realm)
 						else
 							self:emit_treasury_change_effect(0, "new month")
+							self:emit_treasury_change_effect(0, "new month", true)
 						end
 						--print("Construct")
 						construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
@@ -509,6 +510,14 @@ function world.World:emit_notification(notification)
 	self.notification_queue:enqueue(date .. ':  ' .. notification)
 end
 
+---@class TreasuryEffectRecord
+---@field amount number
+---@field reason EconomicReason
+---@field day number
+---@field month number
+---@field year number
+---@field character_flag boolean
+
 ---Emits a treasury change to player
 ---@param amount number
 ---@param reason EconomicReason
@@ -517,7 +526,9 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 	if character_flag == nil then
 		character_flag = false
 	end
-	self.treasury_effects:enqueue({amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag})
+	---@type TreasuryEffectRecord
+	local effect = {amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag}
+	self.treasury_effects:enqueue(effect)
 end
 
 function world.World:does_player_control_realm(realm)

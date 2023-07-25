@@ -6,7 +6,7 @@ local uit = require "game.ui-utils"
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, uit.BASE_HEIGHT, 500, 250, "left", 'up')
+	local panel = fs:subrect(0, uit.BASE_HEIGHT * 2, 500, 250, "left", 'up')
 	return panel
 end
 
@@ -64,33 +64,6 @@ function re.draw(gam)
 				closure = function()
 					local column_width = uit.BASE_HEIGHT * 12
 
-					local function render_treasury_change(i, rect)						
-						local effect = WORLD.old_treasury_effects.data[WORLD.old_treasury_effects.last - i + 1]
-						if effect ~= nil then
-							local r, g, b, a = love.graphics.getColor()
-							if effect.reason == "new month" then
-								ui.left_text(tostring(effect.day) .. " " .. uit.months[effect.month + 1] .. ' of year ' .. effect.year, rect)
-							else
-								if effect.amount > 0 then
-									love.graphics.setColor(1, 1, 0, 1)
-								else 
-									love.graphics.setColor(1, 0, 0, 1)
-								end
-								ui.left_text(effect.reason, rect)
-								ui.right_text(uit.to_fixed_point2(effect.amount), rect)
-								love.graphics.setColor(r, g, b, a)
-							end
-						end
-					end
-
-					if WORLD:does_player_control_realm(realm) then
-						local treasury_ledger_rect = ui_panel:subrect(column_width + 10, 0, column_width, uit.BASE_HEIGHT * 6, "left", 'up')
-						ui.panel(treasury_ledger_rect)
-
-						gam.treasury_ledger_slider = gam.treasury_ledger_slider or 0
-						gam.treasury_ledger_slider = ui.scrollview(treasury_ledger_rect, render_treasury_change, 12, WORLD.old_treasury_effects:length(), 10, gam.treasury_ledger_slider)
-
-					end
 
 					local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
 					uit.money_entry("Realm treasury", realm.treasury, panel_rect, "Treasury")

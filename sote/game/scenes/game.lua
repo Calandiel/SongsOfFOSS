@@ -913,6 +913,8 @@ function gam.draw()
 		click_success = true
 	elseif gam.inspector == "characters" then
 		click_success = require "game.scenes.game.inspector-province-characters".mask()
+	elseif gam.inspector == 'treasury-ledger' then
+		click_success = require "game.scenes.game.inspector-treasury-ledger".mask()
 	elseif gam.inspector == "character" then
 		click_success = require "game.scenes.game.inspector-character".mask()
 	elseif gam.inspector == "tile" then
@@ -1003,6 +1005,8 @@ function gam.draw()
 		end
 	elseif gam.inspector == "characters" then
 		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
+	elseif gam.inspector == 'treasury-ledger' then
+		require "game.scenes.game.inspector-treasury-ledger".draw(gam)
 	elseif gam.inspector == 'character' then
 		require "game.scenes.game.inspector-character".draw(gam, gam.selected_character)
 	elseif gam.inspector == "reward-flag" then

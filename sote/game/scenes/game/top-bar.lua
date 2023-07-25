@@ -108,11 +108,19 @@ function tb.draw(gam)
 			gam.inspector = "character"
 		end
 
+		local rect = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
+		if ui.text_button("", rect) then
+			gam.inspector = "treasury-ledger"
+			(require "game.scenes.game.inspector-treasury-ledger").current_filter = 'character'
+		end
+
 		uit.money_entry_icon(
 			WORLD.player_character.savings,
-			layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT),
+			rect,
 			"Your personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+
+		
 
 		uit.data_entry_icon(
 			'duality-mask.png',
@@ -138,10 +146,17 @@ function tb.draw(gam)
 
 		-- Treasury
 		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
+
+		if ui.text_button("", trt) then
+			gam.inspector = "treasury-ledger"
+			(require "game.scenes.game.inspector-treasury-ledger").current_filter = 'realm'
+		end
+
 		uit.money_entry_icon(
 			WORLD.player_realm.treasury,
 			trt,
-			"Treasury")
+			"Realm treasury")
+
 		HANDLE_EFFECTS()
 		DRAW_EFFECTS(trt)
 
