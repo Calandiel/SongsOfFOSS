@@ -22,8 +22,8 @@ end
 
 ---@type TreasuryDisplayEffect[]
 CURRENT_EFFECTS = {}
-MAX_TREASURY_TIMER = 2.0
-MIN_DELAY = 0.5
+MAX_TREASURY_TIMER = 4.0
+MIN_DELAY = 0.3
 
 
 function HANDLE_EFFECTS()
@@ -57,7 +57,7 @@ function DRAW_EFFECTS(parent_rect)
 			end
 
 			new_rect.x = parent_rect.x
-			new_rect.y = parent_rect.y + uit.BASE_HEIGHT * (1 + 2 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
+			new_rect.y = parent_rect.y + 2 * uit.BASE_HEIGHT * (1 + 4 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
 			ui.right_text(uit.to_fixed_point2(effect.amount) .. MONEY_SYMBOL, new_rect)
 
 			new_rect.x = parent_rect.x - parent_rect.width
@@ -111,7 +111,7 @@ function tb.draw(gam)
 		local rect = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
 		if ui.text_button("", rect) then
 			gam.inspector = "treasury-ledger"
-			(require "game.scenes.game.inspector-treasury-ledger").current_filter = 'character'
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Character'
 		end
 
 		uit.money_entry_icon(
@@ -149,7 +149,7 @@ function tb.draw(gam)
 
 		if ui.text_button("", trt) then
 			gam.inspector = "treasury-ledger"
-			(require "game.scenes.game.inspector-treasury-ledger").current_filter = 'realm'
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Realm'
 		end
 
 		uit.money_entry_icon(

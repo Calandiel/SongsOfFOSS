@@ -685,67 +685,14 @@ function gam.draw()
 		if ui.trigger(notif_panel) then
 			gam.click_callback = callback.nothing()
 		end
-
-		-- Draw gfx
-
-		ui.panel(notif_panel)	
-		if gam.notifications_list == nil then
-			gam.notifications_list = require "engine.queue":new()
-		end
-		while WORLD.notification_queue:length() > 0 do
-			local item = WORLD.notification_queue:dequeue()
-			gam.notifications_list:enqueue(item)
-		end
-		local function render_notification(index, rect)
-			local first = gam.notifications_list.first
-			local item = gam.notifications_list.data[first + index]
-			ui.panel(rect)
-			rect:shrink(5)
-			if item then
-				ui.left_text(item, rect)
-			end
-		end
-		gam.notif_slider = gam.notif_slider or 1
-		gam.notif_slider = ui.scrollview(
-			notif_panel,
-			render_notification,
-			ut.BASE_HEIGHT * 3,
-			gam.notifications_list:length(),
-			10,
-			gam.notif_slider)
-
-		while gam.notifications_list:length() > 100 do
-			gam.notifications_list:dequeue()
-		end
-
-
 		--- Draw outliner
 		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 6, "right", 'up')
 		if ui.trigger(outliner_panel) then
 			gam.click_callback = callback.nothing()
 		end
 
-		local function render_action(index, rect)
-			---@type ActionData
-			local action = tabb.nth(WORLD.player_deferred_actions, index)
-			if action == nil then
-				return
-			end
-			ui.left_text(action[1].name, rect)
-			ui.right_text(tostring(math.floor(action[4])), rect)
-			ui.centered_text(action[2].name, rect)
-		end
-
-		gam.outliner_slider = gam.outliner_slider or 0
-
-		gam.outliner_slider = ui.scrollview(
-			outliner_panel,
-			render_action,
-			ut.BASE_HEIGHT * 1,
-			tabb.size(WORLD.player_deferred_actions),
-			10,
-			gam.outliner_slider
-		)
+		gam.notification_slider = require "sote.game.scenes.game.widget-news"(notif_panel, gam.notification_slider)
+		gam.outliner_slider = require "sote.game.scenes.game.widget-outliner"(outliner_panel, gam.outliner_slider)
 	end
 
 		-- Map mode tab

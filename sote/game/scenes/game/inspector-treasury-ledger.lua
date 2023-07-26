@@ -6,10 +6,10 @@ local ut = require "game.ui-utils"
 
 local window = {}
 
-local scroll = 0
-
----@type nil|'character'|'realm'
-window.current_filter = nil
+local scroll_character = 0
+local scroll_realm = 0
+local scroll_news = 0
+window.current_tab = 'Character'
 
 ---@return Rect
 function window.rect()
@@ -24,87 +24,50 @@ function window.mask()
 	end
 end
 
----Filters treasury changes
----@param data TreasuryEffectRecord[]
----@return TreasuryEffectRecord[]
-local function filter(data)
-    if window.current_filter == nil then
-        return data
-    end
-
-    if window.current_filter == 'character' then
-        local filtered_data = {}
-        for i, v in ipairs(data) do
-            if v.character_flag then
-                table.insert(filtered_data, v)
-            end
-        end
-        return filtered_data
-    end
-
-    if window.current_filter == 'realm' then
-        local filtered_data = {}
-        for i, v in ipairs(data) do
-            if not v.character_flag then
-                table.insert(filtered_data, v)
-            end
-        end
-        return filtered_data
-    end
-
-    return data
-end
-
-
 function window.draw(game, realm)
-    local ui_panel = window.rect()
+    local panel = window.rect()
     local base_unit = ut.BASE_HEIGHT
-    ui.panel(ui_panel)
+    ui.panel(panel)
 
-    -- display warbands
     -- header
-    ui_panel.height = ui_panel.height - base_unit
-    if ui.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    panel.height = panel.height - base_unit * 2.5
+    if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
         game.inspector = nil
     end
-
-    if ui.text_button('Character', ui_panel:subrect(0, 0, base_unit * 4, base_unit, "left", 'up'), "Display only character changes") then
-        window.current_filter = 'character'
-    end
-    if ui.text_button('Realm', ui_panel:subrect(base_unit * 4, 0, base_unit * 4, base_unit, "left", 'up'), "Display only realm changes") then
-        window.current_filter = 'realm'
-    end
+    ui.left_text("Journal", panel:subrect(0, 0, base_unit * 6, base_unit, "left", 'up'))
     
-    ui_panel.y = ui_panel.y + base_unit
-    
-    local data_blob = {}
-    for index = WORLD.old_treasury_effects.first, WORLD.old_treasury_effects.last do
-        table.insert(data_blob, WORLD.old_treasury_effects.data[index])
-    end
+    local layout = ui.layout_builder()
+        :position(panel.x, panel.y + base_unit)
+        :spacing(2)
+        :horizontal()
+        :build()
 
-    local data = filter(data_blob)
+    panel.y = panel.y + base_unit * 2.5
 
-    local function render_treasury_change(i, rect)
-        ---@type TreasuryEffectRecord
-        local effect = data[i]
-        if effect ~= nil then
-            if effect.reason == "new month" then
-                ui.left_text(tostring(effect.day) .. " " .. ut.months[effect.month + 1] .. ' of year ' .. effect.year, rect)
-            else
-                ut.money_entry(effect.reason, effect.amount, rect)
+    window.current_tab = ut.tabs(window.current_tab, layout, {
+        {
+            text = "Character",
+            tooltip = "Character savings ledger",
+            closure = function()
+                scroll_character = require "game.scenes.game.widget-treasury-ledger"(panel, 'character', scroll_character, base_unit)
             end
-        end
-    end
+        },
+        {
+            text = "Treasury",
+            tooltip = "Realm treasury ledger",
+            closure = function() 
+                scroll_realm = require "game.scenes.game.widget-treasury-ledger"(panel, 'realm', scroll_realm, base_unit)
+            end
+        },
+        {
+            text = "News",
+            tooltip = "Recent news of the realm",
+            closure = function() 
+                scroll_news = require "sote.game.scenes.game.widget-news"(panel, scroll_news)
+            end
+        }
+    }, 1, base_unit * 5)
 
-    local treasury_ledger_rect = ui_panel:copy():shrink(10)
-    ui.panel(treasury_ledger_rect)
-    scroll = ui.scrollview(
-        treasury_ledger_rect, 
-        render_treasury_change, 
-        15,
-        #data,
-        base_unit,
-        scroll)
 end
 
 return window
