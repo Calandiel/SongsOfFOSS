@@ -11,7 +11,7 @@
 
 ---@alias TradeGoodCategory 'good' | 'service' | 'capacity'
 
----@type TradeGood
+---@class TradeGood
 local TradeGood = {}
 TradeGood.__index = TradeGood
 ---Creates a new trade good

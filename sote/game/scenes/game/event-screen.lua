@@ -13,13 +13,13 @@ function ev.draw(gam)
 
 		---@type Event
 		local eve = peek[1]
-		---@type Realm
-		local rea = peek[2]
+		---@type Character
+		local character = peek[2]
 		local dat = peek[3]
 
-		if WORLD:does_player_control_realm(WORLD.player_realm) then
+		if WORLD.player_character == character then
 			local fs = ui.fullscreen()
-			local opts = eve:options(rea, dat)
+			local opts = eve:options(character, dat)
 
 			if eve.event_background_path ~= loaded_image_name then
 				loaded_image_name = eve.event_background_path
@@ -35,7 +35,7 @@ function ev.draw(gam)
 			top:shrink(5)
 			ui.panel(top)
 			top:shrink(5)
-			ui.text(eve:event_text(rea, dat), top, "left", 'up')
+			ui.text(eve:event_text(character, dat), top, "left", 'up')
 
 			local bot = left:copy()
 			bot.height = bot.height / 2

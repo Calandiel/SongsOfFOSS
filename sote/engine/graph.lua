@@ -6,7 +6,7 @@ local gr = {}
 ---@field get fun(self: OneToOne, a: any):any
 ---@field _a table<any, any>
 
----@type OneToOne
+---@class OneToOne
 gr.OneToOne = {}
 gr.OneToOne.__index = gr.OneToOne
 
@@ -44,7 +44,7 @@ end
 ---@field _ones table<any, any>
 ---@field _manys table<any, table<any, any>>
 
----@type OneToMany
+---@class OneToMany
 gr.OneToMany = {}
 gr.OneToMany.__index = gr.OneToMany
 

@@ -1138,6 +1138,7 @@ end
 ---@field header string
 ---@field width number
 ---@field value (fun(k: TableKey, v: TableEntry): TableField)
+---@field active? boolean
 
 ---@alias TableField number|string
 
@@ -1180,7 +1181,7 @@ function ui.table(rect, data, columns, state)
 	for index = 1, #columns do
 		local header_rect =  layout:next(columns[index].width, state.individual_height)
 		header_rect.height = rect.height
-		if ui.text_button("", header_rect) then
+		if not columns[index].active and ui.text_button("", header_rect) then
 			if state.sorted_field == index then
 				state.sorting_order = not state.sorting_order
 			else
@@ -1195,7 +1196,8 @@ function ui.table(rect, data, columns, state)
 
 	rect.y = rect.y + state.header_height
 	rect.height = rect.height - state.header_height
-
+	local result = nil
+	
 	local function render_closure(i, rect)
 		local entry = sorted_data[i]
 		if entry == nil then return end
@@ -1205,10 +1207,14 @@ function ui.table(rect, data, columns, state)
 			:spacing(0)
 			:build()
 		for index = 1, #columns do
-			columns[index].render_closure(layout:next(columns[index].width, state.individual_height), entry.key, entry.value)
+			local temp = columns[index].render_closure(layout:next(columns[index].width, state.individual_height), entry.key, entry.value)
+			if temp then
+				result = temp
+			end
 		end
 	end
 	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level)
+	return result
 end
 
 ---@param rect Rect rect for the entire scroll view

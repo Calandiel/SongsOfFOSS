@@ -86,7 +86,7 @@ end
 ---@param gam table
 function tb.draw(gam)
 	if WORLD.player_realm ~= nil then
-		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
+		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
 		ui.panel(tr)
 
 		if ui.trigger(tr) then

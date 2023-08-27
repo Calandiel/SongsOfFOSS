@@ -2,13 +2,19 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local characters_list_widget = require "game.scenes.game.widget-character-list"
+local character_decisions_widget = require "game.scenes.game.widget-decision-selection-character"
+
 local window = {}
+local selected_decision = nil
+local decision_target_primary = nil
+local decision_target_secondary = nil
 
 ---@return Rect
 function window.rect() 
     local unit = ut.BASE_HEIGHT
     local fs = ui.fullscreen()
-    return fs:subrect(0, unit * 2, unit * 14, unit * 20, "left", 'up')
+    return fs:subrect(0, unit * 2, unit * 14, unit * 30, "left", 'up')
 end
 
 function window.mask()
@@ -27,7 +33,11 @@ end
 --     |_____|  5x4/3    5x4/3
 --      7x2            7x2
 --
---              14x 14
+--              14x 7
+--              14x 7 actions
+--              14x 3 action confirmation
+--              14x 7 other characters
+
 
 
 
@@ -52,12 +62,15 @@ function window.draw(game, character)
     local age_panel = ui_panel:subrect(unit * 4, unit * 4/3, unit * 10, unit * 4/3, "left", 'up'):shrink(3)
 
     local wealth_panel = ui_panel:subrect(unit * 4, unit * 8/3, unit * 5, unit * 4/3, "left", 'up'):shrink(3)
-    local popularity_panel = ui_panel:subrect(unit * 9, unit * 8/3, unit * 5, unit * 4/3, "left", 'up'):shrink(3)    
+    local popularity_panel = ui_panel:subrect(unit * 9, unit * 8/3, unit * 5, unit * 4/3, "left", 'up'):shrink(3)
 
     local faith_panel = ui_panel:subrect(0, unit * 4, unit * 7, unit * 2, "left", 'up'):shrink(3)
     local culture_panel = ui_panel:subrect(unit * 7, unit * 4, unit * 7, unit * 2, "left", 'up'):shrink(3)
 
-    local traits_panel = ui_panel:subrect(0, unit * 6, unit * 14, unit * 14, "left", 'up')
+    local traits_panel =                    ui_panel:subrect(0, unit * 6,               unit * 14, unit * 7, "left", 'up')
+    local decisions_panel =                 ui_panel:subrect(0, unit * (6 + 7),         unit * 14, unit * 7, "left", 'up')
+    local decisions_confirmation_panel =    ui_panel:subrect(0, unit * (6 + 7 + 7),     unit * 14, unit * 3, "left", 'up')
+    local characters_list =                 ui_panel:subrect(0, unit * (6 + 7 + 7 + 3), unit * 14, unit * 7, "left", 'up')
 
     ui.centered_text(character.name .. " of " .. character.province.realm.name, name_panel)
     local sex = 'male'
@@ -79,6 +92,52 @@ function window.draw(game, character)
     ut.data_entry("", character.culture.name, culture_panel, "Culture")
 
     ui.panel(traits_panel)
+    -- traits text
+    local s = ''
+    for k, v in pairs(character.traits) do
+        s = s .. ', ' .. v
+    end
+    -- loyalty text
+    if character.loyalty == nil then
+        local ending = 'himself'
+        if character.female then
+            ending = 'herself'
+        end
+        s = s .. '\n ' .. character.name .. ' is loyal to ' .. ending .. '.'
+    else
+        s = s .. '\n ' .. character.name .. ' is loyal to ' .. character.loyalty.name .. '.'
+    end
+
+    ui.left_text(s, traits_panel)
+
+    -- First, we need to check if the player is controlling a realm
+    if WORLD.player_character then
+        selected_decision, decision_target_primary, decision_target_secondary = require "game.scenes.game.widget-decision-selection-character"(
+            decisions_panel,
+            'character',
+            character,
+            selected_decision
+        )
+    else
+        -- No player realm: no decisions to draw
+    end
+    local res = require "game.scenes.game.widget-decision-desc"(
+        decisions_confirmation_panel,
+        WORLD.player_character,
+        selected_decision,
+        decision_target_primary,
+        decision_target_secondary
+    )
+    if res ~= 'nothing' then
+        selected_decision = nil
+        decision_target_primary = nil
+        decision_target_secondary = nil
+    end
+
+    local response = characters_list_widget(characters_list, unit, character.province)()
+    if response then
+        game.selected_character = response
+    end
 
     ut.coa(character.province.realm, coa)
 end

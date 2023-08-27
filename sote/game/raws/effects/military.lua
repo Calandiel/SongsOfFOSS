@@ -3,6 +3,23 @@ local ui_utils = require "game.ui-utils"
 
 MilitaryEffects = {}
 
+---Gathers new warband in the name of *leader*
+---@param leader Character
+function MilitaryEffects.gather_warband(leader)
+    local province = leader.province
+    if leader.leading_warband ~= nil then return end
+    if province == nil then return end
+    local warband = province:new_warband()
+    warband.name = "Warband of " .. leader.name
+
+    warband.leader = leader
+    leader.leading_warband = warband
+
+    if WORLD:does_player_see_realm_news(leader.province.realm) then
+        WORLD:emit_notification(leader.name .. " is gathering his own warband.")
+    end
+end
+
 ---Starts a patrol in primary_target province
 ---@param root Realm
 ---@param primary_target Province
@@ -24,10 +41,13 @@ function MilitaryEffects.patrol(root, primary_target)
          warband.status = "patrol"
     end
 
+    ---@type PatrolData
+    local patrol_data = { target = primary_target, defender = root.leader, travel_time = 29, patrol = patrol, origin = root }
+
     WORLD:emit_action(
-        WORLD.events_by_name["patrol-province"], root,
-        primary_target.realm,
-        { target = primary_target, defender = root, travel_time = 29, patrol = patrol },
+        WORLD.events_by_name["patrol-province"], root.leader,
+        primary_target.realm.leader,
+        patrol_data,
         90, false
     )
 end
@@ -57,10 +77,19 @@ function MilitaryEffects.covert_raid(root, primary_target)
         warband.status = "raiding"
     end
 
+    ---@type RaidData
+    local raid_data = {
+        raider = primary_target.owner,
+        target = primary_target,
+        travel_time = travel_time,
+        army = army,
+        origin = root
+    }
+
     WORLD:emit_action(
-        WORLD.events_by_name["covert-raid"], root,
-        target_province.realm,
-        { target = primary_target, raider = root, travel_time = travel_time, army = army },
+        WORLD.events_by_name["covert-raid"], root.leader,
+        target_province.realm.leader,
+        raid_data,
         travel_time, false
     )
 end

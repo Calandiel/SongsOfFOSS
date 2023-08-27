@@ -3,6 +3,8 @@ local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
 local EconomicEffects = require "game.raws.effects.economic"
+local MilitaryEffects = require "game.raws.effects.military"
+local TRAIT = require "game.raws.traits.generic"
 
 local function load()
 
@@ -48,11 +50,140 @@ local function load()
 		end
 	}
 
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'gather-warband',
+		ui_name = "Gather my own warband",
+		tooltip = utils.constant_string("I had decided to gather my own warband."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 1 / 12 , -- Once every year on average
+		pretrigger = function(root)
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if root.leading_warband then return false end
+            return true
+		end,
+		available = function(root, primary_target)
+			if root.leading_warband then return false end
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			---@type Character
+			root = root
+			if root.leading_warband == nil and root.traits[TRAIT.WARLIKE] then
+				return 1
+			end
+            return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			MilitaryEffects.gather_warband(root)
+		end
+	}
+
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'raid-warband',
+		ui_name = "Raid",
+		tooltip = utils.constant_string("I will raid the province."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			--print("pre")
+			---@type Character
+			local root = root
+			if root.leading_warband then return true end
+			return false
+		end,
+		clickable = function(root, primary_target)
+			if root.leading_warband then return true end
+			return false
+		end,
+		available = function(root, primary_target)
+			---@type Character
+			root = root
+			if root.leading_warband == nil then return false end
+			if root.leading_warband.status ~= 'idle' then return false end
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			---@type Character
+			root = root
+			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
+				return 0.9
+			end
+
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			local realm = root.province.realm
+			local target = realm:roll_reward_flag()
+			realm:add_raider(target, root.leading_warband)
+		end
+	}
+
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'patrol-warband',
+		ui_name = "Patrol",
+		tooltip = utils.constant_string("I will protect the home province against raiders."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			--print("pre")
+			---@type Character
+			local root = root
+			if root.leading_warband then return true end
+			return false
+		end,
+		clickable = function(root, primary_target)
+			if root.leading_warband then return true end
+			return false
+		end,
+		available = function(root, primary_target)
+			---@type Character
+			root = root
+			if root.leading_warband == nil then return false end
+			if root.leading_warband.status ~= 'idle' then return false end
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			---@type Character
+			root = root
+			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
+				return 0
+			end
+
+			return 0.5
+		end,
+		effect = function(root, primary_target, secondary_target)
+			local realm = root.province.realm
+			local province = root.province
+			local warband = root.leading_warband
+			realm:add_patrol(province, warband)
+		end
+	}
+
     ---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'donate-wealth-local-wealth',
 		ui_name = "Donate wealth to locals.",
-		tooltip = utils.constant_string("Donate wealth (" .. tostring(base_gift_size) .. ") to local wealth pool in exchange for popularity."),
+		tooltip = utils.constant_string("I will donate (" .. tostring(base_gift_size) .. MONEY_SYMBOL .. ") to local wealth pool in exchange for popularity."),
 		sorting = 1,
 		primary_target = "none",
 		secondary_target = 'none',
@@ -188,6 +319,80 @@ local function load()
 		end
 	}
 
+
+	Decision.Character:new {
+		name = 'suggest-to-be-loyal',
+		ui_name = "Request loyalty",
+		tooltip = utils.constant_string("Suggest character to swear loyalty to you."),
+		sorting = 1,
+		primary_target = 'character',
+		secondary_target = 'none',
+		base_probability = 1 / 12 , -- Once every year on average
+		pretrigger = function(root) 
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if primary_target == root then
+				return false
+			end
+			return true
+		end,
+		available = function(root, primary_target)
+			if primary_target.province == root.province then
+				return true
+			end
+			if primary_target == root then
+				return false
+			end
+			return false
+		end,
+		ai_target = function(root)
+			--print("ait")
+			---@type Character
+			local root = root
+			---@type Province
+			local p = root.province
+			if p then
+				-- Once you target a province, try selecting a random courtier
+				local s = tabb.size(p.characters)
+				---@type Character
+				local c = tabb.nth(p.characters, love.math.random(s))
+				if c then
+					if c.loyalty == nil and c ~= root and c.loyalty ~= root then
+						return c, true
+					end
+				end
+			end
+			return nil, false
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			---@type Character
+			root = root
+			if primary_target.traits[TRAIT.AMBITIOUS] then
+				return 0
+			end
+			if root.traits[TRAIT.CONTENT] then
+				return 0
+			end
+			if root.traits[TRAIT.AMBITIOUS] then
+				return 1/12
+			end
+			if root.province.realm.leader == root then
+				return 1/24
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			if WORLD.player_character == root then
+				WORLD:emit_notification("You requested loyalty from ".. primary_target.name)
+			end
+			WORLD:emit_event(WORLD.events_by_name['request-loyalty'], primary_target, root, 1)
+		end
+	}
+
 	-- War related events
 	---@type DecisionCharacter
 	Decision.Character:new {
@@ -275,6 +480,24 @@ local function load()
 			root.province.realm:add_reward_flag(reward_flag)
 		end
 	}
+
+	-- Decision.Character:new {
+	-- 	name = 'attempt-coup',
+	-- 	ui_name = "Attempt coup",
+	-- 	tooltip = utils.constant_string("Attempt to overthrow the local ruler."),
+	-- 	sorting = 1,
+	-- 	primary_target = "none",
+	-- 	secondary_target = 'none',
+	-- 	base_probability = 1 / 12,
+	-- 	pretrigger = function(root)
+	-- 		--print("pre")
+	-- 		---@type Character
+	-- 		local root = root
+			
+
+	-- 	end
+
+	-- }
 end
 
 return load

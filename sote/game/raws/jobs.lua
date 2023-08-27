@@ -7,7 +7,7 @@
 ---@field b number
 ---@field new fun(self:Job, o:Job):Job
 
----@type Job
+---@class Job
 local Job = {}
 Job.__index = Job
 ---Creates a new job

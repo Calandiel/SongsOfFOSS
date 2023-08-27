@@ -83,7 +83,7 @@
 ---@field raise_army fun(self:Realm, warbands: table<Warband, Warband>): Army
 ---@field raise_warband fun(self: Realm, warband: Warband)
 ---@field raise_local_army fun(self: Realm, province: Province): Army
----@field disband_army fun(self:Realm, army:Army)
+---@field disband_army fun(self:Realm, army:Army): table<Warband, Warband>
 ---@field get_speechcraft_efficiency fun(self:Realm):number
 ---@field get_province_pop_weights fun(self:Realm):table<Province, number> Returns a table mapping provinces to numbers that add up to 1 and which represent the 'weight' of a province based on its population. Useful for pop weighted selections of provinces
 ---@field get_random_pop_weighted_province fun(self:Realm):Province
@@ -102,7 +102,7 @@
 local realm = {}
 local tabb = require "engine.table"
 
----@type RewardFlag
+---@class RewardFlag
 realm.RewardFlag = {}
 realm.RewardFlag.__index = realm.RewardFlag
 
@@ -117,7 +117,7 @@ function realm.RewardFlag:new(i)
 	return o
 end
 
----@type Realm
+---@class Realm
 realm.Realm = {}
 realm.Realm.__index = realm.Realm
 ---@return Realm
@@ -466,6 +466,7 @@ end
 
 ---Disbands an army and returns pops to their provinces.
 ---@param army Army
+---@return table<Warband, Warband>
 function realm.Realm:disband_army(army)
 	self.armies[army] = nil
 
@@ -486,6 +487,8 @@ function realm.Realm:disband_army(army)
 			warband.status = 'idle'
 		end
 	end
+
+	return army.warbands
 end
 
 ---@return table<Province, number>

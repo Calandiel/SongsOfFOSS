@@ -17,7 +17,7 @@
 ---@field maximum_elevation number
 ---@field ice_age boolean requires presence of ice age ice
 
----@type Resource
+---@class Resource
 local Resource = {}
 Resource.__index = Resource
 ---Creates a new resource

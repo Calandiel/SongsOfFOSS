@@ -5,7 +5,10 @@ local decide = require "game.ai.decide"
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
----@alias ActionData { [1]: Event, [2]: Realm, [3]: table, [4]: number}
+---@alias ActionData { [1]: Event, [2]: POP, [3]: table, [4]: number}
+---@alias ScheduledEvent { [1]: Event, [2]: POP, [3]: table, [4]: number}
+---@alias InstantEvent { [1]: Event, [2]: POP, [3]: table}
+---@alias Notification string
 
 ---@class World
 ---@field player_realm Realm?
@@ -32,16 +35,16 @@ local utils       = require "game.ui-utils"
 ---@field entity_counter number -- a global counter for entities...
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
----@field emit_event fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:Event, origin: Realm, target:Realm, associated_data:table|nil, delay: number, hidden: boolean)
+---@field emit_event fun(self:World, event:Event, root:Character, associated_data:table|nil, delay: number|nil)
+---@field emit_action fun(self:World, event:Event, root:Character, target:Character, associated_data:table|nil, delay: number, hidden: boolean)
 ---@field emit_immediate_event fun(self:World, event:Event, target:Realm, associated_data:table|nil)
----@field notification_queue Queue
----@field events_queue Queue
----@field deferred_events_queue Queue
----@field deferred_actions_queue Queue
+---@field notification_queue Queue<Notification>
+---@field events_queue Queue<InstantEvent>
+---@field deferred_events_queue Queue<ScheduledEvent>
+---@field deferred_actions_queue Queue<ActionData>
 ---@field player_deferred_actions table<ActionData, ActionData>
----@field treasury_effects Queue
----@field old_treasury_effects Queue
+---@field treasury_effects Queue<TreasuryEffectRecord>
+---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
 ---@field does_player_control_realm fun(self:World, realm:Realm?):boolean
@@ -66,7 +69,7 @@ local utils       = require "game.ui-utils"
 ---@field unit_types_by_name table<string, UnitType>
 ---@field base_visibility fun(self:World, size: number):number
 
----@type World
+---@class World
 world.World = {}
 world.World.__index = world.World
 
@@ -193,49 +196,54 @@ function world.load(file)
 	WORLD = bs.loadLoveFile(file)
 end
 
+
+
+
+
 ---Schedules an event
 ---@param event Event
----@param target_realm Realm
+---@param root Character
 ---@param associated_data table
 ---@param delay number|nil In days
-function world.World:emit_event(event, target_realm, associated_data, delay)
+function world.World:emit_event(event, root, associated_data, delay)
 	if delay then
 		self.deferred_events_queue:enqueue({
-			event, target_realm, associated_data, delay
+			event, root, associated_data, delay
 		})
 	else
 		self.events_queue:enqueue({
-			event, target_realm, associated_data
+			event, root, associated_data
 		})
 	end
 end
 
 ---Schedules an event immediately
 ---@param event Event
----@param target_realm Realm
+---@param root Character
 ---@param associated_data table
-function world.World:emit_immediate_event(event, target_realm, associated_data)
+function world.World:emit_immediate_event(event, root, associated_data)
 	self.events_queue:enqueue_front({
-		event, target_realm, associated_data
+		event, root, associated_data
 	})
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event Event
----@param origin Realm
----@param target_realm Realm
+---@param root Character
+---@param target Character
 ---@param associated_data table
 ---@param delay number In days
 ---@param hidden boolean
-function world.World:emit_action(event, origin, target_realm, associated_data, delay, hidden)
+function world.World:emit_action(event, root, target, associated_data, delay, hidden)
+	---@type ActionData
 	local action_data = {
 		event,
-		target_realm, 
+		target, 
 		associated_data, 
 		delay
 	}
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD:does_player_see_realm_news(origin) and not hidden then
+	if WORLD:does_player_see_realm_news(root.province.realm) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end	
 end
@@ -267,22 +275,24 @@ function world.World:tick()
 	WORLD.pending_player_event_reaction = false
 	local counter = 0
 	while WORLD.events_queue:length() > 0 do
+		-- print('event queue pop')
 		counter = counter + 1
 		-- Read the event data to check it
 		local ev = WORLD.events_queue:peek()
 		---@type Event
 		local eve = ev[1]
-		---@type Realm
-		local rea = ev[2]
+		---@type Character
+		local root = ev[2]
 		local dat = ev[3]
 
-		if WORLD:does_player_control_realm(rea) then
+		if WORLD.player_character == root then
 			-- This is a player event!
+			-- print("player event")
 			WORLD.pending_player_event_reaction = true
 			return
 		else
 			WORLD.events_queue:dequeue()
-			handle_event(eve, rea, dat)
+			handle_event(eve, root, dat)
 		end
 
 		--if counter > 10000 then
@@ -305,13 +315,13 @@ function world.World:tick()
 			-- events
 			local l = WORLD.deferred_events_queue:length()
 			for i = 1, l do
-				--print("def. event" .. tostring(i))
+				-- print("def. event" .. tostring(i))
 				local check = WORLD.deferred_events_queue:dequeue()
 				check[4] = check[4] - 1
 				if check[4] <= 0 then
 					-- Reemit the event as a "real" even!
 					WORLD:emit_event(check[1], check[2], check[3])
-					--print("ontrig")
+					-- print("ontrig")
 				else
 					WORLD.deferred_events_queue:enqueue(check)
 				end
@@ -408,16 +418,6 @@ function world.World:tick()
 						--print("Event handling")
 						events.run(realm)
 
-
-						-- assign warbands to patrols
-						for _, province in pairs(realm.provinces) do
-							for _, warband in pairs(province.warbands) do
-								if (warband.status == "idle") and (love.math.random() > 0.5) and (warband:size() > 0) then
-									realm:add_patrol(province, warband)
-								end
-							end
-						end
-
 						-- launch patrols
 						for _, target in pairs(realm.provinces) do
 							local warbands = realm.patrols[target]
@@ -432,17 +432,6 @@ function world.World:tick()
 								MilitaryEffects.patrol(realm, target)
 							end
 						end
-
-						-- assign raiders to targets
-						for _, province in pairs(realm.provinces) do
-							for _, warband in pairs(province.warbands) do
-								if warband.status == "idle" and warband:size() > 0 then
-									local target = realm:roll_reward_flag()
-									realm:add_raider(target, warband)
-								end
-							end
-						end
-
 						-- launch raids
 						for _, target in pairs(realm.reward_flags) do
 							local warbands = realm.raiders_preparing[target]

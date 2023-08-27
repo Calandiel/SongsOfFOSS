@@ -10,7 +10,7 @@
 
 local bld = {}
 
----@type Building
+---@class Building
 bld.Building = {}
 bld.Building.__index = bld.Building
 ---@param province Province province to build the building in

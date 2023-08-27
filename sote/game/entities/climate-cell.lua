@@ -20,12 +20,13 @@
 ---@field saldo_north number abstract number showing the "weight" of landmasses on either of the hemispheres...
 ---@field saldo_south number abstract number showing the "weight" of landmasses on either of the hemispheres...
 ---@field cache table<number, number> A debug cache containing a bunch of values to use... (10 by default)
----@field new fun(cell_id: number):ClimateCell Returns a new cell
+---@field new fun(self, cell_id: number):ClimateCell Returns a new cell
 ---@field land_tiles number
 ---@field water_tiles number
 
 local cell = {}
 
+---@class ClimateCell
 local ClimateCell = {}
 ClimateCell.__index = ClimateCell
 ---Returns a new cell

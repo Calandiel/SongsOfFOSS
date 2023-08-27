@@ -44,7 +44,7 @@
 ---@field male_infrastructure_needs number
 ---@field requires_large_river boolean
 
----@type Race
+---@class Race
 local Race = {}
 Race.__index = Race
 ---@param o table

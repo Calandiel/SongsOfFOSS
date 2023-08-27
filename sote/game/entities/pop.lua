@@ -1,3 +1,5 @@
+
+
 ---@class POP
 ---@field race Race
 ---@field faith Faith
@@ -7,7 +9,9 @@
 ---@field name string
 ---@field savings number
 ---@field popularity number
+---@field traits table<Trait, Trait>
 ---@field employer Building?
+---@field loyalty POP?
 ---@field leading_warband Warband?
 ---@field job Job?
 ---@field new fun(self:POP, race:Race, faith:Faith, culture:Culture, female:boolean, age:number?):POP
@@ -17,7 +21,7 @@
 
 local rtab = {}
 
----@type POP
+---@class POP
 rtab.POP = {}
 rtab.POP.__index = rtab.POP
 ---Creates a new POP
@@ -41,6 +45,8 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.name = culture.language:get_random_name()
 	r.savings = 0
 	r.popularity = 0
+	r.loyalty = nil
+	r.traits = {}
 
 	setmetatable(r, rtab.POP)
 

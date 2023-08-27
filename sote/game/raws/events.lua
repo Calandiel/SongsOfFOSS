@@ -1,13 +1,16 @@
----@class Event
----@field name string
+
+
+---@class Event 
 ---@field new fun(self:Event, e:Event):Event
----@field automatic boolean Automatic events are rolled each month on every realm in the game
+---@field name string
+---@field automatic boolean Automatic events are rolled each month on every root in the game
 ---@field base_probability number For automatic events, controlls the base chance for an event to occur
----@field trigger fun(self:Event, realm:Realm):boolean A closure that returns whether or not an event will trigger
----@field on_trigger fun(self:Event, realm:Realm, associated_data:table|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
----@field event_text fun(self:Event, realmn:Realm, associated_data:table|nil):string Text to display with the event, for the player.
+---@field trigger fun(self:Event, root:Character):boolean A closure that returns whether or not an event will trigger
+---@field on_trigger fun(self:Event, root:Character, associated_data:table|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
+---@field event_text fun(self:Event, root:Character, associated_data:table|nil):string Text to display with the event, for the player.
 ---@field event_background_path string
----@field options fun(self:Event, realm:Realm, associated_data:table|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
+---@field options fun(self:Event, root:Character, associated_data:table|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
+
 
 ---@class EventOption
 ---@field text string
@@ -16,7 +19,7 @@
 ---@field outcome fun() Applies action outcome.
 ---@field ai_preference fun():number Returns a number larger than 0 that represents the "weight" of the option. The AI will select the one with the highest weight.
 
----@type Event
+---@class Event
 local Event = {}
 Event.__index = Event
 ---@param e Event
@@ -29,16 +32,16 @@ function Event:new(e)
 	o.name = "<event>"
 	o.automatic = true
 	o.base_probability = 1 / 12 / 5 -- Once every 5 years
-	o.event_text = function(self, realm, data)
+	o.event_text = function(self, root, data)
 		return "This is an event!"
 	end
-	o.trigger = function(self, realm)
+	o.trigger = function(self, root)
 		return true
 	end
-	o.on_trigger = function(self, realm)
-		WORLD:emit_event(self, realm, nil)
+	o.on_trigger = function(self, root)
+		WORLD:emit_event(self, root, nil)
 	end
-	o.options = function(self, realm, associated_data)
+	o.options = function(self, root, associated_data)
 		return {
 			{
 				text = "Default option",

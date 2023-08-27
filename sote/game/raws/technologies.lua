@@ -22,7 +22,7 @@ local tabb = require "engine.table"
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field new fun(self:Technology, o:Technology?):Technology
 
----@type Technology
+---@class Technology
 local Technology = {}
 Technology.__index = Technology
 ---Creates a new technology

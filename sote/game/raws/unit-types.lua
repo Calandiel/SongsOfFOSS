@@ -21,7 +21,7 @@
 ---@field spotting number
 ---@field visibility number
 
----@type UnitType
+---@class UnitType
 local UnitType = {}
 UnitType.__index = UnitType
 ---Creates a new unit type

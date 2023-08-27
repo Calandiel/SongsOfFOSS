@@ -1,6 +1,12 @@
 ---@alias WarbandStatus 'idle' | 'raiding' | 'preparing_raid' | 'preparing_patrol' | 'patrol'
 
 ---@class Warband
+---@field name string
+---@field treasury number
+---@field leader Character?
+---@field pops table<POP, Province> A table mapping pops to their home provinces.
+---@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
+---@field status WarbandStatus
 local warband = {
     name = "Warband",  ---@type string
     treasury = 0, ---@type number

@@ -18,7 +18,7 @@ local cl = {}
 ---@field burial_rites BurialRites
 ---@field new fun(self:Faith, religion:Religion, culture:Culture):Faith
 
----@type Religion
+---@class Religion
 cl.Religion = {}
 cl.Religion.__index = cl.Religion
 ---@param culture Culture
@@ -35,7 +35,7 @@ function cl.Religion:new(culture)
 	return o
 end
 
----@type Faith
+---@class Faith
 cl.Faith = {}
 cl.Faith.__index = cl.Faith
 ---@param religion Religion

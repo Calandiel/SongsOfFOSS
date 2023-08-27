@@ -2,7 +2,7 @@ local utils = require "game.raws.raws-utils"
 
 local Decision = {}
 
----@type DecisionRealm
+---@class DecisionRealm
 Decision.Realm = {}
 Decision.Realm.__index = Decision.Realm
 

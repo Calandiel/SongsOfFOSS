@@ -22,7 +22,7 @@ local tabb = require "engine.table"
 ---@field new fun(self:BuildingType, o:BuildingType):BuildingType
 ---@field get_tooltip fun(self:BuildingType):string
 
----@type BuildingType
+---@class BuildingType
 BuildingType = {}
 BuildingType.__index = BuildingType
 ---Creates a new building
