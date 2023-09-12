@@ -52,7 +52,12 @@ return function ()
 						InterpersonalEffects.set_loyalty(character, associated_data)
                         -- WORLD:emit_notification("I agreed to assist " .. associated_data.name)
 					end,
-					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, treason_flag, false, true, true)
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
+						treason = treason_flag,
+						ambition = false,
+						help = true,
+						submission = true
+					})
 				},
 				{
 					text = "Refuse",
@@ -61,7 +66,12 @@ return function ()
 					outcome = function() 
                         -- WORLD:emit_notification("I refused to assist " .. associated_data.name)
                     end,
-					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, false, false, true, false)
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
+						treason = false,
+						ambition = false,
+						help = false,
+						submission = false
+					})
 				},
                 {
                     text = "Ask for payment",
@@ -71,7 +81,12 @@ return function ()
                         -- WORLD:emit_notification("I asked for payment from " .. associated_data.name)
                         WORLD:emit_event("request-loyalty-payment", associated_data, character)
                     end,
-                    ai_preference = AI_VALUE.generic_event_option(character, associated_data, AI_VALUE.loyalty_price(associated_data), false, false, true, true)
+                    ai_preference = AI_VALUE.generic_event_option(character, associated_data, AI_VALUE.loyalty_price(associated_data), {
+						treason = treason_flag,
+						ambition = false,
+						help = false,
+						submission = true
+					})
                 }
 			}
 		end
@@ -116,14 +131,24 @@ return function ()
 						InterpersonalEffects.set_loyalty(associated_data, character)
                         -- WORLD:emit_notification("I asked for payment from " .. associated_data.name)
 					end,
-					ai_preference = AI_VALUE.generic_event_option(character, associated_data, -price, false, true, false, false)
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data, -price, {
+						treason = false,
+						ambition = true,
+						help = false,
+						submission = false
+					})
 				},
 				{
 					text = "Refuse",
 					tooltip = "Refuse to pay",
 					viable = function() return true end,
 					outcome = function() end,
-					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, false, false, false, false)
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
+						treason = false,
+						ambition = false,
+						help = false,
+						submission = false
+					})
 				}
 			}
 		end

@@ -34,7 +34,7 @@ function cl.CultureGroup:new()
 	o.language = require "game.entities.language".random()
 	o.name = o.language:get_random_culture_name()
 
-	o.view_on_treason = love.math.random(-20, 20)
+	o.view_on_treason = love.math.random(-20, 0)
 
 	setmetatable(o, cl.CultureGroup)
 	return o

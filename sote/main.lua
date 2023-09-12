@@ -49,6 +49,7 @@ bs.registerClass("Faith", require "game.entities.religion".Faith)
 bs.registerClass("Tile", require "game.entities.tile".Tile)
 bs.registerClass("World", require "game.entities.world".World)
 bs.registerClass("Warband", require "game.entities.warband")
+bs.registerClass('Army', require "game.entities.army")
 
 --[[
 local bs = require "engine.bitser"
