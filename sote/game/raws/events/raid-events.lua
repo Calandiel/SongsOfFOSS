@@ -139,7 +139,7 @@ local function load()
 
 				---@type RaidResultSuccess
 				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin = origin }
-				WORLD:emit_action(WORLD.events_by_name["covert-raid-success"], raider, raider,
+				WORLD:emit_action("covert-raid-success", raider, raider,
 					success_data,
 					travel_time, true)
 				if WORLD:does_player_see_realm_news(realm) then
@@ -151,13 +151,13 @@ local function load()
 					---@type RaidResultRetreat
 					local retreat_data = { army = army, target = target, raider = raider, origin = origin }
 
-					WORLD:emit_action(WORLD.events_by_name["covert-raid-retreat"], raider, raider, retreat_data,
+					WORLD:emit_action("covert-raid-retreat", raider, raider, retreat_data,
 						travel_time, true)
 				else
 					---@type RaidResultFail
 					local retreat_data = { army = army, target = target, raider = raider, losses = losses, origin = origin }
 
-					WORLD:emit_action(WORLD.events_by_name["covert-raid-fail"], raider, raider,
+					WORLD:emit_action("covert-raid-fail", raider, raider,
 						retreat_data,
 						travel_time, true)
 				end

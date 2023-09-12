@@ -4,7 +4,7 @@ local ge = {}
 
 function ge.run()
 	for _, tile in pairs(WORLD.tiles) do
-		for _, res in pairs(WORLD.resources_by_name) do
+		for _, res in pairs(RAWS_MANAGER.resources_by_name) do
 			if tile.is_land then
 				if not res.land then
 					goto NEXT

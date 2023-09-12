@@ -24,7 +24,7 @@ return function()
 			if realm == nil then
 				return
 			end
-			WORLD:emit_event(self, realm, {
+			WORLD:emit_event(self.name, realm, {
 				name = realm.primary_culture.language:get_random_name()
 			})
 		end,
@@ -174,7 +174,7 @@ return function()
 					text = "Promise to work on changing things",
 					tooltip = "Tooltip",
 					viable = function()
-						return pop * gift_cost_per_pop < realm.resources[WORLD.trade_goods_by_name['food']]
+						return pop * gift_cost_per_pop < realm.resources[RAWS_MANAGER.trade_goods_by_name['food']]
 					end,
 					outcome = function()
 						local flip = love.math.random() * realm:get_speechcraft_efficiency() > 0.5

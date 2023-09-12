@@ -98,6 +98,18 @@ Possible command line arguments:
 		return ASSETS.icons[ic]
 	end
 
+	-- TEST LOADING/SAVING
+	-- print('test of bitser')
+	-- local test_table = { abc= 123, x= 5}
+	-- local test_table_2 = {abs = 456, y = 6}
+	-- test_table.friend = test_table_2
+	-- test_table_2.friend = test_table
+	-- local friends_table = {test_table, test_table_2}
+
+	-- require "engine.bitser".dumpLoveFile("test", friends_table)
+	-- local result = require "engine.bitser".loadLoveFile("test")
+
+
 	if tab.contains(args, "--dev") or not love.filesystem.getInfo("options.bin") then
 		-- If the options file doesn't exists, or if we're in dev mode, create the options file!
 		OPTIONS = require "game.options".init()

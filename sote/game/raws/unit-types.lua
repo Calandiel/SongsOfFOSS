@@ -58,12 +58,12 @@ function UnitType:new(o)
 		r[k] = v
 	end
 	setmetatable(r, UnitType)
-	if WORLD.unit_types_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.unit_types_by_name[r.name] ~= nil then
 		local msg = "Failed to load a unit type (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.unit_types_by_name[r.name] = r
+	RAWS_MANAGER.unit_types_by_name[r.name] = r
 	return o
 end
 

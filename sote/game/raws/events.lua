@@ -39,7 +39,7 @@ function Event:new(e)
 		return true
 	end
 	o.on_trigger = function(self, root)
-		WORLD:emit_event(self, root, nil)
+		WORLD:emit_event(self.name, root, nil)
 	end
 	o.options = function(self, root, associated_data)
 		return {
@@ -75,12 +75,12 @@ function Event:new(e)
 	end
 	setmetatable(o, Event)
 
-	if WORLD.events_by_name[o.name] ~= nil then
+	if RAWS_MANAGER.events_by_name[o.name] ~= nil then
 		local msg = "Failed to load an event (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.events_by_name[o.name] = o
+	RAWS_MANAGER.events_by_name[o.name] = o
 
 	return o
 end

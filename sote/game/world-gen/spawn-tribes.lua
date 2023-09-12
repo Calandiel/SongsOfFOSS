@@ -12,7 +12,7 @@ local function generate_test_army(x, race, faith, culture, capitol)
 	local warband = require "game.entities.warband":new()
 	for i = 1, x do
 		local army_pop = require "game.entities.pop".POP:new(race, faith, culture, true, 20)
-		local unit_type = WORLD.unit_types_by_name['raiders']
+		local unit_type = RAWS_MANAGER.unit_types_by_name['raiders']
 		warband.pops[army_pop] = capitol
 		warband.units[army_pop] = unit_type
 	end
@@ -111,7 +111,7 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- set up capitol
 	capitol.name = culture.language:get_random_province_name()
-	capitol:research(WORLD.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
+	capitol:research(RAWS_MANAGER.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
 
 
 	-- print("test battle")
@@ -142,10 +142,11 @@ end
 ---Spawns initial tribes and initializes their data (such as characters, cultures, religions, races, etc)
 function st.run()
 	love.math.setRandomSeed(1)
+	---@type Queue<Province>
 	local queue = require "engine.queue":new()
-	local civs = 500 / tabb.size(WORLD.races_by_name) -- one per race...
+	local civs = 500 / tabb.size(RAWS_MANAGER.races_by_name) -- one per race...
 	for _ = 1, civs do
-		for _, r in pairs(WORLD.races_by_name) do
+		for _, r in pairs(RAWS_MANAGER.races_by_name) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile().province
 			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile().province end
@@ -156,8 +157,8 @@ function st.run()
 
 			local max_unit_weight = 0
 			local weights = {}
-			for _, unit in pairs(WORLD.unit_types_by_name) do
-				if unit.unlocked_by == WORLD.technologies_by_name['paleolithic-knowledge'] then
+			for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
+				if unit.unlocked_by == RAWS_MANAGER.technologies_by_name['paleolithic-knowledge'] then
 					local v = love.math.random()
 					max_unit_weight = max_unit_weight + v
 					weights[unit] = v

@@ -73,12 +73,12 @@ function ProductionMethod:new(o)
 		r[k] = v
 	end
 	setmetatable(r, ProductionMethod)
-	if WORLD.production_methods_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.production_methods_by_name[r.name] ~= nil then
 		local msg = "Failed to load a production method (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.production_methods_by_name[r.name] = r
+	RAWS_MANAGER.production_methods_by_name[r.name] = r
 	return r
 end
 

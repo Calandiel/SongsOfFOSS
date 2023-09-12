@@ -14,7 +14,7 @@ return function(rect, decision_type, primary_target, selected_decision)
     -- Maps decisions to whether or not they can be clicked.
     ---@type table<number, table<DecisionRealm, boolean>>
     local decisions = {}
-    for _, decision in pairs(WORLD.decisions_by_name) do
+    for _, decision in pairs(RAWS_MANAGER.decisions_by_name) do
         if decision.primary_target == decision_type then
             if decision.pretrigger(WORLD.player_realm) then
                 if decision.clickable(WORLD.player_realm, primary_target) then

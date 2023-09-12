@@ -26,8 +26,8 @@ end
 ---Enqueues an element IN FRONT of the queue
 function Queue:enqueue_front(element)
 	if self:length() > 0 then
-		self.first = self.first - 1
 		self.data[self.first] = element
+		self.first = self.first - 1
 	else
 		self:enqueue(element)
 	end

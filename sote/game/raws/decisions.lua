@@ -11,6 +11,8 @@ Decision.Character.__index = Decision.Character
 
 ---@alias DecisionTarget 'none' | 'character' | 'tile' | 'province' | 'realm' | 'building'
 
+
+
 ---@class DecisionRealm
 ---@field new fun(self:DecisionRealm, o:DecisionRealm):DecisionRealm
 ---@field primary_target DecisionTarget
@@ -29,7 +31,6 @@ Decision.Character.__index = Decision.Character
 ---@field ai_secondary_target fun(root:Realm, primary_target:any):any,boolean Selects the secondary target for the AI
 ---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets fun(root:Realm, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
-
 
 ---@class DecisionCharacter
 ---@field new fun(self:DecisionCharacter, o:DecisionCharacter):DecisionCharacter
@@ -91,6 +92,8 @@ local function init_decision(i)
 	return o
 end
 
+
+
 ---@return DecisionRealm
 function Decision.Realm:new(i)
 	---@type DecisionRealm
@@ -98,16 +101,15 @@ function Decision.Realm:new(i)
 
 	setmetatable(o, Decision.Realm)
 
-	if WORLD.decisions_by_name[o.name] ~= nil then
+	if RAWS_MANAGER.decisions_by_name[o.name] ~= nil then
 		local msg = "Failed to load a decision (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end
 
-	WORLD.decisions_by_name[o.name] = o
+	RAWS_MANAGER.decisions_by_name[o.name] = o
 	return o
 end
-
 
 ---@return DecisionCharacter
 function Decision.Character:new(i)
@@ -116,13 +118,13 @@ function Decision.Character:new(i)
 
 	setmetatable(o, Decision.Character)
 
-	if WORLD.decisions_characters_by_name[o.name] ~= nil then
+	if RAWS_MANAGER.decisions_characters_by_name[o.name] ~= nil then
 		local msg = "Failed to load a decision (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end
 
-	WORLD.decisions_characters_by_name[o.name] = o
+	RAWS_MANAGER.decisions_characters_by_name[o.name] = o
 	return o
 end
 

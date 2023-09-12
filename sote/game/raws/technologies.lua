@@ -56,12 +56,12 @@ function Technology:new(o)
 		r[k] = v
 	end
 	setmetatable(r, Technology)
-	if WORLD.technologies_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.technologies_by_name[r.name] ~= nil then
 		local msg = "Failed to load a technology (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.technologies_by_name[r.name] = r
+	RAWS_MANAGER.technologies_by_name[r.name] = r
 	return r
 end
 

@@ -90,6 +90,7 @@ function pro.run()
 
 	print("Creating itnitial provinces...")
 	-- Generate starting provinces (first land, then sea)
+	---@type Queue<Tile>
 	local queue = (require "engine.queue"):new()
 	--local visited = {}
 	--local visited_count = 0

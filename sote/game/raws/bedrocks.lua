@@ -39,16 +39,16 @@ function Bedrock:new(o)
 
 	print("5")
 	local id = col.rgb_to_id(r.r, r.g, r.b)
-	if WORLD.bedrocks_by_name[r.name] ~= nil or WORLD.bedrocks_by_color[id] ~= nil then
+	if RAWS_MANAGER.bedrocks_by_name[r.name] ~= nil or RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
 		print("6")
 		local msg = "Failed to load a bedrock (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
 	print("7")
-	WORLD.bedrocks_by_name[r.name] = r
+	RAWS_MANAGER.bedrocks_by_name[r.name] = r
 	print("8")
-	WORLD.bedrocks_by_color[id] = r
+	RAWS_MANAGER.bedrocks_by_color[id] = r
 	print("9")
 
 	return r

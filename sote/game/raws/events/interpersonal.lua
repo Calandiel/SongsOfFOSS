@@ -69,7 +69,7 @@ return function ()
                     viable = function() return true end,
                     outcome = function() 
                         -- WORLD:emit_notification("I asked for payment from " .. associated_data.name)
-                        WORLD:emit_event(WORLD.events_by_name["request-loyalty-payment"], associated_data, character)
+                        WORLD:emit_event("request-loyalty-payment", associated_data, character)
                     end,
                     ai_preference = AI_VALUE.generic_event_option(character, associated_data, AI_VALUE.loyalty_price(associated_data), false, false, true, true)
                 }

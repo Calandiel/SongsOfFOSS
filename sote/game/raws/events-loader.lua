@@ -27,7 +27,7 @@ function ll.load()
 	require "game.raws.events.raid-events" ()
 
 	print("misc. events")
-	
+	require "game.raws.events.coup" ()
 
 	print("interpersonal events")
 	require "game.raws.events.interpersonal"()

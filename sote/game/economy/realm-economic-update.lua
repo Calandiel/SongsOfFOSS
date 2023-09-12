@@ -38,7 +38,7 @@ function rea.run(realm)
 			-- Nothing to do, services aren't resolved per realm...
 			-- Actually (!), let's keep track of them anyway so that we can store prices per realm
 			--end
-			if prod == WORLD.trade_goods_by_name['food'] then
+			if prod == RAWS_MANAGER.trade_goods_by_name['food'] then
 				realm.expected_food_consumption = realm.expected_food_consumption + amount
 			end
 		end

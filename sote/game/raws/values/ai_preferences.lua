@@ -6,7 +6,7 @@ local AiPreferences = {}
 ---@param character Character
 ---@return number
 function AiPreferences.percieved_inflation(character)
-    local temp = WORLD.trade_goods_by_name['food']
+    local temp = RAWS_MANAGER.trade_goods_by_name['food']
     return character.province.realm:get_price(temp) / temp.base_price
 end
 

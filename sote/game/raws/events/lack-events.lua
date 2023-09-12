@@ -27,7 +27,7 @@ Clearly the scarcity of water has become so severe that a little old lady now fe
 		on_trigger = function(self, root)
 			---@type Realm
 			local realm = root.province.realm
-			WORLD:emit_event(self, root, {})
+			WORLD:emit_event(self.name, root, {})
 		end,
 		options = function(self, root, associated_data)
 			---@type Realm

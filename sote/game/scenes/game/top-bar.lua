@@ -103,7 +103,7 @@ function tb.draw(gam)
 			:build()
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		if ui.text_button(WORLD.player_character.name .. "(You)", name_rect) then
+		if ui.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
 			gam.selected_character = WORLD.player_character
 			gam.inspector = "character"
 		end
@@ -117,7 +117,7 @@ function tb.draw(gam)
 		uit.money_entry_icon(
 			WORLD.player_character.savings,
 			rect,
-			"Your personal savings")
+			"My personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 
 		
@@ -126,7 +126,7 @@ function tb.draw(gam)
 			'duality-mask.png',
 			uit.to_fixed_point2(WORLD.player_character.popularity),
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
-			"Your popularity")
+			"My popularity")
 
 
 		-- COA + name
@@ -161,7 +161,7 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = WORLD.player_realm.resources[WORLD.trade_goods_by_name['food']] or 0
+		local amount = WORLD.player_realm.resources[RAWS_MANAGER.trade_goods_by_name['food']] or 0
 		uit.data_entry_icon(
 			'noodles.png',
 			uit.to_fixed_point2(amount),

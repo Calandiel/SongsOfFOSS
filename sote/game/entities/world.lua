@@ -5,9 +5,9 @@ local decide = require "game.ai.decide"
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
----@alias ActionData { [1]: Event, [2]: POP, [3]: table, [4]: number}
----@alias ScheduledEvent { [1]: Event, [2]: POP, [3]: table, [4]: number}
----@alias InstantEvent { [1]: Event, [2]: POP, [3]: table}
+---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
+---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
+---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
 ---@alias Notification string
 
 ---@class World
@@ -35,9 +35,9 @@ local utils       = require "game.ui-utils"
 ---@field entity_counter number -- a global counter for entities...
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
----@field emit_event fun(self:World, event:Event, root:Character, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:Event, root:Character, target:Character, associated_data:table|nil, delay: number, hidden: boolean)
----@field emit_immediate_event fun(self:World, event:Event, target:Realm, associated_data:table|nil)
+---@field emit_event fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number|nil)
+---@field emit_action fun(self:World, event:string, root:Character, target:Character, associated_data:table|nil, delay: number, hidden: boolean)
+---@field emit_immediate_event fun(self:World, event:string, target:Realm, associated_data:table|nil)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
 ---@field deferred_events_queue Queue<ScheduledEvent>
@@ -49,24 +49,6 @@ local utils       = require "game.ui-utils"
 ---@field pending_player_event_reaction boolean
 ---@field does_player_control_realm fun(self:World, realm:Realm?):boolean
 ---@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
---- RAWS
----@field biomes_by_name table<string, Biome>
----@field biomes_load_order table<number, Biome>
----@field bedrocks_by_name table<string, Bedrock>
----@field bedrocks_by_color table<number, Bedrock>
----@field biogeographic_realms_by_name table<string, BiogeographicRealm>
----@field biogeographic_realms_by_color table<number, BiogeographicRealm>
----@field races_by_name table<string, Race>
----@field building_types_by_name table<string, BuildingType>
----@field trade_goods_by_name table<string, TradeGood>
----@field jobs_by_name table<string, Job>
----@field technologies_by_name table<string, Technology>
----@field production_methods_by_name table<string, ProductionMethod>
----@field resources_by_name table<string, Resource>
----@field decisions_by_name table<string, DecisionRealm>
----@field decisions_characters_by_name table<string, DecisionCharacter>
----@field events_by_name table<string, Event>
----@field unit_types_by_name table<string, UnitType>
 ---@field base_visibility fun(self:World, size: number):number
 
 ---@class World
@@ -126,30 +108,12 @@ function world.World:new()
 	for _, tile in pairs(w.tiles) do
 		ut.set_climate_cell(tile)
 	end
-
-	w.building_types_by_name = {}
-	w.biomes_by_name = {}
-	w.biomes_load_order = {}
-	w.bedrocks_by_name = {}
-	w.bedrocks_by_color = {}
-	w.biogeographic_realms_by_name = {}
-	w.biogeographic_realms_by_color = {}
-	w.races_by_name = {}
-	w.trade_goods_by_name = {}
-	w.jobs_by_name = {}
-	w.technologies_by_name = {}
-	w.production_methods_by_name = {}
-	w.resources_by_name = {}
-	w.decisions_by_name = {}
-	w.decisions_characters_by_name = {}
-	w.events_by_name = {}
-	w.unit_types_by_name = {}
 	setmetatable(w, self)
 	return w
 end
 
 function world.World:base_visibility(size)
-	return self.races_by_name['human'].visibility * WORLD.unit_types_by_name["raiders"].visibility * size
+	return RAWS_MANAGER.races_by_name['human'].visibility * RAWS_MANAGER.unit_types_by_name["raiders"].visibility * size
 end
 
 ---Returns number of tiles in the world
@@ -201,7 +165,7 @@ end
 
 
 ---Schedules an event
----@param event Event
+---@param event string
 ---@param root Character
 ---@param associated_data table
 ---@param delay number|nil In days
@@ -218,7 +182,7 @@ function world.World:emit_event(event, root, associated_data, delay)
 end
 
 ---Schedules an event immediately
----@param event Event
+---@param event string
 ---@param root Character
 ---@param associated_data table
 function world.World:emit_immediate_event(event, root, associated_data)
@@ -228,7 +192,7 @@ function world.World:emit_immediate_event(event, root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
----@param event Event
+---@param event string
 ---@param root Character
 ---@param target Character
 ---@param associated_data table
@@ -248,10 +212,15 @@ function world.World:emit_action(event, root, target, associated_data, delay, hi
 	end	
 end
 
+
+---Handles events
+---@param event string
+---@param target_realm POP
+---@param associated_data any
 local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
 	-- First, find the best option
-	local opts = event:options(target_realm, associated_data)
+	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
 	local best_am = 0
 	for _, o in pairs(opts) do
@@ -279,9 +248,7 @@ function world.World:tick()
 		counter = counter + 1
 		-- Read the event data to check it
 		local ev = WORLD.events_queue:peek()
-		---@type Event
 		local eve = ev[1]
-		---@type Character
 		local root = ev[2]
 		local dat = ev[3]
 
@@ -334,8 +301,7 @@ function world.World:tick()
 				local check = WORLD.deferred_actions_queue:dequeue()
 				check[4] = check[4] - 1
 				if check[4] <= 0 then
-					---@type Event
-					local event = check[1]
+					local event = RAWS_MANAGER.events_by_name[check[1]]
 					event:on_trigger(check[2], check[3])
 					--print("ontrig")
 					self.player_deferred_actions[check] = nil

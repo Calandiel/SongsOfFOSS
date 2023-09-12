@@ -26,13 +26,13 @@ function Realm:new(o)
 	print("------")
 	print(type(WORLD))
 	local id = col.rgb_to_id(r.r, r.g, r.b)
-	if WORLD.biogeographic_realms_by_name[r.name] ~= nil or WORLD.biogeographic_realms_by_color[id] ~= nil then
+	if RAWS_MANAGER.biogeographic_realms_by_name[r.name] ~= nil or RAWS_MANAGER.biogeographic_realms_by_color[id] ~= nil then
 		local msg = "Failed to load a biogeographic realm (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.biogeographic_realms_by_name[r.name] = r
-	WORLD.biogeographic_realms_by_color[id] = r
+	RAWS_MANAGER.biogeographic_realms_by_name[r.name] = r
+	RAWS_MANAGER.biogeographic_realms_by_color[id] = r
 	return r
 end
 

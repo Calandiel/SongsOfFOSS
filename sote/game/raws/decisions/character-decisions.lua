@@ -6,6 +6,7 @@ local EconomicEffects = require "game.raws.effects.economic"
 local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 
+
 local function load()
 
     local base_gift_size = 20
@@ -387,9 +388,9 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			if WORLD.player_character == root then
-				WORLD:emit_notification("You requested loyalty from ".. primary_target.name)
+				WORLD:emit_notification("I requested loyalty from ".. primary_target.name)
 			end
-			WORLD:emit_event(WORLD.events_by_name['request-loyalty'], primary_target, root, 1)
+			WORLD:emit_event('request-loyalty', primary_target, root, 1)
 		end
 	}
 
@@ -481,23 +482,45 @@ local function load()
 		end
 	}
 
-	-- Decision.Character:new {
-	-- 	name = 'attempt-coup',
-	-- 	ui_name = "Attempt coup",
-	-- 	tooltip = utils.constant_string("Attempt to overthrow the local ruler."),
-	-- 	sorting = 1,
-	-- 	primary_target = "none",
-	-- 	secondary_target = 'none',
-	-- 	base_probability = 1 / 12,
-	-- 	pretrigger = function(root)
-	-- 		--print("pre")
-	-- 		---@type Character
-	-- 		local root = root
+	Decision.Character:new {
+		name = 'attempt-coup',
+		ui_name = "Attempt coup",
+		tooltip = utils.constant_string("Attempt to overthrow the local ruler."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 1 / 12,
+		pretrigger = function(root)
+			--print("pre")
+			---@type Character
+			local root = root
+			if root.province.realm == nil then
+				return false
+			end
+			if root.province.realm.leader == root then
+				return false
+			end
+			if root.province.realm.capitol ~= root.province then
+				return false
+			end
 			
-
-	-- 	end
-
-	-- }
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			---@type Character
+			local root = root
+            if root.traits[TRAIT.AMBITIOUS] then
+				return 0.8
+			end
+            return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			--print("eff")
+			---@type Character
+			local root = root
+			WORLD:emit_event('attempt-coup', root)
+		end
+	}
 end
 
 return load

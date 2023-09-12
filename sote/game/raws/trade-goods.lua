@@ -35,12 +35,12 @@ function TradeGood:new(o)
 		r[k] = v
 	end
 	setmetatable(r, TradeGood)
-	if WORLD.trade_goods_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.trade_goods_by_name[r.name] ~= nil then
 		local msg = "Failed to load a trade good (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.trade_goods_by_name[r.name] = r
+	RAWS_MANAGER.trade_goods_by_name[r.name] = r
 	return o
 end
 

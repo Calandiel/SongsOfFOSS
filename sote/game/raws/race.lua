@@ -103,12 +103,12 @@ function Race:new(o)
 		r[k] = v
 	end
 	setmetatable(r, Race)
-	if WORLD.races_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.races_by_name[r.name] ~= nil then
 		local msg = "Failed to load a race (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.races_by_name[r.name] = r
+	RAWS_MANAGER.races_by_name[r.name] = r
 	return r
 end
 

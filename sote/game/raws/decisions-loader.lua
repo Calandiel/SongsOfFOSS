@@ -57,7 +57,7 @@ function ll.load()
 		base_probability = 0, -- AI will never do this, it's just for debugging the system
 		effect = function(realm, primary_target, secondary_target)
 			print("Stuff is happening!")
-			WORLD:emit_event(WORLD.events_by_name['default'], realm, nil)
+			WORLD:emit_event(RAWS_MANAGER.events_by_name['default'], realm, nil)
 		end,
 		clickable = function(realm, primary_target)
 			return primary_target.realm == realm

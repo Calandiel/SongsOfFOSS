@@ -295,10 +295,10 @@ function wl.load_default()
 	for _, tile in pairs(WORLD.tiles) do
 		local r, g, b = read_pixel(tile, rocks)
 		local id = color_utils.rgb_to_id(r, g, b)
-		if WORLD.bedrocks_by_color[id] ~= nil then
-			tile.bedrock = WORLD.bedrocks_by_color[id]
+		if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
+			tile.bedrock = RAWS_MANAGER.bedrocks_by_color[id]
 		else
-			tile.bedrock = WORLD.bedrocks_by_name['limestone']
+			tile.bedrock = RAWS_MANAGER.bedrocks_by_name['limestone']
 		end
 	end
 	coroutine.yield()
@@ -470,6 +470,9 @@ function wl.load_save()
 	coroutine.yield()
 	coroutine.yield()
 	world.empty()
+
+	print('loading raws')
+	require "game.raws.raws" ()
 
 	print("Loading: " .. tostring(DEFINES.world_to_load))
 	loader_error = "World file: " .. tostring(DEFINES.world_to_load) .. " does not exist!"
