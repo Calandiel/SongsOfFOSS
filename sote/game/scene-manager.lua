@@ -4,6 +4,7 @@ local tab = require "engine.table"
 local asl = require "game.scenes.asset-loader"
 local mm = require "game.scenes.main-menu"
 local wl = require "game.scenes.world-loader"
+local ws = require "game.scenes.world-saver"
 local gam = require "game.scenes.game"
 
 ---@alias SceneName
@@ -11,11 +12,13 @@ local gam = require "game.scenes.game"
 ---| 'asset-loader'
 ---| 'main-menu'
 ---| 'world-loader'
+---| 'world-saver'
 ---| 'game'
 scene_manager.scenes = {
 	{ "asset-loader", asl },
 	{ "main-menu", mm },
 	{ "world-loader", wl }, -- also potentially a world generator
+	{ "world-saver", ws },
 	{ "game", gam } -- for actual gameplay
 }
 

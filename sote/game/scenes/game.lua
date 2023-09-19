@@ -558,6 +558,7 @@ function gam.draw()
 			end
 
 			local visited = {}
+			---@type Queue<Tile>
 			local qq = require "engine.queue":new()
 			local to_draw = 3500
 			local center_tile = WORLD.tiles[tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)]
@@ -622,18 +623,31 @@ function gam.draw()
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Save"
 	) then
-		world.save("quicksave.binbeaver")
-		gam.click_callback = callback.nothing()
-		gam.refresh_map_mode()
+		DEFINES = require "game.defines".init()
+		DEFINES.world_gen = false
+		DEFINES.world_to_load = "quicksave.binbeaver"
+		local manager = require "game.scene-manager"
+		manager.transition("world-saver")
+		return
+		-- world.save("quicksave.binbeaver")
+		-- gam.click_callback = callback.nothing()
+		-- gam.refresh_map_mode()
 	end
 	if ui.icon_button(
 		ASSETS.icons["load.png"],
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Load"
 	) then
-		world.load("quicksave.binbeaver")
-		gam.click_callback = callback.nothing()
-		gam.refresh_map_mode()
+		-- world.load("quicksave.binbeaver")
+		DEFINES = require "game.defines".init()
+		DEFINES.world_gen = false
+		DEFINES.world_to_load = "quicksave.binbeaver"
+		local manager = require "game.scene-manager"
+		manager.transition("world-loader")
+		return
+		-- require "game.scenes.bitser-world-loading"()
+		-- gam.click_callback = callback.nothing()
+		-- gam.refresh_map_mode()
 	end
 	if ui.icon_button(
 		ASSETS.icons["treasure-map.png"],

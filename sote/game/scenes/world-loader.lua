@@ -4,6 +4,8 @@ local world = require "game.entities.world"
 local plate = require "game.entities.plate"
 local color = require "game.color"
 
+WORLD_PROGRESS = {total = 0, max = 0, is_loading = false}
+
 local loader_error = nil -- write this in coroutines to transmit the error out of coroutines scope...
 ---
 function wl.init()
@@ -476,9 +478,9 @@ function wl.load_save()
 
 	print("Loading: " .. tostring(DEFINES.world_to_load))
 	loader_error = "World file: " .. tostring(DEFINES.world_to_load) .. " does not exist!"
-	local bs = require "engine.bitser"
-	---@type World|nil
-	WORLD = bs.loadLoveFile(DEFINES.world_to_load)
+
+	require "game.scenes.bitser-world-loading"()
+	
 	if WORLD == nil then
 		return nil
 	else

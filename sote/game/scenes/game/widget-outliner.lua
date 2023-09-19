@@ -8,7 +8,7 @@ local function render_action(index, rect)
     if action == nil then
         return
     end
-    ui.left_text(action[1].name, rect)
+    ui.left_text(action[1], rect)
     ui.right_text(tostring(math.floor(action[4])), rect)
     ui.centered_text(action[2].name, rect)
 end

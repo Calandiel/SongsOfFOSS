@@ -155,9 +155,15 @@ end
 ---Given a file, loads the world and assigns it to the WORLD global
 ---@param file any
 function world.load(file)
+	WORLD_PROGRESS.total = 0
+	WORLD_PROGRESS.max = 6 * DEFINES.world_size * DEFINES.world_size
+	WORLD_PROGRESS.is_loading = true
+
 	local bs = require "engine.bitser"
 	---@type World|nil
-	WORLD = bs.loadLoveFile(file)
+	WORLD = bs.loadLoveFile(file, WORLD_PROGRESS)
+
+	WORLD_PROGRESS.is_loading = false
 end
 
 
@@ -222,13 +228,17 @@ local function handle_event(event, target_realm, associated_data)
 	-- First, find the best option
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
-	local best_am = 0
+	local best_am = nil
 	for _, o in pairs(opts) do
 		---@type EventOption
 		local oo = o
 		if oo.viable() then
 			local pre = oo.ai_preference()
-			if pre > best_am then
+			
+			-- print(oo.text)
+			-- print(oo.ai_preference())
+
+			if (best_am == nil) or (pre > best_am) then
 				best_am = pre
 				best = oo
 			end

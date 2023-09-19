@@ -32,7 +32,7 @@ local writable_buf_size = nil
 local SEEN_LEN = {}
 
 ---@class BitserCallback
----@field callback fun(value: any, seen: any): Queue<BitserCallback>
+---@field callback fun(value: any, seen: any, counter: any): Queue<BitserCallback>
 ---@field value any
 ---@field seen boolean
 
@@ -189,7 +189,7 @@ local function write_boolean(value, _)
 	Buffer_write_byte(value and 249 or 248)
 end
 
-local function write_table(value, seen)
+local function write_table(value, seen, tiles_counter)
 	---@type Queue<BitserCallback>
 	local callback_queue = require "engine.queue":new()
 
@@ -201,9 +201,12 @@ local function write_table(value, seen)
 		or class_name_registry[value.__class]) -- Moonscript class
 	if classname then
 		classkey = classkey_registry[classname]
-		-- if (classname ~= 'Tile' and classname ~= 'POP' and classname ~= 'ClimateCell')  then
-		-- 	print(classname)
-		-- end
+		if tiles_counter ~= nil then
+			if classname == 'Tile' then
+				tiles_counter.counter = tiles_counter.counter + 1
+				tiles_counter.yielded = false
+			end
+		end
 		Buffer_write_byte(242)
 		serialize_value(classname, seen)
 	else
@@ -283,7 +286,7 @@ local types = { number = write_number, string = write_string, table = write_tabl
 ---@param value any
 ---@param seen any
 ---@return Queue<BitserCallback>
-serialize_value = function(value, seen)
+serialize_value = function(value, seen, tiles_counter)
 	--print(value)
 	if seen[value] then
 		local ref = seen[value]
@@ -326,7 +329,7 @@ serialize_value = function(value, seen)
 	-- end
 	local res = (types[t] or
 		error("cannot serialize type " .. t)
-		)(value, seen)
+		)(value, seen, tiles_counter)
 	
 	if res == nil then
 		return require "engine.queue":new()
@@ -354,6 +357,42 @@ local function serialize(value)
 		else
 			local callback = callback_queue:dequeue()
 			callback_stack:enqueue_front(callback.callback(callback.value, callback.seen))
+		end
+	end
+
+	print("Value serialization ended!")
+end
+
+local function serialize_async(value)
+	callback_stack:clear()
+
+	Buffer_makeBuffer(65536 * 64) --4096)
+	local seen = { [SEEN_LEN] = 0 }
+	print("Value serialization...")
+	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
+	local first = serialize_value(value, seen)
+	callback_stack:enqueue_front(first)
+	print(first:length())
+
+
+	local tiles_counter = {
+		counter = 0,
+		yielded = false
+	}
+
+	while callback_stack:length() > 0 do
+		---@type Queue<BitserCallback>
+		local callback_queue = callback_stack:peek()
+		if (callback_queue == nil) or (callback_queue:length() == 0) then
+			callback_stack:dequeue()
+		else
+			local callback = callback_queue:dequeue()
+			callback_stack:enqueue_front(callback.callback(callback.value, callback.seen, tiles_counter))
+		end
+
+		if (not tiles_counter.yielded) and (tiles_counter.counter % 1000 == 0) then
+			coroutine.yield(tiles_counter.counter)
+			tiles_counter.yielded = true
 		end
 	end
 
@@ -434,25 +473,6 @@ end
 ---@field classkey any
 ---@field class any
 ---@field deserializer any
-
-
----comment
----@param reader TableReader|nil
----@return boolean
-local function reader_awaits_update(reader)
-	if reader == nil then
-		return false
-	end
-
-	if reader.current_mode == 'await init' then
-		return true
-	end
-	if reader.current_array_index == reader.array_length and reader.dict_length == nil then
-		return true
-	end
-
-	return false
-end
 
 ---comment
 ---@param table_reader TableReader
@@ -805,7 +825,18 @@ end, dumpLoveFile = function(fname, value)
 	serialize(value)
 	print("Serialization ended!")
 	assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
-end, loadLoveFile = function(fname)
+end, dumpLoveFile_async = function(fname, value)
+	print("Serialization starts...")
+	local saving_coroutine = coroutine.create(function () serialize_async(value) end)
+	local success, data = true, 0
+	while success do
+		success, data = coroutine.resume(saving_coroutine)
+		coroutine.yield(data)
+	end
+	print("Serialization ended!")
+	assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+	-- assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+end, loadLoveFile = function(fname, progress_table)
 	local serializedData, error = love.filesystem.newFileData(fname)
 	assert(serializedData, error)
 	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
@@ -821,18 +852,43 @@ end, loadLoveFile = function(fname)
 
 		if loading_status == "finished" then
 			print('loading completed')
-			print(data)
+			-- print(data)
+			-- coroutine.yield("finished")
 			return data
 		end
-		if loading_status == 'tiles count' then
-			print(loading_status, data)
+		if loading_status == 'tiles count' and progress_table ~= nil then
+			progress_table.total = data
+			-- coroutine.yield("in process")
+			-- print(loading_status, data)
 		end
 	end
+
+	
 	
 	-- local value = deserialize({})
 	-- serializedData needs to not be collected early in a tail-call
 	-- so make sure deserialize_value returns before loadLoveFile does
 	-- return value
+end, loadLoveFile_async = function(fname, progress_table) 
+	local serializedData, error = love.filesystem.newFileData(fname)
+	assert(serializedData, error)
+	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
+	local loading_coroutine = coroutine.create(function()
+		local value = deserialize({})
+		return value
+	end)
+	while true do
+		local co_status, loading_status, data = coroutine.resume(loading_coroutine)
+		if loading_status == "finished" then
+			print('loading completed')
+			coroutine.yield("finished", data)
+			return data
+		end
+		if loading_status == 'tiles count' and progress_table ~= nil then
+			progress_table.total = data
+			coroutine.yield("in process")
+		end
+	end
 end, loadData = function(data, size)
 	if size == 0 then
 		error('cannot load value from empty data')

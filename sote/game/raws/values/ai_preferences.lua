@@ -7,13 +7,17 @@ local AiPreferences = {}
 ---@return number
 function AiPreferences.percieved_inflation(character)
     local temp = RAWS_MANAGER.trade_goods_by_name['food']
-    return character.province.realm:get_price(temp) / temp.base_price
+    local price = character.province.realm:get_price(temp)
+    if price == 0 then
+        price = temp.base_price
+    end
+    return price / temp.base_price
 end
 
 ---comment
 ---@param character Character
 function AiPreferences.money_utility(character) 
-    local base = 0.01
+    local base = 0.1
     if character.traits[TRAIT.GREEDY] then
         base = 1
     end
@@ -47,32 +51,49 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
         if income + character.savings < 0 then
             return -9999
         end
+        -- print(character.name)
 
         local base_value = income * AiPreferences.money_utility(character)
+
+        -- print(base_value)
 
         if flags.treason then
             base_value = base_value + character.culture.culture_group.view_on_treason
         end
 
+        -- print(base_value)
+
         if flags.treason and character.traits[TRAIT.LOYAL] then
             base_value = base_value - 100
         end
+
+        -- print(base_value)
 
         if flags.help and character.traits[TRAIT.LOYAL] and character.loyalty == associated_data then
             base_value = base_value + 10
         end
 
+        -- print(base_value)
+
         if flags.submission then
             base_value = base_value - 10
         end
+
+        -- print(base_value)
 
         if flags.submission and character.traits[TRAIT.AMBITIOUS] then
             base_value = base_value - 100
         end
 
+        -- print(base_value)
+
         if flags.ambition and character.traits[TRAIT.AMBITIOUS] then
             base_value = base_value + 100
         end
+
+        -- print(base_value)
+
+        -- print('______________________________')
 
         return base_value
     end

@@ -64,7 +64,12 @@ return function ()
 					tooltip = "Refuse the request",
 					viable = function() return true end,
 					outcome = function() 
-                        -- WORLD:emit_notification("I refused to assist " .. associated_data.name)
+						if associated_data == WORLD.player_character then
+                        	WORLD:emit_notification(character.name .. " refused to assist me.")
+						end
+						if character == WORLD.player_character then
+							WORLD:emit_notification("I refused to assist " .. associated_data.name)
+						end
                     end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
 						treason = false,
