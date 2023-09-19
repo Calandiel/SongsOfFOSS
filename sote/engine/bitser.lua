@@ -31,6 +31,15 @@ local writable_buf = nil
 local writable_buf_size = nil
 local SEEN_LEN = {}
 
+---@class BitserCallback
+---@field callback fun(value: any, seen: any, counter: any): Queue<BitserCallback>
+---@field value any
+---@field seen boolean
+
+---@type Queue<Queue<BitserCallback>>
+local callback_stack = require "engine.queue":new()
+
+
 local function Buffer_prereserve(min_size)
 	if buf_size < min_size then
 		buf_size = min_size
@@ -156,6 +165,8 @@ local function write_number(value, _)
 		Buffer_write_byte(246)
 		Buffer_write_data("double[1]", 8, value)
 	end
+
+	return require "engine.queue":new()
 end
 
 local function write_string(value, _)
@@ -178,7 +189,10 @@ local function write_boolean(value, _)
 	Buffer_write_byte(value and 249 or 248)
 end
 
-local function write_table(value, seen)
+local function write_table(value, seen, tiles_counter)
+	---@type Queue<BitserCallback>
+	local callback_queue = require "engine.queue":new()
+
 	local classkey
 	local classname = (class_name_registry[value.class] -- MiddleClass
 		or class_name_registry[value.__baseclass] -- SECL
@@ -187,15 +201,32 @@ local function write_table(value, seen)
 		or class_name_registry[value.__class]) -- Moonscript class
 	if classname then
 		classkey = classkey_registry[classname]
+		if tiles_counter ~= nil then
+			if classname == 'Tile' then
+				tiles_counter.counter = tiles_counter.counter + 1
+				tiles_counter.yielded = false
+			end
+		end
 		Buffer_write_byte(242)
 		serialize_value(classname, seen)
 	else
 		Buffer_write_byte(240)
 	end
+
 	local len = #value
-	write_number(len, seen)
+	callback_queue:enqueue({
+		callback = write_number,
+		value = len,
+		seen = seen
+	})
+	-- write_number(len, seen)
 	for i = 1, len do
-		serialize_value(value[i], seen)
+		callback_queue:enqueue({
+			callback = serialize_value,
+			value = value[i],
+			seen = seen
+		})
+		-- serialize_value(value[i], seen)
 	end
 	local klen = 0
 	for k in pairs(value) do
@@ -203,13 +234,32 @@ local function write_table(value, seen)
 			klen = klen + 1
 		end
 	end
-	write_number(klen, seen)
+	callback_queue:enqueue({
+		callback = write_number,
+		value = klen,
+		seen = seen
+	})
+	-- write_number(klen, seen)
 	for k, v in pairs(value) do
 		if (type(k) ~= 'number' or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
-			serialize_value(k, seen)
-			serialize_value(v, seen)
+			-- if type(v) ~="table" and type(v) ~= "number" then
+			-- 	print(k, v)
+			-- end
+			callback_queue:enqueue({
+				callback = serialize_value,
+				value = k,
+				seen = seen
+			})
+			callback_queue:enqueue({
+				callback = serialize_value,
+				value = v,
+				seen = seen
+			})
+			-- serialize_value(k, seen)
+			-- serialize_value(v, seen)
 		end
 	end
+	return callback_queue
 end
 
 local function write_cdata(value, seen)
@@ -231,7 +281,12 @@ end
 local types = { number = write_number, string = write_string, table = write_table, boolean = write_boolean,
 	["nil"] = write_nil, cdata = write_cdata }
 
-serialize_value = function(value, seen)
+
+---Serializes a value
+---@param value any
+---@param seen any
+---@return Queue<BitserCallback>
+serialize_value = function(value, seen, tiles_counter)
 	--print(value)
 	if seen[value] then
 		local ref = seen[value]
@@ -243,7 +298,7 @@ serialize_value = function(value, seen)
 			Buffer_write_byte(243)
 			write_number(ref, seen)
 		end
-		return
+		return require "engine.queue":new()
 	end
 	local t = type(value)
 	if t ~= 'number' and t ~= 'boolean' and t ~= 'nil' and t ~= 'cdata' then
@@ -261,18 +316,86 @@ serialize_value = function(value, seen)
 			Buffer_write_byte(241)
 			write_string(name, seen)
 		end
-		return
+		return require "engine.queue":new()
 	end
-	(types[t] or
+
+	-- if t == 'table' then
+		-- callback_stack:enqueue_front({
+		-- 	callback = types[t] or error("cannot serialize type " .. t), 
+		-- 	value = value, seen = seen
+		-- })
+	-- else
+	-- 	(types[t] or error("cannot serialize type " .. t))(value, seen)
+	-- end
+	local res = (types[t] or
 		error("cannot serialize type " .. t)
-		)(value, seen)
+		)(value, seen, tiles_counter)
+	
+	if res == nil then
+		return require "engine.queue":new()
+	else 
+		return res
+	end
 end
 
 local function serialize(value)
+	callback_stack:clear()
+
 	Buffer_makeBuffer(65536 * 64) --4096)
 	local seen = { [SEEN_LEN] = 0 }
 	print("Value serialization...")
-	serialize_value(value, seen)
+	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
+	local first = serialize_value(value, seen)
+	callback_stack:enqueue_front(first)
+	print(first:length())
+
+	while callback_stack:length() > 0 do
+		---@type Queue<BitserCallback>
+		local callback_queue = callback_stack:peek()
+		if (callback_queue == nil) or (callback_queue:length() == 0) then
+			callback_stack:dequeue()
+		else
+			local callback = callback_queue:dequeue()
+			callback_stack:enqueue_front(callback.callback(callback.value, callback.seen))
+		end
+	end
+
+	print("Value serialization ended!")
+end
+
+local function serialize_async(value)
+	callback_stack:clear()
+
+	Buffer_makeBuffer(65536 * 64) --4096)
+	local seen = { [SEEN_LEN] = 0 }
+	print("Value serialization...")
+	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
+	local first = serialize_value(value, seen)
+	callback_stack:enqueue_front(first)
+	print(first:length())
+
+
+	local tiles_counter = {
+		counter = 0,
+		yielded = false
+	}
+
+	while callback_stack:length() > 0 do
+		---@type Queue<BitserCallback>
+		local callback_queue = callback_stack:peek()
+		if (callback_queue == nil) or (callback_queue:length() == 0) then
+			callback_stack:dequeue()
+		else
+			local callback = callback_queue:dequeue()
+			callback_stack:enqueue_front(callback.callback(callback.value, callback.seen, tiles_counter))
+		end
+
+		if (not tiles_counter.yielded) and (tiles_counter.counter % 1000 == 0) then
+			coroutine.yield(tiles_counter.counter)
+			tiles_counter.yielded = true
+		end
+	end
+
 	print("Value serialization ended!")
 end
 
@@ -285,6 +408,298 @@ local function reserve_seen(seen)
 	insert(seen, 42)
 	return #seen
 end
+
+local function table_field_setter(value)
+	return function(table, field)
+		table[field] = value
+	end
+end
+
+
+local INVALID_RESPONCE = "#$@#%@!@#"
+
+local function set_table_length()
+	return function()
+
+	end
+end
+
+local function read_number(seen)
+	local t = Buffer_read_byte()
+	if t < 128 then
+		--small int
+		return t - 27
+	elseif t == 245 then
+		--long int
+		return Buffer_read_data("int32_t[1]", 4)[0]
+	elseif t == 246 then
+		--double
+		return Buffer_read_data("double[1]", 8)[0]
+	elseif t == 250 then
+		--short int
+		return Buffer_read_data("int16_t[1]", 2)[0]
+	end
+	return INVALID_RESPONCE
+end
+
+local function read_string(seen)
+	local t = Buffer_read_byte()
+	-- print(t)
+	if t < 192 then
+		--small reference
+		return seen[t - 127]
+	elseif t < 224 then
+		--small string
+		return add_to_seen(Buffer_read_string(t - 192), seen)
+	elseif t == 243 then
+		--reference
+		return seen[read_number(seen) + 1]
+	elseif t == 244 then
+		--long string
+		local length = read_number(seen)
+		return add_to_seen(Buffer_read_string(length), seen)
+	end
+end
+
+---@class TableReader
+---@field data table
+---@field array_length number|nil
+---@field current_array_index number
+---@field dict_length number|nil
+---@field current_dict_index number
+---@field current_key any
+---@field current_mode "await init" | "await array value" | "await dict key" | "await dict value" | nil
+---@field classname string|nil
+---@field classkey any
+---@field class any
+---@field deserializer any
+
+---comment
+---@param table_reader TableReader
+---@param value any
+local function TableReaderApplyValue(table_reader, value)
+	-- print(value)
+	if table_reader.current_mode == 'await array value' then
+		table_reader.current_array_index = table_reader.current_array_index + 1
+		table_reader.data[table_reader.current_array_index] = value
+		table_reader.current_mode = nil
+		return
+	end
+
+	if table_reader.current_mode == 'await dict key' then		
+		table_reader.current_key = value
+		table_reader.current_mode = "await dict value"
+		return
+	end
+
+	if table_reader.current_mode == 'await dict value' then
+		-- print(table_reader.current_key, value)
+		table_reader.data[table_reader.current_key] = value
+		table_reader.current_dict_index = table_reader.current_dict_index + 1
+		table_reader.current_mode = nil
+		return
+	end
+end
+
+local function deserialize(seen)
+	local queue = require "engine.queue":new()
+	---@type Queue<TableReader>
+	local tables_queue 	= require "engine.queue":new()
+	local tiles_counter = 0
+	local tiles_yielded  = false
+	while true do
+		if not tiles_yielded and tiles_counter % 10000 == 0 then
+			coroutine.yield("tiles count", tiles_counter)
+			tiles_yielded = true
+		end
+		-- print(tables_queue:length())
+		local current_table = tables_queue:peek()
+		
+		-- if current_table ~= nil then
+		-- 	print("\t" .. tostring(current_table.classname) ..
+		-- 	"\t \t" .. tostring(current_table.current_array_index) .. "/" .. tostring(current_table.array_length) ..
+		-- 	"\t" .. tostring(current_table.current_dict_index) .. "/" .. tostring(current_table.dict_length) ..
+		-- 	"\t" .. tostring(current_table.current_mode))
+		-- end
+				
+		if current_table == nil 
+			or current_table.current_mode == 'await array value'
+			or current_table.current_mode == 'await dict key'
+			or current_table.current_mode == 'await dict value' then
+			local t = Buffer_read_byte()
+			-- print(t)
+			if current_table == nil then
+				if t == 240 then
+					-- table 
+					local v = add_to_seen({}, seen)
+					tables_queue:enqueue_front({
+						data = v,
+						current_array_index = 0,
+						current_dict_index = 0,
+						current_mode = 'await init'
+					})
+				elseif t == 242 then
+					--instance
+					local instance = add_to_seen({}, seen)
+					local classname = read_string(seen)
+					-- print(classname)
+
+					tables_queue:enqueue_front({
+						data = instance,
+						current_array_index = 0,
+						current_dict_index = 0,
+						classname = classname,
+						class = class_registry[classname],
+						classkey = classkey_registry[classname],
+						deserializer = class_deserialize_registry[classname],
+						current_mode = 'await init'
+					})
+				end
+			elseif t < 128 then
+				--small int
+				TableReaderApplyValue(current_table, t - 27)
+			elseif t < 192 then
+				--small reference
+				TableReaderApplyValue(current_table, seen[t - 127])
+			elseif t < 224 then
+				--small string
+				TableReaderApplyValue(current_table, add_to_seen(Buffer_read_string(t - 192), seen))
+			elseif t < 240 then
+				--small resource
+				TableReaderApplyValue(current_table, add_to_seen(resource_registry[Buffer_read_string(t - 224)], seen))
+			elseif t == 240 then
+				-- print('table detected')
+				-- table 
+				local v = add_to_seen({}, seen)
+				tables_queue:enqueue_front({
+					data = v,
+					current_array_index = 0,
+					current_dict_index = 0,
+					current_mode = 'await init'
+				})
+			elseif t == 241 then
+				--long resource
+				local idx = reserve_seen(seen)
+				local name = read_string(seen)
+				local value = resource_registry[name]
+				seen[idx] = value
+				TableReaderApplyValue(current_table, value)
+			elseif t == 242 then
+				-- print('instance of class detected:')
+				--instance
+				local instance = add_to_seen({}, seen)
+				local classname = read_string(seen)
+				-- print(classname)
+
+				if classname == 'Tile' then
+					tiles_counter = tiles_counter + 1
+					tiles_yielded = false
+				end
+
+				tables_queue:enqueue_front({
+					data = instance,
+					current_array_index = 0,
+					current_dict_index = 0,
+					classname = classname,
+					class = class_registry[classname],
+					classkey = classkey_registry[classname],
+					deserializer = class_deserialize_registry[classname],
+					current_mode = 'await init'
+				})
+			elseif t == 243 then
+				--reference
+				TableReaderApplyValue(current_table, seen[read_number(seen) + 1])
+			elseif t == 244 then
+				--long string
+				TableReaderApplyValue(current_table, add_to_seen(Buffer_read_string(read_number(seen)), seen))
+			elseif t == 245 then
+				--long int
+				TableReaderApplyValue(current_table, Buffer_read_data("int32_t[1]", 4)[0])
+			elseif t == 246 then
+				--double
+				TableReaderApplyValue(current_table, Buffer_read_data("double[1]", 8)[0])
+			elseif t == 247 then
+				--nil
+				TableReaderApplyValue(current_table, nil)
+			elseif t == 248 then
+				--false
+				TableReaderApplyValue(current_table, false)
+			elseif t == 249 then
+				--true
+				TableReaderApplyValue(current_table, true)
+			elseif t == 250 then
+				--short int
+				TableReaderApplyValue(current_table, Buffer_read_data("int16_t[1]", 2)[0])
+			elseif t == 251 then
+				--ctype
+				TableReaderApplyValue(current_table, ffi.typeof(read_string(seen)))
+			elseif t == 252 then
+				local ctype = ffi.typeof(read_string(seen))
+				local len = read_number(seen)
+				local read_into = ffi.typeof('$[1]', ctype)()
+				Buffer_read_raw(read_into, len)
+				TableReaderApplyValue(current_table, ctype(read_into[0]))
+			else
+				error("unsupported serialized type " .. t)
+			end
+		elseif current_table.array_length == nil then
+			-- print('reading table length')
+			local value = read_number(seen)
+			if type(value) == "number" then
+				current_table.array_length = value
+			else
+				error("Invalid array length")
+			end
+		elseif current_table.array_length > current_table.current_array_index then
+			-- print('not enough array values')
+			current_table.current_mode = 'await array value'
+		elseif current_table.dict_length == nil then
+			-- print('reading dict length')
+			local value = read_number(seen)
+			if type(value) == "number" then
+				current_table.dict_length = value
+			else
+				-- error("Invalid dict length")
+			end
+		elseif current_table.dict_length > current_table.current_dict_index then
+			-- print('not enough dict values')
+			current_table.current_mode = 'await dict key'
+		else
+			-- print('table is ready')
+			tables_queue:dequeue()
+			local prev = tables_queue:peek()
+			if tables_queue:length() <= 0 then
+				print('table is final, returning it ' .. tostring(current_table.data))
+				if current_table.classname then
+					if current_table.classkey then
+						current_table.data[current_table.classkey] = current_table.class
+					end
+					coroutine.yield("finished", current_table.deserializer(current_table.data, current_table.class))
+					return
+				else
+					-- print(current_table.data)
+					coroutine.yield("finished", current_table.data)
+					return
+				end
+			else
+				if current_table.classname then
+					-- print('class instance is ready')
+					-- print(current_table.classname)
+					-- print(current_table.deserializer)
+					if current_table.classkey then
+						current_table.data[current_table.classkey] = current_table.class
+					end
+					local class_instance = current_table.deserializer(current_table.data, current_table.class)
+					TableReaderApplyValue(prev, class_instance)
+				else
+					-- print('table is ready')
+					TableReaderApplyValue(prev, current_table.data)
+				end
+			end
+		end
+	end
+end
+
 
 ---
 ---@param seen any
@@ -326,6 +741,7 @@ local function deserialize_value(seen)
 		--instance
 		local instance = add_to_seen({}, seen)
 		local classname = deserialize_value(seen)
+		-- print(classname)
 		local class = class_registry[classname]
 		local classkey = classkey_registry[classname]
 		local deserializer = class_deserialize_registry[classname]
@@ -336,6 +752,9 @@ local function deserialize_value(seen)
 		len = deserialize_value(seen)
 		for _ = 1, len do
 			local key = deserialize_value(seen)
+			-- if (classname ~= 'Tile' and classname ~= 'POP' and classname ~= 'ClimateCell') then
+			-- 	print(key)
+			-- end
 			instance[key] = deserialize_value(seen)
 		end
 		if classkey then
@@ -406,14 +825,70 @@ end, dumpLoveFile = function(fname, value)
 	serialize(value)
 	print("Serialization ended!")
 	assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
-end, loadLoveFile = function(fname)
+end, dumpLoveFile_async = function(fname, value)
+	print("Serialization starts...")
+	local saving_coroutine = coroutine.create(function () serialize_async(value) end)
+	local success, data = true, 0
+	while success do
+		success, data = coroutine.resume(saving_coroutine)
+		coroutine.yield(data)
+	end
+	print("Serialization ended!")
+	assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+	-- assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+end, loadLoveFile = function(fname, progress_table)
 	local serializedData, error = love.filesystem.newFileData(fname)
 	assert(serializedData, error)
 	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
-	local value = deserialize_value({})
+
+	-- local value = deserialize_value({})
+	local loading_coroutine = coroutine.create(function()
+		local value = deserialize({})
+		return value
+	end)
+	while true do
+		local co_status, loading_status, data = coroutine.resume(loading_coroutine)
+		-- print(co_status, loading_status, data)
+
+		if loading_status == "finished" then
+			print('loading completed')
+			-- print(data)
+			-- coroutine.yield("finished")
+			return data
+		end
+		if loading_status == 'tiles count' and progress_table ~= nil then
+			progress_table.total = data
+			-- coroutine.yield("in process")
+			-- print(loading_status, data)
+		end
+	end
+
+	
+	
+	-- local value = deserialize({})
 	-- serializedData needs to not be collected early in a tail-call
 	-- so make sure deserialize_value returns before loadLoveFile does
-	return value
+	-- return value
+end, loadLoveFile_async = function(fname, progress_table) 
+	local serializedData, error = love.filesystem.newFileData(fname)
+	assert(serializedData, error)
+	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
+	local loading_coroutine = coroutine.create(function()
+		local value = deserialize({})
+		return value
+	end)
+	while true do
+		local co_status, loading_status, data = coroutine.resume(loading_coroutine)
+		if loading_status == "finished" then
+			print('loading completed')
+			coroutine.yield("finished", data)
+			return data
+		end
+		if loading_status == 'tiles count' and progress_table ~= nil then
+			progress_table.total = data
+			coroutine.yield("in process")
+		end
+	end
 end, loadData = function(data, size)
 	if size == 0 then
 		error('cannot load value from empty data')
@@ -453,18 +928,23 @@ end, registerClass = function(name, class, classkey, deserializer)
 	if not deserializer then
 		if class.__instanceDict then
 			-- assume MiddleClass
+			print("using MiddleClass deserializer for " .. name)
 			deserializer = deserialize_MiddleClass
 		elseif class.__baseclass then
 			-- assume SECL
+			print("using SECL deserializer for " .. name)
 			deserializer = deserialize_SECL
 		elseif class.__index == class then
 			-- assume hump.class
+			print("using humpclass deserializer for " .. name)
 			deserializer = deserialize_humpclass
 		elseif class.__name__ then
 			-- assume Slither
+			print("using Slither deserializer for " .. name)
 			deserializer = deserialize_Slither
 		elseif class.__base then
 			-- assume Moonscript class
+			print("using Moonscript deserializer for " .. name)
 			deserializer = deserialize_Moonscript
 		else
 			error("no deserializer given for unsupported class library")

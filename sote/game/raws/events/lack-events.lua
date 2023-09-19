@@ -19,19 +19,19 @@ Clearly the scarcity of water has become so severe that a little old lady now fe
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = true,
 		base_probability = 1 / 14,
-		trigger = function(self, realm)
+		trigger = function(self, root)
 			---@type Realm
-			local realm = realm
+			local realm = root.province.realm
 			return (realm.capitol.local_production[water] or 0) < 0.5 * (realm.capitol.local_consumption[water] or 0)
 		end,
-		on_trigger = function(self, realm)
+		on_trigger = function(self, root)
 			---@type Realm
-			local realm = realm
-			WORLD:emit_event(self, realm, {})
+			local realm = root.province.realm
+			WORLD:emit_event(self.name, root, {})
 		end,
-		options = function(self, realm, associated_data)
+		options = function(self, root, associated_data)
 			---@type Realm
-			local realm = realm
+			local realm = root.province.realm
 			return {
 				{
 					text = "You rude wench! I am aware of the issue and I'm making every effort to fix it. Shouting at me won't help anybody. I will take no special action at this moment.",

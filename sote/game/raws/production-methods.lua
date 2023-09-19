@@ -6,6 +6,7 @@
 ---@field g number
 ---@field b number
 ---@field jobs table<Job, number>
+---@field job_weight number
 ---@field total_jobs fun(self:ProductionMethod):number
 ---@field inputs table<TradeGood, number>
 ---@field outputs table<TradeGood, number>
@@ -28,7 +29,7 @@
 ---@field clay_extreme_max number
 ---@field get_efficiency fun(self:ProductionMethod, tile:Tile):number Returns a fraction describing efficiency on a given tile (used for crops and gathering and such)
 
----@type ProductionMethod
+---@class ProductionMethod
 local ProductionMethod = {}
 ProductionMethod.__index = ProductionMethod
 ---Creates a new production method
@@ -72,12 +73,12 @@ function ProductionMethod:new(o)
 		r[k] = v
 	end
 	setmetatable(r, ProductionMethod)
-	if WORLD.production_methods_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.production_methods_by_name[r.name] ~= nil then
 		local msg = "Failed to load a production method (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.production_methods_by_name[r.name] = r
+	RAWS_MANAGER.production_methods_by_name[r.name] = r
 	return r
 end
 

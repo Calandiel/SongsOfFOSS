@@ -4,19 +4,51 @@ local rel = require "game.entities.religion"
 local pop = require "game.entities.pop"
 local tabb = require "engine.table"
 
+local TRAIT = require "game.raws.traits.generic"
+
 local st = {}
 
 local function generate_test_army(x, race, faith, culture, capitol)
 	local warband = require "game.entities.warband":new()
 	for i = 1, x do
 		local army_pop = require "game.entities.pop".POP:new(race, faith, culture, true, 20)
-		local unit_type = WORLD.unit_types_by_name['raiders']
+		local unit_type = RAWS_MANAGER.unit_types_by_name['raiders']
 		warband.pops[army_pop] = capitol
 		warband.units[army_pop] = unit_type
 	end
 	local army = require "game.entities.army":new()
 	army.warbands[warband] = warband
 	return army
+end
+
+
+local function make_new_noble(race, faith, culture)
+	local contender = pop.POP:new(race, faith, culture,
+	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
+	love.math.random(race.adult_age, race.max_age))
+	contender.popularity = contender.age / 15
+
+	if love.math.random() > 0.7 then
+		contender.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
+	end
+
+	if love.math.random() > 0.7 then
+		contender.traits[TRAIT.GREEDY] = TRAIT.GREEDY
+	end
+
+	if love.math.random() > 0.7 then
+		contender.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
+	end
+
+	if love.math.random() > 0.7 and not contender.traits[TRAIT.AMBITIOUS] then
+		contender.traits[TRAIT.LOYAL] = TRAIT.LOYAL
+	end
+
+	if love.math.random() > 0.7 and not contender.traits[TRAIT.AMBITIOUS] then
+		contender.traits[TRAIT.CONTENT] = TRAIT.CONTENT
+	end
+
+	return contender
 end
 
 ---Makes a new realm, one province large.
@@ -64,22 +96,22 @@ local function make_new_realm(capitol, race, culture, faith)
 		capitol:add_pop(p)
 	end
 
-	local elite_character = pop.POP:new(race, faith, culture, 
-	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-	love.math.random(race.adult_age, race.max_age))
-
+	-- spawn leader
+	local elite_character = make_new_noble(race, faith, culture)
 	elite_character.popularity = elite_character.age / 10
 	capitol:add_character(elite_character)
 	r.leader = elite_character
 
-	local contender = pop.POP:new(race, faith, culture,
-	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-	love.math.random(race.adult_age, race.max_age))
-	contender.popularity = contender.age / 15
-	capitol:add_character(contender)
 
+	-- spawn nobles
+	for i = 1, pop_to_spawn / 4 do
+		local contender = make_new_noble(race, faith, culture)
+		capitol:add_character(contender)
+	end
+
+	-- set up capitol
 	capitol.name = culture.language:get_random_province_name()
-	capitol:research(WORLD.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
+	capitol:research(RAWS_MANAGER.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
 
 
 	-- print("test battle")
@@ -100,15 +132,21 @@ function ProvinceCheck(race, province)
 	if not province.center.is_land then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
+	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
+	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
+	if race.minimum_absolute_temperature > ja_r then return false end
+
 	return true
 end
 
 ---Spawns initial tribes and initializes their data (such as characters, cultures, religions, races, etc)
 function st.run()
+	love.math.setRandomSeed(1)
+	---@type Queue<Province>
 	local queue = require "engine.queue":new()
-	local civs = 500 / tabb.size(WORLD.races_by_name) -- one per race...
+	local civs = 500 / tabb.size(RAWS_MANAGER.races_by_name) -- one per race...
 	for _ = 1, civs do
-		for _, r in pairs(WORLD.races_by_name) do
+		for _, r in pairs(RAWS_MANAGER.races_by_name) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile().province
 			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile().province end
@@ -119,8 +157,8 @@ function st.run()
 
 			local max_unit_weight = 0
 			local weights = {}
-			for _, unit in pairs(WORLD.unit_types_by_name) do
-				if unit.unlocked_by == WORLD.technologies_by_name['paleolithic-knowledge'] then
+			for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
+				if unit.unlocked_by == RAWS_MANAGER.technologies_by_name['paleolithic-knowledge'] then
 					local v = love.math.random()
 					max_unit_weight = max_unit_weight + v
 					weights[unit] = v

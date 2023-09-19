@@ -22,8 +22,8 @@ end
 
 ---@type TreasuryDisplayEffect[]
 CURRENT_EFFECTS = {}
-MAX_TREASURY_TIMER = 2.0
-MIN_DELAY = 0.5
+MAX_TREASURY_TIMER = 4.0
+MIN_DELAY = 0.3
 
 
 function HANDLE_EFFECTS()
@@ -57,7 +57,7 @@ function DRAW_EFFECTS(parent_rect)
 			end
 
 			new_rect.x = parent_rect.x
-			new_rect.y = parent_rect.y + uit.BASE_HEIGHT * (1 + 2 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
+			new_rect.y = parent_rect.y + 2 * uit.BASE_HEIGHT * (1 + 4 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
 			ui.right_text(uit.to_fixed_point2(effect.amount) .. MONEY_SYMBOL, new_rect)
 
 			new_rect.x = parent_rect.x - parent_rect.width
@@ -86,7 +86,7 @@ end
 ---@param gam table
 function tb.draw(gam)
 	if WORLD.player_realm ~= nil then
-		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT)
+		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
 		ui.panel(tr)
 
 		if ui.trigger(tr) then
@@ -103,22 +103,30 @@ function tb.draw(gam)
 			:build()
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		if ui.text_button(WORLD.player_character.name .. "(You)", name_rect) then
+		if ui.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
 			gam.selected_character = WORLD.player_character
 			gam.inspector = "character"
 		end
 
+		local rect = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
+		if ui.text_button("", rect) then
+			gam.inspector = "treasury-ledger"
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Character'
+		end
+
 		uit.money_entry_icon(
 			WORLD.player_character.savings,
-			layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT),
-			"Your personal savings")
+			rect,
+			"My personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+
+		
 
 		uit.data_entry_icon(
 			'duality-mask.png',
 			uit.to_fixed_point2(WORLD.player_character.popularity),
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
-			"Your popularity")
+			"My popularity")
 
 
 		-- COA + name
@@ -138,15 +146,22 @@ function tb.draw(gam)
 
 		-- Treasury
 		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
+
+		if ui.text_button("", trt) then
+			gam.inspector = "treasury-ledger"
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Realm'
+		end
+
 		uit.money_entry_icon(
 			WORLD.player_realm.treasury,
 			trt,
-			"Treasury")
+			"Realm treasury")
+
 		HANDLE_EFFECTS()
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = WORLD.player_realm.resources[WORLD.trade_goods_by_name['food']] or 0
+		local amount = WORLD.player_realm.resources[RAWS_MANAGER.trade_goods_by_name['food']] or 0
 		uit.data_entry_icon(
 			'noodles.png',
 			uit.to_fixed_point2(amount),

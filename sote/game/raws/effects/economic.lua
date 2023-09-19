@@ -13,7 +13,8 @@ EconomicEffects.reasons = {
     Exploration = "exploration",
     Upkeep = "upkeep",
     NewMonth = "new month",
-    RewardFlag = "reward flag"
+    RewardFlag = "reward flag",
+    LoyaltyGift = "loyalty gift"
 }
 
 ---Change realm treasury and display effects to player

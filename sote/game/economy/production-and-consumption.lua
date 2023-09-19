@@ -31,7 +31,7 @@ function pro.run(province)
 
 	-- Record "innate" production of goods and services.
 	-- These resources come
-	record_production(WORLD.trade_goods_by_name['water'], province.hydration)
+	record_production(RAWS_MANAGER.trade_goods_by_name['water'], province.hydration)
 
 	local inf = province:get_infrastructure_efficiency()
 	local efficiency_from_infrastructure = math.min(1.15, 0.5 + 0.5 * math.sqrt(2 * inf))
@@ -92,7 +92,7 @@ function pro.run(province)
 				if pop.age > pop.race.teen_age then
 					foragers_count = foragers_count + 1 -- Record a new forager!
 					-- Foragers produce food:
-					local food = WORLD.trade_goods_by_name['food']
+					local food = RAWS_MANAGER.trade_goods_by_name['food']
 					local food_produced = math.min(0.9, foraging_efficiency)
 					local income = food_produced * province.realm:get_pessimistic_price(food, food_produced)
 					if income > 0 then
@@ -117,18 +117,18 @@ function pro.run(province)
 			clothing = pop.race.female_clothing_needs
 		end
 
-		record_consumption(WORLD.trade_goods_by_name['food'], food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
-		record_consumption(WORLD.trade_goods_by_name['water'], water * age_multiplier)
-		record_consumption(WORLD.trade_goods_by_name['healthcare'], 0.2 * age_multiplier)
-		record_consumption(WORLD.trade_goods_by_name['amenities'], age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['food'], food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['water'], water * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['healthcare'], 0.2 * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['amenities'], age_multiplier)
 
-		record_consumption(WORLD.trade_goods_by_name['clothes'], clothing * age_multiplier)
-		record_consumption(WORLD.trade_goods_by_name['furniture'], 0.1 * age_multiplier)
-		record_consumption(WORLD.trade_goods_by_name['liquors'], 0.2 * age_multiplier)
-		record_consumption(WORLD.trade_goods_by_name['containers'], 0.25 * age_multiplier)
-		record_consumption(WORLD.trade_goods_by_name['tools'], 0.0125 * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['clothes'], clothing * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['furniture'], 0.1 * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['liquors'], 0.2 * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['containers'], 0.25 * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['tools'], 0.0125 * age_multiplier)
 
-		record_consumption(WORLD.trade_goods_by_name['meat'], 0.25 * age_multiplier)
+		record_consumption(RAWS_MANAGER.trade_goods_by_name['meat'], 0.25 * age_multiplier)
 	end
 
 	--- DISTRIBUTION OF DONATIONS

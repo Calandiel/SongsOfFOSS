@@ -52,7 +52,7 @@ local ll_utils = require "game.latlon"
 ---@field resource Resource?
 ---@field tile_improvement Building?
 
----@type Tile
+---@class Tile
 tile.Tile = {}
 tile.Tile.__index = tile.Tile
 function tile.Tile:new(tile_id)

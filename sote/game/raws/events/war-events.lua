@@ -7,9 +7,9 @@ local function load()
 	Event:new {
 		name = "war-declaration",
 		automatic = false,
-		on_trigger = function(self, realm, associated_data)
+		on_trigger = function(self, root, associated_data)
 			---@type Realm
-			local realm = realm
+			local realm = root.province.realm
 			---@type Realm
 			local agg = associated_data.aggresor
 			if WORLD:does_player_see_realm_news(realm) then

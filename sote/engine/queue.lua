@@ -1,14 +1,5 @@
----@class Queue
----@field data table
----@field first integer
----@field last integer
----@field new fun():Queue
----@field enqueue fun(self: Queue, element: any)
----@field enqueue_front fun(self: Queue, element: any)
----@field dequeue fun():any
----@field length fun():integer
----@field peek fun():any
----@field clear fun()
+---@generic T
+---@class Queue<T> : {(new: fun():Queue<T>), data:table<number,T>, first:integer, last:integer, enqueue:fun(self:Queue, element:T), enqueue_front:fun(self:Queue, element:T), (length:fun(self:Queue):integer), clear:fun(self), (dequeue:fun(self:Queue):T), (peek:fun(self:Queue):T)}
 
 local Queue = {}
 Queue.__index = Queue
@@ -35,8 +26,8 @@ end
 ---Enqueues an element IN FRONT of the queue
 function Queue:enqueue_front(element)
 	if self:length() > 0 then
-		self.first = self.first - 1
 		self.data[self.first] = element
+		self.first = self.first - 1
 	else
 		self:enqueue(element)
 	end
@@ -69,5 +60,6 @@ function Queue:clear()
 		self.data[k] = nil
 	end
 end
+
 
 return Queue

@@ -10,7 +10,7 @@ local scroll = 0
 ---Renders the decision widget
 ---@param rect Rect
 ---@param root any
----@param decision DecisionCharacter|DecisionRealm
+---@param decision DecisionCharacter|DecisionRealm?
 ---@param target_primary any
 ---@param target_secondary any
 ---@return DecisionWidgetResponse

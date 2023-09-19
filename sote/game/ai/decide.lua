@@ -5,7 +5,7 @@ local de = {}
 function de.run(realm)
 	-- 1. Loop through all realms (on the call site of this function!)
 	-- 2. Loop through all decisions
-	for _, decision in pairs(WORLD.decisions_by_name) do
+	for _, decision in pairs(RAWS_MANAGER.decisions_by_name) do
 		---@type DecisionRealm
 		local d = decision
 		-- 3. Check base probability (AI only) << base_probability >>
@@ -59,7 +59,7 @@ end
 function de.run_character(character)
 	-- 1. Loop through all characters (on the call site of this function!)
 	-- 2. Loop through all decisions
-	for _, decision in pairs(WORLD.decisions_characters_by_name) do
+	for _, decision in pairs(RAWS_MANAGER.decisions_characters_by_name) do
 		---@type DecisionCharacter
 		local d = decision
 		-- 3. Check base probability (AI only) << base_probability >>

@@ -4,6 +4,8 @@ local world = require "game.entities.world"
 local plate = require "game.entities.plate"
 local color = require "game.color"
 
+WORLD_PROGRESS = {total = 0, max = 0, is_loading = false}
+
 local loader_error = nil -- write this in coroutines to transmit the error out of coroutines scope...
 ---
 function wl.init()
@@ -295,10 +297,10 @@ function wl.load_default()
 	for _, tile in pairs(WORLD.tiles) do
 		local r, g, b = read_pixel(tile, rocks)
 		local id = color_utils.rgb_to_id(r, g, b)
-		if WORLD.bedrocks_by_color[id] ~= nil then
-			tile.bedrock = WORLD.bedrocks_by_color[id]
+		if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
+			tile.bedrock = RAWS_MANAGER.bedrocks_by_color[id]
 		else
-			tile.bedrock = WORLD.bedrocks_by_name['limestone']
+			tile.bedrock = RAWS_MANAGER.bedrocks_by_name['limestone']
 		end
 	end
 	coroutine.yield()
@@ -471,11 +473,14 @@ function wl.load_save()
 	coroutine.yield()
 	world.empty()
 
+	print('loading raws')
+	require "game.raws.raws" ()
+
 	print("Loading: " .. tostring(DEFINES.world_to_load))
 	loader_error = "World file: " .. tostring(DEFINES.world_to_load) .. " does not exist!"
-	local bs = require "engine.bitser"
-	---@type World|nil
-	WORLD = bs.loadLoveFile(DEFINES.world_to_load)
+
+	require "game.scenes.bitser-world-loading"()
+	
 	if WORLD == nil then
 		return nil
 	else

@@ -5,7 +5,10 @@ local decide = require "game.ai.decide"
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
----@alias ActionData { [1]: Event, [2]: Realm, [3]: table, [4]: number}
+---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
+---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
+---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
+---@alias Notification string
 
 ---@class World
 ---@field player_realm Realm?
@@ -32,41 +35,23 @@ local utils       = require "game.ui-utils"
 ---@field entity_counter number -- a global counter for entities...
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
----@field emit_event fun(self:World, event:Event, target:Realm, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:Event, origin: Realm, target:Realm, associated_data:table|nil, delay: number, hidden: boolean)
----@field emit_immediate_event fun(self:World, event:Event, target:Realm, associated_data:table|nil)
----@field notification_queue Queue
----@field events_queue Queue
----@field deferred_events_queue Queue
----@field deferred_actions_queue Queue
+---@field emit_event fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number|nil)
+---@field emit_action fun(self:World, event:string, root:Character, target:Character, associated_data:table|nil, delay: number, hidden: boolean)
+---@field emit_immediate_event fun(self:World, event:string, target:Realm, associated_data:table|nil)
+---@field notification_queue Queue<Notification>
+---@field events_queue Queue<InstantEvent>
+---@field deferred_events_queue Queue<ScheduledEvent>
+---@field deferred_actions_queue Queue<ActionData>
 ---@field player_deferred_actions table<ActionData, ActionData>
----@field treasury_effects Queue
----@field old_treasury_effects Queue
+---@field treasury_effects Queue<TreasuryEffectRecord>
+---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
 ---@field does_player_control_realm fun(self:World, realm:Realm?):boolean
 ---@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
---- RAWS
----@field biomes_by_name table<string, Biome>
----@field biomes_load_order table<number, Biome>
----@field bedrocks_by_name table<string, Bedrock>
----@field bedrocks_by_color table<number, Bedrock>
----@field biogeographic_realms_by_name table<string, BiogeographicRealm>
----@field biogeographic_realms_by_color table<number, BiogeographicRealm>
----@field races_by_name table<string, Race>
----@field building_types_by_name table<string, BuildingType>
----@field trade_goods_by_name table<string, TradeGood>
----@field jobs_by_name table<string, Job>
----@field technologies_by_name table<string, Technology>
----@field production_methods_by_name table<string, ProductionMethod>
----@field resources_by_name table<string, Resource>
----@field decisions_by_name table<string, DecisionRealm>
----@field decisions_characters_by_name table<string, DecisionCharacter>
----@field events_by_name table<string, Event>
----@field unit_types_by_name table<string, UnitType>
 ---@field base_visibility fun(self:World, size: number):number
 
----@type World
+---@class World
 world.World = {}
 world.World.__index = world.World
 
@@ -123,30 +108,12 @@ function world.World:new()
 	for _, tile in pairs(w.tiles) do
 		ut.set_climate_cell(tile)
 	end
-
-	w.building_types_by_name = {}
-	w.biomes_by_name = {}
-	w.biomes_load_order = {}
-	w.bedrocks_by_name = {}
-	w.bedrocks_by_color = {}
-	w.biogeographic_realms_by_name = {}
-	w.biogeographic_realms_by_color = {}
-	w.races_by_name = {}
-	w.trade_goods_by_name = {}
-	w.jobs_by_name = {}
-	w.technologies_by_name = {}
-	w.production_methods_by_name = {}
-	w.resources_by_name = {}
-	w.decisions_by_name = {}
-	w.decisions_characters_by_name = {}
-	w.events_by_name = {}
-	w.unit_types_by_name = {}
 	setmetatable(w, self)
 	return w
 end
 
 function world.World:base_visibility(size)
-	return self.races_by_name['human'].visibility * WORLD.unit_types_by_name["raiders"].visibility * size
+	return RAWS_MANAGER.races_by_name['human'].visibility * RAWS_MANAGER.unit_types_by_name["raiders"].visibility * size
 end
 
 ---Returns number of tiles in the world
@@ -188,70 +155,90 @@ end
 ---Given a file, loads the world and assigns it to the WORLD global
 ---@param file any
 function world.load(file)
+	WORLD_PROGRESS.total = 0
+	WORLD_PROGRESS.max = 6 * DEFINES.world_size * DEFINES.world_size
+	WORLD_PROGRESS.is_loading = true
+
 	local bs = require "engine.bitser"
 	---@type World|nil
-	WORLD = bs.loadLoveFile(file)
+	WORLD = bs.loadLoveFile(file, WORLD_PROGRESS)
+
+	WORLD_PROGRESS.is_loading = false
 end
 
+
+
+
+
 ---Schedules an event
----@param event Event
----@param target_realm Realm
+---@param event string
+---@param root Character
 ---@param associated_data table
 ---@param delay number|nil In days
-function world.World:emit_event(event, target_realm, associated_data, delay)
+function world.World:emit_event(event, root, associated_data, delay)
 	if delay then
 		self.deferred_events_queue:enqueue({
-			event, target_realm, associated_data, delay
+			event, root, associated_data, delay
 		})
 	else
 		self.events_queue:enqueue({
-			event, target_realm, associated_data
+			event, root, associated_data
 		})
 	end
 end
 
 ---Schedules an event immediately
----@param event Event
----@param target_realm Realm
+---@param event string
+---@param root Character
 ---@param associated_data table
-function world.World:emit_immediate_event(event, target_realm, associated_data)
+function world.World:emit_immediate_event(event, root, associated_data)
 	self.events_queue:enqueue_front({
-		event, target_realm, associated_data
+		event, root, associated_data
 	})
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
----@param event Event
----@param origin Realm
----@param target_realm Realm
+---@param event string
+---@param root Character
+---@param target Character
 ---@param associated_data table
 ---@param delay number In days
 ---@param hidden boolean
-function world.World:emit_action(event, origin, target_realm, associated_data, delay, hidden)
+function world.World:emit_action(event, root, target, associated_data, delay, hidden)
+	---@type ActionData
 	local action_data = {
 		event,
-		target_realm, 
+		target, 
 		associated_data, 
 		delay
 	}
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD:does_player_see_realm_news(origin) and not hidden then
+	if WORLD:does_player_see_realm_news(root.province.realm) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end	
 end
 
+
+---Handles events
+---@param event string
+---@param target_realm POP
+---@param associated_data any
 local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
 	-- First, find the best option
-	local opts = event:options(target_realm, associated_data)
+	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
-	local best_am = 0
+	local best_am = nil
 	for _, o in pairs(opts) do
 		---@type EventOption
 		local oo = o
 		if oo.viable() then
 			local pre = oo.ai_preference()
-			if pre > best_am then
+			
+			-- print(oo.text)
+			-- print(oo.ai_preference())
+
+			if (best_am == nil) or (pre > best_am) then
 				best_am = pre
 				best = oo
 			end
@@ -267,22 +254,22 @@ function world.World:tick()
 	WORLD.pending_player_event_reaction = false
 	local counter = 0
 	while WORLD.events_queue:length() > 0 do
+		-- print('event queue pop')
 		counter = counter + 1
 		-- Read the event data to check it
 		local ev = WORLD.events_queue:peek()
-		---@type Event
 		local eve = ev[1]
-		---@type Realm
-		local rea = ev[2]
+		local root = ev[2]
 		local dat = ev[3]
 
-		if WORLD:does_player_control_realm(rea) then
+		if WORLD.player_character == root then
 			-- This is a player event!
+			-- print("player event")
 			WORLD.pending_player_event_reaction = true
 			return
 		else
 			WORLD.events_queue:dequeue()
-			handle_event(eve, rea, dat)
+			handle_event(eve, root, dat)
 		end
 
 		--if counter > 10000 then
@@ -305,13 +292,13 @@ function world.World:tick()
 			-- events
 			local l = WORLD.deferred_events_queue:length()
 			for i = 1, l do
-				--print("def. event" .. tostring(i))
+				-- print("def. event" .. tostring(i))
 				local check = WORLD.deferred_events_queue:dequeue()
 				check[4] = check[4] - 1
 				if check[4] <= 0 then
 					-- Reemit the event as a "real" even!
 					WORLD:emit_event(check[1], check[2], check[3])
-					--print("ontrig")
+					-- print("ontrig")
 				else
 					WORLD.deferred_events_queue:enqueue(check)
 				end
@@ -324,8 +311,7 @@ function world.World:tick()
 				local check = WORLD.deferred_actions_queue:dequeue()
 				check[4] = check[4] - 1
 				if check[4] <= 0 then
-					---@type Event
-					local event = check[1]
+					local event = RAWS_MANAGER.events_by_name[check[1]]
 					event:on_trigger(check[2], check[3])
 					--print("ontrig")
 					self.player_deferred_actions[check] = nil
@@ -394,6 +380,7 @@ function world.World:tick()
 							military.run(realm)
 						else
 							self:emit_treasury_change_effect(0, "new month")
+							self:emit_treasury_change_effect(0, "new month", true)
 						end
 						--print("Construct")
 						construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
@@ -406,16 +393,6 @@ function world.World:tick()
 						-- Handle events!
 						--print("Event handling")
 						events.run(realm)
-
-
-						-- assign warbands to patrols
-						for _, province in pairs(realm.provinces) do
-							for _, warband in pairs(province.warbands) do
-								if (warband.status == "idle") and (love.math.random() > 0.5) and (warband:size() > 0) then
-									realm:add_patrol(province, warband)
-								end
-							end
-						end
 
 						-- launch patrols
 						for _, target in pairs(realm.provinces) do
@@ -431,17 +408,6 @@ function world.World:tick()
 								MilitaryEffects.patrol(realm, target)
 							end
 						end
-
-						-- assign raiders to targets
-						for _, province in pairs(realm.provinces) do
-							for _, warband in pairs(province.warbands) do
-								if warband.status == "idle" and warband:size() > 0 then
-									local target = realm:roll_reward_flag()
-									realm:add_raider(target, warband)
-								end
-							end
-						end
-
 						-- launch raids
 						for _, target in pairs(realm.reward_flags) do
 							local warbands = realm.raiders_preparing[target]
@@ -509,6 +475,14 @@ function world.World:emit_notification(notification)
 	self.notification_queue:enqueue(date .. ':  ' .. notification)
 end
 
+---@class TreasuryEffectRecord
+---@field amount number
+---@field reason EconomicReason
+---@field day number
+---@field month number
+---@field year number
+---@field character_flag boolean
+
 ---Emits a treasury change to player
 ---@param amount number
 ---@param reason EconomicReason
@@ -517,7 +491,9 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 	if character_flag == nil then
 		character_flag = false
 	end
-	self.treasury_effects:enqueue({amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag})
+	---@type TreasuryEffectRecord
+	local effect = {amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag}
+	self.treasury_effects:enqueue(effect)
 end
 
 function world.World:does_player_control_realm(realm)

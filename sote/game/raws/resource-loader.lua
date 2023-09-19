@@ -72,6 +72,15 @@ function d.load()
 		base_frequency = 5000
 	}
 	Resource:new {
+		name = 'stone',
+		icon = 'stone-block.png',
+		description = 'copper',
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
+		base_frequency = 20000
+	}
+	Resource:new {
 		name = 'gems',
 		icon = 'gems.png',
 		r = 0.31,

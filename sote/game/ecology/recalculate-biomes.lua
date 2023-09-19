@@ -9,7 +9,7 @@ function re.run()
 		end
 		slopeiness = slopeiness / 4
 
-		for _, b in pairs(WORLD.biomes_load_order) do
+		for _, b in pairs(RAWS_MANAGER.biomes_load_order) do
 			if slopeiness < b.minimum_slope or slopeiness > b.maximum_slope then
 				goto continue
 			end

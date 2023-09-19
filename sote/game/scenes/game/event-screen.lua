@@ -11,18 +11,17 @@ function ev.draw(gam)
 	if WORLD.pending_player_event_reaction then
 		local peek = WORLD.events_queue:peek()
 
-		---@type Event
-		local eve = peek[1]
-		---@type Realm
-		local rea = peek[2]
+		local event_string = peek[1]
+		local character = peek[2]
 		local dat = peek[3]
 
-		if WORLD:does_player_control_realm(WORLD.player_realm) then
+		if WORLD.player_character == character then
 			local fs = ui.fullscreen()
-			local opts = eve:options(rea, dat)
+			local event = RAWS_MANAGER.events_by_name[event_string]
+			local opts = event:options(character, dat)
 
-			if eve.event_background_path ~= loaded_image_name then
-				loaded_image_name = eve.event_background_path
+			if event.event_background_path ~= loaded_image_name then
+				loaded_image_name = event.event_background_path
 				loaded_image = love.graphics.newImage(loaded_image_name)
 			end
 
@@ -35,7 +34,7 @@ function ev.draw(gam)
 			top:shrink(5)
 			ui.panel(top)
 			top:shrink(5)
-			ui.text(eve:event_text(rea, dat), top, "left", 'up')
+			ui.text(event:event_text(character, dat), top, "left", 'up')
 
 			local bot = left:copy()
 			bot.height = bot.height / 2
@@ -44,7 +43,6 @@ function ev.draw(gam)
 			gam.event_scrollbar = gam.event_scrollbar or 0
 			gam.event_scrollbar = ui.scrollview(bot, function(i, rect)
 				if i > 0 then
-					---@type EventOption
 					local opt = opts[i]
 					if ui.text_button(opt.text, rect, opt.tooltip) then
 						opt.outcome()

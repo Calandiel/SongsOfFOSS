@@ -10,6 +10,7 @@ local prov = {}
 ---@field r number
 ---@field g number
 ---@field b number
+---@field is_land boolean
 ---@field province_id number
 ---@field new fun(self:Province):Province
 ---@field add_tile fun(self: Province, tile: Tile)
@@ -66,6 +67,8 @@ local prov = {}
 ---@field units_target table<UnitType, number> Units to recruit
 ---@field warbands table<Warband, Warband>
 ---@field vacant_warbands fun(self: Province): Warband[]
+---@field new_warband fun(self: Province): Warband
+---@field num_of_warbands fun(self: Province): number
 ---@field get_spotting fun(self:Province):number Returns the local "spotting" power
 ---@field get_hiding fun(self:Province):number Returns the local "hiding" space
 ---@field spot_chance fun(self:Province, visibility: number): number Returns a chance to spot an army with given visibility.
@@ -82,7 +85,7 @@ local prov = {}
 
 local col = require "game.color"
 
----@type Province
+---@class Province
 prov.Province = {}
 prov.Province.__index = prov.Province
 ---Returns a new province. Remember to assign 'center' tile!
@@ -501,6 +504,18 @@ function prov.Province:recruit(pop, unit_type)
 		return
 	end
 
+	-- find a good warband
+	local vacant_warbands = self:vacant_warbands()
+	local warband = nil
+	if tabb.size(vacant_warbands) == 0 then
+		return
+		-- warband = self:new_warband()
+		-- warband.name = pop.culture.language:get_random_name()
+	else
+		warband = vacant_warbands[tabb.random_select_from_set(vacant_warbands)]
+	end
+
+	-- clean pop and set his unit type
 	self:fire_pop(pop)
 	self:unregister_military_pop(pop)
 	pop.drafted = true
@@ -510,16 +525,7 @@ function prov.Province:recruit(pop, unit_type)
 	self.units[unit_type][pop] = pop
 	self.soldiers[pop] = unit_type
 
-	-- assign pop to random warband
-	local vacant_warbands = self:vacant_warbands()
-	local warband = nil
-	if tabb.size(vacant_warbands) == 0 then
-		warband = self:new_warband()
-		warband.name = pop.culture.language:get_random_name()
-	else
-		warband = vacant_warbands[tabb.random_select_from_set(vacant_warbands)]
-	end
-
+	-- set warband
 	warband.pops[pop] = self
 	warband.units[pop] = unit_type
 end

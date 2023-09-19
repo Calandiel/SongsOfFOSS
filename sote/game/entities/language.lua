@@ -34,7 +34,7 @@ local endings_realm = {
 ---@field get_random_province_name fun(self:Language):string
 ---@field get_random_name fun(self:Language):string
 
----@type Language
+---@class Language
 lang.Language = {}
 lang.Language.__index = lang.Language
 ---Returns a new language

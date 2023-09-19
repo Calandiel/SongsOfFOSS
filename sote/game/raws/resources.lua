@@ -17,7 +17,7 @@
 ---@field maximum_elevation number
 ---@field ice_age boolean requires presence of ice age ice
 
----@type Resource
+---@class Resource
 local Resource = {}
 Resource.__index = Resource
 ---Creates a new resource
@@ -50,12 +50,12 @@ function Resource:new(o)
 		r[k] = v
 	end
 	setmetatable(r, Resource)
-	if WORLD.resources_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.resources_by_name[r.name] ~= nil then
 		local msg = "Failed to load a resource (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.resources_by_name[r.name] = r
+	RAWS_MANAGER.resources_by_name[r.name] = r
 	return r
 end
 

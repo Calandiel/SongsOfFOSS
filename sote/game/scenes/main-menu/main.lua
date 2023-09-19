@@ -24,7 +24,7 @@ function mm.draw()
 		"New game",
 		layout:next(menu_button_width, menu_button_height)
 	) then
-		return "new-game"
+		return "default"
 	end
 	if ui.text_button(
 		"Load game",
@@ -32,12 +32,13 @@ function mm.draw()
 	) then
 		return "load-game"
 	end
-	if ui.text_button(
-		"Default planet",
-		layout:next(menu_button_width, menu_button_height)
-	) then
-		return "default"
-	end
+	-- default world replaces new game now
+	-- if ui.text_button(
+	-- 	"Default planet",
+	-- 	layout:next(menu_button_width, menu_button_height)
+	-- ) then
+	-- 	return "default"
+	-- end
 	if ui.text_button(
 		"Empty planet",
 		layout:next(menu_button_width, menu_button_height)

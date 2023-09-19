@@ -49,6 +49,7 @@ bs.registerClass("Faith", require "game.entities.religion".Faith)
 bs.registerClass("Tile", require "game.entities.tile".Tile)
 bs.registerClass("World", require "game.entities.world".World)
 bs.registerClass("Warband", require "game.entities.warband")
+bs.registerClass('Army', require "game.entities.army")
 
 --[[
 local bs = require "engine.bitser"
@@ -97,6 +98,18 @@ Possible command line arguments:
 		end
 		return ASSETS.icons[ic]
 	end
+
+	-- TEST LOADING/SAVING
+	-- print('test of bitser')
+	-- local test_table = { abc= 123, x= 5}
+	-- local test_table_2 = {abs = 456, y = 6}
+	-- test_table.friend = test_table_2
+	-- test_table_2.friend = test_table
+	-- local friends_table = {test_table, test_table_2}
+
+	-- require "engine.bitser".dumpLoveFile("test", friends_table)
+	-- local result = require "engine.bitser".loadLoveFile("test")
+
 
 	if tab.contains(args, "--dev") or not love.filesystem.getInfo("options.bin") then
 		-- If the options file doesn't exists, or if we're in dev mode, create the options file!

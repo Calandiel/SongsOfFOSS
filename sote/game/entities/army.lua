@@ -36,12 +36,8 @@ end
 ---@return number
 function army:get_loot_capacity()
 	local cap = 0.01
-	for pop, unit in pairs(self:units()) do
-		local c = pop.race.male_body_size
-		if pop.female then
-			c = pop.race.female_body_size
-		end
-		cap = cap + c + unit.supply_capacity / 4
+	for _, warband in pairs(self.warbands) do
+		cap = cap + warband:get_loot_capacity()
 	end
 	return cap
 end

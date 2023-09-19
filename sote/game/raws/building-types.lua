@@ -22,7 +22,7 @@ local tabb = require "engine.table"
 ---@field new fun(self:BuildingType, o:BuildingType):BuildingType
 ---@field get_tooltip fun(self:BuildingType):string
 
----@type BuildingType
+---@class BuildingType
 BuildingType = {}
 BuildingType.__index = BuildingType
 ---Creates a new building
@@ -54,12 +54,12 @@ function BuildingType:new(o)
 		r[k] = v
 	end
 	setmetatable(r, BuildingType)
-	if WORLD.building_types_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.building_types_by_name[r.name] ~= nil then
 		local msg = "Failed to load a building types (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.building_types_by_name[r.name] = r
+	RAWS_MANAGER.building_types_by_name[r.name] = r
 	return r
 end
 

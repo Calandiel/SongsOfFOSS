@@ -5,9 +5,10 @@
 ---@field r number
 ---@field g number
 ---@field b number
+---@field social_class string
 ---@field new fun(self:Job, o:Job):Job
 
----@type Job
+---@class Job
 local Job = {}
 Job.__index = Job
 ---Creates a new job
@@ -29,12 +30,12 @@ function Job:new(o)
 		r[k] = v
 	end
 	setmetatable(r, Job)
-	if WORLD.jobs_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.jobs_by_name[r.name] ~= nil then
 		local msg = "Failed to load a job (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.jobs_by_name[r.name] = r
+	RAWS_MANAGER.jobs_by_name[r.name] = r
 	return r
 end
 

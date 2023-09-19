@@ -63,13 +63,13 @@ function d.load()
 		research_cost = 0.25,
 	}
 	Technology:new {
-		name = 'metal-working',
+		name = 'early-metal-working',
 		icon = 'asteroid.png',
 		description = 'cold working of native metals',
 		r = 1,
 		g = 1,
 		b = 1,
-		unlocked_by = { tec('paleolithic-knowledge') },
+		unlocked_by = { tec('ground-stone-tools') },
 		required_resource = { res("meteoric-iron"), res("native-copper"), res("native-gold") },
 		research_cost = 0.25,
 	}
@@ -121,9 +121,20 @@ function d.load()
 		r = 0.3,
 		g = 0.01,
 		b = 0.8,
-		unlocked_by = { tec('metal-working') },
+		unlocked_by = { tec('early-metal-working') },
 		required_resource = { res('copper'), },
 		research_cost = 1
+	}
+	Technology:new {
+		name = 'dedicated-stonecutters',
+		icon = 'stone-block.png',
+		description = 'cutting stones makes them more useful',
+		r = 0.72,
+		g = 0.94,
+		b = 1,
+		unlocked_by = { tec('ground-stone-tools'), tec('dedicated-woodcutters') },
+		required_resource = { res('stone'), res('gems') },
+		research_cost = 1.2
 	}
 	Technology:new {
 		name = 'gem-cutting',
@@ -132,7 +143,7 @@ function d.load()
 		r = 0.72,
 		g = 0.94,
 		b = 1,
-		unlocked_by = { tec('ground-stone-tools'), tec('metal-working') },
+		unlocked_by = { tec('dedicated-stonecutters'), tec('early-metal-working') },
 		required_resource = { res('gems') },
 		research_cost = 1.2
 	}
@@ -156,6 +167,17 @@ function d.load()
 		g = 0.23,
 		b = 0.23,
 		unlocked_by = { tec('paleolithic-knowledge') },
+		research_cost = 0.3,
+		required_resource = { res('quality-clay') },
+	}
+	Technology:new {
+		name = 'pottery-wheel',
+		icon = 'powder.png',
+		description = 'pottery-wheel',
+		r = 0.23,
+		g = 0.23,
+		b = 0.23,
+		unlocked_by = { tec('pottery'), tec('dedicated-woodcutters')},
 		research_cost = 0.3,
 		required_resource = { res('quality-clay') },
 	}

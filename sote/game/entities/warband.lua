@@ -1,6 +1,12 @@
 ---@alias WarbandStatus 'idle' | 'raiding' | 'preparing_raid' | 'preparing_patrol' | 'patrol'
 
 ---@class Warband
+---@field name string
+---@field treasury number
+---@field leader Character?
+---@field pops table<POP, Province> A table mapping pops to their home provinces.
+---@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
+---@field status WarbandStatus
 local warband = {
     name = "Warband",  ---@type string
     treasury = 0, ---@type number
@@ -27,6 +33,25 @@ function warband:new()
 	return o
 end
 
+function warband:get_loot_capacity()
+	local cap = 0.01
+	for pop, unit in pairs(self.units) do
+		local c = pop.race.male_body_size
+		if pop.female then
+			c = pop.race.female_body_size
+		end
+		cap = cap + c + unit.supply_capacity / 4
+	end
+	if self.leader ~= nil then
+		if self.leader.female then
+			cap = cap + self.leader.race.female_body_size
+		else 
+			cap = cap + self.leader.race.male_body_size
+		end
+	end
+	return cap
+end
+
 function warband:spotting()
 	local result = 0
 	for p, pr in pairs(self.pops) do
@@ -46,7 +71,18 @@ end
 
 function warband:size()
     local tabb = require "engine.table"
-    return tabb.size(self.pops)
+
+	local size = tabb.size(self.pops)
+	if self.leader ~= nil then
+		size = size + 1
+	end
+    return size
+end
+
+function warband:pop_size()
+	local tabb = require "engine.table"
+	local size = tabb.size(self.pops)
+    return size
 end
 
 function warband:decimate()

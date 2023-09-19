@@ -98,12 +98,12 @@ function Biome:new(o)
 	end
 	setmetatable(r, Biome)
 
-	if WORLD.biomes_by_name[r.name] ~= nil then
+	if RAWS_MANAGER.biomes_by_name[r.name] ~= nil then
 		local msg = "Failed to load a biome (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	WORLD.biomes_by_name[r.name] = r
+	RAWS_MANAGER.biomes_by_name[r.name] = r
 
 	return r
 end

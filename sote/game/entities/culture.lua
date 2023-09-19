@@ -6,6 +6,7 @@ local cl = {}
 ---@field g number
 ---@field b number
 ---@field language Language
+---@field view_on_treason number
 ---@field new fun(self:CultureGroup):CultureGroup
 
 ---@class Culture
@@ -19,7 +20,7 @@ local cl = {}
 ---@field traditional_units table<UnitType, number> -- Defines "traditional" ratios for units recruited from this culture.
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
 
----@type CultureGroup
+---@class CultureGroup
 cl.CultureGroup = {}
 cl.CultureGroup.__index = cl.CultureGroup
 ---@return CultureGroup
@@ -33,11 +34,13 @@ function cl.CultureGroup:new()
 	o.language = require "game.entities.language".random()
 	o.name = o.language:get_random_culture_name()
 
+	o.view_on_treason = love.math.random(-20, 0)
+
 	setmetatable(o, cl.CultureGroup)
 	return o
 end
 
----@type Culture
+---@class Culture
 cl.Culture = {}
 cl.Culture.__index = cl.Culture
 ---@param group CultureGroup

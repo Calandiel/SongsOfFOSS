@@ -28,7 +28,7 @@ function mm.draw()
 		---@diagnostic disable-next-line: undefined-global
 		DEFINES = require "game.defines".init()
 		DEFINES.world_gen = false
-		DEFINES.world_to_load = "cache.binbeaver"
+		DEFINES.world_to_load = "quicksave.binbeaver"
 		return "generating"
 	end
 	if ui.text_button(

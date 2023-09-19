@@ -316,11 +316,16 @@ end
 ---@param current_tab string the currently selected tab
 ---@param layout Layout A layout for placing tabs
 ---@param tabs table<number, Tab> a table with tabs
+---@param scale number
+---@param width_tab_header number?
 ---@return string new_tab
-function ut.tabs(current_tab, layout, tabs, scale)
+function ut.tabs(current_tab, layout, tabs, scale, width_tab_header)
+	if width_tab_header == nil then
+		width_tab_header = ut.BASE_HEIGHT * 2
+	end
 	local new_tab = current_tab
 	for _, tab in pairs(tabs) do
-		local rect = layout:next(ut.BASE_HEIGHT * 2 * scale, ut.BASE_HEIGHT * scale)
+		local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
 		if current_tab == tab.text then
 			ui.tooltip(tab.tooltip, rect)
 			ui.centered_text(tab.text, rect)
