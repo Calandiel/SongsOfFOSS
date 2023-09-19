@@ -1,9 +1,9 @@
 print("Loading raws...")
 
-RAWS_MANAGER = require "game.entities.raws_manager":new()
-
 ---A special function that sets up "raws" on the world
 return function()
+	RAWS_MANAGER = require "game.entities.raws_manager":new()
+
 	local Realm = require "game.raws.biogeographic-realms"
 	local tabb = require "engine.table"
 
