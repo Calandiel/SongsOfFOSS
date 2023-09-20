@@ -57,6 +57,7 @@ $(RELEASE_DIR_WIN)/sote.exe: RELEASE_DIR_WIN $(RELEASE_DIR_UNIX)/sote.love $(LOV
 
 $(LOVE_WIN_DIR)/love.exe: RELEASE_DIR_WIN LOVE_WIN_DIR
 	@echo "Copying love.exe to $(LOVE_WIN_DIR)/love.exe..."
+	@echo "If this fails, you can drop a copy of love.exe in $(LOVE_WIN_DIR)/ yourself, and then run make again."
 	@cp $(shell which love) $(LOVE_WIN_DIR)/love.exe -u -T
 
 RELEASE_DIR_UNIX:
