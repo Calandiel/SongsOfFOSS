@@ -49,6 +49,7 @@ local utils       = require "game.ui-utils"
 ---@field pending_player_event_reaction boolean
 ---@field does_player_control_realm fun(self:World, realm:Realm?):boolean
 ---@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
+---@field does_player_see_province_news fun(self:World, realm:Province?):boolean
 ---@field base_visibility fun(self:World, size: number):number
 
 ---@class World
@@ -502,6 +503,14 @@ end
 
 function world.World:does_player_see_realm_news(realm)
 	return (self.player_realm == realm) and (self.player_realm ~= nil)
+end
+
+function world.World:does_player_see_province_news(province)
+	if self.player_character == nil then
+		return false
+	end
+
+	return (self.player_character.province == province)
 end
 
 world.ticks_per_hour = 120

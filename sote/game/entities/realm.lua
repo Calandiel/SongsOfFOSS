@@ -19,6 +19,8 @@
 ---@field voluntary_contributions number
 ---@field voluntary_contributions_accumulator number
 ---@field monthly_infrastructure_investment number
+---@field infrastructure_budget number
+---@field education_budget number
 ---@field education_endowment number
 ---@field education_investment number
 ---@field education_endowment_needed number
@@ -30,6 +32,7 @@
 ---@field court_investment number
 ---@field court_wealth_needed number
 ---@field monthly_court_investment number
+---@field court_budget number
 ---@field get_court_efficiency fun(self:Realm):number
 ---@field r number
 ---@field g number
@@ -141,14 +144,20 @@ function realm.Realm:new()
 	o.voluntary_contributions = 0
 	o.voluntary_contributions_accumulator = 0
 	o.monthly_infrastructure_investment = 0
+	o.infrastructure_budget = 0
+
 	o.education_endowment = 0
 	o.education_investment = 0
 	o.education_endowment_needed = 0
 	o.monthly_education_investment = 0
+	o.education_budget = 0
+
 	o.court_wealth = 0
 	o.court_investment = 0
 	o.court_wealth_needed = 0
 	o.monthly_court_investment = 0
+	o.court_budget = 0
+
 	o.military_spending = 0
 	o.realized_military_spending = 1
 	o.provinces = {}

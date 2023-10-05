@@ -20,14 +20,24 @@ function upk.run(province)
 				end
 			end
 		else
-			province.local_wealth = province.local_wealth - up
-			province.local_building_upkeep = province.local_building_upkeep + up
+			if building.owner == nil then
+				province.local_wealth = province.local_wealth - up
+				province.local_building_upkeep = province.local_building_upkeep + up
 
-			-- Destroy this building if necessary...
-			if province.local_wealth < 0 then
-				province.local_wealth = 0
-				if love.math.random() < 0.1 then
-					building:remove_from_province(province)
+				-- Destroy this building if necessary...
+				if province.local_wealth < 0 then
+					province.local_wealth = 0
+					if love.math.random() < 0.1 then
+						building:remove_from_province(province)
+					end
+				end
+			else
+				EconomicEffects.add_pop_savings(building.owner, -up, EconomicEffects.reasons.Upkeep)
+				if building.owner.savings < 0 then
+					building.owner.savings = 0
+					if love.math.random() < 0.1 then
+						building:remove_from_province(province)
+					end
 				end
 			end
 		end

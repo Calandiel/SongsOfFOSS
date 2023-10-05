@@ -1,11 +1,14 @@
 local tabb = require "engine.table"
+local ai = require "game.raws.values.ai_preferences"
+local effects = require "game.raws.effects.economic"
 local co = {}
 
 ---@param province Province
 ---@param funds number
 ---@param excess number
+---@param owner POP?
 ---@return number
-local function construction_in_province(province, funds, excess)
+local function construction_in_province(province, funds, excess, owner)
 	local total_weight = 0
 	for _, ty in pairs(province.buildable_buildings) do
 		total_weight = total_weight + ty.ai_weight
@@ -24,6 +27,11 @@ local function construction_in_province(province, funds, excess)
 			end
 		end
 
+		-- pops should not be able to build government buildings
+		if to_build.government and owner then
+			return funds
+		end
+
 		-- Only build if there are unemployed pops...
 		if to_build.production_method:total_jobs() <= province:get_unemployment() then
 			local tile = nil
@@ -39,7 +47,8 @@ local function construction_in_province(province, funds, excess)
 						--Only build if the efficiency isn't tiny (otherwise we could pull productive hunter gatherers from their jobs to unproductive farming jobs...)
 						if to_build.production_method:get_efficiency(tile) > 0.65 then
 							local Building = require "game.entities.building".Building
-							Building:new(province, to_build, tile)
+							local result_building = Building:new(province, to_build, tile)
+							effects.set_ownership(result_building, owner)
 							funds = math.max(0, funds - to_build.construction_cost)
 						end
 					end
@@ -63,13 +72,24 @@ function co.run(realm)
 			for province in pairs(realm.provinces) do
 
 				if WORLD:does_player_control_realm(realm) then
-					-- Player realms shouldn't run their AI for building construction...
+					-- Player realms shouldn't run their AI for building construction... unless...
 				else
 					funds = construction_in_province(province, funds, excess)
 				end
 				-- Run construction using the AI for local wealth too!
 				local prov = province.local_wealth
 				province.local_wealth = construction_in_province(province, prov, 0) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
+			
+				-- local characters want to build too!
+				-- select random character:
+				local builder = tabb.random_select_from_set(province.characters)
+				if builder and WORLD.player_character ~= builder then
+					local char_funds = ai.construction_funds(builder)
+					local result = construction_in_province(province, char_funds, builder.savings * 0.1)
+
+					local spendings = char_funds - result
+					effects.add_pop_savings(builder, -spendings, effects.reasons.Building)
+				end
 			end
 		end
 	end

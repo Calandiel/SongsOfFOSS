@@ -85,7 +85,11 @@ function pro.run(province)
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
-					total_donations = total_donations + contrib
+					if pop.employer.owner then
+						EconomicEffects.add_pop_savings(pop.employer.owner, contrib, EconomicEffects.reasons.BuildingIncome)
+					else
+						total_donations = total_donations + contrib
+					end
 					-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 				end
 			else

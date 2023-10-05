@@ -24,6 +24,14 @@ function AiPreferences.money_utility(character)
     return base / AiPreferences.percieved_inflation(character)
 end
 
+function AiPreferences.saving_goal(character)
+    return AiPreferences.money_utility(character) * 10
+end
+
+function AiPreferences.construction_funds(character)
+    return math.max(0, character.savings - AiPreferences.saving_goal(character))
+end
+
 ---comment
 ---@param character Character
 ---@return number

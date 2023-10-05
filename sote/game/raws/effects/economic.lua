@@ -14,7 +14,9 @@ EconomicEffects.reasons = {
     Upkeep = "upkeep",
     NewMonth = "new month",
     RewardFlag = "reward flag",
-    LoyaltyGift = "loyalty gift"
+    LoyaltyGift = "loyalty gift",
+    Building = "building",
+    BuildingIncome = "building income",
 }
 
 ---Change realm treasury and display effects to player
@@ -45,6 +47,40 @@ end
 function EconomicEffects.display_treasury_change(realm, x, reason)
     if WORLD:does_player_control_realm(realm) then
         WORLD:emit_treasury_change_effect(x, reason)
+    end
+end
+
+---comment
+---@param realm Realm
+---@param x number
+function EconomicEffects.increase_education_budget(realm, x)
+    realm.education_budget = math.max(0, realm.education_budget + x)
+    -- realm.monthly_education_investment = realm.tr
+end
+---@param realm Realm
+---@param x number
+function EconomicEffects.increase_court_budget(realm, x)
+    realm.court_budget = math.max(0, realm.court_budget + x)
+end
+---@param realm Realm
+---@param x number
+function EconomicEffects.increase_infrastructure_budget(realm, x)
+    realm.infrastructure_budget = math.max(0, realm.infrastructure_budget + x)
+end
+
+
+---comment
+---@param building Building
+---@param pop POP?
+function EconomicEffects.set_ownership(building, pop)
+    building.owner = pop
+
+    if pop and WORLD:does_player_see_province_news(building.tile.province) then
+        if WORLD.player_character == pop then
+            WORLD:emit_notification(building.type.name .. " is now owned by me, " .. pop.name .. ".")
+        else
+            WORLD:emit_notification(building.type.name .. " is now owned by " .. pop.name .. ".")
+        end
     end
 end
 
