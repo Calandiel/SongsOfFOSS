@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local ai = require "game.raws.values.ai_preferences"
 local effects = require "game.raws.effects.economic"
+local eco_values = require "game.raws.values.economical"
 local co = {}
 
 ---@param province Province
@@ -27,6 +28,11 @@ local function construction_in_province(province, funds, excess, owner)
 			end
 		end
 
+		if WORLD.player_character and WORLD.player_character.province == province then
+			print('char funds')
+			print(to_build.name)
+		end
+
 		-- pops should not be able to build government buildings
 		if to_build.government and owner then
 			return funds
@@ -39,17 +45,50 @@ local function construction_in_province(province, funds, excess, owner)
 				local tt = tabb.size(province.tiles)
 				tile = tabb.nth(province.tiles, love.math.random(tt))
 			end
-			if province.can_build(province, math.huge, to_build, tile) then
+
+			local overseer = nil
+			local public_flag = false
+			
+			if owner then
+				overseer = owner
+				public_flag = false
+			else
+				overseer = province.realm.leader
+				public_flag = true
+			end
+
+			if WORLD.player_character and WORLD.player_character.province == province then
+				print('employment check passed')
+			end
+
+			if province.can_build(province, math.huge, to_build, tile, overseer, public_flag) then
+				local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
+
+				if WORLD.player_character and WORLD.player_character.province == province then
+					print('funds / construction_cost')
+					print(funds / construction_cost)
+				end
+				
+				--- Calandiel comment:
 				-- If we don't have enough money, just adjust the likelihood (this will be easier on the AI and accurate on long term averages)
-				if love.math.random() < funds / to_build.construction_cost then
+				--- Peter's comment:
+				-- sounds strange, someone should consider changing it in a future
+				if love.math.random() < funds / construction_cost then
 					-- We can build! But only build if we have enough excess money to pay for the upkeep...
+					if WORLD.player_character and WORLD.player_character.province == province then
+						print('random test')
+						print(funds / construction_cost)
+						print('excess')
+						print(excess)
+						print('efficiency')
+						print(to_build.production_method:get_efficiency(tile))
+					end
+
 					if excess >= to_build.upkeep then
 						--Only build if the efficiency isn't tiny (otherwise we could pull productive hunter gatherers from their jobs to unproductive farming jobs...)
 						if to_build.production_method:get_efficiency(tile) > 0.65 then
-							local Building = require "game.entities.building".Building
-							local result_building = Building:new(province, to_build, tile)
-							effects.set_ownership(result_building, owner)
-							funds = math.max(0, funds - to_build.construction_cost)
+							EconomicEffects.construct_building(to_build, province, tile, owner)
+							funds = math.max(0, funds - construction_cost)
 						end
 					end
 				end
@@ -83,8 +122,14 @@ function co.run(realm)
 				-- local characters want to build too!
 				-- select random character:
 				local builder = tabb.random_select_from_set(province.characters)
-				if builder and WORLD.player_character ~= builder then
+				if builder and (WORLD.player_character ~= builder) then
 					local char_funds = ai.construction_funds(builder)
+
+					if WORLD.player_character and WORLD.player_character.province == province then
+						print('char funds')
+						print(char_funds)
+					end
+
 					local result = construction_in_province(province, char_funds, builder.savings * 0.1)
 
 					local spendings = char_funds - result

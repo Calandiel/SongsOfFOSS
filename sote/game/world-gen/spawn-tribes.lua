@@ -48,6 +48,16 @@ local function make_new_noble(race, faith, culture)
 		contender.traits[TRAIT.CONTENT] = TRAIT.CONTENT
 	end
 
+	local organiser_roll = love.math.random()
+
+	if organiser_roll < 0.1 then
+		contender.traits[TRAIT.BAD_ORGANISER] = TRAIT.BAD_ORGANISER
+	elseif organiser_roll < 0.9 then
+		-- do nothing ...
+	else
+		contender.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
+	end
+
 	return contender
 end
 
@@ -202,7 +212,7 @@ function st.run()
 					river_bonus = 0.25
 				end
 				if prov.realm.primary_race.requires_large_river then
-				 	if neigh.on_a_river then
+					if neigh.on_a_river then
 						river_bonus = 0.001
 					else
 						river_bonus = 1000

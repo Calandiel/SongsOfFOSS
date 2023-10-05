@@ -5,6 +5,8 @@ local TRAIT = {
     LOYAL = 'loyal',
     GREEDY = 'greedy',
     WARLIKE = 'warlike',
+    BAD_ORGANISER = 'bad organiser',
+    GOOD_ORGANISER = 'good organiser'
 }
 
 return TRAIT

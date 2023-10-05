@@ -1,6 +1,8 @@
 local tabb = require "engine.table"
 local wb = require "game.entities.warband"
 
+local EconomicValues = require "game.raws.values.economical"
+
 ---@alias Character POP
 
 local prov = {}
@@ -51,7 +53,7 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
----@field can_build fun(self:Province, funds:number, building:BuildingType, location:Tile?):boolean,BuildingAttemptFailureReason?
+---@field can_build fun(self:Province, funds:number, building:BuildingType, location:Tile?, overseer:POP?, public_flag:boolean):boolean,BuildingAttemptFailureReason?
 ---@field building_type_present fun(self:Province, building:BuildingType):boolean Returns true when a building of a given type has been built in a province
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field mood number how local population thinks about the state
@@ -433,11 +435,8 @@ end
 
 ---@alias BuildingAttemptFailureReason 'not_enough_funds' | 'unique_duplicate' | 'tile_improvement' | 'missing_local_resources'
 
----@param funds number
----@param building BuildingType
----@param location Tile?
----@return boolean, BuildingAttemptFailureReason?
-function prov.Province:can_build(funds, building, location)
+
+function prov.Province:can_build(funds, building, location, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then
 		resource_check_passed = false
@@ -466,13 +465,16 @@ function prov.Province:can_build(funds, building, location)
 		end
 		::RESOURCE_CHECK_ENDED::
 	end
+
+	local construction_cost = EconomicValues.building_cost(building, overseer, public)
+
 	if building.unique and self:building_type_present(building) then
 		return false, 'unique_duplicate'
 	elseif building.tile_improvement and location == nil then
 		return false, 'tile_improvement'
 	elseif not resource_check_passed then
 		return false, 'missing_local_resources'
-	elseif building.construction_cost <= funds then
+	elseif construction_cost <= funds then
 		return true, nil
 	else
 		return false, 'not_enough_funds'

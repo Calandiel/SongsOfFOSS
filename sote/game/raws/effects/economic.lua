@@ -1,3 +1,5 @@
+local eco_values = require "game.raws.values.economical"
+
 EconomicEffects = {}
 
 ---@enum EconomicReason
@@ -75,13 +77,47 @@ end
 function EconomicEffects.set_ownership(building, pop)
     building.owner = pop
 
-    if pop and WORLD:does_player_see_province_news(building.tile.province) then
+    if pop and WORLD:does_player_see_province_news(pop.province) then
         if WORLD.player_character == pop then
             WORLD:emit_notification(building.type.name .. " is now owned by me, " .. pop.name .. ".")
         else
             WORLD:emit_notification(building.type.name .. " is now owned by " .. pop.name .. ".")
         end
     end
+end
+
+---comment
+---@param building_type BuildingType
+---@param province Province
+---@param tile Tile?
+---@param owner POP?
+---@return Building
+function EconomicEffects.construct_building(building_type, province, tile, owner)
+    local Building = require "game.entities.building".Building
+    local result_building = Building:new(province, building_type, tile)
+    EconomicEffects.set_ownership(result_building, owner)
+    return result_building
+end
+
+---comment
+---@param building_type BuildingType
+---@param province Province
+---@param tile Tile?
+---@param owner POP?
+---@param overseer POP?
+---@param public boolean
+---@return Building
+function EconomicEffects.construct_building_with_payment(building_type, province, tile, owner, overseer, public)
+    local construction_cost = eco_values.building_cost(building_type, overseer, public)
+    local building = EconomicEffects.construct_building(building_type, province, tile, owner)
+
+    if public or (owner == nil) then
+        EconomicEffects.add_treasury(province.realm, -construction_cost, EconomicEffects.reasons.Building)
+    else
+        EconomicEffects.add_pop_savings(owner, -construction_cost, EconomicEffects.reasons.Building)
+    end
+
+    return building
 end
 
 return EconomicEffects

@@ -2,7 +2,13 @@ local ui = require "engine.ui";
 local uit = require "game.ui-utils"
 
 local EconomicEffects = require "game.raws.effects.economic"
+local EconomicValues = require "game.raws.values.economical"
 
+---comment
+---@param rect Rect
+---@param reason BuildingAttemptFailureReason?
+---@param funds number
+---@param cost number
 local function validate_building_tooltip(rect, reason, funds, cost)
     if reason == 'unique_duplicate' then
         ui.image(ASSETS.icons['triangle-target.png'], rect)
@@ -14,16 +20,87 @@ local function validate_building_tooltip(rect, reason, funds, cost)
         ui.image(ASSETS.icons['uncertainty.png'], rect)
         ui.tooltip('Not enough funds: ' ..
             uit.to_fixed_point2(funds) ..
-            " / " .. tostring(cost) .. MONEY_SYMBOL, rect)
+            " / " .. uit.to_fixed_point2(cost) .. MONEY_SYMBOL, rect)
     elseif reason == 'missing_local_resources' then
         ui.image(ASSETS.icons['triangle-target.png'], rect)
         ui.tooltip('Missing local resources!', rect)
     end
 end
 
+---comment
 ---@param gam table
 ---@param rect Rect
-return function (gam, rect, base_unit, building_type, tile)
+---@param building_type BuildingType
+---@param tile Tile
+---@param owner POP?
+---@param overseer POP?
+---@param public_flag boolean
+---@param tile_improvement_flag boolean
+local function construction_button(gam, rect, building_type, tile, owner, overseer, public_flag, tile_improvement_flag)
+
+    local funds = 0
+    if public_flag then
+        funds = WORLD.player_realm.treasury
+    else
+        funds = WORLD.player_character.savings
+    end
+
+    local success, reason = tile.province:can_build(
+        funds,
+        building_type,
+        tile,
+        overseer,
+        public_flag
+    )
+
+    local construction_cost = EconomicValues.building_cost(
+        building_type,
+        overseer,
+        public_flag
+    )
+
+    if not success then
+        validate_building_tooltip(rect, reason, funds, construction_cost)
+    else
+        if tile.tile_improvement and building_type.tile_improvement then
+            ui.image(ASSETS.icons['triangle-target.png'], rect)
+            ui.tooltip('There already is a tile improvement on here!', rect)
+        else
+            local tooltip = "(private)"
+            if public_flag then
+                tooltip = "(public)"
+            end
+            if ui.icon_button(ASSETS.icons['hammer-drop.png'], rect,
+                "Build " .. tooltip .." (" .. tostring(construction_cost) .. MONEY_SYMBOL .. ")") then
+
+                EconomicEffects.construct_building_with_payment(
+                    building_type,
+                    tile.province,
+                    tile,
+                    owner,
+                    overseer,
+                    public_flag
+                )
+
+                WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
+
+                if gam.selected_building_type == building_type then
+                    gam.selected_building_type = building_type
+                    gam.refresh_map_mode(true)
+                end
+            end
+        end
+    end
+end
+
+---comment
+---@param gam table
+---@param rect Rect
+---@param base_unit number
+---@param building_type BuildingType
+---@param tile_improvement_flag boolean
+---@param tile Tile
+return function (gam, rect, base_unit, building_type, tile, tile_improvement_flag)
     ui.tooltip(building_type:get_tooltip(), rect)
     ---@type Rect
     local r = rect
@@ -50,62 +127,12 @@ return function (gam, rect, base_unit, building_type, tile)
     r.x = r.x + base_unit
     r.width = base_unit
     if (WORLD.player_character) and WORLD.player_character.province == tile.province then
-        local success, reason = tile.province:can_build(WORLD.player_character.savings, building_type, tile)
-        if not success then
-            validate_building_tooltip(r, reason, WORLD.player_character.savings, building_type.construction_cost)
-        else
-            if tile.tile_improvement then
-                ui.image(ASSETS.icons['triangle-target.png'], r)
-                ui.tooltip('There already is a tile improvement on here!', r)
-            else
-                if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-                    "Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-
-                    local Building = require "game.entities.building".Building
-                    local building = Building:new(tile.province, building_type, tile)
-                    EconomicEffects.set_ownership(building, WORLD.player_character)
-                    EconomicEffects.add_pop_savings(
-                        WORLD.player_character,
-                        -building_type.construction_cost,
-                        EconomicEffects.reasons.Building
-                    )
-                    WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
-
-                    if gam.selected_building_type == building_type then
-                        gam.selected_building_type = building_type
-                        gam.refresh_map_mode(true)
-                    end
-                end
-            end
-        end
+        construction_button(gam, r, building_type, tile, WORLD.player_character, WORLD.player_character, false, tile_improvement_flag)
     end
 
     r.x = r.x + base_unit
     r.width = base_unit
     if WORLD:does_player_control_realm(tile.province.realm) then
-        local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)
-        if not success then
-            validate_building_tooltip(r, reason, WORLD.player_realm.treasury, building_type.construction_cost)
-        else
-            if tile.tile_improvement then
-                ui.image(ASSETS.icons['triangle-target.png'], r)
-                ui.tooltip('There already is a tile improvement on here!', r)
-            else
-                if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-                    "Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-                    local Building = require "game.entities.building".Building
-                    Building:new(tile.province, building_type, tile)
-                    WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-                    WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
-
-                    if gam.selected_building_type == building_type then
-                        gam.selected_building_type = building_type
-                        gam.refresh_map_mode(true)
-                    end
-                end
-            end
-        end
+        construction_button(gam, r, building_type, tile, nil, WORLD.player_character, true, tile_improvement_flag)
     end
-
-
 end
