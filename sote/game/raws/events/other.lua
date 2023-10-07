@@ -174,7 +174,7 @@ return function()
 					text = "Promise to work on changing things",
 					tooltip = "Tooltip",
 					viable = function()
-						return pop * gift_cost_per_pop < realm.resources[RAWS_MANAGER.trade_goods_by_name['food']]
+						return pop * gift_cost_per_pop < realm.resources['food']
 					end,
 					outcome = function()
 						local flip = love.math.random() * realm:get_speechcraft_efficiency() > 0.5

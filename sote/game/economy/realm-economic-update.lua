@@ -49,8 +49,8 @@ function rea.run(realm)
 	for resource_reference, amount in pairs(realm.production) do
 		local resource = good(resource_reference)
 		if resource.category == 'good' then
-			local old = realm.resources[resource] or 0
-			realm.resources[resource] = math.max(0, old + amount) * 0.999
+			local old = realm.resources[resource_reference] or 0
+			realm.resources[resource_reference] = math.max(0, old + amount) * 0.999
 		end
 	end
 
