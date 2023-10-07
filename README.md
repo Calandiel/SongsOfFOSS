@@ -9,3 +9,10 @@ Keep in mind that this build is unfinished and likely won't be worked on in the 
 # Building executable on Windows
 
 To create executable open sote directory and create sote.zip archive using the selected program. Next move the archive to parent directory next to distributeWin.bat file. Run runWin.sh to build SotE.exe in release/windows. Consecutive launches check for existence of built game and if possible start it.
+
+# Unix:
+
+ - `make install` installs the game to `~/.local/bin`
+ - `launch_sote` starts the installed game
+ - `make uninstall` removes the game from `~/.local/bin`
+ - `make clean` clears release folder
