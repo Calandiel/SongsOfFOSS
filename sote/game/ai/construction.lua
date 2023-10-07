@@ -28,11 +28,6 @@ local function construction_in_province(province, funds, excess, owner)
 			end
 		end
 
-		if WORLD.player_character and WORLD.player_character.province == province then
-			print('char funds')
-			print(to_build.name)
-		end
-
 		-- pops should not be able to build government buildings
 		if to_build.government and owner then
 			return funds
@@ -57,17 +52,11 @@ local function construction_in_province(province, funds, excess, owner)
 				public_flag = true
 			end
 
-			if WORLD.player_character and WORLD.player_character.province == province then
-				print('employment check passed')
-			end
+
 
 			if province.can_build(province, math.huge, to_build, tile, overseer, public_flag) then
 				local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
 
-				if WORLD.player_character and WORLD.player_character.province == province then
-					print('funds / construction_cost')
-					print(funds / construction_cost)
-				end
 				
 				--- Calandiel comment:
 				-- If we don't have enough money, just adjust the likelihood (this will be easier on the AI and accurate on long term averages)
@@ -75,14 +64,6 @@ local function construction_in_province(province, funds, excess, owner)
 				-- sounds strange, someone should consider changing it in a future
 				if love.math.random() < funds / construction_cost then
 					-- We can build! But only build if we have enough excess money to pay for the upkeep...
-					if WORLD.player_character and WORLD.player_character.province == province then
-						print('random test')
-						print(funds / construction_cost)
-						print('excess')
-						print(excess)
-						print('efficiency')
-						print(to_build.production_method:get_efficiency(tile))
-					end
 
 					if excess >= to_build.upkeep then
 						--Only build if the efficiency isn't tiny (otherwise we could pull productive hunter gatherers from their jobs to unproductive farming jobs...)
@@ -124,12 +105,6 @@ function co.run(realm)
 				local builder = tabb.random_select_from_set(province.characters)
 				if builder and (WORLD.player_character ~= builder) then
 					local char_funds = ai.construction_funds(builder)
-
-					if WORLD.player_character and WORLD.player_character.province == province then
-						print('char funds')
-						print(char_funds)
-					end
-
 					local result = construction_in_province(province, char_funds, builder.savings * 0.1)
 
 					local spendings = char_funds - result

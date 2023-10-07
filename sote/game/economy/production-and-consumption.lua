@@ -1,3 +1,5 @@
+local good = require "game.raws.raws-utils".trade_good
+
 local tabb = require "engine.table"
 local EconomicEffects = require "game.raws.effects.economic"
 local pro = {}
@@ -14,7 +16,7 @@ function pro.run(province)
 	tabb.clear(province.local_consumption)
 
 	---Records local consumption!
-	---@param good TradeGood
+	---@param good TradeGoodReference
 	---@param amount number
 	local function record_consumption(good, amount)
 		local old = province.local_consumption[good] or 0
@@ -22,7 +24,7 @@ function pro.run(province)
 	end
 
 	---Record local production!
-	---@param good TradeGood
+	---@param good TradeGoodReference
 	---@param amount number
 	local function record_production(good, amount)
 		local old = province.local_production[good] or 0
@@ -31,7 +33,7 @@ function pro.run(province)
 
 	-- Record "innate" production of goods and services.
 	-- These resources come
-	record_production(RAWS_MANAGER.trade_goods_by_name['water'], province.hydration)
+	record_production('water', province.hydration)
 
 	local inf = province:get_infrastructure_efficiency()
 	local efficiency_from_infrastructure = math.min(1.15, 0.5 + 0.5 * math.sqrt(2 * inf))
@@ -96,16 +98,15 @@ function pro.run(province)
 				if pop.age > pop.race.teen_age then
 					foragers_count = foragers_count + 1 -- Record a new forager!
 					-- Foragers produce food:
-					local food = RAWS_MANAGER.trade_goods_by_name['food']
 					local food_produced = math.min(0.9, foraging_efficiency)
-					local income = food_produced * province.realm:get_pessimistic_price(food, food_produced)
+					local income = food_produced * province.realm:get_pessimistic_price('food', food_produced)
 					if income > 0 then
 						province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 						local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
 						total_donations = total_donations + contrib
 						-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 					end
-					record_production(food, food_produced)
+					record_production('food', food_produced)
 				end
 			end
 		end
@@ -121,18 +122,18 @@ function pro.run(province)
 			clothing = pop.race.female_clothing_needs
 		end
 
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['food'], food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['water'], water * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['healthcare'], 0.2 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['amenities'], age_multiplier)
+		record_consumption('food', food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
+		record_consumption('water', water * age_multiplier)
+		record_consumption('healthcare', 0.2 * age_multiplier)
+		record_consumption('amenities', age_multiplier)
 
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['clothes'], clothing * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['furniture'], 0.1 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['liquors'], 0.2 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['containers'], 0.25 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['tools'], 0.0125 * age_multiplier)
+		record_consumption('clothes', clothing * age_multiplier)
+		record_consumption('furniture', 0.1 * age_multiplier)
+		record_consumption('liquors', 0.2 * age_multiplier)
+		record_consumption('containers', 0.25 * age_multiplier)
+		record_consumption('tools', 0.0125 * age_multiplier)
 
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['meat'], 0.25 * age_multiplier)
+		record_consumption('meat', 0.25 * age_multiplier)
 	end
 
 	--- DISTRIBUTION OF DONATIONS

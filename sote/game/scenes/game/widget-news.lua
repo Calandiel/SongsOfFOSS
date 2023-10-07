@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+---@type Queue<string>
 local notifications = require "engine.queue":new()
 
 return function(rect, scroll)

@@ -1,5 +1,7 @@
+---@alias TradeGoodReference string
+
 ---@class TradeGood
----@field name string
+---@field name TradeGoodReference
 ---@field icon string
 ---@field description string
 ---@field r number

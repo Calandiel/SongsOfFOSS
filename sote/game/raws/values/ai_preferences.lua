@@ -1,4 +1,5 @@
 local TRAIT = require "game.raws.traits.generic"
+local trade_good = require "game.raws.raws-utils".trade_good
 
 local AiPreferences = {}
 
@@ -6,8 +7,8 @@ local AiPreferences = {}
 ---@param character Character
 ---@return number
 function AiPreferences.percieved_inflation(character)
-    local temp = RAWS_MANAGER.trade_goods_by_name['food']
-    local price = character.province.realm:get_price(temp)
+    local temp = trade_good('food')
+    local price = character.province.realm:get_price(temp.name)
     if price == 0 then
         price = temp.base_price
     end

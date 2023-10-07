@@ -1,3 +1,5 @@
+local good = require "game.raws.raws-utils".trade_good
+
 ---@class RewardFlag
 ---@field flag_type 'explore'|'raid'|'destroy'|'kill'|'devastate'
 ---@field reward number
@@ -69,12 +71,12 @@
 ---@field coa_background_image number
 ---@field coa_foreground_image number
 ---@field coa_emblem_image number
----@field resources table<TradeGood, number> Currently stockpiled resources
----@field production table<TradeGood, number> A "balance" of resource creation
----@field bought table<TradeGood, number>
----@field sold table<TradeGood, number>
----@field get_price fun(self:Realm, trade_good:TradeGood):number
----@field get_pessimistic_price fun(self:Realm, trade_good:TradeGood, amount:number):number
+---@field resources table<TradeGoodReference, number> Currently stockpiled resources
+---@field production table<TradeGoodReference, number> A "balance" of resource creation
+---@field bought table<TradeGoodReference, number>
+---@field sold table<TradeGoodReference, number>
+---@field get_price fun(self:Realm, trade_good:TradeGoodReference):number
+---@field get_pessimistic_price fun(self:Realm, trade_good:TradeGoodReference, amount:number):number
 ---@field expected_food_consumption number
 ---@field get_realm_population fun(self:Realm):number
 ---@field get_realm_military fun(self:Realm):number Returns a sum of "unraised" military and active armies
@@ -303,23 +305,25 @@ end
 
 ---Note, it works ONLY for "real" trade goods.
 ---For services, use provincial functions instead!
----@param trade_good TradeGood
+---@param trade_good TradeGoodReference
 ---@return number price
 function realm.Realm:get_price(trade_good)
 	local bought = self.bought[trade_good] or 0
 	local sold = self.sold[trade_good] or 0
-	return trade_good.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+	local data = good(trade_good)
+	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
 
 ---Calculates a "pessimistic" prise (that is, the price that we'd get if we tried to sell more goods after selling the goods given)
----@param trade_good TradeGood
+---@param trade_good TradeGoodReference
 ---@param amount number
 ---@return number price
 function realm.Realm:get_pessimistic_price(trade_good, amount)
 	local bought = self.bought[trade_good] or 0
 	bought = bought + amount
 	local sold = self.sold[trade_good] or 0
-	return trade_good.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+	local data = good(trade_good)
+	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
 
 ---Returns a percentage describing the education investments

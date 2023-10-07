@@ -79,13 +79,13 @@ function BuildingType:get_tooltip()
 		if tabb.size(self.production_method.inputs) > 0 then
 			s = s .. "\n\nInputs: "
 			for inp, count in pairs(self.production_method.inputs) do
-				s = s .. inp.name .. " (" .. tostring(count) .. "), "
+				s = s .. inp .. " (" .. tostring(count) .. "), "
 			end
 		end
 		if tabb.size(self.production_method.outputs) > 0 then
 			s = s .. "\n\nOutputs: "
 			for out, count in pairs(self.production_method.outputs) do
-				s = s .. out.name .. " (" .. tostring(count) .. "), "
+				s = s .. out .. " (" .. tostring(count) .. "), "
 			end
 		end
 	end

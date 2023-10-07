@@ -90,7 +90,6 @@ function d.load()
 		unlocked_by = tec('basic-fermentation'),
 		production_method = prod('brewing'),
 		construction_cost = 500,
-		unique = true,
 		needed_infrastructure = 15,
 		ai_weight = 3.5
 	}

@@ -222,8 +222,8 @@ local function load()
 			---@type Character
 			local root = root
             
-            if root.savings > base_gift_size * 2 then
-                return 0.5
+            if root.savings > base_gift_size * 10 then
+                return 0.1
             end
 
             return 0

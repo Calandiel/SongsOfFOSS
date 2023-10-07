@@ -8,8 +8,8 @@
 ---@field jobs table<Job, number>
 ---@field job_weight number
 ---@field total_jobs fun(self:ProductionMethod):number
----@field inputs table<TradeGood, number>
----@field outputs table<TradeGood, number>
+---@field inputs table<TradeGoodReference, number>
+---@field outputs table<TradeGoodReference, number>
 ---@field new fun(self:ProductionMethod, o:ProductionMethod):ProductionMethod
 ---@field self_sourcing_fraction number Amount of time spent self sourcing materials in case of a material shortage!
 ---@field foraging boolean If true, counts towards the forager limit

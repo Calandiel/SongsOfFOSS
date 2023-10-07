@@ -1,5 +1,6 @@
 local re = {}
 local tabb = require "engine.table"
+local trade_good = require "game.raws.raws-utils".trade_good
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
@@ -92,15 +93,16 @@ function re.draw(gam)
 				gam.building_inputs_scrollbar = gam.building_inputs_scrollbar or 0
 				gam.building_inputs_scrollbar = ui.scrollview(next, function(entry, rect)
 					if entry > 0 then
-						---@type TradeGood
+						---@type TradeGoodReference
 						local input, amount = tabb.nth(building.type.production_method.inputs, entry)
+						local input_data = trade_good(input)
 						local w = rect.width
 						rect.width = uit.BASE_HEIGHT
-						ui.image(ASSETS.icons[input.icon], rect)
+						ui.image(ASSETS.icons[input_data.icon], rect)
 						rect.width = w
 						rect.x = rect.x + uit.BASE_HEIGHT + 5
 						rect.width = rect.width - uit.BASE_HEIGHT - 5
-						ui.left_text(input.name, rect)
+						ui.left_text(input, rect)
 						rect.x = rect.x - 5
 						ui.right_text(tostring(amount), rect)
 					end
@@ -114,15 +116,17 @@ function re.draw(gam)
 				gam.building_outputs_scrollbar = gam.building_outputs_scrollbar or 0
 				gam.building_outputs_scrollbar = ui.scrollview(next, function(entry, rect)
 					if entry > 0 then
-						---@type TradeGood
+						---@type TradeGoodReference
 						local input, amount = tabb.nth(building.type.production_method.outputs, entry)
+						local input_data = trade_good(input)
+
 						local w = rect.width
 						rect.width = uit.BASE_HEIGHT
-						ui.image(ASSETS.icons[input.icon], rect)
+						ui.image(ASSETS.icons[input_data.icon], rect)
 						rect.width = w
 						rect.x = rect.x + uit.BASE_HEIGHT + 5
 						rect.width = rect.width - uit.BASE_HEIGHT - 5
-						ui.left_text(input.name, rect)
+						ui.left_text(input, rect)
 						rect.x = rect.x - 5
 						ui.right_text(tostring(amount), rect)
 					end

@@ -91,7 +91,7 @@ function dem.prices()
 			ut.set_default_color(tile)
 			if tile.is_land then
 				if tile.province.realm ~= nil then
-					local price = tile.province.realm:get_price(c)
+					local price = tile.province.realm:get_price(c.name)
 					ut.hue_from_value(tile, 1 - math.log(price, 2) / 10)
 				end
 			end

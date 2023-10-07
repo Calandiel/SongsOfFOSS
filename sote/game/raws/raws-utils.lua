@@ -13,7 +13,7 @@ function ut.job(id)
 	return r
 end
 
----@param id string
+---@param id TradeGoodReference
 ---@return TradeGood
 function ut.trade_good(id)
 	local r = RAWS_MANAGER.trade_goods_by_name[id]

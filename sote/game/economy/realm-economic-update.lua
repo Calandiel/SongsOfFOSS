@@ -1,4 +1,5 @@
 local tabb = require "engine.table"
+local good = require "game.raws.raws-utils".trade_good
 local rea = {}
 
 
@@ -45,7 +46,8 @@ function rea.run(realm)
 	end
 
 	-- Handle stockpiles of trade goods
-	for resource, amount in pairs(realm.production) do
+	for resource_reference, amount in pairs(realm.production) do
+		local resource = good(resource_reference)
 		if resource.category == 'good' then
 			local old = realm.resources[resource] or 0
 			realm.resources[resource] = math.max(0, old + amount) * 0.999
