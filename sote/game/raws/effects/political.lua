@@ -1,3 +1,4 @@
+local ranks = require "game.raws.ranks.character_ranks"
 local PoliticalValues = require "game.raws.values.political"
 
 PoliticalEffects = {}
@@ -48,6 +49,9 @@ function PoliticalEffects.transfer_power(realm, target)
     if WORLD:does_player_see_realm_news(realm) then
         WORLD:emit_notification(depose_message .. " " .. new_leader_message)
     end
+
+    realm.leader.rank = ranks.NOBLE
+    target.rank = ranks.CHIEF
 
     realm.leader = target
 end

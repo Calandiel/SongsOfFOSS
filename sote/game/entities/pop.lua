@@ -1,5 +1,4 @@
 
-
 ---@class POP
 ---@field race Race
 ---@field faith Faith
@@ -18,6 +17,7 @@
 ---@field get_age_multiplier fun(self:POP):number
 ---@field drafted boolean "Drafted" state refers to whether or not a pop is currently drafted for military duty. For example, for raids or "real" warfare.
 ---@field province Province? Only for characters
+---@field rank CHARACTER_RANK?
 
 local rtab = {}
 

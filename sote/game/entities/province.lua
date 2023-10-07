@@ -210,6 +210,13 @@ function prov.Province:add_character(character)
 	character.province = self
 end
 
+--- Removes a character from the province
+---@param character Character
+function prov.Province:remove_character(character)
+	self.characters[character] = nil
+	character.province = nil
+end
+
 ---Kills a single pop and removes it from all relevant references.
 ---@param pop POP
 function prov.Province:kill_pop(pop)

@@ -5,6 +5,7 @@ local pop = require "game.entities.pop"
 local tabb = require "engine.table"
 
 local TRAIT = require "game.raws.traits.generic"
+local ranks = require "game.raws.ranks.character_ranks"
 
 local st = {}
 
@@ -57,6 +58,8 @@ local function make_new_noble(race, faith, culture)
 	else
 		contender.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
 	end
+
+	contender.rank = ranks.NOBLE
 
 	return contender
 end
@@ -111,6 +114,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	elite_character.popularity = elite_character.age / 10
 	capitol:add_character(elite_character)
 	r.leader = elite_character
+	r.leader.rank = ranks.CHIEF
 
 
 	-- spawn nobles
