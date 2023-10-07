@@ -48,6 +48,10 @@ function pro.run(province)
 	local fraction_of_income_given_voluntarily = 0.1 * math.max(0, math.min(1.0, 1.0 - population / min_income_pop))
 
 	local total_donations = 0
+
+	---@type table<POP, number>
+	local donations_to_owners = {}
+
 	for _, pop in pairs(province.all_pops) do
 		-- Drafted pops don't work -- they may not even be in the province in the first place...
 		if not pop.drafted then
@@ -88,7 +92,10 @@ function pro.run(province)
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
 					if pop.employer.owner then
-						EconomicEffects.add_pop_savings(pop.employer.owner, contrib, EconomicEffects.reasons.BuildingIncome)
+						if donations_to_owners[pop.employer.owner] == nil then
+							donations_to_owners[pop.employer.owner] = 0
+						end
+						donations_to_owners[pop.employer.owner] = donations_to_owners[pop.employer.owner] + contrib
 					else
 						total_donations = total_donations + contrib
 					end
@@ -151,6 +158,9 @@ function pro.run(province)
 	end
 	EconomicEffects.add_treasury(province.realm, realm_share, EconomicEffects.reasons.Donation)
 	province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + realm_share
+	for character, income in pairs(donations_to_owners) do
+		EconomicEffects.add_pop_savings(character, income, EconomicEffects.reasons.BuildingIncome)
+	end
 
 
 	province.local_income = province.local_wealth - old_wealth

@@ -15,13 +15,13 @@ function tr.run(realm)
 		realm.monthly_infrastructure_investment
 	total = math.max(0, total)
 
-	-- For now, we'll make the AI distribute income in a way that first priotizes getting 0.25 in infrastructure, 0.25 in court and then a weighted everage for education
-	local base = math.max(0, math.min(0.25, total))
+	-- For now, we'll make the AI distribute income in a way that first priotizes getting 0.20 in infrastructure, 0.20 in court and then a weighted everage for education
+	local base = math.max(0, math.min(0.20, total))
 	total = total - base
 	target_monthly_infrastructure_investment = base
 
 	if total > 0 then
-		local base = math.max(0, math.min(0.25, total))
+		local base = math.max(0, math.min(0.20, total))
 		total = total - base
 		target_monthly_court_investment = base
 

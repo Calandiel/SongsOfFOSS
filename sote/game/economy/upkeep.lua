@@ -5,6 +5,10 @@ local upk = {}
 ---@param province Province
 function upk.run(province)
 	province.local_building_upkeep = 0
+
+	---@type table<POP, number>
+	local upkeep_owners = {}
+
 	for _, building in pairs(province.buildings) do
 		local up = building.type.upkeep
 
@@ -32,9 +36,11 @@ function upk.run(province)
 					end
 				end
 			else
-				EconomicEffects.add_pop_savings(building.owner, -up, EconomicEffects.reasons.Upkeep)
-				if building.owner.savings < 0 then
-					building.owner.savings = 0
+				if upkeep_owners[building.owner] == nil then
+					upkeep_owners[building.owner] = 0
+				end
+				upkeep_owners[building.owner] = upkeep_owners[building.owner] + up
+				if building.owner.savings < upkeep_owners[building.owner] then
 					if love.math.random() < 0.1 then
 						building:remove_from_province(province)
 					end
@@ -42,6 +48,11 @@ function upk.run(province)
 			end
 		end
 	end
+
+	for owner, upkeep in pairs(upkeep_owners) do
+		EconomicEffects.add_pop_savings(owner, -upkeep, EconomicEffects.reasons.Upkeep)
+	end
+
 	EconomicEffects.display_treasury_change(province.realm, -province.local_building_upkeep, EconomicEffects.reasons.Upkeep)
 end
 
