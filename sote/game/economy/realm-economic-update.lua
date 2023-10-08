@@ -75,6 +75,7 @@ function rea.run(realm)
 	local last_change = budget.change
 	local treasury_ratio = 1 - budget.education.ratio - budget.court.ratio - budget.military.ratio - budget.infrastructure.ratio
 
+
 	budget.education.to_be_invested 		= last_change * budget.education.ratio + budget.education.to_be_invested
 	-- EconomicEffects.register_spendings(realm, last_change * budget.education.ratio, EconomicEffects.reasons.Infrastructure)
 
@@ -130,6 +131,7 @@ function rea.run(realm)
 
 	-- spend
 	realm.budget.military.budget = realm.budget.military.budget - military_upkeep
+	realm.budget.military.budget = realm.budget.military.budget * 0.99
 	
 
 
