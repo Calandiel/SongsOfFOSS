@@ -32,7 +32,21 @@ return function (rect, name, realm, budget_category)
     if budget_category.target ~= 0 then
         satisfactio_ratio = budget_category.budget / budget_category.target
     end
-    uit.data_entry_percentage("", satisfactio_ratio, rect, "Satisfaction ratio")
+    local satisfaction_explanation = ""
+    if name == 'Education' then
+        satisfaction_explanation = "Being above 100% means that your tribe researches new technologies faster."
+    end
+    if name == 'Military' then
+        satisfaction_explanation = "Being above 100% means that your tribe can support current army at least for a year."
+    end
+    if name == 'Infrastructure' then
+        satisfaction_explanation = "Being above 100% means that your infrastructure spendings are fully satisfied."
+    end
+    if name == 'Court' then
+        satisfaction_explanation = "This value tells how much wealth your court receives from tribal treasury compared to their expectations. This value influences decisions of some of your nobles."
+    end
+
+    uit.data_entry_percentage("", satisfactio_ratio, rect, "Satisfaction ratio. ".. satisfaction_explanation)
     rect.x = rect.x + rect.width
 
     -- fifth part - current ratio of income spent on it

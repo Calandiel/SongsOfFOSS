@@ -509,8 +509,9 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
+			local court_efficiency = root.province.realm:get_court_efficiency()
             if root.traits[TRAIT.AMBITIOUS] then
-				return 0.8
+				return 0.8 - court_efficiency / 2
 			end
             return 0
 		end,
