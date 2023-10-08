@@ -23,7 +23,9 @@ end
 
 ---@param gam table
 function re.draw(gam)
-	---@diagnostic disable-next-line: assign-type-mismatch
+	-- -@diagnostic disable-next-line: assign-type-mismatch
+
+	---@type Building
 	local bbuild = gam.selected_building
 	if bbuild ~= nil then
 		---@type Building

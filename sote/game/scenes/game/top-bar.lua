@@ -153,7 +153,7 @@ function tb.draw(gam)
 		end
 
 		uit.money_entry_icon(
-			WORLD.player_realm.treasury,
+			WORLD.player_realm.budget.treasury,
 			trt,
 			"Realm treasury")
 

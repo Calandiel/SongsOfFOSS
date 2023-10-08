@@ -28,7 +28,9 @@ function pg.growth(province)
 	--]]
 
 	-- Mark pops for removal...
+	---@type POP[]
 	local to_remove = {}
+	---@type POP[]
 	local to_add = {}
 	for _, pp in pairs(province.outlaws) do
 		if pp.age > pp.race.max_age then

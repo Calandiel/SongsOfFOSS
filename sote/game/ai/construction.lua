@@ -10,6 +10,7 @@ local co = {}
 ---@param owner POP?
 ---@return number
 local function construction_in_province(province, funds, excess, owner)
+	---@type number
 	local total_weight = 0
 	for _, ty in pairs(province.buildable_buildings) do
 		total_weight = total_weight + ty.ai_weight
@@ -82,9 +83,8 @@ end
 ---@param realm Realm
 function co.run(realm)
 
-	local excess = realm.monthly_education_investment + realm.treasury_real_delta -- Treat monthly education investments as an indicator of "free" income
-
-	local funds = realm.treasury
+	local excess = realm.budget.education.budget -- Treat monthly education investments as an indicator of "free" income
+	local funds = realm.budget.treasury
 
 	if excess > 0 then
 		-- disabled for now, dunno if its worth making realm construction rare again
@@ -96,6 +96,7 @@ function co.run(realm)
 				else
 					funds = construction_in_province(province, funds, excess)
 				end
+
 				-- Run construction using the AI for local wealth too!
 				local prov = province.local_wealth
 				province.local_wealth = construction_in_province(province, prov, 0) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
@@ -114,7 +115,7 @@ function co.run(realm)
 		end
 	end
 
-	realm.treasury = funds
+	EconomicEffects.change_treasury(realm, funds - realm.budget.treasury, EconomicEffects.reasons.Building)
 end
 
 return co

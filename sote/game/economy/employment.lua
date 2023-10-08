@@ -68,13 +68,14 @@ function emp.run(province)
 
 	-- Loop through all pops and fire the ones with jobs that have negative deltas
 	for _, pop in pairs(province.all_pops) do
-		if pop.job then
-			local delta = jobs_deltas[pop.job] or 0
-			local fair_share = math.ceil(fair_shares[pop.job] or 0)
-			local current = jobs_present_counters[pop.job] or 0
+		local job = pop.job
+		if job then			
+			local delta = jobs_deltas[job] or 0
+			local fair_share = math.ceil(fair_shares[job] or 0)
+			local current = jobs_present_counters[job] or 0
 			--print("Current: ", current, "/", fair_share, 'Job', pop.job.name, 'Delta', delta)
 			if delta < 0 then
-				jobs_deltas[pop.job] = delta + 1
+				jobs_deltas[job] = delta + 1
 				province:fire_pop(pop)
 				current = current - 1
 			elseif current > 0 then
@@ -83,14 +84,14 @@ function emp.run(province)
 					-- A chance to be fired -- we don't want to fire too many people after all...
 					local chance = math.max(0, 1 - fair_share / current)
 					if love.math.random() < chance then
-						jobs_deltas[pop.job] = delta + 1
+						jobs_deltas[job] = delta + 1
 						province:fire_pop(pop)
 						current = current - 1
 					end
 				end
 			end
 			if pop.job then
-				jobs_present_counters[pop.job] = current
+				jobs_present_counters[job] = current
 			end
 		end
 	end

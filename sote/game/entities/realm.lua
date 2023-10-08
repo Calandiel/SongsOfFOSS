@@ -8,33 +8,66 @@ local good = require "game.raws.raws-utils".trade_good
 ---@field owner Character
 ---@field target Province
 
+
+---@class BudgetCategory
+---@field ratio number
+---@field budget number
+---@field to_be_invested number
+---@field target number
+
+local function budget_category()
+	return {
+		ratio = 0,
+		budget = 0,
+		to_be_invested = 0,
+		target = 0,
+	}
+end
+
+---@alias BudgetCategoryReference 'education'|'court'|'infrastructure'|'military'
+
+---@alias WealthByCategory table<EconomicReason, number?>
+
+---@class Budget
+---@field change number
+---@field saved_change number
+---@field spending_by_category WealthByCategory
+---@field income_by_category WealthByCategory
+---@field treasury_change_by_category WealthByCategory
+---@field treasury number
+---@field treasury_target number
+---@field education BudgetCategory
+---@field court BudgetCategory
+---@field infrastructure BudgetCategory
+---@field military BudgetCategory
+
+
+---Generates empty budget
+---@return Budget
+local function generate_empty_budget()
+	return {
+		treasury = 0,
+		treasury_history = {},
+		change = 0,
+		saved_change = 0,
+		treasury_target = 0,
+		spending_by_category = {},
+		income_by_category = {},
+		treasury_change_by_category = {},
+		education = budget_category(),
+		court = budget_category(),
+		infrastructure = budget_category(),
+		military = budget_category(),
+	}
+end
+
 ---@class Realm
 ---@field realm_id number
 ---@field name string
----@field treasury number
----@field wasted_treasury number
----@field treasury_real_delta number
----@field military_spending number
----@field realized_military_spending number The fraction of military upkeep that was actually covered
----@field old_treasury number
----@field building_upkeep number
----@field voluntary_contributions number
----@field voluntary_contributions_accumulator number
----@field monthly_infrastructure_investment number
----@field infrastructure_budget number
----@field education_budget number
----@field education_endowment number
----@field education_investment number
----@field education_endowment_needed number
----@field monthly_education_investment number
+---@field budget Budget
 ---@field get_education_efficiency fun(self:Realm):number
 ---@field get_average_mood fun(self:Realm):number
 ---@field get_total_population fun(self:Realm):number
----@field court_wealth number
----@field court_investment number
----@field court_wealth_needed number
----@field monthly_court_investment number
----@field court_budget number
 ---@field get_court_efficiency fun(self:Realm):number
 ---@field r number
 ---@field g number
@@ -84,7 +117,6 @@ local good = require "game.raws.raws-utils".trade_good
 ---@field get_realm_military_target fun(self:Realm):number Returns the sum of military targets, not that it DOESNT include active armies.
 ---@field get_realm_active_army_size fun(self:Realm):number Returns the size of active armies on the field
 ---@field get_realm_militarization fun(self:Realm):number
---@field raise_army_of_size fun(self:Realm, size:number):Army Raises an army of a given size
 ---@field raise_army fun(self:Realm, warbands: table<Warband, Warband>): Army
 ---@field raise_warband fun(self: Realm, warband: Warband)
 ---@field raise_local_army fun(self: Realm, province: Province): Army
@@ -138,30 +170,8 @@ function realm.Realm:new()
 	o.g = love.math.random()
 	o.b = love.math.random()
 	o.expected_food_consumption = 0
-	o.treasury = 0
-	o.wasted_treasury = 0
-	o.treasury_real_delta = 0
-	o.old_treasury = 0
-	o.building_upkeep = 0
-	o.voluntary_contributions = 0
-	o.voluntary_contributions_accumulator = 0
-	o.monthly_infrastructure_investment = 0
-	o.infrastructure_budget = 0
+	o.budget = generate_empty_budget()
 
-	o.education_endowment = 0
-	o.education_investment = 0
-	o.education_endowment_needed = 0
-	o.monthly_education_investment = 0
-	o.education_budget = 0
-
-	o.court_wealth = 0
-	o.court_investment = 0
-	o.court_wealth_needed = 0
-	o.monthly_court_investment = 0
-	o.court_budget = 0
-
-	o.military_spending = 0
-	o.realized_military_spending = 1
 	o.provinces = {}
 	o.reward_flags = {}
 	o.bought = {}
@@ -330,8 +340,8 @@ end
 ---@return number
 function realm.Realm:get_education_efficiency()
 	local ed = 0
-	if self.education_endowment_needed > 0 then
-		ed = self.education_endowment / self.education_endowment_needed
+	if self.budget.education.target > 0 then
+		ed = self.budget.education.budget / self.budget.education.target
 	end
 	return ed
 end
@@ -339,8 +349,8 @@ end
 ---@return number
 function realm.Realm:get_court_efficiency()
 	local co = 0
-	if self.court_wealth_needed > 0 then
-		co = self.court_wealth / self.court_wealth_needed
+	if self.budget.court.target > 0 then
+		co = self.budget.court.budget / self.budget.court.target
 	end
 	return co
 end

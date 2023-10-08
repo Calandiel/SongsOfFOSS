@@ -11,9 +11,9 @@ function ex.run(realm)
 
 		if prov then
 			local cost = realm:get_explore_cost(prov)
-			if realm.treasury > cost then
+			if realm.budget.treasury > cost then
 				-- if love.math.random() < cost / realm.treasury then
-					EconomicEffects.add_treasury(realm, -cost, EconomicEffects.reasons.Exploration)
+					EconomicEffects.change_treasury(realm, -cost, EconomicEffects.reasons.Exploration)
 					realm:explore(prov)
 				-- end
 			end

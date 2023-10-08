@@ -4,6 +4,12 @@ local traits = require "game.raws.traits.generic"
 local eco_values = {}
 
 ---comment
+---@param realm Realm
+function eco_values.raidable_treasury(realm)
+    return math.max(0, realm.budget.treasury * 0.1)
+end
+
+---comment
 ---@param building_type BuildingType
 ---@param public boolean
 ---@param overseer Character?

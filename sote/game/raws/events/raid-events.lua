@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local ef = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economical"
 local ut = require "game.ui-utils"
 
 ---@class PatrolData
@@ -132,8 +133,9 @@ local function load()
 				province.local_wealth = province.local_wealth - real_loot
 				if max_loot > real_loot then
 					local leftover = max_loot - real_loot
-					local extra = math.min(0.1 * realm.treasury, leftover)
-					realm.treasury = realm.treasury - extra
+					local potential_loot = ev.raidable_treasury(realm)
+					local extra = math.min(potential_loot, leftover)
+					EconomicEffects.change_treasury(realm, -extra, EconomicEffects.reasons.Raid)
 					real_loot = real_loot + extra
 				end
 

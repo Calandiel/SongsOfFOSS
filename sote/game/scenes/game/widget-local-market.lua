@@ -139,6 +139,7 @@ return function(tile, ui_panel, base_unit)
         init_state(base_unit)
 
         --- local market
+        ---@type table<string, ItemData>
         local data_blob = {}
 
         local consumption = tile.province.local_consumption

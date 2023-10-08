@@ -6,6 +6,8 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 local tabb = require "engine.table"
 
+local ef = require "game.raws.effects.economic"
+
 re.cached_scrollbar = 0
 
 ---@return Rect
@@ -121,10 +123,10 @@ function re.draw(gam)
 									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local explore_cost = WORLD.player_realm:get_explore_cost(tile.province)
 										local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
-										if WORLD.player_realm.treasury > explore_cost then
+										if WORLD.player_realm.budget.treasury > explore_cost then
 											if ui.text_button("Explore (" .. explore_cost_string .. ')', rect, "Explore this province") then
 												WORLD.player_realm:explore(tile.province)
-												WORLD.player_realm.treasury = WORLD.player_realm.treasury - explore_cost
+												EconomicEffects.change_treasury(WORLD.player_realm, -explore_cost, EconomicEffects.reasons.Exploration)
 												gam.refresh_map_mode()
 											end
 										else
@@ -635,51 +637,51 @@ function re.draw(gam)
 								function(rect)
 									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local cinf = tile.province.infrastructure_investment
-										local ctre = WORLD.player_realm.treasury
+										local realm = WORLD.player_realm
+										local province = tile.province
+
+										if realm == nil then
+											return
+										end
+
 										uit.columns({
 											function(rect)
-												if WORLD.player_realm.treasury > 0.1 then
+												if realm.budget.treasury > 0.1 then
 													if ui.text_button('+0.1' .. MONEY_SYMBOL, rect, 'Invest 0.1') then
-														ctre = ctre - 0.1
-														cinf = cinf + 0.1
+														ef.direct_investment_infrastructure(realm, province, 0.1)
 													end
 												else
 													ui.centered_text('+0.1' .. MONEY_SYMBOL, rect)
 												end
 											end,
 											function(rect)
-												if WORLD.player_realm.treasury > 1 then
+												if realm.budget.treasury > 1 then
 													if ui.text_button('+1' .. MONEY_SYMBOL, rect, 'Invest 1') then
-														ctre = ctre - 1
-														cinf = cinf + 1
+														ef.direct_investment_infrastructure(realm, province, 1)
 													end
 												else
 													ui.centered_text('+1' .. MONEY_SYMBOL, rect)
 												end
 											end,
 											function(rect)
-												if WORLD.player_realm.treasury > 10 then
+												if realm.budget.treasury > 10 then
 													if ui.text_button('+10' .. MONEY_SYMBOL, rect, 'Invest 10') then
-														ctre = ctre - 10
-														cinf = cinf + 10
+														ef.direct_investment_infrastructure(realm, province, 10)
 													end
 												else
 													ui.centered_text('+10' .. MONEY_SYMBOL, rect)
 												end
 											end,
 											function(rect)
-												if WORLD.player_realm.treasury > 100 then
+												if realm.budget.treasury > 100 then
 													if ui.text_button('+100' .. MONEY_SYMBOL, rect, 'Invest 100') then
-														ctre = ctre - 100
-														cinf = cinf + 100
+														ef.direct_investment_infrastructure(realm, province, 100)
 													end
 												else
 													ui.centered_text('+100' .. MONEY_SYMBOL, rect)
 												end
 											end,
 										}, rect, base_unit * 2)
-										tile.province.infrastructure_investment = cinf
-										WORLD.player_realm.treasury = ctre
 									end
 								end,
 								function(rect)
@@ -866,11 +868,14 @@ function re.draw(gam)
 							rect.x = rect.x + rect.width + 5
 							rect.width = rect.height
 							if WORLD:does_player_control_realm(tile.province.realm) then
-								if WORLD.player_realm.treasury > unit.base_price then
+								local target_budget = WORLD.player_realm.budget.military.target
+								local current_budget = WORLD.player_realm.budget.military.budget
+								if current_budget > target_budget + unit.upkeep then
 									if ui.text_button('+1', rect, "Increase the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target + 1)
-										WORLD.player_realm.treasury = WORLD.player_realm.treasury - unit.base_price
 									end
+								else 
+									ui.text_button('X', rect, "Not enough military funding")
 								end
 							end
 							rect.x = rect.x + rect.width + 5

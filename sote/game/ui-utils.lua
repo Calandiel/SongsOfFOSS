@@ -18,6 +18,7 @@ ut.BASE_HEIGHT = 20
 function ut.graph(entries, rect)
 	local total_weight = 0
 	for _, entry in ipairs(entries) do
+		---@type number
 		total_weight = total_weight + entry.weight
 	end
 	if total_weight > 0 then

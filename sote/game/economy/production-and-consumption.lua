@@ -82,6 +82,7 @@ function pro.run(province)
 					record_consumption(input, amount)
 					income = income - province.realm:get_price(input) * amount * efficiency * throughput_boost * input_boost
 				end
+				income = income
 				for output, amount in pairs(prod.outputs) do
 					record_production(output, amount * efficiency)
 					income = income +
@@ -91,11 +92,12 @@ function pro.run(province)
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
-					if pop.employer.owner then
-						if donations_to_owners[pop.employer.owner] == nil then
-							donations_to_owners[pop.employer.owner] = 0
+					local owner = pop.employer.owner
+					if owner then
+						if donations_to_owners[owner] == nil then
+							donations_to_owners[owner] = 0
 						end
-						donations_to_owners[pop.employer.owner] = donations_to_owners[pop.employer.owner] + contrib
+						donations_to_owners[owner] = donations_to_owners[pop.employer.owner] + contrib
 					else
 						total_donations = total_donations + contrib
 					end
@@ -156,12 +158,11 @@ function pro.run(province)
 			EconomicEffects.add_pop_savings(c, elites_share * c.popularity / total_popularity, EconomicEffects.reasons.Donation)
 		end
 	end
-	EconomicEffects.add_treasury(province.realm, realm_share, EconomicEffects.reasons.Donation)
-	province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + realm_share
+	EconomicEffects.register_income(province.realm, realm_share, EconomicEffects.reasons.Donation)
+
 	for character, income in pairs(donations_to_owners) do
 		EconomicEffects.add_pop_savings(character, income, EconomicEffects.reasons.BuildingIncome)
 	end
-
 
 	province.local_income = province.local_wealth - old_wealth
 	province.foragers = foragers_count -- Record the new number of foragers

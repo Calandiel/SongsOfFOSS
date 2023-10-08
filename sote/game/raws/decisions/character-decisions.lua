@@ -311,7 +311,7 @@ local function load()
 
 
 			province.mood = math.min(10, province.mood + 0.5 / province:population())
-			EconomicEffects.add_treasury(realm, base_gift_size, "donation")
+			EconomicEffects.change_treasury(realm, base_gift_size, "donation")
 			root.savings = root.savings - base_gift_size
 
 			if WORLD:does_player_see_realm_news(realm) then

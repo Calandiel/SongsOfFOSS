@@ -5,7 +5,9 @@ local rea = {}
 
 ---@param realm Realm
 function rea.prerun(realm)
-	realm.building_upkeep = 0
+	realm.budget.spending_by_category = {}
+	realm.budget.income_by_category = {}
+	realm.budget.treasury_change_by_category = {}
 end
 
 ---@param realm Realm
@@ -57,36 +59,54 @@ function rea.run(realm)
 	-- #############################
 	-- ## ACTIVE MONTHLY SPENDING ##
 	-- #############################
+	local budget = realm.budget
+
+	-- calculate wealth we are able to siphon from treasury
+	local treasury_siphon = budget.treasury_target - budget.treasury
+	-- if it's negative, then we have excess money in treasury! can invest into montly budget
+	if treasury_siphon < 0 then
+		EconomicEffects.register_income(realm, -treasury_siphon, EconomicEffects.reasons.Treasury)
+		EconomicEffects.change_treasury(realm, treasury_siphon, EconomicEffects.reasons.Budget)
+	end
+	treasury_siphon = 0
+	-- otherwise, we have to siphon wealth from our monthly income
+
+	--- distribute income to budget categories
+	local last_change = budget.change
+	local treasury_ratio = 1 - budget.education.ratio - budget.court.ratio - budget.military.ratio - budget.infrastructure.ratio
+
+	budget.education.to_be_invested 		= last_change * budget.education.ratio + budget.education.to_be_invested
+	-- EconomicEffects.register_spendings(realm, last_change * budget.education.ratio, EconomicEffects.reasons.Infrastructure)
+
+	budget.court.to_be_invested 			= last_change * budget.court.ratio + budget.court.to_be_invested
+	-- EconomicEffects.register_spendings(realm, last_change * budget.court.ratio, EconomicEffects.reasons.Court)
+
+	budget.military.to_be_invested 			= last_change * budget.military.ratio + budget.military.to_be_invested
+	-- EconomicEffects.register_spendings(realm, last_change * budget.military.ratio, EconomicEffects.reasons.Military)
+
+	budget.infrastructure.to_be_invested 	= last_change * budget.infrastructure.ratio + budget.infrastructure.to_be_invested
+	-- EconomicEffects.register_spendings(realm, last_change * budget.infrastructure.ratio, EconomicEffects.reasons.Infrastructure)
+
+	-- send the rest to treasury
+	local treasury_investment = last_change * treasury_ratio
+	EconomicEffects.change_treasury(realm, treasury_investment, EconomicEffects.reasons.MonthlyChange)
+
 
 	-- Handle infrastructure investments
 	local total_infrastructure_needed = 0
 	for _, province in pairs(realm.provinces) do
+		---@type number
 		total_infrastructure_needed = total_infrastructure_needed + province.infrastructure_needed
 	end
+	realm.budget.infrastructure.target = total_infrastructure_needed
 	if total_infrastructure_needed > 0 then
+		local invested_total = budget.infrastructure.to_be_invested
 		for _, province in pairs(realm.provinces) do
-			local invested = realm.monthly_infrastructure_investment * province.infrastructure_needed /
-				total_infrastructure_needed
-			invested = math.min(invested, realm.treasury)
+			local province_ratio = province.infrastructure_needed / province.infrastructure_needed
+			local invested = invested_total * province_ratio
 			province.infrastructure_investment = province.infrastructure_investment + invested
-			EconomicEffects.add_treasury(realm, -invested, EconomicEffects.reasons.Infrastructure)
 		end
-	end
-
-	-- Handle education investments
-	local total_education_needed = realm.education_endowment_needed
-	if total_education_needed > 0 then
-		local invested = math.min(realm.monthly_education_investment, realm.treasury)
-		realm.education_investment = realm.education_investment + invested
-		EconomicEffects.add_treasury(realm, -invested, EconomicEffects.reasons.Education)
-	end
-
-	-- Handle court investments
-	local total_court_needed = realm.court_wealth_needed
-	if total_court_needed > 0 then
-		local invested = math.min(realm.monthly_court_investment, realm.treasury)
-		realm.court_investment = realm.court_investment + invested
-		EconomicEffects.add_treasury(realm, -invested, EconomicEffects.reasons.Court)
+		budget.infrastructure.to_be_invested = 0
 	end
 
 	-- #######################
@@ -99,22 +119,26 @@ function rea.run(realm)
 			military_upkeep = military_upkeep + count * unit.upkeep
 		end
 	end
-	realm.military_spending = military_upkeep
-	local mil_fulf = 1
-	if realm.military_spending > 0 then
-		mil_fulf = realm.treasury / realm.military_spending
-	end
-	realm.realized_military_spending = mil_fulf
-	realm.military_spending = math.min(realm.military_spending, realm.treasury)
-	EconomicEffects.add_treasury(realm, -realm.military_spending, EconomicEffects.reasons.Military)
+
+	-- target
+	realm.budget.military.target = military_upkeep * 12
+
+	-- invest
+	local military_investment = budget.military.to_be_invested * 0.1
+	budget.military.to_be_invested = budget.military.to_be_invested - military_investment
+	realm.budget.military.budget = realm.budget.military.budget + military_investment
+
+	-- spend
+	realm.budget.military.budget = realm.budget.military.budget - military_upkeep
+	
+
 
 	-- "wealth decay" -- to prevent the AI from accidentally overstockpiling so much that the numbers overflow...
-	realm.treasury_real_delta = realm.treasury - realm.old_treasury
-	realm.old_treasury = realm.treasury
-	realm.wasted_treasury = realm.treasury * 0.001
-	realm.treasury = realm.treasury * 0.999
-	realm.voluntary_contributions = realm.voluntary_contributions_accumulator
-	realm.voluntary_contributions_accumulator = 0
+	local treasure_waste = realm.budget.treasury * 0.001
+	EconomicEffects.register_spendings(realm, treasure_waste, EconomicEffects.reasons.Waste)
+
+	realm.budget.saved_change = realm.budget.change
+	realm.budget.change = 0
 end
 
 return rea

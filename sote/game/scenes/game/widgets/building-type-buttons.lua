@@ -37,12 +37,17 @@ end
 ---@param public_flag boolean
 ---@param tile_improvement_flag boolean
 local function construction_button(gam, rect, building_type, tile, owner, overseer, public_flag, tile_improvement_flag)
+    local realm = WORLD.player_realm
+
+    if realm == nil then
+        return
+    end
 
     local funds = 0
     if public_flag then
-        funds = WORLD.player_realm.treasury
+        funds = realm.budget.treasury
     else
-        funds = WORLD.player_character.savings
+        funds = realm.budget.treasury
     end
 
     local success, reason = tile.province:can_build(
