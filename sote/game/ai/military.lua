@@ -7,6 +7,12 @@ function mi.run(realm)
 	--print("mil")
 	local pop = realm:get_realm_population()
 	local target_mil = math.floor(pop * 7.5 / 100.0)
+
+	local delta = realm.budget.military.budget - realm.budget.military.target
+	if delta < 0 then
+		target_mil = target_mil * 0.5
+	end
+
 	local mil = realm:get_realm_military_target() + realm:get_realm_active_army_size()
 	if target_mil > mil * 1.1 then
 		--print("---")

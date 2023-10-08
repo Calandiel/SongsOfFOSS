@@ -9,7 +9,7 @@ local ef = require "game.raws.effects.economic"
 ---@param realm Realm
 ---@param budget_category BudgetCategory
 return function (rect, name, realm, budget_category)
-    rect.width = rect.width / 10
+    rect.width = rect.width / 9.2
 
     -- first part - label for category!
     uit.data_entry(name, "", rect, "Budget breakdown")

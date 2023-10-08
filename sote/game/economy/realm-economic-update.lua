@@ -41,7 +41,7 @@ function rea.run(realm)
 			-- Nothing to do, services aren't resolved per realm...
 			-- Actually (!), let's keep track of them anyway so that we can store prices per realm
 			--end
-			if prod == RAWS_MANAGER.trade_goods_by_name['food'] then
+			if prod == 'food' then
 				realm.expected_food_consumption = realm.expected_food_consumption + amount
 			end
 		end
@@ -85,21 +85,25 @@ function rea.run(realm)
 	budget.military.to_be_invested 			= last_change * budget.military.ratio + budget.military.to_be_invested
 	-- EconomicEffects.register_spendings(realm, last_change * budget.military.ratio, EconomicEffects.reasons.Military)
 
-	budget.infrastructure.to_be_invested 	= last_change * budget.infrastructure.ratio + budget.infrastructure.to_be_invested
+	budget.infrastructure.to_be_invested 	= last_change * budget.infrastructure.ratio
 	-- EconomicEffects.register_spendings(realm, last_change * budget.infrastructure.ratio, EconomicEffects.reasons.Infrastructure)
 
-	-- send the rest to treasury
+	-- send/siphon the rest to/from treasury
 	local treasury_investment = last_change * treasury_ratio
 	EconomicEffects.change_treasury(realm, treasury_investment, EconomicEffects.reasons.MonthlyChange)
 
 
 	-- Handle infrastructure investments
 	local total_infrastructure_needed = 0
+	local total_infrastructure_invested = 0
 	for _, province in pairs(realm.provinces) do
 		---@type number
 		total_infrastructure_needed = total_infrastructure_needed + province.infrastructure_needed
+		total_infrastructure_invested = total_infrastructure_invested + province.infrastructure_investment
 	end
 	realm.budget.infrastructure.target = total_infrastructure_needed
+	realm.budget.infrastructure.budget = total_infrastructure_invested
+
 	if total_infrastructure_needed > 0 then
 		local invested_total = budget.infrastructure.to_be_invested
 		for _, province in pairs(realm.provinces) do
@@ -107,7 +111,7 @@ function rea.run(realm)
 			local invested = invested_total * province_ratio
 			province.infrastructure_investment = province.infrastructure_investment + invested
 		end
-		budget.infrastructure.to_be_invested = 0
+		-- budget.infrastructure.to_be_invested = 0
 	end
 
 	-- #######################

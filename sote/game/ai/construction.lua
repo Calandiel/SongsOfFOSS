@@ -8,8 +8,9 @@ local co = {}
 ---@param funds number
 ---@param excess number
 ---@param owner POP?
+---@param overseer POP?
 ---@return number
-local function construction_in_province(province, funds, excess, owner)
+local function construction_in_province(province, funds, excess, owner, overseer)
 	---@type number
 	local total_weight = 0
 	for _, ty in pairs(province.buildable_buildings) do
@@ -42,18 +43,12 @@ local function construction_in_province(province, funds, excess, owner)
 				tile = tabb.nth(province.tiles, love.math.random(tt))
 			end
 
-			local overseer = nil
-			local public_flag = false
-			
+			local public_flag = false			
 			if owner then
-				overseer = owner
 				public_flag = false
 			else
-				overseer = province.realm.leader
 				public_flag = true
 			end
-
-
 
 			if province.can_build(province, math.huge, to_build, tile, overseer, public_flag) then
 				local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
@@ -63,7 +58,9 @@ local function construction_in_province(province, funds, excess, owner)
 				-- If we don't have enough money, just adjust the likelihood (this will be easier on the AI and accurate on long term averages)
 				--- Peter's comment:
 				-- sounds strange, someone should consider changing it in a future
-				if love.math.random() < funds / construction_cost then
+				-- changing it, because otherwise ai builds things far too fast
+				-- if love.math.random() < funds / construction_cost then
+				if funds >= construction_cost then
 					-- We can build! But only build if we have enough excess money to pay for the upkeep...
 
 					if excess >= to_build.upkeep then
@@ -94,7 +91,7 @@ function co.run(realm)
 				if WORLD:does_player_control_realm(realm) then
 					-- Player realms shouldn't run their AI for building construction... unless...
 				else
-					funds = construction_in_province(province, funds, excess)
+					funds = construction_in_province(province, funds, excess, realm.leader)
 				end
 
 				-- Run construction using the AI for local wealth too!
@@ -106,7 +103,7 @@ function co.run(realm)
 				local builder = tabb.random_select_from_set(province.characters)
 				if builder and (WORLD.player_character ~= builder) then
 					local char_funds = ai.construction_funds(builder)
-					local result = construction_in_province(province, char_funds, builder.savings * 0.1)
+					local result = construction_in_province(province, char_funds, builder.savings * 0.1, builder, builder)
 
 					local spendings = char_funds - result
 					effects.add_pop_savings(builder, -spendings, effects.reasons.Building)

@@ -159,6 +159,10 @@ function EconomicEffects.construct_building(building_type, province, tile, owner
     local Building = require "game.entities.building".Building
     local result_building = Building:new(province, building_type, tile)
     EconomicEffects.set_ownership(result_building, owner)
+
+    if WORLD:does_player_see_province_news(province) then
+        WORLD:emit_notification(building_type.name .. " was constructed in " .. province.name .. ".")
+    end
     return result_building
 end
 

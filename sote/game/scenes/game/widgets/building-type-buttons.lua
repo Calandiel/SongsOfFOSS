@@ -44,10 +44,10 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
     end
 
     local funds = 0
-    if public_flag then
+    if public_flag or owner == nil then
         funds = realm.budget.treasury
     else
-        funds = realm.budget.treasury
+        funds = owner.savings
     end
 
     local success, reason = tile.province:can_build(
