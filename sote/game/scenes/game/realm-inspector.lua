@@ -51,15 +51,7 @@ function re.draw(gam)
 			{
 				text = "GEN",
 				tooltip = "General",
-				closure = function()
-					local panel_rect = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Race: ", realm.primary_race.name, panel_rect)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-				end
+				closure = require "game.scenes.game.inspectors.realm-general"(ui_panel, realm, gam)
 			},
 			{
 				text = "TRE",
@@ -259,7 +251,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widget-decision-tab" (ui_panel, nil, 'none', gam)
+					require "sote.game.scenes.game.widgets.decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{
@@ -269,7 +261,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widget-decision-tab" (ui_panel, realm, 'realm', gam)
+					require "sote.game.scenes.game.widgets.decision-tab" (ui_panel, realm, 'realm', gam)
 				end
 			},
 			{

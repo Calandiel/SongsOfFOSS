@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
-local portrait = require "game.scenes.game.widget-portrait"
+local portrait = require "sote.game.scenes.game.widgets.portrait"
 
 local window = {}
 

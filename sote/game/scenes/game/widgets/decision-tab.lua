@@ -12,7 +12,7 @@ return function (ui_panel, primary_target, decision_type, gam)
 		function(rect)
 			-- First, we need to check if the player is controlling a realm
 			if WORLD:does_player_control_realm(WORLD.player_realm) then
-				local decis, tg_primar, tg_second = require "game.scenes.game.widget-decision-selection"(
+				local decis, tg_primar, tg_second = require "sote.game.scenes.game.widgets.decision-selection"(
 					rect,
 					decision_type,
 					primary_target,
@@ -26,7 +26,7 @@ return function (ui_panel, primary_target, decision_type, gam)
 			end
 		end,
 		function(rect)
-			local res = require "game.scenes.game.widget-decision-desc"(
+			local res = require "sote.game.scenes.game.widgets.decision-desc"(
 				rect,
 				WORLD.player_realm,
 				gam.selected_decision,

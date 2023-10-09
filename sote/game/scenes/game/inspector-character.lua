@@ -2,8 +2,8 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
-local characters_list_widget = require "game.scenes.game.widget-character-list"
-local character_decisions_widget = require "game.scenes.game.widget-decision-selection-character"
+local characters_list_widget = require "sote.game.scenes.game.widgets.character-list"
+local character_decisions_widget = require "sote.game.scenes.game.widgets.decision-selection-character"
 
 local window = {}
 local selected_decision = nil
@@ -53,7 +53,7 @@ function window.draw(game, character)
     --panel for a future portrait
     local portrait = ui_panel:subrect(0, 0, unit * 4, unit * 4, "left", 'up')
     local coa = ui_panel:subrect(unit * 3 - 2, unit * 3 - 2, unit, unit, "left", 'up')
-    require "game.scenes.game.widget-portrait" (portrait, character)
+    require "sote.game.scenes.game.widgets.portrait" (portrait, character)
     
 
     -- name panel
@@ -112,7 +112,7 @@ function window.draw(game, character)
 
     -- First, we need to check if the player is controlling a realm
     if WORLD.player_character then
-        selected_decision, decision_target_primary, decision_target_secondary = require "game.scenes.game.widget-decision-selection-character"(
+        selected_decision, decision_target_primary, decision_target_secondary = require "sote.game.scenes.game.widgets.decision-selection-character"(
             decisions_panel,
             'character',
             character,
@@ -121,7 +121,7 @@ function window.draw(game, character)
     else
         -- No player realm: no decisions to draw
     end
-    local res = require "game.scenes.game.widget-decision-desc"(
+    local res = require "sote.game.scenes.game.widgets.decision-desc"(
         decisions_confirmation_panel,
         WORLD.player_character,
         selected_decision,

@@ -705,8 +705,8 @@ function gam.draw()
 			gam.click_callback = callback.nothing()
 		end
 
-		gam.notification_slider = require "sote.game.scenes.game.widget-news"(notif_panel, gam.notification_slider)
-		gam.outliner_slider = require "sote.game.scenes.game.widget-outliner"(outliner_panel, gam.outliner_slider)
+		gam.notification_slider = require "sote.game.scenes.game.widgets.news"(notif_panel, gam.notification_slider)
+		gam.outliner_slider = require "sote.game.scenes.game.widgets.outliner"(outliner_panel, gam.outliner_slider)
 	end
 
 		-- Map mode tab

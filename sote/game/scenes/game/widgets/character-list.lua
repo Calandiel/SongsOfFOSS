@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
-local portrait = require "game.scenes.game.widget-portrait"
+local portrait = require "sote.game.scenes.game.widgets.portrait"
 
 ---@type TableState
 local state = nil
@@ -40,6 +40,9 @@ local function pop_sex(pop)
     return f
 end
 
+---@param rect Rect
+---@param base_unit number
+---@param province Province
 return function(rect, base_unit, province)
     return function()
         ---@type TableColumn[]
