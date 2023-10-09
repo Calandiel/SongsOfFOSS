@@ -32,6 +32,26 @@ Decision.Character.__index = Decision.Character
 ---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets fun(root:Realm, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
 
+
+---@class DecisionCharacterData
+---@field primary_target 			DecisionTarget
+---@field secondary_target 			DecisionTarget
+---@field sorting 					nil|number Controls how high or how low on the list of available decisions this decision is in the UI
+---@field name 						string
+---@field ui_name 					string
+---@field tooltip 					fun(root:Character, primary_target:any):string
+---@field effect 					fun(root:Character, primary_target:any, secondary_target:any) Called when the action is taken
+---@field pretrigger 				fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
+---@field clickable 				nil|fun(root:Character, primary_target:any):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
+---@field available 				nil|fun(root:Character, primary_target:any, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
+---@field ai_will_do 				fun(root:Character, primary_target:any, secondary_target:any):number Returns a probability that an AI will take the decision
+---@field ai_targetting_attempts 	nil|number Number of attempts an AI will take to find a secondary target
+---@field ai_target 				nil|fun(root:Character):any,boolean Selects the primary target for the AI
+---@field ai_secondary_target 		nil|fun(root:Character, primary_target:any):any,boolean Selects the secondary target for the AI
+---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
+---@field get_secondary_targets 	nil|fun(root:Character, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
+
+
 ---@class DecisionCharacter
 ---@field new fun(self:DecisionCharacter, o:DecisionCharacter):DecisionCharacter
 ---@field primary_target DecisionTarget
@@ -111,6 +131,8 @@ function Decision.Realm:new(i)
 	return o
 end
 
+
+---@param i DecisionCharacterData
 ---@return DecisionCharacter
 function Decision.Character:new(i)
 	---@type DecisionCharacter

@@ -73,10 +73,10 @@ return function (rect, name, realm, budget_category)
         pr.x = pr.x + uit.BASE_HEIGHT * 2
     end
 
-    change(-10)
+    -- change(-10)
     change(-5)
-    change(-1)
-    change(1)
+    -- change(-1)
+    -- change(1)
     change(5)
-    change(10)
+    -- change(10)
 end

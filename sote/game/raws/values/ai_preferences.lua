@@ -41,10 +41,11 @@ function AiPreferences.loyalty_price(character)
 end
 
 ---@class AIDecisionFlags
----@field treason boolean
----@field ambition boolean
----@field help boolean
----@field submission boolean
+---@field treason boolean?
+---@field ambition boolean?
+---@field help boolean?
+---@field submission boolean?
+---@field work boolean?
 
 ---generates callback which calculates ai preference on demand
 ---@param character Character
@@ -91,13 +92,25 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
         -- print(base_value)
 
         if flags.submission and character.traits[TRAIT.AMBITIOUS] then
-            base_value = base_value - 100
+            base_value = base_value - 50
         end
 
         -- print(base_value)
 
         if flags.ambition and character.traits[TRAIT.AMBITIOUS] then
-            base_value = base_value + 100
+            base_value = base_value + 50
+        end
+
+        if flags.ambition and character.traits[TRAIT.CONTENT] then
+            base_value = base_value - 10
+        end
+
+        if flags.work and character.traits[TRAIT.LAZY] then
+            base_value = base_value - 20
+        end
+
+        if flags.work and character.traits[TRAIT.HARDWORKER] then
+            base_value = base_value + 20
         end
 
         -- print(base_value)

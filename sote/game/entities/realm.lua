@@ -77,6 +77,7 @@ end
 ---@field primary_faith Faith
 ---@field capitol Province
 ---@field leader Character?
+---@field overseer Character?
 ---@field provinces table<Province, Province>
 ---@field reward_flags table<RewardFlag, RewardFlag>
 ---@field raiders_preparing table<RewardFlag, table<Warband, Warband>>
@@ -405,6 +406,7 @@ end
 function realm.Realm:get_realm_military()
 	local total = 0
 	for _, p in pairs(self.provinces) do
+		---@type number
 		total = total + p:military()
 	end
 	for _, a in pairs(self.armies) do

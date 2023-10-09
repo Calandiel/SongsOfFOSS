@@ -2,6 +2,8 @@ local tabb = require "engine.table"
 local ai = require "game.raws.values.ai_preferences"
 local effects = require "game.raws.effects.economic"
 local eco_values = require "game.raws.values.economical"
+local pv = require "game.raws.values.political"
+
 local co = {}
 
 ---@param province Province
@@ -91,7 +93,7 @@ function co.run(realm)
 				if WORLD:does_player_control_realm(realm) then
 					-- Player realms shouldn't run their AI for building construction... unless...
 				else
-					funds = construction_in_province(province, funds, excess, realm.leader)
+					funds = construction_in_province(province, funds, excess, nil, pv.overseer(realm))
 				end
 
 				-- Run construction using the AI for local wealth too!

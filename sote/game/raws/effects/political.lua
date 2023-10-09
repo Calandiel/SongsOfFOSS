@@ -52,8 +52,29 @@ function PoliticalEffects.transfer_power(realm, target)
 
     realm.leader.rank = ranks.NOBLE
     target.rank = ranks.CHIEF
+    PoliticalEffects.remove_overseer(realm)
 
     realm.leader = target
+end
+
+---comment
+---@param realm Realm
+function PoliticalEffects.set_overseer(realm, overseer)
+    realm.overseer = overseer
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification(overseer.name .. " is a new overseer of " .. realm.name .. ".")
+    end
+end
+
+---comment
+---@param realm Realm
+function PoliticalEffects.remove_overseer(realm)
+    local overseer = realm.overseer
+    realm.overseer = nil
+    if overseer and WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification(overseer.name .. " is no longer an overseer of " .. realm.name .. ".")
+    end
+
 end
 
 ---Banish the character from the realm

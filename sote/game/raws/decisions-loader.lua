@@ -10,6 +10,7 @@ function ll.load()
 
 	require "game.raws.decisions.war-decisions" ()
 	require "game.raws.decisions.character-decisions" ()
+	require "game.raws.decisions.office-decisions" ()
 
 	-- Logic flow:
 	-- 1. Loop through all realms

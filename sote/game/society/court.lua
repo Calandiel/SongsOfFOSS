@@ -13,7 +13,6 @@ function co.run(realm)
 	for _, character in pairs(realm.capitol.characters) do
 		con = con + values.money_utility(character)
 	end
-
 	con = con * 10
 	realm.budget.court.target = con
 
@@ -33,11 +32,20 @@ function co.run(realm)
 
 	-- Nobles get their share of a court wealth
 	-- At the very end, apply some decay to present investment to prevent runaway growth
-	local wealth_decay_rate = 1 - 1 / (12 * 6) -- 6 years to decay everything
+	local wealth_decay_rate = 1 - 1 / (12 * 2) -- 2 years to decay everything
 	if realm.budget.court.budget > con then
-		wealth_decay_rate = 1 - 1 / (12 * 4) -- 4 years to decay the part above the needed amount
+		wealth_decay_rate = 1 - 1 / (12 * 1) -- 1 years to decay the part above the needed amount
 	end
 	local total_decay = (1 - wealth_decay_rate) * realm.budget.court.budget
+
+	local real_overseer_wage = total_decay * 0.1
+
+	if realm.overseer then
+		ef.add_pop_savings(realm.overseer, real_overseer_wage, ef.reasons.Court)
+		
+		total_decay = total_decay - real_overseer_wage
+		realm.budget.court.budget = realm.budget.court.budget - real_overseer_wage
+	end
 
 	local nobles_amount = tabb.size(realm.capitol.characters)
 	local nobles_wage = total_decay / (nobles_amount + 1)

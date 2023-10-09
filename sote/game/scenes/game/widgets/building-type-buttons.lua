@@ -3,6 +3,7 @@ local uit = require "game.ui-utils"
 
 local EconomicEffects = require "game.raws.effects.economic"
 local EconomicValues = require "game.raws.values.economical"
+local pv = require "game.raws.values.political"
 
 ---comment
 ---@param rect Rect
@@ -138,6 +139,6 @@ return function (gam, rect, base_unit, building_type, tile, tile_improvement_fla
     r.x = r.x + base_unit
     r.width = base_unit
     if WORLD:does_player_control_realm(tile.province.realm) then
-        construction_button(gam, r, building_type, tile, nil, WORLD.player_character, true, tile_improvement_flag)
+        construction_button(gam, r, building_type, tile, nil, pv.overseer(tile.province.realm), true, tile_improvement_flag)
     end
 end

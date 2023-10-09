@@ -59,6 +59,15 @@ local function make_new_noble(race, faith, culture)
 		contender.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
 	end
 
+	local laziness_roll = love.math.random()
+	if laziness_roll < 0.1 then
+		contender.traits[TRAIT.LAZY] = TRAIT.LAZY
+	elseif laziness_roll < 0.9 then
+		-- do nothing ...
+	else
+		contender.traits[TRAIT.HARDWORKER] = TRAIT.HARDWORKER
+	end
+
 	contender.rank = ranks.NOBLE
 
 	return contender
