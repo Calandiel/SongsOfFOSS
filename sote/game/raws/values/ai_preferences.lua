@@ -46,6 +46,7 @@ end
 ---@field help boolean?
 ---@field submission boolean?
 ---@field work boolean?
+---@field aggression boolean?
 
 ---generates callback which calculates ai preference on demand
 ---@param character Character
@@ -111,6 +112,18 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 
         if flags.work and character.traits[TRAIT.HARDWORKER] then
             base_value = base_value + 20
+        end
+
+        if flags.aggression and character.traits[TRAIT.WARLIKE] then
+            base_value = base_value + 20
+        end
+
+        if flags.aggression and character.traits[TRAIT.CONTENT] then
+            base_value = base_value - 20
+        end
+
+        if flags.aggression and character.traits[TRAIT.LAZY] then
+            base_value = base_value - 20
         end
 
         -- print(base_value)

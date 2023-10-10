@@ -5,6 +5,12 @@ local eco_values = {}
 
 ---comment
 ---@param realm Realm
+function eco_values.potential_monthly_tribute_size(realm)
+    return realm.budget.saved_change * 0.1
+end
+
+---comment
+---@param realm Realm
 function eco_values.raidable_treasury(realm)
     return math.max(0, realm.budget.treasury * 0.1)
 end

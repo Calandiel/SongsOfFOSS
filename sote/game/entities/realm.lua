@@ -24,7 +24,7 @@ local function budget_category()
 	}
 end
 
----@alias BudgetCategoryReference 'education'|'court'|'infrastructure'|'military'
+---@alias BudgetCategoryReference 'education'|'court'|'infrastructure'|'military'|'tribute'
 
 ---@alias WealthByCategory table<EconomicReason, number?>
 
@@ -40,6 +40,7 @@ end
 ---@field court BudgetCategory
 ---@field infrastructure BudgetCategory
 ---@field military BudgetCategory
+---@field tribute BudgetCategory
 
 
 ---Generates empty budget
@@ -58,6 +59,7 @@ local function generate_empty_budget()
 		court = budget_category(),
 		infrastructure = budget_category(),
 		military = budget_category(),
+		tribute = budget_category(),
 	}
 end
 
@@ -78,10 +80,12 @@ end
 ---@field capitol Province
 ---@field leader Character?
 ---@field overseer Character?
+---@field paying_tribute_to Realm?
 ---@field provinces table<Province, Province>
 ---@field reward_flags table<RewardFlag, RewardFlag>
 ---@field raiders_preparing table<RewardFlag, table<Warband, Warband>>
 ---@field patrols table<Province, table<Warband, Warband>>
+---@field prepare_attack_flag boolean?
 ---@field add_reward_flag fun(self:Realm, target:RewardFlag)
 ---@field remove_reward_flag fun(self:Realm, target:RewardFlag)
 ---@field roll_reward_flag fun(self:Realm): RewardFlag
@@ -147,6 +151,7 @@ realm.RewardFlag.__index = realm.RewardFlag
 ---@param i RewardFlag
 ---@return RewardFlag
 function realm.RewardFlag:new(i)
+	---@type table
 	local o = {}
 	for k, v in pairs(i) do
 		o[k] = v
@@ -298,6 +303,7 @@ function realm.Realm:remove_patrol(prov, warband)
 end
 
 function realm.Realm:roll_reward_flag()
+	---@type table<RewardFlag, number>
 	local targets = {}
 	for _, k in pairs(self.reward_flags) do
 		targets[k] = k.reward * k.owner.popularity
@@ -518,6 +524,7 @@ end
 
 ---@return table<Province, number>
 function realm.Realm:get_province_pop_weights()
+	---@type table<Province, number>
 	local weights = {}
 	local total = 0
 	for _, p in pairs(self.provinces) do
@@ -551,6 +558,7 @@ end
 
 ---@return table<number, Province>
 function realm.Realm:get_n_random_pop_weighted_provinces(n)
+	---@type table<number, Province>
 	local returns = {}
 	local ws = self:get_province_pop_weights()
 	for i = 1, n do
@@ -561,12 +569,14 @@ end
 
 ---@return number
 function realm.Realm:get_total_population()
+	---@type number
 	local pop = 0
 
 	for _, army in pairs(self.armies) do
 		pop = pop + tabb.size(army:pops())
 	end
 	for _, prov in pairs(self.provinces) do
+		---@type number
 		pop = pop + tabb.size(prov.all_pops)
 	end
 

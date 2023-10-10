@@ -72,8 +72,9 @@ end
 
 ---Returns n-th entry in a table when iterated over with pairs, O(n)
 ---1-indexed, like normal Lua tables.
----@param table_to_use any
----@return any key, any value
+---@generic K, T
+---@param table_to_use table<K, T>
+---@return K key, T|nil value
 function tab.nth(table_to_use, n)
 	local nth = 0
 	for k, v in pairs(table_to_use) do

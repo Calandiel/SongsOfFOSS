@@ -8,7 +8,7 @@ local ef = require "game.raws.effects.economic"
 ---@param name string
 ---@param realm Realm
 ---@param budget_category BudgetCategory
-return function (rect, name, realm, budget_category)
+return function (rect, name, realm, budget_category, disable_control)
     rect.width = rect.width / 9.2
 
     -- first part - label for category!
@@ -27,6 +27,8 @@ return function (rect, name, realm, budget_category)
     -- fourth part - target spendings
     uit.money_entry("", budget_category.target, rect, "Target investments")
     rect.x = rect.x + rect.width
+
+    
 
     local satisfactio_ratio = 1
     if budget_category.target ~= 0 then
@@ -52,6 +54,10 @@ return function (rect, name, realm, budget_category)
     -- fifth part - current ratio of income spent on it
     uit.data_entry_percentage("", budget_category.ratio, rect, "Income ratio spent on " .. name, false)
     rect.x = rect.x + rect.width
+
+    if disable_control then
+        return
+    end
 
     -- sixth part - control over ratio
     if not WORLD:does_player_control_realm(realm) then

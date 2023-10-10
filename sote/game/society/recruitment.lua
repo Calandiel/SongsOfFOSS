@@ -15,7 +15,7 @@ function rec.run(province)
 		local payment = province.realm.budget.military.target
 		local current_budget = province.realm.budget.military.budget
 		
-		if (current_count > target) or (payment < current_budget * love.math.random()) then
+		if (current_count > target) or (payment * love.math.random() > current_budget) then
 			-- Too many soldiers, fire some
 			local delta = current_count - target
 			for _ = 1, delta do

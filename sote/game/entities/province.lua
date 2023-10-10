@@ -74,7 +74,7 @@ local prov = {}
 ---@field get_spotting fun(self:Province):number Returns the local "spotting" power
 ---@field get_hiding fun(self:Province):number Returns the local "hiding" space
 ---@field spot_chance fun(self:Province, visibility: number): number Returns a chance to spot an army with given visibility.
----@field army_spot_test fun(self:Province, army:Army):boolean Performs an army spotting test in this province.
+---@field army_spot_test fun(self:Province, army:Army, stealth_penalty: number?):boolean Performs an army spotting test in this province.
 ---@field get_job_ratios fun(self:Province):table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
 ---@field get_unemployment fun(self:Province):number Returns the number of unemployed people in the province.
 ---@field throughput_boosts table<ProductionMethod, number>
@@ -654,13 +654,19 @@ function prov.Province:spot_chance(visibility)
 	return odds
 end
 
----@param army Army
+
+---@param army Army Attacking army
+---@param stealth_penalty number? Multiplicative penalty, multiplies army visibility score.
 ---@return boolean True if the army was spotted.
-function prov.Province:army_spot_test(army)
+function prov.Province:army_spot_test(army, stealth_penalty)
 	-- To resolve this event we need to perform some checks.
 	-- First, we should have a "scouting" check.
 	-- Them, a potential battle ought to take place.`	
-	local visib = army:get_visibility() + love.math.random(20)
+	if stealth_penalty == nil then
+		stealth_penalty = 1
+	end
+
+	local visib = (army:get_visibility() + love.math.random(20)) * stealth_penalty
 	local odds = self:spot_chance(visib)
 	if love.math.random() < odds then
 		-- Spot!

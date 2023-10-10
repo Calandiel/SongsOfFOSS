@@ -53,6 +53,9 @@ return function(ui_panel, realm)
         bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Infrastructure', realm, realm.budget.infrastructure)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Tribute', realm, realm.budget.tribute, true)
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
         -- treasury target
         uit.money_entry("Target budget", realm.budget.treasury_target, panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), "We try to save up at least this amount of wealth in treasury")
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT

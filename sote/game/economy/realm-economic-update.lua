@@ -73,20 +73,27 @@ function rea.run(realm)
 
 	--- distribute income to budget categories
 	local last_change = budget.change
-	local treasury_ratio = 1 - budget.education.ratio - budget.court.ratio - budget.military.ratio - budget.infrastructure.ratio
+
+	-- update tribute ratio
+	budget.tribute.ratio = 0.0
+	if realm.paying_tribute_to then
+		budget.tribute.ratio = 0.1
+	end
+
+	local total_ratio = budget.education.ratio 
+						+ budget.court.ratio
+						+ budget.military.ratio 
+						+ budget.infrastructure.ratio
+						+ budget.tribute.ratio
+
+	local treasury_ratio = 1 - total_ratio
 
 
-	budget.education.to_be_invested 		= last_change * budget.education.ratio + budget.education.to_be_invested
-	-- EconomicEffects.register_spendings(realm, last_change * budget.education.ratio, EconomicEffects.reasons.Infrastructure)
-
-	budget.court.to_be_invested 			= last_change * budget.court.ratio + budget.court.to_be_invested
-	-- EconomicEffects.register_spendings(realm, last_change * budget.court.ratio, EconomicEffects.reasons.Court)
-
-	budget.military.to_be_invested 			= last_change * budget.military.ratio + budget.military.to_be_invested
-	-- EconomicEffects.register_spendings(realm, last_change * budget.military.ratio, EconomicEffects.reasons.Military)
-
+	budget.education.to_be_invested 		= last_change * budget.education.ratio 			+ budget.education.to_be_invested
+	budget.court.to_be_invested 			= last_change * budget.court.ratio 				+ budget.court.to_be_invested
+	budget.military.to_be_invested 			= last_change * budget.military.ratio 			+ budget.military.to_be_invested
 	budget.infrastructure.to_be_invested 	= last_change * budget.infrastructure.ratio
-	-- EconomicEffects.register_spendings(realm, last_change * budget.infrastructure.ratio, EconomicEffects.reasons.Infrastructure)
+	budget.tribute.to_be_invested 			= last_change * budget.tribute.ratio
 
 	-- send/siphon the rest to/from treasury
 	local treasury_investment = last_change * treasury_ratio
@@ -136,7 +143,12 @@ function rea.run(realm)
 	-- spend
 	realm.budget.military.budget = realm.budget.military.budget - military_upkeep
 	realm.budget.military.budget = realm.budget.military.budget * 0.99
-	
+
+
+	-- #######################
+	-- ## 		Tribute 	##
+	-- #######################
+	budget.tribute.budget = budget.tribute.budget * 0.99 + budget.tribute.to_be_invested
 
 
 	-- "wealth decay" -- to prevent the AI from accidentally overstockpiling so much that the numbers overflow...
