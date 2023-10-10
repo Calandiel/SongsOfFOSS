@@ -21,18 +21,22 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
-            local realm = root.province.realm
-            if realm == nil         then return false end
-            if realm.overseer       then return false end
-            if realm.leader ~= root then return false end
+            local realm = root.realm
+            if realm == nil                             then return false end
+            if realm.overseer                           then return false end
+            if realm.leader ~= root                     then return false end
+            if root.province ~= primary_target.province then return false end
+            if realm ~= primary_target.realm            then return false end
 
             return true
 		end,
 		available = function(root, primary_target)
-            local realm = root.province.realm
-            if realm == nil         then return false end
-            if realm.overseer       then return false end
-            if realm.leader ~= root then return false end
+            local realm = root.realm
+            if realm == nil                             then return false end
+            if realm.overseer                           then return false end
+            if realm.leader ~= root                     then return false end
+            if root.province ~= primary_target.province then return false end
+            if realm ~= primary_target.realm            then return false end
 
             return true
 		end,
@@ -105,6 +109,7 @@ local function load()
             if realm == nil         then return false end
             if realm.leader ~= root then return false end
             if realm.overseer ~= primary_target then return false end
+            if root.realm ~= primary_target.realm then return false end
 
             return true
 		end,
@@ -113,6 +118,7 @@ local function load()
             if realm == nil         then return false end
             if realm.leader ~= root then return false end
             if realm.overseer ~= primary_target then return false end
+            if root.realm ~= primary_target.realm then return false end
 
             return true
 		end,

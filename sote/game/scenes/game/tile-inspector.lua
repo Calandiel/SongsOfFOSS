@@ -513,7 +513,7 @@ function re.draw(gam)
 			{
 				text = "POP",
 				tooltip = "List of POPs ('parts of population')",
-				closure = require "sote.game.scenes.game.widgets.pop-list"(ui_panel, base_unit, tile)
+				closure = require "game.scenes.game.widgets.pop-list"(ui_panel, base_unit, tile)
 			},
 			{
 				text = "BLD",
@@ -743,7 +743,7 @@ function re.draw(gam)
 			{
 				text = "ECN",
 				tooltip = "Economy",
-				closure = require "sote.game.scenes.game.widgets.local-market" (tile, ui_panel, base_unit)
+				closure = require "game.scenes.game.widgets.local-market" (tile, ui_panel, base_unit)
 			},
 			{
 				text = "TEC",
@@ -818,7 +818,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "sote.game.scenes.game.widgets.decision-tab"(ui_panel, tile, 'tile', gam)
+					require "game.scenes.game.widgets.decision-tab"(ui_panel, tile, 'tile', gam)
 				end
 			},
 			{
@@ -828,7 +828,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "sote.game.scenes.game.widgets.decision-tab"(ui_panel, tile.province, 'province', gam)
+					require "game.scenes.game.widgets.decision-tab"(ui_panel, tile.province, 'province', gam)
 				end
 			},
 			{

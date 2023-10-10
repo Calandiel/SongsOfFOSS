@@ -37,7 +37,7 @@ end
 ---@param character Character
 ---@return number
 function AiPreferences.loyalty_price(character)
-    return AiPreferences.percieved_inflation(character) * (10 + character.popularity)
+    return AiPreferences.percieved_inflation(character) * (10 + character.popularity) * 2
 end
 
 ---@class AIDecisionFlags

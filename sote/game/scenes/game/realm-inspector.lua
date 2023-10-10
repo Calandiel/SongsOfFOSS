@@ -251,7 +251,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "sote.game.scenes.game.widgets.decision-tab" (ui_panel, nil, 'none', gam)
+					require "game.scenes.game.widgets.decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{
@@ -261,7 +261,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "sote.game.scenes.game.widgets.decision-tab" (ui_panel, realm, 'realm', gam)
+					require "game.scenes.game.widgets.decision-tab" (ui_panel, realm, 'realm', gam)
 				end
 			},
 			{

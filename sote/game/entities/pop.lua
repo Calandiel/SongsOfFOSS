@@ -17,6 +17,7 @@
 ---@field get_age_multiplier fun(self:POP):number
 ---@field drafted boolean "Drafted" state refers to whether or not a pop is currently drafted for military duty. For example, for raids or "real" warfare.
 ---@field province Province? Only for characters
+---@field realm Realm? Only for characters. Represents the home realm of the character
 ---@field rank CHARACTER_RANK?
 
 local rtab = {}

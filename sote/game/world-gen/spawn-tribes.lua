@@ -124,11 +124,13 @@ local function make_new_realm(capitol, race, culture, faith)
 	capitol:add_character(elite_character)
 	r.leader = elite_character
 	r.leader.rank = ranks.CHIEF
+	r.leader.realm = r
 
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 4 do
 		local contender = make_new_noble(race, faith, culture)
+		contender.realm = r
 		capitol:add_character(contender)
 	end
 

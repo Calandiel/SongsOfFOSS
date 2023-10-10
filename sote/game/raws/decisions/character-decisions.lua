@@ -5,6 +5,7 @@ local utils = require "game.raws.raws-utils"
 local EconomicEffects = require "game.raws.effects.economic"
 local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
+local ranks = require "game.raws.ranks.character_ranks"
 
 
 local function load()
@@ -80,6 +81,11 @@ local function load()
 			if root.leading_warband == nil and root.traits[TRAIT.WARLIKE] then
 				return 1
 			end
+
+			if root.leading_warband == nil and root.rank == ranks.CHIEF then
+				return 1
+			end
+
             return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
@@ -128,6 +134,8 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			local realm = root.province.realm
+			if realm == nil then return end
+
 			local target = realm:roll_reward_flag()
 			realm:add_raider(target, root.leading_warband)
 		end
@@ -339,13 +347,13 @@ local function load()
 			return true
 		end,
 		available = function(root, primary_target)
-			if primary_target.province == root.province then
-				return true
-			end
 			if primary_target == root then
 				return false
 			end
-			return false
+			if primary_target.province ~= root.province then
+				return false
+			end
+			return true
 		end,
 		ai_target = function(root)
 			--print("ait")

@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
-local portrait = require "sote.game.scenes.game.widgets.portrait"
+local portrait = require "game.scenes.game.widgets.portrait"
 
 ---@type TableState
 local state = nil

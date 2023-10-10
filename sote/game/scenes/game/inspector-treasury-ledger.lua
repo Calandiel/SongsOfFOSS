@@ -49,21 +49,21 @@ function window.draw(game, realm)
             text = "Character",
             tooltip = "Character savings ledger",
             closure = function()
-                scroll_character = require "sote.game.scenes.game.widgets.treasury-ledger"(panel, 'character', scroll_character, base_unit)
+                scroll_character = require "game.scenes.game.widgets.treasury-ledger"(panel, 'character', scroll_character, base_unit)
             end
         },
         {
             text = "Treasury",
             tooltip = "Realm treasury ledger",
             closure = function() 
-                scroll_realm = require "sote.game.scenes.game.widgets.treasury-ledger"(panel, 'realm', scroll_realm, base_unit)
+                scroll_realm = require "game.scenes.game.widgets.treasury-ledger"(panel, 'realm', scroll_realm, base_unit)
             end
         },
         {
             text = "News",
             tooltip = "Recent news of the realm",
             closure = function() 
-                scroll_news = require "sote.game.scenes.game.widgets.news"(panel, scroll_news)
+                scroll_news = require "game.scenes.game.widgets.news"(panel, scroll_news)
             end
         }
     }, 1, base_unit * 5)
