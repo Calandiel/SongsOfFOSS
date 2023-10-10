@@ -19,15 +19,21 @@ local function load()
 		pretrigger = function(root)
             if not dt.decides_foreign_policy(root, root.realm) then return false end
             if root.realm.prepare_attack_flag then return false end
-            
+
 			return true
 		end,
 		clickable = function(root, primary_target)
+            ---@type Character
+            local primary_target = primary_target
             if not dt.valid_negotiators(root, primary_target) then return false end
+            if primary_target.realm.paying_tribute_to == root.realm then return false end
+
 			return true
 		end,
 		available = function(root, primary_target)
 			if not dt.valid_negotiators(root, primary_target) then return false end
+            if primary_target.realm.paying_tribute_to == root.realm then return false end
+            
 			return true
 		end,
 		ai_target = function(root)

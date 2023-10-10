@@ -736,6 +736,11 @@ function gam.draw()
 		gam.click_callback = callback.update_map_mode(gam, "atlas")
 	end
 	if ui.icon_button(
+		ASSETS.icons[gam.map_mode_data['diplomacy'][2]],
+		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['diplomacy'][3]) then
+		gam.click_callback = callback.update_map_mode(gam, "diplomacy")
+	end
+	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['elevation'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['elevation'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "elevation")

@@ -14,7 +14,8 @@ function pol.diplomacy(clicked_tile_id)
 							if rr then
 								if tile.province.realm == rr then
 									tile:set_real_color(0, 1, 0)
-									---@diagnostic disable-next-line: param-type-mismatch
+								elseif tile.province.realm.paying_tribute_to == rr then
+									tile:set_real_color(0, 1, 1)
 								elseif tile.province.realm:at_war_with(rr) then
 									tile:set_real_color(1, 0, 0)
 								end
