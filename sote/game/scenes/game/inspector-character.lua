@@ -4,6 +4,8 @@ local ut = require "game.ui-utils"
 
 local characters_list_widget = require "game.scenes.game.widgets.character-list"
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
+local character_name_widget = require "game.scenes.game.widgets.character-name"
+
 
 local window = {}
 local selected_decision = nil
@@ -72,7 +74,8 @@ function window.draw(game, character)
     local decisions_confirmation_panel =    ui_panel:subrect(0, unit * (6 + 7 + 7),     unit * 14, unit * 3, "left", 'up')
     local characters_list =                 ui_panel:subrect(0, unit * (6 + 7 + 7 + 3), unit * 14, unit * 7, "left", 'up')
 
-    ui.centered_text(character.name .. " of " .. character.province.realm.name, name_panel)
+    character_name_widget(name_panel, character)
+
     local sex = 'male'
     if character.female then
         sex = 'female'

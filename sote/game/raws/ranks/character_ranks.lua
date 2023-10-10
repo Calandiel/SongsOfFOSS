@@ -5,4 +5,6 @@ local ranks = {
     CHIEF = 2,
 }
 
+
+
 return ranks
