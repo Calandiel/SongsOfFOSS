@@ -126,6 +126,9 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
+			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then
+				return 0
+			end
 			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
 				return 0.9
 			end
@@ -174,6 +177,10 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
+			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then
+				return 0
+			end
+			
 			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
 				return 0
 			end

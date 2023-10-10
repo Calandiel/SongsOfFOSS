@@ -277,6 +277,7 @@ local function load()
 			end
 
 			realm:disband_army(army)
+			realm.prepare_attack_flag = false
 			messages.tribute_raid_success(realm, army.destination.realm)			
 		end,
 	}
@@ -295,6 +296,7 @@ local function load()
 			end
 
 			realm:disband_army(army)
+			realm.prepare_attack_flag = false
 			messages.tribute_raid_fail(realm, army.destination.realm)
 		end,
 	}
