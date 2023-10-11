@@ -16,9 +16,9 @@ return function(rect, decision_type, primary_target, selected_decision)
     local decisions = {}
     for _, decision in pairs(RAWS_MANAGER.decisions_characters_by_name) do
         if decision.primary_target == decision_type then
-            if decision.pretrigger(WORLD.player_character) then
-                if decision.clickable(WORLD.player_character, primary_target) then
-                    -- Decision is visible
+            if decision.pretrigger(WORLD.player_character) and decision.clickable(WORLD.player_character, primary_target) then
+                if decision.available(WORLD.player_character, primary_target) then
+                    -- Decision is clickable
                     decisions[#decisions + 1] = { decision, true }
                 else
                     decisions[#decisions + 1] = { decision, false }

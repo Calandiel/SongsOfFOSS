@@ -12,7 +12,10 @@ function rec.run(province)
 			current_count = tabb.size(province.units[unit])
 		end
 
-		if current_count > target then
+		local payment = province.realm.budget.military.target
+		local current_budget = province.realm.budget.military.budget
+		
+		if (current_count > target) or (payment * love.math.random() > current_budget) then
 			-- Too many soldiers, fire some
 			local delta = current_count - target
 			for _ = 1, delta do

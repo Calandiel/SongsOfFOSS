@@ -18,6 +18,7 @@ ut.BASE_HEIGHT = 20
 function ut.graph(entries, rect)
 	local total_weight = 0
 	for _, entry in ipairs(entries) do
+		---@type number
 		total_weight = total_weight + entry.weight
 	end
 	if total_weight > 0 then
@@ -366,7 +367,7 @@ function ut.color_coded_percentage(value, rect, positive)
 	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
-	ui.right_text( tostring(math.floor(value * 100)) .. '%', rect)
+	ui.right_text( tostring(math.floor(value * 100 + 0.5)) .. '%', rect)
 	love.graphics.setColor(cr, cg, cb, ca)
 end
 

@@ -1,4 +1,4 @@
----@alias WarbandStatus 'idle' | 'raiding' | 'preparing_raid' | 'preparing_patrol' | 'patrol'
+---@alias WarbandStatus 'idle' | 'raiding' | 'preparing_raid' | 'preparing_patrol' | 'patrol' | 'attacking'
 
 ---@class Warband
 ---@field name string

@@ -30,6 +30,9 @@ local function render_race(rect, k, v)
     ui.centered_text(v.race.name, rect)
 end
 
+---comment
+---@param pop POP
+---@return string
 local function pop_display_occupation(pop)
     local job = 'unemployed'
     if pop.job then
@@ -48,6 +51,9 @@ local function pop_sex(pop)
     return f
 end
 
+---@param rect Rect
+---@param base_unit number
+---@param tile Tile
 return function(rect, base_unit, tile)
     return function()
         ---@type TableColumn[]

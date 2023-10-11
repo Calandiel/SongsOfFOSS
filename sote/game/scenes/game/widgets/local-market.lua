@@ -1,4 +1,6 @@
 local tabb = require "engine.table"
+local trade_good = require "game.raws.raws-utils".trade_good
+
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
@@ -137,6 +139,7 @@ return function(tile, ui_panel, base_unit)
         init_state(base_unit)
 
         --- local market
+        ---@type table<string, ItemData>
         local data_blob = {}
 
         local consumption = tile.province.local_consumption
@@ -148,8 +151,9 @@ return function(tile, ui_panel, base_unit)
         for good, amount in pairs(production) do
             if data_blob[good] == nil then
                 data_blob[good] = {}
-                data_blob[good].name = good.name
-                data_blob[good].icon = good.icon
+                local data = trade_good(good)
+                data_blob[good].name = good
+                data_blob[good].icon = data.icon
             end
             data_blob[good].supply = amount
             data_blob[good].balance = amount
@@ -158,8 +162,9 @@ return function(tile, ui_panel, base_unit)
         for good, amount in pairs(consumption) do
             if data_blob[good] == nil then
                 data_blob[good] = {}
-                data_blob[good].name = good.name
-                data_blob[good].icon = good.icon
+                local data = trade_good(good)
+                data_blob[good].name = good
+                data_blob[good].icon = data.icon
             end
             local old = data_blob[good].supply or 0
             data_blob[good].balance = old - amount

@@ -37,8 +37,8 @@ function MilitaryEffects.patrol(root, primary_target)
     end
 
     for _, warband in pairs(patrol) do
-         root:remove_patrol(primary_target, warband)
-         warband.status = "patrol"
+        root:remove_patrol(primary_target, warband)
+        warband.status = "patrol"
     end
 
     ---@type PatrolData
@@ -92,6 +92,40 @@ function MilitaryEffects.covert_raid(root, primary_target)
         raid_data,
         travel_time, false
     )
+end
+
+---Sends army toward target and calls one argument callback with army and travel time toward province 
+---@param army Army
+---@param origin Province
+---@param target Province
+---@param callback fun(army: Army, travel_time: number)
+function MilitaryEffects.send_army(army, origin, target, callback)
+    local travel_time, _ = path.hours_to_travel_days(path.pathfind(origin, target))
+    army.destination = target
+
+    for _, warband in pairs(army.warbands) do
+        warband.status = "attacking"
+    end
+
+    callback(army, travel_time)
+end
+
+---comment
+---@param character Character
+---@return Army?
+function MilitaryEffects.gather_loyal_army(character)
+    local province = character.province
+    if province == nil then return nil end
+
+    ---@type table<Warband, Warband>
+    local idle_loyal_warbands = {}
+    for _, warband in pairs(province.warbands) do
+        if warband.status == "idle" and (warband.leader == character) or (warband.leader.loyalty == character) then
+            idle_loyal_warbands[warband] = warband
+        end
+    end
+
+    return province.realm:raise_army(idle_loyal_warbands)
 end
 
 return MilitaryEffects

@@ -6,6 +6,8 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 local tabb = require "engine.table"
 
+local ef = require "game.raws.effects.economic"
+
 re.cached_scrollbar = 0
 
 ---@return Rect
@@ -121,10 +123,10 @@ function re.draw(gam)
 									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local explore_cost = WORLD.player_realm:get_explore_cost(tile.province)
 										local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
-										if WORLD.player_realm.treasury > explore_cost then
+										if WORLD.player_realm.budget.treasury > explore_cost then
 											if ui.text_button("Explore (" .. explore_cost_string .. ')', rect, "Explore this province") then
 												WORLD.player_realm:explore(tile.province)
-												WORLD.player_realm.treasury = WORLD.player_realm.treasury - explore_cost
+												EconomicEffects.change_treasury(WORLD.player_realm, -explore_cost, EconomicEffects.reasons.Exploration)
 												gam.refresh_map_mode()
 											end
 										else
@@ -511,7 +513,7 @@ function re.draw(gam)
 			{
 				text = "POP",
 				tooltip = "List of POPs ('parts of population')",
-				closure = require "game.scenes.game.widget-pop-list"(ui_panel, base_unit, tile)
+				closure = require "game.scenes.game.widgets.pop-list"(ui_panel, base_unit, tile)
 			},
 			{
 				text = "BLD",
@@ -533,7 +535,7 @@ function re.draw(gam)
 									re.building_stacks = not re.building_stacks
 								end
 							else
-								if ui.icon_button(ASSETS.icons['cubeforce.png'], rect, "Show builbing types") then
+								if ui.icon_button(ASSETS.icons['cubeforce.png'], rect, "Show building types") then
 									re.building_stacks = not re.building_stacks
 								end
 							end
@@ -609,51 +611,7 @@ function re.draw(gam)
 								if number > 0 then
 									---@type BuildingType
 									local building_type = tabb.nth(tile.province.buildable_buildings, number)
-									ui.tooltip(building_type:get_tooltip(), rect)
-									---@type Rect
-									local r = rect
-									local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-									ui.image(ASSETS.get_icon(building_type.icon), im)
-									r.x = r.x + base_unit
-									r.width = r.width - 2 * base_unit
-									if building_type.tile_improvement then
-										ui.left_text(building_type.name, r)
-										uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
-									else
-										ui.left_text(building_type.name, r)
-									end
-
-									if WORLD:does_player_control_realm(tile.province.realm) then
-										r.x = r.x + r.width
-										r.width = base_unit
-
-										local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type)
-										if not success then
-											if reason == 'unique_duplicate' then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('There can be at most a single building of this type per province!', r)
-											elseif reason == 'tile_improvement' then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
-											elseif reason == 'not_enough_funds' then
-												ui.image(ASSETS.icons['uncertainty.png'], r)
-												ui.tooltip('Not enough funds: ' ..
-													tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
-													" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
-											elseif reason == 'missing_local_resources' then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('Missing local resources!', r)
-											end
-										else
-											if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-												"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-												local Building = require "game.entities.building".Building
-												Building:new(tile.province, building_type, tile)
-												WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-												WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
-											end
-										end
-									end
+									require "game.scenes.game.widgets.building-type-buttons"(gam, rect, base_unit, building_type, tile, false)
 								end
 							end, base_unit, tabb.size(tile.province.buildable_buildings), base_unit,
 								re.building_construction_scrollbar)
@@ -679,51 +637,51 @@ function re.draw(gam)
 								function(rect)
 									if WORLD:does_player_control_realm(WORLD.player_realm) then
 										local cinf = tile.province.infrastructure_investment
-										local ctre = WORLD.player_realm.treasury
+										local realm = WORLD.player_realm
+										local province = tile.province
+
+										if realm == nil then
+											return
+										end
+
 										uit.columns({
 											function(rect)
-												if WORLD.player_realm.treasury > 0.1 then
+												if realm.budget.treasury > 0.1 then
 													if ui.text_button('+0.1' .. MONEY_SYMBOL, rect, 'Invest 0.1') then
-														ctre = ctre - 0.1
-														cinf = cinf + 0.1
+														ef.direct_investment_infrastructure(realm, province, 0.1)
 													end
 												else
 													ui.centered_text('+0.1' .. MONEY_SYMBOL, rect)
 												end
 											end,
 											function(rect)
-												if WORLD.player_realm.treasury > 1 then
+												if realm.budget.treasury > 1 then
 													if ui.text_button('+1' .. MONEY_SYMBOL, rect, 'Invest 1') then
-														ctre = ctre - 1
-														cinf = cinf + 1
+														ef.direct_investment_infrastructure(realm, province, 1)
 													end
 												else
 													ui.centered_text('+1' .. MONEY_SYMBOL, rect)
 												end
 											end,
 											function(rect)
-												if WORLD.player_realm.treasury > 10 then
+												if realm.budget.treasury > 10 then
 													if ui.text_button('+10' .. MONEY_SYMBOL, rect, 'Invest 10') then
-														ctre = ctre - 10
-														cinf = cinf + 10
+														ef.direct_investment_infrastructure(realm, province, 10)
 													end
 												else
 													ui.centered_text('+10' .. MONEY_SYMBOL, rect)
 												end
 											end,
 											function(rect)
-												if WORLD.player_realm.treasury > 100 then
+												if realm.budget.treasury > 100 then
 													if ui.text_button('+100' .. MONEY_SYMBOL, rect, 'Invest 100') then
-														ctre = ctre - 100
-														cinf = cinf + 100
+														ef.direct_investment_infrastructure(realm, province, 100)
 													end
 												else
 													ui.centered_text('+100' .. MONEY_SYMBOL, rect)
 												end
 											end,
 										}, rect, base_unit * 2)
-										tile.province.infrastructure_investment = cinf
-										WORLD.player_realm.treasury = ctre
 									end
 								end,
 								function(rect)
@@ -774,70 +732,7 @@ function re.draw(gam)
 								if number > 0 then
 									---@type BuildingType
 									local building_type = tabb.nth(tile_improvs, number)
-									ui.tooltip(building_type:get_tooltip(), rect)
-									---@type Rect
-									local r = rect
-									local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-									ui.image(ASSETS.get_icon(building_type.icon), im)
-									r.x = r.x + base_unit
-									r.width = r.width - base_unit * 3
-
-									if building_type.tile_improvement then
-										ui.left_text(building_type.name, r)
-										uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
-									else
-										ui.left_text(building_type.name, r)
-									end
-
-									r.x = r.x + r.width
-									r.width = base_unit
-									if ui.icon_button(ASSETS.icons['mesh-ball.png'], r,
-										"Show local efficiency on map") then
-										gam.selected_building_type = building_type
-										gam.refresh_map_mode(true)
-									end
-
-									if WORLD:does_player_control_realm(tile.province.realm) then
-										r.x = r.x + base_unit
-										r.width = base_unit
-
-										local success, reason = tile.province:can_build(WORLD.player_realm.treasury, building_type, tile)
-										if not success then
-											if reason == 'unique_duplicate' then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('There can be at most a single building of this type per province!', r)
-											elseif reason == 'tile_improvement' then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', r)
-											elseif reason == 'not_enough_funds' then
-												ui.image(ASSETS.icons['uncertainty.png'], r)
-												ui.tooltip('Not enough funds: ' ..
-													tostring(math.floor(100 * WORLD.player_realm.treasury) / 100) ..
-													" / " .. tostring(building_type.construction_cost) .. MONEY_SYMBOL, r)
-											elseif reason == 'missing_local_resources' then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('Missing local resources!', r)
-											end
-										else
-											if tile.tile_improvement then
-												ui.image(ASSETS.icons['triangle-target.png'], r)
-												ui.tooltip('There already is a tile improvement on here!', r)
-											else
-												if ui.icon_button(ASSETS.icons['hammer-drop.png'], r,
-													"Build (" .. tostring(building_type.construction_cost) .. MONEY_SYMBOL .. ")") then
-													local Building = require "game.entities.building".Building
-													Building:new(tile.province, building_type, tile)
-													WORLD.player_realm.treasury = WORLD.player_realm.treasury - building_type.construction_cost
-													WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
-
-													if gam.selected_building_type == building_type then
-														gam.selected_building_type = building_type
-														gam.refresh_map_mode(true)
-													end
-												end
-											end
-										end
-									end
+									require "game.scenes.game.widgets.building-type-buttons"(gam, rect, base_unit, building_type, tile, true)
 								end
 							end, base_unit, tabb.size(tile_improvs), base_unit,
 								re.building_tile_improvements_scrollbar)
@@ -848,7 +743,7 @@ function re.draw(gam)
 			{
 				text = "ECN",
 				tooltip = "Economy",
-				closure = require "game.scenes.game.widget-local-market" (tile, ui_panel, base_unit)
+				closure = require "game.scenes.game.widgets.local-market" (tile, ui_panel, base_unit)
 			},
 			{
 				text = "TEC",
@@ -923,7 +818,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widget-decision-tab"(ui_panel, tile, 'tile', gam)
+					require "game.scenes.game.widgets.decision-tab"(ui_panel, tile, 'tile', gam)
 				end
 			},
 			{
@@ -933,7 +828,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widget-decision-tab"(ui_panel, tile.province, 'province', gam)
+					require "game.scenes.game.widgets.decision-tab"(ui_panel, tile.province, 'province', gam)
 				end
 			},
 			{
@@ -973,11 +868,14 @@ function re.draw(gam)
 							rect.x = rect.x + rect.width + 5
 							rect.width = rect.height
 							if WORLD:does_player_control_realm(tile.province.realm) then
-								if WORLD.player_realm.treasury > unit.base_price then
+								local target_budget = WORLD.player_realm.budget.military.target
+								local current_budget = WORLD.player_realm.budget.military.budget
+								if current_budget > target_budget + unit.upkeep then
 									if ui.text_button('+1', rect, "Increase the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target + 1)
-										WORLD.player_realm.treasury = WORLD.player_realm.treasury - unit.base_price
 									end
+								else 
+									ui.text_button('X', rect, "Not enough military funding")
 								end
 							end
 							rect.x = rect.x + rect.width + 5

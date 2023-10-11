@@ -476,6 +476,44 @@ function pro.run()
 		--]===]
 	end
 	--]]
+
+
+	-- recalculate provincial centers
+	for _, province in pairs(WORLD.provinces) do
+		local N = 20
+		-- sample N random tiles
+		---@type table<number, Tile>
+		local sample = {}
+
+		for i = 1, N do
+			local tile = tabb.random_select_from_set(province.tiles)
+			table.insert(sample, tile)
+		end
+
+		-- find average tile coordinates:
+		local lat = 0
+		local lon = 0
+		for _, tile in pairs(sample) do
+			local tmp_lat, tmp_lon = tile:latlon()
+			lat = lat + tmp_lat / N
+			lon = lon + tmp_lon / N
+		end
+
+		-- find tile closest to average
+		local best_tile = province.center
+		local best_dist = 10000000
+		for _, tile in pairs(province.tiles) do
+			local tmp_lat, tmp_lon = tile:latlon()
+			local dist = math.abs(tmp_lat- lat) + math.abs(tmp_lon - lon)
+
+			if dist < best_dist then
+				best_dist = dist
+				best_tile = tile
+			end
+		end
+
+		province.center = best_tile
+	end
 end
 
 print("province-gen.lua has been read")

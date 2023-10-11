@@ -25,7 +25,7 @@ function eco.realm_income()
 		---@type Tile
 		local t = tile
 		if t.province.realm then
-			return math.max(0, t.province.realm.treasury_real_delta) / 10
+			return math.max(0, t.province.realm.budget.change) / 10
 		else
 			return 0
 		end

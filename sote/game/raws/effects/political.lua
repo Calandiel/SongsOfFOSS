@@ -1,3 +1,4 @@
+local ranks = require "game.raws.ranks.character_ranks"
 local PoliticalValues = require "game.raws.values.political"
 
 PoliticalEffects = {}
@@ -49,7 +50,65 @@ function PoliticalEffects.transfer_power(realm, target)
         WORLD:emit_notification(depose_message .. " " .. new_leader_message)
     end
 
+    realm.leader.rank = ranks.NOBLE
+    target.rank = ranks.CHIEF
+    PoliticalEffects.remove_overseer(realm)
+
     realm.leader = target
+end
+
+---comment
+---@param realm Realm
+---@param overseer Character
+function PoliticalEffects.set_overseer(realm, overseer)
+    realm.overseer = overseer
+
+    overseer.popularity = overseer.popularity + 0.5
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification(overseer.name .. " is a new overseer of " .. realm.name .. ".")
+    end
+end
+
+---comment
+---@param realm Realm
+function PoliticalEffects.remove_overseer(realm)
+    local overseer = realm.overseer
+    realm.overseer = nil
+
+    if overseer then
+        overseer.popularity = overseer.popularity - 0.5
+    end
+
+    if overseer and WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification(overseer.name .. " is no longer an overseer of " .. realm.name .. ".")
+    end
+end
+
+---comment
+---@param realm Realm
+---@param character Character
+function PoliticalEffects.set_tribute_collector(realm, character)
+    realm.tribute_collectors[character] = character
+
+    character.popularity = character.popularity + 0.1
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification(character.name .. " had became a tribute collector.")
+    end
+end
+
+---comment
+---@param realm Realm
+---@param character Character
+function PoliticalEffects.remove_tribute_collector(realm, character)
+    realm.tribute_collectors[character] = nil
+
+    character.popularity = character.popularity - 0.1
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification(character.name .. " is no longer a tribute collector.")
+    end
 end
 
 ---Banish the character from the realm

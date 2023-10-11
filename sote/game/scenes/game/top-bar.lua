@@ -153,7 +153,7 @@ function tb.draw(gam)
 		end
 
 		uit.money_entry_icon(
-			WORLD.player_realm.treasury,
+			WORLD.player_realm.budget.treasury,
 			trt,
 			"Realm treasury")
 
@@ -161,7 +161,7 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = WORLD.player_realm.resources[RAWS_MANAGER.trade_goods_by_name['food']] or 0
+		local amount = WORLD.player_realm.resources['food'] or 0
 		uit.data_entry_icon(
 			'noodles.png',
 			uit.to_fixed_point2(amount),

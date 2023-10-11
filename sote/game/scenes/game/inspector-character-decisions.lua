@@ -43,7 +43,7 @@ function window.draw(game)
 		function(rect)
 			-- First, we need to check if the player is controlling a realm
 			if WORLD.player_character then
-				selected_decision, decision_target_primary, decision_target_secondary = require "game.scenes.game.widget-decision-selection-character"(
+				selected_decision, decision_target_primary, decision_target_secondary = require "game.scenes.game.widgets.decision-selection-character"(
 					rect,
 					'none',
 					nil,
@@ -54,7 +54,7 @@ function window.draw(game)
 			end
 		end,
 		function(rect)
-			local res = require "game.scenes.game.widget-decision-desc"(
+			local res = require "game.scenes.game.widgets.decision-desc"(
 				rect,
 				WORLD.player_character,
 				selected_decision,

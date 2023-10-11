@@ -705,8 +705,8 @@ function gam.draw()
 			gam.click_callback = callback.nothing()
 		end
 
-		gam.notification_slider = require "sote.game.scenes.game.widget-news"(notif_panel, gam.notification_slider)
-		gam.outliner_slider = require "sote.game.scenes.game.widget-outliner"(outliner_panel, gam.outliner_slider)
+		gam.notification_slider = require "game.scenes.game.widgets.news"(notif_panel, gam.notification_slider)
+		gam.outliner_slider = require "game.scenes.game.widgets.outliner"(outliner_panel, gam.outliner_slider)
 	end
 
 		-- Map mode tab
@@ -734,6 +734,11 @@ function gam.draw()
 		ASSETS.icons[gam.map_mode_data['atlas'][2]],
 		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['atlas'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "atlas")
+	end
+	if ui.icon_button(
+		ASSETS.icons[gam.map_mode_data['diplomacy'][2]],
+		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['diplomacy'][3]) then
+		gam.click_callback = callback.update_map_mode(gam, "diplomacy")
 	end
 	if ui.icon_button(
 		ASSETS.icons[gam.map_mode_data['elevation'][2]],

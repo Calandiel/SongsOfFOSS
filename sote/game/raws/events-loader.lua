@@ -31,6 +31,12 @@ function ll.load()
 
 	print("interpersonal events")
 	require "game.raws.events.interpersonal"()
+
+	print("administration events")
+	require "game.raws.events.administration"()
+
+	print("diplomatic events")
+	require "game.raws.events.diplomacy"()
 end
 
 return ll

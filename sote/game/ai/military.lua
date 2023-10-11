@@ -6,28 +6,32 @@ local mi = {}
 function mi.run(realm)
 	--print("mil")
 	local pop = realm:get_realm_population()
-	local target_mil = math.floor(pop * 7.5 / 100.0)
+	-- local target_mil = math.floor(pop * 7.5 / 100.0)
+	local target_mil = math.floor(pop * 15  / 100.0)
+
+	local delta = realm.budget.military.budget - realm.budget.military.target
+	if delta < 0 then
+		target_mil = target_mil * 0.5
+	end
+
 	local mil = realm:get_realm_military_target() + realm:get_realm_active_army_size()
 	if target_mil > mil * 1.1 then
 		--print("---")
 		--print("Trying to recruit")
-		local delta = realm.treasury_real_delta
-		if delta >= 0 then
-			--print("enough money")
-			if realm.realized_military_spending >= realm.military_spending then
-				--print("enough spending")
-				-- Only recruit new units if we have leftover funds
-				-- We'll recruit units by targetting random provinces and recruiting a random unit in them using our cultural weights.
-				local to_add = target_mil - mil
-				if to_add > 0 then
-					--print("need to add moe than 0")
-					local provs = realm:get_n_random_pop_weighted_provinces(to_add)
-					for _, prov in pairs(provs) do
-						-- Try recruiting new troops
-						-- Do it by randomly selecting from your cultural preferences...
-						local unit = tabb.random_select(realm.primary_culture.traditional_units)
-						prov.units_target[unit] = (prov.units_target[unit] or 0) + 1
-					end
+		local delta = realm.budget.military.budget - realm.budget.military.target
+		if delta >= 0.5 * 24 then
+			-- Enough money to pay to unit for a year or two
+			-- We'll recruit units by targetting random provinces and recruiting a random unit in them using our cultural weights.
+			local to_add = target_mil - mil
+			if to_add > 0 then
+				--print("need to add moe than 0")
+				local provs = realm:get_n_random_pop_weighted_provinces(to_add)
+				for _, prov in pairs(provs) do
+					-- Try recruiting new troops
+					-- Do it by randomly selecting from your cultural preferences...
+					---@type UnitType
+					local unit = tabb.random_select(realm.primary_culture.traditional_units)
+					prov.units_target[unit] = (prov.units_target[unit] or 0) + 1
 				end
 			end
 		end
@@ -41,6 +45,7 @@ function mi.run(realm)
 			local provs = realm:get_n_random_pop_weighted_provinces(to_shrink)
 			for _, prov in pairs(provs) do
 				-- Select a random unit and decrease the counter for it
+				---@type UnitType
 				local unit = tabb.random_select(prov.units_target)
 				if unit then
 					if prov.units_target[unit] < 1 then

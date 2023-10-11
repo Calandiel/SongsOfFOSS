@@ -13,13 +13,13 @@ function pg.growth(province)
 	local death_rate = 1 / 12
 	local birth_rate = 1 / 12
 
-	local food_good = RAWS_MANAGER.trade_goods_by_name['food']
+	local food_good = 'food'
 	local food_income = province.realm.production[food_good] or 0
 	local food_sold = province.realm.sold[food_good] or 0
 	local food_bought = province.realm.bought[food_good] or 0
 
-	local provincial_water = (province.local_production[ RAWS_MANAGER.trade_goods_by_name['water'] ] or 0) -
-		(province.local_consumption[ RAWS_MANAGER.trade_goods_by_name['water'] ] or 0)
+	local provincial_water = (province.local_production[ 'water' ] or 0) -
+		(province.local_consumption[ 'water' ] or 0)
 	--[[
 	if WORLD.player_realm == province.realm then
 		print('Food', food_income)
@@ -28,7 +28,9 @@ function pg.growth(province)
 	--]]
 
 	-- Mark pops for removal...
+	---@type POP[]
 	local to_remove = {}
+	---@type POP[]
 	local to_add = {}
 	for _, pp in pairs(province.outlaws) do
 		if pp.age > pp.race.max_age then

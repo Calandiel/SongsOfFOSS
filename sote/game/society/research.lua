@@ -10,7 +10,7 @@ local function get_probability_multiplier(province, tech, jobs)
 	local cost = tech.research_cost * pop
 	-- We need to calculate the "fraction" of total endowment that this tech would end up using.
 	-- Based on that we'll determine the chance for this tech to be researched per month.
-	local frac = cost / province.realm.education_endowment
+	local frac = cost / province.realm.budget.education.budget
 	local probability = math.min(1, math.max(0.01, 1 - frac))
 	-- Scale the research probability by job (but only if one is needed!)
 	if tech.associated_job then
@@ -27,7 +27,7 @@ function re.run(province)
 	local perc = province.realm:get_education_efficiency()
 	local jobs = province:get_job_ratios()
 
-	if perc > 1 and province.realm.education_endowment > 0 then
+	if perc > 1 and province.realm.budget.education.budget > 0 then
 		-- Only research if we have more than 100% invested research...
 		local n = tabb.size(province.technologies_researchable)
 		if n > 0 then

@@ -5,6 +5,7 @@ local utils = require "game.raws.raws-utils"
 local EconomicEffects = require "game.raws.effects.economic"
 local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
+local ranks = require "game.raws.ranks.character_ranks"
 
 
 local function load()
@@ -80,6 +81,11 @@ local function load()
 			if root.leading_warband == nil and root.traits[TRAIT.WARLIKE] then
 				return 1
 			end
+
+			if root.leading_warband == nil and root.rank == ranks.CHIEF then
+				return 1
+			end
+
             return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
@@ -120,6 +126,9 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
+			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then
+				return 0
+			end
 			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
 				return 0.9
 			end
@@ -128,6 +137,8 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			local realm = root.province.realm
+			if realm == nil then return end
+
 			local target = realm:roll_reward_flag()
 			realm:add_raider(target, root.leading_warband)
 		end
@@ -166,11 +177,15 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
-			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
+			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then
 				return 0
 			end
+			
+			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
+				return 0.2
+			end
 
-			return 0.5
+			return 0.6
 		end,
 		effect = function(root, primary_target, secondary_target)
 			local realm = root.province.realm
@@ -222,8 +237,8 @@ local function load()
 			---@type Character
 			local root = root
             
-            if root.savings > base_gift_size * 2 then
-                return 0.5
+            if root.savings > base_gift_size * 10 then
+                return 0.1
             end
 
             return 0
@@ -311,7 +326,7 @@ local function load()
 
 
 			province.mood = math.min(10, province.mood + 0.5 / province:population())
-			EconomicEffects.add_treasury(realm, base_gift_size, "donation")
+			EconomicEffects.change_treasury(realm, base_gift_size, "donation")
 			root.savings = root.savings - base_gift_size
 
 			if WORLD:does_player_see_realm_news(realm) then
@@ -339,13 +354,13 @@ local function load()
 			return true
 		end,
 		available = function(root, primary_target)
-			if primary_target.province == root.province then
-				return true
-			end
 			if primary_target == root then
 				return false
 			end
-			return false
+			if primary_target.province ~= root.province then
+				return false
+			end
+			return true
 		end,
 		ai_target = function(root)
 			--print("ait")
@@ -431,6 +446,11 @@ local function load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
+
+			if primary_target.realm.paying_tribute_to == root.realm then
+				return false
+			end
+
 			if root.savings < base_raiding_reward then
 				return false
 			end
@@ -438,7 +458,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			--print("aiw")
-			return 0.5
+			return 0.1
 		end,
 		ai_targetting_attempts = 2,
 		ai_target = function(root)
@@ -509,8 +529,9 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
+			local court_efficiency = root.province.realm:get_court_efficiency()
             if root.traits[TRAIT.AMBITIOUS] then
-				return 0.8
+				return 0.8 - court_efficiency / 2
 			end
             return 0
 		end,

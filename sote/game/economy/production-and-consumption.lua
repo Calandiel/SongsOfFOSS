@@ -1,3 +1,5 @@
+local good = require "game.raws.raws-utils".trade_good
+
 local tabb = require "engine.table"
 local EconomicEffects = require "game.raws.effects.economic"
 local pro = {}
@@ -14,7 +16,7 @@ function pro.run(province)
 	tabb.clear(province.local_consumption)
 
 	---Records local consumption!
-	---@param good TradeGood
+	---@param good TradeGoodReference
 	---@param amount number
 	local function record_consumption(good, amount)
 		local old = province.local_consumption[good] or 0
@@ -22,7 +24,7 @@ function pro.run(province)
 	end
 
 	---Record local production!
-	---@param good TradeGood
+	---@param good TradeGoodReference
 	---@param amount number
 	local function record_production(good, amount)
 		local old = province.local_production[good] or 0
@@ -31,7 +33,7 @@ function pro.run(province)
 
 	-- Record "innate" production of goods and services.
 	-- These resources come
-	record_production(RAWS_MANAGER.trade_goods_by_name['water'], province.hydration)
+	record_production('water', province.hydration)
 
 	local inf = province:get_infrastructure_efficiency()
 	local efficiency_from_infrastructure = math.min(1.15, 0.5 + 0.5 * math.sqrt(2 * inf))
@@ -46,6 +48,10 @@ function pro.run(province)
 	local fraction_of_income_given_voluntarily = 0.1 * math.max(0, math.min(1.0, 1.0 - population / min_income_pop))
 
 	local total_donations = 0
+
+	---@type table<POP, number>
+	local donations_to_owners = {}
+
 	for _, pop in pairs(province.all_pops) do
 		-- Drafted pops don't work -- they may not even be in the province in the first place...
 		if not pop.drafted then
@@ -76,6 +82,7 @@ function pro.run(province)
 					record_consumption(input, amount)
 					income = income - province.realm:get_price(input) * amount * efficiency * throughput_boost * input_boost
 				end
+				income = income
 				for output, amount in pairs(prod.outputs) do
 					record_production(output, amount * efficiency)
 					income = income +
@@ -85,23 +92,30 @@ function pro.run(province)
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
-					total_donations = total_donations + contrib
+					local owner = pop.employer.owner
+					if owner then
+						if donations_to_owners[owner] == nil then
+							donations_to_owners[owner] = 0
+						end
+						donations_to_owners[owner] = donations_to_owners[pop.employer.owner] + contrib
+					else
+						total_donations = total_donations + contrib
+					end
 					-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 				end
 			else
 				if pop.age > pop.race.teen_age then
 					foragers_count = foragers_count + 1 -- Record a new forager!
 					-- Foragers produce food:
-					local food = RAWS_MANAGER.trade_goods_by_name['food']
 					local food_produced = math.min(0.9, foraging_efficiency)
-					local income = food_produced * province.realm:get_pessimistic_price(food, food_produced)
+					local income = food_produced * province.realm:get_pessimistic_price('food', food_produced)
 					if income > 0 then
 						province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 						local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
 						total_donations = total_donations + contrib
 						-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 					end
-					record_production(food, food_produced)
+					record_production('food', food_produced)
 				end
 			end
 		end
@@ -117,18 +131,18 @@ function pro.run(province)
 			clothing = pop.race.female_clothing_needs
 		end
 
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['food'], food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['water'], water * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['healthcare'], 0.2 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['amenities'], age_multiplier)
+		record_consumption('food', food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
+		record_consumption('water', water * age_multiplier)
+		record_consumption('healthcare', 0.2 * age_multiplier)
+		record_consumption('amenities', age_multiplier)
 
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['clothes'], clothing * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['furniture'], 0.1 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['liquors'], 0.2 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['containers'], 0.25 * age_multiplier)
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['tools'], 0.0125 * age_multiplier)
+		record_consumption('clothes', clothing * age_multiplier)
+		record_consumption('furniture', 0.1 * age_multiplier)
+		record_consumption('liquors', 0.2 * age_multiplier)
+		record_consumption('containers', 0.25 * age_multiplier)
+		record_consumption('tools', 0.0125 * age_multiplier)
 
-		record_consumption(RAWS_MANAGER.trade_goods_by_name['meat'], 0.25 * age_multiplier)
+		record_consumption('meat', 0.25 * age_multiplier)
 	end
 
 	--- DISTRIBUTION OF DONATIONS
@@ -144,9 +158,11 @@ function pro.run(province)
 			EconomicEffects.add_pop_savings(c, elites_share * c.popularity / total_popularity, EconomicEffects.reasons.Donation)
 		end
 	end
-	EconomicEffects.add_treasury(province.realm, realm_share, EconomicEffects.reasons.Donation)
-	province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + realm_share
+	EconomicEffects.register_income(province.realm, realm_share, EconomicEffects.reasons.Donation)
 
+	for character, income in pairs(donations_to_owners) do
+		EconomicEffects.add_pop_savings(character, income, EconomicEffects.reasons.BuildingIncome)
+	end
 
 	province.local_income = province.local_wealth - old_wealth
 	province.foragers = foragers_count -- Record the new number of foragers

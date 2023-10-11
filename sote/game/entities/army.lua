@@ -5,7 +5,7 @@
 ---@field kill_off fun(self: Army, ratio: number): number
 ---@field pops fun(self: Army): table<POP, Province>
 ---@field get_visibility fun(self: Army): number
----@field attack fun(self: Army, prov: Province, spotted: boolean, defender: Army)
+---@field attack fun(self: Army, prov: Province, spotted: boolean, defender: Army): boolean, number, number
 ---@field get_loot_capacity fun(self: Army): number
 ---@field decimate fun(self: Army)
 

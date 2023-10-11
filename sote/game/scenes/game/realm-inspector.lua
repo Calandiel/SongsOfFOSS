@@ -1,12 +1,15 @@
 local re = {}
+local trade_good = require "game.raws.raws-utils".trade_good
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
+local ef = require "game.raws.effects.economic"
+
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, uit.BASE_HEIGHT * 2, 500, 250, "left", 'up')
+	local panel = fs:subrect(0, uit.BASE_HEIGHT * 2, 700, 500, "left", 'up')
 	return panel
 end
 
@@ -48,132 +51,12 @@ function re.draw(gam)
 			{
 				text = "GEN",
 				tooltip = "General",
-				closure = function()
-					local panel_rect = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
-					uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.data_entry("Race: ", realm.primary_race.name, panel_rect)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-				end
+				closure = require "game.scenes.game.inspectors.realm-general"(ui_panel, realm, gam)
 			},
 			{
 				text = "TRE",
 				tooltip = "Realm treasury",
-				closure = function()
-					local column_width = uit.BASE_HEIGHT * 12
-
-
-					local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
-					uit.money_entry("Realm treasury", realm.treasury, panel_rect, "Treasury")
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.money_entry("Voluntary contributions",
-						realm.voluntary_contributions,
-						panel_rect,
-						"Voluntary contributions")
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.money_entry("Building upkeep", realm.building_upkeep,
-						panel_rect,
-						"Building upkeep", true)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.money_entry("Waste", realm.wasted_treasury, panel_rect,
-						"Keeping large stockpiles of wealth is inherently inefficient. Whether through corruption, spoilage, wear or accidents, a small fraction of accumulated wealth is lost. The process can be countered by creation of storage buildings.", true)
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 1
-
-					uit.money_entry("Military upkeep",
-						realm.military_spending,
-						panel_rect,
-						"Costs of upkeep for current units.", true)
-					
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 2
-					uit.money_entry("Inf. investment",
-						realm.monthly_infrastructure_investment,
-						panel_rect,
-						"Automatic infrastructure investments each month.", true)
-					if WORLD:does_player_control_realm(realm) then
-						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-						local pr = panel_rect:copy()
-						pr.x = pr.x + column_width + 10
-						pr.width = uit.BASE_HEIGHT * 2
-						-- Make a closure for easier button creation
-						local function do_one(amount)
-							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-								"Change monthly infrastructure investment by " .. tostring(amount)) then
-								WORLD.player_realm.monthly_infrastructure_investment = math.max(0,
-									WORLD.player_realm.monthly_infrastructure_investment + amount)
-							end
-							pr.x = pr.x + uit.BASE_HEIGHT * 2
-						end
-
-						do_one(-10)
-						do_one(-1)
-						do_one(-0.1)
-						do_one(0.1)
-						do_one(1)
-						do_one(10)
-					end
-
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.money_entry("Edu. investment",
-						realm.monthly_education_investment,
-						panel_rect,
-						"Automatic education investments each month.", true)
-					if WORLD:does_player_control_realm(realm) then
-						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-						local pr = panel_rect:copy()
-						pr.x = pr.x + column_width + 10
-						pr.width = uit.BASE_HEIGHT * 2
-						-- Make a closure for easier button creation
-						local function do_one(amount)
-							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-								"Change monthly education investment by " .. tostring(amount)) then
-								WORLD.player_realm.monthly_education_investment = math.max(0,
-									WORLD.player_realm.monthly_education_investment + amount)
-							end
-							pr.x = pr.x + uit.BASE_HEIGHT * 2
-						end
-
-						do_one(-10)
-						do_one(-1)
-						do_one(-0.1)
-						do_one(0.1)
-						do_one(1)
-						do_one(10)
-					end
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.money_entry("Court investment",
-						realm.monthly_court_investment,
-						panel_rect,
-						"Automatic court investments each month.", true)
-					if WORLD:does_player_control_realm(realm) then
-						-- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-						local pr = panel_rect:copy()
-						pr.x = pr.x + column_width + 10
-						pr.width = uit.BASE_HEIGHT * 2
-						-- Make a closure for easier button creation
-						local function do_one(amount)
-							if ui.text_button(tostring(amount) .. MONEY_SYMBOL, pr,
-								"Change monthly court investment by " .. tostring(amount)) then
-								WORLD.player_realm.monthly_court_investment = math.max(0,
-									WORLD.player_realm.monthly_court_investment + amount)
-							end
-							pr.x = pr.x + uit.BASE_HEIGHT * 2
-						end
-
-						do_one(-10)
-						do_one(-1)
-						do_one(-0.1)
-						do_one(0.1)
-						do_one(1)
-						do_one(10)
-					end
-					
-					panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-					uit.money_entry("Treasury change", realm.treasury_real_delta,
-						panel_rect,
-						"Actual change compared to last month. Takes into account factors that may otherwise be hidden.")
-				end
+				closure = require "game.scenes.game.inspectors.treasury"(ui_panel, realm)
 			},
 			{
 				text = "STO",
@@ -181,25 +64,27 @@ function re.draw(gam)
 				closure = function()
 					local goods = {}
 					for good, amount in pairs(realm.resources) do
-						if good.category == 'good' then
+						local resource = trade_good(good)
+						if resource.category == 'good' then
 							goods[good] = amount
 						end
 					end
 					gam.realm_stockpile_scrollbar = gam.realm_stockpile_scrollbar or 0
 					gam.realm_stockpile_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGood
+							---@type TradeGoodReference
 							local good, amount = tabb.nth(goods, entry)
 							local delta = realm.production[good] or 0
+							local resource = trade_good(good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(good.icon), rect)
+							ui.image(ASSETS.get_icon(resource.icon), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							ui.left_text(good.name, rect)
+							ui.left_text(good, rect)
 							ui.right_text(
 								tostring(math.floor(100 * amount) / 100) .. ' (' ..
 								tostring(math.floor(100 * delta) / 100) .. ')',
@@ -215,24 +100,26 @@ function re.draw(gam)
 				closure = function()
 					local goods = {}
 					for good, amount in pairs(realm.production) do
-						if good.category == 'capacity' then
+						local resource = trade_good(good)
+						if resource.category == 'capacity' then
 							goods[good] = amount
 						end
 					end
 					gam.realm_capacities_scrollbar = gam.realm_capacities_scrollbar or 0
 					gam.realm_capacities_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGood
+							---@type TradeGoodReference
 							local good, amount = tabb.nth(goods, entry)
+							local resource = trade_good(good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(good.icon), rect)
+							ui.image(ASSETS.get_icon(resource.icon), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							ui.left_text(good.name, rect)
+							ui.left_text(good, rect)
 							ui.right_text(tostring(math.floor(100 * amount) / 100), rect)
 						end
 					end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_capacities_scrollbar)
@@ -243,29 +130,24 @@ function re.draw(gam)
 				tooltip = "Court",
 				closure = function()
 					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
-					uit.money_entry("Court wealth: ", realm.court_wealth, a,
+					uit.money_entry("Court wealth: ", realm.budget.court.budget, a,
 						"Investment.")
 					a.y = a.y + uit.BASE_HEIGHT
 
-					uit.money_entry("Court wealth. needed: ", realm.court_wealth_needed
+					uit.money_entry("Court wealth. needed: ", realm.budget.court.target
 						, a,
 						"Needed court wealth.")
 					a.y = a.y + uit.BASE_HEIGHT
-					uit.money_entry("Court investments: ",
-						realm.court_investment
-						, a,
-						"Amount of funds spent supporting the court through any variety of means.")
-					a.y = a.y + uit.BASE_HEIGHT
+
 					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if WORLD.player_realm.treasury > 0.1 then
+							if WORLD.player_realm.budget.treasury > max_amount then
 								if ui.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
-									local inv = math.min(realm.treasury, max_amount)
-									realm.treasury = realm.treasury - inv
-									realm.court_investment = realm.court_investment + inv
+									local inv = math.min(realm.budget.treasury, max_amount)
+									ef.direct_investment(realm, realm.budget.court, inv, EconomicEffects.reasons.Court)
 								end
 							else
 								ui.centered_text(ah .. MONEY_SYMBOL, rect)
@@ -294,17 +176,18 @@ function re.draw(gam)
 					gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
 					gam.realm_market_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGood
+							---@type TradeGoodReference
 							local good, price = tabb.nth(goods, entry)
+							local resource = trade_good(good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(good.icon), rect)
+							ui.image(ASSETS.get_icon(resource.icon), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							uit.money_entry(good.name, price, rect, 'price')
+							uit.money_entry(good, price, rect, 'price')
 						end
 					end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_market_scrollbar)
 				end
@@ -314,29 +197,34 @@ function re.draw(gam)
 				tooltip = "Education and research",
 				closure = function()
 					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
-					uit.money_entry("Endowment: ", realm.education_endowment, a,
-						"Investment.")
+					uit.money_entry(
+						"Endowment: ",
+						realm.budget.education.budget,
+						a,
+						"Investment."
+					)
 					a.y = a.y + uit.BASE_HEIGHT
 
-					uit.money_entry("Endwm. needed: ", realm.education_endowment_needed
-						, a,
-						"Needed endowment to support current technologies.")
+
+					uit.money_entry(
+						"Endwm. needed: ", 
+						realm.budget.education.target
+						, 
+						a,
+						"Needed endowment to support current technologies."
+					)
 					a.y = a.y + uit.BASE_HEIGHT
-					uit.money_entry("Education investments: ",
-						realm.education_investment
-						, a,
-						"Amount of funds spent supporting research through any variety of means, ranging from funding private alchemists to gifting tribe shamans.")
-					a.y = a.y + uit.BASE_HEIGHT
+
+
 					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if WORLD.player_realm.treasury > 0.1 then
+							if WORLD.player_realm.budget.treasury > max_amount then
 								if ui.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
-									local inv = math.min(realm.treasury, max_amount)
-									realm.treasury = realm.treasury - inv
-									realm.education_investment = realm.education_investment + inv
+									local inv = math.min(realm.budget.treasury, max_amount)
+									ef.direct_investment(realm, realm.budget.education, inv, EconomicEffects.reasons.Education)
 								end
 							else
 								ui.centered_text(ah .. MONEY_SYMBOL, rect)
@@ -363,7 +251,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widget-decision-tab" (ui_panel, nil, 'none', gam)
+					require "game.scenes.game.widgets.decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{
@@ -373,7 +261,7 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widget-decision-tab" (ui_panel, realm, 'realm', gam)
+					require "game.scenes.game.widgets.decision-tab" (ui_panel, realm, 'realm', gam)
 				end
 			},
 			{

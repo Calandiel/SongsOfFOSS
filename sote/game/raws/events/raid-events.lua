@@ -1,7 +1,16 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local ef = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economical"
 local ut = require "game.ui-utils"
+
+local AI_VALUE = require "game.raws.values.ai_preferences"
+
+local pv = require "game.raws.values.political"
+local de = require "game.raws.effects.diplomacy"
+local me = require "game.raws.effects.military"
+local messages = require "game.raws.effects.messages"
+
 
 ---@class PatrolData
 ---@field defender Character
@@ -14,6 +23,13 @@ local ut = require "game.ui-utils"
 ---@field raider Character
 ---@field origin Realm
 ---@field target RewardFlag
+---@field travel_time number
+---@field army Army
+
+---@class AttackData 
+---@field raider Character
+---@field origin Realm
+---@field target Province
 ---@field travel_time number
 ---@field army Army
 
@@ -59,6 +75,238 @@ local function load()
 			end
 		end
 	}
+
+
+	Event:new {
+		name = "request-tribute-raid",
+		event_text = function(self, character, associated_data)
+            ---@type Realm
+            associated_data = associated_data
+			local name = associated_data.name
+
+            local my_warlords, my_power = pv.military_strength(character)
+			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
+            local their_warlords, their_power = pv.military_strength(associated_data.leader)
+
+            local strength_estimation_string = 
+                "On my side there are "
+                .. my_warlords
+                .. " warlords with total strength of "
+                .. my_power
+                .. " warriors in total."
+				.. "Currently, I have "
+				.. my_warlords_ready
+				.. " warlords with total strength of "
+				.. my_power_ready
+				.. " ready to join my campaign."
+				.. " Enemies potential forces consist of "
+                .. their_warlords
+                .. " warlords with total size of "
+                .. their_power
+                .. " warriors."
+
+			return " We are planning the invasion of "
+				.. name 
+				.. ". "
+                .. strength_estimation_string
+                .. " What should I do?"
+		end,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = function(self, character)
+			return false
+		end,
+		on_trigger = function(self, character, associated_data)
+            ---@type Realm
+            associated_data = associated_data
+			if WORLD.player_character == character then
+				WORLD:emit_notification("I was asked to start paying tribute to " .. associated_data.name)
+			end
+		end,
+		options = function(self, character, associated_data)
+            ---@type Realm
+            local target_realm = associated_data
+
+            -- character assumes that realm will gain money at least for a year
+            local gain_of_money = 0
+            if target_realm then
+                gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
+            end
+
+            local my_warlords, my_power = pv.military_strength(character)
+			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
+            local their_warlords, their_power = pv.military_strength(target_realm.leader)
+
+			return {
+				{
+					text = "Forward!",
+					tooltip = "Launch the invasion",
+					viable = function() return true end,
+					outcome = function()
+                        local realm = character.realm
+
+						local army = me.gather_loyal_army(character)
+						if army == nil then
+							if character == WORLD.player_character then
+								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
+							end
+						else
+							local function callback(army, travel_time)
+								---@type AttackData
+								local data = {
+									raider = character,
+									origin = realm,
+									target = target_realm.capitol,
+									travel_time = travel_time,
+									army = army
+								}
+
+								WORLD:emit_action('request-tribute-attack', character, character, data, travel_time, true)
+							end
+
+							me.send_army(army, character.province, target_realm.capitol, callback)
+
+							if character == WORLD.player_character then
+								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
+							end
+						end
+					end,
+
+					ai_preference = function ()
+                        local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+                            aggression = true,
+                        })()
+
+                        base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
+                        base_value = base_value + (my_power_ready - their_power) * 20
+                        return base_value
+                    end
+				},
+				{
+					text = "Wait for 10 days",
+					tooltip = "Wait for our warlords to gather.",
+					viable = function() return true end,
+					outcome = function()
+                        if WORLD.player_character == character then
+                            WORLD:emit_notification("I have decided to wait. We need more forces.")
+                        end
+
+						WORLD:emit_event('request-tribute-raid', character, target_realm, 10)
+                    end,
+					ai_preference = function ()
+                        local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+                            aggression = true,
+                        })()
+
+                        base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
+                        base_value = base_value + (my_power - their_power) * 15
+                        return base_value
+                    end
+				},
+				{
+					text = "Back down",
+					tooltip = "We are not ready to fight",
+					viable = function() return true end,
+					outcome = function()
+                        if WORLD.player_character == character then
+                            WORLD:emit_notification("I decided to not attack " .. target_realm.leader.name)
+                        end
+                    end,
+					ai_preference = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {})
+				}
+			}
+		end
+	}
+
+	Event:new {
+		name = "request-tribute-attack",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			---@type AttackData
+			associated_data = associated_data
+
+			local raider = associated_data.raider
+			local target = associated_data.target
+			local travel_time = associated_data.travel_time
+			local army = associated_data.army
+
+			local province = target
+			local realm = province.realm
+
+			if not realm then
+				-- The province doesn't have a realm
+				return
+			end
+
+			-- Battle time!
+
+			-- spot test
+			-- it's an open attack, so our visibility is multiplied by 10
+			local spot_test = province:army_spot_test(army, 10)
+
+			-- First, raise the defending army.
+			local def = realm:raise_local_army(province)
+			local attack_succeed, attack_losses, def_losses = army:attack(province, spot_test, def)
+			realm:disband_army(def) -- disband the army after battle
+
+			-- Message handling
+			messages.tribute_raid(raider, province.realm, attack_succeed, attack_losses, def_losses)
+
+			-- setting tributary
+			if attack_succeed then
+				de.set_tributary(raider.realm, target.realm)
+				WORLD:emit_action("request-tribute-army-returns-success", raider, raider, army, travel_time, true)
+			else
+				WORLD:emit_action("request-tribute-army-returns-fail", raider, raider, army, travel_time, true)
+			end
+		end,
+	}
+
+	Event:new {
+		name = "request-tribute-army-returns-success",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			local realm = root.realm
+
+			---@type Army
+			local army = associated_data
+
+			if realm == nil then
+				return
+			end
+
+			realm.capitol.mood = realm.capitol.mood + 0.05
+			realm.leader.popularity = realm.leader.popularity + 0.1
+
+			realm:disband_army(army)
+			realm.prepare_attack_flag = false
+			messages.tribute_raid_success(realm, army.destination.realm)			
+		end,
+	}
+
+	Event:new {
+		name = "request-tribute-army-returns-fail",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			local realm = root.realm
+
+			---@type Army
+			local army = associated_data
+
+			if realm == nil then
+				return
+			end
+
+			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
+			realm.leader.popularity = math.max(0, realm.leader.popularity - 0.1)
+
+			realm:disband_army(army)
+			realm.prepare_attack_flag = false
+			messages.tribute_raid_fail(realm, army.destination.realm)
+		end,
+	}
+
 
 	Event:new {
 		name = "covert-raid",
@@ -111,6 +359,7 @@ local function load()
 								" warriors and our enemies lost " .. tostring(attack_losses) .. " and our province was looted.")
 						end
 					else
+						success = false
 						if WORLD:does_player_see_realm_news(realm) then
 							WORLD:emit_notification("Our neighbor, " ..
 								raider.name ..
@@ -132,8 +381,9 @@ local function load()
 				province.local_wealth = province.local_wealth - real_loot
 				if max_loot > real_loot then
 					local leftover = max_loot - real_loot
-					local extra = math.min(0.1 * realm.treasury, leftover)
-					realm.treasury = realm.treasury - extra
+					local potential_loot = ev.raidable_treasury(realm)
+					local extra = math.min(potential_loot, leftover)
+					EconomicEffects.change_treasury(realm, -extra, EconomicEffects.reasons.Raid)
 					real_loot = real_loot + extra
 				end
 

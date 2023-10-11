@@ -2,13 +2,16 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
+local portrait = require "game.scenes.game.widgets.portrait"
+local name = require "game.scenes.game.widgets.character-name"
+
 local window = {}
 
 window.scroll = 0
 
 ---@return Rect
 function window.rect() 
-    return ui.fullscreen():subrect(0, 0, 400, 400, "center", "center")
+    return ui.fullscreen():subrect(0, 0, 600, 400, "center", "center")
 end
 
 function window.mask()
@@ -37,12 +40,24 @@ function window.draw(game, province)
     panel.y = panel.y + base_unit
     panel.height = panel.height - base_unit
 
+    ---comment
+    ---@param index number
+    ---@param rect Rect
     local function render_character(index, rect)
         ---@type Character
         local character = tabb.nth(province.characters, index)
         if character == nil then return end
-        ui.left_text(character.name, rect)
-        ui.centered_text(character.age .. " years old " .. character.race.name, rect)
+
+        local portrait_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+        portrait(portrait_rect, character)
+
+        rect.x = rect.x + rect.height
+        rect.width = rect.width - rect.height
+        rect.width = rect.width / 2
+        name(rect, character)
+
+        rect.x = rect.x + rect.width
+        ui.left_text(character.age .. " years old " .. character.race.name, rect)
 
         rect.x = rect.x + rect.width - rect.height
         rect.width = rect.height

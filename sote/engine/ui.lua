@@ -1142,7 +1142,7 @@ end
 
 ---@alias TableField number|string
 
----@alias TableKey table
+---@alias TableKey table|string
 ---@alias TableEntry table
 ---@alias TablePair {key: TableKey, value: TableEntry}
 

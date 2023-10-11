@@ -5,6 +5,7 @@ local pop = require "game.entities.pop"
 local tabb = require "engine.table"
 
 local TRAIT = require "game.raws.traits.generic"
+local ranks = require "game.raws.ranks.character_ranks"
 
 local st = {}
 
@@ -28,7 +29,7 @@ local function make_new_noble(race, faith, culture)
 	love.math.random(race.adult_age, race.max_age))
 	contender.popularity = contender.age / 15
 
-	if love.math.random() > 0.7 then
+	if love.math.random() > 0.85 then
 		contender.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
 	end
 
@@ -36,7 +37,7 @@ local function make_new_noble(race, faith, culture)
 		contender.traits[TRAIT.GREEDY] = TRAIT.GREEDY
 	end
 
-	if love.math.random() > 0.7 then
+	if love.math.random() > 0.9 then
 		contender.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
 	end
 
@@ -47,6 +48,27 @@ local function make_new_noble(race, faith, culture)
 	if love.math.random() > 0.7 and not contender.traits[TRAIT.AMBITIOUS] then
 		contender.traits[TRAIT.CONTENT] = TRAIT.CONTENT
 	end
+
+	local organiser_roll = love.math.random()
+
+	if organiser_roll < 0.1 then
+		contender.traits[TRAIT.BAD_ORGANISER] = TRAIT.BAD_ORGANISER
+	elseif organiser_roll < 0.9 then
+		-- do nothing ...
+	else
+		contender.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
+	end
+
+	local laziness_roll = love.math.random()
+	if laziness_roll < 0.1 then
+		contender.traits[TRAIT.LAZY] = TRAIT.LAZY
+	elseif laziness_roll < 0.9 then
+		-- do nothing ...
+	else
+		contender.traits[TRAIT.HARDWORKER] = TRAIT.HARDWORKER
+	end
+
+	contender.rank = ranks.NOBLE
 
 	return contender
 end
@@ -101,11 +123,14 @@ local function make_new_realm(capitol, race, culture, faith)
 	elite_character.popularity = elite_character.age / 10
 	capitol:add_character(elite_character)
 	r.leader = elite_character
+	r.leader.rank = ranks.CHIEF
+	r.leader.realm = r
 
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 4 do
 		local contender = make_new_noble(race, faith, culture)
+		contender.realm = r
 		capitol:add_character(contender)
 	end
 
@@ -202,7 +227,7 @@ function st.run()
 					river_bonus = 0.25
 				end
 				if prov.realm.primary_race.requires_large_river then
-				 	if neigh.on_a_river then
+					if neigh.on_a_river then
 						river_bonus = 0.001
 					else
 						river_bonus = 1000

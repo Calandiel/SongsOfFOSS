@@ -3,12 +3,15 @@ local tabb = require "engine.table"
 local ll = {}
 local MilitaryEffects = require "game.raws.effects.military"
 local utils = require "game.raws.raws-utils"
+local ef = require "game.raws.effects.economic"
 
 function ll.load()
 	local Decision = require "game.raws.decisions"
 
 	require "game.raws.decisions.war-decisions" ()
 	require "game.raws.decisions.character-decisions" ()
+	require "game.raws.decisions.office-decisions" ()
+	require "game.raws.decisions.diplomacy" ()
 
 	-- Logic flow:
 	-- 1. Loop through all realms
@@ -83,7 +86,7 @@ function ll.load()
 		pretrigger = function(root)
 			---@type Realm
 			local root = root
-			return root.treasury > 10
+			return root.budget.treasury > 10
 		end,
 		clickable = function(root, primary_target)
 			---@type Realm
@@ -98,7 +101,7 @@ function ll.load()
 			---@type Province
 			local primary_target = primary_target
 			local pop = primary_target:population()
-			return root.treasury > pop * gift_cost_per_pop
+			return root.budget.treasury > pop * gift_cost_per_pop
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			-- AI will only do it if mood in the province is negative
@@ -129,7 +132,7 @@ function ll.load()
 			---@type Province
 			local primary_target = primary_target
 			primary_target.mood = math.min(10, primary_target.mood + 1)
-			root.treasury = math.max(0, root.treasury - primary_target:population() * gift_cost_per_pop)
+			ef.change_treasury(root, -primary_target:population() * gift_cost_per_pop, EconomicEffects.reasons.Donation)
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("Population of " .. primary_target.name .. " is jubilant after receiving our gifts!")
 			end
@@ -154,7 +157,7 @@ function ll.load()
 			---@type Province
 			local primary_target = primary_target
 			local explore_cost = root:get_explore_cost(primary_target)
-			return explore_cost < root.treasury
+			return explore_cost < root.budget.treasury
 		end,
 		-- Controls if the action can be clicked by the player
 		available = function(root, primary_target, secondary_target)

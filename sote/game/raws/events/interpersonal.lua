@@ -65,7 +65,7 @@ return function ()
 					viable = function() return true end,
 					outcome = function() 
 						if associated_data == WORLD.player_character then
-                        	WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(character.name .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
 							WORLD:emit_notification("I refused to assist " .. associated_data.name)

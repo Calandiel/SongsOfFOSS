@@ -1,3 +1,5 @@
+local good = require "game.raws.raws-utils".trade_good
+
 ---@class RewardFlag
 ---@field flag_type 'explore'|'raid'|'destroy'|'kill'|'devastate'
 ---@field reward number
@@ -6,30 +8,68 @@
 ---@field owner Character
 ---@field target Province
 
+
+---@class BudgetCategory
+---@field ratio number
+---@field budget number
+---@field to_be_invested number
+---@field target number
+
+local function budget_category()
+	return {
+		ratio = 0,
+		budget = 0,
+		to_be_invested = 0,
+		target = 0,
+	}
+end
+
+---@alias BudgetCategoryReference 'education'|'court'|'infrastructure'|'military'|'tribute'
+
+---@alias WealthByCategory table<EconomicReason, number?>
+
+---@class Budget
+---@field change number
+---@field saved_change number
+---@field spending_by_category WealthByCategory
+---@field income_by_category WealthByCategory
+---@field treasury_change_by_category WealthByCategory
+---@field treasury number
+---@field treasury_target number
+---@field education BudgetCategory
+---@field court BudgetCategory
+---@field infrastructure BudgetCategory
+---@field military BudgetCategory
+---@field tribute BudgetCategory
+
+
+---Generates empty budget
+---@return Budget
+local function generate_empty_budget()
+	return {
+		treasury = 0,
+		treasury_history = {},
+		change = 0,
+		saved_change = 0,
+		treasury_target = 0,
+		spending_by_category = {},
+		income_by_category = {},
+		treasury_change_by_category = {},
+		education = budget_category(),
+		court = budget_category(),
+		infrastructure = budget_category(),
+		military = budget_category(),
+		tribute = budget_category(),
+	}
+end
+
 ---@class Realm
 ---@field realm_id number
 ---@field name string
----@field treasury number
----@field wasted_treasury number
----@field treasury_real_delta number
----@field military_spending number
----@field realized_military_spending number The fraction of military upkeep that was actually covered
----@field old_treasury number
----@field building_upkeep number
----@field voluntary_contributions number
----@field voluntary_contributions_accumulator number
----@field monthly_infrastructure_investment number
----@field education_endowment number
----@field education_investment number
----@field education_endowment_needed number
----@field monthly_education_investment number
+---@field budget Budget
 ---@field get_education_efficiency fun(self:Realm):number
 ---@field get_average_mood fun(self:Realm):number
 ---@field get_total_population fun(self:Realm):number
----@field court_wealth number
----@field court_investment number
----@field court_wealth_needed number
----@field monthly_court_investment number
 ---@field get_court_efficiency fun(self:Realm):number
 ---@field r number
 ---@field g number
@@ -39,10 +79,15 @@
 ---@field primary_faith Faith
 ---@field capitol Province
 ---@field leader Character?
+---@field overseer Character?
+---@field tribute_collectors table<Character, Character>
+---@field paying_tribute_to Realm?
+---@field tributaries table<Realm, Realm>
 ---@field provinces table<Province, Province>
 ---@field reward_flags table<RewardFlag, RewardFlag>
 ---@field raiders_preparing table<RewardFlag, table<Warband, Warband>>
 ---@field patrols table<Province, table<Warband, Warband>>
+---@field prepare_attack_flag boolean?
 ---@field add_reward_flag fun(self:Realm, target:RewardFlag)
 ---@field remove_reward_flag fun(self:Realm, target:RewardFlag)
 ---@field roll_reward_flag fun(self:Realm): RewardFlag
@@ -66,12 +111,12 @@
 ---@field coa_background_image number
 ---@field coa_foreground_image number
 ---@field coa_emblem_image number
----@field resources table<TradeGood, number> Currently stockpiled resources
----@field production table<TradeGood, number> A "balance" of resource creation
----@field bought table<TradeGood, number>
----@field sold table<TradeGood, number>
----@field get_price fun(self:Realm, trade_good:TradeGood):number
----@field get_pessimistic_price fun(self:Realm, trade_good:TradeGood, amount:number):number
+---@field resources table<TradeGoodReference, number> Currently stockpiled resources
+---@field production table<TradeGoodReference, number> A "balance" of resource creation
+---@field bought table<TradeGoodReference, number>
+---@field sold table<TradeGoodReference, number>
+---@field get_price fun(self:Realm, trade_good:TradeGoodReference):number
+---@field get_pessimistic_price fun(self:Realm, trade_good:TradeGoodReference, amount:number):number
 ---@field expected_food_consumption number
 ---@field get_realm_population fun(self:Realm):number
 ---@field get_realm_military fun(self:Realm):number Returns a sum of "unraised" military and active armies
@@ -79,7 +124,6 @@
 ---@field get_realm_military_target fun(self:Realm):number Returns the sum of military targets, not that it DOESNT include active armies.
 ---@field get_realm_active_army_size fun(self:Realm):number Returns the size of active armies on the field
 ---@field get_realm_militarization fun(self:Realm):number
---@field raise_army_of_size fun(self:Realm, size:number):Army Raises an army of a given size
 ---@field raise_army fun(self:Realm, warbands: table<Warband, Warband>): Army
 ---@field raise_warband fun(self: Realm, warband: Warband)
 ---@field raise_local_army fun(self: Realm, province: Province): Army
@@ -109,6 +153,7 @@ realm.RewardFlag.__index = realm.RewardFlag
 ---@param i RewardFlag
 ---@return RewardFlag
 function realm.RewardFlag:new(i)
+	---@type table
 	local o = {}
 	for k, v in pairs(i) do
 		o[k] = v
@@ -133,24 +178,11 @@ function realm.Realm:new()
 	o.g = love.math.random()
 	o.b = love.math.random()
 	o.expected_food_consumption = 0
-	o.treasury = 0
-	o.wasted_treasury = 0
-	o.treasury_real_delta = 0
-	o.old_treasury = 0
-	o.building_upkeep = 0
-	o.voluntary_contributions = 0
-	o.voluntary_contributions_accumulator = 0
-	o.monthly_infrastructure_investment = 0
-	o.education_endowment = 0
-	o.education_investment = 0
-	o.education_endowment_needed = 0
-	o.monthly_education_investment = 0
-	o.court_wealth = 0
-	o.court_investment = 0
-	o.court_wealth_needed = 0
-	o.monthly_court_investment = 0
-	o.military_spending = 0
-	o.realized_military_spending = 1
+	o.budget = generate_empty_budget()
+
+	o.tribute_collectors = {}
+	o.tributaries = {}
+
 	o.provinces = {}
 	o.reward_flags = {}
 	o.bought = {}
@@ -276,8 +308,9 @@ function realm.Realm:remove_patrol(prov, warband)
 end
 
 function realm.Realm:roll_reward_flag()
+	---@type table<RewardFlag, number>
 	local targets = {}
-	for _, k in pairs(self.reward_flags) do
+	for flag, k in pairs(self.reward_flags) do
 		targets[k] = k.reward * k.owner.popularity
 	end
 	return tabb.random_select(targets)
@@ -294,31 +327,33 @@ end
 
 ---Note, it works ONLY for "real" trade goods.
 ---For services, use provincial functions instead!
----@param trade_good TradeGood
+---@param trade_good TradeGoodReference
 ---@return number price
 function realm.Realm:get_price(trade_good)
 	local bought = self.bought[trade_good] or 0
 	local sold = self.sold[trade_good] or 0
-	return trade_good.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+	local data = good(trade_good)
+	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
 
 ---Calculates a "pessimistic" prise (that is, the price that we'd get if we tried to sell more goods after selling the goods given)
----@param trade_good TradeGood
+---@param trade_good TradeGoodReference
 ---@param amount number
 ---@return number price
 function realm.Realm:get_pessimistic_price(trade_good, amount)
 	local bought = self.bought[trade_good] or 0
 	bought = bought + amount
 	local sold = self.sold[trade_good] or 0
-	return trade_good.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+	local data = good(trade_good)
+	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
 
 ---Returns a percentage describing the education investments
 ---@return number
 function realm.Realm:get_education_efficiency()
 	local ed = 0
-	if self.education_endowment_needed > 0 then
-		ed = self.education_endowment / self.education_endowment_needed
+	if self.budget.education.target > 0 then
+		ed = self.budget.education.budget / self.budget.education.target
 	end
 	return ed
 end
@@ -326,8 +361,8 @@ end
 ---@return number
 function realm.Realm:get_court_efficiency()
 	local co = 0
-	if self.court_wealth_needed > 0 then
-		co = self.court_wealth / self.court_wealth_needed
+	if self.budget.court.target > 0 then
+		co = self.budget.court.budget / self.budget.court.target
 	end
 	return co
 end
@@ -382,6 +417,7 @@ end
 function realm.Realm:get_realm_military()
 	local total = 0
 	for _, p in pairs(self.provinces) do
+		---@type number
 		total = total + p:military()
 	end
 	for _, a in pairs(self.armies) do
@@ -493,6 +529,7 @@ end
 
 ---@return table<Province, number>
 function realm.Realm:get_province_pop_weights()
+	---@type table<Province, number>
 	local weights = {}
 	local total = 0
 	for _, p in pairs(self.provinces) do
@@ -526,6 +563,7 @@ end
 
 ---@return table<number, Province>
 function realm.Realm:get_n_random_pop_weighted_provinces(n)
+	---@type table<number, Province>
 	local returns = {}
 	local ws = self:get_province_pop_weights()
 	for i = 1, n do
@@ -536,12 +574,14 @@ end
 
 ---@return number
 function realm.Realm:get_total_population()
+	---@type number
 	local pop = 0
 
 	for _, army in pairs(self.armies) do
 		pop = pop + tabb.size(army:pops())
 	end
 	for _, prov in pairs(self.provinces) do
+		---@type number
 		pop = pop + tabb.size(prov.all_pops)
 	end
 
