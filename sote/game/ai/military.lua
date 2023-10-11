@@ -6,7 +6,8 @@ local mi = {}
 function mi.run(realm)
 	--print("mil")
 	local pop = realm:get_realm_population()
-	local target_mil = math.floor(pop * 7.5 / 100.0)
+	-- local target_mil = math.floor(pop * 7.5 / 100.0)
+	local target_mil = math.floor(pop * 15  / 100.0)
 
 	local delta = realm.budget.military.budget - realm.budget.military.target
 	if delta < 0 then

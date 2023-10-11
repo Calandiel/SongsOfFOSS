@@ -29,7 +29,7 @@ local function make_new_noble(race, faith, culture)
 	love.math.random(race.adult_age, race.max_age))
 	contender.popularity = contender.age / 15
 
-	if love.math.random() > 0.7 then
+	if love.math.random() > 0.85 then
 		contender.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
 	end
 
@@ -37,7 +37,7 @@ local function make_new_noble(race, faith, culture)
 		contender.traits[TRAIT.GREEDY] = TRAIT.GREEDY
 	end
 
-	if love.math.random() > 0.7 then
+	if love.math.random() > 0.9 then
 		contender.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
 	end
 

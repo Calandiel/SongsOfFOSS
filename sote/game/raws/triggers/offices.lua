@@ -14,6 +14,29 @@ function triggers.valid_overseer(character, realm)
     return true
 end
 
+
+---checks if character is a valid candidate for overseer
+---@param character Character
+---@param realm Realm
+function triggers.valid_tribute_collector_candidate(character, realm)
+    -- if character is already a tribute collector then reject
+    if realm.tribute_collectors[character]      then return false end
+    -- we can't desigante foreigners to overseer position
+    if character.realm ~= realm                 then return false end
+
+    return true
+end
+
+---checks if character is a valid tribute collector
+---@param character Character
+---@param realm Realm
+function triggers.tribute_collector(character, realm)
+    if not realm.tribute_collectors[character]  then return false end
+    if character.realm ~= realm                 then return false end
+
+    return true
+end
+
 ---Checks if character is eligible to designate offices in the province
 ---@param character Character
 ---@param province Province

@@ -1,4 +1,5 @@
 local eco_values = require "game.raws.values.economical"
+local traits = require "game.raws.traits.generic"
 
 EconomicEffects = {}
 
@@ -22,6 +23,7 @@ EconomicEffects.reasons = {
     Treasury = "treasury",
     Budget = "budget",
     Waste = "waste",
+    Tribute = "tribute",
 }
 
 ---Change realm treasury and display effects to player
@@ -217,5 +219,43 @@ function EconomicEffects.remove_raiding_flags(origin, target)
     end
 end
 
+---character collects tribute into his pocket and returns collected value
+---@param collector Character
+---@param realm Realm
+---@return number
+function EconomicEffects.collect_tribute(collector, realm)
+    local tribute_amount = math.min(10, math.floor(realm.budget.tribute.budget))
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification("Tribute collector had arrived. Another day of humiliation. " .. tribute_amount .. MONEY_SYMBOL .. " were collected.")
+    end
+    
+    EconomicEffects.register_spendings(realm, tribute_amount, EconomicEffects.reasons.Tribute)
+    realm.budget.tribute.budget = realm.budget.tribute.budget - tribute_amount
+
+    EconomicEffects.add_pop_savings(collector, tribute_amount, EconomicEffects.reasons.Tribute)
+
+    return tribute_amount
+end
+
+---@param collector Character
+---@param realm Realm
+---@param tribute number
+function EconomicEffects.return_tribute_home(collector, realm, tribute)
+    local payment_multiplier = 0.1
+    if collector.traits[traits.GREEDY] then
+        payment_multiplier = 0.5
+    end
+
+    local payment = tribute * payment_multiplier
+    local to_treasury = tribute - payment
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification("Tribute collector had arrived back. He brought back " .. to_treasury .. MONEY_SYMBOL .. " wealth.")
+    end
+
+    EconomicEffects.register_income(realm,      to_treasury, EconomicEffects.reasons.Tribute)
+    EconomicEffects.add_pop_savings(collector,  -to_treasury, EconomicEffects.reasons.Tribute)
+end
 
 return EconomicEffects

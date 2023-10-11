@@ -7,6 +7,14 @@ local AI_VALUE = require "game.raws.values.ai_preferences"
 local pv = require "game.raws.values.political"
 local de = require "game.raws.effects.diplomacy"
 local ev = require "game.raws.values.economical"
+local ef = require "game.raws.effects.economic"
+
+
+---@class TributeCollection
+---@field origin Realm
+---@field target Realm
+---@field travel_time number
+---@field tribute number
 
 
 local function load()
@@ -216,6 +224,28 @@ local function load()
 				}
 			}
 		end
+	}
+
+	Event:new {
+		name = "tribute-collection-1",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+            ---@type TributeCollection
+            associated_data = associated_data
+            associated_data.tribute = ef.collect_tribute(root, associated_data.target)
+            WORLD:emit_action("tribute-collection-2", root, root, associated_data, associated_data.travel_time, true)
+		end,
+	}
+
+    Event:new {
+		name = "tribute-collection-2",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+            ---@type TributeCollection
+            associated_data = associated_data
+            ef.return_tribute_home(root, associated_data.origin, associated_data.tribute)
+            root.busy = false
+		end,
 	}
 end
 
