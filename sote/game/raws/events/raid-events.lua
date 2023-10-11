@@ -192,7 +192,7 @@ local function load()
                             WORLD:emit_notification("I have decided to wait. We need more forces.")
                         end
 
-						WORLD:emit_event('request-tribute-attack', character, target_realm, 10)
+						WORLD:emit_event('request-tribute-raid', character, target_realm, 10)
                     end,
 					ai_preference = function ()
                         local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
@@ -276,6 +276,9 @@ local function load()
 				return
 			end
 
+			realm.capitol.mood = realm.capitol.mood + 0.05
+			realm.leader.popularity = realm.leader.popularity + 0.1
+
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
 			messages.tribute_raid_success(realm, army.destination.realm)			
@@ -294,6 +297,9 @@ local function load()
 			if realm == nil then
 				return
 			end
+
+			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
+			realm.leader.popularity = math.max(0, realm.leader.popularity - 0.1)
 
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false

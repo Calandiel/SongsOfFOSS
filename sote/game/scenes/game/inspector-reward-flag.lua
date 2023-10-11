@@ -34,14 +34,38 @@ local function change_reward_button(x)
     end
 end
 
-local function create_flag(province)
+---comment
+---@param province Province
+---@return "ok"|"zero_reward"|"bad_target"
+local function reward_tooltip(province)
     local current_savings = WORLD.player_character.savings
     if reward > current_savings then
         reward = current_savings
     end
     if reward == 0 then
+        return "zero_reward"
+    end
+    if province.realm.paying_tribute_to == WORLD.player_character.realm then
+        return "bad_target"
+    end
+    if WORLD.player_character.realm.paying_tribute_to == province.realm then
+        return "bad_target"
+    end
+
+    return 'ok'
+end
+
+---comment
+---@param province Province
+local function create_flag(province)
+    local current_savings = WORLD.player_character.savings
+    if reward > current_savings then
+        reward = current_savings
+    end
+    if reward_tooltip(province) ~= 'ok' then
         return
     end
+
     local reward_flag = realm.RewardFlag:new {
         target = province,
         reward = reward,
@@ -122,7 +146,7 @@ function window.draw(game)
     ui_panel.height = base_unit * 2
     ut.columns({
         function (rect)
-            if ui.text_button('Save', rect) then
+            if ui.text_button('Save', rect, reward_tooltip(game.flagged_province)) then
                 create_flag(game.flagged_province)
                 game.inspector = nil
             end

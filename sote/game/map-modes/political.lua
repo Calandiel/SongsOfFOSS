@@ -13,11 +13,11 @@ function pol.diplomacy(clicked_tile_id)
 						if tile.province.realm ~= nil then
 							if rr then
 								if tile.province.realm == rr then
-									tile:set_real_color(0, 1, 0)
+									tile:set_real_color(051 / 255, 117 / 255, 056 / 255)
 								elseif tile.province.realm.paying_tribute_to == rr then
-									tile:set_real_color(0, 1, 1)
+									tile:set_real_color(220 / 255, 205 / 255, 125 / 255)
 								elseif tile.province.realm:at_war_with(rr) then
-									tile:set_real_color(1, 0, 0)
+									tile:set_real_color(126 / 255, 041 / 255, 084 / 255)
 								end
 							end
 						end

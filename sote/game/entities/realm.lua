@@ -80,7 +80,9 @@ end
 ---@field capitol Province
 ---@field leader Character?
 ---@field overseer Character?
+---@field tribute_collectors table<Character, Character>
 ---@field paying_tribute_to Realm?
+---@field tributaries table<Realm, Realm>
 ---@field provinces table<Province, Province>
 ---@field reward_flags table<RewardFlag, RewardFlag>
 ---@field raiders_preparing table<RewardFlag, table<Warband, Warband>>
@@ -177,6 +179,9 @@ function realm.Realm:new()
 	o.b = love.math.random()
 	o.expected_food_consumption = 0
 	o.budget = generate_empty_budget()
+
+	o.tribute_collectors = {}
+	o.tributaries = {}
 
 	o.provinces = {}
 	o.reward_flags = {}
@@ -305,7 +310,7 @@ end
 function realm.Realm:roll_reward_flag()
 	---@type table<RewardFlag, number>
 	local targets = {}
-	for _, k in pairs(self.reward_flags) do
+	for flag, k in pairs(self.reward_flags) do
 		targets[k] = k.reward * k.owner.popularity
 	end
 	return tabb.random_select(targets)

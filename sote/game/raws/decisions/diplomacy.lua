@@ -3,6 +3,7 @@ local tabb = require "engine.table"
 local Decision = require "game.raws.decisions"
 local utils = require "game.raws.raws-utils"
 local dt = require "game.raws.triggers.diplomacy"
+local ot = require "game.raws.triggers.offices"
 local pv = require "game.raws.values.political"
 
 local TRAIT = require "game.raws.traits.generic"
@@ -17,7 +18,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-            if not dt.decides_foreign_policy(root, root.realm) then return false end
+            if not ot.decides_foreign_policy(root, root.realm) then return false end
             if root.realm.prepare_attack_flag then return false end
 
 			return true

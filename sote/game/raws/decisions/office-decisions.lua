@@ -7,6 +7,8 @@ local MilitaryEffects = require "game.raws.effects.military"
 local PoliticalEffects = require "game.raws.effects.political"
 local TRAIT = require "game.raws.traits.generic"
 
+local ot = require "game.raws.triggers.offices"
+
 
 local function load()
     Decision.Character:new {
@@ -21,23 +23,11 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
-            local realm = root.realm
-            if realm == nil                             then return false end
-            if realm.overseer                           then return false end
-            if realm.leader ~= root                     then return false end
-            if root.province ~= primary_target.province then return false end
-            if realm ~= primary_target.realm            then return false end
-
+            if not ot.designates_offices(root, primary_target.province) then return false end
+            if not ot.valid_overseer(primary_target, root.realm)        then return false end
             return true
 		end,
 		available = function(root, primary_target)
-            local realm = root.realm
-            if realm == nil                             then return false end
-            if realm.overseer                           then return false end
-            if realm.leader ~= root                     then return false end
-            if root.province ~= primary_target.province then return false end
-            if realm ~= primary_target.realm            then return false end
-
             return true
 		end,
 		ai_target = function(root)
@@ -106,20 +96,13 @@ local function load()
 		end,
 		clickable = function(root, primary_target)
             local realm = root.province.realm
-            if realm == nil         then return false end
-            if realm.leader ~= root then return false end
-            if realm.overseer ~= primary_target then return false end
-            if root.realm ~= primary_target.realm then return false end
+
+            if not ot.designates_offices(root, primary_target.province) then return false end
+            if realm and (realm.overseer ~= primary_target)             then return false end
 
             return true
 		end,
 		available = function(root, primary_target)
-            local realm = root.province.realm
-            if realm == nil         then return false end
-            if realm.leader ~= root then return false end
-            if realm.overseer ~= primary_target then return false end
-            if root.realm ~= primary_target.realm then return false end
-
             return true
 		end,
 		ai_target = function(root)

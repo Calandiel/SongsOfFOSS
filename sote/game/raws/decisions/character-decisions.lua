@@ -446,6 +446,11 @@ local function load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
+
+			if primary_target.realm.paying_tribute_to == root.realm then
+				return false
+			end
+			
 			if root.savings < base_raiding_reward then
 				return false
 			end
