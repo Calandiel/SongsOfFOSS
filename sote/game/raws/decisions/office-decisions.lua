@@ -164,6 +164,14 @@ local function load()
                 loyalty_multiplier = 2
             end
 
+            if tabb.size(root.realm.tributaries) == 0 then
+                return 0
+            end
+
+            if tabb.size(root.realm.tribute_collectors) == 0 and tabb.size(root.realm.tributaries) > 0 then
+                return 10
+            end
+
             return 0.5 * loyalty_multiplier - tabb.size(root.realm.tribute_collectors) / tabb.size(root.realm.tributaries)
 		end,
 		effect = function(root, primary_target, secondary_target)

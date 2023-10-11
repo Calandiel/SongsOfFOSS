@@ -182,10 +182,10 @@ local function load()
 			end
 			
 			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
-				return 0
+				return 0.2
 			end
 
-			return 0.5
+			return 0.6
 		end,
 		effect = function(root, primary_target, secondary_target)
 			local realm = root.province.realm
@@ -450,7 +450,7 @@ local function load()
 			if primary_target.realm.paying_tribute_to == root.realm then
 				return false
 			end
-			
+
 			if root.savings < base_raiding_reward then
 				return false
 			end
@@ -458,7 +458,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			--print("aiw")
-			return 0.5
+			return 0.1
 		end,
 		ai_targetting_attempts = 2,
 		ai_target = function(root)

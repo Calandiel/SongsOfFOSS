@@ -10,6 +10,7 @@ function triggers.valid_overseer(character, realm)
     if realm.overseer                           then return false end
     -- we can't desigante foreigners to overseer position
     if character.realm ~= realm                 then return false end
+    if character == realm.leader                then return false end
 
     return true
 end
@@ -21,8 +22,9 @@ end
 function triggers.valid_tribute_collector_candidate(character, realm)
     -- if character is already a tribute collector then reject
     if realm.tribute_collectors[character]      then return false end
-    -- we can't desigante foreigners to overseer position
+    -- we can't desigante foreigners to this position
     if character.realm ~= realm                 then return false end
+    if realm.leader == character                then return false end
 
     return true
 end
