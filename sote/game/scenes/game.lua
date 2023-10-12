@@ -924,7 +924,18 @@ function gam.draw()
 			if gam.inspector == nil then
 				skip_frame = true
 			end
-			if gam.inspector == "realm" then
+
+			local realm = WORLD.tiles[new_clicked_tile].province.realm
+
+			if gam.inspector == "character" and realm then
+				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
+					if gam.selected_character == realm.leader then
+						gam.inspector = "tile"
+					else
+						gam.selected_character = realm.leader
+					end
+				end
+			elseif gam.inspector == "realm" then
 				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
 					if gam.selected_realm == WORLD.tiles[new_clicked_tile].province.realm then
 						-- If we double click a realm, change the inspector to tile
