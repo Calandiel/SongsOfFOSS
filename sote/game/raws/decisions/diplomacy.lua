@@ -13,7 +13,12 @@ local function load()
     Decision.Character:new {
 		name = 'request-tribute',
 		ui_name = "Request tribute",
-		tooltip = utils.constant_string("Suggest to become your tributary."),
+		tooltip = function (root, primary_target)
+			if root.busy then
+				return "You are busy."
+			end
+			return "Suggest " .. primary_target.name .. " to become your tributary."
+		end,
 		sorting = 1,
 		primary_target = 'character',
 		secondary_target = 'none',
@@ -21,6 +26,7 @@ local function load()
 		pretrigger = function(root)
             if not ot.decides_foreign_policy(root, root.realm) then return false end
             if root.realm.prepare_attack_flag then return false end
+			if root.busy then return false end
 
 			return true
 		end,

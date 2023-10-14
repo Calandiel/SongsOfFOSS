@@ -212,6 +212,7 @@ local function load()
                         if WORLD.player_character == character then
                             WORLD:emit_notification("I decided to not attack " .. target_realm.leader.name)
                         end
+						character.busy = false
                     end,
 					ai_preference = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {})
 				}
@@ -281,7 +282,9 @@ local function load()
 
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
-			messages.tribute_raid_success(realm, army.destination.realm)			
+			messages.tribute_raid_success(realm, army.destination.realm)		
+
+			root.busy = false	
 		end,
 	}
 
@@ -304,6 +307,8 @@ local function load()
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
 			messages.tribute_raid_fail(realm, army.destination.realm)
+
+			root.busy = false
 		end,
 	}
 
