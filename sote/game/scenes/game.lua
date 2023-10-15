@@ -924,7 +924,18 @@ function gam.draw()
 			if gam.inspector == nil then
 				skip_frame = true
 			end
-			if gam.inspector == "realm" then
+
+			local realm = WORLD.tiles[new_clicked_tile].province.realm
+
+			if gam.inspector == "character" and realm then
+				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
+					if gam.selected_character == realm.leader then
+						gam.inspector = "tile"
+					else
+						gam.selected_character = realm.leader
+					end
+				end
+			elseif gam.inspector == "realm" then
 				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
 					if gam.selected_realm == WORLD.tiles[new_clicked_tile].province.realm then
 						-- If we double click a realm, change the inspector to tile
@@ -997,6 +1008,39 @@ function gam.draw()
 
 	if ui.is_key_pressed('escape') then
 		gam.inspector = nil
+	end
+
+
+	if PROFILE_FLAG then
+		local profile_rect = ui.fullscreen():subrect(0, 0, 600, 200, "center", "center")
+		ui.panel(profile_rect)
+		local logs_length = #PROFILER.actions
+		local observed_logs_length = 60
+		local logs_start = math.max(1, logs_length - observed_logs_length)
+
+		local mean_actions = 0
+		local mean_events = 0
+		local mean_provinces = 0
+		local total_mean = 0
+
+		for i = logs_start, logs_length do
+			mean_actions = mean_actions + PROFILER.actions[i]
+			mean_events = mean_events + PROFILER.events[i]
+			mean_provinces = mean_provinces + PROFILER.province_update[i]
+			total_mean = total_mean + PROFILER.world_tick[i]
+		end
+
+		local rect_data = profile_rect:subrect(0, 0, profile_rect.width / 2, 25, "left", "up")
+		if total_mean > 0 then
+			ut.color_coded_percentage(mean_actions / total_mean, rect_data, false)
+			rect_data.y = rect_data.y + 25
+			ut.color_coded_percentage(mean_events / total_mean, rect_data, false)
+			rect_data.y = rect_data.y + 25
+			ut.color_coded_percentage(mean_provinces / total_mean, rect_data, false)
+			rect_data.y = rect_data.y + 25
+		
+			ut.data_entry(observed_logs_length .. " daily ticks: ", ut.to_fixed_point2(total_mean), rect_data)
+		end		
 	end
 end
 
@@ -1150,6 +1194,10 @@ end
 ---Refreshes the map mode
 function gam.refresh_map_mode(preserve_efficiency)
 	local tim = love.timer.getTime()
+
+	-- if not OPTIONS.update_map then
+	-- 	return
+	-- end
 
 	if not preserve_efficiency then
 		gam.selected_building_type = nil

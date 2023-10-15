@@ -44,6 +44,9 @@ end
 ---@param base_unit number
 ---@param province Province
 return function(rect, base_unit, province)
+    local portrait_width = base_unit * 1
+    local rest_width = rect.width - portrait_width
+    local width_unit = rest_width / 12
     return function()
         ---@type TableColumn[]
         local columns = {
@@ -52,7 +55,7 @@ return function(rect, base_unit, province)
                 render_closure = function(rect, k, v)
                     portrait(rect, v)
                 end,
-                width = base_unit * 1,
+                width = portrait_width,
                 value = function(k, v)
                     ---@type POP
                     v = v
@@ -62,7 +65,7 @@ return function(rect, base_unit, province)
             {
                 header = 'name',
                 render_closure = render_name,
-                width = base_unit * 8,
+                width = width_unit * 7,
                 value = function(k, v)
                     ---@type POP
                     v = v
@@ -75,7 +78,7 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ui.right_text(tostring(v.age), rect)
                 end,
-                width = base_unit * 3,
+                width = width_unit * 3,
                 value = function(k, v)
                     return v.age
                 end
@@ -85,7 +88,7 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ui.centered_text(pop_sex(v), rect)
                 end,
-                width = base_unit * 1,
+                width = width_unit * 1,
                 value = function(k, v)
                     return pop_sex(v)
                 end

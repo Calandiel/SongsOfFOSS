@@ -290,6 +290,8 @@ function world.World:tick()
 			WORLD.day = WORLD.day + 1
 			-- daily tick
 
+			local t = love.timer.getTime()
+
 			-- events
 			local l = WORLD.deferred_events_queue:length()
 			for i = 1, l do
@@ -304,6 +306,10 @@ function world.World:tick()
 					WORLD.deferred_events_queue:enqueue(check)
 				end
 			end
+
+			local events_tick = love.timer.getTime() - t
+
+			t = love.timer.getTime()
 
 			-- actionas
 			local l = WORLD.deferred_actions_queue:length()
@@ -322,9 +328,23 @@ function world.World:tick()
 				--print("donedef. action " .. tostring(i))
 			end
 
+			local actions_tick = love.timer.getTime() - t
+
+			t = love.timer.getTime()
+
 			if WORLD.settled_provinces_by_identifier[WORLD.day] ~= nil then
 				-- Monthly tick per realm
 				local ta = WORLD.settled_provinces_by_identifier[WORLD.day]
+
+				-- tiles update in settled_province:
+				for _, settled_province in pairs(ta) do
+					for _, tile in pairs(settled_province.tiles) do
+						tile.conifer 	= tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
+						tile.broadleaf 	= tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
+						tile.shrub 		= tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
+						tile.grass 		= tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+					end
+				end
 
 				-- "Realm" pre-update
 				local realm_economic_update = require "game.economy.realm-economic-update"
@@ -443,6 +463,15 @@ function world.World:tick()
 				end
 			end
 
+			local province_tick = love.timer.getTime() - t
+
+			if PROFILE_FLAG then
+				table.insert(PROFILER.actions, actions_tick)
+				table.insert(PROFILER.events, events_tick)
+				table.insert(PROFILER.province_update, province_tick)
+				table.insert(PROFILER.world_tick, actions_tick + events_tick + province_tick)
+			end
+
 			if WORLD.day == 31 then
 				WORLD.day = 0
 				WORLD.month = WORLD.month + 1
@@ -461,7 +490,9 @@ function world.World:tick()
 
 				--
 				--print("Monthly tick end, refreshing")
-				require "game.scenes.game".refresh_map_mode()
+				if OPTIONS.update_map then
+					require "game.scenes.game".refresh_map_mode()
+				end
 				--print("Refresh finished")
 			end
 		end

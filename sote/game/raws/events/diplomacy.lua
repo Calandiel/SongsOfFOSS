@@ -168,7 +168,7 @@ local function load()
             ---@type Character
             associated_data = associated_data
 			if WORLD.player_character == character then
-				WORLD:emit_notification("I was asked to start paying tribute to " .. associated_data.name)
+				WORLD:emit_notification(associated_data.name .. " refused to pay tribute to me.")
 			end
 		end,
 		options = function(self, character, associated_data)
@@ -197,6 +197,8 @@ local function load()
 
                         local realm = character.realm
                         realm.prepare_attack_flag = true
+                        
+                        character.busy = true
 
                         WORLD:emit_event('request-tribute-raid', character, target_realm, 10)
 					end,

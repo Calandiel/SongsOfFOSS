@@ -19,6 +19,18 @@ WORLD = nil
 ---@type string
 MONEY_SYMBOL = '§'
 
+PROFILE_FLAG = false
+---@type table
+PROFILER = {}
+PROFILER.actions = {}
+PROFILER.events = {}
+PROFILER.province_update = {}
+PROFILER.world_tick = {}
+
+--- this constant is used in vegetation growth
+--- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
+VEGETATION_GROWTH = 0.01
+
 local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
@@ -81,6 +93,11 @@ Possible command line arguments:
 ]])
 		love.event.quit()
 		return
+	end
+
+	if tab.contains(ARGS, "--profile") then
+		print("Profiling enabled")
+		PROFILE_FLAG = true
 	end
 
 	-- Update the load path for "require"!

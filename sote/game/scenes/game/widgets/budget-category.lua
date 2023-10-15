@@ -8,8 +8,18 @@ local ef = require "game.raws.effects.economic"
 ---@param name string
 ---@param realm Realm
 ---@param budget_category BudgetCategory
-return function (rect, name, realm, budget_category, disable_control)
-    rect.width = rect.width / 9.2
+---@param disable_control boolean
+---@param bg boolean
+return function (rect, name, realm, budget_category, disable_control, bg)
+    
+    if bg then
+        local old_style = ui.style.panel_inside
+        ui.style.panel_inside = {r=1, g=1, b=1, a=0.05}
+        ui.panel(rect)
+        ui.style.panel_inside = old_style
+    end
+
+    rect.width = rect.width / 8
 
     -- first part - label for category!
     uit.data_entry(name, "", rect, "Budget breakdown")
@@ -78,6 +88,8 @@ return function (rect, name, realm, budget_category, disable_control)
         end
         pr.x = pr.x + uit.BASE_HEIGHT * 2
     end
+
+    pr.x = pr.x + uit.BASE_HEIGHT
 
     -- change(-10)
     change(-5)

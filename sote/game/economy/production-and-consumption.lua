@@ -77,6 +77,33 @@ function pro.run(province)
 				local output_boost = 1 + (province.output_efficiency_boosts[prod] or 0)
 				-- TODO: use realm stockpiles to control production efficiency!
 
+				-- if depends on forests, then reduce local forest coverage over time
+				-- sample random tile from province to avoid weird looking pimples
+				if prod.forest_dependence > 0 then
+					local deforested_tile = tabb.random_select_from_set(province.tiles)
+					local years_to_deforestate = 50
+					local days_to_deforestate = years_to_deforestate * 360
+					local input_power = prod.forest_dependence * efficiency * throughput_boost * input_boost / days_to_deforestate
+					local woods = deforested_tile.broadleaf + deforested_tile.conifer + deforested_tile.shrub
+					if woods > 0 then
+						local broadleaf_ratio = deforested_tile.broadleaf / woods
+						local conifer_ratio = deforested_tile.conifer / woods
+						local shrub_ratio = deforested_tile.shrub / woods
+
+						local broad_leaf_change = math.min(deforested_tile.broadleaf, input_power * broadleaf_ratio)
+						local conifer_change = math.min(deforested_tile.conifer, input_power * conifer_ratio)
+						local shrub_change = math.min(deforested_tile.shrub, input_power * shrub_ratio)
+
+
+						deforested_tile.broadleaf = deforested_tile.broadleaf - broad_leaf_change
+						deforested_tile.conifer = deforested_tile.conifer - conifer_change
+						deforested_tile.shrub = deforested_tile.shrub - shrub_change
+
+						local total_change = broad_leaf_change + conifer_change + shrub_change
+						deforested_tile.grass = deforested_tile.grass + total_change
+					end
+				end
+
 				local income = 0
 				for input, amount in pairs(prod.inputs) do
 					record_consumption(input, amount)

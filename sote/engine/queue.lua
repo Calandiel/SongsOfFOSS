@@ -16,11 +16,16 @@ function Queue:new()
 	return q
 end
 
+
 ---Enqueues an element
 ---@param element any
 function Queue:enqueue(element)
 	self.last = self.last + 1
 	self.data[self.last] = element
+
+	-- if self.last % 1000000 == 0 then 
+	-- 	print(self.last) 
+	-- end
 end
 
 ---Enqueues an element IN FRONT of the queue
@@ -34,10 +39,14 @@ function Queue:enqueue_front(element)
 end
 
 ---Dequeues an element and returns it
----@return any
+-- -@return any
 function Queue:dequeue()
 	self.first = self.first + 1
-	return self.data[self.first]
+
+	local result = self.data[self.first]
+	self.data[self.first] = nil
+
+	return result
 end
 
 ---Returns an element without dequeuing it

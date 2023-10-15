@@ -533,6 +533,11 @@ function gen.run()
 			tile.broadleaf = broadleaf_percent
 		end
 
+		tile.ideal_grass = tile.grass
+		tile.ideal_shrub = tile.shrub
+		tile.ideal_conifer = tile.conifer
+		tile.ideal_broadleaf = tile.broadleaf
+
 		--[[
 		SHRUB_COUNT[tile] = shrubs
 		GRASS_COUNT[tile] = grasses

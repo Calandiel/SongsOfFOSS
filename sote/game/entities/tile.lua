@@ -14,6 +14,10 @@ local ll_utils = require "game.latlon"
 ---@field shrub number
 ---@field conifer number
 ---@field broadleaf number
+---@field ideal_grass number
+---@field ideal_shrub number
+---@field ideal_conifer number
+---@field ideal_broadleaf number
 ---@field silt number
 ---@field clay number
 ---@field sand number
@@ -68,6 +72,10 @@ function tile.Tile:new(tile_id)
 	tt.shrub = 0
 	tt.conifer = 0
 	tt.broadleaf = 0
+	tt.ideal_grass = 0
+	tt.ideal_shrub = 0
+	tt.ideal_conifer = 0
+	tt.ideal_broadleaf = 0
 	tt.silt = 0
 	tt.clay = 0
 	tt.sand = 0
