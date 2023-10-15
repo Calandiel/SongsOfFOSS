@@ -9,7 +9,7 @@ function opt.init()
 		['fullscreen'] = true,
 		['rotation'] = false,
 		['update_map'] = true,
-		['treasury_ledger'] = 120,		
+		['treasury_ledger'] = 120,
 	}
 end
 
