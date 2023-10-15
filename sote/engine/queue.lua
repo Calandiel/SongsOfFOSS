@@ -17,10 +17,6 @@ function Queue:new()
 end
 
 
-function Queue:optimize()
-
-end
-
 ---Enqueues an element
 ---@param element any
 function Queue:enqueue(element)
