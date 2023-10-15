@@ -920,18 +920,26 @@ end
 ---@param min_value number
 ---@param max_value number
 ---@param vertical ?boolean
----@param height number
+---@param height number ratio of slider to whole length
 ---@return number new_value
 function ui.slider(rect, current_value, min_value, max_value, vertical, height)
-	local ret = current_value
+	local ret = math.max(min_value, math.min(max_value, current_value))
+
+	local slider_real_length = rect.width
+	local control_button_size = rect.height
+
+	local slider_size = height * (slider_real_length - 2 * control_button_size)
 
 	local lr = ui.rect(rect.x, rect.y, rect.height, rect.height)
 	if vertical then
+		slider_real_length = rect.height
+		control_button_size = rect.width
+		slider_size = height * (slider_real_length - 2 * control_button_size)
 		lr.width = rect.width
 		lr.height = rect.width
 	end
 	if vertical then
-		if ui.text_button("^", lr) then
+		if ui.text_button("/\\", lr) then
 			ret = min_value
 		end
 	else
@@ -940,9 +948,13 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		end
 	end
 
-	local start = math.min((current_value - min_value) / (max_value - min_value), 1 - height)
-	local fill = height
 	local active_zone = (rect.width - rect.height * 2)
+	local value_ratio = (ret - min_value) / (max_value - min_value)
+
+	-- 0 to height
+	-- 1 to length - height - slider_size
+	local start = value_ratio * (slider_real_length - 2 * control_button_size - slider_size) + control_button_size
+	
 	local background = ui.rect(
 		rect.x + rect.height,
 		rect.y,
@@ -950,9 +962,9 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		rect.height
 	)
 	local filled = ui.rect(
-		rect.x + rect.height + (active_zone - fill) * start,
+		rect.x + start,
 		rect.y,
-		fill * active_zone,
+		slider_size,
 		rect.height
 	)
 
@@ -963,9 +975,9 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		background.width = rect.width
 		background.height = active_zone
 		filled.x = rect.x
-		filled.y = rect.y + rect.width + (active_zone - fill) * start
+		filled.y = rect.y + start
 		filled.width = rect.width
-		filled.height = fill * active_zone
+		filled.height = slider_size
 	end
 	ui.slider_panel(filled, background)
 
@@ -989,14 +1001,23 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 	-- Lastly, check for clicks
 	if ui.trigger(background) then
 		if ui.is_mouse_held(1) then
+			---@type number, number
 			local pos_x, pos_y = ui.mouse_position()
 			local frac = (pos_x - background.x) / background.width
 			if vertical then
 				frac = (pos_y - background.y) / background.height
 			end
 			ret = frac
+
+			local active_area_length = slider_real_length - 2 * control_button_size
+			local padding = slider_size / active_area_length
+
+			-- scale range [low + slider_width_ratio / 2, high - slider_width_ratio / 2] to range [low, high]
+			ret = math.min(1, math.max(0, ret * (1 + padding) - padding / 2))
 		end
 	end
+
+	-- love.graphics.print(tostring(ret), rect.x, rect.y)
 
 	return ret
 end
@@ -1007,6 +1028,7 @@ end
 ---@param current_value number
 ---@param min_value number
 ---@param max_value number
+---@param height number ratio of slider to whole length
 ---@return number new_value
 function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height)
 	local up = ui.rect(rect.x, rect.y, rect.width, rect.height / 2)
@@ -1083,10 +1105,13 @@ function ui.scrollview(
 
 	local slider_height = math.min(max_fit / entries_count, 1)
 
-	local current = math.min(
-		math.max(1, entries_count - max_fit + 1),
-		1 + math.floor(slider_level * entries_count)
-	)
+	-- local current = math.min(
+	-- 	math.max(1, entries_count - max_fit + 1),
+	-- 	1 + math.floor(slider_level * entries_count)
+	-- )
+
+	local current = 1 + math.floor(slider_level * (entries_count - max_fit) + 0.5)
+	current = math.max(1, math.min(entries_count, current))
 
 	local last = math.min(entries_count, (current - 1) + max_fit)
 
