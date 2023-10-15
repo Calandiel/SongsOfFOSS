@@ -41,19 +41,24 @@ return function(ui_panel, realm)
         -- budget breakdown
 
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Education', realm, realm.budget.education)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'),
+            'Education', realm, realm.budget.education, false, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Military', realm, realm.budget.military)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
+            'Military', realm, realm.budget.military, false, false)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Court', realm, realm.budget.court)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
+            'Court', realm, realm.budget.court, false, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Infrastructure', realm, realm.budget.infrastructure)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
+            'Infrastructure', realm, realm.budget.infrastructure, false, false)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 'Tribute', realm, realm.budget.tribute, true)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
+            'Tribute', realm, realm.budget.tribute, true, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- treasury target
