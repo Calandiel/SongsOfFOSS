@@ -336,6 +336,16 @@ function world.World:tick()
 				-- Monthly tick per realm
 				local ta = WORLD.settled_provinces_by_identifier[WORLD.day]
 
+				-- tiles update in settled_province:
+				for _, settled_province in pairs(ta) do
+					for _, tile in pairs(settled_province.tiles) do
+						tile.conifer 	= tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
+						tile.broadleaf 	= tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
+						tile.shrub 		= tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
+						tile.grass 		= tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+					end
+				end
+
 				-- "Realm" pre-update
 				local realm_economic_update = require "game.economy.realm-economic-update"
 				for _, settled_province in pairs(ta) do

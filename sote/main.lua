@@ -27,6 +27,10 @@ PROFILER.events = {}
 PROFILER.province_update = {}
 PROFILER.world_tick = {}
 
+--- this constant is used in vegetation growth
+--- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
+VEGETATION_GROWTH = 0.01
+
 local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
