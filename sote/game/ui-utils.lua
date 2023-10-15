@@ -293,10 +293,10 @@ function ut.calendar(gam)
 	local speed_down = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	if ui.icon_button(ASSETS.icons['fast-forward-button.png'], speed_up, "Speed up") or ui.is_key_pressed("+") or
 		ui.is_key_pressed("kp+") then
-		gam.speed = math.min(5, gam.speed + 1)
+		gam.speed = math.min(10, gam.speed + 1)
 	end
 	ui.panel(speed)
-	ui.centered_text(tostring(gam.speed) .. " / 5", speed)
+	ui.centered_text(tostring(gam.speed) .. " / 10", speed)
 	ui.tooltip("Game speed", speed)
 	if ui.icon_button(ASSETS.icons['fast-backward-button.png'], speed_down, "Slown down") or ui.is_key_pressed("-") or
 		ui.is_key_pressed("kp-") then

@@ -60,6 +60,13 @@ function mm.draw()
 		5
 	)
 
+	-- ROTATION
+	OPTIONS.update_map = ui.named_checkbox(
+		"Update map every month",
+		layout:next(menu_button_width, menu_button_height), OPTIONS.update_map,
+		5
+	)
+
 	--- treasury ledger
 	ui.centered_text("Saved treasury history", layout:next(menu_button_width, menu_button_height))
 	local flag_120 = ui.named_checkbox("120 lines", layout:next(menu_button_width, menu_button_height), OPTIONS['treasury_ledger'] == 120, 5)
