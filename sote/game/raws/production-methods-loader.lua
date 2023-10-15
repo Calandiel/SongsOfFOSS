@@ -145,6 +145,7 @@ function d.load()
 		outputs = { ['timber'] = 15 },
 		jobs = { [job('woodcutters')] = 1, },
 		self_sourcing_fraction = 0.25,
+		forest_dependence = 1,
 	}
 	ProductionMethod:new {
 		name = 'tanning',

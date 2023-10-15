@@ -132,8 +132,9 @@ function tab.random_select(items)
 end
 
 ---Given a table of objects mapping to <anything>, return a randomly selected key (equiprobable) and its value
----@param items table
----@return any, any
+---@generic K, V
+---@param items table<K, V>
+---@return K, V
 function tab.random_select_from_set(items)
 	local size = tab.size(items)
 	local k, v = tab.nth(items, love.math.random(size))

@@ -14,6 +14,7 @@
 ---@field self_sourcing_fraction number Amount of time spent self sourcing materials in case of a material shortage!
 ---@field foraging boolean If true, counts towards the forager limit
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
+---@field forest_dependence number Set to 1 if building consumes local forests
 ---@field crop boolean If true, the building will periodically change its yield for a season.
 ---@field temperature_ideal_min number
 ---@field temperature_ideal_max number
@@ -53,6 +54,7 @@ function ProductionMethod:new(o)
 	r.self_sourcing_fraction = 0
 	r.foraging = false
 	r.nature_yield_dependence = 0
+	r.forest_dependence = 0
 	r.crop = false
 	r.temperature_ideal_min = 10
 	r.temperature_ideal_max = 30
@@ -65,7 +67,7 @@ function ProductionMethod:new(o)
 	r.clay_ideal_min = 0
 	r.clay_ideal_max = 1
 	r.clay_extreme_min = 0
-	r.clay_extreme_max = 1
+	r.clay_extreme_max = 1	
 
 
 
@@ -96,10 +98,14 @@ end
 function ProductionMethod:get_efficiency(tile)
 	local nature_yield = 1
 	local crop_yield = 1
+	if self.forest_dependence > 0 then
+		nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9
+	end
 	if self.nature_yield_dependence > 0 then
 		nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9 + tile.grass * 1
 	end
 	if self.crop then
+		nature_yield = tile.grass * 1.3
 		local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
 		local t = (jan_temp + jul_temp) / 2
 		local r = (jan_rain + jul_rain) / 2
