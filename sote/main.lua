@@ -1,5 +1,5 @@
 -- Change to true or false depending on whether you're doing debugging or real work
-if false then
+if true then
 	local tab = require "engine.table"
 	local ui = require "engine.ui"
 

@@ -5,7 +5,7 @@ print('Testing queues...')
 local q = queue:new()
 
 local function small_stress()
-	for i = 1, 100 do
+	for i = 1, 1000000 do
 		q:enqueue(i)
 	end
 
@@ -13,6 +13,16 @@ local function small_stress()
 		q:dequeue()
 	end
 end
+
+small_stress()
+small_stress()
+small_stress()
+small_stress()
+
+small_stress()
+small_stress()
+small_stress()
+small_stress()
 
 small_stress()
 small_stress()
