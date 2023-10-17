@@ -15,6 +15,10 @@ function ev.draw(gam)
 		local character = peek[2]
 		local dat = peek[3]
 
+		-- print(event_string)
+		-- print(character.name)
+		-- print(WORLD.player_character.name)
+
 		if WORLD.player_character == character then
 			local fs = ui.fullscreen()
 			local event = RAWS_MANAGER.events_by_name[event_string]

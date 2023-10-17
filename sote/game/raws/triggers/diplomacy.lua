@@ -20,4 +20,5 @@ function triggers.valid_negotiators(character_A, character_B)
     return true
 end
 
+
 return triggers

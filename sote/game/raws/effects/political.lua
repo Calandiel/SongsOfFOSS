@@ -1,3 +1,5 @@
+local tabb = require "engine.table"
+
 local ranks = require "game.raws.ranks.character_ranks"
 local PoliticalValues = require "game.raws.values.political"
 
@@ -124,6 +126,36 @@ function PoliticalEffects.banish(character)
     if realm.leader == character then
         return
     end
+end
+
+---comment
+---@param pop POP
+---@param province Province
+function PoliticalEffects.grant_nobility(pop, province)
+    province:fire_pop(pop)
+    province.all_pops[pop] = nil
+    province.characters[pop] = pop
+
+    pop.province = province
+    pop.realm = province.realm
+    pop.popularity = 0.1
+
+    if WORLD:does_player_see_province_news(province) then
+        WORLD:emit_notification(pop.name .. " was granted nobility.")
+    end
+end
+
+---comment
+---@param province Province
+---@return Character?
+function PoliticalEffects.grant_nobility_to_random_pop(province)
+    local pop = tabb.random_select_from_set(province.all_pops)
+
+    if pop then
+        PoliticalEffects.grant_nobility(pop, province)
+    end
+
+    return pop
 end
 
 return PoliticalEffects

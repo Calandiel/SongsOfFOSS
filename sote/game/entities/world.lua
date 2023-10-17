@@ -37,7 +37,7 @@ local utils       = require "game.ui-utils"
 ---@field emit_notification fun(self:World, notification:string)
 ---@field emit_event fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number|nil)
 ---@field emit_action fun(self:World, event:string, root:Character, target:Character, associated_data:table|nil, delay: number, hidden: boolean)
----@field emit_immediate_event fun(self:World, event:string, target:Realm, associated_data:table|nil)
+---@field emit_immediate_event fun(self:World, event:string, target:Character, associated_data:table|nil)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
 ---@field deferred_events_queue Queue<ScheduledEvent>
@@ -196,6 +196,8 @@ function world.World:emit_immediate_event(event, root, associated_data)
 	self.events_queue:enqueue_front({
 		event, root, associated_data
 	})
+
+	self:event_tick(event, root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
@@ -227,6 +229,12 @@ end
 local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
 	-- First, find the best option
+	-- print("Handling event: " .. event)
+	if RAWS_MANAGER.events_by_name[event] == nil then
+		error(event .. " is not a valid event!")
+	end
+	print("Handling event: " .. event)
+
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
 	local best_am = nil
@@ -250,8 +258,28 @@ local function handle_event(event, target_realm, associated_data)
 	end
 end
 
+---Returns true if player event and false otherwise
+---@param eve any
+---@param root any
+---@param dat any
+---@return boolean
+function world.World:event_tick(eve, root, dat)
+	if WORLD.player_character == root then
+		-- This is a player event!
+		-- print("player event")
+		WORLD.pending_player_event_reaction = true
+		return true
+	else
+		WORLD.events_queue:dequeue()
+		handle_event(eve, root, dat)
+		return false
+	end
+end
+
 ---Performs a single tick update.
 function world.World:tick()
+	-- print('tick')
+
 	WORLD.pending_player_event_reaction = false
 	local counter = 0
 	while WORLD.events_queue:length() > 0 do
@@ -263,14 +291,8 @@ function world.World:tick()
 		local root = ev[2]
 		local dat = ev[3]
 
-		if WORLD.player_character == root then
-			-- This is a player event!
-			-- print("player event")
-			WORLD.pending_player_event_reaction = true
+		if WORLD:event_tick(eve, root, dat) then
 			return
-		else
-			WORLD.events_queue:dequeue()
-			handle_event(eve, root, dat)
 		end
 
 		--if counter > 10000 then
@@ -278,6 +300,8 @@ function world.World:tick()
 		--end
 		--print("event")
 	end
+
+	-- print('current events updated')
 
 	WORLD.sub_hourly_tick = WORLD.sub_hourly_tick + 1
 	if WORLD.sub_hourly_tick == world.ticks_per_hour then
@@ -307,6 +331,8 @@ function world.World:tick()
 				end
 			end
 
+			-- print('deferred events update')
+
 			local events_tick = love.timer.getTime() - t
 
 			t = love.timer.getTime()
@@ -327,6 +353,8 @@ function world.World:tick()
 				end
 				--print("donedef. action " .. tostring(i))
 			end
+
+			-- print('deferred actions update')
 
 			local actions_tick = love.timer.getTime() - t
 
@@ -462,6 +490,8 @@ function world.World:tick()
 					end
 				end
 			end
+
+			-- print('simulation update')
 
 			local province_tick = love.timer.getTime() - t
 

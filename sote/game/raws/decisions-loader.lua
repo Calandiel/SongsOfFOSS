@@ -12,6 +12,7 @@ function ll.load()
 	require "game.raws.decisions.character-decisions" ()
 	require "game.raws.decisions.office-decisions" ()
 	require "game.raws.decisions.diplomacy" ()
+	require "game.raws.decisions.interpersonal" ()
 
 	-- Logic flow:
 	-- 1. Loop through all realms

@@ -20,6 +20,32 @@ function MilitaryEffects.gather_warband(leader)
     end
 end
 
+---comment
+---@param leader Character
+function MilitaryEffects.dissolve_warband(leader)
+    local warband = leader.leading_warband
+    leader.leading_warband = nil
+
+    if warband == nil then
+        return
+    end
+
+    ---@type POP[]
+    local to_unregister = {}
+    for _, pop in pairs(warband.pops) do
+        table.insert(to_unregister, pop)
+    end
+
+    for _, pop in pairs(to_unregister) do
+        leader.province:unregister_military_pop(pop)
+    end
+    leader.province.warbands[warband] = nil
+
+    if WORLD:does_player_see_realm_news(leader.province.realm) then
+        WORLD:emit_notification(leader.name .. " dissolved his warband.")
+    end
+end
+
 ---Starts a patrol in primary_target province
 ---@param root Realm
 ---@param primary_target Province

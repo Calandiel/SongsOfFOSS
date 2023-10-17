@@ -3,6 +3,9 @@ local trade_good = require "game.raws.raws-utils".trade_good
 
 local AiPreferences = {}
 
+local pv = require "game.raws.values.political"
+
+
 ---comment
 ---@param character Character
 ---@return number
@@ -31,6 +34,42 @@ end
 
 function AiPreferences.construction_funds(character)
     return math.max(0, character.savings - AiPreferences.saving_goal(character))
+end
+
+---comment
+---@param character Character
+---@param candidate Character
+---@return number
+function AiPreferences.worthy_successor_score(character, candidate)
+    local loyalty_bonus = 0
+    if candidate.loyalty == character then
+        loyalty_bonus = 10
+    end
+
+    local score =
+        pv.popularity(candidate, character.realm)
+        + loyalty_bonus
+
+    return score
+end
+
+---comment
+---@param character Character
+function AiPreferences.best_successor(character)
+    ---@type Character?
+    local best_candidate = nil
+    for _, candidate in pairs(character.province.characters) do
+        if best_candidate == nil then
+            best_candidate = candidate
+        else
+            local best_score = AiPreferences.worthy_successor_score(character, best_candidate)
+            local score = AiPreferences.worthy_successor_score(character, candidate)
+            if score > best_score then
+                best_candidate = candidate
+            end
+        end
+    end
+    return best_candidate
 end
 
 ---comment

@@ -62,9 +62,7 @@ function window.draw(game, province)
         rect.x = rect.x + rect.width - rect.height
         rect.width = rect.height
         if ui.icon_button(ASSETS.icons['frog-prince.png'], rect, "Take control over this character") then
-            WORLD.player_character = character
-            WORLD.player_realm = province.realm
-            WORLD.player_province = province
+            require "game.raws.effects.player".take_control(character)
             game.refresh_map_mode()
             game.inspector = nil
         end

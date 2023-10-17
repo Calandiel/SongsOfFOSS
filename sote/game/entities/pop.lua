@@ -11,9 +11,13 @@
 ---@field traits table<Trait, Trait>
 ---@field employer Building?
 ---@field loyalty POP?
+---@field loyal table<POP, POP> who is loyal to this pop
+---@field successor POP?
+---@field owned_buildings table <Building, Building>
 ---@field leading_warband Warband?
 ---@field busy boolean
 ---@field job Job?
+---@field dead boolean?
 ---@field new fun(self:POP, race:Race, faith:Faith, culture:Culture, female:boolean, age:number?):POP
 ---@field get_age_multiplier fun(self:POP):number
 ---@field drafted boolean "Drafted" state refers to whether or not a pop is currently drafted for military duty. For example, for raids or "real" warfare.
@@ -45,11 +49,13 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.age = age
 
 	r.busy = false
+	r.owned_buildings = {}
 
 	r.name = culture.language:get_random_name()
 	r.savings = 0
 	r.popularity = 0
 	r.loyalty = nil
+	r.loyal	 = {}
 	r.traits = {}
 
 	setmetatable(r, rtab.POP)
