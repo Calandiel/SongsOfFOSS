@@ -61,4 +61,14 @@ function messages.tribute_raid_fail(realm, tributary)
     WORLD:emit_notification("We failed! " .. tributary.name .. " will not pay tribute to us.")
 end
 
+function messages.successor_set(character, successor)
+    if not WORLD:does_player_see_realm_news(successor) then
+        return
+    end
+
+    WORLD:emit_notification(
+        successor.name .. " was chosen as the successor of " .. character.name .. "."
+    )
+end
+
 return messages

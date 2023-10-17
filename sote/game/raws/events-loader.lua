@@ -37,6 +37,12 @@ function ll.load()
 
 	print("diplomatic events")
 	require "game.raws.events.diplomacy"()
+
+	print("health events")
+	require "game.raws.events.health"()
+
+	print("succession events")
+	require "game.raws.events.succession"()
 end
 
 return ll

@@ -5,6 +5,8 @@ local ranks_localisation = require "game.raws.ranks.localisation"
 ---@param rect Rect
 ---@param character Character
 local function name(rect, character)
+    rect = rect:shrink(5)
+    
     local title = ""
     if character.realm.overseer == character then
         title = title .. " Overseer"

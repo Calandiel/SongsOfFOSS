@@ -1,32 +1,38 @@
+local tabb = require "engine.table"
+
 local ranks = require "game.raws.ranks.character_ranks"
 local PoliticalValues = require "game.raws.values.political"
 
 PoliticalEffects = {}
 
----comment
+---Returns result of coup: true if success, false if failure
 ---@param character Character
+---@return boolean 
 function PoliticalEffects.coup(character)
     if character.province == nil then
-        return
+        return false
     end
     local realm = character.province.realm
     if realm == nil then
-        return
+        return false
     end
     if realm.leader == character then
-        return
+        return false
     end
     if realm.capitol ~= character.province then
-        return
+        return false
     end
 
     if PoliticalValues.power_base(character, realm.capitol) > PoliticalValues.power_base(realm.leader, realm.capitol) then
         PoliticalEffects.transfer_power(character.province.realm, character)
+        return true
     else
         if WORLD:does_player_see_realm_news(realm) then
             WORLD:emit_notification(character.name .. " failed to overthrow " .. realm.leader.name .. ".")
         end
     end
+
+    return false
 end
 
 
@@ -124,6 +130,36 @@ function PoliticalEffects.banish(character)
     if realm.leader == character then
         return
     end
+end
+
+---comment
+---@param pop POP
+---@param province Province
+function PoliticalEffects.grant_nobility(pop, province)
+    province:fire_pop(pop)
+    province.all_pops[pop] = nil
+    province.characters[pop] = pop
+
+    pop.province = province
+    pop.realm = province.realm
+    pop.popularity = 0.1
+
+    if WORLD:does_player_see_province_news(province) then
+        WORLD:emit_notification(pop.name .. " was granted nobility.")
+    end
+end
+
+---comment
+---@param province Province
+---@return Character?
+function PoliticalEffects.grant_nobility_to_random_pop(province)
+    local pop = tabb.random_select_from_set(province.all_pops)
+
+    if pop then
+        PoliticalEffects.grant_nobility(pop, province)
+    end
+
+    return pop
 end
 
 return PoliticalEffects

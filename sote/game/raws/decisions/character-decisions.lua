@@ -52,6 +52,36 @@ local function load()
 		end
 	}
 
+		---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'debug-kill-character',
+		ui_name = "DEBUG: kill",
+		tooltip = utils.constant_string("Kill."),
+		sorting = 1,
+		primary_target = "character",
+		secondary_target = 'none',
+		base_probability = 1 / 12 , -- Once every year on average
+		pretrigger = function(root)
+			return true
+		end,
+		clickable = function(root, primary_target)
+            return true
+		end,
+		available = function(root, primary_target)
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+            return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			WORLD:emit_immediate_event('death', primary_target, nil)
+			WORLD:emit_notification(root.name .. " kills " .. primary_target.name)
+		end
+	}
+
 	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'gather-warband',
@@ -335,80 +365,6 @@ local function load()
 		end
 	}
 
-
-	Decision.Character:new {
-		name = 'suggest-to-be-loyal',
-		ui_name = "Request loyalty",
-		tooltip = utils.constant_string("Suggest character to swear loyalty to you."),
-		sorting = 1,
-		primary_target = 'character',
-		secondary_target = 'none',
-		base_probability = 1 / 12 , -- Once every year on average
-		pretrigger = function(root) 
-			return true
-		end,
-		clickable = function(root, primary_target)
-			if primary_target == root then
-				return false
-			end
-			return true
-		end,
-		available = function(root, primary_target)
-			if primary_target == root then
-				return false
-			end
-			if primary_target.province ~= root.province then
-				return false
-			end
-			return true
-		end,
-		ai_target = function(root)
-			--print("ait")
-			---@type Character
-			local root = root
-			---@type Province
-			local p = root.province
-			if p then
-				-- Once you target a province, try selecting a random courtier
-				local s = tabb.size(p.characters)
-				---@type Character
-				local c = tabb.nth(p.characters, love.math.random(s))
-				if c then
-					if c.loyalty == nil and c ~= root and c.loyalty ~= root then
-						return c, true
-					end
-				end
-			end
-			return nil, false
-		end,
-		ai_secondary_target = function(root, primary_target)
-			return nil, true
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
-			---@type Character
-			root = root
-			if primary_target.traits[TRAIT.AMBITIOUS] then
-				return 0
-			end
-			if root.traits[TRAIT.CONTENT] then
-				return 0
-			end
-			if root.traits[TRAIT.AMBITIOUS] then
-				return 1/12
-			end
-			if root.province.realm.leader == root then
-				return 1/24
-			end
-			return 0
-		end,
-		effect = function(root, primary_target, secondary_target)
-			if WORLD.player_character == root then
-				WORLD:emit_notification("I requested loyalty from ".. primary_target.name)
-			end
-			WORLD:emit_event('request-loyalty', primary_target, root, 1)
-		end
-	}
-
 	-- War related events
 	---@type DecisionCharacter
 	Decision.Character:new {
@@ -539,7 +495,8 @@ local function load()
 			--print("eff")
 			---@type Character
 			local root = root
-			WORLD:emit_event('attempt-coup', root)
+
+			WORLD:emit_immediate_event('attempt-coup', root)
 		end
 	}
 end

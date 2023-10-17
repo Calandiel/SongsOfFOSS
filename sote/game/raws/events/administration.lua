@@ -1,11 +1,9 @@
 local tabb = require "engine.table"
 
 local Event = require "game.raws.events"
-local EconomicEffects = require "game.raws.effects.economic"
-local InterpersonalEffects = require "game.raws.effects.interpersonal"
-local TRAIT = require "game.raws.traits.generic"
+local E_ut = require "game.raws.events._utils"
+
 local AI_VALUE = require "game.raws.values.ai_preferences"
-local uit = require "game.ui-utils"
 
 
 local function load()
@@ -28,14 +26,6 @@ local function load()
 		trigger = function(self, character)
 			return false
 		end,
-		on_trigger = function(self, character, associated_data)
-            ---@type Character
-            associated_data = associated_data
-
-			if WORLD.player_character == character then
-				WORLD:emit_notification("I was asked to assist " .. associated_data.name .. " with administrative tasks.")
-			end
-		end,
 		options = function(self, character, associated_data)
             ---@type Character
             associated_data = associated_data
@@ -47,7 +37,7 @@ local function load()
 					viable = function() return true end,
 					outcome = function() 
 						PoliticalEffects.set_overseer(associated_data.province.realm, character)
-                        -- WORLD:emit_notification("I agreed to assist " .. associated_data.name)
+						WORLD:emit_immediate_event("request-help-overseer-success-notification", associated_data, character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
 						ambition = true,
@@ -66,12 +56,43 @@ local function load()
 						if character == WORLD.player_character then
 							WORLD:emit_notification("I refused to assist " .. associated_data.name)
 						end
+						WORLD:emit_immediate_event("request-help-overseer-failure-notification", associated_data, character)
                     end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {})
 				}
 			}
 		end
 	}
+
+	E_ut.notification_event(
+        "request-help-overseer-success-notification",
+        function(self, character, associated_data)
+            ---@type Character
+			local associated_data = associated_data
+            return associated_data.name .. " agreed to assist me and became an overseer."
+		end,
+        function (root, associated_data)
+            return "Good!"
+        end,
+        function (root, associated_data)
+            return ""
+        end
+    )
+
+	E_ut.notification_event(
+        "request-help-overseer-failure-notification",
+        function(self, character, associated_data)
+            ---@type Character
+			local associated_data = associated_data
+            return associated_data.name .. " refused to assist me."
+		end,
+        function (root, associated_data)
+            return "Good!"
+        end,
+        function (root, associated_data)
+            return ""
+        end
+    )
 
 	Event:new {
 		name = "request-help-tribute-collection",
@@ -91,14 +112,6 @@ local function load()
 		base_probability = 0,
 		trigger = function(self, character)
 			return false
-		end,
-		on_trigger = function(self, character, associated_data)
-            ---@type Character
-            associated_data = associated_data
-
-			if WORLD.player_character == character then
-				WORLD:emit_notification("I was asked to assist " .. associated_data.name .. " with administrative tasks.")
-			end
 		end,
 		options = function(self, character, associated_data)
             ---@type Character
@@ -120,6 +133,7 @@ local function load()
 					viable = function() return true end,
 					outcome = function() 
 						PoliticalEffects.set_tribute_collector(associated_data.province.realm, character)
+						WORLD:emit_immediate_event("request-help-tribute-collection-success-notification", associated_data, character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, expected_income, {
 						help = true,
@@ -137,12 +151,43 @@ local function load()
 						if character == WORLD.player_character then
 							WORLD:emit_notification("I refused to assist " .. associated_data.name)
 						end
+						WORLD:emit_immediate_event("request-help-tribute-collection-failure-notification", associated_data, character)
                     end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {})
 				}
 			}
 		end
 	}
+
+	E_ut.notification_event(
+        "request-help-tribute-collection-success-notification",
+        function(self, character, associated_data)
+            ---@type Character
+			local associated_data = associated_data
+            return associated_data.name .. " agreed to assist me and became a tribute collector."
+		end,
+        function (root, associated_data)
+            return "Good!"
+        end,
+        function (root, associated_data)
+            return ""
+        end
+    )
+
+	E_ut.notification_event(
+        "request-help-tribute-collection-failure-notification",
+        function(self, character, associated_data)
+            ---@type Character
+			local associated_data = associated_data
+            return associated_data.name .. " refused to assist me."
+		end,
+        function (root, associated_data)
+            return "Oh well.."
+        end,
+        function (root, associated_data)
+            return ""
+        end
+    )
 end
 
 return load

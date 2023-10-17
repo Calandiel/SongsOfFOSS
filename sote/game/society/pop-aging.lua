@@ -9,6 +9,9 @@ function pg.age(province)
 	for _, pp in pairs(province.outlaws) do
 		pp.age = pp.age + 1
 	end
+	for _, char in pairs(province.characters) do
+		char.age = char.age + 1
+	end
 end
 
 return pg

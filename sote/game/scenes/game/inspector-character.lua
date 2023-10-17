@@ -95,11 +95,10 @@ function window.draw(game, character)
     ut.data_entry("", character.culture.name, culture_panel, "Culture")
 
     ui.panel(traits_panel)
-    -- traits text
+    
+    -- character description
     local s = ''
-    for k, v in pairs(character.traits) do
-        s = s .. ', ' .. v
-    end
+
     -- loyalty text
     if character.loyalty == nil then
         local ending = 'himself'
@@ -109,6 +108,18 @@ function window.draw(game, character)
         s = s .. '\n ' .. character.name .. ' is loyal to ' .. ending .. '.'
     else
         s = s .. '\n ' .. character.name .. ' is loyal to ' .. character.loyalty.name .. '.'
+    end
+
+    -- successor text
+    if character.successor then
+        s = s .. '\n ' .. character.successor.name .. ' is the designated successor of ' .. character.name .. '.'
+    else
+        s = s .. '\n ' .. character.name .. ' has not designated a successor yet.'
+    end
+
+    -- traits text    
+    for k, v in pairs(character.traits) do
+        s = s .. '\n ' .. v
     end
 
     ui.left_text(s, traits_panel)

@@ -66,4 +66,12 @@ function PoliticalValues.military_strength_ready(character)
     return total_warlords, total_army
 end
 
+---Returns popularity of a character in a given realm
+---@param character Character
+---@param realm Realm
+---@return number
+function PoliticalValues.popularity(character, realm)
+    return character.popularity
+end
+
 return PoliticalValues

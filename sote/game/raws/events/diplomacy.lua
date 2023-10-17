@@ -235,7 +235,7 @@ local function load()
             ---@type TributeCollection
             associated_data = associated_data
             associated_data.tribute = ef.collect_tribute(root, associated_data.target)
-            WORLD:emit_action("tribute-collection-2", root, root, associated_data, associated_data.travel_time, true)
+            WORLD:emit_action("tribute-collection-2", root, associated_data, associated_data.travel_time, true)
 		end,
 	}
 

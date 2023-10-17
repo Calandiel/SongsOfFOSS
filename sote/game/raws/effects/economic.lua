@@ -24,6 +24,8 @@ EconomicEffects.reasons = {
     Budget = "budget",
     Waste = "waste",
     Tribute = "tribute",
+    Inheritance = "inheritance",
+    Other = "other"
 }
 
 ---Change realm treasury and display effects to player
@@ -141,6 +143,10 @@ end
 ---@param pop POP?
 function EconomicEffects.set_ownership(building, pop)
     building.owner = pop
+
+    if pop then
+        pop.owned_buildings[building] = building
+    end
 
     if pop and WORLD:does_player_see_province_news(pop.province) then
         if WORLD.player_character == pop then
