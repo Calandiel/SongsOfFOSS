@@ -5,7 +5,7 @@ local ui = require "engine.ui"
 local reload_font = require "game.ui-utils".reload_font
 
 --- A table containing the passed arguments.
-ARGS = {}  -- note, hot loading won't overwrite ARGS because the declaration is empty
+ARGS = {} -- note, hot loading won't overwrite ARGS because the declaration is empty
 -- A table containing some basic asset references.
 ASSETS = {}
 -- A version string, kinda irrelevant now since multiplayer isn't a thing, lol
@@ -112,58 +112,43 @@ Possible command line arguments:
 		if ASSETS.icons[ic] == nil then
 			error("Icon " .. tostring(ic) .. " isn't included with the game.")
 		end
-
-		-- Update the load path for "require"!
-		local path = love.filesystem.getSourceBaseDirectory()
-		package.path = package.path .. ";" .. tostring(path)
-
-		-- A special global table that stores important assets.
-		-- We create it here because we need to preload certain images and fonts for the UI
-		ASSETS = {}
-		reload_font()
-		ASSETS.background = love.graphics.newImage("data/gfx/backgrounds/background.png")
-		ASSETS.get_icon = function(ic)
-			if ASSETS.icons[ic] == nil then
-				error("Icon " .. tostring(ic) .. " isn't included with the game.")
-			end
-			return ASSETS.icons[ic]
-		end
-
-		-- TEST LOADING/SAVING
-		-- print('test of bitser')
-		-- local test_table = { abc= 123, x= 5}
-		-- local test_table_2 = {abs = 456, y = 6}
-		-- test_table.friend = test_table_2
-		-- test_table_2.friend = test_table
-		-- local friends_table = {test_table, test_table_2}
-
-		-- require "engine.bitser".dumpLoveFile("test", friends_table)
-		-- local result = require "engine.bitser".loadLoveFile("test")
-
-
-		if tab.contains(args, "--dev") or not love.filesystem.getInfo("options.bin") then
-			-- If the options file doesn't exists, or if we're in dev mode, create the options file!
-			OPTIONS = require "game.options".init()
-			require "game.options".save()
-		else
-			OPTIONS = require "game.options".load()
-			require "game.options".verify()
-		end
-
-		if tab.contains(args, "--windowed") then
-			love.window.setFullscreen(false)
-		else
-			if OPTIONS.fullscreen then
-				love.window.setFullscreen(true)
-			else
-				love.window.setFullscreen(false)
-			end
-		end
-		love.audio.setVolume(OPTIONS.volume)
-		reload_font()
-
-		require("game.scene-manager").init()
+		return ASSETS.icons[ic]
 	end
+
+	-- TEST LOADING/SAVING
+	-- print('test of bitser')
+	-- local test_table = { abc= 123, x= 5}
+	-- local test_table_2 = {abs = 456, y = 6}
+	-- test_table.friend = test_table_2
+	-- test_table_2.friend = test_table
+	-- local friends_table = {test_table, test_table_2}
+
+	-- require "engine.bitser".dumpLoveFile("test", friends_table)
+	-- local result = require "engine.bitser".loadLoveFile("test")
+
+
+	if tab.contains(args, "--dev") or not love.filesystem.getInfo("options.bin") then
+		-- If the options file doesn't exists, or if we're in dev mode, create the options file!
+		OPTIONS = require "game.options".init()
+		require "game.options".save()
+	else
+		OPTIONS = require "game.options".load()
+		require "game.options".verify()
+	end
+
+	if tab.contains(args, "--windowed") then
+		love.window.setFullscreen(false)
+	else
+		if OPTIONS.fullscreen then
+			love.window.setFullscreen(true)
+		else
+			love.window.setFullscreen(false)
+		end
+	end
+	love.audio.setVolume(OPTIONS.volume)
+	reload_font()
+
+	require("game.scene-manager").init()
 end
 
 function love.update(dt)

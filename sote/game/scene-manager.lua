@@ -16,10 +16,10 @@ local gam = require "game.scenes.game"
 ---| 'game'
 scene_manager.scenes = {
 	{ "asset-loader", asl },
-	{ "main-menu", mm },
+	{ "main-menu",    mm },
 	{ "world-loader", wl }, -- also potentially a world generator
-	{ "world-saver", ws },
-	{ "game", gam } -- for actual gameplay
+	{ "world-saver",  ws },
+	{ "game",         gam } -- for actual gameplay
 }
 
 --- A table containing the game state for the UI and so on.
@@ -29,6 +29,7 @@ end
 --- Call this when the game loads.
 --- It'll set up the game state
 function scene_manager.init()
+	print('Initializing scene manager...')
 	-- Game state is special data that *can* be persistent for the purpose of hot loading but isn't assets.
 	GAME_STATE = {}
 	GAME_STATE.scene = scene_manager.scenes[1]
