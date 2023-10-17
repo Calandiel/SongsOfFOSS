@@ -36,7 +36,7 @@ local utils       = require "game.ui-utils"
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
 ---@field emit_event fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:string, root:Character, target:Character, associated_data:table|nil, delay: number, hidden: boolean)
+---@field emit_action fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number, hidden: boolean)
 ---@field emit_immediate_event fun(self:World, event:string, target:Character, associated_data:table|nil)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
@@ -203,22 +203,22 @@ end
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event string
 ---@param root Character
----@param target Character
 ---@param associated_data table
 ---@param delay number In days
 ---@param hidden boolean
-function world.World:emit_action(event, root, target, associated_data, delay, hidden)
+function world.World:emit_action(event, root, associated_data, delay, hidden)
 	---@type ActionData
 	local action_data = {
 		event,
-		target, 
+		root, 
 		associated_data, 
 		delay
 	}
+	-- print('add new action:' .. event)
 	self.deferred_actions_queue:enqueue(action_data)
 	if WORLD:does_player_see_realm_news(root.province.realm) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
-	end	
+	end
 end
 
 
@@ -233,7 +233,6 @@ local function handle_event(event, target_realm, associated_data)
 	if RAWS_MANAGER.events_by_name[event] == nil then
 		error(event .. " is not a valid event!")
 	end
-	print("Handling event: " .. event)
 
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]

@@ -108,6 +108,8 @@ end
 ---@param tooltip string?
 ---@param negative boolean?
 function ut.money_entry(name, data, rect, tooltip, negative)
+	rect = rect:copy():shrink(5)
+
 	if negative == nil then
 		negative = false
 	end

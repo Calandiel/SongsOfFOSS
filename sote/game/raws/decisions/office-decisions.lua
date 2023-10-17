@@ -69,10 +69,15 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
+
 			if WORLD.player_character == root then
 				WORLD:emit_notification("I asked ".. primary_target.name .. " to assist me in administration.")
 			end
-			WORLD:emit_event('request-help-overseer', primary_target, root, 1)
+			if WORLD.player_character == primary_target then
+				WORLD:emit_notification("I was asked to assist " .. root.name .. " with administrative tasks.")
+			end
+
+			WORLD:emit_immediate_event('request-help-overseer', primary_target, root)
 		end
 	}
 
@@ -122,6 +127,9 @@ local function load()
 		effect = function(root, primary_target, secondary_target)
 			if WORLD.player_character == root then
 				WORLD:emit_notification("I fired ".. primary_target.name .. " from the position of overseer.")
+			end
+			if WORLD.player_character == primary_target then
+				WORLD:emit_notification("I was fired from overseer position.")
 			end
 
             PoliticalEffects.remove_overseer(root.province.realm)
@@ -178,7 +186,10 @@ local function load()
 			if WORLD.player_character == root then
 				WORLD:emit_notification("I asked ".. primary_target.name .. " to assist me in administration.")
 			end
-			WORLD:emit_event('request-help-tribute-collection', primary_target, root, 1)
+			if WORLD.player_character == primary_target then
+				WORLD:emit_notification("I was asked by ".. primary_target.name .. " to assist him with tribute collection.")
+			end
+			WORLD:emit_immediate_event('request-help-tribute-collection', primary_target, root, 1)
 		end
 	}
 
@@ -229,7 +240,9 @@ local function load()
 			if WORLD.player_character == root then
 				WORLD:emit_notification("I fired ".. primary_target.name .. " from the position of tribute collector.")
 			end
-
+			if WORLD.player_character == primary_target then
+				WORLD:emit_notification("I was fired from the position of tribute collector.")
+			end
             PoliticalEffects.remove_tribute_collector(root.province.realm, primary_target)
 		end
 	}

@@ -5,30 +5,34 @@ local PoliticalValues = require "game.raws.values.political"
 
 PoliticalEffects = {}
 
----comment
+---Returns result of coup: true if success, false if failure
 ---@param character Character
+---@return boolean 
 function PoliticalEffects.coup(character)
     if character.province == nil then
-        return
+        return false
     end
     local realm = character.province.realm
     if realm == nil then
-        return
+        return false
     end
     if realm.leader == character then
-        return
+        return false
     end
     if realm.capitol ~= character.province then
-        return
+        return false
     end
 
     if PoliticalValues.power_base(character, realm.capitol) > PoliticalValues.power_base(realm.leader, realm.capitol) then
         PoliticalEffects.transfer_power(character.province.realm, character)
+        return true
     else
         if WORLD:does_player_see_realm_news(realm) then
             WORLD:emit_notification(character.name .. " failed to overthrow " .. realm.leader.name .. ".")
         end
     end
+
+    return false
 end
 
 

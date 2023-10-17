@@ -1,4 +1,6 @@
 local Event = require "game.raws.events"
+local E_ut = require "game.raws.events._utils"
+
 local EconomicEffects = require "game.raws.effects.economic"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
 local TRAIT = require "game.raws.traits.generic"
@@ -90,7 +92,7 @@ return function()
 					tooltip = "I will challenge " .. realm.leader.name .. '!',
 					viable = function() return true end,
 					outcome = function()
-                        PoliticalEffects.coup(character)
+                        WORLD:emit_action("coup", character, associated_data, 0, true)
 					end,
 					ai_preference = function()
                         if pretender_power > target_power then
@@ -112,4 +114,48 @@ return function()
 			}
 		end
     }
+
+    Event:new {
+		name = "coup",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			local realm = root.realm
+
+            if realm == nil then
+                return
+            end
+
+            if PoliticalEffects.coup(root) then
+                WORLD:emit_immediate_event("coup-success", root, associated_data)
+            else
+                WORLD:emit_immediate_event("coup-failure", root, associated_data)
+            end
+		end,
+	}
+
+    E_ut.notification_event(
+        "coup-success",
+        function(self, character, associated_data)
+            return "Success! I managed to overthrow the chief!"
+		end,
+        function (root, associated_data)
+            return "Nice!"
+        end,
+        function (root, associated_data)
+            return "Another step forward."
+        end
+    )
+
+    E_ut.notification_event(
+        "coup-failure",
+        function(self, character, associated_data)
+            return "Failure! I haven't managed to overthrow the chief!"
+		end,
+        function (root, associated_data)
+            return "I failed!"
+        end,
+        function (root, associated_data)
+            return "What will happen next? Nothing..."
+        end
+    )
 end

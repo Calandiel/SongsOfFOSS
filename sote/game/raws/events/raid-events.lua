@@ -1,8 +1,11 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
+local E_ut = require "game.raws.events._utils"
+
 local ef = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
 local ut = require "game.ui-utils"
+
 
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
@@ -162,7 +165,7 @@ local function load()
 									army = army
 								}
 
-								WORLD:emit_action('request-tribute-attack', character, character, data, travel_time, true)
+								WORLD:emit_action('request-tribute-attack', character, data, travel_time, true)
 							end
 
 							me.send_army(army, character.province, target_realm.capitol, callback)
@@ -257,9 +260,9 @@ local function load()
 			-- setting tributary
 			if attack_succeed then
 				de.set_tributary(raider.realm, target.realm)
-				WORLD:emit_action("request-tribute-army-returns-success", raider, raider, army, travel_time, true)
+				WORLD:emit_action("request-tribute-army-returns-success", raider, army, travel_time, true)
 			else
-				WORLD:emit_action("request-tribute-army-returns-fail", raider, raider, army, travel_time, true)
+				WORLD:emit_action("request-tribute-army-returns-fail", raider, army, travel_time, true)
 			end
 		end,
 	}
@@ -282,11 +285,27 @@ local function load()
 
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
-			messages.tribute_raid_success(realm, army.destination.realm)		
+			messages.tribute_raid_success(realm, army.destination.realm)
+			WORLD:emit_event('request-tribute-army-returns-success-notification', root, army)
 
 			root.busy = false	
 		end,
 	}
+
+	E_ut.notification_event(
+        "request-tribute-army-returns-success-notification",
+        function(self, character, associated_data)
+            ---@type Army
+			local army = associated_data
+            return "We succeeded to enforce tribute on " .. army.destination.realm.name
+		end,
+        function (root, associated_data)
+            return "Great!"
+        end,
+        function (root, associated_data)
+            return ""
+        end
+    )
 
 	Event:new {
 		name = "request-tribute-army-returns-fail",
@@ -301,16 +320,31 @@ local function load()
 				return
 			end
 
-			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
-			realm.leader.popularity = math.max(0, realm.leader.popularity - 0.1)
-
-			realm:disband_army(army)
-			realm.prepare_attack_flag = false
+			WORLD:emit_event("request-tribute-army-returns-fail-notification", root, army)
 			messages.tribute_raid_fail(realm, army.destination.realm)
 
+			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
+			realm.leader.popularity = math.max(0, realm.leader.popularity - 0.1)
+			realm:disband_army(army)
+			realm.prepare_attack_flag = false
 			root.busy = false
 		end,
 	}
+
+	E_ut.notification_event(
+        "request-tribute-army-returns-fail-notification",
+        function(self, character, associated_data)
+            ---@type Army
+			local army = associated_data
+            return "We failed to enforce tribute on " .. army.destination.realm.name
+		end,
+        function (root, associated_data)
+            return "Whatever. We will succeed next time"
+        end,
+        function (root, associated_data)
+            return ""
+        end
+    )
 
 
 	Event:new {
@@ -394,7 +428,7 @@ local function load()
 
 				---@type RaidResultSuccess
 				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin = origin }
-				WORLD:emit_action("covert-raid-success", raider, raider,
+				WORLD:emit_action("covert-raid-success", raider,
 					success_data,
 					travel_time, true)
 				if WORLD:does_player_see_realm_news(realm) then
@@ -406,13 +440,13 @@ local function load()
 					---@type RaidResultRetreat
 					local retreat_data = { army = army, target = target, raider = raider, origin = origin }
 
-					WORLD:emit_action("covert-raid-retreat", raider, raider, retreat_data,
+					WORLD:emit_action("covert-raid-retreat", raider, retreat_data,
 						travel_time, true)
 				else
 					---@type RaidResultFail
 					local retreat_data = { army = army, target = target, raider = raider, losses = losses, origin = origin }
 
-					WORLD:emit_action("covert-raid-fail", raider, raider,
+					WORLD:emit_action("covert-raid-fail", raider,
 						retreat_data,
 						travel_time, true)
 				end
@@ -498,7 +532,7 @@ local function load()
 					ut.to_fixed_point2(total_loot) .. MONEY_SYMBOL .. " worth of loot. " ..
 					target.owner.name .. ' receives ' .. ut.to_fixed_point2(initiator_share) .. MONEY_SYMBOL .. ' as initialtor.' ..
 					' Warband leaders were additionally rewarded with ' .. ut.to_fixed_point2(initiator_share / 2) .. MONEY_SYMBOL .. '. '
-					 .. tostring(losses) .. " warriors died.")
+					.. tostring(losses) .. " warriors died.")
 			end
 		end,
 	}

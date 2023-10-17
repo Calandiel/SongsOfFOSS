@@ -71,8 +71,8 @@ function MilitaryEffects.patrol(root, primary_target)
     local patrol_data = { target = primary_target, defender = root.leader, travel_time = 29, patrol = patrol, origin = root }
 
     WORLD:emit_action(
-        "patrol-province", root.leader,
-        primary_target.realm.leader,
+        "patrol-province", 
+        root.leader,
         patrol_data,
         90, false
     )
@@ -113,7 +113,7 @@ function MilitaryEffects.covert_raid(root, primary_target)
     }
 
     WORLD:emit_action(
-        "covert-raid", root.leader,
+        "covert-raid",
         target_province.realm.leader,
         raid_data,
         travel_time, false

@@ -201,7 +201,6 @@ local function load()
 			WORLD:emit_action(
 				'tribute-collection-1',
 				root,
-				root,
 				associated_data,
 				travel_time,
 				true

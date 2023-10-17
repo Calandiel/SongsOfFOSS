@@ -32,10 +32,10 @@ function ev.draw(gam)
 			-- Draw the background
 			ui.background(loaded_image)
 
-			local left = fs:subrect(0, 0, uit.BASE_HEIGHT * 10, fs.height, "left", 'up')
+			local left = fs:subrect(0, 0, fs.width / 3, fs.height * 2/3, "left", 'up')
 			local top = left:copy()
 			top.height = top.height / 2
-			top:shrink(5)
+			top:shrink(15)
 			ui.panel(top)
 			top:shrink(5)
 			ui.text(event:event_text(character, dat), top, "left", 'up')
@@ -43,7 +43,7 @@ function ev.draw(gam)
 			local bot = left:copy()
 			bot.height = bot.height / 2
 			bot.y = bot.y + bot.height
-			bot:shrink(5)
+			bot:shrink(15)
 			gam.event_scrollbar = gam.event_scrollbar or 0
 			gam.event_scrollbar = ui.scrollview(bot, function(i, rect)
 				if i > 0 then
@@ -56,6 +56,26 @@ function ev.draw(gam)
 					end
 				end
 			end, uit.BASE_HEIGHT, #opts, uit.BASE_HEIGHT, gam.event_scrollbar)
+
+			local portrait = fs:subrect(0, fs.height * 2/3, fs.height / 5, fs.height / 5, "left", 'up')
+			portrait:shrink(15)
+			require "game.scenes.game.widgets.portrait"(portrait, character)
+
+			local name = portrait:copy()
+			name.y = name.y + portrait.height
+			name.height = name.height / 2
+			local wealth = name:copy()
+			wealth.height = wealth.height / 2
+			wealth.y = wealth.y + name.height
+
+			name:shrink(0)
+			ui.panel(name)
+			wealth:shrink(0)			
+			ui.panel(wealth)
+
+			require "game.scenes.game.widgets.character-name"(name, character)
+			uit.money_entry_icon(character.savings, wealth, "My savings")
+
 		else
 			print("We're trying to draw the event screen but the next event isn't meant for the player!")
 			love.event.quit()

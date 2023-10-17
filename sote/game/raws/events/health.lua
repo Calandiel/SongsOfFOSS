@@ -27,7 +27,7 @@ function load()
                             pe.to_observer()
                         end
                         de.death(character)
-                        WORLD:emit_action("succession-death", character, character, nil, 0, true)
+                        WORLD:emit_action("succession-death", character, nil, 0, true)
                     end,
                     ai_preference = function ()
                         return 1
