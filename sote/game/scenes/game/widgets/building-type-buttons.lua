@@ -38,8 +38,11 @@ end
 ---@param public_flag boolean
 ---@param tile_improvement_flag boolean
 local function construction_button(gam, rect, building_type, tile, owner, overseer, public_flag, tile_improvement_flag)
-    local realm = WORLD.player_realm
-
+    local character = WORLD.player_character
+    if character == nil then
+        return
+    end
+    local realm = character.realm
     if realm == nil then
         return
     end

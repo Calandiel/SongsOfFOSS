@@ -1,5 +1,8 @@
 local ut = require "game.map-modes.utils"
 local tabb = require "engine.table"
+
+local ev = require "game.raws.values.economical"
+
 local dem = {}
 
 function dem.culture()
@@ -91,7 +94,7 @@ function dem.prices()
 			ut.set_default_color(tile)
 			if tile.is_land then
 				if tile.province.realm ~= nil then
-					local price = tile.province.realm:get_price(c.name)
+					local price = ev.get_local_price(tile.province, c.name)
 					ut.hue_from_value(tile, 1 - math.log(price, 2) / 10)
 				end
 			end

@@ -422,8 +422,12 @@ function gam.draw()
 		gam.planet_shader:send('clicked_tile', gam.clicked_tile_id - 1) -- shaders use 0-indexed arrays!
 	end
 	if gam.planet_shader:hasUniform("player_tile") then
-		if WORLD.player_realm then
-			gam.planet_shader:send('player_tile', WORLD.player_realm.capitol.center.tile_id - 1)
+		local character = WORLD.player_character
+		if character then
+			local province = WORLD.player_character.province
+			if province then
+				gam.planet_shader:send('player_tile', province.center.tile_id - 1)
+			end
 		else 
 			gam.planet_shader:send('player_tile', 0)
 		end
@@ -515,9 +519,10 @@ function gam.draw()
 				local y = (vv.y + 0.5) * refy
 
 				local province_visible = true
-				if WORLD.player_realm then
+				local character = WORLD.player_character
+				if character and character.realm then
 					province_visible = false
-					if WORLD.player_realm.known_provinces[tile.province] then
+					if character.realm.known_provinces[tile.province] then
 						province_visible = true
 					end
 				end
@@ -666,11 +671,11 @@ function gam.draw()
 		gam.inspector = "options"
 		gam.click_callback = callback.nothing()
 	end
-	if WORLD.player_realm then
+	if WORLD.player_character then
 		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
 			"Change country") then
-			WORLD.player_realm = nil
-			WORLD.player_character = nil
+
+			require "game.raws.effects.player".to_observer()
 			gam.refresh_map_mode()
 			gam.click_callback = callback.nothing()
 		end
@@ -691,9 +696,8 @@ function gam.draw()
 	end
 
 
-	-- Draw notifications	
-
-	if WORLD.player_realm ~= nil then
+	-- Draw notifications
+	if WORLD.player_character ~= nil then
 		-- "Mask" the mouse interaction
 		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 9, "right", 'up')
 		if ui.trigger(notif_panel) then
@@ -958,10 +962,16 @@ function gam.draw()
 	-- ##################
 	local tile_data_viewable = true
 	if WORLD.tiles[gam.clicked_tile_id] ~= nil then
-		if WORLD.player_realm ~= nil then
+
+		if WORLD.player_character ~= nil then
+			local realm = WORLD.player_character.realm
+			local current_pro = WORLD.player_character.province
 			local pro = WORLD.tiles[gam.clicked_tile_id].province
-			if WORLD.player_realm.known_provinces[pro] == nil then
-				tile_data_viewable = false
+
+			if realm then
+				if (realm.known_provinces[pro] == nil) and (pro ~= current_pro) then
+					tile_data_viewable = false
+				end
 			end
 		end
 	end
@@ -991,7 +1001,10 @@ function gam.draw()
 	elseif gam.inspector == 'reward-flag-edit' then
 		require "game.scenes.game.inspector-reward-flag-edit".draw(gam, gam.selected_reward_flag)
 	elseif gam.inspector == "army" then
-		require "game.scenes.game.inspector-military".draw(gam, WORLD.player_realm)
+		local character = WORLD.player_character
+		if character then
+			require "game.scenes.game.inspector-military".draw(gam, character.province.realm)
+		end
 	elseif gam.inspector == "character-decisions" then
 		require "game.scenes.game.inspector-character-decisions".draw(gam)
 	elseif tile_data_viewable then
@@ -1175,15 +1188,7 @@ end
 function gam.recalculate_raiding_targets_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_raiding_targets_image_data = love.image.newImageData(dim, dim, "rgba8")
-	-- for _, tile in pairs(WORLD.tiles) do
-	-- 	local x, y = gam.tile_id_to_color_coords(tile)
-	-- 	if tile.province and WORLD.player_realm and WORLD.player_realm.raiding_targets[tile.province] then
-	-- 		local r = 1
-	-- 		local g = 0
-	-- 		local b = 0
-	-- 		gam.tile_raiding_targets_image_data:setPixel(x, y, r, g, b, 1)
-	-- 	end
-	-- end
+	
 	gam.tile_raiding_targets_texture = love.graphics.newImage(gam.tile_raiding_targets_image_data, {
 		mipmaps = false,
 		linear = true
@@ -1224,9 +1229,10 @@ function gam.refresh_map_mode(preserve_efficiency)
 	-- Apply the color
 	for _, tile in pairs(WORLD.tiles) do
 		local can_set = true
-		if WORLD.player_realm then
+		local player_character = WORLD.player_character
+		if player_character and player_character.realm then
 			can_set = false
-			if WORLD.player_realm.known_provinces[tile.province] then
+			if player_character.realm.known_provinces[tile.province] then
 				can_set = true
 			end
 		end

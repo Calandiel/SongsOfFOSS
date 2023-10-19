@@ -12,6 +12,7 @@ local AI_VALUE = require "game.raws.values.ai_preferences"
 local pv = require "game.raws.values.political"
 local de = require "game.raws.effects.diplomacy"
 local me = require "game.raws.effects.military"
+local pe = require "game.raws.effects.political"
 local messages = require "game.raws.effects.messages"
 
 
@@ -281,7 +282,7 @@ local function load()
 			end
 
 			realm.capitol.mood = realm.capitol.mood + 0.05
-			realm.leader.popularity = realm.leader.popularity + 0.1
+			pe.small_popularity_boost(realm.leader, realm)
 
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
@@ -324,7 +325,7 @@ local function load()
 			messages.tribute_raid_fail(realm, army.destination.realm)
 
 			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
-			realm.leader.popularity = math.max(0, realm.leader.popularity - 0.1)
+			pe.small_popularity_decrease(realm.leader, realm)
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
 			root.busy = false
@@ -491,11 +492,12 @@ local function load()
 			local warbands = realm:disband_army(army)
 			realm.capitol.mood = realm.capitol.mood + 1 / (3 * math.max(0, realm.capitol.mood) + 1)
 			-- popularity to raid initiator
-			target.owner.popularity = target.owner.popularity + 0.1
+			pe.small_popularity_boost(target.owner, target.owner.realm)
+
 			-- popularity to raid participants
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
-				w.leader.popularity = w.leader.popularity + 0.01
+				pe.small_popularity_boost(w.leader, target.owner.realm)
 				num_of_warbands = num_of_warbands + 1
 			end
 
@@ -547,7 +549,7 @@ local function load()
 			local army = associated_data.army
 			local target = associated_data.target
 			realm.capitol.mood = realm.capitol.mood - 0.025
-			target.owner.popularity = target.owner.popularity - 0.01
+			pe.small_popularity_decrease(target.owner, target.owner.realm)
 
 			realm:disband_army(army)
 			if WORLD:does_player_see_realm_news(realm) then

@@ -9,7 +9,7 @@ function PoliticalValues.power_base(character, province)
     local total = 0
     for k, v in pairs(province.characters) do
         if (v.loyalty == character) or (v == character) then
-            total = total + v.popularity
+            total = total + PoliticalValues.popularity(v, province.realm)
         end
     end
 
@@ -71,7 +71,7 @@ end
 ---@param realm Realm
 ---@return number
 function PoliticalValues.popularity(character, realm)
-    return character.popularity
+    return character.popularity[realm] or 0
 end
 
 return PoliticalValues

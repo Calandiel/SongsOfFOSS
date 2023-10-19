@@ -9,6 +9,9 @@ Decision.Realm.__index = Decision.Realm
 Decision.Character = {}
 Decision.Character.__index = Decision.Character
 
+Decision.CharacterProvince = {}
+Decision.CharacterProvince.__index = Decision.CharacterProvince
+
 ---@alias DecisionTarget 'none' | 'character' | 'tile' | 'province' | 'realm' | 'building'
 
 
@@ -51,7 +54,6 @@ Decision.Character.__index = Decision.Character
 ---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets 	nil|fun(root:Character, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
 
-
 ---@class DecisionCharacter
 ---@field new fun(self:DecisionCharacter, o:DecisionCharacter):DecisionCharacter
 ---@field primary_target DecisionTarget
@@ -70,6 +72,43 @@ Decision.Character.__index = Decision.Character
 ---@field ai_secondary_target fun(root:Character, primary_target:any):any,boolean Selects the secondary target for the AI
 ---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets fun(root:Character, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
+
+---@class DecisionCharacterProvinceData
+---@field primary_target 			'province'
+---@field secondary_target 			DecisionTarget
+---@field sorting 					nil|number Controls how high or how low on the list of available decisions this decision is in the UI
+---@field name 						string
+---@field ui_name 					string
+---@field tooltip 					fun(root:Character, primary_target:Province):string
+---@field effect 					fun(root:Character, primary_target:Province, secondary_target:any) Called when the action is taken
+---@field pretrigger 				fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
+---@field clickable 				nil|fun(root:Character, primary_target:Province):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
+---@field available 				nil|fun(root:Character, primary_target:Province, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
+---@field ai_will_do 				fun(root:Character, primary_target:Province, secondary_target:any):number Returns a probability that an AI will take the decision
+---@field ai_targetting_attempts 	nil|number Number of attempts an AI will take to find a secondary target
+---@field ai_target 				nil|fun(root:Character):Province,boolean Selects the primary target for the AI
+---@field ai_secondary_target 		nil|fun(root:Character, primary_target:Province):any,boolean Selects the secondary target for the AI
+---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
+---@field get_secondary_targets 	nil|fun(root:Character, primary_target:Province):table<number, any> Returns potential targets FOR THE PLAYER
+
+---@class DecisionCharacterProvince
+---@field new fun(self:DecisionCharacterProvince, o:DecisionCharacterData):DecisionCharacterProvince
+---@field primary_target "province"
+---@field secondary_target DecisionTarget
+---@field sorting number Controls how high or how low on the list of available decisions this decision is in the UI
+---@field name string
+---@field ui_name string
+---@field tooltip fun(root:Character, primary_target:Province):string
+---@field effect fun(root:Character, primary_target:Province, secondary_target:any) Called when the action is taken
+---@field pretrigger fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
+---@field clickable fun(root:Character, primary_target:Province):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
+---@field available fun(root:Character, primary_target:Province, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
+---@field ai_will_do fun(root:Character, primary_target:Province, secondary_target:any):number Returns a probability that an AI will take the decision
+---@field ai_targetting_attempts number Number of attempts an AI will take to find a secondary target
+---@field ai_target fun(root:Character):Province,boolean Selects the primary target for the AI
+---@field ai_secondary_target fun(root:Character, primary_target:Province):any,boolean Selects the secondary target for the AI
+---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
+---@field get_secondary_targets fun(root:Character, primary_target:Province):table<number, any> Returns potential targets FOR THE PLAYER
 
 
 local function init_decision(i)
@@ -131,6 +170,7 @@ function Decision.Realm:new(i)
 	return o
 end
 
+print('load decisions')
 
 ---@param i DecisionCharacterData
 ---@return DecisionCharacter
@@ -149,6 +189,18 @@ function Decision.Character:new(i)
 	RAWS_MANAGER.decisions_characters_by_name[o.name] = o
 	return o
 end
+
+print('load generic character decision class')
+
+---@param i DecisionCharacterProvinceData
+---@return DecisionCharacterProvince
+function Decision.CharacterProvince:new(i)
+
+	---@type DecisionCharacterProvince
+	return Decision.Character:new(i)
+end
+
+print('load province character decision class')
 
 
 return Decision

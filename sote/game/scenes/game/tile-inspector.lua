@@ -77,10 +77,9 @@ function re.draw(gam)
 				panel:subrect(base_unit + 5, 0, 10 * base_unit, base_unit, "left", 'up'))
 		end
 		if tile.province.realm then
-			if WORLD.player_realm == nil then
+			if WORLD.player_character == nil then
 				local bp = panel:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
-				if ui.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over this country") then
-					-- WORLD.player_realm = tile.province.realm
+				if ui.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
 					-- gam.refresh_map_mode()
 					gam.inspector = "characters"
 					gam.selected_province = tile.province
@@ -121,20 +120,24 @@ function re.draw(gam)
 									uit.data_entry("Local resources:", rr, rect, "Local resources.")
 								end,
 								function(rect)
-									if WORLD:does_player_control_realm(WORLD.player_realm) then
-										local explore_cost = WORLD.player_realm:get_explore_cost(tile.province)
-										local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
-										if WORLD.player_realm.budget.treasury > explore_cost then
-											if ui.text_button("Explore (" .. explore_cost_string .. ')', rect, "Explore this province") then
-												WORLD.player_realm:explore(tile.province)
-												EconomicEffects.change_treasury(WORLD.player_realm, -explore_cost, EconomicEffects.reasons.Exploration)
-												gam.refresh_map_mode()
-											end
-										else
-											if ui.text_button("Explore (n/a)", rect,
-												"Not enough funds! (" ..
-												explore_cost_string .. " needed)") then
-												--
+									local player_character = WORLD.player_character
+									if player_character then
+										local player_realm = player_character.realm
+										if player_realm and WORLD:does_player_control_realm(player_realm) then
+											local explore_cost = player_realm:get_explore_cost(tile.province)
+											local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
+											if player_realm.budget.treasury > explore_cost then
+												if ui.text_button("Explore (" .. explore_cost_string .. ')', rect, "Explore this province") then
+													player_realm:explore(tile.province)
+													EconomicEffects.change_treasury(player_realm, -explore_cost, EconomicEffects.reasons.Exploration)
+													gam.refresh_map_mode()
+												end
+											else
+												if ui.text_button("Explore (n/a)", rect,
+													"Not enough funds! (" ..
+													explore_cost_string .. " needed)") then
+													--
+												end
 											end
 										end
 									end
@@ -647,9 +650,9 @@ function re.draw(gam)
 										tile.province.infrastructure_investment, rect)
 								end,
 								function(rect)
-									if WORLD:does_player_control_realm(WORLD.player_realm) then
+									if WORLD:does_player_control_realm(tile.province.realm) then
 										local cinf = tile.province.infrastructure_investment
-										local realm = WORLD.player_realm
+										local realm = tile.province.realm
 										local province = tile.province
 
 										if realm == nil then
@@ -830,7 +833,8 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widgets.decision-tab"(ui_panel, tile, 'tile', gam)
+					require "game.scenes.game.widgets.decision-tab"(
+							ui_panel, tile, 'tile', gam)
 				end
 			},
 			{
@@ -840,7 +844,8 @@ function re.draw(gam)
 					gam.reset_decision_selection()
 				end,
 				closure = function()
-					require "game.scenes.game.widgets.decision-tab"(ui_panel, tile.province, 'province', gam)
+					require "game.scenes.game.widgets.decision-tab"(
+							ui_panel, tile.province, 'province', gam)
 				end
 			},
 			{
@@ -879,9 +884,11 @@ function re.draw(gam)
 							ui.centered_text(tostring(current) .. '/' .. tostring(target), rect)
 							rect.x = rect.x + rect.width + 5
 							rect.width = rect.height
-							if WORLD:does_player_control_realm(tile.province.realm) then
-								local target_budget = WORLD.player_realm.budget.military.target
-								local current_budget = WORLD.player_realm.budget.military.budget
+
+							local realm = tile.province.realm
+							if realm and WORLD:does_player_control_realm(tile.province.realm) then								
+								local target_budget = realm.budget.military.target
+								local current_budget = realm.budget.military.budget
 								if current_budget > target_budget + unit.upkeep then
 									if ui.text_button('+1', rect, "Increase the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target + 1)

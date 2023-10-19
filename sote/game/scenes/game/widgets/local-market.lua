@@ -4,6 +4,7 @@ local trade_good = require "game.raws.raws-utils".trade_good
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local ev = require "game.raws.values.economical"
 
 ---@type TableState
 local state = nil
@@ -157,7 +158,7 @@ return function(tile, ui_panel, base_unit)
             end
             data_blob[good].supply = amount
             data_blob[good].balance = amount
-            data_blob[good].price = tile.province.realm:get_price(good)
+            data_blob[good].price = ev.get_local_price(tile.province, good)
         end
         for good, amount in pairs(consumption) do
             if data_blob[good] == nil then
@@ -169,7 +170,7 @@ return function(tile, ui_panel, base_unit)
             local old = data_blob[good].supply or 0
             data_blob[good].balance = old - amount
             data_blob[good].demand = amount
-            data_blob[good].price = tile.province.realm:get_price(good)
+            data_blob[good].price = ev.get_local_price(tile.province, good)
         end
 
         ui.table(uip, data_blob, columns, state)

@@ -27,7 +27,6 @@ local function make_new_noble(race, faith, culture)
 	local contender = pop.POP:new(race, faith, culture,
 	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
 	love.math.random(race.adult_age, race.max_age))
-	contender.popularity = contender.age / 15
 
 	if love.math.random() > 0.85 then
 		contender.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
@@ -120,7 +119,7 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- spawn leader
 	local elite_character = make_new_noble(race, faith, culture)
-	elite_character.popularity = elite_character.age / 10
+	elite_character.popularity[r] = elite_character.age / 10
 	capitol:add_character(elite_character)
 	r.leader = elite_character
 	r.leader.rank = ranks.CHIEF
@@ -128,8 +127,9 @@ local function make_new_realm(capitol, race, culture, faith)
 
 
 	-- spawn nobles
-	for i = 1, pop_to_spawn / 4 do
+	for i = 1, pop_to_spawn / 5 + 1 do
 		local contender = make_new_noble(race, faith, culture)
+		contender.popularity[r] = contender.age / 15
 		contender.realm = r
 		capitol:add_character(contender)
 	end

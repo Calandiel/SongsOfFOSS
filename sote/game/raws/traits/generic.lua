@@ -9,6 +9,7 @@ local TRAIT = {
     GOOD_ORGANISER = 'good organiser',
     LAZY = 'lazy',
     HARDWORKER = 'hard worker',
+    TRADER = 'trader',
 }
 
 return TRAIT

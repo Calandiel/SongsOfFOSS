@@ -20,12 +20,6 @@ function pg.growth(province)
 
 	local provincial_water = (province.local_production[ 'water' ] or 0) -
 		(province.local_consumption[ 'water' ] or 0)
-	--[[
-	if WORLD.player_realm == province.realm then
-		print('Food', food_income)
-		print('Water', provincial_water)
-	end
-	--]]
 
 	-- Mark pops for removal...
 	---@type POP[]

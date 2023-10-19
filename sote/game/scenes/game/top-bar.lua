@@ -2,12 +2,15 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
+local pv = require "game.raws.values.political"
+
 local tb = {}
 
 ---@return boolean
 function tb.mask(gam)
 	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
-	if WORLD:does_player_control_realm(WORLD.player_realm) then
+	local character = WORLD.player_character
+	if character and character.province and character.province.realm then
 		return not ui.trigger(tr)
 	else
 		return true
@@ -85,7 +88,8 @@ end
 ---Draws the bar at the top of the screen (if a player realm has been selected...)
 ---@param gam table
 function tb.draw(gam)
-	if WORLD.player_realm ~= nil then
+	local character = WORLD.player_character
+	if character and character.province and character.province.realm then
 		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
 		ui.panel(tr)
 
@@ -114,8 +118,9 @@ function tb.draw(gam)
 			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Character'
 		end
 
+		
 		uit.money_entry_icon(
-			WORLD.player_character.savings,
+			character.savings,
 			rect,
 			"My personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
@@ -124,7 +129,7 @@ function tb.draw(gam)
 
 		uit.data_entry_icon(
 			'duality-mask.png',
-			uit.to_fixed_point2(WORLD.player_character.popularity),
+			uit.to_fixed_point2(pv.popularity(character, character.province.realm)),
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 			"My popularity")
 
@@ -134,15 +139,16 @@ function tb.draw(gam)
 			:position(0, 0)
 			:horizontal()
 			:build()
-		if uit.coa(WORLD.player_realm, layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)) then
+
+		if uit.coa(character.province.realm, layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)) then
 			print("Player COA Clicked")
 			gam.inspector = "realm"
-			gam.selected_realm = WORLD.player_realm
+			gam.selected_realm = character.province.realm
 			---@type Tile
-			local captile = tabb.nth(WORLD.player_realm.capitol.tiles, 1)
+			local captile = tabb.nth(character.province.realm.capitol.tiles, 1)
 			gam.click_tile(captile.tile_id)
 		end
-		ui.left_text(WORLD.player_realm.name, layout:next(uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT))
+		ui.left_text(character.province.realm.name, layout:next(uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT))
 
 		-- Treasury
 		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
@@ -153,7 +159,7 @@ function tb.draw(gam)
 		end
 
 		uit.money_entry_icon(
-			WORLD.player_realm.budget.treasury,
+			character.province.realm.budget.treasury,
 			trt,
 			"Realm treasury")
 
@@ -161,7 +167,7 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = WORLD.player_realm.resources['food'] or 0
+		local amount = character.province.realm.resources['food'] or 0
 		uit.data_entry_icon(
 			'noodles.png',
 			uit.to_fixed_point2(amount),
@@ -169,7 +175,7 @@ function tb.draw(gam)
 			"Food")
 
 		-- Technology
-		local amount = WORLD.player_realm:get_education_efficiency()
+		local amount = character.province.realm:get_education_efficiency()
 		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		local trs = "Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
 		ui.image(ASSETS.icons['erlenmeyer.png'], tr)
@@ -179,7 +185,7 @@ function tb.draw(gam)
 		ui.tooltip(trs, trt)
 
 		-- Happiness
-		local amount = WORLD.player_realm:get_average_mood()
+		local amount = character.province.realm:get_average_mood()
 		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
 		ui.image(ASSETS.icons['duality-mask.png'], tr)
@@ -189,7 +195,7 @@ function tb.draw(gam)
 		ui.tooltip(trs, trt)
 
 		-- POP
-		local amount = WORLD.player_realm:get_total_population()
+		local amount = character.province.realm:get_total_population()
 		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		local trs = "Current population of our realm."
 		ui.image(ASSETS.icons['minions.png'], tr)
@@ -199,8 +205,8 @@ function tb.draw(gam)
 		ui.tooltip(trs, trt)
 
 		-- Army size
-		local amount = WORLD.player_realm:get_realm_military()
-		local target = WORLD.player_realm:get_realm_military_target() + WORLD.player_realm:get_realm_active_army_size()
+		local amount = character.province.realm:get_realm_military()
+		local target = character.province.realm:get_realm_military_target() + character.province.realm:get_realm_active_army_size()
 		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		local trs = "Size of our realms armies."
 		ui.image(ASSETS.icons['barbute.png'], tr)

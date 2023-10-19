@@ -2,6 +2,8 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local pv = require "game.raws.values.political"
+
 local characters_list_widget = require "game.scenes.game.widgets.character-list"
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
 local character_name_widget = require "game.scenes.game.widgets.character-name"
@@ -87,7 +89,9 @@ function window.draw(game, character)
     ui.panel(wealth_panel)
     ui.panel(popularity_panel)
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
-    ut.data_entry_icon('duality-mask.png', ut.to_fixed_point2(character.popularity), popularity_panel, "Popularity")
+
+    local popularity = pv.popularity(character, character.province.realm)
+    ut.data_entry_icon('duality-mask.png', ut.to_fixed_point2(popularity), popularity_panel, "Popularity")
 
     ui.panel(faith_panel)
     ut.data_entry("", character.faith.name, faith_panel, "Faith")
@@ -153,7 +157,7 @@ function window.draw(game, character)
         game.selected_character = response
     end
 
-    ut.coa(character.province.realm, coa)
+    ut.coa(character.realm, coa)
 end
 
 return window

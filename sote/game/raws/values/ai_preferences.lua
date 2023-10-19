@@ -4,6 +4,7 @@ local trade_good = require "game.raws.raws-utils".trade_good
 local AiPreferences = {}
 
 local pv = require "game.raws.values.political"
+local ev = require "game.raws.values.economical"
 
 
 ---comment
@@ -11,7 +12,7 @@ local pv = require "game.raws.values.political"
 ---@return number
 function AiPreferences.percieved_inflation(character)
     local temp = trade_good('food')
-    local price = character.province.realm:get_price(temp.name)
+    local price = ev.get_local_price(character.province, temp.name)
     if price == 0 then
         price = temp.base_price
     end
@@ -76,7 +77,9 @@ end
 ---@param character Character
 ---@return number
 function AiPreferences.loyalty_price(character)
-    return AiPreferences.percieved_inflation(character) * (10 + character.popularity) * 2
+    local popularity = pv.popularity(character, character.realm)
+
+    return AiPreferences.percieved_inflation(character) * (10 + popularity) * 2
 end
 
 ---@class AIDecisionFlags

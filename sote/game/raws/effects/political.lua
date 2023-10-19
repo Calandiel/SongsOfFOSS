@@ -69,7 +69,7 @@ end
 function PoliticalEffects.set_overseer(realm, overseer)
     realm.overseer = overseer
 
-    overseer.popularity = overseer.popularity + 0.5
+    PoliticalEffects.medium_popularity_boost(overseer, realm)
 
     if WORLD:does_player_see_realm_news(realm) then
         WORLD:emit_notification(overseer.name .. " is a new overseer of " .. realm.name .. ".")
@@ -83,7 +83,7 @@ function PoliticalEffects.remove_overseer(realm)
     realm.overseer = nil
 
     if overseer then
-        overseer.popularity = overseer.popularity - 0.5
+        PoliticalEffects.medium_popularity_decrease(overseer, realm)
     end
 
     if overseer and WORLD:does_player_see_realm_news(realm) then
@@ -97,7 +97,7 @@ end
 function PoliticalEffects.set_tribute_collector(realm, character)
     realm.tribute_collectors[character] = character
 
-    character.popularity = character.popularity + 0.1
+    PoliticalEffects.small_popularity_boost(character, realm)
 
     if WORLD:does_player_see_realm_news(realm) then
         WORLD:emit_notification(character.name .. " had became a tribute collector.")
@@ -110,7 +110,7 @@ end
 function PoliticalEffects.remove_tribute_collector(realm, character)
     realm.tribute_collectors[character] = nil
 
-    character.popularity = character.popularity - 0.1
+    PoliticalEffects.small_popularity_decrease(character, realm)
 
     if WORLD:does_player_see_realm_news(realm) then
         WORLD:emit_notification(character.name .. " is no longer a tribute collector.")
@@ -133,6 +133,56 @@ function PoliticalEffects.banish(character)
 end
 
 ---comment
+---@param character Character
+---@param realm Realm
+---@param x number
+function PoliticalEffects.change_popularity(character, realm, x)
+    character.popularity[realm] = PoliticalValues.popularity(character, realm) + x
+end
+
+---comment
+---@param character Character
+---@param realm Realm
+function PoliticalEffects.small_popularity_boost(character, realm)
+    PoliticalEffects.change_popularity(character, realm, 0.1)
+end
+
+---comment
+---@param character Character
+---@param realm Realm
+function PoliticalEffects.medium_popularity_boost(character, realm)
+    PoliticalEffects.change_popularity(character, realm, 0.5)
+end
+
+---comment
+---@param character Character
+---@param realm Realm
+function PoliticalEffects.huge_popularity_boost(character, realm)
+    PoliticalEffects.change_popularity(character, realm, 1)
+end
+
+---comment
+---@param character Character
+---@param realm Realm
+function PoliticalEffects.small_popularity_decrease(character, realm)
+    PoliticalEffects.change_popularity(character, realm, -0.1)
+end
+
+---comment
+---@param character Character
+---@param realm Realm
+function PoliticalEffects.medium_popularity_decrease(character, realm)
+    PoliticalEffects.change_popularity(character, realm, -0.5)
+end
+
+---comment
+---@param character Character
+---@param realm Realm
+function PoliticalEffects.huge_popularity_decrease(character, realm)
+    PoliticalEffects.change_popularity(character, realm, -1)
+end
+
+---comment
 ---@param pop POP
 ---@param province Province
 function PoliticalEffects.grant_nobility(pop, province)
@@ -142,7 +192,7 @@ function PoliticalEffects.grant_nobility(pop, province)
 
     pop.province = province
     pop.realm = province.realm
-    pop.popularity = 0.1
+    pop.popularity[province.realm] = 0.1
 
     if WORLD:does_player_see_province_news(province) then
         WORLD:emit_notification(pop.name .. " was granted nobility.")

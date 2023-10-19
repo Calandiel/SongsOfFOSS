@@ -2,7 +2,6 @@ local cb = {}
 
 function cb.toggle_raiding_target(game, province)
     return function ()
-        -- WORLD.player_realm:toggle_raiding_target(province)
         game.inspector = 'reward-flag'
         game.flagged_province = province
 

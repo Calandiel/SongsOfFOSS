@@ -7,13 +7,13 @@ local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
 
+local pe = require "game.raws.effects.political"
+
 
 local function load()
 
     local base_gift_size = 20
-    local base_popularity_change = 0.05
 	local base_raiding_reward = 50
-	local base_raiding_reward_per_unit = 0.1
 
 	---@type DecisionCharacter
 	Decision.Character:new {
@@ -92,6 +92,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
+			if root.province.realm ~= root.realm then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -283,7 +284,8 @@ local function load()
 			province.mood = math.min(10, province.mood + 0.5 / province:population())
 			province.local_wealth = province.local_wealth + base_gift_size
 			root.savings = root.savings - base_gift_size
-			root.popularity = root.popularity + base_popularity_change
+
+			pe.small_popularity_boost(root, province.realm)
 
 			if WORLD:does_player_see_realm_news(province.realm) then
 				WORLD:emit_notification(root.name .. " donates money to population of " .. province.name .. "! His popularity grows...")

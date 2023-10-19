@@ -11,6 +11,10 @@ local scroll = 0
 ---@param selected_decision any
 ---@return DecisionCharacter?, any, any
 return function(rect, decision_type, primary_target, selected_decision)
+    -- love.graphics.print("Decision selection", rect.x, rect.y)
+    local total = 0
+    local valid = 0
+
     -- Maps decisions to whether or not they can be clicked.
     ---@type table<number, table<DecisionRealm, boolean>>
     local decisions = {}
@@ -23,9 +27,14 @@ return function(rect, decision_type, primary_target, selected_decision)
                 else
                     decisions[#decisions + 1] = { decision, false }
                 end
+                valid = valid + 1
             end
+            total = total + 1
         end
     end
+    -- love.graphics.print("Total" .. tostring(total), rect.x, rect.y)
+    -- love.graphics.print("Valid" .. tostring(valid), rect.x, rect.y + 20)
+
     -- Once the list of decisions is known, we can sort it by the decisions sorting order
     table.sort(decisions, function(a, b)
         return a[1].sorting < b[1].sorting
