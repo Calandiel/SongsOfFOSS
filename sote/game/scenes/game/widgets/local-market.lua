@@ -130,7 +130,7 @@ return function(tile, ui_panel, base_unit)
         --- local economy data
         local uip = ui_panel:copy()
         uip.height = base_unit
-        uip.width = base_unit * 8
+        uip.width = base_unit * 9
         ut.money_entry("Local wealth:", tile.province.local_wealth, uip)
         uip.x = uip.x + uip.width + base_unit
         ut.money_entry("Local income:", tile.province.local_income, uip)

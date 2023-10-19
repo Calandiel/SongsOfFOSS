@@ -74,7 +74,27 @@ function pro.run(province)
 					yield = prod:get_efficiency(local_tile)
 
 				end
-				local efficiency = yield * local_foraging_efficiency * efficiency_from_infrastructure -- add more multiplier to this later
+
+				local input_satisfaction = 1
+
+				for input, amount in pairs(prod.inputs) do
+					local required_input = amount
+					local present_input = province.realm.resources[input] or 0
+					local ratio = present_input / required_input
+					input_satisfaction = math.min(input_satisfaction, ratio)
+				end
+
+				-- (1 - prod.self_sourcing_fraction) is a modifier to efficiency during 100% shortage
+				-- 1 is a modifier to efficiency during 0% shortage, i.e. 1.0 input satisfaction
+
+				local shortage_modifier = 
+					(1 - prod.self_sourcing_fraction) * (1 - input_satisfaction)
+					+ 1 * input_satisfaction
+
+				local efficiency = yield 
+									* local_foraging_efficiency 
+									* efficiency_from_infrastructure 
+									* shortage_modifier -- add more multiplier to this later
 				local throughput_boost = 1 + (province.throughput_boosts[prod] or 0)
 				local input_boost = math.max(0, 1 - (province.input_efficiency_boosts[prod] or 0))
 				local output_boost = 1 + (province.output_efficiency_boosts[prod] or 0)
@@ -96,7 +116,6 @@ function pro.run(province)
 						local broad_leaf_change = math.min(deforested_tile.broadleaf, input_power * broadleaf_ratio)
 						local conifer_change = math.min(deforested_tile.conifer, input_power * conifer_ratio)
 						local shrub_change = math.min(deforested_tile.shrub, input_power * shrub_ratio)
-
 
 						deforested_tile.broadleaf = deforested_tile.broadleaf - broad_leaf_change
 						deforested_tile.conifer = deforested_tile.conifer - conifer_change

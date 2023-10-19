@@ -72,8 +72,8 @@ end
 ---@param trade_good TradeGoodReference
 ---@return number price
 function eco_values.get_local_price(province, trade_good)
-    local bought = province.local_production[trade_good] or 0
-    local sold = province.local_consumption[trade_good] or 0
+    local sold = province.local_production[trade_good] or 0
+    local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
     return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
@@ -84,8 +84,8 @@ end
 ---@param amount number
 ---@return number price
 function eco_values.get_pessimistic_local_price(province, trade_good, amount)
-    local bought = (province.local_production[trade_good] or 0) + amount
-    local sold = province.local_consumption[trade_good] or 0
+    local sold = (province.local_production[trade_good] or 0) + amount
+    local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
     return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
