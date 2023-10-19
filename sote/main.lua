@@ -82,7 +82,6 @@ function love.load(args)
 		tab.contains(ARGS, "--h") or
 		tab.contains(ARGS, "-help") or
 		tab.contains(ARGS, "-h") then
-
 		print([[
 Songs of the Eons, version ]] .. VERSION_STRING .. [[
 
