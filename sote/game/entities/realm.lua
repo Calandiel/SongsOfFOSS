@@ -1,4 +1,4 @@
-local good = require "game.raws.raws-utils".trade_good
+local pv = require "game.raws.values.political"
 
 ---@class RewardFlag
 ---@field flag_type 'explore'|'raid'|'destroy'|'kill'|'devastate'
@@ -115,8 +115,6 @@ end
 ---@field production table<TradeGoodReference, number> A "balance" of resource creation
 ---@field bought table<TradeGoodReference, number>
 ---@field sold table<TradeGoodReference, number>
----@field get_price fun(self:Realm, trade_good:TradeGoodReference):number
----@field get_pessimistic_price fun(self:Realm, trade_good:TradeGoodReference, amount:number):number
 ---@field expected_food_consumption number
 ---@field get_realm_population fun(self:Realm):number
 ---@field get_realm_military fun(self:Realm):number Returns a sum of "unraised" military and active armies
@@ -311,7 +309,8 @@ function realm.Realm:roll_reward_flag()
 	---@type table<RewardFlag, number>
 	local targets = {}
 	for flag, k in pairs(self.reward_flags) do
-		targets[k] = k.reward * k.owner.popularity
+		local popularity = pv.popularity(k.owner, self)
+		targets[k] = k.reward * popularity
 	end
 	return tabb.random_select(targets)
 end
@@ -325,28 +324,6 @@ function realm.Realm:explore(province)
 	end
 end
 
----Note, it works ONLY for "real" trade goods.
----For services, use provincial functions instead!
----@param trade_good TradeGoodReference
----@return number price
-function realm.Realm:get_price(trade_good)
-	local bought = self.bought[trade_good] or 0
-	local sold = self.sold[trade_good] or 0
-	local data = good(trade_good)
-	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
-end
-
----Calculates a "pessimistic" prise (that is, the price that we'd get if we tried to sell more goods after selling the goods given)
----@param trade_good TradeGoodReference
----@param amount number
----@return number price
-function realm.Realm:get_pessimistic_price(trade_good, amount)
-	local bought = self.bought[trade_good] or 0
-	bought = bought + amount
-	local sold = self.sold[trade_good] or 0
-	local data = good(trade_good)
-	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
-end
 
 ---Returns a percentage describing the education investments
 ---@return number

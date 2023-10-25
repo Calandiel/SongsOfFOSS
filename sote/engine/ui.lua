@@ -1096,6 +1096,7 @@ function ui.scrollview(
 
 	
 	-- "mouse scroll"
+	
 	if ui.trigger(rect) then
 		slider_level = math.min(math.max(0, slider_level - ui.mouse_wheel() / entries_count), 1)
 	end
@@ -1238,6 +1239,7 @@ function ui.table(rect, data, columns, state)
 			end
 		end
 	end
+
 	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level)
 	return result
 end

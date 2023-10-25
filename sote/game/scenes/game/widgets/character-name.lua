@@ -14,7 +14,9 @@ local function name(rect, character)
     if character.realm.tribute_collectors[character] then
         title = title .. " Tribute Collector"
     end
-    ui.centered_text(character.name .. ", " .. ranks_localisation[character.rank] .. title .. " of " .. character.realm.name, rect)
+
+    title = character.name .. ", " .. ranks_localisation[character.rank] .. title
+    ui.centered_text(title .. " of " .. character.realm.name, rect)
 end
 
 return name

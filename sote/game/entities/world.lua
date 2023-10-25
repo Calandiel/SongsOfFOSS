@@ -5,13 +5,14 @@ local decide = require "game.ai.decide"
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
+local tabb = require "engine.table"
+
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
 ---@alias Notification string
 
 ---@class World
----@field player_realm Realm?
 ---@field player_character Character?
 ---@field player_province Province?
 ---@field sub_hourly_tick number
@@ -35,8 +36,6 @@ local utils       = require "game.ui-utils"
 ---@field entity_counter number -- a global counter for entities...
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
----@field emit_event fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number, hidden: boolean)
 ---@field emit_immediate_event fun(self:World, event:string, target:Character, associated_data:table|nil)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
@@ -47,9 +46,6 @@ local utils       = require "game.ui-utils"
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
----@field does_player_control_realm fun(self:World, realm:Realm?):boolean
----@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
----@field does_player_see_province_news fun(self:World, realm:Province?):boolean
 ---@field base_visibility fun(self:World, size: number):number
 
 ---@class World
@@ -87,7 +83,6 @@ function world.World:new()
 	w.day = 0
 	w.month = 0
 	w.year = 0
-	w.player_realm = nil
 	w.pending_player_event_reaction = false
 	w.notification_queue = require "engine.queue":new()
 	w.events_queue = require "engine.queue":new()
@@ -142,16 +137,16 @@ function world.empty()
 	world.World:new()
 end
 
----Given a file, saves the world
----@param file string
-function world.save(file)
-	--love.filesystem.newFile(file)
-	print("Saving?" .. file)
-	local bs = require "engine.bitser"
-	print("Processing starts...")
-	bs.dumpLoveFile(file, WORLD) -- when it crashes its just a stack overflow due to province neighbors
-	print("Processing ends!")
-end
+-- ---Given a file, saves the world
+-- ---@param file string
+-- function world.save(file)
+-- 	--love.filesystem.newFile(file)
+-- 	print("Saving?" .. file)
+-- 	local bs = require "engine.bitser"
+-- 	print("Processing starts...")
+-- 	bs.dumpLoveFile(file, WORLD) -- when it crashes its just a stack overflow due to province neighbors
+-- 	print("Processing ends!")
+-- end
 
 ---Given a file, loads the world and assigns it to the WORLD global
 ---@param file any
@@ -196,17 +191,29 @@ function world.World:emit_immediate_event(event, root, associated_data)
 	self.events_queue:enqueue_front({
 		event, root, associated_data
 	})
-
 	self:event_tick(event, root, associated_data)
+end
+
+---comment
+---@param event string
+---@param root POP
+---@param associated_data table?
+function world.World:emit_immediate_action(event, root, associated_data)
+	local event = RAWS_MANAGER.events_by_name[event]
+	event:on_trigger(root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event string
 ---@param root Character
----@param associated_data table
+---@param associated_data table?
 ---@param delay number In days
 ---@param hidden boolean
 function world.World:emit_action(event, root, associated_data, delay, hidden)
+	if root == nil then
+		error("Cannot emit an action without a root!")
+	end
+
 	---@type ActionData
 	local action_data = {
 		event,
@@ -557,14 +564,26 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 	self.treasury_effects:enqueue(effect)
 end
 
+---comment
+---@param realm Realm
+---@return boolean
 function world.World:does_player_control_realm(realm)
 	return (realm ~= nil) and (self.player_character == realm.leader) and (self.player_character ~= nil)
 end
 
+---comment
+---@param realm Realm
+---@return boolean
 function world.World:does_player_see_realm_news(realm)
-	return (self.player_realm == realm) and (self.player_realm ~= nil)
+	if self.player_character == nil then
+		return false
+	end
+	return (self.player_character.realm == realm)
 end
 
+---comment
+---@param province Province
+---@return boolean
 function world.World:does_player_see_province_news(province)
 	if self.player_character == nil then
 		return false

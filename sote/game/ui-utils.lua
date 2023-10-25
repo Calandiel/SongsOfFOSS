@@ -356,7 +356,12 @@ function ut.to_fixed_point2(x)
 	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
 end
 
-function ut.color_coded_percentage(value, rect, positive)
+---Renders a color coded percentage
+---@param value number
+---@param rect Rect
+---@param positive boolean?
+---@param tooltip string?
+function ut.color_coded_percentage(value, rect, positive, tooltip)
 	if positive == nil then
 		positive = true
 	end
@@ -371,6 +376,10 @@ function ut.color_coded_percentage(value, rect, positive)
 	love.graphics.setColor(r, g, b, a)
 	ui.right_text( tostring(math.floor(value * 100 + 0.5)) .. '%', rect)
 	love.graphics.setColor(cr, cg, cb, ca)
+
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
 end
 
 return ut

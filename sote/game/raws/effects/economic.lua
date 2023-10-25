@@ -1,4 +1,7 @@
-local eco_values = require "game.raws.values.economical"
+local ut = require "game.ui-utils"
+
+local ev = require "game.raws.values.economical"
+local et = require "game.raws.triggers.economy"
 local traits = require "game.raws.traits.generic"
 
 EconomicEffects = {}
@@ -25,6 +28,7 @@ EconomicEffects.reasons = {
     Waste = "waste",
     Tribute = "tribute",
     Inheritance = "inheritance",
+    Trade = "trade",
     Other = "other"
 }
 
@@ -183,7 +187,7 @@ end
 ---@param public boolean
 ---@return Building
 function EconomicEffects.construct_building_with_payment(building_type, province, tile, owner, overseer, public)
-    local construction_cost = eco_values.building_cost(building_type, overseer, public)
+    local construction_cost = ev.building_cost(building_type, overseer, public)
     local building = EconomicEffects.construct_building(building_type, province, tile, owner)
 
     if public or (owner == nil) then
@@ -262,6 +266,77 @@ function EconomicEffects.return_tribute_home(collector, realm, tribute)
 
     EconomicEffects.register_income(realm,      to_treasury, EconomicEffects.reasons.Tribute)
     EconomicEffects.add_pop_savings(collector,  -to_treasury, EconomicEffects.reasons.Tribute)
+end
+
+---comment
+---@param character Character
+---@param good TradeGoodReference
+---@param amount number
+function EconomicEffects.buy(character, good, amount)
+    if not et.can_buy(character, good, amount) then
+        return false
+    end
+
+    -- can_buy validates province
+    ---@type Province
+    local province = character.province
+    local price = ev.get_realm_price(province.realm, good)
+
+    if character.price_memory[good] == nil then
+        character.price_memory[good] = price
+    else
+        character.price_memory[good] = character.price_memory[good] * (3 / 4) + price * (1 / 4)
+    end
+
+    local cost = price * amount
+
+    EconomicEffects.add_pop_savings(character, -cost, EconomicEffects.reasons.Trade)
+    province.local_wealth = province.local_wealth + cost
+    character.inventory[good] = (character.inventory[good] or 0) + amount
+    province.local_storage[good] = (province.local_storage[good] or 0) - amount
+
+    -- print('!!! BUY')
+
+    if WORLD:does_player_see_province_news(province) then
+        WORLD:emit_notification("Trader " .. character.name .. " bought " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
+    end
+
+    return true
+end
+
+---comment
+---@param character Character
+---@param good TradeGoodReference
+---@param amount number
+function EconomicEffects.sell(character, good, amount)
+    if not et.can_sell(character, good, amount) then
+        return false
+    end
+
+    -- can_sell validates province
+    ---@type Province
+    local province = character.province
+    local price = ev.get_realm_price(province.realm, good)
+
+    if character.price_memory[good] == nil then
+        character.price_memory[good] = price
+    else
+        character.price_memory[good] = character.price_memory[good] * (3 / 4) + price * (1 / 4)
+    end
+
+    local cost = price * amount
+
+    EconomicEffects.add_pop_savings(character, cost, EconomicEffects.reasons.Trade)
+    province.local_wealth = province.local_wealth - cost
+    character.inventory[good] = (character.inventory[good] or 0) - amount
+    province.local_storage[good] = (province.local_storage[good] or 0) + amount
+
+    -- print('!!! SELL')
+
+    if WORLD:does_player_see_province_news(province) then
+        WORLD:emit_notification("Trader " .. character.name .. " sold " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
+    end
+    return true
 end
 
 return EconomicEffects

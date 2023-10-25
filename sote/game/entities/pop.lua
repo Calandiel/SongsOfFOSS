@@ -7,13 +7,16 @@
 ---@field age number
 ---@field name string
 ---@field savings number
----@field popularity number
+---@field popularity table<Realm, number>
 ---@field traits table<Trait, Trait>
 ---@field employer Building?
 ---@field loyalty POP?
 ---@field loyal table<POP, POP> who is loyal to this pop
 ---@field successor POP?
+---@field successor_of table<POP, POP>
 ---@field owned_buildings table <Building, Building>
+---@field inventory table <TradeGoodReference, number?>
+---@field price_memory table<TradeGoodReference, number?>
 ---@field leading_warband Warband?
 ---@field busy boolean
 ---@field job Job?
@@ -50,10 +53,13 @@ function rtab.POP:new(race, faith, culture, female, age)
 
 	r.busy = false
 	r.owned_buildings = {}
+	r.inventory = {}
+	r.price_memory = {}
+	r.successor_of = {}
 
 	r.name = culture.language:get_random_name()
 	r.savings = 0
-	r.popularity = 0
+	r.popularity = {}
 	r.loyalty = nil
 	r.loyal	 = {}
 	r.traits = {}

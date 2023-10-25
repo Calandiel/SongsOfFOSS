@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 
 local values = require "game.raws.values.ai_preferences"
 local ef = require "game.raws.effects.economic"
+local pe = require "game.raws.effects.political"
 local co = {}
 
 ---@param realm Realm
@@ -52,6 +53,16 @@ function co.run(realm)
 
 	for _, character in pairs(realm.capitol.characters) do
 		ef.add_pop_savings(character, nobles_wage, ef.reasons.Court)
+	end
+
+	-- raise new nobles
+	local NOBLES_RATIO = 0.15
+	for _, prov in pairs(realm.provinces) do
+		local nobles = tabb.size(prov.characters)
+		local population = tabb.size(prov.all_pops)
+		if (nobles < NOBLES_RATIO * population) and (population > 5) then
+			pe.grant_nobility_to_random_pop(prov)
+		end
 	end
 
 	realm.budget.court.budget = realm.budget.court.budget - total_decay

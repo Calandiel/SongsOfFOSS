@@ -5,7 +5,7 @@ local ut = require "game.ui-utils"
 ---@type Queue<string>
 local notifications = require "engine.queue":new()
 
-return function(rect, scroll)
+return function(rect, scroll, hidden)
     ui.panel(rect)
     if scroll == nil then
         scroll = 1

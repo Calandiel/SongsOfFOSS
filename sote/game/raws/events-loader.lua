@@ -43,6 +43,9 @@ function ll.load()
 
 	print("succession events")
 	require "game.raws.events.succession"()
+
+	print("travel events")
+	require "game.raws.events.travel"()
 end
 
 return ll

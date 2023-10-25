@@ -7,13 +7,13 @@ local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
 
+local pe = require "game.raws.effects.political"
+
 
 local function load()
 
     local base_gift_size = 20
-    local base_popularity_change = 0.05
 	local base_raiding_reward = 50
-	local base_raiding_reward_per_unit = 0.1
 
 	---@type DecisionCharacter
 	Decision.Character:new {
@@ -92,6 +92,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
+			if root.province.realm ~= root.realm then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -283,7 +284,8 @@ local function load()
 			province.mood = math.min(10, province.mood + 0.5 / province:population())
 			province.local_wealth = province.local_wealth + base_gift_size
 			root.savings = root.savings - base_gift_size
-			root.popularity = root.popularity + base_popularity_change
+
+			pe.small_popularity_boost(root, province.realm)
 
 			if WORLD:does_player_see_realm_news(province.realm) then
 				WORLD:emit_notification(root.name .. " donates money to population of " .. province.name .. "! His popularity grows...")
@@ -497,6 +499,87 @@ local function load()
 			local root = root
 
 			WORLD:emit_immediate_event('attempt-coup', root)
+		end
+	}
+
+	
+	Decision.Character:new {
+		name = 'buy-something',
+		ui_name = "Buy some goods",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+            return "Buy some goods on the local market"
+        end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.8 , -- Almost every month
+		pretrigger = function(root)
+			-- if root == WORLD.player_character then
+			-- 	return false
+			-- end
+			if root.savings < 5 then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root)
+			return true
+		end,
+		available = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1/2 ---try to buy something every second month
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			WORLD:emit_immediate_event('buy-goods', root, nil)
+		end
+	}
+
+	Decision.Character:new {
+		name = 'sell-something',
+		ui_name = "Sell some goods",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+            return "Sell some goods on the local market"
+        end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.8 , -- Almost every month
+		pretrigger = function(root)
+			-- if root == WORLD.player_character then
+			-- 	return false
+			-- end
+			if root.savings < 5 then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root)
+			return true
+		end,
+		available = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1/2 ---try to sell something every second month
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			WORLD:emit_immediate_event('sell-goods', root, nil)
 		end
 	}
 end

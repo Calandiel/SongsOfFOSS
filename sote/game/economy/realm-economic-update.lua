@@ -18,41 +18,67 @@ function rea.run(realm)
 	tabb.clear(realm.sold)
 
 	realm.expected_food_consumption = 0
+
+	local PROVINCE_TO_REALM_STOCKPILE = 0.05
+	local REALM_TO_PROVINCE_STOCKPILE = 0.05
+
 	-- Loop over all provinces in the realm and "add" their good balances to get our balance.
 	for _, province in pairs(realm.provinces) do
 		for prod, amount in pairs(province.local_production) do
-			--if prod.category == 'good' or prod.category == 'capacity' then
 			local old = realm.production[prod] or 0
 			realm.production[prod] = old + amount
 			local vold = realm.sold[prod] or 0
 			realm.sold[prod] = vold + amount
-			--else
-			-- Nothing to do, services aren't resolved per realm...
-			-- Actually (!), let's keep track of them anyway so that we can store prices per realm
-			--end
+
+			local resource = good(prod)
+			if resource.category == 'good' then
+				province.local_storage[prod] = province.local_storage[prod] or 0
+				province.local_storage[prod] = province.local_storage[prod] + amount * (1 - PROVINCE_TO_REALM_STOCKPILE)
+
+				province.realm.resources[prod] = province.realm.resources[prod] or 0
+				province.realm.resources[prod] = province.realm.resources[prod] + amount * PROVINCE_TO_REALM_STOCKPILE
+			end
 		end
 		for prod, amount in pairs(province.local_consumption) do
-			--if prod.category == 'good' or prod.category == 'capacity' then
 			local old = realm.production[prod] or 0
 			realm.production[prod] = old - amount
 			local vold = realm.bought[prod] or 0
 			realm.bought[prod] = vold + amount -- a '+', even tho we're consuming, because this stands for volume
-			--else
-			-- Nothing to do, services aren't resolved per realm...
-			-- Actually (!), let's keep track of them anyway so that we can store prices per realm
-			--end
 			if prod == 'food' then
 				realm.expected_food_consumption = realm.expected_food_consumption + amount
+			end
+
+			local resource = good(prod)
+			if resource.category == 'good' then
+				province.local_storage[prod] = province.local_storage[prod] or 0
+				province.local_storage[prod] = province.local_storage[prod] - amount
 			end
 		end
 	end
 
-	-- Handle stockpiles of trade goods
-	for resource_reference, amount in pairs(realm.production) do
+	-- Handle stockpiles of trade goods in realm
+	for resource_reference, amount in pairs(realm.resources) do
 		local resource = good(resource_reference)
 		if resource.category == 'good' then
-			local old = realm.resources[resource_reference] or 0
-			realm.resources[resource_reference] = math.max(0, old + amount) * 0.999
+			local old = amount or 0
+			realm.resources[resource_reference] = math.max(0, old) * 0.999
+		end
+	end
+	-- Stockpiles' waste in provinces
+	-- Siphon some goods from realm stockpile to provincial storage
+	local amount_of_provinces = tabb.size(realm.provinces)
+	for _, province in pairs(realm.provinces) do
+		for resource_reference, amount in pairs(province.local_storage) do
+			local resource = good(resource_reference)
+			if resource.category == 'good' then
+				local old = amount or 0
+				local siphon = (realm.resources[resource_reference] or 0)
+				                * REALM_TO_PROVINCE_STOCKPILE
+								/ amount_of_provinces
+
+				province.local_storage[resource_reference] = math.max(0, old + siphon) * 0.999
+				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
+			end
 		end
 	end
 

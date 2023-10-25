@@ -144,7 +144,7 @@ function d.load()
 		inputs = { ['tools'] = 1 },
 		outputs = { ['timber'] = 15 },
 		jobs = { [job('woodcutters')] = 1, },
-		self_sourcing_fraction = 0.25,
+		self_sourcing_fraction = 0.5,
 		forest_dependence = 1,
 	}
 	ProductionMethod:new {

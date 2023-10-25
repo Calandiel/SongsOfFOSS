@@ -67,7 +67,7 @@ end
 ---Returns an element without dequeuing it
 ---@return any
 function Queue:peek()
-	return self.data[self.first + 1]
+	return self.data[fix(self.first + 1, queue_capacity)]
 end
 
 ---Returns the length of the queue

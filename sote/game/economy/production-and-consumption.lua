@@ -2,6 +2,9 @@ local good = require "game.raws.raws-utils".trade_good
 
 local tabb = require "engine.table"
 local EconomicEffects = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economical"
+local pv = require "game.raws.values.political"
+
 local pro = {}
 
 ---Runs production on a single province!
@@ -71,7 +74,27 @@ function pro.run(province)
 					yield = prod:get_efficiency(local_tile)
 
 				end
-				local efficiency = yield * local_foraging_efficiency * efficiency_from_infrastructure -- add more multiplier to this later
+
+				local input_satisfaction = 1
+
+				for input, amount in pairs(prod.inputs) do
+					local required_input = amount
+					local present_input = province.local_storage[input] or 0
+					local ratio = present_input / required_input
+					input_satisfaction = math.min(input_satisfaction, ratio)
+				end
+
+				-- (1 - prod.self_sourcing_fraction) is a modifier to efficiency during 100% shortage
+				-- 1 is a modifier to efficiency during 0% shortage, i.e. 1.0 input satisfaction
+
+				local shortage_modifier = 
+					(1 - prod.self_sourcing_fraction) * (1 - input_satisfaction)
+					+ 1 * input_satisfaction
+
+				local efficiency = yield 
+									* local_foraging_efficiency 
+									* efficiency_from_infrastructure 
+									* shortage_modifier -- add more multiplier to this later
 				local throughput_boost = 1 + (province.throughput_boosts[prod] or 0)
 				local input_boost = math.max(0, 1 - (province.input_efficiency_boosts[prod] or 0))
 				local output_boost = 1 + (province.output_efficiency_boosts[prod] or 0)
@@ -94,7 +117,6 @@ function pro.run(province)
 						local conifer_change = math.min(deforested_tile.conifer, input_power * conifer_ratio)
 						local shrub_change = math.min(deforested_tile.shrub, input_power * shrub_ratio)
 
-
 						deforested_tile.broadleaf = deforested_tile.broadleaf - broad_leaf_change
 						deforested_tile.conifer = deforested_tile.conifer - conifer_change
 						deforested_tile.shrub = deforested_tile.shrub - shrub_change
@@ -107,13 +129,22 @@ function pro.run(province)
 				local income = 0
 				for input, amount in pairs(prod.inputs) do
 					record_consumption(input, amount)
-					income = income - province.realm:get_price(input) * amount * efficiency * throughput_boost * input_boost
+					local price = ev.get_local_price(province, input)
+					income = income
+							- price * amount * efficiency * throughput_boost * input_boost
 				end
 				income = income
 				for output, amount in pairs(prod.outputs) do
 					record_production(output, amount * efficiency)
-					income = income +
-						province.realm:get_pessimistic_price(output, amount) * amount * efficiency * throughput_boost * output_boost
+					local price = ev.get_pessimistic_local_price(province, output, amount)
+					income = income
+							+ price * amount * efficiency * throughput_boost * output_boost
+				end
+
+				if pop.employer.income_mean then
+					pop.employer.income_mean = pop.employer.income_mean * 0.5 + income * 0.5
+				else
+					pop.employer.income_mean = income
 				end
 
 				if income > 0 then
@@ -135,7 +166,8 @@ function pro.run(province)
 					foragers_count = foragers_count + 1 -- Record a new forager!
 					-- Foragers produce food:
 					local food_produced = math.min(0.9, foraging_efficiency)
-					local income = food_produced * province.realm:get_pessimistic_price('food', food_produced)
+					local food_price = ev.get_pessimistic_local_price(province, 'food', food_produced)
+					local income = food_produced * food_price
 					if income > 0 then
 						province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 						local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
@@ -175,14 +207,14 @@ function pro.run(province)
 	--- DISTRIBUTION OF DONATIONS
 	local total_popularity = 0
 	for _, c in pairs(province.characters) do
-		total_popularity = total_popularity + c.popularity
+		total_popularity = total_popularity + pv.popularity(c, province.realm)
 	end
 	local realm_share = total_donations
 	if total_popularity > 0 then
 		realm_share = total_donations * 0.5
 		local elites_share = total_donations - realm_share
 		for _, c in pairs(province.characters) do
-			EconomicEffects.add_pop_savings(c, elites_share * c.popularity / total_popularity, EconomicEffects.reasons.Donation)
+			EconomicEffects.add_pop_savings(c, elites_share * pv.popularity(c, province.realm) / total_popularity, EconomicEffects.reasons.Donation)
 		end
 	end
 	EconomicEffects.register_income(province.realm, realm_share, EconomicEffects.reasons.Donation)

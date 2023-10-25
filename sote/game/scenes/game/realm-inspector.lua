@@ -5,11 +5,12 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
 local ef = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economical"
 
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, uit.BASE_HEIGHT * 2, 700, 500, "left", 'up')
+	local panel = fs:subrect(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, 700, 500, "left", 'up')
 	return panel
 end
 
@@ -47,17 +48,23 @@ function re.draw(gam)
 		local ui_panel = panel:subrect(5, uit.BASE_HEIGHT * 2, panel.width - 10, panel.height - 10 - uit.BASE_HEIGHT * 2,
 			"left", 'up')
 		gam.realm_inspector_tab = gam.realm_inspector_tab or "GEN"
+
+		local treasury_tab = nil
+		if WORLD.player_character == realm.leader then
+			treasury_tab = {
+				text = "TRE",
+				tooltip = "Realm treasury",
+				closure = require "game.scenes.game.inspectors.treasury"(ui_panel, realm)
+			}
+		end
+		
 		local tabs = {
 			{
 				text = "GEN",
 				tooltip = "General",
 				closure = require "game.scenes.game.inspectors.realm-general"(ui_panel, realm, gam)
 			},
-			{
-				text = "TRE",
-				tooltip = "Realm treasury",
-				closure = require "game.scenes.game.inspectors.treasury"(ui_panel, realm)
-			},
+			treasury_tab,
 			{
 				text = "STO",
 				tooltip = "Stockpiles",
@@ -144,7 +151,7 @@ function re.draw(gam)
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if WORLD.player_realm.budget.treasury > max_amount then
+							if realm.budget.treasury > max_amount then
 								if ui.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
 									local inv = math.min(realm.budget.treasury, max_amount)
 									ef.direct_investment(realm, realm.budget.court, inv, EconomicEffects.reasons.Court)
@@ -166,12 +173,13 @@ function re.draw(gam)
 				text = "MAR",
 				tooltip = "Market",
 				closure = function()
+					---@type table<TradeGoodReference, number>
 					local goods = {}
 					for good, _ in pairs(realm.bought) do
-						goods[good] = realm:get_price(good)
+						goods[good] = ev.get_realm_price(realm, good)
 					end
 					for good, _ in pairs(realm.sold) do
-						goods[good] = realm:get_price(good)
+						goods[good] = ev.get_realm_price(realm, good)
 					end
 					gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
 					gam.realm_market_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
@@ -221,7 +229,7 @@ function re.draw(gam)
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if WORLD.player_realm.budget.treasury > max_amount then
+							if realm.budget.treasury > max_amount then
 								if ui.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
 									local inv = math.min(realm.budget.treasury, max_amount)
 									ef.direct_investment(realm, realm.budget.education, inv, EconomicEffects.reasons.Education)
@@ -242,16 +250,6 @@ function re.draw(gam)
 						, a,
 						"A percentage value. Endowment present over endowment needed")
 					a.y = a.y + uit.BASE_HEIGHT
-				end
-			},
-			{
-				text = "DEC",
-				tooltip = "Decisions",
-				on_select = function()
-					gam.reset_decision_selection()
-				end,
-				closure = function()
-					require "game.scenes.game.widgets.decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{
