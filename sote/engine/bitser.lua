@@ -190,6 +190,7 @@ local function write_boolean(value, _)
 end
 
 local function write_table(value, seen, tiles_counter)
+	-- print("write_table")
 	---@type Queue<BitserCallback>
 	local callback_queue = require "engine.queue":new()
 
@@ -259,6 +260,8 @@ local function write_table(value, seen, tiles_counter)
 			-- serialize_value(v, seen)
 		end
 	end
+
+	-- print("queue length " .. callback_queue:length())
 	return callback_queue
 end
 
@@ -347,7 +350,7 @@ local function serialize(value)
 	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
 	local first = serialize_value(value, seen)
 	callback_stack:enqueue_front(first)
-	print(first:length())
+	-- print(first:length())
 
 	while callback_stack:length() > 0 do
 		---@type Queue<BitserCallback>
@@ -356,7 +359,8 @@ local function serialize(value)
 			callback_stack:dequeue()
 		else
 			local callback = callback_queue:dequeue()
-			callback_stack:enqueue_front(callback.callback(callback.value, callback.seen))
+			local queue = callback.callback(callback.value, callback.seen)
+			callback_stack:enqueue_front(queue)
 		end
 	end
 
@@ -372,7 +376,7 @@ local function serialize_async(value)
 	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
 	local first = serialize_value(value, seen)
 	callback_stack:enqueue_front(first)
-	print(first:length())
+	-- print(first:length())
 
 
 	local tiles_counter = {
@@ -384,10 +388,16 @@ local function serialize_async(value)
 		---@type Queue<BitserCallback>
 		local callback_queue = callback_stack:peek()
 		if (callback_queue == nil) or (callback_queue:length() == 0) then
+			-- print('callback queue is empty')
 			callback_stack:dequeue()
 		else
 			local callback = callback_queue:dequeue()
-			callback_stack:enqueue_front(callback.callback(callback.value, callback.seen, tiles_counter))
+			-- print(callback.value)
+			-- print("stack before callback: " .. callback_stack:length())
+			local queue = callback.callback(callback.value, callback.seen, tiles_counter)
+			-- print("extracted queue length: " .. queue:length())
+			callback_stack:enqueue_front(queue)
+			-- print("stack after callback: " .. callback_stack:length())
 		end
 
 		if (not tiles_counter.yielded) and (tiles_counter.counter % 1000 == 0) then
