@@ -10,7 +10,7 @@ local ev = require "game.raws.values.economical"
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, uit.BASE_HEIGHT * 2, 700, 500, "left", 'up')
+	local panel = fs:subrect(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, 700, 500, "left", 'up')
 	return panel
 end
 

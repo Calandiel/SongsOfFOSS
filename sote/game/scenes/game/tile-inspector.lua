@@ -15,7 +15,7 @@ re.cached_scrollbar = 0
 local function get_main_panel(scale)
 	local fs = ui.fullscreen()
 	local base_unit = uit.BASE_HEIGHT * scale
-	local panel = fs:subrect(0, 0, base_unit * 30, base_unit * 12, "left", 'down')
+	local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, base_unit * 30, base_unit * 12, "left", 'down')
 	return panel
 end
 

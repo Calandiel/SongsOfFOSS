@@ -698,19 +698,36 @@ function gam.draw()
 
 	-- Draw notifications
 	if WORLD.player_character ~= nil then
-		-- "Mask" the mouse interaction
-		local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 9, "right", 'up')
-		if ui.trigger(notif_panel) then
-			gam.click_callback = callback.nothing()
-		end
-		--- Draw outliner
-		local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 6, "right", 'up')
-		if ui.trigger(outliner_panel) then
-			gam.click_callback = callback.nothing()
-		end
 
-		gam.notification_slider = require "game.scenes.game.widgets.news"(notif_panel, gam.notification_slider)
-		gam.outliner_slider = require "game.scenes.game.widgets.outliner"(outliner_panel, gam.outliner_slider)
+
+		if gam.outliner then
+			-- "Mask" the mouse interaction
+			local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 9, "right", 'up')
+			if ui.trigger(notif_panel) then
+				gam.click_callback = callback.nothing()
+			end
+			--- Draw outliner
+			local outliner_panel = fs:subrect(0, ut.BASE_HEIGHT * 10, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 6, "right", 'up')
+			if ui.trigger(outliner_panel) then
+				gam.click_callback = callback.nothing()
+			end
+			gam.notification_slider = require "game.scenes.game.widgets.news"(notif_panel, gam.notification_slider)
+			gam.outliner_slider = require "game.scenes.game.widgets.outliner"(outliner_panel, gam.outliner_slider)
+
+			local outliner_rect = outliner_panel:subrect(0, 0, ut.BASE_HEIGHT * 3, ut.BASE_HEIGHT * 1, "left", 'down')
+
+			if ui.text_button('Collapse', outliner_rect, "Hide outliner") then
+				gam.outliner = false
+				gam.click_callback = callback.nothing()
+			end
+		else
+			local outliner_rect = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 3, ut.BASE_HEIGHT * 1, "right", 'up')
+
+			if ui.text_button('Outliner', outliner_rect, "Show outliner") then
+				gam.outliner = true
+				gam.click_callback = callback.nothing()
+			end
+		end
 	end
 
 		-- Map mode tab
@@ -923,7 +940,7 @@ function gam.draw()
 	end
 
 	if click_detected and click_success then
-		if (gam.click_callback == nil) and ((tb.mask(gam) or require "game.scenes.game.inspectors.left-side-bar".mask())) and not province_on_map_interaction then
+		if (gam.click_callback == nil) and ((tb.mask(gam) and require "game.scenes.game.inspectors.left-side-bar".mask())) and not province_on_map_interaction then
 			
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
@@ -1024,6 +1041,8 @@ function gam.draw()
 		elseif gam.inspector == 'market' then
 			require "game.scenes.game.inspectors.market".draw(gam)
 		end
+	else
+		gam.inspector = nil
 	end
 
 	if ui.is_key_pressed('escape') then

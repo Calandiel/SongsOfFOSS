@@ -18,7 +18,7 @@ local decision_target_secondary = nil
 function window.rect() 
     local unit = ut.BASE_HEIGHT
     local fs = ui.fullscreen()
-    return fs:subrect(0, unit * 2, unit * 14, unit * 30, "left", 'up')
+    return fs:subrect(unit * 2, unit * 2, unit * 14, unit * 30, "left", 'up')
 end
 
 function window.mask()

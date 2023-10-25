@@ -105,7 +105,7 @@ local function load()
         function(self, character, associated_data)
             ---@type Realm
             associated_data = associated_data
-            return "I have become the chief" .. associated_data.name
+            return "I have become the chief of " .. associated_data.name
 		end,
         function (root, associated_data)
             return "Sure"
