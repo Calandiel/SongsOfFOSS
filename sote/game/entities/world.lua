@@ -137,16 +137,16 @@ function world.empty()
 	world.World:new()
 end
 
----Given a file, saves the world
----@param file string
-function world.save(file)
-	--love.filesystem.newFile(file)
-	print("Saving?" .. file)
-	local bs = require "engine.bitser"
-	print("Processing starts...")
-	bs.dumpLoveFile(file, WORLD) -- when it crashes its just a stack overflow due to province neighbors
-	print("Processing ends!")
-end
+-- ---Given a file, saves the world
+-- ---@param file string
+-- function world.save(file)
+-- 	--love.filesystem.newFile(file)
+-- 	print("Saving?" .. file)
+-- 	local bs = require "engine.bitser"
+-- 	print("Processing starts...")
+-- 	bs.dumpLoveFile(file, WORLD) -- when it crashes its just a stack overflow due to province neighbors
+-- 	print("Processing ends!")
+-- end
 
 ---Given a file, loads the world and assigns it to the WORLD global
 ---@param file any

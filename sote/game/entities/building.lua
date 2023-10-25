@@ -5,6 +5,7 @@
 ---@field y number?
 ---@field workers table<POP, POP>
 ---@field owner POP?
+---@field income_mean number?
 ---@field remove_from_province fun(self:Building, province:Province)
 ---@field tile Tile?
 ------@field employ fun(self:Building, pop:POP, province:Province)

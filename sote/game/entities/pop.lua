@@ -16,6 +16,7 @@
 ---@field successor_of table<POP, POP>
 ---@field owned_buildings table <Building, Building>
 ---@field inventory table <TradeGoodReference, number?>
+---@field price_memory table<TradeGoodReference, number?>
 ---@field leading_warband Warband?
 ---@field busy boolean
 ---@field job Job?
@@ -53,6 +54,7 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.busy = false
 	r.owned_buildings = {}
 	r.inventory = {}
+	r.price_memory = {}
 	r.successor_of = {}
 
 	r.name = culture.language:get_random_name()

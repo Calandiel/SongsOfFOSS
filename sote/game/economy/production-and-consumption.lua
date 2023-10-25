@@ -141,6 +141,12 @@ function pro.run(province)
 							+ price * amount * efficiency * throughput_boost * output_boost
 				end
 
+				if pop.employer.income_mean then
+					pop.employer.income_mean = pop.employer.income_mean * 0.5 + income * 0.5
+				else
+					pop.employer.income_mean = income
+				end
+
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)

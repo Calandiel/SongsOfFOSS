@@ -281,6 +281,13 @@ function EconomicEffects.buy(character, good, amount)
     ---@type Province
     local province = character.province
     local price = ev.get_realm_price(province.realm, good)
+
+    if character.price_memory[good] == nil then
+        character.price_memory[good] = price
+    else
+        character.price_memory[good] = character.price_memory[good] * (3 / 4) + price * (1 / 4)
+    end
+
     local cost = price * amount
 
     EconomicEffects.add_pop_savings(character, -cost, EconomicEffects.reasons.Trade)
@@ -310,6 +317,13 @@ function EconomicEffects.sell(character, good, amount)
     ---@type Province
     local province = character.province
     local price = ev.get_realm_price(province.realm, good)
+
+    if character.price_memory[good] == nil then
+        character.price_memory[good] = price
+    else
+        character.price_memory[good] = character.price_memory[good] * (3 / 4) + price * (1 / 4)
+    end
+
     local cost = price * amount
 
     EconomicEffects.add_pop_savings(character, cost, EconomicEffects.reasons.Trade)

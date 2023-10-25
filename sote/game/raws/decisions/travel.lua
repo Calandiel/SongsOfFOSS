@@ -39,7 +39,7 @@ local function load()
         ai_target = function(root)
 			---@type Province[]
             local targets = {}
-            for _, province in pairs(root.province.neighbors) do
+            for _, province in pairs(root.realm.known_provinces) do
                 if province.realm then
                     table.insert(targets, province)
                 end

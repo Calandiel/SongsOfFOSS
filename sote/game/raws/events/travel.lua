@@ -67,7 +67,10 @@ local function load()
             for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
 
                 local price = ev.get_local_price(province, name)
-                local price_at_home = ev.get_local_price(root.realm.capitol, name)
+                if root.price_memory[name] == nil then
+                    root.price_memory[name] = price
+                end
+                local known_price = root.price_memory[name]
 
                 if et.can_buy(root, name, 1) then
                     ---@type EventOption
@@ -79,11 +82,7 @@ local function load()
                             ee.buy(root, name, 1)
                         end,
                         ai_preference = function()
-                            if root.province == root.realm.capitol then
-                                return love.math.random()
-                            else
-                                return (price_at_home - price - 0.01) / (price_at_home + 0.01)
-                            end
+                            return (known_price - price - 0.05) / (known_price + 0.05)
                         end
                     }
                     table.insert(options_list, option)
@@ -132,8 +131,11 @@ local function load()
 
             for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
 
-                local price = ev.get_local_price(province, name)
-                local price_at_home = ev.get_local_price(root.realm.capitol, name)
+                local price = ev.get_pessimistic_local_price(province, name, 1)
+                if root.price_memory[name] == nil then
+                    root.price_memory[name] = price
+                end
+                local known_price = root.price_memory[name]
 
                 if et.can_sell(root, name, 1) then
                     ---@type EventOption
@@ -145,11 +147,7 @@ local function load()
                             ee.sell(root, name, 1)
                         end,
                         ai_preference = function()
-                            if root.province == root.realm.capitol then
-                                return love.math.random()
-                            else
-                                return price - price_at_home
-                            end
+                            return (price - known_price - 0.05) / (known_price + 0.05)
                         end
                     }
                     table.insert(options_list, option)

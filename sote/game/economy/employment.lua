@@ -10,11 +10,13 @@ function emp.run(province)
 	local jobs_needed_counters = {}
 	local total_jobs_needed = 0
 	for _, building in pairs(province.buildings) do
-		for job, amount in pairs(building.type.production_method.jobs) do
-			local old = jobs_needed_counters[job] or 0
-			jobs_needed_counters[job] = old + amount
-			total_jobs_needed = total_jobs_needed + amount
-		end
+		if building.income_mean > 0 then
+			for job, amount in pairs(building.type.production_method.jobs) do
+				local old = jobs_needed_counters[job] or 0
+				jobs_needed_counters[job] = old + amount
+				total_jobs_needed = total_jobs_needed + amount
+			end
+		end		
 	end
 
 	-- Calculate present job counters
