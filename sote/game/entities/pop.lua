@@ -53,6 +53,7 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.busy = false
 	r.owned_buildings = {}
 	r.inventory = {}
+	r.successor_of = {}
 
 	r.name = culture.language:get_random_name()
 	r.savings = 0
