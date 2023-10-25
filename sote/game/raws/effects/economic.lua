@@ -284,7 +284,7 @@ function EconomicEffects.buy(character, good, amount)
     EconomicEffects.add_pop_savings(character, -cost, EconomicEffects.reasons.Trade)
     province.local_wealth = province.local_wealth + cost
     character.inventory[good] = (character.inventory[good] or 0) + amount
-    province.realm.resources[good] = (province.realm.resources[good] or 0) - amount
+    province.local_storage[good] = (province.local_storage[good] or 0) - amount
     return true
 end
 
@@ -306,7 +306,7 @@ function EconomicEffects.sell(character, good, amount)
     EconomicEffects.add_pop_savings(character, cost, EconomicEffects.reasons.Trade)
     province.local_wealth = province.local_wealth - cost
     character.inventory[good] = (character.inventory[good] or 0) - amount
-    province.realm.resources[good] = (province.realm.resources[good] or 0) + amount
+    province.local_storage[good] = (province.local_storage[good] or 0) + amount
     return true
 end
 

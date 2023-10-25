@@ -15,7 +15,7 @@ function triggers.can_buy(character, good, amount)
     if province == nil then
         return false
     end
-    if province.realm.resources[good] < amount then
+    if province.local_storage[good] < amount then
         return false
     end
 

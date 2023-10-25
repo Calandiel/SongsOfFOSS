@@ -79,7 +79,7 @@ function pro.run(province)
 
 				for input, amount in pairs(prod.inputs) do
 					local required_input = amount
-					local present_input = province.realm.resources[input] or 0
+					local present_input = province.local_storage[input] or 0
 					local ratio = present_input / required_input
 					input_satisfaction = math.min(input_satisfaction, ratio)
 				end
