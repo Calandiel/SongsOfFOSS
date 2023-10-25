@@ -20,20 +20,35 @@ end
 function inspector.draw(gam)
     local rect = get_main_panel()
     local base_unit = uit.BASE_HEIGHT * 2
-
     ui.panel(rect)
 
     local layout = ui.layout_builder()
         :vertical()
         :position(rect.x, rect.y)
-        :spacing(base_unit)
+        :spacing(0)
         :build()
     
-    if ui.icon_button(ASSETS.icons['scales.png'], layout:next(base_unit, base_unit)) then
+    if ui.icon_button(ASSETS.icons['scales.png'], layout:next(base_unit, base_unit), "Visit local market") then
         if gam.inspector == 'market' then
             gam.inspector = nil
         else
             gam.inspector = 'market'
+        end
+    end
+
+    if ui.icon_button(ASSETS.icons['guards.png'], layout:next(base_unit, base_unit), "Visit local warriors") then
+        if gam.inspector == 'army' then
+            gam.inspector = nil
+        else
+            gam.inspector = "army"
+        end
+    end
+
+    if ui.icon_button(ASSETS.icons['envelope.png'], layout:next(base_unit, base_unit), "Do something") then
+        if gam.inspector == 'character-decisions' then
+            gam.inspector = nil
+        else
+            gam.inspector = "character-decisions"
         end
     end
 end

@@ -90,7 +90,7 @@ end
 function tb.draw(gam)
 	local character = WORLD.player_character
 	if character and character.province and character.province.realm then
-		local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
+		local tr = ui.rect(0, 0, 620, uit.BASE_HEIGHT * 2)
 		ui.panel(tr)
 
 		if ui.trigger(tr) then
@@ -106,11 +106,8 @@ function tb.draw(gam)
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
 
 		--- current character
-		
-		local character_panel = ui.rect(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT, 800, uit.BASE_HEIGHT)
-		ui.panel(character_panel)
 		local layout = ui.layout_builder()
-			:position(character_panel.x, character_panel.y)
+			:position(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
 			:horizontal()
 			:build()
 
@@ -125,15 +122,12 @@ function tb.draw(gam)
 			gam.inspector = "treasury-ledger"
 			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Character'
 		end
-
 		
 		uit.money_entry_icon(
 			character.savings,
 			rect,
 			"My personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-
-		
 
 		uit.data_entry_icon(
 			'duality-mask.png',
@@ -222,16 +216,6 @@ function tb.draw(gam)
 		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
 		ui.right_text(tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), trt)
 		ui.tooltip(trs, trt)
-
-		layout:next(uit.BASE_HEIGHT * 0.5, uit.BASE_HEIGHT)
-
-		if ui.text_button("Military tab", layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT)) then
-			gam.inspector = "army"
-		end
-
-		if ui.text_button("Character decisions", layout:next(uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT)) then
-			gam.inspector = "character-decisions"
-		end
 	end
 end
 
