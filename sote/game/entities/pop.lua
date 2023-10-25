@@ -13,6 +13,7 @@
 ---@field loyalty POP?
 ---@field loyal table<POP, POP> who is loyal to this pop
 ---@field successor POP?
+---@field successor_of table<POP, POP>
 ---@field owned_buildings table <Building, Building>
 ---@field inventory table <TradeGoodReference, number?>
 ---@field leading_warband Warband?

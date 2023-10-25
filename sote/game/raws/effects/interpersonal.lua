@@ -52,7 +52,12 @@ end
 ---@param character Character
 ---@param target Character
 function InterpersonalEffects.set_successor(character, target)
+    if character.successor then
+        character.successor.successor_of[character] = nil
+    end
+
     character.successor = target
+    target.successor_of[character] = character
     messages.successor_set(character, target)
 end
 
