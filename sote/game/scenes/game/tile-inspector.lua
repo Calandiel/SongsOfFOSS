@@ -756,11 +756,6 @@ function re.draw(gam)
 				end
 			},
 			{
-				text = "ECN",
-				tooltip = "Economy",
-				closure = require "game.scenes.game.widgets.local-market" (tile, ui_panel, base_unit)
-			},
-			{
 				text = "TEC",
 				tooltip = "Technology",
 				closure = function()

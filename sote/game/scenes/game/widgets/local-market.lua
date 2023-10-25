@@ -34,6 +34,7 @@ end
 ---@field demand number
 ---@field balance number
 ---@field price number
+---@field stockpile number
 
 ---comment
 ---@param tile Tile
@@ -123,20 +124,65 @@ return function(tile, ui_panel, base_unit)
                 return v.price or 0
             end
         },
+        {
+            header = 'stockpile',
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                ut.money_entry("", v.stockpile, rect)
+            end,
+            width = base_unit * 6,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.stockpile
+            end
+        },
+        {
+            header = 'difference',
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                if WORLD.player_character then
+                    local province = WORLD.player_character.province
+                    if province then
+                        local price_at_player = ev.get_local_price(province, v.name)
+                        ut.money_entry("", 
+                                        (v.price or 0) - price_at_player, 
+                                        rect, 
+                                        "Shows diffence between price in your current position and selected one"
+                        )
+                    else
+                        ut.data_entry("", "Undefined", rect)
+                    end
+                else
+                    ut.data_entry("", "Undefined", rect)
+                end
+            end,
+            width = base_unit * 6,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+
+                if WORLD.player_character then
+                    local province = WORLD.player_character.province
+                    if province then
+                        local price_at_player = ev.get_local_price(province, v.name)
+                        return (v.price or 0) - price_at_player
+                    else 
+                        return 0
+                    end
+                else
+                    return 0
+                end
+            end
+        }
     }
 
 
     return function()
         --- local economy data
         local uip = ui_panel:copy()
-        uip.height = base_unit
-        uip.width = base_unit * 9
-        ut.money_entry("Local wealth:", tile.province.local_wealth, uip)
-        uip.x = uip.x + uip.width + base_unit
-        ut.money_entry("Local income:", tile.province.local_income, uip)
-        uip.x = uip.x + uip.width + base_unit
-        ut.money_entry("Local building upkeep:", tile.province.local_building_upkeep, uip)
-        uip.y = uip.y + base_unit
         init_state(base_unit)
 
         --- local market
@@ -146,31 +192,19 @@ return function(tile, ui_panel, base_unit)
         local consumption = tile.province.local_consumption
         local production = tile.province.local_production
 
-        uip.x = ui_panel.x
-        uip.width = ui_panel.width
-        uip.height = uip.height * 8
-        for good, amount in pairs(production) do
-            if data_blob[good] == nil then
-                data_blob[good] = {}
-                local data = trade_good(good)
-                data_blob[good].name = good
-                data_blob[good].icon = data.icon
-            end
-            data_blob[good].supply = amount
-            data_blob[good].balance = amount
-            data_blob[good].price = ev.get_local_price(tile.province, good)
-        end
-        for good, amount in pairs(consumption) do
-            if data_blob[good] == nil then
-                data_blob[good] = {}
-                local data = trade_good(good)
-                data_blob[good].name = good
-                data_blob[good].icon = data.icon
-            end
-            local old = data_blob[good].supply or 0
-            data_blob[good].balance = old - amount
-            data_blob[good].demand = amount
-            data_blob[good].price = ev.get_local_price(tile.province, good)
+        for good_reference, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+            local supply = production[good_reference] or 0
+            local demand = consumption[good_reference] or 0
+            data_blob[good_reference] = {
+                data = good,
+                name = good.name,
+                icon = good.icon,
+                supply = supply,
+                demand = demand,
+                balance = supply - demand,
+                stockpile = tile.province.local_storage[good_reference] or 0,
+                price = ev.get_local_price(tile.province, good_reference)
+            }
         end
 
         ui.table(uip, data_blob, columns, state)

@@ -97,9 +97,17 @@ function tb.draw(gam)
 			gam.click_callback = function() return end
 		end
 
+		-- portrait
+		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up')
+		if ui.invisible_button(portrait_rect) then
+			gam.selected_character = WORLD.player_character
+			gam.inspector = "character"
+		end
+		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
+
 		--- current character
 		
-		local character_panel = ui.rect(uit.BASE_HEIGHT * 0, uit.BASE_HEIGHT, 800, uit.BASE_HEIGHT)
+		local character_panel = ui.rect(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT, 800, uit.BASE_HEIGHT)
 		ui.panel(character_panel)
 		local layout = ui.layout_builder()
 			:position(character_panel.x, character_panel.y)
@@ -136,7 +144,7 @@ function tb.draw(gam)
 
 		-- COA + name
 		local layout = ui.layout_builder()
-			:position(0, 0)
+			:position(uit.BASE_HEIGHT * 2, 0)
 			:horizontal()
 			:build()
 

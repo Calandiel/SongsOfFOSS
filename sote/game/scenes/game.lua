@@ -868,6 +868,7 @@ function gam.draw()
 
 	-- Draw the top bar
 	tb.draw(gam)
+	require "game.scenes.game.inspectors.left-side-bar".draw(gam)
 
 	-- Debugging screen thingy in top left
 	local tt = require "engine.table"
@@ -907,6 +908,8 @@ function gam.draw()
 		click_success = require "game.scenes.game.inspector-reward-flag".mask()
 	elseif gam.inspector == 'reward-flag-edit' then
 		click_success = require "game.scenes.game.inspector-reward-flag-edit".mask()
+	elseif gam.inspector == 'market' then
+		click_success = require "game.scenes.game.inspectors.market".mask()
 	end
 
 	if gam.click_callback == nil then
@@ -947,6 +950,12 @@ function gam.draw()
 					else
 						gam.selected_realm = WORLD.tiles[new_clicked_tile].province.realm
 					end
+				end
+			elseif gam.inspector == "market" then
+				if gam.selected_province == gam.clicked_tile.province then
+					gam.inspector = 'tile'
+				else
+
 				end
 			else
 				gam.inspector = "tile"
@@ -1016,6 +1025,8 @@ function gam.draw()
 			require "game.scenes.game.building-inspector".draw(gam)
 		elseif gam.inspector == "war" then
 			require "game.scenes.game.war-inspector".draw(gam)
+		elseif gam.inspector == 'market' then
+			require "game.scenes.game.inspectors.market".draw(gam)
 		end
 	end
 
