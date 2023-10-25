@@ -15,7 +15,7 @@ function triggers.can_buy(character, good, amount)
     if province == nil then
         return false
     end
-    if province.local_storage[good] < amount then
+    if (province.local_storage[good] or 0) < amount then
         return false
     end
 
@@ -42,7 +42,7 @@ function triggers.can_sell(character, good, amount)
     if province == nil then
         return false
     end
-    if character.inventory[good] < amount then
+    if (character.inventory[good] or 0) < amount then
         return false
     end
 

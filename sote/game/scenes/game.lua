@@ -923,7 +923,7 @@ function gam.draw()
 	end
 
 	if click_detected and click_success then
-		if (gam.click_callback == nil) and (tb.mask(gam)) and not province_on_map_interaction then
+		if (gam.click_callback == nil) and ((tb.mask(gam) or require "game.scenes.game.inspectors.left-side-bar".mask())) and not province_on_map_interaction then
 			
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
@@ -952,11 +952,7 @@ function gam.draw()
 					end
 				end
 			elseif gam.inspector == "market" then
-				if gam.selected_province == gam.clicked_tile.province then
-					gam.inspector = 'tile'
-				else
 
-				end
 			else
 				gam.inspector = "tile"
 			end

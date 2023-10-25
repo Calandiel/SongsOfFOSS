@@ -5,6 +5,8 @@ local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
 local ev = require "game.raws.values.economical"
+local ef = require "game.raws.effects.economic"
+local et = require "game.raws.triggers.economy"
 
 ---@type TableState
 local state = nil
@@ -117,7 +119,7 @@ return function(tile, ui_panel, base_unit)
                 v = v
                 ut.money_entry("", v.price or 0, rect)
             end,
-            width = base_unit * 6,
+            width = base_unit * 4,
             value = function(k, v)
                 ---@type ItemData
                 v = v
@@ -129,9 +131,9 @@ return function(tile, ui_panel, base_unit)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.money_entry("", v.stockpile, rect)
+                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
             end,
-            width = base_unit * 6,
+            width = base_unit * 4,
             value = function(k, v)
                 ---@type ItemData
                 v = v
@@ -143,23 +145,35 @@ return function(tile, ui_panel, base_unit)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
+                local tooltip = "Shows diffence between price in your current position and selected one"
                 if WORLD.player_character then
                     local province = WORLD.player_character.province
                     if province then
                         local price_at_player = ev.get_local_price(province, v.name)
-                        ut.money_entry("", 
-                                        (v.price or 0) - price_at_player, 
-                                        rect, 
-                                        "Shows diffence between price in your current position and selected one"
+                        local data = 1
+                        if price_at_player == 0 and (v.price or 0) == 0 then
+                            data = 0
+                        elseif price_at_player == 0 then
+                            data = 99.99
+                        elseif (v.price or 0) == 0 then
+                            data = 0
+                        else
+                            data = ((v.price or 0) - price_at_player) / price_at_player
+                        end
+                        ut.color_coded_percentage(
+                                        data,
+                                        rect,
+                                        true,
+                                        tooltip
                         )
                     else
-                        ut.data_entry("", "Undefined", rect)
+                        ut.data_entry("", "???", rect, tooltip)
                     end
                 else
-                    ut.data_entry("", "Undefined", rect)
+                    ut.data_entry("", "???", rect, tooltip)
                 end
             end,
-            width = base_unit * 6,
+            width = base_unit * 4,
             value = function(k, v)
                 ---@type ItemData
                 v = v
@@ -168,7 +182,17 @@ return function(tile, ui_panel, base_unit)
                     local province = WORLD.player_character.province
                     if province then
                         local price_at_player = ev.get_local_price(province, v.name)
-                        return (v.price or 0) - price_at_player
+                        data = 1
+                        if price_at_player == 0 and (v.price or 0) == 0 then
+                            data = 1
+                        elseif price_at_player == 0 then
+                            data = 99.99
+                        elseif (v.price or 0) == 0 then
+                            data = 0
+                        else
+                            data = ((v.price or 0) - price_at_player) / price_at_player
+                        end
+                        return data
                     else 
                         return 0
                     end
@@ -176,7 +200,47 @@ return function(tile, ui_panel, base_unit)
                     return 0
                 end
             end
-        }
+        },
+        {
+            header = 'Buy 1',
+            render_closure = function (rect, k, v)
+                local player_character = WORLD.player_character
+                if player_character 
+                    and player_character.province == tile.province 
+                    and et.can_buy(player_character, v.name, 1) 
+                    and ui.text_button('+', rect) 
+                then
+                    ef.buy(player_character, v.name, 1)
+                end
+            end,
+            width = base_unit * 2,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.name
+            end,
+            active = true
+        },
+        {
+            header = 'Sell 1',
+            render_closure = function (rect, k, v)
+                local player_character = WORLD.player_character
+                if player_character 
+                    and player_character.province == tile.province 
+                    and et.can_sell(player_character, v.name, 1) 
+                    and ui.text_button('-', rect) 
+                then
+                    ef.sell(player_character, v.name, 1)
+                end
+            end,
+            width = base_unit * 2,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.name
+            end,
+            active = true
+        },
     }
 
 
