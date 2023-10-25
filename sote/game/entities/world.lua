@@ -5,6 +5,8 @@ local decide = require "game.ai.decide"
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
+local tabb = require "engine.table"
+
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
@@ -44,9 +46,6 @@ local utils       = require "game.ui-utils"
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
----@field does_player_control_realm fun(self:World, realm:Realm?):boolean
----@field does_player_see_realm_news fun(self:World, realm:Realm):boolean
----@field does_player_see_province_news fun(self:World, realm:Province?):boolean
 ---@field base_visibility fun(self:World, size: number):number
 
 ---@class World
@@ -565,10 +564,16 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 	self.treasury_effects:enqueue(effect)
 end
 
+---comment
+---@param realm Realm
+---@return boolean
 function world.World:does_player_control_realm(realm)
 	return (realm ~= nil) and (self.player_character == realm.leader) and (self.player_character ~= nil)
 end
 
+---comment
+---@param realm Realm
+---@return boolean
 function world.World:does_player_see_realm_news(realm)
 	if self.player_character == nil then
 		return false
@@ -576,6 +581,9 @@ function world.World:does_player_see_realm_news(realm)
 	return (self.player_character.realm == realm)
 end
 
+---comment
+---@param province Province
+---@return boolean
 function world.World:does_player_see_province_news(province)
 	if self.player_character == nil then
 		return false

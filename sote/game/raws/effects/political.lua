@@ -1,7 +1,11 @@
 local tabb = require "engine.table"
 
+local pop = require "game.entities.pop"
+
 local ranks = require "game.raws.ranks.character_ranks"
 local PoliticalValues = require "game.raws.values.political"
+
+local TRAIT = require "game.raws.traits.generic"
 
 PoliticalEffects = {}
 
@@ -33,6 +37,53 @@ function PoliticalEffects.coup(character)
     end
 
     return false
+end
+
+---comment
+---@param character Character
+local function roll_traits(character)
+    if love.math.random() > 0.85 then
+		character.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
+	end
+
+	if love.math.random() > 0.7 then
+		character.traits[TRAIT.GREEDY] = TRAIT.GREEDY
+	end
+
+	if love.math.random() > 0.9 then
+		character.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
+	else
+		if love.math.random() > 0.7 then
+			character.traits[TRAIT.TRADER] = TRAIT.TRADER
+		end
+	end
+
+	if love.math.random() > 0.7 and not character.traits[TRAIT.AMBITIOUS] then
+		character.traits[TRAIT.LOYAL] = TRAIT.LOYAL
+	end
+
+	if love.math.random() > 0.7 and not character.traits[TRAIT.AMBITIOUS] then
+		character.traits[TRAIT.CONTENT] = TRAIT.CONTENT
+	end
+
+	local organiser_roll = love.math.random()
+
+	if organiser_roll < 0.1 then
+		character.traits[TRAIT.BAD_ORGANISER] = TRAIT.BAD_ORGANISER
+	elseif organiser_roll < 0.9 then
+		-- do nothing ...
+	else
+		character.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
+	end
+
+	local laziness_roll = love.math.random()
+	if laziness_roll < 0.1 then
+		character.traits[TRAIT.LAZY] = TRAIT.LAZY
+	elseif laziness_roll < 0.9 then
+		-- do nothing ...
+	else
+		character.traits[TRAIT.HARDWORKER] = TRAIT.HARDWORKER
+	end
 end
 
 
@@ -192,7 +243,10 @@ function PoliticalEffects.grant_nobility(pop, province)
 
     pop.province = province
     pop.realm = province.realm
+    pop.rank = ranks.NOBLE
     pop.popularity[province.realm] = 0.1
+
+    roll_traits(pop)
 
     if WORLD:does_player_see_province_news(province) then
         WORLD:emit_notification(pop.name .. " was granted nobility.")
@@ -210,6 +264,25 @@ function PoliticalEffects.grant_nobility_to_random_pop(province)
     end
 
     return pop
+end
+
+---comment
+---@param race Race
+---@param faith Faith
+---@param culture Culture
+---@return Character
+function PoliticalEffects.generate_new_noble(race, faith, culture)
+	local character = pop.POP:new(
+        race, 
+        faith, 
+        culture,
+        love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
+        love.math.random(race.adult_age, race.max_age)
+    )
+    character.rank = ranks.NOBLE
+
+    roll_traits(character)
+	return character
 end
 
 return PoliticalEffects

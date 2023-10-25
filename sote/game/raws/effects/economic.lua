@@ -290,7 +290,7 @@ function EconomicEffects.buy(character, good, amount)
 
     -- print('!!! BUY')
 
-    if WORLD:does_player_see_realm_news(province.realm) then
+    if WORLD:does_player_see_province_news(province) then
         WORLD:emit_notification("Trader " .. character.name .. " bought " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
     end
 
@@ -319,7 +319,7 @@ function EconomicEffects.sell(character, good, amount)
 
     -- print('!!! SELL')
 
-    if WORLD:does_player_see_realm_news(province.realm) then
+    if WORLD:does_player_see_province_news(province) then
         WORLD:emit_notification("Trader " .. character.name .. " sold " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
     end
     return true

@@ -7,74 +7,10 @@ local tabb = require "engine.table"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
 
+local pe = require "game.raws.effects.political"
+
 local st = {}
 
-local function generate_test_army(x, race, faith, culture, capitol)
-	local warband = require "game.entities.warband":new()
-	for i = 1, x do
-		local army_pop = require "game.entities.pop".POP:new(race, faith, culture, true, 20)
-		local unit_type = RAWS_MANAGER.unit_types_by_name['raiders']
-		warband.pops[army_pop] = capitol
-		warband.units[army_pop] = unit_type
-	end
-	local army = require "game.entities.army":new()
-	army.warbands[warband] = warband
-	return army
-end
-
-
-local function make_new_noble(race, faith, culture)
-	local contender = pop.POP:new(race, faith, culture,
-	love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-	love.math.random(race.adult_age, race.max_age))
-
-	if love.math.random() > 0.85 then
-		contender.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
-	end
-
-	if love.math.random() > 0.7 then
-		contender.traits[TRAIT.GREEDY] = TRAIT.GREEDY
-	end
-
-	if love.math.random() > 0.9 then
-		contender.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
-	else
-		if love.math.random() > 0.7 then
-			contender.traits[TRAIT.TRADER] = TRAIT.TRADER
-		end
-	end
-
-	if love.math.random() > 0.7 and not contender.traits[TRAIT.AMBITIOUS] then
-		contender.traits[TRAIT.LOYAL] = TRAIT.LOYAL
-	end
-
-	if love.math.random() > 0.7 and not contender.traits[TRAIT.AMBITIOUS] then
-		contender.traits[TRAIT.CONTENT] = TRAIT.CONTENT
-	end
-
-	local organiser_roll = love.math.random()
-
-	if organiser_roll < 0.1 then
-		contender.traits[TRAIT.BAD_ORGANISER] = TRAIT.BAD_ORGANISER
-	elseif organiser_roll < 0.9 then
-		-- do nothing ...
-	else
-		contender.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
-	end
-
-	local laziness_roll = love.math.random()
-	if laziness_roll < 0.1 then
-		contender.traits[TRAIT.LAZY] = TRAIT.LAZY
-	elseif laziness_roll < 0.9 then
-		-- do nothing ...
-	else
-		contender.traits[TRAIT.HARDWORKER] = TRAIT.HARDWORKER
-	end
-
-	contender.rank = ranks.NOBLE
-
-	return contender
-end
 
 ---Makes a new realm, one province large.
 ---@param race Race
@@ -122,7 +58,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	end
 
 	-- spawn leader
-	local elite_character = make_new_noble(race, faith, culture)
+	local elite_character = pe.generate_new_noble(race, faith, culture)
 	elite_character.popularity[r] = elite_character.age / 10
 	capitol:add_character(elite_character)
 	r.leader = elite_character
@@ -132,7 +68,7 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 5 + 1 do
-		local contender = make_new_noble(race, faith, culture)
+		local contender = pe.generate_new_noble(race, faith, culture)
 		contender.popularity[r] = contender.age / 15
 		contender.realm = r
 		capitol:add_character(contender)
