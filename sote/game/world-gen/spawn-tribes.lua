@@ -38,6 +38,10 @@ local function make_new_noble(race, faith, culture)
 
 	if love.math.random() > 0.9 then
 		contender.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
+	else
+		if love.math.random() > 0.7 then
+			contender.traits[TRAIT.TRADER] = TRAIT.TRADER
+		end
 	end
 
 	if love.math.random() > 0.7 and not contender.traits[TRAIT.AMBITIOUS] then

@@ -34,8 +34,6 @@ local utils       = require "game.ui-utils"
 ---@field entity_counter number -- a global counter for entities...
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
----@field emit_event fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number|nil)
----@field emit_action fun(self:World, event:string, root:Character, associated_data:table|nil, delay: number, hidden: boolean)
 ---@field emit_immediate_event fun(self:World, event:string, target:Character, associated_data:table|nil)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
@@ -213,6 +211,10 @@ end
 ---@param delay number In days
 ---@param hidden boolean
 function world.World:emit_action(event, root, associated_data, delay, hidden)
+	if root == nil then
+		error("Cannot emit an action without a root!")
+	end
+
 	---@type ActionData
 	local action_data = {
 		event,
@@ -568,6 +570,9 @@ function world.World:does_player_control_realm(realm)
 end
 
 function world.World:does_player_see_realm_news(realm)
+	if self.player_character == nil then
+		return false
+	end
 	return (self.player_character.realm == realm)
 end
 

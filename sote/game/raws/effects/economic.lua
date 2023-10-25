@@ -1,3 +1,5 @@
+local ut = require "game.ui-utils"
+
 local ev = require "game.raws.values.economical"
 local et = require "game.raws.triggers.economy"
 local traits = require "game.raws.traits.generic"
@@ -285,6 +287,13 @@ function EconomicEffects.buy(character, good, amount)
     province.local_wealth = province.local_wealth + cost
     character.inventory[good] = (character.inventory[good] or 0) + amount
     province.local_storage[good] = (province.local_storage[good] or 0) - amount
+
+    -- print('!!! BUY')
+
+    if WORLD:does_player_see_realm_news(province.realm) then
+        WORLD:emit_notification("Trader " .. character.name .. " bought " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
+    end
+
     return true
 end
 
@@ -307,6 +316,12 @@ function EconomicEffects.sell(character, good, amount)
     province.local_wealth = province.local_wealth - cost
     character.inventory[good] = (character.inventory[good] or 0) - amount
     province.local_storage[good] = (province.local_storage[good] or 0) + amount
+
+    -- print('!!! SELL')
+
+    if WORLD:does_player_see_realm_news(province.realm) then
+        WORLD:emit_notification("Trader " .. character.name .. " sold " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
+    end
     return true
 end
 

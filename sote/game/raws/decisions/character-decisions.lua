@@ -501,6 +501,87 @@ local function load()
 			WORLD:emit_immediate_event('attempt-coup', root)
 		end
 	}
+
+	
+	Decision.Character:new {
+		name = 'buy-something',
+		ui_name = "Buy some goods",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+            return "Buy some goods on the local market"
+        end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.8 , -- Almost every month
+		pretrigger = function(root)
+			-- if root == WORLD.player_character then
+			-- 	return false
+			-- end
+			if root.savings < 5 then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root)
+			return true
+		end,
+		available = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1/2 ---try to buy something every second month
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			WORLD:emit_immediate_event('buy-goods', root, nil)
+		end
+	}
+
+	Decision.Character:new {
+		name = 'sell-something',
+		ui_name = "Sell some goods",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+            return "Sell some goods on the local market"
+        end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.8 , -- Almost every month
+		pretrigger = function(root)
+			-- if root == WORLD.player_character then
+			-- 	return false
+			-- end
+			if root.savings < 5 then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root)
+			return true
+		end,
+		available = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1/2 ---try to sell something every second month
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			WORLD:emit_immediate_event('sell-goods', root, nil)
+		end
+	}
 end
 
 return load
