@@ -77,7 +77,7 @@ function rea.run(realm)
 								/ amount_of_provinces
 
 				province.local_storage[resource_reference] = math.max(0, old + siphon) * 0.999
-				realm.resources[resource_reference] = realm.resources[resource_reference] - siphon
+				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
 			end
 		end
 	end

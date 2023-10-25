@@ -127,6 +127,7 @@ function prov.Province:new()
 	o.local_resources = {}
 	o.local_production = {}
 	o.local_consumption = {}
+	o.local_storage = {}
 	o.local_wealth = 0
 	o.local_income = 0
 	o.local_building_upkeep = 0

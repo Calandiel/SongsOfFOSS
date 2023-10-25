@@ -11,6 +11,10 @@ local scroll = 0
 ---@param selected_decision any
 ---@return DecisionCharacter?, any, any
 return function(rect, decision_type, primary_target, selected_decision)
+    if WORLD.player_character == nil then
+        return
+    end
+
     -- love.graphics.print("Decision selection", rect.x, rect.y)
     local total = 0
     local valid = 0
