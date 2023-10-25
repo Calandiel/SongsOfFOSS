@@ -48,17 +48,23 @@ function re.draw(gam)
 		local ui_panel = panel:subrect(5, uit.BASE_HEIGHT * 2, panel.width - 10, panel.height - 10 - uit.BASE_HEIGHT * 2,
 			"left", 'up')
 		gam.realm_inspector_tab = gam.realm_inspector_tab or "GEN"
+
+		local treasury_tab = nil
+		if WORLD.player_character == realm.leader then
+			treasury_tab = {
+				text = "TRE",
+				tooltip = "Realm treasury",
+				closure = require "game.scenes.game.inspectors.treasury"(ui_panel, realm)
+			}
+		end
+		
 		local tabs = {
 			{
 				text = "GEN",
 				tooltip = "General",
 				closure = require "game.scenes.game.inspectors.realm-general"(ui_panel, realm, gam)
 			},
-			{
-				text = "TRE",
-				tooltip = "Realm treasury",
-				closure = require "game.scenes.game.inspectors.treasury"(ui_panel, realm)
-			},
+			treasury_tab,
 			{
 				text = "STO",
 				tooltip = "Stockpiles",
@@ -244,16 +250,6 @@ function re.draw(gam)
 						, a,
 						"A percentage value. Endowment present over endowment needed")
 					a.y = a.y + uit.BASE_HEIGHT
-				end
-			},
-			{
-				text = "DEC",
-				tooltip = "Decisions",
-				on_select = function()
-					gam.reset_decision_selection()
-				end,
-				closure = function()
-					require "game.scenes.game.widgets.decision-tab" (ui_panel, nil, 'none', gam)
 				end
 			},
 			{

@@ -44,6 +44,18 @@ function window.draw(game, realm)
 
     panel.y = panel.y + base_unit * 2.5
 
+    local treasury_tab = nil
+
+    if WORLD.player_character.rank == require "game.raws.ranks.character_ranks".CHIEF then
+        treasury_tab = {
+            text = "Treasury",
+            tooltip = "Realm treasury ledger",
+            closure = function() 
+                scroll_realm = require "game.scenes.game.widgets.treasury-ledger"(panel, 'realm', scroll_realm, base_unit)
+            end
+        }
+    end
+
     window.current_tab = ut.tabs(window.current_tab, layout, {
         {
             text = "Character",
@@ -52,13 +64,7 @@ function window.draw(game, realm)
                 scroll_character = require "game.scenes.game.widgets.treasury-ledger"(panel, 'character', scroll_character, base_unit)
             end
         },
-        {
-            text = "Treasury",
-            tooltip = "Realm treasury ledger",
-            closure = function() 
-                scroll_realm = require "game.scenes.game.widgets.treasury-ledger"(panel, 'realm', scroll_realm, base_unit)
-            end
-        },
+        treasury_tab,
         {
             text = "News",
             tooltip = "Recent news of the realm",

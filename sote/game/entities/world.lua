@@ -11,7 +11,6 @@ local utils       = require "game.ui-utils"
 ---@alias Notification string
 
 ---@class World
----@field player_realm Realm?
 ---@field player_character Character?
 ---@field player_province Province?
 ---@field sub_hourly_tick number
@@ -87,7 +86,6 @@ function world.World:new()
 	w.day = 0
 	w.month = 0
 	w.year = 0
-	w.player_realm = nil
 	w.pending_player_event_reaction = false
 	w.notification_queue = require "engine.queue":new()
 	w.events_queue = require "engine.queue":new()
@@ -196,14 +194,22 @@ function world.World:emit_immediate_event(event, root, associated_data)
 	self.events_queue:enqueue_front({
 		event, root, associated_data
 	})
-
 	self:event_tick(event, root, associated_data)
+end
+
+---comment
+---@param event string
+---@param root POP
+---@param associated_data table?
+function world.World:emit_immediate_action(event, root, associated_data)
+	local event = RAWS_MANAGER.events_by_name[event]
+	event:on_trigger(root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event string
 ---@param root Character
----@param associated_data table
+---@param associated_data table?
 ---@param delay number In days
 ---@param hidden boolean
 function world.World:emit_action(event, root, associated_data, delay, hidden)
@@ -562,7 +568,7 @@ function world.World:does_player_control_realm(realm)
 end
 
 function world.World:does_player_see_realm_news(realm)
-	return (self.player_realm == realm) and (self.player_realm ~= nil)
+	return (self.player_character.realm == realm)
 end
 
 function world.World:does_player_see_province_news(province)

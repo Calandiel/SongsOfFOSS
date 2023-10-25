@@ -37,6 +37,7 @@ end
 ---@field balance number
 ---@field price number
 ---@field stockpile number
+---@field inventory number
 
 ---comment
 ---@param tile Tile
@@ -182,7 +183,7 @@ return function(tile, ui_panel, base_unit)
                     local province = WORLD.player_character.province
                     if province then
                         local price_at_player = ev.get_local_price(province, v.name)
-                        data = 1
+                        local data = 1
                         if price_at_player == 0 and (v.price or 0) == 0 then
                             data = 1
                         elseif price_at_player == 0 then
@@ -241,6 +242,20 @@ return function(tile, ui_panel, base_unit)
             end,
             active = true
         },
+        {
+            header = 'your',
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                ut.data_entry("", ut.to_fixed_point2(v.inventory), rect)
+            end,
+            width = base_unit * 4,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.inventory
+            end
+        },
     }
 
 
@@ -256,9 +271,15 @@ return function(tile, ui_panel, base_unit)
         local consumption = tile.province.local_consumption
         local production = tile.province.local_production
 
+        local character = WORLD.player_character
+
         for good_reference, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
             local supply = production[good_reference] or 0
             local demand = consumption[good_reference] or 0
+            local inventory = 0
+            if character then
+                inventory = character.inventory[good_reference] or 0
+            end
             data_blob[good_reference] = {
                 data = good,
                 name = good.name,
@@ -267,7 +288,8 @@ return function(tile, ui_panel, base_unit)
                 demand = demand,
                 balance = supply - demand,
                 stockpile = tile.province.local_storage[good_reference] or 0,
-                price = ev.get_local_price(tile.province, good_reference)
+                price = ev.get_local_price(tile.province, good_reference),
+                inventory = inventory
             }
         end
 
