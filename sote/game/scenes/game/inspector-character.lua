@@ -86,16 +86,12 @@ function window.draw(game, character)
     ui.left_text(sex .. ' ' .. character.race.name, age_panel)
     ui.right_text('age: ' .. character.age, age_panel)
 
-    ui.panel(wealth_panel)
-    ui.panel(popularity_panel)
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
 
     local popularity = pv.popularity(character, character.province.realm)
     ut.data_entry_icon('duality-mask.png', ut.to_fixed_point2(popularity), popularity_panel, "Popularity")
 
-    ui.panel(faith_panel)
     ut.data_entry("", character.faith.name, faith_panel, "Faith")
-    ui.panel(culture_panel)
     ut.data_entry("", character.culture.name, culture_panel, "Culture")
 
     ui.panel(traits_panel)

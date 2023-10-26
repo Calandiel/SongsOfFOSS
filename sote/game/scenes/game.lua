@@ -529,20 +529,8 @@ function gam.draw()
 				if (tile.is_land and province_visible) then
 					local rect = ui.rect(x - size / 2, y - size / 2, size, size)
 					if tile.province.realm and tile.province.center == tile then
-						ui.image(ASSETS.get_icon('village.png'), rect)
-						local name_width = size * 3
-						local name_rect = ui.rect(x - size / 5, y - size / 2 - 50, name_width, size / 2)
-						local population_rect = ui.rect(x - size / 5, y - 50, name_width, size / 2)				
-						local button_rect = ui.rect(x - size / 5 + name_width, y - size / 2 - 50, size, size)
-						local line_rect = ui.rect(x - 1, y - 50 + size / 2, 2, 50 - size / 2)			
-						ui.rectangle(line_rect)
-						local population = tile.province:population()
-						ui.name_panel(tile.province.name, name_rect)
-						ui.field_panel(tostring(population), population_rect)
-						if WORLD.player_character then
-							if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
-								gam.click_callback = callback.toggle_raiding_target(gam, tile.province)
-							end
+						if require "game.scenes.game.widgets.province-on-map" (gam, tile, rect, x, y, size) then
+							gam.click_callback = callback.nothing()
 						end
 					elseif tile.resource then
 						ui.image(ASSETS.get_icon(tile.resource.icon), rect)

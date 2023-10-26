@@ -142,15 +142,15 @@ function tb.draw(gam)
 			:horizontal()
 			:build()
 
-		if uit.coa(character.province.realm, layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)) then
-			print("Player COA Clicked")
-			gam.inspector = "realm"
-			gam.selected_realm = character.province.realm
-			---@type Tile
-			local captile = tabb.nth(character.province.realm.capitol.tiles, 1)
-			gam.click_tile(captile.tile_id)
-		end
-		ui.left_text(character.province.realm.name, layout:next(uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT))
+		require "game.scenes.game.widgets.realm-name"(
+			gam, 
+			character.province.realm, 
+			uit.BASE_HEIGHT, 
+			layout:next(
+				uit.BASE_HEIGHT * 7, 
+				uit.BASE_HEIGHT
+			)
+		)
 
 		-- Treasury
 		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
@@ -180,11 +180,7 @@ function tb.draw(gam)
 		local amount = character.province.realm:get_education_efficiency()
 		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		local trs = "Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
-		ui.image(ASSETS.icons['erlenmeyer.png'], tr)
-		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		uit.color_coded_percentage(amount, trt)
-		ui.tooltip(trs, trt)
+		uit.generic_number_field('erlenmeyer.png', amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 
 		-- Happiness
 		local amount = character.province.realm:get_average_mood()
