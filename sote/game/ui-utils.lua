@@ -4,7 +4,8 @@ local ut = {}
 
 
 ut.BASE_HEIGHT = 20
-ut.DATA_PADDING = 5
+ut.BORDER_PADDING = 1
+ut.DATA_PADDING = 2
 
 ---@class Entry
 ---@field weight number
@@ -90,23 +91,160 @@ function ut.rows(rows, rect, row_height, spacing)
 	end
 end
 
+---@enum NumberMode
+ut.NUMBER_MODE = {
+	MONEY = 1,
+	BALANCE = 3,
+	NUMBER = 4,
+	PERCENTAGE = 6,
+}
+
+---@enum NameMode
+ut.NAME_MODE = {
+	NAME = 1,
+	ICON = 2,
+}
+
+---comment
+---@param number number
+---@param rect Rect
+---@param negative boolean
+local function render_money(number, rect, negative)
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
+	if number < 0 and not negative or number > 0 and negative then
+		r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, 1, 1)
+	end
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text(ut.to_fixed_point2(number) .. MONEY_SYMBOL, rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+
+---comment
+---@param number number
+---@param rect Rect
+---@param negative boolean
+local function render_balance(number, rect, negative)
+	local cr, cg, cb, ca = love.graphics.getColor()
+
+	local h = math.atan(number / 100) / math.pi * 120 + 60
+	if negative then
+		h = math.atan(-number / 100) / math.pi * 120 + 60
+	end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text(ut.to_fixed_point2(number), rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+local function render_percentage(number, rect, negative)
+	local hue = math.min(number * 120, 359)
+	if negative then
+		hue = math.max(0, 120 - number * 120)
+	end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text( tostring(math.floor(number * 100 + 0.5)) .. '%', rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+---comment
+---@param name_or_icon string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param mode NumberMode
+---@param name_mode NameMode
+---@param negative boolean?
+function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_mode, negative)
+	if negative == nil then
+		negative = false
+	end
+
+	-- padded border
+	rect = rect:copy():shrink(ut.BORDER_PADDING)
+	ui.panel(rect, 3)
+
+	-- padded data
+	rect = rect:copy():shrink(ut.DATA_PADDING)
+
+	-- name or icon
+	if name_mode == ut.NAME_MODE.NAME then
+		ui.left_text(name_or_icon, rect)
+	elseif name_mode == ut.NAME_MODE.ICON then
+		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+		ui.image(ASSETS.icons[name_or_icon], icon_rect)
+	end
+
+	-- data
+	if mode == ut.NUMBER_MODE.MONEY then
+		render_money(data, rect, negative)
+	elseif mode == ut.NUMBER_MODE.BALANCE then
+		render_balance(data, rect, negative)
+	elseif mode == ut.NUMBER_MODE.NUMBER then
+		ui.right_text(ut.to_fixed_point2(data), rect)
+	elseif mode == ut.NUMBER_MODE.PERCENTAGE then
+		render_percentage(data, rect, negative)
+	end
+
+	-- tooltip
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+end
+
+---comment
+---@param name_or_icon string
+---@param data string
+---@param rect Rect
+---@param tooltip string?
+---@param name_mode NameMode
+function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode)
+	rect = rect:copy():shrink(ut.BORDER_PADDING)
+	ui.panel(rect, 3)
+	rect = rect:shrink(ut.DATA_PADDING)
+
+	if name_mode == ut.NAME_MODE.NAME then
+		ui.left_text(name_or_icon, rect)
+	elseif name_mode == ut.NAME_MODE.ICON then
+		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+		ui.image(ASSETS.icons[name_or_icon], icon_rect)
+	end
+
+	ui.right_text(data, rect)
+
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+end
+
+
 ---Draws a data field
 ---@param name string
 ---@param data string
 ---@param rect Rect
 ---@param tooltip string?
 function ut.data_entry(name, data, rect, tooltip)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
+	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME)	
+end
 
-	ui.left_text(name, rect)
-
-	ut.data_font()
-	ui.right_text(data, rect)
-	ut.main_font()
-
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
+---Draws a data field with icon
+---@param icon string
+---@param data string
+---@param rect Rect
+---@param tooltip string?
+function ut.data_entry_icon(icon, data, rect, tooltip)
+	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON)
 end
 
 ---@param name string
@@ -115,28 +253,17 @@ end
 ---@param tooltip string?
 ---@param negative boolean?
 function ut.money_entry(name, data, rect, tooltip, negative)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-
-	if negative == nil then
-		negative = false
-	end
-
-	ui.left_text(name, rect)
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
-	if data < 0 and not negative or data > 0 and negative then
-		r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, 1, 1)
-	end
-	local cr, cg, cb, ca = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, a)
-	ut.data_font()
-	ui.right_text(ut.to_fixed_point2(data) .. MONEY_SYMBOL, rect)
-	ut.main_font()
-	love.graphics.setColor(cr, cg, cb, ca)
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.NAME, negative)
 end
 
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+function ut.count_entry(name, data, rect, tooltip, negative)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.NUMBER, ut.NAME_MODE.NAME, negative)
+end
 
 ---@param name string
 ---@param data number
@@ -144,41 +271,8 @@ end
 ---@param tooltip string?
 ---@param negative boolean?
 function ut.balance_entry(name, data, rect, tooltip, negative)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-
-	if negative == nil then
-		negative = false
-	end
-
-	ui.left_text(name, rect)
-	local cr, cg, cb, ca = love.graphics.getColor()
-
-	local h = math.atan(data / 100) / math.pi * 120 + 60
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
-	love.graphics.setColor(r, g, b, a)
-	ut.data_font()
-	ui.right_text(ut.to_fixed_point2(data), rect)
-	ut.main_font()
-	love.graphics.setColor(cr, cg, cb, ca)
-
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.BALANCE, ut.NAME_MODE.NAME, negative)
 end
-
-
----Draws a data field with icon
----@param icon string
----@param data string
----@param rect Rect
----@param tooltip string?
-function ut.data_entry_icon(icon, data, rect, tooltip)
-	local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
-	-- local data_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height, "right", "center")
-	ui.image(ASSETS.icons[icon], icon_rect)
-	ut.data_entry("", data, rect, tooltip)
-end
-
 
 ---Draws a money field with icon
 ---@param data number
@@ -186,11 +280,8 @@ end
 ---@param tooltip string
 ---@param negative boolean?
 function ut.money_entry_icon(data, rect, tooltip, negative)
-	local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
-	ui.image(ASSETS.icons['coins.png'], icon_rect)
-	ut.money_entry("", data, rect, tooltip, negative)
+	ut.generic_number_field('coins.png', data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.ICON, negative)
 end
-
 
 ---Draws a data field
 ---@param name string
@@ -199,14 +290,7 @@ end
 ---@param tooltip string?
 ---@param positive boolean? Is big number good?
 function ut.data_entry_percentage(name, data, rect, tooltip, positive)
-	if positive == nil then
-		positive = true
-	end
-
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-	ui.left_text(name, rect)
-	rect:shrink(-5)
-	ut.color_coded_percentage(data, rect, positive, tooltip)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive)
 end
 
 ---Renders a color coded percentage
@@ -215,28 +299,9 @@ end
 ---@param positive boolean?
 ---@param tooltip string?
 function ut.color_coded_percentage(value, rect, positive, tooltip)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-
-	if positive == nil then
-		positive = true
-	end
-
-	local hue = math.min(value * 120, 359)
-	if not positive then
-		hue = math.max(0, 120 - value * 120)
-	end
-
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
-	local cr, cg, cb, ca = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, a)
-	ut.data_font()
-	ui.right_text( tostring(math.floor(value * 100 + 0.5)) .. '%', rect)
-	ut.main_font()
-	love.graphics.setColor(cr, cg, cb, ca)
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
+	ut.generic_number_field("", value, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive)
 end
+
 
 function ut.reload_font()
 	ASSETS.main_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))

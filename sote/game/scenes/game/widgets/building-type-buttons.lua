@@ -119,10 +119,16 @@ return function (gam, rect, base_unit, building_type, tile, tile_improvement_fla
     r.width = r.width - base_unit * 4
 
     if building_type.tile_improvement then
-        ui.left_text(building_type.name, r)
-        uit.color_coded_percentage(building_type.production_method:get_efficiency(tile), r)
+        uit.generic_number_field(
+            building_type.name, 
+            building_type.production_method:get_efficiency(tile),
+            r,
+            nil,
+            uit.NUMBER_MODE.PERCENTAGE,
+            uit.NAME_MODE.NAME
+        )
     else
-        ui.left_text(building_type.name, r)
+        uit.data_entry(building_type.name, "", r)
     end
 
     r.x = r.x + r.width

@@ -103,16 +103,13 @@ function re.draw(gam)
 						function(rect)
 							uit.rows({
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Car. cap.: ", tostring(math.floor(tile.province.foragers_limit)), rect, "Carrying capacity")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Hydration:", tostring(math.floor(100 * tile.province.hydration) / 100), rect,
 										"Number of humans that can survive of off natural water resources.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local rr = "n/a"
 									if tile.resource then
 										rr = tile.resource.name
@@ -147,12 +144,10 @@ function re.draw(gam)
 						function(rect)
 							uit.rows({
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Mov. cost: ", tostring(math.floor(tile.province.movement_cost)), rect,
 										"Movement cost, in hours")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Mood: ", tostring(math.floor(tile.province.mood * 100) / 100), rect,
 										"How positive of an outlook an average person in this province has about the future. Influences everything from sub-province decision making to voluntary contributions.")
 								end
@@ -162,39 +157,32 @@ function re.draw(gam)
 							local lat, lon = tile:latlon()
 							uit.rows({
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Latitude: ", tostring(math.floor(lat * 100) / 100), rect,
 										"In radians")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Longitude: ", tostring(math.floor(lon * 100) / 100), rect,
 										"In radians")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Size: ", tostring(tabb.size(tile.province.tiles)), rect, "In tiles")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local visibility = WORLD:base_visibility(1)
 									uit.data_entry_percentage("Spotting (1): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 1 human raider.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local visibility = WORLD:base_visibility(10)
 									uit.data_entry_percentage("Spotting (10): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 10 human raiders.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local visibility = WORLD:base_visibility(50)
 									uit.data_entry_percentage("Spotting (50): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 50 human raiders.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Hiding space: ", tostring(math.floor(tile.province:get_hiding() * 100) / 100), rect,
 										"The weighted amount of land that can be hidden in. Expressed as an equivalent number of grassland tiles.")
 								end
@@ -580,7 +568,8 @@ function re.draw(gam)
 										local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 										ui.image(ASSETS.icons[building_type.icon], im)
 										rect.x = rect.x + base_unit
-										ui.left_text(building_type.name .. " (" .. tostring(amount) .. ")", rect)
+
+										uit.count_entry(building_type.name, amount or 1, rect)
 									end
 								end, base_unit, tabb.size(stacks), base_unit,
 									re.buildings_scrollbar)

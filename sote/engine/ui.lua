@@ -376,7 +376,8 @@ end
 
 ---Draws a filled rectangle using love.graphics.rectangle
 ---@param rect Rect
-function ui.rectangle(rect)
+---@param radius number?
+function ui.rectangle(rect, radius)
 	local x = rect.x
 	local y = rect.y
 	local width = rect.width
@@ -387,13 +388,16 @@ function ui.rectangle(rect)
 		x * scale_x,
 		y * scale_y,
 		width * scale_x,
-		height * scale_y
+		height * scale_y,
+		radius or 0,
+		radius or 0
 	)
 end
 
 ---Draws an outline using love.graphics.rectangle
 ---@param rect Rect
-function ui.outline(rect)
+---@param radius number?
+function ui.outline(rect, radius)
 	local x = rect.x
 	local y = rect.y
 	local width = rect.width
@@ -404,7 +408,9 @@ function ui.outline(rect)
 		x * scale_x,
 		y * scale_y,
 		width * scale_x,
-		height * scale_y
+		height * scale_y,
+		radius or 0,
+		radius or 0
 	)
 end
 
@@ -767,11 +773,12 @@ end
 
 ---Renders a panel, using the default style
 ---@param rect Rect
-function ui.panel(rect)
+---@param radius number?
+function ui.panel(rect, radius)
 	set_color(ui.style.panel_inside)
-	ui.rectangle(rect)
+	ui.rectangle(rect, radius)
 	set_color(ui.style.panel_outline)
-	ui.outline(rect)
+	ui.outline(rect, radius)
 	set_color(ui.style.reset_color)
 end
 
