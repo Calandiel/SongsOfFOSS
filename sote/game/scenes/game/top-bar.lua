@@ -188,34 +188,22 @@ function tb.draw(gam)
 
 		-- Happiness
 		local amount = character.province.realm:get_average_mood()
-		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
-		ui.image(ASSETS.icons['duality-mask.png'], tr)
-		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		ui.right_text(uit.to_fixed_point2(amount), trt)
-		ui.tooltip(trs, trt)
+		uit.data_entry_icon('duality-mask.png', uit.to_fixed_point2(amount), tr, trs)
 
 		-- POP
 		local amount = character.province.realm:get_total_population()
-		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Current population of our realm."
-		ui.image(ASSETS.icons['minions.png'], tr)
-		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		ui.right_text(tostring(math.floor(amount)), trt)
-		ui.tooltip(trs, trt)
+		uit.data_entry_icon('minions.png', tostring(math.floor(amount)), tr, trs)
 
 		-- Army size
 		local amount = character.province.realm:get_realm_military()
 		local target = character.province.realm:get_realm_military_target() + character.province.realm:get_realm_active_army_size()
-		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Size of our realms armies."
-		ui.image(ASSETS.icons['barbute.png'], tr)
-		ui.tooltip(trs, tr)
-		local trt = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
-		ui.right_text(tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), trt)
-		ui.tooltip(trs, trt)
+		uit.data_entry_icon('barbute.png', tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), tr, trs)
 	end
 end
 

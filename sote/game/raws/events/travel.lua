@@ -69,17 +69,30 @@ local function load()
                 local price = ev.get_local_price(province, name)
                 if root.price_memory[name] == nil then
                     root.price_memory[name] = price
+                else
+                    if WORLD.player_character ~= root then
+                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
+                    end
                 end
                 local known_price = root.price_memory[name]
+                local bought_amount = math.max(
+                    1, 
+                    (math.floor(
+                        root.savings * 0.25 
+                        / (known_price + 0.01) 
+                        * math.random()
+                    ))
+                )
 
-                if et.can_buy(root, name, 1) then
+                if et.can_buy(root, name, bought_amount) then
                     ---@type EventOption
                     local option = {
                         text = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
-                        tooltip = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
+                        -- tooltip = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
+                        tooltip = "Ai_pref " .. (known_price - price - 0.05) / (known_price + 0.05),
                         viable = function() return true end,
                         outcome = function()
-                            ee.buy(root, name, 1)
+                            ee.buy(root, name, bought_amount)
                         end,
                         ai_preference = function()
                             return (known_price - price - 0.05) / (known_price + 0.05)
@@ -134,20 +147,27 @@ local function load()
                 local price = ev.get_pessimistic_local_price(province, name, 1)
                 if root.price_memory[name] == nil then
                     root.price_memory[name] = price
+                else
+                    if WORLD.player_character ~= root then
+                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
+                    end
                 end
                 local known_price = root.price_memory[name]
+                local sold_amount = math.max(1, math.floor((root.inventory[name] or 0) * math.random() * 0.2))
+                local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
 
-                if et.can_sell(root, name, 1) then
+                if et.can_sell(root, name, sold_amount) then
                     ---@type EventOption
                     local option = {
                         text = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
-                        tooltip = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
+                        -- tooltip = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
+                        tooltip = "AI_pref: " .. (price - known_price) / (known_price + 0.05) * desire_to_get_rid_of_goods - 0.02,
                         viable = function() return true end,
                         outcome = function()
-                            ee.sell(root, name, 1)
+                            ee.sell(root, name, sold_amount)
                         end,
                         ai_preference = function()
-                            return (price - known_price - 0.05) / (known_price + 0.05)
+                            return (price - known_price) / (known_price + 0.05) * desire_to_get_rid_of_goods - 0.05
                         end
                     }
                     table.insert(options_list, option)

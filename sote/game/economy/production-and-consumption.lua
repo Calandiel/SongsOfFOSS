@@ -7,12 +7,32 @@ local pv = require "game.raws.values.political"
 
 local pro = {}
 
+local NEEDS =  {
+	water = 1,
+	healthcare = 0.2,
+	amenities = 1,
+	clothes = 1,
+	furniture = 0.1,
+	liquors = 0.2,
+	containers = 0.25,
+	tools = 0.0125,
+	meat = 0.25
+}
+
 ---Runs production on a single province!
 ---@param province Province
 function pro.run(province)
 
-	local INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.025
+	-- local INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.025
+	INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.075
 	-- First, we need to re-assign pops to jobs
+
+	-- save old prices:
+	---@type table<TradeGoodReference, number>
+	local old_prices = {}
+	for good_name, price in pairs(RAWS_MANAGER.trade_goods_by_name) do
+		old_prices[good_name] = ev.get_local_price(province, good_name)
+	end
 
 	-- Clear previous months local production!
 	tabb.clear(province.local_production)
@@ -129,14 +149,16 @@ function pro.run(province)
 				local income = 0
 				for input, amount in pairs(prod.inputs) do
 					record_consumption(input, amount)
-					local price = ev.get_local_price(province, input)
+					-- local price = ev.get_local_price(province, input)
+					local price = old_prices[input]
 					income = income
 							- price * amount * efficiency * throughput_boost * input_boost
 				end
 				income = income
 				for output, amount in pairs(prod.outputs) do
 					record_production(output, amount * efficiency)
-					local price = ev.get_pessimistic_local_price(province, output, amount)
+					-- local price = ev.get_pessimistic_local_price(province, output, amount)
+					local price = old_prices[output]
 					income = income
 							+ price * amount * efficiency * throughput_boost * output_boost
 				end
@@ -147,8 +169,12 @@ function pro.run(province)
 					pop.employer.income_mean = income
 				end
 
+				---@type number
+				income = income
+
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
+					income = income - income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
 					local owner = pop.employer.owner
 					if owner then
@@ -190,18 +216,35 @@ function pro.run(province)
 			clothing = pop.race.female_clothing_needs
 		end
 
+		
+		-- for some goods there is always some demand
 		record_consumption('food', food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
 		record_consumption('water', water * age_multiplier)
-		record_consumption('healthcare', 0.2 * age_multiplier)
-		record_consumption('amenities', age_multiplier)
+		
+		local wealth_multiplier = province.local_wealth / 12 / population --- we are ready to spend our wealth during a year per pop
 
-		record_consumption('clothes', clothing * age_multiplier)
-		record_consumption('furniture', 0.1 * age_multiplier)
-		record_consumption('liquors', 0.2 * age_multiplier)
-		record_consumption('containers', 0.25 * age_multiplier)
-		record_consumption('tools', 0.0125 * age_multiplier)
+		for good, need in pairs(NEEDS) do
+			local demand = need * age_multiplier
+			if good == 'clothes' then
+				demand = demand * clothing
+			end
+			local total_cost = old_prices[good] * demand
+			local ratio = math.max(0.25, math.min(1, wealth_multiplier / (total_cost + 0.05)))
 
-		record_consumption('meat', 0.25 * age_multiplier)
+			record_consumption(good, demand * ratio)
+		end
+
+		-- record_consumption('healthcare', 0.2 * age_multiplier)
+		-- record_consumption('amenities', age_multiplier)
+
+		-- record_consumption('clothes', clothing * age_multiplier)
+		
+		-- record_consumption('furniture', 0.1 * age_multiplier)
+		-- record_consumption('liquors', 0.2 * age_multiplier)
+		-- record_consumption('containers', 0.25 * age_multiplier)
+		-- record_consumption('tools', 0.0125 * age_multiplier)
+
+		-- record_consumption('meat', 0.25 * age_multiplier)
 	end
 
 	--- DISTRIBUTION OF DONATIONS
@@ -224,6 +267,11 @@ function pro.run(province)
 	end
 
 	province.local_income = province.local_wealth - old_wealth
+	local to_trade_siphon = province.local_wealth * 0.01
+	local from_trade_siphon = province.trade_wealth * 0.01
+	province.local_wealth = province.local_wealth + from_trade_siphon - to_trade_siphon
+	province.trade_wealth = province.trade_wealth - from_trade_siphon + to_trade_siphon
+
 	province.foragers = foragers_count -- Record the new number of foragers
 
 	for _, bld in pairs(province.buildings) do

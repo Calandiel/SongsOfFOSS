@@ -66,19 +66,33 @@ function d.load()
 		ai_weight = 1,
 	}
 	BuildingType:new {
-		name = "flint-knappers",
-		description = "flint knappers",
+		name = "flint-extraction",
+		description = "flint extraction",
+		icon = 'stone-stack.png',
+		r = 0.3,
+		g = 1.0,
+		b = 0.5,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('flint-extraction'),
+		required_resource = { res('flint') },
+		construction_cost = 5,
+		unique = true,
+		needed_infrastructure = 1,
+		ai_weight = 20,
+	}
+	BuildingType:new {
+		name = "flint-knapping",
+		description = "flint knapping",
 		icon = 'stone-stack.png',
 		r = 0.3,
 		g = 1.0,
 		b = 0.5,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('flint-knapping'),
-		required_resource = { res('flint') },
+		required_resource = {},
 		construction_cost = 25,
-		unique = true,
 		needed_infrastructure = 1,
-		ai_weight = 5,
+		ai_weight = 1,
 	}
 	BuildingType:new {
 		name = 'brewery',
@@ -164,7 +178,7 @@ function d.load()
 		production_method = prod('woodcutting'),
 		tile_improvement = true,
 		needed_infrastructure = 5,
-		ai_weight = 50,
+		ai_weight = 20,
 		construction_cost = 150,
 	}
 	BuildingType:new {

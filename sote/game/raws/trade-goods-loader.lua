@@ -140,6 +140,15 @@ function d.load()
 		base_price = 8,
 	}
 	TradeGood:new {
+		name = 'knapping-blanks',
+		description = 'knapping blanks',
+		icon = 'rock.png',
+		r = 0.162,
+		g = 0.141,
+		b = 0.422,
+		base_price = 6,
+	}
+	TradeGood:new {
 		name = 'copper-bars',
 		description = 'copper',
 		icon = 'metal-bar.png',

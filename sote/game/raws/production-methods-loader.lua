@@ -71,16 +71,28 @@ function d.load()
 		nature_yield_dependence = 1,
 	}
 	ProductionMethod:new {
+		name = 'flint-extraction',
+		description = 'flint knapping',
+		icon = 'stone-stack.png',
+		r = 0.1,
+		g = 1,
+		b = 0.1,
+		inputs = { },
+		outputs = { ['knapping-blanks'] = 2 },
+		jobs = { [job('knappers')] = 3 },
+		self_sourcing_fraction = 0,
+	}
+	ProductionMethod:new {
 		name = 'flint-knapping',
 		description = 'flint knapping',
 		icon = 'stone-stack.png',
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = {},
-		outputs = { ['tools'] = 1 },
-		jobs = { [job('knappers')] = 3 },
-		self_sourcing_fraction = 0,
+		inputs = { ['knapping-blanks'] = 1 / 24 }, -- one blank serves for two years - made up value
+		outputs = { ['tools'] = 0.25 },
+		jobs = { [job('knappers')] = 1 },
+		self_sourcing_fraction = 0.95,
 	}
 	ProductionMethod:new {
 		name = 'brewing',

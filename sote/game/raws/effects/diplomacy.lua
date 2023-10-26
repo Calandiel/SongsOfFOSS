@@ -6,6 +6,11 @@ local effects = {}
 ---@param overlord Realm
 ---@param tributary Realm
 function effects.set_tributary(overlord, tributary)
+    if overlord.paying_tribute_to == tributary then
+        overlord.paying_tribute_to = nil
+        tributary.tributaries[overlord] = nil
+    end
+
     tributary.paying_tribute_to = overlord
     overlord.tributaries[tributary] = tributary
 

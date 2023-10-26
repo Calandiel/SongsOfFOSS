@@ -46,10 +46,10 @@ function triggers.can_sell(character, good, amount)
         return false
     end
 
-    local price = ev.get_local_price(province, good)
+    local price = ev.get_pessimistic_local_price(province, good, amount)
     local cost = price * amount
 
-    if province.local_wealth < cost then
+    if province.trade_wealth < cost then
         return false
     end
 

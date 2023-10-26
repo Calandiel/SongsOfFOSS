@@ -19,8 +19,9 @@ function rea.run(realm)
 
 	realm.expected_food_consumption = 0
 
-	local PROVINCE_TO_REALM_STOCKPILE = 0.05
+	local PROVINCE_TO_REALM_STOCKPILE = 0.1
 	local REALM_TO_PROVINCE_STOCKPILE = 0.05
+	local NEIGHBOURS_GOODS_SHARING = 0.01
 
 	-- Loop over all provinces in the realm and "add" their good balances to get our balance.
 	for _, province in pairs(realm.provinces) do
@@ -37,6 +38,15 @@ function rea.run(realm)
 
 				province.realm.resources[prod] = province.realm.resources[prod] or 0
 				province.realm.resources[prod] = province.realm.resources[prod] + amount * PROVINCE_TO_REALM_STOCKPILE
+
+
+				local sharing = province.local_storage[prod] * NEIGHBOURS_GOODS_SHARING
+				local random_neigbour = tabb.random_select_from_set(province.neighbors)
+
+				if random_neigbour.realm then
+					province.local_storage[prod] = province.local_storage[prod] - sharing
+					random_neigbour.local_storage[prod] = (random_neigbour.local_storage[prod] or 0) + sharing
+				end
 			end
 		end
 		for prod, amount in pairs(province.local_consumption) do
@@ -61,7 +71,7 @@ function rea.run(realm)
 		local resource = good(resource_reference)
 		if resource.category == 'good' then
 			local old = amount or 0
-			realm.resources[resource_reference] = math.max(0, old) * 0.999
+			realm.resources[resource_reference] = math.max(0, old) * 0.99
 		end
 	end
 	-- Stockpiles' waste in provinces
@@ -76,7 +86,7 @@ function rea.run(realm)
 				                * REALM_TO_PROVINCE_STOCKPILE
 								/ amount_of_provinces
 
-				province.local_storage[resource_reference] = math.max(0, old + siphon) * 0.999
+				province.local_storage[resource_reference] = math.max(0, old + siphon) * 0.99
 				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
 			end
 		end

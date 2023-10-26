@@ -42,6 +42,8 @@ function inspector.draw(gam)
 
     ut.money_entry("Local wealth:", tile.province.local_wealth, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
+    ut.money_entry("Trade wealth:", tile.province.trade_wealth, wealth_data_rect)
+    wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
     ut.money_entry("Local income:", tile.province.local_income, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
     ut.money_entry("Local building upkeep:", tile.province.local_building_upkeep, wealth_data_rect)

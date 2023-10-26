@@ -60,9 +60,7 @@ local function load()
 			if root.rank == RANK.CHIEF then
 				return 0
 			end
-			if root.savings < 10 then
-				return 0
-			end
+			
             if root.traits[TRAIT.TRADER] then
                 return 1 / 12                   -- travel once per year
             end
@@ -107,8 +105,11 @@ local function load()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.CHIEF] and root.province ~= root.realm.capitol then
+				return 1
+			end
 			if root.traits[TRAIT.TRADER] then
-				return 1/12 -- travel home once a year
+				return 1/36 -- travel home once a few years
 			end
 			return 0
 		end,

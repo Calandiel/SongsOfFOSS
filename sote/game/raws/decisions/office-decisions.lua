@@ -42,6 +42,10 @@ local function load()
 			return nil, false
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
+			if primary_target.traits[TRAIT.TRADER] then
+				return 0
+			end
+
             if root.traits[TRAIT.GOOD_ORGANISER] then
                 return 0
             end
@@ -172,13 +176,17 @@ local function load()
                 loyalty_multiplier = 2
             end
 
+			if primary_target.traits[TRAIT.TRADER] then
+				return 0
+			end
+
             if tabb.size(root.realm.tributaries) == 0 then
                 return 0
             end
 
             if tabb.size(root.realm.tribute_collectors) == 0 and tabb.size(root.realm.tributaries) > 0 then
                 return 10
-            end
+            end			
 
             return 0.5 * loyalty_multiplier - tabb.size(root.realm.tribute_collectors) / tabb.size(root.realm.tributaries)
 		end,

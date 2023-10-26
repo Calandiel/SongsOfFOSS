@@ -4,6 +4,7 @@ local ut = {}
 
 
 ut.BASE_HEIGHT = 20
+ut.DATA_PADDING = 5
 
 ---@class Entry
 ---@field weight number
@@ -95,8 +96,14 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 function ut.data_entry(name, data, rect, tooltip)
+	rect = rect:copy():shrink(ut.DATA_PADDING)
+
 	ui.left_text(name, rect)
+
+	ut.data_font()
 	ui.right_text(data, rect)
+	ut.main_font()
+
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end
@@ -108,7 +115,7 @@ end
 ---@param tooltip string?
 ---@param negative boolean?
 function ut.money_entry(name, data, rect, tooltip, negative)
-	rect = rect:copy():shrink(5)
+	rect = rect:copy():shrink(ut.DATA_PADDING)
 
 	if negative == nil then
 		negative = false
@@ -121,7 +128,9 @@ function ut.money_entry(name, data, rect, tooltip, negative)
 	end
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
 	ui.right_text(ut.to_fixed_point2(data) .. MONEY_SYMBOL, rect)
+	ut.main_font()
 	love.graphics.setColor(cr, cg, cb, ca)
 	if tooltip then
 		ui.tooltip(tooltip, rect)
@@ -135,6 +144,8 @@ end
 ---@param tooltip string?
 ---@param negative boolean?
 function ut.balance_entry(name, data, rect, tooltip, negative)
+	rect = rect:copy():shrink(ut.DATA_PADDING)
+
 	if negative == nil then
 		negative = false
 	end
@@ -145,9 +156,14 @@ function ut.balance_entry(name, data, rect, tooltip, negative)
 	local h = math.atan(data / 100) / math.pi * 120 + 60
 	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
 	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
 	ui.right_text(ut.to_fixed_point2(data), rect)
-
+	ut.main_font()
 	love.graphics.setColor(cr, cg, cb, ca)
+
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
 end
 
 
@@ -187,8 +203,36 @@ function ut.data_entry_percentage(name, data, rect, tooltip, positive)
 		positive = true
 	end
 
+	rect = rect:copy():shrink(ut.DATA_PADDING)
 	ui.left_text(name, rect)
-	ut.color_coded_percentage(data, rect, positive)
+	rect:shrink(-5)
+	ut.color_coded_percentage(data, rect, positive, tooltip)
+end
+
+---Renders a color coded percentage
+---@param value number
+---@param rect Rect
+---@param positive boolean?
+---@param tooltip string?
+function ut.color_coded_percentage(value, rect, positive, tooltip)
+	rect = rect:copy():shrink(ut.DATA_PADDING)
+
+	if positive == nil then
+		positive = true
+	end
+
+	local hue = math.min(value * 120, 359)
+	if not positive then
+		hue = math.max(0, 120 - value * 120)
+	end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text( tostring(math.floor(value * 100 + 0.5)) .. '%', rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end
@@ -196,7 +240,20 @@ end
 
 function ut.reload_font()
 	ASSETS.main_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))
+	ASSETS.data_font = love.graphics.newFont("data/fonts/CenturyGothic.ttf", ui.font_size(14))
 	love.graphics.setFont(ASSETS.main_font)
+end
+
+function ut.data_font()
+	love.graphics.setFont(ASSETS.data_font)
+end
+
+function ut.main_font()
+	love.graphics.setFont(ASSETS.main_font)
+end
+
+function ut.set_font(font)
+	love.graphics.setFont(font)
 end
 
 ---Draws a coat of arms of a realm. Returns true if clicked.
@@ -354,32 +411,6 @@ function ut.to_fixed_point2(x)
 	local frac_1 = math.floor((temp - math.floor(temp)) * 10)
 	local frac_2 = math.floor((temp * 10 - math.floor(temp * 10)) * 10)
 	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
-end
-
----Renders a color coded percentage
----@param value number
----@param rect Rect
----@param positive boolean?
----@param tooltip string?
-function ut.color_coded_percentage(value, rect, positive, tooltip)
-	if positive == nil then
-		positive = true
-	end
-
-	local hue = math.min(value * 120, 359)
-	if not positive then
-		hue = math.max(0, 120 - value * 120)
-	end
-
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
-	local cr, cg, cb, ca = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, a)
-	ui.right_text( tostring(math.floor(value * 100 + 0.5)) .. '%', rect)
-	love.graphics.setColor(cr, cg, cb, ca)
-
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
 end
 
 return ut
