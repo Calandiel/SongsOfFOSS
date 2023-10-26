@@ -14,7 +14,10 @@ return function(rect, character)
         -- gold color rgba
         ui.style.panel_outline = {r = 255 / 255, g = 215 / 255, b = 0 / 255, a = 1}
     end
+
+    love.graphics.setLineWidth( 4 )
     ui.panel(rect)
+    love.graphics.setLineWidth( 1 )
 
     ui.style.panel_outline = style
 
