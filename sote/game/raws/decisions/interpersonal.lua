@@ -49,7 +49,7 @@ local function load()
 				---@type Character
 				local c = tabb.nth(p.characters, love.math.random(s))
 				if c then
-					if c.loyalty == nil and c ~= root and c.loyalty ~= root then
+					if c.loyalty == nil and c ~= root and c.loyalty ~= root and c.realm == root.realm then
 						return c, true
 					end
 				end

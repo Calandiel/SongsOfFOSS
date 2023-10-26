@@ -560,9 +560,6 @@ local function load()
 			-- if root == WORLD.player_character then
 			-- 	return false
 			-- end
-			if root.savings < 5 then
-				return false
-			end
 			return true
 		end,
 		clickable = function(root)

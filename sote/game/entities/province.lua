@@ -50,6 +50,7 @@ local prov = {}
 ---@field local_consumption table<TradeGoodReference, number>
 ---@field local_storage table<TradeGoodReference, number>
 ---@field local_wealth number
+---@field trade_wealth number
 ---@field local_income number
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
@@ -129,6 +130,7 @@ function prov.Province:new()
 	o.local_consumption = {}
 	o.local_storage = {}
 	o.local_wealth = 0
+	o.trade_wealth = 0
 	o.local_income = 0
 	o.local_building_upkeep = 0
 	o.foragers = 0

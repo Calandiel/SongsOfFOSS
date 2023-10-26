@@ -53,8 +53,9 @@ local function roll_traits(character)
 	if love.math.random() > 0.9 then
 		character.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
 	else
-		if love.math.random() > 0.7 then
+		if love.math.random() > 0.6 then
 			character.traits[TRAIT.TRADER] = TRAIT.TRADER
+            character.savings = character.savings + 25
 		end
 	end
 
