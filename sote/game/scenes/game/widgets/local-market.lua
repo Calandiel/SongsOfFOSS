@@ -209,7 +209,7 @@ return function(tile, ui_panel, base_unit)
                 if player_character 
                     and player_character.province == tile.province 
                     and et.can_buy(player_character, v.name, 1) 
-                    and ui.text_button('+', rect) 
+                    and ut.text_button('+', rect) 
                 then
                     ef.buy(player_character, v.name, 1)
                 end
@@ -229,7 +229,7 @@ return function(tile, ui_panel, base_unit)
                 if player_character 
                     and player_character.province == tile.province 
                     and et.can_sell(player_character, v.name, 1) 
-                    and ui.text_button('-', rect) 
+                    and ut.text_button('-', rect) 
                 then
                     ef.sell(player_character, v.name, 1)
                 end

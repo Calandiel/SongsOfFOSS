@@ -97,8 +97,8 @@ return function(gam, tile, rect, x, y, size)
             local count_rect = rect:subrect(0, unit, unit, unit / 2, "left", 'up')
 
             if funds < construction_cost then
-                ui.image(ASSETS.icons['uncertainty.png'], icon_rect)
-            elseif ui.icon_button(ASSETS.get_icon(icon), icon_rect, "Build " .. name .. " for " .. ut.to_fixed_point2(construction_cost) .. MONEY_SYMBOL ) then
+                ut.icon_button(ASSETS.icons['cancel.png'], icon_rect, "Not possible to build", false)
+            elseif ut.icon_button(ASSETS.get_icon(icon), icon_rect, "Build " .. name .. " for " .. ut.to_fixed_point2(construction_cost) .. MONEY_SYMBOL ) then
                 ee.construct_building_with_payment(
                     building_type,
                     tile.province,
@@ -156,7 +156,7 @@ return function(gam, tile, rect, x, y, size)
     ut.data_entry("", tostring(population), population_rect)
 
     if WORLD.player_character then
-        if ui.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
+        if ut.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
             callback.toggle_raiding_target(gam, tile.province)()
             return true
         end

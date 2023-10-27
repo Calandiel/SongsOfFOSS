@@ -78,7 +78,7 @@ return function (rect, name, realm, budget_category, disable_control, bg)
     pr.width = uit.BASE_HEIGHT * 2
 
     local function change(percentage)
-        if ui.text_button(
+        if uit.text_button(
             tostring(percentage) .. "%",
             pr,
             "Change monthly investment by " .. tostring(percentage) .. "%"

@@ -450,9 +450,9 @@ local silver_color = {
 }
 
 local dark_grey_color = {
-	['r'] = 0.5,
-	['g'] = 0.5,
-	['b'] = 0.5,
+	['r'] = 0.2,
+	['g'] = 0.2,
+	['b'] = 0.2,
 	['a'] = 1
 }
 
@@ -463,6 +463,13 @@ local dark_green_color = {
 	['a'] = 1
 }
 
+local dark_blue_color = {
+	['r'] = 29 / 255,
+	['g'] = 53 / 255,
+	['b'] = 92 / 255,
+	['a'] = 1
+}
+
 local light_lime_color = {
 	['r'] = 0.5,
 	['g'] = 1,
@@ -470,7 +477,7 @@ local light_lime_color = {
 	['a'] = 1
 }
 
----Renders button border / background depending on potential, returns button result and Rect to draw some data inside
+---Renders button border / background depending on potential and active, returns button result and Rect to draw some data inside
 ---@param rect Rect
 ---@param potential boolean can you take this action?
 ---@param active boolean?
@@ -497,7 +504,7 @@ function ut.button(rect, potential, active)
 	ui.panel(rect, 1, false, true)
 
 	-- inner background
-	ui.style['button_inside'] = dark_green_color
+	ui.style['button_inside'] = dark_blue_color --dark_green_color
 	ui.style['button_hovered'] = blue_color
 	ui.style['button_clicked'] = light_lime_color
 
@@ -508,11 +515,22 @@ function ut.button(rect, potential, active)
 	end
 
 	rect = rect:shrink(1)
-	ui.style.panel_inside = dark_green_color
+	ui.style.panel_inside = dark_blue_color -- dark_green_color
 	if not potential then
 		ui.style.panel_inside = dark_grey_color
 	end
-	local result = ui.text_button("", rect, nil, 1, false)
+
+	-- button press and background
+	local result = ui.text_button("", rect, nil, 1, false) and potential
+
+	-- overlay for active buttons
+	if active then
+		ui.style.panel_inside = dark_green_color
+		ui.style.panel_outline = dark_green_color
+		-- ui.panel(rect, math.min(rect.height, rect.width), false)
+		ui.panel(rect, 1, false)
+	end
+
 
 	ui.style.panel_outline = old_style
 	ui.style.panel_inside = old_style_inside
@@ -526,7 +544,7 @@ end
 ---comment
 ---@param icon love.Image
 ---@param rect Rect
----@param tooltip string
+---@param tooltip string?
 ---@param potential boolean?
 ---@param active boolean?
 function ut.icon_button(icon, rect, tooltip, potential, active)
@@ -537,6 +555,29 @@ function ut.icon_button(icon, rect, tooltip, potential, active)
 	local result, rect_icon = ut.button(rect, potential, active)
 
 	ui.image(icon, rect_icon)
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+
+	return result
+end
+
+
+---comment
+---@param text string
+---@param rect Rect
+---@param tooltip string?
+---@param potential boolean?
+---@param active boolean?
+function ut.text_button(text, rect, tooltip, potential, active)
+	if potential == nil then
+		potential = true
+	end
+
+	local result, rect_text = ut.button(rect, potential, active)
+
+	ui.centered_text(text, rect_text)
+
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end
@@ -571,12 +612,12 @@ function ut.calendar(gam)
 	local main_button = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	if gam.paused ~= nil and not gam.paused then
 		-- the game is unpaused
-		if ui.icon_button(ASSETS.icons['pause-button.png'], main_button, "Pause") then
+		if ut.icon_button(ASSETS.icons['pause-button.png'], main_button, "Pause") then
 			gam.paused = true
 		end
 	else
 		-- the game is paused
-		if ui.icon_button(ASSETS.icons['play-button.png'], main_button, "Unpause") then
+		if ut.icon_button(ASSETS.icons['play-button.png'], main_button, "Unpause") then
 			gam.paused = false
 		end
 	end
@@ -587,14 +628,14 @@ function ut.calendar(gam)
 	local speed_up = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	local speed = hor:next(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT)
 	local speed_down = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
-	if ui.icon_button(ASSETS.icons['fast-forward-button.png'], speed_up, "Speed up") or ui.is_key_pressed("+") or
+	if ut.icon_button(ASSETS.icons['fast-forward-button.png'], speed_up, "Speed up") or ui.is_key_pressed("+") or
 		ui.is_key_pressed("kp+") then
 		gam.speed = math.min(10, gam.speed + 1)
 	end
 	ui.panel(speed)
 	ui.centered_text(tostring(gam.speed) .. " / 10", speed)
 	ui.tooltip("Game speed", speed)
-	if ui.icon_button(ASSETS.icons['fast-backward-button.png'], speed_down, "Slown down") or ui.is_key_pressed("-") or
+	if ut.icon_button(ASSETS.icons['fast-backward-button.png'], speed_down, "Slown down") or ui.is_key_pressed("-") or
 		ui.is_key_pressed("kp-") then
 		gam.speed = math.max(1, gam.speed - 1)
 	end
@@ -624,11 +665,10 @@ function ut.tabs(current_tab, layout, tabs, scale, width_tab_header)
 	for _, tab in pairs(tabs) do
 		local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
 		if current_tab == tab.text then
-			ui.tooltip(tab.tooltip, rect)
-			ui.centered_text(tab.text, rect)
+			ut.text_button(tab.text, rect, tab.tooltip, false, true)
 			tab.closure()
 		else
-			if ui.text_button(tab.text, rect, tab.tooltip) then
+			if ut.text_button(tab.text, rect, tab.tooltip) then
 				new_tab = tab.text
 				if tab.on_select then
 					tab.on_select()

@@ -112,13 +112,13 @@ function tb.draw(gam)
 			:build()
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		if ui.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
+		if uit.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
 			gam.selected_character = WORLD.player_character
 			gam.inspector = "character"
 		end
 
 		local rect = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
-		if ui.text_button("", rect) then
+		if uit.text_button("", rect) then
 			gam.inspector = "treasury-ledger"
 			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Character'
 		end
@@ -155,7 +155,7 @@ function tb.draw(gam)
 		-- Treasury
 		local trt = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
 
-		if ui.text_button("", trt) then
+		if uit.text_button("", trt) then
 			gam.inspector = "treasury-ledger"
 			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Treasury'
 		end

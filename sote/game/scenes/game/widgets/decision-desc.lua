@@ -52,7 +52,7 @@ return function(rect, root, decision, target_primary, target_secondary)
                                     if s == target_secondary then
                                         ui.text_panel(secondary_name .. " (*)", rect)
                                     else
-                                        if ui.text_button(secondary_name, rect) then
+                                        if ut.text_button(secondary_name, rect) then
                                             target_secondary = s
                                         end
                                     end
@@ -67,18 +67,17 @@ return function(rect, root, decision, target_primary, target_secondary)
             -- If a decision is present, draw two button at the bottom
             local exit = r:subrect(0, 0, ut.BASE_HEIGHT * 3, ut.BASE_HEIGHT, "left", 'down')
             local confirm = r:subrect(0, 0, ut.BASE_HEIGHT * 3, ut.BASE_HEIGHT, "right", 'down')
-            if ui.text_button("Cancel", exit) then
+            if ut.text_button("Cancel", exit) then
                 -- Clear the decision data, it's not needed anymore
                 return 'cancel'
             elseif can_check_viability then
                 if dec.available(root, target_primary, target_secondary) then
-                    if ui.text_button("Select", confirm) then
+                    if ut.text_button("Select", confirm) then
                         dec.effect(root, target_primary, target_secondary)
                         return 'ok'
                     end
                 else
-                    ui.text_panel("Select", confirm)
-                    ui.tooltip("Conditions not met!", confirm)
+                    ut.text_button("Select", confirm, "Conditions not met!", false)
                 end
             end
         end

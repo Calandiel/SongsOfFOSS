@@ -3,6 +3,8 @@ local tabb = require "engine.table"
 local ui = require "engine.ui";
 local ut = require "game.ui-utils"
 
+local pv = require "game.raws.values.political"
+local ev = require "game.raws.values.economical"
 
 local inspector = {}
 
@@ -40,16 +42,56 @@ function inspector.draw(gam)
     ui.centered_text("Construction", label_rect)
     local public_flag_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "right", 'up')
 
-    local public_mode = ui.named_checkbox(
-		"Use realm treasury: ",
-		public_flag_rect,
-        gam.macrobuilder_public_mode,
-		5
-	)
+    local public_mode = false
 
-    if WORLD.player_character then
-        if WORLD.player_character.realm.leader == WORLD.player_character then
+    local character = WORLD.player_character
+
+    if character then
+        if character.realm.leader == character then
+            public_mode = ui.named_checkbox(
+                "Use realm treasury: ",
+                public_flag_rect,
+                gam.macrobuilder_public_mode,
+                5
+            )
             gam.macrobuilder_public_mode = public_mode
+        end
+    end
+
+
+    local available_buildings = {}
+    local seen = {}
+    local buildable = {}
+
+    local public_flag = false
+    local overseer = character
+    local funds = 0
+    local owner = character
+    
+    if character then
+        funds = character.savings
+        if gam.macrobuilder_public_mode then
+            overseer = pv.overseer(character.realm)
+            public_flag = true
+            funds = character.realm.budget.treasury
+            owner = nil
+        end
+
+
+
+        for _, province in pairs(character.realm.provinces) do
+            for _, building in pairs(province.buildable_buildings) do
+                if not seen[building] then
+                    table.insert(available_buildings, building)
+                    buildable[building] = false
+                else
+                    seen[building] = true
+                end
+
+                if province:can_build(funds, building, province.center, overseer, public_flag) then
+                    buildable[building] = true
+                end
+            end
         end
     end
 
@@ -62,7 +104,7 @@ function inspector.draw(gam)
             rect = rect
             rect.height = rect.height - 1
             if number > 0 then
-                local name, building_type = tabb.nth(RAWS_MANAGER.building_types_by_name, number)
+                local name, building_type = tabb.nth(available_buildings, number)
                 if building_type == nil then
                     return
                 end
@@ -80,15 +122,24 @@ function inspector.draw(gam)
                 rect.width = rect.width - base_unit
 
                 -- drawing the button
-                local result, rect_data = ut.button(rect, true)
+                local result, rect_data = ut.button(rect, buildable[building_type], gam.selected_macrobuilder_building_type == building_type)
                 if result then
                     gam.selected_macrobuilder_building_type = building_type
                 end
-                ut.generic_string_field("", building_type.description, rect_data, nil, ut.NAME_MODE.NAME, false)
+
+                local construction_cost = ev.building_cost(
+                    building_type,
+                    overseer,
+                    public_flag
+                )
+
+                local negative_flag = construction_cost > funds
+
+                ut.money_entry(building_type.description, construction_cost, rect_data, nil, negative_flag, false)
             end
         end,
         base_unit,
-        tabb.size(RAWS_MANAGER.building_types_by_name),
+        tabb.size(available_buildings),
         base_unit,
         buildings_scroll
     )

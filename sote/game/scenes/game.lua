@@ -603,7 +603,7 @@ function gam.draw()
 		:position(bottom_right.x, bottom_right.y)
 		:flipped()
 		:build()
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons["exit-door.png"],
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Quit"
@@ -611,7 +611,7 @@ function gam.draw()
 		gam.inspector = "confirm-exit"
 		gam.click_callback = callback.nothing()
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons["save.png"],
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Save"
@@ -626,7 +626,7 @@ function gam.draw()
 		-- gam.click_callback = callback.nothing()
 		-- gam.refresh_map_mode()
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons["load.png"],
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Load"
@@ -642,7 +642,7 @@ function gam.draw()
 		-- gam.click_callback = callback.nothing()
 		-- gam.refresh_map_mode()
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons["treasure-map.png"],
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Export map"
@@ -651,7 +651,7 @@ function gam.draw()
 		to_save:encode("png", gam.map_mode .. ".png")
 		gam.click_callback = callback.nothing()
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons["war-pick.png"],
 		bottom_bar:next(bottom_button_size, bottom_button_size),
 		"Options"
@@ -660,7 +660,7 @@ function gam.draw()
 		gam.click_callback = callback.nothing()
 	end
 	if WORLD.player_character then
-		if ui.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
+		if ut.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
 			"Change country") then
 
 			require "game.raws.effects.player".to_observer()
@@ -713,6 +713,7 @@ function gam.draw()
 
 			if ui.text_button('Outliner', outliner_rect, "Show outliner") then
 				gam.outliner = true
+				gam.show_map_mode_panel = false
 				gam.click_callback = callback.nothing()
 			end
 		end
@@ -725,50 +726,51 @@ function gam.draw()
 		gam.click_callback = callback.nothing()
 	end
 
-	local map_mode_bar = bottom_right_main_layout:next(300, ut.BASE_HEIGHT)
+	local map_mode_bar = bottom_right_main_layout:next(300, ut.BASE_HEIGHT + 10)
 	local map_mode_bar_layout = ui.layout_builder()
 		:horizontal()
 		:position(map_mode_bar.x, map_mode_bar.y)
 		:build()
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons["plain-arrow.png"],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT),
+		map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10),
 		"Show all map modes"
 	) then
 		gam.show_map_mode_panel = true
+		gam.outliner = false
 		gam.click_callback = callback.nothing()
 	end
 
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons[gam.map_mode_data['atlas'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['atlas'][3]) then
+		map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['atlas'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "atlas")
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons[gam.map_mode_data['diplomacy'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['diplomacy'][3]) then
+		map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['diplomacy'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "diplomacy")
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons[gam.map_mode_data['elevation'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['elevation'][3]) then
+		map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['elevation'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "elevation")
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons[gam.map_mode_data['biomes'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['biomes'][3]) then
+		map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['biomes'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "biomes")
 	end
-	if ui.icon_button(
+	if ut.icon_button(
 		ASSETS.icons[gam.map_mode_data['koppen'][2]],
-		map_mode_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT), gam.map_mode_data['koppen'][3]) then
+		map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['koppen'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "koppen")
 	end
 
 	-- Map modes tab
 	if gam.show_map_mode_panel then
 		local ttab = require "engine.table"
-		local mm_panel_height = ut.BASE_HEIGHT * (1 + 5)
+		local mm_panel_height = ut.BASE_HEIGHT * (1 + 22)
 		local panel = bottom_right_main_layout:next(300, mm_panel_height)
 		if ui.trigger(panel) then
 			gam.click_callback = callback.nothing()
@@ -776,7 +778,7 @@ function gam.draw()
 		ui.panel(panel)
 
 		-- bottom right for closing the panel
-		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(
+		if ut.icon_button(ASSETS.icons["cancel.png"], panel:subrect(
 			0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", "up"
 		)) then
 			gam.click_callback = callback.close_map_mode_panel(gam)
@@ -794,53 +796,38 @@ function gam.draw()
 			panel:subrect(6 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
 			panel:subrect(7 * map_tabs_buttons_width, 0, map_tabs_buttons_width, ut.BASE_HEIGHT, "left", "up"),
 		}
-		ui.tooltip("All", top_panels[1])
-		if gam.map_mode_selected_tab == 'all' then
-			ui.centered_text("ALL", top_panels[1])
-		else
-			if ui.text_button("ALL", top_panels[1]) then
-				gam.click_callback = callback.nothing()
-				gam.map_mode_selected_tab = 'all'
-			end
-		end
-		ui.tooltip("Political", top_panels[2])
-		if gam.map_mode_selected_tab == 'political' then
-			ui.centered_text("POL", top_panels[2])
-		else
-			if ui.text_button("POL", top_panels[2]) then
-				gam.click_callback = callback.nothing()
-				gam.map_mode_selected_tab = 'political'
-			end
-		end
-		ui.tooltip("Demographic", top_panels[3])
-		if gam.map_mode_selected_tab == 'demographic' then
-			ui.centered_text("DEM", top_panels[3])
-		else
-			if ui.text_button("DEM", top_panels[3]) then
-				gam.click_callback = callback.nothing()
-				gam.map_mode_selected_tab = 'demographic'
-			end
-		end
-		ui.tooltip("Economic", top_panels[4])
-		if gam.map_mode_selected_tab == 'economic' then
-			ui.centered_text("ECN", top_panels[4])
-		else
-			if ui.text_button("ECN", top_panels[4]) then
-				gam.click_callback = callback.nothing()
-				gam.map_mode_selected_tab = 'economic'
-			end
-		end
-		ui.tooltip("Debug", top_panels[7])
-		if gam.map_mode_selected_tab == 'debug' then
-			ui.centered_text("DEB", top_panels[7])
-		else
-			if ui.text_button("DEB", top_panels[7]) then
-				gam.click_callback = callback.nothing()
-				gam.map_mode_selected_tab = 'debug'
-			end
+
+		local all_active = gam.map_mode_selected_tab == 'all'
+		if ut.text_button("ALL", top_panels[1], "All", not all_active, all_active) then
+			gam.click_callback = callback.nothing()
+			gam.map_mode_selected_tab = 'all'
 		end
 
-		local scrollview_rect = panel:subrect(0, 0, 300, mm_panel_height - ut.BASE_HEIGHT, "right", 'down')
+		local pol_active = gam.map_mode_selected_tab == 'political'
+		if ut.text_button("POL", top_panels[2], "Political", not pol_active, pol_active) then
+			gam.click_callback = callback.nothing()
+			gam.map_mode_selected_tab = 'political'
+		end
+
+		local dem_active = gam.map_mode_selected_tab == 'demographic'
+		if ut.text_button("DEM", top_panels[3], "Demographic", not dem_active, dem_active) then
+			gam.click_callback = callback.nothing()
+			gam.map_mode_selected_tab = 'demographic'
+		end
+
+		local eco_active = gam.map_mode_selected_tab == 'economic'
+		if ut.text_button("ECN", top_panels[4], "Economic", not eco_active, eco_active) then
+			gam.click_callback = callback.nothing()
+			gam.map_mode_selected_tab = 'economic'
+		end
+
+		local deb_active = gam.map_mode_selected_tab == 'debug'
+		if ut.text_button("DEB", top_panels[7], "Debug", not deb_active, deb_active) then
+			gam.click_callback = callback.nothing()
+			gam.map_mode_selected_tab = 'debug'
+		end
+
+		local scrollview_rect = panel:subrect(0, 0, 300, mm_panel_height - ut.BASE_HEIGHT - 10, "right", 'down')
 		local mms = gam.map_mode_tabs[gam.map_mode_selected_tab]
 		gam.map_mode_slider = ui.scrollview(
 			scrollview_rect,
@@ -850,7 +837,7 @@ function gam.draw()
 				if mm_data ~= nil then
 					local button_rect = rect:copy()
 					button_rect.width = button_rect.height
-					if ui.icon_button(ASSETS.icons[
+					if ut.icon_button(ASSETS.icons[
 						mm_data[2]
 						], button_rect,
 						mm_data[3]
@@ -864,7 +851,7 @@ function gam.draw()
 				else
 				end
 			end,
-			ut.BASE_HEIGHT,
+			ut.BASE_HEIGHT + 10,
 			ttab.size(mms),
 			ut.BASE_HEIGHT,
 			gam.map_mode_slider

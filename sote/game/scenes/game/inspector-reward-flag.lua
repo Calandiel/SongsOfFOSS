@@ -28,7 +28,7 @@ end
 local function change_reward_button(x)
     local current_savings = WORLD.player_character.savings
     return function(rect)
-        if ui.text_button(ut.to_fixed_point2(x), rect) then 
+        if ut.text_button(ut.to_fixed_point2(x), rect) then 
             reward = math.min(current_savings, math.max(0, reward + x))
         end
     end
@@ -83,7 +83,7 @@ function window.draw(game)
     -- draw a panel
     ui.panel(ui_panel)
     ui.text("Reward flag", ui_panel, "left", 'up')
-    if ui.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
         game.inspector = nil
     end
     ui_panel.y = ui_panel.y + base_unit
@@ -146,13 +146,13 @@ function window.draw(game)
     ui_panel.height = base_unit * 2
     ut.columns({
         function (rect)
-            if ui.text_button('Save', rect, reward_tooltip(game.flagged_province)) then
+            if ut.text_button('Save', rect, reward_tooltip(game.flagged_province)) then
                 create_flag(game.flagged_province)
                 game.inspector = nil
             end
         end,
         function (rect)
-            if ui.text_button('Cancel', rect) then
+            if ut.text_button('Cancel', rect) then
                 game.inspector = nil
             end
         end

@@ -20,7 +20,7 @@ return function(rect, decision_type, primary_target, selected_decision)
     local valid = 0
 
     -- Maps decisions to whether or not they can be clicked.
-    ---@type table<number, table<DecisionRealm, boolean>>
+    ---@type table<number, {[1]: DecisionCharacter, [2]: boolean}>
     local decisions = {}
     for _, decision in pairs(RAWS_MANAGER.decisions_characters_by_name) do
         if decision.primary_target == decision_type then
@@ -53,22 +53,15 @@ return function(rect, decision_type, primary_target, selected_decision)
                 local dec = decisions[i]
                 ---@type DecisionCharacter
                 local decis = dec[1]
-                if dec[2] then
-                    if decis == selected_decision then
-                        ui.text_panel(decis.ui_name .. " (*)", rect)
-                        ui.tooltip(decis.tooltip(WORLD.player_character, primary_target), rect)
-                    else
-                        if ui.text_button(decis.ui_name, rect, decis.tooltip(WORLD.player_character, primary_target)) then
-                            -- We need to draw this specific decisions UI now!
-                            print("Player selected the decision: " .. decis.name)
-                            -- We'll be auto pausing the game when selected decision isn't nil so this is fine
-                            res_decision, res_target_p, res_target_s = decis, primary_target, nil
-                            print(res_decision)
-                        end
-                    end
-                else
-                    ui.text_panel(decis.ui_name, rect)
-                    ui.tooltip(decis.tooltip(WORLD.player_character, primary_target), rect)
+                local available = dec[2]
+                local active = decis == selected_decision
+                local tooltip = decis.tooltip(WORLD.player_character, primary_target)
+                if ut.text_button(decis.ui_name, rect, tooltip, available, active) then
+                    -- We need to draw this specific decisions UI now!
+                    print("Player selected the decision: " .. decis.name)
+                    -- We'll be auto pausing the game when selected decision isn't nil so this is fine
+                    res_decision, res_target_p, res_target_s = decis, primary_target, nil
+                    print(res_decision)
                 end
             end
         end, ut.BASE_HEIGHT, #decisions, ut.BASE_HEIGHT, scroll

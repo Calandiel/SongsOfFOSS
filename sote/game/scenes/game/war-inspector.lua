@@ -30,7 +30,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
 			gam.click_tile(-1)
 			gam.selected_building = nil
 			gam.inspector = nil
@@ -103,15 +103,15 @@ function re.draw(gam)
 
 					local bb = ui_panel:subrect(0, 0, ui_panel.width - 2 * width, uit.BASE_HEIGHT, "center", 'down')
 					bb.width = bb.width / 3
-					if ui.text_button("Surrender", bb) then
+					if uit.text_button("Surrender", bb) then
 
 					end
 					bb.x = bb.x + bb.width
-					if ui.text_button("White peace", bb) then
+					if uit.text_button("White peace", bb) then
 
 					end
 					bb.x = bb.x + bb.width
-					if ui.text_button("Enforce demands", bb) then
+					if uit.text_button("Enforce demands", bb) then
 
 					end
 				end
