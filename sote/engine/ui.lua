@@ -774,17 +774,36 @@ end
 ---Renders a panel, using the default style
 ---@param rect Rect
 ---@param radius number?
-function ui.panel(rect, radius)
+---@param border boolean?
+---@param inside boolean?
+function ui.panel(rect, radius, border, inside)
+	if border == nil then
+		border = true
+	end
+	if inside == nil then
+		inside = true
+	end
+
 	set_color(ui.style.panel_inside)
-	ui.rectangle(rect, radius)
+	if inside then
+		ui.rectangle(rect, radius)
+	end
 	set_color(ui.style.panel_outline)
-	ui.outline(rect, radius)
+	if border then
+		ui.outline(rect, radius)
+	end
 	set_color(ui.style.reset_color)
 end
 
 ---Renders a button panel, using the default style
 ---@param rect Rect
-function ui.button_panel(rect)
+---@param radius number?
+---@param border boolean?
+function ui.button_panel(rect, radius, border)
+	if border == nil then
+		border = true
+	end
+
 	local hover = ui.trigger(rect)
 	if hover then
 		local clicking = ui.trigger_press(rect, 1)
@@ -796,9 +815,13 @@ function ui.button_panel(rect)
 	else
 		set_color(ui.style.button_inside)
 	end
-	ui.rectangle(rect)
+	ui.rectangle(rect, radius)
 	set_color(ui.style.button_outline)
-	ui.outline(rect)
+
+	if border then
+		ui.outline(rect, radius)
+	end
+
 	set_color(ui.style.reset_color)
 end
 
@@ -868,9 +891,11 @@ end
 ---@param text string
 ---@param rect Rect
 ---@param tooltip string|nil
+---@param radius number?
+---@param border boolean?
 ---@return boolean button_clicked
-function ui.text_button(text, rect, tooltip)
-	ui.button_panel(rect)
+function ui.text_button(text, rect, tooltip, radius, border)
+	ui.button_panel(rect, radius, border)
 	ui.centered_text(text, rect)
 	if tooltip then
 		ui.tooltip(tooltip, rect)

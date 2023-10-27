@@ -96,6 +96,7 @@ ut.NUMBER_MODE = {
 	MONEY = 1,
 	BALANCE = 3,
 	NUMBER = 4,
+	INTEGER = 5,
 	PERCENTAGE = 6,
 }
 
@@ -166,14 +167,20 @@ end
 ---@param mode NumberMode
 ---@param name_mode NameMode
 ---@param negative boolean?
-function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_mode, negative)
+---@param panel boolean?
+function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_mode, negative, panel)
+	if panel == nil then
+		panel = true
+	end
 	if negative == nil then
 		negative = false
 	end
 
 	-- padded border
 	rect = rect:copy():shrink(ut.BORDER_PADDING)
-	ui.panel(rect, 3)
+	if panel then
+		ui.panel(rect, 3)
+	end
 
 	-- padded data
 	rect = rect:copy():shrink(ut.DATA_PADDING)
@@ -192,7 +199,13 @@ function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_m
 	elseif mode == ut.NUMBER_MODE.BALANCE then
 		render_balance(data, rect, negative)
 	elseif mode == ut.NUMBER_MODE.NUMBER then
+		ut.data_font()
 		ui.right_text(ut.to_fixed_point2(data), rect)
+		ut.main_font()
+	elseif mode == ut.NUMBER_MODE.INTEGER then
+		ut.data_font()
+		ui.right_text(tostring(data), rect)
+		ut.main_font()
 	elseif mode == ut.NUMBER_MODE.PERCENTAGE then
 		render_percentage(data, rect, negative)
 	end
@@ -209,9 +222,16 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param name_mode NameMode
-function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode)
+---@param panel boolean?
+function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, panel)
+	if panel == nil then
+		panel = true
+	end
+
 	rect = rect:copy():shrink(ut.BORDER_PADDING)
-	ui.panel(rect, 3)
+	if panel then
+		ui.panel(rect, 3)
+	end
 	rect = rect:shrink(ut.DATA_PADDING)
 
 	if name_mode == ut.NAME_MODE.NAME then
@@ -221,7 +241,9 @@ function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode)
 		ui.image(ASSETS.icons[name_or_icon], icon_rect)
 	end
 
+	ut.data_font()
 	ui.right_text(data, rect)
+	ut.main_font()
 
 	if tooltip then
 		ui.tooltip(tooltip, rect)
@@ -234,8 +256,9 @@ end
 ---@param data string
 ---@param rect Rect
 ---@param tooltip string?
-function ut.data_entry(name, data, rect, tooltip)
-	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME)	
+---@param panel boolean?
+function ut.data_entry(name, data, rect, tooltip, panel)
+	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel)	
 end
 
 ---Draws a data field with icon
@@ -243,8 +266,9 @@ end
 ---@param data string
 ---@param rect Rect
 ---@param tooltip string?
-function ut.data_entry_icon(icon, data, rect, tooltip)
-	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON)
+---@param panel boolean?
+function ut.data_entry_icon(icon, data, rect, tooltip, panel)
+	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON, panel)
 end
 
 ---@param name string
@@ -252,8 +276,9 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param negative boolean?
-function ut.money_entry(name, data, rect, tooltip, negative)
-	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.NAME, negative)
+---@param panel boolean?
+function ut.money_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.NAME, negative, panel)
 end
 
 ---@param name string
@@ -261,8 +286,9 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param negative boolean?
-function ut.count_entry(name, data, rect, tooltip, negative)
-	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.NUMBER, ut.NAME_MODE.NAME, negative)
+---@param panel boolean?
+function ut.count_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.NUMBER, ut.NAME_MODE.NAME, negative, panel)
 end
 
 ---@param name string
@@ -270,8 +296,19 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param negative boolean?
-function ut.balance_entry(name, data, rect, tooltip, negative)
-	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.BALANCE, ut.NAME_MODE.NAME, negative)
+---@param panel boolean?
+function ut.integer_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.INTEGER, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.balance_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.BALANCE, ut.NAME_MODE.NAME, negative, panel)
 end
 
 ---Draws a money field with icon
@@ -279,8 +316,9 @@ end
 ---@param rect Rect
 ---@param tooltip string
 ---@param negative boolean?
-function ut.money_entry_icon(data, rect, tooltip, negative)
-	ut.generic_number_field('coins.png', data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.ICON, negative)
+---@param panel boolean?
+function ut.money_entry_icon(data, rect, tooltip, negative, panel)
+	ut.generic_number_field('coins.png', data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.ICON, negative, panel)
 end
 
 ---Draws a data field
@@ -289,8 +327,9 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param positive boolean? Is big number good?
-function ut.data_entry_percentage(name, data, rect, tooltip, positive)
-	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive)
+---@param panel boolean?
+function ut.data_entry_percentage(name, data, rect, tooltip, positive, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
 
 ---Renders a color coded percentage
@@ -298,14 +337,17 @@ end
 ---@param rect Rect
 ---@param positive boolean?
 ---@param tooltip string?
-function ut.color_coded_percentage(value, rect, positive, tooltip)
-	ut.generic_number_field("", value, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive)
+---@param panel boolean?
+function ut.color_coded_percentage(value, rect, positive, tooltip, panel)
+	ut.generic_number_field("", value, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
 
 
 function ut.reload_font()
+	-- ASSETS.main_font = love.graphics.newFont("data/fonts/Pelagiad.ttf", ui.font_size(12))
+	-- ASSETS.data_font = love.graphics.newFont("data/fonts/CenturyGothic.ttf", ui.font_size(14))
 	ASSETS.main_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))
-	ASSETS.data_font = love.graphics.newFont("data/fonts/CenturyGothic.ttf", ui.font_size(14))
+	ASSETS.data_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))
 	love.graphics.setFont(ASSETS.main_font)
 end
 
@@ -371,6 +413,136 @@ ut.months = {
 	'November',
 	'December'
 }
+
+local gold_color = {
+	['r'] = 1,
+	['g'] = 0.87,
+	['b'] = 0,
+	['a'] = 1
+}
+
+local dark_yellow = {
+	['r'] = 0.5,
+	['g'] = 0.4,
+	['b'] = 0,
+	['a'] = 1
+}
+
+local black_color = {
+	['r'] = 0,
+	['g'] = 0,
+	['b'] = 0,
+	['a'] = 1
+}
+
+local blue_color = {
+	['r'] = 0.5,
+	['g'] = 0.5,
+	['b'] = 1,
+	['a'] = 1
+}
+
+local silver_color = {
+	['r'] = 0.87,
+	['g'] = 0.87,
+	['b'] = 0.87,
+	['a'] = 1
+}
+
+local dark_grey_color = {
+	['r'] = 0.5,
+	['g'] = 0.5,
+	['b'] = 0.5,
+	['a'] = 1
+}
+
+local dark_green_color = {
+	['r'] = 56 / 255,
+	['g'] = 70 / 255,
+	['b'] = 56 / 255,
+	['a'] = 1
+}
+
+local light_lime_color = {
+	['r'] = 0.5,
+	['g'] = 1,
+	['b'] = 0.5,
+	['a'] = 1
+}
+
+---Renders button border / background depending on potential, returns button result and Rect to draw some data inside
+---@param rect Rect
+---@param potential boolean can you take this action?
+---@param active boolean?
+---@return boolean, Rect
+function ut.button(rect, potential, active)
+	rect = rect:copy():shrink(1)
+
+	local old_style = ui.style.panel_outline
+	local old_style_inside = ui.style.panel_inside
+	local old_style_button_inside = ui.style.button_inside
+	local old_style_button_hovered = ui.style.button_hovered
+	local old_style_button_clicked = ui.style.button_clicked
+
+	-- outer border
+	ui.style.panel_outline = dark_yellow
+	if not potential then
+		ui.style.panel_outline = dark_grey_color
+	end
+	ui.panel(rect, 1, true, false)
+
+	-- inner border
+	rect = rect:shrink(1)
+	ui.style.panel_inside = black_color
+	ui.panel(rect, 1, false, true)
+
+	-- inner background
+	ui.style['button_inside'] = dark_green_color
+	ui.style['button_hovered'] = blue_color
+	ui.style['button_clicked'] = light_lime_color
+
+	if not potential then
+		ui.style['button_inside'] = dark_grey_color
+		ui.style['button_hovered'] = dark_grey_color
+		ui.style['button_clicked'] = dark_grey_color
+	end
+
+	rect = rect:shrink(1)
+	ui.style.panel_inside = dark_green_color
+	if not potential then
+		ui.style.panel_inside = dark_grey_color
+	end
+	local result = ui.text_button("", rect, nil, 1, false)
+
+	ui.style.panel_outline = old_style
+	ui.style.panel_inside = old_style_inside
+	ui.style.button_inside = old_style_button_inside
+	ui.style.button_hovered = old_style_button_hovered
+	ui.style.button_clicked = old_style_button_clicked
+
+	return result, rect
+end
+
+---comment
+---@param icon love.Image
+---@param rect Rect
+---@param tooltip string
+---@param potential boolean?
+---@param active boolean?
+function ut.icon_button(icon, rect, tooltip, potential, active)
+	if potential == nil then
+		potential = true
+	end
+
+	local result, rect_icon = ut.button(rect, potential, active)
+
+	ui.image(icon, rect_icon)
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+
+	return result
+end
 
 
 ---Draws the calendar and returns whether or not the mouse if over it

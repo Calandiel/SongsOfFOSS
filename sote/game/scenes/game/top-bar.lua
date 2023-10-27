@@ -157,7 +157,7 @@ function tb.draw(gam)
 
 		if ui.text_button("", trt) then
 			gam.inspector = "treasury-ledger"
-			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Realm'
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Treasury'
 		end
 
 		uit.money_entry_icon(
@@ -178,7 +178,7 @@ function tb.draw(gam)
 
 		-- Technology
 		local amount = character.province.realm:get_education_efficiency()
-		local tr = layout:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
 		uit.generic_number_field('erlenmeyer.png', amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 

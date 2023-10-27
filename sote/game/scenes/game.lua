@@ -915,6 +915,8 @@ function gam.draw()
 		click_success = require "game.scenes.game.inspector-reward-flag-edit".mask()
 	elseif gam.inspector == 'market' then
 		click_success = require "game.scenes.game.inspectors.market".mask()
+	elseif gam.inspector == 'macrobuilder' then
+		click_success = require "game.scenes.game.inspectors.macrobuilder".mask()
 	end
 
 	if gam.click_callback == nil then
@@ -1002,6 +1004,8 @@ function gam.draw()
 		end
 	elseif gam.inspector == "characters" then
 		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
+	elseif gam.inspector == "macrobuilder" then
+		require "game.scenes.game.inspectors.macrobuilder".draw(gam)
 	elseif gam.inspector == 'treasury-ledger' then
 		require "game.scenes.game.inspector-treasury-ledger".draw(gam)
 	elseif gam.inspector == 'character' then
