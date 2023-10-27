@@ -104,6 +104,8 @@ function tb.draw(gam)
 			gam.inspector = "character"
 		end
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
+		ui.tooltip("Click the portrait to open character screen", portrait_rect)
+		
 
 		--- current character
 		local layout = ui.layout_builder()

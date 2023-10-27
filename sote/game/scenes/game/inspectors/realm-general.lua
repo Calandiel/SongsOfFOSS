@@ -22,11 +22,11 @@ local function info(rect, realm, gam)
                 gam.selected_character = leader
                 gam.inspector = "character"
             end
+            ui.tooltip("Click the portrait to open character screen", portrait_rect)
 
             portrait_rect.x = portrait_rect.x + uit.BASE_HEIGHT * 5
             portrait_rect.width = portrait_rect.width + uit.BASE_HEIGHT * 5
             uit.data_entry("Leader: ", realm.leader.name, portrait_rect)
-
             panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 4
         end
 
