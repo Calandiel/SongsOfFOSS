@@ -33,7 +33,7 @@ function window.draw(game, province)
 
     ui.text('Select character', panel, "left", 'up')
 
-    if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
         game.inspector = nil
     end
 
@@ -61,7 +61,7 @@ function window.draw(game, province)
 
         rect.x = rect.x + rect.width - rect.height
         rect.width = rect.height
-        if ui.icon_button(ASSETS.icons['frog-prince.png'], rect, "Take control over this character") then
+        if uit.icon_button(ASSETS.icons['frog-prince.png'], rect, "Take control over this character") then
             require "game.raws.effects.player".take_control(character)
             game.refresh_map_mode()
             game.inspector = nil

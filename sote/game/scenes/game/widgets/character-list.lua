@@ -25,7 +25,7 @@ local function init_state(base_unit)
 end
 
 local function render_name(rect, k, v)
-    if ui.text_button(v.name, rect) then
+    if ut.text_button(v.name, rect) then
         return v
     end
 end

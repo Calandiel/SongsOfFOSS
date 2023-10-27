@@ -34,7 +34,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
 			gam.click_tile(-1)
 			gam.selected_realm = nil
 			gam.inspector = nil
@@ -152,7 +152,7 @@ function re.draw(gam)
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
 							if realm.budget.treasury > max_amount then
-								if ui.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
+								if uit.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
 									local inv = math.min(realm.budget.treasury, max_amount)
 									ef.direct_investment(realm, realm.budget.court, inv, EconomicEffects.reasons.Court)
 								end
@@ -229,13 +229,9 @@ function re.draw(gam)
 						p.width = p.height * 2
 						local do_one = function(rect, max_amount)
 							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if realm.budget.treasury > max_amount then
-								if ui.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
-									local inv = math.min(realm.budget.treasury, max_amount)
-									ef.direct_investment(realm, realm.budget.education, inv, EconomicEffects.reasons.Education)
-								end
-							else
-								ui.centered_text(ah .. MONEY_SYMBOL, rect)
+							if uit.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah, realm.budget.treasury > max_amount) then
+								local inv = math.min(realm.budget.treasury, max_amount)
+								ef.direct_investment(realm, realm.budget.education, inv, EconomicEffects.reasons.Education)
 							end
 							rect.x = rect.x + rect.height * 2
 						end
@@ -277,7 +273,7 @@ function re.draw(gam)
 							local war = tabb.nth(realm.wars, i)
 							local w = r.width
 							r.width = r.height
-							if ui.icon_button(ASSETS.get_icon("guards.png"), r) then
+							if uit.icon_button(ASSETS.get_icon("guards.png"), r) then
 								-- Select the war
 								gam.inspector = "war"
 								gam.selected_war = war

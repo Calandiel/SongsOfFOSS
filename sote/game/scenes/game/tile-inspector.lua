@@ -46,12 +46,12 @@ function re.draw(gam)
 		
 		ui.panel(panel)
 
-		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
 			gam.click_tile(-1)
 			gam.inspector = nil
 		end
 
-		if ui.icon_button(ASSETS.icons["plus.png"], panel:subrect(- 2 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["plus.png"], panel:subrect(- 2 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
 			if gam.tile_inspector_scale == 1 then
 				gam.tile_inspector_scale = 1.3
 			elseif gam.tile_inspector_scale == 1.3 then
@@ -59,7 +59,7 @@ function re.draw(gam)
 			end
 		end
 
-		if ui.icon_button(ASSETS.icons["minus.png"], panel:subrect(- 3 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["minus.png"], panel:subrect(- 3 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
 			if gam.tile_inspector_scale == 1.7 then
 				gam.tile_inspector_scale = 1.3
 			elseif gam.tile_inspector_scale == 1.3 then
@@ -79,7 +79,7 @@ function re.draw(gam)
 		if tile.province.realm then
 			if WORLD.player_character == nil then
 				local bp = panel:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
-				if ui.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
+				if uit.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
 					-- gam.refresh_map_mode()
 					gam.inspector = "characters"
 					gam.selected_province = tile.province
@@ -103,16 +103,13 @@ function re.draw(gam)
 						function(rect)
 							uit.rows({
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Car. cap.: ", tostring(math.floor(tile.province.foragers_limit)), rect, "Carrying capacity")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Hydration:", tostring(math.floor(100 * tile.province.hydration) / 100), rect,
 										"Number of humans that can survive of off natural water resources.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local rr = "n/a"
 									if tile.resource then
 										rr = tile.resource.name
@@ -127,13 +124,13 @@ function re.draw(gam)
 											local explore_cost = player_realm:get_explore_cost(tile.province)
 											local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
 											if player_realm.budget.treasury > explore_cost then
-												if ui.text_button("Explore (" .. explore_cost_string .. ')', rect, "Explore this province") then
+												if uit.text_button("Explore (" .. explore_cost_string .. ')', rect, "Explore this province") then
 													player_realm:explore(tile.province)
 													EconomicEffects.change_treasury(player_realm, -explore_cost, EconomicEffects.reasons.Exploration)
 													gam.refresh_map_mode()
 												end
 											else
-												if ui.text_button("Explore (n/a)", rect,
+												if uit.text_button("Explore (n/a)", rect,
 													"Not enough funds! (" ..
 													explore_cost_string .. " needed)") then
 													--
@@ -147,12 +144,10 @@ function re.draw(gam)
 						function(rect)
 							uit.rows({
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Mov. cost: ", tostring(math.floor(tile.province.movement_cost)), rect,
 										"Movement cost, in hours")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Mood: ", tostring(math.floor(tile.province.mood * 100) / 100), rect,
 										"How positive of an outlook an average person in this province has about the future. Influences everything from sub-province decision making to voluntary contributions.")
 								end
@@ -162,39 +157,32 @@ function re.draw(gam)
 							local lat, lon = tile:latlon()
 							uit.rows({
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Latitude: ", tostring(math.floor(lat * 100) / 100), rect,
 										"In radians")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Longitude: ", tostring(math.floor(lon * 100) / 100), rect,
 										"In radians")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Size: ", tostring(tabb.size(tile.province.tiles)), rect, "In tiles")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local visibility = WORLD:base_visibility(1)
 									uit.data_entry_percentage("Spotting (1): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 1 human raider.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local visibility = WORLD:base_visibility(10)
 									uit.data_entry_percentage("Spotting (10): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 10 human raiders.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									local visibility = WORLD:base_visibility(50)
 									uit.data_entry_percentage("Spotting (50): ", tile.province:spot_chance(visibility), rect,
 										"Chance to spot an army of 50 human raiders.")
 								end,
 								function(rect)
-									ui.panel(rect)
 									uit.data_entry("Hiding space: ", tostring(math.floor(tile.province:get_hiding() * 100) / 100), rect,
 										"The weighted amount of land that can be hidden in. Expressed as an equivalent number of grassland tiles.")
 								end
@@ -546,11 +534,11 @@ function re.draw(gam)
 							ui.centered_text("Buildings", rect)
 							rect.width = base_unit
 							if re.building_stacks then
-								if ui.icon_button(ASSETS.icons['cubes.png'], rect, "Show individual buildings") then
+								if uit.icon_button(ASSETS.icons['cubes.png'], rect, "Show individual buildings") then
 									re.building_stacks = not re.building_stacks
 								end
 							else
-								if ui.icon_button(ASSETS.icons['cubeforce.png'], rect, "Show building types") then
+								if uit.icon_button(ASSETS.icons['cubeforce.png'], rect, "Show building types") then
 									re.building_stacks = not re.building_stacks
 								end
 							end
@@ -580,7 +568,8 @@ function re.draw(gam)
 										local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 										ui.image(ASSETS.icons[building_type.icon], im)
 										rect.x = rect.x + base_unit
-										ui.left_text(building_type.name .. " (" .. tostring(amount) .. ")", rect)
+
+										uit.count_entry(building_type.name, amount or 1, rect)
 									end
 								end, base_unit, tabb.size(stacks), base_unit,
 									re.buildings_scrollbar)
@@ -595,7 +584,7 @@ function re.draw(gam)
 										---@type Rect
 										local r = rect
 										local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-										if ui.icon_button(ASSETS.icons[building.type.icon], im) then
+										if uit.icon_button(ASSETS.icons[building.type.icon], im) then
 											gam.inspector = 'building'
 											gam.selected_building = building
 										end
@@ -603,7 +592,7 @@ function re.draw(gam)
 										ui.left_text(building.type.name, rect)
 										if WORLD:does_player_control_realm(tile.province.realm) then
 											local button = r:subrect(-base_unit, 0, base_unit, base_unit, "right", 'up')
-											if ui.icon_button(ASSETS.get_icon('hammer-drop.png'), button, "Destroy the building") then
+											if uit.icon_button(ASSETS.get_icon('hammer-drop.png'), button, "Destroy the building") then
 												-- remove the building!
 												building:remove_from_province(tile.province)
 											end
@@ -662,7 +651,7 @@ function re.draw(gam)
 										uit.columns({
 											function(rect)
 												if realm.budget.treasury > 0.1 then
-													if ui.text_button('+0.1' .. MONEY_SYMBOL, rect, 'Invest 0.1') then
+													if uit.text_button('+0.1' .. MONEY_SYMBOL, rect, 'Invest 0.1') then
 														ef.direct_investment_infrastructure(realm, province, 0.1)
 													end
 												else
@@ -671,7 +660,7 @@ function re.draw(gam)
 											end,
 											function(rect)
 												if realm.budget.treasury > 1 then
-													if ui.text_button('+1' .. MONEY_SYMBOL, rect, 'Invest 1') then
+													if uit.text_button('+1' .. MONEY_SYMBOL, rect, 'Invest 1') then
 														ef.direct_investment_infrastructure(realm, province, 1)
 													end
 												else
@@ -680,7 +669,7 @@ function re.draw(gam)
 											end,
 											function(rect)
 												if realm.budget.treasury > 10 then
-													if ui.text_button('+10' .. MONEY_SYMBOL, rect, 'Invest 10') then
+													if uit.text_button('+10' .. MONEY_SYMBOL, rect, 'Invest 10') then
 														ef.direct_investment_infrastructure(realm, province, 10)
 													end
 												else
@@ -689,7 +678,7 @@ function re.draw(gam)
 											end,
 											function(rect)
 												if realm.budget.treasury > 100 then
-													if ui.text_button('+100' .. MONEY_SYMBOL, rect, 'Invest 100') then
+													if uit.text_button('+100' .. MONEY_SYMBOL, rect, 'Invest 100') then
 														ef.direct_investment_infrastructure(realm, province, 100)
 													end
 												else
@@ -721,7 +710,7 @@ function re.draw(gam)
 								function(rect)
 									if tile.tile_improvement then
 										if WORLD:does_player_control_realm(tile.province.realm) then
-											if ui.text_button("Destroy", rect, "Destroy the local tile improvement") then
+											if uit.text_button("Destroy", rect, "Destroy the local tile improvement") then
 												tile.tile_improvement:remove_from_province(tile.province)
 											end
 										end
@@ -777,7 +766,7 @@ function re.draw(gam)
 											---@type Rect
 											local r = rect
 											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-											if ui.icon_button(ASSETS.icons[tech.icon], im) then
+											if uit.icon_button(ASSETS.icons[tech.icon], im) then
 												gam.cached_selected_tech = tech
 												gam.update_map_mode("selected_technology")
 											end
@@ -806,7 +795,7 @@ function re.draw(gam)
 											---@type Rect
 											local r = rect
 											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-											if ui.icon_button(ASSETS.icons[tech.icon], im) then
+											if uit.icon_button(ASSETS.icons[tech.icon], im) then
 												gam.cached_selected_tech = tech
 												gam.update_map_mode("selected_technology")
 											end
@@ -869,7 +858,7 @@ function re.draw(gam)
 							rect.width = rect.height
 							if WORLD:does_player_control_realm(tile.province.realm) then
 								if target > 0 then
-									if ui.text_button('-1', rect, "Decrease the number of units to recruit by one") then
+									if uit.text_button('-1', rect, "Decrease the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target - 1)
 									end
 								end
@@ -885,16 +874,16 @@ function re.draw(gam)
 								local target_budget = realm.budget.military.target
 								local current_budget = realm.budget.military.budget
 								if current_budget > target_budget + unit.upkeep then
-									if ui.text_button('+1', rect, "Increase the number of units to recruit by one") then
+									if uit.text_button('+1', rect, "Increase the number of units to recruit by one") then
 										tile.province.units_target[unit] = math.max(0, target + 1)
 									end
 								else 
-									ui.text_button('X', rect, "Not enough military funding")
+									uit.text_button('X', rect, "Not enough military funding", false)
 								end
 							end
 							rect.x = rect.x + rect.width + 5
 							rect.width = 150
-							uit.money_entry('Cost', unit.base_price, rect)
+							uit.money_entry('Unit upkeep: ', unit.upkeep, rect)
 						end
 					end, base_unit, ttab.size(tile.province.units), base_unit, re.units_scrollbar)
 				end

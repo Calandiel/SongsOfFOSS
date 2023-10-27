@@ -1,6 +1,7 @@
 local mm = {}
 
 local ui = require "engine.ui"
+local ut = require "game.ui-utils"
 
 function mm.rect() 
 	return ui.fullscreen():subrect(0, 20, 300, 400, "center", "center")
@@ -80,7 +81,7 @@ function mm.draw()
 	
 
 	-- RETURN
-	if ui.text_button(
+	if ut.text_button(
 		"Return",
 		layout:next(menu_button_width, menu_button_height)
 	) then

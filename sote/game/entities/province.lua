@@ -55,7 +55,6 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
----@field can_build fun(self:Province, funds:number, building:BuildingType, location:Tile?, overseer:POP?, public_flag:boolean):boolean,BuildingAttemptFailureReason?
 ---@field building_type_present fun(self:Province, building:BuildingType):boolean Returns true when a building of a given type has been built in a province
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field mood number how local population thinks about the state
@@ -447,6 +446,14 @@ end
 ---@alias BuildingAttemptFailureReason 'not_enough_funds' | 'unique_duplicate' | 'tile_improvement' | 'missing_local_resources'
 
 
+---comment
+---@param funds number
+---@param building BuildingType
+---@param location Tile?
+---@param overseer POP?
+---@param public boolean
+---@return boolean
+---@return string
 function prov.Province:can_build(funds, building, location, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then

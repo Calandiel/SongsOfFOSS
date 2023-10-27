@@ -4,7 +4,8 @@ local ut = {}
 
 
 ut.BASE_HEIGHT = 20
-ut.DATA_PADDING = 5
+ut.BORDER_PADDING = 1
+ut.DATA_PADDING = 2
 
 ---@class Entry
 ---@field weight number
@@ -90,15 +91,155 @@ function ut.rows(rows, rect, row_height, spacing)
 	end
 end
 
----Draws a data field
----@param name string
+---@enum NumberMode
+ut.NUMBER_MODE = {
+	MONEY = 1,
+	BALANCE = 3,
+	NUMBER = 4,
+	INTEGER = 5,
+	PERCENTAGE = 6,
+}
+
+---@enum NameMode
+ut.NAME_MODE = {
+	NAME = 1,
+	ICON = 2,
+}
+
+---comment
+---@param number number
+---@param rect Rect
+---@param negative boolean
+local function render_money(number, rect, negative)
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
+	if number < 0 and not negative or number > 0 and negative then
+		r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, 1, 1)
+	end
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text(ut.to_fixed_point2(number) .. MONEY_SYMBOL, rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+
+---comment
+---@param number number
+---@param rect Rect
+---@param negative boolean
+local function render_balance(number, rect, negative)
+	local cr, cg, cb, ca = love.graphics.getColor()
+
+	local h = math.atan(number / 100) / math.pi * 120 + 60
+	if negative then
+		h = math.atan(-number / 100) / math.pi * 120 + 60
+	end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text(ut.to_fixed_point2(number), rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+local function render_percentage(number, rect, negative)
+	local hue = math.min(number * 120, 359)
+	if negative then
+		hue = math.max(0, 120 - number * 120)
+	end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text( tostring(math.floor(number * 100 + 0.5)) .. '%', rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+---comment
+---@param name_or_icon string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param mode NumberMode
+---@param name_mode NameMode
+---@param negative boolean?
+---@param panel boolean?
+function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_mode, negative, panel)
+	if panel == nil then
+		panel = true
+	end
+	if negative == nil then
+		negative = false
+	end
+
+	-- padded border
+	rect = rect:copy():shrink(ut.BORDER_PADDING)
+	if panel then
+		ui.panel(rect, 3)
+	end
+
+	-- padded data
+	rect = rect:copy():shrink(ut.DATA_PADDING)
+
+	-- name or icon
+	if name_mode == ut.NAME_MODE.NAME then
+		ui.left_text(name_or_icon, rect)
+	elseif name_mode == ut.NAME_MODE.ICON then
+		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+		ui.image(ASSETS.icons[name_or_icon], icon_rect)
+	end
+
+	-- data
+	if mode == ut.NUMBER_MODE.MONEY then
+		render_money(data, rect, negative)
+	elseif mode == ut.NUMBER_MODE.BALANCE then
+		render_balance(data, rect, negative)
+	elseif mode == ut.NUMBER_MODE.NUMBER then
+		ut.data_font()
+		ui.right_text(ut.to_fixed_point2(data), rect)
+		ut.main_font()
+	elseif mode == ut.NUMBER_MODE.INTEGER then
+		ut.data_font()
+		ui.right_text(tostring(data), rect)
+		ut.main_font()
+	elseif mode == ut.NUMBER_MODE.PERCENTAGE then
+		render_percentage(data, rect, negative)
+	end
+
+	-- tooltip
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+end
+
+---comment
+---@param name_or_icon string
 ---@param data string
 ---@param rect Rect
 ---@param tooltip string?
-function ut.data_entry(name, data, rect, tooltip)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
+---@param name_mode NameMode
+---@param panel boolean?
+function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, panel)
+	if panel == nil then
+		panel = true
+	end
 
-	ui.left_text(name, rect)
+	rect = rect:copy():shrink(ut.BORDER_PADDING)
+	if panel then
+		ui.panel(rect, 3)
+	end
+	rect = rect:shrink(ut.DATA_PADDING)
+
+	if name_mode == ut.NAME_MODE.NAME then
+		ui.left_text(name_or_icon, rect)
+	elseif name_mode == ut.NAME_MODE.ICON then
+		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+		ui.image(ASSETS.icons[name_or_icon], icon_rect)
+	end
 
 	ut.data_font()
 	ui.right_text(data, rect)
@@ -109,88 +250,76 @@ function ut.data_entry(name, data, rect, tooltip)
 	end
 end
 
+
+---Draws a data field
 ---@param name string
----@param data number
+---@param data string
 ---@param rect Rect
 ---@param tooltip string?
----@param negative boolean?
-function ut.money_entry(name, data, rect, tooltip, negative)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-
-	if negative == nil then
-		negative = false
-	end
-
-	ui.left_text(name, rect)
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
-	if data < 0 and not negative or data > 0 and negative then
-		r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, 1, 1)
-	end
-	local cr, cg, cb, ca = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, a)
-	ut.data_font()
-	ui.right_text(ut.to_fixed_point2(data) .. MONEY_SYMBOL, rect)
-	ut.main_font()
-	love.graphics.setColor(cr, cg, cb, ca)
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
+---@param panel boolean?
+function ut.data_entry(name, data, rect, tooltip, panel)
+	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel)	
 end
-
-
----@param name string
----@param data number
----@param rect Rect
----@param tooltip string?
----@param negative boolean?
-function ut.balance_entry(name, data, rect, tooltip, negative)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-
-	if negative == nil then
-		negative = false
-	end
-
-	ui.left_text(name, rect)
-	local cr, cg, cb, ca = love.graphics.getColor()
-
-	local h = math.atan(data / 100) / math.pi * 120 + 60
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
-	love.graphics.setColor(r, g, b, a)
-	ut.data_font()
-	ui.right_text(ut.to_fixed_point2(data), rect)
-	ut.main_font()
-	love.graphics.setColor(cr, cg, cb, ca)
-
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
-end
-
 
 ---Draws a data field with icon
 ---@param icon string
 ---@param data string
 ---@param rect Rect
 ---@param tooltip string?
-function ut.data_entry_icon(icon, data, rect, tooltip)
-	local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
-	-- local data_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height, "right", "center")
-	ui.image(ASSETS.icons[icon], icon_rect)
-	ut.data_entry("", data, rect, tooltip)
+---@param panel boolean?
+function ut.data_entry_icon(icon, data, rect, tooltip, panel)
+	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON, panel)
 end
 
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.money_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.count_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.NUMBER, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.integer_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.INTEGER, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.balance_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.BALANCE, ut.NAME_MODE.NAME, negative, panel)
+end
 
 ---Draws a money field with icon
 ---@param data number
 ---@param rect Rect
 ---@param tooltip string
 ---@param negative boolean?
-function ut.money_entry_icon(data, rect, tooltip, negative)
-	local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
-	ui.image(ASSETS.icons['coins.png'], icon_rect)
-	ut.money_entry("", data, rect, tooltip, negative)
+---@param panel boolean?
+function ut.money_entry_icon(data, rect, tooltip, negative, panel)
+	ut.generic_number_field('coins.png', data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.ICON, negative, panel)
 end
-
 
 ---Draws a data field
 ---@param name string
@@ -198,15 +327,9 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param positive boolean? Is big number good?
-function ut.data_entry_percentage(name, data, rect, tooltip, positive)
-	if positive == nil then
-		positive = true
-	end
-
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-	ui.left_text(name, rect)
-	rect:shrink(-5)
-	ut.color_coded_percentage(data, rect, positive, tooltip)
+---@param panel boolean?
+function ut.data_entry_percentage(name, data, rect, tooltip, positive, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
 
 ---Renders a color coded percentage
@@ -214,33 +337,17 @@ end
 ---@param rect Rect
 ---@param positive boolean?
 ---@param tooltip string?
-function ut.color_coded_percentage(value, rect, positive, tooltip)
-	rect = rect:copy():shrink(ut.DATA_PADDING)
-
-	if positive == nil then
-		positive = true
-	end
-
-	local hue = math.min(value * 120, 359)
-	if not positive then
-		hue = math.max(0, 120 - value * 120)
-	end
-
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
-	local cr, cg, cb, ca = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, a)
-	ut.data_font()
-	ui.right_text( tostring(math.floor(value * 100 + 0.5)) .. '%', rect)
-	ut.main_font()
-	love.graphics.setColor(cr, cg, cb, ca)
-	if tooltip then
-		ui.tooltip(tooltip, rect)
-	end
+---@param panel boolean?
+function ut.color_coded_percentage(value, rect, positive, tooltip, panel)
+	ut.generic_number_field("", value, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
 
+
 function ut.reload_font()
+	-- ASSETS.main_font = love.graphics.newFont("data/fonts/Pelagiad.ttf", ui.font_size(12))
+	-- ASSETS.data_font = love.graphics.newFont("data/fonts/CenturyGothic.ttf", ui.font_size(14))
 	ASSETS.main_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))
-	ASSETS.data_font = love.graphics.newFont("data/fonts/CenturyGothic.ttf", ui.font_size(14))
+	ASSETS.data_font = love.graphics.newFont("data/fonts/main-font.otf", ui.font_size(12))
 	love.graphics.setFont(ASSETS.main_font)
 end
 
@@ -307,6 +414,177 @@ ut.months = {
 	'December'
 }
 
+local gold_color = {
+	['r'] = 1,
+	['g'] = 0.87,
+	['b'] = 0,
+	['a'] = 1
+}
+
+local dark_yellow = {
+	['r'] = 0.5,
+	['g'] = 0.4,
+	['b'] = 0,
+	['a'] = 1
+}
+
+local black_color = {
+	['r'] = 0,
+	['g'] = 0,
+	['b'] = 0,
+	['a'] = 1
+}
+
+local blue_color = {
+	['r'] = 0.5,
+	['g'] = 0.5,
+	['b'] = 1,
+	['a'] = 1
+}
+
+local silver_color = {
+	['r'] = 0.87,
+	['g'] = 0.87,
+	['b'] = 0.87,
+	['a'] = 1
+}
+
+local dark_grey_color = {
+	['r'] = 0.2,
+	['g'] = 0.2,
+	['b'] = 0.2,
+	['a'] = 1
+}
+
+local dark_green_color = {
+	['r'] = 56 / 255,
+	['g'] = 70 / 255,
+	['b'] = 56 / 255,
+	['a'] = 1
+}
+
+local dark_blue_color = {
+	['r'] = 29 / 255,
+	['g'] = 53 / 255,
+	['b'] = 92 / 255,
+	['a'] = 1
+}
+
+local light_lime_color = {
+	['r'] = 0.5,
+	['g'] = 1,
+	['b'] = 0.5,
+	['a'] = 1
+}
+
+---Renders button border / background depending on potential and active, returns button result and Rect to draw some data inside
+---@param rect Rect
+---@param potential boolean can you take this action?
+---@param active boolean?
+---@return boolean, Rect
+function ut.button(rect, potential, active)
+	rect = rect:copy():shrink(1)
+
+	local old_style = ui.style.panel_outline
+	local old_style_inside = ui.style.panel_inside
+	local old_style_button_inside = ui.style.button_inside
+	local old_style_button_hovered = ui.style.button_hovered
+	local old_style_button_clicked = ui.style.button_clicked
+
+	-- outer border
+	ui.style.panel_outline = dark_yellow
+	if not potential then
+		ui.style.panel_outline = dark_grey_color
+	end
+	ui.panel(rect, 1, true, false)
+
+	-- inner border
+	rect = rect:shrink(1)
+	ui.style.panel_inside = black_color
+	ui.panel(rect, 1, false, true)
+
+	-- inner background
+	ui.style['button_inside'] = dark_blue_color --dark_green_color
+	ui.style['button_hovered'] = blue_color
+	ui.style['button_clicked'] = light_lime_color
+
+	if not potential then
+		ui.style['button_inside'] = dark_grey_color
+		ui.style['button_hovered'] = dark_grey_color
+		ui.style['button_clicked'] = dark_grey_color
+	end
+
+	rect = rect:shrink(1)
+	ui.style.panel_inside = dark_blue_color -- dark_green_color
+	if not potential then
+		ui.style.panel_inside = dark_grey_color
+	end
+
+	-- button press and background
+	local result = ui.text_button("", rect, nil, 1, false) and potential
+
+	-- overlay for active buttons
+	if active then
+		ui.style.panel_inside = dark_green_color
+		ui.style.panel_outline = dark_green_color
+		-- ui.panel(rect, math.min(rect.height, rect.width), false)
+		ui.panel(rect, 1, false)
+	end
+
+
+	ui.style.panel_outline = old_style
+	ui.style.panel_inside = old_style_inside
+	ui.style.button_inside = old_style_button_inside
+	ui.style.button_hovered = old_style_button_hovered
+	ui.style.button_clicked = old_style_button_clicked
+
+	return result, rect
+end
+
+---comment
+---@param icon love.Image
+---@param rect Rect
+---@param tooltip string?
+---@param potential boolean?
+---@param active boolean?
+function ut.icon_button(icon, rect, tooltip, potential, active)
+	if potential == nil then
+		potential = true
+	end
+
+	local result, rect_icon = ut.button(rect, potential, active)
+
+	ui.image(icon, rect_icon)
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+
+	return result
+end
+
+
+---comment
+---@param text string
+---@param rect Rect
+---@param tooltip string?
+---@param potential boolean?
+---@param active boolean?
+function ut.text_button(text, rect, tooltip, potential, active)
+	if potential == nil then
+		potential = true
+	end
+
+	local result, rect_text = ut.button(rect, potential, active)
+
+	ui.centered_text(text, rect_text)
+
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+
+	return result
+end
+
 
 ---Draws the calendar and returns whether or not the mouse if over it
 ---@param gam table
@@ -334,12 +612,12 @@ function ut.calendar(gam)
 	local main_button = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	if gam.paused ~= nil and not gam.paused then
 		-- the game is unpaused
-		if ui.icon_button(ASSETS.icons['pause-button.png'], main_button, "Pause") then
+		if ut.icon_button(ASSETS.icons['pause-button.png'], main_button, "Pause") then
 			gam.paused = true
 		end
 	else
 		-- the game is paused
-		if ui.icon_button(ASSETS.icons['play-button.png'], main_button, "Unpause") then
+		if ut.icon_button(ASSETS.icons['play-button.png'], main_button, "Unpause") then
 			gam.paused = false
 		end
 	end
@@ -350,14 +628,14 @@ function ut.calendar(gam)
 	local speed_up = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	local speed = hor:next(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT)
 	local speed_down = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
-	if ui.icon_button(ASSETS.icons['fast-forward-button.png'], speed_up, "Speed up") or ui.is_key_pressed("+") or
+	if ut.icon_button(ASSETS.icons['fast-forward-button.png'], speed_up, "Speed up") or ui.is_key_pressed("+") or
 		ui.is_key_pressed("kp+") then
 		gam.speed = math.min(10, gam.speed + 1)
 	end
 	ui.panel(speed)
 	ui.centered_text(tostring(gam.speed) .. " / 10", speed)
 	ui.tooltip("Game speed", speed)
-	if ui.icon_button(ASSETS.icons['fast-backward-button.png'], speed_down, "Slown down") or ui.is_key_pressed("-") or
+	if ut.icon_button(ASSETS.icons['fast-backward-button.png'], speed_down, "Slown down") or ui.is_key_pressed("-") or
 		ui.is_key_pressed("kp-") then
 		gam.speed = math.max(1, gam.speed - 1)
 	end
@@ -387,11 +665,10 @@ function ut.tabs(current_tab, layout, tabs, scale, width_tab_header)
 	for _, tab in pairs(tabs) do
 		local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
 		if current_tab == tab.text then
-			ui.tooltip(tab.tooltip, rect)
-			ui.centered_text(tab.text, rect)
+			ut.text_button(tab.text, rect, tab.tooltip, false, true)
 			tab.closure()
 		else
-			if ui.text_button(tab.text, rect, tab.tooltip) then
+			if ut.text_button(tab.text, rect, tab.tooltip) then
 				new_tab = tab.text
 				if tab.on_select then
 					tab.on_select()
