@@ -32,7 +32,7 @@ function window.draw(game)
 
     ui.text("Character decisions", ui_panel, "left", 'up')
 
-    if ui.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
         game.inspector = nil
     end
 

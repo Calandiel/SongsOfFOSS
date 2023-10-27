@@ -30,7 +30,7 @@ function window.draw(game, realm)
     ui_panel.height = ui_panel.height / 3 - uit.BASE_HEIGHT
     ui.text("Warbands", ui_panel, "left", 'up')
 
-    if ui.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+    if uit.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
         game.inspector = nil
     end
 
@@ -82,7 +82,7 @@ function window.draw(game, realm)
                 size = size  + warband:size()
             end
             if target.owner == WORLD.player_character then
-                if ui.text_button('', rect) then
+                if uit.text_button('', rect) then
                     game.selected_reward_flag = target
                     game.inspector = 'reward-flag-edit'
                 end

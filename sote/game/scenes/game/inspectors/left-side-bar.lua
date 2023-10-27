@@ -28,38 +28,73 @@ function inspector.draw(gam)
         :spacing(0)
         :build()
 
-    if ut.icon_button(ASSETS.icons['hammer-drop.png'], layout:next(base_unit, base_unit), "Plan development of your estates", true) then
-        if gam.inspector == 'macrobuilder' then
-            gam.inspector = nil
-        else
-            gam.inspector = 'macrobuilder'
+    local inspectors = {
+        "macrobuilder",
+        "market",
+        "army",
+        "character-decisions",
+    }
+
+    local inspector_icons = {
+        ['macrobuilder'] = ASSETS.icons['hammer-drop.png'],
+        ['market'] = ASSETS.icons['scales.png'],
+        ['army'] = ASSETS.icons['guards.png'],
+        ['character-decisions'] = ASSETS.icons['envelope.png'],
+    }
+
+    local inspector_tooltips = {
+        ['macrobuilder'] = "Plan development of your estates",
+        ['market'] = "Visit local market",
+        ['army'] = "Visit local warriors",
+        ['character-decisions'] = "Do something",
+    }
+
+    for _, inspector in pairs(inspectors) do
+        local active = gam.inspector == inspector
+        local icon = inspector_icons[inspector]
+        local tooltip = inspector_tooltips[inspector]
+
+        if ut.icon_button(icon, layout:next(base_unit, base_unit), tooltip, true, active) then
+            if active then
+                gam.inspector = nil
+            else
+                gam.inspector = inspector
+            end
         end
     end
+
+    -- if ut.icon_button(ASSETS.icons['hammer-drop.png'], layout:next(base_unit, base_unit), "Plan development of your estates", true) then
+    --     if gam.inspector == 'macrobuilder' then
+    --         gam.inspector = nil
+    --     else
+    --         gam.inspector = 'macrobuilder'
+    --     end
+    -- end
 
     
-    if ut.icon_button(ASSETS.icons['scales.png'], layout:next(base_unit, base_unit), "Visit local market", true) then
-        if gam.inspector == 'market' then
-            gam.inspector = nil
-        else
-            gam.inspector = 'market'
-        end
-    end
+    -- if ut.icon_button(ASSETS.icons['scales.png'], layout:next(base_unit, base_unit), "Visit local market", true) then
+    --     if gam.inspector == 'market' then
+    --         gam.inspector = nil
+    --     else
+    --         gam.inspector = 'market'
+    --     end
+    -- end
 
-    if ut.icon_button(ASSETS.icons['guards.png'], layout:next(base_unit, base_unit), "Visit local warriors", true) then
-        if gam.inspector == 'army' then
-            gam.inspector = nil
-        else
-            gam.inspector = "army"
-        end
-    end
+    -- if ut.icon_button(ASSETS.icons['guards.png'], layout:next(base_unit, base_unit), "Visit local warriors", true) then
+    --     if gam.inspector == 'army' then
+    --         gam.inspector = nil
+    --     else
+    --         gam.inspector = "army"
+    --     end
+    -- end
 
-    if ut.icon_button(ASSETS.icons['envelope.png'], layout:next(base_unit, base_unit), "Do something") then
-        if gam.inspector == 'character-decisions' then
-            gam.inspector = nil
-        else
-            gam.inspector = "character-decisions"
-        end
-    end
+    -- if ut.icon_button(ASSETS.icons['envelope.png'], layout:next(base_unit, base_unit), "Do something") then
+    --     if gam.inspector == 'character-decisions' then
+    --         gam.inspector = nil
+    --     else
+    --         gam.inspector = "character-decisions"
+    --     end
+    -- end
 end
 
 

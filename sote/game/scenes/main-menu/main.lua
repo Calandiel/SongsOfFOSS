@@ -1,6 +1,7 @@
 local mm = {}
 
 local ui = require "engine.ui"
+local ut = require "game.ui-utils"
 
 ---Draws the main menu screen
 ---@return string screen_name The name of the screen to render
@@ -20,13 +21,13 @@ function mm.draw()
 		:spacing(10)
 		:build()
 
-	if ui.text_button(
+	if ut.text_button(
 		"New game",
 		layout:next(menu_button_width, menu_button_height)
 	) then
 		return "default"
 	end
-	if ui.text_button(
+	if ut.text_button(
 		"Load game",
 		layout:next(menu_button_width, menu_button_height)
 	) then
@@ -39,19 +40,19 @@ function mm.draw()
 	-- ) then
 	-- 	return "default"
 	-- end
-	if ui.text_button(
+	if ut.text_button(
 		"Empty planet",
 		layout:next(menu_button_width, menu_button_height)
 	) then
 		return "empty"
 	end
-	if ui.text_button(
+	if ut.text_button(
 		"Options",
 		layout:next(menu_button_width, menu_button_height)
 	) then
 		return "options"
 	end
-	if ui.text_button(
+	if ut.text_button(
 		"Quit",
 		layout:next(menu_button_width, menu_button_height)
 	) then

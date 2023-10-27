@@ -79,7 +79,7 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
             if public_flag then
                 tooltip = "(public)"
             end
-            if ui.icon_button(ASSETS.icons['hammer-drop.png'], rect,
+            if uit.icon_button(ASSETS.icons['hammer-drop.png'], rect,
                 "Build " .. tooltip .." (" .. tostring(construction_cost) .. MONEY_SYMBOL .. ")") then
 
                 EconomicEffects.construct_building_with_payment(
@@ -133,7 +133,7 @@ return function (gam, rect, base_unit, building_type, tile, tile_improvement_fla
 
     r.x = r.x + r.width
     r.width = base_unit
-    if ui.icon_button(ASSETS.icons['mesh-ball.png'], r,
+    if uit.icon_button(ASSETS.icons['mesh-ball.png'], r,
         "Show local efficiency on map") then
         gam.selected_building_type = building_type
         gam.refresh_map_mode(true)

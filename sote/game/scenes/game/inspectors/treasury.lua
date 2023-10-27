@@ -70,7 +70,7 @@ return function(ui_panel, realm)
             local button_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT, "left", 'up')
 
             local function change_treasury_target(x)
-                if ui.text_button(
+                if uit.text_button(
                     uit.to_fixed_point2(x) .. MONEY_SYMBOL,
                     button_rect,
                     "Change monthly investment by " .. uit.to_fixed_point2(x) .. MONEY_SYMBOL

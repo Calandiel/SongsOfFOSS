@@ -23,14 +23,14 @@ function window.draw(game)
     rect.width = rect.width / 2
 
     --- confirm
-    if ui.text_button("Confirm exit", rect) then
+    if uit.text_button("Confirm exit", rect) then
         game.inspector = nil
 		return true
     end
 
     rect.x = rect.x + rect.width
     --- cancel
-    if ui.text_button("Return to the game", rect) then
+    if uit.text_button("Return to the game", rect) then
         game.inspector = nil
         return false
     end

@@ -33,7 +33,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
 			gam.click_tile(-1)
 			gam.selected_building = nil
 			gam.inspector = nil

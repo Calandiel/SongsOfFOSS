@@ -1,6 +1,7 @@
 local mm = {}
 
 local ui = require "engine.ui"
+local ut = require "game.ui-utils"
 
 ---Draws the main menu screen
 ---@return string screen_name The name of the screen to render
@@ -30,13 +31,13 @@ function mm.draw()
 		5
 	)
 
-	if ui.text_button(
+	if ut.text_button(
 		"Generate",
 		layout:next(menu_button_width, menu_button_height)
 	) then
 		return "generating"
 	end
-	if ui.text_button(
+	if ut.text_button(
 		"Return",
 		layout:next(menu_button_width, menu_button_height)
 	) then

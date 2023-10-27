@@ -31,7 +31,7 @@ function window.draw(game, realm)
 
     -- header
     panel.height = panel.height - base_unit * 2.5
-    if ui.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    if ut.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
         game.inspector = nil
     end
     ui.left_text("Journal", panel:subrect(0, 0, base_unit * 6, base_unit, "left", 'up'))
