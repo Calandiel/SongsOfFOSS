@@ -266,7 +266,7 @@ function gam.handle_camera_controls()
 		end
 		-- Handle camera controls...
 		local up = up_direction
-		local camera_speed = (gam.camera_position:len() - 0.75) * 0.001
+		local camera_speed = (gam.camera_position:len() - 0.75) * 0.0015
 		if ui.is_key_held('lshift') then
 			camera_speed = camera_speed * 3
 		end
@@ -330,21 +330,39 @@ end
 function gam.handle_zoom()
 	local ui = require "engine.ui"
 	if not gam.camera_lock then
-		local zoom_speed = 0.02
+		-- We handle scrollin with two passes.
+		-- First, we handle q/e, then we modify the zoom speed and handle the mouse wheel.
+		-- We do it because the q/e are significantly faster than mouse wheel movement and need separate handling.
+		local zoom_speed = 0.002
 		if ui.is_key_held('lshift') then
 			zoom_speed = zoom_speed * 3
 		end
 		if ui.is_key_held('lctrl') then
 			zoom_speed = zoom_speed / 6
 		end
-		if ui.is_key_held('e') or (ui.mouse_wheel() < 0) then
+		if ui.is_key_held('e') then
 			gam.camera_position = gam.camera_position * (1 + zoom_speed)
 			local l = gam.camera_position:len()
 			if l > 3 then
 				gam.camera_position = gam.camera_position:normalize() * 3
 			end
 		end
-		if ui.is_key_held('q') or (ui.mouse_wheel() > 0) then
+		if ui.is_key_held('q') then
+			gam.camera_position = gam.camera_position * (1 - zoom_speed)
+			local l = gam.camera_position:len()
+			if l < 1.015 then
+				gam.camera_position = gam.camera_position:normalize() * 1.015
+			end
+		end
+		zoom_speed = zoom_speed * 10
+		if (ui.mouse_wheel() < 0) then
+			gam.camera_position = gam.camera_position * (1 + zoom_speed)
+			local l = gam.camera_position:len()
+			if l > 3 then
+				gam.camera_position = gam.camera_position:normalize() * 3
+			end
+		end
+		if (ui.mouse_wheel() > 0) then
 			gam.camera_position = gam.camera_position * (1 - zoom_speed)
 			local l = gam.camera_position:len()
 			if l < 1.015 then
