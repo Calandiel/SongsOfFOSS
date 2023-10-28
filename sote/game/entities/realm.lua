@@ -140,6 +140,7 @@ end
 ---@field remove_raider fun(self:Realm, f: RewardFlag, warband: Warband)
 ---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
+---@field get_top_realm fun(self:Realm, origin:Realm, depth: number | nil):Realm Returns the top dog of a tributary chains. Handles loops.
 
 local realm = {}
 local tabb = require "engine.table"
@@ -288,7 +289,7 @@ function realm.Realm:add_patrol(prov, warband)
 	if self.patrols[prov] then
 		self.patrols[prov][warband] = warband
 		warband.status = 'preparing_patrol'
-	else 
+	else
 		self.patrols[prov] = {}
 		self.patrols[prov][warband] = warband
 		warband.status = 'preparing_patrol'
@@ -323,7 +324,6 @@ function realm.Realm:explore(province)
 		self.known_provinces[n] = n
 	end
 end
-
 
 ---Returns a percentage describing the education investments
 ---@return number
@@ -430,6 +430,15 @@ function realm.Realm:get_realm_active_army_size()
 	return total
 end
 
+function realm.Realm:get_top_realm(source, depth)
+	local depth = depth or 0
+	if self.paying_tribute_to == nil or (self == source and depth > 0) then
+		return self
+	else
+		return self.paying_tribute_to:get_top_realm(source, depth + 1)
+	end
+end
+
 ---@return number
 function realm.Realm:get_realm_militarization()
 	return self:get_realm_military() / self:get_realm_population()
@@ -463,7 +472,6 @@ function realm.Realm:raise_local_army(province)
 	return army
 end
 
-
 ---@param warbands table<Warband, Warband>
 ---@return Army
 function realm.Realm:raise_army(warbands)
@@ -486,15 +494,15 @@ function realm.Realm:disband_army(army)
 	for _, warband in pairs(army.warbands) do
 		-- if warband was patrolling, let it continue
 
-			for pop, province in pairs(warband.pops) do
-				local unit = warband.units[pop]
-				if province.realm then
-					province:return_pop_from_army(pop, unit)
-				else
-					self.capitol:return_pop_from_army(pop, unit)
-				end
-				pop.drafted = true
+		for pop, province in pairs(warband.pops) do
+			local unit = warband.units[pop]
+			if province.realm then
+				province:return_pop_from_army(pop, unit)
+			else
+				self.capitol:return_pop_from_army(pop, unit)
 			end
+			pop.drafted = true
+		end
 
 		if warband.status ~= 'patrol' then
 			warband.status = 'idle'
