@@ -1111,7 +1111,7 @@ end
 
 ---SCROLLVIEW
 ---@param rect Rect rect for the entire scroll view
----@param render_closure fun(number, Rect) fun(number, Rect) -- a drawing function for a given entry
+---@param render_closure fun(index: number, rect: Rect) fun(number, Rect) -- a drawing function for a given entry
 ---@param individual_height number height of a single entry, in pixels
 ---@param entries_count number number of entries in the scrollview
 ---@param slider_width number width of the slider
