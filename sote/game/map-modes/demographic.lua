@@ -70,7 +70,14 @@ function dem.technologies()
 end
 
 function dem.selected_technology()
-	local tt = require "game.scenes.game".cached_selected_tech
+	-- local selected_blob = require "game.scenes.game".selected
+	local tt = CACHED_TECH
+	if tt == nil then
+		print("Nil tech")
+	else
+		print(tt.name)
+	end
+	
 	ut.clear_color()
 	if tt then
 		for _, tile in ipairs(WORLD.tiles) do

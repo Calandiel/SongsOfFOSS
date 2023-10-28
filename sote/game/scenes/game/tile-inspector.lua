@@ -767,7 +767,8 @@ function re.draw(gam)
 											local r = rect
 											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 											if uit.icon_button(ASSETS.icons[tech.icon], im) then
-												gam.selected.cached_tech = tech
+												CACHED_TECH = tech
+												print(tech.name)
 												gam.update_map_mode("selected_technology")
 											end
 											rect.x = rect.x + base_unit
@@ -796,7 +797,8 @@ function re.draw(gam)
 											local r = rect
 											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 											if uit.icon_button(ASSETS.icons[tech.icon], im) then
-												gam.selected.cached_tech = tech
+												CACHED_TECH = tech
+												print(tech.name)
 												gam.update_map_mode("selected_technology")
 											end
 											rect.x = rect.x + base_unit

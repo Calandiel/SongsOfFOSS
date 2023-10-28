@@ -22,7 +22,7 @@ local traits_slider = 0
 function window.rect() 
     local unit = ut.BASE_HEIGHT
     local fs = ui.fullscreen()
-    return fs:subrect(unit * 2, unit * 2, unit * 14, unit * 30, "left", 'up')
+    return fs:subrect(unit * 2, unit * 2, unit * 16, unit * 34, "left", 'up')
 end
 
 function window.mask()
@@ -32,22 +32,6 @@ function window.mask()
 		return true
 	end
 end
-
-
---      ______
---     |      | 10x4/3
---     |4x4   | ______
---     |     |  5x4/3    5x4/3
---     |_____|  5x4/3    5x4/3
---      7x2            7x2
---
---              14x 7
---              14x 7 actions
---              14x 3 action confirmation
---              14x 7 other characters
-
-
-
 
 ---Draw character window
 ---@param game GameScene
@@ -70,22 +54,31 @@ function window.draw(game)
     
 
     -- name panel
-    local name_panel = ui_panel:subrect(unit * 4, 0, unit * 10, unit * 4/3, "left", 'up'):shrink(3)
+    local name_panel = ui_panel:subrect(unit * 4, 0, unit * 12, unit * 4/3, "left", 'up'):shrink(3)
 
-    local age_panel = ui_panel:subrect(unit * 4, unit * 4/3, unit * 10, unit * 4/3, "left", 'up'):shrink(3)
+    local age_panel = ui_panel:subrect(unit * 4, unit * 4/3, unit * 12, unit * 4/3, "left", 'up'):shrink(3)
 
-    local wealth_panel = ui_panel:subrect(unit * 4, unit * 8/3, unit * 5, unit * 4/3, "left", 'up'):shrink(3)
-    local popularity_panel = ui_panel:subrect(unit * 9, unit * 8/3, unit * 5, unit * 4/3, "left", 'up'):shrink(3)
+    local wealth_panel = ui_panel:subrect(unit * 4, unit * 8/3, unit * 6, unit * 4/3, "left", 'up'):shrink(3)
+    local popularity_panel = ui_panel:subrect(unit * 10, unit * 8/3, unit * 6, unit * 4/3, "left", 'up'):shrink(3)
 
-    local faith_panel = ui_panel:subrect(0, unit * 4, unit * 7, unit * 2, "left", 'up'):shrink(3)
-    local culture_panel = ui_panel:subrect(unit * 7, unit * 4, unit * 7, unit * 2, "left", 'up'):shrink(3)
+    local faith_panel = ui_panel:subrect(0, unit * 5, unit * 8, unit * 1, "left", 'up'):shrink(3)
+    local culture_panel = ui_panel:subrect(unit * 8, unit * 5, unit * 8, unit * 1, "left", 'up'):shrink(3)
 
-    local description_panel =                    ui_panel:subrect(0, unit * 6,               unit * 14, unit * 3, "left", 'up')
-    local traits_panel =                    ui_panel:subrect(0, unit * (6 + 3),         unit * 14, unit * 4, "left", 'up')
+    local layout = ui.layout_builder():position(ui_panel.x, ui_panel.y + unit * 6):vertical():build()
 
-    local decisions_panel =                 ui_panel:subrect(0, unit * (6 + 7),         unit * 14, unit * 7, "left", 'up')
-    local decisions_confirmation_panel =    ui_panel:subrect(0, unit * (6 + 7 + 7),     unit * 14, unit * 3, "left", 'up')
-    local characters_list =                 ui_panel:subrect(0, unit * (6 + 7 + 7 + 3), unit * 14, unit * 7, "left", 'up')
+    local description_block = layout:next(unit * 16, unit * 11)
+
+    ui.panel(description_block)
+    local half_width = unit * 8
+    local description_block_height = unit * 11
+
+    local description_panel =               description_block:subrect(0, 0,           half_width, description_block_height, "left", 'up'):shrink(3)
+    local traits_panel =                    description_block:subrect(half_width, 0,  half_width, description_block_height, "left", 'up'):shrink(3)
+
+    local decisions_label_panel =           layout:next(unit * 16, unit * 1)
+    local decisions_panel =                 layout:next(unit * 16, unit * 7)
+    local decisions_confirmation_panel =    layout:next(unit * 16, unit * 1)
+    local characters_list =                 layout:next(unit * 16, unit * 10)
 
     character_name_widget(name_panel, character)
 
@@ -102,8 +95,14 @@ function window.draw(game)
     local popularity = pv.popularity(character, character.province.realm)
     ut.data_entry_icon('duality-mask.png', ut.to_fixed_point2(popularity), popularity_panel, "Popularity")
 
+
     ut.data_entry("", character.faith.name, faith_panel, "Faith")
+    faith_panel.y = faith_panel.y - unit
+    ui.left_text('Faith: ', faith_panel)
+
     ut.data_entry("", character.culture.name, culture_panel, "Culture")
+    culture_panel.y = culture_panel.y - unit
+    ui.left_text('Culture: ', culture_panel)
 
     ui.panel(traits_panel)
     
@@ -128,6 +127,8 @@ function window.draw(game)
         s = s .. '\n ' .. character.name .. ' has not designated a successor yet.'
     end
 
+    ui.panel(description_panel)
+    description_panel:shrink(5)
     ui.left_text(s, description_panel)
 
     traits_slider = ui.scrollview(
@@ -138,15 +139,20 @@ function window.draw(game)
                 ut.data_entry_icon(
                     TRAIT_ICONS[trait],
                     trait,
-                    rect
+                    rect,
+                    nil,
+                    nil,
+                    'left'
                 )
             end
         end,
-        unit,
+        unit * 1.5,
         tabb.size(character.traits),
         unit,
         traits_slider
     )
+
+    ui.centered_text('Decisions:', decisions_label_panel)
 
     -- First, we need to check if the player is controlling a realm
     if WORLD.player_character then

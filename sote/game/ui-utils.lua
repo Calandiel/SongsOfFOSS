@@ -223,7 +223,12 @@ end
 ---@param tooltip string?
 ---@param name_mode NameMode
 ---@param panel boolean?
-function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, panel)
+---@param alignment 'left' | 'right' | nil
+function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, panel, alignment)
+	if alignment == nil then
+		alignment = 'right'
+	end
+
 	if panel == nil then
 		panel = true
 	end
@@ -242,7 +247,13 @@ function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, p
 	end
 
 	ut.data_font()
-	ui.right_text(data, rect)
+	if alignment == 'right' then
+		ui.right_text(data, rect)
+	else
+		rect.x = rect.x + rect.height + 5
+		ui.left_text(data, rect)
+		rect.x = rect.x - rect.height - 5
+	end
 	ut.main_font()
 
 	if tooltip then
@@ -257,8 +268,12 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param panel boolean?
-function ut.data_entry(name, data, rect, tooltip, panel)
-	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel)	
+---@param alignment 'left' | 'right' | nil
+function ut.data_entry(name, data, rect, tooltip, panel, alignment)
+	if alignment == nil then
+		alignment = 'right'
+	end
+	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel, alignment)	
 end
 
 ---Draws a data field with icon
@@ -267,8 +282,12 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param panel boolean?
-function ut.data_entry_icon(icon, data, rect, tooltip, panel)
-	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON, panel)
+---@param alignment 'left' | 'right' | nil
+function ut.data_entry_icon(icon, data, rect, tooltip, panel, alignment)
+	if alignment == nil then
+		alignment = 'right'
+	end
+	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON, panel, alignment)
 end
 
 ---@param name string
