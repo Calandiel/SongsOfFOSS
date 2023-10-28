@@ -11,7 +11,7 @@ local function realm_name(gam, realm, unit, rect)
     if ut.coa(realm, COA_rect) then
         print("Player COA Clicked")
         gam.inspector = "realm"
-        gam.selected_realm = realm
+        gam.selected.realm = realm
         ---@type Tile
         local captile = realm.capitol.center
         gam.click_tile(captile.tile_id)

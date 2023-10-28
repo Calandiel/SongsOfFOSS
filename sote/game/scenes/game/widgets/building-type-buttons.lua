@@ -93,8 +93,8 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
 
                 WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
 
-                if gam.selected_building_type == building_type then
-                    gam.selected_building_type = building_type
+                if gam.selected.building_type == building_type then
+                    gam.selected.building_type = building_type
                     gam.refresh_map_mode(true)
                 end
             end
@@ -135,7 +135,7 @@ return function (gam, rect, base_unit, building_type, tile, tile_improvement_fla
     r.width = base_unit
     if uit.icon_button(ASSETS.icons['mesh-ball.png'], r,
         "Show local efficiency on map") then
-        gam.selected_building_type = building_type
+        gam.selected.building_type = building_type
         gam.refresh_map_mode(true)
     end
 

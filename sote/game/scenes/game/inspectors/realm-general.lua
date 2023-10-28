@@ -7,7 +7,7 @@ local portait = require "game.scenes.game.widgets.portrait"
 ---comment
 ---@param rect Rect
 ---@param realm Realm
----@param gam table
+---@param gam GameScene
 ---@return function
 local function info(rect, realm, gam)
     return function()
@@ -19,7 +19,7 @@ local function info(rect, realm, gam)
             local portrait_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT * 4, "left", 'up')
             portait(portrait_rect, leader)
             if ui.invisible_button(portrait_rect) then
-                gam.selected_character = leader
+                gam.selected.character = leader
                 gam.inspector = "character"
             end
             ui.tooltip("Click the portrait to open character screen", portrait_rect)

@@ -329,6 +329,9 @@ end
 ---@param positive boolean? Is big number good?
 ---@param panel boolean?
 function ut.data_entry_percentage(name, data, rect, tooltip, positive, panel)
+	if positive == nil then
+		positive = true
+	end
 	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
 
@@ -339,6 +342,9 @@ end
 ---@param tooltip string?
 ---@param panel boolean?
 function ut.color_coded_percentage(value, rect, positive, tooltip, panel)
+	if positive == nil then
+		positive = true
+	end
 	ut.generic_number_field("", value, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
 

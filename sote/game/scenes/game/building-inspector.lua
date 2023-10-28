@@ -21,12 +21,12 @@ function re.mask()
 	end
 end
 
----@param gam table
+---@param gam GameScene
 function re.draw(gam)
 	-- -@diagnostic disable-next-line: assign-type-mismatch
 
 	---@type Building
-	local bbuild = gam.selected_building
+	local bbuild = gam.selected.building
 	if bbuild ~= nil then
 		---@type Building
 		local building = bbuild
@@ -35,7 +35,7 @@ function re.draw(gam)
 
 		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
 			gam.click_tile(-1)
-			gam.selected_building = nil
+			gam.selected.building = nil
 			gam.inspector = nil
 		end
 

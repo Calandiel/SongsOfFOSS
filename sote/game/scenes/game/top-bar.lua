@@ -100,7 +100,7 @@ function tb.draw(gam)
 		-- portrait
 		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up')
 		if ui.invisible_button(portrait_rect) then
-			gam.selected_character = WORLD.player_character
+			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
 		end
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
@@ -115,7 +115,7 @@ function tb.draw(gam)
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		if uit.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
-			gam.selected_character = WORLD.player_character
+			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
 		end
 

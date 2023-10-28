@@ -46,9 +46,14 @@ end
 
 
 ---Draw character window
----@param game table
----@param character Character
-function window.draw(game, character)
+---@param game GameScene
+function window.draw(game)
+    local character = game.selected.character
+
+    if character == nil then
+        return
+    end
+
     local ui_panel = window.rect()
     -- draw a panel
     ui.panel(ui_panel)
@@ -119,6 +124,7 @@ function window.draw(game, character)
 
     -- traits text    
     for k, v in pairs(character.traits) do
+        ---@type string
         s = s .. '\n ' .. v
     end
 
@@ -150,7 +156,7 @@ function window.draw(game, character)
 
     local response = characters_list_widget(characters_list, unit, character.province)()
     if response then
-        game.selected_character = response
+        game.selected.character = response
     end
 
     ut.coa(character.realm, coa)
