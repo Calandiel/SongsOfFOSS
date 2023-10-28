@@ -84,6 +84,7 @@ local prov = {}
 ---@field take_away_pop fun(self:Province, pop:POP): POP
 ---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
 ---@field local_army_size fun(self:Province):number
+---@field get_random_neighbor fun(self:Province):Province | nil
 
 local col = require "game.color"
 
@@ -150,6 +151,11 @@ function prov.Province:new()
 
 	setmetatable(o, prov.Province)
 	return o
+end
+
+function prov.Province:get_random_neighbor()
+	local s = tabb.size(self.neighbors)
+	return tabb.nth(self.neighbors, love.math.random(s))
 end
 
 ---Adds a tile to the province. Handles removal from the previous province, if necessary.
@@ -253,7 +259,6 @@ function prov.Province:unregister_military_pop(pop)
 	self.soldiers[pop] = nil
 end
 
-
 ---Removes the pop from the province without killing it
 function prov.Province:take_away_pop(pop)
 	if self.soldiers[pop] then
@@ -326,7 +331,6 @@ end
 
 ---@param technology Technology
 function prov.Province:research(technology)
-
 	self.technologies_present[technology] = technology
 	self.technologies_researchable[technology] = nil
 
@@ -549,8 +553,6 @@ function prov.Province:recruit(pop, unit_type)
 	warband.units[pop] = unit_type
 end
 
-
-
 ---@return Culture|nil
 function prov.Province:get_dominant_culture()
 	local e = {}
@@ -663,7 +665,6 @@ function prov.Province:spot_chance(visibility)
 	odds = math.max(0, math.min(1, odds + 0.5 * delta))
 	return odds
 end
-
 
 ---@param army Army Attacking army
 ---@param stealth_penalty number? Multiplicative penalty, multiplies army visibility score.

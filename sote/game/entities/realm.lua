@@ -141,6 +141,7 @@ end
 ---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field get_top_realm fun(self:Realm, origin:Realm, depth: number | nil):Realm Returns the top dog of a tributary chains. Handles loops.
+---@field get_random_province fun(self:Realm): Province | nil
 
 local realm = {}
 local tabb = require "engine.table"
@@ -259,6 +260,11 @@ end
 -- 		self:add_reward_flag(f)
 -- 	end
 -- end
+
+function realm.Realm:get_random_province()
+	local n = tabb.size(realm.provinces)
+	return tabb.nth(realm.provinces, love.math.random(n))
+end
 
 ---Adds warband as potential raider of province
 ---@param f RewardFlag
