@@ -70,7 +70,7 @@ function dem.technologies()
 end
 
 function dem.selected_technology()
-	local tt = require "game.scenes.game".cached_selected_tech
+	local tt = require "game.scenes.game".selected.cached_tech
 	ut.clear_color()
 	if tt then
 		for _, tile in ipairs(WORLD.tiles) do

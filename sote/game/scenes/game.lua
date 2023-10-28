@@ -1277,17 +1277,13 @@ function gam.refresh_map_mode(preserve_efficiency)
             end
 
 			if gam.selected.building_type ~= nil then
-				if tile.tile_improvement then
-					gam.tile_color_image_data:setPixel(x, y, 0.4, 0.5, 0.9, 1)
-				else
-					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
-					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+				local eff = gam.selected.building_type.production_method:get_efficiency(tile)
+				local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
+				gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
 
-					if tile.province == province and eff == best_eff then
-						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-						gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
-					end
+				if tile.province == province and eff == best_eff then
+					local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
+					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
 				end
 			end
 		else
