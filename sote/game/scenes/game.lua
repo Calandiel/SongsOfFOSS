@@ -287,6 +287,7 @@ function gam.handle_camera_controls()
 
 		local screen_x, screen_y = ui.get_reference_screen_dimensions()
 
+		CACHED_CAMERA_POSITION = gam.camera_position
 		if ui.is_mouse_held(2) then
 			local len = gam.camera_position:len()
 
@@ -318,7 +319,14 @@ function gam.handle_camera_controls()
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(camera_speed, rot)
 		end
-		CACHED_CAMERA_POSITION = gam.camera_position
+
+		-- At the end, perform a sanity check to avoid entering polar regions
+		if gam.camera_position:normalize():sub(cpml.vec3.new(0, 1, 0)):len() < 0.01 or
+			gam.camera_position:normalize():sub(cpml.vec3.new(0, -1, 0)):len() < 0.01 then
+			gam.camera_position = CACHED_CAMERA_POSITION
+		else
+			CACHED_CAMERA_POSITION = gam.camera_position
+		end
 	end
 	if ui.is_key_pressed("f8") then
 		print("!")
@@ -333,7 +341,7 @@ function gam.handle_zoom()
 		-- We handle scrollin with two passes.
 		-- First, we handle q/e, then we modify the zoom speed and handle the mouse wheel.
 		-- We do it because the q/e are significantly faster than mouse wheel movement and need separate handling.
-		local zoom_speed = 0.002
+		local zoom_speed = 0.001
 		if ui.is_key_held('lshift') then
 			zoom_speed = zoom_speed * 3
 		end
@@ -354,7 +362,7 @@ function gam.handle_zoom()
 				gam.camera_position = gam.camera_position:normalize() * 1.015
 			end
 		end
-		zoom_speed = zoom_speed * 10
+		zoom_speed = zoom_speed * 15
 		if (ui.mouse_wheel() < 0) then
 			gam.camera_position = gam.camera_position * (1 + zoom_speed)
 			local l = gam.camera_position:len()
