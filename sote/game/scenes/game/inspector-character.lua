@@ -4,6 +4,8 @@ local ut = require "game.ui-utils"
 
 local pv = require "game.raws.values.political"
 
+local TRAIT_ICONS = require "game.raws.traits.trait_to_icon"
+
 local characters_list_widget = require "game.scenes.game.widgets.character-list"
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
 local character_name_widget = require "game.scenes.game.widgets.character-name"
@@ -13,6 +15,8 @@ local window = {}
 local selected_decision = nil
 local decision_target_primary = nil
 local decision_target_secondary = nil
+
+local traits_slider = 0
 
 ---@return Rect
 function window.rect() 
@@ -76,7 +80,9 @@ function window.draw(game)
     local faith_panel = ui_panel:subrect(0, unit * 4, unit * 7, unit * 2, "left", 'up'):shrink(3)
     local culture_panel = ui_panel:subrect(unit * 7, unit * 4, unit * 7, unit * 2, "left", 'up'):shrink(3)
 
-    local traits_panel =                    ui_panel:subrect(0, unit * 6,               unit * 14, unit * 7, "left", 'up')
+    local description_panel =                    ui_panel:subrect(0, unit * 6,               unit * 14, unit * 3, "left", 'up')
+    local traits_panel =                    ui_panel:subrect(0, unit * (6 + 3),         unit * 14, unit * 4, "left", 'up')
+
     local decisions_panel =                 ui_panel:subrect(0, unit * (6 + 7),         unit * 14, unit * 7, "left", 'up')
     local decisions_confirmation_panel =    ui_panel:subrect(0, unit * (6 + 7 + 7),     unit * 14, unit * 3, "left", 'up')
     local characters_list =                 ui_panel:subrect(0, unit * (6 + 7 + 7 + 3), unit * 14, unit * 7, "left", 'up')
@@ -122,13 +128,25 @@ function window.draw(game)
         s = s .. '\n ' .. character.name .. ' has not designated a successor yet.'
     end
 
-    -- traits text    
-    for k, v in pairs(character.traits) do
-        ---@type string
-        s = s .. '\n ' .. v
-    end
+    ui.left_text(s, description_panel)
 
-    ui.left_text(s, traits_panel)
+    traits_slider = ui.scrollview(
+        traits_panel, 
+        function (index, rect)
+            if index > 0 then
+                local trait = tabb.nth(character.traits, index)
+                ut.data_entry_icon(
+                    TRAIT_ICONS[trait],
+                    trait,
+                    rect
+                )
+            end
+        end,
+        unit,
+        tabb.size(character.traits),
+        unit,
+        traits_slider
+    )
 
     -- First, we need to check if the player is controlling a realm
     if WORLD.player_character then

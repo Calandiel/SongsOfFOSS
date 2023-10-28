@@ -12,4 +12,5 @@ local TRAIT = {
     TRADER = 'trader',
 }
 
+
 return TRAIT
