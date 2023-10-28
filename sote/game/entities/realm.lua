@@ -439,7 +439,7 @@ end
 function realm.Realm:get_top_realm(sources, depth)
 	local depth = depth or 0
 	local sources = sources or {}
-	if tabb.len(sources) == 0 then sources[self] = self end
+	if tabb.size(sources) == 0 then sources[self] = self end
 
 	if self.paying_tribute_to == nil or (sources[self] and depth > 0) then
 		return self
