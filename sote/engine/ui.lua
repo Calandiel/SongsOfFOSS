@@ -795,18 +795,14 @@ function ui.panel(rect, radius, border, inside)
 	set_color(ui.style.reset_color)
 end
 
----Renders a button panel, using the default style
+---Renders a button provided depending on hover and clicked status
 ---@param rect Rect
 ---@param radius number?
----@param border boolean?
-function ui.button_panel(rect, radius, border)
-	if border == nil then
-		border = true
-	end
-
-	local hover = ui.trigger(rect)
+---@param border boolean
+---@param hover boolean
+---@param clicking boolean
+function ui.dummy_button_panel(rect, radius, border, hover, clicking)
 	if hover then
-		local clicking = ui.trigger_press(rect, 1)
 		if clicking then
 			set_color(ui.style.button_clicked)
 		else
@@ -815,6 +811,7 @@ function ui.button_panel(rect, radius, border)
 	else
 		set_color(ui.style.button_inside)
 	end
+
 	ui.rectangle(rect, radius)
 	set_color(ui.style.button_outline)
 
@@ -823,6 +820,29 @@ function ui.button_panel(rect, radius, border)
 	end
 
 	set_color(ui.style.reset_color)
+end
+
+---Returns the hovered and clicked status of rect
+---@param rect Rect
+---@return boolean
+---@return boolean
+function ui.hover_clicking_status(rect)
+	local hover = ui.trigger(rect)
+	local clicking = ui.trigger_press(rect, 1)
+
+	return hover, clicking
+end
+
+---Renders a button panel, using the default style
+---@param rect Rect
+---@param radius number?
+---@param border boolean?
+function ui.button_panel(rect, radius, border)
+	if border == nil then
+		border = true
+	end
+	local hover, clicking = ui.hover_clicking_status(rect)
+	ui.dummy_button_panel(rect, radius, border, hover, clicking)
 end
 
 ---Renders a slider panel, using the default style

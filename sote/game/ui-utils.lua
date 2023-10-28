@@ -489,6 +489,12 @@ local light_lime_color = {
 ---@param active boolean?
 ---@return boolean, Rect
 function ut.button(rect, potential, active)
+	-- handle logic part immediately to avoid gaps between buttons
+	local hover, clicked = ui.hover_clicking_status(rect)
+	local result = ui.invisible_button(rect) and potential
+	hover = hover and potential
+	clicked = clicked and potential
+
 	rect = rect:copy():shrink(1)
 
 	local old_style = ui.style.panel_outline
@@ -526,8 +532,8 @@ function ut.button(rect, potential, active)
 		ui.style.panel_inside = dark_grey_color
 	end
 
-	-- button press and background
-	local result = ui.text_button("", rect, nil, 1, false) and potential
+	-- button background
+	ui.dummy_button_panel(rect, 1, false, hover, clicked)
 
 	-- overlay for active buttons
 	if active then
