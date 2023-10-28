@@ -440,6 +440,8 @@ function realm.Realm:get_top_realm(source, depth)
 	local depth = depth or 0
 	if self.paying_tribute_to == nil or (self == source and depth > 0) then
 		return self
+	elseif self == source then
+		return self
 	else
 		return self.paying_tribute_to:get_top_realm(source, depth + 1)
 	end
