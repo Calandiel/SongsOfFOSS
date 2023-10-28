@@ -136,7 +136,7 @@ function pol.atlas()
 			if tile.province.realm ~= nil then
 				--- Resolve colors for tributaries so that we can map paint!
 				---@type Realm
-				local source_realm = tile.province.realm:get_top_realm(tile.province.realm)
+				local source_realm = tile.province.realm:get_top_realm()
 
 				local ele_h, ele_s, ele_v = rgb_to_hsv(tile.real_r, tile.real_g, tile.real_b)
 				local pol_h, pol_s, pol_v = rgb_to_hsv(source_realm.r, source_realm.g,
