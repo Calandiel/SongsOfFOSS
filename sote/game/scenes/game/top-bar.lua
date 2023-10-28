@@ -8,8 +8,10 @@ local RANKS = require "game.raws.ranks.character_ranks"
 
 local tb = {}
 
+local alerts_amount = 0
+
 function tb.rect()
-	return ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
+	return ui.rect(0, 0, uit.BASE_HEIGHT * 30 + alerts_amount * uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
 end
 
 ---@return boolean
@@ -104,7 +106,7 @@ function tb.draw(gam)
 		end
 
 		-- portrait
-		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up')
+		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up'):shrink(5)
 		if ui.invisible_button(portrait_rect) then
 			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
@@ -248,15 +250,22 @@ function tb.draw(gam)
 			end
 		end
 
-
-
 		for _, alert in ipairs(alerts) do
 			local rect = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
+
+			local alert_rect = rect:copy():shrink(5)
+			local old_style = ui.style.panel_outline
+			ui.style.panel_outline = { ['r'] = 1, ['g'] = 0, ['b'] = 0, ['a'] = 1 }
+			ui.panel(alert_rect, uit.BASE_HEIGHT)
+			ui.style.panel_outline = old_style
 			love.graphics.setColor(0.8, 0, 0, 1)
-			ui.image(ASSETS.icons[alert.icon], rect)
+			alert_rect:shrink(4)
+			ui.image(ASSETS.icons[alert.icon], alert_rect)
 			love.graphics.setColor(1, 1, 1, 1)
 			ui.tooltip(alert.tooltip, rect)
 		end
+
+		alerts_amount = #alerts
 	end
 end
 
