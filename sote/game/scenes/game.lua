@@ -254,6 +254,8 @@ end
 local up_direction = cpml.vec3.new(0, 1, 0)
 local origin_point = cpml.vec3.new(0, 0, 0)
 
+gam.locked_screen_x = 0
+gam.locked_screen_y = 0
 
 function gam.handle_camera_controls()
 	local ui = require "engine.ui"
@@ -274,18 +276,45 @@ function gam.handle_camera_controls()
 		local mouse_zoom_sensor_size = 3
 		local mouse_x, mouse_y = ui.mouse_position()
 		--print(ui.mouse_position())
+
+		if ui.is_mouse_pressed(2) then
+			gam.locked_screen_x = mouse_x
+			gam.locked_screen_y = mouse_y
+		end
+
+		local rotation_up = 0
+		local rotation_right = 0
+
 		local screen_x, screen_y = ui.get_reference_screen_dimensions()
-		if ui.is_key_held('a') or mouse_x < mouse_zoom_sensor_size then
+
+		if ui.is_mouse_held(2) then
+			local len = gam.camera_position:len()
+
+			rotation_up = (mouse_y - gam.locked_screen_y) / screen_y * len * len / 2
+			rotation_right = (mouse_x - gam.locked_screen_x) / screen_x  * len * len
+
+			gam.locked_screen_x = mouse_x
+			gam.locked_screen_y = mouse_y
+		end
+
+		if rotation_right ~= 0 or rotation_up ~= 0 then
+			gam.camera_position = gam.camera_position:rotate(-rotation_right, up)
+			local rot = gam.camera_position:cross(up)
+			gam.camera_position = gam.camera_position:rotate(-rotation_up, rot)
+		end
+
+		
+		if ui.is_key_held('a') or (mouse_x < mouse_zoom_sensor_size and mouse_x > -5) then
 			gam.camera_position = gam.camera_position:rotate(-camera_speed, up)
 		end
-		if ui.is_key_held('d') or mouse_x > screen_x - mouse_zoom_sensor_size then
+		if ui.is_key_held('d') or (mouse_x > screen_x - mouse_zoom_sensor_size and mouse_x <= screen_x + 5) then
 			gam.camera_position = gam.camera_position:rotate(camera_speed, up)
 		end
-		if ui.is_key_held('w') or mouse_y < mouse_zoom_sensor_size then
+		if ui.is_key_held('w') or (mouse_y < mouse_zoom_sensor_size and mouse_y > -5) then
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(-camera_speed, rot)
 		end
-		if ui.is_key_held('s') or mouse_y > screen_y - mouse_zoom_sensor_size then
+		if ui.is_key_held('s') or (mouse_y > screen_y - mouse_zoom_sensor_size and mouse_y <= screen_y + 5) then
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(camera_speed, rot)
 		end
@@ -520,7 +549,7 @@ function gam.draw()
 	-- Just for debugging of tile graphics rendering
 	local province_on_map_interaction = false
 
-	if gam.camera_position:len() < 1.25 then
+	if gam.camera_position:len() < 1.1 then
 		local mpfx = 0.5
 		local mpfy = 0.5
 		local vp = projection * view
