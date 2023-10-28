@@ -129,7 +129,7 @@ function window.draw(game)
 
     ui.panel(description_panel)
     description_panel:shrink(5)
-    ui.left_text(s, description_panel)
+    ui.text(s, description_panel, "left", 'up')
 
     traits_slider = ui.scrollview(
         traits_panel, 
