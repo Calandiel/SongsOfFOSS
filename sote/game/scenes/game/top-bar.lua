@@ -4,11 +4,17 @@ local uit = require "game.ui-utils"
 
 local pv = require "game.raws.values.political"
 
+local RANKS = require "game.raws.ranks.character_ranks"
+
 local tb = {}
+
+function tb.rect()
+	return ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
+end
 
 ---@return boolean
 function tb.mask(gam)
-	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
+	local tr = tb.rect()
 	local character = WORLD.player_character
 	if character and character.province and character.province.realm then
 		return not ui.trigger(tr)
@@ -90,7 +96,7 @@ end
 function tb.draw(gam)
 	local character = WORLD.player_character
 	if character and character.province and character.province.realm then
-		local tr = ui.rect(0, 0, 620, uit.BASE_HEIGHT * 2)
+		local tr = tb.rect()
 		ui.panel(tr)
 
 		if ui.trigger(tr) then
@@ -202,6 +208,55 @@ function tb.draw(gam)
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Size of our realms armies."
 		uit.data_entry_icon('barbute.png', tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), tr, trs)
+	
+
+		-- ALERTS
+		---@class Alert
+		---@field icon string
+		---@field tooltip string
+
+		---@type Alert[]
+		local alerts = {}
+
+		if character.province:get_unemployment() > 5 then
+			table.insert(alerts, {
+				['icon'] = 'miner.png',
+				['tooltip'] = "Unemployment is high. Consider construction of new buildings or investment into local economy.",
+			})
+		end
+
+		if character.province.mood < 1 then
+			table.insert(alerts, {
+				['icon'] = 'despair.png',
+				['tooltip'] = "Our people are unhappy. Gift money to your population or raid other realms.",
+			})
+		end
+
+		if character.rank == RANKS.CHIEF then
+			if character.province:get_infrastructure_efficiency() < 0.9 then
+				table.insert(alerts, {
+					['icon'] = 'horizon-road.png',
+					['tooltip'] = "Infrastructure efficiency is low. It might be a temporary effect or a sign of a low infrastructure budget.",
+				})
+			end
+
+			if character.realm:get_education_efficiency() < 0.9 then
+				table.insert(alerts, {
+					['icon'] = 'erlenmeyer.png',
+					['tooltip'] = "Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
+				})
+			end
+		end
+
+
+
+		for _, alert in ipairs(alerts) do
+			local rect = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
+			love.graphics.setColor(0.8, 0, 0, 1)
+			ui.image(ASSETS.icons[alert.icon], rect)
+			love.graphics.setColor(1, 1, 1, 1)
+			ui.tooltip(alert.tooltip, rect)
+		end
 	end
 end
 

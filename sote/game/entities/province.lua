@@ -77,7 +77,6 @@ local prov = {}
 ---@field spot_chance fun(self:Province, visibility: number): number Returns a chance to spot an army with given visibility.
 ---@field army_spot_test fun(self:Province, army:Army, stealth_penalty: number?):boolean Performs an army spotting test in this province.
 ---@field get_job_ratios fun(self:Province):table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
----@field get_unemployment fun(self:Province):number Returns the number of unemployed people in the province.
 ---@field throughput_boosts table<ProductionMethod, number>
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
@@ -706,7 +705,8 @@ function prov.Province:get_job_ratios()
 	return r
 end
 
----@return number
+---Returns the number of unemployed people in the province.
+---@return integer
 function prov.Province:get_unemployment()
 	local u = 0
 
