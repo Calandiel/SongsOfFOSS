@@ -262,8 +262,8 @@ end
 -- end
 
 function realm.Realm:get_random_province()
-	local n = tabb.size(realm.provinces)
-	return tabb.nth(realm.provinces, love.math.random(n))
+	local n = tabb.size(self.provinces)
+	return tabb.nth(self.provinces, love.math.random(n))
 end
 
 ---Adds warband as potential raider of province
