@@ -1,3 +1,4 @@
+---@class GameScene
 local gam = {}
 
 local cpml = require "cpml"
@@ -11,8 +12,47 @@ local political = require "game.map-modes.political"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
----@type Technology|nil
-gam.cached_selected_tech = nil
+
+local inspectors_table = {
+	["characters"] = require "game.scenes.game.inspector-province-characters",
+	["treasury-ledger"] = require "game.scenes.game.inspector-treasury-ledger",
+	["character"] = require "game.scenes.game.inspector-character",
+	["tile"] = require "game.scenes.game.tile-inspector",
+	["realm"] = require "game.scenes.game.realm-inspector",
+	["building"] = require "game.scenes.game.building-inspector",
+	["war"] = require "game.scenes.game.war-inspector",
+	["options"] = require "game.scenes.main-menu.options",
+	["confirm-exit"] = require "game.scenes.game.confirm-exit",
+	["army"] = require "game.scenes.game.inspector-military",
+	["character-decisions"] = require "game.scenes.game.inspector-character-decisions",
+	["reward-flag"] = require "game.scenes.game.inspector-reward-flag",
+	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
+	["market"] = require "game.scenes.game.inspectors.market",
+	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
+}
+
+local tile_inspectors = {
+	["tile"] = true,
+	["realm"] = true,
+	["market"] = true
+}
+
+---@class Selection
+---@field character Character?
+---@field tile Tile?
+---@field province Province?
+---@field realm Realm?
+---@field building_type BuildingType?
+---@field building Building?
+---@field macrobuilder_building_type BuildingType?
+---@field war War?
+---@field decision DecisionCharacter?
+---@field tech Technology?
+---@field cached_tech Technology?
+---@field reward_flag RewardFlag?
+
+---@type Selection
+gam.selected = {}
 
 ---Called when a tile is clicked.
 function gam.on_tile_click()
@@ -192,7 +232,7 @@ function gam.update(dt)
 	gam.time_since_last_tick = gam.time_since_last_tick + dt
 	if gam.time_since_last_tick > 1 / 30 then
 		gam.time_since_last_tick = 0
-		if gam.paused ~= nil and not gam.paused and gam.selected_decision == nil and
+		if gam.paused ~= nil and not gam.paused and gam.selected.decision == nil and
 			WORLD.pending_player_event_reaction == false then
 			-- the game is unpaused, call tick on world!
 			--print("-- tick start --")
@@ -214,6 +254,8 @@ end
 local up_direction = cpml.vec3.new(0, 1, 0)
 local origin_point = cpml.vec3.new(0, 0, 0)
 
+gam.locked_screen_x = 0
+gam.locked_screen_y = 0
 
 function gam.handle_camera_controls()
 	local ui = require "engine.ui"
@@ -234,18 +276,45 @@ function gam.handle_camera_controls()
 		local mouse_zoom_sensor_size = 3
 		local mouse_x, mouse_y = ui.mouse_position()
 		--print(ui.mouse_position())
+
+		if ui.is_mouse_pressed(2) then
+			gam.locked_screen_x = mouse_x
+			gam.locked_screen_y = mouse_y
+		end
+
+		local rotation_up = 0
+		local rotation_right = 0
+
 		local screen_x, screen_y = ui.get_reference_screen_dimensions()
-		if ui.is_key_held('a') or mouse_x < mouse_zoom_sensor_size then
+
+		if ui.is_mouse_held(2) then
+			local len = gam.camera_position:len()
+
+			rotation_up = (mouse_y - gam.locked_screen_y) / screen_y * len * len / 2
+			rotation_right = (mouse_x - gam.locked_screen_x) / screen_x  * len * len
+
+			gam.locked_screen_x = mouse_x
+			gam.locked_screen_y = mouse_y
+		end
+
+		if rotation_right ~= 0 or rotation_up ~= 0 then
+			gam.camera_position = gam.camera_position:rotate(-rotation_right, up)
+			local rot = gam.camera_position:cross(up)
+			gam.camera_position = gam.camera_position:rotate(-rotation_up, rot)
+		end
+
+		
+		if ui.is_key_held('a') or (mouse_x < mouse_zoom_sensor_size and mouse_x > -5) then
 			gam.camera_position = gam.camera_position:rotate(-camera_speed, up)
 		end
-		if ui.is_key_held('d') or mouse_x > screen_x - mouse_zoom_sensor_size then
+		if ui.is_key_held('d') or (mouse_x > screen_x - mouse_zoom_sensor_size and mouse_x <= screen_x + 5) then
 			gam.camera_position = gam.camera_position:rotate(camera_speed, up)
 		end
-		if ui.is_key_held('w') or mouse_y < mouse_zoom_sensor_size then
+		if ui.is_key_held('w') or (mouse_y < mouse_zoom_sensor_size and mouse_y > -5) then
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(-camera_speed, rot)
 		end
-		if ui.is_key_held('s') or mouse_y > screen_y - mouse_zoom_sensor_size then
+		if ui.is_key_held('s') or (mouse_y > screen_y - mouse_zoom_sensor_size and mouse_y <= screen_y + 5) then
 			local rot = gam.camera_position:cross(up)
 			gam.camera_position = gam.camera_position:rotate(camera_speed, rot)
 		end
@@ -300,7 +369,7 @@ end
 function gam.reset_decision_selection()
 	gam.decision_target_primary = nil
 	gam.decision_target_secondary = nil
-	gam.selected_decision = nil
+	gam.selected.decision = nil
 end
 
 ---
@@ -480,7 +549,7 @@ function gam.draw()
 	-- Just for debugging of tile graphics rendering
 	local province_on_map_interaction = false
 
-	if gam.camera_position:len() < 1.25 then
+	if gam.camera_position:len() < 1.1 then
 		local mpfx = 0.5
 		local mpfy = 0.5
 		local vp = projection * view
@@ -871,39 +940,33 @@ function gam.draw()
 	-- At the end, handle tile clicks.
 	-- Make sure you add triggers for detecting clicks over UI!
 
+	local tile_data_viewable = true
+	if WORLD.tiles[gam.clicked_tile_id] ~= nil then
+		if WORLD.player_character ~= nil then
+			local realm = WORLD.player_character.realm
+			local current_pro = WORLD.player_character.province
+			local pro = WORLD.tiles[gam.clicked_tile_id].province
+			if realm then
+				if (realm.known_provinces[pro] == nil) and (pro ~= current_pro) then
+					tile_data_viewable = false
+				end
+			end
+		end
+	end
+
 	local click_success = false
 	if gam.inspector == nil then
 		click_success = true
-	elseif gam.inspector == "characters" then
-		click_success = require "game.scenes.game.inspector-province-characters".mask()
-	elseif gam.inspector == 'treasury-ledger' then
-		click_success = require "game.scenes.game.inspector-treasury-ledger".mask()
-	elseif gam.inspector == "character" then
-		click_success = require "game.scenes.game.inspector-character".mask()
-	elseif gam.inspector == "tile" then
-		click_success = require "game.scenes.game.tile-inspector".mask(gam)
-	elseif gam.inspector == "realm" then
-		click_success = require "game.scenes.game.realm-inspector".mask()
-	elseif gam.inspector == "building" then
-		click_success = require "game.scenes.game.building-inspector".mask()
-	elseif gam.inspector == "war" then
-		click_success = require "game.scenes.game.war-inspector".mask()
-	elseif gam.inspector == "options" then
-		click_success = require "game.scenes.main-menu.options".mask() 
-	elseif gam.inspector == "confirm-exit" then
-		click_success = require "game.scenes.game.confirm-exit".mask()
-	elseif gam.inspector == "army" then
-		click_success = require "game.scenes.game.inspector-military".mask()
-	elseif gam.inspector == "character-decisions" then
-		click_success = require "game.scenes.game.inspector-character-decisions".mask()
-	elseif gam.inspector == 'reward-flag' then
-		click_success = require "game.scenes.game.inspector-reward-flag".mask()
-	elseif gam.inspector == 'reward-flag-edit' then
-		click_success = require "game.scenes.game.inspector-reward-flag-edit".mask()
-	elseif gam.inspector == 'market' then
-		click_success = require "game.scenes.game.inspectors.market".mask()
-	elseif gam.inspector == 'macrobuilder' then
-		click_success = require "game.scenes.game.inspectors.macrobuilder".mask()
+	else
+		if tile_inspectors[gam.inspector] then
+			if tile_data_viewable then
+				click_success = inspectors_table[gam.inspector].mask(gam)
+			else
+				click_success = true
+			end
+		else
+			click_success = inspectors_table[gam.inspector].mask(gam)
+		end
 	end
 
 	if gam.click_callback == nil then
@@ -930,19 +993,19 @@ function gam.draw()
 
 			if gam.inspector == "character" and realm then
 				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
-					if gam.selected_character == realm.leader then
+					if gam.selected.character == realm.leader then
 						gam.inspector = "tile"
 					else
-						gam.selected_character = realm.leader
+						gam.selected.character = realm.leader
 					end
 				end
 			elseif gam.inspector == "realm" then
 				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
-					if gam.selected_realm == WORLD.tiles[new_clicked_tile].province.realm then
+					if gam.selected.realm == WORLD.tiles[new_clicked_tile].province.realm then
 						-- If we double click a realm, change the inspector to tile
 						gam.inspector = "tile"
 					else
-						gam.selected_realm = WORLD.tiles[new_clicked_tile].province.realm
+						gam.selected.realm = WORLD.tiles[new_clicked_tile].province.realm
 					end
 				end
 			elseif gam.inspector == "market" then
@@ -959,21 +1022,6 @@ function gam.draw()
 	-- ##################
 	-- ### INSPECTORS ###
 	-- ##################
-	local tile_data_viewable = true
-	if WORLD.tiles[gam.clicked_tile_id] ~= nil then
-
-		if WORLD.player_character ~= nil then
-			local realm = WORLD.player_character.realm
-			local current_pro = WORLD.player_character.province
-			local pro = WORLD.tiles[gam.clicked_tile_id].province
-
-			if realm then
-				if (realm.known_provinces[pro] == nil) and (pro ~= current_pro) then
-					tile_data_viewable = false
-				end
-			end
-		end
-	end
 
 	if gam.inspector == "options" then
 		local response = require "game.scenes.main-menu.options".draw()
@@ -989,39 +1037,14 @@ function gam.draw()
 			manager.transition("main-menu")
 			return
 		end
-	elseif gam.inspector == "characters" then
-		require "game.scenes.game.inspector-province-characters".draw(gam, gam.selected_province)
-	elseif gam.inspector == "macrobuilder" then
-		require "game.scenes.game.inspectors.macrobuilder".draw(gam)
-	elseif gam.inspector == 'treasury-ledger' then
-		require "game.scenes.game.inspector-treasury-ledger".draw(gam)
-	elseif gam.inspector == 'character' then
-		require "game.scenes.game.inspector-character".draw(gam, gam.selected_character)
-	elseif gam.inspector == "reward-flag" then
-		require "game.scenes.game.inspector-reward-flag".draw(gam)
-	elseif gam.inspector == 'reward-flag-edit' then
-		require "game.scenes.game.inspector-reward-flag-edit".draw(gam, gam.selected_reward_flag)
-	elseif gam.inspector == "army" then
-		local character = WORLD.player_character
-		if character then
-			require "game.scenes.game.inspector-military".draw(gam, character.province.realm)
-		end
-	elseif gam.inspector == "character-decisions" then
-		require "game.scenes.game.inspector-character-decisions".draw(gam)
-	elseif tile_data_viewable then
-		if gam.inspector == "tile" then
-			require "game.scenes.game.tile-inspector".draw(gam)
-		elseif gam.inspector == "realm" then
-			require "game.scenes.game.realm-inspector".draw(gam)
-		elseif gam.inspector == "building" then
-			require "game.scenes.game.building-inspector".draw(gam)
-		elseif gam.inspector == "war" then
-			require "game.scenes.game.war-inspector".draw(gam)
-		elseif gam.inspector == 'market' then
-			require "game.scenes.game.inspectors.market".draw(gam)
-		end
 	else
-		gam.inspector = nil
+		if tile_inspectors[gam.inspector] then
+			if tile_data_viewable then
+				inspectors_table[gam.inspector].draw(gam)
+			end
+		elseif gam.inspector then
+			inspectors_table[gam.inspector].draw(gam)
+		end
 	end
 
 	if ui.is_key_pressed('escape') then
@@ -1210,7 +1233,7 @@ function gam.refresh_map_mode(preserve_efficiency)
 	-- end
 
 	if not preserve_efficiency then
-		gam.selected_building_type = nil
+		gam.selected.building_type = nil
 	end
 
 	print(gam.map_mode)
@@ -1222,10 +1245,10 @@ function gam.refresh_map_mode(preserve_efficiency)
 	local best_eff = 0
 	if (gam.clicked_tile) then
 		province = gam.clicked_tile.province
-		if province and gam.selected_building_type then
+		if province and gam.selected.building_type then
 			for _, p_tile in pairs(province.tiles) do
 				if not p_tile.tile_improvement then
-					best_eff = math.max(best_eff, gam.selected_building_type.production_method:get_efficiency(p_tile))
+					best_eff = math.max(best_eff, gam.selected.building_type.production_method:get_efficiency(p_tile))
 				end
 			end
 		end
@@ -1253,11 +1276,11 @@ function gam.refresh_map_mode(preserve_efficiency)
                 gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
             end
 
-			if gam.selected_building_type ~= nil then
+			if gam.selected.building_type ~= nil then
 				if tile.tile_improvement then
 					gam.tile_color_image_data:setPixel(x, y, 0.4, 0.5, 0.9, 1)
 				else
-					local eff = gam.selected_building_type.production_method:get_efficiency(tile)
+					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
 					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
 

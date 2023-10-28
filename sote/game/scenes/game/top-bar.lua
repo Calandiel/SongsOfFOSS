@@ -4,11 +4,19 @@ local uit = require "game.ui-utils"
 
 local pv = require "game.raws.values.political"
 
+local RANKS = require "game.raws.ranks.character_ranks"
+
 local tb = {}
+
+local alerts_amount = 0
+
+function tb.rect()
+	return ui.rect(0, 0, uit.BASE_HEIGHT * 30 + alerts_amount * uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
+end
 
 ---@return boolean
 function tb.mask(gam)
-	local tr = ui.rect(0, 0, 800, uit.BASE_HEIGHT * 2)
+	local tr = tb.rect()
 	local character = WORLD.player_character
 	if character and character.province and character.province.realm then
 		return not ui.trigger(tr)
@@ -90,7 +98,7 @@ end
 function tb.draw(gam)
 	local character = WORLD.player_character
 	if character and character.province and character.province.realm then
-		local tr = ui.rect(0, 0, 620, uit.BASE_HEIGHT * 2)
+		local tr = tb.rect()
 		ui.panel(tr)
 
 		if ui.trigger(tr) then
@@ -98,9 +106,9 @@ function tb.draw(gam)
 		end
 
 		-- portrait
-		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up')
+		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up'):shrink(5)
 		if ui.invisible_button(portrait_rect) then
-			gam.selected_character = WORLD.player_character
+			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
 		end
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
@@ -115,7 +123,7 @@ function tb.draw(gam)
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 		if uit.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
-			gam.selected_character = WORLD.player_character
+			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
 		end
 
@@ -202,6 +210,62 @@ function tb.draw(gam)
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Size of our realms armies."
 		uit.data_entry_icon('barbute.png', tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), tr, trs)
+	
+
+		-- ALERTS
+		---@class Alert
+		---@field icon string
+		---@field tooltip string
+
+		---@type Alert[]
+		local alerts = {}
+
+		if character.province:get_unemployment() > 5 then
+			table.insert(alerts, {
+				['icon'] = 'miner.png',
+				['tooltip'] = "Unemployment is high. Consider construction of new buildings or investment into local economy.",
+			})
+		end
+
+		if character.province.mood < 1 then
+			table.insert(alerts, {
+				['icon'] = 'despair.png',
+				['tooltip'] = "Our people are unhappy. Gift money to your population or raid other realms.",
+			})
+		end
+
+		if character.rank == RANKS.CHIEF then
+			if character.province:get_infrastructure_efficiency() < 0.9 then
+				table.insert(alerts, {
+					['icon'] = 'horizon-road.png',
+					['tooltip'] = "Infrastructure efficiency is low. It might be a temporary effect or a sign of a low infrastructure budget.",
+				})
+			end
+
+			if character.realm:get_education_efficiency() < 0.9 then
+				table.insert(alerts, {
+					['icon'] = 'erlenmeyer.png',
+					['tooltip'] = "Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
+				})
+			end
+		end
+
+		for _, alert in ipairs(alerts) do
+			local rect = layout:next(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
+
+			local alert_rect = rect:copy():shrink(5)
+			local old_style = ui.style.panel_outline
+			ui.style.panel_outline = { ['r'] = 1, ['g'] = 0, ['b'] = 0, ['a'] = 1 }
+			ui.panel(alert_rect, uit.BASE_HEIGHT)
+			ui.style.panel_outline = old_style
+			love.graphics.setColor(0.8, 0, 0, 1)
+			alert_rect:shrink(4)
+			ui.image(ASSETS.icons[alert.icon], alert_rect)
+			love.graphics.setColor(1, 1, 1, 1)
+			ui.tooltip(alert.tooltip, rect)
+		end
+
+		alerts_amount = #alerts
 	end
 end
 

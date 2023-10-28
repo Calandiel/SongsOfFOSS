@@ -4,6 +4,10 @@ local uit = require "game.ui-utils"
 
 local window = {}
 
+local slider_warbands = 0
+local slider_raiding_targets = 0
+
+
 ---@return Rect
 function window.rect() 
     return ui.fullscreen():subrect(0, 0, 400, 600, "center", "center")
@@ -18,9 +22,18 @@ function window.mask()
 end
 
 ---Draw military window
----@param game table
----@param realm Realm
-function window.draw(game, realm)
+---@param game GameScene
+function window.draw(game)
+    local player_character = WORLD.player_character
+    if player_character == nil then
+        return
+    end
+    local realm = player_character.realm
+
+    if realm == nil then
+        return
+    end
+
     local ui_panel = window.rect()
     -- draw a panel
     ui.panel(ui_panel)
@@ -37,8 +50,7 @@ function window.draw(game, realm)
     -- substance
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
     local warbands = realm:get_warbands()
-    local sl = game.warbands_slider_level or 0
-    game.warbands_slider_level = ui.scrollview(ui_panel, function(i, rect) 
+    slider_warbands = ui.scrollview(ui_panel, function(i, rect) 
         if i > 0 then
             ---@type Rect
             local r = rect
@@ -58,7 +70,7 @@ function window.draw(game, realm)
             ui.left_text("units: ", r)
             ui.right_text(' ' .. warband:size(), r)
         end
-    end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, sl)
+    end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, slider_warbands)
 
     -- display raiding targets
     -- header
@@ -69,8 +81,7 @@ function window.draw(game, realm)
     -- substance
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
     local targets = realm.reward_flags
-    local sl = game.raiding_targets_slider_level or 0
-    game.raiding_targets_slider_level = ui.scrollview(ui_panel, function(i, rect)
+    slider_raiding_targets = ui.scrollview(ui_panel, function(i, rect)
         if i > 0 then
             ---@type Rect
             local r = rect
@@ -83,7 +94,7 @@ function window.draw(game, realm)
             end
             if target.owner == WORLD.player_character then
                 if uit.text_button('', rect) then
-                    game.selected_reward_flag = target
+                    game.selected.reward_flag = target
                     game.inspector = 'reward-flag-edit'
                 end
             end
@@ -110,15 +121,14 @@ function window.draw(game, realm)
                 end,
             }, rect, rect.width / 5, 0)
         end
-    end,  uit.BASE_HEIGHT, tabb.size(targets), uit.BASE_HEIGHT, sl)
+    end,  uit.BASE_HEIGHT, tabb.size(targets), uit.BASE_HEIGHT, slider_raiding_targets)
 
     ui_panel.y = ui_panel.y + ui_panel.height
     ui.text("Patrol targets", ui_panel, "left", 'up')
     ui.text("Prepared forces", ui_panel, "right", 'up')
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
-    local targets = realm.provinces
-    local sl = game.raiding_targets_slider_level or 0
-    game.raiding_targets_slider_level = ui.scrollview(ui_panel, function(i, rect)
+    local targets = realm.reward_flags
+    slider_raiding_targets = ui.scrollview(ui_panel, function(i, rect)
         if i > 0 then
             ---@type Rect
             local r = rect
@@ -126,9 +136,9 @@ function window.draw(game, realm)
             local x = r.x
             r.width = width_unit
 
-            ---@type Province
+            ---@type RewardFlag
             local target = tabb.nth(targets, i)
-            ui.left_text(target.name, r)
+            ui.left_text(target.target.name, r)
             r.x = x + 4 * width_unit
             local warbands = realm.raiders_preparing[target]
 
@@ -140,7 +150,7 @@ function window.draw(game, realm)
             end
             ui.right_text(tostring(size), r)
         end
-    end,  uit.BASE_HEIGHT, tabb.size(targets), uit.BASE_HEIGHT, sl)
+    end, uit.BASE_HEIGHT, tabb.size(targets), uit.BASE_HEIGHT, slider_raiding_targets)
 end
 
 return window

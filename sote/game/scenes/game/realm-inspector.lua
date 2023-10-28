@@ -24,10 +24,10 @@ function re.mask()
 	end
 end
 
----@param gam table
+---@param gam GameScene
 function re.draw(gam)
 	---@diagnostic disable-next-line: assign-type-mismatch
-	local rrealm = gam.selected_realm
+	local rrealm = gam.selected.realm
 	if rrealm ~= nil then
 		---@type Realm
 		local realm = rrealm
@@ -36,7 +36,7 @@ function re.draw(gam)
 
 		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
 			gam.click_tile(-1)
-			gam.selected_realm = nil
+			gam.selected.realm = nil
 			gam.inspector = nil
 		end
 
@@ -276,7 +276,7 @@ function re.draw(gam)
 							if uit.icon_button(ASSETS.get_icon("guards.png"), r) then
 								-- Select the war
 								gam.inspector = "war"
-								gam.selected_war = war
+								gam.selected.war = war
 							end
 							r.width = w - r.height
 							r.x = r.x + r.height

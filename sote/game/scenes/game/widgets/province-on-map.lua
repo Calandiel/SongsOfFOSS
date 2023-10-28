@@ -7,6 +7,7 @@ local ev = require "game.raws.values.economical"
 local ee = require "game.raws.effects.economic"
 local pv = require "game.raws.values.political"
 
+---@param gam GameScene
 ---@param tile Tile
 ---@param rect Rect rectangle of the according tile
 ---@param x number
@@ -32,7 +33,7 @@ return function(gam, tile, rect, x, y, size)
         end
 
         ---@type BuildingType
-        local building_type = gam.selected_macrobuilder_building_type
+        local building_type = gam.selected.macrobuilder_building_type
 
         if building_type then
 

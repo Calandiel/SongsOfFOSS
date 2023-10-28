@@ -20,10 +20,10 @@ function re.mask()
 	end
 end
 
----@param gam table
+---@param gam GameScene
 function re.draw(gam)
 	---@diagnostic disable-next-line: assign-type-mismatch
-	local wwar = gam.selected_war
+	local wwar = gam.selected.war
 	if wwar ~= nil then
 		---@type War
 		local war = wwar
@@ -32,7 +32,7 @@ function re.draw(gam)
 
 		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
 			gam.click_tile(-1)
-			gam.selected_building = nil
+			gam.selected.building = nil
 			gam.inspector = nil
 		end
 
@@ -63,7 +63,7 @@ function re.draw(gam)
 							rect.width = rect.height
 							if uit.coa(rr, rect) then
 								gam.inspector = "realm"
-								gam.selected_realm = rr
+								gam.selected.realm = rr
 							end
 							rect.width = ww - rect.height - 5
 							rect.x = rect.x + rect.height + 5
@@ -91,7 +91,7 @@ function re.draw(gam)
 							rect.width = rect.height
 							if uit.coa(rr, rect) then
 								gam.inspector = "realm"
-								gam.selected_realm = rr
+								gam.selected.realm = rr
 							end
 							rect.width = ww - rect.height - 5
 							rect.x = rect.x + rect.height + 5

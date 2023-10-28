@@ -27,6 +27,8 @@ function inspector.mask()
 	end
 end
 
+---comment
+---@param gam GameScene
 function inspector.draw(gam)
     local rect = get_main_panel()
     local base_unit = ut.BASE_HEIGHT + 5
@@ -122,9 +124,9 @@ function inspector.draw(gam)
                 rect.width = rect.width - base_unit
 
                 -- drawing the button
-                local result, rect_data = ut.button(rect, buildable[building_type], gam.selected_macrobuilder_building_type == building_type)
+                local result, rect_data = ut.button(rect, buildable[building_type], gam.selected.macrobuilder_building_type == building_type)
                 if result then
-                    gam.selected_macrobuilder_building_type = building_type
+                    gam.selected.macrobuilder_building_type = building_type
                 end
 
                 local construction_cost = ev.building_cost(

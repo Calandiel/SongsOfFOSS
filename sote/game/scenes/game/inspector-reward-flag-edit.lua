@@ -58,9 +58,14 @@ end
 
 
 ---Draw flag edit window
----@param game table
----@param reward_flag RewardFlag
-function window.draw(game, reward_flag)
+---@param game GameScene
+function window.draw(game)
+    local reward_flag = game.selected.reward_flag
+
+    if reward_flag == nil then
+        return
+    end
+
     if reward == nil then
         reward = reward_flag.reward
     end

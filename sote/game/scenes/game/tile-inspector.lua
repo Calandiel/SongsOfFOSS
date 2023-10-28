@@ -29,7 +29,7 @@ function re.mask(gam)
 	end
 end
 
----@param gam table
+---@param gam GameScene
 function re.draw(gam)
 	local tt = gam.clicked_tile_id
 	local mbt = WORLD.tiles[tt]
@@ -71,7 +71,7 @@ function re.draw(gam)
 		if tile.province.realm then
 			if uit.coa(tile.province.realm, panel:subrect(0, 0, base_unit, base_unit, "left", 'up')) then
 				gam.inspector = "realm"
-				gam.selected_realm = tile.province.realm
+				gam.selected.realm = tile.province.realm
 			end
 			ui.left_text(tile.province.name .. ' (' .. tile.province.realm.name .. ')',
 				panel:subrect(base_unit + 5, 0, 10 * base_unit, base_unit, "left", 'up'))
@@ -82,7 +82,7 @@ function re.draw(gam)
 				if uit.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
 					-- gam.refresh_map_mode()
 					gam.inspector = "characters"
-					gam.selected_province = tile.province
+					gam.selected.province = tile.province
 				end
 			end
 		end
@@ -513,7 +513,7 @@ function re.draw(gam)
 				closure = function() 
 					local response = require "game.scenes.game.widgets.character-list"(ui_panel, base_unit, tile.province)()
 					if response then
-						gam.selected_character = response
+						gam.selected.character = response
 						gam.inspector = "character"
 					end
 				end
@@ -586,7 +586,7 @@ function re.draw(gam)
 										local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 										if uit.icon_button(ASSETS.icons[building.type.icon], im) then
 											gam.inspector = 'building'
-											gam.selected_building = building
+											gam.selected.building = building
 										end
 										rect.x = rect.x + base_unit
 										ui.left_text(building.type.name, rect)
@@ -767,7 +767,7 @@ function re.draw(gam)
 											local r = rect
 											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 											if uit.icon_button(ASSETS.icons[tech.icon], im) then
-												gam.cached_selected_tech = tech
+												gam.selected.cached_tech = tech
 												gam.update_map_mode("selected_technology")
 											end
 											rect.x = rect.x + base_unit
@@ -796,7 +796,7 @@ function re.draw(gam)
 											local r = rect
 											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
 											if uit.icon_button(ASSETS.icons[tech.icon], im) then
-												gam.cached_selected_tech = tech
+												gam.selected.cached_tech = tech
 												gam.update_map_mode("selected_technology")
 											end
 											rect.x = rect.x + base_unit

@@ -22,7 +22,7 @@ function window.mask()
 end
 
 ---Draw decisions window
----@param game table
+---@param game GameScene
 function window.draw(game)
     local ui_panel = window.rect()
     -- draw a panel

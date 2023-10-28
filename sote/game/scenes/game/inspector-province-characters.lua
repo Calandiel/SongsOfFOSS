@@ -24,9 +24,14 @@ end
 
 
 ---Draws characters list for a chosen province
----@param game table
----@param province Province
-function window.draw(game, province)
+---@param game GameScene
+function window.draw(game)
+    local province = game.selected.province
+
+    if province == nil then
+        return
+    end
+
     local panel = window.rect()
     ui.panel(panel)
     local base_unit = uit.BASE_HEIGHT
