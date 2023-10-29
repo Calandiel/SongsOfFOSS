@@ -140,9 +140,9 @@ function inspector.draw(gam)
                 ut.money_entry(building_type.description, construction_cost, rect_data, nil, negative_flag, false)
             end
         end,
-        base_unit,
+        UI_STYLE.scrollable_list_item_height,
         tabb.size(available_buildings),
-        base_unit,
+        UI_STYLE.slider_width,
         buildings_scroll
     )
 

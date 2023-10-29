@@ -7,20 +7,27 @@ local portrait = require "game.scenes.game.widgets.portrait"
 ---@type TableState
 local state = nil
 
-local function init_state(base_unit)
+---comment
+---@param compact boolean
+local function init_state(compact)
+    local entry_height = UI_STYLE.scrollable_list_item_height
+    if compact then
+        entry_height = UI_STYLE.scrollable_list_small_item_height
+    end
+
     if state == nil then
         state = {
-            header_height = base_unit,
-            individual_height = base_unit,
+            header_height = UI_STYLE.table_header_height,
+            individual_height = entry_height,
             slider_level = 0,
-            slider_width = base_unit,
+            slider_width = UI_STYLE.slider_width,
             sorted_field = 1,
             sorting_order = true
         }
     else
-        state.header_height = base_unit
-        state.individual_height = base_unit
-        state.slider_width = base_unit
+        state.header_height = UI_STYLE.table_header_height
+        state.individual_height = entry_height
+        state.slider_width = UI_STYLE.slider_width
     end
 end
 
@@ -41,10 +48,18 @@ local function pop_sex(pop)
 end
 
 ---@param rect Rect
----@param base_unit number
 ---@param province Province
-return function(rect, base_unit, province)
-    local portrait_width = base_unit * 1
+---@param compact boolean?
+return function(rect, province, compact)
+    if compact == nil then
+        compact = false
+    end
+    
+    local portrait_width = UI_STYLE.scrollable_list_item_height
+    if compact then
+        portrait_width = UI_STYLE.scrollable_list_small_item_height
+    end
+    
     local rest_width = rect.width - portrait_width
     local width_unit = rest_width / 12
     return function()
@@ -94,9 +109,10 @@ return function(rect, base_unit, province)
                 end
             }
         }
-        init_state(base_unit)
-        local top = rect:subrect(0, 0, rect.width, base_unit, "left", 'up')
-        local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", 'up')
+        init_state(compact)
+
+        local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", 'up')
+        local bottom = rect:subrect(0, UI_STYLE.table_header_height, rect.width, rect.height - UI_STYLE.table_header_height, "left", 'up')
         ui.centered_text("Local characters", top)
         return ui.table(bottom, province.characters, columns, state)
     end

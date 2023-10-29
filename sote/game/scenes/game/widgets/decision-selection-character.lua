@@ -67,7 +67,7 @@ return function(rect, decision_type, primary_target, selected_decision)
                     print(res_decision)
                 end
             end
-        end, ut.BASE_HEIGHT, #decisions, ut.BASE_HEIGHT, scroll
+        end, UI_STYLE.scrollable_list_item_height, #decisions, UI_STYLE.slider_width, scroll
     )
     return res_decision, res_target_p, res_target_s
 end

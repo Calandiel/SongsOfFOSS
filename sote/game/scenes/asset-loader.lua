@@ -42,6 +42,7 @@ function asl.load_assets()
 
 	asl.message = "Loading icons..."
 	print(asl.message)
+	---@type table<string, love.Image>
 	ASSETS.icons = {}
 	local fs = love.filesystem.getDirectoryItems("icons")
 	for _, f in pairs(fs) do

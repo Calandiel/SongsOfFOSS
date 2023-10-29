@@ -11,20 +11,34 @@ local pv = require "game.raws.values.political"
 ---@param funds number
 ---@param cost number
 local function validate_building_tooltip(rect, reason, funds, cost)
+    local icon = nil
+    local tooltip = ""
     if reason == 'unique_duplicate' then
-        ui.image(ASSETS.icons['triangle-target.png'], rect)
-        ui.tooltip('There can be at most a single building of this type per province!', rect)
+        icon = ASSETS.icons['triangle-target.png']
+        tooltip = 'There can be at most a single building of this type per province!'
     elseif reason == 'tile_improvement' then
-        ui.image(ASSETS.icons['triangle-target.png'], rect)
-        ui.tooltip('Tile improvements have to be built from the local infrastructure UI!', rect)
+        icon = ASSETS.icons['triangle-target.png']
+        tooltip = 'Tile improvements have to be built from the local infrastructure UI!'
     elseif reason == 'not_enough_funds' then
-        ui.image(ASSETS.icons['uncertainty.png'], rect)
-        ui.tooltip('Not enough funds: ' ..
-            uit.to_fixed_point2(funds) ..
-            " / " .. uit.to_fixed_point2(cost) .. MONEY_SYMBOL, rect)
+        icon = ASSETS.icons['uncertainty.png']
+        tooltip = 'Not enough funds: ' 
+                .. uit.to_fixed_point2(funds)
+                .. " / "
+                .. uit.to_fixed_point2(cost)
+                .. MONEY_SYMBOL
     elseif reason == 'missing_local_resources' then
-        ui.image(ASSETS.icons['triangle-target.png'], rect)
-        ui.tooltip('Missing local resources!', rect)
+        icon = ASSETS.icons['triangle-target.png']
+        tooltip = 'Missing local resources!'
+    end
+
+    if icon then
+        uit.icon_button(
+            icon,
+            rect,
+            tooltip,
+            false,
+            false
+        )
     end
 end
 
@@ -105,18 +119,17 @@ end
 ---comment
 ---@param gam table
 ---@param rect Rect
----@param base_unit number
 ---@param building_type BuildingType
 ---@param tile_improvement_flag boolean
 ---@param tile Tile
-return function (gam, rect, base_unit, building_type, tile, tile_improvement_flag)
+return function (gam, rect, building_type, tile, tile_improvement_flag)
     ui.tooltip(building_type:get_tooltip(), rect)
     ---@type Rect
     local r = rect
-    local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
+    local im = r:subrect(0, 0, rect.height, rect.height, "left", 'up')
     ui.image(ASSETS.get_icon(building_type.icon), im)
-    r.x = r.x + base_unit
-    r.width = r.width - base_unit * 4
+    r.x = r.x + rect.height
+    r.width = r.width - rect.height * 4
 
     if building_type.tile_improvement then
         uit.generic_number_field(
@@ -132,21 +145,21 @@ return function (gam, rect, base_unit, building_type, tile, tile_improvement_fla
     end
 
     r.x = r.x + r.width
-    r.width = base_unit
+    r.width = rect.height
     if uit.icon_button(ASSETS.icons['mesh-ball.png'], r,
         "Show local efficiency on map") then
         gam.selected.building_type = building_type
         gam.refresh_map_mode(true)
     end
 
-    r.x = r.x + base_unit
-    r.width = base_unit
+    r.x = r.x + rect.height
+    r.width = rect.height
     if (WORLD.player_character) and WORLD.player_character.province == tile.province then
         construction_button(gam, r, building_type, tile, WORLD.player_character, WORLD.player_character, false, tile_improvement_flag)
     end
 
-    r.x = r.x + base_unit
-    r.width = base_unit
+    r.x = r.x + rect.height
+    r.width = rect.height
     if WORLD:does_player_control_realm(tile.province.realm) then
         construction_button(gam, r, building_type, tile, nil, pv.overseer(tile.province.realm), true, tile_improvement_flag)
     end
