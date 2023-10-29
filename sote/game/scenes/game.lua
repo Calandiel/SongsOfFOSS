@@ -754,76 +754,76 @@ function gam.draw()
 					draw_province(province)
 				end
 			end
-		end
+		else
+			---@type Province[]
+			local provinces_to_draw = {}
+			
+			---@type table<Province, Province>
+			local visited = {}
+			---@type Queue<Province>
+			local qq = require "engine.queue":new()
+			local to_draw = flood_fill
+			local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+			visited[center_tile.province] = center_tile.province
+			qq:enqueue(center_tile.province)
+			while qq:length() > 0 and to_draw > 0 do
+				to_draw = to_draw - 1
+				local td = qq:dequeue()
 
-		---@type Province[]
-		local provinces_to_draw = {}
-		
-		---@type table<Province, Province>
-		local visited = {}
-		---@type Queue<Province>
-		local qq = require "engine.queue":new()
-		local to_draw = flood_fill
-		local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
-		visited[center_tile.province] = center_tile.province
-		qq:enqueue(center_tile.province)
-		while qq:length() > 0 and to_draw > 0 do
-			to_draw = to_draw - 1
-			local td = qq:dequeue()
+				local x, y, z = tile_to_x_y(td.center)
 
-			local x, y, z = tile_to_x_y(td.center)
-
-			rect_for_icons.x = x - size / 2
-			rect_for_icons.y = y - size / 2
-			rect_for_icons.width = size
-			rect_for_icons.height = size
-
-			-- ui.panel(rect_for_icons)
-			-- ui.text(tostring(to_draw), rect_for_icons, "center", 'center')
-
-			-- 
-			table.insert(provinces_to_draw, td)
-			for _, n in pairs(td.neighbors) do
-				if visited[n] then
-				else
-					visited[n] = n
-					qq:enqueue(n)
-				end
-			end
-		end
-
-		table.sort(provinces_to_draw, function(a, b)
-			local x1, y1, z1 = tile_to_x_y(a.center)
-			local x2, y2, z2 = tile_to_x_y(b.center)
-			return (z2 - z1) > 0
-		end)
-
-		for _, province in ipairs(provinces_to_draw) do
-			-- draw an icon on map
-			local tile = province.center
-
-			local visibility = true
-			if WORLD.player_character then
-				visibility = false
-				if WORLD.player_character.realm.known_provinces[province] then
-					visibility = true
-				end
-			end
-
-			if province.realm and visibility then
-				-- get screen coordinates
-				local x, y, z = tile_to_x_y(tile)
 				rect_for_icons.x = x - size / 2
 				rect_for_icons.y = y - size / 2
 				rect_for_icons.width = size
 				rect_for_icons.height = size
 
-				ui.image(ASSETS.get_icon('village.png'), rect_for_icons)
-			end
-		end
+				-- ui.panel(rect_for_icons)
+				-- ui.text(tostring(to_draw), rect_for_icons, "center", 'center')
 
-		for _, province in ipairs(provinces_to_draw) do
-			draw_province(province)
+				-- 
+				table.insert(provinces_to_draw, td)
+				for _, n in pairs(td.neighbors) do
+					if visited[n] then
+					else
+						visited[n] = n
+						qq:enqueue(n)
+					end
+				end
+			end
+
+			table.sort(provinces_to_draw, function(a, b)
+				local x1, y1, z1 = tile_to_x_y(a.center)
+				local x2, y2, z2 = tile_to_x_y(b.center)
+				return (z2 - z1) > 0
+			end)
+
+			for _, province in ipairs(provinces_to_draw) do
+				-- draw an icon on map
+				local tile = province.center
+
+				local visibility = true
+				if WORLD.player_character then
+					visibility = false
+					if WORLD.player_character.realm.known_provinces[province] then
+						visibility = true
+					end
+				end
+
+				if province.realm and visibility then
+					-- get screen coordinates
+					local x, y, z = tile_to_x_y(tile)
+					rect_for_icons.x = x - size / 2
+					rect_for_icons.y = y - size / 2
+					rect_for_icons.width = size
+					rect_for_icons.height = size
+
+					ui.image(ASSETS.get_icon('village.png'), rect_for_icons)
+				end
+			end
+
+			for _, province in ipairs(provinces_to_draw) do
+				draw_province(province)
+			end
 		end
 	end
 
