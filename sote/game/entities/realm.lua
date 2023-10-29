@@ -140,7 +140,8 @@ end
 ---@field remove_raider fun(self:Realm, f: RewardFlag, warband: Warband)
 ---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
----@field get_top_realm fun(self:Realm, origin:Realm, depth: number | nil):Realm Returns the top dog of a tributary chains. Handles loops.
+---@field get_top_realm fun(self:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):Realm Returns the top dog of a tributary chains. Handles loops.
+---@field is_realm_in_hierarchy fun(self:Realm, realm_to_check_for:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):Realm Checks if a realm is in the overlord chain of a tributary.
 ---@field get_random_province fun(self:Realm): Province | nil
 
 local realm = {}
@@ -436,14 +437,33 @@ function realm.Realm:get_realm_active_army_size()
 	return total
 end
 
-function realm.Realm:get_top_realm(source, depth)
+function realm.Realm:get_top_realm(sources, depth)
 	local depth = depth or 0
-	if self.paying_tribute_to == nil or (self == source and depth > 0) then
-		return self
-	elseif self == source then
+	local sources = sources or {}
+	if tabb.size(sources) == 0 then sources[self] = self end
+
+	if self.paying_tribute_to == nil or (sources[self] and depth > 0) then
 		return self
 	else
-		return self.paying_tribute_to:get_top_realm(source, depth + 1)
+		sources[self] = self
+		return self.paying_tribute_to:get_top_realm(sources, depth + 1)
+	end
+end
+
+function realm.Realm:is_realm_in_hierarchy(realm_to_check_for, sources, depth)
+	if self == realm_to_check_for then
+		return true
+	end
+
+	local depth = depth or 0
+	local sources = sources or {}
+	if tabb.size(sources) == 0 then sources[self] = self end
+
+	if self.paying_tribute_to == nil or (sources[self] and depth > 0) then
+		return false
+	else
+		sources[self] = self
+		return self.paying_tribute_to:is_realm_in_hierarchy(realm_to_check_for, sources, depth + 1)
 	end
 end
 

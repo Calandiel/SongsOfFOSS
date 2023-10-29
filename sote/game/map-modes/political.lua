@@ -18,6 +18,8 @@ function pol.diplomacy(clicked_tile_id)
 									tile:set_real_color(150 / 255, 60 / 255, 100 / 255) -- color overlords
 								elseif tile.province.realm.paying_tribute_to == rr then
 									tile:set_real_color(220 / 255, 205 / 255, 125 / 255) -- color tributaries
+								elseif tile.province.realm:is_realm_in_hierarchy(rr) then
+									tile:set_real_color(120 / 255, 105 / 255, 55 / 255) -- color indirect tributaries
 								elseif tile.province.realm:at_war_with(rr) then
 									tile:set_real_color(126 / 255, 041 / 255, 084 / 255) -- color wars
 								end
@@ -136,7 +138,7 @@ function pol.atlas()
 			if tile.province.realm ~= nil then
 				--- Resolve colors for tributaries so that we can map paint!
 				---@type Realm
-				local source_realm = tile.province.realm:get_top_realm(tile.province.realm)
+				local source_realm = tile.province.realm:get_top_realm()
 
 				local ele_h, ele_s, ele_v = rgb_to_hsv(tile.real_r, tile.real_g, tile.real_b)
 				local pol_h, pol_s, pol_v = rgb_to_hsv(source_realm.r, source_realm.g,
