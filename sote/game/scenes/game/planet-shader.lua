@@ -18,10 +18,12 @@ function pla.get_shader()
 	local fs = [[
 		uniform float world_size;
 		uniform sampler2D tile_colors;
-        uniform sampler2D tile_improvement_texture;
+	        uniform sampler2D tile_improvement_texture;
 		uniform sampler2D tile_raiding_targets;
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
+		uniform sampler2D tile_realms;
+		uniform sampler2D tile_neighbor_realm;
 		uniform float clicked_tile;
 		uniform float player_tile;
 		uniform float camera_distance_from_sphere;
@@ -63,7 +65,6 @@ function pla.get_shader()
 			return a * (1 - alpha) + b * alpha;
 		}
 
-
 		vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord)
 		{
 			float y = floor(texcoord.y * world_size);
@@ -102,29 +103,59 @@ function pla.get_shader()
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			vec4 texcolor = Texel(tile_colors, face_offset);
-            vec4 texcolor_improv = Texel(tile_improvement_texture, face_offset);
+			vec4 texcolor_improv = Texel(tile_improvement_texture, face_offset);
 			vec4 texcolor_raiding = Texel(tile_raiding_targets, face_offset);
-            
-            if (camera_distance_from_sphere < 1) {
+
+			float distance_for_improvments_and_clicked_tiles = 0.15; // controls the distance threshold from the sphere at which details on tiles are rendered.
+			if (camera_distance_from_sphere < distance_for_improvments_and_clicked_tiles) {
 				// Clicked tile!
 				if (abs(tile_id - clicked_tile) < 0.05) {
 					float d = sin(time) * 0.025;
 					if (abs(tile_uv.x - 0.5) > 0.40 + d || abs(tile_uv.y - 0.5) > 0.40 + d) {
 						return vec4(0.85, 0.4, 0.8, 1);
 					}
-				}                
-				// Tile borders!                
-				if ((abs(tile_uv.x - 0.5) < 0.40) && (abs(tile_uv.y - 0.5) < 0.40) && (texcolor_improv.r > 0.5)) {
-                    if (abs(tile_uv.x - 0.5) > 0.20 || abs(tile_uv.y - 0.5) > 0.20) {
-						return vec4(0.1, 0.1, 0.1, 1);
-					}					
 				}
-			}            
-            
+				// Tile borders!
+				if ((abs(tile_uv.x - 0.5) < 0.40) && (abs(tile_uv.y - 0.5) < 0.40) && (texcolor_improv.r > 0.5)) {
+					if (abs(tile_uv.x - 0.5) > 0.20 || abs(tile_uv.y - 0.5) > 0.20) {
+						return vec4(0.1, 0.1, 0.1, 1);
+					}
+				}
+			}
+
 			if (texcolor.a < 0.5) {
 				// this tile is covered by fog of war -- ignore province and river information!
 				texcolor.a = 1.0;
 			} else {
+				float province_border_thickness = 0.05;
+				vec4 province_border_color = vec4(0.45, 0.45, 0.45, 1);
+				float realm_border_thickness = 0.2;
+				vec4 realm_border_color = vec4(0.35, 0.35, 0.35, 1);
+				float threshold = 0.8;
+
+				// We need to handle realm borders before province borders.
+				// We're gonna do it here.
+
+				float realm_up_b = (realm_border_thickness - tile_uv.y);
+				float realm_down_b = (tile_uv.y - (1 - realm_border_thickness));
+				float realm_left_b = (tile_uv.x - (1 - realm_border_thickness));
+				float realm_right_b = (realm_border_thickness - tile_uv.x);
+				vec4 realm_neighbor_data = Texel(tile_neighbor_realm, face_offset);
+
+				if (realm_neighbor_data.g > threshold && realm_up_b > 0) {
+					return realm_border_color;
+				}
+				if (realm_neighbor_data.r > threshold && realm_down_b > 0) {
+					return realm_border_color;
+				}
+				if (realm_neighbor_data.b > threshold && realm_left_b > 0) {
+					return realm_border_color;
+				}
+				if (realm_neighbor_data.a > threshold && realm_right_b > 0) {
+					return realm_border_color;
+				}
+
+
 				// since this tile isn't under fog of war, we can render further details on it.
 				// Province borders!
 				vec4 my_bord = Texel(tile_provinces, face_offset);
@@ -132,9 +163,6 @@ function pla.get_shader()
 
 				vec4 clicked_bord = Texel(tile_provinces, clicked);
 				vec4 player_bord = Texel(tile_provinces, player);
-
-				float province_border_thickness = 0.1;
-				vec4 province_border_color = vec4(0.4, 0.4, 0.4, 1);
 
 				if (max3(abs(my_bord - player_bord)) < 0.0001) {
 					province_border_color = vec4(0.95, 0.1, 0.1, 1);
@@ -151,27 +179,17 @@ function pla.get_shader()
 				float left_b = (tile_uv.x - (1 - province_border_thickness));
 				float right_b = (province_border_thickness - tile_uv.x);
 
-				float thld = 0.8;
-
-				if (n_data.g > thld) {
-					if (up_b > 0) {
-						return province_border_color;
-					}
+				if (n_data.g > threshold && up_b > 0) {
+					return province_border_color;
 				}
-				if (n_data.r > thld) {
-					if (down_b > 0) {
-						return province_border_color;
-					}
+				if (n_data.r > threshold && down_b > 0) {
+					return province_border_color;
 				}
-				if (n_data.b > thld) {
-					if (left_b > 0) {
-						return province_border_color;
-					}
+				if (n_data.b > threshold && left_b > 0) {
+					return province_border_color;
 				}
-				if (n_data.a > thld) {
-					if (right_b > 0) {
-						return province_border_color;
-					}
+				if (n_data.a > threshold && right_b > 0) {
+					return province_border_color;
 				}
 
 				//if ((n_data.g > 0.1) && (n_data.b > 0.1)) {
@@ -185,7 +203,7 @@ function pla.get_shader()
 			if (texcolor_raiding.r > 0.5) {
 				raiding_target_indicator = abs(fract(time * 0.4) - 0.5) * 2.0;
 			}
-			vec4 red_overlay = vec4(1, 0, 0, 1);            
+			vec4 red_overlay = vec4(1, 0, 0, 1);
 			return texcolor * mix(color, red_overlay, raiding_target_indicator);
 		}
 	]]

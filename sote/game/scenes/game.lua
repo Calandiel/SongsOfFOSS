@@ -540,7 +540,22 @@ function gam.draw()
 		gam.planet_shader:send('tile_provinces', gam.tile_province_texture)
 	end
 	if gam.planet_shader:hasUniform("tile_neighbor_province") then
+		if gam.tile_neighbor_provinces_texture == nil then
+			gam.recalculate_province_map()
+		end
 		gam.planet_shader:send('tile_neighbor_province', gam.tile_neighbor_provinces_texture)
+	end
+	if gam.planet_shader:hasUniform("tile_realms") then
+		if gam.tile_realm_texture == nil then
+			gam.recalculate_realm_map()
+		end
+		gam.planet_shader:send('tile_realms', gam.tile_realm_texture)
+	end
+	if gam.planet_shader:hasUniform("tile_neighbor_realm") then
+		if gam.tile_neighbor_realm_texture == nil then
+			gam.recalculate_realm_map()
+		end
+		gam.planet_shader:send('tile_neighbor_realm', gam.tile_neighbor_realm_texture)
 	end
 	if gam.planet_shader:hasUniform("tile_raiding_targets") then
 		if gam.map_mode == "atlas" then
@@ -1201,6 +1216,71 @@ local function neighbor_neighbor_data(tile)
 	return r, g, b, a
 end
 
+local function realm_neighbor_data(tile)
+	local up_neigh = tile.get_neighbor(tile, 1)
+	local down_neigh = tile.get_neighbor(tile, 2)
+	local right_neigh = tile.get_neighbor(tile, 3)
+	local left_neigh = tile.get_neighbor(tile, 4)
+	local r = 0
+	local g = 0
+	local b = 0
+	local a = 0
+
+	local up_realm = nil
+	local down_realm = nil
+	local right_realm = nil
+	local left_realm = nil
+	local center_realm = nil
+	if up_neigh.province.realm then
+		up_realm = up_neigh.province.realm:get_top_realm()
+	end
+	if down_neigh.province.realm then
+		down_realm = down_neigh.province.realm:get_top_realm()
+	end
+	if right_neigh.province.realm then
+		right_realm = right_neigh.province.realm:get_top_realm()
+	end
+	if left_neigh.province.realm then
+		left_realm = left_neigh.province.realm:get_top_realm()
+	end
+	if tile.province.realm then
+		center_realm = tile.province.realm:get_top_realm()
+	end
+
+	if up_realm ~= center_realm  then
+		r = 1
+	end
+	if down_realm ~= center_realm then
+		g = 1
+	end
+	if right_realm ~= center_realm then
+		b = 1
+	end
+	if left_realm ~= center_realm then
+		a = 1
+	end
+	return r, g, b, a
+end
+
+local function realm_neighbor_neighbor_data(tile)
+	local up_neigh = tile.get_neighbor(tile, 1)
+	local down_neigh = tile.get_neighbor(tile, 2)
+	local right_neigh = tile.get_neighbor(tile, 3)
+	local left_neigh = tile.get_neighbor(tile, 4)
+
+	local up_r, up_g, up_b, up_a = neighbor_data(up_neigh)
+	local down_r, down_g, down_b, down_a = neighbor_data(down_neigh)
+	local right_r, right_g, right_b, right_a = neighbor_data(right_neigh)
+	local left_r, left_g, left_b, left_a = neighbor_data(left_neigh)
+
+	local r = (up_r + down_r + right_r + left_r) / 4
+	local g = (up_g + down_g + right_g + left_g) / 4
+	local b = (up_b + down_b + right_b + left_b) / 4
+	local a = (up_a + down_a + right_a + left_a) / 4
+
+	return r, g, b, a
+end
+
 function gam.recalculate_province_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim, dim, "rgba8")
@@ -1215,11 +1295,9 @@ function gam.recalculate_province_map()
 		end
 
 		local r, g, b, a = neighbor_data(tile)
-
 		if (math.max(r, g, b, a) < 0.1) then
 			r, g, b, a = neighbor_neighbor_data(tile)
 		end
-
 		gam.tile_neighbor_provinces_data:setPixel(x, y, r, g, b, a)
 	end
 
@@ -1236,6 +1314,39 @@ function gam.recalculate_province_map()
 	gam.tile_neighbor_provinces_texture:setFilter("nearest", "nearest")
 end
 
+function gam.recalculate_realm_map()
+	local dim = WORLD.world_size * 3
+	gam.tile_realm_image_data = gam.tile_realm_image_data or love.image.newImageData(dim, dim, "rgba8")
+	gam.tile_neighbor_realm_data = gam.tile_neighbor_realm_data or love.image.newImageData(dim, dim, "rgba8")
+	for _, tile in pairs(WORLD.tiles) do
+		local x, y = gam.tile_id_to_color_coords(tile)
+		if tile.province and tile.province.realm then
+			local r = tile.province.realm:get_top_realm().r
+			local g = tile.province.realm:get_top_realm().g
+			local b = tile.province.realm:get_top_realm().b
+			gam.tile_realm_image_data:setPixel(x, y, r, g, b, 1)
+		end
+
+		local r, g, b, a = realm_neighbor_data(tile)
+		if (math.max(r, g, b, a) < 0.1) then
+			r, g, b, a = realm_neighbor_neighbor_data(tile)
+		end
+		gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
+	end
+
+	gam.tile_realm_texture = love.graphics.newImage(gam.tile_realm_image_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_realm_texture:setFilter("nearest", "nearest")
+
+	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_neighbor_realm_texture:setFilter("nearest", "nearest")
+end
+
 function gam.recalculate_raiding_targets_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_raiding_targets_image_data = love.image.newImageData(dim, dim, "rgba8")
@@ -1250,6 +1361,11 @@ end
 ---Refreshes the map mode
 function gam.refresh_map_mode(preserve_efficiency)
 	local tim = love.timer.getTime()
+
+	-- Sanity check in case the function is called before init
+	if gam.tile_neighbor_realm_data == nil then
+		gam.recalculate_realm_map()
+	end
 
 	-- if not OPTIONS.update_map then
 	-- 	return
@@ -1279,6 +1395,7 @@ function gam.refresh_map_mode(preserve_efficiency)
 
 	-- Apply the color
 	for _, tile in pairs(WORLD.tiles) do
+		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 		local can_set = true
 		local player_character = WORLD.player_character
 		if player_character and player_character.realm then
@@ -1309,6 +1426,12 @@ function gam.refresh_map_mode(preserve_efficiency)
 					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
 				end
 			end
+
+			local r, g, b, a = realm_neighbor_data(tile)
+			if (math.max(r, g, b, a) < 0.1) then
+				r, g, b, a = realm_neighbor_neighbor_data(tile)
+			end
+			gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
 		else
 			gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 		end
@@ -1319,6 +1442,12 @@ function gam.refresh_map_mode(preserve_efficiency)
 
 	gam.tile_improvement_texture = love.graphics.newImage(gam.tile_improvement_texture_data)
 	gam.tile_improvement_texture:setFilter("nearest", "nearest")
+
+	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
+		mipmaps = false,
+		linear = true
+	})
+	gam.tile_neighbor_realm_texture:setFilter("nearest", "nearest")
 
 	-- Update the minimap
 	gam.minimap = require "game.minimap".make_minimap()
