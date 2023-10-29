@@ -56,6 +56,9 @@ return function(rect, decision_type, primary_target, selected_decision)
                 local available = dec[2]
                 local active = decis == selected_decision
                 local tooltip = decis.tooltip(WORLD.player_character, primary_target)
+                if OPTIONS.debug_mode then
+                    tooltip = tooltip .. "\n ai_will_do: " .. ut.to_fixed_point2(decis.ai_will_do(WORLD.player_character, primary_target))
+                end
                 if ut.text_button(decis.ui_name, rect, tooltip, available, active) then
                     -- We need to draw this specific decisions UI now!
                     print("Player selected the decision: " .. decis.name)

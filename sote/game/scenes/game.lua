@@ -210,7 +210,6 @@ function gam.init()
 
 	gam.minimap = require "game.minimap".make_minimap()
 
-
 	gam.tile_inspector_scale = 1
 end
 

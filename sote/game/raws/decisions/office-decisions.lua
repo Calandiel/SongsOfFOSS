@@ -164,9 +164,9 @@ local function load()
             ---@type Character
             local c = tabb.nth(p.characters, love.math.random(s))
             if c then
-                if c.loyalty == root or c.traits[TRAIT.GOOD_ORGANISER] then
-                    return c, true
-                end
+				if (c.realm == root.realm) and (not c.traits[TRAIT.TRADER]) and not (root.realm.overseer == c) then
+					return c, true
+				end
             end
 			return nil, false
 		end,
