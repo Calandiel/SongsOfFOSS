@@ -8,17 +8,17 @@ local state = nil
 local function init_state(base_unit)
     if state == nil then
         state = {
-            header_height = base_unit,
-            individual_height = base_unit,
+            header_height = UI_STYLE.table_header_height,
+            individual_height = UI_STYLE.scrollable_list_item_height,
             slider_level = 0,
-            slider_width = base_unit,
+            slider_width = UI_STYLE.slider_width,
             sorted_field = 1,
             sorting_order = true
         }
     else
-        state.header_height = base_unit
-        state.individual_height = base_unit
-        state.slider_width = base_unit
+        state.header_height = UI_STYLE.table_header_height
+        state.individual_height = UI_STYLE.scrollable_list_item_height
+        state.slider_width = UI_STYLE.slider_width
     end
 end
 
@@ -63,7 +63,7 @@ return function(rect, base_unit, tile)
                 render_closure = function(rect, k, v)
                     ui.image(ASSETS.get_icon(v.race.icon), rect)
                 end,
-                width = base_unit * 1,
+                width = UI_STYLE.scrollable_list_item_height,
                 value = function(k, v)
                     ---@type POP
                     v = v

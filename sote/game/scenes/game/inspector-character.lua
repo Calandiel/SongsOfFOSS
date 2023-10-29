@@ -146,7 +146,7 @@ function window.draw(game)
                 )
             end
         end,
-        unit * 1.5,
+        UI_STYLE.scrollable_list_large_item_height,
         tabb.size(character.traits),
         unit,
         traits_slider
@@ -178,7 +178,7 @@ function window.draw(game)
         decision_target_secondary = nil
     end
 
-    local response = characters_list_widget(characters_list, unit, character.province)()
+    local response = characters_list_widget(characters_list, character.province, true)()
     if response then
         game.selected.character = response
     end

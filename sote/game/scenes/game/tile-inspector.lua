@@ -10,19 +10,17 @@ local ef = require "game.raws.effects.economic"
 
 re.cached_scrollbar = 0
 
----@param scale number
 ---@return Rect
-local function get_main_panel(scale)
+local function get_main_panel()
 	local fs = ui.fullscreen()
-	local base_unit = uit.BASE_HEIGHT * scale
-	local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, base_unit * 30, base_unit * 12, "left", 'down')
+	local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, uit.BASE_HEIGHT * 40, uit.BASE_HEIGHT * 20, "left", 'down')
 	return panel
 end
 
 ---Returns whether or not clicks on the planet can be registered.
 ---@return boolean
 function re.mask(gam)
-	if ui.trigger(get_main_panel(gam.tile_inspector_scale)) then
+	if ui.trigger(get_main_panel()) then
 		return false
 	else
 		return true
@@ -39,46 +37,36 @@ function re.draw(gam)
 		if tile.province == nil then
 			return -- the world isn't fully generated... return
 		end
+		
 		-- The clicked tile exists!
-		local panel = get_main_panel(gam.tile_inspector_scale)
-		local scale = gam.tile_inspector_scale
-		local base_unit = uit.BASE_HEIGHT * scale
+		local panel = get_main_panel()
+		local base_unit = uit.BASE_HEIGHT
 		
 		ui.panel(panel)
 
-		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+		local top_bar_rect = panel:subrect(0, 0, panel.width, base_unit * 2, "left", 'up')
+		ui.panel(top_bar_rect)
+
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'up')) then
 			gam.click_tile(-1)
 			gam.inspector = nil
 		end
 
-		if uit.icon_button(ASSETS.icons["plus.png"], panel:subrect(- 2 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
-			if gam.tile_inspector_scale == 1 then
-				gam.tile_inspector_scale = 1.3
-			elseif gam.tile_inspector_scale == 1.3 then
-				gam.tile_inspector_scale = 1.7
-			end
-		end
-
-		if uit.icon_button(ASSETS.icons["minus.png"], panel:subrect(- 3 * base_unit, 0, base_unit, base_unit, "right", 'up')) then
-			if gam.tile_inspector_scale == 1.7 then
-				gam.tile_inspector_scale = 1.3
-			elseif gam.tile_inspector_scale == 1.3 then
-				gam.tile_inspector_scale = 1
-			end
-		end
+		local realm_rect = top_bar_rect:subrect(0, 0, base_unit * 7, base_unit, "left", 'up')
+		local province_name_rect = top_bar_rect:subrect(0, base_unit, base_unit * 7, base_unit, "left", 'up')
 
 		-- COA
 		if tile.province.realm then
-			if uit.coa(tile.province.realm, panel:subrect(0, 0, base_unit, base_unit, "left", 'up')) then
-				gam.inspector = "realm"
-				gam.selected.realm = tile.province.realm
-			end
-			ui.left_text(tile.province.name .. ' (' .. tile.province.realm.name .. ')',
-				panel:subrect(base_unit + 5, 0, 10 * base_unit, base_unit, "left", 'up'))
+			require "game.scenes.game.widgets.realm-name" (gam, tile.province.realm, base_unit, realm_rect, 'immediate')
+		else
+			ui.panel(realm_rect)
 		end
+
+		uit.data_entry("", tile.province.name, province_name_rect)
+
 		if tile.province.realm then
 			if WORLD.player_character == nil then
-				local bp = panel:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
+				local bp = panel:subrect(-UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", "up")
 				if uit.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
 					-- gam.refresh_map_mode()
 					gam.inspector = "characters"
@@ -87,12 +75,66 @@ function re.draw(gam)
 			end
 		end
 
+		local market_rect = top_bar_rect:subrect(-2 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+		if uit.icon_button(ASSETS.icons["scales.png"], market_rect, "Show market") then
+			gam.inspector = "market"
+		end
+
+
+		local infra_panel = panel:subrect(base_unit * 7, 0, base_unit * 3, base_unit, "left", 'up')
+		uit.generic_number_field(
+			'horizon-road.png',
+			tile.province:get_infrastructure_efficiency(),
+			infra_panel,
+			"Local infrastructure efficiency",
+			uit.NUMBER_MODE.PERCENTAGE,
+			uit.NAME_MODE.ICON
+		)
+
+		local mood_panel = infra_panel
+		mood_panel.y = mood_panel.y + mood_panel.height
+		uit.generic_number_field(
+			'duality-mask.png',
+			tile.province.mood,
+			infra_panel,
+			"Local mood",
+			uit.NUMBER_MODE.NUMBER,
+			uit.NAME_MODE.ICON
+		)
+
+		local population_panel = mood_panel
+		population_panel.y = population_panel.y - population_panel.height
+		population_panel.x = population_panel.x + population_panel.width
+		uit.generic_number_field(
+			'minions.png',
+			tile.province:population(),
+			population_panel,
+			"Local population",
+			uit.NUMBER_MODE.INTEGER,
+			uit.NAME_MODE.ICON
+		)
+
+		local unemployed_panel = population_panel
+		unemployed_panel.y = unemployed_panel.y + unemployed_panel.height
+		uit.generic_number_field(
+			'shrug.png',
+			tile.province:get_unemployment(),
+			population_panel,
+			"Local unemployed population",
+			uit.NUMBER_MODE.INTEGER,
+			uit.NAME_MODE.ICON
+		)
+
 
 		-- All the other data (as in, tabs)
-		local ui_panel = panel:subrect(5, base_unit * 2, panel.width - 10, panel.height - 10 - base_unit * 2,
-			"left", 'up')
+		local ui_panel = panel:subrect(
+			0, 
+			base_unit * 3,
+			panel.width,
+			panel.height - base_unit * 3,
+			"left", 'up'):shrink(5)
+
 		ui.panel(ui_panel)
-		local origin = ui_panel:subrect(0, 0, base_unit * 3, base_unit, "left", 'up')
 		gam.tile_inspector_tab = gam.tile_inspector_tab or "GEN"
 		local tabs = {
 			{
@@ -511,7 +553,7 @@ function re.draw(gam)
 				text = "CHR",
 				tooltip = "List of notable characters",
 				closure = function() 
-					local response = require "game.scenes.game.widgets.character-list"(ui_panel, base_unit, tile.province)()
+					local response = require "game.scenes.game.widgets.character-list"(ui_panel, tile.province)()
 					if response then
 						gam.selected.character = response
 						gam.inspector = "character"
@@ -571,7 +613,7 @@ function re.draw(gam)
 
 										uit.count_entry(building_type.name, amount or 1, rect)
 									end
-								end, base_unit, tabb.size(stacks), base_unit,
+								end, UI_STYLE.scrollable_list_item_height, tabb.size(stacks), UI_STYLE.slider_width,
 									re.buildings_scrollbar)
 							else
 								-- Show individual buildings
@@ -600,7 +642,7 @@ function re.draw(gam)
 											-- ???
 										end
 									end
-								end, base_unit, tabb.size(tile.province.buildings), base_unit,
+								end, UI_STYLE.scrollable_list_item_height, tabb.size(tile.province.buildings), UI_STYLE.slider_width,
 									re.buildings_scrollbar)
 							end
 						end,
@@ -615,9 +657,9 @@ function re.draw(gam)
 								if number > 0 then
 									---@type BuildingType
 									local building_type = tabb.nth(tile.province.buildable_buildings, number)
-									require "game.scenes.game.widgets.building-type-buttons"(gam, rect, base_unit, building_type, tile, false)
+									require "game.scenes.game.widgets.building-type-buttons"(gam, rect, building_type, tile, false)
 								end
-							end, base_unit, tabb.size(tile.province.buildable_buildings), base_unit,
+							end, UI_STYLE.scrollable_list_item_height, tabb.size(tile.province.buildable_buildings), UI_STYLE.slider_width,
 								re.building_construction_scrollbar)
 						end,
 					}, ui_panel, ui_panel.width / 2 - 5)
@@ -736,9 +778,9 @@ function re.draw(gam)
 								if number > 0 then
 									---@type BuildingType
 									local building_type = tabb.nth(tile_improvs, number)
-									require "game.scenes.game.widgets.building-type-buttons"(gam, rect, base_unit, building_type, tile, true)
+									require "game.scenes.game.widgets.building-type-buttons"(gam, rect, building_type, tile, true)
 								end
-							end, base_unit, tabb.size(tile_improvs), base_unit,
+							end, UI_STYLE.scrollable_list_item_height, tabb.size(tile_improvs), UI_STYLE.slider_width,
 								re.building_tile_improvements_scrollbar)
 						end,
 					}, ui_panel, ui_panel.width / 2 - 5)
@@ -755,27 +797,20 @@ function re.draw(gam)
 									ui.centered_text("Researched technologies", rect)
 								end,
 								function(_)
-									rect.y = rect.y + base_unit
-									rect.height = rect.height - base_unit
+									rect.y = rect.y + UI_STYLE.table_header_height
+									rect.height = rect.height - UI_STYLE.table_header_height
 									re.researched_technologies_scrollbar = re.researched_technologies_scrollbar or 0
 									re.researched_technologies_scrollbar = ui.scrollview(rect, function(number, rect)
 										if number > 0 then
 											---@type Technology
 											local tech = tabb.nth(tile.province.technologies_present, number)
-											ui.tooltip(tech:get_tooltip(), rect)
-											---@type Rect
-											local r = rect
-											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-											if uit.icon_button(ASSETS.icons[tech.icon], im) then
-												CACHED_TECH = tech
-												print(tech.name)
-												gam.update_map_mode("selected_technology")
-											end
-											rect.x = rect.x + base_unit
-											ui.left_text(tech.name, rect)
+											require "game.scenes.game.widgets.technology"(tech, rect, gam)
 										end
-									end, base_unit, tabb.size(tile.province.technologies_present), base_unit,
-										re.researched_technologies_scrollbar)
+									end,  
+									UI_STYLE.scrollable_list_item_height,
+									tabb.size(tile.province.technologies_present),
+									UI_STYLE.slider_width,
+									re.researched_technologies_scrollbar)
 								end
 							}, rect, base_unit)
 						end,
@@ -792,20 +827,13 @@ function re.draw(gam)
 										if number > 0 then
 											---@type Technology
 											local tech = tabb.nth(tile.province.technologies_researchable, number)
-											ui.tooltip(tech:get_tooltip(), rect)
-											---@type Rect
-											local r = rect
-											local im = r:subrect(0, 0, base_unit, base_unit, "left", 'up')
-											if uit.icon_button(ASSETS.icons[tech.icon], im) then
-												CACHED_TECH = tech
-												print(tech.name)
-												gam.update_map_mode("selected_technology")
-											end
-											rect.x = rect.x + base_unit
-											ui.left_text(tech.name, rect)
+											require "game.scenes.game.widgets.technology"(tech, rect, gam)
 										end
-									end, base_unit, tabb.size(tile.province.technologies_researchable), base_unit,
-										re.researchable_technologies_scrollbar)
+									end,
+									UI_STYLE.scrollable_list_item_height,
+									tabb.size(tile.province.technologies_researchable),
+									UI_STYLE.slider_width,
+									re.researchable_technologies_scrollbar)
 								end
 							}, rect, base_unit)
 						end
@@ -887,16 +915,16 @@ function re.draw(gam)
 							rect.width = 150
 							uit.money_entry('Unit upkeep: ', unit.upkeep, rect)
 						end
-					end, base_unit, ttab.size(tile.province.units), base_unit, re.units_scrollbar)
+					end, UI_STYLE.scrollable_list_item_height, ttab.size(tile.province.units), UI_STYLE.slider_width, re.units_scrollbar)
 				end
 			}
 		}
 		local layout = ui.layout_builder()
-			:position(panel.x, panel.y + base_unit)
+			:position(panel.x, panel.y + base_unit * 2 + 5)
 			:spacing(2)
 			:horizontal()
 			:build()
-		gam.tile_inspector_tab = uit.tabs(gam.tile_inspector_tab, layout, tabs, scale)
+		gam.tile_inspector_tab = uit.tabs(gam.tile_inspector_tab, layout, tabs, 1)
 	end
 end
 

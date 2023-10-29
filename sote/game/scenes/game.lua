@@ -1,6 +1,8 @@
 ---@class GameScene
 local gam = {}
 
+require "game.scenes.global-style"
+
 local cpml = require "cpml"
 local world = require "game.entities.world"
 local cube = require "game.cube"
@@ -209,8 +211,6 @@ function gam.init()
 	gam.click_tile(-1)
 
 	gam.minimap = require "game.minimap".make_minimap()
-
-	gam.tile_inspector_scale = 1
 end
 
 ---Call this to make sure that a camera position exists.
@@ -977,14 +977,14 @@ function gam.draw()
 		gam.click_callback = callback.nothing()
 	end
 
-	local map_mode_bar = bottom_right_main_layout:next(300, ut.BASE_HEIGHT + 10)
+	local map_mode_bar = bottom_right_main_layout:next(300, UI_STYLE.square_button_large)
 	local map_mode_bar_layout = ui.layout_builder()
 		:horizontal()
 		:position(map_mode_bar.x, map_mode_bar.y)
 		:build()
 	if ut.icon_button(
 			ASSETS.icons["plain-arrow.png"],
-			map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10),
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
 			"Show all map modes"
 		) then
 		gam.show_map_mode_panel = true
@@ -994,34 +994,34 @@ function gam.draw()
 
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['atlas'][2]],
-			map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['atlas'][3]) then
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['atlas'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "atlas")
 	end
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['diplomacy'][2]],
-			map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['diplomacy'][3]) then
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['diplomacy'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "diplomacy")
 	end
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['elevation'][2]],
-			map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['elevation'][3]) then
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['elevation'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "elevation")
 	end
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['biomes'][2]],
-			map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['biomes'][3]) then
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['biomes'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "biomes")
 	end
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['koppen'][2]],
-			map_mode_bar_layout:next(ut.BASE_HEIGHT + 10, ut.BASE_HEIGHT + 10), gam.map_mode_data['koppen'][3]) then
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['koppen'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "koppen")
 	end
 
 	-- Map modes tab
 	if gam.show_map_mode_panel then
 		local ttab = require "engine.table"
-		local mm_panel_height = ut.BASE_HEIGHT * (1 + 22)
+		local mm_panel_height = ut.BASE_HEIGHT * (22)
 		local panel = bottom_right_main_layout:next(300, mm_panel_height)
 		if ui.trigger(panel) then
 			gam.click_callback = callback.nothing()
@@ -1098,13 +1098,13 @@ function gam.draw()
 					end
 					rect.x = rect.x + rect.height
 					rect.width = rect.width - rect.height
-					ui.text_panel(mm_data[1], rect)
+					ui.left_text(mm_data[1], rect)
 				else
 				end
 			end,
-			ut.BASE_HEIGHT + 10,
+			UI_STYLE.scrollable_list_large_item_height,
 			ttab.size(mms),
-			ut.BASE_HEIGHT,
+			UI_STYLE.slider_width,
 			gam.map_mode_slider
 		)
 	end
