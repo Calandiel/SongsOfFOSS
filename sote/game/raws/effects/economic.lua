@@ -339,4 +339,20 @@ function EconomicEffects.sell(character, good, amount)
     return true
 end
 
+---comment
+---@param character Character
+---@param realm Realm
+---@param amount number
+function EconomicEffects.gift_to_tribe(character, realm, amount)
+    if character.savings < amount then
+        return
+    end
+
+    EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Donation)
+    EconomicEffects.change_treasury(realm, amount, EconomicEffects.reasons.Donation)
+
+    realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:population() / 100
+    character.popularity[realm] = character.popularity[realm] + amount / realm.capitol:population() / 100
+end
+
 return EconomicEffects

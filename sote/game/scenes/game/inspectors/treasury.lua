@@ -3,6 +3,8 @@ local uit = require "game.ui-utils"
 
 local bc = require "game.scenes.game.widgets.budget-category"
 
+local economic_effects = require "game.raws.effects.economic"
+
 ---@param ui_panel Rect
 ---@param realm Realm
 return function(ui_panel, realm)
@@ -88,7 +90,7 @@ return function(ui_panel, realm)
             change_treasury_target(100)
         end
 
-        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT 
 
         -- current change
         uit.money_entry(
@@ -97,5 +99,30 @@ return function(ui_panel, realm)
             panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'),
             "Previous total income"
         )
+
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
+        local label_panel =  panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up')
+
+        ui.text_panel("Gift wealth to your tribe: ", label_panel)
+
+        local button_rect = panel_rect:subrect(0, uit.BASE_HEIGHT * 1, uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT, "left", 'up')
+
+        local function gift_to_treasury_target(x)
+            if uit.text_button(
+                uit.to_fixed_point2(x) .. MONEY_SYMBOL,
+                button_rect,
+                "Invest " .. uit.to_fixed_point2(x) .. MONEY_SYMBOL .. " of personal wealth into treasury."
+            ) then
+                economic_effects.gift_to_tribe(WORLD.player_character, realm, x)
+            end
+            button_rect.x = button_rect.x + uit.BASE_HEIGHT * 3
+        end
+
+        gift_to_treasury_target(1)
+        gift_to_treasury_target(10)
+        gift_to_treasury_target(50)
+        gift_to_treasury_target(100)
+        gift_to_treasury_target(500)
     end
 end

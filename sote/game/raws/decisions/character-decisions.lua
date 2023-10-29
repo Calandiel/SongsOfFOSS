@@ -356,10 +356,7 @@ local function load()
 			local realm = province.realm
 			if realm == nil then return end
 
-
-			province.mood = math.min(10, province.mood + 0.5 / province:population())
-			EconomicEffects.change_treasury(realm, base_gift_size, "donation")
-			root.savings = root.savings - base_gift_size
+			EconomicEffects.gift_to_tribe(root, realm, base_gift_size)
 
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification(root.name .. " donates money to the tribe of " .. realm.name .. "!")
