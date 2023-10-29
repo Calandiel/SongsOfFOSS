@@ -69,7 +69,7 @@ function d.load()
 		r = 1,
 		g = 1,
 		b = 1,
-		unlocked_by = { tec('ground-stone-tools') },
+		unlocked_by = { tec('pottery') },
 		required_resource = { res("meteoric-iron"), res("native-copper"), res("native-gold") },
 		research_cost = 0.25,
 	}
