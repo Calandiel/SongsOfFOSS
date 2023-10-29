@@ -1537,46 +1537,49 @@ function gam.refresh_map_mode(preserve_efficiency)
 	end
 
 	-- Apply the color
-	for _, tile in pairs(WORLD.tiles) do
+	for _, province in pairs(WORLD.provinces) do
 		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 		local can_set = true
 		local player_character = WORLD.player_character
 		if player_character and player_character.realm then
 			can_set = false
-			if player_character.realm.known_provinces[tile.province] then
+			if player_character.realm.known_provinces[province] then
 				can_set = true
 			end
 		end
-		local x, y = gam.tile_id_to_color_coords(tile)
-		if can_set then
-			local r = tile.real_r
-			local g = tile.real_g
-			local b = tile.real_b
-			gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
-			if tile.tile_improvement and gam.map_mode == "atlas" then
-				gam.tile_improvement_texture_data:setPixel(x, y, 1, 0, 0, 1)
+		for _, tile in pairs(province.tiles) do
+			local x, y = gam.tile_id_to_color_coords(tile)
+			if can_set then
+				local r = tile.real_r
+				local g = tile.real_g
+				local b = tile.real_b
+				gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+				if tile.tile_improvement and gam.map_mode == "atlas" then
+					gam.tile_improvement_texture_data:setPixel(x, y, 1, 0, 0, 1)
+				else
+					gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
+				end
+
+				if gam.selected.building_type ~= nil then
+					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
+					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
+					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+
+					if tile.province == province and eff == best_eff then
+						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
+						gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+					end
+				end
+
+				local r, g, b, a = realm_neighbor_data(tile)
+				if (math.max(r, g, b, a) < 0.1) then
+					r, g, b, a = realm_neighbor_neighbor_data(tile)
+				end
+				gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
 			else
+				gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 				gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
 			end
-
-			if gam.selected.building_type ~= nil then
-				local eff = gam.selected.building_type.production_method:get_efficiency(tile)
-				local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-				gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
-
-				if tile.province == province and eff == best_eff then
-					local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
-				end
-			end
-
-			local r, g, b, a = realm_neighbor_data(tile)
-			if (math.max(r, g, b, a) < 0.1) then
-				r, g, b, a = realm_neighbor_neighbor_data(tile)
-			end
-			gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
-		else
-			gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 		end
 	end
 	-- Update the texture
