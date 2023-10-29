@@ -158,45 +158,47 @@ function pla.get_shader()
 
 				// since this tile isn't under fog of war, we can render further details on it.
 				// Province borders!
-				vec4 my_bord = Texel(tile_provinces, face_offset);
-				vec4 n_data = Texel(tile_neighbor_province, face_offset);
+				if(camera_distance_from_sphere < 1) {
+					vec4 my_bord = Texel(tile_provinces, face_offset);
+					vec4 n_data = Texel(tile_neighbor_province, face_offset);
 
-				vec4 clicked_bord = Texel(tile_provinces, clicked);
-				vec4 player_bord = Texel(tile_provinces, player);
+					vec4 clicked_bord = Texel(tile_provinces, clicked);
+					vec4 player_bord = Texel(tile_provinces, player);
 
-				if (max3(abs(my_bord - player_bord)) < 0.0001) {
-					province_border_color = vec4(0.95, 0.1, 0.1, 1);
-					province_border_thickness = 0.2;
-				}
+					if (max3(abs(my_bord - player_bord)) < 0.0001) {
+						province_border_color = vec4(0.95, 0.1, 0.1, 1);
+						province_border_thickness = 0.2;
+					}
 
-				if (max3(abs(my_bord - clicked_bord)) < 0.0001) {
-					province_border_color = vec4(0.85, 0.4, 0.2, 1);
-					province_border_thickness = 0.4;
-				}
+					if (max3(abs(my_bord - clicked_bord)) < 0.0001) {
+						province_border_color = vec4(0.85, 0.4, 0.2, 1);
+						province_border_thickness = 0.4;
+					}
 
-				float up_b = (province_border_thickness - tile_uv.y);
-				float down_b = (tile_uv.y - (1 - province_border_thickness));
-				float left_b = (tile_uv.x - (1 - province_border_thickness));
-				float right_b = (province_border_thickness - tile_uv.x);
+					float up_b = (province_border_thickness - tile_uv.y);
+					float down_b = (tile_uv.y - (1 - province_border_thickness));
+					float left_b = (tile_uv.x - (1 - province_border_thickness));
+					float right_b = (province_border_thickness - tile_uv.x);
 
-				if (n_data.g > threshold && up_b > 0) {
-					return province_border_color;
-				}
-				if (n_data.r > threshold && down_b > 0) {
-					return province_border_color;
-				}
-				if (n_data.b > threshold && left_b > 0) {
-					return province_border_color;
-				}
-				if (n_data.a > threshold && right_b > 0) {
-					return province_border_color;
-				}
+					if (n_data.g > threshold && up_b > 0) {
+						return province_border_color;
+					}
+					if (n_data.r > threshold && down_b > 0) {
+						return province_border_color;
+					}
+					if (n_data.b > threshold && left_b > 0) {
+						return province_border_color;
+					}
+					if (n_data.a > threshold && right_b > 0) {
+						return province_border_color;
+					}
 
-				//if ((n_data.g > 0.1) && (n_data.b > 0.1)) {
-				//	if ((up_b > 0) && (left_b > 0)) {
-				//		return province_border_color;
-				//	}
-				//}
+					//if ((n_data.g > 0.1) && (n_data.b > 0.1)) {
+					//	if ((up_b > 0) && (left_b > 0)) {
+					//		return province_border_color;
+					//	}
+					//}
+				}
 			}
 
 			float raiding_target_indicator = 0.0;
