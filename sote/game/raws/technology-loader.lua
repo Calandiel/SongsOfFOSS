@@ -138,7 +138,7 @@ function d.load()
 	}
 	Technology:new {
 		name = 'gem-cutting',
-		icon = 'cut-gems.png',
+		icon = 'ice-cube.png',
 		description = 'cutting exotic gemstones to please the eye',
 		r = 0.72,
 		g = 0.94,
