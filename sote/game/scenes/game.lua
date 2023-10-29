@@ -567,6 +567,8 @@ function gam.draw()
 		radius = 1.0
 	})
 
+	local starting_call_point = coll_point:clone()
+
 	local refx, refy = ui.get_reference_screen_dimensions()
 	local size = 35
 
@@ -574,8 +576,9 @@ function gam.draw()
 
 	---comment
 	---@param tile Tile
-	---@returns x number
-	---@returns y number
+	---@return number
+	---@return number
+	---@return number
 	local function tile_to_x_y(tile)
 		local lat, lon = tile:latlon()
 		local ll = require "game.latlon"
@@ -596,7 +599,61 @@ function gam.draw()
 		return x, y, z
 	end
 
-	if coll_point and ((gam.camera_position:len() < 1.15) or (gam.inspector == 'macrobuilder')) then
+	local draw_distance = 1.1
+	local flood_fill = 250
+
+	if coll_point and (gam.camera_position:len() < draw_distance) then
+		local draw_tile = function(tile)
+			---@type Tile
+			local tile = tile
+			local x, y = tile_to_x_y(tile)
+
+			local province_visible = true
+			local character = WORLD.player_character
+			if character and character.realm then
+				province_visible = false
+				if character.realm.known_provinces[tile.province] then
+					province_visible = true
+				end
+			end
+			if (tile.is_land and province_visible) then
+				rect_for_icons.x = x - size / 2
+				rect_for_icons.y = y - size / 2
+				if tile.resource then
+					ui.image(ASSETS.get_icon(tile.resource.icon), rect_for_icons)
+				end
+			end
+
+			return false
+		end
+
+		---@type table<Province, Province>
+		local visited = {}
+		---@type Queue<Province>
+		local qq = require "engine.queue":new()
+		local to_draw = flood_fill
+		local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+		visited[center_tile.province] = center_tile.province
+		qq:enqueue(center_tile.province)
+		while qq:length() > 0 and to_draw > 0 do
+			to_draw = to_draw - 1
+			local td = qq:dequeue()
+
+			for _, data in ipairs(td.local_resources_location) do
+				draw_tile(data[1])
+			end
+
+			for _, n in pairs(td.neighbors) do
+				if visited[n] then
+				else
+					visited[n] = n
+					qq:enqueue(n)
+				end
+			end
+		end
+	end
+
+	if coll_point and ((gam.camera_position:len() < draw_distance) or (gam.inspector == 'macrobuilder')) then
 		province_on_map_interaction = true
 		---comment
 		---@param province Province
@@ -624,9 +681,11 @@ function gam.draw()
 			local x, y, z = tile_to_x_y(tile)
 			rect_for_icons.x = x - size / 2
 			rect_for_icons.y = y - size / 2
+			rect_for_icons.width = size
+			rect_for_icons.height = size
 
 			-- check if on screen
-			if x < -refx * 0.5 or x > 1.5 * refx or y < -refy * 0.5 or y > 1.5 * refy then
+			if x < -refx * 0.1 or x > 1.1 * refx or y < -refy * 0.1 or y > 1.1 * refy then
 				return
 			end
 
@@ -637,8 +696,10 @@ function gam.draw()
 
 			-- draw
 
-			if require "game.scenes.game.widgets.province-on-map" (gam, tile, rect_for_icons, x, y, size) then
-				gam.click_callback = callback.nothing()
+			local result = require "game.scenes.game.widgets.province-on-map" (gam, tile, rect_for_icons, x, y, size)
+			
+			if result then
+				gam.click_callback = result
 			else
 				province_on_map_interaction = false
 			end
@@ -654,18 +715,33 @@ function gam.draw()
 			end
 		end
 
+		---@type Province[]
+		local provinces_to_draw = {}
+		
 		---@type table<Province, Province>
 		local visited = {}
 		---@type Queue<Province>
 		local qq = require "engine.queue":new()
-		local to_draw = 200
-		local center_tile = WORLD.tiles[tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)]
+		local to_draw = flood_fill
+		local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
 		visited[center_tile.province] = center_tile.province
 		qq:enqueue(center_tile.province)
 		while qq:length() > 0 and to_draw > 0 do
 			to_draw = to_draw - 1
 			local td = qq:dequeue()
-			draw_province(td)
+
+			local x, y, z = tile_to_x_y(td.center)
+
+			rect_for_icons.x = x - size / 2
+			rect_for_icons.y = y - size / 2
+			rect_for_icons.width = size
+			rect_for_icons.height = size
+
+			-- ui.panel(rect_for_icons)
+			-- ui.text(tostring(to_draw), rect_for_icons, "center", 'center')
+
+			-- 
+			table.insert(provinces_to_draw, td)
 			for _, n in pairs(td.neighbors) do
 				if visited[n] then
 				else
@@ -674,54 +750,39 @@ function gam.draw()
 				end
 			end
 		end
-	end
 
-	if coll_point and (gam.camera_position:len() < 1.15) then
-		local draw_tile = function(tile)
-			---@type Tile
-			local tile = tile
-			local x, y = tile_to_x_y(tile)
+		table.sort(provinces_to_draw, function(a, b)
+			local x1, y1, z1 = tile_to_x_y(a.center)
+			local x2, y2, z2 = tile_to_x_y(b.center)
+			return (z2 - z1) > 0
+		end)
 
-			local province_visible = true
-			local character = WORLD.player_character
-			if character and character.realm then
-				province_visible = false
-				if character.realm.known_provinces[tile.province] then
-					province_visible = true
+		for _, province in ipairs(provinces_to_draw) do
+			-- draw an icon on map
+			local tile = province.center
+
+			local visibility = true
+			if WORLD.player_character then
+				visibility = false
+				if WORLD.player_character.realm.known_provinces[province] then
+					visibility = true
 				end
 			end
-			if (tile.is_land and province_visible) then
+
+			if province.realm and visibility then
+				-- get screen coordinates
+				local x, y, z = tile_to_x_y(tile)
 				rect_for_icons.x = x - size / 2
 				rect_for_icons.y = y - size / 2
-				if tile.resource then
-					ui.image(ASSETS.get_icon(tile.resource.icon), rect_for_icons)
-				end
-			end
+				rect_for_icons.width = size
+				rect_for_icons.height = size
 
-			return false
+				ui.image(ASSETS.get_icon('village.png'), rect_for_icons)
+			end
 		end
 
-		-- drawing tile resources
-		---@type table<Tile, Tile>
-		local visited = {}
-		---@type Queue<Tile>
-		local qq = require "engine.queue":new()
-		local to_draw = 3500
-		local center_tile = WORLD.tiles[tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)]
-		visited[center_tile] = center_tile
-		qq:enqueue(center_tile)
-		while qq:length() > 0 and to_draw > 0 do
-			to_draw = to_draw - 1
-			---@type Tile
-			local td = qq:dequeue()
-			draw_tile(td)
-			for n in td:iter_neighbors() do
-				if visited[n] then
-				else
-					visited[n] = n
-					qq:enqueue(n)
-				end
-			end
+		for _, province in ipairs(provinces_to_draw) do
+			draw_province(province)
 		end
 	end
 
