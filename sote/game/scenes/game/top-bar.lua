@@ -122,7 +122,7 @@ function tb.draw(gam)
 			:build()
 
 		local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-		if uit.text_button(WORLD.player_character.name .. "(Me)", name_rect) then
+		if uit.text_button(WORLD.player_character.name, name_rect) then
 			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
 		end
