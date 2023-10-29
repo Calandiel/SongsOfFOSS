@@ -51,8 +51,14 @@ function ge.run()
 	-- Write resources back on tiles for faster querying
 	for _, province in pairs(WORLD.provinces) do
 		for _, tile in pairs(province.tiles) do
-			if tile.resource then
-				province.local_resources[tile.resource] = tile.resource
+			local resource = tile.resource
+			if resource then
+				province.local_resources[resource] = resource
+				table.insert(province.local_resources_location,
+					{
+						tile, resource
+					}
+				)
 			end
 		end
 	end

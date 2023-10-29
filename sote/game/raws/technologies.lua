@@ -56,6 +56,12 @@ function Technology:new(o)
 		r[k] = v
 	end
 	setmetatable(r, Technology)
+
+	if ASSETS.icons[r.icon] == nil then
+		print("Missing icon: " .. r.icon)
+		error("Technology " .. r.name .. " has no icon. " .. "Missing icon: " .. r.icon)
+	end
+
 	if RAWS_MANAGER.technologies_by_name[r.name] ~= nil then
 		local msg = "Failed to load a technology (" .. tostring(r.name) .. ")"
 		print(msg)

@@ -590,96 +590,240 @@ function gam.draw()
 	-- Just for debugging of tile graphics rendering
 	local province_on_map_interaction = false
 
-	if gam.camera_position:len() < 1.1 then
-		local mpfx = 0.5
-		local mpfy = 0.5
-		local vp = projection * view
-		local inv_vp = cpml.mat4.identity()
-		inv_vp:invert(vp)
-		local cp = inv_vp * cpml.vec3.new(
-			2 * mpfx - 1,
-			2 * mpfy - 1,
-			0
-		)
-		local coll_point, dist = cpml.intersect.ray_sphere({
-			position = gam.camera_position,
-			direction = (cp - gam.camera_position):normalize()
-		}, {
-			position = origin_point,
-			radius = 1.0
-		})
-		if coll_point then
-			local refx, refy = ui.get_reference_screen_dimensions()
-			local size = 35
-			local draw_tile = function(tile)
-				---@type Tile
-				local tile = tile
-				local lat, lon = tile:latlon()
-				local ll = require "game.latlon"
-				local cartx, carty, cartz = ll.lat_lon_to_cart(lat, lon)
-				coll_point.x = cartx
-				coll_point.y = carty
-				coll_point.z = cartz
-				local cart = coll_point;
-				local vv = vp * cart
-				vv.x = vv.x / 2
-				vv.y = vv.y / 2
-				vv.z = vv.z / 2
-				local x = (vv.x + 0.5) * refx
-				local y = (vv.y + 0.5) * refy
+	local mpfx = 0.5
+	local mpfy = 0.5
+	local vp = projection * view
+	local inv_vp = cpml.mat4.identity()
+	inv_vp:invert(vp)
+	local cp = inv_vp * cpml.vec3.new(
+		2 * mpfx - 1,
+		2 * mpfy - 1,
+		0
+	)
+	local coll_point, dist = cpml.intersect.ray_sphere({
+		position = gam.camera_position,
+		direction = (cp - gam.camera_position):normalize()
+	}, {
+		position = origin_point,
+		radius = 1.0
+	})
 
-				local province_visible = true
-				local character = WORLD.player_character
-				if character and character.realm then
-					province_visible = false
-					if character.realm.known_provinces[tile.province] then
-						province_visible = true
-					end
-				end
-				if (tile.is_land and province_visible) then
-					local rect = ui.rect(x - size / 2, y - size / 2, size, size)
-					if tile.province.realm and tile.province.center == tile then
-						if require "game.scenes.game.widgets.province-on-map" (gam, tile, rect, x, y, size) then
-							gam.click_callback = callback.nothing()
-						end
-					elseif tile.resource then
-						ui.image(ASSETS.get_icon(tile.resource.icon), rect)
-						--elseif tile.tile_improvement then
-						--ui.image(ASSETS.get_icon(tile.tile_improvement.type.map_texture), rect)
-					else
-						--[[
-						if tile.elevation > 2500.0 then
-							ui.image(ASSETS.get_icon("0_mountain.png"), rect)
-						else
-							ui.image(ASSETS.get_icon("oak.png"), rect)
-						end
-						--]]
-					end
-				end
+	local starting_call_point = coll_point:clone()
 
-				return false
-			end
+	local refx, refy = ui.get_reference_screen_dimensions()
+	local size = 35
 
-			local visited = {}
-			---@type Queue<Tile>
-			local qq = require "engine.queue":new()
-			local to_draw = 3500
-			local center_tile = WORLD.tiles[tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)]
-			visited[center_tile] = center_tile
-			qq:enqueue(center_tile)
-			while qq:length() > 0 and to_draw > 0 do
-				to_draw = to_draw - 1
-				---@type Tile
-				local td = qq:dequeue()
-				draw_tile(td)
-				for n in td:iter_neighbors() do
-					if visited[n] then
-					else
-						visited[n] = n
-						qq:enqueue(n)
-					end
+	local rect_for_icons = ui.rect(0, 0, size, size)
+
+	---comment
+	---@param tile Tile
+	---@return number
+	---@return number
+	---@return number
+	local function tile_to_x_y(tile)
+		local lat, lon = tile:latlon()
+		local ll = require "game.latlon"
+		local cartx, carty, cartz = ll.lat_lon_to_cart(lat, lon)
+		coll_point.x = cartx
+		coll_point.y = carty
+		coll_point.z = cartz
+		local cart = coll_point
+		local vv = vp * cart
+		vv.x = vv.x / 2
+		vv.y = vv.y / 2
+		vv.z = vv.z / 2
+		local x = (vv.x + 0.5) * refx
+		local y = (vv.y + 0.5) * refy
+
+		local z = gam.camera_position:dot(cart)
+
+		return x, y, z
+	end
+
+	local draw_distance = 1.1
+	local flood_fill = 250
+
+	if coll_point and (gam.camera_position:len() < draw_distance) then
+		local draw_tile = function(tile)
+			---@type Tile
+			local tile = tile
+			local x, y = tile_to_x_y(tile)
+
+			local province_visible = true
+			local character = WORLD.player_character
+			if character and character.realm then
+				province_visible = false
+				if character.realm.known_provinces[tile.province] then
+					province_visible = true
 				end
 			end
+			if (tile.is_land and province_visible) then
+				rect_for_icons.x = x - size / 2
+				rect_for_icons.y = y - size / 2
+				if tile.resource then
+					ui.image(ASSETS.get_icon(tile.resource.icon), rect_for_icons)
+				end
+			end
+
+			return false
+		end
+
+		---@type table<Province, Province>
+		local visited = {}
+		---@type Queue<Province>
+		local qq = require "engine.queue":new()
+		local to_draw = flood_fill
+		local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+		visited[center_tile.province] = center_tile.province
+		qq:enqueue(center_tile.province)
+		while qq:length() > 0 and to_draw > 0 do
+			to_draw = to_draw - 1
+			local td = qq:dequeue()
+
+			for _, data in ipairs(td.local_resources_location) do
+				draw_tile(data[1])
+			end
+
+			for _, n in pairs(td.neighbors) do
+				if visited[n] then
+				else
+					visited[n] = n
+					qq:enqueue(n)
+				end
+			end
+		end
+	end
+
+	if coll_point and ((gam.camera_position:len() < draw_distance) or (gam.inspector == 'macrobuilder')) then
+		province_on_map_interaction = true
+		---comment
+		---@param province Province
+		local function draw_province(province)
+			-- sanity checks
+			local visibility = true
+			if WORLD.player_character then
+				visibility = false
+				if WORLD.player_character.realm.known_provinces[province] then
+					visibility = true
+				end
+			end
+
+			if not visibility then
+				return
+			end
+
+			local tile = province.center
+
+			if not province.realm then
+				return
+			end
+
+			-- get screen coordinates
+			local x, y, z = tile_to_x_y(tile)
+			rect_for_icons.x = x - size / 2
+			rect_for_icons.y = y - size / 2
+			rect_for_icons.width = size
+			rect_for_icons.height = size
+
+			-- check if on screen
+			if x < -refx * 0.1 or x > 1.1 * refx or y < -refy * 0.1 or y > 1.1 * refy then
+				return
+			end
+
+			-- check if on the opposite side of the globe
+			if z < 0 then
+				return
+			end
+
+			-- draw
+
+			local result = require "game.scenes.game.widgets.province-on-map" (gam, tile, rect_for_icons, x, y, size)
+			
+			if result then
+				gam.click_callback = result
+			else
+				province_on_map_interaction = false
+			end
+		end
+
+		-- drawing provinces
+		if gam.inspector == 'macrobuilder' then
+			local character = WORLD.player_character
+			if character then
+				for _, province in pairs(character.realm.known_provinces) do
+					draw_province(province)
+				end
+			end
+		end
+
+		---@type Province[]
+		local provinces_to_draw = {}
+		
+		---@type table<Province, Province>
+		local visited = {}
+		---@type Queue<Province>
+		local qq = require "engine.queue":new()
+		local to_draw = flood_fill
+		local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+		visited[center_tile.province] = center_tile.province
+		qq:enqueue(center_tile.province)
+		while qq:length() > 0 and to_draw > 0 do
+			to_draw = to_draw - 1
+			local td = qq:dequeue()
+
+			local x, y, z = tile_to_x_y(td.center)
+
+			rect_for_icons.x = x - size / 2
+			rect_for_icons.y = y - size / 2
+			rect_for_icons.width = size
+			rect_for_icons.height = size
+
+			-- ui.panel(rect_for_icons)
+			-- ui.text(tostring(to_draw), rect_for_icons, "center", 'center')
+
+			-- 
+			table.insert(provinces_to_draw, td)
+			for _, n in pairs(td.neighbors) do
+				if visited[n] then
+				else
+					visited[n] = n
+					qq:enqueue(n)
+				end
+			end
+		end
+
+		table.sort(provinces_to_draw, function(a, b)
+			local x1, y1, z1 = tile_to_x_y(a.center)
+			local x2, y2, z2 = tile_to_x_y(b.center)
+			return (z2 - z1) > 0
+		end)
+
+		for _, province in ipairs(provinces_to_draw) do
+			-- draw an icon on map
+			local tile = province.center
+
+			local visibility = true
+			if WORLD.player_character then
+				visibility = false
+				if WORLD.player_character.realm.known_provinces[province] then
+					visibility = true
+				end
+			end
+
+			if province.realm and visibility then
+				-- get screen coordinates
+				local x, y, z = tile_to_x_y(tile)
+				rect_for_icons.x = x - size / 2
+				rect_for_icons.y = y - size / 2
+				rect_for_icons.width = size
+				rect_for_icons.height = size
+
+				ui.image(ASSETS.get_icon('village.png'), rect_for_icons)
+			end
+		end
+
+		for _, province in ipairs(provinces_to_draw) do
+			draw_province(province)
 		end
 	end
 

@@ -57,6 +57,7 @@ local prov = {}
 ---@field foragers_limit number
 ---@field building_type_present fun(self:Province, building:BuildingType):boolean Returns true when a building of a given type has been built in a province
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
+---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
 ---@field mood number how local population thinks about the state
 ---@field outlaws table<POP, POP>
 ---@field outlaw_pop fun(self:Province, pop:POP) Marks a pop as an outlaw
@@ -125,6 +126,7 @@ function prov.Province:new()
 	o.buildable_buildings = {}
 	o.hydration = 5
 	o.local_resources = {}
+	o.local_resources_location = {}
 	o.local_production = {}
 	o.local_consumption = {}
 	o.local_storage = {}
