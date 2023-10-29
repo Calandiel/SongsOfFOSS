@@ -21,9 +21,25 @@ function mm.make_minimap_image_data(width, height)
 			local lat = ((y - 0.5) / h - 0.5) * math.pi
 			local tt = WORLD.tiles[tile.lat_lont_to_index(lat, lon)]
 
+			local character = WORLD.player_character
+			local visible = true
+
+			if character then
+				visible = false
+				if character.realm.known_provinces[tt.province] then
+					visible = true
+				end
+			end
+
 			local r = tt.real_r
 			local g = tt.real_g
 			local b = tt.real_b
+
+			if not visible then
+				r = 0
+				g = 0
+				b = 0
+			end
 
 			imd:setPixel(x - 1, y - 1, r, g, b, 1)
 		end
