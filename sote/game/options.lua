@@ -10,6 +10,7 @@ function opt.init()
 		['rotation'] = false,
 		['update_map'] = true,
 		['treasury_ledger'] = 120,
+		['debug_mode'] = false,
 	}
 end
 

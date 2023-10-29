@@ -61,10 +61,17 @@ function mm.draw()
 		5
 	)
 
-	-- ROTATION
+	-- Map update
 	OPTIONS.update_map = ui.named_checkbox(
 		"Update map every month",
 		layout:next(menu_button_width, menu_button_height), OPTIONS.update_map,
+		5
+	)
+
+	-- Debug Mode
+	OPTIONS.debug_mode = ui.named_checkbox(
+		"Debug mode",
+		layout:next(menu_button_width, menu_button_height), OPTIONS.debug_mode,
 		5
 	)
 
