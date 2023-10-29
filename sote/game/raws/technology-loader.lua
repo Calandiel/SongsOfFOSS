@@ -63,6 +63,17 @@ function d.load()
 		research_cost = 0.25,
 	}
 	Technology:new {
+		name = 'pottery',
+		icon = 'powder.png',
+		description = 'pottery',
+		r = 0.23,
+		g = 0.23,
+		b = 0.23,
+		unlocked_by = { tec('paleolithic-knowledge') },
+		research_cost = 0.3,
+		required_resource = { res('quality-clay') },
+	}
+	Technology:new {
 		name = 'early-metal-working',
 		icon = 'asteroid.png',
 		description = 'cold working of native metals',
@@ -159,17 +170,7 @@ function d.load()
 		unlocked_by = { tec('dedicated-woodcutters') },
 		research_cost = 0.055,
 	}
-	Technology:new {
-		name = 'pottery',
-		icon = 'powder.png',
-		description = 'pottery',
-		r = 0.23,
-		g = 0.23,
-		b = 0.23,
-		unlocked_by = { tec('paleolithic-knowledge') },
-		research_cost = 0.3,
-		required_resource = { res('quality-clay') },
-	}
+
 	Technology:new {
 		name = 'pottery-wheel',
 		icon = 'powder.png',
