@@ -167,12 +167,12 @@ function pla.get_shader()
 
 					if (max3(abs(my_bord - player_bord)) < 0.0001) {
 						province_border_color = vec4(0.95, 0.1, 0.1, 1);
-						province_border_thickness = 0.2;
+						province_border_thickness = 0.35;
 					}
 
 					if (max3(abs(my_bord - clicked_bord)) < 0.0001) {
 						province_border_color = vec4(0.85, 0.4, 0.2, 1);
-						province_border_thickness = 0.4;
+						province_border_thickness = 0.3;
 					}
 
 					float up_b = (province_border_thickness - tile_uv.y);
