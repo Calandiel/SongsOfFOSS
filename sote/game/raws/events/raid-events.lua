@@ -427,6 +427,10 @@ local function load()
 					real_loot = real_loot + extra
 				end
 
+				local mood_swing = real_loot / (province:population() + 1)
+				province.mood = province.mood - mood_swing
+				raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
+
 				---@type RaidResultSuccess
 				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin = origin }
 				WORLD:emit_action("covert-raid-success", raider,
@@ -490,14 +494,19 @@ local function load()
 			local army = associated_data.army
 
 			local warbands = realm:disband_army(army)
-			realm.capitol.mood = realm.capitol.mood + 1 / (3 * math.max(0, realm.capitol.mood) + 1)
+
+			local mood_swing = loot / (realm.capitol:population() + 1) / 2
+
 			-- popularity to raid initiator
-			pe.small_popularity_boost(target.owner, target.owner.realm)
+			pe.change_popularity(target.owner, realm, mood_swing)
+
+			-- improve mood in a province
+			realm.capitol.mood = realm.capitol.mood + mood_swing
 
 			-- popularity to raid participants
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
-				pe.small_popularity_boost(w.leader, target.owner.realm)
+				pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
 				num_of_warbands = num_of_warbands + 1
 			end
 
