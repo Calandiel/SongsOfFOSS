@@ -8,7 +8,13 @@ Keep in mind that this build is unfinished and likely won't be worked on in the 
 
 # Building executable on Windows
 
-To create executable open sote directory and create sote.zip archive using the selected program. Next move the archive to parent directory next to distributeWin.bat file. Run runWin.sh to build SotE.exe in release/windows. Consecutive launches check for existence of built game and if possible start it.
+- Install [Love2D](https://love2d.org/)
+- Make directory `love-windows` in root of repo (next to .sh and .bat files), and copy contents of Love2D install directory to `love-windows`
+- Run `run.bat` or call love directly with the command `love-windows/love sote`
+- Alternatively, Enter directory `sote`, Select all files, Right-click and "Compress to ZIP file" or "Send to" and then "Compressed (ZIP) folder"
+- Rename the ZIP file created in the last step to `sote.zip`
+- Cut or Copy `sote.zip` and paste it in the root of the repository (next to .sh and .bat files)
+- run `runWin.sh`, may need elevated permissions. Consecutive launches check for existence of built game and if possible start it.
 
 # Unix:
 
