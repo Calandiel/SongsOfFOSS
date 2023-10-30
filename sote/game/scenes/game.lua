@@ -386,6 +386,11 @@ end
 function gam.click_tile(tile_id)
 	gam.clicked_tile_id = tile_id
 	gam.clicked_tile = WORLD.tiles[tile_id]
+	
+	if gam.clicked_tile then
+		gam.selected.province = gam.clicked_tile.province
+	end
+
 	gam.reset_decision_selection()
 	---@type Tile
 	if require "engine.table".contains(ARGS, "--dev") then

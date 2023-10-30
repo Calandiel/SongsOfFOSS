@@ -17,6 +17,9 @@ function inspector.mask()
 	end
 end
 
+
+---comment
+---@param gam GameScene
 function inspector.draw(gam)
     local rect = get_main_panel()
     local base_unit = ut.BASE_HEIGHT * 2
@@ -48,8 +51,8 @@ function inspector.draw(gam)
         ['macrobuilder'] = "Plan development of your estates",
         ['macrodecision'] = "Target province",
         ['market'] = "Visit local market",
-        ['army'] = "Visit local warriors",
-        ['character-decisions'] = "Do something",
+        ['army'] = "View local warriors",
+        ['character-decisions'] = "Actions",
     }
 
     for _, inspector in pairs(inspectors) do
@@ -62,6 +65,11 @@ function inspector.draw(gam)
                 gam.inspector = nil
             else
                 gam.inspector = inspector
+
+                local character = WORLD.player_character
+                if character and gam.inspector == 'market' then
+                    gam.selected.province = character.province
+                end
             end
         end
     end
