@@ -576,6 +576,158 @@ local function load()
 			WORLD:emit_immediate_event('sell-goods', root, nil)
 		end
 	}
+
+
+	---@type DecisionCharacterProvince
+	Decision.CharacterProvince:new {
+		name = 'personal-raid',
+		ui_name = "Raid",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+			local warband = root.leading_warband
+			if warband == nil then
+				return "You are not a leader of a warband."
+			end
+			if warband and warband.status ~= 'idle' then
+				return "Your warband is busy."
+			end
+			if primary_target.realm == nil then
+				return "Invalid province"
+			end
+			return "Raid the province " .. primary_target.name
+        end,
+		sorting = 1,
+		primary_target = "province",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			return true
+		end,
+		clickable = function(root, primary_target)
+            return true
+		end,
+		available = function(root, primary_target)
+			if root.busy then
+                return false
+            end
+			local warband = root.leading_warband
+			if warband == nil then
+				return false
+			end
+			if warband and warband.status ~= 'idle' then
+				return false
+			end
+			if primary_target.realm == nil then
+				return false
+			end
+			return true
+		end,
+        ai_target = function(root)
+			---@type Province[]
+            local targets = {}
+            for _, province in pairs(root.realm.known_provinces) do
+                if province.realm and root.realm.tributaries[province.realm] == nil then
+                    table.insert(targets, province)
+                end
+            end
+
+            local index, prov =  tabb.random_select_from_set(targets)
+            if prov then
+                return prov, true
+            end
+
+            return nil, false
+        end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.realm.tributaries[primary_target] then
+				return 0
+			end
+
+			if root.traits[TRAIT.WARLIKE] then
+				return 0.2
+			end
+
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+            MilitaryEffects.covert_raid_no_reward(root, primary_target)
+		end
+	}
+
+	---@type DecisionCharacterProvince
+	Decision.CharacterProvince:new {
+		name = 'patrol-target',
+		ui_name = "Patrol targeted province",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+			local warband = root.leading_warband
+			if warband == nil then
+				return "You are not a leader of a warband."
+			end
+			if warband and warband.status ~= 'idle' then
+				return "Your warband is busy."
+			end
+			if primary_target.realm == nil then
+				return "Invalid province"
+			end
+			if primary_target.realm ~= root.realm then
+				return'You can\'t patrol provinces of other realms'
+			end
+			return "Patrol the province " .. primary_target.name
+        end,
+		sorting = 1,
+		primary_target = "province",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			return true
+		end,
+		clickable = function(root, primary_target)
+            return true
+		end,
+		available = function(root, primary_target)
+			if root.busy then
+                return false
+            end
+			local warband = root.leading_warband
+			if warband == nil then
+				return false
+			end
+			if warband and warband.status ~= 'idle' then
+				return false
+			end
+			if primary_target.realm == nil then
+				return false
+			end
+			if primary_target.realm ~= root.realm then
+				return false
+			end
+			return true
+		end,
+        ai_target = function(root)
+            return root.province, true
+        end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.leading_warband then
+				return 0.2
+			end
+
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+            root.realm:add_patrol(primary_target, root.leading_warband)
+		end
+	}
 end
 
 return load

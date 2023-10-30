@@ -7,6 +7,42 @@ local ev = require "game.raws.values.economical"
 local ee = require "game.raws.effects.economic"
 local pv = require "game.raws.values.political"
 
+---comment
+---@param gam GameScene
+---@param tile Tile
+---@param rect Rect
+---@param x number
+---@param y number
+---@param size number
+local function macrodecision(gam, tile, rect, x, y, size)
+    local decision = gam.selected.macrodecision
+    if decision  == nil then
+        return
+    end
+
+    local player = WORLD.player_character
+    if player == nil then
+        return
+    end
+    
+    if not decision.pretrigger(player) then
+        return
+    end
+
+    if not decision.clickable(player, tile.province) then
+        return
+    end
+
+    local tooltip = decision.tooltip(player, tile.province)
+    local available = decision.available(player, tile.province)
+
+    if ut.icon_button(ASSETS.icons['circle.png'], rect, tooltip, available) then
+        return function ()
+            decision.effect(player, tile.province)
+        end
+    end
+end
+
 
 local function macrobuilder(gam, tile, rect, x, y, size)
     local player_character = WORLD.player_character
@@ -113,12 +149,12 @@ return function(gam, tile, rect, x, y, size)
     local height_unit = size / 2
     local length_of_line = 50 - height_unit
 
+    if gam.inspector == 'macrodecision' then
+        return macrodecision(gam, tile, rect, x, y, size)
+    end
+
     if gam.inspector == "macrobuilder" then
-        local result = macrobuilder(gam, tile, rect, x, y, size)
-        if result then
-            return result
-        end
-        return
+        return macrobuilder(gam, tile, rect, x, y, size)
     end
 
     rect.x = x - size / 5
