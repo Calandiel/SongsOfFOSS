@@ -8,6 +8,8 @@ local tabb = require "engine.table"
 
 local ef = require "game.raws.effects.economic"
 
+local military_effects = require "game.raws.effects.military"
+
 re.cached_scrollbar = 0
 
 ---@return Rect
@@ -64,8 +66,10 @@ function re.draw(gam)
 
 		uit.data_entry("", tile.province.name, province_name_rect)
 
+		local player = WORLD.player_character
+
 		if tile.province.realm then
-			if WORLD.player_character == nil then
+			if player == nil then
 				local bp = panel:subrect(-UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", "up")
 				if uit.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
 					-- gam.refresh_map_mode()
@@ -78,6 +82,51 @@ function re.draw(gam)
 		local market_rect = top_bar_rect:subrect(-2 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
 		if uit.icon_button(ASSETS.icons["scales.png"], market_rect, "Show market") then
 			gam.inspector = "market"
+		end
+
+		if tile.province.realm then
+			if player then
+				local raid_rect = top_bar_rect:subrect(-3 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+				local patrol_rect = top_bar_rect:subrect(-4 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+
+				local potential = true
+				local warband = player.leading_warband
+				local tooltip = "Raid this province"
+				local patrol_tooltip = "Patrol this province"
+				if warband == nil then
+					potential = false
+					tooltip = "You are not a leader of a warband."
+					patrol_tooltip = "You are not a leader of a warband."
+				end
+				if warband and warband.status ~= 'idle' then
+					potential = false
+					tooltip = "Your warband is busy."
+					patrol_tooltip = "Your warband is busy."
+				end
+
+				if uit.icon_button(
+					ASSETS.icons['stone-spear.png'],
+					raid_rect,
+					tooltip,
+					potential
+				) then
+					military_effects.covert_raid_no_reward(player, tile.province)
+				end
+
+				if tile.province.realm ~= player.realm then
+					potential = false
+					patrol_tooltip = 'You can\'t patrol provinces of other realms'
+				end
+
+				if uit.icon_button(
+					ASSETS.icons['round-shield.png'],
+					patrol_rect,
+					patrol_tooltip,
+					potential
+				) then
+					player.realm:add_patrol(tile.province, player.leading_warband)
+				end
+			end
 		end
 
 

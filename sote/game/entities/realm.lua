@@ -3,8 +3,6 @@ local pv = require "game.raws.values.political"
 ---@class RewardFlag
 ---@field flag_type 'explore'|'raid'|'destroy'|'kill'|'devastate'
 ---@field reward number
--- -@field reward_per_unit number
--- -@field loot_share_to_owner number
 ---@field owner Character
 ---@field target Province
 
@@ -85,7 +83,7 @@ end
 ---@field tributaries table<Realm, Realm>
 ---@field provinces table<Province, Province>
 ---@field reward_flags table<RewardFlag, RewardFlag>
----@field raiders_preparing table<RewardFlag, table<Warband, Warband>>
+---@field raiders_preparing table<RewardFlag, table<Warband, Warband>?>
 ---@field patrols table<Province, table<Warband, Warband>>
 ---@field prepare_attack_flag boolean?
 ---@field add_reward_flag fun(self:Realm, target:RewardFlag)
@@ -246,6 +244,11 @@ end
 
 function realm.Realm:remove_reward_flag(f)
 	self.reward_flags[f] = nil
+
+	if self.raiders_preparing[f] == nil then
+		return
+	end
+
 	for _, warband in pairs(self.raiders_preparing[f]) do
 		if warband.status == 'preparing_raid' then
 			warband.status = 'idle'

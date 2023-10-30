@@ -7,7 +7,7 @@
 ---@field age number
 ---@field name string
 ---@field savings number
----@field popularity table<Realm, number>
+---@field popularity table<Realm, number|nil>
 ---@field traits table<Trait, Trait>
 ---@field employer Building?
 ---@field loyalty POP?

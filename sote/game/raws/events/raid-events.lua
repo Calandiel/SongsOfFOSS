@@ -427,6 +427,10 @@ local function load()
 					real_loot = real_loot + extra
 				end
 
+				local mood_swing = real_loot / (province:population() + 1)
+				province.mood = province.mood - mood_swing
+				raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
+
 				---@type RaidResultSuccess
 				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin = origin }
 				WORLD:emit_action("covert-raid-success", raider,
@@ -490,34 +494,55 @@ local function load()
 			local army = associated_data.army
 
 			local warbands = realm:disband_army(army)
-			realm.capitol.mood = realm.capitol.mood + 1 / (3 * math.max(0, realm.capitol.mood) + 1)
+
+			local mood_swing = loot / (realm.capitol:population() + 1) / 2
+
 			-- popularity to raid initiator
-			pe.small_popularity_boost(target.owner, target.owner.realm)
+			pe.change_popularity(target.owner, realm, mood_swing)
+
+			-- improve mood in a province
+			realm.capitol.mood = realm.capitol.mood + mood_swing
 
 			-- popularity to raid participants
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
-				pe.small_popularity_boost(w.leader, target.owner.realm)
+				pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
 				num_of_warbands = num_of_warbands + 1
 			end
 
 			-- initiator gets 2 "coins" for each invested "coin"
-			-- so one part of loot goes to pay his expenses on raid
-			-- second part of loot goes to his income
-			-- remaining half goes to population
 			local total_loot = loot
 			local initiator_share = loot * 0.5
 			if initiator_share / 2 > target.reward then
 				initiator_share = target.reward * 2
 			end
+
+			-- reward part
+			-- if reward was 0 then this stage does nothing
+
 			-- pay share to raid initiator
-			ef.add_pop_savings(target.owner, initiator_share, ef.reasons.Raid)
+			ef.add_pop_savings(target.owner, initiator_share, ef.reasons.RewardFlag)
 			loot = loot - initiator_share
+
 			-- pay rewards to warband leaders
 			target.reward = target.reward - initiator_share / 2
 			for _, w in pairs(warbands) do
-				ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.Raid)
+				ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
 			end
+			loot = loot - initiator_share / 2
+
+			-- remained raided wealth part
+
+			-- half of remaining loot goes again to raid_initiator as spoils of war
+			ef.add_pop_savings(target.owner, loot / 2, ef.reasons.Raid)
+			loot = loot - loot / 2
+
+			-- half of remaining loot goes to warband leaders
+			for _, w in pairs(warbands) do
+				ef.add_pop_savings(w.leader, loot / 2 / num_of_warbands, ef.reasons.Raid)
+			end
+			loot = loot - loot / 2
+
 			-- pay the remaining half of loot to population(warriors)
 			target.owner.province.local_wealth = target.owner.province.local_wealth + loot
 

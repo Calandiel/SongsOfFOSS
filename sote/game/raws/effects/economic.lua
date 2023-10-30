@@ -79,7 +79,9 @@ end
 ---@param reason EconomicReason
 function EconomicEffects.add_pop_savings(pop, x, reason)
     pop.savings = pop.savings + x
-    EconomicEffects.display_character_savings_change(pop, x, reason)
+    if x > 0 then
+        EconomicEffects.display_character_savings_change(pop, x, reason)
+    end
 end
 
 function EconomicEffects.display_character_savings_change(pop, x, reason) 
@@ -352,7 +354,7 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
     EconomicEffects.change_treasury(realm, amount, EconomicEffects.reasons.Donation)
 
     realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:population() / 100
-    character.popularity[realm] = character.popularity[realm] + amount / realm.capitol:population() / 100
+    character.popularity[realm] = (character.popularity[realm] or 0) + amount / realm.capitol:population() / 100
 end
 
 return EconomicEffects

@@ -1,6 +1,8 @@
 local path = require "game.ai.pathfinding"
 local ui_utils = require "game.ui-utils"
 
+local RewardFlag = require "game.entities.realm".RewardFlag
+
 MilitaryEffects = {}
 
 ---Gathers new warband in the name of *leader*
@@ -114,7 +116,61 @@ function MilitaryEffects.covert_raid(root, primary_target)
 
     WORLD:emit_action(
         "covert-raid",
-        target_province.realm.leader,
+        primary_target.owner,
+        raid_data,
+        travel_time, false
+    )
+end
+
+
+---comment
+---@param root Character
+---@param primary_target Province
+function MilitaryEffects.covert_raid_no_reward(root, primary_target)
+    local warband = root.leading_warband
+    if warband == nil then return end
+
+    local target = RewardFlag:new({
+        flag_type = 'raid',
+        owner = root,
+        reward = 0,
+        target = primary_target
+    })
+
+    local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.province, primary_target))
+
+    if WORLD:does_player_see_realm_news(root.realm) then
+        WORLD:emit_notification(root.name .. " is leading his warriors move toward " ..
+            primary_target.name ..
+            ", they should arrive in " ..
+            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
+    end
+
+    -- A raid will raise up to a certain number of troops
+    -- local max_covert_raid_size = 10
+    ---@type table<Warband, Warband>
+    local warbands = {}
+    warbands[warband] = warband
+    local army = root.realm:raise_army(warbands)
+    army.destination = primary_target
+
+    for _, warband in pairs(army.warbands) do
+        warband.status = "raiding"
+    end
+
+    ---@type RaidData
+    local raid_data = {
+        raider = root,
+        target = target,
+        travel_time = travel_time,
+        army = army,
+        origin = root.realm
+    }
+
+
+    WORLD:emit_action(
+        "covert-raid",
+        root,
         raid_data,
         travel_time, false
     )
