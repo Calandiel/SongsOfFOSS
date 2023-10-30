@@ -40,11 +40,11 @@ end
 ---@field inventory number
 
 ---comment
----@param tile Tile
+---@param province Province
 ---@param ui_panel Rect
 ---@param base_unit number
 ---@return function
-return function(tile, ui_panel, base_unit)
+return function(province, ui_panel, base_unit)
     ---@type TableColumn[]
     local columns = {
         {
@@ -148,9 +148,9 @@ return function(tile, ui_panel, base_unit)
                 v = v
                 local tooltip = "Shows diffence between price in your current position and selected one"
                 if WORLD.player_character then
-                    local province = WORLD.player_character.province
-                    if province then
-                        local price_at_player = ev.get_local_price(province, v.name)
+                    local player_province = WORLD.player_character.province
+                    if player_province then
+                        local price_at_player = ev.get_local_price(player_province, v.name)
                         local data = 1
                         if price_at_player == 0 and (v.price or 0) == 0 then
                             data = 0
@@ -180,9 +180,9 @@ return function(tile, ui_panel, base_unit)
                 v = v
 
                 if WORLD.player_character then
-                    local province = WORLD.player_character.province
-                    if province then
-                        local price_at_player = ev.get_local_price(province, v.name)
+                    local local_province = WORLD.player_character.province
+                    if local_province then
+                        local price_at_player = ev.get_local_price(local_province, v.name)
                         local data = 1
                         if price_at_player == 0 and (v.price or 0) == 0 then
                             data = 1
@@ -207,7 +207,7 @@ return function(tile, ui_panel, base_unit)
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
                 if player_character 
-                    and player_character.province == tile.province 
+                    and player_character.province == province 
                     and et.can_buy(player_character, v.name, 1) 
                     and ut.text_button('+', rect) 
                 then
@@ -227,7 +227,7 @@ return function(tile, ui_panel, base_unit)
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
                 if player_character 
-                    and player_character.province == tile.province 
+                    and player_character.province == province 
                     and et.can_sell(player_character, v.name, 1) 
                     and ut.text_button('-', rect) 
                 then
@@ -268,8 +268,8 @@ return function(tile, ui_panel, base_unit)
         ---@type table<string, ItemData>
         local data_blob = {}
 
-        local consumption = tile.province.local_consumption
-        local production = tile.province.local_production
+        local consumption = province.local_consumption
+        local production = province.local_production
 
         local character = WORLD.player_character
 
@@ -287,8 +287,8 @@ return function(tile, ui_panel, base_unit)
                 supply = supply,
                 demand = demand,
                 balance = supply - demand,
-                stockpile = tile.province.local_storage[good_reference] or 0,
-                price = ev.get_local_price(tile.province, good_reference),
+                stockpile = province.local_storage[good_reference] or 0,
+                price = ev.get_local_price(province, good_reference),
                 inventory = inventory
             }
         end

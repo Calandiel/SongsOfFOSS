@@ -31,6 +31,7 @@ local inspectors_table = {
 	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
 	["market"] = require "game.scenes.game.inspectors.market",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
+	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 }
 
 local tile_inspectors = {
@@ -49,6 +50,7 @@ local tile_inspectors = {
 ---@field macrobuilder_building_type BuildingType?
 ---@field war War?
 ---@field decision DecisionCharacter?
+---@field macrodecision DecisionCharacter?
 ---@field tech Technology?
 ---@field cached_tech Technology?
 ---@field reward_flag RewardFlag?
@@ -384,6 +386,11 @@ end
 function gam.click_tile(tile_id)
 	gam.clicked_tile_id = tile_id
 	gam.clicked_tile = WORLD.tiles[tile_id]
+	
+	if gam.clicked_tile then
+		gam.selected.province = gam.clicked_tile.province
+	end
+
 	gam.reset_decision_selection()
 	---@type Tile
 	if require "engine.table".contains(ARGS, "--dev") then
@@ -693,7 +700,7 @@ function gam.draw()
 		end
 	end
 
-	if coll_point and ((gam.camera_position:len() < draw_distance) or (gam.inspector == 'macrobuilder')) then
+	if coll_point and ((gam.camera_position:len() < draw_distance) or (gam.inspector == 'macrobuilder') or (gam.inspector == 'macrodecision')) then
 		province_on_map_interaction = true
 		---comment
 		---@param province Province
@@ -746,7 +753,7 @@ function gam.draw()
 		end
 
 		-- drawing provinces
-		if gam.inspector == 'macrobuilder' then
+		if gam.inspector == 'macrobuilder' or gam.inspector == 'macrodecision' then
 			local character = WORLD.player_character
 			if character then
 				for _, province in pairs(character.realm.known_provinces) do

@@ -20,39 +20,36 @@ function inspector.mask()
 	end
 end
 
+---comment
+---@param gam GameScene
 function inspector.draw(gam)
     local rect = get_main_panel()
 
     ui.panel(rect)
 
-    local tt = gam.clicked_tile_id
-	local mbt = WORLD.tiles[tt]
-	if mbt == nil then
+    local province = gam.selected.province
+
+    if province == nil then
         return
-    end
-    ---@type Tile
-    local tile = mbt
-    if tile.province == nil then
-        return -- the world isn't fully generated... return
     end
 
     local base_unit = ut.BASE_HEIGHT
 
     local wealth_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", 'up')
 
-    ut.money_entry("Local wealth:", tile.province.local_wealth, wealth_data_rect)
+    ut.money_entry("Local wealth:", province.local_wealth, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
-    ut.money_entry("Trade wealth:", tile.province.trade_wealth, wealth_data_rect)
+    ut.money_entry("Trade wealth:", province.trade_wealth, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
-    ut.money_entry("Local income:", tile.province.local_income, wealth_data_rect)
+    ut.money_entry("Local income:", province.local_income, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
-    ut.money_entry("Local building upkeep:", tile.province.local_building_upkeep, wealth_data_rect)
+    ut.money_entry("Local building upkeep:", province.local_building_upkeep, wealth_data_rect)
     wealth_data_rect.y = wealth_data_rect.y + base_unit
 
     rect.y = rect.y + base_unit
     rect.height = rect.height - base_unit
 
-    require "game.scenes.game.widgets.local-market" (tile, rect, base_unit)()
+    require "game.scenes.game.widgets.local-market" (province, rect, base_unit)()
 end
 
 return inspector

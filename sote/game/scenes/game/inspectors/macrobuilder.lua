@@ -31,7 +31,7 @@ end
 ---@param gam GameScene
 function inspector.draw(gam)
     local rect = get_main_panel()
-    local base_unit = ut.BASE_HEIGHT + 5
+    local base_unit = UI_STYLE.scrollable_list_item_height
 
     ui.panel(rect)
 
@@ -40,7 +40,7 @@ function inspector.draw(gam)
 
     local top_rect = rect:subrect(0, 0, rect.width - base_unit, base_unit, "left", 'up')
 
-    local label_rect = top_rect:subrect(2, 0, top_rect.width / 2, base_unit, "left", 'up')
+    local label_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "left", 'up')
     ui.centered_text("Construction", label_rect)
     local public_flag_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "right", 'up')
 
