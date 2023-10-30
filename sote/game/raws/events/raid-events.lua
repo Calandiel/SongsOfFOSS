@@ -502,22 +502,38 @@ local function load()
 			end
 
 			-- initiator gets 2 "coins" for each invested "coin"
-			-- so one part of loot goes to pay his expenses on raid
-			-- second part of loot goes to his income
-			-- remaining half goes to population
 			local total_loot = loot
 			local initiator_share = loot * 0.5
 			if initiator_share / 2 > target.reward then
 				initiator_share = target.reward * 2
 			end
+
+			-- reward part
+			-- if reward was 0 then this stage does nothing
+
 			-- pay share to raid initiator
-			ef.add_pop_savings(target.owner, initiator_share, ef.reasons.Raid)
+			ef.add_pop_savings(target.owner, initiator_share, ef.reasons.RewardFlag)
 			loot = loot - initiator_share
+
 			-- pay rewards to warband leaders
 			target.reward = target.reward - initiator_share / 2
 			for _, w in pairs(warbands) do
-				ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.Raid)
+				ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
 			end
+			loot = loot - initiator_share / 2
+
+			-- remained raided wealth part
+
+			-- half of remaining loot goes again to raid_initiator as spoils of war
+			ef.add_pop_savings(target.owner, loot / 2, ef.reasons.Raid)
+			loot = loot - loot / 2
+
+			-- half of remaining loot goes to warband leaders
+			for _, w in pairs(warbands) do
+				ef.add_pop_savings(w.leader, loot / 2 / num_of_warbands, ef.reasons.Raid)
+			end
+			loot = loot - loot / 2
+
 			-- pay the remaining half of loot to population(warriors)
 			target.owner.province.local_wealth = target.owner.province.local_wealth + loot
 

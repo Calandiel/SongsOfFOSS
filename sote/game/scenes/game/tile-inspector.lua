@@ -8,6 +8,8 @@ local tabb = require "engine.table"
 
 local ef = require "game.raws.effects.economic"
 
+local military_effects = require "game.raws.effects.military"
+
 re.cached_scrollbar = 0
 
 ---@return Rect
@@ -64,8 +66,10 @@ function re.draw(gam)
 
 		uit.data_entry("", tile.province.name, province_name_rect)
 
+		local player = WORLD.player_character
+
 		if tile.province.realm then
-			if WORLD.player_character == nil then
+			if player == nil then
 				local bp = panel:subrect(-UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", "up")
 				if uit.icon_button(ASSETS.icons['frog-prince.png'], bp, "Take control over character from this country") then
 					-- gam.refresh_map_mode()
@@ -78,6 +82,32 @@ function re.draw(gam)
 		local market_rect = top_bar_rect:subrect(-2 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
 		if uit.icon_button(ASSETS.icons["scales.png"], market_rect, "Show market") then
 			gam.inspector = "market"
+		end
+
+		local raid_rect = top_bar_rect:subrect(-3 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+		if tile.province.realm then
+			if player then
+				local potential = true
+				local warband = player.leading_warband
+				local tooltip = "Raid this province"
+				if warband == nil then
+					potential = false
+					tooltip = "You are not a leader of a warband."
+				end
+				if warband and warband.status ~= 'idle' then
+					potential = false
+					tooltip = "Your warband is busy."
+				end
+
+				if uit.icon_button(
+					ASSETS.icons['stone-spear.png'],
+					raid_rect,
+					tooltip,
+					potential
+				) then
+					military_effects.covert_raid_no_reward(player, tile.province)
+				end
+			end
 		end
 
 
