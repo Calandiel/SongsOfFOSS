@@ -564,6 +564,16 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 	self.treasury_effects:enqueue(effect)
 end
 
+---Checks if given character is a player
+---@param character Character
+---@return boolean
+function world.World:is_player(character)
+	if WORLD.player_character == character then
+		return true
+	end
+	return false
+end
+
 ---comment
 ---@param realm Realm
 ---@return boolean
