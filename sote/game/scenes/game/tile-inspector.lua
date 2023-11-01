@@ -59,7 +59,7 @@ function re.draw(gam)
 
 		-- COA
 		if tile.province.realm then
-			require "game.scenes.game.widgets.realm-name" (gam, tile.province.realm, base_unit, realm_rect, 'immediate')
+			require "game.scenes.game.widgets.realm-name" (gam, tile.province.realm, realm_rect, 'immediate')
 		else
 			ui.panel(realm_rect)
 		end

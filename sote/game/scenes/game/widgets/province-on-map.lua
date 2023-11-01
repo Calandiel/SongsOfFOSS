@@ -165,7 +165,7 @@ return function(gam, tile, rect, x, y, size)
 
 
     rect.y = rect.y - height_unit
-    local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, height_unit, rect, 'callback')
+    local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, rect, 'callback')
 
 
     rect.y = y - length_of_line - height_unit

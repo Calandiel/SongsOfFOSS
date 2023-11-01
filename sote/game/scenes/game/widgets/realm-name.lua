@@ -3,15 +3,14 @@ local ut = require "game.ui-utils"
 
 ---@param gam table
 ---@param realm Realm
----@param unit number
 ---@param rect Rect
 ---@param mode 'immediate'|'callback'|nil
-local function realm_name(gam, realm, unit, rect, mode)
+local function realm_name(gam, realm,  rect, mode)
     if mode == nil then
         mode = 'immediate'
     end
 
-    local COA_rect = rect:subrect(0, 0, unit, unit, "left", 'up')
+    local COA_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'up')
 
     local function press()
         gam.inspector = "realm"
@@ -33,8 +32,16 @@ local function realm_name(gam, realm, unit, rect, mode)
         end
     end
 
-    local name_rect = rect:subrect(unit, 0, rect.width - unit, unit, "left", 'up')
-    ut.data_entry("", realm.name, name_rect)
+    local name_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height, "left", 'up')
+    
+    if ut.text_button(realm.name, name_rect) then
+        if mode == 'immediate' then
+            press()
+            return true
+        else
+            return press
+        end
+    end
 
     return false
 end

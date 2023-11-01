@@ -154,8 +154,7 @@ function tb.draw(gam)
 
 		require "game.scenes.game.widgets.realm-name"(
 			gam, 
-			character.province.realm, 
-			uit.BASE_HEIGHT, 
+			character.province.realm,
 			layout:next(
 				uit.BASE_HEIGHT * 7, 
 				uit.BASE_HEIGHT
