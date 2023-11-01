@@ -12,9 +12,17 @@ local military_effects = require "game.raws.effects.military"
 
 re.cached_scrollbar = 0
 
+local collapsed = false
+
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
+
+	if collapsed then
+		local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, uit.BASE_HEIGHT * 40, uit.BASE_HEIGHT * 2, "left", 'down')
+		return panel
+	end
+
 	local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, uit.BASE_HEIGHT * 40, uit.BASE_HEIGHT * 20, "left", 'down')
 	return panel
 end
@@ -79,15 +87,26 @@ function re.draw(gam)
 			end
 		end
 
-		local market_rect = top_bar_rect:subrect(-2 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+		local min_max_rect = top_bar_rect:subrect(-2 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+		if collapsed then
+			if uit.icon_button(ASSETS.icons["plus.png"], min_max_rect, "Maximize") then
+				collapsed = false
+			end
+		else
+			if uit.icon_button(ASSETS.icons["minus.png"], min_max_rect, "Minimize") then
+				collapsed = true
+			end
+		end
+
+		local market_rect = top_bar_rect:subrect(-3 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
 		if uit.icon_button(ASSETS.icons["scales.png"], market_rect, "Show market") then
 			gam.inspector = "market"
 		end
 
 		if tile.province.realm then
 			if player then
-				local raid_rect = top_bar_rect:subrect(-3 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
-				local patrol_rect = top_bar_rect:subrect(-4 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+				local raid_rect = top_bar_rect:subrect(-4 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
+				local patrol_rect = top_bar_rect:subrect(-5 * UI_STYLE.square_button_large, 0, UI_STYLE.square_button_large, UI_STYLE.square_button_large, "right", 'up')
 
 				local patrol = RAWS_MANAGER.decisions_characters_by_name['patrol-target']
 				local raid = RAWS_MANAGER.decisions_characters_by_name['personal-raid']
@@ -163,6 +182,10 @@ function re.draw(gam)
 			uit.NAME_MODE.ICON
 		)
 
+
+		if collapsed then
+			return
+		end
 
 		-- All the other data (as in, tabs)
 		local ui_panel = panel:subrect(
