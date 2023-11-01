@@ -37,7 +37,8 @@ local inspectors_table = {
 local tile_inspectors = {
 	["tile"] = true,
 	["realm"] = true,
-	["market"] = true
+	["market"] = true,
+	["character"] = true
 }
 
 ---@class Selection
@@ -1366,49 +1367,66 @@ local function neighbor_neighbor_data(tile)
 	return r, g, b, a
 end
 
+
+---Returns 0 if both tiles are owned by same unique overlord and 1 otherwise
+---@param tile1 Tile
+---@param tile2 Tile
+---@return integer
+local function same_realm_test(tile1, tile2)
+	local realm_1 = tile1.province.realm
+	local realm_2 = tile2.province.realm
+
+	if realm_1 == nil then
+		if realm_2 == nil then
+			return 0
+		end
+		return 1
+	end
+
+	if realm_2 == nil then
+		return 1
+	end
+
+	local overlords_1 = realm_1:get_top_realm()
+	local overlords_2 = realm_2:get_top_realm()
+
+	if tabb.size(overlords_1) ~= tabb.size(overlords_2) then
+		return 1
+	end
+
+	if realm_1 == realm_2 then
+		return 0
+	end
+
+	if tabb.size(overlords_1) == 1 and tabb.size(overlords_2) == 1 then
+		if tabb.nth(overlords_1, 1) == tabb.nth(overlords_2, 1) then
+			return 0
+		end
+	end
+
+	return 1
+end
+
+---Returns 1 in according channel if some border tile has a different overlord
+---Returns 0 0 0 0 otherwise
+---@param tile Tile
+---@return integer
+---@return integer
+---@return integer
+---@return integer
 local function realm_neighbor_data(tile)
+	-- retrieve tile neigbours
 	local up_neigh = tile.get_neighbor(tile, 1)
 	local down_neigh = tile.get_neighbor(tile, 2)
 	local right_neigh = tile.get_neighbor(tile, 3)
 	local left_neigh = tile.get_neighbor(tile, 4)
-	local r = 0
-	local g = 0
-	local b = 0
-	local a = 0
 
-	local up_realm = nil
-	local down_realm = nil
-	local right_realm = nil
-	local left_realm = nil
-	local center_realm = nil
-	if up_neigh.province.realm then
-		up_realm = up_neigh.province.realm:get_top_realm()
-	end
-	if down_neigh.province.realm then
-		down_realm = down_neigh.province.realm:get_top_realm()
-	end
-	if right_neigh.province.realm then
-		right_realm = right_neigh.province.realm:get_top_realm()
-	end
-	if left_neigh.province.realm then
-		left_realm = left_neigh.province.realm:get_top_realm()
-	end
-	if tile.province.realm then
-		center_realm = tile.province.realm:get_top_realm()
-	end
+	-- set base color to black
+	local r = same_realm_test(tile, up_neigh)
+	local g = same_realm_test(tile, down_neigh)
+	local b = same_realm_test(tile, right_neigh)
+	local a = same_realm_test(tile, left_neigh)
 
-	if up_realm ~= center_realm  then
-		r = 1
-	end
-	if down_realm ~= center_realm then
-		g = 1
-	end
-	if right_realm ~= center_realm then
-		b = 1
-	end
-	if left_realm ~= center_realm then
-		a = 1
-	end
 	return r, g, b, a
 end
 
@@ -1470,10 +1488,21 @@ function gam.recalculate_realm_map()
 	gam.tile_neighbor_realm_data = gam.tile_neighbor_realm_data or love.image.newImageData(dim, dim, "rgba8")
 	for _, tile in pairs(WORLD.tiles) do
 		local x, y = gam.tile_id_to_color_coords(tile)
+
+		
 		if tile.province and tile.province.realm then
-			local r = tile.province.realm:get_top_realm().r
-			local g = tile.province.realm:get_top_realm().g
-			local b = tile.province.realm:get_top_realm().b
+			local overlords = tile.province.realm:get_top_realm()
+			local r = tile.province.realm.r
+			local g = tile.province.realm.g
+			local b = tile.province.realm.b
+
+			if tabb.size(overlords) == 1 then
+				local overlord = tabb.nth(overlords, 1)
+				r = overlord.r
+				g = overlord.g
+				b = overlord.b
+			end
+
 			gam.tile_realm_image_data:setPixel(x, y, r, g, b, 1)
 		end
 

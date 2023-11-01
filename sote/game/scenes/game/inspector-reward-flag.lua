@@ -45,10 +45,10 @@ local function reward_tooltip(province)
     if reward == 0 then
         return "zero_reward"
     end
-    if province.realm.paying_tribute_to == WORLD.player_character.realm then
+    if province.realm.paying_tribute_to[WORLD.player_character.realm] then
         return "bad_target"
     end
-    if WORLD.player_character.realm.paying_tribute_to == province.realm then
+    if WORLD.player_character.realm.paying_tribute_to[province.realm] then
         return "bad_target"
     end
 

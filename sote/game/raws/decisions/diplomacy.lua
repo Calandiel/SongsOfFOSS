@@ -33,13 +33,13 @@ local function load()
 			---@type Character
 			local primary_target = primary_target
 			if not dt.valid_negotiators(root, primary_target) then return false end
-			if primary_target.realm.paying_tribute_to == root.realm then return false end
+			if primary_target.realm.paying_tribute_to[root.realm] then return false end
 
 			return true
 		end,
 		available = function(root, primary_target)
 			if not dt.valid_negotiators(root, primary_target) then return false end
-			if primary_target.realm.paying_tribute_to == root.realm then return false end
+			if primary_target.realm.paying_tribute_to[root.realm] then return false end
 
 			return true
 		end,
@@ -155,7 +155,7 @@ local function load()
 			---@type Province
 			local primary_target = primary_target
 
-			if primary_target.realm.paying_tribute_to ~= root.realm then
+			if primary_target.realm.paying_tribute_to[root.realm] == nil then
 				return false
 			end
 

@@ -25,7 +25,10 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			return true
+			if OPTIONS.debug_mode then
+				return true
+			end
+			return false
 		end,
 		clickable = function(root, primary_target)
             return true
@@ -62,7 +65,10 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			return true
+			if OPTIONS.debug_mode then
+				return true
+			end
+			return false
 		end,
 		clickable = function(root, primary_target)
             return true
@@ -402,7 +408,7 @@ local function load()
 			---@type Province
 			local primary_target = primary_target
 
-			if primary_target.realm.paying_tribute_to == root.realm then
+			if primary_target.realm.paying_tribute_to[root.realm] then
 				return false
 			end
 
@@ -514,9 +520,9 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.8 , -- Almost every month
 		pretrigger = function(root)
-			-- if root == WORLD.player_character then
-			-- 	return false
-			-- end
+			if WORLD:is_player(root) then
+				return false
+			end
 			if root.savings < 5 then
 				return false
 			end
@@ -554,9 +560,9 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.8 , -- Almost every month
 		pretrigger = function(root)
-			-- if root == WORLD.player_character then
-			-- 	return false
-			-- end
+			if WORLD:is_player(root) then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root)

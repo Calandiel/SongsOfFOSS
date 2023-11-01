@@ -249,6 +249,16 @@ function re.draw(gam)
 				end
 			},
 			{
+				text = "DEM",
+				tooltip = "Demographics",
+				closure = require "game.scenes.game.widgets.demography"(realm.provinces, ui_panel)
+			},
+			{
+				text = "DIP",
+				tooltip = "Diplomacy",
+				closure = require "game.scenes.game.inspectors.diplomacy"(gam, realm, ui_panel)
+			},
+			{
 				text = "RDC",
 				tooltip = "Realm decisions",
 				on_select = function()
