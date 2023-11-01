@@ -123,6 +123,9 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
+			if primary_target.realm ~= root.realm then
+				return 0
+			end
 			if primary_target.traits[TRAIT.LAZY] then
 				return 1/48
 			end
