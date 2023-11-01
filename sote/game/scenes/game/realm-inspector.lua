@@ -249,6 +249,11 @@ function re.draw(gam)
 				end
 			},
 			{
+				text = "DEM",
+				tooltip = "Demographics",
+				closure = require "game.scenes.game.widgets.demography"(realm.provinces, ui_panel)
+			},
+			{
 				text = "RDC",
 				tooltip = "Realm decisions",
 				on_select = function()
