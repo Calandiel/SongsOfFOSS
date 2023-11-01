@@ -408,7 +408,7 @@ local function load()
 			---@type Province
 			local primary_target = primary_target
 
-			if primary_target.realm.paying_tribute_to == root.realm then
+			if primary_target.realm.paying_tribute_to[root.realm] then
 				return false
 			end
 

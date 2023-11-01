@@ -70,9 +70,6 @@ local function load()
 
             local treason_flag = false
             local realm = character.realm
-            if realm and realm.paying_tribute_to ~= associated_data.realm and realm.paying_tribute_to ~= nil then
-                treason_flag = true
-            end
 
             -- character assumes that realm will lose money at least for a year
             local loss_of_money = 0

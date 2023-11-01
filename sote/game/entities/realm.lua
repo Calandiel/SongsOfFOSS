@@ -79,7 +79,7 @@ end
 ---@field leader Character?
 ---@field overseer Character?
 ---@field tribute_collectors table<Character, Character>
----@field paying_tribute_to Realm?
+---@field paying_tribute_to table<Realm, Realm>
 ---@field tributaries table<Realm, Realm>
 ---@field provinces table<Province, Province>
 ---@field reward_flags table<RewardFlag, RewardFlag>
@@ -138,8 +138,8 @@ end
 ---@field remove_raider fun(self:Realm, f: RewardFlag, warband: Warband)
 ---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
----@field get_top_realm fun(self:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):Realm Returns the top dog of a tributary chains. Handles loops.
----@field is_realm_in_hierarchy fun(self:Realm, realm_to_check_for:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):Realm Checks if a realm is in the overlord chain of a tributary.
+---@field get_top_realm fun(self:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):table<Realm, Realm> Returns the set of top dogs of a tributary chains. Handles loops.
+---@field is_realm_in_hierarchy fun(self:Realm, realm_to_check_for:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):boolean Checks if a realm is in the overlord chain of a tributary.
 ---@field get_random_province fun(self:Realm): Province | nil
 
 local realm = {}
@@ -154,7 +154,9 @@ realm.RewardFlag.__index = realm.RewardFlag
 function realm.RewardFlag:new(i)
 	---@type table
 	local o = {}
+	---@diagnostic disable-next-line: no-unknown
 	for k, v in pairs(i) do
+	---@diagnostic disable-next-line: no-unknown
 		o[k] = v
 	end
 	setmetatable(o, realm.RewardFlag)
@@ -181,6 +183,7 @@ function realm.Realm:new()
 
 	o.tribute_collectors = {}
 	o.tributaries = {}
+	o.paying_tribute_to = {}
 
 	o.provinces = {}
 	o.reward_flags = {}
@@ -444,12 +447,21 @@ function realm.Realm:get_top_realm(sources, depth)
 	local depth = depth or 0
 	local sources = sources or {}
 	if tabb.size(sources) == 0 then sources[self] = self end
+	---@type table<Realm, Realm>
+	local result = {}
 
-	if self.paying_tribute_to == nil or (sources[self] and depth > 0) then
-		return self
+	if (tabb.size(self.paying_tribute_to) == 0) or (sources[self] and depth > 0) then
+		result[self] = self
+		return result
 	else
 		sources[self] = self
-		return self.paying_tribute_to:get_top_realm(sources, depth + 1)
+		for _, overlord in pairs(self.paying_tribute_to) do
+			local top_dogs = overlord:get_top_realm(sources, depth + 1)
+			for k, v in pairs(top_dogs) do
+				result[k] = v
+			end
+		end
+		return result
 	end
 end
 
@@ -462,11 +474,18 @@ function realm.Realm:is_realm_in_hierarchy(realm_to_check_for, sources, depth)
 	local sources = sources or {}
 	if tabb.size(sources) == 0 then sources[self] = self end
 
-	if self.paying_tribute_to == nil or (sources[self] and depth > 0) then
+	if (tabb.size(self.paying_tribute_to) == 0) or (sources[self] and depth > 0) then
 		return false
 	else
 		sources[self] = self
-		return self.paying_tribute_to:is_realm_in_hierarchy(realm_to_check_for, sources, depth + 1)
+
+		local result = false
+
+		for _, realm in pairs(self.paying_tribute_to) do
+			result = result or realm:is_realm_in_hierarchy(realm_to_check_for, sources, depth + 1)
+		end
+
+		return result
 	end
 end
 
