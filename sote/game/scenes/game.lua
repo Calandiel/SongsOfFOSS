@@ -37,7 +37,8 @@ local inspectors_table = {
 local tile_inspectors = {
 	["tile"] = true,
 	["realm"] = true,
-	["market"] = true
+	["market"] = true,
+	["character"] = true
 }
 
 ---@class Selection
