@@ -8,6 +8,125 @@ local path = require "game.ai.pathfinding"
 
 local function load()
 
+	for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
+		Decision.Character:new {
+			name = 'recruit-' .. unit.name,
+			ui_name = "Recruit " .. unit.name,
+			tooltip = utils.constant_string("I will hire a new unit."),
+			sorting = 5,
+			primary_target = "none",
+			secondary_target = 'none',
+			base_probability = 1 / 12 , -- Once every year on average
+			pretrigger = function(root)
+				if WORLD:is_player(root) then
+					if OPTIONS.debug_mode then
+						return true
+					else
+						return false
+					end
+				end
+
+				local warband = root.leading_warband
+				if warband == nil then
+					return false
+				end
+				if (warband.units_current[unit] or 0) < (warband.units_target[unit] or 0) then
+					return false
+				end
+				return true
+			end,
+			clickable = function(root, primary_target)
+				return true
+			end,
+			available = function(root, primary_target)
+				return true
+			end,
+			ai_secondary_target = function(root, primary_target)
+				return nil, true
+			end,
+			ai_will_do = function(root, primary_target, secondary_target)
+				local warband = root.leading_warband
+				if warband == nil then
+					return 0
+				end
+
+				local predicted_upkeep = warband:predict_upkeep() + unit.upkeep
+
+				if warband.treasury / 12 < predicted_upkeep * 2 then
+					return 0
+				end
+
+				return root.culture.traditional_units[unit]
+			end,
+			effect = function(root, primary_target, secondary_target)
+				local warband = root.leading_warband
+				if warband == nil then
+					return
+				end
+				warband.units_target[unit] = (warband.units_target[unit] or 0) + 1
+			end
+		}
+
+		Decision.Character:new {
+			name = 'fire-' .. unit.name,
+			ui_name = "Fire " .. unit.name,
+			tooltip = utils.constant_string("I will fire a unit."),
+			sorting = 5,
+			primary_target = "none",
+			secondary_target = 'none',
+			base_probability = 1 / 12 , -- Once every year on average
+			pretrigger = function(root)
+				if WORLD:is_player(root) then
+					if OPTIONS.debug_mode then
+						return true
+					else
+						return false
+					end
+				end
+
+				local warband = root.leading_warband
+				if warband == nil then
+					return false
+				end
+				if (warband.units_target[unit] or 0) == 0 then
+					return false
+				end
+				return true
+			end,
+			clickable = function(root, primary_target)
+				return true
+			end,
+			available = function(root, primary_target)
+				return true
+			end,
+			ai_secondary_target = function(root, primary_target)
+				return nil, true
+			end,
+			ai_will_do = function(root, primary_target, secondary_target)
+				local warband = root.leading_warband
+				if warband == nil then
+					return 0
+				end
+
+				local predicted_upkeep = warband:predict_upkeep()
+
+				if warband.treasury / 12 > predicted_upkeep * 2 then
+					return 0
+				end
+
+				return 1 / (root.culture.traditional_units[unit] +  0.01)
+			end,
+			effect = function(root, primary_target, secondary_target)
+				local warband = root.leading_warband
+				if warband == nil then
+					return
+				end
+				warband.units_target[unit] = (warband.units_target[unit] or 0) + 1
+			end
+		}
+	end
+
+
 	-- Decision.Realm:new {
 	-- 	name = 'declare-war',
 	-- 	ui_name = "Send envoys to declare war",

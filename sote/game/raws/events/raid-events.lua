@@ -537,9 +537,10 @@ local function load()
 			ef.add_pop_savings(target.owner, loot / 2, ef.reasons.Raid)
 			loot = loot - loot / 2
 
-			-- half of remaining loot goes to warband leaders
+			-- half of remaining loot goes to warbands
 			for _, w in pairs(warbands) do
-				ef.add_pop_savings(w.leader, loot / 2 / num_of_warbands, ef.reasons.Raid)
+				w.treasury = w.treasury + loot / 2 / num_of_warbands
+				-- ef.add_pop_savings(w.leader, loot / 2 / num_of_warbands, ef.reasons.Raid)
 			end
 			loot = loot - loot / 2
 

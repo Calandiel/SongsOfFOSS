@@ -6,14 +6,24 @@
 ---@field leader Character?
 ---@field pops table<POP, Province> A table mapping pops to their home provinces.
 ---@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
+---@field units_current table<UnitType, number> Units currently in the warband
+---@field units_target table<UnitType, number> Units to recruit
 ---@field status WarbandStatus
+---@field total_upkeep number
+---@field predicted_upkeep number
+---@field morale number
 local warband = {
     name = "Warband",  ---@type string
     treasury = 0, ---@type number
 	leader = nil, ---@type Character?
 	pops = {}, ---@type table<POP, Province> A table mapping pops to their home provinces.
 	units = {}, ---@type table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
-	status = "idle"  ---@type WarbandStatus
+	units_current = {},
+	units_target = {},
+	status = "idle",  ---@type WarbandStatus
+	morale = 0.5,
+	total_upkeep = 0,
+	predicted_upkeep = 0
 }
 warband.__index = warband
 
@@ -33,6 +43,8 @@ function warband:new()
 	return o
 end
 
+---comment
+---@return number
 function warband:get_loot_capacity()
 	local cap = 0.01
 	for pop, unit in pairs(self.units) do
@@ -52,9 +64,14 @@ function warband:get_loot_capacity()
 	return cap
 end
 
+
+---comment
+---@return number
 function warband:spotting()
+	---@type number
 	local result = 0
 	for p, pr in pairs(self.pops) do
+		---@type number
 		result = result + p.race.spotting
 	end
 
@@ -69,6 +86,8 @@ function warband:spotting()
 	return result
 end
 
+---comment
+---@return integer
 function warband:size()
     local tabb = require "engine.table"
 
@@ -79,6 +98,8 @@ function warband:size()
     return size
 end
 
+---comment
+---@return integer
 function warband:pop_size()
 	local tabb = require "engine.table"
 	local size = tabb.size(self.pops)
@@ -90,6 +111,41 @@ function warband:decimate()
 	self.units = {}
 end
 
+
+---Handles hiring logic on warband's side
+---@param province Province
+---@param pop POP
+---@param unit UnitType
+function warband:hire_unit(province, pop, unit)
+	self.units[pop] = unit
+	self.pops[pop] = province
+	self.units_current[unit] = (self.units_current[unit] or 0) + 1
+	self.total_upkeep = self.total_upkeep + unit.upkeep
+end
+
+---Handles pop firing logic on warband's side
+---@param pop POP
+function warband:fire_unit(pop)
+	local unit = self.units[pop]
+
+	self.units[pop] = nil
+	self.pops[pop] = nil
+	self.units_current[unit] = (self.units_current[unit] or 0) - 1
+	self.total_upkeep = self.total_upkeep - unit.upkeep
+end
+
+
+---Predicts upkeep given the current units target of warbands
+---@return number
+function warband:predict_upkeep()
+	local result = 0
+
+	for unit, target in pairs(self.units_target) do
+		result = result + target * unit.upkeep
+	end
+
+	return result
+end
 
 ---Kills ratio of army
 ---@param ratio number
@@ -103,6 +159,24 @@ function warband:kill_off(ratio)
 		end
 	end
 	return losses
+end
+
+---comment
+---@return boolean
+function warband:vacant()
+	for unit, amount in pairs(self.units_target) do
+		if amount > (self.units_current[unit] or 0) then
+			return true
+		end
+	end
+
+	return false
+end
+
+---Returns monthly budget
+---@return number
+function warband:monthly_budget()
+	return self.treasury / 12
 end
 
 return warband

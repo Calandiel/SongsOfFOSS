@@ -791,62 +791,6 @@ function re.draw(gam)
 							ui_panel, tile.province, 'province', gam)
 				end
 			},
-			{
-				text = "MIL",
-				tooltip = "Military",
-				closure = function()
-					local top = ui_panel:subrect(0, 0, ui_panel.width, base_unit, "left", 'up')
-					local bottom = ui_panel:subrect(0, base_unit, ui_panel.width, ui_panel.height - base_unit, "left", 'up')
-					ui.centered_text("Military", top)
-					re.units_scrollbar = re.units_scrollbar or 0
-					local ttab = require "engine.table"
-					re.units_scrollbar = ui.scrollview(bottom, function(number, rect)
-						if number > 0 then
-							--print(number, ttab.size(tile.province.all_pops))
-							---@type UnitType
-							local unit, pops = ttab.nth(tile.province.units, number)
-							local target = tile.province.units_target[unit]
-							local current = tabb.size(pops)
-
-							rect.width = rect.height
-							ui.image(ASSETS.icons[unit.icon], rect)
-							rect.x = rect.x + rect.width + 5
-							rect.width = 175
-							ui.left_text(unit.name, rect)
-							rect.x = rect.x + rect.width
-							rect.width = rect.height
-							if WORLD:does_player_control_realm(tile.province.realm) then
-								if target > 0 then
-									if uit.text_button('-1', rect, "Decrease the number of units to recruit by one") then
-										tile.province.units_target[unit] = math.max(0, target - 1)
-									end
-								end
-							end
-							rect.x = rect.x + rect.width + 5
-							rect.width = 65
-							ui.centered_text(tostring(current) .. '/' .. tostring(target), rect)
-							rect.x = rect.x + rect.width + 5
-							rect.width = rect.height
-
-							local realm = tile.province.realm
-							if realm and WORLD:does_player_control_realm(tile.province.realm) then								
-								local target_budget = realm.budget.military.target
-								local current_budget = realm.budget.military.budget
-								if current_budget > target_budget + unit.upkeep then
-									if uit.text_button('+1', rect, "Increase the number of units to recruit by one") then
-										tile.province.units_target[unit] = math.max(0, target + 1)
-									end
-								else 
-									uit.text_button('X', rect, "Not enough military funding", false)
-								end
-							end
-							rect.x = rect.x + rect.width + 5
-							rect.width = 150
-							uit.money_entry('Unit upkeep: ', unit.upkeep, rect)
-						end
-					end, UI_STYLE.scrollable_list_item_height, ttab.size(tile.province.units), UI_STYLE.slider_width, re.units_scrollbar)
-				end
-			}
 		}
 		local layout = ui.layout_builder()
 			:position(panel.x, panel.y + base_unit * 2 + 5)

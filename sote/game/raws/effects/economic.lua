@@ -29,6 +29,7 @@ EconomicEffects.reasons = {
     Tribute = "tribute",
     Inheritance = "inheritance",
     Trade = "trade",
+    Warband = "warband",
     Other = "other"
 }
 
@@ -355,6 +356,30 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
 
     realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:population() / 100
     character.popularity[realm] = (character.popularity[realm] or 0) + amount / realm.capitol:population() / 100
+end
+
+---comment
+---@param character Character
+---@param amount number
+function EconomicEffects.gift_to_warband(character, amount)
+    local warband = character.leading_warband
+
+    if warband == nil then
+        return
+    end
+    
+    if amount > 0 then
+        if character.savings < amount then
+            return
+        end
+    else
+        if warband.treasury < -amount then
+            return
+        end
+    end
+
+    EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Warband)
+    warband.treasury = warband.treasury + amount
 end
 
 return EconomicEffects

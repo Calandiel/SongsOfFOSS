@@ -384,6 +384,9 @@ local function load()
 			--print("pre")
 			---@type Character
 			local root = root
+			if WORLD:is_player(root) then
+				return false
+			end
 			if root.savings < base_raiding_reward or root.province.realm:get_realm_ready_military() == 0 then
 				return false
 			end

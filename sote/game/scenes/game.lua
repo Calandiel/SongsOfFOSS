@@ -32,6 +32,7 @@ local inspectors_table = {
 	["market"] = require "game.scenes.game.inspectors.market",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
+	["warband"] = require "game.scenes.game.inspectors.warband",
 }
 
 local tile_inspectors = {
