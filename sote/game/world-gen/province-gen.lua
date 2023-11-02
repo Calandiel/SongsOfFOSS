@@ -480,6 +480,7 @@ function pro.run()
 
 	-- recalculate provincial centers
 	for _, province in pairs(WORLD.provinces) do
+		local forestCount = 0
 		local N = 20
 		-- sample N random tiles
 		---@type table<number, Tile>
@@ -513,6 +514,25 @@ function pro.run()
 		end
 
 		province.center = best_tile
+
+		for _, tile in pairs(province.tiles) do
+			if tile.biome.name == "mixed-forest" or
+			   tile.biome.name == "coniferous-forest" or
+			   tile.biome.name == "taiga" or
+			   tile.biome.name == "broadleaf-forest" or
+			   tile.biome.name == "wet-jungle" or
+			   tile.biome.name == "dry-jungle" or
+			   tile.biome.name == "mixed-woodland" or
+			   tile.biome.name == "coniferous-woodland" or
+			   tile.biome.name == "woodland-taiga" or
+			   tile.biome.name == "broadleaf-woodland" then
+				forestCount = forestCount + 1
+			end
+		end
+		
+		if forestCount > tabb.size(province.tiles)/2 then
+			province.on_a_forest = true
+		end
 	end
 end
 

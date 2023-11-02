@@ -97,9 +97,12 @@ function ProvinceCheck(race, province)
 	if not province.center.is_land then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
+	if (not province.on_a_forest) and race.requires_large_forest then return false end
 	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
 	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
 	if race.minimum_absolute_temperature > ja_r then return false end
+	local elev = province.center.elevation
+	if race.minimum_comfortable_elevation > elev then return false end
 
 	return true
 end

@@ -82,6 +82,7 @@ local prov = {}
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field on_a_river boolean
+---@field on_a_forest boolean
 ---@field take_away_pop fun(self:Province, pop:POP): POP
 ---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
 ---@field local_army_size fun(self:Province):number
@@ -146,6 +147,7 @@ function prov.Province:new()
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
 	o.on_a_river = false
+	o.on_a_forest = false
 	o.warbands = {}
 
 	WORLD.entity_counter = WORLD.entity_counter + 1
