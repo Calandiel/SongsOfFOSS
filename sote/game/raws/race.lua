@@ -18,6 +18,7 @@
 ---@field max_age number
 ---@field minimum_comfortable_temperature number
 ---@field minimum_absolute_temperature number
+---@field minimum_comfortable_elevation number
 ---@field female_body_size number
 ---@field female_worker_efficiency number
 ---@field female_artisan_efficiency number
@@ -43,6 +44,7 @@
 ---@field male_clothing_needs number
 ---@field male_infrastructure_needs number
 ---@field requires_large_river boolean
+---@field requires_large_forest boolean
 
 ---@class Race
 local Race = {}
@@ -68,6 +70,7 @@ function Race:new(o)
 	r.max_age = 85
 	r.minimum_comfortable_temperature = 5
 	r.minimum_absolute_temperature = -10
+	r.minimum_comfortable_elevation = 0
 	r.fecundity = 1
 	r.spotting = 1
 	r.visibility = 1
@@ -98,6 +101,7 @@ function Race:new(o)
 	r.carrying_capacity_weight = 1
 
 	r.requires_large_river = false
+	r.requires_large_forest = false
 
 	for k, v in pairs(o) do
 		r[k] = v
