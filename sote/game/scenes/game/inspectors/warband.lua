@@ -39,10 +39,7 @@ local function render_unit(rect, unit, warband, possibility)
     ut.data_entry_icon(unit.icon, unit.description, rect, nil, nil, 'left')
     rect.x = rect.x + rect.width
     ut.money_entry('Unit upkeep: ', unit.upkeep, rect)
-    -- ui.image(ASSETS.icons[unit.icon], rect)
-    -- rect.x = rect.x + rect.width + 5
-    -- rect.width = 175
-    -- ui.left_text(unit.name, rect)
+
     rect.x = rect.x + rect.width
     rect.width = rect.height
 

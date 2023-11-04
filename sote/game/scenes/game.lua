@@ -313,10 +313,10 @@ function gam.handle_camera_controls()
 		camera_speed = camera_speed * OPTIONS['camera_sensitivity']
 
 		if ui.is_key_held('a') or (mouse_x < mouse_zoom_sensor_size and mouse_x > -5) then
-			gam.camera_position = gam.camera_position:rotate(-camera_speed, up) 
+			gam.camera_position = gam.camera_position:rotate(-camera_speed, up)
 		end
 		if ui.is_key_held('d') or (mouse_x > screen_x - mouse_zoom_sensor_size and mouse_x <= screen_x + 5) then
-			gam.camera_position = gam.camera_position:rotate(camera_speed, up) 
+			gam.camera_position = gam.camera_position:rotate(camera_speed, up)
 		end
 		if ui.is_key_held('w') or (mouse_y < mouse_zoom_sensor_size and mouse_y > -5) then
 			local rot = gam.camera_position:cross(up)
