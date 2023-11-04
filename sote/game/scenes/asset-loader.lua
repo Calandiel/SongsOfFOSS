@@ -77,7 +77,7 @@ function asl.load_assets()
 	ASSETS.sfx = {}
 	local ms = love.filesystem.getDirectoryItems("sfx")
 	for _, m in pairs(ms) do
-		table.insert(ASSETS.sfx, love.audio.newSource("sfx/" .. m, "static"))
+		ASSETS.sfx[m] = love.audio.newSource("sfx/" .. m, "static")
 		-- Make sure to yield every now and then so that we don't hang the core!
 		yield_counter = yield_counter + 1
 		if yield_counter == 25 then

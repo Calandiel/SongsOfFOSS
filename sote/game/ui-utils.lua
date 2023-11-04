@@ -573,6 +573,7 @@ function ut.button(rect, potential, active, sound)
 
 	-- play audio
 	if result then
+		print(sound)
 		love.audio.play(ASSETS.sfx[sound])
 	end
 	return result, rect
