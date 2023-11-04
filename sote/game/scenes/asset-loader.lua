@@ -72,6 +72,21 @@ function asl.load_assets()
 	end
 	coroutine.yield()
 
+	asl.message = "Loading sfx..."
+	print(asl.message)
+	ASSETS.sfx = {}
+	local ms = love.filesystem.getDirectoryItems("sfx")
+	for _, m in pairs(ms) do
+		table.insert(ASSETS.sfx, love.audio.newSource("sfx/" .. m, "static"))
+		-- Make sure to yield every now and then so that we don't hang the core!
+		yield_counter = yield_counter + 1
+		if yield_counter == 25 then
+			yield_counter = 0
+			coroutine.yield()
+		end
+	end
+	coroutine.yield()
+
 	asl.message = "Loading emblems..."
 	print(asl.message)
 	ASSETS.emblems = {}

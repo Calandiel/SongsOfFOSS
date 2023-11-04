@@ -506,11 +506,13 @@ local light_lime_color = {
 ---@param rect Rect
 ---@param potential boolean can you take this action?
 ---@param active boolean?
+---@param sound string? The sound to be played by this button. Leave blank to play a default sound.
 ---@return boolean, Rect
-function ut.button(rect, potential, active)
+function ut.button(rect, potential, active, sound)
 	-- handle logic part immediately to avoid gaps between buttons
 	local hover, clicked = ui.hover_clicking_status(rect)
 	local result = ui.invisible_button(rect) and potential
+	local sound = sound or "menu_click.wav"
 	hover = hover and potential
 	clicked = clicked and potential
 
@@ -569,6 +571,10 @@ function ut.button(rect, potential, active)
 	ui.style.button_hovered = old_style_button_hovered
 	ui.style.button_clicked = old_style_button_clicked
 
+	-- play audio
+	if result then
+		love.audio.play(ASSETS.sfx[sound])
+	end
 	return result, rect
 end
 
