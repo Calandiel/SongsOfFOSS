@@ -12,18 +12,10 @@ local military_effects = require "game.raws.effects.military"
 
 re.cached_scrollbar = 0
 
-local collapsed = false
-
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-
-	if collapsed then
-		local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, uit.BASE_HEIGHT * 16, uit.BASE_HEIGHT * 2, "left", 'down')
-		return panel
-	end
-
-	local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, uit.BASE_HEIGHT * 16, uit.BASE_HEIGHT * 24, "left", 'down')
+	local panel = fs:subrect(uit.BASE_HEIGHT * 2, 0, uit.BASE_HEIGHT * 16, uit.BASE_HEIGHT * 25, "left", 'down')
 	return panel
 end
 
@@ -42,7 +34,7 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function header_panel(gam, tile, panel)
-	ui.panel(panel)
+	-- ui.panel(panel)
 
 	local base_unit = uit.BASE_HEIGHT
 
@@ -105,9 +97,10 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function infrastructure_widget(gam, tile, panel)
-	ui.panel(panel)
-
-	panel:shrink(5)
+	
+	panel:shrink(3)
+	ui.panel(panel, 3)
+	panel:shrink(3)
 
 	local base_unit = uit.BASE_HEIGHT
 	local realm = tile.province.realm
@@ -210,9 +203,10 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function demography_widget(gam, tile, panel)
-	ui.panel(panel)
 
-	panel:shrink(5)
+	panel:shrink(3)
+	ui.panel(panel, 3)
+	panel:shrink(3)
 
 	local base_unit = uit.BASE_HEIGHT
 	local realm = tile.province.realm
@@ -226,7 +220,10 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function realm_widget(gam, tile, panel)
-	ui.panel(panel)
+
+	panel:shrink(3)
+	ui.panel(panel, 3)
+	panel:shrink(3)
 
 	panel:shrink(5)
 
@@ -247,16 +244,6 @@ local function realm_widget(gam, tile, panel)
 		:vertical()
 		:build()
 
-	local realm_rect = layout:next(panel.width, base_unit * 2)
-
-	-- COA
-	require "game.scenes.game.widgets.realm-name" (
-		gam,
-		realm,
-		realm_rect,
-		'immediate'
-	)
-
 	local buttons_grid_panel = layout:next(panel.width, base_unit * 3)
 
 	local buttons_grid = ui.layout_builder()
@@ -264,8 +251,6 @@ local function realm_widget(gam, tile, panel)
 		:grid(2)
 		:spacing(5)
 		:build()
-
-
 
 	if uit.icon_button(
 		ASSETS.icons['frog-prince.png'],
@@ -312,7 +297,7 @@ local function realm_widget(gam, tile, panel)
 end
 
 local function main_panel(gam, tile, panel)
-	ui.panel(panel)
+	-- ui.panel(panel)
 
 	local layout = ui.layout_builder()
 		:position(panel.x, panel.y)
@@ -326,7 +311,10 @@ local function main_panel(gam, tile, panel)
 end
 
 local function military_widget(gam, tile, panel)
-	ui.panel(panel)
+
+	panel:shrink(3)
+	ui.panel(panel, 3)
+	panel:shrink(3)
 
 	panel:shrink(5)
 
@@ -378,7 +366,10 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function trade_widget(gam, tile, panel)
-	ui.panel(panel)
+	
+	panel:shrink(3)
+	ui.panel(panel, 3)
+	panel:shrink(3)
 
 	panel:shrink(5)
 
@@ -446,7 +437,6 @@ local function separate_inspectors(gam, tile, panel)
 end
 
 local function bottom_panel(gam, tile, panel)
-	ui.panel(panel)
 	local unit = uit.BASE_HEIGHT
 
 	local layout = ui.layout_builder()
@@ -483,7 +473,7 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function geography_tab(gam, tile, panel)
-	ui.panel(panel)
+	-- ui.panel(panel)
 	
 	local unit = uit.BASE_HEIGHT
 
@@ -658,7 +648,7 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function buildings_construction_tab(gam, tile, panel)
-	ui.panel(panel)
+	-- ui.panel(panel)
 
 	local base_unit = uit.BASE_HEIGHT
 
@@ -695,7 +685,7 @@ end
 ---@param tile Tile
 ---@param rect Rect
 local function buildings_view_tab(gam, tile, rect)
-	ui.panel(rect)
+	-- ui.panel(rect)
 
 	local base_unit = uit.BASE_HEIGHT
 
@@ -820,7 +810,7 @@ local function buildings_tab (gam, tile, panel)
 end
 
 local function technology_tab(gam, tile, panel)
-	ui.panel(panel)
+	-- ui.panel(panel)
 
 	local base_unit = uit.BASE_HEIGHT
 
@@ -885,11 +875,11 @@ local decision_tab = "Province"
 ---@param tile Tile
 ---@param panel Rect
 local function decisions_tab(gam, tile, panel)
-	ui.panel(panel)
+	-- ui.panel(panel)
 
 	local unit = uit.BASE_HEIGHT
 
-	local tab_content = panel:subrect(0, unit, panel.width, panel.height - unit, "left", 'up')
+	local tab_content = panel:subrect(0, unit, panel.width, panel.height - unit * 2, "left", 'up')
 
 	decision_tab = decision_tab or "Province"
 
@@ -948,13 +938,27 @@ function re.draw(gam)
 	end
 
 	local panel = get_main_panel()
-
 	ui.panel(panel)
+
+	if tile.province.realm then
+		local header = panel:subrect(0, 0, panel.width, unit, "left", 'up')
+		header.width = header.width / 2
+		-- COA
+		require "game.scenes.game.widgets.realm-name" (
+			gam,
+			tile.province.realm,
+			header,
+			'immediate'
+		)
+	end
 
 	if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, unit * 1, unit * 1, "right", 'up')) then
 		gam.click_tile(-1)
 		gam.inspector = nil
 	end
+
+	panel.y = panel.y + unit
+	panel.height = panel.height - unit
 
 	local tab_content = panel:subrect(0, unit, panel.width, panel.height - unit, "left", 'up')
 
@@ -1042,10 +1046,6 @@ function re.draw_old(gam)
 		ui.panel(panel)
 
 		local top_bar_rect = panel:subrect(0, 0, panel.width, base_unit * 2, "left", 'up')
-		ui.panel(top_bar_rect)
-
-		
-
 
 		if collapsed then
 			return
@@ -1059,7 +1059,7 @@ function re.draw_old(gam)
 			panel.height - base_unit * 3,
 			"left", 'up'):shrink(5)
 
-		ui.panel(ui_panel)
+		-- ui.panel(ui_panel)
 		gam.tile_inspector_tab = gam.tile_inspector_tab or "GEN"
 
 

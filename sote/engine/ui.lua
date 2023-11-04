@@ -848,9 +848,23 @@ end
 ---Renders a slider panel, using the default style
 ---@param rect Rect rect of the filled part
 ---@param outter_rect Rect rect of the background part
-function ui.slider_panel(rect, outter_rect)
-	set_color(ui.style.panel_inside)
-	ui.rectangle(outter_rect)
+---@param circle_style boolean?
+function ui.slider_panel(rect, outter_rect, circle_style)
+	if circle_style == nil then
+		circle_style = true
+	end
+	
+	if circle_style then
+		set_color(ui.style.slider_filled)
+		if outter_rect.width > outter_rect.height then
+			ui.rectangle(outter_rect:subrect(0, 0, outter_rect.width, 3, "center", 'center'))
+		else
+			ui.rectangle(outter_rect:subrect(0, 0, 3, outter_rect.height, "center", 'center'))
+		end
+	else
+		set_color(ui.style.panel_inside)
+		ui.rectangle(outter_rect)
+	end
 	local hover = ui.trigger(outter_rect)
 	if hover then
 		local clicking = ui.trigger_press(outter_rect, 1)
@@ -862,9 +876,16 @@ function ui.slider_panel(rect, outter_rect)
 	else
 		set_color(ui.style.slider_filled)
 	end
-	ui.rectangle(rect)
-	set_color(ui.style.button_outline)
-	ui.outline(rect)
+	if circle_style then
+		local circle = rect:subrect(0, 0, 10, 10, "center", 'center')
+		ui.rectangle(circle, 10)
+		set_color(ui.style.button_outline)
+		ui.outline(circle, 10)
+	else
+		ui.rectangle(rect)
+		set_color(ui.style.button_outline)
+		ui.outline(rect)
+	end
 	set_color(ui.style.reset_color)
 end
 
@@ -973,13 +994,17 @@ end
 ---@param max_value number
 ---@param vertical ?boolean
 ---@param height number ratio of slider to whole length
+---@param circle_style boolean?
 ---@return number new_value
-function ui.slider(rect, current_value, min_value, max_value, vertical, height)
+function ui.slider(rect, current_value, min_value, max_value, vertical, height, circle_style)
+	if circle_style == nil then
+		circle_style = true
+	end
+
 	local ret = math.max(min_value, math.min(max_value, current_value))
 
 	local slider_real_length = rect.width
 	local control_button_size = rect.height
-
 	local slider_size = height * (slider_real_length - 2 * control_button_size)
 
 	local lr = ui.rect(rect.x, rect.y, rect.height, rect.height)
@@ -990,6 +1015,11 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		lr.width = rect.width
 		lr.height = rect.width
 	end
+
+	if circle_style then
+		slider_size = 10
+	end
+
 	if vertical then
 		if ui.text_button("/\\", lr) then
 			ret = min_value
@@ -1031,7 +1061,7 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		filled.width = rect.width
 		filled.height = slider_size
 	end
-	ui.slider_panel(filled, background)
+	ui.slider_panel(filled, background, circle_style)
 
 	local rr = ui.rect(rect.x + rect.width - rect.height, rect.y, rect.height, rect.height)
 	if vertical then
@@ -1056,14 +1086,14 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 			---@type number, number
 			local pos_x, pos_y = ui.mouse_position()
 			local frac = (pos_x - background.x) / background.width
+			local active_area_length = background.width - slider_size
 			if vertical then
 				frac = (pos_y - background.y) / background.height
+				active_area_length = background.height - slider_size
 			end
 			ret = frac
-
-			local active_area_length = slider_real_length - 2 * control_button_size
+			
 			local padding = slider_size / active_area_length
-
 			-- scale range [low + slider_width_ratio / 2, high - slider_width_ratio / 2] to range [low, high]
 			ret = math.min(1, math.max(0, ret * (1 + padding) - padding / 2))
 
