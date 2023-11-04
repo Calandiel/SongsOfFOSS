@@ -30,6 +30,7 @@ local inspectors_table = {
 	["reward-flag"] = require "game.scenes.game.inspector-reward-flag",
 	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
 	["market"] = require "game.scenes.game.inspectors.market",
+	["population"] = require "game.scenes.game.inspectors.population",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 	["warband"] = require "game.scenes.game.inspectors.warband",
@@ -39,6 +40,7 @@ local tile_inspectors = {
 	["tile"] = true,
 	["realm"] = true,
 	["market"] = true,
+	["population"] = true,
 	["character"] = true
 }
 
@@ -1200,7 +1202,7 @@ function gam.draw()
 						gam.selected.realm = WORLD.tiles[new_clicked_tile].province.realm
 					end
 				end
-			elseif gam.inspector == "market" then
+			elseif tile_inspectors[gam.inspector] then
 
 			else
 				gam.inspector = "tile"
