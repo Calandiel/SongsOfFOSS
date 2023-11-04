@@ -37,6 +37,7 @@ function inspector.draw(gam)
         "market",
         "army",
         "character-decisions",
+        "warband",
     }
 
     local inspector_icons = {
@@ -45,6 +46,7 @@ function inspector.draw(gam)
         ['market'] = ASSETS.icons['scales.png'],
         ['army'] = ASSETS.icons['guards.png'],
         ['character-decisions'] = ASSETS.icons['envelope.png'],
+        ['warband'] = ASSETS.icons['barbute.png'],
     }
 
     local inspector_tooltips = {
@@ -53,6 +55,7 @@ function inspector.draw(gam)
         ['market'] = "Visit local market",
         ['army'] = "View local warriors",
         ['character-decisions'] = "Actions",
+        ['warband'] = "View your warband",
     }
 
     for _, inspector in pairs(inspectors) do

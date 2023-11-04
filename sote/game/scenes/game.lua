@@ -30,14 +30,17 @@ local inspectors_table = {
 	["reward-flag"] = require "game.scenes.game.inspector-reward-flag",
 	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
 	["market"] = require "game.scenes.game.inspectors.market",
+	["population"] = require "game.scenes.game.inspectors.population",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
+	["warband"] = require "game.scenes.game.inspectors.warband",
 }
 
 local tile_inspectors = {
 	["tile"] = true,
 	["realm"] = true,
 	["market"] = true,
+	["population"] = true,
 	["character"] = true
 }
 
@@ -268,6 +271,7 @@ function gam.handle_camera_controls()
 		end
 		-- Handle camera controls...
 		local up = up_direction
+		---@type number
 		local camera_speed = (gam.camera_position:len() - 0.75) * 0.0015
 		if ui.is_key_held('lshift') then
 			camera_speed = camera_speed * 3
@@ -306,6 +310,7 @@ function gam.handle_camera_controls()
 			gam.camera_position = gam.camera_position:rotate(-rotation_up, rot)
 		end
 
+		camera_speed = camera_speed * OPTIONS['camera_sensitivity']
 
 		if ui.is_key_held('a') or (mouse_x < mouse_zoom_sensor_size and mouse_x > -5) then
 			gam.camera_position = gam.camera_position:rotate(-camera_speed, up)
@@ -343,7 +348,7 @@ function gam.handle_zoom()
 		-- We handle scrollin with two passes.
 		-- First, we handle q/e, then we modify the zoom speed and handle the mouse wheel.
 		-- We do it because the q/e are significantly faster than mouse wheel movement and need separate handling.
-		local zoom_speed = 0.001
+		local zoom_speed = 0.001 * OPTIONS['zoom_sensitivity']
 		if ui.is_key_held('lshift') then
 			zoom_speed = zoom_speed * 3
 		end
@@ -647,7 +652,7 @@ function gam.draw()
 		return x, y, z
 	end
 
-	local draw_distance = 1.1
+	local draw_distance = 1.15
 	local flood_fill = 250
 
 	if coll_point and (gam.camera_position:len() < draw_distance) then
@@ -1197,7 +1202,7 @@ function gam.draw()
 						gam.selected.realm = WORLD.tiles[new_clicked_tile].province.realm
 					end
 				end
-			elseif gam.inspector == "market" then
+			elseif tile_inspectors[gam.inspector] then
 
 			else
 				gam.inspector = "tile"

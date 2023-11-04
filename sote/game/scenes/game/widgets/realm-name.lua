@@ -10,7 +10,7 @@ local function realm_name(gam, realm,  rect, mode)
         mode = 'immediate'
     end
 
-    local COA_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'up')
+    local COA_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'up'):shrink(2)
 
     local function press()
         gam.inspector = "realm"

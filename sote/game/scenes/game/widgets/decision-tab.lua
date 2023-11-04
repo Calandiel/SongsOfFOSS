@@ -8,7 +8,7 @@ local ut = require "game.ui-utils"
 ---@param decision_type DecisionTarget
 ---@param gam GameScene
 return function (ui_panel, primary_target, decision_type, gam)
-	ut.columns({
+	ut.rows({
 		function(rect)
 			local decis, tg_primar, tg_second = require "game.scenes.game.widgets.decision-selection-character"(
 				rect,
@@ -35,5 +35,5 @@ return function (ui_panel, primary_target, decision_type, gam)
 				gam.decision_target_secondary = nil
 			end
 		end
-	}, ui_panel, ui_panel.width / 2)
+	}, ui_panel, ui_panel.height / 2)
 end

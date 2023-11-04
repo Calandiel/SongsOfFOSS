@@ -53,8 +53,8 @@ end
 
 ---@param rect Rect
 ---@param base_unit number
----@param tile Tile
-return function(rect, base_unit, tile)
+---@param province Province
+return function(rect, base_unit, province)
     return function()
         ---@type TableColumn[]
         local columns = {
@@ -125,6 +125,6 @@ return function(rect, base_unit, tile)
         local top = rect:subrect(0, 0, rect.width, base_unit, "left", 'up')
         local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", 'up')
         ui.centered_text("Population", top)
-        ui.table(bottom, tile.province.all_pops, columns, state)
+        ui.table(bottom, province.all_pops, columns, state)
     end
 end

@@ -4,7 +4,7 @@ local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
 function mm.rect() 
-	return ui.fullscreen():subrect(0, 20, 300, 400, "center", "center")
+	return ui.fullscreen():subrect(0, 20, 300, 600, "center", "center")
 end
 
 function mm.mask()
@@ -21,7 +21,7 @@ function mm.draw()
 	local fs = ui.fullscreen()
 
 	local menu_button_width = 230
-	local menu_button_height = 30
+	local menu_button_height = 28
 	local base = mm.rect()
 	ui.panel(base)
 
@@ -36,11 +36,26 @@ function mm.draw()
 	-- VOLUME
 	local new_volume = ui.named_slider(
 		"Volume",
-		layout:next(menu_button_width, menu_button_height * 2),
-		love.audio.getVolume(), 0, 1, 0.1
+		layout:next(menu_button_width, menu_button_height * 1.5),
+		love.audio.getVolume(), 0, 1, 0.05
 	)
 	love.audio.setVolume(new_volume)
 	OPTIONS.volume = new_volume
+
+	-- ZOOM SENS
+	OPTIONS.zoom_sensitivity = ui.named_slider(
+		"Zoom sensitivity",
+		layout:next(menu_button_width, menu_button_height * 1.5),
+		OPTIONS.zoom_sensitivity, 0.01, 5, 0.05
+	)
+
+	-- CAMERA SENS
+	OPTIONS.camera_sensitivity = ui.named_slider(
+		"Camera sensitivity",
+		layout:next(menu_button_width, menu_button_height * 1.5),
+		OPTIONS.camera_sensitivity, 0.01, 10, 0.05
+	)
+
 	-- FULLSCREEN
 	local original = OPTIONS.fullscreen
 	OPTIONS.fullscreen = ui.named_checkbox(

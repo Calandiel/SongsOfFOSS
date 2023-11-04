@@ -11,6 +11,8 @@ function opt.init()
 		['update_map'] = true,
 		['treasury_ledger'] = 120,
 		['debug_mode'] = false,
+		['zoom_sensitivity'] = 1,
+		['camera_sensitivity'] = 1,
 	}
 end
 

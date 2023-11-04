@@ -61,14 +61,11 @@ local prov = {}
 ---@field mood number how local population thinks about the state
 ---@field outlaws table<POP, POP>
 ---@field outlaw_pop fun(self:Province, pop:POP) Marks a pop as an outlaw
----@field recruit fun(self:Province, pop:POP, unit_type:UnitType) Marks a pop as a soldier of a given type
 ---@field get_dominant_culture fun(self:Province):Culture|nil
 ---@field get_dominant_faith fun(self:Province):Faith|nil
 ---@field get_dominant_race fun(self:Province):Race|nil
 ---@field soldiers table<POP, UnitType>
 ---@field unit_types table<UnitType, UnitType>
----@field units table<UnitType, table<POP, POP>> Recruited units
----@field units_target table<UnitType, number> Units to recruit
 ---@field warbands table<Warband, Warband>
 ---@field vacant_warbands fun(self: Province): Warband[]
 ---@field new_warband fun(self: Province): Warband
@@ -141,8 +138,6 @@ function prov.Province:new()
 	o.infrastructure_investment = 0
 	o.unit_types = {}
 	o.soldiers = {}
-	o.units = {}
-	o.units_target = {}
 	o.throughput_boosts = {}
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
@@ -185,8 +180,10 @@ end
 ---@return number
 function prov.Province:military_target()
 	local sum = 0
-	for _, u in pairs(self.units_target) do
-		sum = sum + u
+	for _, warband in pairs(self.warbands) do
+		for _, u in pairs(warband.units_target) do
+			sum = sum + u
+		end
 	end
 	return sum
 end
@@ -252,33 +249,24 @@ end
 ---@param pop POP
 function prov.Province:unregister_military_pop(pop)
 	if self.soldiers[pop] then
-		local ut = self.soldiers[pop]
-		self.units[ut][pop] = nil
 		pop.drafted = false
 	end
 	for _, warband in pairs(self.warbands) do
-		warband.units[pop] = nil
-		warband.pops[pop] = nil
+		if warband.units[pop] then
+			warband:fire_unit(pop)
+		end
 	end
 	self.soldiers[pop] = nil
 end
 
 ---Removes the pop from the province without killing it
 function prov.Province:take_away_pop(pop)
-	if self.soldiers[pop] then
-		local unit_type = self.soldiers[pop]
-		self.units[unit_type][pop] = nil
-		self.units_target[unit_type] = self.units_target[unit_type] - 1
-	end
 	self.soldiers[pop] = nil
 	self.all_pops[pop] = nil
-
 	return pop
 end
 
 function prov.Province:return_pop_from_army(pop, unit_type)
-	self.units[unit_type][pop] = pop
-	self.units_target[unit_type] = self.units_target[unit_type] + 1
 	self.soldiers[pop] = unit_type
 	self.all_pops[pop] = pop
 	return pop
@@ -418,8 +406,6 @@ function prov.Province:research(technology)
 	end
 	for _, u in pairs(technology.unlocked_unit_types) do
 		self.unit_types[u] = u
-		self.units[u] = {}
-		self.units_target[u] = 0
 	end
 	for prod, am in pairs(technology.throughput_boosts) do
 		local old = self.throughput_boosts[prod] or 0
@@ -523,38 +509,24 @@ function prov.Province:outlaw_pop(pop)
 	self.outlaws[pop] = pop
 end
 
+---Marks a pop as a soldier of a given type in a given warband.
 ---@param pop POP
 ---@param unit_type UnitType
-function prov.Province:recruit(pop, unit_type)
+---@param warband Warband
+function prov.Province:recruit(pop, unit_type, warband)
 	-- if pop is already drafted, do nothing
 	if pop.drafted then
 		return
-	end
-
-	-- find a good warband
-	local vacant_warbands = self:vacant_warbands()
-	local warband = nil
-	if tabb.size(vacant_warbands) == 0 then
-		return
-		-- warband = self:new_warband()
-		-- warband.name = pop.culture.language:get_random_name()
-	else
-		warband = vacant_warbands[tabb.random_select_from_set(vacant_warbands)]
 	end
 
 	-- clean pop and set his unit type
 	self:fire_pop(pop)
 	self:unregister_military_pop(pop)
 	pop.drafted = true
-	if self.units[unit_type] == nil then
-		self.units[unit_type] = {}
-	end
-	self.units[unit_type][pop] = pop
 	self.soldiers[pop] = unit_type
 
 	-- set warband
-	warband.pops[pop] = self
-	warband.units[pop] = unit_type
+	warband:hire_unit(self, pop, unit_type)
 end
 
 ---@return Culture|nil
@@ -738,7 +710,7 @@ function prov.Province:vacant_warbands()
 	local res = {}
 
 	for k, v in pairs(self.warbands) do
-		if v:size() < 6 then
+		if v:vacant() then
 			table.insert(res, k)
 		end
 	end

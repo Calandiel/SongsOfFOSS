@@ -1066,6 +1066,8 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 
 			-- scale range [low + slider_width_ratio / 2, high - slider_width_ratio / 2] to range [low, high]
 			ret = math.min(1, math.max(0, ret * (1 + padding) - padding / 2))
+
+			ret = min_value + (max_value - min_value) * ret
 		end
 	end
 

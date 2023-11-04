@@ -162,9 +162,9 @@ function rea.run(realm)
 	-- #######################
 	local military_upkeep = 0
 	for _, province in pairs(realm.provinces) do
-		for unit, ta in pairs(province.units) do
-			local count = tabb.size(ta)
-			military_upkeep = military_upkeep + count * unit.upkeep
+		for _, warband in pairs(province.warbands) do
+			warband.treasury = warband.treasury - warband.total_upkeep
+			province.local_wealth = province.local_wealth + warband.total_upkeep * 0.8
 		end
 	end
 

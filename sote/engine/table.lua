@@ -111,7 +111,9 @@ function tab.select_one(number, items)
 end
 
 ---Given a table of objects mapping to numbers (weights), return a randomly selected entry
----@param items table<any, number>
+---@generic T
+---@param items table<T, number>
+---@return T
 function tab.random_select(items)
 	local weight = 0
 	for _, v in pairs(items) do
