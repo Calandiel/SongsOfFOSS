@@ -83,6 +83,7 @@ function asl.load_assets()
 
 	asl.message = "Loading sfx..."
 	print(asl.message)
+	---@type table<string, love.Source>
 	ASSETS.sfx = {}
 	local ms = love.filesystem.getDirectoryItems("sfx")
 	for _, m in pairs(ms) do

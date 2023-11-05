@@ -67,6 +67,7 @@ local pressed_mouse = {}
 local held_mouse = {}
 local released_mouse = {}
 local mouse_position = {}
+local old_mouse_position = {}
 local mouse_wheel_movement = 0
 local tooltip_text = nil
 local tooltip_x = 0
@@ -85,6 +86,7 @@ function ui.cache_input_state()
 	r.held_mouse = held_mouse
 	r.released_mouse = released_mouse
 	r.mouse_position = mouse_position
+	r.old_mouse_position = old_mouse_position
 	r.mouse_wheel_movement = mouse_wheel_movement
 
 	return r
@@ -101,6 +103,7 @@ function ui.load_input_state_from_cache(cache)
 	held_mouse = cache.held_mouse
 	released_mouse = cache.released_mouse
 	mouse_position = cache.mouse_position
+	old_mouse_position = cache.old_mouse_position
 	mouse_wheel_movement = cache.mouse_wheel_movement
 end
 
@@ -356,17 +359,36 @@ end
 
 ---Returns a boolean for whether or not the mouse is within a rect
 ---@param rect Rect
+---@param mouse_x number?
+---@param mouse_y number?
 ---@return boolean mouse_in_rect
-function ui.trigger(rect)
+function ui.trigger(rect, mouse_x, mouse_y)
 	local x = rect.x
 	local y = rect.y
 	local width = rect.width
 	local height = rect.height
 	local mx, my = ui.mouse_position()
+	if mouse_x ~= nil then
+		mx = mouse_x
+	end
+	if mouse_y ~= nil then
+		my = mouse_y
+	end
 	return mx > x and
 		mx < x + width and
 		my > y and
 		my < y + height
+end
+
+---Returns true if mouse just moved inside this rect
+---@param rect any
+---@return boolean
+function ui.trigger_start_hover(rect)
+	local old_mouse_x, old_mouse_y = ui.old_mouse_position()
+	if ui.trigger(rect) and not ui.trigger(rect, old_mouse_x, old_mouse_y) then
+		return true
+	end
+	return false
 end
 
 ---Returns a boolean for whether or not a mouse click was started within a rect
@@ -480,6 +502,8 @@ end
 
 ---Call this in love.mousemoved
 function ui.on_mousemoved(x, y, dx, dy, istouch)
+	old_mouse_position.x = mouse_position.x
+	old_mouse_position.y = mouse_position.y
 	mouse_position.x = x
 	mouse_position.y = y
 end
@@ -536,9 +560,19 @@ function ui.is_mouse_released(button)
 end
 
 ---Returns position of the mouse, using reference width and reference height
+---@return number, number
 function ui.mouse_position()
 	local x = mouse_position.x or 0
 	local y = mouse_position.y or 0
+
+	local scale_x, scale_y = get_ui_scaling_factor()
+
+	return x / scale_x, y / scale_y
+end
+
+function ui.old_mouse_position()
+	local x = old_mouse_position.x or 0
+	local y = old_mouse_position.y or 0
 
 	local scale_x, scale_y = get_ui_scaling_factor()
 
