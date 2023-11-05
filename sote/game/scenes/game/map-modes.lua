@@ -95,10 +95,22 @@ function mm.set_up_map_modes(game_thingy)
 			demographic_map_modes.prices
 		},
 		population = {
-			"Population",
+			"Population (100)",
 			"minions.png",
-			"Shows population.",
+			"Shows population with the most blue shades representing 100 people.",
 			demographic_map_modes.population
+		},
+		population_1000 = {
+			"Population (1000)",
+			"minions.png",
+			"Shows population with the most blue shades representing 1000 people.",
+			demographic_map_modes.population_1000
+		},
+		population_density = {
+			"Population density",
+			"minions.png",
+			"Shows population density.",
+			demographic_map_modes.population_density
 		},
 		tile_carrying_capacity = {
 			"Carrying capacity (tile)",
@@ -255,7 +267,7 @@ function mm.set_up_map_modes(game_thingy)
 	game_thingy.map_mode_selected_tab = "all"
 	game_thingy.map_mode_tabs.all = {
 		"elevation", "biomes", "plants", "koppen",
-		"realms", "population", "plates", "rocks", 'tile_carrying_capacity',
+		"realms", "population", "population_1000", 'population_density', "plates", "rocks", 'tile_carrying_capacity',
 		"resources", "soil_texture", "soil_depth", "soil_organics", "soil_minerals",
 		"jan_rain", "jul_rain", "jan_temp", "jul_temp", "jan_flow", "jul_flow",
 		"province", "carrying_capacity", 'tile_improvements', "realm_income", "local_income", "coastlines",
@@ -265,7 +277,7 @@ function mm.set_up_map_modes(game_thingy)
 		"realms", "province", "atlas", "diplomacy"
 	}
 	game_thingy.map_mode_tabs.demographic = {
-		"population", 'technologies', 'races', 'cultures', 'faiths',
+		"population", "population_1000", 'population_density', 'technologies', 'races', 'cultures', 'faiths',
 		"military_target", "military",
 	}
 	game_thingy.map_mode_tabs.debug = {
