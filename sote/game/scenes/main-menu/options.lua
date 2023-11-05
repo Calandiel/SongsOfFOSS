@@ -34,7 +34,7 @@ function mm.draw()
 		:build()
 
 	-- VOLUME
-	local new_volume = ui.named_slider(
+	local new_volume = ut.named_slider(
 		"Volume",
 		layout:next(menu_button_width, menu_button_height * 1.5),
 		love.audio.getVolume(), 0, 1, 0.05
@@ -43,14 +43,14 @@ function mm.draw()
 	OPTIONS.volume = new_volume
 
 	-- ZOOM SENS
-	OPTIONS.zoom_sensitivity = ui.named_slider(
+	OPTIONS.zoom_sensitivity = ut.named_slider(
 		"Zoom sensitivity",
 		layout:next(menu_button_width, menu_button_height * 1.5),
 		OPTIONS.zoom_sensitivity, 0.01, 5, 0.05
 	)
 
 	-- CAMERA SENS
-	OPTIONS.camera_sensitivity = ui.named_slider(
+	OPTIONS.camera_sensitivity = ut.named_slider(
 		"Camera sensitivity",
 		layout:next(menu_button_width, menu_button_height * 1.5),
 		OPTIONS.camera_sensitivity, 0.01, 10, 0.05

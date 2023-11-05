@@ -34,7 +34,7 @@ local function diplomacy(gam, realm, ui_panel)
         local overlords_rect = ui_panel:subrect(0, UI_STYLE.table_header_height, ui_panel.width / 2, ui_panel.height - UI_STYLE.table_header_height, "left", "up")
 
         ui.centered_text("We are paying tribute to: ", overlords_label)
-        slider_overlords = ui.scrollview(
+        slider_overlords = ut.scrollview(
             overlords_rect,
             function(i, rect)
                 if i > 0 then
@@ -52,7 +52,7 @@ local function diplomacy(gam, realm, ui_panel)
         local tributaries_rect = ui_panel:subrect(ui_panel.width / 2, UI_STYLE.table_header_height, ui_panel.width / 2, ui_panel.height - UI_STYLE.table_header_height, "left", "up")
 
         ui.centered_text("We are receiving tribute from: ", tributaries_label)
-        slider_tributaries = ui.scrollview(
+        slider_tributaries = ut.scrollview(
             tributaries_rect,
             function(i, rect)
                 if i > 0 then

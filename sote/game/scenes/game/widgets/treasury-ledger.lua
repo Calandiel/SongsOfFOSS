@@ -58,7 +58,7 @@ return function (rect, filter_tag, scroll, base_unit)
         end
     end
     ui.panel(rect)
-    return ui.scrollview(
+    return ut.scrollview(
         rect,
         render_treasury_change,
         15,

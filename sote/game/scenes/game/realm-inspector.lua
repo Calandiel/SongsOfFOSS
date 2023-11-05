@@ -77,7 +77,7 @@ function re.draw(gam)
 						end
 					end
 					gam.realm_stockpile_scrollbar = gam.realm_stockpile_scrollbar or 0
-					gam.realm_stockpile_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
+					gam.realm_stockpile_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
 							---@type TradeGoodReference
 							local good, amount = tabb.nth(goods, entry)
@@ -113,7 +113,7 @@ function re.draw(gam)
 						end
 					end
 					gam.realm_capacities_scrollbar = gam.realm_capacities_scrollbar or 0
-					gam.realm_capacities_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
+					gam.realm_capacities_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
 							---@type TradeGoodReference
 							local good, amount = tabb.nth(goods, entry)
@@ -182,7 +182,7 @@ function re.draw(gam)
 						goods[good] = ev.get_realm_price(realm, good)
 					end
 					gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
-					gam.realm_market_scrollbar = ui.scrollview(ui_panel, function(entry, rect)
+					gam.realm_market_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
 							---@type TradeGoodReference
 							local good, price = tabb.nth(goods, entry)
@@ -275,7 +275,7 @@ function re.draw(gam)
 					--ui_panel
 					ui.panel(ui_panel)
 					local sl = gam.wars_slider_level or 0
-					gam.wars_slider_level = ui.scrollview(ui_panel, function(i, rect)
+					gam.wars_slider_level = uit.scrollview(ui_panel, function(i, rect)
 						if i > 0 then
 							---@type Rect
 							local r = rect

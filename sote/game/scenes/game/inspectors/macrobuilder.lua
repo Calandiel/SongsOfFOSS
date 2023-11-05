@@ -99,7 +99,7 @@ function inspector.draw(gam)
 
     rect.height = rr - base_unit
     rect.y = rect.y + base_unit
-    buildings_scroll = ui.scrollview(
+    buildings_scroll = ut.scrollview(
         rect, 
         function(number, rect)
             ---@type Rect

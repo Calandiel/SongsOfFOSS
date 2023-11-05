@@ -71,7 +71,7 @@ function inspector.draw(gam)
     end)
 
 
-    scroll = ui.scrollview(
+    scroll = ut.scrollview(
         decisions_rect,
         function(i, rect)
             if i > 0 then

@@ -658,7 +658,7 @@ local function buildings_construction_tab(gam, tile, panel)
 	panel.height = rr - base_unit
 	panel.y = panel.y + base_unit
 	re.building_construction_scrollbar = re.building_construction_scrollbar or 0
-	re.building_construction_scrollbar = ui.scrollview(
+	re.building_construction_scrollbar = uit.scrollview(
 		panel,
 		function(number, rect)
 			if number > 0 then
@@ -723,7 +723,7 @@ local function buildings_view_tab(gam, tile, rect)
 			end
 		end
 		re.buildings_scrollbar = re.buildings_scrollbar or 0
-		re.buildings_scrollbar = ui.scrollview(rect, function(number, rect)
+		re.buildings_scrollbar = uit.scrollview(rect, function(number, rect)
 			if number > 0 then
 				---@type BuildingType
 				local building_type, amount = tabb.nth(stacks, number)
@@ -741,7 +741,7 @@ local function buildings_view_tab(gam, tile, rect)
 	else
 		-- Show individual buildings
 		re.buildings_scrollbar = re.buildings_scrollbar or 0
-		re.buildings_scrollbar = ui.scrollview(rect, function(number, rect)
+		re.buildings_scrollbar = uit.scrollview(rect, function(number, rect)
 			if number > 0 and number <= tabb.size(tile.province.buildings) then
 				---@type Building
 				local building = tabb.nth(tile.province.buildings, number)
@@ -825,7 +825,7 @@ local function technology_tab(gam, tile, panel)
 						rect.y = rect.y + UI_STYLE.table_header_height
 						rect.height = rect.height - UI_STYLE.table_header_height
 						re.researched_technologies_scrollbar = re.researched_technologies_scrollbar or 0
-						re.researched_technologies_scrollbar = ui.scrollview(rect, function(number, rect)
+						re.researched_technologies_scrollbar = uit.scrollview(rect, function(number, rect)
 							if number > 0 then
 								---@type Technology
 								local tech = tabb.nth(tile.province.technologies_present, number)
@@ -848,7 +848,7 @@ local function technology_tab(gam, tile, panel)
 						rect.y = rect.y + base_unit
 						rect.height = rect.height - base_unit
 						re.researchable_technologies_scrollbar = re.researchable_technologies_scrollbar or 0
-						re.researchable_technologies_scrollbar = ui.scrollview(rect, function(number, rect)
+						re.researchable_technologies_scrollbar = uit.scrollview(rect, function(number, rect)
 							if number > 0 then
 								---@type Technology
 								local tech = tabb.nth(tile.province.technologies_researchable, number)

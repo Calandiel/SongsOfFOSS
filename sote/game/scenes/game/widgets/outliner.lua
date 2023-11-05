@@ -18,7 +18,7 @@ return function(rect, slider)
         slider = 0
     end
     ui.panel(rect)
-    return ui.scrollview(
+    return ut.scrollview(
         rect,
         render_action,
         ut.BASE_HEIGHT * 1,

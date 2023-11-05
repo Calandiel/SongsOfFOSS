@@ -376,6 +376,14 @@ function ut.reload_font()
 	love.graphics.setFont(ASSETS.main_font)
 end
 
+function ut.reload_slider_icons()
+	ASSETS.slider_images = {
+		clicked = ASSETS.icons['slider_press.png'],
+		hovered = ASSETS.icons['slider_hover.png'],
+		passive = ASSETS.icons['slider_passive.png']
+	}
+end
+
 function ut.data_font()
 	love.graphics.setFont(ASSETS.data_font)
 end
@@ -719,6 +727,50 @@ function ut.to_fixed_point2(x)
 	local frac_1 = math.floor((temp - math.floor(temp)) * 10)
 	local frac_2 = math.floor((temp * 10 - math.floor(temp * 10)) * 10)
 	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
+end
+
+---comment
+---@param rect Rect
+---@param render_closure fun(index: number, rect: Rect)
+---@param individual_height number
+---@param entries_count number
+---@param slider_width number
+---@param slider_level number
+---@return number
+function ut.scrollview(rect, render_closure, individual_height, entries_count, slider_width, slider_level)
+	ut.reload_slider_icons()
+	slider_level = ui.scrollview(
+		rect,
+		render_closure,
+		individual_height,
+		entries_count,
+		slider_width,
+		slider_level,
+		true,
+		ASSETS.slider_images
+	)
+	return slider_level
+end
+
+---@param rect Rect
+---@param data table<TableKey, TableEntry>
+---@param columns TableColumn[]
+---@param state TableState
+function ut.table(rect, data, columns, state)
+	ut.reload_slider_icons()
+	ui.table(rect, data, columns, state, true, ASSETS.slider_images)
+end
+
+---Draws a horizontal slider. Includes a name on top of it. Make sure the rect is long enough
+---@param slider_name string name to show above the slider
+---@param rect Rect
+---@param current_value number
+---@param min_value number
+---@param max_value number
+---@param height number ratio of slider to whole length
+---@return number new_value
+function ut.named_slider(slider_name, rect, current_value, min_value, max_value, height)
+	return ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, true, ASSETS.slider_images)
 end
 
 return ut

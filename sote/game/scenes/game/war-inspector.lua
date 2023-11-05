@@ -55,7 +55,7 @@ function re.draw(gam)
 					pp.height = ui_panel.height - uit.BASE_HEIGHT
 					pp.y = pp.y + uit.BASE_HEIGHT
 					gam.war_attacker_scrollbar = gam.war_attacker_scrollbar or 0
-					gam.war_attacker_scrollbar = ui.scrollview(pp, function(i, rect)
+					gam.war_attacker_scrollbar = uit.scrollview(pp, function(i, rect)
 						if i > 0 then
 							---@type Realm
 							local rr = tabb.nth(war.attackers, i)
@@ -83,7 +83,7 @@ function re.draw(gam)
 					pp.height = ui_panel.height - uit.BASE_HEIGHT
 					pp.y = pp.y + uit.BASE_HEIGHT
 					gam.war_defender_scrollbar = gam.war_defender_scrollbar or 0
-					gam.war_defender_scrollbar = ui.scrollview(pp, function(i, rect)
+					gam.war_defender_scrollbar = uit.scrollview(pp, function(i, rect)
 						if i > 0 then
 							---@type Realm
 							local rr = tabb.nth(war.defenders, i)

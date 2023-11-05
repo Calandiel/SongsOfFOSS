@@ -114,6 +114,6 @@ return function(rect, province, compact)
         local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", 'up')
         local bottom = rect:subrect(0, UI_STYLE.table_header_height, rect.width, rect.height - UI_STYLE.table_header_height, "left", 'up')
         ui.centered_text("Local characters", top)
-        return ui.table(bottom, province.characters, columns, state)
+        return ut.table(bottom, province.characters, columns, state)
     end
 end

@@ -215,7 +215,7 @@ function inspector.draw(gam)
         unit_types[unit] = unit
     end
 
-    units_scroll = ui.scrollview(
+    units_scroll = ut.scrollview(
         warband_hires_panel,
         function(number, rect)
             if number > 0 then

@@ -125,6 +125,6 @@ return function(rect, base_unit, province)
         local top = rect:subrect(0, 0, rect.width, base_unit, "left", 'up')
         local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", 'up')
         ui.centered_text("Population", top)
-        ui.table(bottom, province.all_pops, columns, state)
+        ut.table(bottom, province.all_pops, columns, state)
     end
 end

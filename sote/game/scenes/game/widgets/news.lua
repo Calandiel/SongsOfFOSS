@@ -27,7 +27,7 @@ return function(rect, scroll, hidden)
         end
     end
 
-    return ui.scrollview(
+    return ut.scrollview(
         rect,
         render_notification,
         ut.BASE_HEIGHT * 3,
