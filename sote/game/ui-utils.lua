@@ -738,7 +738,6 @@ end
 ---@param slider_level number
 ---@return number
 function ut.scrollview(rect, render_closure, individual_height, entries_count, slider_width, slider_level)
-	ut.reload_slider_icons()
 	slider_level = ui.scrollview(
 		rect,
 		render_closure,
@@ -757,8 +756,7 @@ end
 ---@param columns TableColumn[]
 ---@param state TableState
 function ut.table(rect, data, columns, state)
-	ut.reload_slider_icons()
-	ui.table(rect, data, columns, state, true, ASSETS.slider_images)
+	return ui.table(rect, data, columns, state, true, ASSETS.slider_images)
 end
 
 ---Draws a horizontal slider. Includes a name on top of it. Make sure the rect is long enough
