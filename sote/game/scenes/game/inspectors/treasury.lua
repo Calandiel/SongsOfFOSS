@@ -5,10 +5,21 @@ local bc = require "game.scenes.game.widgets.budget-category"
 
 local economic_effects = require "game.raws.effects.economic"
 
+local TREASURY_TARGET_CHANGE = 1
+
 ---@param ui_panel Rect
 ---@param realm Realm
 return function(ui_panel, realm)
     return function()
+
+        if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
+            TREASURY_TARGET_CHANGE = 5
+        elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+            TREASURY_TARGET_CHANGE = 50
+        else
+            TREASURY_TARGET_CHANGE = 1
+        end
+
         local column_width = uit.BASE_HEIGHT * 8
 
         -- current treasury
@@ -69,28 +80,31 @@ return function(ui_panel, realm)
 
         -- control over treasury target
         if WORLD:does_player_control_realm(realm) then
-            local button_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT, "left", 'up')
+            local button_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", 'up')
 
-            local function change_treasury_target(x)
-                if uit.text_button(
-                    uit.to_fixed_point2(x) .. MONEY_SYMBOL,
+            ---@param mult number
+            local function change_treasury_target(mult)
+                local amount = mult * TREASURY_TARGET_CHANGE
+                if uit.money_button(
+                    "Change by ",
+                    amount,
                     button_rect,
-                    "Change monthly investment by " .. uit.to_fixed_point2(x) .. MONEY_SYMBOL
+                    "Change treasury target by "
+                    .. uit.to_fixed_point2(amount) .. MONEY_SYMBOL
+                    .. ". You will try to save up specified amount of wealth in treasury. "
+                    .. "If this amount is reached, excess money are reinvested across budget categories. "
+                    .. "Press Ctrl or Shift to modify invested amount."
                 ) then
-                    realm.budget.treasury_target = realm.budget.treasury_target + x
+                    realm.budget.treasury_target = math.max(0, realm.budget.treasury_target + amount)
                 end
-                button_rect.x = button_rect.x + uit.BASE_HEIGHT * 3
+                button_rect.x = button_rect.x + uit.BASE_HEIGHT * 6
             end
-            
-            change_treasury_target(-100)
-            change_treasury_target(-10)
+
             change_treasury_target(-1)
             change_treasury_target(1)
-            change_treasury_target(10)
-            change_treasury_target(100)
         end
 
-        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT 
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- current change
         uit.money_entry(
@@ -106,23 +120,18 @@ return function(ui_panel, realm)
 
         ui.text_panel("Gift wealth to your tribe: ", label_panel)
 
-        local button_rect = panel_rect:subrect(0, uit.BASE_HEIGHT * 1, uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT, "left", 'up')
+        local button_rect = panel_rect:subrect(0, uit.BASE_HEIGHT * 1, uit.BASE_HEIGHT * 10, uit.BASE_HEIGHT, "left", 'up')
 
-        local function gift_to_treasury_target(x)
-            if uit.text_button(
-                uit.to_fixed_point2(x) .. MONEY_SYMBOL,
-                button_rect,
-                "Invest " .. uit.to_fixed_point2(x) .. MONEY_SYMBOL .. " of personal wealth into treasury."
-            ) then
-                economic_effects.gift_to_tribe(WORLD.player_character, realm, x)
-            end
-            button_rect.x = button_rect.x + uit.BASE_HEIGHT * 3
+        if uit.money_button(
+            "Gift to tribal treasury",
+            TREASURY_TARGET_CHANGE,
+            button_rect,
+            "Invest "
+            .. uit.to_fixed_point2(TREASURY_TARGET_CHANGE)
+            .. MONEY_SYMBOL
+            .. " of personal wealth into treasury. Press Ctrl or Shift to modify invested amount."
+        ) then
+            economic_effects.gift_to_tribe(WORLD.player_character, realm, TREASURY_TARGET_CHANGE)
         end
-
-        gift_to_treasury_target(1)
-        gift_to_treasury_target(10)
-        gift_to_treasury_target(50)
-        gift_to_treasury_target(100)
-        gift_to_treasury_target(500)
     end
 end

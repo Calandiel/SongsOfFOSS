@@ -24,8 +24,19 @@ function re.mask()
 	end
 end
 
+local TREASURY_GIFT_AMOUNT = 1
+
 ---@param gam GameScene
 function re.draw(gam)
+
+	if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
+		TREASURY_GIFT_AMOUNT = 5
+	elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+		TREASURY_GIFT_AMOUNT = 50
+	else
+		TREASURY_GIFT_AMOUNT = 1
+	end
+
 	---@diagnostic disable-next-line: assign-type-mismatch
 	local rrealm = gam.selected.realm
 	if rrealm ~= nil then
@@ -148,23 +159,23 @@ function re.draw(gam)
 
 					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
-						p.width = p.height * 2
-						local do_one = function(rect, max_amount)
-							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if realm.budget.treasury > max_amount then
-								if uit.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah) then
-									local inv = math.min(realm.budget.treasury, max_amount)
-									ef.direct_investment(realm, realm.budget.court, inv, EconomicEffects.reasons.Court)
-								end
-							else
-								ui.centered_text(ah .. MONEY_SYMBOL, rect)
-							end
-							rect.x = rect.x + rect.height * 2
+						p.width = p.height * 4
+
+						local possible = realm.budget.treasury > TREASURY_GIFT_AMOUNT
+						if uit.money_button(
+							"Invest ",
+							TREASURY_GIFT_AMOUNT,
+							p,
+							"Invest money into court. Press Ctrl or Shift to modify invested amount.",
+							possible
+						) then
+							ef.direct_investment(
+								realm,
+								realm.budget.court,
+								TREASURY_GIFT_AMOUNT,
+								EconomicEffects.reasons.Court
+							)
 						end
-						do_one(p, 0.1)
-						do_one(p, 1)
-						do_one(p, 10)
-						do_one(p, 100)
 					end
 					a.y = a.y + uit.BASE_HEIGHT
 				end
@@ -226,19 +237,23 @@ function re.draw(gam)
 
 					if WORLD:does_player_control_realm(realm) then
 						local p = a:copy()
-						p.width = p.height * 2
-						local do_one = function(rect, max_amount)
-							local ah = tostring(math.floor(100 * max_amount) / 100)
-							if uit.text_button(ah .. MONEY_SYMBOL, rect, 'Invest ' .. ah, realm.budget.treasury > max_amount) then
-								local inv = math.min(realm.budget.treasury, max_amount)
-								ef.direct_investment(realm, realm.budget.education, inv, EconomicEffects.reasons.Education)
-							end
-							rect.x = rect.x + rect.height * 2
+						p.width = p.height * 4
+
+						local possible = realm.budget.treasury > TREASURY_GIFT_AMOUNT
+						if uit.money_button(
+							"Invest ",
+							TREASURY_GIFT_AMOUNT,
+							p,
+							"Invest money into education. Press Ctrl or Shift to modify invested amount.",
+							possible
+						) then
+							ef.direct_investment(
+								realm,
+								realm.budget.education,
+								TREASURY_GIFT_AMOUNT,
+								EconomicEffects.reasons.Education
+							)
 						end
-						do_one(p, 0.1)
-						do_one(p, 1)
-						do_one(p, 10)
-						do_one(p, 100)
 					end
 					a.y = a.y + uit.BASE_HEIGHT
 					uit.data_entry_percentage("Education efficiency: ",

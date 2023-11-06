@@ -8,6 +8,8 @@ local ev = require "game.raws.values.economical"
 local ef = require "game.raws.effects.economic"
 local et = require "game.raws.triggers.economy"
 
+local TRADE_AMOUNT = 1
+
 ---@type TableState
 local state = nil
 
@@ -35,7 +37,8 @@ end
 ---@field supply number
 ---@field demand number
 ---@field balance number
----@field price number
+---@field buy_price number
+---@field sell_price number
 ---@field stockpile number
 ---@field inventory number
 
@@ -114,17 +117,31 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'price',
+            header = 'buy price',
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.money_entry("", v.price or 0, rect)
+                ut.money_entry("", v.buy_price or 0, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.price or 0
+                return v.buy_price or 0
+            end
+        },
+        {
+            header = 'sell price',
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                ut.money_entry("", v.sell_price or 0, rect)
+            end,
+            width = base_unit * 4,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.sell_price or 0
             end
         },
         {
@@ -146,26 +163,26 @@ return function(province, ui_panel, base_unit)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                local tooltip = "Shows diffence between price in your current position and selected one"
+                local tooltip = "Shows the diffence between buy price in your current position and sell price in selected one"
                 if WORLD.player_character then
                     local player_province = WORLD.player_character.province
                     if player_province then
                         local price_at_player = ev.get_local_price(player_province, v.name)
                         local data = 1
-                        if price_at_player == 0 and (v.price or 0) == 0 then
+                        if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 0
                         elseif price_at_player == 0 then
                             data = 99.99
-                        elseif (v.price or 0) == 0 then
+                        elseif (v.sell_price or 0) == 0 then
                             data = 0
                         else
-                            data = ((v.price or 0) - price_at_player) / price_at_player
+                            data = ((v.sell_price or 0) - price_at_player) / price_at_player
                         end
                         ut.color_coded_percentage(
-                                        data,
-                                        rect,
-                                        true,
-                                        tooltip
+                            data,
+                            rect,
+                            true,
+                            tooltip
                         )
                     else
                         ut.data_entry("", "???", rect, tooltip)
@@ -184,14 +201,14 @@ return function(province, ui_panel, base_unit)
                     if local_province then
                         local price_at_player = ev.get_local_price(local_province, v.name)
                         local data = 1
-                        if price_at_player == 0 and (v.price or 0) == 0 then
+                        if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 1
                         elseif price_at_player == 0 then
                             data = 99.99
-                        elseif (v.price or 0) == 0 then
+                        elseif (v.sell_price or 0) == 0 then
                             data = 0
                         else
-                            data = ((v.price or 0) - price_at_player) / price_at_player
+                            data = ((v.sell_price or 0) - price_at_player) / price_at_player
                         end
                         return data
                     else 
@@ -203,15 +220,15 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'Buy 1',
+            header = 'Buy ' .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character 
-                    and player_character.province == province 
-                    and et.can_buy(player_character, v.name, 1) 
-                    and ut.text_button('+', rect) 
+                if player_character
+                    and player_character.province == province
+                    and et.can_buy(player_character, v.name, TRADE_AMOUNT)
+                    and ut.text_button('+', rect)
                 then
-                    ef.buy(player_character, v.name, 1)
+                    ef.buy(player_character, v.name, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
@@ -223,15 +240,15 @@ return function(province, ui_panel, base_unit)
             active = true
         },
         {
-            header = 'Sell 1',
+            header = 'Sell ' .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
                 if player_character 
-                    and player_character.province == province 
-                    and et.can_sell(player_character, v.name, 1) 
-                    and ut.text_button('-', rect) 
+                    and player_character.province == province
+                    and et.can_sell(player_character, v.name, TRADE_AMOUNT)
+                    and ut.text_button('-', rect)
                 then
-                    ef.sell(player_character, v.name, 1)
+                    ef.sell(player_character, v.name, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
@@ -273,6 +290,14 @@ return function(province, ui_panel, base_unit)
 
         local character = WORLD.player_character
 
+        if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
+            TRADE_AMOUNT = 5
+        elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+            TRADE_AMOUNT = 50
+        else
+            TRADE_AMOUNT = 1
+        end
+
         for good_reference, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
             local supply = production[good_reference] or 0
             local demand = consumption[good_reference] or 0
@@ -288,7 +313,8 @@ return function(province, ui_panel, base_unit)
                 demand = demand,
                 balance = supply - demand,
                 stockpile = province.local_storage[good_reference] or 0,
-                price = ev.get_local_price(province, good_reference),
+                buy_price = ev.get_local_price(province, good_reference),
+                sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT),
                 inventory = inventory
             }
         end

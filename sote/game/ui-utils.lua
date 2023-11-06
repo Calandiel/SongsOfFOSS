@@ -640,6 +640,25 @@ function ut.text_button(text, rect, tooltip, potential, active)
 end
 
 
+---@param name string
+---@param value number
+---@param rect Rect
+---@param tooltip string?
+---@param potential boolean?
+---@param active boolean?
+function ut.money_button(name, value, rect, tooltip, potential, active)
+	if potential == nil then
+		potential = true
+	end
+
+	local result, rect_text = ut.button(rect, potential, active)
+
+	ut.money_entry(name, value, rect, tooltip, false, false)
+
+	return result
+end
+
+
 ---Draws the calendar and returns whether or not the mouse if over it
 ---@param gam table
 ---@return boolean
