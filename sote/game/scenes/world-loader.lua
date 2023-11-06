@@ -3,13 +3,19 @@ local wl = {}
 local world = require "game.entities.world"
 local plate = require "game.entities.plate"
 local color = require "game.color"
+local tabb = require "engine.table"
 
 WORLD_PROGRESS = {total = 0, max = 0, is_loading = false}
 
 local loader_error = nil -- write this in coroutines to transmit the error out of coroutines scope...
 ---
 function wl.init()
-
+	local tips = require "game.scenes.tips"
+	local size = tabb.size(tips)
+	print("Tip table size: " .. tostring(size))
+	local r = love.math.random(size)
+	print("Randomly rolled tip index: " .. tostring(r))
+	wl.tip = tips[r]
 end
 
 ---
@@ -42,6 +48,9 @@ function wl.draw()
 
 	ui.text_panel(wl.message, ui.fullscreen():subrect(
 		0, 0, 300, 60, "center", "down"
+	))
+	ui.text_panel(wl.tip, ui.fullscreen():subrect(
+		0, 0, 800, 60, "center", "up"
 	))
 
 	if coroutine.status(wl.coroutine) == "dead" then

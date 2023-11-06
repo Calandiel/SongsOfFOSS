@@ -109,7 +109,6 @@ end
 
 ---Spawns initial tribes and initializes their data (such as characters, cultures, religions, races, etc)
 function st.run()
-	love.math.setRandomSeed(1)
 	---@type Queue<Province>
 	local queue = require "engine.queue":new()
 	local civs = 500 / tabb.size(RAWS_MANAGER.races_by_name) -- one per race...
