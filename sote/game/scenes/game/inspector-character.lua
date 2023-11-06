@@ -131,7 +131,7 @@ function window.draw(game)
     description_panel:shrink(5)
     ui.text(s, description_panel, "left", 'up')
 
-    traits_slider = ui.scrollview(
+    traits_slider = ut.scrollview(
         traits_panel, 
         function (index, rect)
             if index > 0 then

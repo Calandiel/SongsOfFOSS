@@ -45,7 +45,7 @@ function ev.draw(gam)
 			bot.y = bot.y + bot.height
 			bot:shrink(15)
 			gam.event_scrollbar = gam.event_scrollbar or 0
-			gam.event_scrollbar = ui.scrollview(bot, function(i, rect)
+			gam.event_scrollbar = uit.scrollview(bot, function(i, rect)
 				if i > 0 then
 					local opt = opts[i]
 					if uit.text_button(opt.text, rect, opt.tooltip) then

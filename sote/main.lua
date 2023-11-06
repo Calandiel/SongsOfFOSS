@@ -127,6 +127,10 @@ Possible command line arguments:
 		require "game.options".verify()
 	end
 
+	love.window.updateMode(800, 600, {
+		msaa = 2
+	})
+
 	if tab.contains(args, "--windowed") then
 		love.window.setFullscreen(false)
 	else

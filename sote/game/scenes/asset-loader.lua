@@ -46,7 +46,15 @@ function asl.load_assets()
 	ASSETS.icons = {}
 	local fs = love.filesystem.getDirectoryItems("icons")
 	for _, f in pairs(fs) do
-		local icon = love.graphics.newImage("icons/" .. f)
+		local icon = love.graphics.newImage(
+			"icons/" .. f,
+			{
+				mipmaps = true,
+				linear = false,
+				dpiscale = 1
+			}
+		)
+		icon:setFilter("linear", "linear", 2)
 		ASSETS.icons[f] = icon
 		-- Make sure to yield every now and then so that we don't hang the core!
 		yield_counter = yield_counter + 1
@@ -75,6 +83,7 @@ function asl.load_assets()
 
 	asl.message = "Loading sfx..."
 	print(asl.message)
+	---@type table<string, love.Source>
 	ASSETS.sfx = {}
 	local ms = love.filesystem.getDirectoryItems("sfx")
 	for _, m in pairs(ms) do

@@ -67,6 +67,7 @@ local pressed_mouse = {}
 local held_mouse = {}
 local released_mouse = {}
 local mouse_position = {}
+local old_mouse_position = {}
 local mouse_wheel_movement = 0
 local tooltip_text = nil
 local tooltip_x = 0
@@ -85,6 +86,7 @@ function ui.cache_input_state()
 	r.held_mouse = held_mouse
 	r.released_mouse = released_mouse
 	r.mouse_position = mouse_position
+	r.old_mouse_position = old_mouse_position
 	r.mouse_wheel_movement = mouse_wheel_movement
 
 	return r
@@ -101,6 +103,7 @@ function ui.load_input_state_from_cache(cache)
 	held_mouse = cache.held_mouse
 	released_mouse = cache.released_mouse
 	mouse_position = cache.mouse_position
+	old_mouse_position = cache.old_mouse_position
 	mouse_wheel_movement = cache.mouse_wheel_movement
 end
 
@@ -272,7 +275,12 @@ end
 --- Draws a single UI image at x/y coordinates and with a given width and height
 ---@param image love.Image
 ---@param rect Rect
-function ui.image(image, rect)
+---@param rotation number?
+function ui.image(image, rect, rotation)
+	if rotation == nil then
+		rotation = 0
+	end
+
 	local x = rect.x
 	local y = rect.y
 	local width = rect.width
@@ -294,7 +302,17 @@ function ui.image(image, rect)
 	local position_fraction_x = x / reference_width
 	local position_fraction_y = y / reference_height
 
-	love.graphics.draw(image, dims_x * position_fraction_x, dims_y * position_fraction_y, 0, scale_x, scale_y)
+	-- Adjust them for drawing offset
+	position_fraction_x = position_fraction_x + fill_x / 2
+	position_fraction_y = position_fraction_y + fill_y / 2
+
+	love.graphics.draw(
+		image,
+		dims_x * position_fraction_x, dims_y * position_fraction_y,
+		rotation,
+		scale_x, scale_y,
+		image_width / 2, image_height / 2
+	)
 end
 
 ---@alias VerticalAlignMode 'up' | 'center' | 'down'
@@ -341,17 +359,36 @@ end
 
 ---Returns a boolean for whether or not the mouse is within a rect
 ---@param rect Rect
+---@param mouse_x number?
+---@param mouse_y number?
 ---@return boolean mouse_in_rect
-function ui.trigger(rect)
+function ui.trigger(rect, mouse_x, mouse_y)
 	local x = rect.x
 	local y = rect.y
 	local width = rect.width
 	local height = rect.height
 	local mx, my = ui.mouse_position()
+	if mouse_x ~= nil then
+		mx = mouse_x
+	end
+	if mouse_y ~= nil then
+		my = mouse_y
+	end
 	return mx > x and
 		mx < x + width and
 		my > y and
 		my < y + height
+end
+
+---Returns true if mouse just moved inside this rect
+---@param rect any
+---@return boolean
+function ui.trigger_start_hover(rect)
+	local old_mouse_x, old_mouse_y = ui.old_mouse_position()
+	if ui.trigger(rect) and not ui.trigger(rect, old_mouse_x, old_mouse_y) then
+		return true
+	end
+	return false
 end
 
 ---Returns a boolean for whether or not a mouse click was started within a rect
@@ -465,6 +502,8 @@ end
 
 ---Call this in love.mousemoved
 function ui.on_mousemoved(x, y, dx, dy, istouch)
+	old_mouse_position.x = mouse_position.x
+	old_mouse_position.y = mouse_position.y
 	mouse_position.x = x
 	mouse_position.y = y
 end
@@ -521,9 +560,19 @@ function ui.is_mouse_released(button)
 end
 
 ---Returns position of the mouse, using reference width and reference height
+---@return number, number
 function ui.mouse_position()
 	local x = mouse_position.x or 0
 	local y = mouse_position.y or 0
+
+	local scale_x, scale_y = get_ui_scaling_factor()
+
+	return x / scale_x, y / scale_y
+end
+
+function ui.old_mouse_position()
+	local x = old_mouse_position.x or 0
+	local y = old_mouse_position.y or 0
 
 	local scale_x, scale_y = get_ui_scaling_factor()
 
@@ -833,6 +882,34 @@ function ui.hover_clicking_status(rect)
 	return hover, clicking
 end
 
+---@class (strict) ButtonImagesSet
+---@field passive love.Image
+---@field hovered love.Image
+---@field clicked love.Image
+
+---Renders an image button given images for all three states
+---comment
+---@param rect Rect
+---@param images ButtonImagesSet
+---@param rotation number?
+function ui.dummy_button_image(images, rect, rotation)
+	local hover, clicking = ui.hover_clicking_status(rect)
+
+	if rotation == nil then
+		rotation = 0
+	end
+
+	if hover then
+		if clicking then
+			ui.image(images.clicked, rect, rotation)
+		else
+			ui.image(images.hovered, rect, rotation)
+		end
+	else
+		ui.image(images.passive, rect, rotation)
+	end
+end
+
 ---Renders a button panel, using the default style
 ---@param rect Rect
 ---@param radius number?
@@ -848,9 +925,23 @@ end
 ---Renders a slider panel, using the default style
 ---@param rect Rect rect of the filled part
 ---@param outter_rect Rect rect of the background part
-function ui.slider_panel(rect, outter_rect)
-	set_color(ui.style.panel_inside)
-	ui.rectangle(outter_rect)
+---@param circle_style boolean?
+function ui.slider_panel(rect, outter_rect, circle_style)
+	if circle_style == nil then
+		circle_style = true
+	end
+	
+	if circle_style then
+		set_color(ui.style.slider_filled)
+		if outter_rect.width > outter_rect.height then
+			ui.rectangle(outter_rect:subrect(0, 0, outter_rect.width, 3, "center", 'center'))
+		else
+			ui.rectangle(outter_rect:subrect(0, 0, 3, outter_rect.height, "center", 'center'))
+		end
+	else
+		set_color(ui.style.panel_inside)
+		ui.rectangle(outter_rect)
+	end
 	local hover = ui.trigger(outter_rect)
 	if hover then
 		local clicking = ui.trigger_press(outter_rect, 1)
@@ -862,9 +953,16 @@ function ui.slider_panel(rect, outter_rect)
 	else
 		set_color(ui.style.slider_filled)
 	end
-	ui.rectangle(rect)
-	set_color(ui.style.button_outline)
-	ui.outline(rect)
+	if circle_style then
+		local circle = rect:subrect(0, 0, 10, 10, "center", 'center')
+		ui.rectangle(circle, 10)
+		set_color(ui.style.button_outline)
+		ui.outline(circle, 10)
+	else
+		ui.rectangle(rect)
+		set_color(ui.style.button_outline)
+		ui.outline(rect)
+	end
 	set_color(ui.style.reset_color)
 end
 
@@ -951,6 +1049,18 @@ function ui.field_panel(text, rect)
 	rect.x = rect.x + 5
 end
 
+---Draws an image button
+---@param images ButtonImagesSet
+---@param rect Rect
+---@param tooltip string|nil
+function ui.image_button(images, rotation, rect, tooltip)
+	ui.dummy_button_image(images, rect, rotation)
+	if tooltip then
+		ui.tooltip(tooltip, rect)
+	end
+	return ui.invisible_button(rect)
+end
+
 ---Draws a button with an icon on it.
 ---Note, this isn't the same as an image button, which uses 3 images to render the button instead of flat shaded rectangles.
 ---@param icon love.Image
@@ -973,13 +1083,18 @@ end
 ---@param max_value number
 ---@param vertical ?boolean
 ---@param height number ratio of slider to whole length
+---@param circle_style boolean?
+---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_value
-function ui.slider(rect, current_value, min_value, max_value, vertical, height)
+function ui.slider(rect, current_value, min_value, max_value, vertical, height, circle_style, slider_arrow_images)
+	if circle_style == nil then
+		circle_style = true
+	end
+
 	local ret = math.max(min_value, math.min(max_value, current_value))
 
 	local slider_real_length = rect.width
 	local control_button_size = rect.height
-
 	local slider_size = height * (slider_real_length - 2 * control_button_size)
 
 	local lr = ui.rect(rect.x, rect.y, rect.height, rect.height)
@@ -990,12 +1105,27 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		lr.width = rect.width
 		lr.height = rect.width
 	end
-	if vertical then
-		if ui.text_button("/\\", lr) then
-			ret = min_value
+
+	if circle_style then
+		slider_size = 10
+	end
+
+	if slider_arrow_images == nil then
+		if vertical then
+			if ui.text_button("/\\", lr) then
+				ret = min_value
+			end
+		else
+			if ui.text_button("<", lr) then
+				ret = min_value
+			end
 		end
 	else
-		if ui.text_button("<", lr) then
+		local rotation = -math.pi / 2
+		if vertical then
+			rotation = 0
+		end
+		if ui.image_button(slider_arrow_images, rotation, lr) then
 			ret = min_value
 		end
 	end
@@ -1031,7 +1161,7 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		filled.width = rect.width
 		filled.height = slider_size
 	end
-	ui.slider_panel(filled, background)
+	ui.slider_panel(filled, background, circle_style)
 
 	local rr = ui.rect(rect.x + rect.width - rect.height, rect.y, rect.height, rect.height)
 	if vertical then
@@ -1040,12 +1170,23 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 		rr.width = rect.width
 		rr.height = rect.width
 	end
-	if vertical then
-		if ui.text_button("\\/", rr) then
-			ret = max_value
+
+	if slider_arrow_images == nil then
+		if vertical then
+			if ui.text_button("\\/", rr) then
+				ret = max_value
+			end
+		else
+			if ui.text_button(">", rr) then
+				ret = max_value
+			end
 		end
 	else
-		if ui.text_button(">", rr) then
+		local rotation = math.pi / 2
+		if vertical then
+			rotation = math.pi
+		end
+		if ui.image_button(slider_arrow_images, rotation, rr) then
 			ret = max_value
 		end
 	end
@@ -1056,14 +1197,14 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height)
 			---@type number, number
 			local pos_x, pos_y = ui.mouse_position()
 			local frac = (pos_x - background.x) / background.width
+			local active_area_length = background.width - slider_size
 			if vertical then
 				frac = (pos_y - background.y) / background.height
+				active_area_length = background.height - slider_size
 			end
 			ret = frac
-
-			local active_area_length = slider_real_length - 2 * control_button_size
+			
 			local padding = slider_size / active_area_length
-
 			-- scale range [low + slider_width_ratio / 2, high - slider_width_ratio / 2] to range [low, high]
 			ret = math.min(1, math.max(0, ret * (1 + padding) - padding / 2))
 
@@ -1083,12 +1224,14 @@ end
 ---@param min_value number
 ---@param max_value number
 ---@param height number ratio of slider to whole length
+---@param circle_style boolean?
+---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_value
-function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height)
+function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, circle_style, slider_arrow_images)
 	local up = ui.rect(rect.x, rect.y, rect.width, rect.height / 2)
 	local down = ui.rect(rect.x, rect.y + rect.height / 2, rect.width, rect.height / 2)
 	ui.text_panel(slider_name, up)
-	return ui.slider(down, current_value, min_value, max_value, false, height)
+	return ui.slider(down, current_value, min_value, max_value, false, height, circle_style, slider_arrow_images)
 end
 
 ---Draws a checkbox in a given rect.
@@ -1138,6 +1281,8 @@ end
 ---@param entries_count number number of entries in the scrollview
 ---@param slider_width number width of the slider
 ---@param slider_level number how "scrolled down" the slider is
+---@param circle_style boolean?
+---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_slider_level
 function ui.scrollview(
     rect,
@@ -1145,12 +1290,12 @@ function ui.scrollview(
     individual_height,
     entries_count,
     slider_width,
-    slider_level
+    slider_level,
+	circle_style,
+	slider_arrow_images
 )
 
-	
 	-- "mouse scroll"
-	
 	if ui.trigger(rect) then
 		slider_level = math.min(math.max(0, slider_level - ui.mouse_wheel() / entries_count), 1)
 	end
@@ -1179,7 +1324,7 @@ function ui.scrollview(
 		:position(main_panel.x, main_panel.y)
 		:vertical()
 		:build()
-	
+
 	for i = current, last do
 		local item_rect = layout:next(
 			main_panel.width,
@@ -1202,7 +1347,7 @@ function ui.scrollview(
 	local sl = rect:copy()
 	sl.x = sl.x + sl.width - slider_width
 	sl.width = slider_width
-	return ui.slider(sl, slider_level, 0, 1, true, slider_height)
+	return ui.slider(sl, slider_level, 0, 1, true, slider_height, circle_style, slider_arrow_images)
 end
 
 ---@class TableState
@@ -1232,7 +1377,9 @@ end
 ---@param data table<TableKey, TableEntry>
 ---@param columns TableColumn[]
 ---@param state TableState
-function ui.table(rect, data, columns, state)
+---@param circle_style boolean?
+---@param slider_arrow_images ButtonImagesSet?
+function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	--- data sorting
 	---@type TablePair[]
 	local sorted_data = {}
@@ -1294,7 +1441,7 @@ function ui.table(rect, data, columns, state)
 		end
 	end
 
-	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level)
+	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level, circle_style, slider_arrow_images)
 	return result
 end
 

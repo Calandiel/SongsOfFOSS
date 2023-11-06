@@ -65,7 +65,7 @@ function re.draw(gam)
 				rect.y = rect.y + rect.height
 				rect.height = rect.height * 5
 				gam.building_workers_scrollbar = gam.building_workers_scrollbar or 0
-				gam.building_workers_scrollbar = ui.scrollview(rect, function(entry, rect)
+				gam.building_workers_scrollbar = uit.scrollview(rect, function(entry, rect)
 					if entry > 0 then
 						---@type POP
 						local worker, _ = tabb.nth(building.workers, entry)
@@ -93,7 +93,7 @@ function re.draw(gam)
 				ui.centered_text("Base inputs", next)
 				next = layout:next(rect.width, rect.height * 4)
 				gam.building_inputs_scrollbar = gam.building_inputs_scrollbar or 0
-				gam.building_inputs_scrollbar = ui.scrollview(next, function(entry, rect)
+				gam.building_inputs_scrollbar = uit.scrollview(next, function(entry, rect)
 					if entry > 0 then
 						---@type TradeGoodReference
 						local input, amount = tabb.nth(building.type.production_method.inputs, entry)
@@ -116,7 +116,7 @@ function re.draw(gam)
 				ui.centered_text("Base outputs", next)
 				next = layout:next(rect.width, rect.height * 4)
 				gam.building_outputs_scrollbar = gam.building_outputs_scrollbar or 0
-				gam.building_outputs_scrollbar = ui.scrollview(next, function(entry, rect)
+				gam.building_outputs_scrollbar = uit.scrollview(next, function(entry, rect)
 					if entry > 0 then
 						---@type TradeGoodReference
 						local input, amount = tabb.nth(building.type.production_method.outputs, entry)

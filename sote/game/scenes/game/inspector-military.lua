@@ -50,7 +50,7 @@ function window.draw(game)
     -- substance
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
     local warbands = realm:get_warbands()
-    slider_warbands = ui.scrollview(ui_panel, function(i, rect) 
+    slider_warbands = uit.scrollview(ui_panel, function(i, rect) 
         if i > 0 then
             ---@type Rect
             local r = rect
@@ -81,7 +81,7 @@ function window.draw(game)
     -- substance
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
     local targets = realm.reward_flags
-    slider_raiding_targets = ui.scrollview(ui_panel, function(i, rect)
+    slider_raiding_targets = uit.scrollview(ui_panel, function(i, rect)
         if i > 0 then
             ---@type Rect
             local r = rect
@@ -128,7 +128,7 @@ function window.draw(game)
     ui.text("Prepared forces", ui_panel, "right", 'up')
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
     local targets = realm.reward_flags
-    slider_raiding_targets = ui.scrollview(ui_panel, function(i, rect)
+    slider_raiding_targets = uit.scrollview(ui_panel, function(i, rect)
         if i > 0 then
             ---@type Rect
             local r = rect

@@ -293,6 +293,6 @@ return function(province, ui_panel, base_unit)
             }
         end
 
-        ui.table(uip, data_blob, columns, state)
+        ut.table(uip, data_blob, columns, state)
     end
 end

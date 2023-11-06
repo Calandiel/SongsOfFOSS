@@ -47,7 +47,7 @@ return function(rect, decision_type, primary_target, selected_decision)
     local res_decision = selected_decision 
     local res_target_p = primary_target 
     local res_target_s = nil
-    scroll = ui.scrollview(
+    scroll = ut.scrollview(
         rect, function(i, rect)
             if i > 0 then
                 local dec = decisions[i]

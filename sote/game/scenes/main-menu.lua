@@ -1,10 +1,12 @@
 local mm = {}
 
 local ui = require "engine.ui"
+local ut = require "game.ui-utils"
 local screen = nil; -- declare "screen"
 ---
 function mm.init()
 	screen = "main"
+	ut.reload_slider_icons()
 end
 
 ---

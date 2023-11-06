@@ -36,7 +36,7 @@ return function(rect, root, decision, target_primary, target_secondary)
                     -- Since the decision needs potential targets, let's just search for some!
                     local secondaries = dec.get_secondary_targets(root, target_primary)
                     if #secondaries > 0 then
-                        scroll = ui.scrollview(
+                        scroll = ut.scrollview(
                             r, function(i, rect)
                                 if i > 0 then
                                     local s = secondaries[i]

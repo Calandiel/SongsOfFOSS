@@ -73,7 +73,7 @@ function window.draw(game)
         end
     end
 
-    window.scroll = ui.scrollview(panel, render_character, base_unit * 2, tabb.size(province.characters), base_unit, window.scroll)
+    window.scroll = uit.scrollview(panel, render_character, base_unit * 2, tabb.size(province.characters), base_unit, window.scroll)
 end
 
 return window

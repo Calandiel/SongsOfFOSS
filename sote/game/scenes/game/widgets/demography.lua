@@ -164,13 +164,28 @@ local function demography(provinces, ui_panel, collapsed)
 
     return function()
         if collapsed then
-            ut.rows({
-                graph_races,
-                graph_cultures,
-                graph_faiths,
-                graph_jobs,
-            },
-            ui_panel)
+            ut.rows(
+                {
+                    function(rect)
+                        ui.centered_text("Races", rect)
+                    end,
+                    graph_races,
+                    function(rect)
+                        ui.centered_text("Culture", rect)
+                    end,
+                    graph_cultures,
+                    function(rect)
+                        ui.centered_text("Faiths", rect)
+                    end,
+                    graph_faiths,
+                    function(rect)
+                        ui.centered_text("Jobs", rect)
+                    end,
+                    graph_jobs,
+                },
+                ui_panel,
+                UI_STYLE.scrollable_list_thin_item_height
+            )
             return
         end
         ut.rows(

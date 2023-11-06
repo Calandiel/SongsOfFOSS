@@ -788,10 +788,6 @@ function gam.draw()
 				rect_for_icons.y = y - size / 2
 				rect_for_icons.width = size
 				rect_for_icons.height = size
-
-				-- ui.panel(rect_for_icons)
-				-- ui.text(tostring(to_draw), rect_for_icons, "center", 'center')
-
 				-- 
 				table.insert(provinces_to_draw, td)
 				for _, n in pairs(td.neighbors) do
@@ -1093,7 +1089,7 @@ function gam.draw()
 
 		local scrollview_rect = panel:subrect(0, 0, 300, mm_panel_height - ut.BASE_HEIGHT - 10, "right", 'down')
 		local mms = gam.map_mode_tabs[gam.map_mode_selected_tab]
-		gam.map_mode_slider = ui.scrollview(
+		gam.map_mode_slider = ut.scrollview(
 			scrollview_rect,
 			function(i, rect)
 				local mm_key = mms[i]
