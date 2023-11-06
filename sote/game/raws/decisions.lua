@@ -86,7 +86,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field available 				nil|fun(root:Character, primary_target:Province, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
 ---@field ai_will_do 				fun(root:Character, primary_target:Province, secondary_target:any):number Returns a probability that an AI will take the decision
 ---@field ai_targetting_attempts 	nil|number Number of attempts an AI will take to find a secondary target
----@field ai_target 				nil|fun(root:Character):Province,boolean Selects the primary target for the AI
+---@field ai_target 				nil|fun(root:Character):Province | nil,boolean Selects the primary target for the AI
 ---@field ai_secondary_target 		nil|fun(root:Character, primary_target:Province):any,boolean Selects the secondary target for the AI
 ---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets 	nil|fun(root:Character, primary_target:Province):table<number, any> Returns potential targets FOR THE PLAYER
@@ -147,7 +147,7 @@ local function init_decision(i)
 	end
 	for k, v in pairs(i) do
 		o[k] = v
-	end	
+	end
 	return o
 end
 
@@ -195,7 +195,6 @@ print('load generic character decision class')
 ---@param i DecisionCharacterProvinceData
 ---@return DecisionCharacterProvince
 function Decision.CharacterProvince:new(i)
-
 	---@type DecisionCharacterProvince
 	return Decision.Character:new(i)
 end

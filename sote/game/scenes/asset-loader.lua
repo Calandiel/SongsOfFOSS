@@ -71,7 +71,7 @@ function asl.load_assets()
 	local ms = love.filesystem.getDirectoryItems("music")
 	for _, m in pairs(ms) do
 		table.insert(ASSETS.music, love.audio.newSource("music/" .. m, "stream"))
-		ASSETS.music[#ASSETS.music]:setVolume(0.25)
+		ASSETS.music[#ASSETS.music]:setVolume(0.15)
 		-- Make sure to yield every now and then so that we don't hang the core!
 		yield_counter = yield_counter + 1
 		if yield_counter == 25 then
