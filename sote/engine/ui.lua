@@ -882,7 +882,7 @@ function ui.hover_clicking_status(rect)
 	return hover, clicking
 end
 
----@class ButtonImagesSet
+---@class (strict) ButtonImagesSet
 ---@field passive love.Image
 ---@field hovered love.Image
 ---@field clicked love.Image
