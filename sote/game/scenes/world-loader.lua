@@ -11,8 +11,11 @@ local loader_error = nil -- write this in coroutines to transmit the error out o
 ---
 function wl.init()
 	local tips = require "game.scenes.tips"
-	local key, value = tabb.random_select_from_set(tips)
-	wl.tip = value
+	local size = tabb.size(tips)
+	print("Tip table size: " .. tostring(size))
+	local r = love.math.random(size)
+	print("Randomly rolled tip index: " .. tostring(r))
+	wl.tip = tips[r]
 end
 
 ---

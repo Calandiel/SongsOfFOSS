@@ -1,3 +1,5 @@
+print("Initial random number:")
+print(love.math.random(100))
 local tab = require "engine.table"
 local ui = require "engine.ui"
 
@@ -63,18 +65,7 @@ bs.registerClass("World", require "game.entities.world".World)
 bs.registerClass("Warband", require "game.entities.warband")
 bs.registerClass('Army', require "game.entities.army")
 
---[[
-local bs = require "engine.bitser"
-local tile = require "game.entities.tile"
-local ffi = require "ffi"
-local ttt = ffi.new("Tile", 1000)
-bs.dumpLoveFile("debug", ttt)
-error("DONE!")
---]]
-
 function love.load(args)
-	love.math.setRandomSeed(1)
-
 	tab.print(args)
 	ARGS = tab.copy(args)
 	-- Possible args:
