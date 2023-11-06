@@ -81,9 +81,20 @@ local function render_unit(rect, unit, warband, possibility)
     end
 end
 
+local WARBAND_SIPHON_AMOUNT = 1;
+
 ---comment
 ---@param gam GameScene
 function inspector.draw(gam)
+
+    if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
+        WARBAND_SIPHON_AMOUNT = 5
+    elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+        WARBAND_SIPHON_AMOUNT = 50
+    else
+        WARBAND_SIPHON_AMOUNT = 1
+    end
+
     local panel = get_main_panel()
     local base_unit = UI_STYLE.scrollable_list_item_height
 
@@ -152,42 +163,41 @@ function inspector.draw(gam)
     local warbands_treasury_control = bottom:subrect(
         0,
         UI_STYLE.scrollable_list_item_height,
-        ut.BASE_HEIGHT * 3,
+        ut.BASE_HEIGHT * 4,
         UI_STYLE.scrollable_list_item_height,
         "left",
         'up'
     )
 
-    
-
+    ---@param x number
     local function gift_to_treasury_target(x)
         local preposition = 'from'
         if x > 0 then
             preposition = 'to'
         end
-        if ut.text_button(
-            ut.to_fixed_point2(x) .. MONEY_SYMBOL,
+
+        local amount = x * WARBAND_SIPHON_AMOUNT
+
+        if ut.money_button(
+            "Move",
+            amount,
             warbands_treasury_control,
             "Move "
-            .. ut.to_fixed_point2(math.abs(x))
+            .. ut.to_fixed_point2(math.abs(amount))
             .. MONEY_SYMBOL
             .. " of wealth "
             .. preposition
             .. " warband's treasury."
+            .. " Press Ctrl or Shift to modify amount."
         ) then
-            economic_effects.gift_to_warband(WORLD.player_character, x)
+            economic_effects.gift_to_warband(WORLD.player_character, amount)
         end
-        warbands_treasury_control.x = warbands_treasury_control.x + ut.BASE_HEIGHT * 3
+
+        warbands_treasury_control.x = warbands_treasury_control.x + ut.BASE_HEIGHT * 4
     end
 
-    gift_to_treasury_target(-100)
-    gift_to_treasury_target(-50)
-    gift_to_treasury_target(-10)
     gift_to_treasury_target(-1)
     gift_to_treasury_target(1)
-    gift_to_treasury_target(10)
-    gift_to_treasury_target(50)
-    gift_to_treasury_target(100)
 
     local warband_hires_panel = bottom:subrect(
         0,

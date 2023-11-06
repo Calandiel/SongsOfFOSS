@@ -92,12 +92,22 @@ local function header_panel(gam, tile, panel)
 
 end
 
+local INVESTMENT_AMOUNT = 1
+
 ---comment
 ---@param gam GameScene
 ---@param tile Tile
 ---@param panel Rect
 local function infrastructure_widget(gam, tile, panel)
-	
+
+	if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
+		INVESTMENT_AMOUNT = 5
+	elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+		INVESTMENT_AMOUNT = 50
+	else
+		INVESTMENT_AMOUNT = 1
+	end
+
 	panel:shrink(3)
 	ui.panel(panel, 3)
 	panel:shrink(3)
@@ -111,18 +121,24 @@ local function infrastructure_widget(gam, tile, panel)
 	end
 
 	---comment
-	---@param x number
 	---@return fun(rect: Rect)
-	local function invest_button(x)
+	local function invest_button()
 		return function(rect)
-			local potential = realm.budget.treasury > x
-			if uit.text_button(
-				'+' .. tostring(x) .. MONEY_SYMBOL, 
-				rect, 
-				'Invest ' .. tostring(x), 
+			local potential = realm.budget.treasury > INVESTMENT_AMOUNT
+			local tooltip =
+				"Invest "
+				.. tostring(INVESTMENT_AMOUNT)
+				.. MONEY_SYMBOL
+				.. ". Press Ctrl or Shift to modify invested amount."
+
+			if uit.money_button(
+				"Invest",
+				INVESTMENT_AMOUNT,
+				rect,
+				tooltip,
 				potential
 			) then
-				ef.direct_investment_infrastructure(realm, province, x)
+				ef.direct_investment_infrastructure(realm, province, INVESTMENT_AMOUNT)
 			end
 		end
 	end
@@ -132,7 +148,7 @@ local function infrastructure_widget(gam, tile, panel)
 			function(rect)
 				uit.money_entry(
 					'Inf.: ',
-					tile.province.infrastructure, 
+					tile.province.infrastructure,
 					rect,
 					'Local infrastructure'
 				)
@@ -168,11 +184,7 @@ local function infrastructure_widget(gam, tile, panel)
 
 			function (rect)
 				if WORLD:does_player_control_realm(realm) then
-					uit.columns({
-						invest_button(1),
-						invest_button(5),
-						invest_button(50),
-					}, rect, base_unit * 2)
+					invest_button()(rect)
 				end
 			end,
 			
