@@ -571,7 +571,6 @@ function ut.button(rect, potential, active, sound, hover_sound)
 	if active then
 		ui.style.panel_inside = dark_green_color
 		ui.style.panel_outline = dark_green_color
-		-- ui.panel(rect, math.min(rect.height, rect.width), false)
 		ui.panel(rect, 1, false)
 	end
 

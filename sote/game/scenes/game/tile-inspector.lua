@@ -34,8 +34,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function header_panel(gam, tile, panel)
-	-- ui.panel(panel)
-
 	local base_unit = uit.BASE_HEIGHT
 
 	local province_name_rect = panel:subrect(0, 0, panel.width / 2, base_unit, "left", 'up')
@@ -297,8 +295,6 @@ local function realm_widget(gam, tile, panel)
 end
 
 local function main_panel(gam, tile, panel)
-	-- ui.panel(panel)
-
 	local layout = ui.layout_builder()
 		:position(panel.x, panel.y)
 		:spacing(0)
@@ -473,10 +469,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function geography_tab(gam, tile, panel)
-	-- ui.panel(panel)
-	
-	local unit = uit.BASE_HEIGHT
-
 	local lat, lon = tile:latlon()
 	local jan_r, jan_t, jul_r, jul_t = tile:get_climate_data()
 	uit.columns(
@@ -648,8 +640,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function buildings_construction_tab(gam, tile, panel)
-	-- ui.panel(panel)
-
 	local base_unit = uit.BASE_HEIGHT
 
 	local rr = panel.height
@@ -685,8 +675,6 @@ end
 ---@param tile Tile
 ---@param rect Rect
 local function buildings_view_tab(gam, tile, rect)
-	-- ui.panel(rect)
-
 	local base_unit = uit.BASE_HEIGHT
 
 	if re.building_stacks == nil then
@@ -810,8 +798,6 @@ local function buildings_tab (gam, tile, panel)
 end
 
 local function technology_tab(gam, tile, panel)
-	-- ui.panel(panel)
-
 	local base_unit = uit.BASE_HEIGHT
 
 	uit.rows(
@@ -875,8 +861,6 @@ local decision_tab = "Province"
 ---@param tile Tile
 ---@param panel Rect
 local function decisions_tab(gam, tile, panel)
-	-- ui.panel(panel)
-
 	local unit = uit.BASE_HEIGHT
 
 	local tab_content = panel:subrect(0, unit, panel.width, panel.height - unit * 2, "left", 'up')
@@ -1059,9 +1043,7 @@ function re.draw_old(gam)
 			panel.height - base_unit * 3,
 			"left", 'up'):shrink(5)
 
-		-- ui.panel(ui_panel)
 		gam.tile_inspector_tab = gam.tile_inspector_tab or "GEN"
-
 
 		uit.rows({
 

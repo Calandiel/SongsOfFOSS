@@ -788,10 +788,6 @@ function gam.draw()
 				rect_for_icons.y = y - size / 2
 				rect_for_icons.width = size
 				rect_for_icons.height = size
-
-				-- ui.panel(rect_for_icons)
-				-- ui.text(tostring(to_draw), rect_for_icons, "center", 'center')
-
 				-- 
 				table.insert(provinces_to_draw, td)
 				for _, n in pairs(td.neighbors) do
