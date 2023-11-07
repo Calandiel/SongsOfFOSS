@@ -83,7 +83,7 @@ function emp.run(province)
 
 	-- A worker is needed, try to hire some pop
 	local pop = tabb.random_select_from_set(province.all_pops)
-	if not pop.drafted then
+	if not pop.drafted and pop.age > pop.race.child_age then
 		if pop.job == nil then
 			-- pop is not employed
 			-- employ him
