@@ -46,16 +46,18 @@ function HANDLE_EFFECTS()
 			reason = temp.reason,
 			amount = temp.amount,
 			timer = MAX_TREASURY_TIMER + counter * MIN_DELAY
-		} 
+		}
 		table.insert(CURRENT_EFFECTS, new_effect)
 		WORLD.old_treasury_effects:enqueue(temp)
-		while WORLD.old_treasury_effects:length() > OPTIONS['treasury_ledger'] do
+		while WORLD.old_treasury_effects:length() > OPTIONS["treasury_ledger"] do
 			WORLD.old_treasury_effects:dequeue()
 		end
 		counter = counter + 1
 	end
 end
 
+---comment
+---@param parent_rect Rect
 function DRAW_EFFECTS(parent_rect)
 	local new_rect = parent_rect:copy()
 	for _, effect in pairs(CURRENT_EFFECTS) do
@@ -63,7 +65,7 @@ function DRAW_EFFECTS(parent_rect)
 			local r, g, b, a = love.graphics.getColor()
 			if effect.amount > 0 then
 				love.graphics.setColor(1, 1, 0, (effect.timer) / MAX_TREASURY_TIMER)
-			else 
+			else
 				love.graphics.setColor(1, 0, 0, (effect.timer) / MAX_TREASURY_TIMER)
 			end
 
@@ -80,6 +82,7 @@ end
 
 ---@param dt number
 function tb.update(dt)
+	---@type integer[]
 	EFFECTS_TO_REMOVE = {}
 	for _, effect in pairs(CURRENT_EFFECTS) do
 		effect.timer = effect.timer - dt
@@ -106,14 +109,14 @@ function tb.draw(gam)
 		end
 
 		-- portrait
-		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", 'up'):shrink(5)
+		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", "up"):shrink(5)
 		if ui.invisible_button(portrait_rect) then
 			gam.selected.character = WORLD.player_character
 			gam.inspector = "character"
 		end
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
 		ui.tooltip("Click the portrait to open character screen", portrait_rect)
-		
+
 
 		--- current character
 		local layout = ui.layout_builder()
@@ -130,9 +133,9 @@ function tb.draw(gam)
 		local rect = layout:next(uit.BASE_HEIGHT * 5, uit.BASE_HEIGHT)
 		if uit.text_button("", rect) then
 			gam.inspector = "treasury-ledger"
-			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Character'
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = "Character"
 		end
-		
+
 		uit.money_entry_icon(
 			character.savings,
 			rect,
@@ -140,7 +143,7 @@ function tb.draw(gam)
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 
 		uit.data_entry_icon(
-			'duality-mask.png',
+			"duality-mask.png",
 			uit.to_fixed_point2(pv.popularity(character, character.province.realm)),
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 			"My popularity")
@@ -153,10 +156,10 @@ function tb.draw(gam)
 			:build()
 
 		require "game.scenes.game.widgets.realm-name"(
-			gam, 
+			gam,
 			character.province.realm,
 			layout:next(
-				uit.BASE_HEIGHT * 7, 
+				uit.BASE_HEIGHT * 7,
 				uit.BASE_HEIGHT
 			)
 		)
@@ -166,7 +169,7 @@ function tb.draw(gam)
 
 		if uit.text_button("", trt) then
 			gam.inspector = "treasury-ledger"
-			(require "game.scenes.game.inspector-treasury-ledger").current_tab = 'Treasury'
+			(require "game.scenes.game.inspector-treasury-ledger").current_tab = "Treasury"
 		end
 
 		uit.money_entry_icon(
@@ -178,9 +181,9 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = character.province.realm.resources['food'] or 0
+		local amount = character.province.realm.resources["food"] or 0
 		uit.data_entry_icon(
-			'noodles.png',
+			"noodles.png",
 			uit.to_fixed_point2(amount),
 			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
 			"Food")
@@ -189,27 +192,27 @@ function tb.draw(gam)
 		local amount = character.province.realm:get_education_efficiency()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
-		uit.generic_number_field('erlenmeyer.png', amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
+		uit.generic_number_field("erlenmeyer.png", amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 
 		-- Happiness
 		local amount = character.province.realm:get_average_mood()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
-		uit.data_entry_icon('duality-mask.png', uit.to_fixed_point2(amount), tr, trs)
+		uit.data_entry_icon("duality-mask.png", uit.to_fixed_point2(amount), tr, trs)
 
 		-- POP
 		local amount = character.province.realm:get_total_population()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Current population of our realm."
-		uit.data_entry_icon('minions.png', tostring(math.floor(amount)), tr, trs)
+		uit.data_entry_icon("minions.png", tostring(math.floor(amount)), tr, trs)
 
 		-- Army size
 		local amount = character.province.realm:get_realm_military()
 		local target = character.province.realm:get_realm_military_target() + character.province.realm:get_realm_active_army_size()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Size of our realms armies."
-		uit.data_entry_icon('barbute.png', tostring(math.floor(amount)) .. ' / ' .. tostring(math.floor(target)), tr, trs)
-	
+		uit.data_entry_icon("barbute.png", tostring(math.floor(amount)) .. " / " .. tostring(math.floor(target)), tr, trs)
+
 
 		-- ALERTS
 		---@class Alert
@@ -221,30 +224,30 @@ function tb.draw(gam)
 
 		if character.province:get_unemployment() > 5 then
 			table.insert(alerts, {
-				['icon'] = 'miner.png',
-				['tooltip'] = "Unemployment is high. Consider construction of new buildings or investment into local economy.",
+				["icon"] = "miner.png",
+				["tooltip"] = "Unemployment is high. Consider construction of new buildings or investment into local economy.",
 			})
 		end
 
 		if character.province.mood < 1 then
 			table.insert(alerts, {
-				['icon'] = 'despair.png',
-				['tooltip'] = "Our people are unhappy. Gift money to your population or raid other realms.",
+				["icon"] = "despair.png",
+				["tooltip"] = "Our people are unhappy. Gift money to your population or raid other realms.",
 			})
 		end
 
 		if character.rank == RANKS.CHIEF then
 			if character.province:get_infrastructure_efficiency() < 0.9 then
 				table.insert(alerts, {
-					['icon'] = 'horizon-road.png',
-					['tooltip'] = "Infrastructure efficiency is low. It might be a temporary effect or a sign of a low infrastructure budget.",
+					["icon"] = "horizon-road.png",
+					["tooltip"] = "Infrastructure efficiency is low. It might be a temporary effect or a sign of a low infrastructure budget.",
 				})
 			end
 
 			if character.realm:get_education_efficiency() < 0.9 then
 				table.insert(alerts, {
-					['icon'] = 'erlenmeyer.png',
-					['tooltip'] = "Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
+					["icon"] = "erlenmeyer.png",
+					["tooltip"] = "Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
 				})
 			end
 		end
@@ -254,7 +257,7 @@ function tb.draw(gam)
 
 			local alert_rect = rect:copy():shrink(5)
 			local old_style = ui.style.panel_outline
-			ui.style.panel_outline = { ['r'] = 1, ['g'] = 0, ['b'] = 0, ['a'] = 1 }
+			ui.style.panel_outline = { ["r"] = 1, ["g"] = 0, ["b"] = 0, ["a"] = 1 }
 			ui.panel(alert_rect, uit.BASE_HEIGHT)
 			ui.style.panel_outline = old_style
 			love.graphics.setColor(0.8, 0, 0, 1)

@@ -11,12 +11,12 @@ local portait = require "game.scenes.game.widgets.portrait"
 ---@return function
 local function info(rect, realm, gam)
     return function()
-        local panel_rect = rect:subrect(0, uit.BASE_HEIGHT, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", 'up')
+        local panel_rect = rect:subrect(0, uit.BASE_HEIGHT, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", "up")
 
         -- leader info
         local leader = realm.leader
         if leader then
-            local portrait_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT * 4, "left", 'up')
+            local portrait_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT * 4, "left", "up")
             portait(portrait_rect, leader)
             if ui.invisible_button(portrait_rect) then
                 gam.selected.character = leader

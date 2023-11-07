@@ -13,8 +13,8 @@ local function render_realm(gam, rect, realm)
 
     local realm_name_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height / 2, "left", "up")
     local leader_name_rect = rect:subrect(rect.height, rect.height / 2, rect.width - rect.height, rect.height / 2, "left", "up")
-    
-    require "game.scenes.game.widgets.realm-name"(gam, realm, realm_name_rect, 'immediate')
+
+    require "game.scenes.game.widgets.realm-name"(gam, realm, realm_name_rect, "immediate")
     if ut.text_button(realm.leader.name, leader_name_rect) then
         gam.inspector = "character"
         gam.selected.character = realm.leader

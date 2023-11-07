@@ -9,7 +9,7 @@ local decision_target_primary = nil
 local decision_target_secondary = nil
 
 ---@return Rect
-function window.rect() 
+function window.rect()
     return ui.fullscreen():subrect(0, 0, 300, 400, "center", "center")
 end
 
@@ -30,9 +30,9 @@ function window.draw(game)
 
     local base_unit = ut.BASE_HEIGHT
 
-    ui.text("Character decisions", ui_panel, "left", 'up')
+    ui.text("Character decisions", ui_panel, "left", "up")
 
-    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", "up")) then
         game.inspector = nil
     end
 
@@ -45,7 +45,7 @@ function window.draw(game)
 			if WORLD.player_character then
 				selected_decision, decision_target_primary, decision_target_secondary = require "game.scenes.game.widgets.decision-selection-character"(
 					rect,
-					'none',
+					"none",
 					nil,
                     selected_decision
 				)
@@ -62,7 +62,7 @@ function window.draw(game)
 				decision_target_secondary
 			)
 
-			if res ~= 'nothing' then
+			if res ~= "nothing" then
 				selected_decision = nil
 				decision_target_primary = nil
 				decision_target_secondary = nil

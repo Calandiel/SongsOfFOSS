@@ -6,7 +6,7 @@ local uit = require "game.ui-utils"
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, 0, 750, 400, "left", 'down')
+	local panel = fs:subrect(0, 0, 750, 400, "left", "down")
 	return panel
 end
 
@@ -30,7 +30,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up")) then
 			gam.click_tile(-1)
 			gam.selected.building = nil
 			gam.inspector = nil
@@ -38,7 +38,7 @@ function re.draw(gam)
 
 
 		local ui_panel = panel:subrect(5, uit.BASE_HEIGHT, panel.width - 10, panel.height - 10 - uit.BASE_HEIGHT,
-			"left", 'up')
+			"left", "up")
 		local tabs = {
 			{
 				text = "GEN",
@@ -101,7 +101,7 @@ function re.draw(gam)
 						uit.BASE_HEIGHT, gam.war_defender_scrollbar)
 					pp.y = pp.y - uit.BASE_HEIGHT
 
-					local bb = ui_panel:subrect(0, 0, ui_panel.width - 2 * width, uit.BASE_HEIGHT, "center", 'down')
+					local bb = ui_panel:subrect(0, 0, ui_panel.width - 2 * width, uit.BASE_HEIGHT, "center", "down")
 					bb.width = bb.width / 3
 					if uit.text_button("Surrender", bb) then
 

@@ -4,14 +4,14 @@ local ut = require "game.ui-utils"
 
 ---Filters treasury changes
 ---@param data TreasuryEffectRecord[]
----@param filter nil|'character'|'realm'
+---@param filter nil|"character"|"realm"
 ---@return TreasuryEffectRecord[]
 local function filter(data, filter)
     if filter == nil then
         return data
     end
 
-    if filter == 'character' then
+    if filter == "character" then
         local filtered_data = {}
         for i, v in ipairs(data) do
             if v.character_flag then
@@ -21,7 +21,7 @@ local function filter(data, filter)
         return filtered_data
     end
 
-    if filter == 'realm' then
+    if filter == "realm" then
         local filtered_data = {}
         for i, v in ipairs(data) do
             if not v.character_flag then
@@ -36,7 +36,7 @@ end
 
 ---Renders selected treasury ledger and returns current scroll
 ---@param rect Rect
----@param filter_tag nil|'character'|'realm'
+---@param filter_tag nil|"character"|"realm"
 ---@param scroll number
 ---@param base_unit number
 ---@return number
@@ -51,7 +51,7 @@ return function (rect, filter_tag, scroll, base_unit)
         local effect = data[i]
         if effect ~= nil then
             if effect.reason == "new month" then
-                ui.left_text(tostring(effect.day) .. " " .. ut.months[effect.month + 1] .. ' of year ' .. effect.year, rect)
+                ui.left_text(tostring(effect.day) .. " " .. ut.months[effect.month + 1] .. " of year " .. effect.year, rect)
             else
                 ut.money_entry(effect.reason, effect.amount, rect)
             end

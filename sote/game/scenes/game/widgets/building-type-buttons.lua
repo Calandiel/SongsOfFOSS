@@ -13,22 +13,22 @@ local pv = require "game.raws.values.political"
 local function validate_building_tooltip(rect, reason, funds, cost)
     local icon = nil
     local tooltip = ""
-    if reason == 'unique_duplicate' then
-        icon = ASSETS.icons['triangle-target.png']
-        tooltip = 'There can be at most a single building of this type per province!'
-    elseif reason == 'tile_improvement' then
-        icon = ASSETS.icons['triangle-target.png']
-        tooltip = 'Tile improvements have to be built from the local infrastructure UI!'
-    elseif reason == 'not_enough_funds' then
-        icon = ASSETS.icons['uncertainty.png']
-        tooltip = 'Not enough funds: ' 
+    if reason == "unique_duplicate" then
+        icon = ASSETS.icons["triangle-target.png"]
+        tooltip = "There can be at most a single building of this type per province!"
+    elseif reason == "tile_improvement" then
+        icon = ASSETS.icons["triangle-target.png"]
+        tooltip = "Tile improvements have to be built from the local infrastructure UI!"
+    elseif reason == "not_enough_funds" then
+        icon = ASSETS.icons["uncertainty.png"]
+        tooltip = "Not enough funds: "
                 .. uit.to_fixed_point2(funds)
                 .. " / "
                 .. uit.to_fixed_point2(cost)
                 .. MONEY_SYMBOL
-    elseif reason == 'missing_local_resources' then
-        icon = ASSETS.icons['triangle-target.png']
-        tooltip = 'Missing local resources!'
+    elseif reason == "missing_local_resources" then
+        icon = ASSETS.icons["triangle-target.png"]
+        tooltip = "Missing local resources!"
     end
 
     if icon then
@@ -86,14 +86,14 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
         validate_building_tooltip(rect, reason, funds, construction_cost)
     else
         if tile.tile_improvement and building_type.tile_improvement then
-            ui.image(ASSETS.icons['triangle-target.png'], rect)
-            ui.tooltip('There already is a tile improvement on here!', rect)
+            ui.image(ASSETS.icons["triangle-target.png"], rect)
+            ui.tooltip("There already is a tile improvement on here!", rect)
         else
             local tooltip = "(private)"
             if public_flag then
                 tooltip = "(public)"
             end
-            if uit.icon_button(ASSETS.icons['hammer-drop.png'], rect,
+            if uit.icon_button(ASSETS.icons["hammer-drop.png"], rect,
                 "Build " .. tooltip .." (" .. tostring(construction_cost) .. MONEY_SYMBOL .. ")") then
 
                 EconomicEffects.construct_building_with_payment(
@@ -126,14 +126,14 @@ return function (gam, rect, building_type, tile, tile_improvement_flag)
     ui.tooltip(building_type:get_tooltip(), rect)
     ---@type Rect
     local r = rect
-    local im = r:subrect(0, 0, rect.height, rect.height, "left", 'up')
+    local im = r:subrect(0, 0, rect.height, rect.height, "left", "up")
     ui.image(ASSETS.get_icon(building_type.icon), im)
     r.x = r.x + rect.height
     r.width = r.width - rect.height * 4
 
     if building_type.tile_improvement then
         uit.generic_number_field(
-            building_type.description, 
+            building_type.description,
             building_type.production_method:get_efficiency(tile),
             r,
             nil,
@@ -146,7 +146,7 @@ return function (gam, rect, building_type, tile, tile_improvement_flag)
 
     r.x = r.x + r.width
     r.width = rect.height
-    if uit.icon_button(ASSETS.icons['mesh-ball.png'], r,
+    if uit.icon_button(ASSETS.icons["mesh-ball.png"], r,
         "Show local efficiency on map") then
         gam.selected.building_type = building_type
         gam.refresh_map_mode(true)

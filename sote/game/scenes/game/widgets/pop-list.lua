@@ -34,20 +34,20 @@ end
 ---@param pop POP
 ---@return string
 local function pop_display_occupation(pop)
-    local job = 'unemployed'
+    local job = "unemployed"
     if pop.job then
         job = pop.job.name
     elseif pop.age < pop.race.teen_age then
-        job = 'child'
+        job = "child"
     elseif pop.drafted then
-        job = 'warrior'
+        job = "warrior"
     end
     return job
 end
 
 local function pop_sex(pop)
-    local f = 'm'
-    if pop.female then f = 'f' end
+    local f = "m"
+    if pop.female then f = "f" end
     return f
 end
 
@@ -59,7 +59,7 @@ return function(rect, base_unit, province)
         ---@type TableColumn[]
         local columns = {
             {
-                header = '.',
+                header = ".",
                 render_closure = function(rect, k, v)
                     ui.image(ASSETS.get_icon(v.race.icon), rect)
                 end,
@@ -71,7 +71,7 @@ return function(rect, base_unit, province)
                 end
             },
             {
-                header = 'name',
+                header = "name",
                 render_closure = render_name,
                 width = base_unit * 6,
                 value = function(k, v)
@@ -81,7 +81,7 @@ return function(rect, base_unit, province)
                 end
             },
             {
-                header = 'race',
+                header = "race",
                 render_closure = render_race,
                 width = base_unit * 6,
                 value = function(k, v)
@@ -91,7 +91,7 @@ return function(rect, base_unit, province)
                 end
             },
             {
-                header = 'job',
+                header = "job",
                 render_closure = function (rect, k, v)
                     ui.centered_text(pop_display_occupation(v), rect)
                 end,
@@ -101,7 +101,7 @@ return function(rect, base_unit, province)
                 end
             },
             {
-                header = 'age',
+                header = "age",
                 render_closure = function (rect, k, v)
                     ui.right_text(tostring(v.age), rect)
                 end,
@@ -111,7 +111,7 @@ return function(rect, base_unit, province)
                 end
             },
             {
-                header = 'sex',
+                header = "sex",
                 render_closure = function (rect, k, v)
                     ui.centered_text(pop_sex(v), rect)
                 end,
@@ -122,8 +122,8 @@ return function(rect, base_unit, province)
             }
         }
         init_state(base_unit)
-        local top = rect:subrect(0, 0, rect.width, base_unit, "left", 'up')
-        local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", 'up')
+        local top = rect:subrect(0, 0, rect.width, base_unit, "left", "up")
+        local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", "up")
         ui.centered_text("Population", top)
         ut.table(bottom, province.all_pops, columns, state)
     end

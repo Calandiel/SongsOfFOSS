@@ -154,7 +154,7 @@ local function render_percentage(number, rect, negative)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
-	ui.right_text( tostring(math.floor(number * 100 + 0.5)) .. '%', rect)
+	ui.right_text( tostring(math.floor(number * 100 + 0.5)) .. "%", rect)
 	ut.main_font()
 	love.graphics.setColor(cr, cg, cb, ca)
 end
@@ -189,7 +189,7 @@ function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_m
 	if name_mode == ut.NAME_MODE.NAME then
 		ui.left_text(name_or_icon, rect)
 	elseif name_mode == ut.NAME_MODE.ICON then
-		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
 		ui.image(ASSETS.icons[name_or_icon], icon_rect)
 	end
 
@@ -223,10 +223,10 @@ end
 ---@param tooltip string?
 ---@param name_mode NameMode
 ---@param panel boolean?
----@param alignment 'left' | 'right' | nil
+---@param alignment "left" | "right" | nil
 function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, panel, alignment)
 	if alignment == nil then
-		alignment = 'right'
+		alignment = "right"
 	end
 
 	if panel == nil then
@@ -242,12 +242,12 @@ function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, p
 	if name_mode == ut.NAME_MODE.NAME then
 		ui.left_text(name_or_icon, rect)
 	elseif name_mode == ut.NAME_MODE.ICON then
-		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+		local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
 		ui.image(ASSETS.icons[name_or_icon], icon_rect)
 	end
 
 	ut.data_font()
-	if alignment == 'right' then
+	if alignment == "right" then
 		ui.right_text(data, rect)
 	else
 		rect.x = rect.x + rect.height + 5
@@ -268,10 +268,10 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param panel boolean?
----@param alignment 'left' | 'right' | nil
+---@param alignment "left" | "right" | nil
 function ut.data_entry(name, data, rect, tooltip, panel, alignment)
 	if alignment == nil then
-		alignment = 'right'
+		alignment = "right"
 	end
 	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel, alignment)	
 end
@@ -282,10 +282,10 @@ end
 ---@param rect Rect
 ---@param tooltip string?
 ---@param panel boolean?
----@param alignment 'left' | 'right' | nil
+---@param alignment "left" | "right" | nil
 function ut.data_entry_icon(icon, data, rect, tooltip, panel, alignment)
 	if alignment == nil then
-		alignment = 'right'
+		alignment = "right"
 	end
 	ut.generic_string_field(icon, data, rect, tooltip, ut.NAME_MODE.ICON, panel, alignment)
 end
@@ -337,7 +337,7 @@ end
 ---@param negative boolean?
 ---@param panel boolean?
 function ut.money_entry_icon(data, rect, tooltip, negative, panel)
-	ut.generic_number_field('coins.png', data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.ICON, negative, panel)
+	ut.generic_number_field("coins.png", data, rect, tooltip, ut.NUMBER_MODE.MONEY, ut.NAME_MODE.ICON, negative, panel)
 end
 
 ---Draws a data field
@@ -378,9 +378,9 @@ end
 
 function ut.reload_slider_icons()
 	ASSETS.slider_images = {
-		clicked = ASSETS.icons['slider_press.png'],
-		hovered = ASSETS.icons['slider_hover.png'],
-		passive = ASSETS.icons['slider_passive.png']
+		clicked = ASSETS.icons["slider_press.png"],
+		hovered = ASSETS.icons["slider_hover.png"],
+		passive = ASSETS.icons["slider_passive.png"]
 	}
 end
 
@@ -433,81 +433,81 @@ function ut.coa(realm, rect)
 end
 
 ut.months = {
-	'January',
-	'February',
-	'March',
-	'April',
-	'May',
-	'June',
-	'July',
-	'August',
-	'September',
-	'October',
-	'November',
-	'December'
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December"
 }
 
 local gold_color = {
-	['r'] = 1,
-	['g'] = 0.87,
-	['b'] = 0,
-	['a'] = 1
+	["r"] = 1,
+	["g"] = 0.87,
+	["b"] = 0,
+	["a"] = 1
 }
 
 local dark_yellow = {
-	['r'] = 0.5,
-	['g'] = 0.4,
-	['b'] = 0,
-	['a'] = 1
+	["r"] = 0.5,
+	["g"] = 0.4,
+	["b"] = 0,
+	["a"] = 1
 }
 
 local black_color = {
-	['r'] = 0,
-	['g'] = 0,
-	['b'] = 0,
-	['a'] = 1
+	["r"] = 0,
+	["g"] = 0,
+	["b"] = 0,
+	["a"] = 1
 }
 
 local blue_color = {
-	['r'] = 0.5,
-	['g'] = 0.5,
-	['b'] = 1,
-	['a'] = 1
+	["r"] = 0.5,
+	["g"] = 0.5,
+	["b"] = 1,
+	["a"] = 1
 }
 
 local silver_color = {
-	['r'] = 0.87,
-	['g'] = 0.87,
-	['b'] = 0.87,
-	['a'] = 1
+	["r"] = 0.87,
+	["g"] = 0.87,
+	["b"] = 0.87,
+	["a"] = 1
 }
 
 local dark_grey_color = {
-	['r'] = 0.2,
-	['g'] = 0.2,
-	['b'] = 0.2,
-	['a'] = 1
+	["r"] = 0.2,
+	["g"] = 0.2,
+	["b"] = 0.2,
+	["a"] = 1
 }
 
 local dark_green_color = {
-	['r'] = 56 / 255,
-	['g'] = 70 / 255,
-	['b'] = 56 / 255,
-	['a'] = 1
+	["r"] = 56 / 255,
+	["g"] = 70 / 255,
+	["b"] = 56 / 255,
+	["a"] = 1
 }
 
 local dark_blue_color = {
-	['r'] = 29 / 255,
-	['g'] = 53 / 255,
-	['b'] = 92 / 255,
-	['a'] = 1
+	["r"] = 29 / 255,
+	["g"] = 53 / 255,
+	["b"] = 92 / 255,
+	["a"] = 1
 }
 
 local light_lime_color = {
-	['r'] = 0.5,
-	['g'] = 1,
-	['b'] = 0.5,
-	['a'] = 1
+	["r"] = 0.5,
+	["g"] = 1,
+	["b"] = 0.5,
+	["a"] = 1
 }
 
 ---Renders button border / background depending on potential and active, returns button result and Rect to draw some data inside
@@ -548,14 +548,14 @@ function ut.button(rect, potential, active, sound, hover_sound)
 	ui.panel(rect, 1, false, true)
 
 	-- inner background
-	ui.style['button_inside'] = dark_blue_color --dark_green_color
-	ui.style['button_hovered'] = blue_color
-	ui.style['button_clicked'] = light_lime_color
+	ui.style["button_inside"] = dark_blue_color --dark_green_color
+	ui.style["button_hovered"] = blue_color
+	ui.style["button_clicked"] = light_lime_color
 
 	if not potential then
-		ui.style['button_inside'] = dark_grey_color
-		ui.style['button_hovered'] = dark_grey_color
-		ui.style['button_clicked'] = dark_grey_color
+		ui.style["button_inside"] = dark_grey_color
+		ui.style["button_hovered"] = dark_grey_color
+		ui.style["button_clicked"] = dark_grey_color
 	end
 
 	rect = rect:shrink(1)
@@ -678,19 +678,19 @@ function ut.calendar(gam)
 	local seconds = math.floor(sht / www * 60 * 60) % 60
 	main.x = main.x - 5 -- shift it slightly so that the numbers dont touch the edge of the screen...
 	ui.right_text(tostring(WORLD.hour) ..
-		' : ' .. tostring(minutes) .. ' : ' .. tostring(seconds) .. ' -- ' ..
-		tostring(WORLD.day) .. '.' .. ut.months[WORLD.month + 1] .. '.' .. tostring(WORLD.year), main)
+		" : " .. tostring(minutes) .. " : " .. tostring(seconds) .. " -- " ..
+		tostring(WORLD.day) .. "." .. ut.months[WORLD.month + 1] .. "." .. tostring(WORLD.year), main)
 	main.x = main.x + 5 -- move it back so that the trigger isnt broken
 
 	local main_button = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	if gam.paused ~= nil and not gam.paused then
 		-- the game is unpaused
-		if ut.icon_button(ASSETS.icons['pause-button.png'], main_button, "Pause") then
+		if ut.icon_button(ASSETS.icons["pause-button.png"], main_button, "Pause") then
 			gam.paused = true
 		end
 	else
 		-- the game is paused
-		if ut.icon_button(ASSETS.icons['play-button.png'], main_button, "Unpause") then
+		if ut.icon_button(ASSETS.icons["play-button.png"], main_button, "Unpause") then
 			gam.paused = false
 		end
 	end
@@ -701,14 +701,14 @@ function ut.calendar(gam)
 	local speed_up = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	local speed = hor:next(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT)
 	local speed_down = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
-	if ut.icon_button(ASSETS.icons['fast-forward-button.png'], speed_up, "Speed up") or ui.is_key_pressed("+") or
+	if ut.icon_button(ASSETS.icons["fast-forward-button.png"], speed_up, "Speed up") or ui.is_key_pressed("+") or
 		ui.is_key_pressed("kp+") then
 		gam.speed = math.min(10, gam.speed + 1)
 	end
 	ui.panel(speed)
 	ui.centered_text(tostring(gam.speed) .. " / 10", speed)
 	ui.tooltip("Game speed", speed)
-	if ut.icon_button(ASSETS.icons['fast-backward-button.png'], speed_down, "Slown down") or ui.is_key_pressed("-") or
+	if ut.icon_button(ASSETS.icons["fast-backward-button.png"], speed_down, "Slown down") or ui.is_key_pressed("-") or
 		ui.is_key_pressed("kp-") then
 		gam.speed = math.max(1, gam.speed - 1)
 	end
@@ -754,13 +754,13 @@ end
 
 function ut.to_fixed_point2(x)
 	local temp = math.abs(x)
-	local sign = ''
+	local sign = ""
 	if x < 0 then
-		sign = '-'
+		sign = "-"
 	end
 	local frac_1 = math.floor((temp - math.floor(temp)) * 10)
 	local frac_2 = math.floor((temp * 10 - math.floor(temp * 10)) * 10)
-	return sign .. tostring(math.floor(temp)) .. '.' .. frac_1 .. frac_2
+	return sign .. tostring(math.floor(temp)) .. "." .. frac_1 .. frac_2
 end
 
 ---comment

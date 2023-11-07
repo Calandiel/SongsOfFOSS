@@ -18,7 +18,7 @@ function pla.get_shader()
 	local fs = [[
 		uniform float world_size;
 		uniform sampler2D tile_colors;
-	        uniform sampler2D tile_improvement_texture;
+		uniform sampler2D tile_improvement_texture;
 		uniform sampler2D tile_raiding_targets;
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
@@ -93,13 +93,13 @@ function pla.get_shader()
 			player_y /= world_size;
 			player_x /= world_size;
 			vec2 playercoords = vec2(player_x, player_y);
-			
+
 
 			vec2 clicked = clickedcoords / 3;
 			vec2 player = playercoords / 3;
 
 			clicked += get_face_offset(clicked_face);
-			player += get_face_offset(player_face);	
+			player += get_face_offset(player_face);
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			vec4 texcolor = Texel(tile_colors, face_offset);

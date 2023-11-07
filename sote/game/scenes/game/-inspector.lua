@@ -6,7 +6,7 @@ local uit = require "game.ui-utils"
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, 0, 500, 500, "left", 'down')
+	local panel = fs:subrect(0, 0, 500, 500, "left", "down")
 	return panel
 end
 
@@ -30,7 +30,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up")) then
 			gam.click_tile(-1)
 			gam.selected.building = nil
 			gam.inspector = nil

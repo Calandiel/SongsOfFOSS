@@ -23,64 +23,64 @@ return function(ui_panel, realm)
         local column_width = uit.BASE_HEIGHT * 8
 
         -- current treasury
-        local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
+        local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", "up")
         uit.money_entry("Realm treasury", realm.budget.treasury, panel_rect, "Treasury")
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- current spending
-        local spendings_rect = panel_rect:subrect(0, 0, column_width - uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+        local spendings_rect = panel_rect:subrect(0, 0, column_width - uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up")
         for category, spendings in pairs(realm.budget.spending_by_category) do
             uit.money_entry(category, spendings, spendings_rect, "Spending", true)
             spendings_rect.y = spendings_rect.y + uit.BASE_HEIGHT
         end
 
         -- current incomes
-        local incomes_rect = panel_rect:subrect(column_width, 0, column_width - uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", 'up')
+        local incomes_rect = panel_rect:subrect(column_width, 0, column_width - uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up")
         for category, incomes in pairs(realm.budget.income_by_category) do
             uit.money_entry(category, incomes, incomes_rect, "Income")
             incomes_rect.y = incomes_rect.y + uit.BASE_HEIGHT
         end
 
         -- treasury changes
-        local treasury_changes = panel_rect:subrect(2 * column_width, 0, column_width, uit.BASE_HEIGHT, "left", 'up')
+        local treasury_changes = panel_rect:subrect(2 * column_width, 0, column_width, uit.BASE_HEIGHT, "left", "up")
         for category, spendings in pairs(realm.budget.spending_by_category) do
             uit.money_entry(category, spendings, treasury_changes, "Treasury changes", true)
             treasury_changes.y = treasury_changes.y + uit.BASE_HEIGHT
         end
 
         -- current budget
-        panel_rect = ui_panel:subrect(0, ui_panel.height / 2, ui_panel.width, ui_panel.height / 2, "left", 'up')
+        panel_rect = ui_panel:subrect(0, ui_panel.height / 2, ui_panel.width, ui_panel.height / 2, "left", "up")
 
         -- budget breakdown
 
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'),
-            'Education', realm, realm.budget.education, false, true)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
+            "Education", realm, realm.budget.education, false, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
-            'Military', realm, realm.budget.military, false, false)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
+            "Military", realm, realm.budget.military, false, false)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
-            'Court', realm, realm.budget.court, false, true)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
+            "Court", realm, realm.budget.court, false, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
-            'Infrastructure', realm, realm.budget.infrastructure, false, false)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
+            "Infrastructure", realm, realm.budget.infrastructure, false, false)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), 
-            'Tribute', realm, realm.budget.tribute, true, true)
+        bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
+            "Tribute", realm, realm.budget.tribute, true, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- treasury target
-        uit.money_entry("Target budget", realm.budget.treasury_target, panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'), "We try to save up at least this amount of wealth in treasury")
+        uit.money_entry("Target budget", realm.budget.treasury_target, panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"), "We try to save up at least this amount of wealth in treasury")
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- control over treasury target
         if WORLD:does_player_control_realm(realm) then
-            local button_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", 'up')
+            local button_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", "up")
 
             ---@param mult number
             local function change_treasury_target(mult)
@@ -110,17 +110,17 @@ return function(ui_panel, realm)
         uit.money_entry(
             "Previous total income",
             realm.budget.saved_change,
-            panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up'),
+            panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
             "Previous total income"
         )
 
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        local label_panel =  panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", 'up')
+        local label_panel =  panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up")
 
         ui.text_panel("Gift wealth to your tribe: ", label_panel)
 
-        local button_rect = panel_rect:subrect(0, uit.BASE_HEIGHT * 1, uit.BASE_HEIGHT * 10, uit.BASE_HEIGHT, "left", 'up')
+        local button_rect = panel_rect:subrect(0, uit.BASE_HEIGHT * 1, uit.BASE_HEIGHT * 10, uit.BASE_HEIGHT, "left", "up")
 
         if uit.money_button(
             "Gift to tribal treasury",

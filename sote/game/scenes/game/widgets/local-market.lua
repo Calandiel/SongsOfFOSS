@@ -51,7 +51,7 @@ return function(province, ui_panel, base_unit)
     ---@type TableColumn[]
     local columns = {
         {
-            header = '.',
+            header = ".",
             render_closure = function(rect, k, v)
                 ui.image(ASSETS.get_icon(v.icon), rect)
             end,
@@ -63,7 +63,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'name',
+            header = "name",
             render_closure = function(rect, k, v)
                 ui.left_text(v.name, rect)
             end,
@@ -75,7 +75,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'supply',
+            header = "supply",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -89,7 +89,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'demand',
+            header = "demand",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -103,7 +103,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'balance',
+            header = "balance",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -117,7 +117,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'buy price',
+            header = "buy price",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -131,7 +131,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'sell price',
+            header = "sell price",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -145,7 +145,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'stockpile',
+            header = "stockpile",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -159,7 +159,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'difference',
+            header = "difference",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -211,7 +211,7 @@ return function(province, ui_panel, base_unit)
                             data = ((v.sell_price or 0) - price_at_player) / price_at_player
                         end
                         return data
-                    else 
+                    else
                         return 0
                     end
                 else
@@ -220,13 +220,13 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = 'Buy ' .. TRADE_AMOUNT,
+            header = "Buy " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
                 if player_character
                     and player_character.province == province
                     and et.can_buy(player_character, v.name, TRADE_AMOUNT)
-                    and ut.text_button('+', rect)
+                    and ut.text_button("+", rect)
                 then
                     ef.buy(player_character, v.name, TRADE_AMOUNT)
                 end
@@ -240,13 +240,13 @@ return function(province, ui_panel, base_unit)
             active = true
         },
         {
-            header = 'Sell ' .. TRADE_AMOUNT,
+            header = "Sell " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character 
+                if player_character
                     and player_character.province == province
                     and et.can_sell(player_character, v.name, TRADE_AMOUNT)
-                    and ut.text_button('-', rect)
+                    and ut.text_button("-", rect)
                 then
                     ef.sell(player_character, v.name, TRADE_AMOUNT)
                 end
@@ -260,7 +260,7 @@ return function(province, ui_panel, base_unit)
             active = true
         },
         {
-            header = 'your',
+            header = "your",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v

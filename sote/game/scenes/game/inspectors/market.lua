@@ -6,7 +6,7 @@ local inspector = {}
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 48, ut.BASE_HEIGHT * 15, "left", 'up')
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 48, ut.BASE_HEIGHT * 15, "left", "up")
 	return panel
 end
 
@@ -35,7 +35,7 @@ function inspector.draw(gam)
 
     local base_unit = ut.BASE_HEIGHT
 
-    local wealth_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", 'up')
+    local wealth_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", "up")
 
     ut.money_entry("Local wealth:", province.local_wealth, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit

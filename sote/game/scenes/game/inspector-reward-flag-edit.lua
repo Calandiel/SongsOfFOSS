@@ -12,7 +12,7 @@ local reward = nil
 local base_unit = ut.BASE_HEIGHT
 
 ---@return Rect
-function window.rect() 
+function window.rect()
     return ui.fullscreen():subrect(0, 0, base_unit * 13, base_unit * 7, "center", "center")
 end
 
@@ -27,7 +27,7 @@ end
 local function change_reward_button(x)
     local current_savings = WORLD.player_character.savings
     return function(rect)
-        if ut.text_button(ut.to_fixed_point2(x), rect) then 
+        if ut.text_button(ut.to_fixed_point2(x), rect) then
             reward = math.min(current_savings, math.max(0, reward + x))
         end
     end
@@ -72,8 +72,8 @@ function window.draw(game)
     local ui_panel = window.rect()
     -- draw a panel
     ui.panel(ui_panel)
-    ui.text("Reward settings", ui_panel, "left", 'up')
-    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    ui.text("Reward settings", ui_panel, "left", "up")
+    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", "up")) then
         game.inspector = nil
     end
     ui_panel.y = ui_panel.y + base_unit
@@ -92,7 +92,7 @@ function window.draw(game)
                     ut.data_entry("", ut.to_fixed_point2(reward), rect, "Current reward")
                 end
             }, rect, rect.width / 2, 0)
-        end, 
+        end,
         function(rect)
             ut.columns({
                 change_reward_button(-1.0),
@@ -110,21 +110,21 @@ function window.draw(game)
     ui_panel.height = base_unit * 2
     ut.columns({
         function (rect)
-            if ut.text_button('Save', rect) then
+            if ut.text_button("Save", rect) then
                 save_flag(reward_flag)
                 game.inspector = nil
                 reward = nil
             end
         end,
         function (rect)
-            if ut.text_button('Delete', rect) then
+            if ut.text_button("Delete", rect) then
                 delete_flag(reward_flag)
                 game.inspector = nil
                 reward = nil
             end
         end,
         function (rect)
-            if ut.text_button('Cancel', rect) then
+            if ut.text_button("Cancel", rect) then
                 game.inspector = nil
                 reward = nil
             end
