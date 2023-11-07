@@ -195,9 +195,9 @@ local function infrastructure_widget(gam, tile, panel)
 			end,
 			function(rect)
 				if tile.tile_improvement then
-					if WORLD:does_player_control_realm(tile.province.realm) then
+					if WORLD:is_player(tile.tile_improvement.owner) then
 						if uit.text_button("Destroy", rect, "Destroy the local tile improvement") then
-							tile.tile_improvement:remove_from_province(tile.province)
+							tile.tile_improvement:remove_from_province()
 						end
 					end
 				end
@@ -761,11 +761,11 @@ local function buildings_view_tab(gam, tile, rect)
 				end
 				rect.x = rect.x + base_unit
 				ui.left_text(building.type.name, rect)
-				if WORLD:does_player_control_realm(tile.province.realm) then
+				if WORLD:is_player(building.owner) then
 					local button = r:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
 					if uit.icon_button(ASSETS.get_icon("hammer-drop.png"), button, "Destroy the building") then
 						-- remove the building!
-						building:remove_from_province(tile.province)
+						building:remove_from_province()
 					end
 				else
 					-- ???

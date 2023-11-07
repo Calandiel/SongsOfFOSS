@@ -273,7 +273,7 @@ function ut.data_entry(name, data, rect, tooltip, panel, alignment)
 	if alignment == nil then
 		alignment = "right"
 	end
-	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel, alignment)	
+	ut.generic_string_field(name, data, rect, tooltip, ut.NAME_MODE.NAME, panel, alignment)
 end
 
 ---Draws a data field with icon
@@ -583,12 +583,10 @@ function ut.button(rect, potential, active, sound, hover_sound)
 
 	-- play audio
 	if result then
-		print(sound)
 		ASSETS.sfx[sound]:stop()
 		ASSETS.sfx[sound]:play()
 	end
 	if hovered_during_last_frame then
-		print(hover_sound)
 		ASSETS.sfx[hover_sound]:stop()
 		ASSETS.sfx[hover_sound]:play()
 	end

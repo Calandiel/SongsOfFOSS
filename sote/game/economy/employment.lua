@@ -83,7 +83,7 @@ function emp.run(province)
 
 	-- A worker is needed, try to hire some pop
 	local pop = tabb.random_select_from_set(province.all_pops)
-	if not pop.drafted and pop.age > pop.race.child_age then
+	if not pop.drafted and pop.age > pop.race.teen_age then
 		if pop.job == nil then
 			-- pop is not employed
 			-- employ him
@@ -110,6 +110,27 @@ function emp.run(province)
 				province:employ_pop(pop, hire_building)
 			end
 		end
+	end
+
+
+	-- destroy unused building
+	---@type Building[]
+	local to_destroy = {}
+	for _, building in pairs(province.buildings) do
+		if tabb.size(building.workers) == 0 then
+			building.unused = building.unused + 1
+		else
+			building.unused = 0
+		end
+
+		if building.unused > 360 then
+			table.insert(to_destroy, building)
+		end
+	end
+
+	for _, building in pairs(to_destroy) do
+		print(building.type.description .. " was destroyed due to being unused for a long time")
+		EconomicEffects.destroy_building(building)
 	end
 end
 
