@@ -8,7 +8,7 @@ local economy_values = require "game.raws.values.economical"
 function emp.run(province)
 	local human_race = RAWS_MANAGER.races_by_name["human"]
 
-	local exp_base = 1.2
+	local exp_base = 1.1
 	local exp_modifier = math.log(exp_base)
 
 	-- cache prices:
@@ -114,7 +114,7 @@ function emp.run(province)
 			local pop_current_income = pop.employer.last_income / tabb.size(pop.employer.workers)
 
 			-- TODO: move to cultural value
-			local likelihood_of_changing_job = 0.5
+			local likelihood_of_changing_job = 0.05
 
 			local recalculater_hire_profit = economy_values.projected_income(
 				hire_building,
