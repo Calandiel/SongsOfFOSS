@@ -112,7 +112,7 @@ function eco_values.projected_income(building, race, prices, efficiency, update_
         local days_to_deforestate = years_to_deforestate * 360
         local total_power = production_method.forest_dependence * efficiency * throughput_boost * input_boost / days_to_deforestate
         if update_building_stats then
-            require "game.raws.effects.geograhy".deforest_random_tile(province, total_power)
+            require "game.raws.effects.geography".deforest_random_tile(province, total_power)
         end
     end
 
