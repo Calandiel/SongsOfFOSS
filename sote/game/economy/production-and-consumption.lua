@@ -38,6 +38,14 @@ function pro.run(province)
 	tabb.clear(province.local_production)
 	tabb.clear(province.local_consumption)
 
+	-- Clear building stats
+	for key, value in pairs(province.buildings) do
+		tabb.clear(value.earn_from_outputs)
+		tabb.clear(value.spent_on_inputs)
+		value.last_donation_to_owner = 0
+		value.last_income = 0
+	end
+
 	---Records local consumption!
 	---@param good TradeGoodReference
 	---@param amount number
@@ -67,7 +75,7 @@ function pro.run(province)
 	local population = tabb.size(province.all_pops)
 	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
 
-	-- IMPLEMENT CULTURAL VALUE
+	-- TODO: IMPLEMENT CULTURAL VALUE
 	local fraction_of_income_given_voluntarily = 0.1 * math.max(0, math.min(1.0, 1.0 - population / min_income_pop))
 
 	local total_donations = 0
@@ -107,13 +115,13 @@ function pro.run(province)
 				-- (1 - prod.self_sourcing_fraction) is a modifier to efficiency during 100% shortage
 				-- 1 is a modifier to efficiency during 0% shortage, i.e. 1.0 input satisfaction
 
-				local shortage_modifier = 
+				local shortage_modifier =
 					(1 - prod.self_sourcing_fraction) * (1 - input_satisfaction)
 					+ 1 * input_satisfaction
 
-				local efficiency = yield 
-									* local_foraging_efficiency 
-									* efficiency_from_infrastructure 
+				local efficiency = yield
+									* local_foraging_efficiency
+									* efficiency_from_infrastructure
 									* shortage_modifier -- add more multiplier to this later
 				local throughput_boost = 1 + (province.throughput_boosts[prod] or 0)
 				local input_boost = math.max(0, 1 - (province.input_efficiency_boosts[prod] or 0))
@@ -151,16 +159,20 @@ function pro.run(province)
 					record_consumption(input, amount)
 					-- local price = ev.get_local_price(province, input)
 					local price = old_prices[input]
-					income = income
-							- price * amount * efficiency * throughput_boost * input_boost
+					local spent = price * amount * efficiency * throughput_boost * input_boost
+
+					income = income - spent
+					pop.employer.spent_on_inputs[input] = (pop.employer.spent_on_inputs[input] or 0) + spent
 				end
+
 				income = income
 				for output, amount in pairs(prod.outputs) do
 					record_production(output, amount * efficiency)
 					-- local price = ev.get_pessimistic_local_price(province, output, amount)
 					local price = old_prices[output]
-					income = income
-							+ price * amount * efficiency * throughput_boost * output_boost
+					local earnt = price * amount * efficiency * throughput_boost * output_boost
+					income = income + earnt
+					pop.employer.earn_from_outputs[output] = (pop.employer.earn_from_outputs[output] or 0) + earnt
 				end
 
 				if pop.employer.income_mean then
@@ -168,6 +180,8 @@ function pro.run(province)
 				else
 					pop.employer.income_mean = income
 				end
+
+				pop.employer.last_income = income
 
 				---@type number
 				income = income
@@ -182,10 +196,10 @@ function pro.run(province)
 							donations_to_owners[owner] = 0
 						end
 						donations_to_owners[owner] = donations_to_owners[pop.employer.owner] + contrib
+						pop.employer.last_donation_to_owner = pop.employer.last_donation_to_owner + contrib
 					else
 						total_donations = total_donations + contrib
 					end
-					-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 				end
 			else
 				if pop.age > pop.race.teen_age then
@@ -198,7 +212,6 @@ function pro.run(province)
 						province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 						local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
 						total_donations = total_donations + contrib
-						-- province.realm.voluntary_contributions_accumulator = province.realm.voluntary_contributions_accumulator + contrib
 					end
 					record_production('food', food_produced)
 				end
@@ -216,11 +229,11 @@ function pro.run(province)
 			clothing = pop.race.female_clothing_needs
 		end
 
-		
+
 		-- for some goods there is always some demand
 		record_consumption('food', food) -- exprimental lack of an age multiplier -- it makes AI for pop growth simpler
 		record_consumption('water', water * age_multiplier)
-		
+
 		local wealth_multiplier = province.local_wealth / 12 / population --- we are ready to spend our wealth during a year per pop
 
 		for good, need in pairs(NEEDS) do
@@ -233,18 +246,6 @@ function pro.run(province)
 
 			record_consumption(good, demand * ratio)
 		end
-
-		-- record_consumption('healthcare', 0.2 * age_multiplier)
-		-- record_consumption('amenities', age_multiplier)
-
-		-- record_consumption('clothes', clothing * age_multiplier)
-		
-		-- record_consumption('furniture', 0.1 * age_multiplier)
-		-- record_consumption('liquors', 0.2 * age_multiplier)
-		-- record_consumption('containers', 0.25 * age_multiplier)
-		-- record_consumption('tools', 0.0125 * age_multiplier)
-
-		-- record_consumption('meat', 0.25 * age_multiplier)
 	end
 
 	--- DISTRIBUTION OF DONATIONS

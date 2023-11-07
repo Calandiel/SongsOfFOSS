@@ -6,7 +6,11 @@
 ---@field workers table<POP, POP>
 ---@field owner POP?
 ---@field province Province
----@field income_mean number?
+---@field income_mean number
+---@field last_income number
+---@field spent_on_inputs table<TradeGoodReference, number>
+---@field earn_from_outputs table<TradeGoodReference, number>
+---@field last_donation_to_owner number
 ---@field remove_from_province fun(self:Building, province:Province)
 ---@field tile Tile?
 ------@field employ fun(self:Building, pop:POP, province:Province)
@@ -26,6 +30,12 @@ function bld.Building:new(province, building_type, tile)
 
 	o.type = building_type
 	o.workers = {}
+
+	o.income_mean = 0
+	o.last_income = 0
+	o.last_donation_to_owner = 0
+	o.spent_on_inputs = {}
+	o.earn_from_outputs = {}
 
 	setmetatable(o, bld.Building)
 
