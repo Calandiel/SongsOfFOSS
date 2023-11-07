@@ -217,7 +217,7 @@ local function load()
 			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then
 				return 0
 			end
-			
+
 			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
 				return 0.2
 			end
@@ -273,7 +273,7 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-            
+
             if root.savings > base_gift_size * 10 then
                 return 0.1
             end
@@ -287,7 +287,7 @@ local function load()
             local province = root.province
 			if province == nil then return end
 
-			province.mood = math.min(10, province.mood + 0.5 / province:population())
+			province.mood = math.min(10, province.mood + base_gift_size / province:population() / 2)
 			province.local_wealth = province.local_wealth + base_gift_size
 			root.savings = root.savings - base_gift_size
 
@@ -345,7 +345,7 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-            
+
 			--- rich characters want to donate money to the state more
             if root.savings > base_gift_size then
                 return ((root.savings / base_gift_size) - 1) * 0.001
@@ -401,7 +401,7 @@ local function load()
 			if primary_target.realm == root then
 				return false
 			end
-			
+
 			return primary_target:neighbors_realm(root.province.realm)
 		end,
 		available = function(root, primary_target)
@@ -487,7 +487,7 @@ local function load()
 			if root.province.realm.capitol ~= root.province then
 				return false
 			end
-			
+
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
@@ -508,7 +508,7 @@ local function load()
 		end
 	}
 
-	
+
 	Decision.Character:new {
 		name = 'buy-something',
 		ui_name = "Buy some goods",

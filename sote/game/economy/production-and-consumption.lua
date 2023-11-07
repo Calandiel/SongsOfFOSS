@@ -122,57 +122,22 @@ function pro.run(province)
 				local efficiency = yield
 									* local_foraging_efficiency
 									* efficiency_from_infrastructure
-									* shortage_modifier -- add more multiplier to this later
-				local throughput_boost = 1 + (province.throughput_boosts[prod] or 0)
-				local input_boost = math.max(0, 1 - (province.input_efficiency_boosts[prod] or 0))
-				local output_boost = 1 + (province.output_efficiency_boosts[prod] or 0)
-				-- TODO: use realm stockpiles to control production efficiency!
+									* shortage_modifier -- add more multipliers to this later
 
-				-- if depends on forests, then reduce local forest coverage over time
-				-- sample random tile from province to avoid weird looking pimples
-				if prod.forest_dependence > 0 then
-					local deforested_tile = tabb.random_select_from_set(province.tiles)
-					local years_to_deforestate = 50
-					local days_to_deforestate = years_to_deforestate * 360
-					local input_power = prod.forest_dependence * efficiency * throughput_boost * input_boost / days_to_deforestate
-					local woods = deforested_tile.broadleaf + deforested_tile.conifer + deforested_tile.shrub
-					if woods > 0 then
-						local broadleaf_ratio = deforested_tile.broadleaf / woods
-						local conifer_ratio = deforested_tile.conifer / woods
-						local shrub_ratio = deforested_tile.shrub / woods
 
-						local broad_leaf_change = math.min(deforested_tile.broadleaf, input_power * broadleaf_ratio)
-						local conifer_change = math.min(deforested_tile.conifer, input_power * conifer_ratio)
-						local shrub_change = math.min(deforested_tile.shrub, input_power * shrub_ratio)
+				local income, input_boost, output_boost, throughput_boost
+					= ev.projected_income(
+						pop.employer,
+						pop.race,
+						old_prices,
+						efficiency,
+						true
+					)
 
-						deforested_tile.broadleaf = deforested_tile.broadleaf - broad_leaf_change
-						deforested_tile.conifer = deforested_tile.conifer - conifer_change
-						deforested_tile.shrub = deforested_tile.shrub - shrub_change
-
-						local total_change = broad_leaf_change + conifer_change + shrub_change
-						deforested_tile.grass = deforested_tile.grass + total_change
-					end
-				end
-
-				local income = 0
 				for input, amount in pairs(prod.inputs) do
-					record_consumption(input, amount)
-					-- local price = ev.get_local_price(province, input)
-					local price = old_prices[input]
-					local spent = price * amount * efficiency * throughput_boost * input_boost
-
-					income = income - spent
-					pop.employer.spent_on_inputs[input] = (pop.employer.spent_on_inputs[input] or 0) + spent
-				end
-
-				income = income
+					record_consumption(input, amount * input_boost * throughput_boost)end
 				for output, amount in pairs(prod.outputs) do
-					record_production(output, amount * efficiency)
-					-- local price = ev.get_pessimistic_local_price(province, output, amount)
-					local price = old_prices[output]
-					local earnt = price * amount * efficiency * throughput_boost * output_boost
-					income = income + earnt
-					pop.employer.earn_from_outputs[output] = (pop.employer.earn_from_outputs[output] or 0) + earnt
+					record_production(output, amount * efficiency * output_boost * throughput_boost)
 				end
 
 				if pop.employer.income_mean then
@@ -181,7 +146,7 @@ function pro.run(province)
 					pop.employer.income_mean = income
 				end
 
-				pop.employer.last_income = income
+				pop.employer.last_income = pop.employer.last_income + income
 
 				---@type number
 				income = income

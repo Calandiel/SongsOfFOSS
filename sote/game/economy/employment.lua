@@ -1,133 +1,109 @@
 local tabb = require 'engine.table'
 local emp = {}
 
+local economy_values = require "game.raws.values.economical"
+
 ---Employs pops in the province.
 ---@param province Province
 function emp.run(province)
+	local human_race = RAWS_MANAGER.races_by_name["human"]
 
-	-- Calculate needed job counters
-	---@type table<Job, number>
-	local jobs_needed_counters = {}
-	local total_jobs_needed = 0
+	-- cache prices:
+	---@type table<TradeGoodReference, number>
+	local prices = {}
+	for good_name, _ in pairs(RAWS_MANAGER.trade_goods_by_name) do
+		prices[good_name] = economy_values.get_local_price(province, good_name)
+	end
+
+	-- raw values
+	---@type table<Building, number>
+	local profits = {}
 	for _, building in pairs(province.buildings) do
-		if (building.income_mean and building.income_mean > 0) or (building.income_mean == nil) then
-			for job, amount in pairs(building.type.production_method.jobs) do
-				local old = jobs_needed_counters[job] or 0
-				jobs_needed_counters[job] = old + amount
-				total_jobs_needed = total_jobs_needed + amount
-			end
+		local num_of_workers = tabb.size(building.workers)
+		local profit = 0
+		if num_of_workers > 0 then
+			profit = building.income_mean / num_of_workers
 		else
-			-- if building was not profitable, slowly reduce the measure of unprofitability
-			building.income_mean = building.income_mean * 0.5 + 0.05
+			profit =
+				economy_values.projected_income(
+					building,
+					human_race,
+					prices,
+					1,
+					false)
+				/ building.type.production_method:total_jobs()
 		end
-	end
+		profits[building] = profit + love.math.random()
 
-	-- Calculate present job counters
-	---@type table<Job, number>
-	local jobs_present_counters = {}
-	local total_jobs_present = 0
-	local unemployed = 0
-	local working_population = 0
-	for _, pop in pairs(province.all_pops) do
-		if pop.age > pop.race.teen_age then
-			if pop.job then
-				local old = jobs_present_counters[pop.job] or 0
-				jobs_present_counters[pop.job] = old + 1
-				total_jobs_present = total_jobs_present + 1
-			else
-				-- Drafted pops ARE employed
-				if not pop.drafted then
-					unemployed = unemployed + 1
-				end
-			end
-			working_population = working_population + 1
+		if num_of_workers >= building.type.production_method:total_jobs() then
+			-- don't hire
+			profits[building] = -1
 		end
-	end
 
-	---@type table<Job, number>
-	local jobs_deltas = {}
-	for job, amount in pairs(jobs_needed_counters) do
-		local current = jobs_deltas[job] or 0
-		jobs_deltas[job] = current + amount
-	end
-	for job, amount in pairs(jobs_present_counters) do
-		local current = jobs_deltas[job] or 0
-		if current == 0 then
-			jobs_deltas[job] = 0 -- this is set to 0 because job deltas is there for detecting hires
-			--	jobs_deltas[job] = -amount
-			--else
-			--	jobs_deltas[job] = current - amount
-		end
-	end
-	---@type table<Job, number>
-	local fair_shares = {} -- proportional employments per job type
-	for job, _ in pairs(jobs_deltas) do
-		local needed = jobs_needed_counters[job] or 0
-		if total_jobs_needed == 0 then
-			fair_shares[job] = 0
-		else
-			fair_shares[job] = working_population * (needed / total_jobs_needed)
-		end
-		--print(job.name, fair_shares[job])
-	end
-
-	-- Loop through all pops and fire the ones with jobs that have negative deltas
-	for _, pop in pairs(province.all_pops) do
-		local job = pop.job
-		if job then			
-			local delta = jobs_deltas[job] or 0
-			local fair_share = math.ceil(fair_shares[job] or 0)
-			local current = jobs_present_counters[job] or 0
-			--print("Current: ", current, "/", fair_share, 'Job', pop.job.name, 'Delta', delta)
-			if delta < 0 then
-				jobs_deltas[job] = delta + 1
+		-- if profit is negative, fire a worker
+		if profit < 0 then
+			local pop = tabb.random_select_from_set(building.workers)
+			if pop then
 				province:fire_pop(pop)
-				current = current - 1
-			elseif current > 0 then
-				-- Tho, also fire if we're above our fair share!
-				if fair_share < current then
-					-- A chance to be fired -- we don't want to fire too many people after all...
-					local chance = math.max(0, 1 - fair_share / current)
-					if love.math.random() < chance then
-						jobs_deltas[job] = delta + 1
-						province:fire_pop(pop)
-						current = current - 1
-					end
-				end
-			end
-			if pop.job then
-				jobs_present_counters[job] = current
 			end
 		end
 	end
+
+	-- softmax
+	---@type number
+	local sum_of_exponents = 0
+	for _, profit in pairs(profits) do
+		---@type number
+		sum_of_exponents = sum_of_exponents + math.exp(profit)
+	end
+
+	-- sample with softmax
+	local dice = love.math.random()
+	local hire_building = nil
+	for building, profit in pairs(profits) do
+		local softmax = math.exp(profit) / sum_of_exponents
+		if dice < softmax then
+			hire_building = building
+			break
+		else
+			dice = dice - softmax
+		end
+	end
+
+	if hire_building == nil then
+		return
+	end
+
+	local hire_profit = profits[hire_building]
 
 	-- Lastly, hire new workers
-	for _, pop in pairs(province.all_pops) do
-		if not pop.drafted then
-			if pop.job == nil then
-				-- Find an employer
-				for _, bld in pairs(province.buildings) do
-					local potential_job = province:potential_job(bld)
-					if potential_job then
-						-- A worker is needed, check if we're not "over" our fair share and hire this pop
-						-- Tho, also fire if we're above our fair share!
-						local fair_share = math.ceil(fair_shares[potential_job] or 0)
-						local current = jobs_present_counters[potential_job] or 0
-						if fair_share > current then
-							province:employ_pop(pop, bld)
-							local old = jobs_deltas[pop.job] or 0
-							if old > 0 then
-								jobs_deltas[pop.job] = old - 1
-							end
-							jobs_present_counters[pop.job] = current + 1
-							break -- break the loop over buildings, the pop will be employed by this point
-						end
-					end
-				end
+	local potential_job = province:potential_job(hire_building)
+	if potential_job == nil then
+		return
+	end
+
+	-- A worker is needed, try to hire some pop
+	local pop = tabb.random_select_from_set(province.all_pops)
+	if not pop.drafted then
+		if pop.job == nil then
+			-- pop is not employed
+			-- employ him
+			province:employ_pop(pop, hire_building)
+		else
+			-- pop is already employed
+			-- consider changing his job
+			local pop_current_income = pop.employer.last_income / tabb.size(pop.employer.workers)
+
+			-- TODO: move to cultural value
+			local likelihood_of_changing_job = 0.5
+
+			if (love.math.random() < likelihood_of_changing_job) and (hire_profit > pop_current_income) then
+				-- change job!
+				province:fire_pop(pop)
+				province:employ_pop(pop, hire_building)
 			end
 		end
 	end
-
 end
 
 return emp
