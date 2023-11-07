@@ -90,6 +90,26 @@ function eco_values.get_pessimistic_local_price(province, trade_good, amount)
     return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
 end
 
+---@param province Province
+---@param building_type BuildingType
+---@param race Race
+function eco_values.projected_income_building_type(province, building_type, race)
+    local income = 0
+    for input, amount in pairs(building_type.production_method.inputs) do
+        local price = eco_values.get_local_price(province, input)
+        local spent = price * amount
+        income = income - spent
+    end
+    for input, amount in pairs(building_type.production_method.outputs) do
+        local price = eco_values.get_pessimistic_local_price(province, input, amount)
+        local earnt = price * amount
+        ---@type number
+        income = income + earnt
+    end
+
+    return income
+end
+
 ---comment
 ---@param building Building
 ---@param race Race

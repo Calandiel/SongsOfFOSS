@@ -31,7 +31,6 @@ function emp.run(province)
 					prices,
 					1,
 					false)
-				/ building.type.production_method:total_jobs()
 		end
 		profits[building] = profit + love.math.random()
 
@@ -97,7 +96,15 @@ function emp.run(province)
 			-- TODO: move to cultural value
 			local likelihood_of_changing_job = 0.5
 
-			if (love.math.random() < likelihood_of_changing_job) and (hire_profit > pop_current_income) then
+			local recalculater_hire_profit = economy_values.projected_income(
+				hire_building,
+				pop.race,
+				prices,
+				1,
+				false
+			)
+
+			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
 				-- change job!
 				province:fire_pop(pop)
 				province:employ_pop(pop, hire_building)

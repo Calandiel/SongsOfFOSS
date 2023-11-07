@@ -13,11 +13,20 @@ local co = {}
 ---@param overseer POP?
 ---@return number
 local function construction_in_province(province, funds, excess, owner, overseer)
-	---@type number
-	local total_weight = 0
-	for _, ty in pairs(province.buildable_buildings) do
-		total_weight = total_weight + ty.ai_weight
+	-- set weigths based on predicted profits
+	---@type table<BuildingType, number>
+	local exp_profits = {}
+	local random_pop = tabb.random_select_from_set(province.all_pops)
+	local sum_of_exponents = 0
+	for _, building_type in pairs(province.buildable_buildings) do
+		local predicted_profit = eco_values.projected_income_building_type(province, building_type, random_pop.race)
+		---@type number
+		sum_of_exponents = sum_of_exponents + math.exp(predicted_profit)
+		exp_profits[building_type] = math.exp(predicted_profit)
 	end
+
+	---@type number
+	local total_weight = sum_of_exponents
 
 	if total_weight > 0 then
 		local w = love.math.random() * total_weight
@@ -25,7 +34,8 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		---@type BuildingType
 		local to_build = tabb.nth(province.buildable_buildings, 0) -- default to the first building
 		for _, ty in pairs(province.buildable_buildings) do
-			acc = acc + ty.ai_weight
+			---@type number
+			acc = acc + exp_profits[ty]
 			if acc > w then
 				to_build = ty
 				break
@@ -45,7 +55,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 				tile = tabb.nth(province.tiles, love.math.random(tt))
 			end
 
-			local public_flag = false			
+			local public_flag = false
 			if owner then
 				public_flag = false
 			else
@@ -55,7 +65,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			if province.can_build(province, math.huge, to_build, tile, overseer, public_flag) then
 				local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
 
-				
+
 				--- Calandiel comment:
 				-- If we don't have enough money, just adjust the likelihood (this will be easier on the AI and accurate on long term averages)
 				--- Peter's comment:
@@ -99,7 +109,7 @@ function co.run(realm)
 				-- Run construction using the AI for local wealth too!
 				local prov = province.local_wealth
 				province.local_wealth = construction_in_province(province, prov, 0) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
-			
+
 				-- local characters want to build too!
 				-- select random character:
 				local builder = tabb.random_select_from_set(province.characters)
