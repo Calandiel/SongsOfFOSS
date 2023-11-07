@@ -11,11 +11,14 @@ local NEEDS =  {
 	water = 1,
 	healthcare = 0.2,
 	amenities = 1,
+	furs = 0.1,
+	leather = 0.3,
 	clothes = 1,
 	furniture = 0.1,
 	liquors = 0.2,
 	containers = 0.25,
 	tools = 0.0125,
+	["knapping-blanks"] = 0.0005,
 	meat = 0.25
 }
 

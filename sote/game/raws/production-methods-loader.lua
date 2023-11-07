@@ -49,10 +49,10 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = {},
+		inputs = { ['tools'] = 0.05 },
 		outputs = { ['food'] = 1.5 },
 		jobs = { [job('gatherers')] = 1 },
-		self_sourcing_fraction = 0,
+		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
@@ -63,10 +63,10 @@ function d.load()
 		r = 1,
 		g = 0.2,
 		b = 0.3,
-		inputs = {},
+		inputs = { ['tools'] = 0.05 },
 		outputs = { ['food'] = 1.33, ['meat'] = 0.5, ['hide'] = 1 },
 		jobs = { [job('hunters')] = 1 },
-		self_sourcing_fraction = 0,
+		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
@@ -92,7 +92,7 @@ function d.load()
 		inputs = { ['knapping-blanks'] = 1 / 24 }, -- one blank serves for two years - made up value
 		outputs = { ['tools'] = 0.25 },
 		jobs = { [job('knappers')] = 1 },
-		self_sourcing_fraction = 0.95,
+		self_sourcing_fraction = 0.8,
 	}
 	ProductionMethod:new {
 		name = 'brewing',
@@ -166,7 +166,7 @@ function d.load()
 		r = 1,
 		g = 0.55,
 		b = 0.55,
-		inputs = { ['tools'] = 0.0125, ['hide'] = 5 },
+		inputs = { ['tools'] = 0.1, ['hide'] = 5 },
 		outputs = { ['leather'] = 5 },
 		jobs = { [job('tanners')] = 1, },
 		self_sourcing_fraction = 0.7,
@@ -178,7 +178,7 @@ function d.load()
 		r = 1,
 		g = 0.75,
 		b = 0.45,
-		inputs = { ['tools'] = 0.0125, ['leather'] = 5 },
+		inputs = { ['tools'] = 0.1, ['leather'] = 5 },
 		outputs = { ['clothes'] = 5 },
 		jobs = { [job('artisans')] = 1, },
 		self_sourcing_fraction = 0.75,

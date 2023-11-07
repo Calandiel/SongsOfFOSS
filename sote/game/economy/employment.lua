@@ -1,4 +1,4 @@
-local tabb = require 'engine.table'
+local tabb = require "engine.table"
 local emp = {}
 
 local economy_values = require "game.raws.values.economical"
@@ -40,7 +40,7 @@ function emp.run(province)
 		profits[building] = math.min(100, profit) + love.math.random()
 
 		if num_of_workers >= building.type.production_method:total_jobs() then
-			-- don't hire
+			-- don"t hire
 			profits[building] = -1
 		end
 
@@ -91,15 +91,15 @@ function emp.run(province)
 
 	-- if WORLD.player_character then
 	-- 	if WORLD.player_character.province == province then
-	-- 		print('roll building for employ: ' .. hire_building.type.description)
-	-- 		print('expected profit: ' .. profits[hire_building])
-	-- 		print('pop rolled: ' .. pop.name)
+	-- 		print("roll building for employ: " .. hire_building.type.description)
+	-- 		print("expected profit: " .. profits[hire_building])
+	-- 		print("pop rolled: " .. pop.name)
 	-- 		if pop.job then
-	-- 			print('pop job: ' .. pop.job.name)
+	-- 			print("pop job: " .. pop.job.name)
 	-- 		else
-	-- 			print('pop not employed')
+	-- 			print("pop not employed")
 	-- 		end
-	-- 		print('pop older than teen? ' .. tostring(pop.age > pop.race.teen_age))
+	-- 		print("pop older than teen? " .. tostring(pop.age > pop.race.teen_age))
 	-- 	end
 	-- end
 
@@ -126,9 +126,9 @@ function emp.run(province)
 
 			-- if WORLD.player_character then
 			-- 	if WORLD.player_character.province == province then
-			-- 		print('pop is already employed')
-			-- 		print('pop\'s profit :' .. pop_current_income)
-			-- 		print('hire profit :' .. recalculater_hire_profit)
+			-- 		print("pop is already employed")
+			-- 		print("pop\"s profit :" .. pop_current_income)
+			-- 		print("hire profit :" .. recalculater_hire_profit)
 			-- 	end
 			-- end
 
