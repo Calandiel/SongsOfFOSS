@@ -8,6 +8,9 @@ local economy_values = require "game.raws.values.economical"
 function emp.run(province)
 	local human_race = RAWS_MANAGER.races_by_name["human"]
 
+	local exp_base = 1.2
+	local exp_modifier = math.log(exp_base)
+
 	-- cache prices:
 	---@type table<TradeGoodReference, number>
 	local prices = {}
@@ -32,7 +35,9 @@ function emp.run(province)
 					1,
 					false)
 		end
-		profits[building] = profit + love.math.random()
+
+		-- sanity check to avoid exp overflow
+		profits[building] = math.min(100, profit) + love.math.random()
 
 		if num_of_workers >= building.type.production_method:total_jobs() then
 			-- don't hire
@@ -53,14 +58,14 @@ function emp.run(province)
 	local sum_of_exponents = 0
 	for _, profit in pairs(profits) do
 		---@type number
-		sum_of_exponents = sum_of_exponents + math.exp(profit)
+		sum_of_exponents = sum_of_exponents + math.exp(exp_modifier * profit)
 	end
 
 	-- sample with softmax
 	local dice = love.math.random()
 	local hire_building = nil
 	for building, profit in pairs(profits) do
-		local softmax = math.exp(profit) / sum_of_exponents
+		local softmax = math.exp(exp_modifier * profit) / sum_of_exponents
 		if dice < softmax then
 			hire_building = building
 			break
@@ -84,15 +89,19 @@ function emp.run(province)
 	-- A worker is needed, try to hire some pop
 	local pop = tabb.random_select_from_set(province.all_pops)
 
-	if WORLD.player_character then
-		if WORLD.player_character.province == province then
-			print('roll building for employ: ' .. hire_building.type.description)
-			print('expected profit: ' .. profits[hire_building])
-			print('pop rolled: ' .. pop.name)
-			print('pop job: ' .. pop.job.name)
-			print('pop older than teen? ' .. pop.age > pop.race.teen_age)
-		end
-	end
+	-- if WORLD.player_character then
+	-- 	if WORLD.player_character.province == province then
+	-- 		print('roll building for employ: ' .. hire_building.type.description)
+	-- 		print('expected profit: ' .. profits[hire_building])
+	-- 		print('pop rolled: ' .. pop.name)
+	-- 		if pop.job then
+	-- 			print('pop job: ' .. pop.job.name)
+	-- 		else
+	-- 			print('pop not employed')
+	-- 		end
+	-- 		print('pop older than teen? ' .. tostring(pop.age > pop.race.teen_age))
+	-- 	end
+	-- end
 
 	if not pop.drafted and pop.age > pop.race.teen_age then
 		if pop.job == nil then
@@ -115,13 +124,13 @@ function emp.run(province)
 				false
 			)
 
-			if WORLD.player_character then
-				if WORLD.player_character.province == province then
-					print('pop is already employed')
-					print('pop\'s profit :' .. pop_current_income)
-					print('hire profit :' .. recalculater_hire_profit)
-				end
-			end
+			-- if WORLD.player_character then
+			-- 	if WORLD.player_character.province == province then
+			-- 		print('pop is already employed')
+			-- 		print('pop\'s profit :' .. pop_current_income)
+			-- 		print('hire profit :' .. recalculater_hire_profit)
+			-- 	end
+			-- end
 
 			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
 				-- change job!
@@ -148,7 +157,7 @@ function emp.run(province)
 	end
 
 	for _, building in pairs(to_destroy) do
-		print(building.type.description .. " was destroyed due to being unused for a long time")
+		-- print(building.type.description .. " was destroyed due to being unused for a long time")
 		EconomicEffects.destroy_building(building)
 	end
 end
