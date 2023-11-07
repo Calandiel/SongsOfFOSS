@@ -22,7 +22,7 @@ function emp.run(province)
 		local num_of_workers = tabb.size(building.workers)
 		local profit = 0
 		if num_of_workers > 0 then
-			profit = building.income_mean / num_of_workers
+			profit = building.income_mean
 		else
 			profit =
 				economy_values.projected_income(
@@ -73,7 +73,7 @@ function emp.run(province)
 		return
 	end
 
-	local hire_profit = profits[hire_building]
+
 
 	-- Lastly, hire new workers
 	local potential_job = province:potential_job(hire_building)
@@ -83,6 +83,17 @@ function emp.run(province)
 
 	-- A worker is needed, try to hire some pop
 	local pop = tabb.random_select_from_set(province.all_pops)
+
+	if WORLD.player_character then
+		if WORLD.player_character.province == province then
+			print('roll building for employ: ' .. hire_building.type.description)
+			print('expected profit: ' .. profits[hire_building])
+			print('pop rolled: ' .. pop.name)
+			print('pop job: ' .. pop.job.name)
+			print('pop older than teen? ' .. pop.age > pop.race.teen_age)
+		end
+	end
+
 	if not pop.drafted and pop.age > pop.race.teen_age then
 		if pop.job == nil then
 			-- pop is not employed
@@ -103,6 +114,14 @@ function emp.run(province)
 				1,
 				false
 			)
+
+			if WORLD.player_character then
+				if WORLD.player_character.province == province then
+					print('pop is already employed')
+					print('pop\'s profit :' .. pop_current_income)
+					print('hire profit :' .. recalculater_hire_profit)
+				end
+			end
 
 			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
 				-- change job!

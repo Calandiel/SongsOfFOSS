@@ -79,6 +79,7 @@ function de.run_character(character)
 								-- 8. Check if the decision is "available"
 								if d.available(character, target, secondary_target) then
 									-- 9. Check action probability (AI only) << ai_will_do >>
+									print(d.name)
 									if love.math.random() < d.ai_will_do(character, target, secondary_target) then
 										-- 10. Apply decisions << effect >>
 										d.effect(character, target, secondary_target)
