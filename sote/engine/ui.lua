@@ -315,7 +315,7 @@ function ui.image(image, rect, rotation)
 	)
 end
 
----@alias VerticalAlignMode 'up' | 'center' | 'down'
+---@alias VerticalAlignMode "up" | "center" | "down"
 --- Draws text at x/y coordinates in a given width/height quad.
 --- Texts first line will be centered vertically.
 ---@param text string

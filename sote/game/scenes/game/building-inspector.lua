@@ -7,7 +7,7 @@ local uit = require "game.ui-utils"
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(0, 0, 500, 500, "left", 'down')
+	local panel = fs:subrect(0, 0, 500, 500, "left", "down")
 	return panel
 end
 
@@ -23,9 +23,6 @@ end
 
 ---@param gam GameScene
 function re.draw(gam)
-	-- -@diagnostic disable-next-line: assign-type-mismatch
-
-	---@type Building
 	local bbuild = gam.selected.building
 	if bbuild ~= nil then
 		---@type Building
@@ -33,7 +30,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", 'up')) then
+		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up")) then
 			gam.click_tile(-1)
 			gam.selected.building = nil
 			gam.inspector = nil
@@ -47,11 +44,11 @@ function re.draw(gam)
 		ui.image(ASSETS.icons[building.type.icon], topbar:next(uit.BASE_HEIGHT, uit.BASE_HEIGHT))
 		ui.left_text(building.type.name, topbar:next(10 * uit.BASE_HEIGHT, uit.BASE_HEIGHT))
 
-		local pan = panel:subrect(5, 5 + uit.BASE_HEIGHT, panel.width - 10, uit.BASE_HEIGHT * 3, "left", 'up')
+		local pan = panel:subrect(5, 5 + uit.BASE_HEIGHT, panel.width - 10, uit.BASE_HEIGHT * 3, "left", "up")
 		ui.panel(pan)
-		local ppan = pan:subrect(0, uit.BASE_HEIGHT + 5, pan.width, uit.BASE_HEIGHT, "left", 'down')
+		local ppan = pan:subrect(0, uit.BASE_HEIGHT + 5, pan.width, uit.BASE_HEIGHT, "left", "down")
 		pan:shrink(5)
-		ui.text(building.type.description, pan, "left", 'up')
+		ui.text(building.type.description, pan, "left", "up")
 
 		uit.columns({
 			function(rect)
@@ -59,7 +56,7 @@ function re.draw(gam)
 				rect:shrink(5)
 				ui.left_text("Current workers:", rect)
 				ui.right_text(tostring(tabb.size(building.workers)) ..
-					' / ' .. tostring(tabb.size(building.type.production_method.jobs)), rect)
+					" / " .. tostring(tabb.size(building.type.production_method.jobs)), rect)
 
 				rect:shrink(-5)
 				rect.y = rect.y + rect.height

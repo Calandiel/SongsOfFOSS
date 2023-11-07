@@ -8,7 +8,7 @@ local scroll = 0
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 15 , fs.height - ut.BASE_HEIGHT * 2, "left", 'up')
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 15 , fs.height - ut.BASE_HEIGHT * 2, "left", "up")
 	return panel
 end
 
@@ -29,7 +29,7 @@ function inspector.draw(gam)
 
     ui.panel(rect)
 
-    local top_rect = rect:subrect(0, 0, rect.width - UI_STYLE.slider_width, UI_STYLE.scrollable_list_item_height, "left", 'up')
+    local top_rect = rect:subrect(0, 0, rect.width - UI_STYLE.slider_width, UI_STYLE.scrollable_list_item_height, "left", "up")
 
     ui.centered_text("Provincial decisions", top_rect)
 
@@ -39,7 +39,7 @@ function inspector.draw(gam)
         rect.width,
         rect.height - UI_STYLE.scrollable_list_item_height,
         "left",
-        'up'
+        "up"
     )
 
     if WORLD.player_character == nil then
@@ -54,7 +54,7 @@ function inspector.draw(gam)
     ---@type table<number, {[1]: DecisionCharacter, [2]: boolean}>
     local decisions = {}
     for _, decision in pairs(RAWS_MANAGER.decisions_characters_by_name) do
-        if decision.primary_target == 'province' then
+        if decision.primary_target == "province" then
             if decision.pretrigger(WORLD.player_character) then
                 decisions[#decisions + 1] = { decision, true }
                 valid = valid + 1
@@ -89,7 +89,7 @@ function inspector.draw(gam)
                     end
                 end
             end
-        end, 
+        end,
         UI_STYLE.scrollable_list_item_height,
         #decisions,
         UI_STYLE.slider_width,

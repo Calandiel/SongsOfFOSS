@@ -5,9 +5,9 @@ local pla = {}
 function pla.get_planet_mesh()
 	local vertices = {}
 	local mesh_format = {
-		{ 'VertexPosition', 'float', 3 },
-		{ 'VertexTexCoord', 'float', 2 },
-		{ 'Face', 'float', 1 },
+		{ "VertexPosition", "float", 3 },
+		{ "VertexTexCoord", "float", 2 },
+		{ "Face", "float", 1 },
 	}
 
 	local add_vert = function(x, y, z, u, v, f)

@@ -32,13 +32,13 @@ function ev.draw(gam)
 			-- Draw the background
 			ui.background(loaded_image)
 
-			local left = fs:subrect(0, 0, fs.width / 3, fs.height * 2/3, "left", 'up')
+			local left = fs:subrect(0, 0, fs.width / 3, fs.height * 2/3, "left", "up")
 			local top = left:copy()
 			top.height = top.height / 2
 			top:shrink(15)
 			ui.panel(top)
 			top:shrink(5)
-			ui.text(event:event_text(character, dat), top, "left", 'up')
+			ui.text(event:event_text(character, dat), top, "left", "up")
 
 			local bot = left:copy()
 			bot.height = bot.height / 2
@@ -57,7 +57,7 @@ function ev.draw(gam)
 				end
 			end, uit.BASE_HEIGHT, #opts, uit.BASE_HEIGHT, gam.event_scrollbar)
 
-			local portrait = fs:subrect(0, fs.height * 2/3, fs.height / 5, fs.height / 5, "left", 'up')
+			local portrait = fs:subrect(0, fs.height * 2/3, fs.height / 5, fs.height / 5, "left", "up")
 			portrait:shrink(15)
 			require "game.scenes.game.widgets.portrait"(portrait, character)
 
@@ -70,7 +70,7 @@ function ev.draw(gam)
 
 			name:shrink(0)
 			ui.panel(name)
-			wealth:shrink(0)			
+			wealth:shrink(0)
 			ui.panel(wealth)
 
 			require "game.scenes.game.widgets.character-name"(name, character)

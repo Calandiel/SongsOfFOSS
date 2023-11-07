@@ -8,12 +8,12 @@ local EconomicEffects = require "game.raws.effects.economic"
 local window = {}
 
 local reward = 0.0
-local flag_type = 'raid'
+local flag_type = "raid"
 
 local base_unit = ut.BASE_HEIGHT
 
 ---@return Rect
-function window.rect() 
+function window.rect()
     return ui.fullscreen():subrect(0, 0, base_unit * 12, base_unit * 13, "center", "center")
 end
 
@@ -28,7 +28,7 @@ end
 local function change_reward_button(x)
     local current_savings = WORLD.player_character.savings
     return function(rect)
-        if ut.text_button(ut.to_fixed_point2(x), rect) then 
+        if ut.text_button(ut.to_fixed_point2(x), rect) then
             reward = math.min(current_savings, math.max(0, reward + x))
         end
     end
@@ -52,7 +52,7 @@ local function reward_tooltip(province)
         return "bad_target"
     end
 
-    return 'ok'
+    return "ok"
 end
 
 ---comment
@@ -62,7 +62,7 @@ local function create_flag(province)
     if reward > current_savings then
         reward = current_savings
     end
-    if reward_tooltip(province) ~= 'ok' then
+    if reward_tooltip(province) ~= "ok" then
         return
     end
 
@@ -82,8 +82,8 @@ function window.draw(game)
     local ui_panel = window.rect()
     -- draw a panel
     ui.panel(ui_panel)
-    ui.text("Reward flag", ui_panel, "left", 'up')
-    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    ui.text("Reward flag", ui_panel, "left", "up")
+    if ut.icon_button(ASSETS.icons["cancel.png"], ui_panel:subrect(0, 0, base_unit, base_unit, "right", "up")) then
         game.inspector = nil
     end
     ui_panel.y = ui_panel.y + base_unit
@@ -95,20 +95,20 @@ function window.draw(game)
             rect = rect
             ui.panel(rect)
             rect:shrink(10)
-            ui.left_text('Explore', rect)            
-            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'center'), flag_type == 'explore', 4)
+            ui.left_text("Explore", rect)
+            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", "center"), flag_type == "explore", 4)
         end,
         function (rect)
             ui.panel(rect)
             rect:shrink(10)
-            ui.left_text('Raid', rect)
-            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'center'), flag_type == 'raid', 4)
+            ui.left_text("Raid", rect)
+            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", "center"), flag_type == "raid", 4)
         end,
         function (rect)
             ui.panel(rect)
             rect:shrink(10)
-            ui.left_text('Devastate', rect)
-            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", 'center'), flag_type == 'devastate', 4)
+            ui.left_text("Devastate", rect)
+            ui.checkbox(rect:subrect(0, 0, base_unit * 2, base_unit * 2, "right", "center"), flag_type == "devastate", 4)
         end
     }, ui_panel, ui_panel.height / 3, 0)
 
@@ -128,7 +128,7 @@ function window.draw(game)
                     ut.data_entry("", ut.to_fixed_point2(reward), rect, "Current reward")
                 end
             }, rect, rect.width / 2, 0)
-        end, 
+        end,
         function(rect)
             ut.columns({
                 change_reward_button(-1.0),
@@ -146,13 +146,13 @@ function window.draw(game)
     ui_panel.height = base_unit * 2
     ut.columns({
         function (rect)
-            if ut.text_button('Save', rect, reward_tooltip(game.flagged_province)) then
+            if ut.text_button("Save", rect, reward_tooltip(game.flagged_province)) then
                 create_flag(game.flagged_province)
                 game.inspector = nil
             end
         end,
         function (rect)
-            if ut.text_button('Cancel', rect) then
+            if ut.text_button("Cancel", rect) then
                 game.inspector = nil
             end
         end

@@ -42,8 +42,8 @@ local function render_race(rect, k, v)
 end
 
 local function pop_sex(pop)
-    local f = 'm'
-    if pop.female then f = 'f' end
+    local f = "m"
+    if pop.female then f = "f" end
     return f
 end
 
@@ -54,19 +54,19 @@ return function(rect, province, compact)
     if compact == nil then
         compact = false
     end
-    
+
     local portrait_width = UI_STYLE.scrollable_list_item_height
     if compact then
         portrait_width = UI_STYLE.scrollable_list_small_item_height
     end
-    
+
     local rest_width = rect.width - portrait_width
     local width_unit = rest_width / 12
     return function()
         ---@type TableColumn[]
         local columns = {
             {
-                header = '.',
+                header = ".",
                 render_closure = function(rect, k, v)
                     portrait(rect, v)
                 end,
@@ -78,7 +78,7 @@ return function(rect, province, compact)
                 end
             },
             {
-                header = 'name',
+                header = "name",
                 render_closure = render_name,
                 width = width_unit * 7,
                 value = function(k, v)
@@ -89,7 +89,7 @@ return function(rect, province, compact)
                 active = true
             },
             {
-                header = 'age',
+                header = "age",
                 render_closure = function (rect, k, v)
                     ui.right_text(tostring(v.age), rect)
                 end,
@@ -99,7 +99,7 @@ return function(rect, province, compact)
                 end
             },
             {
-                header = 'sex',
+                header = "sex",
                 render_closure = function (rect, k, v)
                     ui.centered_text(pop_sex(v), rect)
                 end,
@@ -111,8 +111,8 @@ return function(rect, province, compact)
         }
         init_state(compact)
 
-        local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", 'up')
-        local bottom = rect:subrect(0, UI_STYLE.table_header_height, rect.width, rect.height - UI_STYLE.table_header_height, "left", 'up')
+        local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", "up")
+        local bottom = rect:subrect(0, UI_STYLE.table_header_height, rect.width, rect.height - UI_STYLE.table_header_height, "left", "up")
         ui.centered_text("Local characters", top)
         return ut.table(bottom, province.characters, columns, state)
     end

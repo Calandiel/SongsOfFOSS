@@ -29,7 +29,7 @@ return function (ui_panel, primary_target, decision_type, gam)
 				gam.decision_target_secondary
 			)
 
-			if res ~= 'nothing' then
+			if res ~= "nothing" then
 				gam.selected.decision = nil
 				gam.decision_target_primary = nil
 				gam.decision_target_secondary = nil

@@ -10,7 +10,7 @@ local window = {}
 window.scroll = 0
 
 ---@return Rect
-function window.rect() 
+function window.rect()
     return ui.fullscreen():subrect(0, 0, 600, 400, "center", "center")
 end
 
@@ -36,9 +36,9 @@ function window.draw(game)
     ui.panel(panel)
     local base_unit = uit.BASE_HEIGHT
 
-    ui.text('Select character', panel, "left", 'up')
+    ui.text("Select character", panel, "left", "up")
 
-    if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", 'up')) then
+    if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, base_unit, base_unit, "right", "up")) then
         game.inspector = nil
     end
 
@@ -53,7 +53,7 @@ function window.draw(game)
         local character = tabb.nth(province.characters, index)
         if character == nil then return end
 
-        local portrait_rect = rect:subrect(0, 0, rect.height, rect.height, "left", 'center')
+        local portrait_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
         portrait(portrait_rect, character)
 
         rect.x = rect.x + rect.height
@@ -66,7 +66,7 @@ function window.draw(game)
 
         rect.x = rect.x + rect.width - rect.height
         rect.width = rect.height
-        if uit.icon_button(ASSETS.icons['frog-prince.png'], rect, "Take control over this character") then
+        if uit.icon_button(ASSETS.icons["frog-prince.png"], rect, "Take control over this character") then
             require "game.raws.effects.player".take_control(character)
             game.refresh_map_mode()
             game.inspector = nil

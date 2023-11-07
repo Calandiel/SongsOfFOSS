@@ -24,7 +24,7 @@ local function demography(provinces, ui_panel, collapsed)
         for race, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = race.name .. ' (' .. count .. ')',
+                tooltip = race.name .. " (" .. count .. ")",
                 r = race.r,
                 g = race.g,
                 b = race.b,
@@ -48,7 +48,7 @@ local function demography(provinces, ui_panel, collapsed)
         for culture, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = culture.name .. ' (' .. count .. ')',
+                tooltip = culture.name .. " (" .. count .. ")",
                 r = culture.r,
                 g = culture.g,
                 b = culture.b,
@@ -73,7 +73,7 @@ local function demography(provinces, ui_panel, collapsed)
         for faith, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = faith.name .. ' (' .. count .. ')',
+                tooltip = faith.name .. " (" .. count .. ")",
                 r = faith.r,
                 g = faith.g,
                 b = faith.b,
@@ -136,7 +136,7 @@ local function demography(provinces, ui_panel, collapsed)
         for job, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = job.name .. ' (' .. count .. ')',
+                tooltip = job.name .. " (" .. count .. ")",
                 r = job.r,
                 g = job.g,
                 b = job.b,
@@ -157,10 +157,10 @@ local function demography(provinces, ui_panel, collapsed)
             carr_cap = math.floor(province.foragers_limit) + carr_cap
             population = population + province:population()
         end
-        
-        ut.data_entry("Population: ", tostring(population) .. '/' .. tostring(carr_cap), rect)
+
+        ut.data_entry("Population: ", tostring(population) .. "/" .. tostring(carr_cap), rect)
     end
-    
+
 
     return function()
         if collapsed then

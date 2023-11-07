@@ -24,7 +24,7 @@ local function macrodecision(gam, tile, rect, x, y, size)
     if player == nil then
         return
     end
-    
+
     if not decision.pretrigger(player) then
         return
     end
@@ -36,7 +36,7 @@ local function macrodecision(gam, tile, rect, x, y, size)
     local tooltip = decision.tooltip(player, tile.province)
     local available = decision.available(player, tile.province)
 
-    if ut.icon_button(ASSETS.icons['circle.png'], rect, tooltip, available) then
+    if ut.icon_button(ASSETS.icons["circle.png"], rect, tooltip, available) then
         return function ()
             decision.effect(player, tile.province)
         end
@@ -92,7 +92,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
         local name = building_type.name
 
         local amount = 0
-        
+
         for _, building in pairs(tile.province.buildings) do
             if building.type == building_type then
                 amount = amount + 1
@@ -114,11 +114,11 @@ local function macrobuilder(gam, tile, rect, x, y, size)
             public_flag
         )
 
-        local icon_rect = rect:subrect(0, 0, unit, unit, "left", 'up')
-        local count_rect = rect:subrect(0, unit, unit, unit / 2, "left", 'up')
+        local icon_rect = rect:subrect(0, 0, unit, unit, "left", "up")
+        local count_rect = rect:subrect(0, unit, unit, unit / 2, "left", "up")
 
         if funds < construction_cost then
-            ut.icon_button(ASSETS.icons['cancel.png'], icon_rect, "Not possible to build", false)
+            ut.icon_button(ASSETS.icons["cancel.png"], icon_rect, "Not possible to build", false)
         elseif ut.icon_button(ASSETS.get_icon(icon), icon_rect, "Build " .. name .. " for " .. ut.to_fixed_point2(construction_cost) .. MONEY_SYMBOL ) then
             return function()
                 ee.construct_building_with_payment(
@@ -149,7 +149,7 @@ return function(gam, tile, rect, x, y, size)
     local height_unit = size / 2
     local length_of_line = 50 - height_unit
 
-    if gam.inspector == 'macrodecision' then
+    if gam.inspector == "macrodecision" then
         return macrodecision(gam, tile, rect, x, y, size)
     end
 
@@ -165,7 +165,7 @@ return function(gam, tile, rect, x, y, size)
 
 
     rect.y = rect.y - height_unit
-    local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, rect, 'callback')
+    local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, rect, "callback")
 
 
     rect.y = y - length_of_line - height_unit
@@ -181,9 +181,9 @@ return function(gam, tile, rect, x, y, size)
 
     if WORLD.player_character then
         local button_rect = ui.rect(
-            x - size / 5 + width_unit, 
-            y - 50 - height_unit * 2, 
-            size, 
+            x - size / 5 + width_unit,
+            y - 50 - height_unit * 2,
+            size,
             size
         )
         if ut.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then

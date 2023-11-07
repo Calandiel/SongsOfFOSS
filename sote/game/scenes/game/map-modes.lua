@@ -267,17 +267,17 @@ function mm.set_up_map_modes(game_thingy)
 	game_thingy.map_mode_selected_tab = "all"
 	game_thingy.map_mode_tabs.all = {
 		"elevation", "biomes", "plants", "koppen",
-		"realms", "population", "population_1000", 'population_density', "plates", "rocks", 'tile_carrying_capacity',
+		"realms", "population", "population_1000", "population_density", "plates", "rocks", "tile_carrying_capacity",
 		"resources", "soil_texture", "soil_depth", "soil_organics", "soil_minerals",
 		"jan_rain", "jul_rain", "jan_temp", "jul_temp", "jan_flow", "jul_flow",
-		"province", "carrying_capacity", 'tile_improvements', "realm_income", "local_income", "coastlines",
-		'races', 'cultures', 'faiths', "military_target", "military", 'diplomacy'
+		"province", "carrying_capacity", "tile_improvements", "realm_income", "local_income", "coastlines",
+		"races", "cultures", "faiths", "military_target", "military", "diplomacy"
 	}
 	game_thingy.map_mode_tabs.political = {
 		"realms", "province", "atlas", "diplomacy"
 	}
 	game_thingy.map_mode_tabs.demographic = {
-		"population", "population_1000", 'population_density', 'technologies', 'races', 'cultures', 'faiths',
+		"population", "population_1000", "population_density", "technologies", "races", "cultures", "faiths",
 		"military_target", "military",
 	}
 	game_thingy.map_mode_tabs.debug = {

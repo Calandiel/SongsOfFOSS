@@ -6,7 +6,7 @@ local inspector = {}
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 40, ut.BASE_HEIGHT * 15, "left", 'up')
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 40, ut.BASE_HEIGHT * 15, "left", "up")
 	return panel
 end
 
@@ -35,7 +35,7 @@ function inspector.draw(gam)
 
     local base_unit = ut.BASE_HEIGHT
 
-    local population_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", 'up')
+    local population_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", "up")
 
     ut.integer_entry("Total:", province:population(), population_data_rect)
     population_data_rect.x = population_data_rect.x + population_data_rect.width + base_unit

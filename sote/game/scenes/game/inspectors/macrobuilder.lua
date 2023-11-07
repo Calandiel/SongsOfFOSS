@@ -13,7 +13,7 @@ local buildings_scroll = 0
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 15 , fs.height - ut.BASE_HEIGHT * 2, "left", 'up')
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 15 , fs.height - ut.BASE_HEIGHT * 2, "left", "up")
 	return panel
 end
 
@@ -38,11 +38,11 @@ function inspector.draw(gam)
     local rr = rect.height
     rect.height = base_unit
 
-    local top_rect = rect:subrect(0, 0, rect.width - base_unit, base_unit, "left", 'up')
+    local top_rect = rect:subrect(0, 0, rect.width - base_unit, base_unit, "left", "up")
 
-    local label_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "left", 'up')
+    local label_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "left", "up")
     ui.centered_text("Construction", label_rect)
-    local public_flag_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "right", 'up')
+    local public_flag_rect = top_rect:subrect(0, 0, top_rect.width / 2, base_unit, "right", "up")
 
     local public_mode = false
 
@@ -69,7 +69,7 @@ function inspector.draw(gam)
     local overseer = character
     local funds = 0
     local owner = character
-    
+
     if character then
         funds = character.savings
         if gam.macrobuilder_public_mode then
@@ -78,8 +78,6 @@ function inspector.draw(gam)
             funds = character.realm.budget.treasury
             owner = nil
         end
-
-
 
         for _, province in pairs(character.realm.provinces) do
             for _, building in pairs(province.buildable_buildings) do
@@ -100,7 +98,7 @@ function inspector.draw(gam)
     rect.height = rr - base_unit
     rect.y = rect.y + base_unit
     buildings_scroll = ut.scrollview(
-        rect, 
+        rect,
         function(number, rect)
             ---@type Rect
             rect = rect
@@ -117,7 +115,7 @@ function inspector.draw(gam)
                 -- drawing icons
                 local icon = building_type.icon
                 local image_padding = 3
-                local icon_rect = rect:subrect(image_padding, image_padding, base_unit - image_padding * 2, base_unit - image_padding * 2, "left", 'up')
+                local icon_rect = rect:subrect(image_padding, image_padding, base_unit - image_padding * 2, base_unit - image_padding * 2, "left", "up")
                 ui.image(ASSETS.get_icon(icon), icon_rect)
 
                 rect.x = rect.x + base_unit
