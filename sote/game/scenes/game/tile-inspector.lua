@@ -723,21 +723,27 @@ local function buildings_view_tab(gam, tile, rect)
 			end
 		end
 		re.buildings_scrollbar = re.buildings_scrollbar or 0
-		re.buildings_scrollbar = uit.scrollview(rect, function(number, rect)
-			if number > 0 then
-				---@type BuildingType
-				local building_type, amount = tabb.nth(stacks, number)
-				ui.tooltip(building_type:get_tooltip(), rect)
-				---@type Rect
-				local r = rect
-				local im = r:subrect(0, 0, base_unit, base_unit, "left", "up")
-				ui.image(ASSETS.icons[building_type.icon], im)
-				rect.x = rect.x + base_unit
+		re.buildings_scrollbar = uit.scrollview(rect,
+			function(number, rect)
+				if number > 0 then
+					---@type BuildingType
+					local building_type, amount = tabb.nth(stacks, number)
+					ui.tooltip(building_type:get_tooltip(), rect)
+					---@type Rect
+					local r = rect
+					local im = r:subrect(0, 0, base_unit, base_unit, "left", "up")
+					ui.image(ASSETS.icons[building_type.icon], im)
+					rect.x = rect.x + base_unit
+					rect.width = rect.width - base_unit
 
-				uit.count_entry(building_type.name, amount or 1, rect)
-			end
-		end, UI_STYLE.scrollable_list_item_height, tabb.size(stacks), UI_STYLE.slider_width,
-			re.buildings_scrollbar)
+					uit.integer_entry(building_type.name, amount or 1, rect)
+				end
+			end,
+			UI_STYLE.scrollable_list_item_height,
+			tabb.size(stacks),
+			UI_STYLE.slider_width,
+			re.buildings_scrollbar
+		)
 	else
 		-- Show individual buildings
 		re.buildings_scrollbar = re.buildings_scrollbar or 0
@@ -1042,10 +1048,6 @@ function re.draw_old(gam)
 		ui.panel(panel)
 
 		local top_bar_rect = panel:subrect(0, 0, panel.width, base_unit * 2, "left", "up")
-
-		if collapsed then
-			return
-		end
 
 		-- All the other data (as in, tabs)
 		local ui_panel = panel:subrect(

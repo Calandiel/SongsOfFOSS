@@ -5,6 +5,7 @@
 ---@field y number?
 ---@field workers table<POP, POP>
 ---@field owner POP?
+---@field province Province
 ---@field income_mean number?
 ---@field remove_from_province fun(self:Building, province:Province)
 ---@field tile Tile?
@@ -28,6 +29,7 @@ function bld.Building:new(province, building_type, tile)
 
 	setmetatable(o, bld.Building)
 
+	o.province = province
 	province.buildings[o] = o -- add a new building!
 	if tile and building_type.tile_improvement then
 		-- Remove the previous building!

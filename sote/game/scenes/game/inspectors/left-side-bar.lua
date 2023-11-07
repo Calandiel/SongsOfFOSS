@@ -38,6 +38,7 @@ function inspector.draw(gam)
         "army",
         "character-decisions",
         "warband",
+        "property"
     }
 
     local inspector_icons = {
@@ -47,6 +48,7 @@ function inspector.draw(gam)
         ["army"] = ASSETS.icons["guards.png"],
         ["character-decisions"] = ASSETS.icons["envelope.png"],
         ["warband"] = ASSETS.icons["barbute.png"],
+        ["property"] = ASSETS.icons["bank.png"],
     }
 
     local inspector_tooltips = {

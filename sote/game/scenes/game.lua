@@ -34,6 +34,7 @@ local inspectors_table = {
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 	["warband"] = require "game.scenes.game.inspectors.warband",
+	["property"] = require "game.scenes.game.inspectors.property"
 }
 
 local tile_inspectors = {
@@ -392,7 +393,7 @@ end
 function gam.click_tile(tile_id)
 	gam.clicked_tile_id = tile_id
 	gam.clicked_tile = WORLD.tiles[tile_id]
-	
+
 	if gam.clicked_tile then
 		gam.selected.province = gam.clicked_tile.province
 	end
@@ -750,7 +751,7 @@ function gam.draw()
 			-- draw
 
 			local result = require "game.scenes.game.widgets.province-on-map" (gam, tile, rect_for_icons, x, y, size)
-			
+
 			if result then
 				gam.click_callback = result
 			else
@@ -769,7 +770,7 @@ function gam.draw()
 		else
 			---@type Province[]
 			local provinces_to_draw = {}
-			
+
 			---@type table<Province, Province>
 			local visited = {}
 			---@type Queue<Province>
@@ -788,7 +789,7 @@ function gam.draw()
 				rect_for_icons.y = y - size / 2
 				rect_for_icons.width = size
 				rect_for_icons.height = size
-				-- 
+				--
 				table.insert(provinces_to_draw, td)
 				for _, n in pairs(td.neighbors) do
 					if visited[n] then
@@ -1490,7 +1491,7 @@ function gam.recalculate_realm_map()
 	for _, tile in pairs(WORLD.tiles) do
 		local x, y = gam.tile_id_to_color_coords(tile)
 
-		
+
 		if tile.province and tile.province.realm then
 			local overlords = tile.province.realm:get_top_realm()
 			local r = tile.province.realm.r
