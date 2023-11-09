@@ -41,11 +41,11 @@ function emp.run(province)
 
 		if num_of_workers >= building.type.production_method:total_jobs() then
 			-- don"t hire
-			profits[building] = -1
+			profits[building] = nil
 		end
 
-		-- if profit is negative, fire a worker
-		if profit < 0 then
+		-- if profit is negative, eventually fire a worker
+		if profit < 0 and love.math.random() < 0.1 then
 			local pop = tabb.random_select_from_set(building.workers)
 			if pop then
 				province:fire_pop(pop)

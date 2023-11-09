@@ -17,6 +17,10 @@ local function construction_in_province(province, funds, excess, owner, overseer
 	---@type table<BuildingType, number>
 	local exp_profits = {}
 	local random_pop = tabb.random_select_from_set(province.all_pops)
+	-- if pop is nil, then buildings is the last thing we need
+	if random_pop == nil then
+		return funds
+	end
 	local sum_of_exponents = 0
 	for _, building_type in pairs(province.buildable_buildings) do
 		local predicted_profit = eco_values.projected_income_building_type(province, building_type, random_pop.race)

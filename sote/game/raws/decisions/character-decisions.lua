@@ -48,7 +48,7 @@ local function load()
             local province = root.province
 			if province == nil then return end
 
-			root.savings = root.savings + base_gift_size
+			root.savings = root.savings + 1000
 			if WORLD:does_player_see_realm_news(province.realm) then
 				WORLD:emit_notification(root.name .. " IS CHEATER!!! But nobody cares.")
 			end
