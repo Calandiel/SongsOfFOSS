@@ -121,7 +121,7 @@ local function load()
 				if warband == nil then
 					return
 				end
-				warband.units_target[unit] = (warband.units_target[unit] or 0) + 1
+				warband.units_target[unit] = (warband.units_target[unit] or 0) - 1
 			end
 		}
 	end
