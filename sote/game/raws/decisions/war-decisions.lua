@@ -56,7 +56,7 @@ local function load()
 					return 0
 				end
 
-				return root.culture.traditional_units[unit]
+				return root.culture.traditional_units[unit.name]
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = root.leading_warband
@@ -114,7 +114,7 @@ local function load()
 					return 0
 				end
 
-				return 1 / (root.culture.traditional_units[unit] +  0.01)
+				return 1 / (root.culture.traditional_units[unit.name] +  0.01)
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = root.leading_warband

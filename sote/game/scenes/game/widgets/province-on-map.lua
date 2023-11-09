@@ -43,13 +43,20 @@ local function macrodecision(gam, tile, rect, x, y, size)
     end
 end
 
-
+---comment
+---@param gam GameScene
+---@param tile Tile
+---@param rect Rect
+---@param x number
+---@param y number
+---@param size number
+---@return function|nil
 local function macrobuilder(gam, tile, rect, x, y, size)
     local player_character = WORLD.player_character
     if player_character == nil then
         return
     end
-    if player_character.realm ~= tile.province.realm then
+    if player_character.province ~= tile.province then
         return
     end
     ---@type BuildingType

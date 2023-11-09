@@ -85,7 +85,7 @@ function EconomicEffects.add_pop_savings(pop, x, reason)
     end
 end
 
-function EconomicEffects.display_character_savings_change(pop, x, reason) 
+function EconomicEffects.display_character_savings_change(pop, x, reason)
     if WORLD.player_character == pop then
         WORLD:emit_treasury_change_effect(x, reason, true)
     end
@@ -117,7 +117,7 @@ end
 ---@param x number
 function EconomicEffects.set_military_budget(realm, x)
     realm.budget.military.ratio = x
-end 
+end
 
 ---comment
 ---@param budget BudgetCategory
@@ -164,6 +164,25 @@ function EconomicEffects.set_ownership(building, pop)
     end
 end
 
+---@param building Building
+function EconomicEffects.unset_ownership(building)
+    local owner = building.owner
+
+    if owner == nil then
+        return
+    end
+
+    owner.owned_buildings[building] = nil
+
+    if WORLD:does_player_see_province_news(owner.province) then
+        if WORLD.player_character == owner then
+            WORLD:emit_notification(building.type.name .. " is no longer owned by me, " .. owner.name .. ".")
+        else
+            WORLD:emit_notification(building.type.name .. " is no longer owned by " .. owner.name .. ".")
+        end
+    end
+end
+
 ---comment
 ---@param building_type BuildingType
 ---@param province Province
@@ -179,6 +198,13 @@ function EconomicEffects.construct_building(building_type, province, tile, owner
         WORLD:emit_notification(building_type.name .. " was constructed in " .. province.name .. ".")
     end
     return result_building
+end
+
+---comment
+---@param building Building
+function EconomicEffects.destroy_building(building)
+    EconomicEffects.unset_ownership(building)
+    building:remove_from_province()
 end
 
 ---comment
@@ -242,7 +268,7 @@ function EconomicEffects.collect_tribute(collector, realm)
     if WORLD:does_player_see_realm_news(realm) then
         WORLD:emit_notification("Tribute collector had arrived. Another day of humiliation. " .. tribute_amount .. MONEY_SYMBOL .. " were collected.")
     end
-    
+
     EconomicEffects.register_spendings(realm, tribute_amount, EconomicEffects.reasons.Tribute)
     realm.budget.tribute.budget = realm.budget.tribute.budget - tribute_amount
 
@@ -367,7 +393,7 @@ function EconomicEffects.gift_to_warband(character, amount)
     if warband == nil then
         return
     end
-    
+
     if amount > 0 then
         if character.savings < amount then
             return

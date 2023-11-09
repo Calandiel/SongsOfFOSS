@@ -11,7 +11,7 @@ PoliticalEffects = {}
 
 ---Returns result of coup: true if success, false if failure
 ---@param character Character
----@return boolean 
+---@return boolean
 function PoliticalEffects.coup(character)
     if character.province == nil then
         return false
@@ -91,7 +91,7 @@ end
 ---Transfers control over realm to target
 ---@param realm Realm
 ---@param target Character
-function PoliticalEffects.transfer_power(realm, target) 
+function PoliticalEffects.transfer_power(realm, target)
     local depose_message = ""
     if realm.leader ~= nil then
         if WORLD.player_character == realm.leader then
@@ -101,7 +101,7 @@ function PoliticalEffects.transfer_power(realm, target)
         end
     end
     local new_leader_message = target.name .. " is now the leader of " .. realm.name .. '.'
-    if WORLD.player_character == target then 
+    if WORLD.player_character == target then
         new_leader_message = "I am now the leader of " .. realm.name .. '.'
     end
     if WORLD:does_player_see_realm_news(realm) then
@@ -274,8 +274,8 @@ end
 ---@return Character
 function PoliticalEffects.generate_new_noble(race, faith, culture)
 	local character = pop.POP:new(
-        race, 
-        faith, 
+        race,
+        faith,
         culture,
         love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
         love.math.random(race.adult_age, race.max_age)

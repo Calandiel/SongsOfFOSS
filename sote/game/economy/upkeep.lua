@@ -18,7 +18,7 @@ function upk.run(province)
 			-- Destroy this building if necessary...
 			if province.realm.budget.treasury < 0 then
 				if love.math.random() < 0.1 then
-					building:remove_from_province(province)
+					building:remove_from_province()
 				end
 			end
 		else
@@ -30,7 +30,7 @@ function upk.run(province)
 				if province.local_wealth < 0 then
 					province.local_wealth = 0
 					if love.math.random() < 0.1 then
-						building:remove_from_province(province)
+						building:remove_from_province()
 					end
 				end
 			else
@@ -40,7 +40,7 @@ function upk.run(province)
 				upkeep_owners[building.owner] = upkeep_owners[building.owner] + up
 				if building.owner.savings < upkeep_owners[building.owner] then
 					if love.math.random() < 0.1 then
-						building:remove_from_province(province)
+						building:remove_from_province()
 					end
 				end
 			end

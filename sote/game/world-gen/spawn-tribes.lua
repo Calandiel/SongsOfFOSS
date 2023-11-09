@@ -93,7 +93,7 @@ end
 ---Checks if province is eligible for spawn
 ---@param race Race
 ---@param province Province
-function ProvinceCheck(race, province) 
+function ProvinceCheck(race, province)
 	if not province.center.is_land then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
@@ -123,12 +123,13 @@ function st.run()
 			local culture = cult.Culture:new(cg)
 
 			local max_unit_weight = 0
+			---@type table<string, number>
 			local weights = {}
-			for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
+			for unit_name, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
 				if unit.unlocked_by == RAWS_MANAGER.technologies_by_name['paleolithic-knowledge'] then
 					local v = love.math.random()
 					max_unit_weight = max_unit_weight + v
-					weights[unit] = v
+					weights[unit_name] = v
 				end
 			end
 			for unit, weight in pairs(weights) do

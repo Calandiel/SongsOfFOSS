@@ -5,8 +5,14 @@
 ---@field y number?
 ---@field workers table<POP, POP>
 ---@field owner POP?
----@field income_mean number?
----@field remove_from_province fun(self:Building, province:Province)
+---@field province Province
+---@field income_mean number
+---@field last_income number
+---@field spent_on_inputs table<TradeGoodReference, number>
+---@field earn_from_outputs table<TradeGoodReference, number>
+---@field last_donation_to_owner number
+---@field remove_from_province fun(self:Building)
+---@field unused number
 ---@field tile Tile?
 ------@field employ fun(self:Building, pop:POP, province:Province)
 
@@ -26,13 +32,21 @@ function bld.Building:new(province, building_type, tile)
 	o.type = building_type
 	o.workers = {}
 
+	o.income_mean = 0
+	o.last_income = 0
+	o.last_donation_to_owner = 0
+	o.spent_on_inputs = {}
+	o.earn_from_outputs = {}
+	o.unused = 0
+
 	setmetatable(o, bld.Building)
 
+	o.province = province
 	province.buildings[o] = o -- add a new building!
 	if tile and building_type.tile_improvement then
 		-- Remove the previous building!
 		if tile.tile_improvement then
-			tile.tile_improvement:remove_from_province(tile.province)
+			tile.tile_improvement:remove_from_province()
 		end
 		o.tile = tile
 		tile.tile_improvement = o
@@ -42,8 +56,8 @@ function bld.Building:new(province, building_type, tile)
 end
 
 ---Removes a building from the province and other relevant data structures.
----@param province Province
-function bld.Building:remove_from_province(province)
+function bld.Building:remove_from_province()
+	local province = self.province
 
 	-- Fire current workers
 	for _, pop in pairs(self.workers) do

@@ -217,8 +217,8 @@ function world.World:emit_action(event, root, associated_data, delay, hidden)
 	---@type ActionData
 	local action_data = {
 		event,
-		root, 
-		associated_data, 
+		root,
+		associated_data,
 		delay
 	}
 	-- print('add new action:' .. event)
@@ -249,7 +249,7 @@ local function handle_event(event, target_realm, associated_data)
 		local oo = o
 		if oo.viable() then
 			local pre = oo.ai_preference()
-			
+
 			-- print(oo.text)
 			-- print(oo.ai_preference())
 
@@ -470,7 +470,7 @@ function world.World:tick()
 							for _, warband in pairs(warbands) do
 								units = units + warband:size()
 							end
-							
+
 							-- with some probability, launch the raid
 							-- larger groups launch raids faster
 							if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
@@ -487,12 +487,12 @@ function world.World:tick()
 					end
 				end
 
-				
+
 				for _, settled_province in pairs(ta) do
 					for _, character in pairs(settled_province.characters) do
 						if character ~= WORLD.player_character then
 							decide.run_character(character)
-						end			
+						end
 					end
 				end
 			end
@@ -565,9 +565,12 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 end
 
 ---Checks if given character is a player
----@param character Character
+---@param character Character?
 ---@return boolean
 function world.World:is_player(character)
+	if character == nil then
+		return false
+	end
 	if WORLD.player_character == character then
 		return true
 	end

@@ -75,7 +75,8 @@ function eco_values.get_local_price(province, trade_good)
     local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
     local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
-    return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+    return data.base_price * (bought + 1) / (sold + 1)
+    -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
 end
 
 ---comment
@@ -87,7 +88,78 @@ function eco_values.get_pessimistic_local_price(province, trade_good, amount)
     local sold = (province.local_production[trade_good] or 0) + amount + (province.local_storage[trade_good] or 0) / 12
     local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
-    return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+    return data.base_price * (bought + 1) / (sold + 1)
+    -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
+end
+
+---@param province Province
+---@param building_type BuildingType
+---@param race Race
+function eco_values.projected_income_building_type(province, building_type, race)
+    local income = 0
+    for input, amount in pairs(building_type.production_method.inputs) do
+        local price = eco_values.get_local_price(province, input)
+        local spent = price * amount
+        income = income - spent
+    end
+    for input, amount in pairs(building_type.production_method.outputs) do
+        local price = eco_values.get_pessimistic_local_price(province, input, amount)
+        local earnt = price * amount
+        ---@type number
+        income = income + earnt
+    end
+
+    return income
+end
+
+---comment
+---@param building Building
+---@param race Race
+---@param prices table<TradeGoodReference, number>
+---@param efficiency number
+---@param update_building_stats boolean
+---@return number income, number input_boost, number output_boost, number throughput_boost
+function eco_values.projected_income(building, race, prices, efficiency, update_building_stats)
+    local province = building.province
+    local production_method = building.type.production_method
+
+    local throughput_boost = 1 + (province.throughput_boosts[production_method] or 0)
+    local input_boost = math.max(0, 1 - (province.input_efficiency_boosts[production_method] or 0))
+    local output_boost = 1 + (province.output_efficiency_boosts[production_method] or 0)
+
+    -- if depends on forests, then reduce local forest coverage over time
+    -- sample random tile from province to avoid weird looking pimples
+    if production_method.forest_dependence > 0 then
+        local years_to_deforestate = 50
+        local days_to_deforestate = years_to_deforestate * 360
+        local total_power = production_method.forest_dependence * efficiency * throughput_boost * input_boost / days_to_deforestate
+        if update_building_stats then
+            require "game.raws.effects.geography".deforest_random_tile(province, total_power)
+        end
+    end
+
+    local income = 0
+    for input, amount in pairs(building.type.production_method.inputs) do
+        local price = prices[input]
+        local spent = price * amount * efficiency * throughput_boost * input_boost
+
+        income = income - spent
+        if update_building_stats then
+            building.spent_on_inputs[input] = (building.spent_on_inputs[input] or 0) + spent
+        end
+    end
+
+    income = income
+    for output, amount in pairs(building.type.production_method.outputs) do
+        local price = prices[output]
+        local earnt = price * amount * efficiency * throughput_boost * output_boost
+        income = income + earnt
+        if update_building_stats then
+            building.earn_from_outputs[output] = (building.earn_from_outputs[output] or 0) + earnt
+        end
+    end
+
+    return income, input_boost, output_boost, throughput_boost
 end
 
 return eco_values

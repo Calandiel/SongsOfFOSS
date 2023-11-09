@@ -17,7 +17,7 @@ local cl = {}
 ---@field language Language
 ---@field culture_group CultureGroup
 ---@field new fun(self:Culture, group:CultureGroup):Culture
----@field traditional_units table<UnitType, number> -- Defines "traditional" ratios for units recruited from this culture.
+---@field traditional_units table<string, number> -- Defines "traditional" ratios for units recruited from this culture.
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
 
 ---@class CultureGroup
