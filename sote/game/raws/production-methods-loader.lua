@@ -1,3 +1,5 @@
+local JOBTYPE = require "game.raws.job_types"
+
 local d = {}
 
 function d.load()
@@ -40,6 +42,7 @@ function d.load()
 		inputs = {},
 		outputs = { ['water'] = 10 },
 		jobs = { [job('water-carriers')] = 1 },
+		job_type = JOBTYPE.HAULING,
 		self_sourcing_fraction = 0,
 	}
 	ProductionMethod:new {
@@ -52,6 +55,7 @@ function d.load()
 		inputs = { ['tools'] = 0.05 },
 		outputs = { ['food'] = 1.5 },
 		jobs = { [job('gatherers')] = 1 },
+		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
@@ -66,6 +70,7 @@ function d.load()
 		inputs = { ['tools'] = 0.05 },
 		outputs = { ['food'] = 1.33, ['meat'] = 0.5, ['hide'] = 1 },
 		jobs = { [job('hunters')] = 1 },
+		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
@@ -80,6 +85,7 @@ function d.load()
 		inputs = { },
 		outputs = { ['knapping-blanks'] = 2 },
 		jobs = { [job('knappers')] = 3 },
+		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
 	}
 	ProductionMethod:new {
@@ -92,6 +98,7 @@ function d.load()
 		inputs = { ['knapping-blanks'] = 1 / 24 }, -- one blank serves for two years - made up value
 		outputs = { ['tools'] = 0.25 },
 		jobs = { [job('knappers')] = 1 },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.8,
 	}
 	ProductionMethod:new {
@@ -104,6 +111,7 @@ function d.load()
 		inputs = { ['water'] = 4 },
 		outputs = { ['liquors'] = 4 },
 		jobs = { [job('brewers')] = 2 },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.2,
 	}
 	ProductionMethod:new {
@@ -116,6 +124,7 @@ function d.load()
 		inputs = { ['tools'] = 5, ['timber'] = 15 },
 		outputs = { ['copper-bars'] = 20 },
 		jobs = { [job('miners')] = 5, [job('smelters')] = 1 },
+		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0.75
 	}
 	ProductionMethod:new {
@@ -128,6 +137,7 @@ function d.load()
 		inputs = { ['containers'] = 0.1 },
 		outputs = { ['clay'] = 20 },
 		jobs = { [job('gatherers')] = 1, },
+		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0.1,
 		clay_extreme_max = 1,
 		clay_ideal_max = 1,
@@ -144,6 +154,7 @@ function d.load()
 		inputs = { ['clay'] = 10 },
 		outputs = { ['containers'] = 10 },
 		jobs = { [job('potterers')] = 1, },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.5,
 	}
 	ProductionMethod:new {
@@ -156,6 +167,7 @@ function d.load()
 		inputs = { ['tools'] = 1 },
 		outputs = { ['timber'] = 15 },
 		jobs = { [job('woodcutters')] = 1, },
+		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0.5,
 		forest_dependence = 1,
 	}
@@ -169,6 +181,7 @@ function d.load()
 		inputs = { ['tools'] = 0.2, ['hide'] = 5 },
 		outputs = { ['leather'] = 5 },
 		jobs = { [job('tanners')] = 1, },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.7,
 	}
 	ProductionMethod:new {
@@ -181,6 +194,7 @@ function d.load()
 		inputs = { ['tools'] = 0.2, ['leather'] = 5 },
 		outputs = { ['clothes'] = 5 },
 		jobs = { [job('artisans')] = 1, },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.75,
 	}
 	ProductionMethod:new {
@@ -193,6 +207,7 @@ function d.load()
 		inputs = { ['tools'] = 3, ['timber'] = 3 },
 		outputs = { ['furniture'] = 3 },
 		jobs = { [job('artisans')] = 1, },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.85,
 	}
 	ProductionMethod:new {
@@ -205,6 +220,7 @@ function d.load()
 		inputs = { ['tools'] = 1 },
 		outputs = { ['food'] = 2 },
 		jobs = { [job('farmers')] = 1, },
+		job_type = JOBTYPE.FARMER,
 		self_sourcing_fraction = 0.125,
 		crop = true,
 		temperature_ideal_min = 11,

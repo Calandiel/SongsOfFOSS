@@ -1,3 +1,5 @@
+local JOBTYPE = require "game.raws.job_types"
+
 ---@class Job
 ---@field name string
 ---@field icon string
@@ -5,7 +7,6 @@
 ---@field r number
 ---@field g number
 ---@field b number
----@field social_class string
 ---@field new fun(self:Job, o:Job):Job
 
 ---@class Job
@@ -24,7 +25,6 @@ function Job:new(o)
 	r.r = 0
 	r.g = 0
 	r.b = 0
-	r.social_class = 'laborers'
 
 	for k, v in pairs(o) do
 		r[k] = v

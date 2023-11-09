@@ -1,3 +1,5 @@
+local tabb = require "engine.table"
+
 local good = require "game.raws.raws-utils".trade_good
 
 local traits = require "game.raws.traits.generic"
@@ -64,7 +66,14 @@ function eco_values.get_pessimistic_realm_price(realm, trade_good, amount)
 	bought = bought + amount
 	local sold = realm.sold[trade_good] or 0
 	local data = good(trade_good)
-	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
+
+    -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
+    local pessimistic_price = data.base_price * (bought + 1) / (sold + 1)
+    local optimistic_price = eco_values.get_realm_price(realm, trade_good)
+
+    -- We need to take an average because otherwise selling by one will be far
+    -- more profitable. Which rewards boring micromanagement.
+	return (optimistic_price + pessimistic_price) / 2
 end
 
 ---comment
@@ -75,8 +84,9 @@ function eco_values.get_local_price(province, trade_good)
     local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
     local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
-    return data.base_price * (bought + 1) / (sold + 1)
+
     -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
+    return data.base_price * (bought + 1) / (sold + 1)
 end
 
 ---comment
@@ -88,14 +98,51 @@ function eco_values.get_pessimistic_local_price(province, trade_good, amount)
     local sold = (province.local_production[trade_good] or 0) + amount + (province.local_storage[trade_good] or 0) / 12
     local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
-    return data.base_price * (bought + 1) / (sold + 1)
+
     -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
+    local pessimistic_price = data.base_price * (bought + 1) / (sold + 1)
+    local optimistic_price = eco_values.get_local_price(province, trade_good)
+
+    -- We need to take an average because otherwise selling by one will be far
+    -- more profitable. Which rewards boring micromanagement.
+    return (optimistic_price + pessimistic_price) /2
+end
+
+---@param race Race
+---@param female boolean
+---@param building_type BuildingType
+function eco_values.race_throughput_multiplier(race, female, building_type)
+    local job = tabb.nth(building_type.production_method.jobs, 1)
+    if job == nil then
+        return 1
+    end
+
+    if female then
+        return race.female_efficiency[building_type.production_method.job_type]
+    end
+    return race.male_efficiency[building_type.production_method.job_type]
+end
+
+---@param race Race
+---@param female boolean
+---@param building_type BuildingType
+function eco_values.race_output_multiplier(race, female, building_type)
+    local job = tabb.nth(building_type.production_method.jobs, 1)
+    if job == nil then
+        return 1
+    end
+
+    if female then
+        return math.sqrt(race.female_efficiency[building_type.production_method.job_type])
+    end
+    return math.sqrt(race.male_efficiency[building_type.production_method.job_type])
 end
 
 ---@param province Province
 ---@param building_type BuildingType
 ---@param race Race
-function eco_values.projected_income_building_type(province, building_type, race)
+---@param female boolean
+function eco_values.projected_income_building_type(province, building_type, race, female)
     local income = 0
     for input, amount in pairs(building_type.production_method.inputs) do
         local price = eco_values.get_local_price(province, input)
@@ -104,7 +151,7 @@ function eco_values.projected_income_building_type(province, building_type, race
     end
     for input, amount in pairs(building_type.production_method.outputs) do
         local price = eco_values.get_pessimistic_local_price(province, input, amount)
-        local earnt = price * amount
+        local earnt = price * amount * eco_values.race_output_multiplier(race, female, building_type)
         ---@type number
         income = income + earnt
     end
@@ -115,17 +162,25 @@ end
 ---comment
 ---@param building Building
 ---@param race Race
+---@param female boolean
 ---@param prices table<TradeGoodReference, number>
 ---@param efficiency number
 ---@param update_building_stats boolean
 ---@return number income, number input_boost, number output_boost, number throughput_boost
-function eco_values.projected_income(building, race, prices, efficiency, update_building_stats)
+function eco_values.projected_income(building, race, female, prices, efficiency, update_building_stats)
     local province = building.province
     local production_method = building.type.production_method
 
-    local throughput_boost = 1 + (province.throughput_boosts[production_method] or 0)
-    local input_boost = math.max(0, 1 - (province.input_efficiency_boosts[production_method] or 0))
-    local output_boost = 1 + (province.output_efficiency_boosts[production_method] or 0)
+    local throughput_boost =
+        (1 + (province.throughput_boosts[production_method] or 0))
+        * eco_values.race_throughput_multiplier(race, female, building.type)
+
+    local input_boost =
+        math.max(0, 1 - (province.input_efficiency_boosts[production_method] or 0))
+
+    local output_boost =
+        (1 + (province.output_efficiency_boosts[production_method] or 0))
+        * eco_values.race_output_multiplier(race, female, building.type)
 
     -- if depends on forests, then reduce local forest coverage over time
     -- sample random tile from province to avoid weird looking pimples
