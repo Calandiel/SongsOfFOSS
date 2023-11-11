@@ -243,7 +243,6 @@ function ll.load()
 		male_clothing_needs = 0.25,
 		male_infrastructure_needs = 0.25,
 		carrying_capacity_weight = 0.25,
-
 	}
 
 end
