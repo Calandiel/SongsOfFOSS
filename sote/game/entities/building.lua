@@ -10,6 +10,7 @@
 ---@field last_income number
 ---@field spent_on_inputs table<TradeGoodReference, number>
 ---@field earn_from_outputs table<TradeGoodReference, number>
+---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 ---@field last_donation_to_owner number
 ---@field remove_from_province fun(self:Building)
 ---@field unused number
@@ -38,6 +39,8 @@ function bld.Building:new(province, building_type, tile)
 	o.spent_on_inputs = {}
 	o.earn_from_outputs = {}
 	o.unused = 0
+
+	o.work_ratio = 1
 
 	setmetatable(o, bld.Building)
 

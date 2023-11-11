@@ -6,7 +6,13 @@ local economy_values = require "game.raws.values.economical"
 ---Employs pops in the province.
 ---@param province Province
 function emp.run(province)
-	local human_race = RAWS_MANAGER.races_by_name["human"]
+	-- Sample random pop and try to employ it
+	local pop = tabb.random_select_from_set(province.all_pops)
+
+	-- no need to employ anyone in empty province
+	if pop == nil then
+		return
+	end
 
 	local exp_base = 1.1
 	local exp_modifier = math.log(exp_base)
@@ -30,7 +36,8 @@ function emp.run(province)
 			profit =
 				economy_values.projected_income(
 					building,
-					human_race,
+					pop.race,
+					pop.female,
 					prices,
 					1,
 					false)
@@ -44,8 +51,8 @@ function emp.run(province)
 			profits[building] = nil
 		end
 
-		-- if profit is negative, eventually fire a worker
-		if profit < 0 and love.math.random() < 0.1 then
+		-- if profit is almost negative, eventually fire a worker
+		if profit < 0.01 and love.math.random() < 0.05 then
 			local pop = tabb.random_select_from_set(building.workers)
 			if pop then
 				province:fire_pop(pop)
@@ -86,8 +93,7 @@ function emp.run(province)
 		return
 	end
 
-	-- A worker is needed, try to hire some pop
-	local pop = tabb.random_select_from_set(province.all_pops)
+
 
 	-- if WORLD.player_character then
 	-- 	if WORLD.player_character.province == province then
@@ -119,6 +125,7 @@ function emp.run(province)
 			local recalculater_hire_profit = economy_values.projected_income(
 				hire_building,
 				pop.race,
+				pop.female,
 				prices,
 				1,
 				false

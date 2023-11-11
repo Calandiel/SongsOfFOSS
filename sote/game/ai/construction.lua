@@ -23,7 +23,13 @@ local function construction_in_province(province, funds, excess, owner, overseer
 	end
 	local sum_of_exponents = 0
 	for _, building_type in pairs(province.buildable_buildings) do
-		local predicted_profit = eco_values.projected_income_building_type(province, building_type, random_pop.race)
+		local predicted_profit = eco_values.projected_income_building_type(
+			province,
+			building_type,
+			random_pop.race,
+			random_pop.female
+		)
+
 		---@type number
 		sum_of_exponents = sum_of_exponents + math.exp(predicted_profit)
 		exp_profits[building_type] = math.exp(predicted_profit)
@@ -36,14 +42,19 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		local w = love.math.random() * total_weight
 		local acc = 0
 		---@type BuildingType
-		local to_build = tabb.nth(province.buildable_buildings, 0) -- default to the first building
+		local to_build = tabb.nth(province.buildable_buildings, 1) -- default to the first building
 		for _, ty in pairs(province.buildable_buildings) do
 			---@type number
 			acc = acc + exp_profits[ty]
-			if acc > w then
+			if acc >= w then
 				to_build = ty
 				break
 			end
+		end
+
+		-- if there's nothing to build, do not build
+		if to_build == nil then
+			return funds
 		end
 
 		-- pops should not be able to build government buildings

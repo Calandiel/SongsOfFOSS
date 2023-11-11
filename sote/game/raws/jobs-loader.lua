@@ -115,8 +115,6 @@ function d.load()
 		g = 0.45,
 		b = 0.45,
 	}
-
-
 end
 
 return d

@@ -1,4 +1,5 @@
 local good = require "game.raws.raws-utils".trade_good
+local JOBTYPE = require "game.raws.job_types"
 
 local tabb = require "engine.table"
 local EconomicEffects = require "game.raws.effects.economic"
@@ -126,19 +127,21 @@ function pro.run(province)
 									* local_foraging_efficiency
 									* efficiency_from_infrastructure
 									* shortage_modifier -- add more multipliers to this later
+									* pop.employer.work_ratio
 
 
 				local income, input_boost, output_boost, throughput_boost
 					= ev.projected_income(
 						pop.employer,
 						pop.race,
+						pop.female,
 						old_prices,
 						efficiency,
 						true
 					)
 
 				for input, amount in pairs(prod.inputs) do
-					record_consumption(input, amount * input_boost * throughput_boost)end
+					record_consumption(input, amount * efficiency * input_boost * throughput_boost)end
 				for output, amount in pairs(prod.outputs) do
 					record_production(output, amount * efficiency * output_boost * throughput_boost)
 				end
@@ -157,7 +160,11 @@ function pro.run(province)
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					income = income - income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-					local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
+
+					-- commented to test changes and to be able to switch it on demand
+					-- local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
+					local contrib = income * fraction_of_income_given_voluntarily
+
 					local owner = pop.employer.owner
 					if owner then
 						if donations_to_owners[owner] == nil then
@@ -168,17 +175,30 @@ function pro.run(province)
 					else
 						total_donations = total_donations + contrib
 					end
+
+					-- increase working hours if possible to increase income
+					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.2)
+				else
+					-- reduce working hours to negate losses
+					pop.employer.work_ratio = math.max(0.01, pop.employer.work_ratio * 0.8)
 				end
 			else
 				if pop.age > pop.race.teen_age then
 					foragers_count = foragers_count + 1 -- Record a new forager!
+
+					local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
+
 					-- Foragers produce food:
-					local food_produced = math.min(0.9, foraging_efficiency)
+					local food_produced = math.min(0.9, foraging_efficiency * foraging_multiplier)
 					local food_price = ev.get_pessimistic_local_price(province, 'food', food_produced)
 					local income = food_produced * food_price
 					if income > 0 then
 						province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-						local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
+
+						-- commented to test changes and to be able to switch it on demand
+						-- local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
+						local contrib = income * fraction_of_income_given_voluntarily
+
 						total_donations = total_donations + contrib
 					end
 					record_production('food', food_produced)

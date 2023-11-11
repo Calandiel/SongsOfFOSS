@@ -1,4 +1,6 @@
----@class ProductionMethod
+local JOBTYPE = require "game.raws.job_types"
+
+---@class (exact) ProductionMethod
 ---@field name string
 ---@field icon string
 ---@field description string
@@ -7,6 +9,7 @@
 ---@field b number
 ---@field jobs table<Job, number>
 ---@field job_weight number
+---@field job_type JOBTYPE
 ---@field total_jobs fun(self:ProductionMethod):number
 ---@field inputs table<TradeGoodReference, number>
 ---@field outputs table<TradeGoodReference, number>
@@ -67,7 +70,8 @@ function ProductionMethod:new(o)
 	r.clay_ideal_min = 0
 	r.clay_ideal_max = 1
 	r.clay_extreme_min = 0
-	r.clay_extreme_max = 1	
+	r.clay_extreme_max = 1
+	r.job_type = JOBTYPE.FORAGER
 
 
 

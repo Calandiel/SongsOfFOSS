@@ -1,3 +1,5 @@
+local JOBTYPE = require "game.raws.job_types"
+
 ---@class Race
 ---@field name string
 ---@field icon string
@@ -20,10 +22,7 @@
 ---@field minimum_absolute_temperature number
 ---@field minimum_comfortable_elevation number
 ---@field female_body_size number
----@field female_worker_efficiency number
----@field female_artisan_efficiency number
----@field female_clerk_efficiency number
----@field female_ruler_efficiency number
+---@field female_efficiency table<JOBTYPE, number>
 ---@field female_water_needs number
 ---@field female_food_needs number
 ---@field female_grains_needs number
@@ -32,10 +31,7 @@
 ---@field female_clothing_needs number
 ---@field female_infrastructure_needs number
 ---@field male_body_size number
----@field male_worker_efficiency number
----@field male_artisan_efficiency number
----@field male_clerk_efficiency number
----@field male_ruler_efficiency number
+---@field male_efficiency table<JOBTYPE, number>
 ---@field male_water_needs number
 ---@field male_food_needs number
 ---@field male_grains_needs number
@@ -49,7 +45,7 @@
 ---@class Race
 local Race = {}
 Race.__index = Race
----@param o table
+---@param o Race
 ---@return Race
 function Race:new(o)
 	---@type Race
@@ -75,10 +71,6 @@ function Race:new(o)
 	r.spotting = 1
 	r.visibility = 1
 	r.female_body_size = 1
-	r.female_worker_efficiency = 1
-	r.female_artisan_efficiency = 1
-	r.female_clerk_efficiency = 1
-	r.female_ruler_efficiency = 1
 	r.female_water_needs = 1
 	r.female_food_needs = 1
 	r.female_grains_needs = 1
@@ -87,10 +79,6 @@ function Race:new(o)
 	r.female_clothing_needs = 0.1
 	r.female_infrastructure_needs = 1
 	r.male_body_size = 1
-	r.male_worker_efficiency = 1
-	r.male_artisan_efficiency = 1
-	r.male_clerk_efficiency = 1
-	r.male_ruler_efficiency = 1
 	r.male_water_needs = 1
 	r.male_food_needs = 1
 	r.male_grains_needs = 1
@@ -99,6 +87,26 @@ function Race:new(o)
 	r.male_clothing_needs = 0.1
 	r.male_infrastructure_needs = 1
 	r.carrying_capacity_weight = 1
+
+	r.female_efficiency = {
+		[JOBTYPE.FARMER] = 0.8,
+		[JOBTYPE.ARTISAN] = 0.6,
+		[JOBTYPE.CLERK] = 0.6,
+		[JOBTYPE.LABOURER] = 0.8,
+		[JOBTYPE.WARRIOR] = 0.6,
+		[JOBTYPE.HAULING] = 0.6,
+		[JOBTYPE.FORAGER] = 0.9
+	}
+
+	r.male_efficiency = {
+		[JOBTYPE.FARMER] = 0.8,
+		[JOBTYPE.ARTISAN] = 0.6,
+		[JOBTYPE.CLERK] = 0.6,
+		[JOBTYPE.LABOURER] = 0.8,
+		[JOBTYPE.WARRIOR] = 0.6,
+		[JOBTYPE.HAULING] = 0.6,
+		[JOBTYPE.FORAGER] = 0.9
+	}
 
 	r.requires_large_river = false
 	r.requires_large_forest = false
