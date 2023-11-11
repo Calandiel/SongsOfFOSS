@@ -61,7 +61,7 @@ function window.draw(game)
     local wealth_panel = ui_panel:subrect(unit * 4, unit * 8/3, unit * 6, unit * 4/3, "left", "up"):shrink(3)
     local popularity_panel = ui_panel:subrect(unit * 10, unit * 8/3, unit * 6, unit * 4/3, "left", "up"):shrink(3)
 
-    local faith_panel = ui_panel:subrect(0, unit * 5, unit * 8, unit * 1, "left", "up"):shrink(3)
+    local location_panel = ui_panel:subrect(0, unit * 5, unit * 8, unit * 1, "left", "up"):shrink(3)
     local culture_panel = ui_panel:subrect(unit * 8, unit * 5, unit * 8, unit * 1, "left", "up"):shrink(3)
 
     local layout = ui.layout_builder():position(ui_panel.x, ui_panel.y + unit * 6):vertical():build()
@@ -96,13 +96,30 @@ function window.draw(game)
     ut.data_entry_icon("duality-mask.png", ut.to_fixed_point2(popularity), popularity_panel, "Popularity")
 
 
-    ut.data_entry("", character.faith.name, faith_panel, "Faith")
-    faith_panel.y = faith_panel.y - unit
-    ui.left_text("Faith: ", faith_panel)
+    local province = character.province
+    local player = WORLD.player_character
+
+    local province_visible = true
+
+    if player == nil or player.realm.known_provinces[province] then
+        if ut.text_button(character.province.name, location_panel, "Current location of character") then
+            game.inspector = "tile"
+            game.selected.province = character.province
+            game.selected.tile = character.province.center
+            game.clicked_tile_id = character.province.center.tile_id
+        end
+    else
+        ut.text_button("Unknown", location_panel, "Current location of character", false)
+        province_visible = false
+    end
+
+    location_panel.y = location_panel.y - unit
+    ui.left_text("Location: ", location_panel)
 
     ut.data_entry("", character.culture.name, culture_panel, "Culture")
     culture_panel.y = culture_panel.y - unit
-    ui.left_text("Culture: ", culture_panel)
+    ut.data_entry("", character.faith.name, culture_panel, "Faith")
+    -- ui.left_text("Culture: ", culture_panel)
 
     ui.panel(traits_panel)
 
@@ -178,9 +195,11 @@ function window.draw(game)
         decision_target_secondary = nil
     end
 
-    local response = characters_list_widget(characters_list, character.province, true)()
-    if response then
-        game.selected.character = response
+    if province_visible then
+        local response = characters_list_widget(characters_list, character.province, true)()
+        if response then
+            game.selected.character = response
+        end
     end
 
     ut.coa(character.realm, coa)
