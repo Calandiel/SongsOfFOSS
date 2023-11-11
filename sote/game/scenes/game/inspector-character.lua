@@ -119,7 +119,6 @@ function window.draw(game)
     ut.data_entry("", character.culture.name, culture_panel, "Culture")
     culture_panel.y = culture_panel.y - unit
     ut.data_entry("", character.faith.name, culture_panel, "Faith")
-    -- ui.left_text("Culture: ", culture_panel)
 
     ui.panel(traits_panel)
 
