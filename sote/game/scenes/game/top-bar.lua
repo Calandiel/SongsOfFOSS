@@ -111,8 +111,12 @@ function tb.draw(gam)
 		-- portrait
 		local portrait_rect = tr:subrect(0, 0, uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2, "left", "up"):shrink(5)
 		if ui.invisible_button(portrait_rect) then
-			gam.selected.character = WORLD.player_character
-			gam.inspector = "character"
+			if gam.inspector == 'character' then
+				gam.inspector = nil
+			else
+				gam.selected.character = WORLD.player_character
+				gam.inspector = "character"
+			end
 		end
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
 		ui.tooltip("Click the portrait to open character screen", portrait_rect)
