@@ -361,8 +361,13 @@ end
 ---@param rect Rect
 ---@param mouse_x number?
 ---@param mouse_y number?
+---@param shrink number?
 ---@return boolean mouse_in_rect
-function ui.trigger(rect, mouse_x, mouse_y)
+function ui.trigger(rect, mouse_x, mouse_y, shrink)
+	if shrink == nil then
+		shrink = 0
+	end
+
 	local x = rect.x
 	local y = rect.y
 	local width = rect.width
@@ -374,10 +379,10 @@ function ui.trigger(rect, mouse_x, mouse_y)
 	if mouse_y ~= nil then
 		my = mouse_y
 	end
-	return mx > x and
-		mx < x + width and
-		my > y and
-		my < y + height
+	return mx > x + shrink and
+		mx < x + width - shrink and
+		my > y + shrink and
+		my < y + height - shrink
 end
 
 ---Returns true if mouse just moved inside this rect
@@ -385,7 +390,7 @@ end
 ---@return boolean
 function ui.trigger_start_hover(rect)
 	local old_mouse_x, old_mouse_y = ui.old_mouse_position()
-	if ui.trigger(rect) and not ui.trigger(rect, old_mouse_x, old_mouse_y) then
+	if ui.trigger(rect, nil, nil) and not ui.trigger(rect, old_mouse_x, old_mouse_y, -1) then
 		return true
 	end
 	return false
@@ -570,6 +575,9 @@ function ui.mouse_position()
 	return x / scale_x, y / scale_y
 end
 
+---comment
+---@return number
+---@return number
 function ui.old_mouse_position()
 	local x = old_mouse_position.x or 0
 	local y = old_mouse_position.y or 0
@@ -930,7 +938,7 @@ function ui.slider_panel(rect, outter_rect, circle_style)
 	if circle_style == nil then
 		circle_style = true
 	end
-	
+
 	if circle_style then
 		set_color(ui.style.slider_filled)
 		if outter_rect.width > outter_rect.height then
@@ -1136,7 +1144,7 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height, 
 	-- 0 to height
 	-- 1 to length - height - slider_size
 	local start = value_ratio * (slider_real_length - 2 * control_button_size - slider_size) + control_button_size
-	
+
 	local background = ui.rect(
 		rect.x + rect.height,
 		rect.y,
@@ -1203,7 +1211,7 @@ function ui.slider(rect, current_value, min_value, max_value, vertical, height, 
 				active_area_length = background.height - slider_size
 			end
 			ret = frac
-			
+
 			local padding = slider_size / active_area_length
 			-- scale range [low + slider_width_ratio / 2, high - slider_width_ratio / 2] to range [low, high]
 			ret = math.min(1, math.max(0, ret * (1 + padding) - padding / 2))
@@ -1394,7 +1402,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 		-- print(state.sorted_field, value_a, value_b)
 		if state.sorting_order then
 			return (value_a > value_b)
-		else 
+		else
 			return (value_a < value_b)
 		end
 	end)
@@ -1424,7 +1432,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	rect.y = rect.y + state.header_height
 	rect.height = rect.height - state.header_height
 	local result = nil
-	
+
 	local function render_closure(i, rect)
 		local entry = sorted_data[i]
 		if entry == nil then return end

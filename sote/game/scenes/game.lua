@@ -1243,6 +1243,51 @@ function gam.draw()
 	end
 
 
+	-- DRAWING AN ARROW TOWARD PLAYERS PROVINCE
+	local player = WORLD.player_character
+	if player and gam.inspector == nil then
+		local province = player.province
+		if province then
+			local lat, lon = province.center:latlon()
+			local x, y, z = require "game.latlon".lat_lon_to_cart(lat, lon)
+			local target = cpml.vec3.new(x, y, z)
+			local plane_geodesic = gam.camera_position:cross(target)
+			local geodesic_tangent = (plane_geodesic:cross(gam.camera_position)):normalize()
+
+			local screen_projection = (projection * view * geodesic_tangent):normalize()
+
+			local width, height = love.graphics.getDimensions()
+
+			local x_screen = screen_projection.x * width / 20
+			local y_screen = screen_projection.y * height / 20
+
+			local norm = math.sqrt(x_screen * x_screen + y_screen * y_screen)
+
+			local x_screen = x_screen / norm * 20
+			local y_screen = y_screen / norm * 20
+
+			local orthogonal_x_screen = -y_screen / 3
+			local orthogonal_y_screen = x_screen / 3
+
+			local triangle = {
+				width / 2 + orthogonal_x_screen, height / 2 + orthogonal_y_screen,
+				width / 2 + x_screen, height / 2 + y_screen,
+				width / 2 - orthogonal_x_screen, height / 2 - orthogonal_y_screen
+			}
+
+
+			local r, g, b, a = love.graphics.getColor()
+
+			love.graphics.setColor(1, 1, 1, 1)
+			love.graphics.polygon('fill', triangle)
+			love.graphics.setColor(0, 0, 0, 1)
+			love.graphics.polygon('line', triangle)
+
+			love.graphics.setColor(r, g, b, a)
+		end
+	end
+
+
 	if PROFILE_FLAG then
 		local profile_rect = ui.fullscreen():subrect(0, 0, 600, 200, "center", "center")
 		ui.panel(profile_rect)
