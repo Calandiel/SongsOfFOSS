@@ -186,7 +186,7 @@ return function(gam, tile, rect, x, y, size)
         return callback_coa
     end
 
-    if WORLD.player_character then
+    if WORLD.player_character and tile.province.realm then
         local button_rect = ui.rect(
             x - size / 5 + width_unit,
             y - 50 - height_unit * 2,

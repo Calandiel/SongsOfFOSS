@@ -268,11 +268,13 @@ function PoliticalEffects.grant_nobility_to_random_pop(province)
 end
 
 ---comment
+---@param realm Realm
+---@param province Province
 ---@param race Race
 ---@param faith Faith
 ---@param culture Culture
 ---@return Character
-function PoliticalEffects.generate_new_noble(race, faith, culture)
+function PoliticalEffects.generate_new_noble(realm, province, race, faith, culture)
 	local character = pop.POP:new(
         race,
         faith,
@@ -283,6 +285,10 @@ function PoliticalEffects.generate_new_noble(race, faith, culture)
     character.rank = ranks.NOBLE
 
     roll_traits(character)
+    character.realm = realm
+    province:add_character(character)
+    province:set_home(character)
+
 	return character
 end
 

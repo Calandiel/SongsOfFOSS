@@ -236,6 +236,13 @@ function realm.Realm:add_province(prov)
 	prov.realm = self
 end
 
+---Removes province from realm. Does not handle any additional logic!
+---@param prov Province
+function realm.Realm:remove_province(prov)
+	self.provinces[prov] = nil
+	prov.realm = nil
+end
+
 ---Adds a province to the realm's raiding targets.
 ---@param f RewardFlag
 function realm.Realm:add_reward_flag(f)
@@ -496,7 +503,7 @@ end
 
 function realm.Realm:raise_warband(warband)
 	for pop, unit_type in pairs(warband.units) do
-		local province = warband.pops[pop]
+		local province = warband.pops[pop].home_province
 		province:take_away_pop(pop)
 	end
 end

@@ -30,13 +30,12 @@ local prov = {}
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
 ---@field characters table<Character, Character>
+---@field home_to table<Character, Character> Set of characters which think of this province as their home
 ---@field neighbors_realm fun(self:Province, realm:Realm):boolean Returns whether or not a province borders a given realm
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
 ---@field population_weight fun(self:Province):number
----@field add_pop fun(self:Province, pop:POP)
----@field add_character fun(self:Province, pop:Character)
 ---@field kill_pop fun(self:Province, pop:POP)
 ---@field fire_pop fun(self:Province, pop:POP)
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
@@ -119,6 +118,7 @@ function prov.Province:new()
 	o.buildings = {}
 	o.all_pops = {}
 	o.characters = {}
+	o.home_to = {}
 	o.technologies_present = {}
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
@@ -210,6 +210,7 @@ end
 ---@param pop POP
 function prov.Province:add_pop(pop)
 	self.all_pops[pop] = pop
+	pop.home_province = self
 end
 
 ---Adds a character to the province
@@ -219,11 +220,25 @@ function prov.Province:add_character(character)
 	character.province = self
 end
 
+---Sets province as character's home
+---@param character Character
+function prov.Province:set_home(character)
+	self.home_to[character] = character
+	character.home_province = self
+end
+
 --- Removes a character from the province
 ---@param character Character
 function prov.Province:remove_character(character)
 	self.characters[character] = nil
 	character.province = nil
+end
+
+--- Character stops thinking of this province as a home
+---@param character Character
+function prov.Province:unset_home(character)
+	self.home_to[character] = nil
+	character.home_province = nil
 end
 
 ---Kills a single pop and removes it from all relevant references.
@@ -648,7 +663,7 @@ end
 function prov.Province:army_spot_test(army, stealth_penalty)
 	-- To resolve this event we need to perform some checks.
 	-- First, we should have a "scouting" check.
-	-- Them, a potential battle ought to take place.`	
+	-- Them, a potential battle ought to take place.`
 	if stealth_penalty == nil then
 		stealth_penalty = 1
 	end

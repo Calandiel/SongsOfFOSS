@@ -4,7 +4,7 @@
 ---@field name string
 ---@field treasury number
 ---@field leader Character?
----@field pops table<POP, Province> A table mapping pops to their home provinces.
+---@field pops table<POP, POP> A set of pops
 ---@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
 ---@field units_current table<UnitType, number> Units currently in the warband
 ---@field units_target table<UnitType, number> Units to recruit
@@ -57,7 +57,7 @@ function warband:get_loot_capacity()
 	if self.leader ~= nil then
 		if self.leader.female then
 			cap = cap + self.leader.race.female_body_size
-		else 
+		else
 			cap = cap + self.leader.race.male_body_size
 		end
 	end
@@ -70,7 +70,7 @@ end
 function warband:spotting()
 	---@type number
 	local result = 0
-	for p, pr in pairs(self.pops) do
+	for p, ut in pairs(self.units) do
 		---@type number
 		result = result + p.race.spotting
 	end
@@ -118,7 +118,7 @@ end
 ---@param unit UnitType
 function warband:hire_unit(province, pop, unit)
 	self.units[pop] = unit
-	self.pops[pop] = province
+	self.pops[pop] = pop
 	self.units_current[unit] = (self.units_current[unit] or 0) + 1
 	self.total_upkeep = self.total_upkeep + unit.upkeep
 end

@@ -112,6 +112,30 @@ function world.World:base_visibility(size)
 	return RAWS_MANAGER.races_by_name['human'].visibility * RAWS_MANAGER.unit_types_by_name["raiders"].visibility * size
 end
 
+--- Set province as settled: it enables updates of this province.
+---@param province Province
+function world.World:set_settled_province(province)
+	self.settled_provinces[province] = province
+	local _, lon = province.center:latlon()
+	lon = lon + math.pi
+	lon = lon / math.pi
+	lon = lon / 2
+	local timz = math.ceil(math.min(30, math.max(0.001, lon * 30)))
+	self.settled_provinces_by_identifier[timz][province] = province
+end
+
+--- Unset province as settled: it disables updates of this province.
+---@param province Province
+function world.World:unset_settled_province(province)
+	self.settled_provinces[province] = nil
+	local _, lon = province.center:latlon()
+	lon = lon + math.pi
+	lon = lon / math.pi
+	lon = lon / 2
+	local timz = math.ceil(math.min(30, math.max(0.001, lon * 30)))
+	self.settled_provinces_by_identifier[timz][province] = nil
+end
+
 ---Returns number of tiles in the world
 ---@return number
 function world.World:tile_count()

@@ -727,9 +727,9 @@ function gam.draw()
 
 			local tile = province.center
 
-			if not province.realm then
-				return
-			end
+			-- if not province.realm then
+			-- 	return
+			-- end
 
 			-- get screen coordinates
 			local x, y, z = tile_to_x_y(tile)

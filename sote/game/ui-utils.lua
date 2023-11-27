@@ -397,9 +397,12 @@ function ut.set_font(font)
 end
 
 ---Draws a coat of arms of a realm. Returns true if clicked.
----@param realm Realm
+---@param realm Realm?
 ---@param rect Rect
 function ut.coa(realm, rect)
+	if realm == nil then
+		return
+	end
 	-- Pull old colors...
 	local r = ui.style.panel_inside.r
 	local g = ui.style.panel_inside.g

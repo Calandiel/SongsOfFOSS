@@ -35,14 +35,9 @@ local function make_new_realm(capitol, race, culture, faith)
 	for _, neigh in pairs(capitol.neighbors) do
 		r:explore(neigh)
 	end
+
 	-- Mark the province as settled for processing...
-	WORLD.settled_provinces[capitol] = capitol
-	local _, lon = capitol.center:latlon()
-	lon = lon + math.pi
-	lon = lon / math.pi
-	lon = lon / 2
-	local timz = math.ceil(math.min(30, math.max(0.001, lon * 30)))
-	WORLD.settled_provinces_by_identifier[timz][capitol] = capitol
+	WORLD:set_settled_province(capitol)
 
 	-- We also need to spawn in some population...
 	local pop_to_spawn = math.max(5, capitol.foragers_limit)
@@ -58,20 +53,15 @@ local function make_new_realm(capitol, race, culture, faith)
 	end
 
 	-- spawn leader
-	local elite_character = pe.generate_new_noble(race, faith, culture)
+	local elite_character = pe.generate_new_noble(r, capitol, race, faith, culture)
 	elite_character.popularity[r] = elite_character.age / 10
-	capitol:add_character(elite_character)
 	r.leader = elite_character
 	r.leader.rank = ranks.CHIEF
-	r.leader.realm = r
-
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 5 + 1 do
-		local contender = pe.generate_new_noble(race, faith, culture)
+		local contender = pe.generate_new_noble(r, capitol, race, faith, culture)
 		contender.popularity[r] = contender.age / 15
-		contender.realm = r
-		capitol:add_character(contender)
 	end
 
 	-- set up capitol
