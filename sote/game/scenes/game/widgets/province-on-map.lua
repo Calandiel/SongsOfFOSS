@@ -164,6 +164,10 @@ return function(gam, tile, rect, x, y, size)
         return macrobuilder(gam, tile, rect, x, y, size)
     end
 
+    if tile.province.realm == nil then
+        return
+    end
+
     rect.x = x - size / 5
     rect.y = y - length_of_line - height_unit * 2
     rect.width = width_unit

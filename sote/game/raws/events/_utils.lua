@@ -7,7 +7,8 @@ local utils = {}
 ---@param text fun(self:Event, root:Character, associated_data:table|nil):string
 ---@param option_name fun(root:Character, associated_data:table|nil):string
 ---@param tooltip fun(root:Character, associated_data:table|nil):string
-function utils.notification_event(name, text, option_name, tooltip)
+---@param effect fun(root:Character, associated_data:table|nil)?
+function utils.notification_event(name, text, option_name, tooltip, effect)
     Event:new {
 		name = name,
 		event_text = text,
@@ -26,6 +27,9 @@ function utils.notification_event(name, text, option_name, tooltip)
 					tooltip = tooltip(character, associated_data),
 					viable = function() return true end,
 					outcome = function()
+						if effect ~= nil then
+							effect(character, associated_data)
+						end
 					end,
 					ai_preference = function ()
                         return 1

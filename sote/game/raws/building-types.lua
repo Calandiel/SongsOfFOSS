@@ -14,6 +14,7 @@ local tabb = require "engine.table"
 ---@field required_biome table<number, Biome>
 ---@field required_resource table<number, Resource>
 ---@field unique boolean only one per province!
+---@field movable boolean is it possible to migrate with this building?
 ---@field government boolean only the government can build this building!
 ---@field tile_improvement boolean
 ---@field needed_infrastructure number
@@ -46,6 +47,7 @@ function BuildingType:new(o)
 	r.unique = false
 	r.government = false
 	r.tile_improvement = false
+	r.movable = false
 	r.needed_infrastructure = 0
 	r.ai_weight = 1
 	r.spotting = 0

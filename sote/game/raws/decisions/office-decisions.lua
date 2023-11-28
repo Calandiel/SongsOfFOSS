@@ -49,7 +49,7 @@ local function load()
             if root.traits[TRAIT.GOOD_ORGANISER] then
                 return 0
             end
-            
+
 			if root.traits[TRAIT.BAD_ORGANISER] then
                 if primary_target.traits[TRAIT.GOOD_ORGANISER] then
                     return 1
@@ -186,7 +186,7 @@ local function load()
 
             if tabb.size(root.realm.tribute_collectors) == 0 and tabb.size(root.realm.tributaries) > 0 then
                 return 10
-            end			
+            end
 
             return 0.5 * loyalty_multiplier - tabb.size(root.realm.tribute_collectors) / tabb.size(root.realm.tributaries)
 		end,
@@ -197,7 +197,7 @@ local function load()
 			if WORLD.player_character == primary_target then
 				WORLD:emit_notification("I was asked by ".. primary_target.name .. " to assist him with tribute collection.")
 			end
-			WORLD:emit_immediate_event('request-help-tribute-collection', primary_target, root, 1)
+			WORLD:emit_immediate_event('request-help-tribute-collection', primary_target, root)
 		end
 	}
 

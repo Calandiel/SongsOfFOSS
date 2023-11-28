@@ -492,6 +492,14 @@ local dark_grey_color = {
 	["a"] = 1
 }
 
+
+local dark_red_color = {
+	["r"] = 0.4,
+	["g"] = 0.1,
+	["b"] = 0.1,
+	["a"] = 1
+}
+
 local dark_green_color = {
 	["r"] = 56 / 255,
 	["g"] = 70 / 255,
@@ -556,15 +564,15 @@ function ut.button(rect, potential, active, sound, hover_sound)
 	ui.style["button_clicked"] = light_lime_color
 
 	if not potential then
-		ui.style["button_inside"] = dark_grey_color
-		ui.style["button_hovered"] = dark_grey_color
-		ui.style["button_clicked"] = dark_grey_color
+		ui.style["button_inside"] = dark_red_color
+		ui.style["button_hovered"] = dark_red_color
+		ui.style["button_clicked"] = dark_red_color
 	end
 
 	rect = rect:shrink(1)
 	ui.style.panel_inside = dark_blue_color -- dark_green_color
 	if not potential then
-		ui.style.panel_inside = dark_grey_color
+		ui.style.panel_inside = dark_red_color
 	end
 
 	-- button background

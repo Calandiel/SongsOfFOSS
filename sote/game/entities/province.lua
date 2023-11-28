@@ -14,7 +14,6 @@ local prov = {}
 ---@field b number
 ---@field is_land boolean
 ---@field province_id number
----@field new fun(self:Province):Province
 ---@field add_tile fun(self: Province, tile: Tile)
 ---@field size number
 ---@field tiles table<Tile, Tile>
@@ -37,7 +36,6 @@ local prov = {}
 ---@field population fun(self:Province):number
 ---@field population_weight fun(self:Province):number
 ---@field kill_pop fun(self:Province, pop:POP)
----@field fire_pop fun(self:Province, pop:POP)
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
 ---@field employ_pop fun(self:Province, pop:POP, building:Building)
 ---@field potential_job fun(self:Province, building:Building):Job?
@@ -79,7 +77,6 @@ local prov = {}
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field on_a_river boolean
 ---@field on_a_forest boolean
----@field take_away_pop fun(self:Province, pop:POP): POP
 ---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
 ---@field local_army_size fun(self:Province):number
 ---@field get_random_neighbor fun(self:Province):Province | nil
@@ -89,9 +86,11 @@ local col = require "game.color"
 ---@class Province
 prov.Province = {}
 prov.Province.__index = prov.Province
+
 ---Returns a new province. Remember to assign 'center' tile!
+---@param fake_flag boolean? do not register province if true
 ---@return Province
-function prov.Province:new()
+function prov.Province:new(fake_flag)
 	---@type Province
 	local o = {}
 
@@ -145,8 +144,10 @@ function prov.Province:new()
 	o.on_a_forest = false
 	o.warbands = {}
 
-	WORLD.entity_counter = WORLD.entity_counter + 1
-	WORLD.provinces[o.province_id] = o
+	if not fake_flag then
+		WORLD.entity_counter = WORLD.entity_counter + 1
+		WORLD.provinces[o.province_id] = o
+	end
 
 	setmetatable(o, prov.Province)
 	return o
@@ -437,6 +438,30 @@ function prov.Province:research(technology)
 
 	if WORLD:does_player_see_realm_news(self.realm) then
 		WORLD:emit_notification("Technology unlocked: " .. technology.name)
+	end
+end
+
+---Forget technology
+---@param technology Technology
+function prov.Province:forget(technology)
+	self.technologies_present[technology] = nil
+	self.technologies_researchable[technology] = technology
+
+	-- temporary forget all buildings and bonuses
+	self.buildable_buildings = {}
+	self.unit_types = {}
+	self.throughput_boosts = {}
+	self.input_efficiency_boosts = {}
+	self.output_efficiency_boosts = {}
+
+	-- relearn everything
+	-- sounds like a horrible solution
+	-- but after some thinking,
+	-- you would need to do all these checks
+	-- for all techs anyway
+	-- because there are no assumptions for a graph of technologies
+	for _, old_technology in pairs(self.technologies_present) do
+		self:research(old_technology)
 	end
 end
 

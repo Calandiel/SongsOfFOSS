@@ -240,9 +240,10 @@ end
 function PoliticalEffects.grant_nobility(pop, province)
     province:fire_pop(pop)
     province.all_pops[pop] = nil
-    province.characters[pop] = pop
 
-    pop.province = province
+    province:add_character(pop)
+    province:set_home(pop)
+
     pop.realm = province.realm
     pop.rank = ranks.NOBLE
     pop.popularity[province.realm] = 0.1
