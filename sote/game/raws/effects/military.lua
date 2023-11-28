@@ -3,7 +3,9 @@ local ui_utils = require "game.ui-utils"
 
 local RewardFlag = require "game.entities.realm".RewardFlag
 
-MilitaryEffects = {}
+local economy_effects = require "game.raws.effects.economic"
+
+local MilitaryEffects = {}
 
 ---Gathers new warband in the name of *leader*
 ---@param leader Character
@@ -26,11 +28,13 @@ end
 ---@param leader Character
 function MilitaryEffects.dissolve_warband(leader)
     local warband = leader.leading_warband
-    leader.leading_warband = nil
 
     if warband == nil then
         return
     end
+
+    economy_effects.gift_to_warband(leader, -warband.treasury)
+    leader.leading_warband = nil
 
     ---@type POP[]
     local to_unregister = {}
@@ -73,7 +77,7 @@ function MilitaryEffects.patrol(root, primary_target)
     local patrol_data = { target = primary_target, defender = root.leader, travel_time = 29, patrol = patrol, origin = root }
 
     WORLD:emit_action(
-        "patrol-province", 
+        "patrol-province",
         root.leader,
         patrol_data,
         90, false
@@ -176,7 +180,7 @@ function MilitaryEffects.covert_raid_no_reward(root, primary_target)
     )
 end
 
----Sends army toward target and calls one argument callback with army and travel time toward province 
+---Sends army toward target and calls one argument callback with army and travel time toward province
 ---@param army Army
 ---@param origin Province
 ---@param target Province

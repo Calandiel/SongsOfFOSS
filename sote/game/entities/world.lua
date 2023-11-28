@@ -5,6 +5,8 @@ local decide = require "game.ai.decide"
 local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
+local military_effects = require "game.raws.effects.military"
+
 local tabb = require "engine.table"
 
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
@@ -484,7 +486,7 @@ function world.World:tick()
 							end
 							-- launch the patrol
 							if (units > 0) then
-								MilitaryEffects.patrol(realm, target)
+								military_effects.patrol(realm, target)
 							end
 						end
 						-- launch raids
@@ -498,7 +500,7 @@ function world.World:tick()
 							-- with some probability, launch the raid
 							-- larger groups launch raids faster
 							if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
-								MilitaryEffects.covert_raid(realm, target)
+								military_effects.covert_raid(realm, target)
 							end
 						end
 

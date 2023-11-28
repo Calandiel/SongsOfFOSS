@@ -92,7 +92,7 @@ local function load()
 	Decision.Character:new {
 		name = 'gather-warband',
 		ui_name = "Gather my own warband",
-		tooltip = utils.constant_string("I had decided to gather my own warband."),
+		tooltip = utils.constant_string("I have decided to gather my own warband."),
 		sorting = 1,
 		primary_target = "none",
 		secondary_target = 'none',
@@ -127,6 +127,36 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			MilitaryEffects.gather_warband(root)
+		end
+	}
+
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'disband-warband',
+		ui_name = "Disband my warband",
+		tooltip = utils.constant_string("I have decided to disband my warband."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 0 , -- AI never disbands
+		pretrigger = function(root)
+			if root.leading_warband then return true end
+			return false
+		end,
+		clickable = function(root, primary_target)
+            return true
+		end,
+		available = function(root, primary_target)
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+            return 0 -- AI never disbands
+		end,
+		effect = function(root, primary_target, secondary_target)
+			MilitaryEffects.dissolve_warband(root)
 		end
 	}
 

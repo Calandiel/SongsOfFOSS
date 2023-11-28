@@ -80,7 +80,7 @@ end
 ---@param reason EconomicReason
 function EconomicEffects.add_pop_savings(pop, x, reason)
     pop.savings = pop.savings + x
-    if x > 0 then
+    if math.abs(x) > 0 then
         EconomicEffects.display_character_savings_change(pop, x, reason)
     end
 end
@@ -396,11 +396,11 @@ function EconomicEffects.gift_to_warband(character, amount)
 
     if amount > 0 then
         if character.savings < amount then
-            return
+            amount = character.savings
         end
     else
         if warband.treasury < -amount then
-            return
+            amount = warband.treasury
         end
     end
 
