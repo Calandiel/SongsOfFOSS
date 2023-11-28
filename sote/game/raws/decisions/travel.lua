@@ -7,6 +7,9 @@ local TRAIT = require "game.raws.traits.generic"
 local RANK = require "game.raws.ranks.character_ranks"
 
 
+local character_values = require "game.raws.values.character"
+
+
 local function load()
 	---@type DecisionCharacterProvince
 	Decision.CharacterProvince:new {
@@ -28,6 +31,7 @@ local function load()
 		end,
 		clickable = function(root, primary_target)
 			if primary_target.realm == nil then return false end
+			if primary_target == root.province then return false end
 
 			return true
 		end,
@@ -120,7 +124,14 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.province, root.realm.capitol))
+			local travel_time, _ = path.hours_to_travel_days(
+				path.pathfind(
+					root.province,
+					root.realm.capitol,
+					character_values.travel_speed(root)
+				)
+			)
+
 			if travel_time == math.huge then
 				travel_time = 150
 			end

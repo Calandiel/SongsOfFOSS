@@ -15,7 +15,7 @@ local function load()
 		on_trigger = function(self, root, associated_data)
 			---@type Province
 			associated_data = associated_data
-            
+
             ge.travel(root, associated_data)
             WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
 		end,
@@ -45,7 +45,7 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
-        options = function(self, root, associated_data) 
+        options = function(self, root, associated_data)
             local options_list = {}
             local province = root.province
 
@@ -76,10 +76,10 @@ local function load()
                 end
                 local known_price = root.price_memory[name]
                 local bought_amount = math.max(
-                    1, 
+                    1,
                     (math.floor(
-                        root.savings * 0.25 
-                        / (known_price + 0.01) 
+                        root.savings * 0.25
+                        / (known_price + 0.01)
                         * math.random()
                     ))
                 )
@@ -123,7 +123,7 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
-        options = function(self, root, associated_data) 
+        options = function(self, root, associated_data)
             local options_list = {}
             local province = root.province
 
