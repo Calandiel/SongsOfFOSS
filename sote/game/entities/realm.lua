@@ -86,9 +86,6 @@ end
 ---@field raiders_preparing table<RewardFlag, table<Warband, Warband>?>
 ---@field patrols table<Province, table<Warband, Warband>>
 ---@field prepare_attack_flag boolean?
----@field add_reward_flag fun(self:Realm, target:RewardFlag)
----@field remove_reward_flag fun(self:Realm, target:RewardFlag)
----@field roll_reward_flag fun(self:Realm): RewardFlag
 ---@field add_province fun(self:Realm, province:Province)
 ---@field new fun(self:Realm):Realm
 ---@field known_provinces table<Province, Province> For terra incognita.
@@ -252,6 +249,8 @@ function realm.Realm:add_reward_flag(f)
 	end
 end
 
+---Removes a province from the realm's raiding targets.
+---@param f RewardFlag
 function realm.Realm:remove_reward_flag(f)
 	self.reward_flags[f] = nil
 
@@ -551,10 +550,10 @@ function realm.Realm:disband_army(army)
 	for _, warband in pairs(army.warbands) do
 		-- if warband was patrolling, let it continue
 
-		for pop, province in pairs(warband.pops) do
+		for _, pop in pairs(warband.pops) do
 			local unit = warband.units[pop]
-			if province.realm then
-				province:return_pop_from_army(pop, unit)
+			if pop.home_province.realm then
+				pop.home_province:return_pop_from_army(pop, unit)
 			else
 				self.capitol:return_pop_from_army(pop, unit)
 			end

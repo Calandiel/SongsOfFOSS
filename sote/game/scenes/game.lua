@@ -1291,32 +1291,38 @@ function gam.draw()
 	if PROFILE_FLAG then
 		local profile_rect = ui.fullscreen():subrect(0, 0, 600, 200, "center", "center")
 		ui.panel(profile_rect)
-		local logs_length = #PROFILER.actions
-		local observed_logs_length = 60
-		local logs_start = math.max(1, logs_length - observed_logs_length)
 
-		local mean_actions = 0
-		local mean_events = 0
-		local mean_provinces = 0
-		local total_mean = 0
+		local total = PROFILER.total_tick_time
+		local events = PROFILER.total_deferred_events_time
+		local actions = PROFILER.total_deferred_actions_time
+		local vegetation =  PROFILER.total_vegetation_growth_tick
+		local pop_growth = PROFILER.total_pop_growth_tick
+		local province =  PROFILER.total_province_tick
+		local realm = PROFILER.total_realm_tick
+		local decision = PROFILER.total_decision_tick
+		local decision_character = PROFILER.total_decision_character_tick
 
-		for i = logs_start, logs_length do
-			mean_actions = mean_actions + PROFILER.actions[i]
-			mean_events = mean_events + PROFILER.events[i]
-			mean_provinces = mean_provinces + PROFILER.province_update[i]
-			total_mean = total_mean + PROFILER.world_tick[i]
-		end
 
-		local rect_data = profile_rect:subrect(0, 0, profile_rect.width / 2, 25, "left", "up")
-		if total_mean > 0 then
-			ut.color_coded_percentage(mean_actions / total_mean, rect_data, false)
+		local rect_data = profile_rect:subrect(0, 0, profile_rect.width / 4, 25, "left", "up")
+		if total > 0 then
+			ut.data_entry_percentage("actions", actions / total, rect_data, nil, false)
 			rect_data.y = rect_data.y + 25
-			ut.color_coded_percentage(mean_events / total_mean, rect_data, false)
+			ut.data_entry_percentage("events", events / total, rect_data, nil, false)
 			rect_data.y = rect_data.y + 25
-			ut.color_coded_percentage(mean_provinces / total_mean, rect_data, false)
+			ut.data_entry_percentage("vegetation", vegetation / total, rect_data, nil, false)
+			rect_data.y = rect_data.y + 25
+			ut.data_entry_percentage("pop_growth", pop_growth / total, rect_data, nil, false)
+			rect_data.y = rect_data.y + 25
+			ut.data_entry_percentage("province", province / total, rect_data, nil, false)
+			rect_data.y = rect_data.y + 25
+			ut.data_entry_percentage("realm", realm / total, rect_data, nil, false)
+			rect_data.y = rect_data.y + 25
+			ut.data_entry_percentage("decision", decision / total, rect_data, nil, false)
+			rect_data.y = rect_data.y + 25
+			ut.data_entry_percentage("decision_char", decision_character / total, rect_data, nil, false)
 			rect_data.y = rect_data.y + 25
 
-			ut.data_entry(observed_logs_length .. " daily ticks: ", ut.to_fixed_point2(total_mean), rect_data)
+			-- ut.data_entry(observed_logs_length .. " daily ticks: ", ut.to_fixed_point2(total_mean), rect_data)
 		end
 	end
 end

@@ -26,6 +26,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
+			if root.busy then return false end
 			if root.leading_warband then return false end
 			return true
 		end,
@@ -102,6 +103,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.8, -- Almost every month
 		pretrigger = function(root)
+			if root.busy then return false end
 			if root.province == root.realm.capitol then
 				return false
 			end

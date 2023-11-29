@@ -79,6 +79,34 @@ local function load()
 			local my_warlords, my_power = pv.military_strength(character)
 			local their_warlords, their_power = pv.military_strength(associated_data)
 
+			if realm == nil then
+				return {{
+					text = "I do not belong to any realm",
+					tooltip = "",
+					viable = function() return true end,
+					outcome = function()
+						WORLD:emit_immediate_event("invalid-target", associated_data, nil)
+					end,
+					ai_preference = function ()
+						return 1
+					end
+				}}
+			end
+
+			if character.dead and realm.leader then
+				return {{
+					text = "I am dead, it's someone else problem",
+					tooltip = "",
+					viable = function() return true end,
+					outcome = function()
+						WORLD:emit_immediate_event("request-tribute", realm.leader, associated_data)
+					end,
+					ai_preference = function ()
+						return 1
+					end
+				}}
+			end
+
 			return {
 				{
 					text = "Accept",
@@ -168,6 +196,16 @@ local function load()
 
 			local my_warlords, my_power = pv.military_strength(character)
 			local their_warlords, their_power = pv.military_strength(associated_data)
+
+			if character.dead then
+				return {{
+					text = "I am dead, there is nothing i could do.",
+					tooltip = "",
+					viable = function() return true end,
+					outcome = function () end,
+					ai_preference = function() return 1 end
+				}}
+			end
 
 			return {
 				{

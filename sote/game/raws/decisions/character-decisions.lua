@@ -12,7 +12,7 @@ local pe = require "game.raws.effects.political"
 
 local function load()
 
-    local base_gift_size = 20
+	local base_gift_size = 20
 	local base_raiding_reward = 50
 
 	---@type DecisionCharacter
@@ -25,13 +25,16 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if OPTIONS.debug_mode then
-				return true
+			if not OPTIONS.debug_mode then
+				return false
 			end
-			return false
+			return true
 		end,
 		clickable = function(root, primary_target)
-            return true
+			if not OPTIONS.debug_mode then
+				return false
+			end
+			return true
 		end,
 		available = function(root, primary_target)
 			return true
@@ -40,12 +43,12 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-            return 0
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-            local province = root.province
+			local province = root.province
 			if province == nil then return end
 
 			root.savings = root.savings + 1000
@@ -65,13 +68,16 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if OPTIONS.debug_mode then
-				return true
+			if not OPTIONS.debug_mode then
+				return false
 			end
-			return false
+			return true
 		end,
 		clickable = function(root, primary_target)
-            return true
+			if not OPTIONS.debug_mode then
+				return false
+			end
+			return true
 		end,
 		available = function(root, primary_target)
 			return true
@@ -80,7 +86,7 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-            return 0
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			WORLD:emit_immediate_event('death', primary_target, nil)
@@ -98,15 +104,15 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
+			if root.busy then return false end
 			if root.province.realm ~= root.realm then return false end
+			if root.leading_warband then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if root.leading_warband then return false end
-            return true
+			return true
 		end,
 		available = function(root, primary_target)
-			if root.leading_warband then return false end
 			return true
 		end,
 		ai_secondary_target = function(root, primary_target)
@@ -123,7 +129,7 @@ local function load()
 				return 1
 			end
 
-            return 0
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			MilitaryEffects.gather_warband(root)
@@ -140,11 +146,12 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0 , -- AI never disbands
 		pretrigger = function(root)
+			if root.busy then return false end
 			if root.leading_warband then return true end
 			return false
 		end,
 		clickable = function(root, primary_target)
-            return true
+			return true
 		end,
 		available = function(root, primary_target)
 			return true
@@ -153,7 +160,7 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-            return 0 -- AI never disbands
+			return 0 -- AI never disbands
 		end,
 		effect = function(root, primary_target, secondary_target)
 			MilitaryEffects.dissolve_warband(root)
@@ -170,21 +177,15 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
-			--print("pre")
-			---@type Character
-			local root = root
-			if root.leading_warband then return true end
+			if root.busy then return false end
+			if root.leading_warband == nil then return false end
+			if root.leading_warband.status ~= 'idle' then return false end
 			return false
 		end,
 		clickable = function(root, primary_target)
-			if root.leading_warband then return true end
-			return false
+			return true
 		end,
 		available = function(root, primary_target)
-			---@type Character
-			root = root
-			if root.leading_warband == nil then return false end
-			if root.leading_warband.status ~= 'idle' then return false end
 			return true
 		end,
 		ai_secondary_target = function(root, primary_target)
@@ -199,7 +200,6 @@ local function load()
 			if root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.WARLIKE] then
 				return 0.9
 			end
-
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
@@ -221,21 +221,15 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
-			--print("pre")
-			---@type Character
-			local root = root
-			if root.leading_warband then return true end
-			return false
-		end,
-		clickable = function(root, primary_target)
-			if root.leading_warband then return true end
-			return false
-		end,
-		available = function(root, primary_target)
-			---@type Character
-			root = root
+			if root.busy then return false end
 			if root.leading_warband == nil then return false end
 			if root.leading_warband.status ~= 'idle' then return false end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			return true
+		end,
+		available = function(root, primary_target)
 			return true
 		end,
 		ai_secondary_target = function(root, primary_target)
@@ -262,7 +256,7 @@ local function load()
 		end
 	}
 
-    ---@type DecisionCharacter
+	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'donate-wealth-local-wealth',
 		ui_name = "Donate wealth to locals.",
@@ -272,30 +266,17 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			--print("pre")
-			---@type Character
-			local root = root
-			if root.savings >= base_gift_size then
-                return true
-            end
+			if root.busy then return false end
+			if root.savings < base_gift_size then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			--print("cli")
-			---@type Character
-			local root = root
-
-            return true
+			return true
 		end,
 		available = function(root, primary_target)
-			--print("avl")
-			---@type Character
-			local root = root
-
-			if root.savings >= base_gift_size then
-                return true
-            end
-            return false
+			return true
 		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
@@ -303,18 +284,16 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-
-            if root.savings > base_gift_size * 10 then
-                return 0.1
-            end
-
-            return 0
+			if root.savings > base_gift_size * 10 then
+				return 0.1
+			end
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			--print("eff")
 			---@type Character
 			local root = root
-            local province = root.province
+			local province = root.province
 			if province == nil then return end
 
 			province.mood = math.min(10, province.mood + base_gift_size / province:population() / 2)
@@ -329,6 +308,49 @@ local function load()
 		end
 	}
 
+		---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'donate-wealth-warband',
+		ui_name = "Donate wealth to your warband.",
+		tooltip = utils.constant_string("Donate wealth (" .. tostring(base_gift_size) .. ") to your warband treasury."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 1 / 3 , -- Once every 3 months on average
+		pretrigger = function(root)
+			if root.busy then return false end
+			if root.savings < base_gift_size then
+				return false
+			end
+			if root.leading_warband == nil then return false end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if root.leading_warband == nil then return false end
+			if WORLD:is_player(root) then return false end
+			return true
+		end,
+		available = function(root, primary_target)
+			if root.savings < 5 then
+				return false
+			end
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.leading_warband.treasury < root.savings / 2 then
+				return 1
+			end
+
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			EconomicEffects.gift_to_warband(root, root.savings / 3)
+		end
+	}
+
 	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'donate-wealth-realm',
@@ -339,35 +361,29 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			--print("pre")
-			---@type Character
-			local root = root
-			if root.savings >= base_gift_size then
-                return true
-            end
+			if root.busy then return false end
+			if root.savings < base_gift_size then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			--print("cli")
-			---@type Character
-			local root = root
-
-            return true
+			return true
 		end,
 		available = function(root, primary_target)
 			--print("avl")
 			---@type Character
 			local root = root
 
-            local province = root.province
+			local province = root.province
 			if province == nil then return false end
 			local realm = province.realm
 			if realm == nil then return false end
 
-			if root.savings >= base_gift_size then
-                return true
-            end
-            return false
+			if root.savings < base_gift_size then
+				return false
+			end
+			return true
 		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
@@ -377,17 +393,17 @@ local function load()
 			local root = root
 
 			--- rich characters want to donate money to the state more
-            if root.savings > base_gift_size then
-                return ((root.savings / base_gift_size) - 1) * 0.001
-            end
+			if root.savings > base_gift_size then
+				return ((root.savings / base_gift_size) - 1) * 0.001
+			end
 
-            return 0
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			--print("eff")
 			---@type Character
 			local root = root
-            local province = root.province
+			local province = root.province
 			if province == nil then return end
 			local realm = province.realm
 			if realm == nil then return end
@@ -411,9 +427,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 25,
 		pretrigger = function(root)
-			--print("pre")
-			---@type Character
-			local root = root
+			if root.busy then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
@@ -431,6 +445,9 @@ local function load()
 			if primary_target.realm == root then
 				return false
 			end
+			if WORLD:is_player(root) then
+				return false
+			end
 
 			return primary_target:neighbors_realm(root.province.realm)
 		end,
@@ -440,12 +457,7 @@ local function load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-
 			if primary_target.realm.paying_tribute_to[root.realm] then
-				return false
-			end
-
-			if root.savings < base_raiding_reward then
 				return false
 			end
 			return true
@@ -505,9 +517,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12,
 		pretrigger = function(root)
-			--print("pre")
-			---@type Character
-			local root = root
+			if root.busy then return false end
 			if root.province.realm == nil then
 				return false
 			end
@@ -517,17 +527,19 @@ local function load()
 			if root.province.realm.capitol ~= root.province then
 				return false
 			end
-
+			if root.province.realm ~= root.realm then
+				return false
+			end
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
 			local court_efficiency = root.province.realm:get_court_efficiency()
-            if root.traits[TRAIT.AMBITIOUS] then
+			if root.traits[TRAIT.AMBITIOUS] then
 				return 0.8 - court_efficiency / 2
 			end
-            return 0
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			--print("eff")
@@ -543,16 +555,17 @@ local function load()
 		name = 'buy-something',
 		ui_name = "Buy some goods",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
-            return "Buy some goods on the local market"
-        end,
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Buy some goods on the local market"
+		end,
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
 		base_probability = 0.8 , -- Almost every month
 		pretrigger = function(root)
+			if root.busy then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
@@ -562,6 +575,9 @@ local function load()
 			return true
 		end,
 		clickable = function(root)
+			if WORLD:is_player(root) then
+				return false
+			end
 			return true
 		end,
 		available = function(root)
@@ -583,22 +599,26 @@ local function load()
 		name = 'sell-something',
 		ui_name = "Sell some goods",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
-            return "Sell some goods on the local market"
-        end,
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Sell some goods on the local market"
+		end,
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
 		base_probability = 0.8 , -- Almost every month
 		pretrigger = function(root)
+			if root.busy then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
 			return true
 		end,
 		clickable = function(root)
+			if WORLD:is_player(root) then
+				return false
+			end
 			return true
 		end,
 		available = function(root)
@@ -622,9 +642,9 @@ local function load()
 		name = 'personal-raid',
 		ui_name = "Raid",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
 			local warband = root.leading_warband
 			if warband == nil then
 				return "You are not a leader of a warband."
@@ -636,49 +656,44 @@ local function load()
 				return "Invalid province"
 			end
 			return "Raid the province " .. primary_target.name
-        end,
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
+			if root.busy then return false end
+			if root.leading_warband == nil then return false end
+			if root.leading_warband.status ~= 'idle' then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
-            return true
+			return true
 		end,
 		available = function(root, primary_target)
-			if root.busy then
-                return false
-            end
-			local warband = root.leading_warband
-			if warband == nil then
-				return false
-			end
-			if warband and warband.status ~= 'idle' then
-				return false
-			end
 			if primary_target.realm == nil then
 				return false
 			end
 			return true
 		end,
-        ai_target = function(root)
+		ai_target = function(root)
 			---@type Province[]
-            local targets = {}
-            for _, province in pairs(root.realm.known_provinces) do
-                if province.realm and root.realm.tributaries[province.realm] == nil then
-                    table.insert(targets, province)
-                end
-            end
+			local targets = {}
+			for _, province in pairs(root.realm.known_provinces) do
+				if province.realm and root.realm.tributaries[province.realm] == nil then
+					table.insert(targets, province)
+				end
+			end
 
-            local index, prov =  tabb.random_select_from_set(targets)
-            if prov then
-                return prov, true
-            end
+			local index, prov =  tabb.random_select_from_set(targets)
+			if prov then
+				return prov, true
+			end
 
-            return nil, false
-        end,
+			return nil, false
+		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
 		end,
@@ -694,7 +709,7 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-            MilitaryEffects.covert_raid_no_reward(root, primary_target)
+			MilitaryEffects.covert_raid_no_reward(root, primary_target)
 		end
 	}
 
@@ -703,9 +718,9 @@ local function load()
 		name = 'patrol-target',
 		ui_name = "Patrol targeted province",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
 			local warband = root.leading_warband
 			if warband == nil then
 				return "You are not a leader of a warband."
@@ -720,21 +735,15 @@ local function load()
 				return'You can\'t patrol provinces of other realms'
 			end
 			return "Patrol the province " .. primary_target.name
-        end,
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
-			return true
-		end,
-		clickable = function(root, primary_target)
-            return true
-		end,
-		available = function(root, primary_target)
 			if root.busy then
-                return false
-            end
+				return false
+			end
 			local warband = root.leading_warband
 			if warband == nil then
 				return false
@@ -742,6 +751,12 @@ local function load()
 			if warband and warband.status ~= 'idle' then
 				return false
 			end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			return true
+		end,
+		available = function(root, primary_target)
 			if primary_target.realm == nil then
 				return false
 			end
@@ -750,9 +765,9 @@ local function load()
 			end
 			return true
 		end,
-        ai_target = function(root)
-            return root.province, true
-        end,
+		ai_target = function(root)
+			return root.province, true
+		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
 		end,
@@ -764,7 +779,7 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-            root.realm:add_patrol(primary_target, root.leading_warband)
+			root.realm:add_patrol(primary_target, root.leading_warband)
 		end
 	}
 end

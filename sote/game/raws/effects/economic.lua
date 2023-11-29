@@ -155,7 +155,7 @@ function EconomicEffects.set_ownership(building, pop)
         pop.owned_buildings[building] = building
     end
 
-    if pop and WORLD:does_player_see_province_news(pop.province) then
+    if pop and WORLD:does_player_see_province_news(building.province) then
         if WORLD.player_character == pop then
             WORLD:emit_notification(building.type.name .. " is now owned by me, " .. pop.name .. ".")
         else

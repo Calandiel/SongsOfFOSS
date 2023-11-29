@@ -249,7 +249,7 @@ function world.World:emit_action(event, root, associated_data, delay, hidden)
 	}
 	-- print('add new action:' .. event)
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD:does_player_see_realm_news(root.province.realm) and not hidden then
+	if WORLD:does_player_see_realm_news(root.realm) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end
 end
@@ -312,6 +312,17 @@ end
 function world.World:tick()
 	-- print('tick')
 
+	local tick_start_time = love.timer.getTime()
+	local deferred_events_tick = 0
+	local deferred_actions_tick = 0
+	local vegetation_growth_tick = 0
+	local pop_growth_tick = 0
+	local province_tick = 0
+	local realm_tick = 0
+	local decision_tick = 0
+	local decision_character_tick = 0
+
+
 	WORLD.pending_player_event_reaction = false
 	local counter = 0
 	while WORLD.events_queue:length() > 0 do
@@ -365,7 +376,7 @@ function world.World:tick()
 
 			-- print('deferred events update')
 
-			local events_tick = love.timer.getTime() - t
+			deferred_events_tick = love.timer.getTime() - t
 
 			t = love.timer.getTime()
 
@@ -378,6 +389,16 @@ function world.World:tick()
 				if check[4] <= 0 then
 					local event = RAWS_MANAGER.events_by_name[check[1]]
 					event:on_trigger(check[2], check[3])
+
+					-- sanity check: character should be in the list of characters of his current province
+					local character = check[2]
+					if not character.dead and character.province.characters[character] == nil then
+						error(
+							'CHARACTER IS NOT IN HIS PROVINCE: '
+							.. check[1]
+						)
+					end
+
 					--print("ontrig")
 					self.player_deferred_actions[check] = nil
 				else
@@ -388,13 +409,13 @@ function world.World:tick()
 
 			-- print('deferred actions update')
 
-			local actions_tick = love.timer.getTime() - t
-
-			t = love.timer.getTime()
+			deferred_actions_tick = love.timer.getTime() - t
 
 			if WORLD.settled_provinces_by_identifier[WORLD.day] ~= nil then
 				-- Monthly tick per realm
 				local ta = WORLD.settled_provinces_by_identifier[WORLD.day]
+
+				t = love.timer.getTime()
 
 				-- tiles update in settled_province:
 				for _, settled_province in pairs(ta) do
@@ -406,6 +427,8 @@ function world.World:tick()
 					end
 				end
 
+				vegetation_growth_tick = vegetation_growth_tick + love.timer.getTime() - t
+
 				-- "Realm" pre-update
 				local realm_economic_update = require "game.economy.realm-economic-update"
 				for _, settled_province in pairs(ta) do
@@ -415,12 +438,18 @@ function world.World:tick()
 					end
 				end
 
+				t = love.timer.getTime()
+
 				-- "POP" update
 				local pop_growth = require "game.society.pop-growth"
 				for _, settled_province in pairs(ta) do
 					--print("Pop growth")
 					pop_growth.growth(settled_province)
 				end
+
+				pop_growth_tick = pop_growth_tick + love.timer.getTime() - t
+
+				t = love.timer.getTime()
 
 				-- "Province" update
 				local employ = require "game.economy.employment"
@@ -442,6 +471,8 @@ function world.World:tick()
 					--print("done")
 				end
 
+				province_tick = province_tick + love.timer.getTime() - t
+
 				-- "Realm" update
 				-- local decide = require "game.ai.decide"
 				local events = require "game.ai.events"
@@ -451,6 +482,9 @@ function world.World:tick()
 				for _, settled_province in pairs(ta) do
 					local realm = settled_province.realm
 					if realm ~= nil and settled_province.realm.capitol == settled_province then
+
+						t = love.timer.getTime()
+
 						-- Run the realm AI once a month
 						if not WORLD:does_player_control_realm(realm) then
 							local explore = require "game.ai.exploration"
@@ -474,6 +508,8 @@ function world.World:tick()
 						-- Handle events!
 						--print("Event handling")
 						events.run(realm)
+
+						realm_tick = realm_tick + love.timer.getTime() - t
 
 						-- launch patrols
 						for _, target in pairs(realm.provinces) do
@@ -504,15 +540,19 @@ function world.World:tick()
 							end
 						end
 
+						t = love.timer.getTime()
 
 						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
 						if not WORLD:does_player_control_realm(realm) then
 							--print("Decide")
 							decide.run(realm)
 						end
+
+						decision_tick = decision_tick + love.timer.getTime() - t
 					end
 				end
 
+				t = love.timer.getTime()
 
 				for _, settled_province in pairs(ta) do
 					for _, character in pairs(settled_province.characters) do
@@ -521,18 +561,12 @@ function world.World:tick()
 						end
 					end
 				end
+
+				decision_character_tick = decision_character_tick + love.timer.getTime() - t
+
 			end
 
 			-- print('simulation update')
-
-			local province_tick = love.timer.getTime() - t
-
-			if PROFILE_FLAG then
-				table.insert(PROFILER.actions, actions_tick)
-				table.insert(PROFILER.events, events_tick)
-				table.insert(PROFILER.province_update, province_tick)
-				table.insert(PROFILER.world_tick, actions_tick + events_tick + province_tick)
-			end
 
 			if WORLD.day == 31 then
 				WORLD.day = 0
@@ -559,6 +593,20 @@ function world.World:tick()
 			end
 		end
 		--print("tick end")
+	end
+
+	local tick_end_time = love.timer.getTime()
+
+	if PROFILE_FLAG then
+		PROFILER.total_tick_time = PROFILER.total_tick_time + tick_end_time - tick_start_time
+		PROFILER.total_deferred_events_time = PROFILER.total_deferred_events_time + deferred_events_tick
+		PROFILER.total_deferred_actions_time = PROFILER.total_deferred_actions_time + deferred_actions_tick
+		PROFILER.total_vegetation_growth_tick = PROFILER.total_vegetation_growth_tick + vegetation_growth_tick
+		PROFILER.total_pop_growth_tick = PROFILER.total_pop_growth_tick + pop_growth_tick
+		PROFILER.total_province_tick = PROFILER.total_province_tick + province_tick
+		PROFILER.total_realm_tick = PROFILER.total_realm_tick + realm_tick
+		PROFILER.total_decision_tick = PROFILER.total_decision_tick + decision_tick
+		PROFILER.total_decision_character_tick = PROFILER.total_decision_character_tick + decision_character_tick
 	end
 end
 
@@ -611,9 +659,10 @@ function world.World:does_player_control_realm(realm)
 end
 
 ---comment
----@param realm Realm
+---@param realm Realm?
 ---@return boolean
 function world.World:does_player_see_realm_news(realm)
+	if realm == nil then return false end
 	if self.player_character == nil then
 		return false
 	end

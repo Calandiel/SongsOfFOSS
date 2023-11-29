@@ -43,12 +43,25 @@ return function ()
                 treason_flag = true
             end
 
+			if associated_data.dead then
+				return {
+					text = "...",
+					tooltip = "No loyalty to dead people.",
+					viable = function() return true end,
+					outcome = function()
+					end,
+					ai_preference = function ()
+						return 1
+					end
+				}
+			end
+
 			return {
 				{
 					text = "Accept",
 					tooltip = "Accept the request",
 					viable = function() return true end,
-					outcome = function() 
+					outcome = function()
 						InterpersonalEffects.set_loyalty(character, associated_data)
                         -- WORLD:emit_notification("I agreed to assist " .. associated_data.name)
 					end,
@@ -63,7 +76,7 @@ return function ()
 					text = "Refuse",
 					tooltip = "Refuse the request",
 					viable = function() return true end,
-					outcome = function() 
+					outcome = function()
 						if associated_data == WORLD.player_character then
 							WORLD:emit_notification(character.name .. " refused to assist me.")
 						end
@@ -82,9 +95,8 @@ return function ()
                     text = "Ask for payment",
                     tooltip = "Ask for payment",
                     viable = function() return true end,
-                    outcome = function() 
-                        -- WORLD:emit_notification("I asked for payment from " .. associated_data.name)
-                        WORLD:emit_event("request-loyalty-payment", associated_data, character)
+                    outcome = function()
+                        WORLD:emit_immediate_event("request-loyalty-payment", associated_data, character)
                     end,
                     ai_preference = AI_VALUE.generic_event_option(character, associated_data, AI_VALUE.loyalty_price(associated_data), {
 						treason = treason_flag,
@@ -102,7 +114,7 @@ return function ()
 		event_text = function(self, character, associated_data)
             ---@type Character
             associated_data = associated_data
-			local name = associated_data.name			
+			local name = associated_data.name
 			local price = AI_VALUE.loyalty_price(associated_data)
 			return name .. " will agree to my suggestion in exchange for a small gift."
 		end,
@@ -123,7 +135,7 @@ return function ()
         options = function(self, character, associated_data)
             ---@type Character
             associated_data = associated_data
-            
+
             local price = AI_VALUE.loyalty_price(associated_data)
 			return {
 				{

@@ -145,27 +145,19 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 25,
 		pretrigger = function(root)
+			if root.busy then return false end
 			if not ot.tribute_collector(root, root.realm) then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			--print("avl")
 			---@type Character
-			local root = root
-			---@type Province
-			local primary_target = primary_target
-
+			primary_target = primary_target
 			if primary_target.realm.paying_tribute_to[root.realm] == nil then
 				return false
 			end
-
 			return true
 		end,
 		available = function(root, primary_target)
-			if root.busy then
-				return false
-			end
-
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
@@ -260,6 +252,9 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -322,7 +317,7 @@ local function load()
 		end
 	}
 
-		Decision.CharacterProvince:new {
+	Decision.CharacterProvince:new {
 		name = 'migrate-realm-invasion',
 		ui_name = "Invade targeted province",
 		tooltip = function (root, primary_target)
@@ -346,6 +341,9 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)

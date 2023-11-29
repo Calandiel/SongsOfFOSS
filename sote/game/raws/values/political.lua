@@ -35,7 +35,10 @@ function PoliticalValues.military_strength(character)
     if character == nil then
         return 0, 0
     end
-    
+    if character.dead then
+        return 0, 0
+    end
+
     local total_warlords = 0
     local total_army = 0
 
@@ -67,10 +70,13 @@ function PoliticalValues.military_strength_ready(character)
 end
 
 ---Returns popularity of a character in a given realm
----@param character Character
+---@param character Character?
 ---@param realm Realm
 ---@return number
 function PoliticalValues.popularity(character, realm)
+    if character == nil then
+        return 0
+    end
     return character.popularity[realm] or 0
 end
 

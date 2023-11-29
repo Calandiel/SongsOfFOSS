@@ -36,6 +36,13 @@ local function load()
 				return true
 			end,
 			clickable = function(root, primary_target)
+				if WORLD:is_player(root) then
+					if OPTIONS.debug_mode then
+						return true
+					else
+						return false
+					end
+				end
 				return true
 			end,
 			available = function(root, primary_target)
@@ -94,6 +101,13 @@ local function load()
 				return true
 			end,
 			clickable = function(root, primary_target)
+				if WORLD:is_player(root) then
+					if OPTIONS.debug_mode then
+						return true
+					else
+						return false
+					end
+				end
 				return true
 			end,
 			available = function(root, primary_target)

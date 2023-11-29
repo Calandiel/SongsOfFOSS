@@ -16,6 +16,10 @@ local function load()
 			---@type Province
 			associated_data = associated_data
 
+            if root.dead then
+                return
+            end
+
             ge.travel(root, associated_data)
             WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
 		end,

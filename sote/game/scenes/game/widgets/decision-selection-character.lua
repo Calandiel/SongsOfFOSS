@@ -24,8 +24,8 @@ return function(rect, decision_type, primary_target, selected_decision)
     local decisions = {}
     for _, decision in pairs(RAWS_MANAGER.decisions_characters_by_name) do
         if decision.primary_target == decision_type then
-            if decision.pretrigger(WORLD.player_character) and decision.clickable(WORLD.player_character, primary_target) then
-                if decision.available(WORLD.player_character, primary_target) then
+            if decision.clickable(WORLD.player_character, primary_target) then
+                if decision.pretrigger(WORLD.player_character) and decision.available(WORLD.player_character, primary_target) then
                     -- Decision is clickable
                     decisions[#decisions + 1] = { decision, true }
                 else
@@ -44,8 +44,8 @@ return function(rect, decision_type, primary_target, selected_decision)
         return a[1].sorting < b[1].sorting
     end)
 
-    local res_decision = selected_decision 
-    local res_target_p = primary_target 
+    local res_decision = selected_decision
+    local res_target_p = primary_target
     local res_target_s = nil
     scroll = ut.scrollview(
         rect, function(i, rect)
