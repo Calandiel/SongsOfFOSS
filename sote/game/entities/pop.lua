@@ -20,7 +20,7 @@
 ---@field leading_warband Warband?
 ---@field busy boolean
 ---@field job Job?
----@field dead boolean?
+---@field dead boolean
 ---@field new fun(self:POP, race:Race, faith:Faith, culture:Culture, female:boolean, age:number?):POP
 ---@field get_age_multiplier fun(self:POP):number
 ---@field drafted boolean "Drafted" state refers to whether or not a pop is currently drafted for military duty. For example, for raids or "real" warfare.
@@ -28,6 +28,7 @@
 ---@field home_province Province? Points to home of character. Only for characters.
 ---@field realm Realm? Only for characters. Represents the home realm of the character
 ---@field rank CHARACTER_RANK?
+---@field former_pop boolean
 
 local rtab = {}
 
@@ -64,6 +65,9 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.loyalty = nil
 	r.loyal	 = {}
 	r.traits = {}
+
+	r.dead = false
+	r.former_pop = false
 
 	setmetatable(r, rtab.POP)
 

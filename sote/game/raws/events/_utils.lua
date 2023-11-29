@@ -9,7 +9,7 @@ local utils = {}
 ---@param tooltip fun(root:Character, associated_data:table|nil):string
 ---@param effect fun(root:Character, associated_data:table|nil)?
 function utils.notification_event(name, text, option_name, tooltip, effect)
-    Event:new {
+	Event:new {
 		name = name,
 		event_text = text,
 		event_background_path = "data/gfx/backgrounds/background.png",
@@ -32,12 +32,20 @@ function utils.notification_event(name, text, option_name, tooltip, effect)
 						end
 					end,
 					ai_preference = function ()
-                        return 1
-                    end
+						return 1
+					end
 				}
 			}
 		end
 	}
 end
+
+utils.dead_options = {{
+	text = "I am dead, there is nothing i could do.",
+	tooltip = "",
+	viable = function() return true end,
+	outcome = function () end,
+	ai_preference = function() return 1 end
+}}
 
 return utils

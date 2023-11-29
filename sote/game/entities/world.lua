@@ -387,11 +387,23 @@ function world.World:tick()
 				local check = WORLD.deferred_actions_queue:dequeue()
 				check[4] = check[4] - 1
 				if check[4] <= 0 then
+					local character = check[2]
 					local event = RAWS_MANAGER.events_by_name[check[1]]
-					event:on_trigger(check[2], check[3])
+					local province = character.province
+
+					event:on_trigger(character, check[3])
+
+					-- sanity check: province should not contain characters without province
+					if province and province.characters[character] and character.province == nil then
+						if province.characters[character] then
+							error(
+								'DEAD CHARACTER WAS NOT CLEARED FROM HIS PROVINCE: '
+								.. check[1]
+							)
+						end
+					end
 
 					-- sanity check: character should be in the list of characters of his current province
-					local character = check[2]
 					if not character.dead and character.province.characters[character] == nil then
 						error(
 							'CHARACTER IS NOT IN HIS PROVINCE: '

@@ -12,6 +12,14 @@ function co.run(realm)
 	local con = 0
 	-- Your court is nobles of your capital
 	for _, character in pairs(realm.capitol.characters) do
+		if character.province == nil then
+
+			error("CHARACTER DOES NOT HAVE A PROVINCE .. \n"
+			.. character.name .. "\n"
+			.. tostring(character.age) .. "\n"
+			.. tostring(character.dead) .. "\n"
+			.. tostring(character.former_pop))
+		end
 		con = con + values.money_utility(character)
 	end
 	con = con * 10
@@ -43,7 +51,7 @@ function co.run(realm)
 
 	if realm.overseer then
 		ef.add_pop_savings(realm.overseer, real_overseer_wage, ef.reasons.Court)
-		
+
 		total_decay = total_decay - real_overseer_wage
 		realm.budget.court.budget = realm.budget.court.budget - real_overseer_wage
 	end

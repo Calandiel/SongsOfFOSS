@@ -35,7 +35,6 @@ local prov = {}
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
 ---@field population_weight fun(self:Province):number
----@field kill_pop fun(self:Province, pop:POP)
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
 ---@field employ_pop fun(self:Province, pop:POP, building:Building)
 ---@field potential_job fun(self:Province, building:Building):Job?
@@ -212,6 +211,7 @@ end
 function prov.Province:add_pop(pop)
 	self.all_pops[pop] = pop
 	pop.home_province = self
+	pop.province = self
 end
 
 ---Adds a character to the province
@@ -248,7 +248,15 @@ function prov.Province:kill_pop(pop)
 	self:fire_pop(pop)
 	self:unregister_military_pop(pop)
 	self.all_pops[pop] = nil
+	self.home_to[pop] = nil
+
 	self.outlaws[pop] = nil
+	pop.province = nil
+
+	if pop.home_province then
+		pop.home_province.home_to[pop] = nil
+		pop.home_province = nil
+	end
 end
 
 function prov.Province:local_army_size()

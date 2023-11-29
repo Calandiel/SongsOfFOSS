@@ -247,6 +247,7 @@ end
 ---@param province Province
 function PoliticalEffects.grant_nobility(pop, province)
 	province:fire_pop(pop)
+	province:unregister_military_pop(pop)
 	province.all_pops[pop] = nil
 
 	province:add_character(pop)
@@ -255,8 +256,13 @@ function PoliticalEffects.grant_nobility(pop, province)
 	pop.realm = province.realm
 	pop.rank = ranks.NOBLE
 	pop.popularity[province.realm] = 0.1
+	pop.former_pop = true
 
 	roll_traits(pop)
+
+	if province.characters[pop] and pop.province == nil then
+		error("SOMETHING IS WRONG!")
+	end
 
 	if WORLD:does_player_see_province_news(province) then
 		WORLD:emit_notification(pop.name .. " was granted nobility.")

@@ -151,10 +151,9 @@ end
 ---@param ratio number
 function warband:kill_off(ratio)
 	local losses = 0
-	for u in pairs(self.units) do
+	for u, _ in pairs(self.units) do
 		if love.math.random() < ratio then
-			self.units[u] = nil
-			self.pops[u] = nil
+			u.province:kill_pop(u)
 			losses = losses + 1
 		end
 	end

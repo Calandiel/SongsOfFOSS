@@ -502,7 +502,7 @@ end
 
 function realm.Realm:raise_warband(warband)
 	for pop, unit_type in pairs(warband.units) do
-		local province = warband.pops[pop].home_province
+		local province = warband.pops[pop].province
 		province:take_away_pop(pop)
 	end
 end

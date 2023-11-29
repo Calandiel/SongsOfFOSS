@@ -1,6 +1,6 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
-local E_ut = require "game.raws.events._utils"
+local event_utils = require "game.raws.events._utils"
 
 local ef = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
@@ -137,6 +137,10 @@ local function load()
             if target_realm then
                 gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
             end
+
+			if character.dead then
+				return event_utils.dead_options
+			end
 
             local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
@@ -293,7 +297,7 @@ local function load()
 		end,
 	}
 
-	E_ut.notification_event(
+	event_utils.notification_event(
         "request-tribute-army-returns-success-notification",
         function(self, character, associated_data)
             ---@type Army
@@ -332,7 +336,7 @@ local function load()
 		end,
 	}
 
-	E_ut.notification_event(
+	event_utils.notification_event(
         "request-tribute-army-returns-fail-notification",
         function(self, character, associated_data)
             ---@type Army
