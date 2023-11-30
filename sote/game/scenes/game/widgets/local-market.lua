@@ -64,7 +64,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "name",
+            header = "Name",
             render_closure = function(rect, k, v)
                 ui.left_text(v.name, rect)
             end,
@@ -76,7 +76,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "supply",
+            header = "Supply",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -90,7 +90,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "demand",
+            header = "Demand",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -104,7 +104,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "balance",
+            header = "Balance",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -118,7 +118,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "buy price",
+            header = "Buy price",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -132,7 +132,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "sell price",
+            header = "Sell price",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -146,21 +146,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "stockpile",
-            render_closure = function(rect, k, v)
-                ---@type ItemData
-                v = v
-                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
-            end,
-            width = base_unit * 4,
-            value = function(k, v)
-                ---@type ItemData
-                v = v
-                return v.stockpile
-            end
-        },
-        {
-            header = "difference",
+            header = "Difference",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -218,6 +204,20 @@ return function(province, ui_panel, base_unit, gam)
                 else
                     return 0
                 end
+            end
+        },
+        {
+            header = "Stockpile",
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
+            end,
+            width = base_unit * 4,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.stockpile
             end
         },
         {

@@ -31,7 +31,7 @@ function emp.run(province)
 		local num_of_workers = tabb.size(building.workers)
 		local profit = 0
 		if num_of_workers > 0 then
-			profit = building.income_mean
+			profit = building.income_mean + building.subsidy_last
 		else
 			profit =
 				economy_values.projected_income(
@@ -40,11 +40,13 @@ function emp.run(province)
 					pop.female,
 					prices,
 					1,
-					false)
+					false
+				)
+			profit = profit + building.subsidy
 		end
 
 		-- sanity check to avoid exp overflow
-		profits[building] = math.min(100, profit) + love.math.random()
+		profits[building] = math.min(100, profit) + love.math.random() / 10
 
 		if num_of_workers >= building.type.production_method:total_jobs() then
 			-- don"t hire
@@ -70,6 +72,7 @@ function emp.run(province)
 
 	-- sample with softmax
 	local dice = love.math.random()
+	---@type Building?
 	local hire_building = nil
 	for building, profit in pairs(profits) do
 		local softmax = math.exp(exp_modifier * profit) / sum_of_exponents
@@ -85,15 +88,11 @@ function emp.run(province)
 		return
 	end
 
-
-
 	-- Lastly, hire new workers
 	local potential_job = province:potential_job(hire_building)
 	if potential_job == nil then
 		return
 	end
-
-
 
 	-- if WORLD.player_character then
 	-- 	if WORLD.player_character.province == province then
@@ -120,16 +119,18 @@ function emp.run(province)
 			local pop_current_income = pop.employer.last_income / tabb.size(pop.employer.workers)
 
 			-- TODO: move to cultural value
-			local likelihood_of_changing_job = 0.05
+			local likelihood_of_changing_job = 0.1
 
-			local recalculater_hire_profit = economy_values.projected_income(
-				hire_building,
-				pop.race,
-				pop.female,
-				prices,
-				1,
-				false
-			)
+			-- local recalculater_hire_profit = economy_values.projected_income(
+			-- 	hire_building,
+			-- 	pop.race,
+			-- 	pop.female,
+			-- 	prices,
+			-- 	1,
+			-- 	false
+			-- )
+
+			-- recalculater_hire_profit = recalculater_hire_profit + hire_building.subsidy
 
 			-- if WORLD.player_character then
 			-- 	if WORLD.player_character.province == province then
@@ -139,7 +140,7 @@ function emp.run(province)
 			-- 	end
 			-- end
 
-			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
+			if (love.math.random() < likelihood_of_changing_job) and (profits[hire_building] > pop_current_income) then
 				-- change job!
 				province:fire_pop(pop)
 				province:employ_pop(pop, hire_building)

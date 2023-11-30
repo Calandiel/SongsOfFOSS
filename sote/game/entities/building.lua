@@ -6,6 +6,8 @@
 ---@field workers table<POP, POP>
 ---@field owner POP?
 ---@field province Province
+---@field subsidy number
+---@field subsidy_last number
 ---@field income_mean number
 ---@field last_income number
 ---@field spent_on_inputs table<TradeGoodReference, number>
@@ -39,6 +41,9 @@ function bld.Building:new(province, building_type, tile)
 	o.spent_on_inputs = {}
 	o.earn_from_outputs = {}
 	o.unused = 0
+
+	o.subsidy = 0
+	o.subsidy_last = 0
 
 	o.work_ratio = 1
 

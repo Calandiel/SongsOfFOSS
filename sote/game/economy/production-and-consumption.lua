@@ -81,6 +81,9 @@ function pro.run(province)
 
 	-- TODO: IMPLEMENT CULTURAL VALUE
 	local fraction_of_income_given_voluntarily = 0.1 * math.max(0, math.min(1.0, 1.0 - population / min_income_pop))
+	local fraction_of_income_given_to_owner = 0.1
+
+	DISPLAY_INCOME_OWNER_RATIO = (1 - INCOME_TO_LOCAL_WEALTH_MULTIPLIER) * fraction_of_income_given_to_owner
 
 	local total_donations = 0
 
@@ -140,6 +143,22 @@ function pro.run(province)
 						true
 					)
 
+				income = income
+
+				local owner = pop.employer.owner
+				if owner then
+					if donations_to_owners[owner] == nil then
+						donations_to_owners[owner] = 0
+					end
+					if owner.savings + donations_to_owners[owner] > pop.employer.subsidy then
+						income = income + pop.employer.subsidy
+						donations_to_owners[owner] = donations_to_owners[owner] - pop.employer.subsidy
+						pop.employer.subsidy_last = pop.employer.subsidy
+					else
+						pop.employer.subsidy_last = 0
+					end
+				end
+
 				for input, amount in pairs(prod.inputs) do
 					record_consumption(input, amount * efficiency * input_boost * throughput_boost)end
 				for output, amount in pairs(prod.outputs) do
@@ -160,13 +179,13 @@ function pro.run(province)
 				if income > 0 then
 					province.local_wealth = province.local_wealth + income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
 					income = income - income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-
-					-- commented to test changes and to be able to switch it on demand
-					-- local contrib = math.min(0.75, income * fraction_of_income_given_voluntarily)
+					---@type number
 					local contrib = income * fraction_of_income_given_voluntarily
 
 					local owner = pop.employer.owner
 					if owner then
+						---@type number
+						contrib = income * fraction_of_income_given_to_owner
 						if donations_to_owners[owner] == nil then
 							donations_to_owners[owner] = 0
 						end
@@ -175,6 +194,8 @@ function pro.run(province)
 					else
 						total_donations = total_donations + contrib
 					end
+
+					income = income - contrib
 
 					-- increase working hours if possible to increase income
 					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.2)

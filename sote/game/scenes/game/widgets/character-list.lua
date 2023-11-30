@@ -74,7 +74,7 @@ return function(rect, province, compact)
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return v.name
+                    return v.race.name
                 end
             },
             {

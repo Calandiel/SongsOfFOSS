@@ -40,6 +40,8 @@ PROFILER.total_decision_character_tick = 0
 --- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
 VEGETATION_GROWTH = 0.005
 
+DISPLAY_INCOME_OWNER_RATIO = 0
+
 local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
