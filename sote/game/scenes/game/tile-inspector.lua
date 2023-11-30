@@ -969,6 +969,7 @@ function re.draw(gam)
 	local tabs = {
 		{
 			text = "GEN",
+			icon = ASSETS.icons["horizon-road.png"],
 			tooltip = "General",
 			closure = function()
 				general_tab(gam, tile, tab_content)
@@ -976,6 +977,7 @@ function re.draw(gam)
 		},
 		{
 			text = "BLD",
+			icon = ASSETS.icons["village.png"],
 			tooltip = "Buildings",
 			closure = function()
 				buildings_tab(gam, tile, tab_content)
@@ -983,6 +985,7 @@ function re.draw(gam)
 		},
 		{
 			text = "TEC",
+			icon = ASSETS.icons["bookmarklet.png"],
 			tooltip = "Technology",
 			closure = function()
 				technology_tab(gam, tile, tab_content)
@@ -990,6 +993,7 @@ function re.draw(gam)
 		},
 		{
 			text = "CHR",
+			icon = ASSETS.icons["inner-self.png"],
 			tooltip = "List of notable characters",
 			closure = function()
 				local response = require "game.scenes.game.widgets.character-list"(
@@ -1004,16 +1008,19 @@ function re.draw(gam)
 		},
 		{
 			text = "DCS",
+			icon = ASSETS.icons["envelope.png"],
 			tooltip = "Local decisions",
 			on_select = function()
 				gam.reset_decision_selection()
 			end,
 			closure = function()
 				decisions_tab(gam, tile, tab_content)
-			end
+			end,
+			visible = WORLD.player_character ~= nil
 		},
 		{
 			text = "GEO",
+			icon = ASSETS.icons["mountains.png"],
 			tooltip = "Geography",
 			closure = function()
 				geography_tab(gam, tile, tab_content)

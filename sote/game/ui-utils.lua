@@ -730,9 +730,11 @@ end
 
 ---@class Tab
 ---@field text string
+---@field icon love.Image?
 ---@field tooltip string
 ---@field closure fun()
 ---@field on_select fun()|nil
+---@field visible boolean?
 
 ---Used for drawing tabs.
 ---@param current_tab string the currently selected tab
@@ -747,15 +749,30 @@ function ut.tabs(current_tab, layout, tabs, scale, width_tab_header)
 	end
 	local new_tab = current_tab
 	for _, tab in pairs(tabs) do
-		local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
-		if current_tab == tab.text then
-			ut.text_button(tab.text, rect, tab.tooltip, false, true)
-			tab.closure()
-		else
-			if ut.text_button(tab.text, rect, tab.tooltip) then
-				new_tab = tab.text
-				if tab.on_select then
-					tab.on_select()
+		if tab.visible or tab.visible == nil then
+			local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
+			if current_tab == tab.text then
+				if tab.icon then
+					ut.icon_button(tab.icon, rect, tab.tooltip, false, true)
+				else
+					ut.text_button(tab.text, rect, tab.tooltip, false, true)
+				end
+				tab.closure()
+			else
+				if tab.icon then
+					if ut.icon_button(tab.icon, rect, tab.tooltip) then
+						new_tab = tab.text
+						if tab.on_select then
+							tab.on_select()
+						end
+					end
+				else
+					if ut.text_button(tab.text, rect, tab.tooltip) then
+						new_tab = tab.text
+						if tab.on_select then
+							tab.on_select()
+						end
+					end
 				end
 			end
 		end
