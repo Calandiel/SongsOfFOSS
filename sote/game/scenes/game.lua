@@ -856,80 +856,9 @@ function gam.draw()
 		:position(bottom_right.x, bottom_right.y)
 		:flipped()
 		:build()
-	local _ = bottom_right_main_layout:next(ut.BASE_HEIGHT, bottom_button_size) -- skip!
-
-	-- Bottom bar
 
 
-	local bottom_bar = ui.layout_builder()
-		:horizontal(true)
-		:position(bottom_right.x, bottom_right.y)
-		:flipped()
-		:build()
-	if ut.icon_button(
-			ASSETS.icons["exit-door.png"],
-			bottom_bar:next(bottom_button_size, bottom_button_size),
-			"Quit"
-		) then
-		gam.inspector = "confirm-exit"
-		gam.click_callback = callback.nothing()
-	end
-	if ut.icon_button(
-			ASSETS.icons["save.png"],
-			bottom_bar:next(bottom_button_size, bottom_button_size),
-			"Save"
-		) then
-		DEFINES = require "game.defines".init()
-		DEFINES.world_gen = false
-		DEFINES.world_to_load = "quicksave.binbeaver"
-		local manager = require "game.scene-manager"
-		manager.transition("world-saver")
-		return
-		-- world.save("quicksave.binbeaver")
-		-- gam.click_callback = callback.nothing()
-		-- gam.refresh_map_mode()
-	end
-	if ut.icon_button(
-			ASSETS.icons["load.png"],
-			bottom_bar:next(bottom_button_size, bottom_button_size),
-			"Load"
-		) then
-		-- world.load("quicksave.binbeaver")
-		DEFINES = require "game.defines".init()
-		DEFINES.world_gen = false
-		DEFINES.world_to_load = "quicksave.binbeaver"
-		local manager = require "game.scene-manager"
-		manager.transition("world-loader")
-		return
-		-- require "game.scenes.bitser-world-loading"()
-		-- gam.click_callback = callback.nothing()
-		-- gam.refresh_map_mode()
-	end
-	if ut.icon_button(
-			ASSETS.icons["treasure-map.png"],
-			bottom_bar:next(bottom_button_size, bottom_button_size),
-			"Export map"
-		) then
-		local to_save = require "game.minimap".make_minimap_image_data(1600, 800)
-		to_save:encode("png", gam.map_mode .. ".png")
-		gam.click_callback = callback.nothing()
-	end
-	if ut.icon_button(
-			ASSETS.icons["war-pick.png"],
-			bottom_bar:next(bottom_button_size, bottom_button_size),
-			"Options"
-		) then
-		gam.inspector = "options"
-		gam.click_callback = callback.nothing()
-	end
-	if WORLD.player_character then
-		if ut.icon_button(ASSETS.icons["magnifying-glass.png"], bottom_bar:next(bottom_button_size, bottom_button_size),
-				"Change country") then
-			require "game.raws.effects.player".to_observer()
-			gam.refresh_map_mode()
-			gam.click_callback = callback.nothing()
-		end
-	end
+
 	-- Minimap
 	if require "game.minimap".draw(
 			gam.minimap,
@@ -1221,11 +1150,15 @@ function gam.draw()
 		end
 	elseif gam.inspector == "confirm-exit" then
 		local response = require "game.scenes.game.confirm-exit".draw(gam)
-		if response then
+		if response == true then
 			---@type World|nil
 			WORLD = nil -- drop the world so that it gets garbage collected..
 			local manager = require "game.scene-manager"
 			manager.transition("main-menu")
+			return
+		end
+
+		if response == "stop" then
 			return
 		end
 	else
@@ -1239,9 +1172,12 @@ function gam.draw()
 	end
 
 	if ui.is_key_pressed('escape') then
-		gam.inspector = nil
+		if gam.inspector == nil then
+			gam.inspector = 'confirm-exit'
+		else
+			gam.inspector = nil
+		end
 	end
-
 
 	-- DRAWING AN ARROW TOWARD PLAYERS PROVINCE
 	local player = WORLD.player_character
