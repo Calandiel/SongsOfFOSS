@@ -46,8 +46,9 @@ end
 ---@param province Province
 ---@param ui_panel Rect
 ---@param base_unit number
+---@param gam GameScene
 ---@return function
-return function(province, ui_panel, base_unit)
+return function(province, ui_panel, base_unit, gam)
     ---@type TableColumn[]
     local columns = {
         {
@@ -286,7 +287,7 @@ return function(province, ui_panel, base_unit)
             active = true
         },
         {
-            header = "your",
+            header = "Your",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -299,6 +300,22 @@ return function(province, ui_panel, base_unit)
                 return v.inventory
             end
         },
+        {
+            header = "Map",
+            render_closure = function (rect, k, v)
+                ---@type ItemData
+                v = v
+
+                if ut.icon_button(ASSETS.icons['mesh-ball.png'], rect, "Show price on map") then
+                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.name
+                    gam.update_map_mode("prices")
+                end
+            end,
+            width = base_unit * 2,
+            value = function (k, v)
+                return v.name
+            end
+        }
     }
 
 

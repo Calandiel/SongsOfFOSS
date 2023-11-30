@@ -617,7 +617,9 @@ function ut.icon_button(icon, rect, tooltip, potential, active)
 
 	local result, rect_icon = ut.button(rect, potential, active)
 
-	ui.image(icon, rect_icon)
+	local icon_size = math.min(rect_icon.width, rect_icon.height)
+	local icon_subrect = rect_icon:subrect(0, 0, icon_size, icon_size, "center", "center")
+	ui.image(icon, icon_subrect)
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end

@@ -49,7 +49,7 @@ function inspector.draw(gam)
     rect.y = rect.y + base_unit
     rect.height = rect.height - base_unit
 
-    require "game.scenes.game.widgets.local-market" (province, rect, base_unit)()
+    require "game.scenes.game.widgets.local-market" (province, rect, base_unit, gam)()
 end
 
 return inspector
