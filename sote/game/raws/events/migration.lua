@@ -285,7 +285,7 @@ function load()
 						}
 
 						WORLD:emit_action("migration-merge", associated_data, migration_data, travel_time, false)
-						WORLD:emit_immediate_event("migration-target-agrees", associated_data, migration_data)
+						WORLD:emit_immediate_event("migration-target-agrees", associated_data, character)
 					end,
 					ai_preference = function ()
 						if character.culture == associated_data.culture then
@@ -375,7 +375,7 @@ function load()
 						}
 
 						WORLD:emit_action("migration-swap", associated_data, migration_data, travel_time, false)
-						WORLD:emit_immediate_event("migration-target-agrees", associated_data, migration_data)
+						WORLD:emit_immediate_event("migration-target-agrees", associated_data, character)
 					end,
 					ai_preference = function ()
 						return 1

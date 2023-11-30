@@ -223,11 +223,24 @@ return function(province, ui_panel, base_unit)
             header = "Buy " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character
-                    and player_character.province == province
-                    and et.can_buy(player_character, v.name, TRADE_AMOUNT)
-                    and ut.text_button("+", rect)
-                then
+                if player_character == nil then
+                    return
+                end
+
+                ---@type string
+                local tooltip = "Buy " .. tostring(TRADE_AMOUNT) .. ". \n"
+
+                local valid_province = player_character.province == province
+                if not valid_province then
+                    tooltip = tooltip .. "You are too far away \n"
+                end
+
+                local can_buy, reasons = et.can_buy(player_character, v.name, TRADE_AMOUNT)
+                for _, reason in pairs(reasons) do
+                    tooltip = tooltip .. reason .. "\n"
+                end
+
+                if ut.text_button("+", rect, tooltip, can_buy and valid_province) then
                     ef.buy(player_character, v.name, TRADE_AMOUNT)
                 end
             end,
@@ -243,11 +256,24 @@ return function(province, ui_panel, base_unit)
             header = "Sell " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character
-                    and player_character.province == province
-                    and et.can_sell(player_character, v.name, TRADE_AMOUNT)
-                    and ut.text_button("-", rect)
-                then
+                if player_character == nil then
+                    return
+                end
+
+                ---@type string
+                local tooltip = "Sell " .. tostring(TRADE_AMOUNT) .. ". \n"
+
+                local valid_province = player_character.province == province
+                if not valid_province then
+                    tooltip = tooltip .. "You are too far away \n"
+                end
+
+                local can_buy, reasons = et.can_sell(player_character, v.name, TRADE_AMOUNT)
+                for _, reason in pairs(reasons) do
+                    tooltip = tooltip .. reason .. "\n"
+                end
+
+                if ut.text_button("-", rect, tooltip, can_buy and valid_province) then
                     ef.sell(player_character, v.name, TRADE_AMOUNT)
                 end
             end,

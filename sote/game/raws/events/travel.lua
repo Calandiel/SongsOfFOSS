@@ -88,7 +88,8 @@ local function load()
                     ))
                 )
 
-                if et.can_buy(root, name, bought_amount) then
+                local can_buy, _ = et.can_buy(root, name, bought_amount)
+                if can_buy then
                     ---@type EventOption
                     local option = {
                         text = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
@@ -160,7 +161,9 @@ local function load()
                 local sold_amount = math.max(1, math.floor((root.inventory[name] or 0) * math.random() * 0.2))
                 local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
 
-                if et.can_sell(root, name, sold_amount) then
+                local can_sell, _ = et.can_sell(root, name, sold_amount)
+
+                if can_sell then
                     ---@type EventOption
                     local option = {
                         text = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,

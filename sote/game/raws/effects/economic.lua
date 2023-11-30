@@ -302,7 +302,8 @@ end
 ---@param good TradeGoodReference
 ---@param amount number
 function EconomicEffects.buy(character, good, amount)
-    if not et.can_buy(character, good, amount) then
+    local can_buy, _ = et.can_buy(character, good, amount)
+    if not can_buy then
         return false
     end
 
@@ -338,7 +339,8 @@ end
 ---@param good TradeGoodReference
 ---@param amount number
 function EconomicEffects.sell(character, good, amount)
-    if not et.can_sell(character, good, amount) then
+    local can_sell, _ = et.can_sell(character, good, amount)
+    if not can_sell then
         return false
     end
 
