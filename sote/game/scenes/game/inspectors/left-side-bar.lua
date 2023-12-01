@@ -120,9 +120,9 @@ function inspector.draw(gam)
     local fs = ui.fullscreen()
     local rect_for_menu = fs:subrect(0, 0, base_unit, base_unit, "left", "down")
 	if ut.icon_button(
-			ASSETS.icons["exit-door.png"],
+			ASSETS.icons["gear.png"],
 			rect_for_menu,
-			"Open"
+			"Open menu."
 	) then
 		gam.inspector = "confirm-exit"
 	end

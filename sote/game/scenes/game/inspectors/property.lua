@@ -130,7 +130,7 @@ function inspector.draw(gam)
                     v.subsidy = v.subsidy + 0.125
                 end
 
-                ut.money_entry("", v.subsidy, value_rect, "Current subsidy per worker", true)
+                ut.money_entry("", v.subsidy, value_rect, "Current subsidy per worker. Paid monthly to attract workers.", true)
             end,
             width = base_unit * 5,
             value = function (k, v)
