@@ -26,7 +26,7 @@ function InterpersonalEffects.remove_loyalty(actor)
         return
     end
 
-    if WORLD:does_player_see_realm_news(actor.province.realm) and actor.loyalty ~= nil then
+    if WORLD:does_player_see_realm_news(actor.realm) and actor.loyalty ~= nil then
         WORLD:emit_notification(actor.name .. " stopped being loyal to " .. actor.loyalty.name .. ".")
     end
     actor.loyalty.loyal[actor] = nil

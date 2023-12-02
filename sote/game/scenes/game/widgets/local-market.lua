@@ -46,8 +46,9 @@ end
 ---@param province Province
 ---@param ui_panel Rect
 ---@param base_unit number
+---@param gam GameScene
 ---@return function
-return function(province, ui_panel, base_unit)
+return function(province, ui_panel, base_unit, gam)
     ---@type TableColumn[]
     local columns = {
         {
@@ -63,7 +64,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "name",
+            header = "Name",
             render_closure = function(rect, k, v)
                 ui.left_text(v.name, rect)
             end,
@@ -75,7 +76,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "supply",
+            header = "Supply",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -89,7 +90,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "demand",
+            header = "Demand",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -103,7 +104,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "balance",
+            header = "Balance",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -117,7 +118,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "buy price",
+            header = "Buy price",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -131,7 +132,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "sell price",
+            header = "Sell price",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -145,21 +146,7 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
-            header = "stockpile",
-            render_closure = function(rect, k, v)
-                ---@type ItemData
-                v = v
-                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
-            end,
-            width = base_unit * 4,
-            value = function(k, v)
-                ---@type ItemData
-                v = v
-                return v.stockpile
-            end
-        },
-        {
-            header = "difference",
+            header = "Difference",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -220,14 +207,41 @@ return function(province, ui_panel, base_unit)
             end
         },
         {
+            header = "Stockpile",
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
+            end,
+            width = base_unit * 4,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.stockpile
+            end
+        },
+        {
             header = "Buy " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character
-                    and player_character.province == province
-                    and et.can_buy(player_character, v.name, TRADE_AMOUNT)
-                    and ut.text_button("+", rect)
-                then
+                if player_character == nil then
+                    return
+                end
+
+                ---@type string
+                local tooltip = "Buy " .. tostring(TRADE_AMOUNT) .. ". \n"
+
+                local valid_province = player_character.province == province
+                if not valid_province then
+                    tooltip = tooltip .. "You are too far away \n"
+                end
+
+                local can_buy, reasons = et.can_buy(player_character, v.name, TRADE_AMOUNT)
+                for _, reason in pairs(reasons) do
+                    tooltip = tooltip .. reason .. "\n"
+                end
+
+                if ut.text_button("+", rect, tooltip, can_buy and valid_province) then
                     ef.buy(player_character, v.name, TRADE_AMOUNT)
                 end
             end,
@@ -243,11 +257,24 @@ return function(province, ui_panel, base_unit)
             header = "Sell " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character
-                    and player_character.province == province
-                    and et.can_sell(player_character, v.name, TRADE_AMOUNT)
-                    and ut.text_button("-", rect)
-                then
+                if player_character == nil then
+                    return
+                end
+
+                ---@type string
+                local tooltip = "Sell " .. tostring(TRADE_AMOUNT) .. ". \n"
+
+                local valid_province = player_character.province == province
+                if not valid_province then
+                    tooltip = tooltip .. "You are too far away \n"
+                end
+
+                local can_buy, reasons = et.can_sell(player_character, v.name, TRADE_AMOUNT)
+                for _, reason in pairs(reasons) do
+                    tooltip = tooltip .. reason .. "\n"
+                end
+
+                if ut.text_button("-", rect, tooltip, can_buy and valid_province) then
                     ef.sell(player_character, v.name, TRADE_AMOUNT)
                 end
             end,
@@ -260,7 +287,7 @@ return function(province, ui_panel, base_unit)
             active = true
         },
         {
-            header = "your",
+            header = "Your",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
@@ -273,6 +300,22 @@ return function(province, ui_panel, base_unit)
                 return v.inventory
             end
         },
+        {
+            header = "Map",
+            render_closure = function (rect, k, v)
+                ---@type ItemData
+                v = v
+
+                if ut.icon_button(ASSETS.icons['mesh-ball.png'], rect, "Show price on map") then
+                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.name
+                    gam.update_map_mode("prices")
+                end
+            end,
+            width = base_unit * 2,
+            value = function (k, v)
+                return v.name
+            end
+        }
     }
 
 

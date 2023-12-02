@@ -12,7 +12,7 @@ local inspector = {}
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 40, ut.BASE_HEIGHT * 15, "left", "up")
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, ut.BASE_HEIGHT * 15, "left", "up")
 	return panel
 end
 
@@ -97,7 +97,14 @@ function inspector.draw(gam)
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
-                ut.money_entry("", v.last_donation_to_owner, rect)
+                ut.money_entry(
+                    "",
+                    v.last_donation_to_owner,
+                    rect,
+                    "Your share is "
+                    .. ut.to_fixed_point2(DISPLAY_INCOME_OWNER_RATIO)
+                    .. " of last building's income."
+                )
             end,
             width = base_unit * 3,
             value = function(k, v)
@@ -105,6 +112,33 @@ function inspector.draw(gam)
                 v = v
                 return v.last_donation_to_owner
             end
+        },
+        {
+            header = "subsidy",
+            render_closure = function (rect, k, v)
+                ---@type Building
+                v = v
+                local dec_rect = rect:subrect(0, 0, base_unit, base_unit, "left", "up")
+                local value_rect = rect:subrect(0, 0, base_unit * 3, base_unit, "center", "up")
+                local inc_rect = rect:subrect(0, 0, base_unit, base_unit, "right", "up")
+
+                if ut.text_button("-", dec_rect, "Decrease subsidy", v.subsidy >= 0.125) then
+                    v.subsidy = v.subsidy - 0.125
+                end
+
+                if ut.text_button("+", inc_rect, "Increase subsidy") then
+                    v.subsidy = v.subsidy + 0.125
+                end
+
+                ut.money_entry("", v.subsidy, value_rect, "Current subsidy per worker. Paid monthly to attract workers.", true)
+            end,
+            width = base_unit * 5,
+            value = function (k, v)
+                ---@type Building
+                v = v
+                return v.subsidy
+            end,
+            active = true
         },
         {
             header = "income",

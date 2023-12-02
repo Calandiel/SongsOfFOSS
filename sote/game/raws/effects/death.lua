@@ -13,7 +13,6 @@ function effects.death(character)
     end
 
     character.dead = true
-    character.province.characters[character] = nil
 end
 
 

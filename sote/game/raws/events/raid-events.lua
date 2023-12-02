@@ -1,6 +1,6 @@
 local tabb = require "engine.table"
 local Event = require "game.raws.events"
-local E_ut = require "game.raws.events._utils"
+local event_utils = require "game.raws.events._utils"
 
 local ef = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
@@ -23,14 +23,14 @@ local messages = require "game.raws.effects.messages"
 ---@field travel_time number
 ---@field patrol table<Warband, Warband>
 
----@class RaidData 
+---@class RaidData
 ---@field raider Character
 ---@field origin Realm
 ---@field target RewardFlag
 ---@field travel_time number
 ---@field army Army
 
----@class AttackData 
+---@class AttackData
 ---@field raider Character
 ---@field origin Realm
 ---@field target Province
@@ -63,14 +63,14 @@ local function load()
 	Event:new {
 		name = "patrol-province",
 		automatic = false,
-		on_trigger = function(self, root, associated_data) 
+		on_trigger = function(self, root, associated_data)
 			---@type PatrolData
 			associated_data = associated_data
 			local realm_leader = associated_data.defender
 
 
 			associated_data.target.mood = associated_data.target.mood + 0.025
-			if WORLD:does_player_see_realm_news(realm_leader.province.realm) then
+			if WORLD:does_player_see_realm_news(associated_data.target.realm) then
 				WORLD:emit_notification("Several of our warbands had finished patrolling of " .. associated_data.target.name .. ". Local people feel safety")
 			end
 
@@ -92,7 +92,7 @@ local function load()
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
             local their_warlords, their_power = pv.military_strength(associated_data.leader)
 
-            local strength_estimation_string = 
+            local strength_estimation_string =
                 "On my side there are "
                 .. my_warlords
                 .. " warlords with total strength of "
@@ -110,7 +110,7 @@ local function load()
                 .. " warriors."
 
 			return " We are planning the invasion of "
-				.. name 
+				.. name
 				.. ". "
                 .. strength_estimation_string
                 .. " What should I do?"
@@ -138,6 +138,10 @@ local function load()
                 gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
             end
 
+			if character.dead then
+				return event_utils.dead_options
+			end
+
             local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
             local their_warlords, their_power = pv.military_strength(target_realm.leader)
@@ -150,7 +154,7 @@ local function load()
 					outcome = function()
                         local realm = character.realm
 
-						local army = me.gather_loyal_army(character)
+						local army = me.gather_loyal_army_attack(character)
 						if army == nil then
 							if character == WORLD.player_character then
 								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
@@ -289,11 +293,11 @@ local function load()
 			messages.tribute_raid_success(realm, army.destination.realm)
 			WORLD:emit_event('request-tribute-army-returns-success-notification', root, army)
 
-			root.busy = false	
+			root.busy = false
 		end,
 	}
 
-	E_ut.notification_event(
+	event_utils.notification_event(
         "request-tribute-army-returns-success-notification",
         function(self, character, associated_data)
             ---@type Army
@@ -332,7 +336,7 @@ local function load()
 		end,
 	}
 
-	E_ut.notification_event(
+	event_utils.notification_event(
         "request-tribute-army-returns-fail-notification",
         function(self, character, associated_data)
             ---@type Army
@@ -367,12 +371,7 @@ local function load()
 			local province = target.target
 			local realm = province.realm
 
-			if not realm then
-				-- The province doesn't have a realm
-				return
-			end
-
-			if province:army_spot_test(army) then
+			if (not raider.dead) and (realm) and (province:army_spot_test(army)) then
 				-- The army was spotted!
 				if (love.math.random() < 0.5) and (province:local_army_size() > 0) then
 					-- Let's just return and do nothing
@@ -411,7 +410,11 @@ local function load()
 				end
 			else
 				-- The army wasn't spotted. Nothing to do!
-				success = true
+				if raider.dead then
+					success = false
+				else
+					success = true
+				end
 			end
 			if success then
 				-- The army wasn't spotted!
@@ -419,7 +422,7 @@ local function load()
 				local max_loot = army:get_loot_capacity()
 				local real_loot = math.min(max_loot, province.local_wealth)
 				province.local_wealth = province.local_wealth - real_loot
-				if max_loot > real_loot then
+				if realm and max_loot > real_loot then
 					local leftover = max_loot - real_loot
 					local potential_loot = ev.raidable_treasury(realm)
 					local extra = math.min(potential_loot, leftover)
@@ -429,7 +432,9 @@ local function load()
 
 				local mood_swing = real_loot / (province:population() + 1)
 				province.mood = province.mood - mood_swing
-				raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
+				if realm then
+					raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
+				end
 
 				---@type RaidResultSuccess
 				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin = origin }
@@ -444,7 +449,6 @@ local function load()
 				if retreat then
 					---@type RaidResultRetreat
 					local retreat_data = { army = army, target = target, raider = raider, origin = origin }
-
 					WORLD:emit_action("covert-raid-retreat", raider, retreat_data,
 						travel_time, true)
 				else
@@ -506,8 +510,10 @@ local function load()
 			-- popularity to raid participants
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
-				pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
-				num_of_warbands = num_of_warbands + 1
+				if w.leader then
+					pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
+					num_of_warbands = num_of_warbands + 1
+				end
 			end
 
 			-- initiator gets 2 "coins" for each invested "coin"
@@ -527,7 +533,9 @@ local function load()
 			-- pay rewards to warband leaders
 			target.reward = target.reward - initiator_share / 2
 			for _, w in pairs(warbands) do
-				ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
+				if w.leader then
+					ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
+				end
 			end
 			loot = loot - initiator_share / 2
 
@@ -544,8 +552,8 @@ local function load()
 			end
 			loot = loot - loot / 2
 
-			-- pay the remaining half of loot to population(warriors)
-			target.owner.province.local_wealth = target.owner.province.local_wealth + loot
+			-- pay the remaining half of loot to population
+			realm.capitol.local_wealth = realm.capitol.local_wealth + loot
 
 			if target.reward == 0 then
 				realm:remove_reward_flag(target)

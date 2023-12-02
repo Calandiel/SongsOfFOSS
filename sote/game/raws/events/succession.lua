@@ -9,6 +9,8 @@ local ee = require "game.raws.effects.economic"
 local me = require "game.raws.effects.military"
 local ie = require "game.raws.effects.interpersonal"
 
+local offices_triggers = require "game.raws.triggers.offices"
+
 local function load()
 
     Event:new {
@@ -22,7 +24,7 @@ local function load()
             if realm == nil then
                 return
             end
-            local capitol = character.realm.capitol    
+            local capitol = character.realm.capitol
 
             local leader = realm.leader
             if leader == nil then
@@ -38,16 +40,41 @@ local function load()
                         ---@type Character?
                         local final_successor = nil
                         for _, pretender in pairs(capitol.characters) do
-
-                            if final_successor == nil then
+                            if
+                                final_successor == nil
+                                and pretender ~= character
+                            then
                                 final_successor = pretender
-                            elseif pv.popularity(pretender, realm) > pv.popularity(final_successor, realm) then
+                            elseif
+                                pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                                and pretender ~= character
+                            then
                                 final_successor = pretender
                             end
                         end
 
                         successor = final_successor
                     end
+                end
+
+                if not successor then
+                    ---@type Character?
+                    local final_successor = nil
+                    for _, pretender in pairs(capitol.home_to) do
+                        if
+                            final_successor == nil
+                            and pretender ~= character
+                        then
+                            final_successor = pretender
+                        elseif
+                            pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                            and pretender ~= character
+                        then
+                            final_successor = pretender
+                        end
+                    end
+
+                    successor = final_successor
                 end
 
                 if not successor then
@@ -58,6 +85,8 @@ local function load()
                     pe.transfer_power(realm, successor)
                     WORLD:emit_event("succession-leader-notification", successor, realm)
                 else
+                    -- no pops left: destroy realm
+                    pe.dissolve_realm(realm)
                     realm.leader = nil
                 end
             end
@@ -66,6 +95,11 @@ local function load()
             if realm.overseer == character then
                 pe.remove_overseer(realm)
                 WORLD:emit_event("succession-overseer-death-notification", leader, character)
+            end
+
+            if offices_triggers.guard_leader(character, realm) then
+                pe.remove_guard_leader(realm)
+                WORLD:emit_event("succession-guard-leader-death-notification", leader, character)
             end
 
             -- succession of realm tribute collector
@@ -85,6 +119,18 @@ local function load()
                 me.dissolve_warband(character)
             end
 
+            -- cancel all rewards:
+            ---@type RewardFlag[]
+            local rewards = {}
+            for _, reward in pairs(realm.reward_flags) do
+                if reward.owner == character then
+                    table.insert(rewards, reward)
+                end
+            end
+            for _, reward in pairs(rewards) do
+                ee.cancel_reward_flag(realm, reward)
+            end
+
             -- succession of wealth
             local wealth_successor = character.successor
             if wealth_successor then
@@ -97,6 +143,10 @@ local function load()
 
             -- loyalty reset
             ie.remove_all_loyal(character)
+
+            -- clear references to character
+            character.province:remove_character(character)
+            character.home_province:unset_home(character)
 		end,
     }
 
@@ -121,6 +171,23 @@ local function load()
             ---@type Character
             associated_data = associated_data
             return "My overseer " .. associated_data.name .. " had died. "
+		end,
+        function (root, associated_data)
+            return "I see..."
+        end,
+        function (root, associated_data)
+            ---@type Character
+            associated_data = associated_data
+            return "I acknowledge the death of " .. associated_data.name .. "."
+        end
+    )
+
+    E_ut.notification_event(
+        "succession-guard-leader-death-notification",
+        function(self, character, associated_data)
+            ---@type Character
+            associated_data = associated_data
+            return "My guard leader " .. associated_data.name .. " had died. "
 		end,
         function (root, associated_data)
             return "I see..."

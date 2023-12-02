@@ -4,10 +4,8 @@ local effects = {}
 ---@param character Character
 ---@param province Province
 function effects.travel(character, province)
-    character.province.characters[character] = nil
-
-    character.province = province
-    character.province.characters[character] = character
+    character.province:remove_character(character)
+    province:add_character(character)
 
     character.busy = false
 

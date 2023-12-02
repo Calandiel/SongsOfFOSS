@@ -145,27 +145,19 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 25,
 		pretrigger = function(root)
+			if root.busy then return false end
 			if not ot.tribute_collector(root, root.realm) then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			--print("avl")
 			---@type Character
-			local root = root
-			---@type Province
-			local primary_target = primary_target
-
+			primary_target = primary_target
 			if primary_target.realm.paying_tribute_to[root.realm] == nil then
 				return false
 			end
-
 			return true
 		end,
 		available = function(root, primary_target)
-			if root.busy then
-				return false
-			end
-
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
@@ -225,6 +217,174 @@ local function load()
 			)
 		end
 	}
+
+
+
+	-- migrate decision
+
+	Decision.CharacterProvince:new {
+		name = 'migrate-realm',
+		ui_name = "Migrate to targeted province",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return "You have no right to order your tribe to do this"
+			end
+			if root.province ~= root.realm.capitol then
+				return "You has to be with your people during migration"
+			end
+			if primary_target.realm then
+				return "Migrate to "
+					.. primary_target.name
+					.. " controlled by "
+					.. primary_target.realm.name
+					.. ". Our tribe will be merged into their if they agree."
+			else
+				return "Migrate to "
+					.. primary_target.name
+					.. "."
+			end
+        end,
+		sorting = 1,
+		primary_target = "province",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if not primary_target.center.is_land then
+				return false
+			end
+			if root.realm.capitol.neighbors[primary_target] then
+				return true
+			end
+            return false
+		end,
+		available = function(root, primary_target)
+            if root.busy then
+                return false
+            end
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
+			if root.province ~= root.realm.capitol then
+				return false
+			end
+			if primary_target.realm == root.realm then
+				return false
+			end
+			return true
+		end,
+        ai_target = function(root)
+			return tabb.random_select_from_set(root.realm.capitol.neighbors), true
+        end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			root.busy = true
+
+			local travel_time, _ = path.hours_to_travel_days(
+				path.pathfind(
+					root.realm.capitol,
+					primary_target
+				)
+			)
+			if travel_time == math.huge then
+				travel_time = 150
+			end
+
+			if primary_target.realm == nil then
+				---@type MigrationData
+				local migration_data = {
+					origin_province = root.realm.capitol,
+					target_province = primary_target,
+					invasion = false
+				}
+				WORLD:emit_immediate_action('migration-merge', root, migration_data)
+			else
+				WORLD:emit_event('migration-request', primary_target.realm.leader, root, travel_time)
+			end
+		end
+	}
+
+	Decision.CharacterProvince:new {
+		name = 'migrate-realm-invasion',
+		ui_name = "Invade targeted province",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return "You have no right to order your tribe to do this"
+			end
+			if root.province ~= root.realm.capitol then
+				return "You has to be with your people during migration"
+			end
+			return "Migrate to "
+				.. primary_target.name
+				.. " controlled by "
+				.. primary_target.realm.name
+				.. ". Their tribe will be merged into our if we succeed."
+        end,
+		sorting = 1,
+		primary_target = "province",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if primary_target.realm == nil then
+				return false
+			end
+			if root.realm.capitol.neighbors[primary_target] then
+				return true
+			end
+            return false
+		end,
+		available = function(root, primary_target)
+            if root.busy then
+                return false
+            end
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
+			if root.province ~= root.realm.capitol then
+				return false
+			end
+			if primary_target.realm == root.realm then
+				return false
+			end
+			return true
+		end,
+        ai_target = function(root)
+			return tabb.random_select_from_set(root.realm.capitol.neighbors), true
+        end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			root.busy = true
+			WORLD:emit_immediate_event('migration-invasion-preparation', root, primary_target.realm)
+		end
+	}
+
 end
 
 return load

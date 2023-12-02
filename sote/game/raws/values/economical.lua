@@ -13,8 +13,9 @@ function eco_values.potential_monthly_tribute_size(realm)
 end
 
 ---comment
----@param realm Realm
+---@param realm Realm?
 function eco_values.raidable_treasury(realm)
+    if realm == nil then return 0 end
     return math.max(0, realm.budget.treasury * 0.1)
 end
 

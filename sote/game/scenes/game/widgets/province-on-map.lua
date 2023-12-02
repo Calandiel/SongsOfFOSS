@@ -164,6 +164,10 @@ return function(gam, tile, rect, x, y, size)
         return macrobuilder(gam, tile, rect, x, y, size)
     end
 
+    if tile.province.realm == nil then
+        return
+    end
+
     rect.x = x - size / 5
     rect.y = y - length_of_line - height_unit * 2
     rect.width = width_unit
@@ -186,7 +190,7 @@ return function(gam, tile, rect, x, y, size)
         return callback_coa
     end
 
-    if WORLD.player_character then
+    if WORLD.player_character and tile.province.realm then
         local button_rect = ui.rect(
             x - size / 5 + width_unit,
             y - 50 - height_unit * 2,

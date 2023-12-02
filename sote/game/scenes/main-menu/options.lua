@@ -3,7 +3,7 @@ local mm = {}
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
-function mm.rect() 
+function mm.rect()
 	return ui.fullscreen():subrect(0, 20, 300, 600, "center", "center")
 end
 
@@ -53,7 +53,7 @@ function mm.draw()
 	OPTIONS.camera_sensitivity = ut.named_slider(
 		"Camera sensitivity",
 		layout:next(menu_button_width, menu_button_height * 1.5),
-		OPTIONS.camera_sensitivity, 0.01, 10, 0.05
+		OPTIONS.camera_sensitivity, 0.01, 20, 0.05
 	)
 
 	-- FULLSCREEN
@@ -100,7 +100,7 @@ function mm.draw()
 	if flag_600 then
 		OPTIONS['treasury_ledger'] = 600
 	end
-	
+
 
 	-- RETURN
 	if ut.text_button(

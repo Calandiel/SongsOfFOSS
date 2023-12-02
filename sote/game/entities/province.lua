@@ -14,7 +14,6 @@ local prov = {}
 ---@field b number
 ---@field is_land boolean
 ---@field province_id number
----@field new fun(self:Province):Province
 ---@field add_tile fun(self: Province, tile: Tile)
 ---@field size number
 ---@field tiles table<Tile, Tile>
@@ -30,15 +29,12 @@ local prov = {}
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
 ---@field characters table<Character, Character>
+---@field home_to table<Character, Character> Set of characters which think of this province as their home
 ---@field neighbors_realm fun(self:Province, realm:Realm):boolean Returns whether or not a province borders a given realm
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
 ---@field population_weight fun(self:Province):number
----@field add_pop fun(self:Province, pop:POP)
----@field add_character fun(self:Province, pop:Character)
----@field kill_pop fun(self:Province, pop:POP)
----@field fire_pop fun(self:Province, pop:POP)
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
 ---@field employ_pop fun(self:Province, pop:POP, building:Building)
 ---@field potential_job fun(self:Province, building:Building):Job?
@@ -80,7 +76,6 @@ local prov = {}
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field on_a_river boolean
 ---@field on_a_forest boolean
----@field take_away_pop fun(self:Province, pop:POP): POP
 ---@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
 ---@field local_army_size fun(self:Province):number
 ---@field get_random_neighbor fun(self:Province):Province | nil
@@ -90,9 +85,11 @@ local col = require "game.color"
 ---@class Province
 prov.Province = {}
 prov.Province.__index = prov.Province
+
 ---Returns a new province. Remember to assign 'center' tile!
+---@param fake_flag boolean? do not register province if true
 ---@return Province
-function prov.Province:new()
+function prov.Province:new(fake_flag)
 	---@type Province
 	local o = {}
 
@@ -119,6 +116,7 @@ function prov.Province:new()
 	o.buildings = {}
 	o.all_pops = {}
 	o.characters = {}
+	o.home_to = {}
 	o.technologies_present = {}
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
@@ -145,8 +143,10 @@ function prov.Province:new()
 	o.on_a_forest = false
 	o.warbands = {}
 
-	WORLD.entity_counter = WORLD.entity_counter + 1
-	WORLD.provinces[o.province_id] = o
+	if not fake_flag then
+		WORLD.entity_counter = WORLD.entity_counter + 1
+		WORLD.provinces[o.province_id] = o
+	end
 
 	setmetatable(o, prov.Province)
 	return o
@@ -210,6 +210,8 @@ end
 ---@param pop POP
 function prov.Province:add_pop(pop)
 	self.all_pops[pop] = pop
+	pop.home_province = self
+	pop.province = self
 end
 
 ---Adds a character to the province
@@ -219,11 +221,25 @@ function prov.Province:add_character(character)
 	character.province = self
 end
 
+---Sets province as character's home
+---@param character Character
+function prov.Province:set_home(character)
+	self.home_to[character] = character
+	character.home_province = self
+end
+
 --- Removes a character from the province
 ---@param character Character
 function prov.Province:remove_character(character)
 	self.characters[character] = nil
 	character.province = nil
+end
+
+--- Character stops thinking of this province as a home
+---@param character Character
+function prov.Province:unset_home(character)
+	self.home_to[character] = nil
+	character.home_province = nil
 end
 
 ---Kills a single pop and removes it from all relevant references.
@@ -232,7 +248,15 @@ function prov.Province:kill_pop(pop)
 	self:fire_pop(pop)
 	self:unregister_military_pop(pop)
 	self.all_pops[pop] = nil
+	self.home_to[pop] = nil
+
 	self.outlaws[pop] = nil
+	pop.province = nil
+
+	if pop.home_province then
+		pop.home_province.home_to[pop] = nil
+		pop.home_province = nil
+	end
 end
 
 function prov.Province:local_army_size()
@@ -422,6 +446,30 @@ function prov.Province:research(technology)
 
 	if WORLD:does_player_see_realm_news(self.realm) then
 		WORLD:emit_notification("Technology unlocked: " .. technology.name)
+	end
+end
+
+---Forget technology
+---@param technology Technology
+function prov.Province:forget(technology)
+	self.technologies_present[technology] = nil
+	self.technologies_researchable[technology] = technology
+
+	-- temporary forget all buildings and bonuses
+	self.buildable_buildings = {}
+	self.unit_types = {}
+	self.throughput_boosts = {}
+	self.input_efficiency_boosts = {}
+	self.output_efficiency_boosts = {}
+
+	-- relearn everything
+	-- sounds like a horrible solution
+	-- but after some thinking,
+	-- you would need to do all these checks
+	-- for all techs anyway
+	-- because there are no assumptions for a graph of technologies
+	for _, old_technology in pairs(self.technologies_present) do
+		self:research(old_technology)
 	end
 end
 
@@ -648,7 +696,7 @@ end
 function prov.Province:army_spot_test(army, stealth_penalty)
 	-- To resolve this event we need to perform some checks.
 	-- First, we should have a "scouting" check.
-	-- Them, a potential battle ought to take place.`	
+	-- Them, a potential battle ought to take place.`
 	if stealth_penalty == nil then
 		stealth_penalty = 1
 	end

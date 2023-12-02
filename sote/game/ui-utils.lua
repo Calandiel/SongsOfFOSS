@@ -397,9 +397,12 @@ function ut.set_font(font)
 end
 
 ---Draws a coat of arms of a realm. Returns true if clicked.
----@param realm Realm
+---@param realm Realm?
 ---@param rect Rect
 function ut.coa(realm, rect)
+	if realm == nil then
+		return
+	end
 	-- Pull old colors...
 	local r = ui.style.panel_inside.r
 	local g = ui.style.panel_inside.g
@@ -489,6 +492,14 @@ local dark_grey_color = {
 	["a"] = 1
 }
 
+
+local dark_red_color = {
+	["r"] = 0.4,
+	["g"] = 0.1,
+	["b"] = 0.1,
+	["a"] = 1
+}
+
 local dark_green_color = {
 	["r"] = 56 / 255,
 	["g"] = 70 / 255,
@@ -553,15 +564,15 @@ function ut.button(rect, potential, active, sound, hover_sound)
 	ui.style["button_clicked"] = light_lime_color
 
 	if not potential then
-		ui.style["button_inside"] = dark_grey_color
-		ui.style["button_hovered"] = dark_grey_color
-		ui.style["button_clicked"] = dark_grey_color
+		ui.style["button_inside"] = dark_red_color
+		ui.style["button_hovered"] = dark_red_color
+		ui.style["button_clicked"] = dark_red_color
 	end
 
 	rect = rect:shrink(1)
 	ui.style.panel_inside = dark_blue_color -- dark_green_color
 	if not potential then
-		ui.style.panel_inside = dark_grey_color
+		ui.style.panel_inside = dark_red_color
 	end
 
 	-- button background
@@ -606,7 +617,9 @@ function ut.icon_button(icon, rect, tooltip, potential, active)
 
 	local result, rect_icon = ut.button(rect, potential, active)
 
-	ui.image(icon, rect_icon)
+	local icon_size = math.min(rect_icon.width, rect_icon.height)
+	local icon_subrect = rect_icon:subrect(0, 0, icon_size, icon_size, "center", "center")
+	ui.image(icon, icon_subrect)
 	if tooltip then
 		ui.tooltip(tooltip, rect)
 	end
@@ -717,9 +730,11 @@ end
 
 ---@class Tab
 ---@field text string
+---@field icon love.Image?
 ---@field tooltip string
 ---@field closure fun()
 ---@field on_select fun()|nil
+---@field visible boolean?
 
 ---Used for drawing tabs.
 ---@param current_tab string the currently selected tab
@@ -734,15 +749,30 @@ function ut.tabs(current_tab, layout, tabs, scale, width_tab_header)
 	end
 	local new_tab = current_tab
 	for _, tab in pairs(tabs) do
-		local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
-		if current_tab == tab.text then
-			ut.text_button(tab.text, rect, tab.tooltip, false, true)
-			tab.closure()
-		else
-			if ut.text_button(tab.text, rect, tab.tooltip) then
-				new_tab = tab.text
-				if tab.on_select then
-					tab.on_select()
+		if tab.visible or tab.visible == nil then
+			local rect = layout:next(width_tab_header * scale, ut.BASE_HEIGHT * scale)
+			if current_tab == tab.text then
+				if tab.icon then
+					ut.icon_button(tab.icon, rect, tab.tooltip, false, true)
+				else
+					ut.text_button(tab.text, rect, tab.tooltip, false, true)
+				end
+				tab.closure()
+			else
+				if tab.icon then
+					if ut.icon_button(tab.icon, rect, tab.tooltip) then
+						new_tab = tab.text
+						if tab.on_select then
+							tab.on_select()
+						end
+					end
+				else
+					if ut.text_button(tab.text, rect, tab.tooltip) then
+						new_tab = tab.text
+						if tab.on_select then
+							tab.on_select()
+						end
+					end
 				end
 			end
 		end

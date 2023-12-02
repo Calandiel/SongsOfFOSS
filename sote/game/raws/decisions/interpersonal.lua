@@ -19,7 +19,8 @@ local function load()
 		primary_target = 'character',
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
-		pretrigger = function(root) 
+		pretrigger = function(root)
+			if root.busy then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -80,7 +81,7 @@ local function load()
 			if WORLD.player_character == root then
 				WORLD:emit_notification("I requested loyalty from ".. primary_target.name)
 			end
-			WORLD:emit_event('request-loyalty', primary_target, root, 1)
+			WORLD:emit_immediate_event('request-loyalty', primary_target, root)
 		end
 	}
 
@@ -93,6 +94,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 24 , -- Once every two year on average
 		pretrigger = function(root)
+			if root.busy then return false end
             if WORLD.player_character == root then
                 return true
             end
@@ -133,7 +135,7 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			ie.set_successor(root, primary_target)
-            WORLD:emit_event('succession-set', primary_target, root, nil)
+            WORLD:emit_immediate_event('succession-set', primary_target, root, nil)
 		end
 	}
 end

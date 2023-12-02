@@ -66,10 +66,11 @@ end
 ---Returns pops in the army
 ---@return table<POP, Province>
 function army:pops()
+	---@type table<POP, Province>
 	local res = {}
 	for _, warband in pairs(self.warbands) do
-		for pop, province in pairs(warband.pops) do
-			res[pop] = province
+		for _, pop in pairs(warband.pops) do
+			res[pop] = pop.home_province
 		end
 	end
 	return res

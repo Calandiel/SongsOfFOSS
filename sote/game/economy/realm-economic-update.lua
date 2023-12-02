@@ -116,9 +116,9 @@ function rea.run(realm)
 		budget.tribute.ratio = 0.1
 	end
 
-	local total_ratio = budget.education.ratio 
+	local total_ratio = budget.education.ratio
 						+ budget.court.ratio
-						+ budget.military.ratio 
+						+ budget.military.ratio
 						+ budget.infrastructure.ratio
 						+ budget.tribute.ratio
 
@@ -160,7 +160,6 @@ function rea.run(realm)
 	-- #######################
 	-- ## Military spending ##
 	-- #######################
-	local military_upkeep = 0
 	for _, province in pairs(realm.provinces) do
 		for _, warband in pairs(province.warbands) do
 			warband.treasury = warband.treasury - warband.total_upkeep
@@ -168,9 +167,16 @@ function rea.run(realm)
 		end
 	end
 
-	-- target
-	realm.budget.military.target = military_upkeep * 12
+	-- spend and set target based on capitol guard
+	local military_upkeep = 0.0
+	if realm.capitol_guard then
+		military_upkeep = realm.capitol_guard:predict_upkeep()
+		local spendings = realm.budget.military.budget / 12
+		realm.capitol_guard.treasury = realm.capitol_guard.treasury + spendings
+		realm.budget.military.budget = realm.budget.military.budget - spendings
+	end
 
+	realm.budget.military.target = military_upkeep * 12
 	-- invest
 	local military_investment = budget.military.to_be_invested * 0.1
 	budget.military.to_be_invested = budget.military.to_be_invested - military_investment

@@ -1424,7 +1424,22 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 				state.sorting_order = true
 			end
 		end
+		if columns[index].active then
+			ui.panel(header_rect)
+		end
 		header_rect.height = state.header_height
+
+		if columns[index].active then
+			if ui.text_button("", header_rect) then
+				if state.sorted_field == index then
+					state.sorting_order = not state.sorting_order
+				else
+					state.sorted_field = index
+					state.sorting_order = true
+				end
+			end
+		end
+
 		ui.centered_text(columns[index].header, header_rect)
 		-- ui.right_text(tostring(columns[index].width), header_rect)
 	end

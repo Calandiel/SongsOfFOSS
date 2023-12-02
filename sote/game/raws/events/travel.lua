@@ -15,9 +15,29 @@ local function load()
 		on_trigger = function(self, root, associated_data)
 			---@type Province
 			associated_data = associated_data
-            
+
+            if root.dead then
+                return
+            end
+
             ge.travel(root, associated_data)
             WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
+		end,
+	}
+
+    Event:new {
+		name = "explore",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			---@type Province
+			associated_data = associated_data
+
+            if root.dead then
+                return
+            end
+
+            root.realm:explore(root.province)
+            root.busy = false
 		end,
 	}
 
@@ -45,7 +65,7 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
-        options = function(self, root, associated_data) 
+        options = function(self, root, associated_data)
             local options_list = {}
             local province = root.province
 
@@ -76,15 +96,16 @@ local function load()
                 end
                 local known_price = root.price_memory[name]
                 local bought_amount = math.max(
-                    1, 
+                    1,
                     (math.floor(
-                        root.savings * 0.25 
-                        / (known_price + 0.01) 
+                        root.savings * 0.25
+                        / (known_price + 0.01)
                         * math.random()
                     ))
                 )
 
-                if et.can_buy(root, name, bought_amount) then
+                local can_buy, _ = et.can_buy(root, name, bought_amount)
+                if can_buy then
                     ---@type EventOption
                     local option = {
                         text = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
@@ -123,7 +144,7 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
-        options = function(self, root, associated_data) 
+        options = function(self, root, associated_data)
             local options_list = {}
             local province = root.province
 
@@ -156,7 +177,9 @@ local function load()
                 local sold_amount = math.max(1, math.floor((root.inventory[name] or 0) * math.random() * 0.2))
                 local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
 
-                if et.can_sell(root, name, sold_amount) then
+                local can_sell, _ = et.can_sell(root, name, sold_amount)
+
+                if can_sell then
                     ---@type EventOption
                     local option = {
                         text = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,

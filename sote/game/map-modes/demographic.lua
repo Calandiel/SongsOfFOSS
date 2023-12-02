@@ -95,7 +95,7 @@ function dem.selected_technology()
 	else
 		print(tt.name)
 	end
-	
+
 	ut.clear_color()
 	if tt then
 		for _, tile in ipairs(WORLD.tiles) do
@@ -109,7 +109,7 @@ function dem.selected_technology()
 	end
 end
 
----@type TradeGood?
+---@type TradeGoodReference?
 HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = nil
 
 function dem.prices()
@@ -119,7 +119,7 @@ function dem.prices()
 			ut.set_default_color(tile)
 			if tile.is_land then
 				if tile.province.realm ~= nil then
-					local price = ev.get_local_price(tile.province, c.name)
+					local price = ev.get_local_price(tile.province, c)
 					ut.hue_from_value(tile, 1 - math.log(price, 2) / 10)
 				end
 			end

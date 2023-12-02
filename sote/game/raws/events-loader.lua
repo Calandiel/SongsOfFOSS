@@ -38,6 +38,9 @@ function ll.load()
 	print("diplomatic events")
 	require "game.raws.events.diplomacy"()
 
+	print("migration events")
+	require "game.raws.events.migration"()
+
 	print("health events")
 	require "game.raws.events.health"()
 
@@ -46,6 +49,9 @@ function ll.load()
 
 	print("travel events")
 	require "game.raws.events.travel"()
+
+	print("auxilary events")
+	require "game.raws.events.helpers"()
 end
 
 return ll

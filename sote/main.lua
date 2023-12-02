@@ -24,14 +24,23 @@ MONEY_SYMBOL = '§'
 PROFILE_FLAG = false
 ---@type table
 PROFILER = {}
-PROFILER.actions = {}
-PROFILER.events = {}
-PROFILER.province_update = {}
-PROFILER.world_tick = {}
+
+PROFILER.total_tick_time = 0.0
+PROFILER.total_deferred_events_time = 0.0
+PROFILER.total_deferred_actions_time = 0.0
+PROFILER.total_vegetation_growth_tick = 0
+PROFILER.total_pop_growth_tick = 0
+PROFILER.total_province_tick = 0
+PROFILER.total_realm_tick = 0
+PROFILER.total_decision_tick = 0
+PROFILER.total_decision_character_tick = 0
+
 
 --- this constant is used in vegetation growth
 --- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
 VEGETATION_GROWTH = 0.005
+
+DISPLAY_INCOME_OWNER_RATIO = 0
 
 local bs = require "engine.bitser"
 -- Extra classes

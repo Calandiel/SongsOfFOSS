@@ -1,7 +1,7 @@
 
 local tabb = require "engine.table"
 local ll = {}
-local MilitaryEffects = require "game.raws.effects.military"
+local military_effects = require "game.raws.effects.military"
 local utils = require "game.raws.raws-utils"
 local ef = require "game.raws.effects.economic"
 

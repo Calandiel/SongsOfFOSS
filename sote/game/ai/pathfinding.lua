@@ -18,11 +18,22 @@ local function get_min(tab)
 	return ret, cost
 end
 
+---@param province Province
+---@return number
+local function dummy_speed(province)
+	return 1
+end
+
 ---Pathfinds from origin province to target province, returns the travel time in hours and the path itself (can only pathfind from land to land or from sea to sea)
 ---@param origin Province
 ---@param target Province
+---@param speed_modifier nil|fun(province: Province): number Adjusts movement costs of provinces
 ---@return number,table<number,Province>|nil
-function pa.pathfind(origin, target)
+function pa.pathfind(origin, target, speed_modifier)
+
+	if speed_modifier == nil then
+		speed_modifier = dummy_speed
+	end
 
 
 	if origin.center.pathfinding_index ~= target.center.pathfinding_index then
@@ -62,7 +73,9 @@ function pa.pathfind(origin, target)
 		for _, n in pairs(prov.neighbors) do
 			if n.center.is_land == prov.center.is_land then
 				if visited[n] ~= true then
-					local alt = dist + 0.5 * (n.movement_cost + prov.movement_cost)
+					local speed_n = speed_modifier(n)
+					local speed_prov =  speed_modifier(prov)
+					local alt = dist + 0.5 * (n.movement_cost / speed_n + prov.movement_cost / speed_prov)
 					local old_distance = distance_cache[n] or math.huge
 
 					if alt < old_distance then
@@ -79,11 +92,11 @@ function pa.pathfind(origin, target)
 	-- Get the path
 	local path = {}
 	local u = target
-	local total_cost = target.movement_cost
+	local total_cost = target.movement_cost / speed_modifier(target)
 	while prev[u] do
 		path[#path + 1] = u
 		u = prev[u]
-		total_cost = total_cost + u.movement_cost
+		total_cost = total_cost + u.movement_cost / speed_modifier(u)
 	end
 	--total_cost = total_cost - 0.5 * (origin.movement_cost + target.movement_cost)
 
