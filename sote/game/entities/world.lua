@@ -18,7 +18,7 @@ local tabb = require "engine.table"
 ---@field player_character Character?
 ---@field player_province Province?
 ---@field sub_hourly_tick number
----@field current_tick_in_year number
+---@field current_tick_in_month number
 ---@field hour number
 ---@field day number
 ---@field month number
@@ -86,7 +86,7 @@ function world.World:new()
 	w.day = 0
 	w.month = 0
 	w.year = 0
-	w.current_tick_in_year = 0
+	w.current_tick_in_month = 0
 	w.pending_player_event_reaction = false
 	w.notification_queue = require "engine.queue":new()
 	w.events_queue = require "engine.queue":new()
@@ -351,11 +351,11 @@ function world.World:tick()
 	-- print('current events updated')
 
 	WORLD.sub_hourly_tick = WORLD.sub_hourly_tick + 1
-	WORLD.current_tick_in_year = WORLD.current_tick_in_year + 1
+	WORLD.current_tick_in_month = WORLD.current_tick_in_month + 1
 
-	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_year] ~= nil then
+	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month] ~= nil then
 		-- Monthly tick per realm
-		local ta = WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_year]
+		local ta = WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month]
 
 		local t = love.timer.getTime()
 
@@ -595,7 +595,7 @@ function world.World:tick()
 
 			if WORLD.day == 31 then
 				WORLD.day = 0
-				WORLD.current_tick_in_year = 0
+				WORLD.current_tick_in_month = 0
 				WORLD.month = WORLD.month + 1
 				-- monthly tick
 				--print("Monthly tick")
