@@ -46,7 +46,7 @@ local function render_unit(rect, unit, warband, possibility)
     local character = WORLD.player_character
     if character == nil then return end
 
-    local character_warband = character.leading_warband
+    local character_warband = character.recruiter_for_warband
 
     local target = warband.units_target[unit] or 0
     local current = warband.units_current[unit] or 0
@@ -105,10 +105,15 @@ function inspector.draw(gam)
         return
     end
 
-    local warband = character.leading_warband
+    local warband = character.recruiter_for_warband
 
     if warband == nil then
         return
+    end
+
+    local can_transfer_money = false
+    if character.leading_warband == warband then
+        can_transfer_money = true
     end
 
 
@@ -149,7 +154,7 @@ function inspector.draw(gam)
         :build()
 
     ut.money_entry('Warband\'s treasury', warband.treasury, layout:next(ut.BASE_HEIGHT * 12, treasury_panel.height))
-    
+
     local treasury = warband.treasury
     local upkeep = warband:predict_upkeep()
 
@@ -188,7 +193,8 @@ function inspector.draw(gam)
             .. " of wealth "
             .. preposition
             .. " warband's treasury."
-            .. " Press Ctrl or Shift to modify amount."
+            .. " Press Ctrl or Shift to modify amount.",
+            can_transfer_money
         ) then
             economic_effects.gift_to_warband(WORLD.player_character, amount)
         end

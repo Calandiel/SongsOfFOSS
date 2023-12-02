@@ -4,6 +4,8 @@
 ---@field name string
 ---@field treasury number
 ---@field leader Character?
+---@field recruiter Character?
+---@field commander Character?
 ---@field pops table<POP, POP> A set of pops
 ---@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
 ---@field units_current table<UnitType, number> Units currently in the warband
@@ -92,7 +94,7 @@ function warband:size()
     local tabb = require "engine.table"
 
 	local size = tabb.size(self.pops)
-	if self.leader ~= nil then
+	if self.commander ~= nil then
 		size = size + 1
 	end
     return size

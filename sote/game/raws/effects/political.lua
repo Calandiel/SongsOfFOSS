@@ -7,13 +7,16 @@ local PoliticalValues = require "game.raws.values.political"
 
 local TRAIT = require "game.raws.traits.generic"
 
+local military_effects = require "game.raws.effects.military"
+
 local PoliticalEffects = {}
 
 ---Removes realm from the game
 -- Does not handle logic of cleaning up characters and leaders
----@param realm any
+---@param realm Realm
 function PoliticalEffects.dissolve_realm(realm)
 	WORLD.realms[realm.realm_id] = nil
+	military_effects.dissolve_guard(realm)
 	realm:remove_province(realm.capitol)
 end
 
@@ -133,6 +136,36 @@ function PoliticalEffects.set_overseer(realm, overseer)
 
 	if WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification(overseer.name .. " is a new overseer of " .. realm.name .. ".")
+	end
+end
+
+
+---Sets character as a guard leader of the realm
+---@param realm Realm
+---@param guard_leader Character
+function PoliticalEffects.set_guard_leader(realm, guard_leader)
+	military_effects.set_recruiter(realm.capitol_guard, guard_leader)
+	realm.capitol_guard.commander = guard_leader
+
+	if WORLD:does_player_see_realm_news(realm) then
+		WORLD:emit_notification(guard_leader.name .. " now commands guards of " .. realm.name .. ".")
+	end
+end
+
+---Unsets character as a guard leader of the realm
+---@param realm Realm
+function PoliticalEffects.remove_guard_leader(realm)
+	local guard_leader = realm.capitol_guard.recruiter
+
+	if guard_leader == nil then
+		return
+	end
+
+	military_effects.unset_recruiter(realm.capitol_guard, guard_leader)
+	realm.capitol_guard.commander = nil
+
+	if guard_leader and WORLD:does_player_see_realm_news(realm) then
+		WORLD:emit_notification(guard_leader.name .. " no longer commands guards of " .. realm.name .. ".")
 	end
 end
 

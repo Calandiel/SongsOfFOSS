@@ -256,6 +256,105 @@ local function load()
 			PoliticalEffects.remove_tribute_collector(root.province.realm, primary_target)
 		end
 	}
+
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'establish-guard',
+		ui_name = "Establish guard",
+		tooltip = utils.constant_string("Establish guard - a group of warriors devoted to protection of your current capitol."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 1, -- very important decision
+		pretrigger = function(root)
+			if not ot.is_ruler(root) then
+				return false
+			end
+			if root.realm.capitol_guard ~= nil then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if root.realm.leader ~= root then
+				return false
+			end
+			if root.realm.capitol_guard ~= nil then
+				return false
+			end
+			return true
+		end,
+		available = function(root, primary_target)
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			return 1
+		end,
+		effect = function(root, primary_target, secondary_target)
+			MilitaryEffects.gather_guard(root.realm)
+		end
+	}
+
+	Decision.Character:new {
+		name = 'suggest-to-be-guard-leader',
+		ui_name = "Hire guard commander.",
+		tooltip = function(root, primary_target)
+			local base_string = "Suggest character to help you with defense of the realm."
+			if not ot.designates_offices(root, primary_target.province) then
+				base_string = base_string
+					.. "\n You are not allowed to designate offices."
+			end
+			if not ot.valid_guard_leader(primary_target, root.realm) then
+				base_string = base_string
+					.. "\n Target is not a valid candidate."
+			end
+			return base_string
+		end,
+		sorting = 1,
+		primary_target = 'character',
+		secondary_target = 'none',
+		base_probability = 1 , -- Once every year on average
+		pretrigger = function(root)
+			if not ot.designates_offices(root, root.realm.capitol) then return false end
+			return true
+		end,
+		available = function(root, primary_target)
+			if not ot.designates_offices(root, primary_target.province) then return false end
+			if not ot.valid_guard_leader(primary_target, root.realm)    then return false end
+			return true
+		end,
+		ai_target = function(root)
+			local province = root.realm.capitol
+			local character = tabb.random_select_from_set(province.characters)
+			if character then
+				if ot.valid_guard_leader(character, root.realm) then
+					return character, true
+				end
+			end
+			return nil, false
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if primary_target.traits[TRAIT.TRADER] then
+				return 0
+			end
+
+			return 0.25
+		end,
+		effect = function(root, primary_target, secondary_target)
+
+			if WORLD.player_character == root then
+				WORLD:emit_notification("I asked ".. primary_target.name .. " to assist me in defense of the realm.")
+			end
+			if WORLD.player_character == primary_target then
+				WORLD:emit_notification("I was asked to assist " .. root.name .. " with military tasks.")
+			end
+
+			WORLD:emit_immediate_event('request-help-guard-leader', primary_target, root)
+		end
+	}
 end
 
 return load

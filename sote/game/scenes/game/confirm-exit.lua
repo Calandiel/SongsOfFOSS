@@ -5,7 +5,7 @@ local uit = require "game.ui-utils"
 local window = {}
 ---@return Rect
 function window.rect()
-    return ui.fullscreen():subrect(0, 0, 200, uit.BASE_HEIGHT * 13, "center", "center")
+    return ui.fullscreen():subrect(0, 0, 200, uit.BASE_HEIGHT * 16, "center", "center")
 end
 
 function window.mask()

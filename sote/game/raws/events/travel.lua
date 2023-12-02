@@ -25,6 +25,22 @@ local function load()
 		end,
 	}
 
+    Event:new {
+		name = "explore",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			---@type Province
+			associated_data = associated_data
+
+            if root.dead then
+                return
+            end
+
+            root.realm:explore(root.province)
+            root.busy = false
+		end,
+	}
+
     Event_utils.notification_event(
         "travel-end-notification",
         function (self, root, data)

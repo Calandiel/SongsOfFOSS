@@ -3,6 +3,8 @@ local uit = require "game.ui-utils"
 
 local portait = require "game.scenes.game.widgets.portrait"
 
+local political_values = require "game.raws.values.political"
+
 
 ---comment
 ---@param rect Rect
@@ -30,13 +32,42 @@ local function info(rect, realm, gam)
             panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 4
         end
 
-        
+
         -- general info
         uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
         uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
         uit.data_entry("Race: ", realm.primary_race.name, panel_rect)
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
+        -- major offices:
+        ui.text("Overseer:", panel_rect, "left", "up")
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
+        local overseer = political_values.overseer(realm)
+        local overseer_name = "Vacant"
+        if overseer then
+            overseer_name = overseer.name
+        end
+        if uit.text_button(overseer_name, panel_rect, "", overseer ~= nil) then
+            gam.selected.character = overseer
+            gam.inspector = "character"
+        end
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
+        ui.text("Guard leader:", panel_rect, "left", "up")
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
+        local guard_leader = political_values.guard_leader(realm)
+        local guard_leader_name = "Vacant"
+        if guard_leader then
+            guard_leader_name = guard_leader.name
+        end
+        if uit.text_button(guard_leader_name, panel_rect, "", guard_leader ~= nil) then
+            gam.selected.character = guard_leader
+            gam.inspector = "character"
+        end
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
     end
 end

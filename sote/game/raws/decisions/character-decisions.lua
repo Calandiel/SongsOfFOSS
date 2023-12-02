@@ -9,6 +9,7 @@ local ranks = require "game.raws.ranks.character_ranks"
 
 local pe = require "game.raws.effects.political"
 
+local office_triggers = require "game.raws.triggers.offices"
 
 local function load()
 
@@ -107,6 +108,7 @@ local function load()
 			if root.busy then return false end
 			if root.province.realm ~= root.realm then return false end
 			if root.leading_warband then return false end
+			if root.recruiter_for_warband then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -221,23 +223,13 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.9 , -- Almost every month
 		pretrigger = function(root)
-			if root.busy then return false end
-			if root.leading_warband == nil then return false end
-			if root.leading_warband.status ~= 'idle' then return false end
-			return true
-		end,
-		clickable = function(root, primary_target)
-			return true
-		end,
-		available = function(root, primary_target)
-			return true
-		end,
-		ai_secondary_target = function(root, primary_target)
-			return nil, true
+			return office_triggers.valid_patrol_participant(root, root.province)
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			---@type Character
-			root = root
+			if office_triggers.guard_leader(root, root.province.realm) then
+				return 1
+			end
+
 			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then
 				return 0
 			end
@@ -252,6 +244,9 @@ local function load()
 			local realm = root.province.realm
 			local province = root.province
 			local warband = root.leading_warband
+			if office_triggers.guard_leader(root, root.province.realm) then
+				warband = realm.capitol_guard
+			end
 			realm:add_patrol(province, warband)
 		end
 	}

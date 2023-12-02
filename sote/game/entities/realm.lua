@@ -85,11 +85,11 @@ end
 ---@field reward_flags table<RewardFlag, RewardFlag>
 ---@field raiders_preparing table<RewardFlag, table<Warband, Warband>?>
 ---@field patrols table<Province, table<Warband, Warband>>
+---@field capitol_guard Warband?
 ---@field prepare_attack_flag boolean?
 ---@field add_province fun(self:Realm, province:Province)
 ---@field new fun(self:Realm):Realm
 ---@field known_provinces table<Province, Province> For terra incognita.
----@field explore fun(self:Realm, province:Province)
 ---@field get_explore_cost fun(self:Realm, province:Province): number
 ---@field coa_base_r number
 ---@field coa_base_g number
@@ -119,7 +119,6 @@ end
 ---@field get_realm_militarization fun(self:Realm):number
 ---@field raise_army fun(self:Realm, warbands: table<Warband, Warband>): Army
 ---@field raise_warband fun(self: Realm, warband: Warband)
----@field raise_local_army fun(self: Realm, province: Province): Army
 ---@field disband_army fun(self:Realm, army:Army): table<Warband, Warband>
 ---@field get_speechcraft_efficiency fun(self:Realm):number
 ---@field get_province_pop_weights fun(self:Realm):table<Province, number> Returns a table mapping provinces to numbers that add up to 1 and which represent the 'weight' of a province based on its population. Useful for pop weighted selections of provinces
@@ -207,6 +206,7 @@ function realm.Realm:new()
 	o.armies = {}
 	o.raiders_preparing = {}
 	o.patrols = {}
+
 	-- print("bb")
 	if love.math.random() < 0.6 then
 		o.coa_emblem_image = love.math.random(#ASSETS.emblems)
@@ -237,7 +237,9 @@ end
 ---@param prov Province
 function realm.Realm:remove_province(prov)
 	self.provinces[prov] = nil
-	prov.realm = nil
+	if prov.realm == self then
+		prov.realm = nil
+	end
 end
 
 ---Adds a province to the realm's raiding targets.

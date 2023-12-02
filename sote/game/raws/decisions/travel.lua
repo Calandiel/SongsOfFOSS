@@ -142,6 +142,42 @@ local function load()
 			WORLD:emit_action("travel", root, root.realm.capitol, travel_time, true)
 		end
 	}
+
+	Decision.Character:new {
+		name = 'explore-province',
+		ui_name = "Explore local province",
+		tooltip = function(root, primary_target)
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Explore province"
+		end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.8, -- Almost every month
+		pretrigger = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		clickable = function(root)
+			return true
+		end,
+		available = function(root)
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1 / 36 -- explore sometimes
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			root.busy = true
+			-- TODO: action for now, replace with proper event chain later
+			WORLD:emit_immediate_action("explore", root, root)
+		end
+	}
 end
 
 

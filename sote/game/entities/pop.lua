@@ -18,6 +18,7 @@
 ---@field inventory table <TradeGoodReference, number?>
 ---@field price_memory table<TradeGoodReference, number?>
 ---@field leading_warband Warband?
+---@field recruiter_for_warband Warband?
 ---@field busy boolean
 ---@field job Job?
 ---@field dead boolean

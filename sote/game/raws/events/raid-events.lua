@@ -154,7 +154,7 @@ local function load()
 					outcome = function()
                         local realm = character.realm
 
-						local army = me.gather_loyal_army(character)
+						local army = me.gather_loyal_army_attack(character)
 						if army == nil then
 							if character == WORLD.player_character then
 								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
@@ -510,8 +510,10 @@ local function load()
 			-- popularity to raid participants
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
-				pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
-				num_of_warbands = num_of_warbands + 1
+				if w.leader then
+					pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
+					num_of_warbands = num_of_warbands + 1
+				end
 			end
 
 			-- initiator gets 2 "coins" for each invested "coin"
@@ -531,7 +533,9 @@ local function load()
 			-- pay rewards to warband leaders
 			target.reward = target.reward - initiator_share / 2
 			for _, w in pairs(warbands) do
-				ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
+				if w.leader then
+					ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
+				end
 			end
 			loot = loot - initiator_share / 2
 

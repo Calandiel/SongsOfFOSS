@@ -9,6 +9,8 @@ local ee = require "game.raws.effects.economic"
 local me = require "game.raws.effects.military"
 local ie = require "game.raws.effects.interpersonal"
 
+local offices_triggers = require "game.raws.triggers.offices"
+
 local function load()
 
     Event:new {
@@ -95,6 +97,11 @@ local function load()
                 WORLD:emit_event("succession-overseer-death-notification", leader, character)
             end
 
+            if offices_triggers.guard_leader(character, realm) then
+                pe.remove_guard_leader(realm)
+                WORLD:emit_event("succession-guard-leader-death-notification", leader, character)
+            end
+
             -- succession of realm tribute collector
             if realm.tribute_collectors[character] then
                 pe.remove_tribute_collector(realm, character)
@@ -164,6 +171,23 @@ local function load()
             ---@type Character
             associated_data = associated_data
             return "My overseer " .. associated_data.name .. " had died. "
+		end,
+        function (root, associated_data)
+            return "I see..."
+        end,
+        function (root, associated_data)
+            ---@type Character
+            associated_data = associated_data
+            return "I acknowledge the death of " .. associated_data.name .. "."
+        end
+    )
+
+    E_ut.notification_event(
+        "succession-guard-leader-death-notification",
+        function(self, character, associated_data)
+            ---@type Character
+            associated_data = associated_data
+            return "My guard leader " .. associated_data.name .. " had died. "
 		end,
         function (root, associated_data)
             return "I see..."

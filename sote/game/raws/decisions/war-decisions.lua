@@ -26,7 +26,7 @@ local function load()
 					end
 				end
 
-				local warband = root.leading_warband
+				local warband = root.recruiter_for_warband
 				if warband == nil then
 					return false
 				end
@@ -52,7 +52,7 @@ local function load()
 				return nil, true
 			end,
 			ai_will_do = function(root, primary_target, secondary_target)
-				local warband = root.leading_warband
+				local warband = root.recruiter_for_warband
 				if warband == nil then
 					return 0
 				end
@@ -66,7 +66,7 @@ local function load()
 				return root.culture.traditional_units[unit.name]
 			end,
 			effect = function(root, primary_target, secondary_target)
-				local warband = root.leading_warband
+				local warband = root.recruiter_for_warband
 				if warband == nil then
 					return
 				end
@@ -91,7 +91,7 @@ local function load()
 					end
 				end
 
-				local warband = root.leading_warband
+				local warband = root.recruiter_for_warband
 				if warband == nil then
 					return false
 				end
@@ -117,7 +117,7 @@ local function load()
 				return nil, true
 			end,
 			ai_will_do = function(root, primary_target, secondary_target)
-				local warband = root.leading_warband
+				local warband = root.recruiter_for_warband
 				if warband == nil then
 					return 0
 				end
@@ -131,7 +131,7 @@ local function load()
 				return 1 / (root.culture.traditional_units[unit.name] +  0.01)
 			end,
 			effect = function(root, primary_target, secondary_target)
-				local warband = root.leading_warband
+				local warband = root.recruiter_for_warband
 				if warband == nil then
 					return
 				end

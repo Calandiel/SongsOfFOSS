@@ -7,6 +7,22 @@ local economy_effects = require "game.raws.effects.economic"
 
 local MilitaryEffects = {}
 
+---Sets character as a recruiter of warband
+---@param character Character
+---@param warband Warband
+function MilitaryEffects.set_recruiter(warband, character)
+    character.recruiter_for_warband = warband
+    warband.recruiter = character
+end
+
+---Sets character as a recruiter of warband
+---@param character Character
+---@param warband Warband
+function MilitaryEffects.unset_recruiter(warband, character)
+    character.recruiter_for_warband = nil
+    warband.recruiter = nil
+end
+
 ---Gathers new warband in the name of *leader*
 ---@param leader Character
 function MilitaryEffects.gather_warband(leader)
@@ -19,8 +35,62 @@ function MilitaryEffects.gather_warband(leader)
     warband.leader = leader
     leader.leading_warband = warband
 
+    warband.commander = leader
+
+    MilitaryEffects.set_recruiter(warband, leader)
+
     if WORLD:does_player_see_realm_news(leader.province.realm) then
         WORLD:emit_notification(leader.name .. " is gathering his own warband.")
+    end
+end
+
+---Gathers new warband to guard the realm
+---@param realm Realm
+function MilitaryEffects.gather_guard(realm)
+    local province = realm.capitol
+    local warband = province:new_warband()
+    warband.name = "Guard of " .. realm.name
+
+    realm.capitol_guard = warband
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification("Guard was organised.")
+    end
+end
+
+---Dissolve realm's guard
+---@param realm Realm
+function MilitaryEffects.dissolve_guard(realm)
+    local warband = realm.capitol_guard
+    local province = realm.capitol
+
+    if warband == nil then
+        return
+    end
+
+    realm.budget.treasury = realm.budget.treasury + warband.treasury
+    warband.treasury = 0
+
+    if warband.recruiter then
+        MilitaryEffects.unset_recruiter(warband, warband.recruiter)
+    end
+
+    warband.recruiter = nil
+    warband.commander = nil
+
+    ---@type POP[]
+    local to_unregister = {}
+    for _, pop in pairs(warband.pops) do
+        table.insert(to_unregister, pop)
+    end
+
+    for _, pop in pairs(to_unregister) do
+        province:unregister_military_pop(pop)
+    end
+    province.warbands[warband] = nil
+
+    if WORLD:does_player_see_realm_news(realm) then
+        WORLD:emit_notification("Realm's guard was dissolved.")
     end
 end
 
@@ -35,6 +105,12 @@ function MilitaryEffects.dissolve_warband(leader)
 
     economy_effects.gift_to_warband(leader, -warband.treasury)
     leader.leading_warband = nil
+
+    warband.leader = nil
+    warband.commander = nil
+    if warband.recruiter then
+        MilitaryEffects.unset_recruiter(warband, warband.recruiter)
+    end
 
     ---@type POP[]
     local to_unregister = {}
@@ -199,19 +275,27 @@ end
 ---comment
 ---@param character Character
 ---@return Army?
-function MilitaryEffects.gather_loyal_army(character)
+function MilitaryEffects.gather_loyal_army_attack(character)
     local province = character.province
     if province == nil then return nil end
 
     ---@type table<Warband, Warband>
     local idle_loyal_warbands = {}
     for _, warband in pairs(province.warbands) do
-        if warband.status == "idle" and (warband.leader == character) or (warband.leader.loyalty == character) then
+        local leader = warband.leader
+        if
+            warband.status == "idle"
+            and (
+                (warband.leader == character)
+                or (leader and leader.loyalty == character)
+            )
+        then
             idle_loyal_warbands[warband] = warband
         end
     end
 
     return province.realm:raise_army(idle_loyal_warbands)
 end
+
 
 return MilitaryEffects

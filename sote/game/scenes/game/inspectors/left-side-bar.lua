@@ -1,6 +1,8 @@
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local office_triggers = require "game.raws.triggers.offices"
+
 local inspector = {}
 
 local function get_main_panel()
@@ -80,8 +82,9 @@ function inspector.draw(gam)
         end,
         ["warband"] = function ()
             if WORLD.player_character == nil then return false end
-            if WORLD.player_character.leading_warband == nil then return false end
-            return true
+            if WORLD.player_character.leading_warband then return true end
+            if office_triggers.guard_leader(WORLD.player_character, WORLD.player_character.realm) then return true end
+            return false
         end,
         ["property"] = function ()
             if WORLD.player_character == nil then return false end

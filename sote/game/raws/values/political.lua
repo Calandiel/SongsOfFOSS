@@ -28,6 +28,13 @@ function PoliticalValues.overseer(realm)
     return nil
 end
 
+---comment
+---@param realm Realm
+function PoliticalValues.guard_leader(realm)
+    if realm.capitol_guard == nil then return nil end
+    return realm.capitol_guard.commander
+end
+
 ---calculates amount of warlods loyal to character and their total army size
 ---@param character Character
 ---@return number, number

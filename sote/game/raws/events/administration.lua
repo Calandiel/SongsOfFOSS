@@ -189,6 +189,94 @@ local function load()
 			return ""
 		end
 	)
+
+
+	Event:new {
+		name = "request-help-guard-leader",
+		event_text = function(self, character, associated_data)
+			---@type Character
+			associated_data = associated_data
+
+			local name = associated_data.name
+			local temp = 'his'
+			if associated_data.female then
+				temp = 'her'
+			end
+			return name .. " requested my participation in " .. temp .. " guard. My task would be patrolling of our lands and protection them from intruders. What should I do?"
+		end,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = function(self, character)
+			return false
+		end,
+		options = function(self, character, associated_data)
+			---@type Character
+			associated_data = associated_data
+
+			return {
+				{
+					text = "Accept",
+					tooltip = "Accept the request",
+					viable = function() return true end,
+					outcome = function()
+						political_effects.set_guard_leader(associated_data.province.realm, character)
+						WORLD:emit_immediate_event("request-help-guard-leader-success-notification", associated_data, character)
+					end,
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
+						ambition = true,
+						help = true,
+						work = true
+					})
+				},
+				{
+					text = "Refuse",
+					tooltip = "Refuse the request",
+					viable = function() return true end,
+					outcome = function()
+						if associated_data == WORLD.player_character then
+							WORLD:emit_notification(character.name .. " refused to assist me.")
+						end
+						if character == WORLD.player_character then
+							WORLD:emit_notification("I refused to assist " .. associated_data.name)
+						end
+						WORLD:emit_immediate_event("request-help-guard-leader-failure-notification", associated_data, character)
+					end,
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {})
+				}
+			}
+		end
+	}
+
+	E_ut.notification_event(
+		"request-help-guard-leader-success-notification",
+		function(self, character, associated_data)
+			---@type Character
+			local associated_data = associated_data
+			return associated_data.name .. " agreed to assist me and became a leader of our guards."
+		end,
+		function (root, associated_data)
+			return "Good!"
+		end,
+		function (root, associated_data)
+			return ""
+		end
+	)
+
+	E_ut.notification_event(
+		"request-help-guard-leader-failure-notification",
+		function(self, character, associated_data)
+			---@type Character
+			local associated_data = associated_data
+			return associated_data.name .. " refused to assist me."
+		end,
+		function (root, associated_data)
+			return "Good!"
+		end,
+		function (root, associated_data)
+			return ""
+		end
+	)
 end
 
 return load

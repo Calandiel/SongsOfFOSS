@@ -443,11 +443,18 @@ function world.World:tick()
 
 				-- "Realm" pre-update
 				local realm_economic_update = require "game.economy.realm-economic-update"
+				---@type Province[]
+				local to_remove = {}
 				for _, settled_province in pairs(ta) do
-					if settled_province.realm.capitol == settled_province then
+					if settled_province.realm == nil then
+						table.insert(to_remove, settled_province)
+					elseif settled_province.realm.capitol == settled_province then
 						--print("Econ prerun")
 						realm_economic_update.prerun(settled_province.realm)
 					end
+				end
+				for _, province in pairs(to_remove) do
+					ta[province] = nil
 				end
 
 				t = love.timer.getTime()

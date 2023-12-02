@@ -15,6 +15,7 @@ local pv = require "game.raws.values.political"
 local de = require "game.raws.effects.diplomacy"
 local economic_effects = require "game.raws.effects.economic"
 local military_effects = require "game.raws.effects.military"
+local political_effects = require "game.raws.effects.political"
 
 local messages = require "game.raws.effects.messages"
 
@@ -142,21 +143,22 @@ function load()
 
 			---@type Realm
 			local origin_realm = associated_data.origin_province.realm
+			origin_realm.capitol = associated_data.target_province
 
 			if target_realm then
 				-- merge all local characters to this realm
 				if associated_data.invasion then
-					-- if it was an invasion, move turn local nobles into nobles of invading realm
+					-- if it was an invasion, turn local nobles into nobles of invading realm
 					for _, character in pairs(associated_data.target_province.home_to) do
-						character.realm = origin_realm
-						character.rank = character_ranks.NOBLE
+						if character.realm == target_realm then
+							character.realm = origin_realm
+							character.rank = character_ranks.NOBLE
+						end
 					end
 
 					-- destroy invaded realm
-					WORLD.realms[target_realm.realm_id] = nil
-					target_realm:remove_province(associated_data.target_province)
+					political_effects.dissolve_realm(target_realm)
 					origin_realm:add_province(associated_data.target_province)
-					origin_realm.capitol = associated_data.target_province
 				else
 					for _, character in pairs(migration_pool_characters_locals) do
 						character.realm = target_realm
@@ -164,21 +166,20 @@ function load()
 					end
 
 					-- destroy merged realm
-					WORLD.realms[origin_realm.realm_id] = nil
+					political_effects.dissolve_realm(origin_realm)
 				end
 
 				-- remove old province from the realm
 				origin_realm:remove_province(associated_data.origin_province)
-				WORLD:unset_settled_province(associated_data.origin_province)
 			else
 				-- replace old province with new one
 				origin_realm:add_province(associated_data.target_province)
-				origin_realm.capitol = associated_data.target_province
 				origin_realm:remove_province(associated_data.origin_province)
 
 				WORLD:set_settled_province(associated_data.target_province)
-				WORLD:unset_settled_province(associated_data.origin_province)
 			end
+
+			WORLD:unset_settled_province(associated_data.origin_province)
 
 			if associated_data.target_province.name == "<uninhabited>" then
 				associated_data.target_province.name = origin_realm.leader.culture.language:get_random_culture_name()
@@ -553,7 +554,7 @@ function load()
 					outcome = function()
 						local realm = character.realm
 
-						local army = military_effects.gather_loyal_army(character)
+						local army = military_effects.gather_loyal_army_attack(character)
 						if army == nil then
 							if character == WORLD.player_character then
 								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
