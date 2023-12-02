@@ -48,6 +48,7 @@ function pro.run(province)
 		tabb.clear(value.spent_on_inputs)
 		value.last_donation_to_owner = 0
 		value.last_income = 0
+		value.subsidy_last = 0
 	end
 
 	---Records local consumption!
