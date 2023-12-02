@@ -595,11 +595,11 @@ function world.World:tick()
 
 			if WORLD.day == 31 then
 				WORLD.day = 0
+				WORLD.current_tick_in_year = 0
 				WORLD.month = WORLD.month + 1
 				-- monthly tick
 				--print("Monthly tick")
 				if WORLD.month == 12 then
-					WORLD.current_tick_in_year = 0
 					WORLD.month = 0
 					WORLD.year = WORLD.year + 1
 					-- yearly tick
