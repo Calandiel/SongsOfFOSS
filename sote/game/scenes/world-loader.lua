@@ -44,7 +44,7 @@ function wl.draw()
 			wl.coroutine = coroutine.create(wl.load_save)
 		end
 	end
-	coroutine.resume(wl.coroutine)
+	local output = {coroutine.resume(wl.coroutine)}
 
 	ui.text_panel(wl.message, ui.fullscreen():subrect(
 		0, 0, 300, 60, "center", "down"
@@ -55,6 +55,7 @@ function wl.draw()
 
 	if coroutine.status(wl.coroutine) == "dead" then
 		-- Well, if the coroutine is dead it means that loading finished...
+		print(output[2])
 		print(debug.traceback(wl.coroutine))
 		if loader_error ~= nil then
 			error(loader_error)
@@ -489,7 +490,7 @@ function wl.load_save()
 	loader_error = "World file: " .. tostring(DEFINES.world_to_load) .. " does not exist!"
 
 	require "game.scenes.bitser-world-loading"()
-	
+
 	if WORLD == nil then
 		return nil
 	else

@@ -44,7 +44,9 @@ local prov = {}
 ---@field research fun(self:Province, technology:Technology)
 ---@field local_production table<TradeGoodReference, number>
 ---@field local_consumption table<TradeGoodReference, number>
+---@field local_demand table<TradeGoodReference, number>
 ---@field local_storage table<TradeGoodReference, number>
+---@field local_prices table<TradeGoodReference, number|nil>
 ---@field local_wealth number
 ---@field trade_wealth number
 ---@field local_income number
@@ -125,7 +127,9 @@ function prov.Province:new(fake_flag)
 	o.local_resources_location = {}
 	o.local_production = {}
 	o.local_consumption = {}
+	o.local_demand = {}
 	o.local_storage = {}
+	o.local_prices = {}
 	o.local_wealth = 0
 	o.trade_wealth = 0
 	o.local_income = 0

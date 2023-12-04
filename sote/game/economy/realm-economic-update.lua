@@ -2,6 +2,9 @@ local tabb = require "engine.table"
 local good = require "game.raws.raws-utils".trade_good
 local rea = {}
 
+local economic_effects = require "game.raws.effects.economic"
+local economic_values = require "game.raws.values.economical"
+
 
 ---@param realm Realm
 function rea.prerun(realm)
@@ -33,20 +36,13 @@ function rea.run(realm)
 
 			local resource = good(prod)
 			if resource.category == 'good' then
-				province.local_storage[prod] = province.local_storage[prod] or 0
-				province.local_storage[prod] = province.local_storage[prod] + amount * (1 - PROVINCE_TO_REALM_STOCKPILE)
+				economic_effects.change_local_stockpile(province, prod, amount)
+
+				local to_realm_stockpile = amount * PROVINCE_TO_REALM_STOCKPILE
+				economic_effects.change_local_stockpile(province, prod, -to_realm_stockpile)
 
 				province.realm.resources[prod] = province.realm.resources[prod] or 0
-				province.realm.resources[prod] = province.realm.resources[prod] + amount * PROVINCE_TO_REALM_STOCKPILE
-
-
-				local sharing = province.local_storage[prod] * NEIGHBOURS_GOODS_SHARING
-				local random_neigbour = tabb.random_select_from_set(province.neighbors)
-
-				if random_neigbour.realm then
-					province.local_storage[prod] = province.local_storage[prod] - sharing
-					random_neigbour.local_storage[prod] = (random_neigbour.local_storage[prod] or 0) + sharing
-				end
+				province.realm.resources[prod] = province.realm.resources[prod] + to_realm_stockpile
 			end
 		end
 		for prod, amount in pairs(province.local_consumption) do
@@ -60,8 +56,7 @@ function rea.run(realm)
 
 			local resource = good(prod)
 			if resource.category == 'good' then
-				province.local_storage[prod] = province.local_storage[prod] or 0
-				province.local_storage[prod] = province.local_storage[prod] - amount
+				economic_effects.change_local_stockpile(province, prod, -amount)
 			end
 		end
 	end
@@ -81,13 +76,90 @@ function rea.run(realm)
 		for resource_reference, amount in pairs(province.local_storage) do
 			local resource = good(resource_reference)
 			if resource.category == 'good' then
+
+				-- share some goods with neigbours
+				-- actual goal is to smooth out economy in space a bit
+				-- until addition of properly working "trade routes"
+				local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
+				for _, neigbour in pairs(province.neighbors) do
+					if neigbour.realm then
+						economic_effects.change_local_stockpile(province, resource_reference, -sharing)
+						economic_effects.change_local_stockpile(neigbour, resource_reference, sharing)
+
+						-- diffuse prices a bit
+						-- needed to encorage production
+						local middle = 0.5 * (
+							economic_values.get_local_price(province, resource_reference)
+							+ economic_values.get_local_price(neigbour, resource_reference)
+						)
+
+						province.local_prices[resource_reference] =
+							(1 - PRICE_DIFFUSION) * province.local_prices[resource_reference]
+							+ PRICE_DIFFUSION * middle
+					end
+				end
+
+
 				local old = amount or 0
 				local siphon = (realm.resources[resource_reference] or 0)
 				                * REALM_TO_PROVINCE_STOCKPILE
 								/ amount_of_provinces
 
-				province.local_storage[resource_reference] = math.max(0, old + siphon) * 0.99
+				economic_effects.change_local_stockpile(province, resource_reference, siphon)
+				economic_effects.decay_local_stockpile(province, resource_reference)
+
 				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
+				realm.resources[resource_reference] = realm.resources[resource_reference] * 0.9
+			end
+		end
+	end
+
+	-- price updates
+	for _, province in pairs(realm.provinces) do
+		for good_reference, trade_good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+			local current_price = economic_values.get_local_price(province, good_reference)
+			local supply = province.local_production[good_reference] or 0
+			local demand = province.local_demand[good_reference] or 0
+			local stockpile = province.local_storage[good_reference] or 0
+			local trade_volume = math.sqrt(demand + supply)
+
+			if trade_volume > 0.1 then
+				local price_change = (demand - supply) / trade_volume * PRICE_SIGNAL_PER_UNIT
+				price_change = price_change - stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
+				local base_price_growth = math.max(0, 1 / (current_price + 1) - 0.5) * trade_good.base_price / trade_volume * PRICE_SIGNAL_PER_UNIT
+
+				-- if WORLD.player_character  then
+				-- 	if WORLD.player_character.province == province then
+				-- 		print(good_reference)
+				-- 		print("current_price " .. current_price)
+				-- 		print('sqrt_trade_volume: ' .. tostring(trade_volume))
+				-- 		print("total price_change: " .. tostring(price_change + base_price_growth))
+				-- 		print("demand supply price_change: " .. tostring((demand - supply) / trade_volume * PRICE_SIGNAL_PER_UNIT))
+				-- 		print("base price growth " .. tostring(base_price_growth))
+				-- 	end
+				-- end
+
+				if price_change + base_price_growth ~= price_change + base_price_growth then
+					error(
+						"ERROR!"
+						.. "\n price_change = "
+						.. tostring(price_change)
+						.. "\n base_price_growth = "
+						.. tostring(base_price_growth)
+						.. "\n current_price = "
+						.. tostring(current_price)
+						.. "\n supply = "
+						.. tostring(supply)
+						.. "\n demand = "
+						.. tostring(demand)
+						.. "\n stockpile = "
+						.. tostring(stockpile)
+						.. "\n trade_volume = "
+						.. tostring(trade_volume)
+					)
+				end
+
+				EconomicEffects.change_local_price(province, good_reference, price_change + base_price_growth)
 			end
 		end
 	end
@@ -101,8 +173,8 @@ function rea.run(realm)
 	local treasury_siphon = budget.treasury_target - budget.treasury
 	-- if it's negative, then we have excess money in treasury! can invest into montly budget
 	if treasury_siphon < 0 then
-		EconomicEffects.register_income(realm, -treasury_siphon, EconomicEffects.reasons.Treasury)
-		EconomicEffects.change_treasury(realm, treasury_siphon, EconomicEffects.reasons.Budget)
+		economic_effects.register_income(realm, -treasury_siphon, economic_effects.reasons.Treasury)
+		economic_effects.change_treasury(realm, treasury_siphon, economic_effects.reasons.Budget)
 	end
 	treasury_siphon = 0
 	-- otherwise, we have to siphon wealth from our monthly income
@@ -133,7 +205,7 @@ function rea.run(realm)
 
 	-- send/siphon the rest to/from treasury
 	local treasury_investment = last_change * treasury_ratio
-	EconomicEffects.change_treasury(realm, treasury_investment, EconomicEffects.reasons.MonthlyChange)
+	economic_effects.change_treasury(realm, treasury_investment, economic_effects.reasons.MonthlyChange)
 
 
 	-- Handle infrastructure investments
@@ -162,8 +234,14 @@ function rea.run(realm)
 	-- #######################
 	for _, province in pairs(realm.provinces) do
 		for _, warband in pairs(province.warbands) do
-			warband.treasury = warband.treasury - warband.total_upkeep
-			province.local_wealth = province.local_wealth + warband.total_upkeep * 0.8
+			if warband.treasury > warband.total_upkeep then
+				warband.treasury = warband.treasury - warband.total_upkeep
+				for pop, unit in pairs(warband.units) do
+					economic_effects.add_pop_savings(pop, unit.upkeep, economic_effects.reasons.Upkeep)
+				end
+			else
+
+			end
 		end
 	end
 
@@ -195,7 +273,7 @@ function rea.run(realm)
 
 	-- "wealth decay" -- to prevent the AI from accidentally overstockpiling so much that the numbers overflow...
 	local treasure_waste = realm.budget.treasury * 0.001
-	EconomicEffects.register_spendings(realm, treasure_waste, EconomicEffects.reasons.Waste)
+	economic_effects.register_spendings(realm, treasure_waste, economic_effects.reasons.Waste)
 
 	realm.budget.saved_change = realm.budget.change
 	realm.budget.change = 0

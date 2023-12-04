@@ -165,7 +165,7 @@ local function load()
 
             for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
 
-                local price = ev.get_pessimistic_local_price(province, name, 1)
+                local price = ev.get_pessimistic_local_price(province, name, 1, true)
                 if root.price_memory[name] == nil then
                     root.price_memory[name] = price
                 else

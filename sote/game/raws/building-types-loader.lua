@@ -1,5 +1,10 @@
 local d = {}
 
+local COST_WORKSHOP = 100
+local COST_AREA = 40
+local COST_MINE = 80
+local COST_FARM = 60
+
 function d.load()
 	local BuildingType = require "game.raws.building-types"
 	local prod = require "game.raws.raws-utils".production_method
@@ -24,6 +29,19 @@ function d.load()
 		ai_weight = 2,
 	}
 	BuildingType:new {
+		name = "witch-doctor-garden",
+		description = "witch-doctor's garden",
+		icon = "hut.png",
+		r = 0,
+		g = 1,
+		b = 1,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('witch-doctor'),
+		construction_cost = COST_WORKSHOP,
+		needed_infrastructure = 1,
+		ai_weight = 1
+	}
+	BuildingType:new {
 		name = "water-carrier",
 		description = "water carrier",
 		icon = 'droplets.png',
@@ -32,7 +50,7 @@ function d.load()
 		b = 1,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('water-carrier'),
-		construction_cost = 10,
+		construction_cost = 20,
 		upkeep = 0.01,
 		needed_infrastructure = 1,
 		ai_weight = 0.05,
@@ -46,7 +64,7 @@ function d.load()
 		b = 0.3,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('hunting'),
-		construction_cost = 20,
+		construction_cost = COST_AREA,
 		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
@@ -60,7 +78,7 @@ function d.load()
 		b = 0.3,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('gathering'),
-		construction_cost = 20,
+		construction_cost = COST_AREA,
 		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
@@ -75,7 +93,7 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('flint-extraction'),
 		required_resource = { res('flint') },
-		construction_cost = 5,
+		construction_cost = 15,
 		unique = true,
 		needed_infrastructure = 1,
 		ai_weight = 20,
@@ -90,7 +108,7 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('flint-knapping'),
 		required_resource = {},
-		construction_cost = 25,
+		construction_cost = COST_WORKSHOP,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
@@ -103,7 +121,7 @@ function d.load()
 		b = 0.86,
 		unlocked_by = tec('basic-fermentation'),
 		production_method = prod('brewing'),
-		construction_cost = 500,
+		construction_cost = COST_WORKSHOP,
 		needed_infrastructure = 15,
 		ai_weight = 3.5
 	}
@@ -119,7 +137,7 @@ function d.load()
 		required_resource = { res('copper') },
 		unique = true,
 		needed_infrastructure = 30,
-		construction_cost = 500,
+		construction_cost = COST_MINE,
 		ai_weight = 10
 	}
 	BuildingType:new {
@@ -137,7 +155,7 @@ function d.load()
 		needed_infrastructure = 10,
 		ai_weight = 50,
 		spotting = 500,
-		construction_cost = 250,
+		construction_cost = 150,
 		upkeep = 0.15,
 	}
 	BuildingType:new {
@@ -152,7 +170,7 @@ function d.load()
 		tile_improvement = true,
 		needed_infrastructure = 3.5,
 		ai_weight = 50,
-		construction_cost = 75,
+		construction_cost = COST_MINE,
 	}
 	BuildingType:new {
 		name = 'potterer',
@@ -165,7 +183,7 @@ function d.load()
 		production_method = prod('pottery'),
 		needed_infrastructure = 10,
 		ai_weight = 70,
-		construction_cost = 300,
+		construction_cost = COST_WORKSHOP,
 	}
 	BuildingType:new {
 		name = 'woodcutters',
@@ -179,7 +197,7 @@ function d.load()
 		tile_improvement = true,
 		needed_infrastructure = 5,
 		ai_weight = 20,
-		construction_cost = 150,
+		construction_cost = COST_AREA,
 	}
 	BuildingType:new {
 		name = 'furniture-crafters',
@@ -192,7 +210,7 @@ function d.load()
 		production_method = prod('furniture'),
 		needed_infrastructure = 25,
 		ai_weight = 50,
-		construction_cost = 500,
+		construction_cost = COST_WORKSHOP,
 	}
 	BuildingType:new {
 		name = 'tanners',
@@ -205,7 +223,7 @@ function d.load()
 		production_method = prod('tanning'),
 		needed_infrastructure = 25,
 		ai_weight = 35,
-		construction_cost = 350,
+		construction_cost = COST_WORKSHOP,
 	}
 	BuildingType:new {
 		name = 'leather-workers',
@@ -218,7 +236,7 @@ function d.load()
 		production_method = prod('leather-clothing'),
 		needed_infrastructure = 25,
 		ai_weight = 50,
-		construction_cost = 500,
+		construction_cost = COST_WORKSHOP,
 	}
 	BuildingType:new {
 		name = 'rye-farm',
@@ -233,7 +251,7 @@ function d.load()
 		tile_improvement = true,
 		needed_infrastructure = 2.5,
 		ai_weight = 50,
-		construction_cost = 100,
+		construction_cost = COST_FARM,
 	}
 end
 
