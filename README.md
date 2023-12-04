@@ -9,4 +9,5 @@ Keep in mind that this build is unfinished and likely won't be worked on in the 
 # Running the game
 
 On Windows, double click `run-sote-windows.bat`.
+
 On Linux, run `./run-sote-linux.sh`.
