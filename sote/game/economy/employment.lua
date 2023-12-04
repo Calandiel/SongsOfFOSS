@@ -51,7 +51,7 @@ function emp.run(province)
 				profit = building.income_mean + building.subsidy_last
 
 				-- if profit is almost negative, eventually fire a worker
-				if profit < 0.01 and love.math.random() < 0.05 then
+				if profit < 0.01 and love.math.random() < 0.7 then
 					local pop = tabb.random_select_from_set(building.workers)
 					if pop then
 						province:fire_pop(pop)

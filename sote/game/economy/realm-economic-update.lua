@@ -36,11 +36,13 @@ function rea.run(realm)
 
 			local resource = good(prod)
 			if resource.category == 'good' then
-				province.local_storage[prod] = province.local_storage[prod] or 0
-				province.local_storage[prod] = province.local_storage[prod] + amount * (1 - PROVINCE_TO_REALM_STOCKPILE)
+				economic_effects.change_local_stockpile(province, prod, amount)
+
+				local to_realm_stockpile = amount * PROVINCE_TO_REALM_STOCKPILE
+				economic_effects.change_local_stockpile(province, prod, -to_realm_stockpile)
 
 				province.realm.resources[prod] = province.realm.resources[prod] or 0
-				province.realm.resources[prod] = province.realm.resources[prod] + amount * PROVINCE_TO_REALM_STOCKPILE
+				province.realm.resources[prod] = province.realm.resources[prod] + to_realm_stockpile
 			end
 		end
 		for prod, amount in pairs(province.local_consumption) do
@@ -54,8 +56,7 @@ function rea.run(realm)
 
 			local resource = good(prod)
 			if resource.category == 'good' then
-				province.local_storage[prod] = province.local_storage[prod] or 0
-				province.local_storage[prod] = province.local_storage[prod] - amount
+				economic_effects.change_local_stockpile(province, prod, -amount)
 			end
 		end
 	end
@@ -82,8 +83,8 @@ function rea.run(realm)
 				local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
 				for _, neigbour in pairs(province.neighbors) do
 					if neigbour.realm then
-						province.local_storage[resource_reference] = province.local_storage[resource_reference] - sharing
-						neigbour.local_storage[resource_reference] = (neigbour.local_storage[resource_reference] or 0) + sharing
+						economic_effects.change_local_stockpile(province, resource_reference, -sharing)
+						economic_effects.change_local_stockpile(neigbour, resource_reference, sharing)
 
 						-- diffuse prices a bit
 						-- needed to encorage production
@@ -104,8 +105,11 @@ function rea.run(realm)
 				                * REALM_TO_PROVINCE_STOCKPILE
 								/ amount_of_provinces
 
-				province.local_storage[resource_reference] = math.max(0, old + siphon) * 0.9
+				economic_effects.change_local_stockpile(province, resource_reference, siphon)
+				economic_effects.decay_local_stockpile(province, resource_reference)
+
 				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
+				realm.resources[resource_reference] = realm.resources[resource_reference] * 0.9
 			end
 		end
 	end
@@ -135,7 +139,27 @@ function rea.run(realm)
 				-- 	end
 				-- end
 
-				province.local_prices[good_reference] = math.max(0.001, current_price + price_change + base_price_growth)
+				if price_change + base_price_growth ~= price_change + base_price_growth then
+					error(
+						"ERROR!"
+						.. "\n price_change = "
+						.. tostring(price_change)
+						.. "\n base_price_growth = "
+						.. tostring(base_price_growth)
+						.. "\n current_price = "
+						.. tostring(current_price)
+						.. "\n supply = "
+						.. tostring(supply)
+						.. "\n demand = "
+						.. tostring(demand)
+						.. "\n stockpile = "
+						.. tostring(stockpile)
+						.. "\n trade_volume = "
+						.. tostring(trade_volume)
+					)
+				end
+
+				EconomicEffects.change_local_price(province, good_reference, price_change + base_price_growth)
 			end
 		end
 	end
@@ -210,9 +234,13 @@ function rea.run(realm)
 	-- #######################
 	for _, province in pairs(realm.provinces) do
 		for _, warband in pairs(province.warbands) do
-			warband.treasury = warband.treasury - warband.total_upkeep
-			for pop, unit in pairs(warband.units) do
-				economic_effects.add_pop_savings(pop, unit.upkeep, economic_effects.reasons.Upkeep)
+			if warband.treasury > warband.total_upkeep then
+				warband.treasury = warband.treasury - warband.total_upkeep
+				for pop, unit in pairs(warband.units) do
+					economic_effects.add_pop_savings(pop, unit.upkeep, economic_effects.reasons.Upkeep)
+				end
+			else
+
 			end
 		end
 	end

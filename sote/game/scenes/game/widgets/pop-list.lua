@@ -150,9 +150,26 @@ return function(rect, base_unit, province)
                         "Satisfaction of needs of this character. "
                     )
                 end,
-                width = base_unit * 4,
+                width = base_unit * 3,
                 value = function(k, v)
                     return v.basic_needs_satisfaction
+                end
+            },
+            {
+                header = "life needs",
+                render_closure = function (rect, k, v)
+                    ---@type POP
+                    v = v
+                    ut.data_entry_percentage(
+                        "",
+                        v.life_needs_satisfaction,
+                        rect,
+                        "Satisfaction of life needs of this character. "
+                    )
+                end,
+                width = base_unit * 3,
+                value = function(k, v)
+                    return v.life_needs_satisfaction
                 end
             }
         }

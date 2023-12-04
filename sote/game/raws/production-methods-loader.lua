@@ -96,7 +96,7 @@ function d.load()
 		g = 1,
 		b = 0.1,
 		inputs = { },
-		outputs = { ["knapping-blanks"] = 2 },
+		outputs = { ["knapping-blanks"] = 1 },
 		jobs = { [job("knappers")] = 3 },
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
@@ -108,7 +108,7 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { ["knapping-blanks"] = 1 / 24 }, -- one blank serves for two years - made up value
+		inputs = { ["knapping-blanks"] = 1 / 16 }, -- one blank serves for 16 months - made up value
 		outputs = { ["tools"] = 0.25 },
 		jobs = { [job("knappers")] = 1 },
 		job_type = JOBTYPE.ARTISAN,

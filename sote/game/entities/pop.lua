@@ -8,6 +8,7 @@
 ---@field name string
 ---@field savings number
 ---@field parent POP?
+---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
 ---@field popularity table<Realm, number|nil>
 ---@field traits table<Trait, Trait>

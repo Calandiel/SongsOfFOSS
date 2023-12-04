@@ -128,7 +128,7 @@ local function load()
 					return 0
 				end
 
-				return 1 / (root.culture.traditional_units[unit.name] +  0.01)
+				return 1 - root.culture.traditional_units[unit.name]
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = root.recruiter_for_warband

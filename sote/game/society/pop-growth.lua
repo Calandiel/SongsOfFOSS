@@ -13,10 +13,10 @@ function pg.growth(province)
 	local death_rate = 1 / 12
 	local birth_rate = 1 / 12
 
-	local food_good = 'food'
-	local food_income = province.realm.production[food_good] or 0
-	local food_sold = province.realm.sold[food_good] or 0
-	local food_bought = province.realm.bought[food_good] or 0
+	-- local food_good = 'food'
+	-- local food_income = province.realm.production[food_good] or 0
+	-- local food_sold = province.realm.sold[food_good] or 0
+	-- local food_bought = province.realm.bought[food_good] or 0
 
 	local provincial_water = (province.local_production[ 'water' ] or 0) -
 		(province.local_consumption[ 'water' ] or 0)
@@ -34,7 +34,7 @@ function pg.growth(province)
 	for _, pp in pairs(province.all_pops) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
-		elseif pop > cc and food_income < 0.0001 then
+		elseif pop > cc and pp.basic_needs_satisfaction < 0.4 then
 			-- Deaths due to starvation!
 			if love.math.random() < (1 - cc / pop) * death_rate * pp.race.carrying_capacity_weight then
 				to_remove[#to_remove + 1] = pp
@@ -52,14 +52,14 @@ function pg.growth(province)
 						to_add[#to_add + 1] = pp
 					end
 				end
-				if food_income > 0 and provincial_water > 0 then
+				if pp.basic_needs_satisfaction > 0.6 then
 					-- This pop growth is caused by overproduction of resources in the realm.
 					-- The chance for growth should then depend on the amount of food produced
 					if province.realm.expected_food_consumption > 0 then
 						-- Make sure that the expected food consumption has been calculated by this point!
 
 						-- Calculate the fraction symbolizing the amount of "overproduction" of food
-						local base = food_income / province.realm.expected_food_consumption
+						local base = pp.life_needs_satisfaction
 						-- Clamp the growth
 						base = math.min(1, base)
 

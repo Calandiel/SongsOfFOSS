@@ -85,6 +85,11 @@ end
 ---@param reason EconomicReason
 function EconomicEffects.add_pop_savings(pop, x, reason)
     pop.savings = pop.savings + x
+
+    if pop.savings ~= pop.savings then
+        error("BAD POP SAVINGS INCREASE: " .. tostring(x) .. " " .. reason)
+    end
+
     if math.abs(x) > 0 then
         EconomicEffects.display_character_savings_change(pop, x, reason)
     end
@@ -302,6 +307,46 @@ function EconomicEffects.return_tribute_home(collector, realm, tribute)
     EconomicEffects.add_pop_savings(collector,  -to_treasury, EconomicEffects.reasons.Tribute)
 end
 
+
+---comment
+---@param province Province
+---@param good TradeGoodReference
+---@param x number
+function EconomicEffects.change_local_price(province, good, x)
+    province.local_prices[good] = math.max(0.001, (province.local_prices[good] or 0) + x)
+
+    if province.local_prices[good] ~= province.local_prices[good] then
+        error(
+            "INVALID PRICE CHANGE"
+            .. "\n change = "
+            .. tostring(x)
+        )
+    end
+end
+
+---comment
+---@param province Province
+---@param good TradeGoodReference
+---@param x number
+function EconomicEffects.change_local_stockpile(province, good, x)
+    province.local_storage[good] = math.max(0, (province.local_storage[good] or 0) + x)
+
+    if province.local_storage[good] ~= province.local_storage[good] then
+        error(
+            "INVALID LOCAL STOCKPILE CHANGE"
+            .. "\n change = "
+            .. tostring(x)
+        )
+    end
+end
+
+---comment
+---@param province Province
+---@param good TradeGoodReference
+function EconomicEffects.decay_local_stockpile(province, good)
+    province.local_storage[good] = (province.local_storage[good] or 0) * 0.9
+end
+
 ---comment
 ---@param character Character
 ---@param good TradeGoodReference
@@ -325,14 +370,26 @@ function EconomicEffects.buy(character, good, amount)
 
     local cost = price * amount
 
+    if cost ~= cost then
+        error(
+            "WRONG BUY OPERATION "
+            .. "\n price = "
+            .. tostring(price)
+            .. "\n amount = "
+            .. tostring(amount)
+        )
+    end
+
     EconomicEffects.add_pop_savings(character, -cost, EconomicEffects.reasons.Trade)
     province.trade_wealth = province.trade_wealth + cost
     character.inventory[good] = (character.inventory[good] or 0) + amount
-    province.local_storage[good] = (province.local_storage[good] or 0) - amount
+
+    EconomicEffects.change_local_stockpile(province, good, -amount)
 
     local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
     local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
-    province.local_prices[good] = price + price_change
+
+    EconomicEffects.change_local_price(province, good, price_change)
 
     -- print('!!! BUY')
 
@@ -366,14 +423,24 @@ function EconomicEffects.sell(character, good, amount)
 
     local cost = price * amount
 
+    if cost ~= cost then
+        error(
+            "WRONG SELL OPERATION "
+            .. "\n price = "
+            .. tostring(price)
+            .. "\n amount = "
+            .. tostring(amount)
+        )
+    end
+
     EconomicEffects.add_pop_savings(character, cost, EconomicEffects.reasons.Trade)
     province.trade_wealth = province.trade_wealth - cost
     character.inventory[good] = (character.inventory[good] or 0) - amount
-    province.local_storage[good] = (province.local_storage[good] or 0) + amount
+    EconomicEffects.change_local_stockpile(province, good, amount)
 
     local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
     local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
-    province.local_prices[good] = price - price_change
+    EconomicEffects.change_local_price(province, good, -price_change)
 
     -- print('!!! SELL')
 

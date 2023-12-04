@@ -1,6 +1,7 @@
 ---@class Need
 ---@field goods TradeGoodReference[]
 ---@field age_independent boolean?
+---@field life_need boolean?
 
 ---@enum NEED
 NEED = {
@@ -15,11 +16,13 @@ NEED = {
 
 NEEDS = {
 	water = {
-		goods = {"water", "liquors"}
+		goods = {"water", "liquors"},
+		life_need = true
 	},
 	food = {
 		goods = {"food", "meat", "liquors"},
-		age_independent = true
+		age_independent = true,
+		life_need = true
 	},
 	clothing = {
 		goods = {"hide", "leather", "clothes"}

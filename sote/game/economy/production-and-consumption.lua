@@ -62,16 +62,17 @@ function pro.run(province)
 	local function record_consumption(good, amount)
 		local old = province.local_consumption[good] or 0
 		province.local_consumption[good] = old + amount
-
 		available_last_time[good] = (available_last_time[good] or 0) - amount
 
-		-- if WORLD.player_character then
-		-- 	if WORLD.player_character.province == province then
-		-- 		print("record consumption: ", good)
-		-- 		print("amount: ", amount)
-		-- 		print("current consumption: ", province.local_consumption[good])
-		-- 	end
-		-- end
+		if province.local_production[good] ~= province.local_production[good] then
+			error(
+				"INVALID RECORD OF CONSUMPTION"
+				.. "\n amount = "
+				.. tostring(amount)
+				.. "\n old = "
+				.. tostring(old)
+			)
+		end
 
 		return old_prices[good] * amount
 	end
@@ -82,6 +83,16 @@ function pro.run(province)
 	local function record_production(good, amount)
 		local old = province.local_production[good] or 0
 		province.local_production[good] = old + amount
+
+		if province.local_production[good] ~= province.local_production[good] then
+			error(
+				"INVALID RECORD OF PRODUCTION"
+				.. "\n amount = "
+				.. tostring(amount)
+				.. "\n old = "
+				.. tostring(old)
+			)
+		end
 
 		return old_prices[good] * amount
 	end
@@ -164,6 +175,9 @@ function pro.run(province)
 		end
 	end
 
+
+	local population_size = province:population()
+
 	for _, pop in pairs(province.all_pops) do
 		-- base income: all adult pops forage and help each other which translates into a bit of wealth
 		-- real reason: wealth sources to fuel the economy
@@ -171,7 +185,7 @@ function pro.run(province)
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
 		if pop.age > pop.race.teen_age then
-			economic_effects.add_pop_savings(pop, 0.2, economic_effects.reasons.MonthlyChange)
+			economic_effects.add_pop_savings(pop, 1 / population_size, economic_effects.reasons.MonthlyChange)
 		end
 		-- Drafted pops don't work -- they may not even be in the province in the first place...
 		if not pop.drafted then
@@ -202,8 +216,25 @@ function pro.run(province)
 				for input, amount in pairs(prod.inputs) do
 					local required_input = amount * efficiency
 					local present_input = math.max(0, available_last_time[input] or 0)
-					local ratio = present_input / required_input
+					local ratio = 0
+					if present_input > 0 then
+						ratio = math.min(1, present_input / required_input)
+					end
 					input_satisfaction = math.min(input_satisfaction, ratio)
+
+					if input_satisfaction ~= input_satisfaction then
+						error(
+							"INVALID INPUT SATISFACTION"
+							.. "\n value = "
+							.. tostring(input_satisfaction)
+							.. "\n required_input = "
+							.. tostring(required_input)
+							.. "\n present_input = "
+							.. tostring(present_input)
+							.. "\n ratio = "
+							.. tostring(ratio)
+						)
+					end
 				end
 
 				-- (1 - prod.self_sourcing_fraction) is a modifier to efficiency during 100% shortage
@@ -237,6 +268,22 @@ function pro.run(province)
 				-- 		end
 				-- 	end
 				-- end
+
+				if efficiency ~= efficiency then
+					error(
+						"INVALID VALUE OF EFFICIENCY"
+						.. "\n value = "
+						.. tostring(efficiency)
+						.. "\n shortage_modifier = "
+						.. tostring(shortage_modifier)
+						.. "\n pop.employer.work_ratio = "
+						.. tostring(pop.employer.work_ratio)
+						.. "\n efficiency_from_infrastructure = "
+						.. tostring(efficiency_from_infrastructure)
+						.. "\n local_foraging_efficiency = "
+						.. tostring(local_foraging_efficiency)
+					)
+				end
 
 				income = income
 
@@ -298,7 +345,7 @@ function pro.run(province)
 					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				else
 					-- reduce working hours to negate losses
-					pop.employer.work_ratio = math.max(0.01, pop.employer.work_ratio * 0.9)
+					pop.employer.work_ratio = math.max(0.01, pop.employer.work_ratio * 0.5)
 				end
 
 				if province.trade_wealth > income then
@@ -338,18 +385,21 @@ function pro.run(province)
 		local total_needs = 0
 		local total_satisfied = 0
 
+		local total_life_needs = 0
+		local total_life_satisfied = 0
+
 		local needs = pop.race.male_needs
 		if pop.female then
 			needs = pop.race.female_needs
 		end
 
-		local old_savings = pop.savings / 10
-		local current_savings = pop.savings / 10
-		for need_name, demand in pairs(needs) do
-			local need = NEEDS[need_name]
-			if need == nil then
-				error("WRONG NEED NAME: " .. need_name)
-			end
+		local old_savings = math.max(0, pop.savings / 10)
+		local current_savings = old_savings
+
+		---comment
+		---@param need Need
+		---@param demand number
+		local function buy_need(need, demand)
 			---@type number
 			local total_demand = demand
 			if not need.age_independent then
@@ -399,8 +449,24 @@ function pro.run(province)
 			-- end
 
 			current_savings = current_savings - total_cost * ratio
+
+			if current_savings ~= current_savings then
+				error(
+					"INVALID ATTEMPT OF POP TO BUY A NEED: total_cost = "
+					.. tostring(total_cost)
+					.. " ratio = "
+					.. tostring(ratio)
+				)
+			end
+
 			total_needs = total_needs + total_demand
 			total_satisfied = total_satisfied + total_demand * ratio
+
+			if need.life_need then
+				total_life_needs = total_life_needs + total_demand
+				total_life_satisfied = total_life_satisfied + total_demand * ratio
+			end
+
 
 			-- register consumption/demand of goods according to distribution
 			-- demand and consumption should be separate one day...
@@ -411,10 +477,33 @@ function pro.run(province)
 			end
 		end
 
+		-- buying life needs
+		for need_name, demand in pairs(needs) do
+			local need = NEEDS[need_name]
+			if need == nil then
+				error("WRONG NEED NAME: " .. need_name)
+			end
+			if need.life_need then
+				buy_need(need, demand)
+			end
+		end
+
+		-- buying base needs
+		for need_name, demand in pairs(needs) do
+			local need = NEEDS[need_name]
+			if need == nil then
+				error("WRONG NEED NAME: " .. need_name)
+			end
+			if not need.life_need then
+				buy_need(need, demand)
+			end
+		end
+
 		economic_effects.add_pop_savings(pop, current_savings - old_savings, economic_effects.reasons.OtherNeeds)
 		province.trade_wealth = province.trade_wealth - current_savings + old_savings
 
 		pop.basic_needs_satisfaction = total_satisfied / total_needs
+		pop.life_needs_satisfaction = total_life_satisfied / total_life_needs
 	end
 
 	--- DISTRIBUTION OF DONATIONS

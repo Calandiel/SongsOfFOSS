@@ -73,6 +73,27 @@ local function make_new_realm(capitol, race, culture, faith)
 	capitol.local_wealth = love.math.random() * 10 + 10
 	capitol.trade_wealth = love.math.random() * 10 + 10
 
+	-- give initial research budget
+	r.budget.education.budget = 2
+
+	-- starting treasury
+	r.budget.treasury = love.math.random() * 20 + 100
+
+	-- give some realms early tech advantage to reduce waiting:
+	for i = 0, 2 do
+		local n = tabb.size(capitol.technologies_researchable)
+		if n > 0 then
+			r.budget.education.budget = r.budget.education.budget + 2
+			local i = love.math.random(n)
+			---@type Technology
+			local tech = tabb.nth(capitol.technologies_researchable, i)
+			local probability = 0.1
+			if love.math.random() < probability then
+				capitol:research(tech)
+			end
+		end
+	end
+
 
 	-- print("test battle")
 	-- local size_1, size_2 = love.math.random(50) + 10, love.math.random(50) + 10

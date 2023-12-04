@@ -242,13 +242,13 @@ function ll.load()
 		visibility = 0.5,
 		female_body_size = 0.5,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 0.8,
-			[JOBTYPE.ARTISAN] = 0.6,
-			[JOBTYPE.CLERK] = 0.6,
-			[JOBTYPE.LABOURER] = 0.8,
-			[JOBTYPE.WARRIOR] = 0.6,
-			[JOBTYPE.HAULING] = 0.6,
-			[JOBTYPE.FORAGER] = 0.9
+			[JOBTYPE.FARMER] = 0.25,
+			[JOBTYPE.ARTISAN] = 0.25,
+			[JOBTYPE.CLERK] = 0.25,
+			[JOBTYPE.LABOURER] = 0.25,
+			[JOBTYPE.WARRIOR] = 0.25,
+			[JOBTYPE.HAULING] = 0.5,
+			[JOBTYPE.FORAGER] = 0.25
 		},
 		female_needs = {
 			[NEED.WATER] = 0.25,
@@ -265,13 +265,13 @@ function ll.load()
 		female_infrastructure_needs = 0.25,
 		male_body_size = 0.6,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 0.8,
-			[JOBTYPE.ARTISAN] = 0.6,
-			[JOBTYPE.CLERK] = 0.6,
-			[JOBTYPE.LABOURER] = 0.8,
-			[JOBTYPE.WARRIOR] = 0.6,
-			[JOBTYPE.HAULING] = 0.6,
-			[JOBTYPE.FORAGER] = 0.9
+			[JOBTYPE.FARMER] = 0.25,
+			[JOBTYPE.ARTISAN] = 0.25,
+			[JOBTYPE.CLERK] = 0.25,
+			[JOBTYPE.LABOURER] = 0.25,
+			[JOBTYPE.WARRIOR] = 0.25,
+			[JOBTYPE.HAULING] = 0.5,
+			[JOBTYPE.FORAGER] = 0.25
 		},
 		male_needs = {
 			[NEED.WATER] = 0.25,

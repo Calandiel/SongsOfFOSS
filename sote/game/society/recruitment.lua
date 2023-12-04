@@ -12,13 +12,10 @@ function rec.run(province)
 		return
 	end
 
-	if not warband:vacant() then 
-		return
-	end
-
-	local budget = warband.treasury
 	---@type number
 	local total_salary = 0
+
+	local pops_to_unregister = {}
 
 	-- try to hire units
 	for unit, target in pairs(warband.units_target) do
@@ -36,7 +33,7 @@ function rec.run(province)
 		local per_pop_salary_warband = warband:monthly_budget() / warband:size()
 
 		if current < target then
-			-- print('not enough soldiers') 
+			-- print('not enough soldiers')
 			if love.math.random() < warband.morale then
 				-- print('attempt to hire')
 				for pop, _ in pairs(province.all_pops) do
@@ -59,7 +56,24 @@ function rec.run(province)
 					end
 				end
 			end
+		elseif current > target then
+			local pop_to_unregister = nil
+
+			for pop, pop_unit in pairs(warband.units) do
+				if pop_unit == unit then
+					pop_to_unregister = pop
+					break
+				end
+			end
+
+			if pop_to_unregister then
+				table.insert(pops_to_unregister, pop_to_unregister)
+			end
 		end
+	end
+
+	for _, pop in pairs(pops_to_unregister) do
+		province:unregister_military_pop(pop)
 	end
 
 	if total_salary > warband:monthly_budget() then
@@ -69,11 +83,17 @@ function rec.run(province)
 		---@type UnitType
 		local unit = tabb.random_select(warband.units_current)
 
+		local pop_to_unregister = nil
+
 		for pop, pop_unit in pairs(warband.units) do
 			if pop_unit == unit then
-				province:unregister_military_pop(pop)
+				pop_to_unregister = pop
 				break
 			end
+		end
+
+		if pop_to_unregister ~= nil then
+			province:unregister_military_pop(pop_to_unregister)
 		end
 	end
 
