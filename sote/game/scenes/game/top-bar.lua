@@ -11,7 +11,7 @@ local tb = {}
 local alerts_amount = 0
 
 function tb.rect()
-	return ui.rect(0, 0, uit.BASE_HEIGHT * 30 + alerts_amount * uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
+	return ui.rect(0, 0, uit.BASE_HEIGHT * 33 + alerts_amount * uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT * 2)
 end
 
 ---@return boolean
@@ -203,6 +203,12 @@ function tb.draw(gam)
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
 		uit.data_entry_icon("duality-mask.png", uit.to_fixed_point2(amount), tr, trs)
+
+		-- Quality of life
+		local amount = character.province.realm:get_average_needs_satisfaction()
+		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
+		local trs = "Average quality of life of population in our realm. Pops which do not starve do not die."
+		uit.generic_number_field("duality-mask.png", amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 
 		-- POP
 		local amount = character.province.realm:get_total_population()

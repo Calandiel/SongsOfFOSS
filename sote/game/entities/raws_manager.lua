@@ -34,6 +34,7 @@ function raws_manager:new()
 	w.biogeographic_realms_by_color = {}
 	w.races_by_name = {}
 	w.trade_goods_by_name = {}
+	w.trade_goods_use_cases_by_name = {}
 	w.jobs_by_name = {}
 	w.technologies_by_name = {}
 	w.production_methods_by_name = {}

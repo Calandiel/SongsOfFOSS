@@ -399,6 +399,19 @@ function realm.Realm:get_average_mood()
 end
 
 ---@return number
+function realm.Realm:get_average_needs_satisfaction()
+	local sum = 0
+	local total_population = 0
+	for _, province in pairs(self.provinces) do
+		for _, pop in pairs(province.all_pops) do
+			sum = sum + pop.basic_needs_satisfaction + pop.life_needs_satisfaction
+			total_population = total_population + 1
+		end
+	end
+	return sum / total_population
+end
+
+---@return number
 function realm.Realm:get_realm_population()
 	local total = 0
 	for _, p in pairs(self.provinces) do
