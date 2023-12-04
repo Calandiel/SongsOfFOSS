@@ -27,6 +27,19 @@ function ut.trade_good(id)
 end
 
 ---@param id string
+---@return TradeGoodUseCase
+function ut.trade_good_use_case(id)
+	local r = RAWS_MANAGER.trade_goods_use_cases_by_name[id]
+	if r == nil then
+		print("Trade good use case " .. id .. " doesn't exist!")
+		error("Trade good use case " .. id .. " doesn't exist!")
+		love.event.quit()
+	end
+	---@diagnostic disable-next-line: return-type-mismatch
+	return r
+end
+
+---@param id string
 ---@return Technology
 function ut.technology(id)
 	local r = RAWS_MANAGER.technologies_by_name[id]
@@ -47,7 +60,6 @@ function ut.race(id)
 		print("Race " .. id .. " doesn't exist!")
 		error("Race " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -61,7 +73,6 @@ function ut.production_method(id)
 		print("Production method " .. id .. " doesn't exist!")
 		error("Production method " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -75,7 +86,6 @@ function ut.biome(id)
 		print("Biome " .. id .. " doesn't exist!")
 		error("Biome " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -89,7 +99,6 @@ function ut.bedrock(id)
 		print("Bedrock " .. id .. " doesn't exist!")
 		error("Bedrock " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -103,7 +112,6 @@ function ut.biogeographic_realm(id)
 		print("Biogeographic realm " .. id .. " doesn't exist!")
 		error("Biogeographic realm " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -117,7 +125,6 @@ function ut.resource(id)
 		print("Resource " .. id .. " doesn't exist!")
 		error("Resource " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -131,7 +138,6 @@ function ut.unit_type(id)
 		print("Unit Type " .. id .. " doesn't exist!")
 		error("Unit Type " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -145,7 +151,6 @@ function ut.event(id)
 		print("Event " .. id .. " doesn't exist!")
 		error("Event " .. id .. " doesn't exist!")
 		love.event.quit()
-
 	end
 	---@diagnostic disable-next-line: return-type-mismatch
 	return r
@@ -154,7 +159,7 @@ end
 ---@param x string
 ---@return fun(): string
 function ut.constant_string(x)
-	return function () return x end
+	return function() return x end
 end
 
 return ut

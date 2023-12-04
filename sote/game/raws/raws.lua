@@ -17,6 +17,7 @@ return function()
 	}
 	require "game.raws.race-loader".load()
 	require "game.raws.jobs-loader".load()
+	require "game.raws.trade-goods-use-case-loader".load()
 	require "game.raws.trade-goods-loader".load()
 	require 'game.raws.resource-loader'.load()
 
