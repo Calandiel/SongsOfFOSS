@@ -18,6 +18,7 @@ local tabb = require "engine.table"
 ---@field player_character Character?
 ---@field player_province Province?
 ---@field sub_hourly_tick number
+---@field current_tick_in_month number
 ---@field hour number
 ---@field day number
 ---@field month number
@@ -72,7 +73,7 @@ function world.World:new()
 	w.provinces = {}
 	w.settled_provinces = {}
 	w.settled_provinces_by_identifier = {}
-	for i = 1, 30 do
+	for i = 1, 30 * 24 * world.ticks_per_hour do
 		w.settled_provinces_by_identifier[i] = {}
 	end
 	w.realms = {}
@@ -85,6 +86,7 @@ function world.World:new()
 	w.day = 0
 	w.month = 0
 	w.year = 0
+	w.current_tick_in_month = 0
 	w.pending_player_event_reaction = false
 	w.notification_queue = require "engine.queue":new()
 	w.events_queue = require "engine.queue":new()
@@ -122,7 +124,8 @@ function world.World:set_settled_province(province)
 	lon = lon + math.pi
 	lon = lon / math.pi
 	lon = lon / 2
-	local timz = math.ceil(math.min(30, math.max(0.001, lon * 30)))
+	local world_sections = world.ticks_per_hour * 24 * 30
+	local timz = math.ceil(math.min(world_sections, math.max(0.001, lon * world_sections)))
 	self.settled_provinces_by_identifier[timz][province] = province
 end
 
@@ -134,7 +137,8 @@ function world.World:unset_settled_province(province)
 	lon = lon + math.pi
 	lon = lon / math.pi
 	lon = lon / 2
-	local timz = math.ceil(math.min(30, math.max(0.001, lon * 30)))
+	local world_sections = world.ticks_per_hour * 24 * 30
+	local timz = math.ceil(math.min(world_sections, math.max(0.001, lon * world_sections)))
 	self.settled_provinces_by_identifier[timz][province] = nil
 end
 
@@ -347,6 +351,172 @@ function world.World:tick()
 	-- print('current events updated')
 
 	WORLD.sub_hourly_tick = WORLD.sub_hourly_tick + 1
+	WORLD.current_tick_in_month = WORLD.current_tick_in_month + 1
+
+	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month] ~= nil then
+		-- Monthly tick per realm
+		local ta = WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month]
+
+		local t = love.timer.getTime()
+
+		-- tiles update in settled_province:
+		for _, settled_province in pairs(ta) do
+			for _, tile in pairs(settled_province.tiles) do
+				tile.conifer 	= tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
+				tile.broadleaf 	= tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
+				tile.shrub 		= tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
+				tile.grass 		= tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+			end
+		end
+
+		vegetation_growth_tick = vegetation_growth_tick + love.timer.getTime() - t
+
+		-- "Realm" pre-update
+		local realm_economic_update = require "game.economy.realm-economic-update"
+		---@type Province[]
+		local to_remove = {}
+		for _, settled_province in pairs(ta) do
+			if settled_province.realm == nil then
+				table.insert(to_remove, settled_province)
+			elseif settled_province.realm.capitol == settled_province then
+				--print("Econ prerun")
+				realm_economic_update.prerun(settled_province.realm)
+			end
+		end
+		for _, province in pairs(to_remove) do
+			ta[province] = nil
+		end
+
+		t = love.timer.getTime()
+
+		-- "POP" update
+		local pop_growth = require "game.society.pop-growth"
+		for _, settled_province in pairs(ta) do
+			--print("Pop growth")
+			pop_growth.growth(settled_province)
+		end
+
+		pop_growth_tick = pop_growth_tick + love.timer.getTime() - t
+
+		t = love.timer.getTime()
+
+		-- "Province" update
+		local employ = require "game.economy.employment"
+		local production = require "game.economy.production-and-consumption"
+		local wealth_decay = require "game.economy.wealth-decay"
+		local upkeep = require "game.economy.upkeep"
+		local infrastructure = require "game.economy.province-infrastructure"
+		local research = require "game.society.research"
+		local recruit = require "game.society.recruitment"
+		for _, settled_province in pairs(ta) do
+			--print("employ")
+			employ.run(settled_province)
+			production.run(settled_province)
+			upkeep.run(settled_province)
+			wealth_decay.run(settled_province)
+			infrastructure.run(settled_province)
+			research.run(settled_province)
+			recruit.run(settled_province)
+			--print("done")
+		end
+
+		province_tick = province_tick + love.timer.getTime() - t
+
+		-- "Realm" update
+		-- local decide = require "game.ai.decide"
+		local events = require "game.ai.events"
+		local education = require "game.society.education"
+		local court = require "game.society.court"
+		local construct = require "game.ai.construction"
+		for _, settled_province in pairs(ta) do
+			local realm = settled_province.realm
+			if realm ~= nil and settled_province.realm.capitol == settled_province then
+
+				t = love.timer.getTime()
+
+				-- Run the realm AI once a month
+				if not WORLD:does_player_control_realm(realm) then
+					local explore = require "game.ai.exploration"
+					local treasury = require "game.ai.treasury"
+					local military = require "game.ai.military"
+					explore.run(realm)
+					treasury.run(realm)
+					military.run(realm)
+				else
+					self:emit_treasury_change_effect(0, "new month")
+					self:emit_treasury_change_effect(0, "new month", true)
+				end
+				--print("Construct")
+				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+				--print("Court")
+				court.run(realm)
+				--print("Edu")
+				education.run(realm)
+				--print("Econ")
+				realm_economic_update.run(realm)
+				-- Handle events!
+				--print("Event handling")
+				events.run(realm)
+
+				realm_tick = realm_tick + love.timer.getTime() - t
+
+				-- launch patrols
+				for _, target in pairs(realm.provinces) do
+					local warbands = realm.patrols[target]
+					local units = 0
+					if warbands ~= nil then
+						for _, warband in pairs(warbands) do
+							units = units + warband:size()
+						end
+					end
+					-- launch the patrol
+					if (units > 0) then
+						military_effects.patrol(realm, target)
+					end
+				end
+				-- launch raids
+				for _, target in pairs(realm.reward_flags) do
+					local warbands = realm.raiders_preparing[target]
+					local units = 0
+					for _, warband in pairs(warbands) do
+						units = units + warband:size()
+					end
+
+					-- with some probability, launch the raid
+					-- larger groups launch raids faster
+					if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
+						military_effects.covert_raid(realm, target)
+					end
+				end
+
+				t = love.timer.getTime()
+
+				-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
+				if not WORLD:does_player_control_realm(realm) then
+					--print("Decide")
+					decide.run(realm)
+				end
+
+				decision_tick = decision_tick + love.timer.getTime() - t
+			end
+		end
+
+		t = love.timer.getTime()
+
+		for _, settled_province in pairs(ta) do
+			for _, character in pairs(settled_province.characters) do
+				if character ~= WORLD.player_character then
+					decide.run_character(character)
+				end
+			end
+		end
+
+		decision_character_tick = decision_character_tick + love.timer.getTime() - t
+
+	end
+
+	-- print('simulation update')
+
 	if WORLD.sub_hourly_tick == world.ticks_per_hour then
 		WORLD.sub_hourly_tick = 0
 		WORLD.hour = WORLD.hour + 1
@@ -423,172 +593,9 @@ function world.World:tick()
 
 			deferred_actions_tick = love.timer.getTime() - t
 
-			if WORLD.settled_provinces_by_identifier[WORLD.day] ~= nil then
-				-- Monthly tick per realm
-				local ta = WORLD.settled_provinces_by_identifier[WORLD.day]
-
-				t = love.timer.getTime()
-
-				-- tiles update in settled_province:
-				for _, settled_province in pairs(ta) do
-					for _, tile in pairs(settled_province.tiles) do
-						tile.conifer 	= tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
-						tile.broadleaf 	= tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
-						tile.shrub 		= tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
-						tile.grass 		= tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
-					end
-				end
-
-				vegetation_growth_tick = vegetation_growth_tick + love.timer.getTime() - t
-
-				-- "Realm" pre-update
-				local realm_economic_update = require "game.economy.realm-economic-update"
-				---@type Province[]
-				local to_remove = {}
-				for _, settled_province in pairs(ta) do
-					if settled_province.realm == nil then
-						table.insert(to_remove, settled_province)
-					elseif settled_province.realm.capitol == settled_province then
-						--print("Econ prerun")
-						realm_economic_update.prerun(settled_province.realm)
-					end
-				end
-				for _, province in pairs(to_remove) do
-					ta[province] = nil
-				end
-
-				t = love.timer.getTime()
-
-				-- "POP" update
-				local pop_growth = require "game.society.pop-growth"
-				for _, settled_province in pairs(ta) do
-					--print("Pop growth")
-					pop_growth.growth(settled_province)
-				end
-
-				pop_growth_tick = pop_growth_tick + love.timer.getTime() - t
-
-				t = love.timer.getTime()
-
-				-- "Province" update
-				local employ = require "game.economy.employment"
-				local production = require "game.economy.production-and-consumption"
-				local wealth_decay = require "game.economy.wealth-decay"
-				local upkeep = require "game.economy.upkeep"
-				local infrastructure = require "game.economy.province-infrastructure"
-				local research = require "game.society.research"
-				local recruit = require "game.society.recruitment"
-				for _, settled_province in pairs(ta) do
-					--print("employ")
-					employ.run(settled_province)
-					production.run(settled_province)
-					upkeep.run(settled_province)
-					wealth_decay.run(settled_province)
-					infrastructure.run(settled_province)
-					research.run(settled_province)
-					recruit.run(settled_province)
-					--print("done")
-				end
-
-				province_tick = province_tick + love.timer.getTime() - t
-
-				-- "Realm" update
-				-- local decide = require "game.ai.decide"
-				local events = require "game.ai.events"
-				local education = require "game.society.education"
-				local court = require "game.society.court"
-				local construct = require "game.ai.construction"
-				for _, settled_province in pairs(ta) do
-					local realm = settled_province.realm
-					if realm ~= nil and settled_province.realm.capitol == settled_province then
-
-						t = love.timer.getTime()
-
-						-- Run the realm AI once a month
-						if not WORLD:does_player_control_realm(realm) then
-							local explore = require "game.ai.exploration"
-							local treasury = require "game.ai.treasury"
-							local military = require "game.ai.military"
-							explore.run(realm)
-							treasury.run(realm)
-							military.run(realm)
-						else
-							self:emit_treasury_change_effect(0, "new month")
-							self:emit_treasury_change_effect(0, "new month", true)
-						end
-						--print("Construct")
-						construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
-						--print("Court")
-						court.run(realm)
-						--print("Edu")
-						education.run(realm)
-						--print("Econ")
-						realm_economic_update.run(realm)
-						-- Handle events!
-						--print("Event handling")
-						events.run(realm)
-
-						realm_tick = realm_tick + love.timer.getTime() - t
-
-						-- launch patrols
-						for _, target in pairs(realm.provinces) do
-							local warbands = realm.patrols[target]
-							local units = 0
-							if warbands ~= nil then
-								for _, warband in pairs(warbands) do
-									units = units + warband:size()
-								end
-							end
-							-- launch the patrol
-							if (units > 0) then
-								military_effects.patrol(realm, target)
-							end
-						end
-						-- launch raids
-						for _, target in pairs(realm.reward_flags) do
-							local warbands = realm.raiders_preparing[target]
-							local units = 0
-							for _, warband in pairs(warbands) do
-								units = units + warband:size()
-							end
-
-							-- with some probability, launch the raid
-							-- larger groups launch raids faster
-							if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
-								military_effects.covert_raid(realm, target)
-							end
-						end
-
-						t = love.timer.getTime()
-
-						-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
-						if not WORLD:does_player_control_realm(realm) then
-							--print("Decide")
-							decide.run(realm)
-						end
-
-						decision_tick = decision_tick + love.timer.getTime() - t
-					end
-				end
-
-				t = love.timer.getTime()
-
-				for _, settled_province in pairs(ta) do
-					for _, character in pairs(settled_province.characters) do
-						if character ~= WORLD.player_character then
-							decide.run_character(character)
-						end
-					end
-				end
-
-				decision_character_tick = decision_character_tick + love.timer.getTime() - t
-
-			end
-
-			-- print('simulation update')
-
 			if WORLD.day == 31 then
 				WORLD.day = 0
+				WORLD.current_tick_in_month = 0
 				WORLD.month = WORLD.month + 1
 				-- monthly tick
 				--print("Monthly tick")
@@ -603,7 +610,6 @@ function world.World:tick()
 					end
 				end
 
-				--
 				--print("Monthly tick end, refreshing")
 				if OPTIONS.update_map then
 					require "game.scenes.game".refresh_map_mode()

@@ -81,18 +81,4 @@ function bld.Building:remove_from_province()
 	end
 end
 
---[[
----Employs a POP and handles removal from the previous employer.
----@param pop POP
----@param province Province
-function bld.Building:employ(pop, province)
-	if pop.employer then
-		pop.employer.workers[pop] = nil
-		pop.job
-	end
-	pop.employer = self
-	self.workers[pop] = pop
-end
---]]
-
 return bld
