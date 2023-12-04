@@ -119,6 +119,41 @@ return function(rect, base_unit, province)
                 value = function(k, v)
                     return pop_sex(v)
                 end
+            },
+            {
+                header = "savings",
+                render_closure = function (rect, k, v)
+                    ---@type POP
+                    v = v
+                    ut.money_entry(
+                        "",
+                        v.savings,
+                        rect,
+                        "Savings of this character. "
+                        .. "Characters spend them on buying food and other commodities."
+                    )
+                end,
+                width = base_unit * 4,
+                value = function(k, v)
+                    return v.savings
+                end
+            },
+            {
+                header = "satisfac.",
+                render_closure = function (rect, k, v)
+                    ---@type POP
+                    v = v
+                    ut.data_entry_percentage(
+                        "",
+                        v.basic_needs_satisfaction,
+                        rect,
+                        "Satisfaction of needs of this character. "
+                    )
+                end,
+                width = base_unit * 4,
+                value = function(k, v)
+                    return v.basic_needs_satisfaction
+                end
             }
         }
         init_state(base_unit)

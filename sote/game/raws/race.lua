@@ -23,21 +23,11 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field minimum_comfortable_elevation number
 ---@field female_body_size number
 ---@field female_efficiency table<JOBTYPE, number>
----@field female_water_needs number
----@field female_food_needs number
----@field female_grains_needs number
----@field female_fruit_needs number
----@field female_meat_needs number
----@field female_clothing_needs number
+---@field female_needs table<NEED, number>
 ---@field female_infrastructure_needs number
 ---@field male_body_size number
 ---@field male_efficiency table<JOBTYPE, number>
----@field male_water_needs number
----@field male_food_needs number
----@field male_grains_needs number
----@field male_fruit_needs number
----@field male_meat_needs number
----@field male_clothing_needs number
+---@field male_needs table<NEED, number>
 ---@field male_infrastructure_needs number
 ---@field requires_large_river boolean
 ---@field requires_large_forest boolean
@@ -71,41 +61,57 @@ function Race:new(o)
 	r.spotting = 1
 	r.visibility = 1
 	r.female_body_size = 1
-	r.female_water_needs = 1
-	r.female_food_needs = 1
-	r.female_grains_needs = 1
-	r.female_fruit_needs = 1
-	r.female_meat_needs = 1
-	r.female_clothing_needs = 0.1
+	r.female_needs = {}
 	r.female_infrastructure_needs = 1
 	r.male_body_size = 1
-	r.male_water_needs = 1
-	r.male_food_needs = 1
-	r.male_grains_needs = 1
-	r.male_fruit_needs = 1
-	r.male_meat_needs = 1
-	r.male_clothing_needs = 0.1
+	r.male_needs = {}
 	r.male_infrastructure_needs = 1
 	r.carrying_capacity_weight = 1
 
 	r.female_efficiency = {
-		[JOBTYPE.FARMER] = 0.8,
-		[JOBTYPE.ARTISAN] = 0.6,
-		[JOBTYPE.CLERK] = 0.6,
-		[JOBTYPE.LABOURER] = 0.8,
-		[JOBTYPE.WARRIOR] = 0.6,
-		[JOBTYPE.HAULING] = 0.6,
-		[JOBTYPE.FORAGER] = 0.9
+		[JOBTYPE.FARMER] = 1,
+		[JOBTYPE.ARTISAN] = 1,
+		[JOBTYPE.CLERK] = 1,
+		[JOBTYPE.LABOURER] = 1,
+		[JOBTYPE.WARRIOR] = 1,
+		[JOBTYPE.HAULING] = 1,
+		[JOBTYPE.FORAGER] = 1
+	}
+
+	r.female_needs = {
+		[NEED.WATER] = 1,
+		[NEED.FOOD] = 1,
+		-- [NEED.FRUIT] = 1,
+		-- [NEED.GRAIN] = 1,
+		-- [NEED.MEAT] = 1,
+		[NEED.CLOTHING] = 1,
+		[NEED.FURNITURE] = 1,
+		[NEED.TOOLS] = 0.125,
+		[NEED.HEALTHCARE] = 0.125,
+		[NEED.STORAGE] = 0.125
 	}
 
 	r.male_efficiency = {
-		[JOBTYPE.FARMER] = 0.8,
-		[JOBTYPE.ARTISAN] = 0.6,
-		[JOBTYPE.CLERK] = 0.6,
-		[JOBTYPE.LABOURER] = 0.8,
-		[JOBTYPE.WARRIOR] = 0.6,
-		[JOBTYPE.HAULING] = 0.6,
-		[JOBTYPE.FORAGER] = 0.9
+		[JOBTYPE.FARMER] = 1,
+		[JOBTYPE.ARTISAN] = 1,
+		[JOBTYPE.CLERK] = 1,
+		[JOBTYPE.LABOURER] = 1,
+		[JOBTYPE.WARRIOR] = 1,
+		[JOBTYPE.HAULING] = 1,
+		[JOBTYPE.FORAGER] = 1
+	}
+
+	r.male_needs = {
+		[NEED.WATER] = 1,
+		[NEED.FOOD] = 1,
+		-- [NEED.FRUIT] = 1,
+		-- [NEED.GRAIN] = 1,
+		-- [NEED.MEAT] = 1,
+		[NEED.CLOTHING] = 1,
+		[NEED.FURNITURE] = 1,
+		[NEED.TOOLS] = 0.125,
+		[NEED.HEALTHCARE] = 0.125,
+		[NEED.STORAGE] = 0.125
 	}
 
 	r.requires_large_river = false

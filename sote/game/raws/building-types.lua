@@ -18,7 +18,6 @@ local tabb = require "engine.table"
 ---@field government boolean only the government can build this building!
 ---@field tile_improvement boolean
 ---@field needed_infrastructure number
----@field ai_weight number how much the AI will prioritize building this building
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 ---@field new fun(self:BuildingType, o:BuildingType):BuildingType
 ---@field get_tooltip fun(self:BuildingType):string
@@ -49,7 +48,6 @@ function BuildingType:new(o)
 	r.tile_improvement = false
 	r.movable = false
 	r.needed_infrastructure = 0
-	r.ai_weight = 1
 	r.spotting = 0
 
 	for k, v in pairs(o) do

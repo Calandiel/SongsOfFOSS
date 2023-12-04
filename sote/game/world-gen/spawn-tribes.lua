@@ -68,6 +68,11 @@ local function make_new_realm(capitol, race, culture, faith)
 	capitol.name = culture.language:get_random_province_name()
 	capitol:research(RAWS_MANAGER.technologies_by_name['paleolithic-knowledge']) -- initialize technology...
 
+	-- give some stuff to capitol
+	capitol.infrastructure = love.math.random() * 10 + 10
+	capitol.local_wealth = love.math.random() * 10 + 10
+	capitol.trade_wealth = love.math.random() * 10 + 10
+
 
 	-- print("test battle")
 	-- local size_1, size_2 = love.math.random(50) + 10, love.math.random(50) + 10

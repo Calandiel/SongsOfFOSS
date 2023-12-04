@@ -30,6 +30,11 @@ EconomicEffects.reasons = {
     Inheritance = "inheritance",
     Trade = "trade",
     Warband = "warband",
+    Water = "water",
+    Food = "food",
+    OtherNeeds = "other needs",
+    Forage = "forage",
+    Work = "work",
     Other = "other"
 }
 
@@ -325,6 +330,10 @@ function EconomicEffects.buy(character, good, amount)
     character.inventory[good] = (character.inventory[good] or 0) + amount
     province.local_storage[good] = (province.local_storage[good] or 0) - amount
 
+    local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
+    local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
+    province.local_prices[good] = price + price_change
+
     -- print('!!! BUY')
 
     if WORLD:does_player_see_province_news(province) then
@@ -347,7 +356,7 @@ function EconomicEffects.sell(character, good, amount)
     -- can_sell validates province
     ---@type Province
     local province = character.province
-    local price = ev.get_pessimistic_local_price(province, good, amount)
+    local price = ev.get_pessimistic_local_price(province, good, amount, true)
 
     if character.price_memory[good] == nil then
         character.price_memory[good] = price
@@ -361,6 +370,10 @@ function EconomicEffects.sell(character, good, amount)
     province.trade_wealth = province.trade_wealth - cost
     character.inventory[good] = (character.inventory[good] or 0) - amount
     province.local_storage[good] = (province.local_storage[good] or 0) + amount
+
+    local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
+    local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
+    province.local_prices[good] = price - price_change
 
     -- print('!!! SELL')
 

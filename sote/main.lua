@@ -39,6 +39,9 @@ PROFILER.total_decision_character_tick = 0
 --- this constant is used in vegetation growth
 --- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
 VEGETATION_GROWTH = 0.005
+PRICE_SIGNAL_PER_UNIT = 0.05
+PRICE_SIGNAL_PER_STOCKPILED_UNIT = 0.02
+PRICE_DIFFUSION = 0.05
 
 DISPLAY_INCOME_OWNER_RATIO = 0
 

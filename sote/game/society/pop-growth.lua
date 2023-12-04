@@ -64,7 +64,7 @@ function pg.growth(province)
 						base = math.min(1, base)
 
 						local fem = 100 / (100 + pp.race.males_per_hundred_females)
-						local offspring = fem * pp.race.female_food_needs + (1 - fem) * pp.race.male_food_needs
+						local offspring = fem * pp.race.female_needs[NEED.FOOD] + (1 - fem) * pp.race.male_needs[NEED.FOOD]
 						local rate = 1 / offspring
 
 						if love.math.random() < sex_prob * birth_rate * base * rate * pp.race.fecundity then
@@ -85,17 +85,15 @@ function pg.growth(province)
 	end
 	-- Add new pops...
 	for _, pp in pairs(to_add) do
-		---@type POP
-		local ppp = pp
-		province:add_pop(
-			POP:new(
-				ppp.race,
-				ppp.faith,
-				ppp.culture,
-				love.math.random() > ppp.race.males_per_hundred_females / (100 + ppp.race.males_per_hundred_females),
-				0
-			)
+		local newborn = POP:new(
+			pp.race,
+			pp.faith,
+			pp.culture,
+			love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
+			0
 		)
+		newborn.parent = pp
+		province:add_pop(newborn)
 	end
 end
 

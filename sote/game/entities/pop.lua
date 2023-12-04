@@ -7,6 +7,8 @@
 ---@field age number
 ---@field name string
 ---@field savings number
+---@field parent POP?
+---@field basic_needs_satisfaction number from 0 to 1
 ---@field popularity table<Realm, number|nil>
 ---@field traits table<Trait, Trait>
 ---@field employer Building?
@@ -59,6 +61,8 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.inventory = {}
 	r.price_memory = {}
 	r.successor_of = {}
+
+	r.basic_needs_satisfaction = 0
 
 	r.name = culture.language:get_random_name()
 	r.savings = 0

@@ -6,7 +6,7 @@ local inspector = {}
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 30, ut.BASE_HEIGHT * 15, "left", "up")
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 35, ut.BASE_HEIGHT * 15, "left", "up")
 	return panel
 end
 
