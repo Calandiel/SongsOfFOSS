@@ -152,7 +152,7 @@ function realm.RewardFlag:new(i)
 	local o = {}
 	---@diagnostic disable-next-line: no-unknown
 	for k, v in pairs(i) do
-	---@diagnostic disable-next-line: no-unknown
+		---@diagnostic disable-next-line: no-unknown
 		o[k] = v
 	end
 	setmetatable(o, realm.RewardFlag)
@@ -167,7 +167,7 @@ function realm.Realm:new()
 	---@type Realm
 	local o = {}
 
-	-- print("a")
+	print("new realm")
 
 	o.name = "<realm>"
 	o.wars = {}

@@ -686,7 +686,8 @@ function gam.draw()
 		---@type Queue<Province>
 		local qq = require "engine.queue":new()
 		local to_draw = flood_fill
-		local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+		local center_tile = WORLD.tiles
+			[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
 		visited[center_tile.province] = center_tile.province
 		qq:enqueue(center_tile.province)
 		while qq:length() > 0 and to_draw > 0 do
@@ -776,7 +777,8 @@ function gam.draw()
 			---@type Queue<Province>
 			local qq = require "engine.queue":new()
 			local to_draw = flood_fill
-			local center_tile = WORLD.tiles[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+			local center_tile = WORLD.tiles
+				[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
 			visited[center_tile.province] = center_tile.province
 			qq:enqueue(center_tile.province)
 			while qq:length() > 0 and to_draw > 0 do
@@ -1231,9 +1233,9 @@ function gam.draw()
 		local total = PROFILER.total_tick_time
 		local events = PROFILER.total_deferred_events_time
 		local actions = PROFILER.total_deferred_actions_time
-		local vegetation =  PROFILER.total_vegetation_growth_tick
+		local vegetation = PROFILER.total_vegetation_growth_tick
 		local pop_growth = PROFILER.total_pop_growth_tick
-		local province =  PROFILER.total_province_tick
+		local province = PROFILER.total_province_tick
 		local realm = PROFILER.total_realm_tick
 		local decision = PROFILER.total_decision_tick
 		local decision_character = PROFILER.total_decision_character_tick

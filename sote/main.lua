@@ -56,6 +56,7 @@ bs.registerClass("Race", require "game.raws.race")
 bs.registerClass("Resource", require "game.raws.resources")
 bs.registerClass("Technology", require "game.raws.technologies")
 bs.registerClass("TradeGood", require "game.raws.trade-goods")
+bs.registerClass("TradeGoodUseCase", require "game.raws.trade-goods-use-case")
 -- Entities
 bs.registerClass("Building", require "game.entities.building".Building)
 bs.registerClass("ClimateCell", require "game.entities.climate-cell".ClimateCell)
