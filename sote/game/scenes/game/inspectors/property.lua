@@ -6,6 +6,7 @@ local ut = require "game.ui-utils"
 local trade_good = require "game.raws.raws-utils".trade_good
 
 local economy_values = require "game.raws.values.economical"
+local economy_effects = require "game.raws.effects.economic"
 
 local inspector = {}
 
@@ -275,7 +276,24 @@ function inspector.draw(gam)
                 v = v
                 return tabb.size(v.workers)
             end
-        }
+        },
+        {
+            header = "X",
+            render_closure = function(rect, k, v)
+                ---@type Building
+                v = v
+                if ut.icon_button(ASSETS.get_icon("hammer-drop.png"), rect, "Destroy building") then
+                    economy_effects.destroy_building(v)
+                end
+            end,
+            width = base_unit * 1,
+            value = function(k, v)
+                ---@type Building
+                v = v
+                return v.type.description
+            end,
+            active = true
+        },
     }
 
     ---@type Building[]

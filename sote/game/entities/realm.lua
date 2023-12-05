@@ -163,7 +163,7 @@ function realm.Realm:new()
 	---@type Realm
 	local o = {}
 
-	print("new realm")
+	-- print("new realm")
 
 	o.name = "<realm>"
 	o.wars = {}
