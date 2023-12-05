@@ -184,7 +184,7 @@ function rea.run(realm)
 
 	-- update tribute ratio
 	budget.tribute.ratio = 0.0
-	if tabb.size(realm.paying_tribute_to) == 0 then
+	if tabb.size(realm.paying_tribute_to) > 0 then
 		budget.tribute.ratio = 0.1
 	end
 

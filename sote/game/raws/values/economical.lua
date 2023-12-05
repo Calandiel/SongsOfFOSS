@@ -104,7 +104,7 @@ end
 function eco_values.get_pessimistic_local_price(province, trade_good, amount, stockpile)
     local sold = province.local_production[trade_good] or 0
     local bought = province.local_consumption[trade_good] or 0
-    local trade_volume = sold + bought + 0.001
+    local trade_volume = sold + bought + 0.001 + amount
 
     local sale_price_decrease = PRICE_SIGNAL_PER_STOCKPILED_UNIT * amount / trade_volume
     if not stockpile then

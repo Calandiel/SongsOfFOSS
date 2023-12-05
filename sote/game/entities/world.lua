@@ -188,6 +188,9 @@ function world.load(file)
 	---@type World|nil
 	WORLD = bs.loadLoveFile(file, WORLD_PROGRESS)
 
+	OPTIONS = require "game.options".load()
+	require "game.options".verify()
+
 	WORLD_PROGRESS.is_loading = false
 end
 
