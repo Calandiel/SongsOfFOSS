@@ -98,6 +98,8 @@ ut.NUMBER_MODE = {
 	NUMBER = 4,
 	INTEGER = 5,
 	PERCENTAGE = 6,
+	LOG = 7,
+	SQRT = 8
 }
 
 ---@enum NameMode
@@ -111,10 +113,22 @@ ut.NAME_MODE = {
 ---@param rect Rect
 ---@param negative boolean
 local function render_money(number, rect, negative)
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, 1, 1)
-	if number < 0 and not negative or number > 0 and negative then
-		r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, 1, 1)
+	local saturation = 1 / (1 + math.exp(-math.abs(number / 10)))
+
+	local sign = number / math.abs(number)
+	if negative then
+		sign = -sign
 	end
+	local hue = 40 + saturation * 40 * sign
+
+	-- local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, saturation, 1)
+	-- local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, saturation, 1)
+	-- if number < 0 and not negative or number > 0 and negative then
+	-- 	r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, saturation, 1)
+	-- end
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
@@ -123,6 +137,31 @@ local function render_money(number, rect, negative)
 	love.graphics.setColor(cr, cg, cb, ca)
 end
 
+local function render_log(number, rect)
+	local hue = math.min(math.log(number + 1) * 10, 360)
+	local saturation = 1
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text(ut.to_fixed_point2(number), rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
+
+local function render_sqrt(number, rect)
+	local hue = math.min(math.sqrt(number) * 10, 360)
+	local saturation = 1
+
+	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local cr, cg, cb, ca = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, a)
+	ut.data_font()
+	ui.right_text(ut.to_fixed_point2(number), rect)
+	ut.main_font()
+	love.graphics.setColor(cr, cg, cb, ca)
+end
 
 ---comment
 ---@param number number
@@ -208,6 +247,10 @@ function ut.generic_number_field(name_or_icon, data, rect, tooltip, mode, name_m
 		ut.main_font()
 	elseif mode == ut.NUMBER_MODE.PERCENTAGE then
 		render_percentage(data, rect, negative)
+	elseif mode == ut.NUMBER_MODE.LOG then
+		render_log(data, rect)
+	elseif mode == ut.NUMBER_MODE.SQRT then
+		render_sqrt(data, rect)
 	end
 
 	-- tooltip
@@ -328,6 +371,46 @@ end
 ---@param panel boolean?
 function ut.balance_entry(name, data, rect, tooltip, negative, panel)
 	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.BALANCE, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param icon_name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.balance_entry_icon(icon_name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(icon_name, data, rect, tooltip, ut.NUMBER_MODE.BALANCE, ut.NAME_MODE.ICON, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.log_number_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.LOG, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.sqrt_number_entry(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.SQRT, ut.NAME_MODE.NAME, negative, panel)
+end
+
+---@param name string
+---@param data number
+---@param rect Rect
+---@param tooltip string?
+---@param negative boolean?
+---@param panel boolean?
+function ut.sqrt_number_entry_icon(name, data, rect, tooltip, negative, panel)
+	ut.generic_number_field(name, data, rect, tooltip, ut.NUMBER_MODE.SQRT, ut.NAME_MODE.ICON, negative, panel)
 end
 
 ---Draws a money field with icon

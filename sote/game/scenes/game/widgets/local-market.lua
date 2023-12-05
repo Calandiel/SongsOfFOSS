@@ -81,7 +81,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.supply or 0), rect)
+                ut.sqrt_number_entry("", v.supply or 0, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -95,7 +95,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.consumption or 0), rect)
+                ut.sqrt_number_entry("", v.consumption or 0, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -109,7 +109,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.demand or 0), rect)
+                ut.sqrt_number_entry("", v.demand or 0, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -226,7 +226,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
+                ut.sqrt_number_entry("", v.stockpile, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -306,7 +306,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.inventory), rect)
+                ut.sqrt_number_entry("", v.inventory, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)

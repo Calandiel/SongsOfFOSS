@@ -102,10 +102,9 @@ function re.draw(gam)
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							ui.left_text(good, rect)
-							ui.right_text(
-								tostring(math.floor(100 * amount) / 100) .. " (" ..
-								tostring(math.floor(100 * delta) / 100) .. ")",
+							uit.sqrt_number_entry(
+								good,
+								amount or 0,
 								rect
 							)
 						end
@@ -180,37 +179,37 @@ function re.draw(gam)
 					a.y = a.y + uit.BASE_HEIGHT
 				end
 			},
-			{
-				text = "MAR",
-				tooltip = "Market",
-				closure = function()
-					---@type table<TradeGoodReference, number>
-					local goods = {}
-					for good, _ in pairs(realm.bought) do
-						goods[good] = ev.get_realm_price(realm, good)
-					end
-					for good, _ in pairs(realm.sold) do
-						goods[good] = ev.get_realm_price(realm, good)
-					end
-					gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
-					gam.realm_market_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
-						if entry > 0 then
-							---@type TradeGoodReference
-							local good, price = tabb.nth(goods, entry)
-							local resource = trade_good(good)
+			-- {
+			-- 	text = "MAR",
+			-- 	tooltip = "Market",
+			-- 	closure = function()
+			-- 		---@type table<TradeGoodReference, number>
+			-- 		local goods = {}
+			-- 		for good, _ in pairs(realm.bought) do
+			-- 			goods[good] = ev.get_realm_price(realm, good)
+			-- 		end
+			-- 		for good, _ in pairs(realm.sold) do
+			-- 			goods[good] = ev.get_realm_price(realm, good)
+			-- 		end
+			-- 		gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
+			-- 		gam.realm_market_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
+			-- 			if entry > 0 then
+			-- 				---@type TradeGoodReference
+			-- 				local good, price = tabb.nth(goods, entry)
+			-- 				local resource = trade_good(good)
 
-							local w = rect.width
-							rect.width = rect.height
-							ui.image(ASSETS.get_icon(resource.icon), rect)
+			-- 				local w = rect.width
+			-- 				rect.width = rect.height
+			-- 				ui.image(ASSETS.get_icon(resource.icon), rect)
 
-							rect.width = w
-							rect.x = rect.x + rect.height
-							rect.width = rect.width - rect.height
-							uit.money_entry(good, price, rect, "price")
-						end
-					end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_market_scrollbar)
-				end
-			},
+			-- 				rect.width = w
+			-- 				rect.x = rect.x + rect.height
+			-- 				rect.width = rect.width - rect.height
+			-- 				uit.money_entry(good, price, rect, "price")
+			-- 			end
+			-- 		end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_market_scrollbar)
+			-- 	end
+			-- },
 			{
 				text = "EDU",
 				tooltip = "Education and research",

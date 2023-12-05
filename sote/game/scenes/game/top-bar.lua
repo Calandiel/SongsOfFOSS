@@ -146,9 +146,9 @@ function tb.draw(gam)
 			"My personal savings")
 		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
 
-		uit.data_entry_icon(
+		uit.balance_entry_icon(
 			"duality-mask.png",
-			uit.to_fixed_point2(pv.popularity(character, character.province.realm)),
+			pv.popularity(character, character.province.realm),
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 			"My popularity")
 
@@ -186,9 +186,9 @@ function tb.draw(gam)
 
 		-- Food
 		local amount = character.province.realm.resources["food"] or 0
-		uit.data_entry_icon(
+		uit.sqrt_number_entry_icon(
 			"noodles.png",
-			uit.to_fixed_point2(amount),
+			amount,
 			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
 			"Food")
 
@@ -202,7 +202,7 @@ function tb.draw(gam)
 		local amount = character.province.realm:get_average_mood()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
-		uit.data_entry_icon("duality-mask.png", uit.to_fixed_point2(amount), tr, trs)
+		uit.balance_entry_icon("duality-mask.png", amount, tr, trs)
 
 		-- Quality of life
 		local amount = character.province.realm:get_average_needs_satisfaction()

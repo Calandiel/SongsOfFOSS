@@ -19,11 +19,13 @@ return function (rect, name, realm, budget_category, disable_control, bg)
         ui.style.panel_inside = old_style
     end
 
-    rect.width = rect.width / 8
+    rect.width = rect.width / 6
 
     -- first part - label for category!
     uit.data_entry(name, "", rect, "Budget breakdown")
     rect.x = rect.x + rect.width
+
+    rect.width = uit.BASE_HEIGHT * 4
 
     -- second part - current spendings
     uit.money_entry("", budget_category.to_be_invested, rect, "To be invested")

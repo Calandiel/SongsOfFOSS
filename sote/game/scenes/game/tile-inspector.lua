@@ -61,7 +61,7 @@ local function header_panel(gam, tile, panel)
 		tile.province.mood,
 		infra_panel,
 		"Local mood",
-		uit.NUMBER_MODE.NUMBER,
+		uit.NUMBER_MODE.BALANCE,
 		uit.NAME_MODE.ICON
 	)
 

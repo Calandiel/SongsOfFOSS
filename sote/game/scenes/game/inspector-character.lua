@@ -93,7 +93,7 @@ function window.draw(game)
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
 
     local popularity = pv.popularity(character, character.province.realm)
-    ut.data_entry_icon("duality-mask.png", ut.to_fixed_point2(popularity), popularity_panel, "Popularity")
+    ut.balance_entry_icon("duality-mask.png", popularity, popularity_panel, "Popularity")
 
 
     local province = character.province
