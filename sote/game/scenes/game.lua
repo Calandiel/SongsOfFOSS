@@ -167,6 +167,8 @@ function gam.init()
 	gam.planet_mesh = require "game.scenes.game.planet".get_planet_mesh()
 	gam.planet_shader = require "game.scenes.game.planet-shader".get_shader()
 	gam.paused = true
+	gam.ticks_without_map_update = 0
+
 	gam.speed = 1
 
 	gam.tile_province_image_data = nil
@@ -231,9 +233,15 @@ function gam.load_camera_position_or_set_to_default()
 	end
 end
 
+
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
+	if gam.paused and gam.ticks_without_map_update > world.ticks_per_hour * 24 * 10  then
+		gam.ticks_without_map_update = 0
+		gam.refresh_map_mode(true)
+	end
+
 	gam.speed = gam.speed or 1
 	gam.time_since_last_tick = gam.time_since_last_tick + dt
 	if gam.time_since_last_tick > 1 / 30 then
@@ -245,6 +253,7 @@ function gam.update(dt)
 			local start = love.timer.getTime()
 			for _ = 1, 4 ^ gam.speed do
 				WORLD:tick()
+				gam.ticks_without_map_update = gam.ticks_without_map_update + 1
 				if love.timer.getTime() - start > 1 / 15 then
 					break
 				end
@@ -424,6 +433,7 @@ function gam.draw()
 		-- We need to draw the event and return!
 		-- Doing it here will prevent rendering of the normal UI
 		-- benri da yo ne
+		gam.paused = true
 		require "game.scenes.game.event-screen".draw(gam)
 		return
 	end
