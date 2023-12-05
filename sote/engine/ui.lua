@@ -1333,22 +1333,25 @@ function ui.scrollview(
 		:vertical()
 		:build()
 
+	local old_color = ui.style.button_inside
+
+	local color_1 = {r=0, g=0, b=0, a=0.05}
+	local color_2 = {r=1, g=1, b=1, a=0.05}
+
 	for i = current, last do
 		local item_rect = layout:next(
 			main_panel.width,
 			individual_height
 		)
+		ui.style.button_inside = color_1
 		if (i % 2) == 0 then
-			local prev_in = ui.style.panel_inside
-			local prev_outl = ui.style.panel_outline
-			ui.style.panel_inside = {r=1, g=1, b=1, a=0.05}
-			ui.style.panel_outline = {r=0, g=0, b=0, a=0.0}
-			ui.panel(item_rect)
-			ui.style.panel_inside = prev_in
-			ui.style.panel_outline = prev_outl
+			ui.style.button_inside = color_2
 		end
+		ui.button_panel(item_rect, 2, false)
 		render_closure(i, item_rect)
 	end
+
+	ui.style.button_inside = old_color
 
 
 	-- Draw the slider bar
