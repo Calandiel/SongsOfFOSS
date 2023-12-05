@@ -39,7 +39,6 @@ local tabb = require "engine.table"
 ---@field entity_counter number -- a global counter for entities...
 ---@field tick fun(self:World)
 ---@field emit_notification fun(self:World, notification:string)
----@field emit_immediate_event fun(self:World, event:string, target:Character, associated_data:table|nil)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
 ---@field deferred_events_queue Queue<ScheduledEvent>
@@ -218,6 +217,9 @@ end
 ---@param root Character
 ---@param associated_data table
 function world.World:emit_immediate_event(event, root, associated_data)
+	if root == self.player_character then
+		print('player event: ', event)
+	end
 	self.events_queue:enqueue_front({
 		event, root, associated_data
 	})
@@ -302,7 +304,7 @@ end
 function world.World:event_tick(eve, root, dat)
 	if WORLD.player_character == root then
 		-- This is a player event!
-		-- print("player event")
+		-- print("player event options: ", eve)
 		WORLD.pending_player_event_reaction = true
 		return true
 	else
