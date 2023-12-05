@@ -90,7 +90,7 @@ function eco_values.get_local_price(province, trade_good)
     -- local price =  data.base_price * (bought + 1) / (sold + 1)
 
     if province.local_prices[trade_good] == nil then
-        province.local_prices[trade_good] = data.base_price
+        province.local_prices[trade_good] = 0.01
     end
     return province.local_prices[trade_good]
 end

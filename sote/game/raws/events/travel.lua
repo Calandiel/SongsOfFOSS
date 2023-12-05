@@ -174,10 +174,23 @@ local function load()
                     end
                 end
                 local known_price = root.price_memory[name]
-                local sold_amount = math.max(1, math.floor((root.inventory[name] or 0) * math.random() * 0.2))
-                local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
 
+                local sold_amount = root.inventory[name] or 0
                 local can_sell, _ = et.can_sell(root, name, sold_amount)
+
+                while
+                    not can_sell
+                    and _ == et.TRADE_FAILURE_REASONS.LOCAL_WEALTH_IS_TOO_LOW
+                    and sold_amount > 1
+                do
+                    sold_amount = math.floor(sold_amount / 2)
+                    can_sell, _ = et.can_sell(root, name, sold_amount)
+                end
+
+                sold_amount = math.max(1, sold_amount)
+
+                can_sell, _ = et.can_sell(root, name, sold_amount)
+                local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
 
                 if can_sell then
                     ---@type EventOption

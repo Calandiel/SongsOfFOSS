@@ -6,6 +6,8 @@ local pv = require "game.raws.values.political"
 
 local TRAIT_ICONS = require "game.raws.traits.trait_to_icon"
 
+local trade_good = require "game.raws.raws-utils".trade_good
+
 local characters_list_widget = require "game.scenes.game.widgets.character-list"
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
 local character_name_widget = require "game.scenes.game.widgets.character-name"
@@ -17,12 +19,13 @@ local decision_target_primary = nil
 local decision_target_secondary = nil
 
 local traits_slider = 0
+local inventory_slider = 0
 
 ---@return Rect
 function window.rect()
     local unit = ut.BASE_HEIGHT
     local fs = ui.fullscreen()
-    return fs:subrect(unit * 2, unit * 2, unit * 16, unit * 34, "left", "up")
+    return fs:subrect(unit * 2, unit * 2, unit * (16 + 4), unit * 34, "left", "up")
 end
 
 function window.mask()
@@ -51,6 +54,36 @@ function window.draw(game)
     local portrait = ui_panel:subrect(0, 0, unit * 4, unit * 4, "left", "up")
     local coa = ui_panel:subrect(unit * 3 - 2, unit * 3 - 2, unit, unit, "left", "up")
     require "game.scenes.game.widgets.portrait" (portrait, character)
+
+    local inventory_panel = ui_panel:subrect(0, 0, 4 * unit, ui_panel.height, "right", "up")
+
+    inventory_slider = ut.scrollview(
+        inventory_panel,
+        function (index, rect)
+            if index > 0 then
+                local good = tabb.nth(RAWS_MANAGER.trade_goods_by_name, index)
+                local amount = character.inventory[good] or 0
+                local good_entity = trade_good(good)
+
+                local tooltip = "Amount of "
+                    .. good_entity.name
+                    .. " "
+                    .. character.name
+                    .. " owns. They think that its price is "
+                    .. ut.to_fixed_point2(character.price_memory[good] or 0)
+                ut.sqrt_number_entry_icon(
+                    good_entity.icon,
+                    amount or 0,
+                    rect,
+                    tooltip
+                )
+            end
+        end,
+        UI_STYLE.scrollable_list_large_item_height,
+        tabb.size(RAWS_MANAGER.trade_goods_by_name),
+        unit,
+        inventory_slider
+    )
 
 
     -- name panel
