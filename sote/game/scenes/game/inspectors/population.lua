@@ -27,6 +27,10 @@ function inspector.draw(gam)
 
     ui.panel(rect)
 
+    if ut.icon_button(ASSETS.icons["cancel.png"], rect:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", "up")) then
+        gam.inspector = "tile"
+    end
+
     local province = gam.selected.province
 
     if province == nil then
