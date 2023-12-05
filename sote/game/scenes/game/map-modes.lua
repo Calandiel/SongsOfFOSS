@@ -273,19 +273,24 @@ function mm.set_up_map_modes(game_thingy)
 		"province", "carrying_capacity", "tile_improvements", "realm_income", "local_income", "coastlines",
 		"races", "cultures", "faiths", "military_target", "military", "diplomacy"
 	}
+	table.sort(game_thingy.map_mode_tabs.all)
 	game_thingy.map_mode_tabs.political = {
 		"realms", "province", "atlas", "diplomacy"
 	}
+	table.sort(game_thingy.map_mode_tabs.political)
 	game_thingy.map_mode_tabs.demographic = {
 		"population", "population_1000", "population_density", "technologies", "races", "cultures", "faiths",
 		"military_target", "military",
 	}
+	table.sort(game_thingy.map_mode_tabs.demographic)
 	game_thingy.map_mode_tabs.debug = {
 		"yellow", "selected_tile", "debug", "itcz", "coastlines",
 	}
+	table.sort(game_thingy.map_mode_tabs.debug)
 	game_thingy.map_mode_tabs.economic = {
 		"tile_improvements", "realm_income", "local_income"
 	}
+	table.sort(game_thingy.map_mode_tabs.economic)
 end
 
 return mm

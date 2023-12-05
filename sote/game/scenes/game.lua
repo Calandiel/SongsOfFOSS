@@ -1031,6 +1031,7 @@ function gam.draw()
 
 		local scrollview_rect = panel:subrect(0, 0, 300, mm_panel_height - ut.BASE_HEIGHT - 10, "right", 'down')
 		local mms = gam.map_mode_tabs[gam.map_mode_selected_tab]
+
 		gam.map_mode_slider = ut.scrollview(
 			scrollview_rect,
 			function(i, rect)
