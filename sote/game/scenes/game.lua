@@ -1564,7 +1564,9 @@ function gam.refresh_map_mode(preserve_efficiency)
 	end
 
 	-- Apply the color
-	for _, province in pairs(WORLD.provinces) do
+	local provinces = WORLD.provinces
+
+	for _, province in pairs(provinces) do
 		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 		local can_set = true
 		local player_character = WORLD.player_character
@@ -1580,21 +1582,26 @@ function gam.refresh_map_mode(preserve_efficiency)
 				local r = tile.real_r
 				local g = tile.real_g
 				local b = tile.real_b
-				gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+
+				local result_pixel = {r, g, b, 1}
+				local result_improvement = {0, 0, 0, 1}
+
 				if tile.tile_improvement and gam.map_mode == "atlas" then
-					gam.tile_improvement_texture_data:setPixel(x, y, 1, 0, 0, 1)
-				else
-					gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
+					result_improvement[1] = 1
 				end
 
 				if gam.selected.building_type ~= nil then
 					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+					result_pixel[1] = r
+					result_pixel[2] = g
+					result_pixel[3] = b
 
 					if tile.province == province and eff == best_eff then
 						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-						gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+						result_pixel[1] = r
+						result_pixel[2] = g
+						result_pixel[3] = b
 					end
 				end
 
@@ -1603,6 +1610,16 @@ function gam.refresh_map_mode(preserve_efficiency)
 					r, g, b, a = realm_neighbor_neighbor_data(tile)
 				end
 				gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
+
+				gam.tile_color_image_data:setPixel(
+					x, y,
+					result_pixel[1], result_pixel[2], result_pixel[3], result_pixel[4]
+				)
+
+				gam.tile_improvement_texture_data:setPixel(
+					x, y,
+					result_improvement[1], result_improvement[2], result_improvement[3], result_improvement[4]
+				)
 			else
 				gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 				gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)

@@ -74,7 +74,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	capitol.trade_wealth = love.math.random() * 10 + 10
 
 	-- give initial research budget
-	r.budget.education.budget = 2
+	r.budget.education.budget = 1
 
 	-- starting treasury
 	r.budget.treasury = love.math.random() * 20 + 100
@@ -83,7 +83,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	for i = 0, 2 do
 		local n = tabb.size(capitol.technologies_researchable)
 		if n > 0 then
-			r.budget.education.budget = r.budget.education.budget + 2
+			r.budget.education.budget = r.budget.education.budget + 1
 			local i = love.math.random(n)
 			---@type Technology
 			local tech = tabb.nth(capitol.technologies_researchable, i)

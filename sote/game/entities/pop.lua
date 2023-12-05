@@ -64,6 +64,7 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.successor_of = {}
 
 	r.basic_needs_satisfaction = 0
+	r.life_needs_satisfaction = 0
 
 	r.name = culture.language:get_random_name()
 	r.savings = 0
