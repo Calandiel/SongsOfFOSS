@@ -307,6 +307,10 @@ local function load()
 				base_string = base_string
 					.. "\n You are not allowed to designate offices."
 			end
+			if root.realm.capitol_guard == nil then
+				base_string = base_string
+					.. "\n You need to establish guard first."
+			end
 			if not ot.valid_guard_leader(primary_target, root.realm) then
 				base_string = base_string
 					.. "\n Target is not a valid candidate."

@@ -119,7 +119,10 @@ function PoliticalEffects.transfer_power(realm, target)
 		WORLD:emit_notification(depose_message .. " " .. new_leader_message)
 	end
 
-	realm.leader.rank = ranks.NOBLE
+	if realm.leader then
+		realm.leader.rank = ranks.NOBLE
+	end
+
 	target.rank = ranks.CHIEF
 	PoliticalEffects.remove_overseer(realm)
 

@@ -1,9 +1,9 @@
 local d = {}
 
-local COST_WORKSHOP = 100
-local COST_AREA = 40
-local COST_MINE = 80
-local COST_FARM = 60
+local COST_WORKSHOP = 80
+local COST_AREA = 35
+local COST_MINE = 70
+local COST_FARM = 50
 
 function d.load()
 	local BuildingType = require "game.raws.building-types"
@@ -50,7 +50,7 @@ function d.load()
 		b = 1,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('water-carrier'),
-		construction_cost = 20,
+		construction_cost = COST_AREA,
 		upkeep = 0.01,
 		needed_infrastructure = 1,
 		ai_weight = 0.05,

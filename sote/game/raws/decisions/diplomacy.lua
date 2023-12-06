@@ -385,6 +385,89 @@ local function load()
 		end
 	}
 
+
+	Decision.CharacterProvince:new {
+		name = 'colonize-province',
+		ui_name = "Colonize targeted province",
+		tooltip = function (root, primary_target)
+            if root.busy then
+                return "You are too busy to consider it."
+            end
+			if root.realm.capitol:population() < 11 then
+				return "Your population is too low"
+			end
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return "You have no right to order your tribe to do this"
+			end
+			if root.province ~= root.realm.capitol then
+				return "You has to be in your capital to organize colonisation"
+			end
+			return "Colonize "
+				.. primary_target.name
+				.. ". Our colonists will organise a new tribe which will pay tribute to us."
+        end,
+		sorting = 1,
+		primary_target = "province",
+		secondary_target = 'none',
+		base_probability = 0.9 , -- Almost every month
+		pretrigger = function(root)
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if not primary_target.center.is_land then
+				return false
+			end
+			if root.realm.capitol:population() < 11 then
+				return false
+			end
+			if primary_target.realm ~= nil then
+				return false
+			end
+			if not primary_target:neighbors_realm_tributary(root.realm) then
+				return false
+			end
+            return true
+		end,
+		available = function(root, primary_target)
+            if root.busy then
+                return false
+            end
+			if not ot.decides_foreign_policy(root, root.realm) then
+				return false
+			end
+			if root.province ~= root.realm.capitol then
+				return false
+			end
+			return true
+		end,
+        ai_target = function(root)
+			return tabb.random_select_from_set(root.realm.capitol.neighbors), true
+        end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.realm.capitol:population() > 20 and primary_target.realm == nil then
+				return 1
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			root.busy = true
+
+			---@type MigrationData
+			local migration_data = {
+				invasion = false,
+				origin_province = root.province,
+				target_province = primary_target
+			}
+
+			WORLD:emit_immediate_action('migration-colonize', root, migration_data)
+		end
+	}
 end
 
 return load

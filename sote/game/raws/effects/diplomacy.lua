@@ -1,4 +1,5 @@
-local ef = require "game.raws.effects.economic"
+local economy_effects = require "game.raws.effects.economic"
+local politics_effects = require "game.raws.effects.political"
 
 local effects = {}
 
@@ -29,8 +30,40 @@ function effects.set_tributary(overlord, tributary)
 		WORLD:emit_notification("Our tribe now pays tribute to " .. overlord.name .. ". Outrageous!")
 	end
 
-	ef.remove_raiding_flags(overlord, tributary)
-	ef.remove_raiding_flags(tributary, overlord)
+	economy_effects.remove_raiding_flags(overlord, tributary)
+	economy_effects.remove_raiding_flags(tributary, overlord)
+end
+
+---Removes the tributary relationship and explores provinces for the overlord
+---@param overlord Realm
+---@param tributary Realm
+function effects.unset_tributary(overlord, tributary)
+	overlord.tributaries[tributary] = nil
+	tributary.paying_tribute_to[overlord] = nil
+end
+
+---Clears diplomatic relationships of the realms
+---@param realm Realm
+function effects.clear_diplomacy(realm)
+	for _, tributary_realm in pairs(realm.tributaries) do
+		tributary_realm.paying_tribute_to[realm] = nil
+	end
+	for _, overlord_realm in pairs(realm.paying_tribute_to) do
+		overlord_realm.tributaries[realm] = nil
+	end
+
+	realm.paying_tribute_to = {}
+	realm.tributaries = {}
+end
+
+
+---Clears realm and its diplomatic status.
+---Does not handle characters because it's very context-dependent
+---and it's better to do it separately
+---@param realm Realm
+function effects.dissolve_realm_and_clear_diplomacy(realm)
+	effects.clear_diplomacy(realm)
+	politics_effects.dissolve_realm(realm)
 end
 
 return effects

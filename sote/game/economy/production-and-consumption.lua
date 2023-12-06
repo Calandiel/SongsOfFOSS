@@ -448,16 +448,6 @@ function pro.run(province)
 			-- 	end
 			-- end
 
-			current_savings = current_savings - total_cost * ratio
-
-			if current_savings ~= current_savings then
-				error(
-					"INVALID ATTEMPT OF POP TO BUY A NEED: total_cost = "
-					.. tostring(total_cost)
-					.. " ratio = "
-					.. tostring(ratio)
-				)
-			end
 
 			total_needs = total_needs + total_demand
 			total_satisfied = total_satisfied + total_demand * ratio
@@ -472,8 +462,26 @@ function pro.run(province)
 			-- demand and consumption should be separate one day...
 			for _, good in pairs(need.goods) do
 				local demand = total_demand * old_inverted_prices_exp[good] / total_exp
-				record_consumption(good, demand * ratio)
-				record_demand(good, demand * ratio_could_buy)
+				if demand * ratio < (available_last_time[good] or 0) then
+					record_consumption(good, demand * ratio)
+					current_savings = current_savings - demand * ratio * old_prices[good]
+
+					if current_savings ~= current_savings then
+						error(
+							"INVALID ATTEMPT OF POP TO BUY A NEED: total_cost = "
+							.. tostring(total_cost)
+							.. " ratio = "
+							.. tostring(ratio)
+						)
+					end
+				end
+
+				-- life needs always generate demand
+				if need.life_need and false then
+					record_demand(good, demand)
+				else
+					record_demand(good, demand * ratio_could_buy)
+				end
 			end
 		end
 
