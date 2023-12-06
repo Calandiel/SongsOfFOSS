@@ -167,6 +167,8 @@ function gam.init()
 	gam.planet_mesh = require "game.scenes.game.planet".get_planet_mesh()
 	gam.planet_shader = require "game.scenes.game.planet-shader".get_shader()
 	gam.paused = true
+	gam.ticks_without_map_update = 0
+
 	gam.speed = 1
 
 	gam.tile_province_image_data = nil
@@ -231,9 +233,15 @@ function gam.load_camera_position_or_set_to_default()
 	end
 end
 
+
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
+	if gam.paused and gam.ticks_without_map_update > world.ticks_per_hour * 24 * 10  then
+		gam.ticks_without_map_update = 0
+		gam.refresh_map_mode(true)
+	end
+
 	gam.speed = gam.speed or 1
 	gam.time_since_last_tick = gam.time_since_last_tick + dt
 	if gam.time_since_last_tick > 1 / 30 then
@@ -245,6 +253,7 @@ function gam.update(dt)
 			local start = love.timer.getTime()
 			for _ = 1, 4 ^ gam.speed do
 				WORLD:tick()
+				gam.ticks_without_map_update = gam.ticks_without_map_update + 1
 				if love.timer.getTime() - start > 1 / 15 then
 					break
 				end
@@ -424,6 +433,7 @@ function gam.draw()
 		-- We need to draw the event and return!
 		-- Doing it here will prevent rendering of the normal UI
 		-- benri da yo ne
+		gam.paused = true
 		require "game.scenes.game.event-screen".draw(gam)
 		return
 	end
@@ -1021,6 +1031,7 @@ function gam.draw()
 
 		local scrollview_rect = panel:subrect(0, 0, 300, mm_panel_height - ut.BASE_HEIGHT - 10, "right", 'down')
 		local mms = gam.map_mode_tabs[gam.map_mode_selected_tab]
+
 		gam.map_mode_slider = ut.scrollview(
 			scrollview_rect,
 			function(i, rect)
@@ -1564,7 +1575,9 @@ function gam.refresh_map_mode(preserve_efficiency)
 	end
 
 	-- Apply the color
-	for _, province in pairs(WORLD.provinces) do
+	local provinces = WORLD.provinces
+
+	for _, province in pairs(provinces) do
 		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 		local can_set = true
 		local player_character = WORLD.player_character
@@ -1580,21 +1593,26 @@ function gam.refresh_map_mode(preserve_efficiency)
 				local r = tile.real_r
 				local g = tile.real_g
 				local b = tile.real_b
-				gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+
+				local result_pixel = {r, g, b, 1}
+				local result_improvement = {0, 0, 0, 1}
+
 				if tile.tile_improvement and gam.map_mode == "atlas" then
-					gam.tile_improvement_texture_data:setPixel(x, y, 1, 0, 0, 1)
-				else
-					gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
+					result_improvement[1] = 1
 				end
 
 				if gam.selected.building_type ~= nil then
 					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-					gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+					result_pixel[1] = r
+					result_pixel[2] = g
+					result_pixel[3] = b
 
 					if tile.province == province and eff == best_eff then
 						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-						gam.tile_color_image_data:setPixel(x, y, r, g, b, 1)
+						result_pixel[1] = r
+						result_pixel[2] = g
+						result_pixel[3] = b
 					end
 				end
 
@@ -1603,6 +1621,16 @@ function gam.refresh_map_mode(preserve_efficiency)
 					r, g, b, a = realm_neighbor_neighbor_data(tile)
 				end
 				gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
+
+				gam.tile_color_image_data:setPixel(
+					x, y,
+					result_pixel[1], result_pixel[2], result_pixel[3], result_pixel[4]
+				)
+
+				gam.tile_improvement_texture_data:setPixel(
+					x, y,
+					result_improvement[1], result_improvement[2], result_improvement[3], result_improvement[4]
+				)
 			else
 				gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
 				gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)

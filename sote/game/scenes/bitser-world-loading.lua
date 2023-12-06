@@ -21,5 +21,9 @@ return function ()
 	---@type World|nil
 	WORLD = WORLD
 	-- WORLD = bs.loadLoveFile(DEFINES.world_to_load, WORLD_PROGRESS)
+
+	OPTIONS = require "game.options".load()
+	require "game.options".verify()
+
 	WORLD_PROGRESS.is_loading = false
 end

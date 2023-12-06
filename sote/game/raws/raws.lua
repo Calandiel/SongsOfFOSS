@@ -15,10 +15,12 @@ return function()
 		g = 89,
 		b = 91,
 	}
+	require "game.raws.needs"
 	require "game.raws.race-loader".load()
 	require "game.raws.jobs-loader".load()
 	require "game.raws.trade-goods-use-case-loader".load()
 	require "game.raws.trade-goods-loader".load()
+
 	require 'game.raws.resource-loader'.load()
 
 	print('production methods')

@@ -115,12 +115,43 @@ HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = nil
 function dem.prices()
 	local c = HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY
 	if c ~= nil then
+		-- calculate stats
+		local total = 0
+		local mean = 0
+
+		local provinces = WORLD.provinces
+		if WORLD.player_character then
+			provinces = WORLD.player_character.realm.known_provinces
+		end
+
+		for _, province in pairs(provinces) do
+			if province.realm ~= nil then
+				local price = ev.get_local_price(province, c)
+				total = total + 1
+				mean = mean + price
+			end
+		end
+		mean = mean / total
+		print("mean of price: ", mean)
+
+		local std = 0
+		for _, province in pairs(provinces) do
+			if province.realm ~= nil then
+				local price = ev.get_local_price(province, c)
+				std = std + (price - mean) * (price - mean)
+			end
+		end
+		std = math.sqrt(std / (total - 1)) + 0.001 -- to avoid division by zero
+		print("std of price: ", std)
+
 		for _, tile in ipairs(WORLD.tiles) do
 			ut.set_default_color(tile)
 			if tile.is_land then
 				if tile.province.realm ~= nil then
 					local price = ev.get_local_price(tile.province, c)
-					ut.hue_from_value(tile, 1 - math.log(price, 2) / 10)
+					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)
+					local normalized = (price - mean) / std
+					ut.hue_from_value(tile, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
 				end
 			end
 		end

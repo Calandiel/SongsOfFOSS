@@ -27,7 +27,7 @@ end
 local function change_reward_button(x)
     local current_savings = WORLD.player_character.savings
     return function(rect)
-        if ut.text_button(ut.to_fixed_point2(x), rect) then
+        if ut.money_button("", x, rect) then
             reward = math.min(current_savings, math.max(0, reward + x))
         end
     end
@@ -89,7 +89,7 @@ function window.draw(game)
                 end,
                 function(rect)
                     ui.panel(rect)
-                    ut.data_entry("", ut.to_fixed_point2(reward), rect, "Current reward")
+                    ut.money_entry("", reward, rect, "Current reward")
                 end
             }, rect, rect.width / 2, 0)
         end,

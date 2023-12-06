@@ -79,20 +79,22 @@ function inspector.draw(gam)
             owner = nil
         end
 
-        for _, province in pairs(character.realm.provinces) do
-            for _, building in pairs(province.buildable_buildings) do
-                if not seen[building] then
-                    table.insert(available_buildings, building)
-                    buildable[building] = false
-                else
-                    seen[building] = true
-                end
+        -- for _, province in pairs(character.realm.provinces) do
+        for _, building in pairs(character.province.buildable_buildings) do
+            if not seen[building] then
+                table.insert(available_buildings, building)
+                buildable[building] = false
+            else
+                seen[building] = true
+            end
 
-                if province:can_build(funds, building, province.center, overseer, public_flag) then
+            for _, tile in pairs(character.province.tiles) do
+                if character.province:can_build(funds, building, tile, overseer, public_flag) then
                     buildable[building] = true
                 end
             end
         end
+        -- end
     end
 
     rect.height = rr - base_unit

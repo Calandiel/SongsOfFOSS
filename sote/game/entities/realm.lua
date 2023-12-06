@@ -65,10 +65,6 @@ end
 ---@field realm_id number
 ---@field name string
 ---@field budget Budget
----@field get_education_efficiency fun(self:Realm):number
----@field get_average_mood fun(self:Realm):number
----@field get_total_population fun(self:Realm):number
----@field get_court_efficiency fun(self:Realm):number
 ---@field r number
 ---@field g number
 ---@field b number
@@ -167,7 +163,7 @@ function realm.Realm:new()
 	---@type Realm
 	local o = {}
 
-	print("new realm")
+	-- print("new realm")
 
 	o.name = "<realm>"
 	o.wars = {}
@@ -400,6 +396,19 @@ function realm.Realm:get_average_mood()
 		pop = pop + po
 	end
 	return mood / pop
+end
+
+---@return number
+function realm.Realm:get_average_needs_satisfaction()
+	local sum = 0
+	local total_population = 0
+	for _, province in pairs(self.provinces) do
+		for _, pop in pairs(province.all_pops) do
+			sum = sum + pop.basic_needs_satisfaction + pop.life_needs_satisfaction
+			total_population = total_population + 1
+		end
+	end
+	return sum / total_population
 end
 
 ---@return number

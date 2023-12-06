@@ -13,11 +13,27 @@ local co = {}
 ---@param overseer POP?
 ---@return number
 local function construction_in_province(province, funds, excess, owner, overseer)
+	-- if infrastructure is too low, do not build, invest into infra instead
+	if province:get_infrastructure_efficiency() < 0.75 then
+		if funds - excess > 50 then
+			province.infrastructure_investment = province.infrastructure_investment + 20
+			funds = funds - 50
+		end
+		return funds
+	end
+
+	local public_flag = false
+	if owner then
+		public_flag = false
+	else
+		public_flag = true
+	end
+
 	-- set weigths based on predicted profits
 	---@type table<BuildingType, number>
 	local exp_profits = {}
 	local random_pop = tabb.random_select_from_set(province.all_pops)
-	-- if pop is nil, then buildings is the last thing we need
+	-- if pop is nil, then buildings are the last thing we need
 	if random_pop == nil then
 		return funds
 	end
@@ -29,6 +45,20 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			random_pop.race,
 			random_pop.female
 		)
+
+		-- sanity scaling + clamping
+		predicted_profit = math.min(predicted_profit / 10, 20)
+
+		local tile = nil
+		-- select random tile because it's cheaper:
+		if building_type.tile_improvement then
+			tile = tabb.random_select_from_set(province.tiles)
+		end
+
+		-- check if building is possible:
+		if not province:can_build(funds, building_type, tile, overseer, public_flag) then
+			predicted_profit = 0
+		end
 
 		---@type number
 		sum_of_exponents = sum_of_exponents + math.exp(predicted_profit)
@@ -52,6 +82,13 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			end
 		end
 
+		-- if WORLD.player_character then
+		-- 	if WORLD.player_character.province == province then
+		-- 		print(to_build.name)
+		-- 		print(exp_profits[to_build])
+		-- 	end
+		-- end
+
 		-- if there's nothing to build, do not build
 		if to_build == nil then
 			return funds
@@ -63,41 +100,27 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		end
 
 		-- Only build if there are unemployed pops...
-		if to_build.production_method:total_jobs() <= province:get_unemployment() then
-			local tile = nil
-			if to_build.tile_improvement then
-				local tt = tabb.size(province.tiles)
-				tile = tabb.nth(province.tiles, love.math.random(tt))
-			end
+		-- Actually let's build anyway, because simulation is much more robust now
 
-			local public_flag = false
-			if owner then
-				public_flag = false
-			else
-				public_flag = true
-			end
-
-			if province.can_build(province, math.huge, to_build, tile, overseer, public_flag) then
-				local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
-
-
-				--- Calandiel comment:
-				-- If we don't have enough money, just adjust the likelihood (this will be easier on the AI and accurate on long term averages)
-				--- Peter's comment:
-				-- sounds strange, someone should consider changing it in a future
-				-- changing it, because otherwise ai builds things far too fast
-				-- if love.math.random() < funds / construction_cost then
-				if funds >= construction_cost then
-					-- We can build! But only build if we have enough excess money to pay for the upkeep...
-
-					if excess >= to_build.upkeep then
-						--Only build if the efficiency isn't tiny (otherwise we could pull productive hunter gatherers from their jobs to unproductive farming jobs...)
-						if to_build.production_method:get_efficiency(tile) > 0.65 then
-							EconomicEffects.construct_building(to_build, province, tile, owner)
-							funds = math.max(0, funds - construction_cost)
-						end
-					end
+		local tile = nil
+		local best_eff = 0
+		-- finding good enough tile if building requires it:
+		if to_build.tile_improvement then
+			for _, candidate in pairs(province.tiles) do
+				local candidate_eff = to_build.production_method:get_efficiency(candidate)
+				if (tile == nil or candidate_eff > best_eff) and candidate.tile_improvement == nil then
+					tile = candidate
+					best_eff = candidate_eff
 				end
+			end
+		end
+
+		if province:can_build(funds, to_build, tile, overseer, public_flag) then
+			local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
+			-- We can build! But only build if we have enough excess money to pay for the upkeep...
+			if excess >= to_build.upkeep then
+				EconomicEffects.construct_building(to_build, province, tile, owner)
+				funds = math.max(0, funds - construction_cost)
 			end
 		end
 	end

@@ -51,7 +51,7 @@ function d.load()
 		g = 1,
 		b = 1,
 		category = "service",
-		base_price = 0.75,
+		base_price = 0.01,
 	}
 	add_use_case("water", "water", 1)
 	TradeGood:new {

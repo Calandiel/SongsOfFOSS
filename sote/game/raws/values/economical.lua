@@ -82,31 +82,41 @@ end
 ---@param trade_good TradeGoodReference
 ---@return number price
 function eco_values.get_local_price(province, trade_good)
-    local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
-    local bought = province.local_consumption[trade_good] or 0
+    -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
+    -- local bought = province.local_consumption[trade_good] or 0
     local data = good(trade_good)
 
     -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
-    return data.base_price * (bought + 1) / (sold + 1)
+    -- local price =  data.base_price * (bought + 1) / (sold + 1)
+
+    if province.local_prices[trade_good] == nil then
+        province.local_prices[trade_good] = 0.01
+    end
+    return province.local_prices[trade_good]
 end
 
 ---comment
 ---@param province Province
 ---@param trade_good TradeGoodReference
 ---@param amount number
+---@param stockpile boolean
 ---@return number price
-function eco_values.get_pessimistic_local_price(province, trade_good, amount)
-    local sold = (province.local_production[trade_good] or 0) + amount + (province.local_storage[trade_good] or 0) / 12
+function eco_values.get_pessimistic_local_price(province, trade_good, amount, stockpile)
+    local sold = province.local_production[trade_good] or 0
     local bought = province.local_consumption[trade_good] or 0
-    local data = good(trade_good)
+    local trade_volume = sold + bought + 0.001 + amount
 
-    -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
-    local pessimistic_price = data.base_price * (bought + 1) / (sold + 1)
+    local sale_price_decrease = PRICE_SIGNAL_PER_STOCKPILED_UNIT * amount / trade_volume
+    if not stockpile then
+        sale_price_decrease = PRICE_SIGNAL_PER_UNIT * amount / (trade_volume + amount)
+    end
+
+    local pessimistic_price = math.max(0, (eco_values.get_local_price(province, trade_good) - sale_price_decrease))
     local optimistic_price = eco_values.get_local_price(province, trade_good)
 
     -- We need to take an average because otherwise selling by one will be far
     -- more profitable. Which rewards boring micromanagement.
-    return (optimistic_price + pessimistic_price) /2
+    return (optimistic_price + pessimistic_price) / 2
 end
 
 ---@param race Race
@@ -134,9 +144,9 @@ function eco_values.race_output_multiplier(race, female, building_type)
     end
 
     if female then
-        return math.sqrt(race.female_efficiency[building_type.production_method.job_type])
+        return race.female_efficiency[building_type.production_method.job_type]
     end
-    return math.sqrt(race.male_efficiency[building_type.production_method.job_type])
+    return race.male_efficiency[building_type.production_method.job_type]
 end
 
 ---@param province Province
@@ -151,7 +161,7 @@ function eco_values.projected_income_building_type(province, building_type, race
         income = income - spent
     end
     for input, amount in pairs(building_type.production_method.outputs) do
-        local price = eco_values.get_pessimistic_local_price(province, input, amount)
+        local price = eco_values.get_pessimistic_local_price(province, input, amount, false)
         local earnt = price * amount * eco_values.race_output_multiplier(race, female, building_type)
         ---@type number
         income = income + earnt
@@ -210,12 +220,34 @@ function eco_values.projected_income(building, race, female, prices, efficiency,
         local price = prices[output]
         local earnt = price * amount * efficiency * throughput_boost * output_boost
         income = income + earnt
+
         if update_building_stats then
             building.earn_from_outputs[output] = (building.earn_from_outputs[output] or 0) + earnt
         end
     end
 
     return income, input_boost, output_boost, throughput_boost
+end
+
+---Estimates shortage_modifier
+---@param prod ProductionMethod
+function eco_values.estimate_shortage(province, prod)
+    local input_satisfaction = 0
+    for input, amount in pairs(prod.inputs) do
+        local required_input = amount
+        local available =
+            (province.local_production[input] or 0)
+            - (province.local_consumption[input] or 0)
+            + (province.local_storage[input] or 0)
+
+        local ratio = math.max(0, available) / required_input
+        input_satisfaction = math.min(input_satisfaction, ratio)
+    end
+    local shortage_modifier =
+        (1 - prod.self_sourcing_fraction) * (1 - input_satisfaction)
+        + 1 * input_satisfaction
+
+    return shortage_modifier
 end
 
 return eco_values

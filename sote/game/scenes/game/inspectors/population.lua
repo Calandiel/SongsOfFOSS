@@ -6,7 +6,7 @@ local inspector = {}
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 30, ut.BASE_HEIGHT * 15, "left", "up")
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 37, ut.BASE_HEIGHT * 15, "left", "up")
 	return panel
 end
 
@@ -26,6 +26,10 @@ function inspector.draw(gam)
     local rect = get_main_panel()
 
     ui.panel(rect)
+
+    if ut.icon_button(ASSETS.icons["cancel.png"], rect:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", "up")) then
+        gam.inspector = "tile"
+    end
 
     local province = gam.selected.province
 

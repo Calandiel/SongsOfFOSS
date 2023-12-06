@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 local path = require "game.ai.pathfinding"
 
 local province = require "game.entities.province"
+local realm = require "game.entities.realm"
 
 local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
@@ -12,7 +13,7 @@ local AI_VALUE = require "game.raws.values.ai_preferences"
 local TRAIT = require "game.raws.traits.generic"
 
 local pv = require "game.raws.values.political"
-local de = require "game.raws.effects.diplomacy"
+local diplomacy_events = require "game.raws.effects.diplomacy"
 local economic_effects = require "game.raws.effects.economic"
 local military_effects = require "game.raws.effects.military"
 local political_effects = require "game.raws.effects.political"
@@ -157,16 +158,15 @@ function load()
 					end
 
 					-- destroy invaded realm
-					political_effects.dissolve_realm(target_realm)
+					diplomacy_events.dissolve_realm(target_realm)
 					origin_realm:add_province(associated_data.target_province)
 				else
 					for _, character in pairs(migration_pool_characters_locals) do
 						character.realm = target_realm
 						character.rank = character_ranks.NOBLE
 					end
-
 					-- destroy merged realm
-					political_effects.dissolve_realm(origin_realm)
+					diplomacy_events.dissolve_realm(origin_realm)
 				end
 
 				-- remove old province from the realm
@@ -185,10 +185,129 @@ function load()
 				associated_data.target_province.name = origin_realm.leader.culture.language:get_random_culture_name()
 			end
 
-			-- explore neighbour lands
-			for _, target in pairs(associated_data.target_province.neighbors) do
-				origin_realm.known_provinces[target] = target
+			origin_realm:explore(origin_realm.capitol)
+		end
+	}
+
+	Event:new {
+		name = "migration-colonize",
+		automatic = false,
+		on_trigger = function(self, root, associated_data)
+			root.busy = false
+
+			---@type MigrationData
+			associated_data = associated_data
+
+			-- TODO:
+			-- move all this into separate effects
+
+			---@type POP[]
+			local migration_pool_pops = {}
+			---@type Technology[]
+			local migration_pool_technology = {}
+
+
+			local expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province)
+
+			if expedition_leader == nil then
+				return
 			end
+
+			local expedition_size = 6
+			local candidates = 0
+
+			-- populate temporary tables with not drafted pops
+			for _, pop in pairs(associated_data.origin_province.all_pops) do
+				if not pop.drafted then
+					table.insert(migration_pool_pops, pop)
+					candidates = candidates + 1
+				end
+				if candidates >= expedition_size then
+					break
+				end
+			end
+
+			for _, technology in pairs(associated_data.origin_province.technologies_present) do
+				table.insert(migration_pool_technology, technology)
+			end
+
+			-- move pops from origin province
+			for _, pop in pairs(migration_pool_pops) do
+				if not pop.employer or not pop.employer.type.movable then
+					associated_data.origin_province:fire_pop(pop)
+				end
+				associated_data.origin_province:take_away_pop(pop)
+
+				associated_data.target_province:add_pop(pop)
+			end
+
+			-- move character
+			associated_data.origin_province:remove_character(expedition_leader)
+			associated_data.target_province:add_character(expedition_leader)
+
+			-- set new home of character
+			associated_data.origin_province:unset_home(expedition_leader)
+			associated_data.target_province:set_home(expedition_leader)
+
+			-- move technology
+			for _, technology in pairs(migration_pool_technology) do
+				associated_data.target_province:research(technology)
+			end
+
+			-- handle realms
+			local target_realm = associated_data.target_province.realm
+
+			---@type Realm
+			local colonizer_realm = associated_data.origin_province.realm
+
+			-- create new realm
+			-- TODO: MOVE TO SEPARATE FUNCTION WHEN THE NEED WILL ARISE
+			local new_realm = realm.Realm:new()
+			new_realm.capitol = associated_data.target_province
+			new_realm.primary_race = colonizer_realm.primary_race
+			new_realm.primary_culture = colonizer_realm.primary_culture
+			new_realm.primary_faith = colonizer_realm.primary_faith
+
+			-- Initialize realm colors
+			new_realm.r = math.max(0, math.min(1, (colonizer_realm.primary_culture.r + (love.math.random() * 0.4 - 0.2))))
+			new_realm.g = math.max(0, math.min(1, (colonizer_realm.primary_culture.g + (love.math.random() * 0.4 - 0.2))))
+			new_realm.b = math.max(0, math.min(1, (colonizer_realm.primary_culture.b + (love.math.random() * 0.4 - 0.2))))
+
+			new_realm.name = colonizer_realm.primary_culture.language:get_random_realm_name()
+			new_realm:explore(associated_data.target_province)
+
+
+
+			-- Mark the province as settled for processing...
+
+			if target_realm then
+				-- if it was an invasion, turn local nobles into nobles of invading realm
+				for _, character in pairs(associated_data.target_province.home_to) do
+					if character.realm == target_realm then
+						character.realm = new_realm
+						character.rank = character_ranks.NOBLE
+					end
+				end
+
+				-- destroy invaded realm
+				diplomacy_events.dissolve_realm(target_realm)
+				new_realm:add_province(associated_data.target_province)
+			else
+				-- replace old province with new one
+				new_realm:add_province(associated_data.target_province)
+				WORLD:set_settled_province(associated_data.target_province)
+			end
+
+			if associated_data.target_province.name == "<uninhabited>" then
+				associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name()
+			end
+
+			political_effects.transfer_power(new_realm, expedition_leader)
+
+			-- explore neighbour lands
+			new_realm:explore(new_realm.capitol)
+
+			diplomacy_events.set_tributary(colonizer_realm, new_realm)
 		end
 	}
 

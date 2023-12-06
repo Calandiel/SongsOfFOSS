@@ -30,7 +30,6 @@ local prov = {}
 ---@field all_pops table<POP, POP> -- all pops
 ---@field characters table<Character, Character>
 ---@field home_to table<Character, Character> Set of characters which think of this province as their home
----@field neighbors_realm fun(self:Province, realm:Realm):boolean Returns whether or not a province borders a given realm
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
@@ -44,7 +43,9 @@ local prov = {}
 ---@field research fun(self:Province, technology:Technology)
 ---@field local_production table<TradeGoodReference, number>
 ---@field local_consumption table<TradeGoodReference, number>
+---@field local_demand table<TradeGoodReference, number>
 ---@field local_storage table<TradeGoodReference, number>
+---@field local_prices table<TradeGoodReference, number|nil>
 ---@field local_wealth number
 ---@field trade_wealth number
 ---@field local_income number
@@ -125,7 +126,9 @@ function prov.Province:new(fake_flag)
 	o.local_resources_location = {}
 	o.local_production = {}
 	o.local_consumption = {}
+	o.local_demand = {}
 	o.local_storage = {}
+	o.local_prices = {}
 	o.local_wealth = 0
 	o.trade_wealth = 0
 	o.local_income = 0
@@ -636,11 +639,24 @@ function prov.Province:get_dominant_race()
 	return best
 end
 
+---Returns whether or not a province borders a given realm
 ---@param realm Realm
 ---@return boolean
 function prov.Province:neighbors_realm(realm)
 	for _, n in pairs(self.neighbors) do
 		if n.realm == realm then
+			return true
+		end
+	end
+	return false
+end
+
+---Returns whether or not a province borders a given realm
+---@param realm Realm
+---@return boolean
+function prov.Province:neighbors_realm_tributary(realm)
+	for _, n in pairs(self.neighbors) do
+		if n.realm and n.realm:is_realm_in_hierarchy(realm) then
 			return true
 		end
 	end

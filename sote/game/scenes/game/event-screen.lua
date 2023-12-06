@@ -49,10 +49,14 @@ function ev.draw(gam)
 				if i > 0 then
 					local opt = opts[i]
 					if uit.text_button(opt.text, rect, opt.tooltip) then
-						opt.outcome()
 						-- Clear the event from the queue!
 						WORLD.events_queue:dequeue()
 						WORLD.pending_player_event_reaction = false
+
+						-- And only then handle option:
+						-- option might create instant events in the front of queue!
+						opt.outcome()
+						print(opt.text)
 					end
 				end
 			end, uit.BASE_HEIGHT, #opts, uit.BASE_HEIGHT, gam.event_scrollbar)

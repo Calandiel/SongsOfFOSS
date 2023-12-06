@@ -8,7 +8,7 @@ function opt.init()
 		['volume'] = 0,
 		['fullscreen'] = true,
 		['rotation'] = false,
-		['update_map'] = true,
+		['update_map'] = false,
 		['treasury_ledger'] = 120,
 		['debug_mode'] = false,
 		['zoom_sensitivity'] = 1,

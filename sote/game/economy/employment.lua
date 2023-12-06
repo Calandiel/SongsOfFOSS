@@ -7,14 +7,22 @@ local economy_values = require "game.raws.values.economical"
 ---@param province Province
 function emp.run(province)
 	-- Sample random pop and try to employ it
-	local pop = tabb.random_select_from_set(province.all_pops)
+	---@type table<POP, POP>
+	local eligible_pops = {}
+	for _, pop in pairs(province.all_pops) do
+		if pop.age > pop.race.teen_age then
+			eligible_pops[pop] = pop
+		end
+	end
+
+	local pop = tabb.random_select_from_set(eligible_pops)
 
 	-- no need to employ anyone in empty province
 	if pop == nil then
 		return
 	end
 
-	local exp_base = 1.1
+	local exp_base = 2
 	local exp_modifier = math.log(exp_base)
 
 	-- cache prices:
@@ -27,39 +35,50 @@ function emp.run(province)
 	-- raw values
 	---@type table<Building, number>
 	local profits = {}
+	---@type table<Building, number>
+	local raw_profits = {}
 	for _, building in pairs(province.buildings) do
 		local num_of_workers = tabb.size(building.workers)
-		local profit = 0
-		if num_of_workers > 0 then
-			profit = building.income_mean + building.subsidy_last
-		else
-			profit =
-				economy_values.projected_income(
-					building,
-					pop.race,
-					pop.female,
-					prices,
-					1,
-					false
-				)
-			profit = profit + building.subsidy
-		end
-
-		-- sanity check to avoid exp overflow
-		profits[building] = math.min(100, profit) + love.math.random() / 10
 
 		if num_of_workers >= building.type.production_method:total_jobs() then
 			-- don"t hire
 			profits[building] = nil
+		else
+
+			local profit = 0
+
+			if num_of_workers > 0 then
+				profit = building.income_mean + building.subsidy_last
+
+				-- if profit is almost negative, eventually fire a worker
+				if profit < 0.01 and love.math.random() < 0.7 then
+					local pop = tabb.random_select_from_set(building.workers)
+					if pop then
+						province:fire_pop(pop)
+					end
+				end
+			else
+				local shortage_modifier = economy_values.estimate_shortage(
+					province,
+					building.type.production_method
+				)
+				profit =
+					economy_values.projected_income(
+						building,
+						pop.race,
+						pop.female,
+						prices,
+						shortage_modifier,
+						false
+					)
+				profit = profit + building.subsidy
+			end
+			-- sanity check to avoid exp overflow
+			raw_profits[building] = profit
+			profits[building] = math.min(31, profit / 10) + love.math.random() / 10
 		end
 
-		-- if profit is almost negative, eventually fire a worker
-		if profit < 0.01 and love.math.random() < 0.05 then
-			local pop = tabb.random_select_from_set(building.workers)
-			if pop then
-				province:fire_pop(pop)
-			end
-		end
+
 	end
 
 	-- softmax
@@ -76,6 +95,14 @@ function emp.run(province)
 	local hire_building = nil
 	for building, profit in pairs(profits) do
 		local softmax = math.exp(exp_modifier * profit) / sum_of_exponents
+
+		-- if WORLD.player_character then
+		-- 	if WORLD.player_character.province == province then
+		-- 		print(building.type.name)
+		-- 		print(softmax)
+		-- 	end
+		-- end
+
 		if dice < softmax then
 			hire_building = building
 			break
@@ -119,18 +146,9 @@ function emp.run(province)
 			local pop_current_income = pop.employer.last_income / tabb.size(pop.employer.workers)
 
 			-- TODO: move to cultural value
-			local likelihood_of_changing_job = 0.1
+			local likelihood_of_changing_job = 0.6
 
-			-- local recalculater_hire_profit = economy_values.projected_income(
-			-- 	hire_building,
-			-- 	pop.race,
-			-- 	pop.female,
-			-- 	prices,
-			-- 	1,
-			-- 	false
-			-- )
-
-			-- recalculater_hire_profit = recalculater_hire_profit + hire_building.subsidy
+			local recalculater_hire_profit = raw_profits[hire_building]
 
 			-- if WORLD.player_character then
 			-- 	if WORLD.player_character.province == province then
@@ -140,7 +158,7 @@ function emp.run(province)
 			-- 	end
 			-- end
 
-			if (love.math.random() < likelihood_of_changing_job) and (profits[hire_building] > pop_current_income) then
+			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
 				-- change job!
 				province:fire_pop(pop)
 				province:employ_pop(pop, hire_building)

@@ -25,10 +25,6 @@ local function macrodecision(gam, tile, rect, x, y, size)
         return
     end
 
-    if not decision.pretrigger(player) then
-        return
-    end
-
     if not decision.clickable(player, tile.province) then
         return
     end
@@ -36,7 +32,7 @@ local function macrodecision(gam, tile, rect, x, y, size)
     local tooltip = decision.tooltip(player, tile.province)
     local available = decision.available(player, tile.province)
 
-    if ut.icon_button(ASSETS.icons["circle.png"], rect, tooltip, available) then
+    if ut.icon_button(ASSETS.icons["circle.png"], rect, tooltip, available and decision.pretrigger(player)) then
         return function ()
             decision.effect(player, tile.province)
         end

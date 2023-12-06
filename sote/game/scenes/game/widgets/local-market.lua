@@ -36,6 +36,7 @@ end
 ---@field icon string
 ---@field supply number
 ---@field demand number
+---@field consumption number
 ---@field balance number
 ---@field buy_price number
 ---@field sell_price number
@@ -80,7 +81,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.supply or 0), rect)
+                ut.sqrt_number_entry("", v.supply or 0, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -90,11 +91,25 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
+            header = "Consumption",
+            render_closure = function(rect, k, v)
+                ---@type ItemData
+                v = v
+                ut.sqrt_number_entry("", v.consumption or 0, rect)
+            end,
+            width = base_unit * 4,
+            value = function(k, v)
+                ---@type ItemData
+                v = v
+                return v.consumption or 0
+            end
+        },
+        {
             header = "Demand",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.demand or 0), rect)
+                ut.sqrt_number_entry("", v.demand or 0, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -211,7 +226,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.stockpile), rect)
+                ut.sqrt_number_entry("", v.stockpile, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -291,7 +306,7 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.data_entry("", ut.to_fixed_point2(v.inventory), rect)
+                ut.sqrt_number_entry("", v.inventory, rect)
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -314,7 +329,8 @@ return function(province, ui_panel, base_unit, gam)
             width = base_unit * 2,
             value = function (k, v)
                 return v.name
-            end
+            end,
+            active = true
         }
     }
 
@@ -330,6 +346,7 @@ return function(province, ui_panel, base_unit, gam)
 
         local consumption = province.local_consumption
         local production = province.local_production
+        local demand = province.local_demand
 
         local character = WORLD.player_character
 
@@ -342,8 +359,9 @@ return function(province, ui_panel, base_unit, gam)
         end
 
         for good_reference, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-            local supply = production[good_reference] or 0
-            local demand = consumption[good_reference] or 0
+            local good_supply = production[good_reference] or 0
+            local good_demand = demand[good_reference] or 0
+            local good_consumption = consumption[good_reference] or 0
             local inventory = 0
             if character then
                 inventory = character.inventory[good_reference] or 0
@@ -352,12 +370,13 @@ return function(province, ui_panel, base_unit, gam)
                 data = good,
                 name = good.name,
                 icon = good.icon,
-                supply = supply,
-                demand = demand,
-                balance = supply - demand,
+                supply = good_supply,
+                demand = good_demand,
+                consumption = good_consumption,
+                balance = good_supply - good_consumption,
                 stockpile = province.local_storage[good_reference] or 0,
                 buy_price = ev.get_local_price(province, good_reference),
-                sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT),
+                sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT, true),
                 inventory = inventory
             }
         end
