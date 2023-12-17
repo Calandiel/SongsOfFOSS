@@ -6,6 +6,7 @@ function d.load()
 	local cat = require "game.raws.raws-utils".trade_category
 	local tec = require "game.raws.raws-utils".technology
 	local bio = require "game.raws.raws-utils".biome
+	local bedrock = require "game.raws.raws-utils".bedrock
 
 	Resource:new {
 		name = 'flint',
@@ -15,8 +16,8 @@ function d.load()
 		g = 0.75,
 		b = 0.775,
 		--required_biome
-		--required_bedrock
-		--base_frequency
+		required_bedrock = { bedrock('limestone'), bedrock('chalk') },
+		base_frequency = 300
 		--coastal
 		--land
 		--water
@@ -25,6 +26,16 @@ function d.load()
 		--minimum_elevation
 		--maximum_elevation
 		--ice_age
+	}
+	Resource:new {
+		name = 'obsidian',
+		icon = 'stone-stack.png',
+		description = 'obsidian',
+		r = 0.75,
+		g = 0.75,
+		b = 0.775,
+		required_bedrock = { bedrock('rhyolite') },
+		base_frequency = 50
 	}
 	Resource:new {
 		name = 'cowry-shells',

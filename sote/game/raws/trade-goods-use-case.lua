@@ -1,12 +1,14 @@
+---@alias TradeGoodUseCaseReference string
+
 ---@class TradeGoodUseCase
----@field name TradeGoodReference
+---@field name TradeGoodUseCaseReference
 ---@field icon string
 ---@field description string
 ---@field r number
 ---@field g number
 ---@field b number
 ---@field new fun(self:TradeGoodUseCase, o:TradeGoodUseCase):TradeGoodUseCase
----@field goods table<TradeGood, number> Maps trade goods belonging to this use case to their weights
+---@field goods table<TradeGoodReference, number> Maps trade goods belonging to this use case to their weights
 
 
 ---@class TradeGoodUseCase

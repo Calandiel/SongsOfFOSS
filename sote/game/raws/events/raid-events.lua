@@ -476,7 +476,7 @@ local function load()
 			local army = associated_data.army
 
 			realm:disband_army(army)
-			realm.capitol.mood = realm.capitol.mood - 1
+			realm.capitol.mood = realm.capitol.mood - 0.025
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Raid attempt of " .. raider.name .. " in " ..
 					target.target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")

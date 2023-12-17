@@ -33,7 +33,6 @@ local prov = {}
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
----@field population_weight fun(self:Province):number
 ---@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
 ---@field employ_pop fun(self:Province, pop:POP, building:Building)
 ---@field potential_job fun(self:Province, building:Building):Job?

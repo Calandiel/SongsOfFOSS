@@ -88,7 +88,8 @@ function Race:new(o)
 		[NEED.FURNITURE] = 1,
 		[NEED.TOOLS] = 0.125,
 		[NEED.HEALTHCARE] = 0.125,
-		[NEED.STORAGE] = 0.125
+		[NEED.STORAGE] = 0.125,
+		[NEED.LUXURY] = 1
 	}
 
 	r.male_efficiency = {
@@ -111,7 +112,8 @@ function Race:new(o)
 		[NEED.FURNITURE] = 1,
 		[NEED.TOOLS] = 0.125,
 		[NEED.HEALTHCARE] = 0.125,
-		[NEED.STORAGE] = 0.125
+		[NEED.STORAGE] = 0.125,
+		[NEED.LUXURY] = 1
 	}
 
 	r.requires_large_river = false

@@ -10,8 +10,8 @@ function pg.growth(province)
 	local cc = province.foragers_limit
 	local pop = province:population_weight()
 
-	local death_rate = 1 / 12
-	local birth_rate = 1 / 12
+	local death_rate = 1 / 12 / 12
+	local birth_rate = 1 / 12 / 12
 
 	-- local food_good = 'food'
 	-- local food_income = province.realm.production[food_good] or 0
@@ -34,7 +34,7 @@ function pg.growth(province)
 	for _, pp in pairs(province.all_pops) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
-		elseif pop > cc and pp.basic_needs_satisfaction < 0.4 then
+		elseif pop > cc and pp.basic_needs_satisfaction < 0.2 then
 			-- Deaths due to starvation!
 			if love.math.random() < (1 - cc / pop) * death_rate * pp.race.carrying_capacity_weight then
 				to_remove[#to_remove + 1] = pp
@@ -46,34 +46,30 @@ function pg.growth(province)
 			end
 			if pp.age > pp.race.adult_age then
 				-- if it's a female adult ...
-				if pop < cc then
-					if love.math.random() < (1 - pop / cc) * birth_rate * pp.race.fecundity / pp.race.carrying_capacity_weight then
-						-- yay! spawn a new pop!
-						to_add[#to_add + 1] = pp
-					end
-				end
-				if pp.basic_needs_satisfaction > 0.6 then
-					-- This pop growth is caused by overproduction of resources in the realm.
-					-- The chance for growth should then depend on the amount of food produced
-					if province.realm.expected_food_consumption > 0 then
-						-- Make sure that the expected food consumption has been calculated by this point!
+				-- commenting out because it leads to instant explosion of population in low population provinces
+				-- if pop < cc then
+				-- 	if love.math.random() < (1 - pop / cc) * birth_rate * pp.race.fecundity / pp.race.carrying_capacity_weight then
+				-- 		-- yay! spawn a new pop!
+				-- 		to_add[#to_add + 1] = pp
+				-- 	end
+				-- end
 
-						-- Calculate the fraction symbolizing the amount of "overproduction" of food
-						local base = pp.life_needs_satisfaction
-						-- Clamp the growth
-						base = math.min(1, base)
+				-- This pop growth is caused by overproduction of resources in the realm.
+				-- The chance for growth should then depend on the amount of food produced
+				-- Make sure that the expected food consumption has been calculated by this point!
 
-						local fem = 100 / (100 + pp.race.males_per_hundred_females)
-						local offspring = fem * pp.race.female_needs[NEED.FOOD] + (1 - fem) * pp.race.male_needs[NEED.FOOD]
-						local rate = 1 / offspring
+				-- Calculate the fraction symbolizing the amount of "overproduction" of food
+				local base = pp.life_needs_satisfaction
+				-- Clamp the growth
+				base = math.min(1, base)
 
-						if love.math.random() < sex_prob * birth_rate * base * rate * pp.race.fecundity then
-							-- yay! spawn a new pop!
-							to_add[#to_add + 1] = pp
-						end
+				local fem = 100 / (100 + pp.race.males_per_hundred_females)
+				local offspring = fem * pp.race.female_needs[NEED.FOOD] + (1 - fem) * pp.race.male_needs[NEED.FOOD]
+				local rate = 1 / offspring
 
-
-					end
+				if love.math.random() < sex_prob * birth_rate * base * rate * pp.race.fecundity then
+					-- yay! spawn a new pop!
+					to_add[#to_add + 1] = pp
 				end
 			end
 		end

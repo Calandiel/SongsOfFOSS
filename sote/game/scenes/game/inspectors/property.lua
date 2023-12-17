@@ -5,6 +5,8 @@ local ut = require "game.ui-utils"
 
 local trade_good = require "game.raws.raws-utils".trade_good
 
+local use_case = require "game.raws.raws-utils".trade_good_use_case
+
 local economy_values = require "game.raws.values.economical"
 local economy_effects = require "game.raws.effects.economic"
 
@@ -165,7 +167,7 @@ function inspector.draw(gam)
                 local total_estimated_cost = 0
 
                 for key, value in pairs(v.spent_on_inputs) do
-                    local good = trade_good(key)
+                    local good = use_case(key)
                     ut.generic_number_field(
                         good.icon,
                         -value,

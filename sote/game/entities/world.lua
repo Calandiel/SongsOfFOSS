@@ -407,6 +407,7 @@ function world.World:tick()
 
 		-- "Province" update
 		local employ = require "game.economy.employment"
+		local building_update = require "game.economy.buildings-updates"
 		local production = require "game.economy.production-and-consumption"
 		local wealth_decay = require "game.economy.wealth-decay"
 		local upkeep = require "game.economy.upkeep"
@@ -416,6 +417,7 @@ function world.World:tick()
 		for _, settled_province in pairs(ta) do
 			--print("employ")
 			employ.run(settled_province)
+			building_update.run(settled_province)
 			production.run(settled_province)
 			upkeep.run(settled_province)
 			wealth_decay.run(settled_province)

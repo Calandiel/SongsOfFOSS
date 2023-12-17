@@ -40,7 +40,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	WORLD:set_settled_province(capitol)
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5, capitol.foragers_limit)
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight)
 	for _ = 1, pop_to_spawn do
 		local p = pop.POP:new(
 			race,

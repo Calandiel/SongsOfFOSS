@@ -1,5 +1,19 @@
 local tabb = require "engine.table"
 
+---@enum BUILDING_GROUP
+BUILDING_GROUP = {
+	GROUNDS = 1,
+	FARM = 2,
+	WORKSHOP = 3
+}
+
+---@type table<BUILDING_GROUP, table<BuildingType, BuildingType>>
+GROUP_TO_BUILDING_TYPES = {
+	[BUILDING_GROUP.GROUNDS] = {},
+	[BUILDING_GROUP.FARM] = {},
+	[BUILDING_GROUP.WORKSHOP] = {}
+}
+
 ---@class BuildingType
 ---@field name string
 ---@field icon string
@@ -8,6 +22,7 @@ local tabb = require "engine.table"
 ---@field g number
 ---@field b number
 ---@field production_method ProductionMethod
+---@field building_group BUILDING_GROUP?
 ---@field construction_cost number
 ---@field upkeep number
 ---@field unlocked_by Technology
@@ -53,6 +68,11 @@ function BuildingType:new(o)
 	for k, v in pairs(o) do
 		r[k] = v
 	end
+
+	if r.building_group then
+		GROUP_TO_BUILDING_TYPES[self] = self
+	end
+
 	setmetatable(r, BuildingType)
 	if RAWS_MANAGER.building_types_by_name[r.name] ~= nil then
 		local msg = "Failed to load a building types (" .. tostring(r.name) .. ")"

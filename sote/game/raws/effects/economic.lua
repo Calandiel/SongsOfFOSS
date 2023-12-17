@@ -315,7 +315,7 @@ end
 function EconomicEffects.change_local_price(province, good, x)
     province.local_prices[good] = math.max(0.001, (province.local_prices[good] or 0) + x)
 
-    if province.local_prices[good] ~= province.local_prices[good] then
+    if province.local_prices[good] ~= province.local_prices[good] or province.local_prices[good] == math.huge then
         error(
             "INVALID PRICE CHANGE"
             .. "\n change = "
@@ -387,7 +387,7 @@ function EconomicEffects.buy(character, good, amount)
     EconomicEffects.change_local_stockpile(province, good, -amount)
 
     local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
-    local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
+    local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * price
 
     EconomicEffects.change_local_price(province, good, price_change)
 
@@ -439,7 +439,7 @@ function EconomicEffects.sell(character, good, amount)
     EconomicEffects.change_local_stockpile(province, good, amount)
 
     local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
-    local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
+    local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * price
     EconomicEffects.change_local_price(province, good, -price_change)
 
     -- print('!!! SELL')
@@ -463,7 +463,7 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
     EconomicEffects.change_treasury(realm, amount, EconomicEffects.reasons.Donation)
 
     realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:population() / 100
-    character.popularity[realm] = (character.popularity[realm] or 0) + amount / realm.capitol:population() / 100
+    character.popularity[realm] = (character.popularity[realm] or 0) + amount / (realm.capitol:population() + 1) / 100
 end
 
 ---comment

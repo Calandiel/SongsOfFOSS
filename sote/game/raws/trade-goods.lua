@@ -10,7 +10,7 @@
 ---@field new fun(self:TradeGood, o:TradeGood):TradeGood
 ---@field category TradeGoodCategory
 ---@field base_price number
----@field use_cases table<TradeGoodUseCase, number> Maps use cases to their weights
+---@field use_cases table<TradeGoodUseCaseReference, number> Maps use cases to their weights
 
 ---@alias TradeGoodCategory "good" | "service" | "capacity"
 

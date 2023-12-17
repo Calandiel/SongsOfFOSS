@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 
 local good = require "game.raws.raws-utils".trade_good
+local use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local traits = require "game.raws.traits.generic"
 
@@ -95,6 +96,94 @@ function eco_values.get_local_price(province, trade_good)
     return province.local_prices[trade_good]
 end
 
+
+---commenting
+---@param province Province
+---@param use TradeGoodUseCase
+---@return number sum_of_exponents
+---@return number min_price
+local function soft_max_data_for_use(province, use)
+    local min_price = nil
+
+    for trade_good, weight in pairs(use.goods) do
+        local price = eco_values.get_local_price(province, trade_good)
+        if min_price == nil then
+            min_price = price
+        elseif min_price > price then
+            min_price = price
+        end
+    end
+
+    local sum = 0
+    for trade_good, weight in pairs(use.goods) do
+        local price = eco_values.get_local_price(province, trade_good)
+        sum = sum + math.exp(-price + min_price)
+    end
+
+    return sum, min_price
+end
+
+---calculates price estimation of unit of use
+---@param province Province
+---@param use TradeGoodUseCaseReference
+---@return number price
+function eco_values.get_local_price_of_use(province, use)
+    -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
+    -- local bought = province.local_consumption[trade_good] or 0
+    local data = use_case(use)
+
+    local sum_of_exponents, min_price = soft_max_data_for_use(province, data)
+
+    -- calculate cost
+    local total_cost = 0
+    for trade_good, weight in pairs(data.goods) do
+        local price = eco_values.get_local_price(province, trade_good)
+        local prob_density = math.exp(-price + min_price) / sum_of_exponents
+        local bought = 1 / weight * prob_density
+        total_cost = total_cost + bought * price
+    end
+
+    return total_cost
+end
+
+---calculates price estimation of unit of use given a price table
+---@param province Province
+---@param use TradeGoodUseCaseReference
+---@param prices table<TradeGoodReference, number>
+---@return number price
+function eco_values.get_local_price_of_use_with_prices(province, use, prices)
+    -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
+    -- local bought = province.local_consumption[trade_good] or 0
+    local data = use_case(use)
+
+    -- calculate min of prices:
+    local min_price = prices[tabb.nth(data.goods, 1)]
+    for trade_good, weight in pairs(data.goods) do
+        min_price = math.min(prices[trade_good], min_price)
+    end
+
+    -- calculate sum of exponents
+    local sum_of_exponents = 0
+    for trade_good, weight in pairs(data.goods) do
+        sum_of_exponents = sum_of_exponents + math.exp(
+            -prices[trade_good] + min_price
+        )
+    end
+
+    sum_of_exponents = sum_of_exponents
+
+    -- calculate cost
+    local total_cost = 0
+    for trade_good, weight in pairs(data.goods) do
+        local price = prices[trade_good]
+        local prob_density = math.exp(-price + min_price) / sum_of_exponents
+        local bought = 1 / weight * prob_density
+        total_cost = total_cost + bought * price
+    end
+
+    return total_cost
+end
+
 ---comment
 ---@param province Province
 ---@param trade_good TradeGoodReference
@@ -151,12 +240,33 @@ end
 
 ---@param province Province
 ---@param building_type BuildingType
+function eco_values.projected_income_building_type_unknown_pop(province, building_type)
+    local shortage_modifier = eco_values.estimate_shortage(province, building_type.production_method)
+    local income = 0
+    for input, amount in pairs(building_type.production_method.inputs) do
+        local price = eco_values.get_local_price_of_use(province, input)
+        local spent = price * amount
+        income = income - spent
+    end
+    for output, amount in pairs(building_type.production_method.outputs) do
+        local price = eco_values.get_pessimistic_local_price(province, output, amount, false)
+        local earnt = price * amount
+        ---@type number
+        income = income + earnt
+    end
+
+    return income * shortage_modifier
+end
+
+---@param province Province
+---@param building_type BuildingType
 ---@param race Race
 ---@param female boolean
 function eco_values.projected_income_building_type(province, building_type, race, female)
+    local shortage_modifier = eco_values.estimate_shortage(province, building_type.production_method)
     local income = 0
     for input, amount in pairs(building_type.production_method.inputs) do
-        local price = eco_values.get_local_price(province, input)
+        local price = eco_values.get_local_price_of_use(province, input)
         local spent = price * amount
         income = income - spent
     end
@@ -167,18 +277,18 @@ function eco_values.projected_income_building_type(province, building_type, race
         income = income + earnt
     end
 
-    return income
+    return income * shortage_modifier
 end
 
----comment
+
+---Does not account for shortages: displays info based only on prices
 ---@param building Building
 ---@param race Race
 ---@param female boolean
 ---@param prices table<TradeGoodReference, number>
 ---@param efficiency number
----@param update_building_stats boolean
 ---@return number income, number input_boost, number output_boost, number throughput_boost
-function eco_values.projected_income(building, race, female, prices, efficiency, update_building_stats)
+function eco_values.projected_income(building, race, female, prices, efficiency)
     local province = building.province
     local production_method = building.type.production_method
 
@@ -193,26 +303,11 @@ function eco_values.projected_income(building, race, female, prices, efficiency,
         (1 + (province.output_efficiency_boosts[production_method] or 0))
         * eco_values.race_output_multiplier(race, female, building.type)
 
-    -- if depends on forests, then reduce local forest coverage over time
-    -- sample random tile from province to avoid weird looking pimples
-    if production_method.forest_dependence > 0 then
-        local years_to_deforestate = 50
-        local days_to_deforestate = years_to_deforestate * 360
-        local total_power = production_method.forest_dependence * efficiency * throughput_boost * input_boost / days_to_deforestate
-        if update_building_stats then
-            require "game.raws.effects.geography".deforest_random_tile(province, total_power)
-        end
-    end
-
     local income = 0
     for input, amount in pairs(building.type.production_method.inputs) do
-        local price = prices[input]
+        local price = eco_values.get_local_price_of_use_with_prices(province, input, prices)
         local spent = price * amount * efficiency * throughput_boost * input_boost
-
         income = income - spent
-        if update_building_stats then
-            building.spent_on_inputs[input] = (building.spent_on_inputs[input] or 0) + spent
-        end
     end
 
     income = income
@@ -220,34 +315,51 @@ function eco_values.projected_income(building, race, female, prices, efficiency,
         local price = prices[output]
         local earnt = price * amount * efficiency * throughput_boost * output_boost
         income = income + earnt
-
-        if update_building_stats then
-            building.earn_from_outputs[output] = (building.earn_from_outputs[output] or 0) + earnt
-        end
     end
 
     return income, input_boost, output_boost, throughput_boost
 end
 
+---commenting
+---@param province Province
+---@param use TradeGoodUseCaseReference
+function eco_values.available_use(province, use)
+    local data = use_case(use)
+
+    -- calculate min of prices:
+    local sum_of_exponents, min_price = soft_max_data_for_use(province, data)
+
+    -- calculate total amount available for this distribution
+    local available_use = 0
+    -- use is divided between
+    for trade_good, weight in pairs(data.goods) do
+        local price = eco_values.get_local_price(province, trade_good)
+        local ratio_of_good = math.exp(-price + min_price) / sum_of_exponents
+        local available = (province.local_production[trade_good] or 0)
+                        - (province.local_consumption[trade_good] or 0)
+                        + (province.local_storage[trade_good] or 0)
+
+        local upped_bound = available * weight / ratio_of_good
+
+
+        available_use = available_use + upped_bound
+    end
+
+    return available_use
+end
+
 ---Estimates shortage_modifier
 ---@param prod ProductionMethod
 function eco_values.estimate_shortage(province, prod)
-    local input_satisfaction = 0
+    local input_satisfaction = 1
     for input, amount in pairs(prod.inputs) do
         local required_input = amount
-        local available =
-            (province.local_production[input] or 0)
-            - (province.local_consumption[input] or 0)
-            + (province.local_storage[input] or 0)
-
+        local available = eco_values.available_use(province, input)
         local ratio = math.max(0, available) / required_input
         input_satisfaction = math.min(input_satisfaction, ratio)
     end
-    local shortage_modifier =
-        (1 - prod.self_sourcing_fraction) * (1 - input_satisfaction)
-        + 1 * input_satisfaction
 
-    return shortage_modifier
+    return math.min(1, input_satisfaction)
 end
 
 return eco_values

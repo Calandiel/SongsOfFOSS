@@ -59,13 +59,27 @@ function d.load()
 		self_sourcing_fraction = 0,
 	}
 	ProductionMethod:new {
-		name = "gathering",
+		name = "gathering-0",
 		description = "gathering",
 		icon = "berries-bowl.png",
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { ["tools"] = 0.05 },
+		outputs = { ["food"] = 1.0 },
+		jobs = { [job("gatherers")] = 1 },
+		job_type = JOBTYPE.FORAGER,
+		self_sourcing_fraction = 0.05,
+		foraging = true,
+		nature_yield_dependence = 1,
+	}
+	ProductionMethod:new {
+		name = "gathering-1",
+		description = "gathering",
+		icon = "berries-bowl.png",
+		r = 0.1,
+		g = 1,
+		b = 0.1,
+		inputs = { ["tools-like"] = 0.05 },
 		outputs = { ["food"] = 1.5 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
@@ -74,7 +88,52 @@ function d.load()
 		nature_yield_dependence = 1,
 	}
 	ProductionMethod:new {
-		name = "hunting",
+		name = "gathering-2",
+		description = "gathering",
+		icon = "berries-bowl.png",
+		r = 0.1,
+		g = 1,
+		b = 0.1,
+		inputs = { ["tools"] = 0.05 },
+		outputs = { ["food"] = 2.0 },
+		jobs = { [job("gatherers")] = 1 },
+		job_type = JOBTYPE.FORAGER,
+		self_sourcing_fraction = 0.05,
+		foraging = true,
+		nature_yield_dependence = 1,
+	}
+	ProductionMethod:new {
+		name = "hunting-0",
+		description = "hunting",
+		icon = "bow-arrow.png",
+		r = 1,
+		g = 0.2,
+		b = 0.3,
+		inputs = {},
+		outputs = { ["food"] = 0.1, ["meat"] = 0.1 },
+		jobs = { [job("hunters")] = 1 },
+		job_type = JOBTYPE.FORAGER,
+		self_sourcing_fraction = 0.05,
+		foraging = true,
+		nature_yield_dependence = 1,
+	}
+	ProductionMethod:new {
+		name = "hunting-1",
+		description = "hunting",
+		icon = "bow-arrow.png",
+		r = 1,
+		g = 0.2,
+		b = 0.3,
+		inputs = { ["tools-like"] = 0.05 },
+		outputs = { ["food"] = 0.25, ["meat"] = 0.5, ["hide"] = 1 },
+		jobs = { [job("hunters")] = 1 },
+		job_type = JOBTYPE.FORAGER,
+		self_sourcing_fraction = 0.05,
+		foraging = true,
+		nature_yield_dependence = 1,
+	}
+	ProductionMethod:new {
+		name = "hunting-2",
 		description = "hunting",
 		icon = "bow-arrow.png",
 		r = 1,
@@ -90,13 +149,13 @@ function d.load()
 	}
 	ProductionMethod:new {
 		name = "flint-extraction",
-		description = "flint knapping",
+		description = "flint extraction",
 		icon = "stone-stack.png",
 		r = 0.1,
 		g = 1,
 		b = 0.1,
 		inputs = { },
-		outputs = { ["knapping-blanks"] = 1 },
+		outputs = { ["blanks-flint"] = 1 },
 		jobs = { [job("knappers")] = 3 },
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
@@ -108,8 +167,34 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { ["knapping-blanks"] = 1 / 16 }, -- one blank serves for 16 months - made up value
-		outputs = { ["tools"] = 0.25 },
+		inputs = { ["blanks-flint"] = 1 / 16 }, -- one blank serves for 16 months - made up value
+		outputs = { ["tools-flint"] = 0.25 },
+		jobs = { [job("knappers")] = 1 },
+		job_type = JOBTYPE.ARTISAN,
+		self_sourcing_fraction = 0.8,
+	}
+	ProductionMethod:new {
+		name = "obsidian-extraction",
+		description = "obsidian extraction",
+		icon = "stone-stack.png",
+		r = 0.1,
+		g = 1,
+		b = 0.1,
+		inputs = { },
+		outputs = { ["blanks-obsidian"] = 1 },
+		jobs = { [job("knappers")] = 3 },
+		job_type = JOBTYPE.LABOURER,
+		self_sourcing_fraction = 0,
+	}
+	ProductionMethod:new {
+		name = "obsidian-knapping",
+		description = "obsidian knapping",
+		icon = "stone-stack.png",
+		r = 0.1,
+		g = 1,
+		b = 0.1,
+		inputs = { ["blanks-obsidian"] = 1 / 16 }, -- one blank serves for 16 months - made up value
+		outputs = { ["tools-obsidian"] = 0.25 },
 		jobs = { [job("knappers")] = 1 },
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.8,
@@ -128,18 +213,68 @@ function d.load()
 		self_sourcing_fraction = 0.2,
 	}
 	ProductionMethod:new {
+		name = "native-copper-mining",
+		description = "mining native ore close to the surface",
+		icon = "ore.png",
+		r = 0.65,
+		g = 0.65,
+		b = 0.65,
+		inputs = { ["tools"] = 0.1 },
+		outputs = { ["copper-native"] = 5 },
+		jobs = { [job("miners")] = 1 },
+		job_type = JOBTYPE.LABOURER,
+	}
+	ProductionMethod:new {
 		name = "surface-copper-mining",
 		description = "mining ore close to the surface",
 		icon = "ore.png",
 		r = 0.65,
 		g = 0.65,
 		b = 0.65,
-		inputs = { ["tools"] = 5, ["timber"] = 15 },
-		outputs = { ["copper-bars"] = 20 },
-		jobs = { [job("miners")] = 5, [job("smelters")] = 1 },
+		inputs = { ["tools"] = 1 },
+		outputs = { ["copper-ore"] = 10 },
+		jobs = { [job("miners")] = 1 },
 		job_type = JOBTYPE.LABOURER,
+	}
+	ProductionMethod:new {
+		name = "copper-smelting",
+		description = "smelting copper ore",
+		icon = "ore.png",
+		r = 0.65,
+		g = 0.65,
+		b = 0.65,
+		inputs = { ["copper-source"] = 1, ["structural-material"] = 1, ["timber"] = 5 },
+		outputs = { ["copper-bars"] = 2 },
+		jobs = { [job("smelters")] = 1 },
+		job_type = JOBTYPE.ARTISAN,
+	}
+	ProductionMethod:new {
+		name = "smith-tools-native-copper",
+		description = "smithing copper into tools",
+		icon = "ore.png",
+		r = 0.65,
+		g = 0.65,
+		b = 0.65,
+		inputs = { ["copper-native"] = 1, ["tools"] = 0.1 },
+		outputs = { ["tools-native-copper"] = 5 },
+		jobs = { [job("blacksmiths")] = 1 },
+		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.75
 	}
+	ProductionMethod:new {
+		name = "smith-tools-cast-copper",
+		description = "smithing copper into tools",
+		icon = "ore.png",
+		r = 0.65,
+		g = 0.65,
+		b = 0.65,
+		inputs = { ["copper-bars"] = 1, ["tools"] = 0.1 },
+		outputs = { ["tools-cast-copper"] = 5 },
+		jobs = { [job("blacksmiths")] = 1 },
+		job_type = JOBTYPE.ARTISAN,
+		self_sourcing_fraction = 0.75
+	}
+
 	ProductionMethod:new {
 		name = "clay-extraction",
 		description = "clay extraction",
