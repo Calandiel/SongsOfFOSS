@@ -1455,20 +1455,30 @@ function gam.recalculate_province_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim, dim, "rgba8")
 	gam.tile_neighbor_provinces_data = gam.tile_neighbor_provinces_data or love.image.newImageData(dim, dim, "rgba8")
+
+	local pointer = require("ffi").cast("uint8_t*", gam.tile_province_image_data:getFFIPointer())
+	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_provinces_data:getFFIPointer())
+
 	for _, tile in pairs(WORLD.tiles) do
 		local x, y = gam.tile_id_to_color_coords(tile)
+		local pixel_index = x + y * dim
+
 		if tile.province then
-			local r = tile.province.r
-			local g = tile.province.g
-			local b = tile.province.b
-			gam.tile_province_image_data:setPixel(x, y, r, g, b, 1)
+			pointer[pixel_index * 4 + 0] = 255 * tile.province.r
+			pointer[pixel_index * 4 + 1] = 255 * tile.province.g
+			pointer[pixel_index * 4 + 2] = 255 * tile.province.b
+			pointer[pixel_index * 4 + 3] = 255 * 1
 		end
 
 		local r, g, b, a = neighbor_data(tile)
 		if (math.max(r, g, b, a) < 0.1) then
 			r, g, b, a = neighbor_neighbor_data(tile)
 		end
-		gam.tile_neighbor_provinces_data:setPixel(x, y, r, g, b, a)
+
+		pointer_neigbours[pixel_index * 4 + 0] = 255 * r
+		pointer_neigbours[pixel_index * 4 + 1] = 255 * g
+		pointer_neigbours[pixel_index * 4 + 2] = 255 * b
+		pointer_neigbours[pixel_index * 4 + 3] = 255 * a
 	end
 
 	gam.tile_province_texture = love.graphics.newImage(gam.tile_province_image_data, {
@@ -1488,16 +1498,20 @@ function gam.recalculate_realm_map()
 	local dim = WORLD.world_size * 3
 	gam.tile_realm_image_data = gam.tile_realm_image_data or love.image.newImageData(dim, dim, "rgba8")
 	gam.tile_neighbor_realm_data = gam.tile_neighbor_realm_data or love.image.newImageData(dim, dim, "rgba8")
+
+	-- imageData has one byte per channel per pixel.
+	local pointer = require("ffi").cast("uint8_t*", gam.tile_realm_image_data:getFFIPointer())
+	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
+
 	for _, tile in pairs(WORLD.tiles) do
 		local x, y = gam.tile_id_to_color_coords(tile)
-
+		local pixel_index = x + y * dim
 
 		if tile.province and tile.province.realm then
 			local overlords = tile.province.realm:get_top_realm()
 			local r = tile.province.realm.r
 			local g = tile.province.realm.g
 			local b = tile.province.realm.b
-
 			if tabb.size(overlords) == 1 then
 				local overlord = tabb.nth(overlords, 1)
 				r = overlord.r
@@ -1505,14 +1519,21 @@ function gam.recalculate_realm_map()
 				b = overlord.b
 			end
 
-			gam.tile_realm_image_data:setPixel(x, y, r, g, b, 1)
+			pointer[pixel_index * 4 + 0] = 255 * r
+			pointer[pixel_index * 4 + 1] = 255 * g
+			pointer[pixel_index * 4 + 2] = 255 * b
+			pointer[pixel_index * 4 + 3] = 255 * 1
 		end
 
 		local r, g, b, a = realm_neighbor_data(tile)
 		if (math.max(r, g, b, a) < 0.1) then
 			r, g, b, a = realm_neighbor_neighbor_data(tile)
 		end
-		gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
+
+		pointer_neigbours[pixel_index * 4 + 0] = 255 * r
+		pointer_neigbours[pixel_index * 4 + 1] = 255 * g
+		pointer_neigbours[pixel_index * 4 + 2] = 255 * b
+		pointer_neigbours[pixel_index * 4 + 3] = 255 * a
 	end
 
 	gam.tile_realm_texture = love.graphics.newImage(gam.tile_realm_image_data, {
@@ -1547,6 +1568,11 @@ function gam.refresh_map_mode(preserve_efficiency)
 	if gam.tile_neighbor_realm_data == nil then
 		gam.recalculate_realm_map()
 	end
+
+	local dim = WORLD.world_size * 3
+	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data:getFFIPointer())
+	local pointer_realm_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
+	local pointer_tile_improvement = require("ffi").cast("uint8_t*", gam.tile_improvement_texture_data:getFFIPointer())
 
 	-- if not OPTIONS.update_map then
 	-- 	return
@@ -1589,6 +1615,8 @@ function gam.refresh_map_mode(preserve_efficiency)
 		end
 		for _, tile in pairs(province.tiles) do
 			local x, y = gam.tile_id_to_color_coords(tile)
+			local pixel_index = x + y * dim
+
 			if can_set then
 				local r = tile.real_r
 				local g = tile.real_g
@@ -1620,20 +1648,32 @@ function gam.refresh_map_mode(preserve_efficiency)
 				if (math.max(r, g, b, a) < 0.1) then
 					r, g, b, a = realm_neighbor_neighbor_data(tile)
 				end
-				gam.tile_neighbor_realm_data:setPixel(x, y, r, g, b, a)
 
-				gam.tile_color_image_data:setPixel(
-					x, y,
-					result_pixel[1], result_pixel[2], result_pixel[3], result_pixel[4]
-				)
+				pointer_realm_neigbours[pixel_index * 4 + 0] = 255 * r
+				pointer_realm_neigbours[pixel_index * 4 + 1] = 255 * g
+				pointer_realm_neigbours[pixel_index * 4 + 2] = 255 * b
+				pointer_realm_neigbours[pixel_index * 4 + 3] = 255 * a
 
-				gam.tile_improvement_texture_data:setPixel(
-					x, y,
-					result_improvement[1], result_improvement[2], result_improvement[3], result_improvement[4]
-				)
+
+				pointer_tile_color[pixel_index * 4 + 0] = 255 * result_pixel[1]
+				pointer_tile_color[pixel_index * 4 + 1] = 255 * result_pixel[2]
+				pointer_tile_color[pixel_index * 4 + 2] = 255 * result_pixel[3]
+				pointer_tile_color[pixel_index * 4 + 3] = 255 * result_pixel[4]
+
+				pointer_tile_improvement[pixel_index * 4 + 0] = 255 * result_improvement[1]
+				pointer_tile_improvement[pixel_index * 4 + 1] = 255 * result_improvement[2]
+				pointer_tile_improvement[pixel_index * 4 + 2] = 255 * result_improvement[3]
+				pointer_tile_improvement[pixel_index * 4 + 3] = 255 * result_improvement[4]
 			else
-				gam.tile_color_image_data:setPixel(x, y, 0.15, 0.15, 0.15, -1)
-				gam.tile_improvement_texture_data:setPixel(x, y, 0, 0, 0, 1)
+				pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
+				pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
+				pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
+				pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
+
+				pointer_tile_improvement[pixel_index * 4 + 0] = 255 * 0
+				pointer_tile_improvement[pixel_index * 4 + 1] = 255 * 0
+				pointer_tile_improvement[pixel_index * 4 + 2] = 255 * 0
+				pointer_tile_improvement[pixel_index * 4 + 3] = 255 * 1
 			end
 		end
 	end
