@@ -263,6 +263,11 @@ function mm.set_up_map_modes(game_thingy)
 			political_map_modes.atlas
 		},
 	}
+
+	local function compare_map_modes(a, b)
+		return game_thingy.map_mode_data[a][1] < game_thingy.map_mode_data[b][1]
+	end
+
 	game_thingy.map_mode_tabs = {}
 	game_thingy.map_mode_selected_tab = "all"
 	game_thingy.map_mode_tabs.all = {
@@ -273,24 +278,24 @@ function mm.set_up_map_modes(game_thingy)
 		"province", "carrying_capacity", "tile_improvements", "realm_income", "local_income", "coastlines",
 		"races", "cultures", "faiths", "military_target", "military", "diplomacy"
 	}
-	table.sort(game_thingy.map_mode_tabs.all)
+	table.sort(game_thingy.map_mode_tabs.all, compare_map_modes)
 	game_thingy.map_mode_tabs.political = {
 		"realms", "province", "atlas", "diplomacy"
 	}
-	table.sort(game_thingy.map_mode_tabs.political)
+	table.sort(game_thingy.map_mode_tabs.political, compare_map_modes)
 	game_thingy.map_mode_tabs.demographic = {
 		"population", "population_1000", "population_density", "technologies", "races", "cultures", "faiths",
 		"military_target", "military",
 	}
-	table.sort(game_thingy.map_mode_tabs.demographic)
+	table.sort(game_thingy.map_mode_tabs.demographic, compare_map_modes)
 	game_thingy.map_mode_tabs.debug = {
 		"yellow", "selected_tile", "debug", "itcz", "coastlines",
 	}
-	table.sort(game_thingy.map_mode_tabs.debug)
+	table.sort(game_thingy.map_mode_tabs.debug, compare_map_modes)
 	game_thingy.map_mode_tabs.economic = {
 		"tile_improvements", "realm_income", "local_income"
 	}
-	table.sort(game_thingy.map_mode_tabs.economic)
+	table.sort(game_thingy.map_mode_tabs.economic, compare_map_modes)
 end
 
 return mm
