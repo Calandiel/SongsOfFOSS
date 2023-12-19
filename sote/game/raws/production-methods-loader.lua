@@ -140,7 +140,7 @@ function d.load()
 		g = 0.2,
 		b = 0.3,
 		inputs = { ["tools"] = 0.05 },
-		outputs = { ["food"] = 0.25, ["meat"] = 0.5, ["hide"] = 1 },
+		outputs = { ["food"] = 1, ["meat"] = 1, ["hide"] = 1.5 },
 		jobs = { [job("hunters")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,

@@ -178,9 +178,9 @@ function d.load()
 		name = "blanks-obsidian",
 		description = "obsidian blanks",
 		icon = "rock.png",
-		r = 0.162,
-		g = 0.141,
-		b = 0.422,
+		r = 0.1,
+		g = 0.1,
+		b = 0.1,
 		base_price = 6,
 	}
 
@@ -206,9 +206,9 @@ function d.load()
 		name = "tools-obsidian",
 		description = "obsidian tools",
 		icon = "stone-axe.png",
-		r = 0.162,
-		g = 0.141,
-		b = 0.422,
+		r = 0.1,
+		g = 0.1,
+		b = 0.1,
 		base_price = 8,
 	}
 	add_use_case("tools-obsidian", "tools-like", 1.4)
@@ -219,9 +219,9 @@ function d.load()
 		name = "tools-native-copper",
 		description = "native copper tools",
 		icon = "stone-axe.png",
-		r = 0.162,
-		g = 0.141,
-		b = 0.422,
+		r = 0.71,
+		g = 0.25,
+		b = 0.05,
 		base_price = 8,
 	}
 
@@ -233,9 +233,9 @@ function d.load()
 		name = "tools-cast-copper",
 		description = "cast copper tools",
 		icon = "stone-axe.png",
-		r = 0.162,
-		g = 0.141,
-		b = 0.422,
+		r = 0.71,
+		g = 0.25,
+		b = 0.05,
 		base_price = 8,
 	}
 
@@ -294,9 +294,9 @@ function d.load()
 		name = "stone",
 		description = "stone",
 		icon = "stone-block.png",
-		r = 0.262,
-		g = 0.241,
-		b = 0.222,
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
 		base_price = 2,
 	}
 	add_use_case("stone", "stone", 1)

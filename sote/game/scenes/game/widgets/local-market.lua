@@ -33,6 +33,10 @@ end
 
 ---@class ItemData
 ---@field name string
+---@field tag string
+---@field r number
+---@field g number
+---@field b number
 ---@field icon string
 ---@field supply number
 ---@field demand number
@@ -55,13 +59,14 @@ return function(province, ui_panel, base_unit, gam)
         {
             header = ".",
             render_closure = function(rect, k, v)
-                ui.image(ASSETS.get_icon(v.icon), rect)
+                ut.render_icon(rect:copy():shrink(-1), v.icon, 1, 1, 1, 1)
+                ut.render_icon(rect, v.icon, v.r, v.g, v.b, 1)
             end,
             width = base_unit * 1,
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.name
+                return v.tag
             end
         },
         {
@@ -368,8 +373,12 @@ return function(province, ui_panel, base_unit, gam)
             end
             data_blob[good_reference] = {
                 data = good,
-                name = good.name,
+                name = good.description,
                 icon = good.icon,
+                tag = good.name,
+                r = good.r,
+                g = good.g,
+                b = good.b,
                 supply = good_supply,
                 demand = good_demand,
                 consumption = good_consumption,
