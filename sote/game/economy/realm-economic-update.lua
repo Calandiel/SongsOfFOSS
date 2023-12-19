@@ -25,6 +25,7 @@ function rea.run(realm)
 	local PROVINCE_TO_REALM_STOCKPILE = 0.1
 	local REALM_TO_PROVINCE_STOCKPILE = 0.05
 	local NEIGHBOURS_GOODS_SHARING = 0.075
+	local NEIGHBOURS_WEALTH_SHARING = 0.075 / 4
 
 	local INTEGRATION_STEP = 1
 
@@ -76,6 +77,27 @@ function rea.run(realm)
 	-- Siphon some goods from realm stockpile to provincial storage
 	local amount_of_provinces = tabb.size(realm.provinces)
 	for _, province in pairs(realm.provinces) do
+		-- diffuse wealth
+		local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING
+		local sharing_local_wealth = province.local_wealth * NEIGHBOURS_WEALTH_SHARING
+		for _, neigbour in pairs(province.neighbors) do
+			if neigbour.realm then
+				economic_effects.change_local_wealth(
+					province,
+					-sharing_local_wealth,
+					economic_effects.reasons.NeighborSiphon
+				)
+				economic_effects.change_local_wealth(
+					neigbour,
+					sharing_local_wealth,
+					economic_effects.reasons.NeighborSiphon
+				)
+
+				province.trade_wealth = province.trade_wealth - sharing_trade_wealth
+				neigbour.trade_wealth = neigbour.trade_wealth + sharing_trade_wealth
+			end
+		end
+
 		for resource_reference, amount in pairs(province.local_storage) do
 			local resource = good(resource_reference)
 			if resource.category == 'good' then
@@ -84,21 +106,13 @@ function rea.run(realm)
 				-- actual goal is to smooth out economy in space a bit
 				-- until addition of properly working "trade routes"
 				local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
-				local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_GOODS_SHARING
-				local sharing_local_wealth = province.local_wealth * NEIGHBOURS_GOODS_SHARING
+
 				for _, neigbour in pairs(province.neighbors) do
 					if neigbour.realm then
 						economic_effects.change_local_stockpile(province, resource_reference, -sharing)
 						economic_effects.change_local_stockpile(neigbour, resource_reference, sharing)
-
-						province.local_wealth = province.local_wealth - sharing_local_wealth
-						neigbour.local_wealth = neigbour.local_wealth + sharing_local_wealth
-
-						province.trade_wealth = province.trade_wealth - sharing_trade_wealth
-						neigbour.trade_wealth = neigbour.trade_wealth + sharing_trade_wealth
 					end
 				end
-
 
 				local old = amount or 0
 				local siphon = (realm.resources[resource_reference] or 0)

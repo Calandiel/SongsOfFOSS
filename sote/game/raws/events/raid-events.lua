@@ -421,12 +421,12 @@ local function load()
 				-- Therefore, it's a sure success.
 				local max_loot = army:get_loot_capacity()
 				local real_loot = math.min(max_loot, province.local_wealth)
-				province.local_wealth = province.local_wealth - real_loot
+				ef.change_local_wealth(province, -real_loot, ef.reasons.Raid)
 				if realm and max_loot > real_loot then
 					local leftover = max_loot - real_loot
 					local potential_loot = ev.raidable_treasury(realm)
 					local extra = math.min(potential_loot, leftover)
-					EconomicEffects.change_treasury(realm, -extra, EconomicEffects.reasons.Raid)
+					ef.change_treasury(realm, -extra, ef.reasons.Raid)
 					real_loot = real_loot + extra
 				end
 
@@ -553,7 +553,7 @@ local function load()
 			loot = loot - loot / 2
 
 			-- pay the remaining half of loot to population
-			realm.capitol.local_wealth = realm.capitol.local_wealth + loot
+			ef.change_local_wealth(realm.capitol, loot, EconomicEffects.reasons.Raid)
 
 			if target.reward == 0 then
 				realm:remove_reward_flag(target)

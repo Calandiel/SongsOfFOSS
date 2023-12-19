@@ -49,8 +49,10 @@ function d.load()
 	make_use_case("copper-source", "copper-source", "ore.png", 0.71, 0.25, 0.05)
 	make_use_case("copper-native", "copper-native", "ore.png", 0.71, 0.25, 0.05)
 
-
+	-- structural materials
 	make_use_case("structural-material", "structural-material", "stone-block.png", 0.262, 0.241, 0.222)
+
+	make_use_case("stone", "stone", "stone-block.png", 0.262, 0.241, 0.222)
 	make_use_case("clay", "clay", "powder.png", 0.262, 0.241, 0.222)
 end
 

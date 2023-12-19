@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
-local EconomicEffects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
@@ -292,8 +292,8 @@ local function load()
 			if province == nil then return end
 
 			province.mood = math.min(10, province.mood + base_gift_size / province:population() / 2)
-			province.local_wealth = province.local_wealth + base_gift_size
-			root.savings = root.savings - base_gift_size
+			economic_effects.change_local_wealth(province, base_gift_size, EconomicEffects.reasons.Donation)
+			economic_effects.add_pop_savings(root, -base_gift_size, EconomicEffects.reasons.Donation)
 
 			pe.small_popularity_boost(root, province.realm)
 
@@ -342,7 +342,7 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			EconomicEffects.gift_to_warband(root, root.savings / 3)
+			economic_effects.gift_to_warband(root, root.savings / 3)
 		end
 	}
 
@@ -403,7 +403,7 @@ local function load()
 			local realm = province.realm
 			if realm == nil then return end
 
-			EconomicEffects.gift_to_tribe(root, realm, base_gift_size)
+			economic_effects.gift_to_tribe(root, realm, base_gift_size)
 
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification(root.name .. " donates money to the tribe of " .. realm.name .. "!")
@@ -497,7 +497,7 @@ local function load()
 				target = primary_target,
 				flag_type = 'raid'
 			}
-			EconomicEffects.add_pop_savings(root, -base_raiding_reward, "reward flag")
+			economic_effects.add_pop_savings(root, -base_raiding_reward, "reward flag")
 
 			root.province.realm:add_reward_flag(reward_flag)
 		end

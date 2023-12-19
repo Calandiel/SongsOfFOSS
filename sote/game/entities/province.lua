@@ -86,7 +86,7 @@ local col = require "game.color"
 prov.Province = {}
 prov.Province.__index = prov.Province
 
----Returns a new province. Remember to assign 'center' tile!
+---Returns a new province. Remember to assign "center" tile!
 ---@param fake_flag boolean? do not register province if true
 ---@return Province
 function prov.Province:new(fake_flag)
@@ -264,7 +264,7 @@ end
 function prov.Province:local_army_size()
 	local total = 0
 	for _, w in pairs(self.warbands) do
-		if w.status == 'idle' or w.status == 'patrol' then
+		if w.status == "idle" or w.status == "patrol" then
 			total = total + w:size()
 		end
 	end
@@ -491,8 +491,7 @@ function prov.Province:building_type_present(building_type)
 	return false
 end
 
----@alias BuildingAttemptFailureReason 'not_enough_funds' | 'unique_duplicate' | 'tile_improvement' | 'missing_local_resources'
-
+---@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "tile_improvement" | "missing_local_resources"
 
 ---comment
 ---@param funds number
@@ -501,7 +500,7 @@ end
 ---@param overseer POP?
 ---@param public boolean
 ---@return boolean
----@return string
+---@return BuildingAttemptFailureReason
 function prov.Province:can_build(funds, building, location, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then
@@ -535,15 +534,15 @@ function prov.Province:can_build(funds, building, location, overseer, public)
 	local construction_cost = EconomicValues.building_cost(building, overseer, public)
 
 	if building.unique and self:building_type_present(building) then
-		return false, 'unique_duplicate'
+		return false, "unique_duplicate"
 	elseif building.tile_improvement and location == nil then
-		return false, 'tile_improvement'
+		return false, "tile_improvement"
 	elseif not resource_check_passed then
-		return false, 'missing_local_resources'
+		return false, "missing_local_resources"
 	elseif construction_cost <= funds then
-		return true, nil
+		return true, "ok"
 	else
-		return false, 'not_enough_funds'
+		return false, "not_enough_funds"
 	end
 end
 
@@ -674,7 +673,7 @@ function prov.Province:get_spotting()
 	end
 
 	for _, w in pairs(self.warbands) do
-		if w.status == 'idle' or w.status == 'patrol' then
+		if w.status == "idle" or w.status == "patrol" then
 			s = s + w:spotting()
 		end
 	end

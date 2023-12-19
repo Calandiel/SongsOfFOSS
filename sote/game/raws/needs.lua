@@ -60,12 +60,12 @@ NEEDS = {
 		time_to_satisfy = 0.3
 	},
 	furniture = {
-		goods = {"furniture", "timber"},
+		goods = {"furniture", "timber", "stone"},
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 0.3
 	},
 	storage = {
-		goods = {"containers", "clay"},
+		goods = {"containers", "clay", "timber"},
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 0.3
 	},

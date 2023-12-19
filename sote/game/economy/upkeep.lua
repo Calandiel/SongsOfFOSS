@@ -1,4 +1,4 @@
-local ef = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local upk = {}
 
 ---Runs upkeep on buildings in a province and destroys buildings if upkeep needs aren't met!
@@ -23,7 +23,11 @@ function upk.run(province)
 			end
 		else
 			if building.owner == nil then
-				province.local_wealth = province.local_wealth - up
+				economic_effects.change_local_wealth(
+					province,
+					-up,
+					economic_effects.reasons.Upkeep
+				)
 				province.local_building_upkeep = province.local_building_upkeep + up
 
 				-- Destroy this building if necessary...
@@ -48,10 +52,10 @@ function upk.run(province)
 	end
 
 	for owner, upkeep in pairs(upkeep_owners) do
-		ef.add_pop_savings(owner, -upkeep, ef.reasons.Upkeep)
+		economic_effects.add_pop_savings(owner, -upkeep, economic_effects.reasons.Upkeep)
 	end
 
-	EconomicEffects.change_treasury(province.realm, -government_upkeep, EconomicEffects.reasons.Upkeep)
+	economic_effects.change_treasury(province.realm, -government_upkeep, economic_effects.reasons.Upkeep)
 end
 
 return upk

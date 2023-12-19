@@ -57,7 +57,12 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		if building_type.tile_improvement then
 			tile = tabb.random_select_from_set(province.tiles)
 		end
-		if not province:can_build(funds, building_type, tile, overseer, public_flag) then
+		local can_build, reason = province:can_build(funds, building_type, tile, overseer, public_flag)
+		if (not can_build) and (reason ~= 'not_enough_funds') then
+			predicted_profit = 0.001
+		end
+
+		if excess < building_type.upkeep then
 			predicted_profit = 0.001
 		end
 
@@ -83,20 +88,20 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			feature = - ROI + min_ROI
 		end
 
-		if WORLD.player_character then
-			if WORLD.player_character.province == province then
-				print(building_type.name)
-				print(feature)
-				print(ROI)
-				print(min_ROI)
-				print(eco_values.projected_income_building_type(
-					province,
-					building_type,
-					random_pop.race,
-					random_pop.female
-				))
-			end
-		end
+		-- if WORLD.player_character then
+		-- 	if WORLD.player_character.province == province then
+		-- 		print(building_type.name)
+		-- 		print(feature)
+		-- 		print(ROI)
+		-- 		print(min_ROI)
+		-- 		print(eco_values.projected_income_building_type(
+		-- 			province,
+		-- 			building_type,
+		-- 			random_pop.race,
+		-- 			random_pop.female
+		-- 		))
+		-- 	end
+		-- end
 
 		if feature then
 			sum_of_exponents = sum_of_exponents + math.exp(feature)
@@ -138,12 +143,15 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			end
 		end
 
-		-- if WORLD.player_character then
-		-- 	if WORLD.player_character.province == province then
-		-- 		print(to_build.name)
-		-- 		print(exp_feature[to_build])
-		-- 	end
-		-- end
+		if WORLD.player_character then
+			if WORLD.player_character.province == province then
+				print('____')
+				print("building target: ")
+				print(to_build.name)
+				print(exp_feature[to_build])
+				print(ROI_per_building_type[to_build])
+			end
+		end
 
 		-- if there's nothing to build, do not build
 		if to_build == nil then
@@ -202,14 +210,17 @@ function co.run(realm)
 
 				-- Run construction using the AI for local wealth too!
 				local prov = province.local_wealth
-				province.local_wealth = construction_in_province(province, prov, 0) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
+
+				local province_funds = construction_in_province(province, prov, 0) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
+				local change = province_funds - province.local_wealth
+				effects.change_local_wealth(province, change, "building")
 
 				-- local characters want to build too!
 				-- select random character:
 				local builder = tabb.random_select_from_set(province.characters)
 				if builder and (WORLD.player_character ~= builder) then
 					local char_funds = ai.construction_funds(builder)
-					local result = construction_in_province(province, char_funds, builder.savings * 0.1, builder, builder)
+					local result = construction_in_province(province, char_funds, 0, builder, builder)
 
 					local spendings = char_funds - result
 					effects.add_pop_savings(builder, -spendings, effects.reasons.Building)

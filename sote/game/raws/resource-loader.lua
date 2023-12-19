@@ -63,7 +63,7 @@ function d.load()
 		r = 0.9,
 		g = 0.64,
 		b = 0.2,
-		base_frequency = 30000
+		base_frequency = 20000
 	}
 	Resource:new {
 		name = 'native-gold',
@@ -80,16 +80,16 @@ function d.load()
 		r = 0.71,
 		g = 0.25,
 		b = 0.05,
-		base_frequency = 5000
+		base_frequency = 4000
 	}
 	Resource:new {
 		name = 'stone',
 		icon = 'stone-block.png',
-		description = 'copper',
+		description = 'stone',
 		r = 0.8,
 		g = 0.8,
 		b = 0.8,
-		base_frequency = 20000
+		base_frequency = 10000
 	}
 	Resource:new {
 		name = 'gems',

@@ -137,6 +137,7 @@ function d.load()
 		b = 0.65,
 		base_price = 8,
 	}
+	add_use_case("leather", "containers", 0.1)
 	add_use_case("leather", "leather", 1)
 	TradeGood:new {
 		name = "meat",
@@ -157,6 +158,7 @@ function d.load()
 		b = 0.22,
 		base_price = 5,
 	}
+	add_use_case("timber", "containers", 0.1)
 	add_use_case("timber", "timber", 1)
 
 	TradeGood:new {
@@ -286,6 +288,19 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("clay", "clay", 1)
+	add_use_case("clay", "structural-material", 1)
+
+	TradeGood:new {
+		name = "stone",
+		description = "stone",
+		icon = "stone-block.png",
+		r = 0.262,
+		g = 0.241,
+		b = 0.222,
+		base_price = 2,
+	}
+	add_use_case("stone", "stone", 1)
+	add_use_case("stone", "structural-material", 1)
 end
 
 return d

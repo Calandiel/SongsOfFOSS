@@ -35,7 +35,10 @@ EconomicEffects.reasons = {
     OtherNeeds = "other needs",
     Forage = "forage",
     Work = "work",
-    Other = "other"
+    Other = "other",
+    Siphon = "siphon",
+    TradeSiphon = "trade siphon",
+    NeighborSiphon = "neigbour siphon"
 }
 
 ---Change realm treasury and display effects to player
@@ -153,6 +156,24 @@ end
 function EconomicEffects.direct_investment_infrastructure(realm, province, x)
     EconomicEffects.change_treasury(realm, -x, EconomicEffects.reasons.Infrastructure)
     province.infrastructure_investment = province.infrastructure_investment + x
+end
+
+---commenting
+---@param province Province
+---@param x number
+---@param reason EconomicReason
+function EconomicEffects.change_local_wealth(province, x, reason)
+    province.local_wealth = province.local_wealth + x
+
+    -- if WORLD.player_character then
+    --     if WORLD.player_character.province == province then
+    --         print("province local wealth change")
+    --         print(x)
+    --         print(reason)
+    --         print("current_wealth: ")
+    --         print(province.local_wealth)
+    --     end
+    -- end
 end
 
 ---comment

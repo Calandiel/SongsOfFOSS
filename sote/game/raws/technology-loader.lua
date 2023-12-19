@@ -44,9 +44,13 @@ function d.load()
 			[prod("obsidian-knapping")] = 0.1
 		},
 		input_efficiency_boosts = {
-			[prod("flint-knapping")] = 0.25,
-			[prod("obsidian-knapping")] = 0.25,
+			[prod("flint-knapping")] = 0.75,
+			[prod("obsidian-knapping")] = 0.75,
 		},
+		output_efficiency_boosts = {
+			[prod("flint-extraction")] = 1.25,
+			[prod("obsidian-extraction")] = 1.25,
+		}
 	}
 	Technology:new {
 		name = "dedicated-woodcutters",

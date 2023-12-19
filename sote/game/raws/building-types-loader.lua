@@ -179,7 +179,7 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-		BuildingType:new {
+	BuildingType:new {
 		name = "obsidian-extraction",
 		description = "obsidian extraction",
 		icon = 'stone-stack.png',
@@ -190,6 +190,21 @@ function d.load()
 		production_method = prod('obsidian-extraction'),
 		required_resource = { res('obsidian') },
 		construction_cost = 15,
+		unique = true,
+		needed_infrastructure = 1,
+		ai_weight = 20,
+	}
+	BuildingType:new {
+		name = "stone-extraction",
+		description = "stone extraction",
+		icon = 'stone-block.png',
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
+		unlocked_by = tec('dedicated-stonecutters'),
+		production_method = prod('stone-extraction'),
+		required_resource = { res('stone') },
+		construction_cost = 50,
 		unique = true,
 		needed_infrastructure = 1,
 		ai_weight = 20,
@@ -229,14 +244,14 @@ function d.load()
 
 	-- MINING
 	BuildingType:new {
-		name = 'native-copper-mining',
-		description = 'native copper mine',
+		name = 'native-copper-gathering',
+		description = 'native copper gathering',
 		icon = 'ore.png',
 		r = 0.56,
 		g = 0.33,
 		b = 0.02,
 		unlocked_by = tec('early-metal-working'),
-		production_method = prod('native-copper-mining'),
+		production_method = prod('native-copper-gathering'),
 		required_resource = { res('native-copper') },
 		unique = true,
 		needed_infrastructure = 10,
@@ -262,7 +277,7 @@ function d.load()
 	-- SMELT ORE
 	BuildingType:new {
 		name = 'copper-smelting',
-		description = 'copper tools smiths',
+		description = 'copper smelting',
 		icon = 'ore.png',
 		r = 0.56,
 		g = 0.33,

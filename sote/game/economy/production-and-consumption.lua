@@ -40,6 +40,11 @@ function pro.run(province)
 	local old_price_feature_exp = {}
 	for good_name, price in pairs(RAWS_MANAGER.trade_goods_by_name) do
 		old_prices[good_name] = ev.get_local_price(province, good_name)
+
+		if (available_last_time[good_name] or 0) < 0 then
+			available_last_time[good_name] = 0
+		end
+
 		local feature = -math.sqrt(old_prices[good_name]) / (1 + (available_last_time[good_name] or 0))
 		old_price_feature_exp[good_name] = math.exp(feature)
 
@@ -170,7 +175,7 @@ function pro.run(province)
 		if income > 0 then
 			---@type number
 			local contribution_to_local_wealth = income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-			province.local_wealth = province.local_wealth + contribution_to_local_wealth
+			economic_effects.change_local_wealth(province, contribution_to_local_wealth, economic_effects.reasons.Raid)
 			income = income - contribution_to_local_wealth
 
 			---@type number
@@ -330,7 +335,7 @@ function pro.run(province)
 				local available = available_last_time[good] or 0
 
 				---@type number
-				local demand = buy_potential * old_price_feature_exp[good] / total_exp
+				local demand = math.min(need_amount, buy_potential * old_price_feature_exp[good] / total_exp)
 				local consumption = math.max(0, math.min(demand, available))
 
 				record_consumption(good, consumption)
@@ -545,9 +550,8 @@ function pro.run(province)
 		-- buidings are essentially wealth sinks currently
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
-		if pop.age > pop.race.teen_age then
-			economic_effects.add_pop_savings(pop, 0.5, economic_effects.reasons.MonthlyChange)
-		end
+		local base_income = 1 * pop.age / 100;
+		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
 
 		-- Drafted pops don't work -- they may not even be in the province in the first place...
 		-- and if they are in province, then they are handled before this loop
@@ -706,7 +710,11 @@ function pro.run(province)
 
 				if income > 0 then
 					local contribution_to_local_wealth = income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-					province.local_wealth = province.local_wealth + contribution_to_local_wealth
+					economic_effects.change_local_wealth(
+						province,
+						contribution_to_local_wealth,
+						economic_effects.reasons.Donation
+					)
 					income = income - contribution_to_local_wealth
 
 					---@type number
@@ -755,7 +763,11 @@ function pro.run(province)
 				local siphon_to_child = math.min(old_prices['food'] * 0.5, province.local_wealth * 1 / 512)
 				if siphon_to_child > 0 then
 					economic_effects.add_pop_savings(pop, siphon_to_child, economic_effects.reasons.Donation)
-					province.local_wealth = province.local_wealth - siphon_to_child
+					economic_effects.change_local_wealth(
+						province,
+						- siphon_to_child,
+						economic_effects.reasons.Donation
+					)
 				end
 
 				-- children spend time on games and growing up:
@@ -816,7 +828,11 @@ function pro.run(province)
 		local donation_to_trade_pool = pop.savings / 20
 		local donation_to_local_wealth = pop.savings / 20
 
-		province.local_wealth = province.local_wealth + donation_to_local_wealth
+		economic_effects.change_local_wealth(
+			province,
+			donation_to_local_wealth,
+			economic_effects.reasons.Donation
+		)
 		province.trade_wealth = province.trade_wealth + donation_to_trade_pool
 
 		economic_effects.add_pop_savings(pop, - donation_to_trade_pool - donation_to_local_wealth, economic_effects.reasons.Donation)
@@ -824,7 +840,11 @@ function pro.run(province)
 
 	local to_trade_siphon = province.local_wealth * 0.01
 	local from_trade_siphon = province.trade_wealth * 0.01
-	province.local_wealth = province.local_wealth + from_trade_siphon - to_trade_siphon
+	economic_effects.change_local_wealth(
+		province,
+		from_trade_siphon - to_trade_siphon,
+		economic_effects.reasons.TradeSiphon
+	)
 	province.trade_wealth = province.trade_wealth - from_trade_siphon + to_trade_siphon
 
 	province.local_income = province.local_wealth - old_wealth

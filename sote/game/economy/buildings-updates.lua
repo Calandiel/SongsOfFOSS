@@ -11,7 +11,7 @@ function bld.run(province)
 	---@type Building[]
 	local to_destroy = {}
 	for _, building in pairs(province.buildings) do
-		if tabb.size(building.workers) == 0 then
+		if (tabb.size(building.workers) == 0) and (building.type.production_method:total_jobs() > 0) then
 			building.unused = building.unused + 1
 		else
 			building.unused = 0

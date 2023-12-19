@@ -156,7 +156,7 @@ function d.load()
 		b = 0.1,
 		inputs = { },
 		outputs = { ["blanks-flint"] = 1 },
-		jobs = { [job("knappers")] = 3 },
+		jobs = { [job("knappers")] = 2 },
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
 	}
@@ -182,7 +182,7 @@ function d.load()
 		b = 0.1,
 		inputs = { },
 		outputs = { ["blanks-obsidian"] = 1 },
-		jobs = { [job("knappers")] = 3 },
+		jobs = { [job("knappers")] = 2 },
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
 	}
@@ -213,7 +213,7 @@ function d.load()
 		self_sourcing_fraction = 0.2,
 	}
 	ProductionMethod:new {
-		name = "native-copper-mining",
+		name = "native-copper-gathering",
 		description = "mining native ore close to the surface",
 		icon = "ore.png",
 		r = 0.65,
@@ -243,8 +243,8 @@ function d.load()
 		r = 0.65,
 		g = 0.65,
 		b = 0.65,
-		inputs = { ["copper-source"] = 1, ["structural-material"] = 1, ["timber"] = 5 },
-		outputs = { ["copper-bars"] = 2 },
+		inputs = { ["copper-source"] = 1, ["structural-material"] = 0.1, ["timber"] = 5 },
+		outputs = { ["copper-bars"] = 1 },
 		jobs = { [job("smelters")] = 1 },
 		job_type = JOBTYPE.ARTISAN,
 	}
@@ -312,12 +312,25 @@ function d.load()
 		r = 0.35,
 		g = 0.25,
 		b = 0.65,
-		inputs = { ["tools"] = 1 },
-		outputs = { ["timber"] = 15 },
+		inputs = { ["tools-advanced"] = 1 },
+		outputs = { ["timber"] = 10 },
 		jobs = { [job("woodcutters")] = 1, },
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0.5,
 		forest_dependence = 1,
+	}
+	ProductionMethod:new {
+		name = "stone-extraction",
+		description = "stone-extraction",
+		icon = "stone-block.png",
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
+		inputs = { ["tools-advanced"] = 1 },
+		outputs = { ["stone"] = 10 },
+		jobs = { [job("quarrymen")] = 1, },
+		job_type = JOBTYPE.LABOURER,
+		self_sourcing_fraction = 0.5,
 	}
 	ProductionMethod:new {
 		name = "tanning",
