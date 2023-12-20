@@ -55,7 +55,7 @@ local tile_inspectors = {
 ---@field macrobuilder_building_type BuildingType?
 ---@field war War?
 ---@field decision DecisionCharacter?
----@field macrodecision DecisionCharacter?
+---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?
 ---@field cached_tech Technology?
 ---@field reward_flag RewardFlag?
@@ -722,7 +722,8 @@ function gam.draw()
 		province_on_map_interaction = true
 		---comment
 		---@param province Province
-		local function draw_province(province)
+		---@param mode "path"|"label"|"decision"|"macrobuilder"
+		local function draw_province(province, mode)
 			-- sanity checks
 			local visibility = true
 			if WORLD.player_character then
@@ -760,8 +761,40 @@ function gam.draw()
 			end
 
 			-- draw
+			local result = nil
+			if mode == "path" then
+				local decision = gam.selected.macrodecision
+				if decision  == nil then
+					return
+				end
+				local player = WORLD.player_character
+				if player == nil then
+					return
+				end
 
-			local result = require "game.scenes.game.widgets.province-on-map" (gam, tile, rect_for_icons, x, y, size)
+				if not decision.clickable(player, province) then
+					return
+				end
+
+				local hours, path = decision.path(player, province)
+
+				if path then
+					table.insert(path, player.province)
+					result = require "game.scenes.game.widgets.onmap.path"(gam, rect_for_icons, hours, path, tile_to_x_y)
+				end
+			end
+
+			if mode == "label" then
+				result = require "game.scenes.game.widgets.onmap.province" (gam, tile, rect_for_icons, x, y, size)
+			end
+
+			if mode == "decision" then
+				result = require "game.scenes.game.widgets.onmap.decision"(gam, tile, rect_for_icons)
+			end
+
+			if mode == "macrobuilder" then
+				result = require "game.scenes.game.widgets.onmap.macrobuilder"(gam, tile, rect_for_icons, x, y, size)
+			end
 
 			if result then
 				gam.click_callback = result
@@ -771,11 +804,21 @@ function gam.draw()
 		end
 
 		-- drawing provinces
-		if gam.inspector == 'macrobuilder' or gam.inspector == 'macrodecision' then
+		if gam.inspector == 'macrodecision' then
 			local character = WORLD.player_character
 			if character then
 				for _, province in pairs(character.realm.known_provinces) do
-					draw_province(province)
+					draw_province(province, "path")
+				end
+				for _, province in pairs(character.realm.known_provinces) do
+					draw_province(province, "decision")
+				end
+			end
+		elseif gam.inspector == 'macrobuilder' then
+			local character = WORLD.player_character
+			if character then
+				for _, province in pairs(character.realm.known_provinces) do
+					draw_province(province, "macrobuilder")
 				end
 			end
 		else
@@ -843,7 +886,7 @@ function gam.draw()
 			end
 
 			for _, province in ipairs(provinces_to_draw) do
-				draw_province(province)
+				draw_province(province, "label")
 			end
 		end
 	end

@@ -247,6 +247,9 @@ local function load()
 					.. "."
 			end
         end,
+		path = function (root, primary_target)
+			return path.pathfind(root.province, primary_target)
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -336,6 +339,9 @@ local function load()
 				.. primary_target.realm.name
 				.. ". Their tribe will be merged into our if we succeed."
         end,
+		path = function (root, primary_target)
+			return path.pathfind(root.province, primary_target)
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -406,6 +412,9 @@ local function load()
 				.. primary_target.name
 				.. ". Our colonists will organise a new tribe which will pay tribute to us."
         end,
+		path = function (root, primary_target)
+			return path.pathfind(root.province, primary_target)
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',

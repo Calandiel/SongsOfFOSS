@@ -7,6 +7,8 @@ local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
 
+local path = require "game.ai.pathfinding"
+
 local pe = require "game.raws.effects.political"
 
 local office_triggers = require "game.raws.triggers.offices"
@@ -652,6 +654,9 @@ local function load()
 			end
 			return "Raid the province " .. primary_target.name
 		end,
+		path =function (root, primary_target)
+			return path.pathfind(root.province, primary_target)
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
@@ -730,6 +735,9 @@ local function load()
 				return'You can\'t patrol provinces of other realms'
 			end
 			return "Patrol the province " .. primary_target.name
+		end,
+		path = function (root, primary_target)
+			return path.pathfind(root.province, primary_target)
 		end,
 		sorting = 1,
 		primary_target = "province",

@@ -80,6 +80,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field name 						string
 ---@field ui_name 					string
 ---@field tooltip 					fun(root:Character, primary_target:Province):string
+---@field path						fun(root:Character, primary_target: Province): number, Province[]|nil
 ---@field effect 					fun(root:Character, primary_target:Province, secondary_target:any) Called when the action is taken
 ---@field pretrigger 				fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
 ---@field clickable 				nil|fun(root:Character, primary_target:Province):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
@@ -99,6 +100,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field name string
 ---@field ui_name string
 ---@field tooltip fun(root:Character, primary_target:Province):string
+---@field path fun(root:Character, primary_target: Province): number, Province[]|nil
 ---@field effect fun(root:Character, primary_target:Province, secondary_target:any) Called when the action is taken
 ---@field pretrigger fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
 ---@field clickable fun(root:Character, primary_target:Province):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.

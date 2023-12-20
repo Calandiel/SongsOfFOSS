@@ -21,6 +21,9 @@ local function load()
 			end
 			return "Travel to " .. primary_target.name
 		end,
+		path = function (root, primary_target)
+			return path.pathfind(root.province, primary_target)
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',

@@ -13,6 +13,7 @@
 ---@field status WarbandStatus
 ---@field total_upkeep number
 ---@field predicted_upkeep number
+---@field supplies number
 ---@field morale number
 local warband = {
     name = "Warband",  ---@type string
@@ -23,6 +24,7 @@ local warband = {
 	units_current = {},
 	units_target = {},
 	status = "idle",  ---@type WarbandStatus
+	supplies = 0,
 	morale = 0.5,
 	total_upkeep = 0,
 	predicted_upkeep = 0
@@ -178,6 +180,58 @@ end
 ---@return number
 function warband:monthly_budget()
 	return self.treasury / 12
+end
+
+---Returs daily consumption of supplies.
+---@return number
+function warband:daily_supply_consumption()
+	local total = 0
+	for _, pop in pairs(self.pops) do
+		local need = pop.race.male_needs[NEED.FOOD]
+		if pop.female then
+			need = pop.race.female_needs[NEED.FOOD]
+		end
+		total = total + need
+	end
+
+	if self.leader then
+		local leader_supplies = self.leader.race.male_needs[NEED.FOOD]
+		if self.leader.female then
+			leader_supplies = self.leader.race.female_needs[NEED.FOOD]
+		end
+
+		---@type number
+		total = total + leader_supplies
+	end
+
+	if self.recruiter then
+		local recruiter_supplies = self.recruiter.race.male_needs[NEED.FOOD]
+		if self.recruiter.female then
+			recruiter_supplies = self.recruiter.race.female_needs[NEED.FOOD]
+		end
+
+		---@type number
+		total = total + recruiter_supplies
+	end
+
+	return total
+end
+
+---Returns amount of days warband can travel depending on collected supplies
+---@return number
+function warband:days_of_travel()
+	local supplies = 0
+	if self.leader then
+		supplies = self.leader.inventory['food']
+	end
+
+	local per_day = self:daily_supply_consumption()
+
+	if per_day == 0 then
+		return 9999
+	end
+
+	return supplies / per_day
 end
 
 return warband
