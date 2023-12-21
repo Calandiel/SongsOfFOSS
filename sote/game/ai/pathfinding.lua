@@ -18,8 +18,9 @@ local function get_min(tab)
 	return ret, cost
 end
 
----@param province Province
----@return number
+---@alias province_scalar_field fun(province: Province): number
+
+---@type province_scalar_field
 local function dummy_speed(province)
 	return 1
 end
@@ -27,9 +28,10 @@ end
 ---Pathfinds from origin province to target province, returns the travel time in hours and the path itself (can only pathfind from land to land or from sea to sea)
 ---@param origin Province
 ---@param target Province
----@param speed_modifier nil|fun(province: Province): number Adjusts movement costs of provinces
+---@param speed_modifier nil|province_scalar_field Adjusts movement costs of provinces
+---@param allowed_provinces table<Province, Province> Provinces allowed for pathfinding
 ---@return number,table<number,Province>|nil
-function pa.pathfind(origin, target, speed_modifier)
+function pa.pathfind(origin, target, speed_modifier, allowed_provinces)
 
 	if speed_modifier == nil then
 		speed_modifier = dummy_speed
@@ -71,7 +73,7 @@ function pa.pathfind(origin, target, speed_modifier)
 		end
 
 		for _, n in pairs(prov.neighbors) do
-			if n.center.is_land == prov.center.is_land then
+			if n.center.is_land == prov.center.is_land and allowed_provinces[n] then
 				if visited[n] ~= true then
 					local speed_n = speed_modifier(n)
 					local speed_prov =  speed_modifier(prov)
@@ -81,8 +83,12 @@ function pa.pathfind(origin, target, speed_modifier)
 					if alt < old_distance then
 						distance_cache[n] = alt
 						prev[n] = prov
-						qq[n] = alt
-						q_size = q_size + 1
+						if qq[n] == nil then
+							qq[n] = alt
+							q_size = q_size + 1
+						else
+							qq[n] = alt
+						end
 					end
 				end
 			end

@@ -22,7 +22,12 @@ local function load()
 			return "Travel to " .. primary_target.name
 		end,
 		path = function (root, primary_target)
-			return path.pathfind(root.province, primary_target)
+			return path.pathfind(
+				root.province,
+				primary_target,
+				character_values.travel_speed(root),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",
@@ -82,7 +87,12 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.province, primary_target))
+			local travel_time, _ = path.hours_to_travel_days(path.pathfind(
+				root.province,
+				primary_target,
+				character_values.travel_speed(root),
+				root.realm.known_provinces
+			))
 			if travel_time == math.huge then
 				travel_time = 150
 			end
@@ -133,7 +143,8 @@ local function load()
 				path.pathfind(
 					root.province,
 					root.realm.capitol,
-					character_values.travel_speed(root)
+					character_values.travel_speed(root),
+					root.realm.known_provinces
 				)
 			)
 

@@ -18,6 +18,8 @@ local economic_effects = require "game.raws.effects.economic"
 local military_effects = require "game.raws.effects.military"
 local political_effects = require "game.raws.effects.political"
 
+local character_values = require "game.raws.values.character"
+
 local messages = require "game.raws.effects.messages"
 
 function load()
@@ -376,7 +378,9 @@ function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					character.realm.capitol,
-					associated_data.realm.capitol
+					associated_data.realm.capitol,
+					character_values.travel_speed_race(character.realm.primary_race),
+					character.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then
@@ -474,7 +478,9 @@ function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					character.realm.capitol,
-					associated_data.realm.capitol
+					associated_data.realm.capitol,
+					character_values.travel_speed_race(character.realm.primary_race),
+					character.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then
@@ -572,7 +578,9 @@ function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					character.realm.capitol,
-					associated_data.realm.capitol
+					associated_data.realm.capitol,
+					character_values.travel_speed_race(character.realm.primary_race),
+					character.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then

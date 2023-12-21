@@ -499,10 +499,10 @@ function world.World:tick()
 				t = love.timer.getTime()
 
 				-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
-				if not WORLD:does_player_control_realm(realm) then
-					--print("Decide")
-					decide.run(realm)
-				end
+				-- if not WORLD:does_player_control_realm(realm) then
+				-- 	--print("Decide")
+				-- 	decide.run(realm)
+				-- end
 
 				decision_tick = decision_tick + love.timer.getTime() - t
 			end

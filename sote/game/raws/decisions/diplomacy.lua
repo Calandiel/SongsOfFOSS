@@ -6,6 +6,8 @@ local dt = require "game.raws.triggers.diplomacy"
 local ot = require "game.raws.triggers.offices"
 local pv = require "game.raws.values.political"
 
+local character_values = require "game.raws.values.character"
+
 local TRAIT = require "game.raws.traits.generic"
 
 local function load()
@@ -192,8 +194,14 @@ local function load()
 			---@type Character
 			primary_target = primary_target
 
-			local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.realm.capitol,
-				primary_target.realm.capitol))
+			local travel_time, _ = path.hours_to_travel_days(
+				path.pathfind(
+					root.realm.capitol,
+					primary_target.realm.capitol,
+					character_values.travel_speed_race(root.realm.primary_race),
+					root.realm.known_provinces
+				)
+			)
 			if travel_time == math.huge then
 				travel_time = 150
 			end
@@ -248,7 +256,12 @@ local function load()
 			end
         end,
 		path = function (root, primary_target)
-			return path.pathfind(root.province, primary_target)
+			return path.pathfind(
+				root.realm.capitol,
+				primary_target.realm.capitol,
+				character_values.travel_speed_race(root.realm.primary_race),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",
@@ -299,7 +312,9 @@ local function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					root.realm.capitol,
-					primary_target
+					primary_target.realm.capitol,
+					character_values.travel_speed_race(root.realm.primary_race),
+					root.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then
@@ -340,7 +355,12 @@ local function load()
 				.. ". Their tribe will be merged into our if we succeed."
         end,
 		path = function (root, primary_target)
-			return path.pathfind(root.province, primary_target)
+			return path.pathfind(
+				root.realm.capitol,
+				primary_target.realm.capitol,
+				character_values.travel_speed_race(root.realm.primary_race),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",
@@ -413,7 +433,12 @@ local function load()
 				.. ". Our colonists will organise a new tribe which will pay tribute to us."
         end,
 		path = function (root, primary_target)
-			return path.pathfind(root.province, primary_target)
+			return path.pathfind(
+				root.realm.capitol,
+				primary_target.realm.capitol,
+				character_values.travel_speed_race(root.realm.primary_race),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",

@@ -13,6 +13,9 @@ local pe = require "game.raws.effects.political"
 
 local office_triggers = require "game.raws.triggers.offices"
 
+local military_values = require "game.raws.values.military"
+
+
 local function load()
 
 	local base_gift_size = 20
@@ -655,7 +658,12 @@ local function load()
 			return "Raid the province " .. primary_target.name
 		end,
 		path =function (root, primary_target)
-			return path.pathfind(root.province, primary_target)
+			return path.pathfind(
+				root.province,
+				primary_target,
+				military_values.warband_speed(root.leading_warband),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",
@@ -737,7 +745,12 @@ local function load()
 			return "Patrol the province " .. primary_target.name
 		end,
 		path = function (root, primary_target)
-			return path.pathfind(root.province, primary_target)
+			return path.pathfind(
+				root.province,
+				primary_target,
+				military_values.warband_speed(root.leading_warband),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",

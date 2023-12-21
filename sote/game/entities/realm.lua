@@ -369,7 +369,7 @@ function realm.Realm:get_explore_cost(province)
 	local mulp = 0.1
 	if province.center.is_land then
 		local path = require "game.ai.pathfinding"
-		local cost, r = path.pathfind(self.capitol, province)
+		local cost, r = path.pathfind(self.capitol, province, nil, self.known_provinces)
 		if r then
 			return cost * mulp
 		else
