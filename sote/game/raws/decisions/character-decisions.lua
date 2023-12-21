@@ -657,7 +657,7 @@ local function load()
 			end
 			return "Raid the province " .. primary_target.name
 		end,
-		path =function (root, primary_target)
+		path = function (root, primary_target)
 			return path.pathfind(
 				root.province,
 				primary_target,

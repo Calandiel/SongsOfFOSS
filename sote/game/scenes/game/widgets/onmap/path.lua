@@ -1,6 +1,8 @@
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local pathfinding = require "game.ai.pathfinding"
+
 
 ---comment
 ---@param gam GameScene
@@ -38,7 +40,7 @@ local function path(gam, rect, length, path, tile_to_x_y)
 		days_rect.width = days_rect.width + rect.height * 2
 		days_rect.height = rect.height / 2
 
-		ut.log_number_entry("days: ", length / 24, days_rect, nil, true)
+		ut.log_number_entry("days: ", pathfinding.hours_to_travel_days(length), days_rect, nil, true)
 	end
 end
 
