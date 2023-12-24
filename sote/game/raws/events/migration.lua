@@ -158,7 +158,7 @@ function load()
 					end
 
 					-- destroy invaded realm
-					diplomacy_events.dissolve_realm(target_realm)
+					diplomacy_events.dissolve_realm_and_clear_diplomacy(target_realm)
 					origin_realm:add_province(associated_data.target_province)
 				else
 					for _, character in pairs(migration_pool_characters_locals) do
@@ -166,7 +166,7 @@ function load()
 						character.rank = character_ranks.NOBLE
 					end
 					-- destroy merged realm
-					diplomacy_events.dissolve_realm(origin_realm)
+					diplomacy_events.dissolve_realm_and_clear_diplomacy(origin_realm)
 				end
 
 				-- remove old province from the realm
@@ -290,7 +290,7 @@ function load()
 				end
 
 				-- destroy invaded realm
-				diplomacy_events.dissolve_realm(target_realm)
+				diplomacy_events.dissolve_realm_and_clear_diplomacy(target_realm)
 				new_realm:add_province(associated_data.target_province)
 			else
 				-- replace old province with new one

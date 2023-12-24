@@ -11,10 +11,9 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field job_weight number
 ---@field job_type JOBTYPE
 ---@field total_jobs fun(self:ProductionMethod):number
----@field inputs table<TradeGoodReference, number>
+---@field inputs table<TradeGoodUseCaseReference, number>
 ---@field outputs table<TradeGoodReference, number>
 ---@field new fun(self:ProductionMethod, o:ProductionMethod):ProductionMethod
----@field self_sourcing_fraction number Amount of time spent self sourcing materials in case of a material shortage!
 ---@field foraging boolean If true, counts towards the forager limit
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number Set to 1 if building consumes local forests
@@ -54,7 +53,6 @@ function ProductionMethod:new(o)
 	r.inputs = {}
 	r.outputs = {}
 	r.job_weight = 1
-	r.self_sourcing_fraction = 0
 	r.foraging = false
 	r.nature_yield_dependence = 0
 	r.forest_dependence = 0

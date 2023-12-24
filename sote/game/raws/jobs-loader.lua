@@ -108,6 +108,22 @@ function d.load()
 		b = 1,
 	}
 	Job:new {
+		name = 'blacksmiths',
+		icon = 'crafting.png',
+		description = 'blacksmiths',
+		r = 0.1,
+		g = 0.1,
+		b = 0.1,
+	}
+	Job:new {
+		name = 'quarrymen',
+		icon = 'stone-block.png',
+		description = 'quarrymen',
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
+	}
+	Job:new {
 		name = 'tanners',
 		icon = 'animal-hide.png',
 		description = 'tanners',

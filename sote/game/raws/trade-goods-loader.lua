@@ -13,8 +13,8 @@ function d.load()
 		local retrieved_use_case = use_case(trade_good_use_case)
 		local retrieved_trade_good = good(trade_good)
 
-		retrieved_use_case.goods[retrieved_trade_good] = weight
-		retrieved_trade_good.use_cases[retrieved_use_case] = weight
+		retrieved_use_case.goods[trade_good] = weight
+		retrieved_trade_good.use_cases[trade_good_use_case] = weight
 	end
 
 
@@ -137,6 +137,7 @@ function d.load()
 		b = 0.65,
 		base_price = 8,
 	}
+	add_use_case("leather", "containers", 0.1)
 	add_use_case("leather", "leather", 1)
 	TradeGood:new {
 		name = "meat",
@@ -157,27 +158,91 @@ function d.load()
 		b = 0.22,
 		base_price = 5,
 	}
+	add_use_case("timber", "containers", 0.1)
 	add_use_case("timber", "timber", 1)
+
 	TradeGood:new {
-		name = "tools",
-		description = "tools",
-		icon = "stone-axe.png",
-		r = 0.162,
-		g = 0.141,
-		b = 0.422,
-		base_price = 8,
-	}
-	add_use_case("tools", "tools", 1)
-	TradeGood:new {
-		name = "knapping-blanks",
-		description = "knapping blanks",
+		name = "blanks-flint",
+		description = "flint blanks",
 		icon = "rock.png",
 		r = 0.162,
 		g = 0.141,
 		b = 0.422,
 		base_price = 6,
 	}
-	add_use_case("knapping-blanks", "knapping-blanks", 1)
+
+	add_use_case("blanks-flint", "tools-like", 0.5)
+	add_use_case("blanks-flint", "blanks-flint", 1)
+
+	TradeGood:new {
+		name = "blanks-obsidian",
+		description = "obsidian blanks",
+		icon = "rock.png",
+		r = 0.1,
+		g = 0.1,
+		b = 0.1,
+		base_price = 6,
+	}
+
+	add_use_case("blanks-obsidian", "tools-like", 0.4)
+	add_use_case("blanks-obsidian", "blanks-obsidian", 1)
+
+
+	TradeGood:new {
+		name = "tools-flint",
+		description = "flint tools",
+		icon = "stone-axe.png",
+		r = 0.162,
+		g = 0.141,
+		b = 0.422,
+		base_price = 8,
+	}
+
+	add_use_case("tools-flint", "tools-like", 1.5)
+	add_use_case("tools-flint", "tools", 1)
+	add_use_case("tools-flint", "tools-advanced", 0.3)
+
+	TradeGood:new {
+		name = "tools-obsidian",
+		description = "obsidian tools",
+		icon = "stone-axe.png",
+		r = 0.1,
+		g = 0.1,
+		b = 0.1,
+		base_price = 8,
+	}
+	add_use_case("tools-obsidian", "tools-like", 1.4)
+	add_use_case("tools-obsidian", "tools", 0.9)
+	add_use_case("tools-obsidian", "tools-advanced", 0.2)
+
+	TradeGood:new {
+		name = "tools-native-copper",
+		description = "native copper tools",
+		icon = "stone-axe.png",
+		r = 0.71,
+		g = 0.25,
+		b = 0.05,
+		base_price = 8,
+	}
+
+	add_use_case("tools-native-copper", "tools-like", 3)
+	add_use_case("tools-native-copper", "tools", 2)
+	add_use_case("tools-native-copper", "tools-advanced", 1.5)
+
+	TradeGood:new {
+		name = "tools-cast-copper",
+		description = "cast copper tools",
+		icon = "stone-axe.png",
+		r = 0.71,
+		g = 0.25,
+		b = 0.05,
+		base_price = 8,
+	}
+
+	add_use_case("tools-cast-copper", "tools-like", 2)
+	add_use_case("tools-cast-copper", "tools", 1.5)
+	add_use_case("tools-cast-copper", "tools-advanced", 1)
+
 	TradeGood:new {
 		name = "copper-bars",
 		description = "copper",
@@ -188,6 +253,31 @@ function d.load()
 		base_price = 15
 	}
 	add_use_case("copper-bars", "copper-bars", 1)
+
+	TradeGood:new {
+		name = "copper-ore",
+		description = "copper ore",
+		icon = "ore.png",
+		r = 0.71,
+		g = 0.25,
+		b = 0.05,
+		base_price = 15
+	}
+	add_use_case("copper-ore", "copper-source", 1)
+
+	TradeGood:new {
+		name = "copper-native",
+		description = "native copper",
+		icon = "ore.png",
+		r = 0.71,
+		g = 0.25,
+		b = 0.05,
+		base_price = 15
+	}
+	add_use_case("copper-native", "copper-source", 1)
+	add_use_case("copper-native", "copper-native", 1)
+
+
 	TradeGood:new {
 		name = "clay",
 		description = "clay",
@@ -198,6 +288,19 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("clay", "clay", 1)
+	add_use_case("clay", "structural-material", 1)
+
+	TradeGood:new {
+		name = "stone",
+		description = "stone",
+		icon = "stone-block.png",
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
+		base_price = 2,
+	}
+	add_use_case("stone", "stone", 1)
+	add_use_case("stone", "structural-material", 1)
 end
 
 return d

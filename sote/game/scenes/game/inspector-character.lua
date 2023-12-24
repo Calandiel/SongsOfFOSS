@@ -125,7 +125,10 @@ function window.draw(game)
 
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
 
-    local popularity = pv.popularity(character, character.province.realm)
+    local popularity = 0
+    if character.province then
+        popularity = pv.popularity(character, character.province.realm)
+    end
     ut.balance_entry_icon("duality-mask.png", popularity, popularity_panel, "Popularity")
 
 
@@ -134,7 +137,7 @@ function window.draw(game)
 
     local province_visible = true
 
-    if player == nil or player.realm.known_provinces[province] then
+    if province and (player == nil or player.realm.known_provinces[province]) then
         if ut.text_button(character.province.name, location_panel, "Current location of character") then
             game.inspector = "tile"
             game.selected.province = character.province
@@ -227,7 +230,7 @@ function window.draw(game)
         decision_target_secondary = nil
     end
 
-    if province_visible then
+    if province and province_visible then
         local response = characters_list_widget(characters_list, character.province, true)()
         if response then
             game.selected.character = response

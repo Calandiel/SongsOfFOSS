@@ -18,7 +18,7 @@ function tr.run(realm)
 		EconomicEffects.set_military_budget(realm, 0.2)
 	end
 
-	realm.budget.treasury_target = 100
+	realm.budget.treasury_target = 250
 end
 
 return tr

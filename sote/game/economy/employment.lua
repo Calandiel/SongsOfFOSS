@@ -51,7 +51,7 @@ function emp.run(province)
 				profit = building.income_mean + building.subsidy_last
 
 				-- if profit is almost negative, eventually fire a worker
-				if profit < 0.01 and love.math.random() < 0.7 then
+				if profit < 0.05 and love.math.random() < 0.9 then
 					local pop = tabb.random_select_from_set(building.workers)
 					if pop then
 						province:fire_pop(pop)
@@ -68,8 +68,7 @@ function emp.run(province)
 						pop.race,
 						pop.female,
 						prices,
-						shortage_modifier,
-						false
+						shortage_modifier
 					)
 				profit = profit + building.subsidy
 			end
@@ -146,7 +145,7 @@ function emp.run(province)
 			local pop_current_income = pop.employer.last_income / tabb.size(pop.employer.workers)
 
 			-- TODO: move to cultural value
-			local likelihood_of_changing_job = 0.6
+			local likelihood_of_changing_job = 0.9
 
 			local recalculater_hire_profit = raw_profits[hire_building]
 
@@ -164,27 +163,6 @@ function emp.run(province)
 				province:employ_pop(pop, hire_building)
 			end
 		end
-	end
-
-
-	-- destroy unused building
-	---@type Building[]
-	local to_destroy = {}
-	for _, building in pairs(province.buildings) do
-		if tabb.size(building.workers) == 0 then
-			building.unused = building.unused + 1
-		else
-			building.unused = 0
-		end
-
-		if building.unused > 360 then
-			table.insert(to_destroy, building)
-		end
-	end
-
-	for _, building in pairs(to_destroy) do
-		-- print(building.type.description .. " was destroyed due to being unused for a long time")
-		EconomicEffects.destroy_building(building)
 	end
 end
 

@@ -198,6 +198,22 @@ local function render_percentage(number, rect, negative)
 	love.graphics.setColor(cr, cg, cb, ca)
 end
 
+---Renders icon with given colour
+---@param rect Rect
+---@param icon_name string
+---@param r number
+---@param g number
+---@param b number
+---@param a number
+function ut.render_icon(rect, icon_name, r, g, b, a)
+	local _r, _g, _b, _a = love.graphics.getColor()
+
+	love.graphics.setColor(r, g, b ,a)
+	ui.image(ASSETS.icons[icon_name], rect)
+
+	love.graphics.setColor(_r, _g, _b ,_a)
+end
+
 ---comment
 ---@param name_or_icon string
 ---@param data number

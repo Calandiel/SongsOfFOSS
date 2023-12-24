@@ -133,7 +133,7 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			primary_target.mood = math.min(10, primary_target.mood + 1)
+			primary_target.mood = math.min(10, primary_target.mood + 0.05)
 			ef.change_treasury(root, -primary_target:population() * gift_cost_per_pop, EconomicEffects.reasons.Donation)
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("Population of " .. primary_target.name .. " is jubilant after receiving our gifts!")

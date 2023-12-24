@@ -51,7 +51,8 @@ function ll.load()
 			[NEED.FURNITURE] = 1,
 			[NEED.TOOLS] = 0.125 / 4,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		female_infrastructure_needs = 2,
 		male_body_size = 2,
@@ -74,7 +75,8 @@ function ll.load()
 			[NEED.FURNITURE] = 1,
 			[NEED.TOOLS] = 0.125 / 4,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		male_infrastructure_needs = 2,
 
@@ -120,7 +122,8 @@ function ll.load()
 			[NEED.FURNITURE] = 1,
 			[NEED.TOOLS] = 0.125 / 2,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		female_infrastructure_needs = 5,
 		male_body_size = 0.95,
@@ -143,7 +146,8 @@ function ll.load()
 			[NEED.FURNITURE] = 1,
 			[NEED.TOOLS] = 0.125 / 2,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		male_infrastructure_needs = 5,
 		carrying_capacity_weight = 2,
@@ -191,7 +195,8 @@ function ll.load()
 			[NEED.FURNITURE] = 1,
 			[NEED.TOOLS] = 0.125 * 2,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		female_infrastructure_needs = 3,
 		male_body_size = 0.8,
@@ -214,7 +219,8 @@ function ll.load()
 			[NEED.FURNITURE] = 1,
 			[NEED.TOOLS] = 0.125 * 2,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		male_infrastructure_needs = 3,
 		carrying_capacity_weight = 1.5,
@@ -260,7 +266,8 @@ function ll.load()
 			[NEED.FURNITURE] = 0.25,
 			[NEED.TOOLS] = 0.125 / 2,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		female_infrastructure_needs = 0.25,
 		male_body_size = 0.6,
@@ -283,7 +290,8 @@ function ll.load()
 			[NEED.FURNITURE] = 0.25,
 			[NEED.TOOLS] = 0.125 / 2,
 			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125
+			[NEED.STORAGE] = 0.125,
+			[NEED.LUXURY] = 1
 		},
 		male_infrastructure_needs = 0.25,
 		carrying_capacity_weight = 0.25,

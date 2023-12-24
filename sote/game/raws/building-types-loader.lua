@@ -38,6 +38,7 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('witch-doctor'),
 		construction_cost = COST_WORKSHOP,
+		building_group = BUILDING_GROUP.WORKSHOP,
 		needed_infrastructure = 1,
 		ai_weight = 1
 	}
@@ -56,33 +57,99 @@ function d.load()
 		ai_weight = 0.05,
 	}
 	BuildingType:new {
-		name = "hunting-grounds",
+		name = "hunting-grounds-0",
+		description = "primitive hunting grounds",
+		icon = 'bow-arrow.png',
+		r = 1.0,
+		g = 0.2,
+		b = 0.3,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('hunting-0'),
+		construction_cost = COST_AREA,
+		building_group = BUILDING_GROUP.GROUNDS,
+		tile_improvement = true,
+		needed_infrastructure = 1,
+		ai_weight = 1,
+	}
+	BuildingType:new {
+		name = "hunting-grounds-1",
 		description = "hunting grounds",
 		icon = 'bow-arrow.png',
 		r = 1.0,
 		g = 0.2,
 		b = 0.3,
 		unlocked_by = tec('paleolithic-knowledge'),
-		production_method = prod('hunting'),
+		production_method = prod('hunting-1'),
 		construction_cost = COST_AREA,
+		building_group = BUILDING_GROUP.GROUNDS,
 		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
 	BuildingType:new {
-		name = "gathering-grounds",
+		name = "hunting-grounds-2",
+		description = "hunting grounds (tools)",
+		icon = 'bow-arrow.png',
+		r = 1.0,
+		g = 0.2,
+		b = 0.3,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('hunting-2'),
+		construction_cost = COST_AREA,
+		building_group = BUILDING_GROUP.GROUNDS,
+		tile_improvement = true,
+		needed_infrastructure = 1,
+		ai_weight = 1,
+	}
+
+	BuildingType:new {
+		name = "gathering-grounds-0",
+		description = "primitive gathering grounds",
+		icon = 'fruit-bowl.png',
+		r = 0.2,
+		g = 1.0,
+		b = 0.3,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('gathering-0'),
+		building_group = BUILDING_GROUP.GROUNDS,
+		construction_cost = COST_AREA,
+		tile_improvement = true,
+		needed_infrastructure = 1,
+		ai_weight = 1,
+	}
+
+	BuildingType:new {
+		name = "gathering-grounds-1",
 		description = "gathering grounds",
 		icon = 'fruit-bowl.png',
 		r = 0.2,
 		g = 1.0,
 		b = 0.3,
 		unlocked_by = tec('paleolithic-knowledge'),
-		production_method = prod('gathering'),
+		production_method = prod('gathering-1'),
+		building_group = BUILDING_GROUP.GROUNDS,
 		construction_cost = COST_AREA,
 		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
+
+	BuildingType:new {
+		name = "gathering-grounds-2",
+		description = "gathering grounds (tools)",
+		icon = 'fruit-bowl.png',
+		r = 0.2,
+		g = 1.0,
+		b = 0.3,
+		unlocked_by = tec('ground-stone-tools'),
+		production_method = prod('gathering-2'),
+		building_group = BUILDING_GROUP.GROUNDS,
+		construction_cost = COST_AREA,
+		tile_improvement = true,
+		needed_infrastructure = 1,
+		ai_weight = 1,
+	}
+
 	BuildingType:new {
 		name = "flint-extraction",
 		description = "flint extraction",
@@ -113,6 +180,50 @@ function d.load()
 		ai_weight = 1,
 	}
 	BuildingType:new {
+		name = "obsidian-extraction",
+		description = "obsidian extraction",
+		icon = 'stone-stack.png',
+		r = 0.3,
+		g = 1.0,
+		b = 0.5,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('obsidian-extraction'),
+		required_resource = { res('obsidian') },
+		construction_cost = 15,
+		unique = true,
+		needed_infrastructure = 1,
+		ai_weight = 20,
+	}
+	BuildingType:new {
+		name = "stone-extraction",
+		description = "stone extraction",
+		icon = 'stone-block.png',
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
+		unlocked_by = tec('dedicated-stonecutters'),
+		production_method = prod('stone-extraction'),
+		required_resource = { res('stone') },
+		construction_cost = 50,
+		unique = true,
+		needed_infrastructure = 1,
+		ai_weight = 20,
+	}
+	BuildingType:new {
+		name = "obsidian-knapping",
+		description = "obsidian knapping",
+		icon = 'stone-stack.png',
+		r = 0.3,
+		g = 1.0,
+		b = 0.5,
+		unlocked_by = tec('paleolithic-knowledge'),
+		production_method = prod('obsidian-knapping'),
+		required_resource = {},
+		construction_cost = COST_WORKSHOP,
+		needed_infrastructure = 1,
+		ai_weight = 1,
+	}
+	BuildingType:new {
 		name = 'brewery',
 		description = 'brewery',
 		icon = 'beer-stein.png',
@@ -122,11 +233,33 @@ function d.load()
 		unlocked_by = tec('basic-fermentation'),
 		production_method = prod('brewing'),
 		construction_cost = COST_WORKSHOP,
+		building_group = BUILDING_GROUP.WORKSHOP,
 		needed_infrastructure = 15,
 		ai_weight = 3.5
 	}
+
+	-- ###################
+	-- #  COPPER CHAINS  #
+	-- ###################
+
+	-- MINING
 	BuildingType:new {
-		name = 'copper-mine',
+		name = 'native-copper-gathering',
+		description = 'native copper gathering',
+		icon = 'ore.png',
+		r = 0.56,
+		g = 0.33,
+		b = 0.02,
+		unlocked_by = tec('early-metal-working'),
+		production_method = prod('native-copper-gathering'),
+		required_resource = { res('native-copper') },
+		unique = true,
+		needed_infrastructure = 10,
+		construction_cost = COST_MINE,
+		ai_weight = 10
+	}
+	BuildingType:new {
+		name = 'surface-copper-mining',
 		description = 'copper mine',
 		icon = 'ore.png',
 		r = 0.56,
@@ -140,6 +273,51 @@ function d.load()
 		construction_cost = COST_MINE,
 		ai_weight = 10
 	}
+
+	-- SMELT ORE
+	BuildingType:new {
+		name = 'copper-smelting',
+		description = 'copper smelting',
+		icon = 'ore.png',
+		r = 0.56,
+		g = 0.33,
+		b = 0.02,
+		unlocked_by = tec('surface-mining'),
+		production_method = prod('copper-smelting'),
+		needed_infrastructure = 10,
+		construction_cost = COST_WORKSHOP,
+		ai_weight = 10
+	}
+
+	-- MAKING TOOLS
+	BuildingType:new {
+		name = 'smith-tools-native-copper',
+		description = 'native copper smiths',
+		icon = 'ore.png',
+		r = 0.56,
+		g = 0.33,
+		b = 0.02,
+		unlocked_by = tec('early-metal-working'),
+		production_method = prod('smith-tools-native-copper'),
+		needed_infrastructure = 15,
+		construction_cost = COST_WORKSHOP,
+		ai_weight = 10
+	}
+	BuildingType:new {
+		name = 'copper-smith-tools',
+		description = 'copper tools smiths',
+		icon = 'ore.png',
+		r = 0.56,
+		g = 0.33,
+		b = 0.02,
+		unlocked_by = tec('surface-mining'),
+		production_method = prod('smith-tools-cast-copper'),
+		needed_infrastructure = 15,
+		construction_cost = COST_WORKSHOP,
+		ai_weight = 10
+	}
+
+
 	BuildingType:new {
 		name = 'watchtower',
 		description = 'watchtower',
@@ -184,6 +362,7 @@ function d.load()
 		needed_infrastructure = 10,
 		ai_weight = 70,
 		construction_cost = COST_WORKSHOP,
+		building_group = BUILDING_GROUP.WORKSHOP
 	}
 	BuildingType:new {
 		name = 'woodcutters',
@@ -198,6 +377,7 @@ function d.load()
 		needed_infrastructure = 5,
 		ai_weight = 20,
 		construction_cost = COST_AREA,
+		building_group = BUILDING_GROUP.GROUNDS
 	}
 	BuildingType:new {
 		name = 'furniture-crafters',
@@ -211,6 +391,7 @@ function d.load()
 		needed_infrastructure = 25,
 		ai_weight = 50,
 		construction_cost = COST_WORKSHOP,
+		building_group = BUILDING_GROUP.WORKSHOP
 	}
 	BuildingType:new {
 		name = 'tanners',
@@ -224,6 +405,7 @@ function d.load()
 		needed_infrastructure = 25,
 		ai_weight = 35,
 		construction_cost = COST_WORKSHOP,
+		building_group = BUILDING_GROUP.WORKSHOP
 	}
 	BuildingType:new {
 		name = 'leather-workers',
@@ -237,6 +419,7 @@ function d.load()
 		needed_infrastructure = 25,
 		ai_weight = 50,
 		construction_cost = COST_WORKSHOP,
+		building_group = BUILDING_GROUP.WORKSHOP
 	}
 	BuildingType:new {
 		name = 'rye-farm',
@@ -252,6 +435,7 @@ function d.load()
 		needed_infrastructure = 2.5,
 		ai_weight = 50,
 		construction_cost = COST_FARM,
+		building_group = BUILDING_GROUP.FARM
 	}
 end
 

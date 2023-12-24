@@ -24,7 +24,10 @@ function rea.run(realm)
 
 	local PROVINCE_TO_REALM_STOCKPILE = 0.1
 	local REALM_TO_PROVINCE_STOCKPILE = 0.05
-	local NEIGHBOURS_GOODS_SHARING = 0.01
+	local NEIGHBOURS_GOODS_SHARING = 0.075
+	local NEIGHBOURS_WEALTH_SHARING = 0.075 / 4
+
+	local INTEGRATION_STEP = 1
 
 	-- Loop over all provinces in the realm and "add" their good balances to get our balance.
 	for _, province in pairs(realm.provinces) do
@@ -69,49 +72,65 @@ function rea.run(realm)
 			realm.resources[resource_reference] = math.max(0, old) * 0.99
 		end
 	end
+
 	-- Stockpiles' waste in provinces
 	-- Siphon some goods from realm stockpile to provincial storage
 	local amount_of_provinces = tabb.size(realm.provinces)
 	for _, province in pairs(realm.provinces) do
+		-- diffuse wealth
+		local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING
+		local sharing_local_wealth = province.local_wealth * NEIGHBOURS_WEALTH_SHARING
+		for _, neigbour in pairs(province.neighbors) do
+			if neigbour.realm then
+				economic_effects.change_local_wealth(
+					province,
+					-sharing_local_wealth,
+					economic_effects.reasons.NeighborSiphon
+				)
+				economic_effects.change_local_wealth(
+					neigbour,
+					sharing_local_wealth,
+					economic_effects.reasons.NeighborSiphon
+				)
+
+				province.trade_wealth = province.trade_wealth - sharing_trade_wealth
+				neigbour.trade_wealth = neigbour.trade_wealth + sharing_trade_wealth
+			end
+		end
+
 		for resource_reference, amount in pairs(province.local_storage) do
 			local resource = good(resource_reference)
 			if resource.category == 'good' then
 
-				-- share some goods with neigbours
+				-- share some goods and wealth with neigbours
 				-- actual goal is to smooth out economy in space a bit
 				-- until addition of properly working "trade routes"
 				local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
+
 				for _, neigbour in pairs(province.neighbors) do
 					if neigbour.realm then
 						economic_effects.change_local_stockpile(province, resource_reference, -sharing)
 						economic_effects.change_local_stockpile(neigbour, resource_reference, sharing)
-
-						-- diffuse prices a bit
-						-- needed to encorage production
-						local middle = 0.5 * (
-							economic_values.get_local_price(province, resource_reference)
-							+ economic_values.get_local_price(neigbour, resource_reference)
-						)
-
-						province.local_prices[resource_reference] =
-							(1 - PRICE_DIFFUSION) * province.local_prices[resource_reference]
-							+ PRICE_DIFFUSION * middle
 					end
 				end
-
 
 				local old = amount or 0
 				local siphon = (realm.resources[resource_reference] or 0)
 				                * REALM_TO_PROVINCE_STOCKPILE
 								/ amount_of_provinces
 
-				economic_effects.change_local_stockpile(province, resource_reference, siphon)
+				-- decay local stockpiles
 				economic_effects.decay_local_stockpile(province, resource_reference)
 
+				-- siphon some goods from realm stockpile
+				economic_effects.change_local_stockpile(province, resource_reference, siphon)
 				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
-				realm.resources[resource_reference] = realm.resources[resource_reference] * 0.9
 			end
 		end
+	end
+
+	for resource_reference, amount in pairs(realm.resources) do
+		realm.resources[resource_reference] = amount * 0.9
 	end
 
 	-- price updates
@@ -121,12 +140,39 @@ function rea.run(realm)
 			local supply = province.local_production[good_reference] or 0
 			local demand = province.local_demand[good_reference] or 0
 			local stockpile = province.local_storage[good_reference] or 0
-			local trade_volume = math.sqrt(demand + supply)
+			local trade_volume = math.sqrt(demand + supply + stockpile) + 1
+			local change_rate = math.sqrt(current_price)
+
+			local balance = demand - supply
+
+			local balance_power = 0
+			if balance > 0.1 then
+				balance_power = balance - 0.1
+			elseif balance < 0 then
+				balance_power = balance
+			end
 
 			if trade_volume > 0.1 then
-				local price_change = (demand - supply) / trade_volume * PRICE_SIGNAL_PER_UNIT
-				price_change = price_change - stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT
-				local base_price_growth = math.max(0, 1 / (current_price + 1) - 0.5) * trade_good.base_price / trade_volume * PRICE_SIGNAL_PER_UNIT
+				local inversed_price =  math.max(0, 1 / (current_price + 1) - 0.5)
+
+				local average_price_neighbours = 0
+				local neighbours = 0
+				for _, neigbour in pairs(province.neighbors) do
+					if neigbour.realm then
+						neighbours = neighbours + 1
+						average_price_neighbours = average_price_neighbours + economic_values.get_local_price(neigbour, good_reference)
+					end
+				end
+				if neighbours > 0 then
+					average_price_neighbours = average_price_neighbours / neighbours
+				end
+
+				local price_derivative =
+					balance_power / trade_volume * PRICE_SIGNAL_PER_UNIT * change_rate
+					- stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * change_rate
+					+ inversed_price * trade_good.base_price / trade_volume * PRICE_SIGNAL_PER_UNIT
+					+ average_price_neighbours - current_price
+
 
 				-- if WORLD.player_character  then
 				-- 	if WORLD.player_character.province == province then
@@ -139,13 +185,15 @@ function rea.run(realm)
 				-- 	end
 				-- end
 
-				if price_change + base_price_growth ~= price_change + base_price_growth then
+				if price_derivative ~= price_derivative or price_derivative == math.huge then
 					error(
 						"ERROR!"
-						.. "\n price_change = "
-						.. tostring(price_change)
-						.. "\n base_price_growth = "
-						.. tostring(base_price_growth)
+						.. "\n good_reference"
+						.. good_reference
+						.. "\n price_derivative = "
+						.. tostring(price_derivative)
+						.. "\n change_rate = "
+						.. tostring(change_rate)
 						.. "\n current_price = "
 						.. tostring(current_price)
 						.. "\n supply = "
@@ -156,10 +204,18 @@ function rea.run(realm)
 						.. tostring(stockpile)
 						.. "\n trade_volume = "
 						.. tostring(trade_volume)
+						.. "\n balance_power / trade_volume * PRICE_SIGNAL_PER_UNIT * change_rate = "
+						.. tostring(balance_power / trade_volume * PRICE_SIGNAL_PER_UNIT * change_rate)
+						.. "\n stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * change_rate"
+						.. tostring(stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * change_rate)
+						.. "\n inversed_price * trade_good.base_price / trade_volume * PRICE_SIGNAL_PER_UNIT"
+						.. tostring(inversed_price * trade_good.base_price / trade_volume * PRICE_SIGNAL_PER_UNIT)
+						.. "\n (average_price_neighbours - current_price)"
+						.. tostring(average_price_neighbours - current_price)
 					)
 				end
 
-				EconomicEffects.change_local_price(province, good_reference, price_change + base_price_growth)
+				EconomicEffects.change_local_price(province, good_reference, price_derivative * INTEGRATION_STEP)
 			end
 		end
 	end

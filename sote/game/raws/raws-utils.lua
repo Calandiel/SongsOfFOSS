@@ -26,7 +26,7 @@ function ut.trade_good(id)
 	return r
 end
 
----@param id string
+---@param id TradeGoodUseCaseReference
 ---@return TradeGoodUseCase
 function ut.trade_good_use_case(id)
 	local r = RAWS_MANAGER.trade_goods_use_cases_by_name[id]

@@ -1,6 +1,7 @@
 local re = {}
 local tabb = require "engine.table"
 local trade_good = require "game.raws.raws-utils".trade_good
+local use_case = require "game.raws.raws-utils".trade_good_use_case
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
@@ -94,7 +95,7 @@ function re.draw(gam)
 					if entry > 0 then
 						---@type TradeGoodReference
 						local input, amount = tabb.nth(building.type.production_method.inputs, entry)
-						local input_data = trade_good(input)
+						local input_data = use_case(input)
 						local w = rect.width
 						rect.width = uit.BASE_HEIGHT
 						ui.image(ASSETS.icons[input_data.icon], rect)
