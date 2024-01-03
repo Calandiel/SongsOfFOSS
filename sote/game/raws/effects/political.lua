@@ -64,9 +64,9 @@ local function roll_traits(character)
 	if love.math.random() > 0.9 then
 		character.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
 	else
-		if love.math.random() > 0.6 then
+		if love.math.random() > 0.4 then
 			character.traits[TRAIT.TRADER] = TRAIT.TRADER
-			character.savings = character.savings + 25
+			character.savings = character.savings + 100
 		end
 	end
 
@@ -282,8 +282,17 @@ end
 ---@param pop POP
 ---@param province Province
 function PoliticalEffects.grant_nobility(pop, province)
+	-- print(pop.name, "becomes noble")
+	if province ~= pop.province then
+		error(
+			"REQUEST TO TURN POP INTO NOBLE FROM INVALID PROVINCE:"
+			.. "\n province.name = "
+			.. province.name
+			.. "\n pop.province.name = "
+			.. pop.province.name)
+	end
 	province:fire_pop(pop)
-	province:unregister_military_pop(pop)
+	pop:unregister_military()
 	province.all_pops[pop] = nil
 
 	province:add_character(pop)
@@ -331,9 +340,12 @@ function PoliticalEffects.generate_new_noble(realm, province, race, faith, cultu
 		faith,
 		culture,
 		love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-		love.math.random(race.adult_age, race.max_age)
+		love.math.random(race.adult_age, race.max_age),
+		province, province, true
 	)
 	character.rank = ranks.NOBLE
+
+	character.savings = character.savings + math.sqrt(character.age) * 10
 
 	roll_traits(character)
 	character.realm = realm

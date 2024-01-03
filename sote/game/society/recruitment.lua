@@ -4,6 +4,8 @@ local rec = {}
 ---Runs recruitment logic on a province, matching pops to needed units
 ---@param province Province
 function rec.run(province)
+	-- province:validate_population()
+
 	--print("rec")
 	-- select random warband
 	local warband = tabb.random_select_from_set(province.warbands)
@@ -43,7 +45,7 @@ function rec.run(province)
 						pop_salary = pop.employer.income_mean
 					end
 
-					if (not pop.drafted) and (pop.age > pop.race.teen_age) and (pop.age < pop.race.elder_age) then
+					if (not pop.unit_of_warband) and (pop.age > pop.race.teen_age) and (pop.age < pop.race.elder_age) then
 						-- print("salary: ", pop_salary, per_pop_salary_warband)
 						-- print("savings per month: ", warband:monthly_budget())
 						-- print('required savings: ', total_salary + unit.upkeep)
@@ -73,7 +75,7 @@ function rec.run(province)
 	end
 
 	for _, pop in pairs(pops_to_unregister) do
-		province:unregister_military_pop(pop)
+		pop:unregister_military()
 	end
 
 	if total_salary > warband:monthly_budget() then
@@ -93,7 +95,7 @@ function rec.run(province)
 		end
 
 		if pop_to_unregister ~= nil then
-			province:unregister_military_pop(pop_to_unregister)
+			pop_to_unregister:unregister_military()
 		end
 	end
 

@@ -153,7 +153,7 @@ function inspector.draw(gam)
         :spacing(0)
         :build()
 
-    ut.money_entry('Warband\'s treasury', warband.treasury, layout:next(ut.BASE_HEIGHT * 12, treasury_panel.height))
+    ut.money_entry('Treasury', warband.treasury, layout:next(ut.BASE_HEIGHT * 8, treasury_panel.height))
 
     local treasury = warband.treasury
     local upkeep = warband:predict_upkeep()
@@ -163,7 +163,19 @@ function inspector.draw(gam)
         months_of_upkeep = math.ceil(treasury / upkeep)
     end
 
-    ut.integer_entry("Months of upkeep", months_of_upkeep, layout:next(ut.BASE_HEIGHT * 12, treasury_panel.height))
+    ut.integer_entry(
+        "Upkeep: ",
+        months_of_upkeep,
+        layout:next(ut.BASE_HEIGHT * 8, treasury_panel.height),
+        "Months of satisfied units upkeep"
+    )
+
+    ut.sqrt_number_entry(
+        "Supply: ",
+        warband:days_of_travel(),
+        layout:next(ut.BASE_HEIGHT * 8, treasury_panel.height),
+        "Days warband can move while using stored supply."
+    )
 
     local warbands_treasury_control = bottom:subrect(
         0,

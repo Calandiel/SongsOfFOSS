@@ -22,14 +22,13 @@
 ---@field price_memory table<TradeGoodReference, number?>
 ---@field leading_warband Warband?
 ---@field recruiter_for_warband Warband?
+---@field unit_of_warband Warband?
 ---@field busy boolean
 ---@field job Job?
 ---@field dead boolean
----@field new fun(self:POP, race:Race, faith:Faith, culture:Culture, female:boolean, age:number?):POP
 ---@field get_age_multiplier fun(self:POP):number
----@field drafted boolean "Drafted" state refers to whether or not a pop is currently drafted for military duty. For example, for raids or "real" warfare.
----@field province Province? Points to current position of character. Only for characters.
----@field home_province Province? Points to home of character. Only for characters.
+---@field province Province Points to current position of pop/character.
+---@field home_province Province Points to home of pop/character.
 ---@field realm Realm? Only for characters. Represents the home realm of the character
 ---@field rank CHARACTER_RANK?
 ---@field former_pop boolean
@@ -44,18 +43,29 @@ rtab.POP.__index = rtab.POP
 ---@param faith Faith
 ---@param culture Culture
 ---@param female boolean
----@param age number?
+---@param age number
+---@param home Province
+---@param location Province
+---@param character_flag boolean?
 ---@return POP
-function rtab.POP:new(race, faith, culture, female, age)
-	age = age or 0
-
+function rtab.POP:new(race, faith, culture, female, age, home, location, character_flag)
 	---@type POP
 	local r = {}
+
 	r.race = race
 	r.faith = faith
 	r.culture = culture
 	r.female = female
 	r.age = age
+
+	r.name = culture.language:get_random_name()
+
+	home:set_home(r)
+	if character_flag then
+		location:add_character(r)
+	else
+		location:add_guest_pop(r)
+	end
 
 	r.busy = false
 	r.owned_buildings = {}
@@ -66,7 +76,6 @@ function rtab.POP:new(race, faith, culture, female, age)
 	r.basic_needs_satisfaction = 0
 	r.life_needs_satisfaction = 0
 
-	r.name = culture.language:get_random_name()
 	r.savings = 0
 	r.popularity = {}
 	r.loyalty = nil
@@ -79,6 +88,20 @@ function rtab.POP:new(race, faith, culture, female, age)
 	setmetatable(r, rtab.POP)
 
 	return r
+end
+
+---Checks if pop belongs to characters table of current province
+---@return boolean
+function rtab.POP:is_character()
+	return self.province.characters[self] == self
+end
+
+---Unregisters a pop as a military pop.  \
+---The "fire" routine for soldiers. Also used in some other contexts?
+function rtab.POP:unregister_military()
+	if self.unit_of_warband then
+		self.unit_of_warband:fire_unit(self)
+	end
 end
 
 function rtab.POP:get_age_multiplier()

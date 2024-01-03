@@ -5,7 +5,6 @@ local POP = require "game.entities.pop".POP
 ---Runs natural growth and decay on a single province.
 ---@param province Province
 function pg.growth(province)
-
 	-- First, get the carrying capacity...
 	local cc = province.foragers_limit
 	local pop = province:population_weight()
@@ -26,6 +25,7 @@ function pg.growth(province)
 	local to_remove = {}
 	---@type POP[]
 	local to_add = {}
+
 	for _, pp in pairs(province.outlaws) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
@@ -86,11 +86,13 @@ function pg.growth(province)
 			pp.faith,
 			pp.culture,
 			love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
-			0
+			0,
+			province, province
 		)
 		newborn.parent = pp
-		province:add_pop(newborn)
 	end
+
+	-- province:validate_population()
 end
 
 return pg

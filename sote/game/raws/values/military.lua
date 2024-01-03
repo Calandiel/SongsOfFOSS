@@ -8,7 +8,7 @@ local military_values = {}
 function military_values.army_speed(army)
     -- speed is a minimal speed across all warbands
 	return function(province)
-		local speed = nil
+		local speed = 1
 		for _, warband in pairs(army.warbands) do
 			local speed_warband = military_values.warband_speed(warband)(province)
 			if speed == nil or speed > speed_warband then

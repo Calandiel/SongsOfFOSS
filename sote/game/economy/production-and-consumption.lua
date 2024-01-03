@@ -88,7 +88,7 @@ function pro.run(province)
 		province.local_consumption[good] = old + amount
 		available_last_time[good] = (available_last_time[good] or 0) - amount
 
-		if province.local_production[good] ~= province.local_production[good] then
+		if province.local_production[good] ~= province.local_production[good] or (amount < 0) then
 			error(
 				"INVALID RECORD OF CONSUMPTION"
 				.. "\n amount = "
@@ -108,7 +108,7 @@ function pro.run(province)
 		local old = province.local_production[good] or 0
 		province.local_production[good] = old + amount
 
-		if province.local_production[good] ~= province.local_production[good] then
+		if province.local_production[good] ~= province.local_production[good] or (amount < 0) then
 			error(
 				"INVALID RECORD OF PRODUCTION"
 				.. "\n amount = "
@@ -555,7 +555,7 @@ function pro.run(province)
 
 		-- Drafted pops don't work -- they may not even be in the province in the first place...
 		-- and if they are in province, then they are handled before this loop
-		if not pop.drafted then
+		if not pop.unit_of_warband then
 			local free_time_of_pop = 1;
 
 			local building = pop.employer
@@ -866,7 +866,22 @@ function pro.run(province)
 		end
 	end
 
+	-- finally, buy supplies for parties:
+	for _, warband in pairs(province.warbands) do
+		local demand = warband:supplies_target() - warband.supplies
+		local effective_demand = math.max(0, math.min(warband.treasury / old_prices['food'], demand))
 
+		record_demand('food', effective_demand)
+
+		local bought = math.max(0, math.min(effective_demand, (available_last_time['food'] or 0)))
+
+		record_consumption('food', bought)
+		warband.supplies = warband.supplies + bought
+
+
+		warband.treasury = math.max(0, warband.treasury - bought * old_prices['food'])
+		province.trade_wealth = province.trade_wealth + bought * old_prices['food']
+	end
 end
 
 return pro

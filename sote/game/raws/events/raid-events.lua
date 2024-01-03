@@ -188,6 +188,9 @@ local function load()
 
                         base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
                         base_value = base_value + (my_power_ready - their_power) * 20
+						if my_power_ready <= 0 then
+							base_value = 0
+						end
                         return base_value
                     end
 				},

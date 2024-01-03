@@ -1,3 +1,5 @@
+local JOBTYPE = require "game.raws.job_types"
+
 local character_values = {}
 
 ---Calculates travel speed of given character
@@ -8,6 +10,17 @@ function character_values.travel_speed(character)
 	for good_name, amount in pairs(character.inventory) do
 		-- TODO: implement weight of trade goods
 		total_weight = total_weight + amount / 10
+	end
+
+	local total_hauling = character.race.male_efficiency[JOBTYPE.HAULING]
+	if character.female then
+		total_hauling = character.race.female_efficiency[JOBTYPE.HAULING]
+	end
+
+	local party = character.leading_warband
+
+	if party then
+		total_hauling = party:total_hauling()
 	end
 
 	local function speed(province)
@@ -22,7 +35,7 @@ function character_values.travel_speed(character)
 			---@type number
 			race_modifier = race_modifier * 2.5
 		end
-		return race_modifier / total_weight
+		return race_modifier * (1 + total_hauling / total_weight)
 	end
 
 	return speed

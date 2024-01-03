@@ -134,7 +134,7 @@ function emp.run(province)
 	-- 	end
 	-- end
 
-	if not pop.drafted and pop.age > pop.race.teen_age then
+	if not pop.unit_of_warband and pop.age > pop.race.teen_age then
 		if pop.job == nil then
 			-- pop is not employed
 			-- employ him

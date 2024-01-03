@@ -1,7 +1,7 @@
 local ut = require "game.ui-utils"
 
 local Event = require "game.raws.events"
-local Event_utils = require "game.raws.events._utils"
+local event_utils = require "game.raws.events._utils"
 local ge = require "game.raws.effects.generic"
 
 local ee = require "game.raws.effects.economic"
@@ -9,6 +9,58 @@ local ev = require "game.raws.values.economical"
 local et = require "game.raws.triggers.economy"
 
 local function load()
+    Event:new {
+        name = "travel-start",
+        automatic = false,
+        event_background_path = "data/gfx/backgrounds/background.png",
+        base_probability = 0,
+
+        event_text = function (self, root, associated_data)
+            ---@type TravelData
+            associated_data = associated_data
+
+            local action = "travel"
+            if associated_data.goal == "migration" then
+                action = "migrate"
+            end
+
+            local text =
+                "We plan to " .. action .. " toward " .. associated_data.destination.name .. ". " ..
+                "We will spend " .. ut.to_fixed_point2(associated_data.travel_time) .. " days. " ..
+                "We have enough supplies to travel for " .. ut.to_fixed_point2(root.leading_warband:days_of_travel()) .. " days."
+
+            return text
+        end,
+
+        options = function (self, root, associated_data)
+            ---@type TravelData
+            associated_data = associated_data
+
+            ---@type EventOption
+            local option_proceed = {
+                text = "Start the journey.",
+                tooltip = "We depart from the province",
+                ai_preference = function ()
+                    return 1
+                end,
+                outcome = function ()
+                    local party = root.leading_warband
+                    party.status = "travelling"
+                    party.supplies = party.supplies - associated_data.travel_time * party:daily_supply_consumption()
+                    WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
+                end,
+                viable =function ()
+                    return true
+                end
+            }
+
+            return {
+                option_proceed,
+                event_utils.option_stop("I am not ready", "Abandon the journey", 0, root)
+            }
+        end
+    }
+
     Event:new {
 		name = "travel",
 		automatic = false,
@@ -21,27 +73,16 @@ local function load()
             end
 
             ge.travel(root, associated_data)
+
+            if root.leading_warband then
+                root.leading_warband.status = "idle"
+            end
+            root.busy = false
             WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
 		end,
 	}
 
-    Event:new {
-		name = "explore",
-		automatic = false,
-		on_trigger = function(self, root, associated_data)
-			---@type Province
-			associated_data = associated_data
-
-            if root.dead then
-                return
-            end
-
-            root.realm:explore(root.province)
-            root.busy = false
-		end,
-	}
-
-    Event_utils.notification_event(
+    event_utils.notification_event(
         "travel-end-notification",
         function (self, root, data)
             ---@type Province

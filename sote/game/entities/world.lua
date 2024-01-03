@@ -204,6 +204,10 @@ end
 ---@param associated_data table
 ---@param delay number|nil In days
 function world.World:emit_event(event, root, associated_data, delay)
+	if root == nil then
+		error("Attempt to call event for nil root")
+	end
+
 	if delay then
 		self.deferred_events_queue:enqueue({
 			event, root, associated_data, delay
@@ -220,6 +224,10 @@ end
 ---@param root Character
 ---@param associated_data table
 function world.World:emit_immediate_event(event, root, associated_data)
+	if root == nil then
+		error("Attempt to call event for nil root")
+	end
+
 	if root == self.player_character then
 		print('player event: ', event)
 	end
@@ -234,6 +242,10 @@ end
 ---@param root POP
 ---@param associated_data table?
 function world.World:emit_immediate_action(event, root, associated_data)
+	if root == nil then
+		error("Attempt to call action for nil root")
+	end
+
 	local event = RAWS_MANAGER.events_by_name[event]
 	event:on_trigger(root, associated_data)
 end

@@ -2,6 +2,14 @@ local Event = require "game.raws.events"
 
 local utils = {}
 
+---always returns false
+---@param self table
+---@param character Character
+---@return boolean
+function utils.constant_false(self, character)
+	return false;
+end
+
 ---comment
 ---@param name string
 ---@param text fun(self:Event, root:Character, associated_data:table|nil):string
@@ -40,6 +48,32 @@ function utils.notification_event(name, text, option_name, tooltip, effect)
 	}
 end
 
+---Option which removes "busy" flag
+---@param text string
+---@param tooltip string
+---@param ai_preference number
+---@param root Character
+---@return EventOption
+function utils.option_stop(text, tooltip, ai_preference, root)
+	---@type EventOption
+	local option = {
+		text = text,
+		tooltip = tooltip,
+		viable = function ()
+			return true
+		end,
+		ai_preference = function ()
+			return ai_preference
+		end,
+		outcome = function ()
+			root.busy = false
+		end
+	}
+
+	return option
+end
+
+---@type EventOption[]
 utils.dead_options = {{
 	text = "I am dead, there is nothing i could do.",
 	tooltip = "",

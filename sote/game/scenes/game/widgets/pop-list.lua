@@ -39,7 +39,7 @@ local function pop_display_occupation(pop)
         job = pop.job.name
     elseif pop.age < pop.race.teen_age then
         job = "child"
-    elseif pop.drafted then
+    elseif pop.unit_of_warband then
         job = "warrior"
     end
     return job

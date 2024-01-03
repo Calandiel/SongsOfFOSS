@@ -42,14 +42,14 @@ local function make_new_realm(capitol, race, culture, faith)
 	-- We also need to spawn in some population...
 	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight)
 	for _ = 1, pop_to_spawn do
-		local p = pop.POP:new(
+		pop.POP:new(
 			race,
 			faith,
 			culture,
 			love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-			love.math.random(race.max_age)
+			love.math.random(race.max_age),
+			capitol, capitol
 		)
-		capitol:add_pop(p)
 	end
 
 	-- spawn leader
@@ -93,6 +93,8 @@ local function make_new_realm(capitol, race, culture, faith)
 			end
 		end
 	end
+
+	-- capitol:validate_population()
 
 
 	-- print("test battle")

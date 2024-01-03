@@ -29,11 +29,10 @@ local prov = {}
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
 ---@field characters table<Character, Character>
----@field home_to table<Character, Character> Set of characters which think of this province as their home
+---@field home_to table<POP, POP> Set of characters and pops which think of this province as their home
 ---@field military fun(self:Province):number
 ---@field military_target fun(self:Province):number
 ---@field population fun(self:Province):number
----@field unregister_military_pop fun(self:Province, pop:POP) The "fire" routine for soldiers. Also used in some other contexts?
 ---@field employ_pop fun(self:Province, pop:POP, building:Building)
 ---@field potential_job fun(self:Province, building:Building):Job?
 ---@field technologies_present table<Technology, Technology>
@@ -60,7 +59,6 @@ local prov = {}
 ---@field get_dominant_culture fun(self:Province):Culture|nil
 ---@field get_dominant_faith fun(self:Province):Faith|nil
 ---@field get_dominant_race fun(self:Province):Race|nil
----@field soldiers table<POP, UnitType>
 ---@field unit_types table<UnitType, UnitType>
 ---@field warbands table<Warband, Warband>
 ---@field vacant_warbands fun(self: Province): Warband[]
@@ -137,7 +135,6 @@ function prov.Province:new(fake_flag)
 	o.infrastructure = 0
 	o.infrastructure_investment = 0
 	o.unit_types = {}
-	o.soldiers = {}
 	o.throughput_boosts = {}
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
@@ -174,8 +171,11 @@ end
 ---Returns the total military size of the province.
 ---@return number
 function prov.Province:military()
-	local tabb = require "engine.table"
-	return tabb.size(self.soldiers)
+	local total = 0
+	for _, party in pairs(self.warbands) do
+		total = total + party:size()
+	end
+	return total
 end
 
 ---Returns the total target military size of the province.
@@ -186,6 +186,8 @@ function prov.Province:military_target()
 		for _, u in pairs(warband.units_target) do
 			sum = sum + u
 		end
+		-- adding up leader position
+		sum = sum + 1
 	end
 	return sum
 end
@@ -198,6 +200,35 @@ function prov.Province:population()
 	return tabb.size(self.all_pops)
 end
 
+function prov.Province:validate_population()
+	for _, pop in pairs(self.all_pops) do
+		if pop.province == nil then
+			error("POP " .. pop.name .. " DOESN'T HAVE PROVINCE")
+		end
+		if pop.province ~= self then
+			error("POP " .. pop.name .. " HAS WRONG PROVINCE SET")
+		end
+	end
+
+	for _, pop in pairs(self.home_to) do
+		if pop.home_province == nil then
+			error("POP " .. pop.name .. " DOESN'T HAVE HOME PROVINCE")
+		end
+		if pop.home_province ~= self then
+			error("POP " .. pop.name .. " HAS WRONG HOME PROVINCE SET")
+		end
+	end
+
+	for _, pop in pairs(self.characters) do
+		if pop.province == nil then
+			error("Character " .. pop.name .. " DOESN'T HAVE PROVINCE")
+		end
+		if pop.province ~= self then
+			error("Character " .. pop.name .. " HAS WRONG PROVINCE SET")
+		end
+	end
+end
+
 ---Returns the total population of the province.
 ---@return number
 function prov.Province:population_weight()
@@ -208,56 +239,118 @@ function prov.Province:population_weight()
 	return total
 end
 
----Adds a pop to the province
+---Adds a pop to the province. Sets province as a home. Does not handle cleaning of old data
 ---@param pop POP
 function prov.Province:add_pop(pop)
+	self:add_guest_pop(pop)
+	self:set_home(pop)
+end
+
+---Adds pop as a guest of this province. Preserves old home of a pop.
+---@param pop POP
+function prov.Province:add_guest_pop(pop)
 	self.all_pops[pop] = pop
-	pop.home_province = self
 	pop.province = self
 end
 
 ---Adds a character to the province
 ---@param character Character
 function prov.Province:add_character(character)
+	-- print(character.name, "-->", self.name)
+
 	self.characters[character] = character
 	character.province = self
 end
 
----Sets province as character's home
+---Sets province as pop's home
+---@param pop POP
+function prov.Province:set_home(pop)
+	-- print('SET HOME', pop.name)
+
+	self:set_home_pop_nil_wrapper(pop)
+	pop.home_province = self
+end
+
+--- Transfers a character to the target province
 ---@param character Character
-function prov.Province:set_home(character)
-	self.home_to[character] = character
-	character.home_province = self
+---@param target Province
+function prov.Province:transfer_character(character, target)
+	-- print(character.name, "CHARACTER", self.name, "-->", target.name)
+	if character.province ~= self then
+		error("CHARACTER DOES NOT HAS ACCORDING PROVINCE ")
+	end
+
+	self.characters[character] = nil
+	target.characters[character] = character
+
+	character.province = target
+end
+
+--- Transfers a pop to the target province
+---@param pop POP
+---@param target Province
+function prov.Province:transfer_pop(pop, target)
+	-- print(pop.name, "POP", self.name, "-->", target.name)
+	if pop.province ~= self then
+		error("POP DOES NOT HAS ACCORDING PROVINCE ")
+	end
+
+	self.all_pops[pop] = nil
+	target.all_pops[pop] = pop
+
+	pop.province = target
+end
+
+--- Changes home province of a pop/character to the target province
+---@param pop Character
+---@param target Province
+function prov.Province:transfer_home(pop, target)
+	if pop.home_province ~= self then
+		error("POP DOES NOT HAS ACCORDING HOME PROVINCE ")
+	end
+
+	self:set_home_pop_nil_wrapper(pop)
+
+	target:set_home(pop)
 end
 
 --- Removes a character from the province
 ---@param character Character
 function prov.Province:remove_character(character)
+	-- print(character.name, "R", self.name, character.province.name)
 	self.characters[character] = nil
 	character.province = nil
 end
 
---- Character stops thinking of this province as a home
----@param character Character
-function prov.Province:unset_home(character)
-	self.home_to[character] = nil
-	character.home_province = nil
+---Wrapper for setting table value to nil for easier logging
+---@param pop any
+function prov.Province:set_home_pop_nil_wrapper(pop)
+	-- print('UNSET HOME', pop.name, self.name)
+	self.home_to[pop] = nil
+end
+
+--- Pop stops thinking of this province as a home
+---@param pop POP
+function prov.Province:unset_home(pop)
+	self:set_home_pop_nil_wrapper(pop)
+	pop.home_province = nil
 end
 
 ---Kills a single pop and removes it from all relevant references.
 ---@param pop POP
 function prov.Province:kill_pop(pop)
+	-- print("kill " .. pop.name)
+
 	self:fire_pop(pop)
-	self:unregister_military_pop(pop)
+	pop:unregister_military()
 	self.all_pops[pop] = nil
-	self.home_to[pop] = nil
+	self:set_home_pop_nil_wrapper(pop)
 
 	self.outlaws[pop] = nil
 	pop.province = nil
 
 	if pop.home_province then
-		pop.home_province.home_to[pop] = nil
-		pop.home_province = nil
+		pop.home_province:unset_home(pop)
 	end
 end
 
@@ -271,29 +364,18 @@ function prov.Province:local_army_size()
 	return total
 end
 
----Unregisters a pop as a military pop.
+---Removes the pop from the province without killing it  \
+---Does not change home province of pop
 ---@param pop POP
-function prov.Province:unregister_military_pop(pop)
-	if self.soldiers[pop] then
-		pop.drafted = false
-	end
-	for _, warband in pairs(self.warbands) do
-		if warband.units[pop] then
-			warband:fire_unit(pop)
-		end
-	end
-	self.soldiers[pop] = nil
-end
-
----Removes the pop from the province without killing it
+---@return POP
 function prov.Province:take_away_pop(pop)
-	self.soldiers[pop] = nil
+	-- print("take away", pop.name)
 	self.all_pops[pop] = nil
 	return pop
 end
 
 function prov.Province:return_pop_from_army(pop, unit_type)
-	self.soldiers[pop] = unit_type
+	-- print("return", pop.name)
 	self.all_pops[pop] = pop
 	return pop
 end
@@ -558,7 +640,7 @@ end
 ---@param pop POP
 function prov.Province:outlaw_pop(pop)
 	self:fire_pop(pop)
-	self:unregister_military_pop(pop)
+	pop:unregister_military()
 	self.all_pops[pop] = nil
 	self.outlaws[pop] = pop
 end
@@ -569,15 +651,13 @@ end
 ---@param warband Warband
 function prov.Province:recruit(pop, unit_type, warband)
 	-- if pop is already drafted, do nothing
-	if pop.drafted then
+	if pop.unit_of_warband then
 		return
 	end
 
 	-- clean pop and set his unit type
 	self:fire_pop(pop)
-	self:unregister_military_pop(pop)
-	pop.drafted = true
-	self.soldiers[pop] = unit_type
+	pop:unregister_military()
 
 	-- set warband
 	warband:hire_unit(self, pop, unit_type)
@@ -755,7 +835,7 @@ function prov.Province:get_unemployment()
 	local u = 0
 
 	for _, p in pairs(self.all_pops) do
-		if not p.drafted and p.job == nil then
+		if not p.unit_of_warband and p.job == nil then
 			u = u + 1
 		end
 	end

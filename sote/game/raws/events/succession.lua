@@ -63,11 +63,13 @@ local function load()
                     for _, pretender in pairs(capitol.home_to) do
                         if
                             final_successor == nil
+                            and pretender:is_character()
                             and pretender ~= character
                         then
                             final_successor = pretender
                         elseif
-                            pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                            pretender:is_character()
+                            and pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
                             and pretender ~= character
                         then
                             final_successor = pretender

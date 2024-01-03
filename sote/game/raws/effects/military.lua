@@ -87,7 +87,7 @@ function MilitaryEffects.dissolve_guard(realm)
     end
 
     for _, pop in pairs(to_unregister) do
-        province:unregister_military_pop(pop)
+        pop:unregister_military()
     end
     province.warbands[warband] = nil
 
@@ -121,7 +121,7 @@ function MilitaryEffects.dissolve_warband(leader)
     end
 
     for _, pop in pairs(to_unregister) do
-        leader.province:unregister_military_pop(pop)
+        pop:unregister_military()
     end
     leader.province.warbands[warband] = nil
 

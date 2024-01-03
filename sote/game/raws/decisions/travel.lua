@@ -1,6 +1,6 @@
 local tabb = require "engine.table"
 
-local path = require "game.ai.pathfinding"
+local pathfinding = require "game.ai.pathfinding"
 local Decision = require "game.raws.decisions"
 
 local TRAIT = require "game.raws.traits.generic"
@@ -8,34 +8,66 @@ local RANK = require "game.raws.ranks.character_ranks"
 
 
 local character_values = require "game.raws.values.character"
+local military_values = require "game.raws.values.military"
 
 
 local function load()
+	---Returns travel time and path
+	---@param root Character
+	---@param primary_target Province
+	---@return number, Province[]|nil
+	local function path_property (root, primary_target)
+		local warband = root.leading_warband
+		if warband then
+			return pathfinding.pathfind(
+				root.province,
+				primary_target,
+				military_values.warband_speed(warband),
+				root.realm.known_provinces
+			)
+		end
+		return pathfinding.pathfind(
+			root.province,
+			primary_target,
+			character_values.travel_speed(root),
+			root.realm.known_provinces
+		)
+	end
+
+	---@class TravelData
+	---@field destination Province
+	---@field travel_time number
+	---@field goal "travel"|"migration"
+	---@field path Province[]
+
 	---@type DecisionCharacterProvince
 	Decision.CharacterProvince:new {
 		name = 'travel',
 		ui_name = "Travel",
 		tooltip = function(root, primary_target)
+			if root.leading_warband == nil then
+				return "You have to gather a party and supplies in order to travel."
+			end
+			local days = pathfinding.hours_to_travel_days(path_property(root, primary_target))
+			if root.leading_warband:days_of_travel() < days then
+				return "Not enough supplies to reach this province."
+			end
+			if root.leading_warband.status ~= "idle" then
+				return "Your party is busy with " .. root.leading_warband.status
+			end
 			if root.busy then
 				return "You are too busy to consider it."
 			end
 			return "Travel to " .. primary_target.name
 		end,
-		path = function (root, primary_target)
-			return path.pathfind(
-				root.province,
-				primary_target,
-				character_values.travel_speed(root),
-				root.realm.known_provinces
-			)
-		end,
+		path = path_property,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
 		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
 			if root.busy then return false end
-			if root.leading_warband then return false end
+			if root.leading_warband == nil then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -46,6 +78,10 @@ local function load()
 		end,
 		available = function(root, primary_target)
 			if root.busy then return false end
+			local days = pathfinding.hours_to_travel_days(path_property(root, primary_target))
+			if root.leading_warband:days_of_travel() < days then
+				return false
+			end
 
 			return true
 		end,
@@ -87,18 +123,28 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			local travel_time, _ = path.hours_to_travel_days(path.pathfind(
-				root.province,
-				primary_target,
-				character_values.travel_speed(root),
-				root.realm.known_provinces
-			))
-			if travel_time == math.huge then
-				travel_time = 150
+			local hours, path = path_property(root, primary_target)
+
+			if path == nil then
+				return
+			end
+
+			local days = pathfinding.hours_to_travel_days(hours)
+
+			if days > 150 then
+				days = 150
 			end
 			root.busy = true
 
-			WORLD:emit_action("travel", root, primary_target, travel_time, true)
+			---@type TravelData
+			local data = {
+				destination = primary_target,
+				goal = "travel",
+				path = path,
+				travel_time = days
+			}
+
+			WORLD:emit_immediate_event("travel-start", root, data)
 		end
 	}
 
@@ -139,8 +185,8 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			local travel_time, _ = path.hours_to_travel_days(
-				path.pathfind(
+			local travel_time, _ = pathfinding.hours_to_travel_days(
+				pathfinding.pathfind(
 					root.province,
 					root.realm.capitol,
 					character_values.travel_speed(root),
@@ -169,15 +215,20 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 0.8, -- Almost every month
+		base_probability = 0.5,
 		pretrigger = function(root)
 			if root.busy then return false end
+			for _, neighbor in pairs(root.province.neighbors) do
+				if root.realm.known_provinces[neighbor] == nil then
+					return true
+				end
+			end
+			return false
+		end,
+		clickable = function(root, primary_target)
 			return true
 		end,
-		clickable = function(root)
-			return true
-		end,
-		available = function(root)
+		available = function(root, primary_target, secondary_target)
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
@@ -188,8 +239,7 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			root.busy = true
-			-- TODO: action for now, replace with proper event chain later
-			WORLD:emit_immediate_action("explore", root, root)
+			WORLD:emit_immediate_event("exploration-preparation", root, root.province)
 		end
 	}
 end

@@ -132,6 +132,10 @@ local function load()
 				return 1
 			end
 
+			if root.leading_warband == nil and root.traits[TRAIT.TRADER] then
+				return 1
+			end
+
 			if root.leading_warband == nil and root.rank == ranks.CHIEF then
 				return 1
 			end
@@ -308,7 +312,7 @@ local function load()
 		end
 	}
 
-		---@type DecisionCharacter
+	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'donate-wealth-warband',
 		ui_name = "Donate wealth to your warband.",
@@ -350,6 +354,7 @@ local function load()
 			economic_effects.gift_to_warband(root, root.savings / 3)
 		end
 	}
+
 
 	---@type DecisionCharacter
 	Decision.Character:new {
