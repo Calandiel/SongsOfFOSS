@@ -1297,6 +1297,7 @@ function gam.draw()
 
 		local rect_data = profile_rect:subrect(0, 0, profile_rect.width / 4, 25, "left", "up")
 		if total > 0 then
+			local top = rect_data.y
 			ut.data_entry_percentage("actions", actions / total, rect_data, nil, false)
 			rect_data.y = rect_data.y + 25
 			ut.data_entry_percentage("events", events / total, rect_data, nil, false)
@@ -1313,6 +1314,10 @@ function gam.draw()
 			rect_data.y = rect_data.y + 25
 			ut.data_entry_percentage("decision_char", decision_character / total, rect_data, nil, false)
 			rect_data.y = rect_data.y + 25
+
+			rect_data.y = top
+			rect_data.x = rect_data.x + rect_data.width
+
 
 			-- ut.data_entry(observed_logs_length .. " daily ticks: ", ut.to_fixed_point2(total_mean), rect_data)
 		end

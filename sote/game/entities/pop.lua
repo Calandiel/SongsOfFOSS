@@ -20,6 +20,7 @@
 ---@field owned_buildings table <Building, Building>
 ---@field inventory table <TradeGoodReference, number?>
 ---@field price_memory table<TradeGoodReference, number?>
+---@field need_satisfaction table<NEED, number>
 ---@field leading_warband Warband?
 ---@field recruiter_for_warband Warband?
 ---@field unit_of_warband Warband?
@@ -72,6 +73,7 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.inventory = {}
 	r.price_memory = {}
 	r.successor_of = {}
+	r.need_satisfaction = {}
 
 	r.basic_needs_satisfaction = 0
 	r.life_needs_satisfaction = 0

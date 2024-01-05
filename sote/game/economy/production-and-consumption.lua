@@ -143,6 +143,8 @@ function pro.run(province)
 	-- Record local production...
 	local foragers_count = 0
 	local foraging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, province.foragers)))
+	foraging_efficiency = foraging_efficiency * foraging_efficiency
+
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = tabb.size(province.all_pops)
 	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
@@ -153,6 +155,23 @@ function pro.run(province)
 	local fraction_of_income_given_to_owner = 0.1
 
 	DISPLAY_INCOME_OWNER_RATIO = (1 - INCOME_TO_LOCAL_WEALTH_MULTIPLIER) * fraction_of_income_given_to_owner
+
+	---Pop forages for food and gives it to warband  \
+	-- Not very efficient
+	---@param pop POP
+	---@param time number ratio of daily active time pop can spend on foraging
+	local function forage_warband(pop, time)
+		foragers_count = foragers_count + time -- Record a new forager!
+
+		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
+		if pop.female then
+			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
+		end
+
+		-- Foragers produce food:
+		local food_produced = foraging_efficiency * foraging_multiplier * 0.25 * time
+		pop.unit_of_warband.supplies = pop.unit_of_warband.supplies + food_produced
+	end
 
 	---Pop forages for food and sells it  \
 	-- Not very efficient
@@ -169,6 +188,7 @@ function pro.run(province)
 
 		-- Foragers produce food:
 		local food_produced = foraging_efficiency * foraging_multiplier * 0.25 * time
+
 		local food_price = old_prices['food']
 		---@type number
 		local income = food_produced * food_price
@@ -244,6 +264,10 @@ function pro.run(province)
 	---@return number need_total
 	---@return number need_satisfied
 	local function satisfy_need(pop, need_tag, free_time, savings)
+		if free_time < 0 then
+			error("INVALID FREE TIME: " .. tostring(free_time))
+		end
+
 		local need = NEEDS[need_tag]
 
 		-- units of need required:
@@ -310,20 +334,30 @@ function pro.run(province)
 		local buy_potential = math.min(need_amount, (potential_income + savings) / price_expectation)
 		local utility_work_and_buy = math.min(1, buy_potential / need_amount)
 
-		-- if WORLD.player_character and province == WORLD.player_character.province and pop.employer then
+		-- if WORLD.player_character and province == WORLD.player_character.province then
 		-- 	print(need_tag)
-		-- 	print('pop.employer.type.name = ',  pop.employer.type.name)
+
+		-- 	if pop.employer then
+		-- 		print('pop.employer.type.name = ',  pop.employer.type.name)
+		-- 	else
+		-- 		print('pop.employer.type.name = unemployed')
+		-- 	end
+
 		-- 	print('utility_satisfy_needs_yourself = \n', utility_satisfy_needs_yourself)
 		-- 	print('utility_work_and_buy = \n', utility_work_and_buy)
 		-- end
 
 		-- choose action with best utility
 		if utility_work_and_buy < utility_satisfy_needs_yourself then
+			if need.job_to_satisfy == JOBTYPE.FORAGER then
+				foragers_count = foragers_count + work_time
+			end
+
 			return free_time - work_time, 0, 0, pre_induced_need, need_amount * utility_satisfy_needs_yourself
 		else
 			-- wealth needed to buy required amount of goods:
 			local wealth_needed = math.min(price_expectation * buy_potential, province.trade_wealth)
-			local forage_time = math.min(free_time, wealth_needed / income_per_unit_of_time)
+			local forage_time = math.max(0, math.min(free_time, wealth_needed / income_per_unit_of_time))
 
 			local total_bought = 0
 
@@ -388,6 +422,8 @@ function pro.run(province)
 	---@param free_time number amount of time pop is willing to spend on foraging
 	---@param savings number amount of money pop is willing to spend on needs
 	local function satisfy_needs(pop, free_time, savings)
+		pop.life_needs_satisfaction = 2
+
 		local total_satisfied = 0
 		local total_needs = 0
 
@@ -414,9 +450,15 @@ function pro.run(province)
 		for need_name, demand in pairs(needs) do
 			local need = NEEDS[need_name]
 			if need.life_need then
-				local free_time_after_need, income, expense, need, consumed = satisfy_need(pop, need_name, free_time, savings)
+				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(pop, need_name, free_time, savings)
 
-				total_life_needs = total_life_needs + need
+				if need_demanded > 0 then
+					pop.need_satisfaction[need_name] = consumed / need_demanded
+				else
+					pop.need_satisfaction[need_name] = 0
+				end
+
+				total_life_needs = total_life_needs + need_demanded
 				total_life_satisfied = total_life_satisfied + consumed
 
 				total_income = total_income + income
@@ -438,9 +480,15 @@ function pro.run(province)
 		for need_name, demand in pairs(needs) do
 			local need = NEEDS[need_name]
 			if not need.life_need then
-				local free_time_after_need, income, expense, need, consumed = satisfy_need(pop, need_name, free_time, savings)
+				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(pop, need_name, free_time, savings)
 
-				total_needs = total_needs + demand
+				if need_demanded > 0 then
+					pop.need_satisfaction[need_name] = consumed / need_demanded
+				else
+					pop.need_satisfaction[need_name] = 0
+				end
+
+				total_needs = total_needs + need_demanded
 				total_satisfied = total_satisfied + consumed
 
 				total_income = total_income + income
@@ -522,13 +570,13 @@ function pro.run(province)
 	local donations_to_owners = {}
 
 	-- idle warbands participate in "economy"
-	for _, warband in pairs(province.warbands) do
-		if warband.status == 'idle' then
-			for _, pop in pairs(warband.pops) do
-				satisfy_needs(pop, 1, pop.savings / 5)
-			end
-		end
-	end
+	-- for _, warband in pairs(province.warbands) do
+	-- 	if warband.status == 'idle' then
+	-- 		for _, pop in pairs(warband.pops) do
+	-- 			satisfy_needs(pop, 1, pop.savings / 5)
+	-- 		end
+	-- 	end
+	-- end
 
 
 	local population_size = province:population()
@@ -553,10 +601,21 @@ function pro.run(province)
 		local base_income = 1 * pop.age / 100;
 		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
 
-		-- Drafted pops don't work -- they may not even be in the province in the first place...
-		-- and if they are in province, then they are handled before this loop
-		if not pop.unit_of_warband then
+		-- Drafted pops work only when warband is "idle"
+		if (pop.unit_of_warband == nil) or (pop.unit_of_warband.status == "idle") then
 			local free_time_of_pop = 1;
+
+			-- if pop is in the warband,
+			if pop.unit_of_warband then
+				if pop.unit_of_warband.idle_stance == "forage" then
+					-- spend some time on foraging for warband:
+					forage_warband(pop, pop.unit_of_warband.current_free_time_ratio * 0.5)
+					free_time_of_pop = pop.unit_of_warband.current_free_time_ratio * 0.5
+				else
+					-- or spend all the time working like other pops
+					free_time_of_pop = pop.unit_of_warband.current_free_time_ratio
+				end
+			end
 
 			local building = pop.employer
 
@@ -582,7 +641,7 @@ function pro.run(province)
 				local efficiency = yield
 									* local_foraging_efficiency
 									* efficiency_from_infrastructure
-									* pop.employer.work_ratio
+									* math.min(pop.employer.work_ratio, free_time_of_pop)
 
 				-- expected input satisfaction
 				local input_satisfaction = 1
@@ -611,13 +670,6 @@ function pro.run(province)
 						)
 					end
 				end
-
-				-- (1 - prod.self_sourcing_fraction) is a modifier to efficiency during 100% shortage
-				-- 1 is a modifier to efficiency during 0% shortage, i.e. 1.0 input satisfaction
-
-				-- local shortage_modifier =
-				-- 	(1 - prod.self_sourcing_fraction) * (1 - input_satisfaction)
-				-- 	+ 1 * input_satisfaction
 
 				---@type number
 				efficiency = efficiency * input_satisfaction
@@ -740,7 +792,7 @@ function pro.run(province)
 					pop.employer.work_ratio = math.max(0.01, pop.employer.work_ratio * 0.5)
 				end
 
-				free_time_of_pop = free_time_of_pop - pop.employer.work_ratio * input_satisfaction * input_satisfaction_2
+				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
 
 				if province.trade_wealth > income then
 					economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
@@ -777,6 +829,8 @@ function pro.run(province)
 			-- every pop spends some time or wealth on fullfilling their needs:
 			satisfy_needs(pop, free_time_of_pop, pop.savings / 10)
 		end
+
+		::continue::
 	end
 
 	--- DISTRIBUTION OF DONATIONS

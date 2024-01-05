@@ -25,7 +25,7 @@ NEEDS = {
 	water = {
 		goods = {"water", "liquors"},
 		life_need = true,
-		job_to_satisfy = JOBTYPE.HAULING,
+		job_to_satisfy = JOBTYPE.FORAGER,
 		time_to_satisfy = 0.05,
 	},
 	food = {

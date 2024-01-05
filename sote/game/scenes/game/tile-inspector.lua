@@ -397,6 +397,13 @@ local function trade_widget(gam, tile, panel)
 	)
 
 	uit.count_entry(
+		"Foragers: ",
+		tile.province.foragers,
+		layout:next(unit * 5, unit * 1),
+		"Used carrying capacity"
+	)
+
+	uit.count_entry(
 		"Hydr.:",
 		tile.province.hydration,
 		layout:next(unit * 5, unit * 1),

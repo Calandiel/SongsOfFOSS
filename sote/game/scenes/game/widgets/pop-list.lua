@@ -143,11 +143,18 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ---@type POP
                     v = v
+
+                    local needs_tooltip = ""
+                    for need, value in pairs(v.need_satisfaction) do
+                        needs_tooltip = needs_tooltip
+                            .. need .. " " .. ut.to_fixed_point2(value) .. "\n"
+                    end
+
                     ut.data_entry_percentage(
                         "",
                         v.basic_needs_satisfaction,
                         rect,
-                        "Satisfaction of needs of this character. "
+                        "Satisfaction of needs of this character. \n" .. needs_tooltip
                     )
                 end,
                 width = base_unit * 3,

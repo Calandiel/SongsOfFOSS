@@ -111,12 +111,14 @@ return function()
 						return character.leading_warband:days_of_travel() >= 30
 					end,
 					outcome = function()
-						local days_left = math.min(associated_data._exploration_days_left / character.leading_warband:size(), 30)
+						-- some free time to at least get some water...
+						character.leading_warband.current_free_time_ratio = 0.05
+						local days_left = math.min(associated_data._exploration_days_left / character.leading_warband:exploration_speed(), 30)
 						local potential_days = character.leading_warband:days_of_travel()
 						local actual_days_spent = math.min(days_left, potential_days)
 
-						character.leading_warband:consume_supplies(actual_days_spent)
-						associated_data._exploration_days_left = associated_data._exploration_days_left - actual_days_spent * character.leading_warband:size()
+						character.leading_warband:consume_supplies(actual_days_spent * (1 - character.leading_warband.current_free_time_ratio))
+						associated_data._exploration_days_left = associated_data._exploration_days_left - actual_days_spent * character.leading_warband:exploration_speed()
 
 						if associated_data._exploration_days_left < 1 then
 							WORLD:emit_event("exploration-result", character, associated_data, actual_days_spent)
@@ -130,12 +132,39 @@ return function()
 				},
 
 				{
+					text = "Reduced exploration efforts",
+					tooltip = "We can't afford to dedicate all our time to exploration. I will let my people to forage or work as well.",
+					viable = function()
+						return character.leading_warband:days_of_travel() >= 15
+					end,
+					outcome = function()
+						character.leading_warband.current_free_time_ratio = 0.5
+						local days_left = math.min(associated_data._exploration_days_left / character.leading_warband:exploration_speed(), 30)
+						local potential_days = character.leading_warband:days_of_travel()
+						local actual_days_spent = math.min(days_left, potential_days)
+
+						character.leading_warband:consume_supplies(actual_days_spent * (1 - character.leading_warband.current_free_time_ratio))
+						associated_data._exploration_days_left = associated_data._exploration_days_left - actual_days_spent * character.leading_warband:exploration_speed()
+
+						if associated_data._exploration_days_left < 1 then
+							WORLD:emit_event("exploration-result", character, associated_data, actual_days_spent)
+						else
+							WORLD:emit_event("exploration-progress", character, associated_data, actual_days_spent)
+						end
+					end,
+					ai_preference = function ()
+						return 0.7
+					end
+				},
+
+				{
 					text = "Delay exploration",
-					tooltip = "My party will rest during next month and gather more supplies.",
+					tooltip = "My party will rest during next month and will forage or work.",
 					viable = function()
 						return true
 					end,
 					outcome = function ()
+						character.leading_warband.current_free_time_ratio = 1.0
 						WORLD:emit_event("exploration-progress", character, associated_data, 30)
 					end,
 					ai_preference = function ()
@@ -193,6 +222,7 @@ return function()
 			political_effects.medium_popularity_boost(root, root.realm)
             root.realm:explore(root.province)
             root.busy = false
+			root.leading_warband.current_free_time_ratio = 1.0
 		end,
 	}
 end

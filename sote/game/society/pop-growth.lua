@@ -9,8 +9,8 @@ function pg.growth(province)
 	local cc = province.foragers_limit
 	local pop = province:population_weight()
 
-	local death_rate = 1 / 12 / 12
-	local birth_rate = 1 / 12 / 12
+	local death_rate = 1 / 12
+	local birth_rate = 1 / 12
 
 	-- local food_good = 'food'
 	-- local food_income = province.realm.production[food_good] or 0
@@ -34,7 +34,7 @@ function pg.growth(province)
 	for _, pp in pairs(province.all_pops) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
-		elseif pop > cc and pp.basic_needs_satisfaction < 0.2 then
+		elseif pop > cc and (pp.need_satisfaction[NEED.FOOD] or 0.5) < 0.1 then
 			-- Deaths due to starvation!
 			if love.math.random() < (1 - cc / pop) * death_rate * pp.race.carrying_capacity_weight then
 				to_remove[#to_remove + 1] = pp
@@ -59,9 +59,7 @@ function pg.growth(province)
 				-- Make sure that the expected food consumption has been calculated by this point!
 
 				-- Calculate the fraction symbolizing the amount of "overproduction" of food
-				local base = pp.life_needs_satisfaction
-				-- Clamp the growth
-				base = math.min(1, base)
+				local base = pp.need_satisfaction[NEED.FOOD] or 0
 
 				local fem = 100 / (100 + pp.race.males_per_hundred_females)
 				local offspring = fem * pp.race.female_needs[NEED.FOOD] + (1 - fem) * pp.race.male_needs[NEED.FOOD]

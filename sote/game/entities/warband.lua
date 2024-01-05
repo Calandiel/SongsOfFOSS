@@ -1,6 +1,7 @@
 local JOBTYPE = require "game.raws.job_types"
 
 ---@alias WarbandStatus "idle" | "raiding" | "preparing_raid" | "preparing_patrol" | "patrol" | "attacking" | "travelling" | "off_duty"
+---@alias WarbandIdleStance "work"|"forage"
 
 ---@class Warband
 ---@field name string
@@ -13,6 +14,8 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field units_current table<UnitType, number> Units currently in the warband
 ---@field units_target table<UnitType, number> Units to recruit
 ---@field status WarbandStatus
+---@field idle_stance WarbandIdleStance
+---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
 ---@field total_upkeep number
 ---@field predicted_upkeep number
 ---@field supplies number
@@ -30,8 +33,10 @@ local warband = {
 	supplies = 0,
 	supplies_target_days = 60,
 	morale = 0.5,
+	current_free_time_ratio = 1.0,
 	total_upkeep = 0,
-	predicted_upkeep = 0
+	predicted_upkeep = 0,
+	idle_stance = "forage",
 }
 warband.__index = warband
 
@@ -266,6 +271,12 @@ function warband:days_of_travel()
 	end
 
 	return supplies / per_day
+end
+
+---Returns speed of exploration
+---@return number
+function warband:exploration_speed()
+	return self:size() * (1 - self.current_free_time_ratio)
 end
 
 return warband

@@ -242,6 +242,110 @@ local function load()
 			WORLD:emit_immediate_event("exploration-preparation", root, root.province)
 		end
 	}
+
+	Decision.Character:new {
+		name = 'ai-party-forage',
+		ui_name = "(AI) Set party to forage stance",
+		tooltip = function(root, primary_target)
+			if root.leading_warband == nil then
+				return "You are not leading any party"
+			end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Explore province"
+		end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.2,
+		pretrigger = function(root)
+
+			if root.leading_warband == nil then
+				return false
+			end
+
+			if WORLD:is_player(root) then
+				if OPTIONS.debug_mode then
+					return true
+				else
+					return false
+				end
+			end
+
+			return true
+		end,
+		clickable = function(root, primary_target)
+			return true
+		end,
+		available = function(root, primary_target, secondary_target)
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.leading_warband then
+				if root.leading_warband:days_of_travel() < 15 then
+					return 1
+				end
+			end
+
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			root.leading_warband.idle_stance = "forage"
+		end
+	}
+
+	Decision.Character:new {
+		name = 'ai-party-work',
+		ui_name = "(AI) Set party to work stance",
+		tooltip = function(root, primary_target)
+			if root.leading_warband == nil then
+				return "You are not leading any party"
+			end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Explore province"
+		end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 0.2,
+		pretrigger = function(root)
+			if root.leading_warband == nil then
+				return false
+			end
+
+			if WORLD:is_player(root) then
+				if OPTIONS.debug_mode then
+					return true
+				else
+					return false
+				end
+			end
+
+			return true
+		end,
+		clickable = function(root, primary_target)
+			return true
+		end,
+		available = function(root, primary_target, secondary_target)
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.leading_warband then
+				if root.leading_warband:days_of_travel() > 50 then
+					return 1
+				end
+			end
+
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			root.leading_warband.idle_stance = "work"
+		end
+	}
+
 end
 
 

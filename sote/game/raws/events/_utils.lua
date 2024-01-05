@@ -67,6 +67,10 @@ function utils.option_stop(text, tooltip, ai_preference, root)
 		end,
 		outcome = function ()
 			root.busy = false
+
+			if root.leading_warband then
+				root.leading_warband.current_free_time_ratio = 1.0
+			end
 		end
 	}
 
