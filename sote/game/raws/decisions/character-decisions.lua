@@ -568,13 +568,16 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 0.8 , -- Almost every month
+		base_probability = 1 / 2 , -- Almost every month
 		pretrigger = function(root)
 			if root.busy then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
 			if root.savings < 5 then
+				return false
+			end
+			if (not root.traits[TRAIT.TRADER]) then
 				return false
 			end
 			return true
@@ -591,7 +594,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if root.traits[TRAIT.TRADER] then
-				return 1/2 ---try to buy something every second month
+				return 1 ---try to buy something every second month
 			end
 			return 0
 		end,
@@ -612,10 +615,13 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 0.8 , -- Almost every month
+		base_probability = 1 / 2, -- Almost every month
 		pretrigger = function(root)
 			if root.busy then return false end
 			if WORLD:is_player(root) then
+				return false
+			end
+			if (not root.traits[TRAIT.TRADER]) then
 				return false
 			end
 			return true
@@ -632,7 +638,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if root.traits[TRAIT.TRADER] then
-				return 1/2 ---try to sell something every second month
+				return 1 ---try to sell something every second month
 			end
 			return 0
 		end,
@@ -673,7 +679,7 @@ local function load()
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
-		base_probability = 0.9 , -- Almost every month
+		base_probability = 1 / 6,
 		pretrigger = function(root)
 			if root.busy then return false end
 			if root.leading_warband == nil then return false end
@@ -716,7 +722,7 @@ local function load()
 			end
 
 			if root.traits[TRAIT.WARLIKE] then
-				return 0.2
+				return 1
 			end
 
 			return 0

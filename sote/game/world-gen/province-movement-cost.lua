@@ -9,7 +9,7 @@ local single_tile_cost = function(tile)
 		local plant_cost = 0.01 * t.grass + 0.1 * t.shrub + 1 * t.conifer + 2 * t.broadleaf
 		local ice_cost = 0
 		if t.ice > 0 then
-			ice_cost = 50
+			ice_cost = 10
 		end
 		return elevation_cost + plant_cost + ice_cost
 	else

@@ -64,10 +64,15 @@ local function load()
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
-		base_probability = 0.9, -- Almost every month
+		base_probability = 1 / 12, -- Almost every yeaer
 		pretrigger = function(root)
 			if root.busy then return false end
 			if root.leading_warband == nil then return false end
+
+			-- check is expensive so limit it to traders and players
+			if (not root.traits[TRAIT.TRADER]) and (WORLD.player_character ~= root) then
+				return false
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -117,7 +122,7 @@ local function load()
 			end
 
 			if root.traits[TRAIT.TRADER] then
-				return 1 / 12 -- travel once per year
+				return 1
 			end
 
 			return 0
@@ -160,7 +165,7 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 0.8, -- Almost every month
+		base_probability = 1/36, -- travel home once a few years
 		pretrigger = function(root)
 			if root.busy then return false end
 			if root.province == root.realm.capitol then
@@ -180,7 +185,7 @@ local function load()
 				return 1
 			end
 			if root.traits[TRAIT.TRADER] then
-				return 1 / 36 -- travel home once a few years
+				return 1
 			end
 			return 0
 		end,

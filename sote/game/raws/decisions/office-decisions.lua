@@ -323,6 +323,8 @@ local function load()
 		base_probability = 1 , -- Once every year on average
 		pretrigger = function(root)
 			if not ot.designates_offices(root, root.realm.capitol) then return false end
+			if root.realm.capitol_guard == nil then return false end
+			if root.realm.capitol_guard.recruiter then return false end
 			return true
 		end,
 		available = function(root, primary_target)

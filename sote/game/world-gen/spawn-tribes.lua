@@ -129,9 +129,37 @@ end
 function st.run()
 	---@type Queue<Province>
 	local queue = require "engine.queue":new()
-	local civs = 500 / tabb.size(RAWS_MANAGER.races_by_name) -- one per race...
+
+
+	-- order:
+	-- river specialists races first
+	-- forest specialists races second
+	-- rest races at the end
+	-- duplicate specialists to give them more chances to spawn
+
+	---@type Race[]
+	local order = {}
+	for _, r in pairs(RAWS_MANAGER.races_by_name) do
+		if r.requires_large_river then
+			table.insert(order, r)
+		end
+	end
+
+	for _, r in pairs(RAWS_MANAGER.races_by_name) do
+		if r.requires_large_forest then
+			table.insert(order, r)
+		end
+	end
+
+	for _, r in pairs(RAWS_MANAGER.races_by_name) do
+		table.insert(order, r)
+	end
+
+	local civs = 500 / tabb.size(order) -- one per race...
+
+
 	for _ = 1, civs do
-		for _, r in pairs(RAWS_MANAGER.races_by_name) do
+		for _, r in ipairs(order) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile().province
 			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile().province end
@@ -195,7 +223,7 @@ function st.run()
 					end
 				end
 				if (love.math.random() > 0.001 + neigh.movement_cost / 1000.0 * river_bonus) then
-					if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 5.5 then
+					if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 8 then -- formerly 5.5
 						-- We can spawn a new realm in this province! It's unused!
 						make_new_realm(neigh, prov.realm.primary_race, prov.realm.primary_culture, prov.realm.primary_faith)
 						queue:enqueue(neigh)

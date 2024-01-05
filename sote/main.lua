@@ -25,15 +25,42 @@ PROFILE_FLAG = false
 ---@type table
 PROFILER = {}
 
-PROFILER.total_tick_time = 0.0
-PROFILER.total_deferred_events_time = 0.0
-PROFILER.total_deferred_actions_time = 0.0
-PROFILER.total_vegetation_growth_tick = 0
-PROFILER.total_pop_growth_tick = 0
-PROFILER.total_province_tick = 0
-PROFILER.total_realm_tick = 0
-PROFILER.total_decision_tick = 0
-PROFILER.total_decision_character_tick = 0
+PROFILER.total = 0
+
+---@type table<string, number>
+PROFILER.timers = {}
+
+---@type table<string, number>
+PROFILER.data = {}
+
+---@type table<string, number>
+PROFILER.mean = {}
+
+function PROFILER.start_timer(self, tag)
+	if PROFILE_FLAG then return end
+	self.timers[tag] = love.timer.getTime()
+end
+
+function PROFILER.end_timer(self, tag)
+	if PROFILE_FLAG then return end
+
+	local now = love.timer.getTime()
+	local delta = now - self.timers[tag]
+
+	if self.data[tag] == nil then
+		self.data[tag] = 0
+		self.mean[tag] = delta
+	end
+	self.data[tag] = self.data[tag] + delta
+	self.total = self.total + delta
+	self.mean[tag] = self.mean[tag] * 0.9999 + delta * 0.0001
+end
+
+function PROFILER.clear(self)
+	for tag, value in pairs(self.data) do
+		self.data[tag] = 0
+	end
+end
 
 
 --- this constant is used in vegetation growth

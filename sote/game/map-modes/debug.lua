@@ -56,7 +56,12 @@ end
 
 function dbg.debug_color()
 	for _, tile in pairs(WORLD.tiles) do
-		tile:set_real_color(tile.debug_r, tile.debug_g, tile.debug_b)
+		-- tile:set_real_color(tile.debug_r, tile.debug_g, tile.debug_b)
+		if tile.province.on_a_river then
+			tile:set_real_color(1, 1, 1)
+		else
+			tile:set_real_color(0, 0, 0)
+		end
 	end
 end
 

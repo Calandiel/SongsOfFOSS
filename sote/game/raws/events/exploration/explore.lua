@@ -103,6 +103,23 @@ return function()
 			---@type ExplorationData
 			associated_data = associated_data
 
+			if character.dead then
+				return {
+					{
+						text = "I am dead",
+						tooltip = "I will remain dead",
+						viable = function()
+							return character.leading_warband:days_of_travel() >= 30
+						end,
+						outcome = function()
+						end,
+						ai_preference = function ()
+							return 1
+						end
+					},
+				}
+			end
+
 			return {
 				{
 					text = "Continue exploration",

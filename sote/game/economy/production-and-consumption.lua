@@ -625,7 +625,7 @@ function pro.run(province)
 
 				local local_foraging_efficiency = 1
 				if prod.foraging then
-					foragers_count = foragers_count + 1 -- Record a new forager!
+					foragers_count = foragers_count + math.min(building.work_ratio, free_time_of_pop) -- Record a new forager!
 					local_foraging_efficiency = foraging_efficiency
 				end
 				local yield = 1

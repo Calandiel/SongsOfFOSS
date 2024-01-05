@@ -62,6 +62,9 @@ function de.run_character(character)
 	for _, decision in pairs(RAWS_MANAGER.decisions_characters_by_name) do
 		---@type DecisionCharacter
 		local d = decision
+
+		PROFILER:start_timer(d.name)
+
 		-- 3. Check base probability (AI only) << base_probability >>
 		if love.math.random() < d.base_probability then
 			-- 4. Check pretrigger << pretrigger >>
@@ -104,6 +107,8 @@ function de.run_character(character)
 				end
 			end
 		end
+
+		PROFILER:end_timer(d.name)
 	end
 end
 

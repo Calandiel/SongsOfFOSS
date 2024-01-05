@@ -1281,46 +1281,24 @@ function gam.draw()
 
 
 	if PROFILE_FLAG then
-		local profile_rect = ui.fullscreen():subrect(0, 0, 600, 200, "center", "center")
+		local profile_rect = ui.fullscreen():subrect(0, 0, 800, 300, "center", "center")
 		ui.panel(profile_rect)
 
-		local total = PROFILER.total_tick_time
-		local events = PROFILER.total_deferred_events_time
-		local actions = PROFILER.total_deferred_actions_time
-		local vegetation = PROFILER.total_vegetation_growth_tick
-		local pop_growth = PROFILER.total_pop_growth_tick
-		local province = PROFILER.total_province_tick
-		local realm = PROFILER.total_realm_tick
-		local decision = PROFILER.total_decision_tick
-		local decision_character = PROFILER.total_decision_character_tick
+		local layout = ui.layout_builder()
+			:position(profile_rect.x, profile_rect.y)
+			:spacing(0)
+			:grid(4)
+			:build()
 
+		local tick_time = PROFILER.data["tick"] or 1
 
-		local rect_data = profile_rect:subrect(0, 0, profile_rect.width / 4, 25, "left", "up")
-		if total > 0 then
-			local top = rect_data.y
-			ut.data_entry_percentage("actions", actions / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("events", events / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("vegetation", vegetation / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("pop_growth", pop_growth / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("province", province / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("realm", realm / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("decision", decision / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("decision_char", decision_character / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-
-			rect_data.y = top
-			rect_data.x = rect_data.x + rect_data.width
-
-
-			-- ut.data_entry(observed_logs_length .. " daily ticks: ", ut.to_fixed_point2(total_mean), rect_data)
+		for tag, value in pairs(PROFILER.data) do
+			if value / tick_time > 0.005 then
+				ut.data_entry_percentage(tag, value / tick_time, layout:next(profile_rect.width / 4, 25), nil, false)
+			end
 		end
+
+		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000, layout:next(profile_rect.width / 4, 25))
 	end
 end
 
