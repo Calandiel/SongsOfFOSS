@@ -294,7 +294,7 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-			if root.savings > base_gift_size * 10 then
+			if root.savings > base_gift_size * 20 then
 				return 0.1
 			end
 			return 0

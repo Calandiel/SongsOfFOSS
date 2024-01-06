@@ -147,7 +147,7 @@ return function(rect, base_unit, province)
                     local needs_tooltip = ""
                     for need, value in pairs(v.need_satisfaction) do
                         needs_tooltip = needs_tooltip
-                            .. need .. " " .. ut.to_fixed_point2(value) .. "\n"
+                            .. NEED_NAME[need] .. " " .. ut.to_fixed_point2(value) .. "\n"
                     end
 
                     ut.data_entry_percentage(

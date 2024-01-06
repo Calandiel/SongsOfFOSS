@@ -52,7 +52,6 @@ function PROFILER.end_timer(self, tag)
 
 	if self.data[tag] == nil then
 		self.data[tag] = 0
-		self.mean[tag] = delta
 		self.count[tag] = 0
 	end
 	self.count[tag] = self.count[tag] + 1
@@ -65,6 +64,8 @@ end
 function PROFILER.clear(self)
 	for tag, value in pairs(self.data) do
 		self.data[tag] = 0
+		self.mean[tag] = 0
+		self.count[tag] = 0
 	end
 end
 

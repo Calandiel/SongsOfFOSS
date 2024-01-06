@@ -1310,6 +1310,10 @@ function gam.draw()
 		end
 
 		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000, layout:next(profile_rect.width / 4, 25))
+
+		if ut.text_button("RESET", layout:next(profile_rect.width / 4, 25)) then
+			PROFILER:clear()
+		end
 	end
 end
 
