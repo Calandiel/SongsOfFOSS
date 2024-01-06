@@ -12,6 +12,77 @@ local AI_VALUE = require "game.raws.values.ai_preferences"
 
 return function()
 	Event:new {
+		name = "exploration-preparation-ask-for-help",
+		event_text = text.exploration_preparation,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = event_utils.constant_false,
+
+		on_trigger = function (self, character, associated_data)
+			local partner = political_values.overseer(character.province.realm)
+
+			if partner == nil then
+				WORLD:emit_immediate_event("exploration-failed-to-find-help", character, nil)
+			end
+
+			---@type ExplorationConversationData
+			local conversation = {
+				lied = false,
+				partner = partner,
+				payment = 0
+			}
+
+			---@type ExplorationData
+			local exploration_data = {
+				explored_province = character.province,
+				explorer = character,
+				last_conversation = conversation,
+				_exploration_days_left = character.province.movement_cost,
+				_exploration_speed = 1.0
+			}
+
+			WORLD:emit_immediate_event("exploration-help", partner, exploration_data)
+		end
+	}
+
+	Event:new {
+		name = "exploration-preparation-by-yourself",
+		event_text = text.exploration_preparation,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = event_utils.constant_false,
+
+		on_trigger = function (self, character, associated_data)
+			---@type ExplorationData
+			local exploration_data = {
+				explored_province = character.province,
+				explorer = character,
+				last_conversation = nil,
+				_exploration_days_left = character.province.movement_cost,
+				_exploration_speed = 1.5
+			}
+
+			WORLD:emit_immediate_event("exploration-progress", character, exploration_data)
+		end
+	}
+
+
+	event_utils.notification_event(
+		"exploration-failed-to-find-help",
+		function (self, root, associated_data)
+			return "I failed to find any help in exploration of " .. root.province.name
+		end,
+		function (root, associated_data)
+			return "Okay."
+		end,
+		function (root, associated_data)
+			return "Maybe I should try to do it on my own?"
+		end
+	)
+
+	Event:new {
 		name = "exploration-preparation",
 		event_text = text.exploration_preparation,
 		event_background_path = "data/gfx/backgrounds/background.png",

@@ -30,7 +30,6 @@ local warband = {
 	units_current = {},
 	units_target = {},
 	status = "idle",  ---@type WarbandStatus
-	supplies = 0,
 	supplies_target_days = 60,
 	morale = 0.5,
 	current_free_time_ratio = 1.0,
@@ -256,14 +255,14 @@ end
 ---@return number
 function warband:consume_supplies(days)
 	local consumption = days * self:daily_supply_consumption()
-	self.supplies = self.supplies - consumption
+	self.leader.inventory['food'] = self.leader.inventory['food'] - consumption
 	return consumption
 end
 
 ---Returns amount of days warband can travel depending on collected supplies
 ---@return number
 function warband:days_of_travel()
-	local supplies = self.supplies
+	local supplies = self.leader.inventory['food'] or 0
 	local per_day = self:daily_supply_consumption()
 
 	if per_day == 0 then

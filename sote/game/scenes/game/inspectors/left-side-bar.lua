@@ -40,7 +40,8 @@ function inspector.draw(gam)
         "character-decisions",
         "warband",
         "property",
-        "market"
+        "market",
+        "preferences"
     }
 
     local inspector_icons = {
@@ -50,7 +51,8 @@ function inspector.draw(gam)
         ["character-decisions"] = ASSETS.icons["envelope.png"],
         ["warband"] = ASSETS.icons["barbute.png"],
         ["property"] = ASSETS.icons["bank.png"],
-        ["market"] = ASSETS.icons["scales.png"]
+        ["market"] = ASSETS.icons["scales.png"],
+        ["preferences"] = ASSETS.icons["shrug.png"]
     }
 
     local inspector_tooltips = {
@@ -60,7 +62,8 @@ function inspector.draw(gam)
         ["character-decisions"] = "Actions",
         ["warband"] = "View your warband",
         ["property"] = "Assess your property",
-        ["market"] = "View local market"
+        ["market"] = "View local market",
+        ["preferences"] = "Decide your preferences"
     }
 
     local inspector_visible = {
@@ -94,6 +97,9 @@ function inspector.draw(gam)
             if WORLD.player_character == nil then return false end
             return true
         end,
+        ["preferences"] = function ()
+            return true
+        end
     }
 
     for _, inspector in pairs(inspectors) do

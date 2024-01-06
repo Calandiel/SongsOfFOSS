@@ -172,7 +172,10 @@ function pro.run(province)
 
 		-- Foragers produce food:
 		local food_produced = foraging_efficiency * foraging_multiplier * 0.25 * time
-		pop.unit_of_warband.supplies = pop.unit_of_warband.supplies + food_produced
+
+		if pop.unit_of_warband.leader then
+			pop.unit_of_warband.leader.inventory['food'] = (pop.unit_of_warband.leader.inventory['food'] or 0) + food_produced
+		end
 	end
 
 
@@ -919,23 +922,6 @@ function pro.run(province)
 				record_production(output_index, amount * efficiency)
 			end
 		end
-	end
-
-	-- finally, buy supplies for parties:
-	for _, warband in pairs(province.warbands) do
-		local demand = warband:supplies_target() - warband.supplies
-		local effective_demand = math.max(0, math.min(warband.treasury /  market_data[food_index - 1].price, demand))
-
-		record_demand(food_index, effective_demand)
-
-		local bought = math.max(0, math.min(effective_demand, market_data[food_index - 1].available))
-
-		record_consumption(food_index, bought)
-		warband.supplies = warband.supplies + bought
-
-
-		warband.treasury = math.max(0, warband.treasury - bought * market_data[food_index - 1].price)
-		province.trade_wealth = province.trade_wealth + bought * market_data[food_index - 1].price
 	end
 
 	-- At last, record all data
