@@ -11,6 +11,18 @@ local military_effects = require "game.raws.effects.military"
 
 local PoliticalEffects = {}
 
+---@enum POLITICAL_REASON
+PoliticalEffects.reasons = {
+	NOT_ENOUGH_NOBLES = "political vacuum",
+	INITIAL_NOBLE = "initial noble",
+	POPULATION_GROWTH = "population growth",
+	EXPEDITION_LEADER = "expedition leader",
+	SUCCESSION = "succession",
+	COUP = "coup",
+	INITIAL_RULER = "first ruler",
+	OTHER = "other"
+}
+
 ---Removes realm from the game
 -- Does not handle logic of cleaning up characters and leaders
 ---@param realm Realm
@@ -39,7 +51,7 @@ function PoliticalEffects.coup(character)
 	end
 
 	if PoliticalValues.power_base(character, realm.capitol) > PoliticalValues.power_base(realm.leader, realm.capitol) then
-		PoliticalEffects.transfer_power(character.province.realm, character)
+		PoliticalEffects.transfer_power(character.province.realm, character, PoliticalEffects.reasons.COUP)
 		return true
 	else
 		if WORLD:does_player_see_realm_news(realm) then
@@ -64,9 +76,9 @@ local function roll_traits(character)
 	if love.math.random() > 0.9 then
 		character.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
 	else
-		if love.math.random() > 0.6 then
+		if love.math.random() > 0.4 then
 			character.traits[TRAIT.TRADER] = TRAIT.TRADER
-			character.savings = character.savings + 25
+			character.savings = character.savings + 100
 		end
 	end
 
@@ -102,7 +114,10 @@ end
 ---Transfers control over realm to target
 ---@param realm Realm
 ---@param target Character
-function PoliticalEffects.transfer_power(realm, target)
+---@param reason POLITICAL_REASON
+function PoliticalEffects.transfer_power(realm, target, reason)
+	-- LOGS:write("realm: " .. realm.name .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
+
 	local depose_message = ""
 	if realm.leader ~= nil then
 		if WORLD.player_character == realm.leader then
@@ -121,10 +136,17 @@ function PoliticalEffects.transfer_power(realm, target)
 
 	if realm.leader then
 		realm.leader.rank = ranks.NOBLE
+		realm.leader.leader_of[realm] = nil
+	end
+
+	if target.rank ~= ranks.CHIEF then
+		target.realm = realm
 	end
 
 	target.rank = ranks.CHIEF
 	PoliticalEffects.remove_overseer(realm)
+
+	target.leader_of[realm] = realm
 
 	realm.leader = target
 end
@@ -133,6 +155,8 @@ end
 ---@param realm Realm
 ---@param overseer Character
 function PoliticalEffects.set_overseer(realm, overseer)
+	-- LOGS:write("realm: " .. realm.name .. "\n new overseer: " .. overseer.name .. "\n")
+
 	realm.overseer = overseer
 
 	PoliticalEffects.medium_popularity_boost(overseer, realm)
@@ -281,9 +305,21 @@ end
 ---comment
 ---@param pop POP
 ---@param province Province
-function PoliticalEffects.grant_nobility(pop, province)
+---@param reason POLITICAL_REASON
+function PoliticalEffects.grant_nobility(pop, province, reason)
+	-- LOGS:write("realm: " .. province.realm.name .. "\n new noble: " .. pop.name .. "\n" .. "reason: " .. reason .. "\n")
+
+	-- print(pop.name, "becomes noble")
+	if province ~= pop.province then
+		error(
+			"REQUEST TO TURN POP INTO NOBLE FROM INVALID PROVINCE:"
+			.. "\n province.name = "
+			.. province.name
+			.. "\n pop.province.name = "
+			.. pop.province.name)
+	end
 	province:fire_pop(pop)
-	province:unregister_military_pop(pop)
+	pop:unregister_military()
 	province.all_pops[pop] = nil
 
 	province:add_character(pop)
@@ -307,12 +343,13 @@ end
 
 ---comment
 ---@param province Province
+---@param reason POLITICAL_REASON
 ---@return Character?
-function PoliticalEffects.grant_nobility_to_random_pop(province)
+function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
 	local pop = tabb.random_select_from_set(province.all_pops)
 
 	if pop then
-		PoliticalEffects.grant_nobility(pop, province)
+		PoliticalEffects.grant_nobility(pop, province, reason)
 	end
 
 	return pop
@@ -331,9 +368,12 @@ function PoliticalEffects.generate_new_noble(realm, province, race, faith, cultu
 		faith,
 		culture,
 		love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-		love.math.random(race.adult_age, race.max_age)
+		love.math.random(race.adult_age, race.max_age),
+		province, province, true
 	)
 	character.rank = ranks.NOBLE
+
+	character.savings = character.savings + math.sqrt(character.age) * 10
 
 	roll_traits(character)
 	character.realm = realm

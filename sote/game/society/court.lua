@@ -69,7 +69,7 @@ function co.run(realm)
 		local nobles = tabb.size(prov.characters)
 		local population = tabb.size(prov.all_pops)
 		if (nobles < NOBLES_RATIO * population) and (population > 5) and (nobles < 15) then
-			pe.grant_nobility_to_random_pop(prov)
+			pe.grant_nobility_to_random_pop(prov, pe.reasons.POPULATION_GROWTH)
 		end
 	end
 

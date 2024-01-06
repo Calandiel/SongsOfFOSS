@@ -174,7 +174,7 @@ return function(province, ui_panel, base_unit, gam)
                 if WORLD.player_character then
                     local player_province = WORLD.player_character.province
                     if player_province then
-                        local price_at_player = ev.get_local_price(player_province, v.name)
+                        local price_at_player = ev.get_local_price(player_province, v.tag)
                         local data = 1
                         if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 0
@@ -206,7 +206,7 @@ return function(province, ui_panel, base_unit, gam)
                 if WORLD.player_character then
                     local local_province = WORLD.player_character.province
                     if local_province then
-                        local price_at_player = ev.get_local_price(local_province, v.name)
+                        local price_at_player = ev.get_local_price(local_province, v.tag)
                         local data = 1
                         if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 1
@@ -256,20 +256,20 @@ return function(province, ui_panel, base_unit, gam)
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
-                local can_buy, reasons = et.can_buy(player_character, v.name, TRADE_AMOUNT)
+                local can_buy, reasons = et.can_buy(player_character, v.tag, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
                     tooltip = tooltip .. reason .. "\n"
                 end
 
                 if ut.text_button("+", rect, tooltip, can_buy and valid_province) then
-                    ef.buy(player_character, v.name, TRADE_AMOUNT)
+                    ef.buy(player_character, v.tag, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.name
+                return v.tag
             end,
             active = true
         },
@@ -289,20 +289,20 @@ return function(province, ui_panel, base_unit, gam)
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
-                local can_buy, reasons = et.can_sell(player_character, v.name, TRADE_AMOUNT)
+                local can_buy, reasons = et.can_sell(player_character, v.tag, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
                     tooltip = tooltip .. reason .. "\n"
                 end
 
                 if ut.text_button("-", rect, tooltip, can_buy and valid_province) then
-                    ef.sell(player_character, v.name, TRADE_AMOUNT)
+                    ef.sell(player_character, v.tag, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.name
+                return v.tag
             end,
             active = true
         },
@@ -327,13 +327,13 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
 
                 if ut.icon_button(ASSETS.icons['mesh-ball.png'], rect, "Show price on map") then
-                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.name
+                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.tag
                     gam.update_map_mode("prices")
                 end
             end,
             width = base_unit * 2,
             value = function (k, v)
-                return v.name
+                return v.tag
             end,
             active = true
         }

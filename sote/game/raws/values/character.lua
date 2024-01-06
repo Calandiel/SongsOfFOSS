@@ -1,3 +1,5 @@
+local JOBTYPE = require "game.raws.job_types"
+
 local character_values = {}
 
 ---Calculates travel speed of given character
@@ -10,19 +12,54 @@ function character_values.travel_speed(character)
 		total_weight = total_weight + amount / 10
 	end
 
+	local total_hauling = character.race.male_efficiency[JOBTYPE.HAULING]
+	if character.female then
+		total_hauling = character.race.female_efficiency[JOBTYPE.HAULING]
+	end
+
+	local party = character.leading_warband
+
+	if party then
+		total_hauling = party:total_hauling()
+	end
+
 	local function speed(province)
 		-- TODO: add adittional race variable which influences this base value
 		---@type number
 		local race_modifier = 1
 		if character.race.requires_large_river and province.on_a_river then
 			---@type number
-			race_modifier = race_modifier * 2
+			race_modifier = race_modifier * 5
 		end
 		if character.race.requires_large_river and province.on_a_forest then
 			---@type number
+			race_modifier = race_modifier * 2.5
+		end
+		return race_modifier * (1 + total_hauling / total_weight)
+	end
+
+	return speed
+end
+
+---Calculates travel speed of given race  \
+-- Used for diplomatic actions when there is no moving character: only abstract "diplomat"  \
+-- To be removed when we will have actual diplomats.
+---@param race Race
+---@return fun(province: Province): number
+function character_values.travel_speed_race(race)
+	local function speed(province)
+		-- TODO: add adittional race variable which influences this base value
+		---@type number
+		local race_modifier = 1
+		if race.requires_large_river and province.on_a_river then
+			---@type number
+			race_modifier = race_modifier * 2
+		end
+		if race.requires_large_river and province.on_a_forest then
+			---@type number
 			race_modifier = race_modifier * 1.5
 		end
-		return race_modifier / total_weight
+		return race_modifier
 	end
 
 	return speed

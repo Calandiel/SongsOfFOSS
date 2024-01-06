@@ -6,6 +6,7 @@ local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
 local military_effects = require "game.raws.effects.military"
+local political_values = require "game.raws.values.political"
 
 local tabb = require "engine.table"
 
@@ -204,6 +205,10 @@ end
 ---@param associated_data table
 ---@param delay number|nil In days
 function world.World:emit_event(event, root, associated_data, delay)
+	if root == nil then
+		error("Attempt to call event for nil root")
+	end
+
 	if delay then
 		self.deferred_events_queue:enqueue({
 			event, root, associated_data, delay
@@ -220,6 +225,10 @@ end
 ---@param root Character
 ---@param associated_data table
 function world.World:emit_immediate_event(event, root, associated_data)
+	if root == nil then
+		error("Attempt to call event for nil root")
+	end
+
 	if root == self.player_character then
 		print('player event: ', event)
 	end
@@ -234,8 +243,19 @@ end
 ---@param root POP
 ---@param associated_data table?
 function world.World:emit_immediate_action(event, root, associated_data)
-	local event = RAWS_MANAGER.events_by_name[event]
-	event:on_trigger(root, associated_data)
+	if root == nil then
+		error("Attempt to call action for nil root")
+	end
+
+	local event_data = RAWS_MANAGER.events_by_name[event]
+
+	-- LOGS:write(
+	-- 	"\n Handling event: " .. event .. "\n" ..
+	-- 	"root: " .. root.name .. "\n" ..
+	-- 	"realm:" .. root.realm.name .. "\n"
+	-- )
+
+	event_data:on_trigger(root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
@@ -270,12 +290,20 @@ end
 ---@param associated_data any
 local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
-	-- First, find the best option
-	-- print("Handling event: " .. event)
+
+	-- if event ~= "sell-goods" and event ~= "buy-goods" then
+	-- 	LOGS:write(
+	-- 		"\n Handling event: " .. event .. "\n" ..
+	-- 		"root: " .. target_realm.name .. "\n" ..
+	-- 		"realm:" .. target_realm.realm.name .. "\n"
+	-- 	)
+	-- end
+
 	if RAWS_MANAGER.events_by_name[event] == nil then
 		error(event .. " is not a valid event!")
 	end
 
+	-- First, find the best option
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
 	local best_am = nil
@@ -321,16 +349,7 @@ end
 function world.World:tick()
 	-- print('tick')
 
-	local tick_start_time = love.timer.getTime()
-	local deferred_events_tick = 0
-	local deferred_actions_tick = 0
-	local vegetation_growth_tick = 0
-	local pop_growth_tick = 0
-	local province_tick = 0
-	local realm_tick = 0
-	local decision_tick = 0
-	local decision_character_tick = 0
-
+	PROFILER:start_timer("tick")
 
 	WORLD.pending_player_event_reaction = false
 	local counter = 0
@@ -364,6 +383,8 @@ function world.World:tick()
 
 		local t = love.timer.getTime()
 
+		PROFILER:start_timer("vegetation")
+
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
 			for _, tile in pairs(settled_province.tiles) do
@@ -374,7 +395,7 @@ function world.World:tick()
 			end
 		end
 
-		vegetation_growth_tick = vegetation_growth_tick + love.timer.getTime() - t
+		PROFILER:end_timer("vegetation")
 
 		-- "Realm" pre-update
 		local realm_economic_update = require "game.economy.realm-economic-update"
@@ -392,7 +413,7 @@ function world.World:tick()
 			ta[province] = nil
 		end
 
-		t = love.timer.getTime()
+		PROFILER:start_timer("growth")
 
 		-- "POP" update
 		local pop_growth = require "game.society.pop-growth"
@@ -401,9 +422,8 @@ function world.World:tick()
 			pop_growth.growth(settled_province)
 		end
 
-		pop_growth_tick = pop_growth_tick + love.timer.getTime() - t
+		PROFILER:end_timer("growth")
 
-		t = love.timer.getTime()
 
 		-- "Province" update
 		local employ = require "game.economy.employment"
@@ -416,18 +436,27 @@ function world.World:tick()
 		local recruit = require "game.society.recruitment"
 		for _, settled_province in pairs(ta) do
 			--print("employ")
+			PROFILER:start_timer("employ")
 			employ.run(settled_province)
+			PROFILER:end_timer("employ")
+
+			PROFILER:start_timer("buildings")
 			building_update.run(settled_province)
+			PROFILER:end_timer("buildings")
+
+			PROFILER:start_timer("production")
 			production.run(settled_province)
+			PROFILER:end_timer("production")
+
+			PROFILER:start_timer("province")
 			upkeep.run(settled_province)
 			wealth_decay.run(settled_province)
 			infrastructure.run(settled_province)
 			research.run(settled_province)
 			recruit.run(settled_province)
+			PROFILER:end_timer("province")
 			--print("done")
 		end
-
-		province_tick = province_tick + love.timer.getTime() - t
 
 		-- "Realm" update
 		-- local decide = require "game.ai.decide"
@@ -437,9 +466,20 @@ function world.World:tick()
 		local construct = require "game.ai.construction"
 		for _, settled_province in pairs(ta) do
 			local realm = settled_province.realm
+
+			if realm then
+				local overseer = political_values.overseer(realm)
+				if overseer == nil then
+					error(realm.name)
+				end
+				if overseer.province == nil then
+					error(overseer.name .. " " .. realm.name)
+				end
+			end
+
 			if realm ~= nil and settled_province.realm.capitol == settled_province then
 
-				t = love.timer.getTime()
+				PROFILER:start_timer("realm")
 
 				-- Run the realm AI once a month
 				if not WORLD:does_player_control_realm(realm) then
@@ -454,19 +494,26 @@ function world.World:tick()
 					self:emit_treasury_change_effect(0, "new month", true)
 				end
 				--print("Construct")
+				PROFILER:start_timer("realm-construct-update")
 				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+				PROFILER:end_timer("realm-construct-update")
+
 				--print("Court")
 				court.run(realm)
 				--print("Edu")
 				education.run(realm)
 				--print("Econ")
+
+				PROFILER:start_timer("realm-eco-update")
 				realm_economic_update.run(realm)
+				PROFILER:end_timer("realm-eco-update")
 				-- Handle events!
 				--print("Event handling")
 				events.run(realm)
 
-				realm_tick = realm_tick + love.timer.getTime() - t
+				PROFILER:end_timer("realm")
 
+				PROFILER:start_timer("war")
 				-- launch patrols
 				for _, target in pairs(realm.provinces) do
 					local warbands = realm.patrols[target]
@@ -496,19 +543,13 @@ function world.World:tick()
 					end
 				end
 
+				PROFILER:end_timer("war")
+
 				t = love.timer.getTime()
-
-				-- Run AI decisions at the very end (they're moddable, it'll be better to do them last...)
-				if not WORLD:does_player_control_realm(realm) then
-					--print("Decide")
-					decide.run(realm)
-				end
-
-				decision_tick = decision_tick + love.timer.getTime() - t
 			end
 		end
 
-		t = love.timer.getTime()
+		PROFILER:start_timer("decisions")
 
 		for _, settled_province in pairs(ta) do
 			for _, character in pairs(settled_province.characters) do
@@ -518,7 +559,7 @@ function world.World:tick()
 			end
 		end
 
-		decision_character_tick = decision_character_tick + love.timer.getTime() - t
+		PROFILER:end_timer("decisions")
 
 	end
 
@@ -534,7 +575,7 @@ function world.World:tick()
 			WORLD.day = WORLD.day + 1
 			-- daily tick
 
-			local t = love.timer.getTime()
+			PROFILER:start_timer("events_queue")
 
 			-- events
 			local l = WORLD.deferred_events_queue:length()
@@ -551,12 +592,6 @@ function world.World:tick()
 				end
 			end
 
-			-- print('deferred events update')
-
-			deferred_events_tick = love.timer.getTime() - t
-
-			t = love.timer.getTime()
-
 			-- actionas
 			local l = WORLD.deferred_actions_queue:length()
 			for i = 1, l do
@@ -567,6 +602,12 @@ function world.World:tick()
 					local character = check[2]
 					local event = RAWS_MANAGER.events_by_name[check[1]]
 					local province = character.province
+
+					-- LOGS:write(
+					-- 	"\n Handling event: " .. check[1] .. "\n" ..
+					-- 	"root: " .. character.name .. "\n" ..
+					-- 	"realm:" .. character.realm.name .. "\n"
+					-- )
 
 					event:on_trigger(character, check[3])
 
@@ -597,8 +638,7 @@ function world.World:tick()
 			end
 
 			-- print('deferred actions update')
-
-			deferred_actions_tick = love.timer.getTime() - t
+			PROFILER:end_timer("events_queue")
 
 			if WORLD.day == 31 then
 				WORLD.day = 0
@@ -627,19 +667,7 @@ function world.World:tick()
 		--print("tick end")
 	end
 
-	local tick_end_time = love.timer.getTime()
-
-	if PROFILE_FLAG then
-		PROFILER.total_tick_time = PROFILER.total_tick_time + tick_end_time - tick_start_time
-		PROFILER.total_deferred_events_time = PROFILER.total_deferred_events_time + deferred_events_tick
-		PROFILER.total_deferred_actions_time = PROFILER.total_deferred_actions_time + deferred_actions_tick
-		PROFILER.total_vegetation_growth_tick = PROFILER.total_vegetation_growth_tick + vegetation_growth_tick
-		PROFILER.total_pop_growth_tick = PROFILER.total_pop_growth_tick + pop_growth_tick
-		PROFILER.total_province_tick = PROFILER.total_province_tick + province_tick
-		PROFILER.total_realm_tick = PROFILER.total_realm_tick + realm_tick
-		PROFILER.total_decision_tick = PROFILER.total_decision_tick + decision_tick
-		PROFILER.total_decision_character_tick = PROFILER.total_decision_character_tick + decision_character_tick
-	end
+	PROFILER:end_timer("tick")
 end
 
 ---Emits a notification
@@ -687,7 +715,7 @@ end
 ---@param realm Realm
 ---@return boolean
 function world.World:does_player_control_realm(realm)
-	return (realm ~= nil) and (self.player_character == realm.leader) and (self.player_character ~= nil)
+	return (realm ~= nil) and (realm.leader == WORLD.player_character) and (self.player_character ~= nil)
 end
 
 ---comment

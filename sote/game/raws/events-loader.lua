@@ -50,6 +50,9 @@ function ll.load()
 	print("travel events")
 	require "game.raws.events.travel"()
 
+	print("exploration events")
+	require "game.raws.events.exploration._loader"()
+
 	print("auxilary events")
 	require "game.raws.events.helpers"()
 end

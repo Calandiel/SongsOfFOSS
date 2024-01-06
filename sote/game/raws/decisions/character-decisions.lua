@@ -3,13 +3,19 @@ local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
 local economic_effects = require "game.raws.effects.economic"
+local economic_values = require "game.raws.values.economical"
 local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
 
+local path = require "game.ai.pathfinding"
+
 local pe = require "game.raws.effects.political"
 
 local office_triggers = require "game.raws.triggers.offices"
+
+local military_values = require "game.raws.values.military"
+
 
 local function load()
 
@@ -109,6 +115,11 @@ local function load()
 			if root.province.realm ~= root.realm then return false end
 			if root.leading_warband then return false end
 			if root.recruiter_for_warband then return false end
+			if WORLD.player_character ~= root then
+				if not root.traits[TRAIT.WARLIKE] and not root.traits[TRAIT.TRADER] and not (root.rank == ranks.CHIEF) then
+					return false
+				end
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -124,6 +135,10 @@ local function load()
 			---@type Character
 			root = root
 			if root.leading_warband == nil and root.traits[TRAIT.WARLIKE] then
+				return 1
+			end
+
+			if root.leading_warband == nil and root.traits[TRAIT.TRADER] then
 				return 1
 			end
 
@@ -303,7 +318,7 @@ local function load()
 		end
 	}
 
-		---@type DecisionCharacter
+	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'donate-wealth-warband',
 		ui_name = "Donate wealth to your warband.",
@@ -345,6 +360,7 @@ local function load()
 			economic_effects.gift_to_warband(root, root.savings / 3)
 		end
 	}
+
 
 	---@type DecisionCharacter
 	Decision.Character:new {
@@ -548,7 +564,7 @@ local function load()
 
 	Decision.Character:new {
 		name = 'buy-something',
-		ui_name = "Buy some goods",
+		ui_name = "(AI) Buy some goods",
 		tooltip = function (root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
@@ -558,13 +574,16 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 0.8 , -- Almost every month
+		base_probability = 1 / 4 ,
 		pretrigger = function(root)
 			if root.busy then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
 			if root.savings < 5 then
+				return false
+			end
+			if (not root.traits[TRAIT.TRADER]) then
 				return false
 			end
 			return true
@@ -581,7 +600,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if root.traits[TRAIT.TRADER] then
-				return 1/2 ---try to buy something every second month
+				return 1
 			end
 			return 0
 		end,
@@ -591,21 +610,24 @@ local function load()
 	}
 
 	Decision.Character:new {
-		name = 'sell-something',
-		ui_name = "Sell some goods",
+		name = 'update-price-beliefs',
+		ui_name = "(AI) Check local prices",
 		tooltip = function (root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
 			end
-			return "Sell some goods on the local market"
+			return "???"
 		end,
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 0.8 , -- Almost every month
+		base_probability = 1 / 2 ,
 		pretrigger = function(root)
 			if root.busy then return false end
 			if WORLD:is_player(root) then
+				return false
+			end
+			if (not root.traits[TRAIT.TRADER]) then
 				return false
 			end
 			return true
@@ -622,7 +644,60 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if root.traits[TRAIT.TRADER] then
-				return 1/2 ---try to sell something every second month
+				return 1
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+                local price = economic_values.get_local_price(root.province, name)
+                if root.price_memory[name] == nil then
+                    root.price_memory[name] = price
+                else
+                    if WORLD.player_character ~= root then
+                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
+                    end
+                end
+            end
+		end
+	}
+
+	Decision.Character:new {
+		name = 'sell-something',
+		ui_name = "(AI) Sell some goods",
+		tooltip = function (root, primary_target)
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Sell some goods on the local market"
+		end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 1 / 4,
+		pretrigger = function(root)
+			if root.busy then return false end
+			if WORLD:is_player(root) then
+				return false
+			end
+			if (not root.traits[TRAIT.TRADER]) then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root)
+			if WORLD:is_player(root) then
+				return false
+			end
+			return true
+		end,
+		available = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1
 			end
 			return 0
 		end,
@@ -652,10 +727,18 @@ local function load()
 			end
 			return "Raid the province " .. primary_target.name
 		end,
+		path = function (root, primary_target)
+			return path.pathfind(
+				root.province,
+				primary_target,
+				military_values.warband_speed(root.leading_warband),
+				root.realm.known_provinces
+			)
+		end,
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
-		base_probability = 0.9 , -- Almost every month
+		base_probability = 1 / 6,
 		pretrigger = function(root)
 			if root.busy then return false end
 			if root.leading_warband == nil then return false end
@@ -698,7 +781,7 @@ local function load()
 			end
 
 			if root.traits[TRAIT.WARLIKE] then
-				return 0.2
+				return 1
 			end
 
 			return 0
@@ -730,6 +813,14 @@ local function load()
 				return'You can\'t patrol provinces of other realms'
 			end
 			return "Patrol the province " .. primary_target.name
+		end,
+		path = function (root, primary_target)
+			return path.pathfind(
+				root.province,
+				primary_target,
+				military_values.warband_speed(root.leading_warband),
+				root.realm.known_provinces
+			)
 		end,
 		sorting = 1,
 		primary_target = "province",

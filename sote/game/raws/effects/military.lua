@@ -4,6 +4,8 @@ local ui_utils = require "game.ui-utils"
 local RewardFlag = require "game.entities.realm".RewardFlag
 
 local economy_effects = require "game.raws.effects.economic"
+local military_values = require "game.raws.values.military"
+
 
 local MilitaryEffects = {}
 
@@ -85,7 +87,7 @@ function MilitaryEffects.dissolve_guard(realm)
     end
 
     for _, pop in pairs(to_unregister) do
-        province:unregister_military_pop(pop)
+        pop:unregister_military()
     end
     province.warbands[warband] = nil
 
@@ -119,7 +121,7 @@ function MilitaryEffects.dissolve_warband(leader)
     end
 
     for _, pop in pairs(to_unregister) do
-        leader.province:unregister_military_pop(pop)
+        pop:unregister_military()
     end
     leader.province.warbands[warband] = nil
 
@@ -166,7 +168,19 @@ end
 function MilitaryEffects.covert_raid(root, primary_target)
     local target_province = primary_target.target
 
-    local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.capitol, target_province))
+
+
+    -- A raid will raise up to a certain number of troops
+    -- local max_covert_raid_size = 10
+    local army = root:raise_army(root.raiders_preparing[primary_target])
+    army.destination = target_province
+
+    local travel_time, _ = path.hours_to_travel_days(path.pathfind(
+        root.capitol,
+        target_province,
+        military_values.army_speed(army),
+        root.known_provinces
+    ))
 
     if WORLD:does_player_see_realm_news(root) then
         WORLD:emit_notification("Our warriors move toward " ..
@@ -174,11 +188,6 @@ function MilitaryEffects.covert_raid(root, primary_target)
             ", they should arrive in " ..
             math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
     end
-
-    -- A raid will raise up to a certain number of troops
-    -- local max_covert_raid_size = 10
-    local army = root:raise_army(root.raiders_preparing[primary_target])
-    army.destination = target_province
 
     for _, warband in pairs(army.warbands) do
         root:remove_raider(primary_target, warband)
@@ -217,15 +226,6 @@ function MilitaryEffects.covert_raid_no_reward(root, primary_target)
         target = primary_target
     })
 
-    local travel_time, _ = path.hours_to_travel_days(path.pathfind(root.province, primary_target))
-
-    if WORLD:does_player_see_realm_news(root.realm) then
-        WORLD:emit_notification(root.name .. " is leading his warriors move toward " ..
-            primary_target.name ..
-            ", they should arrive in " ..
-            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
-    end
-
     -- A raid will raise up to a certain number of troops
     -- local max_covert_raid_size = 10
     ---@type table<Warband, Warband>
@@ -233,6 +233,20 @@ function MilitaryEffects.covert_raid_no_reward(root, primary_target)
     warbands[warband] = warband
     local army = root.realm:raise_army(warbands)
     army.destination = primary_target
+
+    local travel_time, _ = path.hours_to_travel_days(path.pathfind(
+        root.province,
+        primary_target,
+        military_values.army_speed(army),
+        root.realm.known_provinces
+    ))
+
+    if WORLD:does_player_see_realm_news(root.realm) then
+        WORLD:emit_notification(root.name .. " is leading his warriors move toward " ..
+            primary_target.name ..
+            ", they should arrive in " ..
+            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
+    end
 
     for _, warband in pairs(army.warbands) do
         warband.status = "raiding"
@@ -262,7 +276,12 @@ end
 ---@param target Province
 ---@param callback fun(army: Army, travel_time: number)
 function MilitaryEffects.send_army(army, origin, target, callback)
-    local travel_time, _ = path.hours_to_travel_days(path.pathfind(origin, target))
+    local travel_time, _ = path.hours_to_travel_days(path.pathfind(
+        origin,
+        target,
+        military_values.army_speed(army),
+        origin.realm.known_provinces
+    ))
     army.destination = target
 
     for _, warband in pairs(army.warbands) do

@@ -13,6 +13,11 @@ local co = {}
 ---@param overseer POP?
 ---@return number
 local function construction_in_province(province, funds, excess, owner, overseer)
+	if funds < 50 then
+		return funds
+	end
+
+
 	-- if infrastructure is too low, do not build, invest into infra instead
 	if province:get_infrastructure_efficiency() < 0.75 then
 		if funds - excess > 20 then

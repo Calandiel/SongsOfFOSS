@@ -18,6 +18,8 @@ local economic_effects = require "game.raws.effects.economic"
 local military_effects = require "game.raws.effects.military"
 local political_effects = require "game.raws.effects.political"
 
+local character_values = require "game.raws.values.character"
+
 local messages = require "game.raws.effects.messages"
 
 function load()
@@ -41,10 +43,6 @@ function load()
 
 			---@type POP[]
 			local migration_pool_pops = {}
-
-			-- drafted pops
-			---@type table<POP, UnitType>
-			local migration_pool_soldiers = {}
 
 			-- warbands
 			---@type Warband[]
@@ -70,9 +68,6 @@ function load()
 			for _, pop in pairs(associated_data.origin_province.all_pops) do
 				table.insert(migration_pool_pops, pop)
 			end
-			for pop, unit in pairs(associated_data.origin_province.soldiers) do
-				migration_pool_soldiers[pop] = unit
-			end
 			for _, warband in pairs (associated_data.origin_province.warbands) do
 				table.insert(migration_pool_warbands, warband)
 			end
@@ -94,15 +89,7 @@ function load()
 				if not pop.employer or not pop.employer.type.movable then
 					associated_data.origin_province:fire_pop(pop)
 				end
-				associated_data.origin_province:take_away_pop(pop)
-
-				associated_data.target_province:add_pop(pop)
-			end
-
-			-- move soldier status of pops
-			for pop, unit in pairs(migration_pool_soldiers) do
-				associated_data.target_province.soldiers[pop] = unit
-				associated_data.origin_province.soldiers[pop] = nil
+				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
 			end
 
 			-- move warbands
@@ -113,14 +100,12 @@ function load()
 
 			-- move guest characters
 			for _, character in pairs(migration_pool_characters) do
-				associated_data.origin_province:remove_character(character)
-				associated_data.target_province:add_character(character)
+				associated_data.origin_province:transfer_character(character, associated_data.target_province)
 			end
 
 			-- set new home of characters
 			for _, character in pairs(migration_pool_characters_locals) do
-				associated_data.origin_province:unset_home(character)
-				associated_data.target_province:set_home(character)
+				associated_data.origin_province:transfer_home(character, associated_data.target_province)
 			end
 
 			-- remove ownership of buildings or move them if they are movable
@@ -207,7 +192,8 @@ function load()
 			local migration_pool_technology = {}
 
 
-			local expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province)
+			local expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province,
+				political_effects.reasons.EXPEDITION_LEADER)
 
 			if expedition_leader == nil then
 				return
@@ -218,7 +204,7 @@ function load()
 
 			-- populate temporary tables with not drafted pops
 			for _, pop in pairs(associated_data.origin_province.all_pops) do
-				if not pop.drafted then
+				if not pop.unit_of_warband and pop.home_province == associated_data.origin_province then
 					table.insert(migration_pool_pops, pop)
 					candidates = candidates + 1
 				end
@@ -236,18 +222,21 @@ function load()
 				if not pop.employer or not pop.employer.type.movable then
 					associated_data.origin_province:fire_pop(pop)
 				end
-				associated_data.origin_province:take_away_pop(pop)
-
-				associated_data.target_province:add_pop(pop)
+				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
+				associated_data.origin_province:transfer_home(pop, associated_data.target_province)
 			end
 
 			-- move character
-			associated_data.origin_province:remove_character(expedition_leader)
-			associated_data.target_province:add_character(expedition_leader)
+			associated_data.origin_province:transfer_character(
+				expedition_leader,
+				associated_data.target_province
+			)
 
 			-- set new home of character
-			associated_data.origin_province:unset_home(expedition_leader)
-			associated_data.target_province:set_home(expedition_leader)
+			associated_data.origin_province:transfer_home(
+				expedition_leader,
+				associated_data.target_province
+			)
 
 			-- move technology
 			for _, technology in pairs(migration_pool_technology) do
@@ -276,7 +265,8 @@ function load()
 			new_realm.name = colonizer_realm.primary_culture.language:get_random_realm_name()
 			new_realm:explore(associated_data.target_province)
 
-
+			-- set new realm of expedition leader
+			expedition_leader.realm = new_realm
 
 			-- Mark the province as settled for processing...
 
@@ -302,7 +292,7 @@ function load()
 				associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name()
 			end
 
-			political_effects.transfer_power(new_realm, expedition_leader)
+			political_effects.transfer_power(new_realm, expedition_leader, political_effects.reasons.EXPEDITION_LEADER)
 
 			-- explore neighbour lands
 			new_realm:explore(new_realm.capitol)
@@ -376,7 +366,9 @@ function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					character.realm.capitol,
-					associated_data.realm.capitol
+					associated_data.realm.capitol,
+					character_values.travel_speed_race(character.realm.primary_race),
+					character.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then
@@ -474,7 +466,9 @@ function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					character.realm.capitol,
-					associated_data.realm.capitol
+					associated_data.realm.capitol,
+					character_values.travel_speed_race(character.realm.primary_race),
+					character.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then
@@ -572,7 +566,9 @@ function load()
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
 					character.realm.capitol,
-					associated_data.realm.capitol
+					associated_data.realm.capitol,
+					character_values.travel_speed_race(character.realm.primary_race),
+					character.realm.known_provinces
 				)
 			)
 			if travel_time == math.huge then
@@ -789,7 +785,9 @@ function load()
 				WORLD:emit_action("migration-merge", raider, migration_data, travel_time, true)
 				WORLD:emit_immediate_event("migration-invasion-success", raider, army)
 				for _, character in pairs(target.home_to) do
-					WORLD:emit_immediate_event("migration-invasion-success-target", character, raider)
+					if character:is_character() then
+						WORLD:emit_immediate_event("migration-invasion-success-target", character, raider)
+					end
 				end
 			else
 				raider.busy = false

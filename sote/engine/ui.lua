@@ -436,6 +436,16 @@ function ui.rectangle(rect, radius)
 	)
 end
 
+---Convets ui coordinates to screen coordinates
+---@param x number
+---@param y number
+---@return number
+---@return number
+function ui.ui_coord_to_screen_coord(x, y)
+	local scale_x, scale_y = get_ui_scaling_factor()
+	return x * scale_x, y * scale_y
+end
+
 ---Draws an outline using love.graphics.rectangle
 ---@param rect Rect
 ---@param radius number?

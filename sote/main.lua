@@ -25,16 +25,52 @@ PROFILE_FLAG = false
 ---@type table
 PROFILER = {}
 
-PROFILER.total_tick_time = 0.0
-PROFILER.total_deferred_events_time = 0.0
-PROFILER.total_deferred_actions_time = 0.0
-PROFILER.total_vegetation_growth_tick = 0
-PROFILER.total_pop_growth_tick = 0
-PROFILER.total_province_tick = 0
-PROFILER.total_realm_tick = 0
-PROFILER.total_decision_tick = 0
-PROFILER.total_decision_character_tick = 0
+PROFILER.total = 0
 
+---@type table<string, number>
+PROFILER.timers = {}
+
+---@type table<string, number>
+PROFILER.data = {}
+
+---@type table<string, number>
+PROFILER.mean = {}
+
+---@type table<string, number>
+PROFILER.count = {}
+
+function PROFILER.start_timer(self, tag)
+	if not PROFILE_FLAG then return end
+	self.timers[tag] = love.timer.getTime()
+end
+
+function PROFILER.end_timer(self, tag)
+	if not PROFILE_FLAG then return end
+
+	local now = love.timer.getTime()
+	local delta = now - self.timers[tag]
+
+	if self.data[tag] == nil then
+		self.data[tag] = 0
+		self.mean[tag] = delta
+		self.count[tag] = 0
+	end
+	self.count[tag] = self.count[tag] + 1
+	self.data[tag] = self.data[tag] + delta
+	self.total = self.total + delta
+
+	self.mean[tag] = self.data[tag] / self.count[tag]
+end
+
+function PROFILER.clear(self)
+	for tag, value in pairs(self.data) do
+		self.data[tag] = 0
+	end
+end
+
+
+-- LOGS = love.filesystem.newFile("logs.txt")
+-- LOGS:open("w")
 
 --- this constant is used in vegetation growth
 --- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH

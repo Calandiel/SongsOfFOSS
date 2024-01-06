@@ -5,27 +5,19 @@ local POP = require "game.entities.pop".POP
 ---Runs natural growth and decay on a single province.
 ---@param province Province
 function pg.growth(province)
-
 	-- First, get the carrying capacity...
 	local cc = province.foragers_limit
 	local pop = province:population_weight()
 
-	local death_rate = 1 / 12 / 12
-	local birth_rate = 1 / 12 / 12
-
-	-- local food_good = 'food'
-	-- local food_income = province.realm.production[food_good] or 0
-	-- local food_sold = province.realm.sold[food_good] or 0
-	-- local food_bought = province.realm.bought[food_good] or 0
-
-	local provincial_water = (province.local_production[ 'water' ] or 0) -
-		(province.local_consumption[ 'water' ] or 0)
+	local death_rate = 1 / 12 / 2
+	local birth_rate = 1 / 12 / 2
 
 	-- Mark pops for removal...
 	---@type POP[]
 	local to_remove = {}
 	---@type POP[]
 	local to_add = {}
+
 	for _, pp in pairs(province.outlaws) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
@@ -34,7 +26,7 @@ function pg.growth(province)
 	for _, pp in pairs(province.all_pops) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
-		elseif pop > cc and pp.basic_needs_satisfaction < 0.2 then
+		elseif pop > cc and (pp.need_satisfaction[NEED.FOOD] or 0.5) < 0.1 then
 			-- Deaths due to starvation!
 			if love.math.random() < (1 - cc / pop) * death_rate * pp.race.carrying_capacity_weight then
 				to_remove[#to_remove + 1] = pp
@@ -59,9 +51,7 @@ function pg.growth(province)
 				-- Make sure that the expected food consumption has been calculated by this point!
 
 				-- Calculate the fraction symbolizing the amount of "overproduction" of food
-				local base = pp.life_needs_satisfaction
-				-- Clamp the growth
-				base = math.min(1, base)
+				local base = pp.need_satisfaction[NEED.FOOD] or 0
 
 				local fem = 100 / (100 + pp.race.males_per_hundred_females)
 				local offspring = fem * pp.race.female_needs[NEED.FOOD] + (1 - fem) * pp.race.male_needs[NEED.FOOD]
@@ -86,11 +76,13 @@ function pg.growth(province)
 			pp.faith,
 			pp.culture,
 			love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
-			0
+			0,
+			province, province
 		)
 		newborn.parent = pp
-		province:add_pop(newborn)
 	end
+
+	-- province:validate_population()
 end
 
 return pg

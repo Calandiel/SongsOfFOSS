@@ -20,33 +20,51 @@ local function load()
 		base_probability = 0,
 		on_trigger = function(self, character, associated_data)
             local successor = character.successor
-            local realm = character.realm
-            if realm == nil then
-                return
-            end
-            local capitol = character.realm.capitol
 
-            local leader = realm.leader
-            if leader == nil then
-                return
-            end
+            for _, realm in pairs(character.leader_of) do
+                character.leader_of[realm] = nil
+                local capitol = character.realm.capitol
+                local leader = realm.leader
 
-            -- succession of realm leadership
-            if leader == character then
-                if not successor then
-                    if realm.overseer then
-                        successor = realm.overseer
-                    else
+                -- succession of realm leadership
+                if leader == character then
+                    if not successor then
+                        if realm.overseer then
+                            successor = realm.overseer
+                        else
+                            ---@type Character?
+                            local final_successor = nil
+                            for _, pretender in pairs(capitol.characters) do
+                                if
+                                    final_successor == nil
+                                    and pretender ~= character
+                                then
+                                    final_successor = pretender
+                                elseif
+                                    pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                                    and pretender ~= character
+                                then
+                                    final_successor = pretender
+                                end
+                            end
+
+                            successor = final_successor
+                        end
+                    end
+
+                    if not successor then
                         ---@type Character?
                         local final_successor = nil
-                        for _, pretender in pairs(capitol.characters) do
+                        for _, pretender in pairs(capitol.home_to) do
                             if
                                 final_successor == nil
+                                and pretender:is_character()
                                 and pretender ~= character
                             then
                                 final_successor = pretender
                             elseif
-                                pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                                pretender:is_character()
+                                and pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
                                 and pretender ~= character
                             then
                                 final_successor = pretender
@@ -55,57 +73,50 @@ local function load()
 
                         successor = final_successor
                     end
-                end
 
-                if not successor then
-                    ---@type Character?
-                    local final_successor = nil
-                    for _, pretender in pairs(capitol.home_to) do
-                        if
-                            final_successor == nil
-                            and pretender ~= character
-                        then
-                            final_successor = pretender
-                        elseif
-                            pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
-                            and pretender ~= character
-                        then
-                            final_successor = pretender
-                        end
+                    if not successor then
+                        successor = pe.grant_nobility_to_random_pop(capitol, pe.reasons.NOT_ENOUGH_NOBLES)
                     end
 
-                    successor = final_successor
+                    if successor then
+                        pe.transfer_power(realm, successor, pe.reasons.SUCCESSION)
+                        WORLD:emit_immediate_event("succession-leader-notification", successor, realm)
+                    else
+                        -- no pops left: destroy realm
+                        pe.dissolve_realm(realm)
+                        realm.leader = nil
+                    end
                 end
 
-                if not successor then
-                    successor = pe.grant_nobility_to_random_pop(capitol)
-                end
 
-                if successor then
-                    pe.transfer_power(realm, successor)
-                    WORLD:emit_event("succession-leader-notification", successor, realm)
-                else
-                    -- no pops left: destroy realm
-                    pe.dissolve_realm(realm)
-                    realm.leader = nil
-                end
             end
+
+
+            local realm = character.realm
+            local leader = character.realm.leader
 
             -- succession of realm overseer
-            if realm.overseer == character then
+            if realm and realm.overseer == character then
                 pe.remove_overseer(realm)
-                WORLD:emit_event("succession-overseer-death-notification", leader, character)
+
+                if leader then
+                    WORLD:emit_immediate_event("succession-overseer-death-notification", leader, character)
+                end
             end
 
-            if offices_triggers.guard_leader(character, realm) then
+            if realm and offices_triggers.guard_leader(character, realm) then
                 pe.remove_guard_leader(realm)
-                WORLD:emit_event("succession-guard-leader-death-notification", leader, character)
+                if leader then
+                    WORLD:emit_immediate_event("succession-guard-leader-death-notification", leader, character)
+                end
             end
 
             -- succession of realm tribute collector
-            if realm.tribute_collectors[character] then
+            if realm and realm.tribute_collectors[character] then
                 pe.remove_tribute_collector(realm, character)
-                WORLD:emit_event("succession-tribute-collector-death-notification", leader, character)
+                if leader then
+                    WORLD:emit_immediate_event("succession-tribute-collector-death-notification", leader, character)
+                end
             end
 
             -- succession of buildings
@@ -120,25 +131,27 @@ local function load()
             end
 
             -- cancel all rewards:
-            ---@type RewardFlag[]
-            local rewards = {}
-            for _, reward in pairs(realm.reward_flags) do
-                if reward.owner == character then
-                    table.insert(rewards, reward)
+            if realm then
+                ---@type RewardFlag[]
+                local rewards = {}
+                for _, reward in pairs(realm.reward_flags) do
+                    if reward.owner == character then
+                        table.insert(rewards, reward)
+                    end
                 end
-            end
-            for _, reward in pairs(rewards) do
-                ee.cancel_reward_flag(realm, reward)
+                for _, reward in pairs(rewards) do
+                    ee.cancel_reward_flag(realm, reward)
+                end
             end
 
             -- succession of wealth
             local wealth_successor = character.successor
             if wealth_successor then
                 ee.add_pop_savings(wealth_successor, character.savings, ee.reasons.Inheritance)
-                ee.add_pop_savings(character, - character.savings, ee.reasons.Inheritance)
+                ee.add_pop_savings(character, -character.savings, ee.reasons.Inheritance)
             else
-                ee.change_treasury(realm, character.savings, ee.reasons.Inheritance)
-                ee.add_pop_savings(character, - character.savings, ee.reasons.Inheritance)
+                ee.change_local_wealth(character.province, character.savings, ee.reasons.Inheritance)
+                ee.add_pop_savings(character, -character.savings, ee.reasons.Inheritance)
             end
 
             -- loyalty reset

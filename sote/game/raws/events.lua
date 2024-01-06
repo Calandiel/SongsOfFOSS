@@ -1,6 +1,6 @@
 
 
----@class Event 
+---@class Event
 ---@field new fun(self:Event, e:Event):Event
 ---@field name string
 ---@field automatic boolean Automatic events are rolled each month on every root in the game
@@ -76,7 +76,7 @@ function Event:new(e)
 	setmetatable(o, Event)
 
 	if RAWS_MANAGER.events_by_name[o.name] ~= nil then
-		local msg = "Failed to load an event (" .. tostring(o.name) .. ")"
+		local msg = "Duplicate event (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end

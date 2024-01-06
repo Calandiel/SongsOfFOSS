@@ -8,6 +8,8 @@
 ---@field races_by_name table<string, Race>
 ---@field building_types_by_name table<string, BuildingType>
 ---@field trade_goods_by_name table<TradeGoodReference, TradeGood>
+---@field trade_good_to_index table<TradeGoodReference, number>
+---@field trade_goods_list TradeGoodReference[]
 ---@field trade_goods_use_cases_by_name table<string, TradeGoodUseCase>
 ---@field jobs_by_name table<string, Job>
 ---@field technologies_by_name table<string, Technology>
@@ -34,6 +36,8 @@ function raws_manager:new()
 	w.biogeographic_realms_by_color = {}
 	w.races_by_name = {}
 	w.trade_goods_by_name = {}
+	w.trade_good_to_index = {}
+	w.trade_goods_list = {}
 	w.trade_goods_use_cases_by_name = {}
 	w.jobs_by_name = {}
 	w.technologies_by_name = {}

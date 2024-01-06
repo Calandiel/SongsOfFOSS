@@ -113,7 +113,6 @@ end
 ---@field get_realm_military_target fun(self:Realm):number Returns the sum of military targets, not that it DOESNT include active armies.
 ---@field get_realm_active_army_size fun(self:Realm):number Returns the size of active armies on the field
 ---@field get_realm_militarization fun(self:Realm):number
----@field raise_army fun(self:Realm, warbands: table<Warband, Warband>): Army
 ---@field raise_warband fun(self: Realm, warband: Warband)
 ---@field disband_army fun(self:Realm, army:Army): table<Warband, Warband>
 ---@field get_speechcraft_efficiency fun(self:Realm):number
@@ -369,7 +368,7 @@ function realm.Realm:get_explore_cost(province)
 	local mulp = 0.1
 	if province.center.is_land then
 		local path = require "game.ai.pathfinding"
-		local cost, r = path.pathfind(self.capitol, province)
+		local cost, r = path.pathfind(self.capitol, province, nil, self.known_provinces)
 		if r then
 			return cost * mulp
 		else
@@ -512,8 +511,9 @@ function realm.Realm:get_realm_militarization()
 end
 
 function realm.Realm:raise_warband(warband)
-	for pop, unit_type in pairs(warband.units) do
-		local province = warband.pops[pop].province
+	for _, pop in pairs(warband.pops) do
+		-- print(pop.name, "raised from province")
+		local province = pop.province
 		province:take_away_pop(pop)
 	end
 end
@@ -563,12 +563,7 @@ function realm.Realm:disband_army(army)
 
 		for _, pop in pairs(warband.pops) do
 			local unit = warband.units[pop]
-			if pop.home_province.realm then
-				pop.home_province:return_pop_from_army(pop, unit)
-			else
-				self.capitol:return_pop_from_army(pop, unit)
-			end
-			pop.drafted = true
+			pop.province:return_pop_from_army(pop, unit)
 		end
 
 		if warband.status ~= 'patrol' then

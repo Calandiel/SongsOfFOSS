@@ -119,7 +119,7 @@ local function demography(provinces, ui_panel, collapsed)
                     end
                 else
                     if pop.age > pop.race.teen_age then
-                        if pop.drafted then
+                        if pop.unit_of_warband then
                             counts[warr] = counts[warr] + 1
                         else
                             counts[unemp] = counts[unemp] + 1

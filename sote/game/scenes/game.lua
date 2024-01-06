@@ -55,7 +55,7 @@ local tile_inspectors = {
 ---@field macrobuilder_building_type BuildingType?
 ---@field war War?
 ---@field decision DecisionCharacter?
----@field macrodecision DecisionCharacter?
+---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?
 ---@field cached_tech Technology?
 ---@field reward_flag RewardFlag?
@@ -722,7 +722,8 @@ function gam.draw()
 		province_on_map_interaction = true
 		---comment
 		---@param province Province
-		local function draw_province(province)
+		---@param mode "path"|"label"|"decision"|"macrobuilder"
+		local function draw_province(province, mode)
 			-- sanity checks
 			local visibility = true
 			if WORLD.player_character then
@@ -760,8 +761,40 @@ function gam.draw()
 			end
 
 			-- draw
+			local result = nil
+			if mode == "path" then
+				local decision = gam.selected.macrodecision
+				if decision  == nil then
+					return
+				end
+				local player = WORLD.player_character
+				if player == nil then
+					return
+				end
 
-			local result = require "game.scenes.game.widgets.province-on-map" (gam, tile, rect_for_icons, x, y, size)
+				if not decision.clickable(player, province) then
+					return
+				end
+
+				local hours, path = decision.path(player, province)
+
+				if path then
+					table.insert(path, player.province)
+					result = require "game.scenes.game.widgets.onmap.path"(gam, rect_for_icons, hours, path, tile_to_x_y)
+				end
+			end
+
+			if mode == "label" then
+				result = require "game.scenes.game.widgets.onmap.province" (gam, tile, rect_for_icons, x, y, size)
+			end
+
+			if mode == "decision" then
+				result = require "game.scenes.game.widgets.onmap.decision"(gam, tile, rect_for_icons)
+			end
+
+			if mode == "macrobuilder" then
+				result = require "game.scenes.game.widgets.onmap.macrobuilder"(gam, tile, rect_for_icons, x, y, size)
+			end
 
 			if result then
 				gam.click_callback = result
@@ -771,11 +804,21 @@ function gam.draw()
 		end
 
 		-- drawing provinces
-		if gam.inspector == 'macrobuilder' or gam.inspector == 'macrodecision' then
+		if gam.inspector == 'macrodecision' then
 			local character = WORLD.player_character
 			if character then
 				for _, province in pairs(character.realm.known_provinces) do
-					draw_province(province)
+					draw_province(province, "path")
+				end
+				for _, province in pairs(character.realm.known_provinces) do
+					draw_province(province, "decision")
+				end
+			end
+		elseif gam.inspector == 'macrobuilder' then
+			local character = WORLD.player_character
+			if character then
+				for _, province in pairs(character.realm.known_provinces) do
+					draw_province(province, "macrobuilder")
 				end
 			end
 		else
@@ -843,7 +886,7 @@ function gam.draw()
 			end
 
 			for _, province in ipairs(provinces_to_draw) do
-				draw_province(province)
+				draw_province(province, "label")
 			end
 		end
 	end
@@ -1238,41 +1281,24 @@ function gam.draw()
 
 
 	if PROFILE_FLAG then
-		local profile_rect = ui.fullscreen():subrect(0, 0, 600, 200, "center", "center")
+		local profile_rect = ui.fullscreen():subrect(0, 0, 800, 300, "center", "center")
 		ui.panel(profile_rect)
 
-		local total = PROFILER.total_tick_time
-		local events = PROFILER.total_deferred_events_time
-		local actions = PROFILER.total_deferred_actions_time
-		local vegetation = PROFILER.total_vegetation_growth_tick
-		local pop_growth = PROFILER.total_pop_growth_tick
-		local province = PROFILER.total_province_tick
-		local realm = PROFILER.total_realm_tick
-		local decision = PROFILER.total_decision_tick
-		local decision_character = PROFILER.total_decision_character_tick
+		local layout = ui.layout_builder()
+			:position(profile_rect.x, profile_rect.y)
+			:spacing(0)
+			:grid(4)
+			:build()
 
+		local tick_time = PROFILER.data["tick"] or 1
 
-		local rect_data = profile_rect:subrect(0, 0, profile_rect.width / 4, 25, "left", "up")
-		if total > 0 then
-			ut.data_entry_percentage("actions", actions / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("events", events / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("vegetation", vegetation / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("pop_growth", pop_growth / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("province", province / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("realm", realm / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("decision", decision / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-			ut.data_entry_percentage("decision_char", decision_character / total, rect_data, nil, false)
-			rect_data.y = rect_data.y + 25
-
-			-- ut.data_entry(observed_logs_length .. " daily ticks: ", ut.to_fixed_point2(total_mean), rect_data)
+		for tag, value in pairs(PROFILER.data) do
+			if value / tick_time > 0.005 then
+				ut.data_entry_percentage(tag, value / tick_time, layout:next(profile_rect.width / 4, 25), nil, false)
+			end
 		end
+
+		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000, layout:next(profile_rect.width / 4, 25))
 	end
 end
 
