@@ -40,7 +40,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	WORLD:set_settled_province(capitol)
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight)
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * 2)
 	for _ = 1, pop_to_spawn do
 		pop.POP:new(
 			race,
@@ -55,8 +55,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	-- spawn leader
 	local elite_character = pe.generate_new_noble(r, capitol, race, faith, culture)
 	elite_character.popularity[r] = elite_character.age / 10
-	r.leader = elite_character
-	r.leader.rank = ranks.CHIEF
+	pe.transfer_power(r, elite_character, pe.reasons.INITIAL_RULER)
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 5 + 1 do

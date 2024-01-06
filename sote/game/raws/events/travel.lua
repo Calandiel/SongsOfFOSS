@@ -128,14 +128,8 @@ local function load()
             for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
 
                 local price = ev.get_local_price(province, name)
-                if root.price_memory[name] == nil then
-                    root.price_memory[name] = price
-                else
-                    if WORLD.player_character ~= root then
-                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
-                    end
-                end
-                local known_price = root.price_memory[name]
+                local known_price = root.price_memory[name] or price
+
                 local bought_amount = math.max(
                     1,
                     (math.floor(
@@ -205,16 +199,8 @@ local function load()
             end
 
             for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-
                 local price = ev.get_pessimistic_local_price(province, name, 1, true)
-                if root.price_memory[name] == nil then
-                    root.price_memory[name] = price
-                else
-                    if WORLD.player_character ~= root then
-                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
-                    end
-                end
-                local known_price = root.price_memory[name]
+                local known_price = root.price_memory[name] or price
 
                 local sold_amount = root.inventory[name] or 0
                 local can_sell, _ = et.can_sell(root, name, sold_amount)

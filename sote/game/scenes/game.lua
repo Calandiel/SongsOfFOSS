@@ -1298,7 +1298,7 @@ function gam.draw()
 			end
 		end
 
-		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000, layout:next(profile_rect.width / 4, 25))
+		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000, layout:next(profile_rect.width / 4, 25))
 	end
 end
 

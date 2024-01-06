@@ -9,16 +9,8 @@ function pg.growth(province)
 	local cc = province.foragers_limit
 	local pop = province:population_weight()
 
-	local death_rate = 1 / 12
-	local birth_rate = 1 / 12
-
-	-- local food_good = 'food'
-	-- local food_income = province.realm.production[food_good] or 0
-	-- local food_sold = province.realm.sold[food_good] or 0
-	-- local food_bought = province.realm.bought[food_good] or 0
-
-	local provincial_water = (province.local_production[ 'water' ] or 0) -
-		(province.local_consumption[ 'water' ] or 0)
+	local death_rate = 1 / 12 / 2
+	local birth_rate = 1 / 12 / 2
 
 	-- Mark pops for removal...
 	---@type POP[]

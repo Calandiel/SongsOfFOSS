@@ -457,7 +457,7 @@ function pro.run()
 
 							local distance = (new_center_x - big_x) + (new_center_z - big_z) + (new_center_y - big_y)
 
-							if tabb.size(neigh.tiles) + size < expected_size or size < 10 or distance < 0.001 then
+							if tabb.size(neigh.tiles) + size < expected_size or size < 10 or distance < 0.005 then
 								-- Merge time!
 								for _, tile in pairs(neigh.tiles) do
 									province:add_tile(tile)

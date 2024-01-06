@@ -44,7 +44,11 @@ function TradeGood:new(o)
 		print(msg)
 		error(msg)
 	end
+
 	RAWS_MANAGER.trade_goods_by_name[r.name] = r
+	table.insert(RAWS_MANAGER.trade_goods_list, r.name)
+	RAWS_MANAGER.trade_good_to_index[r.name] = #RAWS_MANAGER.trade_goods_list
+
 	return o
 end
 

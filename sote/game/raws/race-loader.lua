@@ -233,7 +233,7 @@ function ll.load()
 		g = 0.7,
 		b = 0.1,
 		icon = 'goblin.png',
-		description = 'dwarf',
+		description = 'goblin',
 		males_per_hundred_females = 102,
 		child_age = 1,
 		teen_age = 5,
@@ -297,6 +297,77 @@ function ll.load()
 		carrying_capacity_weight = 0.25,
 	}
 
+
+	-- for testing purpose
+	-- Race:new {
+	-- 	name = 'WeakGoblin',
+	-- 	r = 0.0,
+	-- 	g = 0.9,
+	-- 	b = 0.0,
+	-- 	icon = 'goblin.png',
+	-- 	description = 'weak goblin',
+	-- 	males_per_hundred_females = 102,
+	-- 	child_age = 1,
+	-- 	teen_age = 2,
+	-- 	adult_age = 3,
+	-- 	middle_age = 4,
+	-- 	elder_age = 5,
+	-- 	max_age = 6,
+	-- 	minimum_comfortable_temperature = 5,
+	-- 	minimum_absolute_temperature = -10,
+	-- 	fecundity = 4,
+	-- 	spotting = 1.5,
+	-- 	visibility = 0.5,
+	-- 	female_body_size = 0.5,
+	-- 	female_efficiency = {
+	-- 		[JOBTYPE.FARMER] = 0.25,
+	-- 		[JOBTYPE.ARTISAN] = 0.25,
+	-- 		[JOBTYPE.CLERK] = 0.25,
+	-- 		[JOBTYPE.LABOURER] = 0.25,
+	-- 		[JOBTYPE.WARRIOR] = 0.25,
+	-- 		[JOBTYPE.HAULING] = 0.5,
+	-- 		[JOBTYPE.FORAGER] = 0.25
+	-- 	},
+	-- 	female_needs = {
+	-- 		[NEED.WATER] = 0.25,
+	-- 		[NEED.FOOD] = 0.25,
+	-- 		-- [NEED.FRUIT] = 0.25,
+	-- 		-- [NEED.GRAIN] = 0.25,
+	-- 		-- [NEED.MEAT] = 0.25,
+	-- 		[NEED.CLOTHING] = 0.25,
+	-- 		[NEED.FURNITURE] = 0.25,
+	-- 		[NEED.TOOLS] = 0.125 / 2,
+	-- 		[NEED.HEALTHCARE] = 0.125,
+	-- 		[NEED.STORAGE] = 0.125,
+	-- 		[NEED.LUXURY] = 1
+	-- 	},
+	-- 	female_infrastructure_needs = 0.25,
+	-- 	male_body_size = 0.6,
+	-- 	male_efficiency = {
+	-- 		[JOBTYPE.FARMER] = 0.25,
+	-- 		[JOBTYPE.ARTISAN] = 0.25,
+	-- 		[JOBTYPE.CLERK] = 0.25,
+	-- 		[JOBTYPE.LABOURER] = 0.25,
+	-- 		[JOBTYPE.WARRIOR] = 0.25,
+	-- 		[JOBTYPE.HAULING] = 0.5,
+	-- 		[JOBTYPE.FORAGER] = 0.25
+	-- 	},
+	-- 	male_needs = {
+	-- 		[NEED.WATER] = 0.25,
+	-- 		[NEED.FOOD] = 0.25,
+	-- 		-- [NEED.FRUIT] = 0.25,
+	-- 		-- [NEED.GRAIN] = 0.25,
+	-- 		-- [NEED.MEAT] = 0.25,
+	-- 		[NEED.CLOTHING] = 0.25,
+	-- 		[NEED.FURNITURE] = 0.25,
+	-- 		[NEED.TOOLS] = 0.125 / 2,
+	-- 		[NEED.HEALTHCARE] = 0.125,
+	-- 		[NEED.STORAGE] = 0.125,
+	-- 		[NEED.LUXURY] = 1
+	-- 	},
+	-- 	male_infrastructure_needs = 0.25,
+	-- 	carrying_capacity_weight = 0.25,
+	-- }
 end
 
 return ll

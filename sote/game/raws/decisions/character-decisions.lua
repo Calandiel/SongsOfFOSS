@@ -3,6 +3,7 @@ local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
 local economic_effects = require "game.raws.effects.economic"
+local economic_values = require "game.raws.values.economical"
 local MilitaryEffects = require "game.raws.effects.military"
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
@@ -114,6 +115,11 @@ local function load()
 			if root.province.realm ~= root.realm then return false end
 			if root.leading_warband then return false end
 			if root.recruiter_for_warband then return false end
+			if WORLD.player_character ~= root then
+				if not root.traits[TRAIT.WARLIKE] and not root.traits[TRAIT.TRADER] and not (root.rank == ranks.CHIEF) then
+					return false
+				end
+			end
 			return true
 		end,
 		clickable = function(root, primary_target)
@@ -558,7 +564,7 @@ local function load()
 
 	Decision.Character:new {
 		name = 'buy-something',
-		ui_name = "Buy some goods",
+		ui_name = "(AI) Buy some goods",
 		tooltip = function (root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
@@ -568,7 +574,7 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 1 / 2 , -- Almost every month
+		base_probability = 1 / 4 ,
 		pretrigger = function(root)
 			if root.busy then return false end
 			if WORLD:is_player(root) then
@@ -594,7 +600,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if root.traits[TRAIT.TRADER] then
-				return 1 ---try to buy something every second month
+				return 1
 			end
 			return 0
 		end,
@@ -604,18 +610,18 @@ local function load()
 	}
 
 	Decision.Character:new {
-		name = 'sell-something',
-		ui_name = "Sell some goods",
+		name = 'update-price-beliefs',
+		ui_name = "(AI) Check local prices",
 		tooltip = function (root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
 			end
-			return "Sell some goods on the local market"
+			return "???"
 		end,
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 1 / 2, -- Almost every month
+		base_probability = 1 / 2 ,
 		pretrigger = function(root)
 			if root.busy then return false end
 			if WORLD:is_player(root) then
@@ -638,7 +644,60 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if root.traits[TRAIT.TRADER] then
-				return 1 ---try to sell something every second month
+				return 1
+			end
+			return 0
+		end,
+		effect = function(root, primary_target, secondary_target)
+			for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+                local price = economic_values.get_local_price(root.province, name)
+                if root.price_memory[name] == nil then
+                    root.price_memory[name] = price
+                else
+                    if WORLD.player_character ~= root then
+                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
+                    end
+                end
+            end
+		end
+	}
+
+	Decision.Character:new {
+		name = 'sell-something',
+		ui_name = "(AI) Sell some goods",
+		tooltip = function (root, primary_target)
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Sell some goods on the local market"
+		end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 1 / 4,
+		pretrigger = function(root)
+			if root.busy then return false end
+			if WORLD:is_player(root) then
+				return false
+			end
+			if (not root.traits[TRAIT.TRADER]) then
+				return false
+			end
+			return true
+		end,
+		clickable = function(root)
+			if WORLD:is_player(root) then
+				return false
+			end
+			return true
+		end,
+		available = function(root)
+			if root.busy then return false end
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.TRADER] then
+				return 1
 			end
 			return 0
 		end,

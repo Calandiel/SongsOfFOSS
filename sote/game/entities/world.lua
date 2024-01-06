@@ -6,6 +6,7 @@ local plate_utils = require "game.entities.plate"
 local utils       = require "game.ui-utils"
 
 local military_effects = require "game.raws.effects.military"
+local political_values = require "game.raws.values.political"
 
 local tabb = require "engine.table"
 
@@ -246,8 +247,15 @@ function world.World:emit_immediate_action(event, root, associated_data)
 		error("Attempt to call action for nil root")
 	end
 
-	local event = RAWS_MANAGER.events_by_name[event]
-	event:on_trigger(root, associated_data)
+	local event_data = RAWS_MANAGER.events_by_name[event]
+
+	-- LOGS:write(
+	-- 	"\n Handling event: " .. event .. "\n" ..
+	-- 	"root: " .. root.name .. "\n" ..
+	-- 	"realm:" .. root.realm.name .. "\n"
+	-- )
+
+	event_data:on_trigger(root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
@@ -282,12 +290,20 @@ end
 ---@param associated_data any
 local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
-	-- First, find the best option
-	-- print("Handling event: " .. event)
+
+	-- if event ~= "sell-goods" and event ~= "buy-goods" then
+	-- 	LOGS:write(
+	-- 		"\n Handling event: " .. event .. "\n" ..
+	-- 		"root: " .. target_realm.name .. "\n" ..
+	-- 		"realm:" .. target_realm.realm.name .. "\n"
+	-- 	)
+	-- end
+
 	if RAWS_MANAGER.events_by_name[event] == nil then
 		error(event .. " is not a valid event!")
 	end
 
+	-- First, find the best option
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
 	local best_am = nil
@@ -450,6 +466,17 @@ function world.World:tick()
 		local construct = require "game.ai.construction"
 		for _, settled_province in pairs(ta) do
 			local realm = settled_province.realm
+
+			if realm then
+				local overseer = political_values.overseer(realm)
+				if overseer == nil then
+					error(realm.name)
+				end
+				if overseer.province == nil then
+					error(overseer.name .. " " .. realm.name)
+				end
+			end
+
 			if realm ~= nil and settled_province.realm.capitol == settled_province then
 
 				PROFILER:start_timer("realm")
@@ -467,13 +494,19 @@ function world.World:tick()
 					self:emit_treasury_change_effect(0, "new month", true)
 				end
 				--print("Construct")
+				PROFILER:start_timer("realm-construct-update")
 				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+				PROFILER:end_timer("realm-construct-update")
+
 				--print("Court")
 				court.run(realm)
 				--print("Edu")
 				education.run(realm)
 				--print("Econ")
+
+				PROFILER:start_timer("realm-eco-update")
 				realm_economic_update.run(realm)
+				PROFILER:end_timer("realm-eco-update")
 				-- Handle events!
 				--print("Event handling")
 				events.run(realm)
@@ -569,6 +602,12 @@ function world.World:tick()
 					local character = check[2]
 					local event = RAWS_MANAGER.events_by_name[check[1]]
 					local province = character.province
+
+					-- LOGS:write(
+					-- 	"\n Handling event: " .. check[1] .. "\n" ..
+					-- 	"root: " .. character.name .. "\n" ..
+					-- 	"realm:" .. character.realm.name .. "\n"
+					-- )
 
 					event:on_trigger(character, check[3])
 
@@ -676,7 +715,7 @@ end
 ---@param realm Realm
 ---@return boolean
 function world.World:does_player_control_realm(realm)
-	return (realm ~= nil) and (self.player_character == realm.leader) and (self.player_character ~= nil)
+	return (realm ~= nil) and (realm.leader == WORLD.player_character) and (self.player_character ~= nil)
 end
 
 ---comment

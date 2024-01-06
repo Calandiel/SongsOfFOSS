@@ -59,6 +59,11 @@ function triggers.can_sell(character, good, amount)
     local response = true;
     local reasons = {}
 
+    if (character.inventory[good] or 0) < amount then
+        response = false
+        table.insert(reasons, triggers.TRADE_FAILURE_REASONS.CHARACTER_GOODS_IS_TOO_LOW)
+    end
+
     if amount <= 0 then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_AMOUNT)
@@ -71,11 +76,6 @@ function triggers.can_sell(character, good, amount)
     end
 
     if province then
-        if (character.inventory[good] or 0) < amount then
-            response = false
-            table.insert(reasons, triggers.TRADE_FAILURE_REASONS.CHARACTER_GOODS_IS_TOO_LOW)
-        end
-
         local price = ev.get_pessimistic_local_price(province, good, amount, true)
         local cost = price * amount
 

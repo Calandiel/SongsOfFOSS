@@ -6,6 +6,7 @@ local dt = require "game.raws.triggers.diplomacy"
 local ot = require "game.raws.triggers.offices"
 local pv = require "game.raws.values.political"
 
+local economic_effects = require "game.raws.effects.economic"
 local character_values = require "game.raws.values.character"
 
 local TRAIT = require "game.raws.traits.generic"
@@ -411,6 +412,7 @@ local function load()
 		end
 	}
 
+	local colonisation_cost = 60
 
 	Decision.CharacterProvince:new {
 		name = 'colonize-province',
@@ -422,6 +424,10 @@ local function load()
 			if root.realm.capitol:population() < 11 then
 				return "Your population is too low"
 			end
+			if root.realm.budget.treasury < colonisation_cost then
+				return "You need " .. colonisation_cost .. MONEY_SYMBOL
+			end
+
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return "You have no right to order your tribe to do this"
 			end
@@ -475,6 +481,9 @@ local function load()
 			if root.province ~= root.realm.capitol then
 				return false
 			end
+			if root.realm.budget.treasury < colonisation_cost then
+				return false
+			end
 			return true
 		end,
         ai_target = function(root)
@@ -499,6 +508,7 @@ local function load()
 				target_province = primary_target
 			}
 
+			economic_effects.change_treasury(root.realm, -colonisation_cost, economic_effects.reasons.Colonisation)
 			WORLD:emit_immediate_action('migration-colonize', root, migration_data)
 		end
 	}

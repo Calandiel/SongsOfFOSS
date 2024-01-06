@@ -38,7 +38,8 @@ EconomicEffects.reasons = {
     Other = "other",
     Siphon = "siphon",
     TradeSiphon = "trade siphon",
-    NeighborSiphon = "neigbour siphon"
+    NeighborSiphon = "neigbour siphon",
+    Colonisation = "colonisation"
 }
 
 ---Change realm treasury and display effects to player

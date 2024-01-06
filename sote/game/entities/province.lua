@@ -269,6 +269,7 @@ function prov.Province:set_home(pop)
 
 	self:set_home_pop_nil_wrapper(pop)
 	pop.home_province = self
+	pop.realm = self.realm
 end
 
 --- Transfers a character to the target province

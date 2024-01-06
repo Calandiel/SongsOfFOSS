@@ -109,7 +109,7 @@ return function()
 						text = "I am dead",
 						tooltip = "I will remain dead",
 						viable = function()
-							return character.leading_warband:days_of_travel() >= 30
+							return true
 						end,
 						outcome = function()
 						end,

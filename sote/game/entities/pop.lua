@@ -30,7 +30,8 @@
 ---@field get_age_multiplier fun(self:POP):number
 ---@field province Province Points to current position of pop/character.
 ---@field home_province Province Points to home of pop/character.
----@field realm Realm? Only for characters. Represents the home realm of the character
+---@field realm Realm? Represents the home realm of the character
+---@field leader_of table<Realm, Realm>
 ---@field rank CHARACTER_RANK?
 ---@field former_pop boolean
 
@@ -83,6 +84,8 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.loyalty = nil
 	r.loyal	 = {}
 	r.traits = {}
+
+	r.leader_of = {}
 
 	r.dead = false
 	r.former_pop = false
