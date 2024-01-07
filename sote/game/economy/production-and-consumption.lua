@@ -18,6 +18,10 @@ local ffi = require "ffi"
 ---@field demand number
 ---@field supply number
 
+---@class POPView
+---@field foraging_efficiency number
+---@field age_multiplier number
+
 ffi.cdef[[
 	typedef struct {
 		float price;
@@ -28,6 +32,11 @@ ffi.cdef[[
 		float supply;
 	} good_data;
 
+	typedef struct {
+		float foraging_efficiency;
+		float age_multiplier;
+	} pop_view;
+
 	float sqrtf(float arg );
 	float expf( float arg );
 ]]
@@ -36,20 +45,95 @@ local C = ffi.C
 
 
 local amount_of_goods = tabb.size(RAWS_MANAGER.trade_goods_by_name)
+local amount_of_job_types = tabb.size(JOBTYPE)
+local amount_of_need_types = tabb.size(NEED)
 
 ---@type MarketData[]
 local market_data = ffi.new("good_data[?]", amount_of_goods)
 
+---@type POPView[]
+local pop_view = ffi.new("pop_view[1]")
+
+---@type number[]
+local pop_job_efficiency = ffi.new("float[?]", amount_of_job_types)
+
+---@type number[]
+local pop_need_amount = ffi.new("float[?]", amount_of_need_types)
+
+---@type number[]
+local need_price_expectation = ffi.new("float[?]", amount_of_need_types)
+
+---@type number[]
+local need_total_exp = ffi.new("float[?]", amount_of_need_types)
+
+-- TODO: rewrite to ffi
+
+---@type table<TradeGoodUseCaseReference, number>
+local use_case_total_exp = {}
+---@type table<TradeGoodUseCaseReference, number>
+local use_case_price_expectation = {}
+
+local zero = 0
+local total_realm_donations = 0
+local total_local_donations = 0
+local total_trade_donations = 0
+
+
+---Calculates price expectation for a list of goods
+---@param set_of_goods TradeGoodReference[]
+---@return number total_exp total value for softmax
+---@return number expectation price expectation
+local function get_price_expectation(set_of_goods)
+	local total_exp = 0.0
+	for _, good in pairs(set_of_goods) do
+		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
+		total_exp = total_exp + market_data[c_index].feature
+	end
+
+	-- price expectation:
+	local price_expectation = 0.0
+	for _, good in pairs(set_of_goods) do
+		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
+		price_expectation = price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp
+	end
+	return total_exp, price_expectation
+end
+
+---Calculates weighted price expectation for a list of goods
+-- weight means how effective this trade good
+-- which means that price expectation will integrate 1 / weight
+---@param set_of_goods table<TradeGoodReference, number>
+---@return number total_exp total value for softmax
+---@return number expectation price expectation
+local function get_price_expectation_weighted(set_of_goods)
+	local total_exp = 0
+	for good, weight in pairs(set_of_goods) do
+		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
+		total_exp = total_exp + market_data[c_index].feature / weight
+	end
+
+	-- price expectation:
+	local price_expectation = 0
+	for good, weight in pairs(set_of_goods) do
+		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
+		price_expectation = price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp / weight
+	end
+
+	return total_exp, price_expectation
+end
+
+
 ---Runs production on a single province!
 ---@param province Province
 function pro.run(province)
+	total_realm_donations = 0
+	total_local_donations = 0
+	total_trade_donations = 0
 
 	-- how much of income is siphoned to local wealth pool
 	INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.125 / 4
 	-- buying prices for pops are multiplied on this number
 	POP_BUY_PRICE_MULTIPLIER = 1.5
-
-
 
 	---@type table<TradeGoodReference, number>
 	local old_prices = {}
@@ -69,11 +153,20 @@ function pro.run(province)
 		local price = ev.get_local_price(province, good)
 		market_data[i-1].price = price
 		old_prices[good] = price
-		market_data[i-1].feature = C.expf(C.sqrtf(market_data[i-1].price) / (1 + market_data[i-1].available))
+		market_data[i-1].feature = C.expf(-C.sqrtf(market_data[i-1].price) / (1 + market_data[i-1].available))
 
 		market_data[i - 1].consumption = 0
 		market_data[i - 1].supply = 0
 		market_data[i - 1].demand = 0
+	end
+
+	for tag, index in pairs(NEED) do
+		local need = NEEDS[index]
+		need_total_exp[index], need_price_expectation[index] = get_price_expectation(need.goods)
+	end
+
+	for tag, use_case in pairs(RAWS_MANAGER.trade_goods_use_cases_by_name) do
+		use_case_total_exp[tag], use_case_price_expectation[tag] = get_price_expectation_weighted(use_case.goods)
 	end
 
 	-- Clear building stats
@@ -117,7 +210,7 @@ function pro.run(province)
 			)
 		end
 
-		return market_data[good_index -1].supply * amount
+		return market_data[good_index -1].price * amount
 	end
 
 
@@ -150,7 +243,7 @@ function pro.run(province)
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = tabb.size(province.all_pops)
 	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
-	local total_donations = 0
+
 
 	-- TODO: IMPLEMENT CULTURAL VALUE
 	local fraction_of_income_given_voluntarily = 0.1 * math.max(0, math.min(1.0, 1.0 - population / min_income_pop))
@@ -160,104 +253,43 @@ function pro.run(province)
 
 	---Pop forages for food and gives it to warband  \
 	-- Not very efficient
-	---@param pop POP
+	---@param pop POPView[]
+	---@param pop_table POP
 	---@param time number ratio of daily active time pop can spend on foraging
-	local function forage_warband(pop, time)
+	local function forage_warband(pop, pop_table, time)
 		foragers_count = foragers_count + time -- Record a new forager!
+		local food_produced = pop[zero].foraging_efficiency * 0.25 * time
 
-		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
-		if pop.female then
-			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
+		if pop_table.unit_of_warband.leader then
+			pop_table.unit_of_warband.leader.inventory['food'] = (pop_table.unit_of_warband.leader.inventory['food'] or 0) + food_produced
 		end
-
-		-- Foragers produce food:
-		local food_produced = foraging_efficiency * foraging_multiplier * 0.25 * time
-		pop.unit_of_warband.supplies = pop.unit_of_warband.supplies + food_produced
 	end
-
-
 
 	---Pop forages for food and sells it  \
 	-- Not very efficient
-	---@param pop POP
+	---@param pop POPView[]
+	---@param pop_table POP
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return number income
-	local function forage(pop, time)
+	local function forage(pop, pop_table, time)
 		foragers_count = foragers_count + time -- Record a new forager!
+		local food_produced = pop[zero].foraging_efficiency * 0.25 * time
+		local income = record_production(food_index, food_produced)
 
-		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
-		if pop.female then
-			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
-		end
-
-		-- Foragers produce food:
-		local food_produced = foraging_efficiency * foraging_multiplier * 0.25 * time
-		---@type number
-		local income = food_produced * food_price
-		if income > 0 then
-			---@type number
-			local contribution_to_local_wealth = income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-			economic_effects.change_local_wealth(province, contribution_to_local_wealth, economic_effects.reasons.Raid)
-			income = income - contribution_to_local_wealth
-
-			---@type number
-			local contrib = income * fraction_of_income_given_voluntarily
-			total_donations = total_donations + contrib
-			income = income - contrib
-		end
-
-		record_production(food_index, food_produced)
 		return income
 	end
 
-	---Calculates price expectation for a list of goods
-	---@param set_of_goods TradeGoodReference[]
-	---@return number total_exp total value for softmax
-	---@return number expectation price expectation
-	local function get_price_expectation(set_of_goods)
-		local total_exp = 0.0
-		for _, good in pairs(set_of_goods) do
-			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
-			total_exp = total_exp + market_data[c_index].feature
-		end
 
-		-- price expectation:
-		local price_expectation = 0.0
-		for _, good in pairs(set_of_goods) do
-			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
-			price_expectation = price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp
-		end
-		return total_exp, price_expectation
-	end
 
-	---Calculates weighted price expectation for a list of goods
-	-- weight means how effective this trade good
-	-- which means that price expectation will integrate 1 / weight
-	---@param set_of_goods table<TradeGoodReference, number>
-	---@return number total_exp total value for softmax
-	---@return number expectation price expectation
-	local function get_price_expectation_weighted(set_of_goods)
-		local total_exp = 0
-		for good, weight in pairs(set_of_goods) do
-			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
-			total_exp = total_exp + market_data[c_index].feature / weight
-		end
 
-		-- price expectation:
-		local price_expectation = 0
-		for good, weight in pairs(set_of_goods) do
-			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
-			price_expectation = price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp / weight
-		end
-
-		return total_exp, price_expectation
-	end
 
 
 	---Attepts to satisfy needs of a pop  \
 	---Checks if it is more useful to buy a good or to produce it while using your free time
-	---@param pop POP
-	---@param need_tag NEED
+	---@param pop POPView[]
+	---@param pop_table POP
+	---@param need_index NEED
+	---@param need Need
 	---@param free_time number
 	---@param savings number
 	---@return number free_time_left
@@ -265,39 +297,17 @@ function pro.run(province)
 	---@return number expenses
 	---@return number need_total
 	---@return number need_satisfied
-	local function satisfy_need(pop, need_tag, free_time, savings)
+	local function satisfy_need(pop, pop_table, need_index, need, free_time, savings)
 		if free_time < 0 then
 			error("INVALID FREE TIME: " .. tostring(free_time))
 		end
 
-		local need = NEEDS[need_tag]
-
-		-- units of need required:
-		local job_efficiency = pop.race.male_efficiency[need.job_to_satisfy]
-		local need_amount = pop.race.male_needs[need_tag]
-		if pop.female then
-			job_efficiency = pop.race.female_efficiency[need.job_to_satisfy]
-			need_amount = pop.race.female_needs[need_tag]
-		end
-		if not need.age_independent then
-			local age_multiplier = pop:get_age_multiplier()
-			need_amount = need_amount * age_multiplier
-		end
-
-		if need.job_to_satisfy == JOBTYPE.FORAGER then
-			job_efficiency = job_efficiency * foraging_efficiency
-		end
-
-		-- calculate expectation of price of needed goods:
-
 		-- start with calculation of distribution over goods:
 		-- "distribution" "density" is precalculated, we only need to find a normalizing coef.
-		local total_exp, price_expectation = get_price_expectation(need.goods)
-
-		-- local total_available = 0
-		-- for _, good in pairs(need.goods) do
-		-- 	total_available = total_available + math.max(0, (available_last_time[good] or 0))
-		-- end
+		local need_amount = pop_need_amount[need_index]
+		local need_job_efficiency = pop_job_efficiency[need.job_to_satisfy]
+		local total_exp = need_total_exp[need_index]
+		local price_expectation = need_price_expectation[need_index]
 
 		-- local traders are greedy and want some income too
 		price_expectation = price_expectation * POP_BUY_PRICE_MULTIPLIER
@@ -308,12 +318,12 @@ function pro.run(province)
 		local induced_demand = math.min(2, math.max(0, 1 / price_expectation - 1))
 		need_amount = need_amount * (1 + induced_demand)
 
-		if need_amount == 0 then
-			error("NEED " .. need_tag .. " was set to zero!")
+		if need_amount < 0 then
+			error("Demanded need is lower than zero!")
 		end
 
 		-- time required to satisfy need on your own
-		local time_to_satisfy = need.time_to_satisfy / job_efficiency * need_amount
+		local time_to_satisfy = need.time_to_satisfy / need_job_efficiency * need_amount
 
 		-- actual time pop is able to spend
 		local work_time = math.max(math.min(free_time, time_to_satisfy), 0)
@@ -322,11 +332,7 @@ function pro.run(province)
 		local utility_satisfy_needs_yourself = math.min(1, work_time / time_to_satisfy)
 
 		-- wealth pop can earn by foraging instead
-		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
-		if pop.female then
-			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
-		end
-		local food_produced = foraging_efficiency * foraging_multiplier * 0.5
+		local food_produced = pop[zero].foraging_efficiency * 0.5
 		local income_per_unit_of_time = food_price * food_produced
 		local potential_income = math.min(work_time * income_per_unit_of_time, province.trade_wealth)
 
@@ -352,7 +358,6 @@ function pro.run(province)
 			if need.job_to_satisfy == JOBTYPE.FORAGER then
 				foragers_count = foragers_count + work_time
 			end
-
 			return free_time - work_time, 0, 0, pre_induced_need, need_amount * utility_satisfy_needs_yourself
 		else
 			-- wealth needed to buy required amount of goods:
@@ -362,7 +367,7 @@ function pro.run(province)
 			local total_bought = 0
 
 			-- forage and buy required goods:
-			local forage_income = forage(pop, forage_time)
+			local forage_income = forage(pop, pop_table, forage_time)
 			local expense = 0
 
 			for _, good in pairs(need.goods) do
@@ -421,11 +426,12 @@ function pro.run(province)
 	end
 
 	---comment
-	---@param pop POP
+	---@param pop POPView
+	---@param pop_table POP
 	---@param free_time number amount of time pop is willing to spend on foraging
 	---@param savings number amount of money pop is willing to spend on needs
-	local function satisfy_needs(pop, free_time, savings)
-		pop.life_needs_satisfaction = 2
+	local function satisfy_needs(pop, pop_table, free_time, savings)
+		pop_table.life_needs_satisfaction = 2
 
 		local total_satisfied = 0
 		local total_needs = 0
@@ -436,29 +442,16 @@ function pro.run(province)
 		local total_expense = 0
 		local total_income = 0
 
-		local needs = pop.race.male_needs
-		if pop.female then
-			needs = pop.race.female_needs
-		end
-
-		-- assert that needs are valid
-		for need_name, demand in pairs(needs) do
-			local need = NEEDS[need_name]
-			if need == nil then
-				error("WRONG NEED NAME: " .. need_name)
-			end
-		end
-
 		-- buying life needs
-		for need_name, demand in pairs(needs) do
-			local need = NEEDS[need_name]
+		for index, need in pairs(NEEDS) do
 			if need.life_need then
-				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(pop, need_name, free_time, savings)
+				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(
+					pop, pop_table, index, need, free_time, savings)
 
 				if need_demanded > 0 then
-					pop.need_satisfaction[need_name] = consumed / need_demanded
+					pop_table.need_satisfaction[index] = consumed / need_demanded
 				else
-					pop.need_satisfaction[need_name] = 0
+					pop_table.need_satisfaction[index] = 0
 				end
 
 				total_life_needs = total_life_needs + need_demanded
@@ -474,21 +467,20 @@ function pro.run(province)
 		end
 
 		if total_life_needs > 0 then
-			pop.life_needs_satisfaction = total_life_satisfied / total_life_needs
+			pop_table.life_needs_satisfaction = total_life_satisfied / total_life_needs
 		else
-			pop.life_needs_satisfaction = 1
+			pop_table.life_needs_satisfaction = 1
 		end
 
 		-- buying base needs
-		for need_name, demand in pairs(needs) do
-			local need = NEEDS[need_name]
+		for index, need in pairs(NEEDS) do
 			if not need.life_need then
-				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(pop, need_name, free_time, savings)
-
+				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(
+					pop, pop_table, index, need, free_time, savings)
 				if need_demanded > 0 then
-					pop.need_satisfaction[need_name] = consumed / need_demanded
+					pop_table.need_satisfaction[index] = consumed / need_demanded
 				else
-					pop.need_satisfaction[need_name] = 0
+					pop_table.need_satisfaction[index] = 0
 				end
 
 				total_needs = total_needs + need_demanded
@@ -503,13 +495,13 @@ function pro.run(province)
 			end
 		end
 
-		economic_effects.add_pop_savings(pop, total_income, economic_effects.reasons.Forage)
-		economic_effects.add_pop_savings(pop, -total_expense, economic_effects.reasons.OtherNeeds)
+		economic_effects.add_pop_savings(pop_table, total_income, economic_effects.reasons.Forage)
+		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.OtherNeeds)
 
 		if total_needs > 0 then
-			pop.basic_needs_satisfaction = total_satisfied / total_needs
+			pop_table.basic_needs_satisfaction = total_satisfied / total_needs
 		else
-			pop.basic_needs_satisfaction = 1
+			pop_table.basic_needs_satisfaction = 1
 		end
 	end
 
@@ -540,7 +532,8 @@ function pro.run(province)
 	local function buy_use(use_reference, amount, savings)
 		local use = use_case(use_reference)
 
-		local total_exp, price_expectation = get_price_expectation_weighted(use.goods)
+		local total_exp = use_case_total_exp[use_reference]
+		local price_expectation = use_case_price_expectation[use_reference]
 		local demanded_use = math.max(amount, savings / price_expectation)
 
 		local available = available_goods_for_use(use_reference)
@@ -584,8 +577,51 @@ function pro.run(province)
 		return a.savings > b.savings
 	end)
 
+
+
 	PROFILER:start_timer("production-pops-loop")
 	for _, pop in ipairs(pops_by_wealth) do
+
+		-- populate pop_view
+		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
+		if pop.female then
+			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
+		end
+		pop_view[zero].foraging_efficiency = foraging_multiplier * foraging_efficiency
+		pop_view[zero].age_multiplier = pop:get_age_multiplier()
+
+		-- populate job efficiency
+		if pop.female then
+			for tag, value in pairs(JOBTYPE) do
+				pop_job_efficiency[value] = pop.race.female_efficiency[value]
+			end
+			for tag, value in pairs(NEED) do
+				local need_tag = NEED[tag]
+				pop_need_amount[value] = pop.race.female_needs[need_tag]
+
+				local need = NEEDS[need_tag]
+				if not need.age_independent then
+					pop_need_amount[value] = pop_need_amount[value] * pop_view[zero].age_multiplier
+				end
+			end
+		else
+			for tag, value in pairs(JOBTYPE) do
+				pop_job_efficiency[value] = pop.race.male_efficiency[value]
+			end
+			for tag, value in pairs(NEED) do
+				local need_tag = NEED[tag]
+				pop_need_amount[value] = pop.race.male_needs[need_tag]
+
+				local need = NEEDS[need_tag]
+				if not need.age_independent then
+					pop_need_amount[value] = pop_need_amount[value] * pop_view[zero].age_multiplier
+				end
+			end
+		end
+
+		pop_job_efficiency[JOBTYPE.FORAGER] = pop_job_efficiency[JOBTYPE.FORAGER] * foraging_efficiency
+
+
 		-- base income: all adult pops forage and help each other which translates into a bit of wealth
 		-- real reason: wealth sources to fuel the economy
 		-- buidings are essentially wealth sinks currently
@@ -602,7 +638,7 @@ function pro.run(province)
 			if pop.unit_of_warband then
 				if pop.unit_of_warband.idle_stance == "forage" then
 					-- spend some time on foraging for warband:
-					forage_warband(pop, pop.unit_of_warband.current_free_time_ratio * 0.5)
+					forage_warband(pop_view, pop, pop.unit_of_warband.current_free_time_ratio * 0.5)
 					free_time_of_pop = pop.unit_of_warband.current_free_time_ratio * 0.5
 				else
 					-- or spend all the time working like other pops
@@ -705,8 +741,10 @@ function pro.run(province)
 
 				if efficiency > 0 then
 					for input, amount in pairs(prod.inputs) do
-						local spent, consumed = buy_use(input, amount * efficiency, production_budget)
-						input_satisfaction_2 = math.min(input_satisfaction_2, consumed / (amount * efficiency))
+						local required = input_boost * amount * efficiency
+						local spent, consumed = buy_use(input, required, production_budget)
+
+						input_satisfaction_2 = math.min(input_satisfaction_2, consumed / required)
 						income = income - spent
 						building.spent_on_inputs[input] = (building.spent_on_inputs[input] or 0) + spent
 					end
@@ -725,8 +763,6 @@ function pro.run(province)
 
 					record_production(output_index, amount * efficiency * output_boost * throughput_boost)
 				end
-
-
 
 				income = income
 
@@ -756,17 +792,8 @@ function pro.run(province)
 				income = income
 
 				if income > 0 then
-					local contribution_to_local_wealth = income * INCOME_TO_LOCAL_WEALTH_MULTIPLIER
-					economic_effects.change_local_wealth(
-						province,
-						contribution_to_local_wealth,
-						economic_effects.reasons.Donation
-					)
-					income = income - contribution_to_local_wealth
-
 					---@type number
 					local contrib = income * fraction_of_income_given_voluntarily
-					local owner = pop.employer.owner
 					if owner then
 						---@type number
 						contrib = income * fraction_of_income_given_to_owner
@@ -775,11 +802,8 @@ function pro.run(province)
 						end
 						donations_to_owners[owner] = donations_to_owners[pop.employer.owner] + contrib
 						pop.employer.last_donation_to_owner = pop.employer.last_donation_to_owner + contrib
-					else
-						total_donations = total_donations + contrib
+						income = income - contrib
 					end
-					income = income - contrib
-
 					-- increase working hours if possible to increase income
 					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				else
@@ -824,7 +848,7 @@ function pro.run(province)
 
 			-- every pop spends some time or wealth on fullfilling their needs:
 			PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop, free_time_of_pop, pop.savings / 10)
+			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 10)
 			PROFILER:end_timer("production-satisfy-needs")
 		end
 
@@ -832,11 +856,18 @@ function pro.run(province)
 	end
 	PROFILER:end_timer("production-pops-loop")
 
+
 	--- DISTRIBUTION OF DONATIONS
+	PROFILER:start_timer('donations')
 	-- pops donate some of their savings as well:
 	for _, pop in pairs(province.all_pops) do
-		total_donations = total_donations + pop.savings / 100
-		economic_effects.add_pop_savings(pop, -pop.savings / 100, economic_effects.reasons.Donation)
+		total_realm_donations = total_realm_donations + pop.savings / 100
+		total_local_donations = total_local_donations + pop.savings / 20
+		total_trade_donations = total_trade_donations + pop.savings / 20
+
+		local pop_donation_total = pop.savings / 100 + pop.savings / 20 + pop.savings / 20
+
+		economic_effects.add_pop_savings(pop, -pop_donation_total, economic_effects.reasons.Donation)
 	end
 
 	local total_popularity = 0
@@ -846,10 +877,11 @@ function pro.run(province)
 			total_popularity = total_popularity + popularity
 		end
 	end
-	local realm_share = total_donations
+	local realm_share = total_realm_donations
 	if total_popularity > 0.5 then
-		realm_share = total_donations * 0.5
-		local elites_share = total_donations - realm_share
+		realm_share = realm_share * 0.5
+		local elites_share = total_realm_donations - realm_share
+
 		for _, c in pairs(province.characters) do
 			local popularity = pv.popularity(c, province.realm)
 
@@ -871,24 +903,11 @@ function pro.run(province)
 		end
 	end
 	economic_effects.register_income(province.realm, realm_share, economic_effects.reasons.Donation)
+	economic_effects.change_local_wealth(province, total_local_donations, economic_effects.reasons.Donation)
+	province.trade_wealth = province.trade_wealth + total_trade_donations
 
 	for character, income in pairs(donations_to_owners) do
 		economic_effects.add_pop_savings(character, income, economic_effects.reasons.BuildingIncome)
-	end
-
-	-- pops donate money to local pools:
-	for _, pop in pairs(province.all_pops) do
-		local donation_to_trade_pool = pop.savings / 20
-		local donation_to_local_wealth = pop.savings / 20
-
-		economic_effects.change_local_wealth(
-			province,
-			donation_to_local_wealth,
-			economic_effects.reasons.Donation
-		)
-		province.trade_wealth = province.trade_wealth + donation_to_trade_pool
-
-		economic_effects.add_pop_savings(pop, - donation_to_trade_pool - donation_to_local_wealth, economic_effects.reasons.Donation)
 	end
 
 	local to_trade_siphon = province.local_wealth * 0.01
@@ -898,6 +917,9 @@ function pro.run(province)
 		from_trade_siphon - to_trade_siphon,
 		economic_effects.reasons.TradeSiphon
 	)
+	PROFILER:end_timer('donations')
+
+
 	province.trade_wealth = province.trade_wealth - from_trade_siphon + to_trade_siphon
 
 	province.local_income = province.local_wealth - old_wealth
@@ -919,23 +941,6 @@ function pro.run(province)
 				record_production(output_index, amount * efficiency)
 			end
 		end
-	end
-
-	-- finally, buy supplies for parties:
-	for _, warband in pairs(province.warbands) do
-		local demand = warband:supplies_target() - warband.supplies
-		local effective_demand = math.max(0, math.min(warband.treasury /  market_data[food_index - 1].price, demand))
-
-		record_demand(food_index, effective_demand)
-
-		local bought = math.max(0, math.min(effective_demand, market_data[food_index - 1].available))
-
-		record_consumption(food_index, bought)
-		warband.supplies = warband.supplies + bought
-
-
-		warband.treasury = math.max(0, warband.treasury - bought * market_data[food_index - 1].price)
-		province.trade_wealth = province.trade_wealth + bought * market_data[food_index - 1].price
 	end
 
 	-- At last, record all data

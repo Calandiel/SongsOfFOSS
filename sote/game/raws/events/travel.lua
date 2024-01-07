@@ -10,6 +10,23 @@ local et = require "game.raws.triggers.economy"
 
 local function load()
     Event:new {
+        name = "travel-start-action",
+        automatic = false,
+        event_background_path = "data/gfx/backgrounds/background.png",
+        base_probability = 0,
+
+        on_trigger = function (self, root, associated_data)
+            ---@type TravelData
+            associated_data = associated_data
+
+            local party = root.leading_warband
+            party.status = "travelling"
+            party:consume_supplies(associated_data.travel_time)
+            WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
+        end
+    }
+
+    Event:new {
         name = "travel-start",
         automatic = false,
         event_background_path = "data/gfx/backgrounds/background.png",
@@ -46,7 +63,7 @@ local function load()
                 outcome = function ()
                     local party = root.leading_warband
                     party.status = "travelling"
-                    party.supplies = party.supplies - associated_data.travel_time * party:daily_supply_consumption()
+                    party:consume_supplies(associated_data.travel_time)
                     WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
                 end,
                 viable =function ()
@@ -78,7 +95,14 @@ local function load()
                 root.leading_warband.status = "idle"
             end
             root.busy = false
-            WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
+
+            if root == WORLD.player_character and OPTIONS["travel-end"] == 0 then
+                WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
+            end
+
+            if root == WORLD.player_character and OPTIONS["travel-end"] == 2 then
+                PAUSE_REQUESTED = true
+            end
 		end,
 	}
 
@@ -202,7 +226,8 @@ local function load()
                 local price = ev.get_pessimistic_local_price(province, name, 1, true)
                 local known_price = root.price_memory[name] or price
 
-                local sold_amount = root.inventory[name] or 0
+                local current_amount = root.inventory[name] or 0
+                local sold_amount = current_amount
                 local can_sell, _ = et.can_sell(root, name, sold_amount)
 
                 while
@@ -214,12 +239,18 @@ local function load()
                     can_sell, _ = et.can_sell(root, name, sold_amount)
                 end
 
-                sold_amount = math.max(1, sold_amount)
+                local good_reserve = 0
+
+                if root.leading_warband and name == "food" then
+                    good_reserve = root.leading_warband:daily_supply_consumption() * 60
+                end
+
+                sold_amount = math.max(0, math.min(math.max(1, sold_amount), current_amount - good_reserve))
 
                 can_sell, _ = et.can_sell(root, name, sold_amount)
                 local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
 
-                if can_sell then
+                if can_sell and sold_amount > 0 then
                     ---@type EventOption
                     local option = {
                         text = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,

@@ -144,7 +144,26 @@ function tb.draw(gam)
 			character.savings,
 			rect,
 			"My personal savings")
-		layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
+
+
+		local amount = character.inventory["food"] or 0
+		uit.sqrt_number_entry_icon(
+			"noodles.png",
+			amount,
+			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
+			"Food in my inventory")
+
+		local days_of_travel = 0
+		if character.leading_warband then
+			days_of_travel = character.leading_warband:days_of_travel()
+		end
+		uit.balance_entry_icon(
+			"horizon-road.png",
+			days_of_travel,
+			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
+			"Days my party can travel. Zero if I do not lead any party.")
+
+
 
 		uit.balance_entry_icon(
 			"duality-mask.png",

@@ -42,12 +42,13 @@ local function make_new_realm(capitol, race, culture, faith)
 	-- We also need to spawn in some population...
 	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * 2)
 	for _ = 1, pop_to_spawn do
+		local age = math.floor(math.abs(love.math.randomNormal(race.middle_age, 0)) + 1)
 		pop.POP:new(
 			race,
 			faith,
 			culture,
 			love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-			love.math.random(race.max_age),
+			age,
 			capitol, capitol
 		)
 	end

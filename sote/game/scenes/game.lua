@@ -34,7 +34,8 @@ local inspectors_table = {
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 	["warband"] = require "game.scenes.game.inspectors.warband",
-	["property"] = require "game.scenes.game.inspectors.property"
+	["property"] = require "game.scenes.game.inspectors.property",
+	["preferences"] = require "game.scenes.game.inspectors.character_stance"
 }
 
 local tile_inspectors = {
@@ -44,6 +45,8 @@ local tile_inspectors = {
 	["population"] = true,
 	["character"] = true
 }
+
+
 
 ---@class Selection
 ---@field character Character?
@@ -161,6 +164,9 @@ end
 
 ---Initializes the planet mesh and does some other, similar setup
 function gam.init()
+	-- global variable for events
+	PAUSE_REQUESTED = false
+
 	gam.show_map_mode_panel = false -- for rendering the panel
 	gam.map_mode_slider = 0      -- for the map mode slider
 	gam.game_canvas = love.graphics.newCanvas()
@@ -237,6 +243,11 @@ end
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
+	if PAUSE_REQUESTED then
+		gam.paused = true
+		PAUSE_REQUESTED = false
+	end
+
 	if gam.paused and gam.ticks_without_map_update > world.ticks_per_hour * 24 * 10  then
 		gam.ticks_without_map_update = 0
 		gam.refresh_map_mode(true)
@@ -1299,6 +1310,10 @@ function gam.draw()
 		end
 
 		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000, layout:next(profile_rect.width / 4, 25))
+
+		if ut.text_button("RESET", layout:next(profile_rect.width / 4, 25)) then
+			PROFILER:clear()
+		end
 	end
 end
 

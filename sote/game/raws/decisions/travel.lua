@@ -9,6 +9,9 @@ local RANK = require "game.raws.ranks.character_ranks"
 
 local character_values = require "game.raws.values.character"
 local military_values = require "game.raws.values.military"
+local economy_values = require "game.raws.values.economical"
+local economy_effects = require "game.raws.effects.economic"
+local economy_triggers = require "game.raws.triggers.economy"
 
 
 local function load()
@@ -48,7 +51,11 @@ local function load()
 			if root.leading_warband == nil then
 				return "You have to gather a party and supplies in order to travel."
 			end
-			local days = pathfinding.hours_to_travel_days(path_property(root, primary_target))
+			local hours, path = path_property(root, primary_target)
+			if path == nil then
+				return "Impossible to reach"
+			end
+			local days = pathfinding.hours_to_travel_days(hours)
 			if root.leading_warband:days_of_travel() < days then
 				return "Not enough supplies to reach this province."
 			end
@@ -83,7 +90,12 @@ local function load()
 		end,
 		available = function(root, primary_target)
 			if root.busy then return false end
-			local days = pathfinding.hours_to_travel_days(path_property(root, primary_target))
+			local hours, path = path_property(root, primary_target)
+			if path == nil then
+				return false
+			end
+			local days = pathfinding.hours_to_travel_days(hours)
+
 			if root.leading_warband:days_of_travel() < days then
 				return false
 			end
@@ -149,7 +161,11 @@ local function load()
 				travel_time = days
 			}
 
-			WORLD:emit_immediate_event("travel-start", root, data)
+			if OPTIONS["travel-start"] == 0 and WORLD.player_character == root then
+				WORLD:emit_immediate_event("travel-start", root, data)
+			else
+				WORLD:emit_immediate_action("travel-start-action", root, data)
+			end
 		end
 	}
 
@@ -244,7 +260,16 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			root.busy = true
-			WORLD:emit_immediate_event("exploration-preparation", root, root.province)
+
+			if  WORLD.player_character ~= root then
+				WORLD:emit_immediate_event("exploration-preparation", root, root.province)
+			elseif OPTIONS["exploration"] == 0 then
+				WORLD:emit_immediate_event("exploration-preparation", root, root.province)
+			elseif OPTIONS["exploration"] == 1 then
+				WORLD:emit_immediate_action("exploration-preparation-by-yourself", root, root.province)
+			elseif OPTIONS["exploration"] == 2 then
+				WORLD:emit_immediate_action("exploration-preparation-ask-for-help", root, root.province)
+			end
 		end
 	}
 
@@ -281,6 +306,13 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
+			if WORLD:is_player(root) then
+				if OPTIONS.debug_mode then
+					return true
+				else
+					return false
+				end
+			end
 			return true
 		end,
 		available = function(root, primary_target, secondary_target)
@@ -296,6 +328,67 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
+			root.leading_warband.idle_stance = "forage"
+		end
+	}
+
+
+	Decision.Character:new {
+		name = 'ai-party-supplies',
+		ui_name = "(AI) Buy supplies",
+		tooltip = function(root, primary_target)
+			if root.leading_warband == nil then
+				return "You are not leading any party"
+			end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
+			return "Explore province"
+		end,
+		sorting = 2,
+		primary_target = 'none',
+		secondary_target = 'none',
+		base_probability = 1,
+		pretrigger = function(root)
+			if root.leading_warband == nil then
+				return false
+			end
+			if WORLD:is_player(root) then
+				if OPTIONS.debug_mode then
+					return true
+				else
+					return false
+				end
+			end
+
+			if not economy_triggers.can_buy(root, 'food', 1) then
+				return false
+			end
+
+			if (root.leading_warband:days_of_travel() > 30) then
+				return false
+			end
+
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if WORLD:is_player(root) then
+				if OPTIONS.debug_mode then
+					return true
+				else
+					return false
+				end
+			end
+			return true
+		end,
+		available = function(root, primary_target, secondary_target)
+			return true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			return 1
+		end,
+		effect = function(root, primary_target, secondary_target)
+			economy_effects.buy(root, 'food', 1)
 			root.leading_warband.idle_stance = "forage"
 		end
 	}
@@ -332,12 +425,23 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
+			if WORLD:is_player(root) then
+				if OPTIONS.debug_mode then
+					return true
+				else
+					return false
+				end
+			end
 			return true
 		end,
 		available = function(root, primary_target, secondary_target)
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
+			if root.recruiter_for_warband then
+				return 1
+			end
+
 			if root.leading_warband then
 				if root.leading_warband:days_of_travel() > 50 then
 					return 1

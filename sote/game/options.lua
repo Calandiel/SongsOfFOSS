@@ -3,16 +3,20 @@
 
 local opt = {}
 
+
 function opt.init()
 	return {
-		['volume'] = 0,
-		['fullscreen'] = true,
-		['rotation'] = false,
-		['update_map'] = false,
-		['treasury_ledger'] = 120,
-		['debug_mode'] = false,
-		['zoom_sensitivity'] = 1,
-		['camera_sensitivity'] = 1,
+		["volume"] = 0,
+		["fullscreen"] = true,
+		["rotation"] = false,
+		["update_map"] = false,
+		["treasury_ledger"] = 120,
+		["debug_mode"] = false,
+		["zoom_sensitivity"] = 1,
+		["camera_sensitivity"] = 1,
+		["exploration"] = 0,
+		["travel-start"] = 0,
+		["travel-end"] = 0,
 	}
 end
 

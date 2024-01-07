@@ -258,7 +258,7 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.WATER] = 0.25,
-			[NEED.FOOD] = 0.25,
+			[NEED.FOOD] = 0.5,
 			-- [NEED.FRUIT] = 0.25,
 			-- [NEED.GRAIN] = 0.25,
 			-- [NEED.MEAT] = 0.25,
@@ -282,7 +282,7 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.WATER] = 0.25,
-			[NEED.FOOD] = 0.25,
+			[NEED.FOOD] = 0.5,
 			-- [NEED.FRUIT] = 0.25,
 			-- [NEED.GRAIN] = 0.25,
 			-- [NEED.MEAT] = 0.25,

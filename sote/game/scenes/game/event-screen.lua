@@ -57,6 +57,7 @@ function ev.draw(gam)
 						-- option might create instant events in the front of queue!
 						opt.outcome()
 						print(opt.text)
+						gam.refresh_map_mode()
 					end
 				end
 			end, uit.BASE_HEIGHT, #opts, uit.BASE_HEIGHT, gam.event_scrollbar)

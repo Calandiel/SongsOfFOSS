@@ -11,7 +11,7 @@ local function load()
 	for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
 		Decision.Character:new {
 			name = 'recruit-' .. unit.name,
-			ui_name = "Recruit " .. unit.name,
+			ui_name = "(AI) Recruit " .. unit.name,
 			tooltip = utils.constant_string("I will hire a new unit."),
 			sorting = 5,
 			primary_target = "none",
@@ -33,6 +33,7 @@ local function load()
 				if (warband.units_current[unit] or 0) < (warband.units_target[unit] or 0) then
 					return false
 				end
+
 				return true
 			end,
 			clickable = function(root, primary_target)
@@ -59,7 +60,7 @@ local function load()
 
 				local predicted_upkeep = warband:predict_upkeep() + unit.upkeep
 
-				if warband.treasury / 12 < predicted_upkeep * 2 then
+				if warband.treasury < predicted_upkeep * 12 * 5 then
 					return 0
 				end
 

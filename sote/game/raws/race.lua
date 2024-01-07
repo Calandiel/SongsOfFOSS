@@ -128,6 +128,22 @@ function Race:new(o)
 		print(msg)
 		error(msg)
 	end
+
+	-- assert that needs are valid
+	for need_name, demand in pairs(r.male_needs) do
+		local need = NEEDS[need_name]
+		if need == nil then
+			error(r.name .. "WRONG MALE NEED NAME: " .. need_name)
+		end
+	end
+	for need_name, demand in pairs(r.female_needs) do
+		local need = NEEDS[need_name]
+		if need == nil then
+			error(r.name .. " WRONG FEMALE NEED NAME: " .. need_name)
+		end
+	end
+
+
 	RAWS_MANAGER.races_by_name[r.name] = r
 	return r
 end

@@ -1,12 +1,12 @@
 ---@enum JOBTYPE
 local JOBTYPE = {
-    FORAGER = 1,
-    FARMER = 2,
-    LABOURER = 3,
-    ARTISAN = 4,
-    CLERK = 5,
-    WARRIOR = 6,
-    HAULING = 7
+    FORAGER = 0,
+    FARMER = 1,
+    LABOURER = 2,
+    ARTISAN = 3,
+    CLERK = 4,
+    WARRIOR = 5,
+    HAULING = 6
 }
 
 return JOBTYPE
