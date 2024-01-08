@@ -33,7 +33,6 @@ local tabb = require "engine.table"
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
----@field tile_count fun(self:World):number returns number of tiles
 ---@field random_tile fun(self:World):Tile returns a random tile
 ---@field new_plate fun(self:World):Plate creates and returns a new plate
 ---@field new fun(self:World):World
