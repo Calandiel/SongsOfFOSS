@@ -68,7 +68,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field available fun(root:Character, primary_target:any, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
 ---@field ai_will_do fun(root:Character, primary_target:any, secondary_target:any):number Returns a probability that an AI will take the decision
 ---@field ai_targetting_attempts number Number of attempts an AI will take to find a secondary target
----@field ai_target fun(root:Character):any,boolean Selects the primary target for the AI
+---@field ai_target nil|fun(root:Character):any,boolean Selects the primary target for the AI
 ---@field ai_secondary_target fun(root:Character, primary_target:any):any,boolean Selects the secondary target for the AI
 ---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets fun(root:Character, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
@@ -80,14 +80,14 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field name 						string
 ---@field ui_name 					string
 ---@field tooltip 					fun(root:Character, primary_target:Province):string
----@field path						fun(root:Character, primary_target: Province): number, Province[]|nil
+---@field path						nil|fun(root:Character, primary_target: Province): number, Province[]|nil
 ---@field effect 					fun(root:Character, primary_target:Province, secondary_target:any) Called when the action is taken
 ---@field pretrigger 				fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
 ---@field clickable 				nil|fun(root:Character, primary_target:Province):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
 ---@field available 				nil|fun(root:Character, primary_target:Province, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
 ---@field ai_will_do 				fun(root:Character, primary_target:Province, secondary_target:any):number Returns a probability that an AI will take the decision
 ---@field ai_targetting_attempts 	nil|number Number of attempts an AI will take to find a secondary target
----@field ai_target 				nil|fun(root:Character):Province | nil,boolean Selects the primary target for the AI
+---@field ai_target 				fun(root:Character):Province | nil,boolean Selects the primary target for the AI
 ---@field ai_secondary_target 		nil|fun(root:Character, primary_target:Province):any,boolean Selects the secondary target for the AI
 ---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets 	nil|fun(root:Character, primary_target:Province):table<number, any> Returns potential targets FOR THE PLAYER
@@ -100,7 +100,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field name string
 ---@field ui_name string
 ---@field tooltip fun(root:Character, primary_target:Province):string
----@field path fun(root:Character, primary_target: Province): number, Province[]|nil
+---@field path nil|fun(root:Character, primary_target: Province): number, Province[]|nil
 ---@field effect fun(root:Character, primary_target:Province, secondary_target:any) Called when the action is taken
 ---@field pretrigger fun(root:Character):boolean A quick check before any other checks to cull potential decision takers
 ---@field clickable fun(root:Character, primary_target:Province):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
@@ -177,6 +177,7 @@ print('load decisions')
 ---@param i DecisionCharacterData
 ---@return DecisionCharacter
 function Decision.Character:new(i)
+	print("decision " .. i.name)
 	---@type DecisionCharacter
 	local o = init_decision(i)
 
@@ -202,6 +203,134 @@ function Decision.CharacterProvince:new(i)
 end
 
 print('load province character decision class')
+
+Decision.CharacterCharacter = {}
+
+---Creates decision from the list of triggers
+---@param name string
+---@param ui_name string
+---@param tooltip fun(root: Character, primary_target:Character): string
+---@param base_probability number
+---@param pretriggers Pretrigger[]
+---@param visibility TriggerCharacter[]
+---@param availability TriggerCharacter[]
+---@param effect fun(root:Character, primary_target:Character, secondary_target:any)
+---@param ai_will_do fun(root:Character, primary_target:Character, secondary_target:any):number
+---@param ai_target fun(root:Character):Character | nil,boolean
+function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do, ai_target)
+	Decision.Character:new({
+		primary_target = 'character',
+		secondary_target = 'none',
+		name = name,
+		ui_name = ui_name,
+		base_probability = base_probability,
+		tooltip = function (root, primary_target)
+			local tooltip_result = tooltip(root, primary_target)
+			for _, pretrigger in ipairs(pretriggers) do
+				if not pretrigger(root) then
+					tooltip_result = tooltip_result .. pretrigger.tooltip_on_condition_failure(root) .. "\n"
+				end
+			end
+			for _, trigger in ipairs(availability) do
+				if not trigger(root, primary_target) then
+					tooltip_result = tooltip_result .. trigger.tooltip_on_condition_failure(root, primary_target) .. "\n"
+				end
+			end
+			return tooltip_result
+		end,
+		pretrigger = function (root)
+			for _, trigger in ipairs(pretriggers) do
+				if not trigger(root) then
+					return false
+				end
+			end
+			return true
+		end,
+		clickable = function (root, primary_target)
+			for _, trigger in ipairs(visibility) do
+				if not trigger(root, primary_target) then
+					return false
+				end
+			end
+			return true
+		end,
+		available = function (root, primary_target, secondary_target)
+			for _, trigger in ipairs(availability) do
+				if not trigger(root, primary_target) then
+					return false
+				end
+			end
+			return true
+		end,
+		effect = effect,
+		ai_will_do = ai_will_do,
+		ai_target = ai_target
+	})
+end
+
+---Creates decision from the list of triggers
+---@param name string
+---@param ui_name string
+---@param tooltip fun(root: Character, primary_target:Character): string
+---@param base_probability number
+---@param pretriggers Pretrigger[]
+---@param visibility TriggerCharacter[]
+---@param availability TriggerCharacter[]
+---@param effect fun(root:Character, primary_target:Character, secondary_target:any)
+---@param ai_will_do fun(root:Character, primary_target:Character, secondary_target:any):number
+function Decision.Character:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do)
+	Decision.Character:new({
+		primary_target = 'none',
+		secondary_target = 'none',
+		name = name,
+		ui_name = ui_name,
+		base_probability = base_probability,
+		tooltip = function (root, primary_target)
+			local tooltip_result = tooltip(root, primary_target) .. "\n"
+			for _, pretrigger in ipairs(pretriggers) do
+				if not pretrigger.condition(root) then
+					for _, actual_tooltip in ipairs(pretrigger.tooltip_on_condition_failure(root)) do
+						tooltip_result = tooltip_result .. actual_tooltip .. "\n"
+					end
+				end
+			end
+			for _, trigger in ipairs(availability) do
+				if not trigger.condition(root, primary_target) then
+					for _, actual_tooltip in ipairs(trigger.tooltip_on_condition_failure(root, primary_target)) do
+						tooltip_result = tooltip_result .. actual_tooltip .. "\n"
+					end
+				end
+			end
+			return tooltip_result
+		end,
+		pretrigger = function (root)
+			for _, trigger in ipairs(pretriggers) do
+				if not trigger.condition(root) then
+					return false
+				end
+			end
+			return true
+		end,
+		clickable = function (root, primary_target)
+			for _, trigger in ipairs(visibility) do
+				if not trigger.condition(root, primary_target) then
+					return false
+				end
+			end
+			return true
+		end,
+		available = function (root, primary_target, secondary_target)
+			for _, trigger in ipairs(availability) do
+				if not trigger.condition(root, primary_target) then
+					return false
+				end
+			end
+			return true
+		end,
+		effect = effect,
+		ai_will_do = ai_will_do,
+	})
+end
 
 
 return Decision

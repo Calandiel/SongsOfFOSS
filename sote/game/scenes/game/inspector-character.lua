@@ -87,23 +87,23 @@ function window.draw(game)
 
 
     -- name panel
-    local name_panel = ui_panel:subrect(unit * 4, 0, unit * 12, unit * 4/3, "left", "up"):shrink(3)
+    local name_panel = ui_panel:subrect(unit * 4, 0, unit * 12, unit * 5/3, "left", "up"):shrink(3)
 
-    local age_panel = ui_panel:subrect(unit * 4, unit * 4/3, unit * 12, unit * 4/3, "left", "up"):shrink(3)
+    local age_panel = ui_panel:subrect(unit * 4, unit * 7/3, unit * 12, unit * 4/3, "left", "up"):shrink(3)
 
-    local wealth_panel = ui_panel:subrect(unit * 4, unit * 8/3, unit * 6, unit * 4/3, "left", "up"):shrink(3)
-    local popularity_panel = ui_panel:subrect(unit * 10, unit * 8/3, unit * 6, unit * 4/3, "left", "up"):shrink(3)
+    local wealth_panel = ui_panel:subrect(unit * 4, unit * 11/3, unit * 6, unit * 4/3, "left", "up"):shrink(3)
+    local popularity_panel = ui_panel:subrect(unit * 10, unit * 11/3, unit * 6, unit * 4/3, "left", "up"):shrink(3)
 
-    local location_panel = ui_panel:subrect(0, unit * 5, unit * 8, unit * 1, "left", "up"):shrink(3)
-    local culture_panel = ui_panel:subrect(unit * 8, unit * 5, unit * 8, unit * 1, "left", "up"):shrink(3)
+    local location_panel = ui_panel:subrect(0, unit * 18/3, unit * 8, unit * 1, "left", "up"):shrink(3)
+    local culture_panel = ui_panel:subrect(unit * 8, unit * 18/3, unit * 8, unit * 1, "left", "up"):shrink(3)
 
-    local layout = ui.layout_builder():position(ui_panel.x, ui_panel.y + unit * 6):vertical():build()
+    local layout = ui.layout_builder():position(ui_panel.x, ui_panel.y + unit * 7):vertical():build()
 
-    local description_block = layout:next(unit * 16, unit * 11)
+    local description_block = layout:next(unit * 16, unit * 10)
 
     ui.panel(description_block)
     local half_width = unit * 8
-    local description_block_height = unit * 11
+    local description_block_height = description_block.height
 
     local description_panel =               description_block:subrect(0, 0,           half_width, description_block_height, "left", "up"):shrink(3)
     local traits_panel =                    description_block:subrect(half_width, 0,  half_width, description_block_height, "left", "up"):shrink(3)

@@ -38,17 +38,5 @@ return function(gam, tile, rect, x, y, size)
 	if callback_coa then
 		return callback_coa
 	end
-
-	if WORLD.player_character and tile.province.realm then
-		local button_rect = ui.rect(
-			x - size / 5 + width_unit,
-			y - 50 - height_unit * 2,
-			size,
-			size
-		)
-		if ut.icon_button(ASSETS.get_icon("barbute.png"), button_rect) then
-			return callback.toggle_raiding_target(gam, tile.province)
-		end
-	end
 end
 

@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 
-local ef = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
 local ut = require "game.ui-utils"
 
@@ -26,7 +26,7 @@ local messages = require "game.raws.effects.messages"
 ---@class RaidData
 ---@field raider Character
 ---@field origin Realm
----@field target RewardFlag
+---@field target Province
 ---@field travel_time number
 ---@field army Army
 
@@ -43,20 +43,20 @@ local messages = require "game.raws.effects.messages"
 ---@field losses number
 ---@field army Army
 ---@field loot number
----@field target RewardFlag
+---@field target Province
 
 ---@class RaidResultFail
 ---@field raider Character
 ---@field origin Realm
 ---@field losses number
 ---@field army Army
----@field target RewardFlag
+---@field target Province
 
 ---@class RaidResultRetreat
 ---@field raider Character
 ---@field origin Realm
 ---@field army Army
----@field target RewardFlag
+---@field target Province
 
 
 local function load()
@@ -68,15 +68,27 @@ local function load()
 			associated_data = associated_data
 			local realm_leader = associated_data.defender
 
-
 			associated_data.target.mood = associated_data.target.mood + 0.025
 			if WORLD:does_player_see_realm_news(associated_data.target.realm) then
 				WORLD:emit_notification("Several of our warbands had finished patrolling of " .. associated_data.target.name .. ". Local people feel safety")
 			end
 
+			local total_patrol_size = 0
 			for _, w in pairs(associated_data.patrol) do
 				w.status = 'idle'
+				total_patrol_size = total_patrol_size + w:size()
 			end
+
+			local reward = 0
+			if root.realm.quests_patrol[associated_data.target] then
+				reward = math.min(root.realm.quests_patrol[associated_data.target] or 0, total_patrol_size)
+			end
+			root.realm.quests_patrol[associated_data.target] = (root.realm.quests_patrol[associated_data.target] or 0) - reward
+
+			for _, w in pairs(associated_data.patrol) do
+				w.treasury = w.treasury + reward * w:size() / total_patrol_size
+			end
+
 		end
 	}
 
@@ -129,6 +141,8 @@ local function load()
 			end
 		end,
 		options = function(self, character, associated_data)
+			assert(associated_data ~= nil, "INVALID ASSOCIATED DATA IN EVENT")
+
             ---@type Realm
             local target_realm = associated_data
 
@@ -371,7 +385,7 @@ local function load()
 			local retreat = false
 			local success = true
 			local losses = 0
-			local province = target.target
+			local province = target
 			local realm = province.realm
 
 			if (not raider.dead) and (realm) and (province:army_spot_test(army)) then
@@ -424,12 +438,12 @@ local function load()
 				-- Therefore, it's a sure success.
 				local max_loot = army:get_loot_capacity()
 				local real_loot = math.min(max_loot, province.local_wealth)
-				ef.change_local_wealth(province, -real_loot, ef.reasons.Raid)
+				economic_effects.change_local_wealth(province, -real_loot, economic_effects.reasons.Raid)
 				if realm and max_loot > real_loot then
 					local leftover = max_loot - real_loot
 					local potential_loot = ev.raidable_treasury(realm)
 					local extra = math.min(potential_loot, leftover)
-					ef.change_treasury(realm, -extra, ef.reasons.Raid)
+					economic_effects.change_treasury(realm, -extra, economic_effects.reasons.Raid)
 					real_loot = real_loot + extra
 				end
 
@@ -482,7 +496,7 @@ local function load()
 			realm.capitol.mood = realm.capitol.mood - 0.025
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Raid attempt of " .. raider.name .. " in " ..
-					target.target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
+					target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
 			end
 		end,
 	}
@@ -504,9 +518,6 @@ local function load()
 
 			local mood_swing = loot / (realm.capitol:population() + 1) / 2
 
-			-- popularity to raid initiator
-			pe.change_popularity(target.owner, realm, mood_swing)
-
 			-- improve mood in a province
 			realm.capitol.mood = realm.capitol.mood + mood_swing
 
@@ -514,67 +525,42 @@ local function load()
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
 				if w.leader then
-					pe.change_popularity(w.leader, target.owner.realm, mood_swing / tabb.size(warbands))
+					pe.change_popularity(w.leader, realm, mood_swing / tabb.size(warbands))
 					num_of_warbands = num_of_warbands + 1
 				end
 			end
 
-			-- initiator gets 2 "coins" for each invested "coin"
+			local quest_reward = math.min(loot * 0.5, realm.quests_raid[target] or 0)
+			realm.quests_raid[target] = (realm.quests_raid[target] or 0) - quest_reward
+
+			-- save total loot for future
 			local total_loot = loot
-			local initiator_share = loot * 0.5
-			if initiator_share / 2 > target.reward then
-				initiator_share = target.reward * 2
-			end
 
-			-- reward part
-			-- if reward was 0 then this stage does nothing
-
-			-- pay share to raid initiator
-			ef.add_pop_savings(target.owner, initiator_share, ef.reasons.RewardFlag)
-			loot = loot - initiator_share
-
-			-- pay rewards to warband leaders
-			target.reward = target.reward - initiator_share / 2
+			-- pay quest rewards to warband leaders
 			for _, w in pairs(warbands) do
 				if w.leader then
-					ef.add_pop_savings(w.leader, initiator_share / 2 / num_of_warbands, ef.reasons.RewardFlag)
+					economic_effects.add_pop_savings(w.leader, quest_reward / num_of_warbands, economic_effects.reasons.Quest)
 				end
 			end
-			loot = loot - initiator_share / 2
 
-			-- remained raided wealth part
-
-			-- half of remaining loot goes again to raid_initiator as spoils of war
-			ef.add_pop_savings(target.owner, loot / 2, ef.reasons.Raid)
-			loot = loot - loot / 2
-
-			-- half of remaining loot goes to warbands
+			-- half of loot goes to warbands
 			for _, w in pairs(warbands) do
 				w.treasury = w.treasury + loot / 2 / num_of_warbands
-				-- ef.add_pop_savings(w.leader, loot / 2 / num_of_warbands, ef.reasons.Raid)
 			end
 			loot = loot - loot / 2
 
-			-- pay the remaining half of loot to population
-			ef.change_local_wealth(realm.capitol, loot, EconomicEffects.reasons.Raid)
-
-			if target.reward == 0 then
-				realm:remove_reward_flag(target)
-			end
-
-			-- target.owner.province.realm:remove_reward_flag(target)
+			-- pay the remaining half of loot to local population
+			economic_effects.change_local_wealth(realm.capitol, loot, economic_effects.reasons.Raid)
 
 			if WORLD:does_player_see_realm_news(realm) then
-				WORLD:emit_notification("Our raid in " ..
-					target.target.name ..
-					" succeeded. Warriors brought home " ..
+				WORLD:emit_notification("Our raid in " .. target.name .. " succeeded. Warriors brought home " ..
 					ut.to_fixed_point2(total_loot) .. MONEY_SYMBOL .. " worth of loot. " ..
-					target.owner.name .. ' receives ' .. ut.to_fixed_point2(initiator_share) .. MONEY_SYMBOL .. ' as initialtor.' ..
-					' Warband leaders were additionally rewarded with ' .. ut.to_fixed_point2(initiator_share / 2) .. MONEY_SYMBOL .. '. '
+					' Warband leaders were additionally rewarded with ' .. ut.to_fixed_point2(quest_reward) .. MONEY_SYMBOL .. '. '
 					.. tostring(losses) .. " warriors died.")
 			end
 		end,
 	}
+
 	Event:new {
 		name = "covert-raid-retreat",
 		automatic = false,
@@ -586,12 +572,11 @@ local function load()
 			local army = associated_data.army
 			local target = associated_data.target
 			realm.capitol.mood = realm.capitol.mood - 0.025
-			pe.small_popularity_decrease(target.owner, target.owner.realm)
 
 			realm:disband_army(army)
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
-					target.target.name .. " failed. We were spotted but our warriors returned home safely")
+					target.name .. " failed. We were spotted but our warriors returned home safely")
 			end
 		end,
 	}

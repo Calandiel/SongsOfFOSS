@@ -262,7 +262,10 @@ end
 ---Returns amount of days warband can travel depending on collected supplies
 ---@return number
 function warband:days_of_travel()
-	local supplies = self.leader.inventory['food'] or 0
+	local supplies = 0
+	if self.leader and self.leader.inventory['food'] then
+		supplies = self.leader.inventory['food']
+	end
 	local per_day = self:daily_supply_consumption()
 
 	if per_day == 0 then

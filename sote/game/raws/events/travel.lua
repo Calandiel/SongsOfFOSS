@@ -115,10 +115,10 @@ local function load()
                 .. "This land is controlled by people of " .. data.realm.name .. ". "
                 .. data.realm.leader.race.name .. " " .. data.realm.leader.name .. " rules over them."
         end,
-        function (self, root, data)
+        function (root, data)
             return "Finally!"
         end,
-        function (self, root, data)
+        function (root, data)
             return "What should I do now?"
         end
     )

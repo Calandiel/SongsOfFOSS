@@ -1379,30 +1379,27 @@ end
 ---@field slider_level number
 ---@field header_height number
 
----@class TableColumn
----@field render_closure fun(rect: Rect, k:TableKey, v:TableEntry)
----@field header string
----@field width number
----@field value (fun(k: TableKey, v: TableEntry): TableField)
----@field active? boolean
+
+
+---@class TableColumn<TableEntry>: {render_closure: fun(rect: Rect, k:TableKey, v:TableEntry), header: string, width: number, value: (fun(k: TableKey, v: TableEntry): TableField), active: boolean|nil}
 
 ---@alias TableField number|string
-
 ---@alias TableKey table|string
----@alias TableEntry table
----@alias TablePair {key: TableKey, value: TableEntry}
+
+---@class TablePair<TableEntry>: {key: TableKey, value: TableEntry}
 
 ---TABLE
 ---Renders a sortable table with header and scroll. Mutates state in place.
+---@generic T : table
 ---@param rect Rect
----@param data table<TableKey, TableEntry>
----@param columns TableColumn[]
+---@param data table<TableKey, T>
+---@param columns TableColumn<T>[]
 ---@param state TableState
 ---@param circle_style boolean?
 ---@param slider_arrow_images ButtonImagesSet?
 function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	--- data sorting
-	---@type TablePair[]
+	---@type TablePair<T>[]
 	local sorted_data = {}
 	for _, entry in pairs(data) do
 		table.insert(sorted_data, {key = _, value = entry})

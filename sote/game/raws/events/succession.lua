@@ -130,19 +130,6 @@ local function load()
                 me.dissolve_warband(character)
             end
 
-            -- cancel all rewards:
-            if realm then
-                ---@type RewardFlag[]
-                local rewards = {}
-                for _, reward in pairs(realm.reward_flags) do
-                    if reward.owner == character then
-                        table.insert(rewards, reward)
-                    end
-                end
-                for _, reward in pairs(rewards) do
-                    ee.cancel_reward_flag(realm, reward)
-                end
-            end
 
             -- succession of wealth
             local wealth_successor = character.successor

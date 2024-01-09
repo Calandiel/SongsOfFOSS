@@ -30,8 +30,13 @@ function effects.set_tributary(overlord, tributary)
 		WORLD:emit_notification("Our tribe now pays tribute to " .. overlord.name .. ". Outrageous!")
 	end
 
-	economy_effects.remove_raiding_flags(overlord, tributary)
-	economy_effects.remove_raiding_flags(tributary, overlord)
+	local reward_overlord = overlord.quests_raid[tributary] or 0
+	overlord.quests_raid[tributary.capitol] = 0
+	overlord.quests_patrol[tributary.capitol] = (overlord.quests_patrol[tributary.capitol] or 0) + reward_overlord
+
+	local reward_tributary = tributary.quests_raid[tributary] or 0
+	tributary.quests_raid[overlord.capitol] = 0
+	tributary.quests_patrol[tributary.capitol] = (tributary.quests_patrol[tributary.capitol] or 0) + reward_tributary
 end
 
 ---Removes the tributary relationship and explores provinces for the overlord

@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 local ai = require "game.raws.values.ai_preferences"
 local effects = require "game.raws.effects.economic"
 local eco_values = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economic"
 local pv = require "game.raws.values.political"
 
 local co = {}
@@ -148,15 +149,15 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			end
 		end
 
-		if WORLD.player_character then
-			if WORLD.player_character.province == province then
-				print('____')
-				print("building target: ")
-				print(to_build.name)
-				print(exp_feature[to_build])
-				print(ROI_per_building_type[to_build])
-			end
-		end
+		-- if WORLD.player_character then
+		-- 	if WORLD.player_character.province == province then
+		-- 		print('____')
+		-- 		print("building target: ")
+		-- 		print(to_build.name)
+		-- 		print(exp_feature[to_build])
+		-- 		print(ROI_per_building_type[to_build])
+		-- 	end
+		-- end
 
 		-- if there's nothing to build, do not build
 		if to_build == nil then
@@ -188,7 +189,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
 			-- We can build! But only build if we have enough excess money to pay for the upkeep...
 			if excess >= to_build.upkeep then
-				EconomicEffects.construct_building(to_build, province, tile, owner)
+				economic_effects.construct_building(to_build, province, tile, owner)
 				funds = math.max(0, funds - construction_cost)
 			end
 		end
@@ -234,7 +235,7 @@ function co.run(realm)
 		end
 	end
 
-	EconomicEffects.change_treasury(realm, funds - realm.budget.treasury, EconomicEffects.reasons.Building)
+	economic_effects.change_treasury(realm, funds - realm.budget.treasury, economic_effects.reasons.Building)
 end
 
 return co

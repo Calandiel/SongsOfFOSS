@@ -307,6 +307,11 @@ return function()
                 return
             end
 
+			if root.realm.quests_explore[root.province] then
+				economic_effects.add_pop_savings(root, root.realm.quests_explore[root.province], economic_effects.reasons.Quest)
+				root.realm.quests_explore[root.province] = nil
+			end
+
 			political_effects.medium_popularity_boost(root, root.realm)
             root.realm:explore(root.province)
             root.busy = false

@@ -29,15 +29,14 @@ local inspectors_table = {
 	["confirm-exit"] = require "game.scenes.game.confirm-exit",
 	["army"] = require "game.scenes.game.inspector-military",
 	["character-decisions"] = require "game.scenes.game.inspector-character-decisions",
-	["reward-flag"] = require "game.scenes.game.inspector-reward-flag",
-	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
 	["market"] = require "game.scenes.game.inspectors.market",
 	["population"] = require "game.scenes.game.inspectors.population",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 	["warband"] = require "game.scenes.game.inspectors.warband",
 	["property"] = require "game.scenes.game.inspectors.property",
-	["preferences"] = require "game.scenes.game.inspectors.character_stance"
+	["preferences"] = require "game.scenes.game.inspectors.character_stance",
+	["quests"] = require "game.scenes.game.inspectors.quests"
 }
 
 local tile_inspectors = {
@@ -63,7 +62,6 @@ local tile_inspectors = {
 ---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?
 ---@field cached_tech Technology?
----@field reward_flag RewardFlag?
 
 ---@type Selection
 gam.selected = {}
@@ -800,6 +798,10 @@ function gam.draw()
 				end
 
 				if not decision.clickable(player, province) then
+					return
+				end
+
+				if decision.path == nil then
 					return
 				end
 

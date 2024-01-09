@@ -5,11 +5,11 @@ local ranks_localisation = require "game.raws.ranks.localisation"
 ---@param rect Rect
 ---@param character Character
 local function name(rect, character)
-    rect = rect:shrink(5)
+    -- rect = rect:shrink(5)
 
     local realm = character.realm
 
-    local title = character.name
+    local title = character.name .. "\n"
     if realm then
         if realm.overseer == character then
             title = title .. " Overseer,"
@@ -23,8 +23,8 @@ local function name(rect, character)
 
     end
 
-    title = title .. " " .. ranks_localisation[character.rank]
-    ui.centered_text(title .. " of " .. character.realm.name, rect)
+    title = title .. " \n" .. ranks_localisation[character.rank]
+    ui.text(title .. " of " .. character.realm.name, rect, "left", "up")
 end
 
 return name

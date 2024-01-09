@@ -527,20 +527,6 @@ function world.World:tick()
 						military_effects.patrol(realm, target)
 					end
 				end
-				-- launch raids
-				for _, target in pairs(realm.reward_flags) do
-					local warbands = realm.raiders_preparing[target]
-					local units = 0
-					for _, warband in pairs(warbands) do
-						units = units + warband:size()
-					end
-
-					-- with some probability, launch the raid
-					-- larger groups launch raids faster
-					if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
-						military_effects.covert_raid(realm, target)
-					end
-				end
 
 				PROFILER:end_timer("war")
 
