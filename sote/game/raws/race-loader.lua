@@ -18,6 +18,13 @@ function ll.load()
 		g = 0.4,
 		b = 0.3,
 		icon = 'beaver.png',
+		portrait_description = {
+			folder = "beaver",
+			layers = {"cloth_behind.png", "base.png", "over_1.png", "over_2.png", "ear.png", "cloth.png"},
+			layers_groups = {
+				cloth = {"cloth_behind.png", "cloth.png"}
+			}
+		},
 		description = 'high beavers',
 		males_per_hundred_females = 108,
 		child_age = 4,
@@ -89,6 +96,14 @@ function ll.load()
 		g = 0.5,
 		b = 0.1,
 		icon = 'woman-elf-face.png',
+		portrait_description = {
+			folder = "null_middle",
+			layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
+						"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png", "beard.png"},
+			layers_groups = {
+				hair = {"hair_behind.png", "hair.png"}
+			}
+		},
 		description = 'elves',
 		males_per_hundred_females = 100,
 		child_age = 5,
@@ -233,6 +248,14 @@ function ll.load()
 		g = 0.7,
 		b = 0.1,
 		icon = 'goblin.png',
+		portrait_description = {
+			folder = "goblin",
+			layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png", "11.png"},
+			layers_groups = {
+				ear = {"04.png", "07.png"},
+				hair = {"055.png", "10.png"}
+			}
+		},
 		description = 'goblin',
 		males_per_hundred_females = 102,
 		child_age = 1,

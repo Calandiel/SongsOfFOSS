@@ -58,6 +58,8 @@ end
 ---@field realm_id number
 ---@field name string
 ---@field budget Budget
+---@field tax_target number
+---@field tax_collected_this_year number
 ---@field r number
 ---@field g number
 ---@field b number
@@ -150,6 +152,9 @@ function realm.Realm:new()
 	o.tribute_collectors = {}
 	o.tributaries = {}
 	o.paying_tribute_to = {}
+
+	o.tax_target = 0
+	o.tax_collected_this_year = 0
 
 	o.provinces = {}
 	o.bought = {}

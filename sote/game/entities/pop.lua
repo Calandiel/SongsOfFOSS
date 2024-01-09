@@ -34,6 +34,7 @@
 ---@field leader_of table<Realm, Realm>
 ---@field rank CHARACTER_RANK?
 ---@field former_pop boolean
+---@field dna number[]
 
 local rtab = {}
 
@@ -89,6 +90,11 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 
 	r.dead = false
 	r.former_pop = false
+
+	r.dna = {}
+	for i = 1, 20 do
+		table.insert(r.dna, love.math.random())
+	end
 
 	setmetatable(r, rtab.POP)
 

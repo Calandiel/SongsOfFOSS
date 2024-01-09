@@ -1,8 +1,14 @@
 local JOBTYPE = require "game.raws.job_types"
 
+---@class PortraitDescription
+---@field folder string
+---@field layers string[]
+---@field layers_groups string[][]
+
 ---@class Race
 ---@field name string
 ---@field icon string
+---@field portrait_description nil|PortraitDescription
 ---@field description string
 ---@field r number
 ---@field g number
