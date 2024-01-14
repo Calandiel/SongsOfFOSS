@@ -273,6 +273,21 @@ function d.load()
 		construction_cost = COST_MINE,
 		ai_weight = 10
 	}
+	BuildingType:new {
+		name = 'copper-mining',
+		description = 'copper mine',
+		icon = 'ore.png',
+		r = 0.56,
+		g = 0.33,
+		b = 0.02,
+		unlocked_by = tec('fire-setting-mining'),
+		production_method = prod('fire-copper-mining'),
+		required_resource = { res('copper') },
+		unique = true,
+		needed_infrastructure = 30,
+		construction_cost = COST_MINE,
+		ai_weight = 10
+	}
 
 	-- SMELT ORE
 	BuildingType:new {

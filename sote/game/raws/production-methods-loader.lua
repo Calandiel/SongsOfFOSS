@@ -41,7 +41,7 @@ function d.load()
 		b = 1,
 		inputs = { ["food"] = 0.5 },
 		outputs = { ["healthcare"] = 2 },
-		jobs = { [job("shamans")] = 1},
+		jobs = { [job("shamans")] = 1 },
 		job_type = JOBTYPE.CLERK,
 		self_sourcing_fraction = 0.5
 	}
@@ -154,7 +154,7 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { },
+		inputs = {},
 		outputs = { ["blanks-flint"] = 1 },
 		jobs = { [job("knappers")] = 2 },
 		job_type = JOBTYPE.LABOURER,
@@ -180,7 +180,7 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { },
+		inputs = {},
 		outputs = { ["blanks-obsidian"] = 1 },
 		jobs = { [job("knappers")] = 2 },
 		job_type = JOBTYPE.LABOURER,
@@ -233,6 +233,18 @@ function d.load()
 		b = 0.65,
 		inputs = { ["tools"] = 1 },
 		outputs = { ["copper-ore"] = 10 },
+		jobs = { [job("miners")] = 1 },
+		job_type = JOBTYPE.LABOURER,
+	}
+	ProductionMethod:new {
+		name = "fire-copper-mining",
+		description = "mining ore with help of fire",
+		icon = "ore.png",
+		r = 0.65,
+		g = 0.65,
+		b = 0.65,
+		inputs = { ["tools"] = 1, ["timber"] = 1 },
+		outputs = { ["copper-ore"] = 20 },
 		jobs = { [job("miners")] = 1 },
 		job_type = JOBTYPE.LABOURER,
 	}
