@@ -159,7 +159,8 @@ function d.load()
 		r = love.math.random(),
 		g = love.math.random(),
 		b = love.math.random(),
-		unlocked_by = { tec("paleolithic-knowledge"), },
+		unlocked_by = { tec("paleolithic-knowledge") },
+		required_resource = { res("bees") },
 		research_cost = 0.65,
 	}
 	Technology:new {

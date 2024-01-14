@@ -405,6 +405,28 @@ function d.load()
 		rainfall_extreme_min = 5,
 		rainfall_extreme_max = 200,
 	}
+	ProductionMethod:new {
+		name = "beekeeping",
+		description = "Beekeeping",
+		icon = "wheat.png",
+		r = 0.2,
+		g = 0.65,
+		b = 0,
+		inputs = { ["tools"] = 0.1 },
+		outputs = { ["honey"] = 1 },
+		jobs = { [job("farmers")] = 1, },
+		job_type = JOBTYPE.FARMER,
+		self_sourcing_fraction = 0.125,
+		crop = true,
+		temperature_ideal_min = 11,
+		temperature_ideal_max = 20,
+		temperature_extreme_min = 5,
+		temperature_extreme_max = 30,
+		rainfall_ideal_min = 40,
+		rainfall_ideal_max = 70,
+		rainfall_extreme_min = 5,
+		rainfall_extreme_max = 200,
+	}
 end
 
 return d

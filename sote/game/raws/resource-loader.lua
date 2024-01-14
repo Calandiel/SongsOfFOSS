@@ -242,6 +242,19 @@ function d.load()
 			bio('mixed-woodland'),
 		},
 	}
+	-- ANIMALS
+	Resource:new {
+		name = 'bees',
+		icon = 'wheat.png',
+		r = 0.76,
+		g = 0.78,
+		b = 0.1,
+		base_frequency = 1000,
+		maximum_elevation = 1250.0,
+		required_biome = {
+			bio('grassland'),
+		},
+	}
 end
 
 return d

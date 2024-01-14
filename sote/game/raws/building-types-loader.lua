@@ -452,6 +452,22 @@ function d.load()
 		construction_cost = COST_FARM,
 		building_group = BUILDING_GROUP.FARM
 	}
+	BuildingType:new {
+		name = 'beehive',
+		description = 'beehive',
+		icon = 'wheat.png',
+		r = 0.86,
+		g = 0.83,
+		b = 0.02,
+		unlocked_by = tec('beekeeping'),
+		production_method = prod('beekeeping'),
+		required_resource = { res("bees") },
+		tile_improvement = true,
+		needed_infrastructure = 0.5,
+		ai_weight = 150,
+		construction_cost = COST_FARM,
+		building_group = BUILDING_GROUP.FARM
+	}
 end
 
 return d
