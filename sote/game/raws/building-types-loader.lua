@@ -273,6 +273,21 @@ function d.load()
 		construction_cost = COST_MINE,
 		ai_weight = 10
 	}
+	BuildingType:new {
+		name = 'copper-mining',
+		description = 'copper mine',
+		icon = 'ore.png',
+		r = 0.56,
+		g = 0.33,
+		b = 0.02,
+		unlocked_by = tec('fire-setting-mining'),
+		production_method = prod('fire-copper-mining'),
+		required_resource = { res('copper') },
+		unique = true,
+		needed_infrastructure = 30,
+		construction_cost = COST_MINE,
+		ai_weight = 10
+	}
 
 	-- SMELT ORE
 	BuildingType:new {
@@ -434,6 +449,22 @@ function d.load()
 		tile_improvement = true,
 		needed_infrastructure = 2.5,
 		ai_weight = 50,
+		construction_cost = COST_FARM,
+		building_group = BUILDING_GROUP.FARM
+	}
+	BuildingType:new {
+		name = 'beehive',
+		description = 'beehive',
+		icon = 'wheat.png',
+		r = 0.86,
+		g = 0.83,
+		b = 0.02,
+		unlocked_by = tec('beekeeping'),
+		production_method = prod('beekeeping'),
+		required_resource = { res("bees") },
+		tile_improvement = true,
+		needed_infrastructure = 0.5,
+		ai_weight = 150,
 		construction_cost = COST_FARM,
 		building_group = BUILDING_GROUP.FARM
 	}

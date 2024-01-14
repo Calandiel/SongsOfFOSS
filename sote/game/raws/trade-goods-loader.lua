@@ -42,6 +42,18 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("food", "food", 1)
+	TradeGood:new {
+		name = "honey",
+		description = "honey",
+		icon = "high-grass.png",
+		r = 0.12,
+		g = 0.12,
+		b = 1,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("food", "food", 0.5)
+	add_use_case("honey", "mead-substrate", 1)
 	-- CRUCIAL SETTLEMENT SERVICES
 	TradeGood:new {
 		name = "water",

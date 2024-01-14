@@ -34,6 +34,7 @@ function d.load()
 	make_use_case("leather", "leather", "animal-hide.png", 1, 0.65, 0.65)
 	make_use_case("meat", "meat", "meat.png", 1, 0.1, 0.1)
 	make_use_case("timber", "timber", "wood-pile.png", 0.72, 0.41, 0.22)
+	make_use_case("mead-substrate", "ingredients in mead production", "high-grass.png", 0.32, 0.42, 0.92)
 
 	-- tools
 	make_use_case("tools-like", "tools", "stone-axe.png", 0.162, 0.141, 0.422)
