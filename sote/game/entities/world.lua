@@ -302,6 +302,8 @@ local function handle_event(event, target_realm, associated_data)
 		error(event .. " is not a valid event!")
 	end
 
+	assert(target_realm ~= nil, "CHARACTER DOES NOT EXIST")
+
 	-- First, find the best option
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
@@ -639,6 +641,9 @@ function world.World:tick()
 					local pop_aging = require "game.society.pop-aging"
 					for _, settled_province in pairs(WORLD.provinces) do
 						pop_aging.age(settled_province)
+						if settled_province.realm then
+							settled_province.realm.tax_collected_this_year = 0
+						end
 					end
 				end
 

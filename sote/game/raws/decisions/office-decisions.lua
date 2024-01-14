@@ -181,15 +181,11 @@ local function load()
 				return 0
 			end
 
-			if tabb.size(root.realm.tributaries) == 0 then
-				return 0
+			if tabb.size(root.realm.tribute_collectors) < 1 + root.realm.capitol:population() / 20 then
+				return 0.25 * loyalty_multiplier
 			end
 
-			if tabb.size(root.realm.tribute_collectors) == 0 and tabb.size(root.realm.tributaries) > 0 then
-				return 10
-			end
-
-			return 0.5 * loyalty_multiplier - tabb.size(root.realm.tribute_collectors) / tabb.size(root.realm.tributaries)
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			if WORLD.player_character == root then

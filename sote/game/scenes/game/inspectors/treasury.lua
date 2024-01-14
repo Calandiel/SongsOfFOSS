@@ -75,20 +75,22 @@ return function(ui_panel, realm)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- treasury target
-        uit.money_entry("Target budget", realm.budget.treasury_target, panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"), "We try to save up at least this amount of wealth in treasury")
-        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+        uit.money_entry("Target budget", realm.budget.treasury_target,
+            panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", "up"),
+            "We try to save up at least this amount of wealth in treasury"
+        )
+        -- panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- control over treasury target
+        local treasury_button_rect = panel_rect:subrect(uit.BASE_HEIGHT * 8, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", "up")
         if WORLD:does_player_control_realm(realm) then
-            local button_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", "up")
-
             ---@param mult number
             local function change_treasury_target(mult)
                 local amount = mult * TREASURY_TARGET_CHANGE
                 if uit.money_button(
                     "Change by ",
                     amount,
-                    button_rect,
+                    treasury_button_rect,
                     "Change treasury target by "
                     .. uit.to_fixed_point2(amount) .. MONEY_SYMBOL
                     .. ". You will try to save up specified amount of wealth in treasury. "
@@ -97,12 +99,46 @@ return function(ui_panel, realm)
                 ) then
                     realm.budget.treasury_target = math.max(0, realm.budget.treasury_target + amount)
                 end
-                button_rect.x = button_rect.x + uit.BASE_HEIGHT * 6
+                treasury_button_rect.x = treasury_button_rect.x + uit.BASE_HEIGHT * 6
             end
 
             change_treasury_target(-1)
             change_treasury_target(1)
         end
+
+        panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
+
+        uit.money_entry("Target yearly tax", realm.tax_target,
+            panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", "up"),
+            "We try to collect this amount of wealth per year from our population"
+        )
+
+        -- control over treasury target
+        local tax_button_rect = panel_rect:subrect(uit.BASE_HEIGHT * 8, 0, uit.BASE_HEIGHT * 6, uit.BASE_HEIGHT, "left", "up")
+        if WORLD:does_player_control_realm(realm) then
+        ---@param mult number
+            local function change_tax_target(mult)
+                local amount = mult * TREASURY_TARGET_CHANGE
+                if uit.money_button(
+                    "Change by ",
+                    amount,
+                    tax_button_rect,
+                    "Change tax target by "
+                    .. uit.to_fixed_point2(amount) .. MONEY_SYMBOL
+                    .. "Press Ctrl or Shift to modify invested amount."
+                ) then
+                    realm.tax_target = math.max(0, realm.tax_target + amount)
+                end
+                tax_button_rect.x = tax_button_rect.x + uit.BASE_HEIGHT * 6
+            end
+
+            change_tax_target(-1)
+            change_tax_target(1)
+        end
+
+        uit.money_entry("Collected tax", realm.tax_collected_this_year,
+        panel_rect:subrect(tax_button_rect.x, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", "up"),
+        "We try to collect this amount of wealth per year from our population")
 
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 

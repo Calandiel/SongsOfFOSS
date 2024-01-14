@@ -101,5 +101,17 @@ function text.exploration_helper_payment_received(self, character, associated_da
 	end
 end
 
+---Character was paid for his help in exploration
+---@param self table
+---@param character Character
+---@param associated_data nil
+---@return string
+function text.tax_collection_1(self, character, associated_data)
+	return "I was collecting taxes on behalf of " .. character.realm.leader.name .. ". " ..
+		"I have already collected a sizable amount but I can collect even more taxes and keep them myself." ..
+		" My reputation among our people will suffer even more but as long I am on a good side of "
+		.. character.realm.leader.name .. " it's probably fine."
+end
+
 
 return text

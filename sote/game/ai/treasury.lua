@@ -1,6 +1,8 @@
 local tabb = require "engine.table"
 local economic_effects = require "game.raws.effects.economic"
 
+local TRAIT = require "game.raws.traits.generic"
+
 local tr = {}
 
 ---@param realm Realm
@@ -19,7 +21,16 @@ function tr.run(realm)
 		economic_effects.set_military_budget(realm, 0.2)
 	end
 
+	-- for now ais will try to collect enough taxes to maintain eductation
+	realm.tax_target = 10 + realm.budget.education.target
 	realm.budget.treasury_target = 250
+
+
+	-- if ruler is gready, he doubles the tax
+	if realm.leader.traits[TRAIT.GREEDY] then
+		realm.tax_target = realm.tax_target * 2
+		realm.budget.treasury_target = 400
+	end
 end
 
 return tr

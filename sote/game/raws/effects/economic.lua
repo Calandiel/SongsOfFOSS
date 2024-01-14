@@ -39,7 +39,8 @@ EconomicEffects.reasons = {
     TradeSiphon = "trade siphon",
     Quest = "quest",
     NeighborSiphon = "neigbour siphon",
-    Colonisation = "colonisation"
+    Colonisation = "colonisation",
+    Tax = "tax"
 }
 
 ---Change realm treasury and display effects to player
@@ -52,6 +53,11 @@ function EconomicEffects.change_treasury(realm, x, reason)
         realm.budget.treasury_change_by_category[reason] = 0
     end
     realm.budget.treasury_change_by_category[reason] = realm.budget.treasury_change_by_category[reason] + x
+
+    if reason == EconomicEffects.reasons.Tax and x > 0 then
+        realm.tax_collected_this_year = realm.tax_collected_this_year + x
+    end
+
     EconomicEffects.display_treasury_change(realm, x, reason)
 end
 
@@ -65,6 +71,11 @@ function EconomicEffects.register_income(realm, x, reason)
     if realm.budget.income_by_category[reason] == nil then
         realm.budget.income_by_category[reason] = 0
     end
+
+    if reason == EconomicEffects.reasons.Tax and x > 0 then
+        realm.tax_collected_this_year = realm.tax_collected_this_year + x
+    end
+
     realm.budget.income_by_category[reason] = realm.budget.income_by_category[reason] + x
     EconomicEffects.display_treasury_change(realm, x, reason)
 end
@@ -481,6 +492,30 @@ function EconomicEffects.gift_to_warband(character, amount)
 
     EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Warband)
     warband.treasury = warband.treasury + amount
+end
+
+---commenting
+---@param character Character
+---@return number
+function EconomicEffects.collect_tax(character)
+    local total_tax = 0
+    local tax_collection_ability = 0.05
+    if character.traits[traits.HARDWORKER] then
+        tax_collection_ability = tax_collection_ability + 0.01
+    end
+    if character.traits[traits.GREEDY] then
+        tax_collection_ability = tax_collection_ability + 0.03
+    end
+    if character.traits[traits.LAZY] then
+        tax_collection_ability = tax_collection_ability - 0.01
+    end
+    for _, pop in pairs(character.province.all_pops) do
+        if pop.savings > 0 then
+            total_tax = total_tax + pop.savings * tax_collection_ability
+            EconomicEffects.add_pop_savings(pop, -pop.savings * tax_collection_ability, EconomicEffects.reasons.Tax)
+        end
+    end
+    return total_tax
 end
 
 return EconomicEffects

@@ -2,6 +2,7 @@ return function ()
 	require "game.raws.decisions.debug._loader"()
 	require "game.raws.decisions.party._loader"()
 	require "game.raws.decisions.military._loader"()
+	require "game.raws.decisions.economy._loader"()
 
 	require "game.raws.decisions.war-decisions" ()
 	require "game.raws.decisions.character-decisions" ()
