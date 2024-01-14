@@ -116,6 +116,9 @@ local function load()
 			for _, tributary in pairs(root.realm.tributaries) do
 				targets[tributary.capitol] = tributary.capitol
 			end
+			for _, reward in pairs(root.realm.quests_explore) do
+				targets[_] = _
+			end
 			-- TODO: ADD TRADE AGREEMENTS AND ADD CAPITOLS OF REALMS WITH TRADE AGREEMENTS SIGNED AS POTENTIAL TARGETS HERE
 
 			local _, prov = tabb.random_select_from_set(targets)
@@ -129,6 +132,8 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
+			local reward = root.realm.quests_explore[primary_target] or 0
+
 			if root.rank == RANK.CHIEF then
 				return 0
 			end
@@ -256,7 +261,7 @@ local function load()
 			local reward = root.realm.quests_explore[primary_target] or 0
 
 			if root.traits[TRAIT.TRADER] then
-				return 1 / 36 + reward / 100 -- explore sometimes
+				return 1 / 36 + reward / 40 -- explore sometimes
 			end
 			return 0
 		end,
