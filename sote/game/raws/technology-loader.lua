@@ -1,11 +1,15 @@
 local d = {}
 
 function d.load()
+	print()
+	print("=== LOADING TECHS ===")
+	print()
 	local Technology = require "game.raws.technologies"
 	local met = require "game.raws.raws-utils".production_method
 	local cat = require "game.raws.raws-utils".trade_category
 	local tec = require "game.raws.raws-utils".technology
 	local res = require "game.raws.raws-utils".resource
+	local bio = require "game.raws.raws-utils".biome
 	local prod = require "game.raws.raws-utils".production_method
 
 	Technology:new {
@@ -95,94 +99,6 @@ function d.load()
 		research_cost = 0.25,
 	}
 	Technology:new {
-		name = "advanced-metal-working",
-		icon = "asteroid.png",
-		description = "working metals with high skill",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("metal-casting"), tec("bloomeries") },
-		required_resource = {},
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "alloys",
-		icon = "asteroid.png",
-		description = "mixing metals into new subtances",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("metal-casting"), tec("bloomeries") },
-		required_resource = { res("native-bronze") },
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "electrum",
-		icon = "asteroid.png",
-		description = "mixing gold and silver",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("alloys") },
-		required_resource = { res("gold"), res("silver") },
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "arsenical-bronze",
-		icon = "asteroid.png",
-		description = "mixing arsenic and copper",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("alloys") },
-		required_resource = { res("arsenic"), res("copper") },
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "tin-bronze",
-		icon = "asteroid.png",
-		description = "mixing tin and copper",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("arsenical-bronze") },
-		required_resource = { res("tin"), res("copper") },
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "brass",
-		icon = "asteroid.png",
-		description = "mixing zinc and copper",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("alloys") },
-		required_resource = { res("zinc"), res("copper") },
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "coinage",
-		icon = "asteroid.png",
-		description = "standardized currency",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("electrum") },
-		required_resource = {},
-		research_cost = 0.5,
-	}
-	Technology:new {
-		name = "plate-armor",
-		icon = "asteroid.png",
-		description = "armor out of proper advanced metals",
-		r = 1,
-		g = 1,
-		b = 1,
-		unlocked_by = { tec("alloys") },
-		required_resource = {},
-		research_cost = 0.25,
-	}
-	Technology:new {
 		name = "agriculture",
 		icon = "pitchfork.png",
 		description = "agriculture",
@@ -207,6 +123,46 @@ function d.load()
 		research_cost = 0.15,
 	}
 	Technology:new {
+		name = "selective-plant-breeding",
+		icon = "pitchfork.png",
+		description = "creation of better plant cultivars",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("agriculture"), },
+		research_cost = 0.65,
+	}
+	Technology:new {
+		name = "hoes",
+		icon = "pitchfork.png",
+		description = "better agricultural tools",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("agriculture"), },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "sickles",
+		icon = "pitchfork.png",
+		description = "better agricultural tools",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("agriculture"), },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "beekeeping",
+		icon = "pitchfork.png",
+		description = "beekeeping",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("paleolithic-knowledge"), },
+		research_cost = 0.65,
+	}
+	Technology:new {
 		name = "basic-fermentation",
 		icon = "beer-stein.png",
 		description = "fermenting things to create alcohol",
@@ -226,6 +182,38 @@ function d.load()
 		unlocked_by = { tec("basic-fermentation"), },
 		research_cost = 1,
 		throughput_boosts = { [prod("brewing")] = 0.15 },
+	}
+	Technology:new {
+		name = "mead",
+		icon = "pitchfork.png",
+		description = "mead",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("basic-fermentation"), tec("beekeeping") },
+		research_cost = 0.65,
+	}
+	Technology:new {
+		name = "resin-glue",
+		icon = "pitchfork.png",
+		description = "glue",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("basic-fermentation"), tec("beekeeping") },
+		required_biome = { bio("taiga"), bio("woodland-taiga"), bio("coniferous-forest"), bio("coniferous-woodland") },
+		research_cost = 0.65,
+	}
+	Technology:new {
+		name = "animal-glue",
+		icon = "pitchfork.png",
+		description = "glue",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("paleolithic-knowledge") },
+		required_biome = {},
+		research_cost = 0.35,
 	}
 	Technology:new {
 		name = "surface-mining",
@@ -316,6 +304,125 @@ function d.load()
 		unlocked_by = { tec("pottery"), tec("dedicated-woodcutters") },
 		research_cost = 0.3,
 		required_resource = { res("quality-clay") },
+	}
+
+	Technology:new {
+		name = "advanced-metal-working",
+		icon = "asteroid.png",
+		description = "working metals with high skill",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("metal-casting"), tec("bloomeries") },
+		required_resource = {},
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "alloys",
+		icon = "asteroid.png",
+		description = "mixing metals into new subtances",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("metal-casting"), tec("bloomeries") },
+		required_resource = { res("native-bronze") },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "electrum",
+		icon = "asteroid.png",
+		description = "mixing gold and silver",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("alloys") },
+		required_resource = { res("gold"), res("silver") },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "arsenical-bronze",
+		icon = "asteroid.png",
+		description = "mixing arsenic and copper",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("alloys") },
+		required_resource = { res("arsenic"), res("copper") },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "tin-bronze",
+		icon = "asteroid.png",
+		description = "mixing tin and copper",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("arsenical-bronze") },
+		required_resource = { res("tin"), res("copper") },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "brass",
+		icon = "asteroid.png",
+		description = "mixing zinc and copper",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("alloys") },
+		required_resource = { res("zinc"), res("copper") },
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "coinage",
+		icon = "asteroid.png",
+		description = "standardized currency",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("electrum") },
+		required_resource = {},
+		research_cost = 0.5,
+	}
+	Technology:new {
+		name = "plate-armor",
+		icon = "asteroid.png",
+		description = "armor out of proper advanced metals",
+		r = 1,
+		g = 1,
+		b = 1,
+		unlocked_by = { tec("alloys") },
+		required_resource = {},
+		research_cost = 0.25,
+	}
+	Technology:new {
+		name = "brickmaking",
+		icon = "asteroid.png",
+		description = "simple sun-fired bricks",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("dedicated-woodcutters"), tec("pottery") },
+		research_cost = 1,
+	}
+	Technology:new {
+		name = "kiln",
+		icon = "asteroid.png",
+		description = "kilns for mass firing of pottery and bricks",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("brickmaking"), },
+		research_cost = 1,
+	}
+	Technology:new {
+		name = "fire-setting-mining",
+		icon = "asteroid.png",
+		description = "more efficieng mining",
+		r = love.math.random(),
+		g = love.math.random(),
+		b = love.math.random(),
+		unlocked_by = { tec("surface-mining"), },
+		research_cost = 1,
 	}
 end
 

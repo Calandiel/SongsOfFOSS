@@ -57,6 +57,15 @@ function d.load()
 		base_frequency = 10000,
 	}
 	Resource:new {
+		name = 'iron',
+		icon = 'asteroid.png',
+		description = 'meteoric iron',
+		r = 0.6,
+		g = 0.35,
+		b = 1,
+		base_frequency = 6000,
+	}
+	Resource:new {
 		name = 'native-copper',
 		icon = 'ore.png',
 		description = 'native copper',
@@ -74,12 +83,60 @@ function d.load()
 		base_frequency = 9000
 	}
 	Resource:new {
+		name = 'gold',
+		icon = 'gold-nuggets.png',
+		r = 1,
+		g = 0.84,
+		b = 0,
+		base_frequency = 6000
+	}
+	Resource:new {
+		name = 'silver',
+		icon = 'gold-nuggets.png',
+		r = 1,
+		g = 0.84,
+		b = 1,
+		base_frequency = 6000
+	}
+	Resource:new {
+		name = 'arsenic',
+		icon = 'ore.png',
+		r = 0.6,
+		g = 0.84,
+		b = 0.9,
+		base_frequency = 3000
+	}
+	Resource:new {
 		name = 'copper',
 		icon = 'ore.png',
 		description = 'copper',
 		r = 0.71,
 		g = 0.25,
 		b = 0.05,
+		base_frequency = 4000
+	}
+	Resource:new {
+		name = 'native-bronze',
+		icon = 'ore.png',
+		r = 0.36,
+		g = 0.125,
+		b = 0.025,
+		base_frequency = 4000
+	}
+	Resource:new {
+		name = 'tin',
+		icon = 'ore.png',
+		r = 0.31,
+		g = 1.0,
+		b = 0.05,
+		base_frequency = 4000
+	}
+	Resource:new {
+		name = 'zinc',
+		icon = 'ore.png',
+		r = 0.01,
+		g = 0.8,
+		b = 0.35,
 		base_frequency = 4000
 	}
 	Resource:new {
@@ -185,9 +242,6 @@ function d.load()
 			bio('mixed-woodland'),
 		},
 	}
-
-
-
 end
 
 return d
