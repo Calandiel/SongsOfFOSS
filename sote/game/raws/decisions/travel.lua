@@ -119,6 +119,7 @@ local function load()
 			for _, reward in pairs(root.realm.quests_explore) do
 				targets[_] = _
 			end
+
 			-- TODO: ADD TRADE AGREEMENTS AND ADD CAPITOLS OF REALMS WITH TRADE AGREEMENTS SIGNED AS POTENTIAL TARGETS HERE
 
 			local _, prov = tabb.random_select_from_set(targets)
