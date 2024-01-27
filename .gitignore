@@ -4,5 +4,6 @@ sote/.vscode
 *.zip
 
 token.txt
+seed.txt
 sote/seed.txt
 sote/logs/

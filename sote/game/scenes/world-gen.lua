@@ -128,7 +128,7 @@ local function init_mem_reserve()
 end
 
 local function init_lib_sote()
-  local bins_dir = "engine/bins/win/"
+  local bins_dir = love.filesystem.getWorkingDirectory() .. "/sote/engine/bins/win/"
   lib_sote = ffi.load(bins_dir .. "libSOTE.dll")
   if not lib_sote then
     error("failed to load libSOTE.dll")
