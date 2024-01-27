@@ -128,7 +128,7 @@ local function init_mem_reserve()
 end
 
 local function init_lib_sote()
-  local bins_dir = love.filesystem.getWorkingDirectory() .. "/sote/engine/bins/win/"
+  local bins_dir = love.filesystem.getSourceBaseDirectory() .. "/sote/engine/bins/win/"
   lib_sote = ffi.load(bins_dir .. "libSOTE.dll")
   if not lib_sote then
     error("failed to load libSOTE.dll")
@@ -179,6 +179,7 @@ function wg.init()
   local current_msg = ""
   local msg = ffi.new("char[256]")
   while lib_sote.LIBSOTE_IsRunning() == 1 do
+    ffi.fill(msg, ffi.sizeof(msg))
     lib_sote.LIBSOTE_GetLoadMessage(err_msg, msg)
 
     local new_msg = ffi.string(msg)
