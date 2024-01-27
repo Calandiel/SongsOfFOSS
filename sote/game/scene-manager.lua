@@ -6,6 +6,7 @@ local mm = require "game.scenes.main-menu"
 local wl = require "game.scenes.world-loader"
 local ws = require "game.scenes.world-saver"
 local gam = require "game.scenes.game"
+local wg = require "game.scenes.world-gen"
 
 ---@alias SceneName
 ---A viable scene name
@@ -19,7 +20,8 @@ scene_manager.scenes = {
 	{ "main-menu",    mm },
 	{ "world-loader", wl }, -- also potentially a world generator
 	{ "world-saver",  ws },
-	{ "game",         gam } -- for actual gameplay
+	{ "game",         gam }, -- for actual gameplay
+    { "world-gen",    wg }
 }
 
 --- A table containing the game state for the UI and so on.

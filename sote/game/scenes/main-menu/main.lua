@@ -46,6 +46,12 @@ function mm.draw()
 	) then
 		return "empty"
 	end
+	if IS_WINDOWS and ut.text_button(
+		"New planet",
+		layout:next(menu_button_width, menu_button_height)
+	) then
+		return "new-planet"
+	end
 	if ut.text_button(
 		"Options",
 		layout:next(menu_button_width, menu_button_height)

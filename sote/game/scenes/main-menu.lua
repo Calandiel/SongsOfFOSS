@@ -47,6 +47,9 @@ function mm.draw()
 		DEFINES.default = true
 		local manager = require "game.scene-manager"
 		manager.transition("world-loader")
+		elseif screen == "new-planet" then
+		local manager = require "game.scene-manager"
+		manager.transition("world-gen")
 	else
 		love.graphics.setColor(1, 0, 0, 1)
 		ui.centered_text("!!! UNKNOWN PANEL !!!", ui.fullscreen())

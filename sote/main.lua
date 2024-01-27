@@ -1,3 +1,8 @@
+if arg and arg[#arg] == "-debug" then
+  require("mobdebug").start()
+  require("mobdebug").coro()
+end
+
 print("Initial random number:")
 print(love.math.random(100))
 local tab = require "engine.table"
@@ -12,6 +17,8 @@ ARGS = {} -- note, hot loading won't overwrite ARGS because the declaration is e
 ASSETS = {}
 -- A version string, kinda irrelevant now since multiplayer isn't a thing, lol
 VERSION_STRING = "v0.3.0 (Midgard)"
+
+IS_WINDOWS = false
 
 --if WORLD == nil then
 ---@type World|nil
@@ -133,6 +140,10 @@ Possible command line arguments:
 ]])
 		love.event.quit()
 		return
+	end
+
+	if tab.contains(ARGS, "--windows") then
+		IS_WINDOWS = true
 	end
 
 	if tab.contains(ARGS, "--profile") then
