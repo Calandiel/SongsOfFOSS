@@ -1,25 +1,10 @@
 local wg = {}
 
+local kernel32 = require("utils.win32api")
 local ffi = require("ffi")
-local kernel32 = nil
 local lib_sote = nil
 
 ffi.cdef[[
-typedef void VOID;
-typedef VOID* LPVOID;
-typedef uintptr_t ULONG_PTR;
-typedef ULONG_PTR SIZE_T;
-typedef unsigned long DWORD;
-typedef int BOOL;
-
-static const uint32_t MEM_RESERVE = 0x2000;
-static const uint32_t PAGE_EXECUTE_READWRITE = 0x40;
-static const uint32_t MEM_RELEASE = 0x8000;
-
-DWORD __stdcall GetLastError();
-LPVOID __stdcall VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
-BOOL __stdcall VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
-
 int LIBSOTE_Init(char* err_msg, const char* log_file);
 int LIBSOTE_StartTask(char* err_msg, int task, unsigned int num, char* fname);
 int LIBSOTE_WaitEndTask(char* err_msg);
@@ -30,16 +15,16 @@ int LIBSOTE_GetLoadMessage(char* err_msg, char* msg);
 ]]
 
 local sote_params = {
-  {name = "randomSeed",                       index = 0,  ctype = "unsigned int",   value = 90638},
-  {name = "WorldSize",                        index = 1,  ctype = "unsigned short", value = 183},
-  {name = "SuperOceans",                      index = 2,  ctype = "short",          value = 1},
-  {name = "SuperContinents",                  index = 3,  ctype = "short",          value = 1},
-  {name = "MajorPlates",                      index = 4,  ctype = "short",          value = 7},
-  {name = "MinorPlates",                      index = 5,  ctype = "short",          value = 12},
-  {name = "MajorHotspots",                    index = 6,  ctype = "short",          value = 9},
-  {name = "ModerateHotspots",                 index = 7,  ctype = "short",          value = 12},
-  {name = "MinorHotspots",                    index = 8,  ctype = "short",          value = 30},
-  {name = "HotspotWidth",                     index = 9,  ctype = "double",         value = 1.0},
+  {name = "randomSeed",                       index =  0, ctype = "unsigned int",   value = 90638},
+  {name = "WorldSize",                        index =  1, ctype = "unsigned short", value = 183},
+  {name = "SuperOceans",                      index =  2, ctype = "short",          value = 1},
+  {name = "SuperContinents",                  index =  3, ctype = "short",          value = 1},
+  {name = "MajorPlates",                      index =  4, ctype = "short",          value = 7},
+  {name = "MinorPlates",                      index =  5, ctype = "short",          value = 12},
+  {name = "MajorHotspots",                    index =  6, ctype = "short",          value = 9},
+  {name = "ModerateHotspots",                 index =  7, ctype = "short",          value = 12},
+  {name = "MinorHotspots",                    index =  8, ctype = "short",          value = 30},
+  {name = "HotspotWidth",                     index =  9, ctype = "double",         value = 1.0},
   {name = "majPlateExpansion",                index = 10, ctype = "short",          value = 4},
   {name = "minPlateExpansion",                index = 11, ctype = "short",          value = 3},
   {name = "plateRandomness",                  index = 12, ctype = "short",          value = 50},
@@ -96,12 +81,12 @@ end
 
 local function init_mem_reserve()
   kernel32 = ffi.load("kernel32")
-  
-  local addr = ffi.cast("LPVOID", 0x8000000000ll)
-  local alloc_size = 0x5000002000ll
+
+  local addr = ffi.cast("LPVOID", 0x8000000000)
+  local alloc_size = 0x5000002000
   local allocated_memory = nil
   local allocation_attempts = 10
-  allocation_success = false
+  local allocation_success = false
 
   while allocation_attempts > 0 do
     allocated_memory = kernel32.VirtualAlloc(addr, alloc_size, ffi.C.MEM_RESERVE, ffi.C.PAGE_EXECUTE_READWRITE)
@@ -123,7 +108,7 @@ local function init_mem_reserve()
   if not allocation_success then
     error("memory allocation failed, bailing out")
   end
-  
+
   ffi.gc(allocated_memory, function(addr) kernel32.VirtualFree(addr, 0, ffi.C.MEM_RELEASE) end)
 end
 
@@ -133,9 +118,9 @@ local function init_lib_sote()
   if not lib_sote then
     error("failed to load libSOTE.dll")
   end
-  
+
   local err_msg = ffi.new("char[256]")
-  
+
   local ret_code = lib_sote.LIBSOTE_Init(err_msg, "logs/libSOTE/log.txt")
   if ret_code ~= 0 then
     log_sote(err_msg)
@@ -151,13 +136,13 @@ function wg.init()
   if ffi.os ~= "Windows" then
     error("libSOTE only supported on Windows for now")
   end
-  
+
   init_mem_reserve()
   init_lib_sote()
-  
+
   local err_msg = ffi.new("char[256]")
   local ret_code = 0
-  
+
   local desc = ffi.new("unsigned int[3]", {1, 0, 0})
   for _, v in ipairs(sote_params) do
     if v.ctype == "" then goto continue end
