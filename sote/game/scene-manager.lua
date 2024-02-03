@@ -21,7 +21,7 @@ scene_manager.scenes = {
 	{ "world-loader", wl }, -- also potentially a world generator
 	{ "world-saver",  ws },
 	{ "game",         gam }, -- for actual gameplay
-    { "world-gen",    wg }
+	{ "world-gen",    wg }
 }
 
 --- A table containing the game state for the UI and so on.
