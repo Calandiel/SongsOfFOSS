@@ -71,12 +71,7 @@ function mm.draw()
 		elseif original == "exclusive" then OPTIONS.fullscreen = "desktop"
 		else OPTIONS.fullscreen = "normal" end
 	end
-	if original ~= OPTIONS.fullscreen then
-		-- if the status changed, update the fullscreen state...
-		if OPTIONS.fullscreen == "normal" then love.window.setFullscreen(false)
-		else love.window.setFullscreen(true, OPTIONS.fullscreen) end
-		require "game.ui-utils".reload_font()
-	end
+	if original ~= OPTIONS.fullscreen then love.updateFullscreen() end
 
 	--SCREEN RESOLUTION
 	local current_resolution=OPTIONS.screen_resolution.width .. 'x' .. tostring(OPTIONS.screen_resolution.height)
@@ -93,12 +88,12 @@ function mm.draw()
 				if name == current_resolution then active = true end
 				if ut.text_button(name, rect, nil, not active, active) then
 					OPTIONS.screen_resolution=modes[i]
-					if GAME_STATE.scene[1] == "game" then
-						GAME_STATE.scene[2].game_canvas=love.graphics.newCanvas(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
-					end
+					ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+					love.updateFullscreen()
 					love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
 						msaa = 2
 					})
+					require "game.ui-utils".reload_font()
 				end
 			end
 		end, UI_STYLE.scrollable_list_item_height, #modes, UI_STYLE.slider_width, resolution_scroll

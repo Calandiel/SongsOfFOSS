@@ -241,7 +241,13 @@ function love.keypressed(key)
 		input_counter = input_counter + 1
 		print("the game is responsive: " .. tostring(input_counter))
 	elseif key == "f4" then
-		love.window.setFullscreen(not love.window.getFullscreen())
+		if OPTIONS.fullscreen == "normal" then
+			OPTIONS.fullscreen = "exclusive"
+			love.updateFullscreen()
+		else
+			OPTIONS.fullscreen = "normal"
+			love.updateFullscreen()
+		end
 		reload_font()
 	end
 
@@ -266,4 +272,22 @@ end
 
 function love.wheelmoved(x, y)
 	ui.on_wheelmoved(x, y)
+end
+
+function love.updateFullscreen()
+	if OPTIONS.fullscreen == "normal" then
+		love.window.setFullscreen(false)
+	else
+		love.window.setFullscreen(true, OPTIONS.fullscreen)
+	end
+	if GAME_STATE.scene[1] == "game" then
+		if OPTIONS.fullscreen == "desktop" then
+			local dim_x, dim_y = love.graphics.getDimensions()
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x,dim_y)
+		else
+			ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+		end
+	end
+	require "game.ui-utils".reload_font()
 end
