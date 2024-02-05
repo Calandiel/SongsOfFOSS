@@ -17,6 +17,7 @@ function opt.init()
 		["exploration"] = 0,
 		["travel-start"] = 0,
 		["travel-end"] = 0,
+		["screen_resolution"] = {width = 1280, height = 720}
 	}
 end
 

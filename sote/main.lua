@@ -177,15 +177,18 @@ Possible command line arguments:
 		require "game.options".verify()
 	end
 
-	love.window.updateMode(800, 600, {
+	love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
 		msaa = 2
 	})
-
+	print(OPTIONS.fullscreen)
 	if tab.contains(args, "--windowed") then
+		print("HAS WINDOW ARG")
+		OPTIONS.fullscreen = "normal"
+		print(OPTIONS.fullscreen)
 		love.window.setFullscreen(false)
 	else
-		if OPTIONS.fullscreen then
-			love.window.setFullscreen(true)
+		if OPTIONS.fullscreen ~= "normal" then
+			love.window.setFullscreen(true, OPTIONS.fullscreen)
 		else
 			love.window.setFullscreen(false)
 		end

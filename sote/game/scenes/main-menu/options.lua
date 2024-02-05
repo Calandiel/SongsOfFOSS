@@ -3,6 +3,8 @@ local mm = {}
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local resolution_scroll = 0
+
 function mm.rect()
 	return ui.fullscreen():subrect(0, 20, 300, 600, "center", "center")
 end
@@ -75,6 +77,33 @@ function mm.draw()
 		else love.window.setFullscreen(true, OPTIONS.fullscreen) end
 		require "game.ui-utils".reload_font()
 	end
+
+	--SCREEN RESOLUTION
+	local current_resolution=OPTIONS.screen_resolution.width .. 'x' .. tostring(OPTIONS.screen_resolution.height)
+	local modes = love.window.getFullscreenModes()
+	table.sort(modes, function(a, b) return a.width*a.height < b.width*b.height end)
+	local box_size = layout:next(menu_button_width - UI_STYLE.slider_width, menu_button_height * 4.5)
+	box_size.x = box_size.x + UI_STYLE.slider_width/2
+	box_size.width = box_size.width - UI_STYLE.slider_width/4
+	resolution_scroll = ut.scrollview(
+		box_size, function(i, rect)
+			if i > 0 then
+				local name = modes[i].width .. 'x' .. modes[i].height
+				local active = false
+				if name == current_resolution then active = true end
+				if ut.text_button(name, rect, nil, not active, active) then
+					OPTIONS.screen_resolution=modes[i]
+					if GAME_STATE.scene[1] == "game" then
+						GAME_STATE.scene[2].game_canvas=love.graphics.newCanvas(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+					end
+					love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
+						msaa = 2
+					})
+				end
+			end
+		end, UI_STYLE.scrollable_list_item_height, #modes, UI_STYLE.slider_width, resolution_scroll
+	)
+
 
 	-- ROTATION
 	OPTIONS.rotation = ui.named_checkbox(
