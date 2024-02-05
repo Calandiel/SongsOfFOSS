@@ -58,14 +58,21 @@ function mm.draw()
 
 	-- FULLSCREEN
 	local original = OPTIONS.fullscreen
-	OPTIONS.fullscreen = ui.named_checkbox(
-		"Fullscreen",
-		layout:next(menu_button_width, menu_button_height), OPTIONS.fullscreen,
-		5
-	)
+	local fullscreen_text = "Windowed"
+	if original == "exclusive" then fullscreen_text = "Exclusive"
+	elseif original == "desktop" then fullscreen_text = "Desktop" end
+	if ut.text_button(
+		fullscreen_text,
+		layout:next(menu_button_width, menu_button_height)
+	) then
+		if original == "normal" then OPTIONS.fullscreen = "exclusive"
+		elseif original == "exclusive" then OPTIONS.fullscreen = "desktop"
+		else OPTIONS.fullscreen = "normal" end
+	end
 	if original ~= OPTIONS.fullscreen then
 		-- if the status changed, update the fullscreen state...
-		love.window.setFullscreen(OPTIONS.fullscreen)
+		if OPTIONS.fullscreen == "normal" then love.window.setFullscreen(false)
+		else love.window.setFullscreen(true, OPTIONS.fullscreen) end
 		require "game.ui-utils".reload_font()
 	end
 
