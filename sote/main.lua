@@ -243,12 +243,10 @@ function love.keypressed(key)
 	elseif key == "f4" then
 		if OPTIONS.fullscreen == "normal" then
 			OPTIONS.fullscreen = "exclusive"
-			love.updateFullscreen()
 		else
 			OPTIONS.fullscreen = "normal"
-			love.updateFullscreen()
 		end
-		reload_font()
+		UpdateFullscreen()
 	end
 
 	ui.on_keypressed(key)
@@ -274,7 +272,7 @@ function love.wheelmoved(x, y)
 	ui.on_wheelmoved(x, y)
 end
 
-function love.updateFullscreen()
+function UpdateFullscreen()
 	if OPTIONS.fullscreen == "normal" then
 		love.window.setFullscreen(false)
 	else

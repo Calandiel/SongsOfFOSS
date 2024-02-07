@@ -71,7 +71,7 @@ function mm.draw()
 		elseif original == "exclusive" then OPTIONS.fullscreen = "desktop"
 		else OPTIONS.fullscreen = "normal" end
 	end
-	if original ~= OPTIONS.fullscreen then love.updateFullscreen() end
+	if original ~= OPTIONS.fullscreen then UpdateFullscreen() end
 
 	--SCREEN RESOLUTION
 	local current_resolution=OPTIONS.screen_resolution.width .. 'x' .. tostring(OPTIONS.screen_resolution.height)
@@ -89,7 +89,7 @@ function mm.draw()
 				if ut.text_button(name, rect, nil, not active, active) then
 					OPTIONS.screen_resolution=modes[i]
 					ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
-					love.updateFullscreen()
+					UpdateFullscreen()
 					love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
 						msaa = 2
 					})
