@@ -180,11 +180,8 @@ Possible command line arguments:
 	love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
 		msaa = 2
 	})
-	print(OPTIONS.fullscreen)
 	if tab.contains(args, "--windowed") then
-		print("HAS WINDOW ARG")
 		OPTIONS.fullscreen = FULLSCREEN.FLASE
-		print(OPTIONS.fullscreen)
 		love.window.setFullscreen(false)
 	else
 		if OPTIONS.fullscreen ~= FULLSCREEN.FALSE then
