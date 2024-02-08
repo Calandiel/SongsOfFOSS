@@ -3,13 +3,6 @@ print(love.math.random(100))
 local tab = require "engine.table"
 local ui = require "engine.ui"
 
----@enum FULLSCREEN
-FULLSCREEN = {
-	FALSE = "false",
-	EXCLUSIVE = "exclusive",
-	DESKTOP = "desktop"
-}
-
 -- Reloads the font used for rendering
 local reload_font = require "game.ui-utils".reload_font
 

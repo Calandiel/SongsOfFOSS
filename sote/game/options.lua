@@ -1,5 +1,11 @@
 
 
+---@enum FULLSCREEN
+FULLSCREEN = {
+	FALSE = "false",
+	EXCLUSIVE = "exclusive",
+	DESKTOP = "desktop"
+}
 
 local opt = {}
 
