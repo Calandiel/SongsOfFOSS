@@ -183,11 +183,11 @@ Possible command line arguments:
 	print(OPTIONS.fullscreen)
 	if tab.contains(args, "--windowed") then
 		print("HAS WINDOW ARG")
-		OPTIONS.fullscreen = "normal"
+		OPTIONS.fullscreen = FULLSCREEN.FLASE
 		print(OPTIONS.fullscreen)
 		love.window.setFullscreen(false)
 	else
-		if OPTIONS.fullscreen ~= "normal" then
+		if OPTIONS.fullscreen ~= FULLSCREEN.FALSE then
 			love.window.setFullscreen(true, OPTIONS.fullscreen)
 		else
 			love.window.setFullscreen(false)
