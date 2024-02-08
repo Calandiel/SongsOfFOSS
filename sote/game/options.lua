@@ -7,7 +7,7 @@ local opt = {}
 function opt.init()
 	return {
 		["volume"] = 0,
-		["fullscreen"] ="normal",
+		["fullscreen"] = FULLSCREEN.FALSE,
 		["rotation"] = false,
 		["update_map"] = false,
 		["treasury_ledger"] = 120,

@@ -3,6 +3,13 @@ print(love.math.random(100))
 local tab = require "engine.table"
 local ui = require "engine.ui"
 
+---@enum FULLSCREEN
+FULLSCREEN = {
+	FALSE = "false",
+	EXCLUSIVE = "exclusive",
+	DESKTOP = "desktop"
+}
+
 -- Reloads the font used for rendering
 local reload_font = require "game.ui-utils".reload_font
 
@@ -241,10 +248,10 @@ function love.keypressed(key)
 		input_counter = input_counter + 1
 		print("the game is responsive: " .. tostring(input_counter))
 	elseif key == "f4" then
-		if OPTIONS.fullscreen == "normal" then
-			OPTIONS.fullscreen = "exclusive"
+		if OPTIONS.fullscreen == FULLSCREEN.FALSE then
+			OPTIONS.fullscreen = FULLSCREEN.EXCLUSIVE
 		else
-			OPTIONS.fullscreen = "normal"
+			OPTIONS.fullscreen = FULLSCREEN.FALSE
 		end
 		UpdateFullscreen()
 	end
@@ -273,13 +280,13 @@ function love.wheelmoved(x, y)
 end
 
 function UpdateFullscreen()
-	if OPTIONS.fullscreen == "normal" then
+	if OPTIONS.fullscreen == FULLSCREEN.FALSE then
 		love.window.setFullscreen(false)
 	else
 		love.window.setFullscreen(true, OPTIONS.fullscreen)
 	end
 	if GAME_STATE.scene[1] == "game" then
-		if OPTIONS.fullscreen == "desktop" then
+		if OPTIONS.fullscreen == FULLSCREEN.DESKTOP then
 			local dim_x, dim_y = love.graphics.getDimensions()
 			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x,dim_y)
 		else
