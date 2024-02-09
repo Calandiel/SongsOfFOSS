@@ -60,18 +60,19 @@ function mm.draw()
 
 	-- FULLSCREEN
 	local original = OPTIONS.fullscreen
+	local changed = OPTIONS.fullscreen
 	local fullscreen_text = "Windowed"
-	if original == FULLSCREEN.EXCLUSIVE then fullscreen_text = "Exclusive"
-	elseif original == FULLSCREEN.DESKTOP then fullscreen_text = "Desktop" end
+	if original == "exclusive" then fullscreen_text = "Exclusive"
+	elseif original == "desktop" then fullscreen_text = "Desktop" end
 	if ut.text_button(
 		fullscreen_text,
 		layout:next(menu_button_width, menu_button_height)
 	) then
-		if original == FULLSCREEN.FALSE then OPTIONS.fullscreen = FULLSCREEN.EXCLUSIVE
-		elseif original == FULLSCREEN.EXCLUSIVE then OPTIONS.fullscreen = FULLSCREEN.DESKTOP
-		else OPTIONS.fullscreen = FULLSCREEN.FALSE end
+		if original == "false" then changed = "exclusive"
+		elseif original == "exclusive" then changed = "desktop"
+		else changed = "false" end
 	end
-	if original ~= OPTIONS.fullscreen then UpdateFullscreen() end
+	if original ~= changed then require "game.options".updateFullscreen(changed) end
 
 	--SCREEN RESOLUTION
 	local current_resolution=OPTIONS.screen_resolution.width .. 'x' .. tostring(OPTIONS.screen_resolution.height)
@@ -89,7 +90,7 @@ function mm.draw()
 				if ut.text_button(name, rect, nil, not active, active) then
 					OPTIONS.screen_resolution=modes[i]
 					ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
-					UpdateFullscreen()
+					require "game.options".updateFullscreen(OPTIONS.fullscreen)
 					love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
 						msaa = 2
 					})

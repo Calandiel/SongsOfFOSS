@@ -1,19 +1,26 @@
 
-
----@enum FULLSCREEN
-FULLSCREEN = {
-	FALSE = "false",
-	EXCLUSIVE = "exclusive",
-	DESKTOP = "desktop"
-}
-
 local opt = {}
 
+---@alias Fullscreen "false" | "exclusive" | "desktop"
+---@class Options
+---@feild ["volume"] number
+---@feild ["fullscreen"] Fullscreen
+---@feild ["rotation"] boolean
+---@feild ["update_map"] boolean
+---@feild ["treasury_ledger"] number
+---@feild ["debug_mode"] boolean
+---@feild ["zoom_sensitivity"] number
+---@feild ["camera_sensitivity"] number
+---@feild ["exploration"] number
+---@feild ["travel-start"] number
+---@feild ["travel-end"] number
+---@feild ["screen_resolution"] {width number, height number}
 
+---@return Options
 function opt.init()
 	return {
 		["volume"] = 0,
-		["fullscreen"] = FULLSCREEN.FALSE,
+		["fullscreen"] = "false",
 		["rotation"] = false,
 		["update_map"] = false,
 		["treasury_ledger"] = 120,
@@ -32,6 +39,7 @@ function opt.save()
 	bs.dumpLoveFile("options.bin", OPTIONS)
 end
 
+---@return Options
 function opt.load()
 	local bs = require "engine.bitser"
 	return bs.loadLoveFile("options.bin")
@@ -47,5 +55,28 @@ function opt.verify()
 	end
 end
 
+---@param fullscreen Fullscreen
+function opt.updateFullscreen(fullscreen)
+	if OPTIONS == nil or OPTIONS.fullscreen == fullscreen then return end
+	---@class Options
+	OPTIONS = OPTIONS
+	OPTIONS.fullscreen = fullscreen
+	if fullscreen == "false" then
+		love.window.setFullscreen(false)
+	else
+		love.window.setFullscreen(true, fullscreen)
+	end
+	if GAME_STATE.scene[1] == "game" then
+		if fullscreen == "desktop" then
+			local dim_x, dim_y = love.graphics.getDimensions()
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x,dim_y)
+		else
+			local ui = require "engine.ui"
+			ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+		end
+	end
+	require "game.ui-utils".reload_font()
+end
 
 return opt
