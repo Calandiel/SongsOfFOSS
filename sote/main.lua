@@ -238,10 +238,10 @@ function love.keypressed(key)
 		print("the game is responsive: " .. tostring(input_counter))
 	elseif key == "f4" then
 		if OPTIONS.fullscreen == "false" then
-			require "game.ui".updateFullscreen("exclusive")
+			require "game.options".updateFullscreen("exclusive")
 		else
 			OPTIONS.fullscreen = "false"
-			require "game.ui".updateFullscreen("false")
+			require "game.options".updateFullscreen("false")
 		end
 	end
 
