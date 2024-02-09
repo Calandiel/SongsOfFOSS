@@ -74,11 +74,22 @@ function mm.draw()
 	end
 	if original ~= changed then require "game.options".updateFullscreen(changed) end
 
+	local stretch = OPTIONS.fitscreen
+	OPTIONS.fitscreen = ui.named_checkbox(
+		"Use monitor aspect for Fullscreen",
+		layout:next(menu_button_width, menu_button_height), OPTIONS.fitscreen,
+		5
+	)
+	if stretch ~= OPTIONS.fitscreen then
+		require "game.options".updateFullscreen(OPTIONS.fullscreen)
+	end
+
+
 	--SCREEN RESOLUTION
 	local current_resolution=OPTIONS.screen_resolution.width .. 'x' .. tostring(OPTIONS.screen_resolution.height)
 	local modes = love.window.getFullscreenModes()
 	table.sort(modes, function(a, b) return a.width*a.height < b.width*b.height end)
-	local box_size = layout:next(menu_button_width - UI_STYLE.slider_width, menu_button_height * 4.5)
+	local box_size = layout:next(menu_button_width - UI_STYLE.slider_width, menu_button_height * 3)
 	box_size.x = box_size.x + UI_STYLE.slider_width/2
 	box_size.width = box_size.width - UI_STYLE.slider_width/4
 	resolution_scroll = ut.scrollview(
