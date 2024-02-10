@@ -14,7 +14,8 @@ On Linux, run `./run-sote-linux.sh`.
 
 # Contributing
 
-SotE is open to contributors. If 
+SotE is open to contributors. Search for a suitable [issue](https://github.com/Calandiel/SongsOfGPL/issues) and ping one of the core contributors in a pull request to get merged!
+
 ## Setting up the LSP
 
 SotE uses [Lua LSP](https://github.com/LuaLS/lua-language-server). Make sure you have it installed and working before contributing.
