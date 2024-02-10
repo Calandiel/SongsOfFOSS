@@ -1,13 +1,19 @@
 # SongsOfGPL
 
-A FOSS release of source code of the unreleased version 0.3 of Songs of the Eons.
-Released with permission of the project owner.
-Note that this release includes only the unfinished Lua reimplementation on a square tile world.
-The 0.2 release relies critically on code that cannot be licensed under GPL and has contributions from people we can't reach anymore. That being said, this codebase still includes some potentially interesting features, such as the climate, vegetation and biome models.
-Keep in mind that this build is unfinished and likely won't be worked on in the foreseeable future (though, I will review and merge in any potential merge requests that may come its way).
+Songs of GPL is a FOSS release of [Songs of the Eons](https://demiansky.itch.io/songs-of-the-eons).
+
+It's written in Lua and includes the game part of the project, notably not including the original world generator.
 
 # Running the game
 
 On Windows, double click `run-sote-windows.bat`.
 
 On Linux, run `./run-sote-linux.sh`.
+
+# Contributing
+
+## Setting up the LSP
+
+SotE uses [Lua LSP](https://github.com/LuaLS/lua-language-server). Make sure you have it installed and working before contributing.
+
+If you see warnings such as "undefined global love", see the following [link](https://github.com/LuaLS/lua-language-server/wiki/Libraries#manually-applying) and apply the love2d library to your LSP settings.
