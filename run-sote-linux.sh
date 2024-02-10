@@ -1,1 +1,1 @@
-./sote/engine/bins/linux/love.AppImage sote
+./sote/engine/bins/linux/love.AppImage sote "$@"

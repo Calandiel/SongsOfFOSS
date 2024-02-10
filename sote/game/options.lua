@@ -3,23 +3,25 @@ local opt = {}
 
 ---@alias Fullscreen "false" | "exclusive" | "desktop"
 ---@class Options
----@feild ["volume"] number
----@feild ["fullscreen"] Fullscreen
----@feild ["fitscreen"] boolean
----@feild ["rotation"] boolean
----@feild ["update_map"] boolean
----@feild ["treasury_ledger"] number
----@feild ["debug_mode"] boolean
----@feild ["zoom_sensitivity"] number
----@feild ["camera_sensitivity"] number
----@feild ["exploration"] number
----@feild ["travel-start"] number
----@feild ["travel-end"] number
----@feild ["screen_resolution"] {width number, height number}
+---@field ["version"] string
+---@field ["volume"] number
+---@field ["fullscreen"] Fullscreen
+---@field ["fitscreen"] boolean
+---@field ["rotation"] boolean
+---@field ["update_map"] boolean
+---@field ["treasury_ledger"] number
+---@field ["debug_mode"] boolean
+---@field ["zoom_sensitivity"] number
+---@field ["camera_sensitivity"] number
+---@field ["exploration"] number
+---@field ["travel-start"] number
+---@field ["travel-end"] number
+---@field ["screen_resolution"] {width: number, height: number}
 
 ---@return Options
 function opt.init()
 	return {
+		["version"] = "v0.3.1",
 		["volume"] = 0,
 		["fullscreen"] = "false",
 		["fitscreen"] = true,
@@ -50,6 +52,11 @@ end
 function opt.verify()
 	local default = opt.init()
 
+	if OPTIONS.version ~= default.version then
+		OPTIONS = default
+		return
+	end
+	
 	for i, j in pairs(default) do
 		if OPTIONS[i] == nil then
 			OPTIONS[i] = j
