@@ -1005,7 +1005,8 @@ function re.draw(gam)
 			closure = function()
 				local response = require "game.scenes.game.widgets.character-list"(
 					tab_content,
-					tile.province
+					tile.province.characters,
+					"Local Characters"
 				)()
 				if response then
 					gam.selected.character = response
