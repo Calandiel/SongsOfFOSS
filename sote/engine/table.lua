@@ -143,7 +143,7 @@ function tab.random_select_from_set(items)
 	return k, v
 end
 
----Given a table and a function with parameter of table falue that resolves to a boolean,
+---Given a table and a function with parameter of table value type that resolves to a boolean,
 ---return a new table with all values that resolve to true
 ---@generic K, V
 ---@param items table<K, V>

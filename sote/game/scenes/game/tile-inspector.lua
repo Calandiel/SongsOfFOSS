@@ -1030,7 +1030,7 @@ function re.draw(gam)
 					},
 					{
 						text = "Home",
-						tooltip = "All characters in the province.",
+						tooltip = "Characters that are at home.",
 						closure = function ()
 							local response = require "game.scenes.game.widgets.character-list"(
 								tab_content,
