@@ -11,6 +11,9 @@ local ef = require "game.raws.effects.economic"
 local military_effects = require "game.raws.effects.military"
 
 re.cached_scrollbar = 0
+---@alias TileCharacterTab "All" | "Home" | "Guest"
+---@type TileCharacterTab
+re.cached_character_tab = "All"
 
 ---@return Rect
 local function get_main_panel()
@@ -1003,15 +1006,63 @@ function re.draw(gam)
 			icon = ASSETS.icons["inner-self.png"],
 			tooltip = "List of notable characters",
 			closure = function()
-				local response = require "game.scenes.game.widgets.character-list"(
-					tab_content,
-					tile.province.characters,
-					"Local Characters"
-				)()
-				if response then
-					gam.selected.character = response
-					gam.inspector = "character"
-				end
+				local tab_layout = ui.layout_builder()
+				:position(tab_content.x, tab_content.y)
+				:spacing(2)
+				:horizontal()
+				:build()
+				tab_content.y = tab_content.y + unit * 1.2
+				tab_content.height = tab_content.height - unit * 1.2
+				re.cached_character_tab = uit.tabs(re.cached_character_tab, tab_layout, {
+					{
+						text = "All",
+						tooltip = "All characters in province",
+						closure = function ()
+							local response = require "game.scenes.game.widgets.character-list"(
+								tab_content,
+								tile.province.characters
+							)()
+							if response then
+								gam.selected.character = response
+								gam.inspector = "character"
+							end
+						end
+					},
+					{
+						text = "Home",
+						tooltip = "All characters in the province.",
+						closure = function ()
+							local response = require "game.scenes.game.widgets.character-list"(
+								tab_content,
+								tabb.filter(tile.province.characters,
+									function(a) 
+										return a.province == a.home_province
+									end)
+							)()
+							if response then
+								gam.selected.character = response
+								gam.inspector = "character"
+							end
+						end
+					},
+					{
+						text = "Guest",
+						tooltip = "All foreign characters present.",
+						closure = function ()
+							local response = require "game.scenes.game.widgets.character-list"(
+								tab_content,
+								tabb.filter(tile.province.characters,
+									function(a) 
+										return a.province ~= a.home_province
+									end)
+							)()
+							if response then
+								gam.selected.character = response
+								gam.inspector = "character"
+							end
+						end
+					}
+				}, 1.2)
 			end
 		},
 		{
