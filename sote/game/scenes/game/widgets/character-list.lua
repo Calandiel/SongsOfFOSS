@@ -112,12 +112,14 @@ return function(rect, table, title, compact)
         }
         init_state(compact)
         local bottom_height = rect.height
+        local bottom_y = 0
         if title then
             bottom_height = bottom_height - UI_STYLE.table_header_height
+            bottom_y = UI_STYLE.table_header_height
             local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", "up")
             ui.centered_text(title, top)
         end
-        local bottom = rect:subrect(0, UI_STYLE.table_header_height, rect.width, bottom_height, "left", "up")
+        local bottom = rect:subrect(0, bottom_y, rect.width, bottom_height, "left", "up")
         return ut.table(bottom, table, columns, state)
     end
 end
