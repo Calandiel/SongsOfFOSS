@@ -239,7 +239,6 @@ function gam.load_camera_position_or_set_to_default()
 	end
 end
 
-
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
@@ -248,7 +247,7 @@ function gam.update(dt)
 		PAUSE_REQUESTED = false
 	end
 
-	if gam.paused and gam.ticks_without_map_update > world.ticks_per_hour * 24 * 10  then
+	if gam.paused and gam.ticks_without_map_update > world.ticks_per_hour * 24 * 10 then
 		gam.ticks_without_map_update = 0
 		gam.refresh_map_mode(true)
 	end
@@ -674,8 +673,8 @@ function gam.draw()
 		return x, y, z
 	end
 
-	local draw_distance = 1.15
-	local flood_fill = 250
+	local draw_distance = 1.075
+	local flood_fill = 200
 
 	if coll_point and (gam.camera_position:len() < draw_distance) then
 		local draw_tile = function(tile)
@@ -775,7 +774,7 @@ function gam.draw()
 			local result = nil
 			if mode == "path" then
 				local decision = gam.selected.macrodecision
-				if decision  == nil then
+				if decision == nil then
 					return
 				end
 				local player = WORLD.player_character
@@ -791,7 +790,7 @@ function gam.draw()
 
 				if path then
 					table.insert(path, player.province)
-					result = require "game.scenes.game.widgets.onmap.path"(gam, rect_for_icons, hours, path, tile_to_x_y)
+					result = require "game.scenes.game.widgets.onmap.path" (gam, rect_for_icons, hours, path, tile_to_x_y)
 				end
 			end
 
@@ -800,11 +799,11 @@ function gam.draw()
 			end
 
 			if mode == "decision" then
-				result = require "game.scenes.game.widgets.onmap.decision"(gam, tile, rect_for_icons)
+				result = require "game.scenes.game.widgets.onmap.decision" (gam, tile, rect_for_icons)
 			end
 
 			if mode == "macrobuilder" then
-				result = require "game.scenes.game.widgets.onmap.macrobuilder"(gam, tile, rect_for_icons, x, y, size)
+				result = require "game.scenes.game.widgets.onmap.macrobuilder" (gam, tile, rect_for_icons, x, y, size)
 			end
 
 			if result then
@@ -1309,7 +1308,8 @@ function gam.draw()
 			end
 		end
 
-		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000, layout:next(profile_rect.width / 4, 25))
+		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000,
+			layout:next(profile_rect.width / 4, 25))
 
 		if ut.text_button("RESET", layout:next(profile_rect.width / 4, 25)) then
 			PROFILER:clear()
@@ -1663,8 +1663,8 @@ function gam.refresh_map_mode(preserve_efficiency)
 				local g = tile.real_g
 				local b = tile.real_b
 
-				local result_pixel = {r, g, b, 1}
-				local result_improvement = {0, 0, 0, 1}
+				local result_pixel = { r, g, b, 1 }
+				local result_improvement = { 0, 0, 0, 1 }
 
 				if tile.tile_improvement and gam.map_mode == "atlas" then
 					result_improvement[1] = 1

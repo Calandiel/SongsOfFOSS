@@ -3,6 +3,8 @@ local mm = {}
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local resolution_scroll = 0
+
 function mm.rect()
 	return ui.fullscreen():subrect(0, 20, 300, 600, "center", "center")
 end
@@ -58,16 +60,57 @@ function mm.draw()
 
 	-- FULLSCREEN
 	local original = OPTIONS.fullscreen
-	OPTIONS.fullscreen = ui.named_checkbox(
-		"Fullscreen",
-		layout:next(menu_button_width, menu_button_height), OPTIONS.fullscreen,
+	local changed = OPTIONS.fullscreen
+	local fullscreen_text = "Windowed"
+	if original == "exclusive" then fullscreen_text = "Exclusive"
+	elseif original == "desktop" then fullscreen_text = "Desktop" end
+	if ut.text_button(
+		fullscreen_text,
+		layout:next(menu_button_width, menu_button_height)
+	) then
+		if original == "false" then changed = "exclusive"
+		elseif original == "exclusive" then changed = "desktop"
+		else changed = "false" end
+	end
+	if original ~= changed then require "game.options".updateFullscreen(changed) end
+
+	local stretch = OPTIONS.fitscreen
+	OPTIONS.fitscreen = ui.named_checkbox(
+		"Use monitor aspect for Fullscreen",
+		layout:next(menu_button_width, menu_button_height), OPTIONS.fitscreen,
 		5
 	)
-	if original ~= OPTIONS.fullscreen then
-		-- if the status changed, update the fullscreen state...
-		love.window.setFullscreen(OPTIONS.fullscreen)
-		require "game.ui-utils".reload_font()
+	if stretch ~= OPTIONS.fitscreen then
+		require "game.options".updateFullscreen(OPTIONS.fullscreen)
 	end
+
+
+	--SCREEN RESOLUTION
+	local current_resolution=OPTIONS.screen_resolution.width .. 'x' .. tostring(OPTIONS.screen_resolution.height)
+	local modes = love.window.getFullscreenModes()
+	table.sort(modes, function(a, b) return a.width*a.height < b.width*b.height end)
+	local box_size = layout:next(menu_button_width - UI_STYLE.slider_width, menu_button_height * 3)
+	box_size.x = box_size.x + UI_STYLE.slider_width/2
+	box_size.width = box_size.width - UI_STYLE.slider_width/4
+	resolution_scroll = ut.scrollview(
+		box_size, function(i, rect)
+			if i > 0 then
+				local name = modes[i].width .. 'x' .. modes[i].height
+				local active = false
+				if name == current_resolution then active = true end
+				if ut.text_button(name, rect, nil, not active, active) then
+					OPTIONS.screen_resolution=modes[i]
+					ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+					require "game.options".updateFullscreen(OPTIONS.fullscreen)
+					love.window.updateMode(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height, {
+						msaa = 2
+					})
+					require "game.ui-utils".reload_font()
+				end
+			end
+		end, UI_STYLE.scrollable_list_item_height, #modes, UI_STYLE.slider_width, resolution_scroll
+	)
+
 
 	-- ROTATION
 	OPTIONS.rotation = ui.named_checkbox(

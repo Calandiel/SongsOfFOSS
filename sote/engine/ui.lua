@@ -135,8 +135,12 @@ end
 ---@param new_width number
 ---@param new_height number
 function ui.set_reference_screen_dimensions(new_width, new_height)
-	reference_width = new_width
-	reference_height = new_height
+	local current_ratio = reference_width / reference_height
+	local new_ratio = new_width / new_height
+	if current_ratio ~= new_ratio then
+		reference_width = reference_height * new_ratio
+	end
+	--print(reference_width / reference_height .. " " .. reference_width .. "x" .. reference_height)
 end
 
 ---Returns scaling factors that transform froms reference space to screen space that can be used with Love's draw functions.
@@ -204,6 +208,7 @@ function Rect:copy()
 end
 
 ---Returns a new rect, using this rect as the new reference point.
+---@alias love.AlignMode "center"  | "left" | "right"
 ---@param x number
 ---@param y number
 ---@param width number
