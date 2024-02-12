@@ -2,5 +2,7 @@
     "runtime.version": "Lua 5.2",
     "diagnostics.disable": [
         "redundant-parameter"
-    ]
+    ],
+    "diagnostics.ignoredFiles": "Disable",
+    "diagnostics.globals": ["love","jit"]
   }
