@@ -20,6 +20,9 @@ local decision_target_secondary = nil
 
 local traits_slider = 0
 local inventory_slider = 0
+---@alias CharacterInspectorListTab "Local" | "Children"
+---@type CharacterInspectorListTab
+window.character_list_tab = "Local"
 
 ---@return Rect
 function window.rect()
@@ -111,7 +114,8 @@ function window.draw(game)
     local decisions_label_panel =           layout:next(unit * 16, unit * 1)
     local decisions_panel =                 layout:next(unit * 16, unit * 7)
     local decisions_confirmation_panel =    layout:next(unit * 16, unit * 1)
-    local characters_list =                 layout:next(unit * 16, unit * 8)
+    local character_list_rect =              layout:next(unit * 16, unit)
+    local characters_list =                 layout:next(unit * 16, unit * 7)
 
     character_name_widget(name_panel, character)
 
@@ -120,7 +124,11 @@ function window.draw(game)
         sex = "female"
     end
 
-    ui.left_text(sex .. " " .. character.race.name, age_panel)
+    local age_name = " adult"
+    if character.age < character.race.adult_age then
+        age_name = " child"
+    end
+    ui.left_text(sex .. " " .. character.race.name .. age_name, age_panel)
     ui.right_text("age: " .. character.age, age_panel)
 
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
@@ -231,10 +239,33 @@ function window.draw(game)
     end
 
     if province and province_visible then
-        local response = characters_list_widget(characters_list, character.province.characters, "Local Characters", true)()
-        if response then
-            game.selected.character = response
-        end
+        local tab_contents = ui.layout_builder()
+            :position(character_list_rect.x, character_list_rect.y)
+            :spacing(2)
+            :horizontal()
+            :build()
+            window.character_list_tab = ut.tabs(window.character_list_tab, tab_contents,{
+            {
+                text = "Local",
+                tooltip = "Characters in the same province.",
+                closure = function()
+                    local response = characters_list_widget(characters_list, character.province.characters, nil, true)()
+                    if response then
+                        game.selected.character = response
+                    end
+                end
+            },
+            {
+                text = "Children",
+                tooltip = "This character's ichildren.",
+                closure = function()
+                    local response = characters_list_widget(characters_list, character.children, nil, true)()
+                    if response then
+                        game.selected.character = response
+                    end
+                end
+            }
+        }, 1)
     end
 
     ut.coa(character.realm, coa)
