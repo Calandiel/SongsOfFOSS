@@ -970,9 +970,10 @@ function re.draw(gam)
 	panel.height = panel.height - unit
 
 	local tab_content = panel:subrect(0, unit, panel.width, panel.height - unit, "left", "up")
-
+	
 	gam.tile_inspector_tab = gam.tile_inspector_tab or "GEN"
-
+	
+	---@alias TileInspectorTab "GEN" | "BLD" | "TEC" | "CHR" | "DCS" | "GEO"
 	local tabs = {
 		{
 			text = "GEN",
