@@ -259,10 +259,14 @@ local function load()
 			local realm = root.province.realm
 			local province = root.province
 			local warband = root.leading_warband
-			if office_triggers.guard_leader(root, root.province.realm) then
-				warband = realm.capitol_guard
-			end
-			realm:add_patrol(province, warband)
+			if realm ~= nil then
+				if office_triggers.guard_leader(root, root.province.realm) then
+					warband = realm.capitol_guard
+				end
+				if warband then
+					realm:add_patrol(province, warband)
+				else error("Character is not leading a warband!") end
+			else error("Character has no realm!") end
 		end
 	}
 
