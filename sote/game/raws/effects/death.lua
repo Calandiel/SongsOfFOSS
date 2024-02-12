@@ -9,6 +9,12 @@ function effects.death(character)
         WORLD:emit_notification(character.name .. " had died.")
     end
 
+    if character.parent then character.parent.children[character] = nil end
+    for _,c in pairs(character.children) do
+        c.parent = nil
+        character.children[c] = nil
+    end
+
     for _, target in pairs(character.successor_of) do
         target.successor = nil
         character.successor_of[target] = nil

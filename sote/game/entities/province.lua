@@ -353,6 +353,12 @@ function prov.Province:kill_pop(pop)
 	if pop.home_province then
 		pop.home_province:unset_home(pop)
 	end
+
+    if pop.parent then pop.parent.children[pop] = nil end
+    for _,c in pairs(pop.children) do
+        c.parent = nil
+        pop.children[c] = nil
+    end
 end
 
 function prov.Province:local_army_size()
