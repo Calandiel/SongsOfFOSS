@@ -135,7 +135,7 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			ie.set_successor(root, primary_target)
-            WORLD:emit_immediate_event('succession-set', primary_target, root, nil)
+            WORLD:emit_immediate_event('succession-set', primary_target, root)
 		end
 	}
 end
