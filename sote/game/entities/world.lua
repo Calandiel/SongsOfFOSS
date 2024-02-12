@@ -532,8 +532,10 @@ function world.World:tick()
 				for _, target in pairs(realm.reward_flags) do
 					local warbands = realm.raiders_preparing[target]
 					local units = 0
-					for _, warband in pairs(warbands) do
-						units = units + warband:size()
+					if warbands ~= nil then
+						for _, warband in pairs(warbands) do
+							units = units + warband:size()
+						end
 					end
 
 					-- with some probability, launch the raid
