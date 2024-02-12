@@ -300,6 +300,14 @@ function prov.Province:transfer_pop(pop, target)
 	target.all_pops[pop] = pop
 
 	pop.province = target
+
+	local children = tabb.filter(pop.children, function(c)
+		return self.all_pops[c] and c.home_province ~= self
+			and not c.unit_of_warband and not c.employer
+	end)
+	for _,c in pairs(children) do
+		self:transfer_pop(c,target)
+	end
 end
 
 --- Changes home province of a pop/character to the target province
