@@ -208,7 +208,6 @@ function Rect:copy()
 end
 
 ---Returns a new rect, using this rect as the new reference point.
----@alias love.AlignMode "center"  | "left" | "right"
 ---@param x number
 ---@param y number
 ---@param width number

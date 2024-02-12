@@ -9,10 +9,11 @@
 ---@alias modifierKeys "numlock" | "capslock" | "scrolllock" | "rshift" | "lshift" | "rctrl" | "lctrl" | "ralt" | "lalt" | "rgui" | "lgui" | "mode"
 ---@alias miscKeys "pause" | "escape" | "help" | "printscreen" | "sysreq" | "menu" | "application" | "power" | "currencyunit" | "undo"
 
+---@alias love.AlignMode "center"  | "left" | "right"
+
 ---@class love.Image
 ---@field getWidth fun():number
 ---@field getHeight fun():number
-
 
 ---@class FileData
 
