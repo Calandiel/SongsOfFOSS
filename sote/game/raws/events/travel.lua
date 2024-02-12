@@ -66,8 +66,8 @@ local function load()
                     local party = root.leading_warband
                     party.status = "travelling"
                     if party ~= nil then
-                    party:consume_supplies(associated_data.travel_time)
-                    WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
+                        party:consume_supplies(associated_data.travel_time)
+                        WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
                     else error("Character is traveling without a warband!") end
                 end,
                 viable =function ()
