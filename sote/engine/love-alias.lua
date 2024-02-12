@@ -21,6 +21,6 @@
 ---@class love.ImageData
 ---@field encode fun(self: love.ImageData, foramt: ImageEncodingFormat, fielname: string?): FileData
 
-
----@alias love.Source.stop fun():boolean
----@alias love.Source.play fun():boolean
+---@class love.Source
+---@field stop fun():boolean
+---@field play fun():boolean
