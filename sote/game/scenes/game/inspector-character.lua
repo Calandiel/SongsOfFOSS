@@ -231,7 +231,7 @@ function window.draw(game)
     end
 
     if province and province_visible then
-        local response = characters_list_widget(characters_list, character.province, true)()
+        local response = characters_list_widget(characters_list, character.province.characters, "Local Characters", true)()
         if response then
             game.selected.character = response
         end
