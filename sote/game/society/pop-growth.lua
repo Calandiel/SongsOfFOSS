@@ -1,6 +1,7 @@
 local pg = {}
 
 local POP = require "game.entities.pop".POP
+local tabb = require "engine.table"
 
 ---Runs natural growth and decay on a single province.
 ---@param province Province
@@ -18,6 +19,8 @@ function pg.growth(province)
 	---@type POP[]
 	local to_add = {}
 
+	local race_sex = {}
+
 	for _, pp in pairs(province.outlaws) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
@@ -33,6 +36,19 @@ function pg.growth(province)
 			end
 		else
 			local sex_prob = 0.1
+
+			if not race_sex[pp.race] then
+				race_sex[pp.race] = {}
+				race_sex[pp.race][pp.female] = true
+			elseif race_sex[pp.race][not pp.female] == nil then
+				if tabb.size(tabb.filter(province.all_pops, function (a)
+					return a.race == pp.race and a.female ~= pp.female
+				end)) > 0 then
+					race_sex[pp.race][not pp.female] = true
+				else race_sex[pp.race][not pp.female] = false end
+			end
+			if race_sex[pp.race][not pp.female] then sex_prob = 0 end
+
 			if pp.female then
 				sex_prob = 1.0
 			end
