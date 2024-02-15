@@ -9,7 +9,7 @@ local TRAIT_ICONS = require "game.raws.traits.trait_to_icon"
 local trade_good = require "game.raws.raws-utils".trade_good
 
 local characters_list_widget = require "game.scenes.game.widgets.character-list"
-local custom_characters_list_widget = require "game.scenes.game.widgets.character-list-widget"
+local custom_characters_list_widget = require "game.scenes.game.widgets.list-widget"
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
 local character_name_widget = require "game.scenes.game.widgets.character-name"
 

@@ -29,8 +29,9 @@ local function init_state(compact)
     end
 end
 
+---@generic K, V
 ---@param rect Rect
----@param table table<POP, POP>
+---@param table table<K, V>
 ---@param columns TableColumn[]
 ---@param title string?
 ---@param compact boolean?
