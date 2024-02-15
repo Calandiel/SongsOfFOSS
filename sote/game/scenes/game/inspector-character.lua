@@ -265,7 +265,7 @@ function window.draw(game)
                     end
                 end
             }
-        }, 1)
+        }, 1, ut.BASE_HEIGHT * 4)
     end
 
     ut.coa(character.realm, coa)
