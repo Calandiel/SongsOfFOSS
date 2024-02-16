@@ -62,12 +62,26 @@ local sote_params = {
     {name = "numWaterBodies",                   index = 47, ctype = "int",            value = 1},
     {name = "initialClimateTicks",              index = 48, ctype = "",               value = nil}, -- SKIPPED
     {name = "iceAgeSeverity",                   index = 49, ctype = "float",          value = 1.0}
-  }
+}
 
-  local sote_tasks = {
+---@enum sote_tasks
+local sote_tasks = {
     init_world = 1,
     clean_up = 6
-  }
+}
+
+---@enum sote_vals
+local sote_vals = {
+    latitude = 40, -- Colatitude
+    longitude = 41, -- MinusLongitude
+    elevation = 1, -- Elevation
+    -- water_movement = 20, -- skipped?
+    rugosity = 43, -- Hilliness
+    rock_type = 35, -- RockType (needs some translation)
+    volcanic_activity = 5, -- VolcanicActivity
+    -- IsLand: computed from elevation
+    plate = 15,
+}
 
 local function log_info(msg)
   print("[libsote] " .. msg)
@@ -78,6 +92,11 @@ local function log_sote(sote_msg)
 end
 
 local message = nil
+
+local function log_and_set_msg(msg)
+  log_info(msg)
+  message = msg
+end
 
 local function get_message()
   return message
@@ -110,8 +129,7 @@ local function init_mem_reserve()
   end
 
   if not allocation_success then
-    message = "Memory allocation failed"
-    log_info(message)
+    log_and_set_msg("Memory allocation failed")
     return false
   end
 
@@ -123,45 +141,79 @@ end
 local lib_sote_instance = nil
 
 local function init()
-  if ffi.os ~= "Windows" then
-    message = "libSOTE only supported on Windows for now"
-    log_info(message)
-    return false
-  end
-
-  if not init_mem_reserve() then return false end
-
-  local bins_dir = love.filesystem.getSourceBaseDirectory() .. "/sote/engine/bins/win/"
-  lib_sote_instance = ffi.load(bins_dir .. "libSOTE.dll")
-  if not lib_sote_instance then
-    message = "Failed to load libSOTE.dll"
-    log_info(message)
-    return false
-  end
-
-  local err_msg = ffi.new("char[256]")
-
-  local ret_code = lib_sote_instance.LIBSOTE_Init(err_msg, love.filesystem.getSourceBaseDirectory() .. "/sote/logs/libSOTE/log.txt")
-  if ret_code ~= 0 then
-    log_sote(err_msg)
-    message = "Failed to init libSOTE"
-    log_info(message)
-    message = message .. ": " .. ffi.string(err_msg)
-    return false
-  end
-
-  log_info("initialized libSOTE")
-
+  print(_VERSION, jit.arch)
   return true
 end
 
-local function generate_world()
-  if not lib_sote_instance then
-    message = "libSOTE not initialized"
-    log_info(message)
-    return
-  end
+-- local function init()
+--   -- print(_VERSION, jit.arch)
 
+--   if ffi.os ~= "Windows" then
+--     log_and_set_msg("libSOTE only supported on Windows for now")
+--     return false
+--   end
+
+--   if not init_mem_reserve() then return false end
+
+--   local bins_dir = love.filesystem.getSourceBaseDirectory() .. "/sote/engine/bins/win/"
+--   lib_sote_instance = ffi.load(bins_dir .. "libSOTE.dll")
+--   if not lib_sote_instance then
+--     log_and_set_msg("Failed to load libSOTE.dll")
+--     return false
+--   end
+
+--   local err_msg = ffi.new("char[256]")
+
+--   local ret_code = lib_sote_instance.LIBSOTE_Init(err_msg, love.filesystem.getSourceBaseDirectory() .. "/sote/logs/libSOTE/log.txt")
+--   if ret_code ~= 0 then
+--     log_sote(err_msg)
+--     log_and_set_msg("Failed to init libSOTE")
+--     message = message .. ": " .. ffi.string(err_msg)
+--     return false
+--   end
+
+--   log_info("initialized libSOTE")
+
+--   return true
+-- end
+
+local function int_to_uint(n)
+  local bit = require("bit")
+  if n < 0 then
+    n = bit.bnot(math.abs(n)) + 1
+  end
+  if n < 0 then
+    n = n + 2^32
+  end
+  return n
+end
+
+local bit = require("bit")
+local bnot_big_number = bit.bnot(int_to_uint(4294959104))
+local min_int = -2^31
+
+local function hex_coord_to_hex_number(face, q, r)
+  face = int_to_uint(face)
+  q = int_to_uint(q)
+  r = int_to_uint(r)
+
+  local shift_face = bit.lshift(face, 26)
+  local r_and_bnbn = bit.band(r, bnot_big_number)
+  local shift_r_and_bnbn = bit.lshift(r_and_bnbn, 13)
+  local q_and_bnbn = bit.band(q, bnot_big_number)
+
+  return int_to_uint(bit.bor(min_int, shift_face, shift_r_and_bnbn, q_and_bnbn))
+end
+
+local function get_val(desc, err_msg, val)
+  local ret_code = lib_sote_instance.LIBSOTE_GetVar(err_msg, 3, desc, ffi.cast("void*", val))
+  if ret_code ~= 0 then
+    log_sote(err_msg)
+    error("failed to get val")
+  end
+end
+
+local function set_sote_params()
   local err_msg = ffi.new("char[256]")
   local ret_code = 0
 
@@ -175,6 +227,12 @@ local function generate_world()
 
     ::continue::
   end
+end
+
+---
+local function init_world()
+  local err_msg = ffi.new("char[256]")
+  local ret_code = 0
 
   ret_code = lib_sote_instance.LIBSOTE_StartTask(err_msg, sote_tasks.init_world, 0, nil)
   if ret_code ~= 0 then
@@ -196,8 +254,60 @@ local function generate_world()
     end
   end
 
-  message = "world generation finished"
-  log_info(message)
+  log_and_set_msg("World generation finished")
+end
+
+local function get_tile(desc, err_msg, float_val)
+  local ret_code = 0
+
+  desc[2] = sote_vals.latitude
+  get_val(desc, err_msg, float_val)
+
+  desc[2] = sote_vals.longitude
+  get_val(desc, err_msg, float_val)
+
+  local tile = require("libsote.tile")
+  tile = tile:new()
+end
+
+---
+local function generate_world()
+  -- if not lib_sote_instance then
+  --   log_and_set_msg("libSOTE not initialized")
+  --   return false
+  -- end
+
+  -- set_sote_params()
+  -- init_world()
+
+  local world_size = sote_params[2].value
+
+  local world_allocator = require("libsote.world_allocator"):new()
+  local world = world_allocator:allocate(183)
+  if not world then
+    log_and_set_msg("World allocation failed")
+    return false
+  end
+
+  local err_msg = ffi.new("char[256]")
+  local float_val = ffi.new("float[1]")
+
+  local get_desc = ffi.new("unsigned int[3]", {0, 0, 0})
+
+  -- for q = -world_size, world_size do
+  --   for r = -world_size, world_size do
+  --     local s = -(q + r)
+  --     if q - s <= world_size and r - q <= world_size and s - r <= world_size then
+  --       for face = 0, 19 do
+  --         get_desc[1] = hex_coord_to_hex_number(face, q, r)
+  --         local tile = get_tile(get_desc, err_msg, float_val)
+  --       end
+  --     end
+  --   end
+  -- end
+
+  log_and_set_msg("World data loaded")
+  return true
 end
 
 return {
