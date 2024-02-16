@@ -1,5 +1,7 @@
 local ui = {}
 
+---@alias love.AlignMode "center" | "left" | "right"
+
 -- #######################
 -- ### DEFAULT STYLING ###
 -- #######################
