@@ -87,7 +87,7 @@ local function build_icosa(size)
             edge.neighbor_edge = neighbor_edge
 
             for i = 1, edge_tile_count do
-                edge.tiles[i] = 0
+                edge.tiles[i] = -1
             end
         end
 
@@ -97,7 +97,7 @@ local function build_icosa(size)
     end
 
     for vi = 1, 12 do
-        icosa.vertices[vi] = 0
+        icosa.vertices[vi] = -1
     end
 
     return icosa
@@ -118,20 +118,19 @@ local function icosa_vertex_index(q, r, size)
     return 0
 end
 
-local function get_or_update_index_for_penta(q, r, face_index, icosa, index)
+local function resolve_index_for_penta(q, r, face_index, icosa, index)
     local vi = icosa.faces[face_index].vertices[icosa_vertex_index(q, r, icosa.size)]
 
-    if icosa.vertices[vi] > 0 then
-        return icosa.vertices[vi]
+    if icosa.vertices[vi] ~= -1 then
+        return icosa.vertices[vi], index
     end
 
     icosa.vertices[vi] = index
-    index = index + 1
 
-    return icosa.vertices[vi]
+    return icosa.vertices[vi], index + 1
 end
 
-local function get_or_update_index_for_edge(q, r, face_index, icosa, index)
+local function resolve_index_for_edge(q, r, face_index, icosa, index)
     local ei = icosa_edge_index(q, r, icosa.size)
     local edge = icosa.faces[face_index].edges[ei]
 
@@ -161,15 +160,14 @@ local function get_or_update_index_for_edge(q, r, face_index, icosa, index)
         end
     end
 
-    if edge.tiles[ti] > 0 then
-        return edge.tiles[ti]
+    if edge.tiles[ti] ~= -1 then
+        return edge.tiles[ti], index
     end
 
     edge.tiles[ti] = index
     icosa.faces[edge.neighbor_face].edges[edge.neighbor_edge].tiles[nti] = index
-    index = index + 1
 
-    return edge.tiles[ti]
+    return edge.tiles[ti], index + 1
 end
 
 local world_allocator = {}
@@ -206,13 +204,15 @@ function world_allocator:allocate(size)
                 if not world:is_valid(q, r) then goto continue end
 
                 if world:is_edge(q, r) then
+                    local resolved_index = -1
+
                     if world:is_penta(q, r) then
-                        local penta_index = get_or_update_index_for_penta(q, r, fi, icosa_obj, index)
-                        world:_set_index(q, r, fi, penta_index)
+                        resolved_index, index = resolve_index_for_penta(q, r, fi, icosa_obj, index)
                     else
-                        local edge_index = get_or_update_index_for_edge(q, r, fi, icosa_obj, index)
-                        world:_set_index(q, r, fi, edge_index)
+                        resolved_index, index = resolve_index_for_edge(q, r, fi, icosa_obj, index)
                     end
+
+                    world:_set_index(q, r, fi, resolved_index)
                 else
                     world:_set_index(q, r, fi, index)
                     index = index + 1

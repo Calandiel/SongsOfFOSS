@@ -141,7 +141,6 @@ end
 local lib_sote_instance = nil
 
 local function init()
-  print(_VERSION, jit.arch)
   return true
 end
 
