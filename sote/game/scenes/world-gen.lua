@@ -26,6 +26,8 @@ function wg.init()
   libsote.generate_world()
   wg.message = libsote.get_message()
   wg.state = STATES.generated
+
+  libsote.shutdown()
 end
 
 function wg.update(dt)

@@ -146,8 +146,6 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
             nti = icosa.size - q
         elseif edge.neighbor_edge == 3 then
             nti = q
-        else
-            error("unexpected neighbor_edge: " .. edge.neighbor_edge)
         end
     elseif ei == 3 then
         ti = -r
@@ -155,8 +153,6 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
             nti = -r
         elseif edge.neighbor_edge == 3 then
             nti = icosa.size + r
-        else
-            error("unexpected neighbor_edge: " .. edge.neighbor_edge)
         end
     end
 

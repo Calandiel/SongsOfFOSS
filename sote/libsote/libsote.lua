@@ -133,7 +133,7 @@ local function init_mem_reserve()
     return false
   end
 
-  ffi.gc(allocated_memory, function(addr) kernel32.VirtualFree(addr, 0, ffi.C.MEM_RELEASE) end)
+  ffi.gc(allocated_memory, function(address) kernel32.VirtualFree(address, 0, ffi.C.MEM_RELEASE) end)
 
   return true
 end
@@ -141,40 +141,34 @@ end
 local lib_sote_instance = nil
 
 local function init()
+  if ffi.os ~= "Windows" then
+    log_and_set_msg("libSOTE only supported on Windows for now")
+    return false
+  end
+
+  if not init_mem_reserve() then return false end
+
+  local bins_dir = love.filesystem.getSourceBaseDirectory() .. "/sote/engine/bins/win/"
+  lib_sote_instance = ffi.load(bins_dir .. "libSOTE.dll")
+  if not lib_sote_instance then
+    log_and_set_msg("Failed to load libSOTE.dll")
+    return false
+  end
+
+  local err_msg = ffi.new("char[256]")
+
+  local ret_code = lib_sote_instance.LIBSOTE_Init(err_msg, love.filesystem.getSourceBaseDirectory() .. "/sote/logs/libSOTE/log.txt")
+  if ret_code ~= 0 then
+    log_sote(err_msg)
+    log_and_set_msg("Failed to init libSOTE")
+    message = message .. ": " .. ffi.string(err_msg)
+    return false
+  end
+
+  log_info("initialized libSOTE")
+
   return true
 end
-
--- local function init()
---   -- print(_VERSION, jit.arch)
-
---   if ffi.os ~= "Windows" then
---     log_and_set_msg("libSOTE only supported on Windows for now")
---     return false
---   end
-
---   if not init_mem_reserve() then return false end
-
---   local bins_dir = love.filesystem.getSourceBaseDirectory() .. "/sote/engine/bins/win/"
---   lib_sote_instance = ffi.load(bins_dir .. "libSOTE.dll")
---   if not lib_sote_instance then
---     log_and_set_msg("Failed to load libSOTE.dll")
---     return false
---   end
-
---   local err_msg = ffi.new("char[256]")
-
---   local ret_code = lib_sote_instance.LIBSOTE_Init(err_msg, love.filesystem.getSourceBaseDirectory() .. "/sote/logs/libSOTE/log.txt")
---   if ret_code ~= 0 then
---     log_sote(err_msg)
---     log_and_set_msg("Failed to init libSOTE")
---     message = message .. ": " .. ffi.string(err_msg)
---     return false
---   end
-
---   log_info("initialized libSOTE")
-
---   return true
--- end
 
 local function int_to_uint(n)
   local bit = require("bit")
@@ -236,7 +230,7 @@ local function init_world()
   ret_code = lib_sote_instance.LIBSOTE_StartTask(err_msg, sote_tasks.init_world, 0, nil)
   if ret_code ~= 0 then
     log_sote(err_msg)
-    error("failed to start init_world task: ")
+    error("failed to start init_world task")
   end
   log_info("started task init_world")
 
@@ -253,31 +247,60 @@ local function init_world()
     end
   end
 
+  ret_code = lib_sote_instance.LIBSOTE_WaitEndTask(err_msg);
+  if ret_code ~= 0 then
+    log_sote(err_msg)
+    error("failed to wait init_world task")
+  end
+
   log_and_set_msg("World generation finished")
 end
 
-local function get_tile(desc, err_msg, float_val)
-  local ret_code = 0
+local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
+  local tile_data = {}
 
   desc[2] = sote_vals.latitude
   get_val(desc, err_msg, float_val)
+  tile_data.latitude = float_val[0]
 
   desc[2] = sote_vals.longitude
   get_val(desc, err_msg, float_val)
+  tile_data.longitude = float_val[0]
 
-  local tile = require("libsote.tile")
-  tile = tile:new()
+  desc[2] = sote_vals.elevation
+  get_val(desc, err_msg, float_val)
+  tile_data.elevation = float_val[0]
+
+  desc[2] = sote_vals.rugosity
+  get_val(desc, err_msg, float_val)
+  tile_data.rugosity = float_val[0]
+
+  desc[2] = sote_vals.rock_type
+  get_val(desc, err_msg, short_val)
+  tile_data.rock_type = short_val[0]
+
+  desc[2] = sote_vals.volcanic_activity
+  get_val(desc, err_msg, short_val)
+  tile_data.volcanic_activity = short_val[0]
+
+  tile_data.is_land = tile_data.elevation > 0
+
+  desc[2] = sote_vals.plate
+  get_val(desc, err_msg, uint_val)
+  tile_data.plate = uint_val[0]
+
+  return tile_data
 end
 
 ---
 local function generate_world()
-  -- if not lib_sote_instance then
-  --   log_and_set_msg("libSOTE not initialized")
-  --   return false
-  -- end
+  if not lib_sote_instance then
+    log_and_set_msg("libSOTE not initialized")
+    return false
+  end
 
-  -- set_sote_params()
-  -- init_world()
+  set_sote_params()
+  init_world()
 
   local world_size = sote_params[2].value
 
@@ -290,27 +313,59 @@ local function generate_world()
 
   local err_msg = ffi.new("char[256]")
   local float_val = ffi.new("float[1]")
+  local short_val = ffi.new("int16_t[1]")
+  local uint_val = ffi.new("uint32_t[1]")
 
   local get_desc = ffi.new("unsigned int[3]", {0, 0, 0})
 
-  -- for q = -world_size, world_size do
-  --   for r = -world_size, world_size do
-  --     local s = -(q + r)
-  --     if q - s <= world_size and r - q <= world_size and s - r <= world_size then
-  --       for face = 0, 19 do
-  --         get_desc[1] = hex_coord_to_hex_number(face, q, r)
-  --         local tile = get_tile(get_desc, err_msg, float_val)
-  --       end
-  --     end
-  --   end
-  -- end
+  for q = -world_size, world_size do
+    for r = -world_size, world_size do
+      if not world:is_valid(q, r) then goto continue end
+
+      for face = 1, 20 do
+        get_desc[1] = hex_coord_to_hex_number(face - 1, q, r)
+        world:set_tile_data(q, r, face, get_tile_data(get_desc, err_msg, float_val, short_val, uint_val))
+      end
+
+      ::continue::
+    end
+  end
 
   log_and_set_msg("World data loaded")
   return true
 end
 
+---
+local function shutdown()
+  if not lib_sote_instance then
+    log_and_set_msg("libSOTE not initialized")
+    return false
+  end
+
+  local err_msg = ffi.new("char[256]")
+  local ret_code = 0
+
+  ret_code = lib_sote_instance.LIBSOTE_StartTask(err_msg, sote_tasks.clean_up, 0, nil)
+  if ret_code ~= 0 then
+    log_sote(err_msg)
+    error("failed to start clean_up task")
+  end
+
+  while lib_sote_instance.LIBSOTE_IsRunning() == 1 do
+  end
+
+  ret_code = lib_sote_instance.LIBSOTE_WaitEndTask(err_msg);
+  if ret_code ~= 0 then
+    log_sote(err_msg)
+    error("failed to wait clean_up task")
+  end
+  log_info("finished task clean_up")
+
+end
+
 return {
   init = init,
+  shutdown = shutdown,
   get_message = get_message,
   generate_world = generate_world
 }
