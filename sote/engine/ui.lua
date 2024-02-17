@@ -1433,8 +1433,13 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 		:position(rect.x, rect.y)
 		:spacing(0)
 		:build()
+	local total_weight = 0
 	for index = 1, #columns do
-		local header_rect =  layout:next(columns[index].width, state.individual_height)
+		total_weight = total_weight + columns[index].width
+	end
+	local weight = (rect.width - 20) / total_weight
+	for index = 1, #columns do
+		local header_rect =  layout:next(columns[index].width * weight, state.individual_height)
 		header_rect.height = rect.height
 		if not columns[index].active and ui.text_button("", header_rect) then
 			if state.sorted_field == index then
@@ -1477,7 +1482,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 			:spacing(0)
 			:build()
 		for index = 1, #columns do
-			local temp = columns[index].render_closure(layout:next(columns[index].width, state.individual_height), entry.key, entry.value)
+			local temp = columns[index].render_closure(layout:next(columns[index].width * weight, state.individual_height), entry.key, entry.value)
 			if temp then
 				result = temp
 			end
