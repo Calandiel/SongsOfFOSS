@@ -318,6 +318,17 @@ function PoliticalEffects.grant_nobility(pop, province, reason)
 			.. "\n pop.province.name = "
 			.. pop.province.name)
 	end
+
+	-- break parent-child link with pops
+	if pop.parent then
+		pop.parent.children[pop] = nil
+		pop.parent = nil
+	end
+	for _,v in pairs(pop.children) do
+		pop.children[v].parent = nil
+		pop.children[v] = nil
+	end
+
 	province:fire_pop(pop)
 	pop:unregister_military()
 	province.all_pops[pop] = nil
@@ -346,7 +357,7 @@ end
 ---@param reason POLITICAL_REASON
 ---@return Character?
 function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
-	local pop = tabb.random_select_from_set(province.all_pops)
+	local pop = tabb.random_select_from_set(tabb.filter(province.home_to,function(a)return not a:is_character() end))
 
 	if pop then
 		PoliticalEffects.grant_nobility(pop, province, reason)
