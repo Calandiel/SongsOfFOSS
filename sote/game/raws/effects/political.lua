@@ -357,7 +357,7 @@ end
 ---@param reason POLITICAL_REASON
 ---@return Character?
 function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
-	local pop = tabb.random_select_from_set(tabb.filter(province.home_to,function(a)return not a:is_character() end))
+	local pop = tabb.random_select_from_set(province.all_pops)
 
 	if pop then
 		PoliticalEffects.grant_nobility(pop, province, reason)

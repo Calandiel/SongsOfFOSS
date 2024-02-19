@@ -66,10 +66,23 @@ function co.run(realm)
 	-- raise new nobles
 	local NOBLES_RATIO = 0.15
 	for _, prov in pairs(realm.provinces) do
-		local nobles = tabb.size(prov.characters)
-		local population = tabb.size(prov.all_pops)
-		if (nobles < NOBLES_RATIO * population) and (population > 5) and (nobles < 15) then
-			pe.grant_nobility_to_random_pop(prov, pe.reasons.POPULATION_GROWTH)
+		local p = {nobles = 0, population = 0, elligible = {}}
+		tabb.accumulate(prov.home_to, p, function (a, k, v)
+			if v:is_character() then
+				a.nobles = a.nobles + 1
+			else
+				a.population = a.population + 1
+				a.elligible[k] = v
+			end
+			return a
+		end)
+		if (p.nobles < NOBLES_RATIO * p.population) and (p.population > 5) and (p.nobles < 15) then
+			local pop = tabb.random_select_from_set(tabb.filter(p.elligible, function (a)
+				return a.province == prov
+			end))
+			if pop then
+				pe.grant_nobility(pop,prov, pe.reasons.POPULATION_GROWTH)
+			end
 		end
 	end
 
