@@ -3,6 +3,8 @@ local E_ut = require "game.raws.events._utils"
 
 local ut = require "game.ui-utils"
 
+local tabb = require "engine.table"
+
 local pe = require "game.raws.effects.political"
 local pv = require "game.raws.values.political"
 local ee = require "game.raws.effects.economic"
@@ -73,7 +75,11 @@ local function load()
 
                         successor = final_successor
                     end
-
+                    if not successor then
+                        successor = pe.grant_nobility(tabb.filter(capitol.home_to, function (a)
+                            return not a:is_character() and a.province == capitol
+                        end), capitol, pe.reasons.NOT_ENOUGH_NOBLES)
+                    end
                     if not successor then
                         successor = pe.grant_nobility_to_random_pop(capitol, pe.reasons.NOT_ENOUGH_NOBLES)
                     end
