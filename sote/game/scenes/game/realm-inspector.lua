@@ -175,6 +175,7 @@ function re.draw(gam)
 								EconomicEffects.reasons.Court
 							)
 						end
+						a.y = a.y + uit.BASE_HEIGHT
 					end
 					a.y = a.y + uit.BASE_HEIGHT
 
