@@ -76,12 +76,29 @@ local function load()
                         successor = final_successor
                     end
                     if not successor then
-                        successor = pe.grant_nobility(tabb.filter(capitol.home_to, function (a)
-                            return not a:is_character() and a.province == capitol
-                        end), capitol, pe.reasons.NOT_ENOUGH_NOBLES)
+                        successor = tabb.random_select_from_set(tabb.filter(capitol.home_to, function (a)
+                            return a.province and a.province == capitol and not a:is_character()
+                        end))
+                        if successor then
+                            pe.grant_nobility(successor, capitol, pe.reasons.NOT_ENOUGH_NOBLES)
+                        end
                     end
                     if not successor then
                         successor = pe.grant_nobility_to_random_pop(capitol, pe.reasons.NOT_ENOUGH_NOBLES)
+                        if successor then
+                            -- at this point the original tribe is extinquished and a new tribe rise to fill the vacuum
+                            capitol.realm.primary_culture = successor.culture
+                            capitol.realm.primary_faith = successor.faith
+                            capitol.realm.primary_race = successor.race
+                            capitol.realm.name = successor.culture.language:get_random_realm_name()
+                            capitol.name = successor.culture.language:get_random_province_name()
+                            -- grab whatever similar pops you can and set their home to give the new realm pop
+                            for _, v in pairs(tabb.filter(capitol.all_pops, function (a)
+                                return a.culture == successor.culture and a.faith == successor.faith and a.race == successor.race
+                            end)) do
+                                capitol:set_home(v)
+                            end
+                        end
                     end
 
                     if successor then

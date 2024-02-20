@@ -68,11 +68,13 @@ function co.run(realm)
 	for _, prov in pairs(realm.provinces) do
 		local p = {nobles = 0, population = 0, elligible = {}}
 		tabb.accumulate(prov.home_to, p, function (a, k, v)
-			if v:is_character() then
-				a.nobles = a.nobles + 1
-			else
-				a.population = a.population + 1
-				a.elligible[k] = v
+			if v.province == prov then
+				if v:is_character() then
+					a.nobles = a.nobles + 1
+				else
+					a.population = a.population + 1
+					a.elligible[k] = v
+				end
 			end
 			return a
 		end)
