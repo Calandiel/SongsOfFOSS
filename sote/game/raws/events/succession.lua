@@ -220,7 +220,7 @@ local function load()
             -- loyalty reset
             ie.remove_all_loyal(character)
 
--- clear references to character
+            -- clear references to character
             character.province:remove_character(character)
             character.home_province:unset_home(character)
 		end,
