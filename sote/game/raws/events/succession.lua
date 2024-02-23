@@ -10,6 +10,7 @@ local pv = require "game.raws.values.political"
 local ee = require "game.raws.effects.economic"
 local me = require "game.raws.effects.military"
 local ie = require "game.raws.effects.interpersonal"
+local di = require "game.raws.effects.diplomacy"
 
 local offices_triggers = require "game.raws.triggers.offices"
 
@@ -92,7 +93,7 @@ local function load()
                         WORLD:emit_immediate_event("succession-leader-notification", successor, realm)
                     else
                         -- no pops left: destroy realm
-                        pe.dissolve_realm(realm)
+                        di.dissolve_realm_and_clear_diplomacy(realm)
                         realm.leader = nil
                         -- at this point the original realm is extinquished and a new realm rises to fill the vacuum
                         if tabb.size(capitol.all_pops) then

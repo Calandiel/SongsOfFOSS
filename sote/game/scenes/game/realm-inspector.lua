@@ -231,17 +231,6 @@ function re.draw(gam)
 									active = true
 								},
 								{
-									header = "location",
-									render_closure = render_province,
-									width = UI_STYLE.scrollable_list_item_height * 4,
-									value = function(k, v)
-										---@type POP
-										v = v
-										return v.province.name
-									end,
-									active = true
-								},
-								{
 									header = "race",
 									render_closure = function (rect, k, v)
 										ui.right_text(v.race.name, rect)
@@ -299,6 +288,17 @@ function re.draw(gam)
 									value = function(k, v)
 										return pop_sex(v)
 									end
+								},
+								{
+									header = "location",
+									render_closure = render_province,
+									width = UI_STYLE.scrollable_list_item_height * 4,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.province.name
+									end,
+									active = true
 								}
 							}
 					)()
