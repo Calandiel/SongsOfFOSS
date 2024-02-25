@@ -2,6 +2,8 @@ local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 local window = {}
 
+local economic_effects = require "game.raws.effects.economic"
+
 ---@return Rect
 function window.rect()
     local unit = ut.BASE_HEIGHT
@@ -122,6 +124,8 @@ local columns = {
                 if v.quest_type == "patrol" then
                     player_character.realm.quests_patrol[v.target] = player_character.realm.quests_patrol[v.target] + REWARD_AMOUNT
                 end
+
+                economic_effects.add_pop_savings(player_character, -REWARD_AMOUNT, economic_effects.reasons.Quest)
             end
         end,
         width = unit * 4,

@@ -3,6 +3,7 @@ local office_triggers = require "game.raws.triggers.offices"
 local Trigger = {}
 
 Trigger.Pretrigger = {}
+Trigger.Targeted = {}
 
 CHECKBOX_POSITIVE = " v "
 CHECKBOX_NEGATIVE = " x "
@@ -106,6 +107,54 @@ Trigger.Pretrigger.leading_idle_warband_or_guard = {
     condition = function (root)
         return office_triggers.valid_patrol_participant(root, root.province)
     end
+}
+
+---@type Pretrigger
+Trigger.Pretrigger.leader = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"You are not a leader of the tribe"}
+	end,
+	condition = function (root)
+		return office_triggers.is_ruler(root)
+	end
+}
+
+---@type Pretrigger
+Trigger.Pretrigger.leader_of_local_territory = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"You are not a leader of local tribe"}
+	end,
+	condition = function (root)
+		local local_realm = root.province.realm
+
+		if local_realm == nil then
+			return false
+		end
+
+		return root.leader_of[local_realm] ~= nil
+	end
+}
+
+---@type TriggerCharacter
+Trigger.Targeted.is_overlord_of_target = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"They are not your subject"}
+	end,
+	condition = function (root, primary_target)
+
+
+		return false
+	end
+}
+
+---@type TriggerCharacter
+Trigger.Targeted.is_not_in_negotiations = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"You are already in negotiations with this target"}
+	end,
+	condition = function (root, primary_target)
+		return root.current_negotiations[primary_target] == nil
+	end
 }
 
 return Trigger

@@ -15,6 +15,14 @@ function effects.set_tributary(overlord, tributary)
 	tributary.paying_tribute_to[overlord] = overlord
 	overlord.tributaries[tributary] = tributary
 
+	overlord.tributary_status[tributary] = {
+		warriors_contribution = false,
+		wealth_transfer = true,
+		goods_transfer = false,
+		local_ruler = false,
+		protection = false
+	}
+
 	for k, v in pairs(tributary.provinces) do
 		overlord:explore(v)
 	end
@@ -44,6 +52,7 @@ end
 ---@param tributary Realm
 function effects.unset_tributary(overlord, tributary)
 	overlord.tributaries[tributary] = nil
+	overlord.tributary_status[tributary] = nil
 	tributary.paying_tribute_to[overlord] = nil
 end
 
@@ -55,6 +64,7 @@ function effects.clear_diplomacy(realm)
 	end
 	for _, overlord_realm in pairs(realm.paying_tribute_to) do
 		overlord_realm.tributaries[realm] = nil
+		overlord_realm.tributary_status[realm] = nil
 	end
 
 	realm.paying_tribute_to = {}

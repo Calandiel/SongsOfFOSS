@@ -6,6 +6,18 @@ local dt = require "game.raws.triggers.diplomacy"
 local ot = require "game.raws.triggers.offices"
 local pv = require "game.raws.values.political"
 
+local pretriggers = require "game.raws.triggers.tooltiped_triggers".Pretrigger
+
+OR = pretriggers.OR
+NOT_BUSY = pretriggers.not_busy
+IS_LEADER = pretriggers.leader
+IS_LOCAL_LEADER = pretriggers.leader_of_local_territory
+
+local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
+
+IS_OVERLORD_OF_TARGET = triggers.is_overlord_of_target
+NOT_IN_NEGOTIATIONS = triggers.is_not_in_negotiations
+
 local economic_effects = require "game.raws.effects.economic"
 local character_values = require "game.raws.values.character"
 
@@ -130,6 +142,86 @@ local function load()
 			WORLD:emit_event('request-tribute', primary_target, root, 10)
 		end
 	}
+
+	-- negotiation rough blueprint
+
+	---@class NegotiationTradeData
+	---@field goods_transfer_from_initiator_to_target table<TradeGoodReference, number?>
+	---@field wealth_transfer_from_initiator_to_target number
+
+	---@class NegotiationRealmToRealm
+	---@field root Realm
+	---@field target Realm
+	---@field subjugate boolean
+	---@field free boolean
+	---@field demand_freedom boolean
+	---@field trade NegotiationTradeData
+
+	---@class NegotiationCharacterToCharacter
+	---@field trade NegotiationTradeData
+
+	---@class NegotiationData
+	---@field initiator Character
+	---@field target Character
+	---@field negotiations_terms_realms NegotiationRealmToRealm[]
+	---@field selected_realm_origin Realm?
+	---@field selected_realm_target Realm?
+	---@field negotiations_terms_characters NegotiationCharacterToCharacter
+	---@field days_of_travel number
+
+	Decision.CharacterCharacter:new_from_trigger_lists (
+		'start-negotiations',
+		"Start negotiations",
+		function(root, primary_target)
+			return "Start negotiations with " .. primary_target.name
+		end,
+		0, -- never
+		{
+			NOT_BUSY,
+			IS_LEADER
+		},
+		{
+
+		},
+		{
+			NOT_IN_NEGOTIATIONS
+		},
+
+		function(root, primary_target, secondary_target)
+			local overlord = root.leader_of
+			local tributary = primary_target.leader_of
+
+			assert(overlord ~= nil)
+			assert(tributary ~= nil)
+
+			---@type NegotiationData
+			local negotiation_data = {
+				initiator = root,
+				target = primary_target,
+				negotiations_terms_characters = {
+					trade = {
+						wealth_transfer_from_initiator_to_target = 0,
+						goods_transfer_from_initiator_to_target = {}
+					}
+				},
+				negotiations_terms_realms = {},
+				days_of_travel = 10
+			}
+
+			root.current_negotiations[primary_target] = primary_target
+			primary_target.current_negotiations[root] = root
+
+			WORLD:emit_immediate_event('negotiation-initiator', root, negotiation_data)
+		end,
+
+		--- AI SHOULD HAVE SEPARATE DECISIONS WITH PRESET NEGOTIATION PROPOSALS
+		function(root, primary_target, secondary_target)
+			return 0
+		end,
+		function(root)
+			return nil, false
+		end
+	)
 
 	-- migrate decision
 

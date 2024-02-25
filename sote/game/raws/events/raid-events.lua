@@ -2,6 +2,8 @@ local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 
+local realm_entity = require "game.entities.realm"
+
 local economic_effects = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
 local ut = require "game.ui-utils"

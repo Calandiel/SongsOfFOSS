@@ -32,6 +32,7 @@
 ---@field home_province Province Points to home of pop/character.
 ---@field realm Realm? Represents the home realm of the character
 ---@field leader_of table<Realm, Realm>
+---@field current_negotiations table<Character, Character>
 ---@field rank CHARACTER_RANK?
 ---@field former_pop boolean
 ---@field dna number[]
@@ -75,6 +76,7 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.inventory = {}
 	r.price_memory = {}
 	r.successor_of = {}
+	r.current_negotiations = {}
 	r.need_satisfaction = {}
 
 	r.basic_needs_satisfaction = 0

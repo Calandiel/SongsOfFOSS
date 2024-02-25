@@ -80,7 +80,8 @@ return function ()
 				origin = root.realm,
 				target = primary_target.realm,
 				tribute = 0,
-				travel_time = travel_time
+				travel_time = travel_time,
+				trade_goods_tribute = {}
 			}
 
 			WORLD:emit_action(

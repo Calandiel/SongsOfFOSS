@@ -1,5 +1,6 @@
 local pv = require "game.raws.values.political"
 
+
 ---@class BudgetCategory
 ---@field ratio number
 ---@field budget number
@@ -72,6 +73,7 @@ end
 ---@field tribute_collectors table<Character, Character>
 ---@field paying_tribute_to table<Realm, Realm>
 ---@field tributaries table<Realm, Realm>
+---@field tributary_status table<Realm, TributaryStatus>
 ---@field provinces table<Province, Province>
 ---@field quests_raid table<Province, nil|number> reward for raid
 ---@field quests_explore table<Province, nil|number> reward for exploration
@@ -130,6 +132,12 @@ end
 local realm = {}
 local tabb = require "engine.table"
 
+---@class TributaryStatus
+---@field wealth_transfer boolean
+---@field goods_transfer boolean
+---@field warriors_contribution boolean
+---@field protection boolean
+---@field local_ruler boolean
 
 ---@class Realm
 realm.Realm = {}
@@ -151,6 +159,7 @@ function realm.Realm:new()
 
 	o.tribute_collectors = {}
 	o.tributaries = {}
+	o.tributary_status = {}
 	o.paying_tribute_to = {}
 
 	o.tax_target = 0

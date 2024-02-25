@@ -35,9 +35,6 @@ function ll.load()
 	print("administration events")
 	require "game.raws.events.administration"()
 
-	print("diplomatic events")
-	require "game.raws.events.diplomacy"()
-
 	print("migration events")
 	require "game.raws.events.migration"()
 

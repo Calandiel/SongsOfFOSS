@@ -225,22 +225,26 @@ function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, toolt
 		ui_name = ui_name,
 		base_probability = base_probability,
 		tooltip = function (root, primary_target)
-			local tooltip_result = tooltip(root, primary_target)
+			local tooltip_result = tooltip(root, primary_target) .. "\n"
 			for _, pretrigger in ipairs(pretriggers) do
-				if not pretrigger(root) then
-					tooltip_result = tooltip_result .. pretrigger.tooltip_on_condition_failure(root) .. "\n"
+				if not pretrigger.condition(root) then
+					for _, actual_tooltip in ipairs(pretrigger.tooltip_on_condition_failure(root)) do
+						tooltip_result = tooltip_result .. actual_tooltip .. "\n"
+					end
 				end
 			end
 			for _, trigger in ipairs(availability) do
-				if not trigger(root, primary_target) then
-					tooltip_result = tooltip_result .. trigger.tooltip_on_condition_failure(root, primary_target) .. "\n"
+				if not trigger.condition(root, primary_target) then
+					for _, actual_tooltip in ipairs(trigger.tooltip_on_condition_failure(root, primary_target)) do
+						tooltip_result = tooltip_result .. actual_tooltip .. "\n"
+					end
 				end
 			end
 			return tooltip_result
 		end,
 		pretrigger = function (root)
 			for _, trigger in ipairs(pretriggers) do
-				if not trigger(root) then
+				if not trigger.condition(root) then
 					return false
 				end
 			end
@@ -248,7 +252,7 @@ function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, toolt
 		end,
 		clickable = function (root, primary_target)
 			for _, trigger in ipairs(visibility) do
-				if not trigger(root, primary_target) then
+				if not trigger.condition(root, primary_target) then
 					return false
 				end
 			end
@@ -256,7 +260,7 @@ function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, toolt
 		end,
 		available = function (root, primary_target, secondary_target)
 			for _, trigger in ipairs(availability) do
-				if not trigger(root, primary_target) then
+				if not trigger.condition(root, primary_target) then
 					return false
 				end
 			end
@@ -278,7 +282,17 @@ end
 ---@param availability TriggerCharacter[]
 ---@param effect fun(root:Character, primary_target:Character, secondary_target:any)
 ---@param ai_will_do fun(root:Character, primary_target:Character, secondary_target:any):number
-function Decision.Character:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do)
+function Decision.Character:new_from_trigger_lists(
+	name,
+	ui_name,
+	tooltip,
+	base_probability,
+	pretriggers,
+	visibility,
+	availability,
+	effect,
+	ai_will_do
+)
 	Decision.Character:new({
 		primary_target = 'none',
 		secondary_target = 'none',
