@@ -13,6 +13,19 @@ function eco_values.potential_monthly_tribute_size(realm)
     return realm.budget.saved_change * 0.1
 end
 
+---Returns amount of wealth character would want in exchange for paying tribute \
+---It's calculated as a part of savings of pops of his tribe which somewhat represents wellbeing of it
+---@param realm Realm
+function eco_values.realm_independence_price(realm)
+    local total = 0
+
+    for _, pop in pairs(realm.capitol.all_pops) do
+        total = total + pop.savings
+    end
+
+    return total * 0.5 + 50
+end
+
 ---comment
 ---@param realm Realm?
 function eco_values.raidable_treasury(realm)

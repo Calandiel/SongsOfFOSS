@@ -506,19 +506,19 @@ return function ()
 				local realm = item.target
 
 				if item.subjugate then
-					realm_wealth_gain = realm_wealth_gain - economy_values.potential_monthly_tribute_size(realm) * 12
+					realm_wealth_gain = realm_wealth_gain - economy_values.realm_independence_price(realm)
 				end
 
 				if item.free then
-					realm_wealth_gain = realm_wealth_gain + economy_values.potential_monthly_tribute_size(realm) * 12
+					realm_wealth_gain = realm_wealth_gain + economy_values.potential_monthly_tribute_size(realm) * 120
 				end
 
 				if item.demand_freedom then
-					realm_wealth_gain = realm_wealth_gain - economy_values.potential_monthly_tribute_size(origin) * 12
+					realm_wealth_gain = realm_wealth_gain - economy_values.potential_monthly_tribute_size(origin) * 120
 				end
 			end
 
-			local perceived_change = wealth_gain + realm_wealth_gain * 10
+			local perceived_change = wealth_gain + realm_wealth_gain
 
 			--- for greedy characters, personal wealth is much more important:
 			if character.traits[TRAIT.GREEDY] then
