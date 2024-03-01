@@ -12,18 +12,34 @@ function ll.load()
 		b = 0.85,
 		icon = 'barbute.png',
 	}
+
+	local beaver_portrait = {
+		folder = "beaver",
+		layers = {"cloth_behind.png", "base.png", "over_1.png", "over_2.png", "ear.png", "cloth.png"},
+		layers_groups = {
+			cloth = {"cloth_behind.png", "cloth.png"}
+		}
+	}
+
 	Race:new {
 		name = 'high beaver',
 		r = 0.68,
 		g = 0.4,
 		b = 0.3,
 		icon = 'beaver.png',
-		portrait_description = {
-			folder = "beaver",
-			layers = {"cloth_behind.png", "base.png", "over_1.png", "over_2.png", "ear.png", "cloth.png"},
-			layers_groups = {
-				cloth = {"cloth_behind.png", "cloth.png"}
-			}
+		male_portrait = {
+			--- fallback is a portrait description which is active when needed portrait is not provided
+			fallback = beaver_portrait,
+
+			--- just to list all possible fields
+			child = beaver_portrait,
+			teen = beaver_portrait,
+			adult = beaver_portrait,
+			middle = beaver_portrait,
+			elder = beaver_portrait
+		},
+		female_portrait = {
+			fallback = beaver_portrait
 		},
 		description = 'high beavers',
 		males_per_hundred_females = 108,
@@ -96,12 +112,24 @@ function ll.load()
 		g = 0.5,
 		b = 0.1,
 		icon = 'woman-elf-face.png',
-		portrait_description = {
-			folder = "null_middle",
-			layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
-						"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png", "beard.png"},
-			layers_groups = {
-				hair = {"hair_behind.png", "hair.png"}
+		male_portrait = {
+			fallback = {
+				folder = "null_middle",
+				layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
+							"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png", "beard.png"},
+				layers_groups = {
+					hair = {"hair_behind.png", "hair.png"}
+				}
+			}
+		},
+		female_portrait = {
+			fallback = {
+				folder = "null_middle",
+				layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
+							"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png"},
+				layers_groups = {
+					hair = {"hair_behind.png", "hair.png"}
+				}
 			}
 		},
 		description = 'elves',
@@ -248,12 +276,24 @@ function ll.load()
 		g = 0.7,
 		b = 0.1,
 		icon = 'goblin.png',
-		portrait_description = {
-			folder = "goblin",
-			layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png", "11.png"},
-			layers_groups = {
-				ear = {"04.png", "07.png"},
-				hair = {"055.png", "10.png"}
+		male_portrait = {
+			fallback = {
+				folder = "goblin",
+				layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png", "11.png"},
+				layers_groups = {
+					ear = {"04.png", "07.png"},
+					hair = {"055.png", "10.png"}
+				}
+			}
+		},
+		female_portrait = {
+			fallback = {
+				folder = "goblin",
+				layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png"},
+				layers_groups = {
+					ear = {"04.png", "07.png"},
+					hair = {"055.png", "10.png"}
+				}
 			}
 		},
 		description = 'goblin',
