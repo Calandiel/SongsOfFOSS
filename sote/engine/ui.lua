@@ -1,5 +1,7 @@
 local ui = {}
 
+---@alias love.AlignMode "center" | "left" | "right"
+
 -- #######################
 -- ### DEFAULT STYLING ###
 -- #######################
@@ -135,8 +137,12 @@ end
 ---@param new_width number
 ---@param new_height number
 function ui.set_reference_screen_dimensions(new_width, new_height)
-	reference_width = new_width
-	reference_height = new_height
+	local current_ratio = reference_width / reference_height
+	local new_ratio = new_width / new_height
+	if current_ratio ~= new_ratio then
+		reference_width = reference_height * new_ratio
+	end
+	--print(reference_width / reference_height .. " " .. reference_width .. "x" .. reference_height)
 end
 
 ---Returns scaling factors that transform froms reference space to screen space that can be used with Love's draw functions.
@@ -204,6 +210,7 @@ function Rect:copy()
 end
 
 ---Returns a new rect, using this rect as the new reference point.
+---@alias love.AlignMode "center"  | "left" | "right"
 ---@param x number
 ---@param y number
 ---@param width number
@@ -1476,8 +1483,13 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 		:position(rect.x, rect.y)
 		:spacing(0)
 		:build()
+	local total_weight = 0
 	for index = 1, #columns do
-		local header_rect =  layout:next(columns[index].width, state.individual_height)
+		total_weight = total_weight + columns[index].width
+	end
+	local weight = (rect.width - 20) / total_weight
+	for index = 1, #columns do
+		local header_rect =  layout:next(columns[index].width * weight, state.individual_height)
 		header_rect.height = rect.height
 		if not columns[index].active and ui.text_button("", header_rect) then
 			if state.sorted_field == index then
@@ -1520,7 +1532,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 			:spacing(0)
 			:build()
 		for index = 1, #columns do
-			local temp = columns[index].render_closure(layout:next(columns[index].width, state.individual_height), entry.key, entry.value)
+			local temp = columns[index].render_closure(layout:next(columns[index].width * weight, state.individual_height), entry.key, entry.value)
 			if temp then
 				result = temp
 			end

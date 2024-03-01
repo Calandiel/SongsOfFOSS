@@ -48,9 +48,10 @@ local function pop_sex(pop)
 end
 
 ---@param rect Rect
----@param province Province
+---@param table table<POP, POP>
+---@param title string?
 ---@param compact boolean?
-return function(rect, province, compact)
+return function(rect, table, title, compact)
     if compact == nil then
         compact = false
     end
@@ -110,10 +111,15 @@ return function(rect, province, compact)
             }
         }
         init_state(compact)
-
-        local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", "up")
-        local bottom = rect:subrect(0, UI_STYLE.table_header_height, rect.width, rect.height - UI_STYLE.table_header_height, "left", "up")
-        ui.centered_text("Local characters", top)
-        return ut.table(bottom, province.characters, columns, state)
+        local bottom_height = rect.height
+        local bottom_y = 0
+        if title then
+            bottom_height = bottom_height - UI_STYLE.table_header_height
+            bottom_y = UI_STYLE.table_header_height
+            local top = rect:subrect(0, 0, rect.width, UI_STYLE.table_header_height, "left", "up")
+            ui.centered_text(title, top)
+        end
+        local bottom = rect:subrect(0, bottom_y, rect.width, bottom_height, "left", "up")
+        return ut.table(bottom, table, columns, state)
     end
 end

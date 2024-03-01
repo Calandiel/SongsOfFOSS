@@ -8,6 +8,7 @@
 ---@field name string
 ---@field savings number
 ---@field parent POP?
+---@field children table<POP, POP>
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
 ---@field popularity table<Realm, number|nil>
@@ -75,6 +76,7 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.owned_buildings = {}
 	r.inventory = {}
 	r.price_memory = {}
+	r.children = {}
 	r.successor_of = {}
 	r.current_negotiations = {}
 	r.need_satisfaction = {}
