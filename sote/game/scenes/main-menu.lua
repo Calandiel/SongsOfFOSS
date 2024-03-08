@@ -47,7 +47,8 @@ function mm.draw()
 		DEFINES.default = true
 		local manager = require "game.scene-manager"
 		manager.transition("world-loader")
-		elseif screen == "new-planet" then
+	elseif screen == "new-planet" then
+		DEFINES = require "game.defines".init()
 		local manager = require "game.scene-manager"
 		manager.transition("world-gen")
 	else

@@ -1,3 +1,5 @@
+local libsote = {}
+
 local ffi = require("ffi")
 local kernel32 = require("utils.win32api")
 
@@ -12,22 +14,22 @@ int LIBSOTE_GetLoadMessage(char* err_msg, char* msg);
 ]]
 
 local sote_params = {
-    {name = "randomSeed",                       index =  0, ctype = "unsigned int",   value = 90638},
+    {name = "randomSeed",                       index =  0, ctype = "unsigned int",   value = 51804},
     {name = "WorldSize",                        index =  1, ctype = "unsigned short", value = 183},
-    {name = "SuperOceans",                      index =  2, ctype = "short",          value = 1},
+    {name = "SuperOceans",                      index =  2, ctype = "short",          value = 2},
     {name = "SuperContinents",                  index =  3, ctype = "short",          value = 1},
-    {name = "MajorPlates",                      index =  4, ctype = "short",          value = 7},
-    {name = "MinorPlates",                      index =  5, ctype = "short",          value = 12},
-    {name = "MajorHotspots",                    index =  6, ctype = "short",          value = 9},
-    {name = "ModerateHotspots",                 index =  7, ctype = "short",          value = 12},
-    {name = "MinorHotspots",                    index =  8, ctype = "short",          value = 30},
+    {name = "MajorPlates",                      index =  4, ctype = "short",          value = 6},
+    {name = "MinorPlates",                      index =  5, ctype = "short",          value = 13},
+    {name = "MajorHotspots",                    index =  6, ctype = "short",          value = 4},
+    {name = "ModerateHotspots",                 index =  7, ctype = "short",          value = 6},
+    {name = "MinorHotspots",                    index =  8, ctype = "short",          value = 15},
     {name = "HotspotWidth",                     index =  9, ctype = "double",         value = 1.0},
     {name = "majPlateExpansion",                index = 10, ctype = "short",          value = 4},
     {name = "minPlateExpansion",                index = 11, ctype = "short",          value = 3},
     {name = "plateRandomness",                  index = 12, ctype = "short",          value = 50},
     {name = "totalPlatesUsed",                  index = 13, ctype = "short",          value = 1},
     {name = "PlateSpeed",                       index = 14, ctype = "double",         value = 1.0},
-    {name = "PercentCrust",                     index = 15, ctype = "short",          value = 45},
+    {name = "PercentCrust",                     index = 15, ctype = "short",          value = 40},
     {name = "OldMountains",                     index = 16, ctype = "double",         value = 1.0},
     {name = "OldHills",                         index = 17, ctype = "double",         value = 1.0},
     {name = "AncientMountains",                 index = 18, ctype = "double",         value = 1.0},
@@ -35,7 +37,7 @@ local sote_params = {
     {name = "MountainWidth",                    index = 20, ctype = "double",         value = 1.0},
     {name = "BeltLength",                       index = 21, ctype = "double",         value = 1.0},
     {name = "BeltFrequency",                    index = 22, ctype = "double",         value = 1.0},
-    {name = "MinorOceanPlates",                 index = 23, ctype = "short",          value = 4},
+    {name = "MinorOceanPlates",                 index = 23, ctype = "short",          value = 8},
     {name = "LargeIslandArcs",                  index = 24, ctype = "double",         value = 2.0},
     {name = "SunkenContinents",                 index = 25, ctype = "double",         value = 0.0},
     {name = "ContinentalShelves",               index = 26, ctype = "double",         value = 1.0},
@@ -49,7 +51,7 @@ local sote_params = {
     {name = "diffusionUpdatesPerClimateUpdate", index = 34, ctype = "int",            value = 3},
     {name = "diffusionStrength",                index = 35, ctype = "double",         value = 1.0 / 80.0},
     {name = "passiveRainCoefficient",           index = 36, ctype = "double",         value = 0.1},
-    {name = "advectionStrength",                index = 37, ctype = "float",          value = 0.4},
+    {name = "advectionStrength",                index = 37, ctype = "float",          value = 0.4000000059604645},
     {name = "iceCapCorrection",                 index = 38, ctype = "double",         value = 0.09},
     {name = "hadleyDrynessFactor",              index = 39, ctype = "double",         value = 0.75},
     {name = "hadleyTemperatureImpact",          index = 40, ctype = "double",         value = 0.75},
@@ -91,41 +93,32 @@ local function log_sote(sote_msg)
   print("[libSOTE.dll] " .. ffi.string(sote_msg))
 end
 
-local message = nil
+libsote.message = nil
 
 local function log_and_set_msg(msg)
   log_info(msg)
-  message = msg
+  libsote.message = msg
 end
 
-local function get_message()
-  return message
-end
+libsote.allocated_memory = nil
 
 local function init_mem_reserve()
   kernel32 = ffi.load("kernel32")
 
   local addr = ffi.cast("LPVOID", 0x8000000000)
   local alloc_size = 0x5000002000
-  local allocated_memory = nil
-  local allocation_attempts = 10
   local allocation_success = false
 
-  while allocation_attempts > 0 do
-    allocated_memory = kernel32.VirtualAlloc(addr, alloc_size, ffi.C.MEM_RESERVE, ffi.C.PAGE_EXECUTE_READWRITE)
+  libsote.allocated_memory = kernel32.VirtualAlloc(addr, alloc_size, ffi.C.MEM_RESERVE, ffi.C.PAGE_EXECUTE_READWRITE)
 
-    if allocated_memory == nil then
-      log_info("memory allocation failed with error code: " .. tostring(ffi.C.GetLastError()))
-    elseif allocated_memory ~= addr then
-      log_info("allocated memory, but not at expected address")
-      kernel32.VirtualFree(allocated_memory, 0, ffi.C.MEM_RELEASE)
-    else
-      allocation_success = true
-      log_info("libSOTE memory reserved")
-      break
-    end
-
-    allocation_attempts = allocation_attempts - 1
+  if libsote.allocated_memory == nil then
+    log_info("memory allocation failed with error code: " .. tostring(ffi.C.GetLastError()))
+  elseif libsote.allocated_memory ~= addr then
+    log_info("allocated memory, but not at expected address")
+    kernel32.VirtualFree(libsote.allocated_memory, 0, ffi.C.MEM_RELEASE)
+  else
+    allocation_success = true
+    log_info("libSOTE memory reserved")
   end
 
   if not allocation_success then
@@ -133,14 +126,14 @@ local function init_mem_reserve()
     return false
   end
 
-  ffi.gc(allocated_memory, function(address) kernel32.VirtualFree(address, 0, ffi.C.MEM_RELEASE) end)
+  ffi.gc(libsote.allocated_memory, function(address) kernel32.VirtualFree(address, 0, ffi.C.MEM_RELEASE) end)
 
   return true
 end
 
 local lib_sote_instance = nil
 
-local function init()
+function libsote.init()
   if ffi.os ~= "Windows" then
     log_and_set_msg("libSOTE only supported on Windows for now")
     return false
@@ -161,7 +154,7 @@ local function init()
   if ret_code ~= 0 then
     log_sote(err_msg)
     log_and_set_msg("Failed to init libSOTE")
-    message = message .. ": " .. ffi.string(err_msg)
+    libsote.message = libsote.message .. ": " .. ffi.string(err_msg)
     return false
   end
 
@@ -208,7 +201,6 @@ end
 
 local function set_sote_params()
   local err_msg = ffi.new("char[256]")
-  local ret_code = 0
 
   local desc = ffi.new("unsigned int[3]", {1, 0, 0})
   for _, v in ipairs(sote_params) do
@@ -216,7 +208,7 @@ local function set_sote_params()
 
     desc[2] = v.index
     local val = ffi.new(v.ctype .. "[1]", v.value)
-    ret_code = lib_sote_instance.LIBSOTE_SetVar(err_msg, 3, desc, ffi.cast("void*", val))
+    _ = lib_sote_instance.LIBSOTE_SetVar(err_msg, 3, desc, ffi.cast("void*", val))
 
     ::continue::
   end
@@ -293,22 +285,23 @@ local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
 end
 
 ---
-local function generate_world()
+function libsote.generate_world()
   if not lib_sote_instance then
     log_and_set_msg("libSOTE not initialized")
-    return false
+    return nil
   end
 
   set_sote_params()
   init_world()
 
   local world_size = sote_params[2].value
+  -- local world_size = 3
 
   local world_allocator = require("libsote.world_allocator"):new()
-  local world = world_allocator:allocate(183)
+  local world = world_allocator:allocate(world_size)
   if not world then
     log_and_set_msg("World allocation failed")
-    return false
+    return nil
   end
 
   local err_msg = ffi.new("char[256]")
@@ -318,25 +311,32 @@ local function generate_world()
 
   local get_desc = ffi.new("unsigned int[3]", {0, 0, 0})
 
+  local file = love.filesystem.newFile("lua_sote.txt", "w")
+
   for q = -world_size, world_size do
     for r = -world_size, world_size do
       if not world:is_valid(q, r) then goto continue end
 
       for face = 1, 20 do
         get_desc[1] = hex_coord_to_hex_number(face - 1, q, r)
-        world:set_tile_data(q, r, face, get_tile_data(get_desc, err_msg, float_val, short_val, uint_val))
+        local tile_data = get_tile_data(get_desc, err_msg, float_val, short_val, uint_val)
+        file:write(q .. " " .. r .. " " .. face .. " " .. get_desc[1] .. " " .. tile_data.elevation .. "\n")
+        world:set_tile_data(-r, -q, face, tile_data)
       end
 
       ::continue::
     end
   end
 
+  file:close();
+
   log_and_set_msg("World data loaded")
-  return true
+
+  return world
 end
 
 ---
-local function shutdown()
+function libsote.shutdown()
   if not lib_sote_instance then
     log_and_set_msg("libSOTE not initialized")
     return false
@@ -360,12 +360,6 @@ local function shutdown()
     error("failed to wait clean_up task")
   end
   log_info("finished task clean_up")
-
 end
 
-return {
-  init = init,
-  shutdown = shutdown,
-  get_message = get_message,
-  generate_world = generate_world
-}
+return libsote
