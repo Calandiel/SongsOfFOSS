@@ -212,12 +212,12 @@ local function set_sote_params(seed)
     if v.ctype == "" then goto continue end
 
     local value = v.value
-    if v.name == "randomSeed" then
+    if seed and v.name == "randomSeed" then
       value = seed
     end
 
     desc[2] = v.index
-    local cval = ffi.new(v.ctype .. "[1]", v.value)
+    local cval = ffi.new(v.ctype .. "[1]", value)
     _ = lib_sote_instance.LIBSOTE_SetVar(err_msg, 3, desc, ffi.cast("void*", cval))
 
     ::continue::
