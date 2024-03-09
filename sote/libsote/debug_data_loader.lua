@@ -1,14 +1,8 @@
+--- To be used for loading data exported from sote 0.2, for debugging purposes
+
 local imported_coordinates_hash = {}
 
-local function extractValues(line, format)
-    local values = {}
-    for value in string.gmatch(line, format) do
-        table.insert(values, value)
-    end
-    return values
-end
-
-local function loadDataFromFile(filename, format)
+local function loadDataFromFile(filename)
     local file = io.open(filename, "r")
 
     if not file then

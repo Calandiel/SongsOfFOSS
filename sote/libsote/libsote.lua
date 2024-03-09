@@ -199,16 +199,26 @@ local function get_val(desc, err_msg, val)
   end
 end
 
-local function set_sote_params()
+local function set_sote_params(seed)
+  if not lib_sote_instance then
+    log_and_set_msg("libSOTE not initialized")
+    return
+  end
+
   local err_msg = ffi.new("char[256]")
 
   local desc = ffi.new("unsigned int[3]", {1, 0, 0})
   for _, v in ipairs(sote_params) do
     if v.ctype == "" then goto continue end
 
+    local value = v.value
+    if v.name == "randomSeed" then
+      value = seed
+    end
+
     desc[2] = v.index
-    local val = ffi.new(v.ctype .. "[1]", v.value)
-    _ = lib_sote_instance.LIBSOTE_SetVar(err_msg, 3, desc, ffi.cast("void*", val))
+    local cval = ffi.new(v.ctype .. "[1]", v.value)
+    _ = lib_sote_instance.LIBSOTE_SetVar(err_msg, 3, desc, ffi.cast("void*", cval))
 
     ::continue::
   end
@@ -216,6 +226,11 @@ end
 
 ---
 local function init_world()
+  if not lib_sote_instance then
+    log_and_set_msg("libSOTE not initialized")
+    return
+  end
+
   local err_msg = ffi.new("char[256]")
   local ret_code = 0
 
@@ -230,7 +245,7 @@ local function init_world()
   local msg = ffi.new("char[256]")
   while lib_sote_instance.LIBSOTE_IsRunning() == 1 do
     -- ffi.fill(msg, ffi.sizeof(msg))
-    lib_sote_instance.LIBSOTE_GetLoadMessage(err_msg, msg)
+    _ = lib_sote_instance.LIBSOTE_GetLoadMessage(err_msg, msg)
 
     local new_msg = ffi.string(msg)
     if new_msg ~= current_msg then
@@ -291,14 +306,20 @@ function libsote.generate_world()
     return nil
   end
 
-  set_sote_params()
+  math.randomseed(os.time())
+  local seed = math.random(1, 100000)
+
+  set_sote_params(seed)
   init_world()
 
   local world_size = sote_params[2].value
   -- local world_size = 3
 
-  local world_allocator = require("libsote.world_allocator"):new()
-  local world = world_allocator:allocate(world_size)
+  local start = love.timer.getTime()
+  local world = require("libsote.world_allocator"):new():allocate(world_size)
+  local duration = love.timer.getTime() - start
+  print("allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
+
   if not world then
     log_and_set_msg("World allocation failed")
     return nil
@@ -311,7 +332,7 @@ function libsote.generate_world()
 
   local get_desc = ffi.new("unsigned int[3]", {0, 0, 0})
 
-  local file = love.filesystem.newFile("lua_sote.txt", "w")
+  -- local file = love.filesystem.newFile("lua_sote.txt", "w")
 
   for q = -world_size, world_size do
     for r = -world_size, world_size do
@@ -320,7 +341,7 @@ function libsote.generate_world()
       for face = 1, 20 do
         get_desc[1] = hex_coord_to_hex_number(face - 1, q, r)
         local tile_data = get_tile_data(get_desc, err_msg, float_val, short_val, uint_val)
-        file:write(q .. " " .. r .. " " .. face .. " " .. get_desc[1] .. " " .. tile_data.elevation .. "\n")
+        -- file:write(q .. " " .. r .. " " .. face .. " " .. get_desc[1] .. " " .. tile_data.elevation .. "\n")
         world:set_tile_data(-r, -q, face, tile_data)
       end
 
@@ -328,7 +349,7 @@ function libsote.generate_world()
     end
   end
 
-  file:close();
+  -- file:close();
 
   log_and_set_msg("World data loaded")
 
@@ -359,7 +380,7 @@ function libsote.shutdown()
     log_sote(err_msg)
     error("failed to wait clean_up task")
   end
-  log_info("finished task clean_up")
+  log_info("Finished task clean_up")
 end
 
 return libsote
