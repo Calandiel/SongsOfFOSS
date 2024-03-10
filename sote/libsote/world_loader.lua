@@ -19,13 +19,10 @@ local function elev_to_gray(elev, is_land)
 end
 
 function wl.load_heightmap_from(world)
-    print("Loading heightmap")
-
     local start = love.timer.getTime()
 
     for _, tile in pairs(WORLD.tiles) do
-        local lat, lon = tile:latlon()
-        local q, r, face = world:latlon_to_hex_coords(lat, lon)
+        local q, r, face = world:get_tile_coord(tile.tile_id)
         local generated_elev = world:get_elevation(q, r, face)
         local is_land = world:get_is_land(q, r, face)
         local elev_as_grey = elev_to_gray(generated_elev, is_land)

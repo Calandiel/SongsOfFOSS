@@ -1,6 +1,7 @@
 local world = {
     world_size = nil,
     coord = nil,
+    coord_by_tile_id = nil,
 
     colatitude = nil,
     minus_longitude = nil,
@@ -50,6 +51,7 @@ function world:new(world_size)
 
     obj.world_size = world_size
     obj.coord = {}
+    obj.coord_by_tile_id = {}
 
     local alloc_size = calc_tile_count(world_size)
 
@@ -197,6 +199,15 @@ function world:set_tile_data(q, r, face, data)
     self.volcanic_activity[index] = data.volcanic_activity
     self.is_land[index] = data.is_land
     self.plate[index] = data.plate
+end
+
+function world:cache_tile_coord(tile_id, q, r, face)
+    self.coord_by_tile_id[tile_id] = {q, r, face}
+end
+
+function world:get_tile_coord(tile_id)
+    local coord = self.coord_by_tile_id[tile_id]
+    return coord[1], coord[2], coord[3]
 end
 
 function world:get_colatitude(q, r, face)

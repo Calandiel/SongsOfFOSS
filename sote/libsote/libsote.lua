@@ -242,8 +242,8 @@ local function init_world()
   log_info("started task init_world")
 
   local current_msg = ""
-  local msg = ffi.new("char[256]")
   while lib_sote_instance.LIBSOTE_IsRunning() == 1 do
+    local msg = ffi.new("char[256]")
     -- ffi.fill(msg, ffi.sizeof(msg))
     _ = lib_sote_instance.LIBSOTE_GetLoadMessage(err_msg, msg)
 

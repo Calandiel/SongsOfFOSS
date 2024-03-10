@@ -13,7 +13,19 @@ local cpml = require "cpml"
 local function load_data_from(world)
   local wl = require "libsote.world_loader"
   wl.load_heightmap_from(world)
-  print("Loaded heightmap")
+end
+
+local function cache_tile_coord(world)
+  local start = love.timer.getTime()
+
+  for _, tile in pairs(WORLD.tiles) do
+    local lat, lon = tile:latlon()
+    local q, r, face = world:latlon_to_hex_coords(lat, lon)
+    world:cache_tile_coord(tile.tile_id, q, r, face)
+  end
+
+  local duration = love.timer.getTime() - start
+  print("cache_tile_coord: " .. tostring(duration * 1000) .. "ms")
 end
 
 function wg.init()
@@ -38,6 +50,7 @@ function wg.init()
 
 
   require "game.entities.world".empty()
+  cache_tile_coord(wg.world)
   load_data_from(wg.world)
 
   wg.world_size = DEFINES.world_size
