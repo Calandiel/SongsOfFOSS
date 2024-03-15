@@ -316,7 +316,7 @@ function libsote.generate_world()
   -- local world_size = 3
 
   local start = love.timer.getTime()
-  local world = require("libsote.world_allocator"):new():allocate(world_size)
+  local world = require("libsote.world_allocator").allocate(world_size)
   local duration = love.timer.getTime() - start
   print("allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
 

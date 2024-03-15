@@ -1,3 +1,5 @@
+local wa = {}
+
 local icosa_defines = require("libsote.icosa_defines")
 
 local function calc_edge_tile_count(size)
@@ -87,23 +89,23 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
 
     if ei == 1 then
         ti = r
-        if edge.neighbor_edge == 3 then
+        if nei == 3 then
             nti = -r
         else
             nti = icosa.size - ti
         end
     elseif ei == 2 then
         ti = q
-        if edge.neighbor_edge == 2 then
+        if nei == 2 then
             nti = icosa.size - q
-        elseif edge.neighbor_edge == 3 then
+        elseif nei == 3 then
             nti = q
         end
     elseif ei == 3 then
         ti = -r
-        if edge.neighbor_edge == 2 then
+        if nei == 2 then
             nti = -r
-        elseif edge.neighbor_edge == 3 then
+        elseif nei == 3 then
             nti = icosa.size + r
         end
     end
@@ -113,21 +115,12 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
     end
 
     edge.tiles[ti] = index
-    icosa.faces[edge.neighbor_face].edges[edge.neighbor_edge].tiles[nti] = index
+    icosa.faces[edge.neighbor_face].edges[nei].tiles[nti] = index
 
     return edge.tiles[ti], index + 1
 end
 
-local world_allocator = {}
-
-function world_allocator:new()
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-    return obj
-end
-
-function world_allocator:allocate(size)
+function wa.allocate(size)
     local world = require("libsote.world"):new(size)
 
     local icosa_obj = build_icosa(size)
@@ -178,4 +171,4 @@ function world_allocator:allocate(size)
     return world
 end
 
-return world_allocator
+return wa
