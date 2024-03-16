@@ -255,14 +255,14 @@ end
 ---@return number
 function warband:consume_supplies(days)
 	local consumption = days * self:daily_supply_consumption()
-	self.leader.inventory['food'] = self.leader.inventory['food'] - consumption
+	self.leader.inventory['grain'] = self.leader.inventory['grain'] - consumption
 	return consumption
 end
 
 ---Returns amount of days warband can travel depending on collected supplies
 ---@return number
 function warband:days_of_travel()
-	local supplies = self.leader.inventory['food'] or 0
+	local supplies = self.leader.inventory['grain'] or 0
 	local per_day = self:daily_supply_consumption()
 
 	if per_day == 0 then

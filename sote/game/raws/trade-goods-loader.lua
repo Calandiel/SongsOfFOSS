@@ -32,16 +32,31 @@ function d.load()
 	add_use_case("administration", "administration", 1)
 	-- BASE GOODS
 	TradeGood:new {
-		name = "food",
-		description = "food",
-		icon = "high-grass.png",
-		r = 0.12,
-		g = 0.12,
-		b = 1,
+		name = "grain",
+		description = "grain",
+		icon = "wheat.png",
+		r = 0.191,
+		g = 0,
+		b = 0.7,
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("food", "food", 1)
+	add_use_case("grain", "food", 1)
+	add_use_case("grain", "grain", 1)
+	TradeGood:new {
+		name = "fruit",
+		description = "fruit",
+		icon = "fruit-bowl.png",
+		r = 0.82,
+		g = 0.88,
+		b = 0.19,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("fruit", "food", 1)
+	add_use_case("fruit", "fruit", 1)
+	add_use_case("fruit", "grain", 1)
+	add_use_case("fruit", "tannin", 0.5)
 	TradeGood:new {
 		name = "honey",
 		description = "honey",
@@ -52,7 +67,9 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("food", "food", 0.5)
+	add_use_case("honey", "food", 0.5)
+	add_use_case("honey", "grain", 0.5)
+	add_use_case("honey", "fruit", 0.25)
 	add_use_case("honey", "mead-substrate", 1)
 	-- CRUCIAL SETTLEMENT SERVICES
 	TradeGood:new {
@@ -172,6 +189,8 @@ function d.load()
 	}
 	add_use_case("timber", "containers", 0.1)
 	add_use_case("timber", "timber", 1)
+	add_use_case("timber", "tannin", 1)
+	add_use_case("timber", "fuel", 1)
 
 	TradeGood:new {
 		name = "blanks-flint",

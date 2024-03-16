@@ -1,5 +1,6 @@
 local tabb = require "engine.table"
 local good = require "game.raws.raws-utils".trade_good
+local use_case = require "game.raws.raws-utils".trade_good_use_case
 local rea = {}
 
 local economic_effects = require "game.raws.effects.economic"
@@ -53,8 +54,9 @@ function rea.run(realm)
 			realm.production[prod] = old - amount
 			local vold = realm.bought[prod] or 0
 			realm.bought[prod] = vold + amount -- a '+', even tho we're consuming, because this stands for volume
-			if prod == 'food' then
-				realm.expected_food_consumption = realm.expected_food_consumption + amount
+			local value = use_case('food').goods[prod]
+			if value then
+				realm.expected_food_consumption = realm.expected_food_consumption + amount * value
 			end
 
 			local resource = good(prod)

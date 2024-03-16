@@ -225,9 +225,15 @@ function pro.run(province)
 
 
 
-	local food_index = RAWS_MANAGER.trade_good_to_index["food"]
+	local fruit_index = RAWS_MANAGER.trade_good_to_index["fruit"]
+	local food_index = RAWS_MANAGER.trade_good_to_index["grain"]
+	local meat_index = RAWS_MANAGER.trade_good_to_index["meat"]
+	local hide_index = RAWS_MANAGER.trade_good_to_index["hide"]
 	local water_index = RAWS_MANAGER.trade_good_to_index["water"]
+	local fruit_price = market_data[fruit_index - 1].price
 	local food_price = market_data[food_index - 1].price
+	local meat_price = market_data[meat_index - 1].price
+	local hide_price = market_data[meat_index - 1].price
 
 	-- Record "innate" production of goods and services.
 	-- These resources come
@@ -258,10 +264,12 @@ function pro.run(province)
 	---@param time number ratio of daily active time pop can spend on foraging
 	local function forage_warband(pop, pop_table, time)
 		foragers_count = foragers_count + time -- Record a new forager!
-		local food_produced = pop[zero].foraging_efficiency * 0.25 * time
+		local food_produced = pop[zero].foraging_efficiency * 0.05 * time
 
 		if pop_table.unit_of_warband.leader then
-			pop_table.unit_of_warband.leader.inventory['food'] = (pop_table.unit_of_warband.leader.inventory['food'] or 0) + food_produced
+			pop_table.unit_of_warband.leader.inventory['fruit'] = (pop_table.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
+			pop_table.unit_of_warband.leader.inventory['grain'] = (pop_table.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
+			pop_table.unit_of_warband.leader.inventory['meat'] = (pop_table.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
 		end
 	end
 
@@ -273,9 +281,15 @@ function pro.run(province)
 	---@return number income
 	local function forage(pop, pop_table, time)
 		foragers_count = foragers_count + time -- Record a new forager!
-		local food_produced = pop[zero].foraging_efficiency * 0.25 * time
-		local income = record_production(food_index, food_produced)
-
+		local food_produced = pop[zero].foraging_efficiency * 0.1 * time
+		local income = 0
+		if pop_table:is_character() then
+			income = record_production(meat_index, food_produced)
+			income = record_production(hide_index, food_produced / 2)
+		else
+			income = record_production(food_index, food_produced)
+			income = record_production(fruit_index, food_produced)
+		end
 		return income
 	end
 
