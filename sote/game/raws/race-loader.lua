@@ -42,17 +42,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 1.2
 		},
 		female_needs = {
-			[NEED.WATER] = 3,
-			[NEED.FOOD] = 2,
-			-- [NEED.FRUIT] = 2,
-			-- [NEED.GRAIN] = 2,
-			-- [NEED.MEAT] = 1,
-			[NEED.CLOTHING] = 0.125 / 2, -- beavers have really nice fur
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 0.125 / 4,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 3
+			},
+			[NEED.FOOD] = {
+				['food'] = 2,
+				['fruit'] = 0.6,
+				['grain'] = 0.6,
+				['meat'] = 0.3,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 0.125 / 2 -- beavers have really nice fur
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 / 4,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		female_infrastructure_needs = 2,
 		male_body_size = 2,
@@ -66,17 +82,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 1.2
 		},
 		male_needs = {
-			[NEED.WATER] = 3,
-			[NEED.FOOD] = 2,
-			-- [NEED.FRUIT] = 2,
-			-- [NEED.GRAIN] = 2,
-			-- [NEED.MEAT] = 1,
-			[NEED.CLOTHING] = 0.125 / 2, -- beavers have really nice fur
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 0.125 / 4,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 3
+			},
+			[NEED.FOOD] = {
+				['food'] = 2,
+				['fruit'] = 0.8,
+				['grain'] = 0.8,
+				['meat'] = 0.4,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 0.125 / 2 -- beavers have really nice fur
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 / 4,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		male_infrastructure_needs = 2,
 
@@ -113,17 +145,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 1.5
 		},
 		female_needs = {
-			[NEED.WATER] = 1.25,
-			[NEED.FOOD] = 1.25,
-			-- [NEED.FRUIT] = 3,
-			-- [NEED.GRAIN] = 1,
-			-- [NEED.MEAT] = 1.5,
-			[NEED.CLOTHING] = 1,
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 0.125 / 2,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 1.25
+			},
+			[NEED.FOOD] = {
+				['food'] = 1.25,
+				['fruit'] = 0.5,
+				['grain'] = 0.2,
+				['meat'] = 0.2,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 1
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 / 4,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		female_infrastructure_needs = 5,
 		male_body_size = 0.95,
@@ -137,17 +185,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 1.5
 		},
 		male_needs = {
-			[NEED.WATER] = 1.25,
-			[NEED.FOOD] = 1.25,
-			-- [NEED.FRUIT] = 3,
-			-- [NEED.GRAIN] = 1,
-			-- [NEED.MEAT] = 1.5,
-			[NEED.CLOTHING] = 1,
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 0.125 / 2,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 1.25
+			},
+			[NEED.FOOD] = {
+				['food'] = 1.25,
+				['fruit'] = 0.5,
+				['grain'] = 0.2,
+				['meat'] = 0.25,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 1
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 / 2,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		male_infrastructure_needs = 5,
 		carrying_capacity_weight = 2,
@@ -186,17 +250,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 0.8
 		},
 		female_needs = {
-			[NEED.WATER] = 1.25,
-			[NEED.FOOD] = 1.25,
-			-- [NEED.FRUIT] = 1.25,
-			-- [NEED.GRAIN] = 1.25,
-			-- [NEED.MEAT] = 1.25,
-			[NEED.CLOTHING] = 1,
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 0.125 * 2,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 1.25
+			},
+			[NEED.FOOD] = {
+				['food'] = 1.25,
+				['fruit'] = 0.25,
+				['grain'] = 0.25,
+				['meat'] = 0.2,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 1
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 * 2,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		female_infrastructure_needs = 3,
 		male_body_size = 0.8,
@@ -210,17 +290,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 0.8
 		},
 		male_needs = {
-			[NEED.WATER] = 1.25,
-			[NEED.FOOD] = 1.25,
-			-- [NEED.FRUIT] = 1.25,
-			-- [NEED.GRAIN] = 1.25,
-			-- [NEED.MEAT] = 1.25,
-			[NEED.CLOTHING] = 1,
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 0.125 * 2,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 1.25
+			},
+			[NEED.FOOD] = {
+				['food'] = 1.25,
+				['fruit'] = 0.3,
+				['grain'] = 0.3,
+				['meat'] = 0.2,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 1
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 * 2,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		male_infrastructure_needs = 3,
 		carrying_capacity_weight = 1.5,
@@ -257,17 +353,33 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 0.25
 		},
 		female_needs = {
-			[NEED.WATER] = 0.25,
-			[NEED.FOOD] = 0.5,
-			-- [NEED.FRUIT] = 0.25,
-			-- [NEED.GRAIN] = 0.25,
-			-- [NEED.MEAT] = 0.25,
-			[NEED.CLOTHING] = 0.25,
-			[NEED.FURNITURE] = 0.25,
-			[NEED.TOOLS] = 0.125 / 2,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 0.25
+			},
+			[NEED.FOOD] = {
+				['food'] = 0.5,
+				['fruit'] = 0.1,
+				['grain'] = 0.2,
+				['meat'] = 0.2,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 0.25
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 0.25
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 / 2,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		female_infrastructure_needs = 0.25,
 		male_body_size = 0.6,
@@ -281,17 +393,25 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 0.25
 		},
 		male_needs = {
-			[NEED.WATER] = 0.25,
-			[NEED.FOOD] = 0.5,
-			-- [NEED.FRUIT] = 0.25,
-			-- [NEED.GRAIN] = 0.25,
-			-- [NEED.MEAT] = 0.25,
-			[NEED.CLOTHING] = 0.25,
-			[NEED.FURNITURE] = 0.25,
-			[NEED.TOOLS] = 0.125 / 2,
-			[NEED.HEALTHCARE] = 0.125,
-			[NEED.STORAGE] = 0.125,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = { ['water'] = 0.25 },
+			[NEED.FOOD] = {
+				['food'] = 0.5,
+				['fruit'] = 0.1,
+				['grain'] = 0.25,
+				['meat'] = 0.25,
+			},
+			[NEED.TOOLS] = {
+				['tools'] = 0.125 / 2,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 0.125,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 0.125,
+			},
+			[NEED.LUXURY] = {
+				['luxury'] = 1,
+			},
 		},
 		male_infrastructure_needs = 0.25,
 		carrying_capacity_weight = 0.25,
