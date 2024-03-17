@@ -1,4 +1,5 @@
 local trade_good = require "game.raws.raws-utils".trade_good
+local use_case = require "game.raws.raws-utils".trade_good_use_case
 local JOBTYPE = require "game.raws.job_types"
 
 local tabb = require "engine.table"
@@ -159,12 +160,12 @@ function pro.run(province)
 		market_data[i - 1].supply = 0
 		market_data[i - 1].demand = 0
 	end
-
+--[[
 	for tag, index in pairs(NEED) do
 		local need = NEEDS[index]
 		need_total_exp[index], need_price_expectation[index] = get_price_expectation(need.goods)
 	end
-
+]]
 	for tag, use_case in pairs(RAWS_MANAGER.trade_goods_use_cases_by_name) do
 		use_case_total_exp[tag], use_case_price_expectation[tag] = get_price_expectation_weighted(use_case.goods)
 	end
@@ -201,6 +202,7 @@ function pro.run(province)
 	---@param amount number
 	local function record_production(good_index, amount)
 		market_data[good_index - 1].supply = market_data[good_index - 1].supply + amount
+		market_data[good_index - 1].available = market_data[good_index - 1].available + amount
 
 		if (amount < 0) then
 			error(
@@ -259,31 +261,31 @@ function pro.run(province)
 
 	---Pop forages for food and gives it to warband  \
 	-- Not very efficient
-	---@param pop POPView[]
-	---@param pop_table POP
+	---@param popview POPView[]
+	---@param poptable POP
 	---@param time number ratio of daily active time pop can spend on foraging
-	local function forage_warband(pop, pop_table, time)
+	local function forage_warband(popview, poptable, time)
 		foragers_count = foragers_count + time -- Record a new forager!
-		local food_produced = pop[zero].foraging_efficiency * 0.05 * time
+		local food_produced = popview[zero].foraging_efficiency * 0.125 * time
 
-		if pop_table.unit_of_warband.leader then
-			pop_table.unit_of_warband.leader.inventory['fruit'] = (pop_table.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
-			pop_table.unit_of_warband.leader.inventory['grain'] = (pop_table.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
-			pop_table.unit_of_warband.leader.inventory['meat'] = (pop_table.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
+		if poptable.unit_of_warband.leader then
+			poptable.unit_of_warband.leader.inventory['fruit'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced / 2
+			poptable.unit_of_warband.leader.inventory['grain'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced / 2
+			poptable.unit_of_warband.leader.inventory['meat'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
 		end
 	end
 
-	---Pop forages for food and sells it  \
+	---Pop forages for food and game to sells it  \
 	-- Not very efficient
-	---@param pop POPView[]
-	---@param pop_table POP
+	---@param popview POPView[]
+	---@param poptable POP
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return number income
-	local function forage(pop, pop_table, time)
+	local function forage(popview, poptable, time)
 		foragers_count = foragers_count + time -- Record a new forager!
-		local food_produced = pop[zero].foraging_efficiency * 0.1 * time
+		local food_produced = popview[zero].foraging_efficiency * 0.125 * time
 		local income = 0
-		if pop_table:is_character() then
+		if poptable:is_character() then
 			income = record_production(meat_index, food_produced)
 			income = record_production(hide_index, food_produced / 2)
 		else
@@ -297,7 +299,7 @@ function pro.run(province)
 
 
 
-
+--[[
 	---Attepts to satisfy needs of a pop  \
 	---Checks if it is more useful to buy a good or to produce it while using your free time
 	---@param pop POPView[]
@@ -519,8 +521,7 @@ function pro.run(province)
 		end
 	end
 
-
-	local use_case = require "game.raws.raws-utils".trade_good_use_case
+]]
 
 	---commenting
 	---@param use_reference TradeGoodUseCaseReference
@@ -583,10 +584,24 @@ function pro.run(province)
 
 	-- sort pops by wealth:
 	---@type POP[]
-	local pops_by_wealth = {}
-	for _, pop in pairs(province.all_pops) do
-		table.insert(pops_by_wealth, pop)
-	end
+	local pops_by_wealth = tabb.accumulate(
+		tabb.join(tabb.copy(province.all_pops), province.characters),
+		{},function (a, _, pop)
+			-- TODO recalculate pop needs
+			local needs_satisfaction = pop.race.male_needs
+			if pop.female then needs_satisfaction = pop.race.female_needs end
+			tabb.accumulate(needs_satisfaction, nil, function (_, need, values)
+				tabb.accumulate(values, nil, function (_, k, v)
+					pop.need_satisfaction[need][k].consumed = pop.need_satisfaction[need][k].consumed / 2
+					pop.need_satisfaction[need][k].demanded = needs_satisfaction[need][k]
+					if not NEEDS[need].age_independent then
+						pop.need_satisfaction[need][k].demanded = pop.need_satisfaction[need][k].demanded * pop:get_age_multiplier()
+					end
+				end)
+			end)
+			table.insert(a, pop)
+			return a
+		end)
 	table.sort(pops_by_wealth, function (a, b)
 		return a.savings > b.savings
 	end)
@@ -604,32 +619,28 @@ function pro.run(province)
 		pop_view[zero].foraging_efficiency = foraging_multiplier * foraging_efficiency
 		pop_view[zero].age_multiplier = pop:get_age_multiplier()
 
-		-- populate job efficiency
+		local pop_needs = pop.race.male_needs
+		local pop_efficiency = pop.race.male_efficiency
 		if pop.female then
-			for tag, value in pairs(JOBTYPE) do
-				pop_job_efficiency[value] = pop.race.female_efficiency[value]
-			end
-			for tag, value in pairs(NEED) do
-				local need_tag = NEED[tag]
-				pop_need_amount[value] = pop.race.female_needs[need_tag]
+			pop_needs = pop.race.female_needs
+			pop_efficiency = pop.race.female_efficiency
+		end
 
-				local need = NEEDS[need_tag]
-				if not need.age_independent then
-					pop_need_amount[value] = pop_need_amount[value] * pop_view[zero].age_multiplier
-				end
-			end
-		else
-			for tag, value in pairs(JOBTYPE) do
-				pop_job_efficiency[value] = pop.race.male_efficiency[value]
-			end
-			for tag, value in pairs(NEED) do
-				local need_tag = NEED[tag]
-				pop_need_amount[value] = pop.race.male_needs[need_tag]
+		-- populate job efficiency
+		for tag, value in pairs(JOBTYPE) do
+			pop_job_efficiency[value] = pop.race.female_efficiency[value]
+		end
+		for tag, value in pairs(NEED) do
+			local need_tag = NEED[tag]
+			pop_need_amount[value] = 0
+			tabb.accumulate(pop_needs[need_tag], pop_need_amount[value], function (a, k, v)
+				a = a + v
+				return a
+			end)
 
-				local need = NEEDS[need_tag]
-				if not need.age_independent then
-					pop_need_amount[value] = pop_need_amount[value] * pop_view[zero].age_multiplier
-				end
+			local need = NEEDS[need_tag]
+			if not need.age_independent then
+				pop_need_amount[value] = pop_need_amount[value] * pop_view[zero].age_multiplier
 			end
 		end
 
@@ -641,8 +652,8 @@ function pro.run(province)
 		-- buidings are essentially wealth sinks currently
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
-		local base_income = 1 * pop.age / 100;
-		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
+		--local base_income = 1 * pop.age / 100;
+		--economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
 
 		-- Drafted pops work only when warband is "idle"
 		if (pop.unit_of_warband == nil) or (pop.unit_of_warband.status == "idle") then
@@ -833,7 +844,7 @@ function pro.run(province)
 				end
 			end
 			PROFILER:end_timer('production-building-update')
-
+--[[
 			if pop.age < pop.race.teen_age then
 				-- parents help their children
 				local parent = pop.parent
@@ -861,11 +872,11 @@ function pro.run(province)
 				-- children spend time on games and growing up:
 				free_time_of_pop = free_time_of_pop * pop.age / pop.race.teen_age
 			end
-
+]]
 			-- every pop spends some time or wealth on fullfilling their needs:
-			PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 10)
-			PROFILER:end_timer("production-satisfy-needs")
+			--PROFILER:start_timer("production-satisfy-needs")
+			--satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 10)
+			--PROFILER:end_timer("production-satisfy-needs")
 		end
 
 		::continue::

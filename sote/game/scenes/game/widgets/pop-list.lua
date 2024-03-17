@@ -145,9 +145,13 @@ return function(rect, base_unit, province)
                     v = v
 
                     local needs_tooltip = ""
-                    for need, value in pairs(v.need_satisfaction) do
-                        needs_tooltip = needs_tooltip
-                            .. NEED_NAME[need] .. " " .. ut.to_fixed_point2(value) .. "\n"
+                    for need, values in pairs(v.need_satisfaction) do
+                        needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": "
+                        for case, value in pairs(values) do
+                            needs_tooltip = needs_tooltip .. "\n  " .. case .. ": "
+                                .. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
+                                .. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+                        end
                     end
 
                     ut.data_entry_percentage(
@@ -167,11 +171,24 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ---@type POP
                     v = v
+
+                    local needs_tooltip = ""
+                    for need, values in pairs(v.need_satisfaction) do
+                        if NEEDS[need].life_need then
+                            needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": "
+                            for case, value in pairs(values) do
+                                needs_tooltip = needs_tooltip .. "\n  " .. case .. ": "
+                                    .. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
+                                    .. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+                            end
+                        end
+                    end
+
                     ut.data_entry_percentage(
                         "",
                         v.life_needs_satisfaction,
                         rect,
-                        "Satisfaction of life needs of this character. "
+                        "Satisfaction of life needs of this character. " .. needs_tooltip
                     )
                 end,
                 width = base_unit * 3,

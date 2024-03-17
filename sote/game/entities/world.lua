@@ -414,7 +414,7 @@ function world.World:tick()
 		end
 
 		PROFILER:start_timer("growth")
-
+--[[
 		-- "POP" update
 		local pop_growth = require "game.society.pop-growth"
 		for _, settled_province in pairs(ta) do
@@ -423,7 +423,7 @@ function world.World:tick()
 		end
 
 		PROFILER:end_timer("growth")
-
+]]
 
 		-- "Province" update
 		local employ = require "game.economy.employment"
@@ -435,6 +435,7 @@ function world.World:tick()
 		local research = require "game.society.research"
 		local recruit = require "game.society.recruitment"
 		for _, settled_province in pairs(ta) do
+--[[
 			--print("employ")
 			PROFILER:start_timer("employ")
 			employ.run(settled_province)
@@ -443,7 +444,7 @@ function world.World:tick()
 			PROFILER:start_timer("buildings")
 			building_update.run(settled_province)
 			PROFILER:end_timer("buildings")
-
+]]
 			PROFILER:start_timer("production")
 			production.run(settled_province)
 			PROFILER:end_timer("production")
@@ -493,11 +494,12 @@ function world.World:tick()
 					self:emit_treasury_change_effect(0, "new month")
 					self:emit_treasury_change_effect(0, "new month", true)
 				end
+--[[
 				--print("Construct")
 				PROFILER:start_timer("realm-construct-update")
 				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 				PROFILER:end_timer("realm-construct-update")
-
+]]
 				--print("Court")
 				court.run(realm)
 				--print("Edu")
@@ -651,10 +653,10 @@ function world.World:tick()
 					WORLD.year = WORLD.year + 1
 					-- yearly tick
 					--print("Yearly tick!")
-					local pop_aging = require "game.society.pop-aging"
-					for _, settled_province in pairs(WORLD.provinces) do
-						pop_aging.age(settled_province)
-					end
+--					local pop_aging = require "game.society.pop-aging"
+--					for _, settled_province in pairs(WORLD.provinces) do
+--						pop_aging.age(settled_province)
+--					end
 				end
 
 				--print("Monthly tick end, refreshing")

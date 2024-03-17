@@ -166,7 +166,7 @@ end
 ---@param items table<K, V>
 ---@param accumulable A
 ---@param accumulator fun(a: A, k: K, v: V):A
----@return table<K, V>
+---@return A
 function tab.accumulate(items, accumulable, accumulator)
 	for k,v in pairs(items) do
 		accumulator(accumulable, k, v)

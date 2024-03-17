@@ -21,7 +21,7 @@
 ---@field owned_buildings table <Building, Building>
 ---@field inventory table <TradeGoodReference, number?>
 ---@field price_memory table<TradeGoodReference, number?>
----@field need_satisfaction table<NEED, number>
+---@field need_satisfaction table<NEED, table<TradeGoodUseCaseReference,{consumed:number, demanded:number}>>
 ---@field leading_warband Warband?
 ---@field recruiter_for_warband Warband?
 ---@field unit_of_warband Warband?
@@ -52,6 +52,9 @@ rtab.POP.__index = rtab.POP
 ---@param character_flag boolean?
 ---@return POP
 function rtab.POP:new(race, faith, culture, female, age, home, location, character_flag)
+
+	local tabb = require "engine.table"
+
 	---@type POP
 	local r = {}
 
@@ -76,10 +79,26 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.price_memory = {}
 	r.children = {}
 	r.successor_of = {}
-	r.need_satisfaction = {}
 
-	r.basic_needs_satisfaction = 0
-	r.life_needs_satisfaction = 0
+	local need_satisfaction = race.male_needs
+	if female then
+		need_satisfaction = race.female_needs
+	end
+	r.need_satisfaction = tabb.accumulate(need_satisfaction, {}, function (a, need, values)
+			local age_dependant = not NEEDS[need].age_independent
+			a[need] = tabb.accumulate(values, {}, function (b, use_case, value)
+				local demand = value
+				if age_dependant then
+					demand = demand * self.get_age_multiplier(r)
+				end
+				b[use_case] = {consumed = demand / 4, demanded = demand}
+				return b
+			end)
+			return a
+		end)
+
+	r.basic_needs_satisfaction = 0.25
+	r.life_needs_satisfaction = 0.25
 
 	r.savings = 0
 	r.popularity = {}
