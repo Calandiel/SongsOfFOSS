@@ -628,19 +628,17 @@ function pro.run(province)
 
 		-- populate job efficiency
 		for tag, value in pairs(JOBTYPE) do
-			pop_job_efficiency[value] = pop.race.female_efficiency[value]
+			pop_job_efficiency[value] = pop_efficiency[value]
 		end
-		for tag, value in pairs(NEED) do
-			local need_tag = NEED[tag]
-			pop_need_amount[value] = 0
-			tabb.accumulate(pop_needs[need_tag], pop_need_amount[value], function (a, k, v)
+		for tag, value in pairs(pop_needs) do
+			pop_need_amount[tag] = tabb.accumulate(value, 0, function (a, k, v)
 				a = a + v
 				return a
 			end)
-
-			local need = NEEDS[need_tag]
+			-- can easily add a pop's cultural or religous needs here
+			local need = NEEDS[tag]
 			if not need.age_independent then
-				pop_need_amount[value] = pop_need_amount[value] * pop_view[zero].age_multiplier
+				pop_need_amount[tag] = pop_need_amount[tag] * pop_view[zero].age_multiplier
 			end
 		end
 
