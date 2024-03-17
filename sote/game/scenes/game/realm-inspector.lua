@@ -198,7 +198,7 @@ function re.draw(gam)
 						return f
 					end
 					local noble_list = a:copy()
-					noble_list.width = ui_panel.width - ui_panel.x
+					noble_list.width = ui_panel.width
 					noble_list.height = ui_panel.height - ui_panel.y
 					local response = require "game.scenes.game.widgets.list-widget"(
 						noble_list,
@@ -212,7 +212,7 @@ function re.draw(gam)
 									render_closure = function(rect, k, v)
 										require "game.scenes.game.widgets.portrait"(rect, v)
 									end,
-									width = UI_STYLE.scrollable_list_item_height,
+									width = 1,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -222,7 +222,7 @@ function re.draw(gam)
 								{
 									header = "name",
 									render_closure = render_name,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 4,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -231,11 +231,26 @@ function re.draw(gam)
 									active = true
 								},
 								{
+									header = "popularity",
+									render_closure = function (rect, k, v)
+										---@type POP
+										v = v
+										ui.centered_text(uit.to_fixed_point2(v.popularity[realm]), rect)
+									end,
+									width = 3,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.popularity[realm]
+									end,
+									active = true
+								},
+								{
 									header = "race",
 									render_closure = function (rect, k, v)
-										ui.right_text(v.race.name, rect)
+										ui.centered_text(v.race.name, rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 4,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -246,9 +261,9 @@ function re.draw(gam)
 								{
 									header = "faith",
 									render_closure = function (rect, k, v)
-										ui.right_text(v.faith.name, rect)
+										ui.centered_text(v.faith.name, rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 4,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -259,9 +274,9 @@ function re.draw(gam)
 								{
 									header = "culture",
 									render_closure = function (rect, k, v)
-										ui.right_text(v.culture.name, rect)
+										ui.centered_text(v.culture.name, rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 4,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -272,9 +287,9 @@ function re.draw(gam)
 								{
 									header = "age",
 									render_closure = function (rect, k, v)
-										ui.right_text(tostring(v.age), rect)
+										ui.centered_text(tostring(v.age), rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 2,
+									width = 2,
 									value = function(k, v)
 										return v.age
 									end
@@ -284,7 +299,7 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										ui.centered_text(pop_sex(v), rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 1,
+									width = 1,
 									value = function(k, v)
 										return pop_sex(v)
 									end
@@ -292,13 +307,59 @@ function re.draw(gam)
 								{
 									header = "location",
 									render_closure = render_province,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 4,
 									value = function(k, v)
 										---@type POP
 										v = v
 										return v.province.name
 									end,
 									active = true
+								},
+								{
+									header = "savings",
+									render_closure = function (rect, k, v)
+										---@type POP
+										v = v
+										uit.money_entry(
+											"",
+											v.savings,
+											rect,
+											"Savings of this character. "
+											.. "Characters spend them on buying food and other commodities."
+										)
+									end,
+									width = 3,
+									value = function(k, v)
+										return v.savings
+									end
+								},
+								{
+									header = "satisfac.",
+									render_closure = function (rect, k, v)
+										---@type POP
+										v = v
+					
+										local needs_tooltip = ""
+										for need, values in pairs(v.need_satisfaction) do
+											needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": "
+											for case, value in pairs(values) do
+												needs_tooltip = needs_tooltip .. "\n  " .. case .. ": "
+													.. uit.to_fixed_point2(value.consumed) .. " / " .. uit.to_fixed_point2(value.demanded)
+													.. " (" .. uit.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+											end
+										end
+					
+										uit.data_entry_percentage(
+											"",
+											v.basic_needs_satisfaction,
+											rect,
+											"Satisfaction of needs of this character. \n" .. needs_tooltip
+										)
+									end,
+									width = 2,
+									value = function(k, v)
+										return v.basic_needs_satisfaction
+									end
 								}
 							}
 					)()
