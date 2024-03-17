@@ -259,10 +259,14 @@ local function load()
 			local realm = root.province.realm
 			local province = root.province
 			local warband = root.leading_warband
-			if office_triggers.guard_leader(root, root.province.realm) then
-				warband = realm.capitol_guard
+			if realm then
+				if office_triggers.guard_leader(root, root.province.realm) then
+					warband = realm.capitol_guard
+				end
+				if warband then
+					realm:add_patrol(province, warband)
+				end
 			end
-			realm:add_patrol(province, warband)
 		end
 	}
 
@@ -557,7 +561,7 @@ local function load()
 			---@type Character
 			local root = root
 
-			WORLD:emit_immediate_event('attempt-coup', root)
+			WORLD:emit_immediate_event('attempt-coup', root, nil)
 		end
 	}
 

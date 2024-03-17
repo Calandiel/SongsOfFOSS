@@ -1,4 +1,5 @@
 ---@class GameScene
+---@field tile_inspector_tab string
 local gam = {}
 
 require "game.scenes.global-style"

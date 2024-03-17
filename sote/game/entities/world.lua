@@ -223,7 +223,7 @@ end
 ---Schedules an event immediately
 ---@param event string
 ---@param root Character
----@param associated_data table
+---@param associated_data table?
 function world.World:emit_immediate_event(event, root, associated_data)
 	if root == nil then
 		error("Attempt to call event for nil root")
@@ -534,8 +534,10 @@ function world.World:tick()
 				for _, target in pairs(realm.reward_flags) do
 					local warbands = realm.raiders_preparing[target]
 					local units = 0
-					for _, warband in pairs(warbands) do
-						units = units + warband:size()
+					if warbands then
+						for _, warband in pairs(warbands) do
+							units = units + warband:size()
+						end
 					end
 
 					-- with some probability, launch the raid
