@@ -440,88 +440,8 @@ function pro.run(province)
 			return free_time - forage_time, forage_income, expense, pre_induced_need, total_bought
 		end
 	end
-
-	---comment
-	---@param pop POPView
-	---@param pop_table POP
-	---@param free_time number amount of time pop is willing to spend on foraging
-	---@param savings number amount of money pop is willing to spend on needs
-	local function satisfy_needs(pop, pop_table, free_time, savings)
-		pop_table.life_needs_satisfaction = 2
-
-		local total_satisfied = 0
-		local total_needs = 0
-
-		local total_life_satisfied = 0
-		local total_life_needs = 0
-
-		local total_expense = 0
-		local total_income = 0
-
-		-- buying life needs
-		for index, need in pairs(NEEDS) do
-			if need.life_need then
-				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(
-					pop, pop_table, index, need, free_time, savings)
-
-				if need_demanded > 0 then
-					pop_table.need_satisfaction[index] = consumed / need_demanded
-				else
-					pop_table.need_satisfaction[index] = 0
-				end
-
-				total_life_needs = total_life_needs + need_demanded
-				total_life_satisfied = total_life_satisfied + consumed
-
-				total_income = total_income + income
-				total_expense = total_expense + expense
-
-				free_time = free_time_after_need
-
-				savings = savings + income - expense
-			end
-		end
-
-		if total_life_needs > 0 then
-			pop_table.life_needs_satisfaction = total_life_satisfied / total_life_needs
-		else
-			pop_table.life_needs_satisfaction = 1
-		end
-
-		-- buying base needs
-		for index, need in pairs(NEEDS) do
-			if not need.life_need then
-				local free_time_after_need, income, expense, need_demanded, consumed = satisfy_need(
-					pop, pop_table, index, need, free_time, savings)
-				if need_demanded > 0 then
-					pop_table.need_satisfaction[index] = consumed / need_demanded
-				else
-					pop_table.need_satisfaction[index] = 0
-				end
-
-				total_needs = total_needs + need_demanded
-				total_satisfied = total_satisfied + consumed
-
-				total_income = total_income + income
-				total_expense = total_expense + expense
-
-				free_time = free_time_after_need
-
-				savings = savings + income - expense
-			end
-		end
-
-		economic_effects.add_pop_savings(pop_table, total_income, economic_effects.reasons.Forage)
-		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.OtherNeeds)
-
-		if total_needs > 0 then
-			pop_table.basic_needs_satisfaction = total_satisfied / total_needs
-		else
-			pop_table.basic_needs_satisfaction = 1
-		end
-	end
-
 ]]
+
 
 	---commenting
 	---@param use_reference TradeGoodUseCaseReference
@@ -578,6 +498,104 @@ function pro.run(province)
 
 		return spendings, total_bought
 	end
+
+	---comment
+	---@param pop_view POPView
+	---@param pop_table POP
+	---@param need_index NEED
+	---@param need Need
+	---@param free_time number
+	---@param savings number
+	---@return number free_time_left
+	---@return number income
+	---@return number expenses
+	---@return number need_total
+	local function satisfy_need(pop_view, pop_table, need_index, need, free_time, savings)
+		local income, expenses = 0, 0
+		---@type number
+		local need_total = 0
+		for _, case in pairs(pop_table.need_satisfaction[need_index]) do
+			need_total = need_total + case.demanded
+		end
+		return free_time, income, expenses, need_total
+	end
+
+	---comment
+	---@param pop_view POPView
+	---@param pop_table POP
+	---@param free_time number
+	---@param savings number
+	local function satisfy_needs(pop_view, pop_table, free_time, savings)
+		pop_table.life_needs_satisfaction = 2
+
+		local total_satisfied = 0
+		local total_needs = 0
+
+		local total_life_satisfied = 0
+		local total_life_needs = 0
+
+		local total_expense = 0
+		local total_income = 0
+
+		-- buying life needs
+		for index, need in pairs(NEEDS) do
+			if need.life_need then
+				local free_time_after_need, income, expense, need_demanded = satisfy_need(
+					pop_view, pop_table, index, need, free_time, savings)
+				print(NEED_NAME[index] .. " demanded " .. tostring(need_demanded))
+				total_life_needs = total_life_needs + need_demanded
+				for _, case in pairs(pop_table.need_satisfaction[index]) do
+					total_life_satisfied = total_life_satisfied + case.consumed
+				end
+				print(NEED_NAME[index] .. " consumed " .. tostring(total_life_satisfied))
+
+				total_income = total_income + income
+				total_expense = total_expense + expense
+
+				free_time = free_time_after_need
+
+				savings = savings + income - expense
+			end
+		end
+
+		-- buying other needs
+		for index, need in pairs(NEEDS) do
+			if not need.life_need then
+				local free_time_after_need, income, expense, need_demanded = satisfy_need(
+					pop_view, pop_table, index, need, free_time, savings)
+
+				total_needs = total_needs + need_demanded
+				for _, case in pairs(pop_table.need_satisfaction[index]) do
+					total_satisfied = total_satisfied + case.consumed
+				end
+
+				total_income = total_income + income
+				total_expense = total_expense + expense
+
+				free_time = free_time_after_need
+
+				savings = savings + income - expense
+			end
+		end
+
+		-- adjust pop savings
+		economic_effects.add_pop_savings(pop_table, total_income, economic_effects.reasons.Forage)
+		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.OtherNeeds)
+
+		-- set pop satisfaction percentages
+		if total_life_needs > 0 then
+			pop_table.life_needs_satisfaction = total_life_satisfied / total_life_needs
+		else
+			pop_table.life_needs_satisfaction = 1
+		end
+		total_needs = total_needs + total_life_needs
+		if total_needs > 0 then
+			pop_table.basic_needs_satisfaction = (total_satisfied + total_life_satisfied) / total_needs
+		else
+			pop_table.basic_needs_satisfaction = 1
+		end
+	end
+
 
 	---@type table<POP, number>
 	local donations_to_owners = {}
@@ -873,7 +891,7 @@ function pro.run(province)
 ]]
 			-- every pop spends some time or wealth on fullfilling their needs:
 			--PROFILER:start_timer("production-satisfy-needs")
-			--satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 10)
+			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 10)
 			--PROFILER:end_timer("production-satisfy-needs")
 		end
 

@@ -400,6 +400,12 @@ function ll.load()
 				['grain'] = 0.25,
 				['meat'] = 0.25,
 			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 0.25
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 0.25
+			},
 			[NEED.TOOLS] = {
 				['tools'] = 0.125 / 2,
 			},
