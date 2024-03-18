@@ -65,7 +65,7 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		outputs = { ["berries"] = 0.25, ["nuts-and-seeds"] = 0.25, ["mushrooms"] = 0.125 },
+		outputs = { ["berries"] = 0.25, ["seeds-and-nuts"] = 0.25, ["mushrooms"] = 0.125 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
@@ -80,7 +80,7 @@ function d.load()
 		g = 1,
 		b = 0.1,
 		inputs = { ["tools-like"] = 0.1 },
-		outputs = { ["berries"] = 0.5, ["nuts-and-seeds"] = 0.5, ["mushrooms"] = 0.25 },
+		outputs = { ["berries"] = 0.5, ["seeds-and-nuts"] = 0.5, ["mushrooms"] = 0.25 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
@@ -95,7 +95,7 @@ function d.load()
 		g = 1,
 		b = 0.1,
 		inputs = { ["tools"] = 0.1 },
-		outputs = { ["berries"] = 1, ["nuts-and-seeds"] = 1, ["mushrooms"] = 0.5 },
+		outputs = { ["berries"] = 1, ["seeds-and-nuts"] = 1, ["mushrooms"] = 0.5 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
@@ -161,14 +161,14 @@ function d.load()
 		self_sourcing_fraction = 0,
 	}
 	ProductionMethod:new {
-		name = "flint-knapping",
-		description = "flint knapping",
+		name = "tool-stone-knapping",
+		description = "stone tool knapping",
 		icon = "stone-stack.png",
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { ["blanks-flint"] = 1 / 16 }, -- one blank serves for 16 months - made up value
-		outputs = { ["tools-flint"] = 0.25 },
+		inputs = { ["stone-blanks"] = 1 / 16 }, -- one blank serves for 16 months - made up value
+		outputs = { ["tools-stone"] = 0.25 },
 		jobs = { [job("knappers")] = 1 },
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.8,
@@ -185,19 +185,6 @@ function d.load()
 		jobs = { [job("knappers")] = 2 },
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
-	}
-	ProductionMethod:new {
-		name = "obsidian-knapping",
-		description = "obsidian knapping",
-		icon = "stone-stack.png",
-		r = 0.1,
-		g = 1,
-		b = 0.1,
-		inputs = { ["blanks-obsidian"] = 1 / 16 }, -- one blank serves for 16 months - made up value
-		outputs = { ["tools-obsidian"] = 0.25 },
-		jobs = { [job("knappers")] = 1 },
-		job_type = JOBTYPE.ARTISAN,
-		self_sourcing_fraction = 0.8,
 	}
 	ProductionMethod:new {
 		name = "brewing",
@@ -268,7 +255,7 @@ function d.load()
 		g = 0.65,
 		b = 0.65,
 		inputs = { ["copper-native"] = 1, ["tools"] = 1 },
-		outputs = { ["tools-native-copper"] = 5 },
+		outputs = { ["tools-copper"] = 5 },
 		jobs = { [job("blacksmiths")] = 1 },
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.75
@@ -281,7 +268,7 @@ function d.load()
 		g = 0.65,
 		b = 0.65,
 		inputs = { ["copper-bars"] = 1, ["tools"] = 0.1, ["fuel"] = 2  },
-		outputs = { ["tools-cast-copper"] = 5 },
+		outputs = { ["tools-copper"] = 5 },
 		jobs = { [job("blacksmiths")] = 1 },
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.75

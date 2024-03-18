@@ -84,8 +84,8 @@ function Race:new(o)
 		},
 		[NEED.FOOD] = {
 			['food'] = 0.5,
-			['fruit'] = 0.25,
 			['meat'] = 0.25,
+			['fruit'] = 0.25,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -123,8 +123,8 @@ function Race:new(o)
 		},
 		[NEED.FOOD] = {
 			['food'] = 0.5,
-			['fruit'] = 0.25,
 			['meat'] = 0.25,
+			['fruit'] = 0.25,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,

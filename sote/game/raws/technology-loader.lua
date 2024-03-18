@@ -44,12 +44,10 @@ function d.load()
 		unlocked_by = { tec("paleolithic-knowledge") },
 		research_cost = 0.2,
 		throughput_boosts = {
-			[prod("flint-knapping")] = 0.1,
-			[prod("obsidian-knapping")] = 0.1
+			[prod("tool-stone-knapping")] = 0.1,
 		},
 		input_efficiency_boosts = {
-			[prod("flint-knapping")] = 0.75,
-			[prod("obsidian-knapping")] = 0.75,
+			[prod("tool-stone-knapping")] = 0.75,
 		},
 		output_efficiency_boosts = {
 			[prod("flint-extraction")] = 1.25,

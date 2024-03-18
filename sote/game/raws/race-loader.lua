@@ -46,8 +46,9 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['produce'] = 1,
-				['grain'] = 1
+				['food'] = 1,
+				['timber'] = 0.25,
+				['grain'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur
@@ -84,8 +85,9 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['produce'] = 1,
-				['grain'] = 1
+				['food'] = 1,
+				['timber'] = 0.5,
+				['grain'] = 0.5,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur
@@ -145,9 +147,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 1,
-				['fruit'] = 0.125,
-				['grain'] = 0.125,
+				['food'] = 0.5,
+				['grain'] = 0.5,
+				['fruit'] = 0.2,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -184,9 +186,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 1,
-				['fruit'] = 0.125,
-				['grain'] = 0.125,
+				['food'] = 0.5,
+				['grain'] = 0.5,
+				['fruit'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -249,8 +251,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['food'] = 0.75,
-				['produce'] = 0.25,
 				['meat'] = 0.25,
+				['fruit'] = 0.2,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -288,8 +290,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['food'] = 0.75,
-				['produce'] = 0.25,
 				['meat'] = 0.25,
+				['fruit'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -385,8 +387,8 @@ function ll.load()
 		male_needs = {
 			[NEED.WATER] = { ['water'] = 0.25 },
 			[NEED.FOOD] = {
-				['food'] = 0.25,
-				['meat'] = 0.25,
+				['food'] = 0.3,
+				['meat'] = 0.3,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.25

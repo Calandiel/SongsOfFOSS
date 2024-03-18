@@ -166,14 +166,14 @@ function d.load()
 		ai_weight = 20,
 	}
 	BuildingType:new {
-		name = "flint-knapping",
-		description = "flint knapping",
+		name = "tool-stone-knapping",
+		description = "stone tool knapping",
 		icon = 'stone-stack.png',
 		r = 0.3,
 		g = 1.0,
 		b = 0.5,
 		unlocked_by = tec('paleolithic-knowledge'),
-		production_method = prod('flint-knapping'),
+		production_method = prod('tool-stone-knapping'),
 		required_resource = {},
 		construction_cost = COST_WORKSHOP,
 		needed_infrastructure = 1,
@@ -208,20 +208,6 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 1,
 		ai_weight = 20,
-	}
-	BuildingType:new {
-		name = "obsidian-knapping",
-		description = "obsidian knapping",
-		icon = 'stone-stack.png',
-		r = 0.3,
-		g = 1.0,
-		b = 0.5,
-		unlocked_by = tec('paleolithic-knowledge'),
-		production_method = prod('obsidian-knapping'),
-		required_resource = {},
-		construction_cost = COST_WORKSHOP,
-		needed_infrastructure = 1,
-		ai_weight = 1,
 	}
 	BuildingType:new {
 		name = 'brewery',

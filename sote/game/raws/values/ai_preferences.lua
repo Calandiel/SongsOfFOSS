@@ -14,15 +14,16 @@ local tabb = require "engine.table"
 ---@param character Character
 ---@return number
 function AiPreferences.percieved_inflation(character)
+	local temp = 'food'
 	-- calculate average base_price for a unit of use_case
-	local use_cases = use_case('food').goods
+	local use_cases = use_case(temp).goods
 	local total_price = tabb.accumulate(use_cases, 0, function (a, k, v)
 			a = a + trade_good(k).base_price / v
 		return a
 	end)
 	local base_price = total_price / tabb.size(use_cases)
 	-- get price from province for use_case
-	local price = ev.get_local_price_of_use(character.province, 'food')
+	local price = ev.get_local_price_of_use(character.province, temp)
 	if price == 0 then
 		price = base_price
 	end
