@@ -35,28 +35,57 @@ function d.load()
 		name = "grain",
 		description = "grain",
 		icon = "wheat.png",
-		r = 0.191,
-		g = 0,
-		b = 0.7,
+		r = 245 / 256,
+		g = 222 / 256,
+		b = 179 / 256,
 		category = "good",
 		base_price = 2,
 	}
 	add_use_case("grain", "food", 1)
+	add_use_case("grain", "produce", 1)
 	add_use_case("grain", "grain", 1)
 	TradeGood:new {
-		name = "fruit",
-		description = "fruit",
-		icon = "fruit-bowl.png",
-		r = 0.82,
-		g = 0.88,
-		b = 0.19,
+		name = "berries",
+		description = "berries",
+		icon = "berries-bowl.png",
+		r = 222 / 256,
+		g = 11 / 256,
+		b = 93 / 256,
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("fruit", "food", 1)
-	add_use_case("fruit", "fruit", 1)
-	add_use_case("fruit", "grain", 1)
-	add_use_case("fruit", "tannin", 0.5)
+	add_use_case("berries", "food", 1)
+	add_use_case("berries", "produce", 1)
+	add_use_case("berries", "fruit", 1)
+	add_use_case("berries", "tannin", 0.5)
+	TradeGood:new {
+		name = "nuts-and-seeds",
+		description = "nuts and seeds",
+		icon = "mineral-pearls.png",
+		r = 143 / 256,
+		g = 81 / 256,
+		b = 40 / 256,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("nuts-and-seeds", "food", 1)
+	add_use_case("nuts-and-seeds", "produce", 1)
+	add_use_case("nuts-and-seeds", "grain", 0.5)
+	add_use_case("nuts-and-seeds", "meat", 0.25)
+	TradeGood:new {
+		name = "mushrooms",
+		description = "mushrooms",
+		icon = "potato.png",
+		r = 119 / 256,
+		g = 103 / 256,
+		b = 84 / 256,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("mushrooms", "food", 1)
+	add_use_case("mushrooms", "produce", 1)
+	add_use_case("mushrooms", "meat", 1)
+	add_use_case("mushrooms", "intoxicants", 0.1)
 	TradeGood:new {
 		name = "honey",
 		description = "honey",
@@ -68,7 +97,7 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("honey", "food", 0.5)
-	add_use_case("honey", "grain", 0.5)
+	add_use_case("honey", "produce", 0.5)
 	add_use_case("honey", "fruit", 0.25)
 	add_use_case("honey", "mead-substrate", 1)
 	-- CRUCIAL SETTLEMENT SERVICES
@@ -136,6 +165,7 @@ function d.load()
 		base_price = 10,
 	}
 	add_use_case("liquors", "liquors", 1)
+	add_use_case("liquors", "intoxicants", 1)
 	TradeGood:new {
 		name = "containers",
 		description = "containers",
@@ -156,6 +186,7 @@ function d.load()
 		b = 0.3,
 		base_price = 4,
 	}
+	add_use_case("hide", "clothes", 0.1)
 	add_use_case("hide", "hide", 1)
 	TradeGood:new {
 		name = "leather",
@@ -167,6 +198,7 @@ function d.load()
 		base_price = 8,
 	}
 	add_use_case("leather", "containers", 0.1)
+	add_use_case("clothes", "clothes", 0.3)
 	add_use_case("leather", "leather", 1)
 	TradeGood:new {
 		name = "meat",

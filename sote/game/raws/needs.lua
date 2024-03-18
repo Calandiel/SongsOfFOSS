@@ -15,7 +15,7 @@ NEED = {
 	FURNITURE = 4,
 	HEALTHCARE = 5,
 	STORAGE = 6,
-	LUXURY = 7
+	LUXURY = 7,
 }
 
 NEED_NAME = {
@@ -26,7 +26,7 @@ NEED_NAME = {
 	[NEED.FURNITURE] = 'furniture',
 	[NEED.HEALTHCARE] = 'healthcare',
 	[NEED.STORAGE] = 'storage',
-	[NEED.LUXURY] = 'luxury'
+	[NEED.LUXURY] = 'luxury',
 }
 
 ---@type table<NEED, Need>
@@ -47,16 +47,6 @@ NEEDS = {
 		time_to_satisfy = 0.3
 	},
 	[NEED.TOOLS] = {
-		goods = {
-			"blanks-flint",
-			"blanks-obsidian",
-			"tools-flint",
-			"tools-obsidian",
-			"tools-native-copper",
-			"tools-cast-copper",
-			"copper-native",
-			"copper-ore",
-		},
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 0.3
 	},

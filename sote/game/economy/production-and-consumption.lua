@@ -227,12 +227,12 @@ function pro.run(province)
 
 
 
-	local fruit_index = RAWS_MANAGER.trade_good_to_index["fruit"]
+	local berries_index = RAWS_MANAGER.trade_good_to_index["berries"]
 	local food_index = RAWS_MANAGER.trade_good_to_index["grain"]
 	local meat_index = RAWS_MANAGER.trade_good_to_index["meat"]
 	local hide_index = RAWS_MANAGER.trade_good_to_index["hide"]
 	local water_index = RAWS_MANAGER.trade_good_to_index["water"]
-	local fruit_price = market_data[fruit_index - 1].price
+	local fruit_price = market_data[berries_index - 1].price
 	local food_price = market_data[food_index - 1].price
 	local meat_price = market_data[meat_index - 1].price
 	local hide_price = market_data[meat_index - 1].price
@@ -290,7 +290,7 @@ function pro.run(province)
 			income = record_production(hide_index, food_produced / 2)
 		else
 			income = record_production(food_index, food_produced)
-			income = record_production(fruit_index, food_produced)
+			income = record_production(berries_index, food_produced)
 		end
 		return income
 	end
@@ -511,13 +511,114 @@ function pro.run(province)
 	---@return number expenses
 	---@return number need_total
 	local function satisfy_need(pop_view, pop_table, need_index, need, free_time, savings)
-		local income, expenses = 0, 0
-		---@type number
-		local need_total = 0
-		for _, case in pairs(pop_table.need_satisfaction[need_index]) do
-			need_total = need_total + case.demanded
+		local income, expenses, total_need_demanded, total_need_time, total_need_cost = 0, 0, 0, 0, 0
+
+
+		-- start with calculation of distribution over goods:
+		-- "distribution" "density" is precalculated, we only need to find a normalizing coef.
+		local need_amount = pop_need_amount[need_index]
+		local need_job_efficiency = pop_job_efficiency[need.job_to_satisfy]
+
+		-- induced demand:
+
+		local cottage_time_per_unit = need.time_to_satisfy / need_job_efficiency
+
+		-- collect data, get all need use_cases demand
+		-- expected costs and estimated time needed to satisfy
+		---@type table<string,{need_cost: number, need_time: number}>
+		local need_cases = {}
+		for case, values in pairs(pop_table.need_satisfaction[need_index]) do
+			local need_amount = values.demanded
+			total_need_demanded = total_need_demanded + need_amount
+			local price_expectation = use_case_price_expectation[case]
+			local induced_demand = math.min(2, math.max(0, 1 / price_expectation - 1))
+			need_amount = need_amount * (1 + induced_demand)
+			if need_amount < 0 then
+				error("Demanded need is lower than zero!")
+			end
+			-- estimate cost in money and time to satisfy each use_case
+			local remaining_need_amount = math.max(0, need_amount - values.consumed)
+			local need_cost = use_case_price_expectation[case] * remaining_need_amount * POP_BUY_PRICE_MULTIPLIER
+			local need_time = remaining_need_amount * cottage_time_per_unit
+			need_cases[case] = {need_cost = need_cost , need_time = need_time}
+			-- count totals for weighting
+			total_need_cost = total_need_cost + need_cost
+			total_need_time = total_need_time + need_time
+
 		end
-		return free_time, income, expenses, need_total
+		local total_time_used = 0
+		for case, values in pairs(need_cases) do
+			-- split time and money up to satisfy each need case
+			local time_fraction = free_time * values.need_time / total_need_time
+			local savings_fraction = savings * values.need_cost / total_need_cost
+			-- calculate goods purchasable: min of needs and available
+			-- estimate cost of purchasable goods
+			-- check if more efficient to forage to buy or cottage
+			local forage_time = 0
+				-- calculate needed money to make purchase
+				-- spend up to available time foraging for money needed to buy
+			-- make purchase
+			-- forage for money if more efficent than cottage
+			-- attempt to buy from market with savings fraction and forage income
+				-- buy_use call with savings and income
+			-- use time fraction to satisfy remaning needs
+			local time_remaining = time_fraction - forage_time
+			if time_remaining > 0 then
+				local consumed = pop_table.need_satisfaction[need_index][case].consumed
+				local demanded = pop_table.need_satisfaction[need_index][case].demanded
+				need_amount = math.max(0, demanded - consumed)
+				if need_amount > 0 then
+					local cottage_time = math.min(time_fraction, need_amount * cottage_time_per_unit)
+					if need.job_to_satisfy == JOBTYPE.FORAGER then
+						foragers_count = foragers_count + cottage_time
+					end
+					local cottaged = cottage_time / cottage_time_per_unit
+
+					if cottaged > need_amount + 0.01
+						or time_fraction + 0.01 < forage_time
+						or time_remaining + 0.01 < cottage_time
+					then
+						error("INVALID COTTAGING ATTEMPT"
+							.. "\n time_fraction = "
+							.. tostring(time_fraction)
+							.. "\n forage_time = "
+							.. tostring(forage_time)
+							.. "\n time_remaining = "
+							.. tostring(time_remaining)
+							.. "\n cottage_time = "
+							.. tostring(cottage_time)
+							.. "\n cottaged = "
+							.. tostring(cottaged)
+							.. "\n need_amount = "
+							.. tostring(need_amount)
+						)
+					end
+
+					pop_table.need_satisfaction[need_index][case].consumed = consumed + cottaged
+					total_time_used = total_time_used + cottage_time
+				end
+			end
+
+			if total_time_used > free_time + 0.01 then
+				error("INVALID AMOUNT OF TIME SPENT"
+					.. "\n total_time_used = "
+					.. tostring(total_time_used)
+					.. "\n free_time = "
+					.. tostring(free_time)
+				)
+			end
+		end
+
+		-- return remaining unused time
+		if total_time_used > free_time + 0.01 then
+			error("INVALID AMOUNT OF TIME SPENT"
+				.. "\n total_time_used = "
+				.. tostring(total_time_used)
+				.. "\n free_time = "
+				.. tostring(free_time)
+			)
+		end
+		return free_time - total_time_used, income, expenses, total_need_demanded
 	end
 
 	---comment
@@ -542,12 +643,10 @@ function pro.run(province)
 			if need.life_need then
 				local free_time_after_need, income, expense, need_demanded = satisfy_need(
 					pop_view, pop_table, index, need, free_time, savings)
-				print(NEED_NAME[index] .. " demanded " .. tostring(need_demanded))
 				total_life_needs = total_life_needs + need_demanded
 				for _, case in pairs(pop_table.need_satisfaction[index]) do
 					total_life_satisfied = total_life_satisfied + case.consumed
 				end
-				print(NEED_NAME[index] .. " consumed " .. tostring(total_life_satisfied))
 
 				total_income = total_income + income
 				total_expense = total_expense + expense
@@ -860,9 +959,9 @@ function pro.run(province)
 				end
 			end
 			PROFILER:end_timer('production-building-update')
---[[
+
 			if pop.age < pop.race.teen_age then
-				-- parents help their children
+--[[				-- parents help their children
 				local parent = pop.parent
 				if parent then
 					local siphon = parent.savings * 0.125 / 2
@@ -884,11 +983,11 @@ function pro.run(province)
 						)
 					end
 				end
-
+]]
 				-- children spend time on games and growing up:
 				free_time_of_pop = free_time_of_pop * pop.age / pop.race.teen_age
 			end
-]]
+
 			-- every pop spends some time or wealth on fullfilling their needs:
 			--PROFILER:start_timer("production-satisfy-needs")
 			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 10)

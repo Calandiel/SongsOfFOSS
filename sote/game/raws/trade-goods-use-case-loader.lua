@@ -25,7 +25,8 @@ function d.load()
 	-- NEED.WATER
 	make_use_case("water", "water", "droplets.png", 0.12, 1, 1)
 	-- NEED.FOOD
-	make_use_case("food", "food", "potato.png", 0.71, 0.57, 44)
+	make_use_case("food", "food", "potato.png", 0.71, 0.57, 0.44)
+	make_use_case("produce", "produce", "high-grass.png", 0.12, 0.12, 1)
 	make_use_case("fruit", "fruit", "fruit-bowl.png", 0.82, 0.88, 19)
 	make_use_case("grain", "grains and vegetables", "wheat.png", 0.91, 0, 0.7)
 	make_use_case("meat", "meat", "meat.png", 1, 0.1, 0.1)
@@ -48,6 +49,7 @@ function d.load()
 
 	make_use_case("mead-substrate", "ingredients in mead production", "high-grass.png", 0.32, 0.42, 0.92)
 	make_use_case("liquors", "liquors", "beer-stein.png", 0.7, 1, 0.3)
+	make_use_case("intoxicants", "intoxicants", "beer-stein.png", 0.7, 1, 0.3)
 
 	-- tools
 	make_use_case("tools-like", "tools", "stone-axe.png", 0.162, 0.141, 0.422)

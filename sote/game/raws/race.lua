@@ -83,8 +83,9 @@ function Race:new(o)
 			['water'] = 1,
 		},
 		[NEED.FOOD] = {
-			['food'] = 0.8,
-			['meat'] = 0.2,
+			['food'] = 1,
+			['produce'] = 0.5,
+			['meat'] = 0.5,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -99,10 +100,10 @@ function Race:new(o)
 			['healthcare'] = 0.125,
 		},
 		[NEED.STORAGE] = {
-			['storage'] = 0.125,
+			['containers'] = 0.125,
 		},
 		[NEED.LUXURY] = {
-			['luxury'] = 1,
+			['intoxicants'] = 1,
 		},
 	}
 
@@ -121,10 +122,9 @@ function Race:new(o)
 			['water'] = 1,
 		},
 		[NEED.FOOD] = {
-			['food'] = 0.5,
-			['fruit'] = 0.2,
-			['grain'] = 0.2,
-			['meat'] = 0.1,
+			['food'] = 1,
+			['produce'] = 0.5,
+			['meat'] = 0.5,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -139,10 +139,10 @@ function Race:new(o)
 			['healthcare'] = 0.125,
 		},
 		[NEED.STORAGE] = {
-			['storage'] = 0.125,
+			['containers'] = 0.125,
 		},
 		[NEED.LUXURY] = {
-			['luxury'] = 1,
+			['intoxicants'] = 1,
 		},
 	}
 
