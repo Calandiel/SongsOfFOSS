@@ -228,14 +228,18 @@ function pro.run(province)
 
 
 	local berries_index = RAWS_MANAGER.trade_good_to_index["berries"]
-	local food_index = RAWS_MANAGER.trade_good_to_index["grain"]
+	local fruit_index = RAWS_MANAGER.trade_good_to_index["fruit"]
+	local grain_index = RAWS_MANAGER.trade_good_to_index["grain"]
+	local nutseed_index = RAWS_MANAGER.trade_good_to_index["nuts-and-seeds"]
 	local meat_index = RAWS_MANAGER.trade_good_to_index["meat"]
 	local hide_index = RAWS_MANAGER.trade_good_to_index["hide"]
 	local water_index = RAWS_MANAGER.trade_good_to_index["water"]
-	local fruit_price = market_data[berries_index - 1].price
-	local food_price = market_data[food_index - 1].price
+	local berries_price = market_data[berries_index - 1].price
+	local fruit_price = market_data[fruit_index - 1].price
+	local grain_price = market_data[grain_index - 1].price
+	local nutseed_price = market_data[nutseed_index - 1].price
 	local meat_price = market_data[meat_index - 1].price
-	local hide_price = market_data[meat_index - 1].price
+	local hide_price = market_data[hide_index - 1].price
 
 	-- Record "innate" production of goods and services.
 	-- These resources come
@@ -269,9 +273,10 @@ function pro.run(province)
 		local food_produced = popview[zero].foraging_efficiency * 0.125 * time
 
 		if poptable.unit_of_warband.leader then
-			poptable.unit_of_warband.leader.inventory['fruit'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced / 2
-			poptable.unit_of_warband.leader.inventory['grain'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced / 2
-			poptable.unit_of_warband.leader.inventory['meat'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced
+			poptable.unit_of_warband.leader.inventory['grain'] = (poptable.unit_of_warband.leader.inventory['grain'] or 0) + food_produced * province.flora_spread.grass
+			poptable.unit_of_warband.leader.inventory['berries'] = (poptable.unit_of_warband.leader.inventory['berries'] or 0) + food_produced * province.flora_spread.shrub
+			poptable.unit_of_warband.leader.inventory['fruit'] = (poptable.unit_of_warband.leader.inventory['fruit'] or 0) + food_produced * province.flora_spread.broadleaf
+			poptable.unit_of_warband.leader.inventory['nuts-and-seeds'] = (poptable.unit_of_warband.leader.inventory['nuts-and-seeds'] or 0) + food_produced * province.flora_spread.conifer
 		end
 	end
 
@@ -283,14 +288,16 @@ function pro.run(province)
 	---@return number income
 	local function forage(popview, poptable, time)
 		foragers_count = foragers_count + time -- Record a new forager!
-		local food_produced = popview[zero].foraging_efficiency * 0.125 * time
+		local food_produced = popview[zero].foraging_efficiency * 0.25 * time
 		local income = 0
 		if poptable:is_character() then
-			income = record_production(meat_index, food_produced)
+			income = record_production(meat_index, food_produced * 2)
 			income = record_production(hide_index, food_produced / 2)
 		else
-			income = record_production(food_index, food_produced)
-			income = record_production(berries_index, food_produced)
+			income = record_production(grain_index, food_produced * province.flora_spread.grass)
+			income = record_production(berries_index, food_produced * province.flora_spread.shrub)
+			income = record_production(fruit_index, food_produced * province.flora_spread.broadleaf)
+			income = record_production(nutseed_index, food_produced * province.flora_spread.conifer)
 		end
 		return income
 	end

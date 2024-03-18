@@ -59,6 +59,20 @@ function d.load()
 	add_use_case("berries", "fruit", 1)
 	add_use_case("berries", "tannin", 0.5)
 	TradeGood:new {
+		name = "fruit",
+		description = "fruit",
+		icon = "fruit-bowl.png",
+		r = 201 / 256,
+		g = 204 / 256,
+		b = 63 / 256,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("fruit", "food", 1)
+	add_use_case("fruit", "produce", 1)
+	add_use_case("fruit", "fruit", 1)
+	add_use_case("fruit", "tannin", 0.25)
+	TradeGood:new {
 		name = "nuts-and-seeds",
 		description = "nuts and seeds",
 		icon = "mineral-pearls.png",

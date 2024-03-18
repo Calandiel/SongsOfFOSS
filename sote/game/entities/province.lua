@@ -50,6 +50,7 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
+---@field flora_spread {grass: number, shrub: number, broadleaf: number, conifer: number}
 ---@field building_type_present fun(self:Province, building:BuildingType):boolean Returns true when a building of a given type has been built in a province
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions

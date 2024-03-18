@@ -83,9 +83,9 @@ function Race:new(o)
 			['water'] = 1,
 		},
 		[NEED.FOOD] = {
-			['food'] = 1,
-			['produce'] = 0.5,
-			['meat'] = 0.5,
+			['food'] = 0.5,
+			['fruit'] = 0.25,
+			['meat'] = 0.25,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -122,9 +122,9 @@ function Race:new(o)
 			['water'] = 1,
 		},
 		[NEED.FOOD] = {
-			['food'] = 1,
-			['produce'] = 0.5,
-			['meat'] = 0.5,
+			['food'] = 0.5,
+			['fruit'] = 0.25,
+			['meat'] = 0.25,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,

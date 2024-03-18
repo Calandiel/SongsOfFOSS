@@ -46,7 +46,7 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['produce'] = 2,
+				['produce'] = 1,
 				['grain'] = 1
 			},
 			[NEED.CLOTHING] = {
@@ -84,7 +84,7 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['produce'] = 2,
+				['produce'] = 1,
 				['grain'] = 1
 			},
 			[NEED.CLOTHING] = {
@@ -145,8 +145,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.25,
-				['produce'] = 1,
+				['food'] = 1,
+				['fruit'] = 0.125,
+				['grain'] = 0.125,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -183,8 +184,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.25,
-				['produce'] = 1,
+				['food'] = 1,
+				['fruit'] = 0.125,
+				['grain'] = 0.125,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -246,8 +248,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.25,
-				['produce'] = 1,
+				['food'] = 0.75,
+				['produce'] = 0.25,
+				['meat'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -284,9 +287,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.25,
-				['produce'] = 0.5,
-				['meat'] = 0.5,
+				['food'] = 0.75,
+				['produce'] = 0.25,
+				['meat'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -346,7 +349,7 @@ function ll.load()
 				['water'] = 0.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.5,
+				['food'] = 0.25,
 				['meat'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
@@ -382,7 +385,7 @@ function ll.load()
 		male_needs = {
 			[NEED.WATER] = { ['water'] = 0.25 },
 			[NEED.FOOD] = {
-				['food'] = 0.5,
+				['food'] = 0.25,
 				['meat'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
