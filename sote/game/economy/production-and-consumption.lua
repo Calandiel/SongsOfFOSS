@@ -225,7 +225,11 @@ function pro.run(province)
 		return market_data[good_index - 1].price * amount
 	end
 
-
+	local total_need_count = tabb.size(NEED)
+	local life_need_count = tabb.size(tabb.filter(NEEDS, function (a)
+		return a.life_need
+	end))
+	local basic_need_count = total_need_count - life_need_count
 
 	local berries_index = RAWS_MANAGER.trade_good_to_index["berries"]
 	local fruit_index = RAWS_MANAGER.trade_good_to_index["fruit"]
@@ -645,11 +649,15 @@ function pro.run(province)
 		local total_expense = 0
 		local total_income = 0
 
+		-- TODO work for children, make sure to only demand what is aquired
+
+		local time_after_life = 0
+
 		-- buying life needs
 		for index, need in pairs(NEEDS) do
 			if need.life_need then
 				local free_time_after_need, income, expense, need_demanded = satisfy_need(
-					pop_view, pop_table, index, need, free_time, savings)
+					pop_view, pop_table, index, need, free_time / life_need_count, savings / life_need_count)
 				total_life_needs = total_life_needs + need_demanded
 				for _, case in pairs(pop_table.need_satisfaction[index]) do
 					total_life_satisfied = total_life_satisfied + case.consumed
@@ -658,17 +666,19 @@ function pro.run(province)
 				total_income = total_income + income
 				total_expense = total_expense + expense
 
-				free_time = free_time_after_need
+				time_after_life = time_after_life + free_time_after_need
 
-				savings = savings + income - expense
 			end
 		end
+
+		local savings_after_life = savings + total_income - total_expense
+		local time_after_basic = 0
 
 		-- buying other needs
 		for index, need in pairs(NEEDS) do
 			if not need.life_need then
 				local free_time_after_need, income, expense, need_demanded = satisfy_need(
-					pop_view, pop_table, index, need, free_time, savings)
+					pop_view, pop_table, index, need, time_after_life / basic_need_count, savings_after_life / basic_need_count)
 
 				total_needs = total_needs + need_demanded
 				for _, case in pairs(pop_table.need_satisfaction[index]) do
@@ -678,12 +688,12 @@ function pro.run(province)
 				total_income = total_income + income
 				total_expense = total_expense + expense
 
-				free_time = free_time_after_need
-
-				savings = savings + income - expense
+				time_after_basic = time_after_basic + free_time_after_need
 			end
 		end
-
+		if time_after_basic > 0 then
+			total_income = forage(pop_view,pop_table, free_time)
+		end
 		-- adjust pop savings
 		economic_effects.add_pop_savings(pop_table, total_income, economic_effects.reasons.Forage)
 		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.OtherNeeds)
