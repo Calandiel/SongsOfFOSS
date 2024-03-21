@@ -9,6 +9,7 @@
 ---@field savings number
 ---@field parent POP?
 ---@field children table<POP, POP>
+---@field get_need_satisfaction fun(self:POP):number,number
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
 ---@field popularity table<Realm, number|nil>
@@ -146,6 +147,30 @@ function rtab.POP:get_age_multiplier()
 		age_multiplier = 0.9 -- elder
 	end
 	return age_multiplier
+end
+
+---@return number life_need
+---@return number basic_need
+function rtab.POP:get_need_satisfaction()
+	local total_consumed, total_demanded = 0, 0
+	local life_consumed, life_demanded = 0, 0
+	for need, cases in pairs(self.need_satisfaction) do
+		local consumed, demanded = 0, 0
+		for case, values in pairs(cases) do
+			consumed = consumed + values.consumed
+			demanded = demanded + values.demanded
+		end
+		if NEEDS[need].life_need then
+			life_consumed = life_consumed + consumed
+			life_demanded = life_demanded + demanded
+		else
+			total_consumed = total_consumed + consumed
+			total_demanded = total_demanded + demanded
+		end
+	end
+	self.life_needs_satisfaction = life_consumed / life_demanded
+	self.basic_needs_satisfaction = (total_consumed + life_consumed) / (total_demanded + life_demanded)
+	return self.life_needs_satisfaction, self.basic_needs_satisfaction
 end
 
 return rtab

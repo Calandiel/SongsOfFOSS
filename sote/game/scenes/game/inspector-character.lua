@@ -82,7 +82,9 @@ function window.draw(game)
             end
         end,
         UI_STYLE.scrollable_list_large_item_height,
-        tabb.size(RAWS_MANAGER.trade_goods_by_name),
+        tabb.size(tabb.filter(RAWS_MANAGER.trade_goods_by_name,function (a)
+            return character.inventory[a.name] and character.inventory[a.name] > 0 or false
+        end)),
         unit,
         inventory_slider
     )

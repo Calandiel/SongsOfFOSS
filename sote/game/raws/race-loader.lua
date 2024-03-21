@@ -57,7 +57,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 / 4,
+				['tools-like'] = 0.125 / 4,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -85,9 +85,9 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['food'] = 1,
-				['timber'] = 0.5,
-				['grain'] = 0.5,
+				['food'] = 1.25,
+				['timber'] = 0.25,
+				['grain'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur
@@ -96,7 +96,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 / 4,
+				['tools-like'] = 0.125 / 4,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -147,9 +147,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.5,
-				['grain'] = 0.5,
-				['fruit'] = 0.2,
+				['food'] = 0.75,
+				['grain'] = 0.25,
+				['fruit'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -158,7 +158,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 / 4,
+				['tools-like'] = 0.125 / 4,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -186,9 +186,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.5,
-				['grain'] = 0.5,
-				['fruit'] = 0.25,
+				['food'] = 0.85,
+				['grain'] = 0.2,
+				['fruit'] = 0.2,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -197,7 +197,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 / 2,
+				['tools-like'] = 0.125 / 2,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -250,9 +250,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.75,
+				['food'] = 0.7,
 				['meat'] = 0.25,
-				['fruit'] = 0.2,
+				['grain'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -261,7 +261,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 * 2,
+				['tools-like'] = 0.125 * 2,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -289,9 +289,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.75,
+				['food'] = 0.8,
 				['meat'] = 0.25,
-				['fruit'] = 0.25,
+				['grain'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -300,7 +300,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 * 2,
+				['tools-like'] = 0.125 * 2,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -329,7 +329,7 @@ function ll.load()
 		teen_age = 5,
 		adult_age = 10,
 		middle_age = 20,
-		elder_age = 40,
+		elder_age = 35,
 		max_age = 50,
 		minimum_comfortable_temperature = 5,
 		minimum_absolute_temperature = -10,
@@ -351,8 +351,9 @@ function ll.load()
 				['water'] = 0.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.25,
-				['meat'] = 0.25,
+				['food'] = 0.3,
+				['fruit'] = 0.1,
+				['meat'] = 0.1,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.25
@@ -361,7 +362,7 @@ function ll.load()
 				['furniture'] = 0.25
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 / 2,
+				['tools-like'] = 0.125 / 2,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,
@@ -388,7 +389,8 @@ function ll.load()
 			[NEED.WATER] = { ['water'] = 0.25 },
 			[NEED.FOOD] = {
 				['food'] = 0.3,
-				['meat'] = 0.3,
+				['fruit'] = 0.1,
+				['meat'] = 0.1,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.25
@@ -397,7 +399,7 @@ function ll.load()
 				['furniture'] = 0.25
 			},
 			[NEED.TOOLS] = {
-				['tools'] = 0.125 / 2,
+				['tools-like'] = 0.125 / 2,
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 0.125,

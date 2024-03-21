@@ -413,17 +413,6 @@ function world.World:tick()
 			ta[province] = nil
 		end
 
-		PROFILER:start_timer("growth")
---[[
-		-- "POP" update
-		local pop_growth = require "game.society.pop-growth"
-		for _, settled_province in pairs(ta) do
-			--print("Pop growth")
-			pop_growth.growth(settled_province)
-		end
-
-		PROFILER:end_timer("growth")
-]]
 
 		-- "Province" update
 		local employ = require "game.economy.employment"
@@ -434,6 +423,7 @@ function world.World:tick()
 		local infrastructure = require "game.economy.province-infrastructure"
 		local research = require "game.society.research"
 		local recruit = require "game.society.recruitment"
+		local pop_growth = require "game.society.pop-growth"
 		for _, settled_province in pairs(ta) do
 --[[
 			--print("employ")
@@ -456,8 +446,16 @@ function world.World:tick()
 			research.run(settled_province)
 --			recruit.run(settled_province)
 			PROFILER:end_timer("province")
+			PROFILER:start_timer("growth")
+
+			-- "POP" update
+			--print("Pop growth")
+			pop_growth.growth(settled_province)
+			PROFILER:end_timer("growth")
+
 			--print("done")
 		end
+
 
 		-- "Realm" update
 		-- local decide = require "game.ai.decide"
@@ -655,10 +653,10 @@ function world.World:tick()
 					WORLD.year = WORLD.year + 1
 					-- yearly tick
 					--print("Yearly tick!")
---					local pop_aging = require "game.society.pop-aging"
---					for _, settled_province in pairs(WORLD.provinces) do
---						pop_aging.age(settled_province)
---					end
+					local pop_aging = require "game.society.pop-aging"
+					for _, settled_province in pairs(WORLD.provinces) do
+						pop_aging.age(settled_province)
+					end
 				end
 
 				--print("Monthly tick end, refreshing")

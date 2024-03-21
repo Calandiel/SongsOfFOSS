@@ -310,7 +310,7 @@ local function load()
 			local province = root.province
 			if province == nil then return end
 
-			province.mood = math.min(10, province.mood + base_gift_size / province:population() / 2)
+			province.mood = math.min(10, province.mood + base_gift_size / (province:home_characters() + province:home_population()) / 2)
 			economic_effects.change_local_wealth(province, base_gift_size, EconomicEffects.reasons.Donation)
 			economic_effects.add_pop_savings(root, -base_gift_size, EconomicEffects.reasons.Donation)
 

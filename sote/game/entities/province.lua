@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 local wb = require "game.entities.warband"
 
 local EconomicValues = require "game.raws.values.economical"
+local EconomicEffects = require "game.raws.effects.economic"
 
 ---@alias Character POP
 
@@ -18,6 +19,7 @@ local prov = {}
 ---@field size number
 ---@field tiles table<Tile, Tile>
 ---@field hydration number Number of humans that can live of off this provinces innate water
+---@field bedrocks table<string, number> percentage of tile bedrocks in province
 ---@field neighbors table<Province, Province>
 ---@field movement_cost number
 ---@field center Tile The tile which contains this province's settlement, if there is any.
@@ -50,7 +52,7 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
----@field flora_spread {grass: number, shrub: number, broadleaf: number, conifer: number}
+---@field flora_spread {organics: number, grass: number, shrub: number, broadleaf: number, conifer: number}
 ---@field building_type_present fun(self:Province, building:BuildingType):boolean Returns true when a building of a given type has been built in a province
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
@@ -120,7 +122,7 @@ function prov.Province:new(fake_flag)
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
 	o.hydration = 5
-	o.local_resources = {}
+		o.local_resources = {}
 	o.local_resources_location = {}
 	o.local_production = {}
 	o.local_consumption = {}
@@ -193,12 +195,44 @@ function prov.Province:military_target()
 	return sum
 end
 
----Returns the total population of the province.
+---Returns the total population of the province, pops and characters.
 ---Doesn't include outlaws and active armies.
 ---@return number
-function prov.Province:population()
-	local tabb = require "engine.table"
+function prov.Province:total_population()
+	return tabb.size(tabb.join(tabb.copy(self.all_pops), self.characters))
+end
+
+---Returns the home population of the province, pops and characters.
+---@return number
+function prov.Province:total_home_population()
+	return tabb.size(self.home_to)
+end
+
+---Returns the current pop count of the province.
+---Doesn't include outlaws and active armies.
+---@return number
+function prov.Province:local_population()
 	return tabb.size(self.all_pops)
+end
+
+---Returns the current character count of the province.
+function prov.Province:local_characters()
+	return tabb.size(self.characters)
+end
+
+---Returns the home pop count of the province.
+---@return number
+function prov.Province:home_population()
+	return tabb.size(tabb.filter(self.home_to, function(a)
+		return not a:is_character()
+	end))
+end
+
+---Returns the home character count of the province.
+function prov.Province:home_characters()
+	return tabb.size(tabb.filter(self.home_to, function(a)
+		return a:is_character()
+	end))
 end
 
 function prov.Province:validate_population()
@@ -233,11 +267,11 @@ end
 ---Returns the total population of the province.
 ---@return number
 function prov.Province:population_weight()
-	local total = 0
-	for _, pop in pairs(self.all_pops) do
-		total = total + pop.race.carrying_capacity_weight
+	local weight = 0
+	for _, pop in pairs(tabb.join(tabb.copy(self.all_pops), self.characters)) do
+		weight = weight + pop.race.carrying_capacity_weight
 	end
-	return total
+	return weight
 end
 
 ---Adds a pop to the province. Sets province as a home. Does not handle cleaning of old data
@@ -362,12 +396,24 @@ function prov.Province:kill_pop(pop)
 	if pop.home_province then
 		pop.home_province:unset_home(pop)
 	end
-
-    if pop.parent then pop.parent.children[pop] = nil end
-    for _,c in pairs(pop.children) do
-        c.parent = nil
-        pop.children[c] = nil
-    end
+	local dependants = tabb.size(pop.children)
+		if dependants > 0 then
+			local inheritance = math.max(pop.savings / dependants, 0)
+		for _,c in pairs(pop.children) do
+			c.parent = nil
+			pop.children[c] = nil
+			EconomicEffects.add_pop_savings(c, inheritance, EconomicEffects.reasons.Inheritance)
+		end
+		if pop.parent then
+			pop.parent.children[pop] = nil
+		end
+	elseif pop.parent then
+		EconomicEffects.add_pop_savings(pop.parent, pop.savings, EconomicEffects.reasons.Inheritance)
+		pop.parent.children[pop] = nil
+	else
+		EconomicEffects.change_local_wealth(self, pop.savings, EconomicEffects.reasons.Inheritance)
+	end
+	pop.parent = nil
 end
 
 function prov.Province:local_army_size()

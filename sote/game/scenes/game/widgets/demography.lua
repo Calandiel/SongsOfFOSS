@@ -155,7 +155,7 @@ local function demography(provinces, ui_panel, collapsed)
         local population = 0
         for _, province in ipairs(provinces) do
             carr_cap = math.floor(province.foragers_limit) + carr_cap
-            population = population + province:population()
+            population = population + province:local_population()
         end
 
         ut.data_entry("Population: ", tostring(population) .. "/" .. tostring(carr_cap), rect)

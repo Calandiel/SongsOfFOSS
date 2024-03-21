@@ -371,23 +371,27 @@ return function(province, ui_panel, base_unit, gam)
             if character then
                 inventory = character.inventory[good_reference] or 0
             end
-            data_blob[good_reference] = {
-                data = good,
-                name = good.description,
-                icon = good.icon,
-                tag = good.name,
-                r = good.r,
-                g = good.g,
-                b = good.b,
-                supply = good_supply,
-                demand = good_demand,
-                consumption = good_consumption,
-                balance = good_supply - good_consumption,
-                stockpile = province.local_storage[good_reference] or 0,
-                buy_price = ev.get_local_price(province, good_reference),
-                sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT, true),
-                inventory = inventory
-            }
+            if inventory > 0 or good_supply > 0 or good_consumption > 0
+                or (province.local_storage[good_reference] or 0) > 0
+            then
+                data_blob[good_reference] = {
+                    data = good,
+                    name = good.description,
+                    icon = good.icon,
+                    tag = good.name,
+                    r = good.r,
+                    g = good.g,
+                    b = good.b,
+                    supply = good_supply,
+                    demand = good_demand,
+                    consumption = good_consumption,
+                    balance = good_supply - good_consumption,
+                    stockpile = province.local_storage[good_reference] or 0,
+                    buy_price = ev.get_local_price(province, good_reference),
+                    sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT, true),
+                    inventory = inventory
+                }
+            end
         end
 
         ut.table(uip, data_blob, columns, state)

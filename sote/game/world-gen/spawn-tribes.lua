@@ -3,6 +3,7 @@ local cult = require "game.entities.culture"
 local rel = require "game.entities.religion"
 local pop = require "game.entities.pop"
 local tabb = require "engine.table"
+local job_types = require "game.raws.job_types"
 
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
@@ -38,12 +39,12 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- Mark the province as settled for processing...
 	WORLD:set_settled_province(capitol)
-
+	local forage_efficiency = (race.female_efficiency[job_types.FORAGER] + race.female_efficiency[job_types.FORAGER]) / 2
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * 2)
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * forage_efficiency)
 	for _ = 1, pop_to_spawn do
-		local age = math.floor(math.abs(love.math.randomNormal(race.middle_age, 0)) + 1)
-		pop.POP:new(
+		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
+		local pp = pop.POP:new(
 			race,
 			faith,
 			culture,
@@ -51,17 +52,20 @@ local function make_new_realm(capitol, race, culture, faith)
 			age,
 			capitol, capitol
 		)
+		pp.savings = love.math.random() * pp.age / race.max_age * 5
 	end
 
 	-- spawn leader
 	local elite_character = pe.generate_new_noble(r, capitol, race, faith, culture)
-	elite_character.popularity[r] = elite_character.age / 10
+	elite_character.popularity[r] = 5 + elite_character.age / race.max_age * love.math.random() * 5
+	elite_character.savings = 50 + 20 * elite_character.popularity[r]
 	pe.transfer_power(r, elite_character, pe.reasons.INITIAL_RULER)
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 5 + 1 do
 		local contender = pe.generate_new_noble(r, capitol, race, faith, culture)
-		contender.popularity[r] = contender.age / 15
+		contender.popularity[r] = 2 + contender.age / race.max_age * love.math.random() * 3
+		contender.savings = 25 + 10 * contender.popularity[r]
 	end
 
 	-- set up capitol
@@ -98,11 +102,13 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- try to assign a parent to generated children
 	for _,x in pairs(capitol.all_pops) do
-		if x.age > x.race.adult_age then
-			local potentials = tabb.filter(capitol.all_pops,
-			function(a) return a.age >= x.age + x.race.adult_age and a.age < x.race.elder_age + x.age end)
+		if x.age < x.race.teen_age then
+			local potentials = tabb.filter(capitol.all_pops, function(a)
+				return a.age >= x.age + x.race.adult_age
+					and a.age < x.race.elder_age + x.age
+			end)
 			local size = #potentials
-			local parent = tabb.nth(potentials, math.random(1,size))
+			local parent = tabb.random_select_from_set(potentials)
 			if parent then
 				parent.children[x] = x
 				x.parent = parent
@@ -252,7 +258,7 @@ function st.run()
 	print("Spawned tribes:", tabb.size(WORLD.realms))
 	local pp = 0
 	for _, prov in pairs(WORLD.provinces) do
-		pp = pp + prov:population()
+		pp = pp + prov:total_population()
 	end
 	print("Spawned population: " .. tostring(pp))
 end

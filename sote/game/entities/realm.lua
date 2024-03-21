@@ -390,7 +390,7 @@ function realm.Realm:get_average_mood()
 	local mood = 0
 	local pop = 0
 	for _, p in pairs(self.provinces) do
-		local po = p:population()
+		local po = p:total_population()
 		mood = mood + p.mood * po
 		pop = pop + po
 	end
@@ -414,7 +414,7 @@ end
 function realm.Realm:get_realm_population()
 	local total = 0
 	for _, p in pairs(self.provinces) do
-		total = total + p:population()
+		total = total + p:total_home_population()
 	end
 	return total
 end
@@ -580,7 +580,7 @@ function realm.Realm:get_province_pop_weights()
 	local weights = {}
 	local total = 0
 	for _, p in pairs(self.provinces) do
-		local po = p:population()
+		local po = p:total_population()
 		total = total + po
 		weights[p] = po
 	end

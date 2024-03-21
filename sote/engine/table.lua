@@ -168,10 +168,11 @@ end
 ---@param accumulator fun(a: A, k: K, v: V):A
 ---@return A
 function tab.accumulate(items, accumulable, accumulator)
-	for k,v in pairs(items) do
-		accumulator(accumulable, k, v)
+	local a = accumulable
+	for k, v in pairs(items) do
+		a = accumulator(a, k, v)
 	end
-	return accumulable
+	return a
 end
 
 ---Given two tables of similar key-value pairs, insert all values from the second table into the first.

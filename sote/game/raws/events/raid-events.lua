@@ -433,7 +433,7 @@ local function load()
 					real_loot = real_loot + extra
 				end
 
-				local mood_swing = real_loot / (province:population() + 1)
+				local mood_swing = real_loot / (province:total_population() + 1)
 				province.mood = province.mood - mood_swing
 				if realm then
 					raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
@@ -502,7 +502,7 @@ local function load()
 
 			local warbands = realm:disband_army(army)
 
-			local mood_swing = loot / (realm.capitol:population() + 1) / 2
+			local mood_swing = loot / (realm.capitol:total_population() + 1) / 2
 
 			-- popularity to raid initiator
 			pe.change_popularity(target.owner, realm, mood_swing)

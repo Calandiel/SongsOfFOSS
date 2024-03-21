@@ -94,7 +94,7 @@ function Race:new(o)
 			['furniture'] = 1,
 		},
 		[NEED.TOOLS] = {
-			['tools'] = 0.125,
+			['tools-like'] = 0.125,
 		},
 		[NEED.HEALTHCARE] = {
 			['healthcare'] = 0.125,
@@ -133,7 +133,7 @@ function Race:new(o)
 			['furniture'] = 1,
 		},
 		[NEED.TOOLS] = {
-			['tools'] = 0.125,
+			['tools-like'] = 0.125,
 		},
 		[NEED.HEALTHCARE] = {
 			['healthcare'] = 0.125,

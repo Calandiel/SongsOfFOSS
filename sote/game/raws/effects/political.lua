@@ -78,7 +78,7 @@ local function roll_traits(character)
 	else
 		if love.math.random() > 0.6 then
 			character.traits[TRAIT.TRADER] = TRAIT.TRADER
-			character.savings = character.savings + 500
+--			character.savings = character.savings + 500
 		end
 	end
 

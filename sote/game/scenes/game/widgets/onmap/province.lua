@@ -29,8 +29,14 @@ return function(gam, tile, rect, x, y, size)
 	local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, rect, "callback")
 
 	rect.y = y - length_of_line - height_unit
-	local population = tile.province:population()
-	ut.data_entry("", tostring(population), rect)
+	rect.width = rect.width / 2
+	ut.data_entry_icon("duality-mask.png", ut.to_fixed_point2(tile.province.mood), rect, "Local mood")
+	rect.x = rect.x + rect.width
+	ut.data_entry_icon("village.png", tostring(tile.province:total_home_population()), rect, "Home population")
+	rect.y = y + length_of_line
+	ut.data_entry_icon("minions.png", tostring(tile.province:local_population()), rect, "Local population")
+	rect.x = rect.x - rect.width
+	ut.data_entry_icon("inner-self.png", tostring(tile.province:local_characters()), rect, "Local characters")
 
 	local line_rect = ui.rect(x - 1, y - length_of_line, 2, 50 - height_unit)
 	ui.rectangle(line_rect)

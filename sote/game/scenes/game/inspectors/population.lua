@@ -41,7 +41,7 @@ function inspector.draw(gam)
 
     local population_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", "up")
 
-    ut.integer_entry("Total:", province:population(), population_data_rect)
+    ut.integer_entry("Total:", province:local_population(), population_data_rect)
     population_data_rect.x = population_data_rect.x + population_data_rect.width + base_unit
     -- ut.money_entry("Trade wealth:", province.trade_wealth, population_data_rect)
     -- population_data_rect.x = population_data_rect.x + population_data_rect.width + base_unit

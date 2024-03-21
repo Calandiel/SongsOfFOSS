@@ -68,24 +68,47 @@ local function header_panel(gam, tile, panel)
 		uit.NAME_MODE.ICON
 	)
 
-	local population_panel = mood_panel
-	population_panel.y = population_panel.y - population_panel.height
-	population_panel.x = population_panel.x + population_panel.width
+	local total_population_panel = mood_panel
+	total_population_panel.y = total_population_panel.y - total_population_panel.height
+	total_population_panel.x = total_population_panel.x + total_population_panel.width
 	uit.generic_number_field(
 		"minions.png",
-		tile.province:population(),
-		population_panel,
-		"Local population",
+		tile.province:total_population(),
+		total_population_panel,
+		"Total population",
+		uit.NUMBER_MODE.INTEGER,
+		uit.NAME_MODE.ICON
+	)
+	
+	local home_population_panel = total_population_panel
+	home_population_panel.y = home_population_panel.y + home_population_panel.height
+	uit.generic_number_field(
+		"village.png",
+		tile.province:total_home_population(),
+		home_population_panel,
+		"Home population",
 		uit.NUMBER_MODE.INTEGER,
 		uit.NAME_MODE.ICON
 	)
 
-	local unemployed_panel = population_panel
+	local characters_panel = home_population_panel
+	characters_panel.y = characters_panel.y - characters_panel.height
+	characters_panel.x = characters_panel.x + characters_panel.width
+	uit.generic_number_field(
+		"inner-self.png",
+		tile.province:local_characters(),
+		characters_panel,
+		"Local characters",
+		uit.NUMBER_MODE.INTEGER,
+		uit.NAME_MODE.ICON
+	)
+
+	local unemployed_panel = characters_panel
 	unemployed_panel.y = unemployed_panel.y + unemployed_panel.height
 	uit.generic_number_field(
 		"shrug.png",
 		tile.province:get_unemployment(),
-		population_panel,
+		unemployed_panel,
 		"Local unemployed population",
 		uit.NUMBER_MODE.INTEGER,
 		uit.NAME_MODE.ICON

@@ -181,7 +181,15 @@ function re.draw(gam)
 
 					local inspect = nil
 					local function render_name(rect, k, v)
-						if uit.text_button(v.name, rect) then
+						local children = tabb.size(v.children)
+						local name = v.name
+						if v.parent then
+							name = name .. " [" .. v.parent.name .. "]"
+						end
+						if children > 0 then
+							name = name .. " (" .. children .. ")"
+						end
+						if uit.text_button(name, rect) then
 							inspect = "character"
 							return v
 						end
@@ -222,7 +230,7 @@ function re.draw(gam)
 								{
 									header = "name",
 									render_closure = render_name,
-									width = 4,
+									width = 6,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -235,13 +243,13 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										---@type POP
 										v = v
-										ui.centered_text(uit.to_fixed_point2(v.popularity[realm]), rect)
+										ui.centered_text(uit.to_fixed_point2(v.popularity[realm] or 0), rect)
 									end,
-									width = 3,
+									width = 2,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.popularity[realm]
+										return v.popularity[realm] or 0
 									end,
 									active = true
 								},
@@ -250,7 +258,7 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										ui.centered_text(v.race.name, rect)
 									end,
-									width = 4,
+									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -263,7 +271,7 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										ui.centered_text(v.faith.name, rect)
 									end,
-									width = 4,
+									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -276,7 +284,7 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										ui.centered_text(v.culture.name, rect)
 									end,
-									width = 4,
+									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -341,11 +349,16 @@ function re.draw(gam)
 					
 										local needs_tooltip = ""
 										for need, values in pairs(v.need_satisfaction) do
-											needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": "
+											local tooltip = ""
 											for case, value in pairs(values) do
-												needs_tooltip = needs_tooltip .. "\n  " .. case .. ": "
-													.. uit.to_fixed_point2(value.consumed) .. " / " .. uit.to_fixed_point2(value.demanded)
-													.. " (" .. uit.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+												if value.demanded > 0 then
+													tooltip = tooltip .. "\n  " .. case .. ": "
+														.. uit.to_fixed_point2(value.consumed) .. " / " .. uit.to_fixed_point2(value.demanded)
+														.. " (" .. uit.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+												end
+											end
+											if tooltip ~= "" then
+												needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
 											end
 										end
 					

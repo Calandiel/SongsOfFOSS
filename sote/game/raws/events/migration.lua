@@ -345,8 +345,8 @@ function load()
 
 			local population_string =
 				"There are "
-				.. associated_data.realm.capitol:population() .. " commoners and "
-				.. tabb.size(associated_data.realm.capitol.characters) .. " nobles in total."
+				.. associated_data.realm.capitol:home_population() .. " commoners and "
+				.. associated_data.realm.capitol:home_characters() .. " nobles in total."
 
 			return name
 				.. " requested me to allow his people to migrate to my lands. "
