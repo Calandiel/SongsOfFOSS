@@ -174,6 +174,7 @@ function pro.run(province)
 	---@param amount number
 	local function record_production(good_index, amount)
 		market_data[good_index - 1].supply = market_data[good_index - 1].supply + amount
+		market_data[good_index - 1].available = math.max(0, market_data[good_index - 1].available + amount)
 
 		if (amount < 0) then
 			error(
@@ -457,7 +458,7 @@ function pro.run(province)
 		local cottage_time_per_unit = need.time_to_satisfy / need_job_efficiency
 
 		-- wealth pop can earn by foraging instead
-		local food_produced = pop_view[zero].foraging_efficiency * 0.5
+		local food_produced = pop_job_efficiency[JOBTYPE.FORAGER] / foraging_efficiency * 0.5
 		local food_income
 		if pop_table:is_character() then
 			food_income = meat_price + hide_price * 0.5
