@@ -368,12 +368,12 @@ function pro.run(province)
 			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
 			local goods_price = math.max(market_data[c_index].price, 0.0001)
 			local goods_available = market_data[c_index].available
-			local goods_available_weight = math.max(market_data[c_index].available / available, 0)
+			local goods_available_weight = math.max(market_data[c_index].available / weight / available, 0)
 			local goods_feature_weight = math.max(market_data[c_index].feature / total_exp, 0)
 			local demanded_amount = demanded_use / weight * goods_feature_weight
 			local consumed_amount = math.min(goods_available, demanded_amount,
 				potential_amount / weight * goods_available_weight,
-				savings / goods_price * goods_feature_weight)
+				savings / goods_price)
 			if demanded_amount ~= demanded_amount
 				or consumed_amount ~= consumed_amount
 			then
@@ -765,7 +765,7 @@ function pro.run(province)
 
 		-- adjust pop savings
 		economic_effects.add_pop_savings(pop_table, total_income, economic_effects.reasons.Forage)
-		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.OtherNeeds)
+		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.BasicNeeds)
 
 	end
 
@@ -777,31 +777,46 @@ function pro.run(province)
 		return a.age < a.race.teen_age and a.province == province
 	end))
 	-- calculate donations for home children
+	local wealth_cycle = province.local_wealth * 0.1
+	local wealth_cycle_fraction = math.max(wealth_cycle / province:total_home_population(), 0)
 	local donations_for_childen = math.min(province.local_wealth * 0.1, children * use_case_price_expectation['food'] * 0.5)
 	local donations_for_child = math.max(donations_for_childen / children, 0)
-	if donations_for_child ~= donations_for_child then error("PROVINCE CHILD DONATIONS IS NAN") end
-	economic_effects.change_local_wealth(province, -donations_for_childen, economic_effects.reasons.Donation)
+
+	if donations_for_child ~= donations_for_child
+		or wealth_cycle_fraction ~= wealth_cycle_fraction
+	then
+		error("PROVINCE CHILD DONATIONS IS NAN")
+	end
+	economic_effects.change_local_wealth(province, -wealth_cycle, economic_effects.reasons.Donation)
+	economic_effects.change_local_wealth(province, -donations_for_childen, economic_effects.reasons.Welfare)
 
 	-- sort pops by wealth:
 	---@type POP[]
 	local pops_by_wealth = tabb.accumulate(
 		tabb.join(tabb.copy(province.all_pops), province.characters),
 		{},function (a, _, pop)
+			-- cycle local wealth to home pop and characters
+			economic_effects.add_pop_savings(pop, wealth_cycle_fraction, economic_effects.reasons.Donation)
 			-- donation to help parents care for children
-			local dependents = tabb.size(tabb.filter(pop.children, function (child)
-				return child.age < child.race.teen_age
-			end))
-			if donations_for_child > 0 and dependents > 0 and pop.age >= pop.race.teen_age then
-				-- donate children's share to parents
-				economic_effects.add_pop_savings(pop, dependents * donations_for_child, economic_effects.reasons.Donation)
+			if pop.home_province == province then
+				if donations_for_child > 0 then
+				local dependents = tabb.size(tabb.filter(pop.children, function (child)
+					return child.age < child.race.teen_age
+					end))
+					if dependents > 0 and pop.age >= pop.race.teen_age then
+						-- donate children's share to parents
+						economic_effects.add_pop_savings(pop, dependents * donations_for_child, economic_effects.reasons.Welfare)
+					end
+				end
 			end
-			-- pops donate some of their savings as well:
-			local pop_donation_total = pop.savings / 120 * pop.basic_needs_satisfaction
-			total_realm_donations = total_realm_donations + pop_donation_total * 0.5
-			total_local_donations = total_local_donations + pop_donation_total * 0.25
-			total_trade_donations = total_trade_donations + pop_donation_total * 0.25
-			economic_effects.add_pop_savings(pop, -pop_donation_total, economic_effects.reasons.Donation)
-			if pop:is_character() then
+			if not pop:is_character() then
+				-- pops donate some of their savings as well:
+				local pop_donation_total = pop.savings / 120 * pop.basic_needs_satisfaction
+				total_realm_donations = total_realm_donations + pop_donation_total * 0.5
+				total_local_donations = total_local_donations + pop_donation_total * 0.25
+				total_trade_donations = total_trade_donations + pop_donation_total * 0.25
+				economic_effects.add_pop_savings(pop, -pop_donation_total, economic_effects.reasons.Donation)
+			else
 				local popularity = pv.popularity(pop, province.realm)
 				if popularity > 0 then
 					total_popularity = total_popularity + popularity
@@ -1034,7 +1049,7 @@ function pro.run(province)
 				---@type number
 				income = income
 
-				if income > 0 then
+				if income > 0 and pop.life_needs_satisfaction > 0.5 then
 					---@type number
 					local contrib = income * fraction_of_income_given_voluntarily
 					if owner then
@@ -1050,8 +1065,8 @@ function pro.run(province)
 					-- increase working hours if possible to increase income
 					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				else
-					-- reduce working hours to negate losses
-					pop.employer.work_ratio = math.max(0.01, pop.employer.work_ratio * 0.5)
+					-- reduce working hours to negate losses or satisfy life needs
+					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.5)
 				end
 
 				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
@@ -1068,7 +1083,7 @@ function pro.run(province)
 				-- gives donation share children if they have no parent
 				if not pop.parent then
 					if donations_for_child > 0 and pop.home_province == province then
-						economic_effects.add_pop_savings(pop, donations_for_child, economic_effects.reasons.Donation)
+						economic_effects.add_pop_savings(pop, donations_for_child, economic_effects.reasons.Welfare)
 					end
 				end
 

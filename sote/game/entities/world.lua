@@ -382,6 +382,7 @@ function world.World:tick()
 		local ta = WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month]
 
 		local t = love.timer.getTime()
+		local car = require "game.ecology.carrying-capacity"
 
 		PROFILER:start_timer("vegetation")
 
@@ -393,6 +394,7 @@ function world.World:tick()
 				tile.shrub 		= tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
 				tile.grass 		= tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
 			end
+			car.get_province_carry_capacity(settled_province)
 		end
 
 		PROFILER:end_timer("vegetation")
@@ -425,7 +427,7 @@ function world.World:tick()
 		local recruit = require "game.society.recruitment"
 		local pop_growth = require "game.society.pop-growth"
 		for _, settled_province in pairs(ta) do
---[[
+
 			--print("employ")
 			PROFILER:start_timer("employ")
 			employ.run(settled_province)
@@ -434,7 +436,7 @@ function world.World:tick()
 			PROFILER:start_timer("buildings")
 			building_update.run(settled_province)
 			PROFILER:end_timer("buildings")
-]]
+
 			PROFILER:start_timer("production")
 			production.run(settled_province)
 			PROFILER:end_timer("production")
@@ -492,12 +494,12 @@ function world.World:tick()
 					self:emit_treasury_change_effect(0, "new month")
 					self:emit_treasury_change_effect(0, "new month", true)
 				end
---[[
+
 				--print("Construct")
 				PROFILER:start_timer("realm-construct-update")
 				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 				PROFILER:end_timer("realm-construct-update")
-]]
+
 				--print("Court")
 				court.run(realm)
 				--print("Edu")

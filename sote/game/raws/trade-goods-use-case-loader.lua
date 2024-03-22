@@ -56,7 +56,7 @@ function d.load()
 	make_use_case("tools-advanced", "tools", "stone-axe.png", 0.162, 0.141, 0.422)
 
 	-- stone tools materials
-	make_use_case("blanks-flint", "flint blanks", "rock.png", 0.162, 0.141, 0.422)
+	make_use_case("stone-blanks", "flint blanks", "rock.png", 0.162, 0.141, 0.422)
 	make_use_case("blanks-obsidian", "obsidian blanks", "rock.png", 0.162, 0.141, 0.422)
 
 	-- copper chain materials

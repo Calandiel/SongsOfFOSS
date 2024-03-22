@@ -221,7 +221,7 @@ function d.load()
 		base_price = 6,
 	}
 	add_use_case("blanks-flint", "tools-like", 0.5)
-	add_use_case("blanks-flint", "blanks-flint", 1)
+	add_use_case("blanks-flint", "stone-blanks", 1)
 
 	TradeGood:new {
 		name = "blanks-obsidian",
@@ -233,7 +233,7 @@ function d.load()
 		base_price = 6,
 	}
 	add_use_case("blanks-obsidian", "tools-like", 0.4)
-	add_use_case("blanks-obsidian", "blanks-obsidian", 1)
+	add_use_case("blanks-obsidian", "stone-blanks", 1)
 
 
 	TradeGood:new {
