@@ -6,7 +6,9 @@ local mm = require "game.scenes.main-menu"
 local wl = require "game.scenes.world-loader"
 local ws = require "game.scenes.world-saver"
 local gam = require "game.scenes.game"
-local wg = require "game.scenes.world-gen"
+if IS_WINDOWS then
+	local wg = require "game.scenes.world-gen"
+end
 
 ---@alias SceneName
 ---A viable scene name
