@@ -15,16 +15,10 @@ return function(rect, character)
         ui.style.panel_outline = {r = 255 / 255, g = 215 / 255, b = 0 / 255, a = 1}
     end
 
-    local subrect
-    if rect.width > rect.height then
-        subrect = rect:new(rect.x + (rect.width - rect.height) / 2, rect.y, rect.height, rect.height)
-    elseif rect.height > rect.width then
-        subrect = rect:new(rect.x, rect.y + (rect.height - rect.width) / 2, rect.width, rect.width)
-    else
-        subrect = rect
-    end
+	local subrect = ut.centered_square(rect)
 
-    love.graphics.setLineWidth( 4 )
+    subrect:shrink(1)
+    love.graphics.setLineWidth( 2 )
     ui.panel(subrect)
     love.graphics.setLineWidth( 1 )
 

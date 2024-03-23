@@ -4,6 +4,7 @@
 ---@field x number?
 ---@field y number?
 ---@field workers table<POP, POP>
+---@field worker_income table<POP, number>
 ---@field owner POP?
 ---@field province Province
 ---@field subsidy number
@@ -12,6 +13,8 @@
 ---@field last_income number
 ---@field spent_on_inputs table<TradeGoodReference, number>
 ---@field earn_from_outputs table<TradeGoodReference, number>
+---@field amount_of_inputs table<TradeGoodReference, number>
+---@field amount_of_outputs table<TradeGoodReference, number>
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 ---@field last_donation_to_owner number
 ---@field unused number
@@ -33,11 +36,14 @@ function bld.Building:new(province, building_type, tile)
 
 	o.type = building_type
 	o.workers = {}
+	o.worker_income = {}
 
 	o.income_mean = 0
 	o.last_income = 0
 	o.last_donation_to_owner = 0
 	o.spent_on_inputs = {}
+	o.amount_of_inputs = {}
+	o.amount_of_outputs = {}
 	o.earn_from_outputs = {}
 	o.unused = 0
 

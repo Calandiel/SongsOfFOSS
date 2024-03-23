@@ -198,6 +198,15 @@ local function render_percentage(number, rect, negative)
 	love.graphics.setColor(cr, cg, cb, ca)
 end
 
+---@param rect Rect
+---@return Rect subrect
+function ut.centered_square(rect)
+	local subrect
+	local side = math.min(rect.height, rect.width)
+	subrect = rect:subrect(0, 0, side, side, "center", "center")
+	return subrect
+end
+
 ---Renders icon with given colour
 ---@param rect Rect
 ---@param icon_name string
@@ -208,8 +217,9 @@ end
 function ut.render_icon(rect, icon_name, r, g, b, a)
 	local _r, _g, _b, _a = love.graphics.getColor()
 
+	local subrect = ut.centered_square(rect)
 	love.graphics.setColor(r, g, b ,a)
-	ui.image(ASSETS.icons[icon_name], rect)
+	ui.image(ASSETS.icons[icon_name], subrect)
 
 	love.graphics.setColor(_r, _g, _b ,_a)
 end

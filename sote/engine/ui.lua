@@ -1408,8 +1408,10 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	--- data sorting
 	---@type TablePair[]
 	local sorted_data = {}
-	for _, entry in pairs(data) do
-		table.insert(sorted_data, {key = _, value = entry})
+	for key, entry in pairs(data) do
+		if key and entry then
+			table.insert(sorted_data, {key = key, value = entry})
+		end
 	end
 	table.sort(sorted_data, function(a, b)
 		local value_a = columns[state.sorted_field].value(a.key, a.value)

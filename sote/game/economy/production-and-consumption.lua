@@ -1004,6 +1004,8 @@ function pro.run(province)
 
 						input_satisfaction_2 = math.min(input_satisfaction_2, consumed / required)
 						income = income - spent
+
+						building.amount_of_inputs[input] = consumed
 						building.spent_on_inputs[input] = (building.spent_on_inputs[input] or 0) + spent
 					end
 				end
@@ -1017,6 +1019,7 @@ function pro.run(province)
 					local earnt = price * produced
 					income = income + earnt
 
+					building.amount_of_outputs[output] = produced
 					building.earn_from_outputs[output] = (building.earn_from_outputs[output] or 0) + earnt
 
 					record_production(output_index, amount * efficiency * output_boost * throughput_boost)
@@ -1049,6 +1052,8 @@ function pro.run(province)
 				---@type number
 				income = income
 
+				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
+
 				if income > 0 and pop.life_needs_satisfaction > 0.5 then
 					---@type number
 					local contrib = income * fraction_of_income_given_voluntarily
@@ -1069,9 +1074,28 @@ function pro.run(province)
 					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.5)
 				end
 
-				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
+				-- reduce working time if not enough life needs satisfied
+				local min_life_satisfaction = tabb.accumulate(pop.need_satisfaction, 1, function (a, need, values)
+					if NEEDS[need].life_need then
+						local min_need = tabb.accumulate(values, 0, function (b, k, v)
+							local ratio = v.consumed / v.demanded
+							if ratio < b then
+								b = ratio
+							end
+							return b
+						end)
+						if min_need < a then
+							a = min_need
+						end
+					end
+					return a
+				end)
+				if min_life_satisfaction < 0.4 then
+					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.5)
+				end
 
 				if province.trade_wealth > income then
+					building.worker_income[pop] = income
 					economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
 					province.trade_wealth = province.trade_wealth - income
 				end

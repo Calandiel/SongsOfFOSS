@@ -200,6 +200,19 @@ function d.load()
 		self_sourcing_fraction = 0.2,
 	}
 	ProductionMethod:new {
+		name = "cidery",
+		description = "cider, alcohol made from fermenting fruits",
+		icon = "beer-stein.png",
+		r = 0.7,
+		g = 0.36,
+		b = 0.9,
+		inputs = { ["fruit"] = 4 },
+		outputs = { ["liquors"] = 4 },
+		jobs = { [job("brewers")] = 2 },
+		job_type = JOBTYPE.ARTISAN,
+		self_sourcing_fraction = 0.2,
+	}
+	ProductionMethod:new {
 		name = "native-copper-gathering",
 		description = "mining native ore close to the surface",
 		icon = "ore.png",
