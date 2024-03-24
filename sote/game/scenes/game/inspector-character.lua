@@ -9,7 +9,7 @@ local TRAIT_ICONS = require "game.raws.traits.trait_to_icon"
 local trade_good = require "game.raws.raws-utils".trade_good
 
 local characters_list_widget = require "game.scenes.game.widgets.character-list"
-local custom_characters_list_widget = require "game.scenes.game.widgets.list-widget"
+local list_widget = require "game.scenes.game.widgets.list-widget"
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
 local character_name_widget = require "game.scenes.game.widgets.character-name"
 
@@ -22,7 +22,7 @@ local decision_target_secondary = nil
 local traits_slider = 0
 local inventory_slider = 0
 local character_list_tab = "Local"
-local list_widget_state = {state = nil}
+local list_widget_state = nil
 
 ---@return Rect
 function window.rect()
@@ -266,7 +266,7 @@ function window.draw(game)
             text = "Warriors",
             tooltip = "Warriors in the character's warband.",
             closure = function()
-                local response = custom_characters_list_widget(characters_list, character.leading_warband.pops, {
+                list_widget_state = list_widget(characters_list, character.leading_warband.pops, {
                     {
                         header = ".",
                         render_closure = function(rect, k, v)

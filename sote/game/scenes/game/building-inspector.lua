@@ -4,9 +4,9 @@ local trade_good = require "game.raws.raws-utils".trade_good
 local use_case = require "game.raws.raws-utils".trade_good_use_case
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
-local ib = require "game.scenes.game.widgets.base.to-inspector-buttons"
+local ib = require "game.scenes.game.widgets.to-inspector-buttons"
 local portrait_widget = require "game.scenes.game.widgets.portrait"
-local list_widget = require "game.scenes.game.widgets.base.list-widget"
+local list_widget = require "game.scenes.game.widgets.list-widget"
 local economical = require "game.raws.values.economical"
 
 local output_list_state = nil
@@ -80,16 +80,18 @@ function re.draw(gam)
 		owner_button.x = owner_icon.x + owner_icon.width + 5
 		if building.owner ~= nil then
 			-- target character
-			ib.portrait_to_character_button(owner_icon, building.owner, gam)
-			ib.text_to_character_button(owner_button, building.owner.name, building.owner, gam)
+			ib.icon_button_to_character(gam, building.owner, owner_icon)
+			ib.text_button_to_character(gam, building.owner, owner_button,
+				building.owner.name, building.owner.name .. " owns this building.")
 		else
 			-- target realm if possible
 			if building.province.realm then
-				ib.coa_to_realm_button(owner_icon, building.province.realm, gam)
+				ib.icon_button_to_realm(gam, building.province.realm, owner_icon)
 			else
 				uit.render_icon(owner_icon, "world.png", 1, 1, 1, 1)
 			end
-			ib.text_to_province_button(owner_button, building.province.name, building.province, gam)
+			ib.text_button_to_province(gam, building.province, owner_button,
+				building.province.name, "Public builing in" .. building.province.name .. ".")
 		end
 		owner_icon.y = owner_icon.y + uit.BASE_HEIGHT * 2 + 10
 

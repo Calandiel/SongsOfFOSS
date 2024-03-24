@@ -9,7 +9,7 @@ local ev = require "game.raws.values.economical"
 
 local list_widget = require "game.scenes.game.widgets.list-widget"
 
-local noble_state = {state = nil}
+local noble_list_state = nil
 
 ---@return Rect
 local function get_main_panel()
@@ -194,14 +194,16 @@ function re.draw(gam)
 							name = name .. " [" .. v.parent.name .. "]"
 						end
 						if uit.text_button(name, rect) then
-							inspect = "character"
-							return v
+							gam.selected.character = v
+							gam.inspector = "character"
 						end
 					end
 					local function render_province(rect, k, v)
 						if uit.text_button(v.province.name, rect) then
-							inspect = "tile"
-							return v.province
+							gam.selected.province = v.province
+							gam.selected.tile = v.province.center
+							gam.clicked_tile_id = v.province.center.tile_id
+							gam.inspector = "tile"
 						end
 					end
 					local function pop_sex(pop)
@@ -212,7 +214,7 @@ function re.draw(gam)
 					local noble_list = a:copy()
 					noble_list.width = ui_panel.width
 					noble_list.height = ui_panel.height - ui_panel.y
-					local response = list_widget(
+					noble_list_state = list_widget(
 						noble_list,
 						tabb.filter(realm.capitol.home_to,
 							function(a)
@@ -379,18 +381,7 @@ function re.draw(gam)
 									end
 								}
 							},
-					noble_state)()
-					if response then
-						if inspect == "character" then
-							gam.selected.character = response
-							gam.inspector = inspect
-						elseif inspect == "tile" then
-							gam.selected.province = response
-							gam.selected.tile = response.center
-							gam.clicked_tile_id = response.center.tile_id
-							gam.inspector = inspect
-						end
-					end
+					noble_list_state)()
 				end
 			},
 			-- {

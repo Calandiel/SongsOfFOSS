@@ -2,21 +2,18 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
----@class TableStateWrapper
----@field state TableState
-
 ---comment
----@param state_wrapper TableStateWrapper
+---@param state TableState?
 ---@param compact boolean
----@return TableStateWrapper state_wrapper
-local function init_state(state_wrapper, compact)
+---@return TableState state
+local function init_state(state, compact)
     local entry_height = UI_STYLE.scrollable_list_item_height
     if compact then
         entry_height = UI_STYLE.scrollable_list_small_item_height
     end
 
-    if state_wrapper.state == nil then
-        state_wrapper.state = {
+    if state == nil then
+        state = {
             header_height = UI_STYLE.table_header_height,
             individual_height = entry_height,
             slider_level = 0,
@@ -25,21 +22,21 @@ local function init_state(state_wrapper, compact)
             sorting_order = true
         }
     else
-        state_wrapper.state.header_height = UI_STYLE.table_header_height
-        state_wrapper.state.individual_height = entry_height
-        state_wrapper.state.slider_width = UI_STYLE.slider_width
+        state.header_height = UI_STYLE.table_header_height
+        state.individual_height = entry_height
+        state.slider_width = UI_STYLE.slider_width
     end
-    return state_wrapper
+    return state
 end
 
 ---@generic K, V
 ---@param rect Rect
 ---@param table table<K, V>
 ---@param columns TableColumn[]
----@param state_wrapper TableStateWrapper
+---@param state TableState?
 ---@param title string?
 ---@param compact boolean?
-return function(rect, table, columns, state_wrapper, title, compact)
+return function(rect, table, columns, state, title, compact)
     if compact == nil then
         compact = false
     end
@@ -53,7 +50,7 @@ return function(rect, table, columns, state_wrapper, title, compact)
     local width_unit = rest_width / 12
     return function()
 
-        local state = init_state(state_wrapper, compact).state
+        local state = init_state(state, compact)
         local bottom_height = rect.height
         local bottom_y = 0
         if title then
@@ -63,6 +60,7 @@ return function(rect, table, columns, state_wrapper, title, compact)
             ui.centered_text(title, top)
         end
         local bottom = rect:subrect(0, bottom_y, rect.width, bottom_height, "left", "up")
-        return ut.table(bottom, table, columns, state)
+        ut.table(bottom, table, columns, state)
+        return state
     end
 end
