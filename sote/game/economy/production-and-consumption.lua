@@ -227,6 +227,8 @@ function pro.run(province)
 	local inf = province:get_infrastructure_efficiency()
 	local efficiency_from_infrastructure = math.min(1.5, 0.5 + 0.5 * math.sqrt(2 * inf))
 	-- Record local production...
+	local building_foragers = math.min(1.15, (province.foragers_limit / math.max(1, province.foragers)))
+	building_foragers = building_foragers * building_foragers
 	local foragers_count = 0
 	local function foraging_efficiency()
 		local foraging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, foragers_count)))
@@ -882,7 +884,9 @@ function pro.run(province)
 				local work_time = math.min(building.work_ratio, free_time_of_pop)
 				local local_foraging_efficiency = 1
 				if prod.foraging then
-					local_foraging_efficiency = get_foraging_production(pop_view, pop, work_time)
+					-- buildings operate off off last month's foraging use, otherwise race conditions on output
+					foragers_count = foragers_count + work_time * pop_view[zero].foraging_efficiency
+					local_foraging_efficiency = building_foragers
 				end
 				local yield = 1
 				local local_tile = province.center
@@ -1068,17 +1072,19 @@ function pro.run(province)
 					end
 					return a
 				end)
-				if min_life_satisfaction < 0.125 then -- has been halfed and before needs satisfaction, equivalent to 0.25
+				if min_life_satisfaction < 1/6 then
 					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
-				else -- has been halfed and before needs satisfaction, equivalent to 2/3
+				else
 					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				end
 
-				if province.trade_wealth > income then
-					building.worker_income[pop] = income
-					economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
-					province.trade_wealth = province.trade_wealth - income
+				if province.trade_wealth < income then
+					-- generate some wealth if selling more goods than market can afford
+					income = math.min(province.trade_wealth, income) + 0.1 * (income - province.trade_wealth)
 				end
+				building.worker_income[pop] = income
+				economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
+				province.trade_wealth = math.max(0, province.trade_wealth - income)
 			end
 			PROFILER:end_timer('production-building-update')
 

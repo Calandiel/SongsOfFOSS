@@ -131,14 +131,24 @@ function re.draw(gam)
 			end
 		end
 
+		local forage_efficiency = 1
+		if building.type.production_method.foraging then
+			forage_efficiency = math.min(1.15, (building.province.foragers_limit / math.max(1, building.province.foragers)))
+			forage_efficiency = forage_efficiency * forage_efficiency
+		end
+
 		-- WORK TIME, INPUT COST, OUTPUT REVENUE
 
 		-- ROW #1
 		-- tile efficiency
-		if building.tile then
-			local building_efficiency = building.type.production_method:get_efficiency(building.tile)
+		if building.tile and building.type.tile_improvement then
+			local tile_efficiency = building.type.production_method:get_efficiency(building.tile)
+			local tooltip = "The building's tile provides a base of " .. uit.to_fixed_point2(tile_efficiency * 100) .. "% production efficiency."
+			if building.type.production_method.foraging then
+				tooltip = tooltip .. " This is modified further by ".. uit.to_fixed_point2(forage_efficiency * 100) .. "% from last months used carrying capacity."
+			end
 			ui.centered_text("Tile efficiency: ", left_text_rect)
-			uit.color_coded_percentage(building_efficiency, left_value_rect, true, "Production efficiency from building tile.")
+			uit.color_coded_percentage(tile_efficiency * forage_efficiency, left_value_rect, true, tooltip)
 		end
 		-- infra efficiency
 		local inf = building.province:get_infrastructure_efficiency()
@@ -257,7 +267,7 @@ function re.draw(gam)
 				---@param k string
 				---@param v number
 				render_closure = function(rect, k, v)
-					ui.centered_text(uit.to_fixed_point2(building.type.production_method.outputs[v] or 0), rect)
+					ui.centered_text(uit.to_fixed_point2(building.type.production_method.outputs[k] or 0), rect)
 				end,
 				width = 3,
 				---@param k string
@@ -586,21 +596,26 @@ function re.draw(gam)
 				header = "efficiency",
 				---@param k POP
 				render_closure = function (rect, k, v)
+					local tooltip = "Base productivity of this character."
 					local job_efficiency = k.race.male_efficiency[building.type.production_method.job_type]
 					if k.female then
 						job_efficiency = k.race.female_efficiency[building.type.production_method.job_type]
 					end
-					local building_efficiency = 1
+					tooltip = tooltip .. " The character's base job efficiency is ".. uit.to_fixed_point2(job_efficiency * 100) .. "%."
+						.. " Province infrastructure modifies this by ".. uit.to_fixed_point2(efficiency_from_infrastructure * 100) .. "%."
+					local tile_efficiency = 1
 					if building.tile then
-						building_efficiency = building.type.production_method:get_efficiency(building.tile)
+						tile_efficiency = building.type.production_method:get_efficiency(building.tile)
+						tooltip = tooltip .. " This is further changed by ".. uit.to_fixed_point2(tile_efficiency * 100) .. "% based on the building's tile conditions."
+					end
+					if building.type.production_method.foraging then
+						tooltip = tooltip .. " This is additionally weighted by ".. uit.to_fixed_point2(forage_efficiency * 100) .. "% from last months used carrying capacity."
 					end
 					uit.generic_number_field(
 						"",
-						job_efficiency * building_efficiency * efficiency_from_infrastructure,
+						job_efficiency * tile_efficiency * efficiency_from_infrastructure * forage_efficiency,
 						rect,
-						"Base productivity of this character is " .. uit.to_fixed_point2(job_efficiency * 100)
-						.. "% and further modified by the tile and infrastructure efficiency. "
-						.. "Affects amount of inputs used and ouputs produced.",
+						tooltip,
 						uit.NUMBER_MODE.PERCENTAGE,
 						uit.NAME_MODE.NAME
 					)
@@ -612,11 +627,13 @@ function re.draw(gam)
 					if k.female then
 						job_efficiency = k.race.female_efficiency[building.type.production_method.job_type]
 					end
-					local building_efficiency = 1
 					if building.tile then
-						building_efficiency = building.type.production_method:get_efficiency(building.tile)
+						job_efficiency = job_efficiency * building.type.production_method:get_efficiency(building.tile)
 					end
-					return job_efficiency * building_efficiency * efficiency_from_infrastructure
+					if building.type.production_method.foraging then
+						job_efficiency = job_efficiency * forage_efficiency
+					end
+					return job_efficiency * efficiency_from_infrastructure
 				end
 			},
 			{
