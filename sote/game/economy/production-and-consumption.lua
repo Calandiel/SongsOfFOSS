@@ -265,20 +265,18 @@ function pro.run(province)
 	---@param pop_table POP
 	---@param time number ratio of daily active time pop can spend on foraging
 	local function forage_warband(pop_view, pop_table, time)
-		local food_produced = get_foraging_production(time) * 0.25
+		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
 		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.25 * time
-
-		if pop_table.unit_of_warband.leader then
-			pop_table.unit_of_warband.leader.inventory['berries'] = (pop_table.unit_of_warband.leader.inventory['berries'] or 0) + food_produced * berries_production
-			pop_table.unit_of_warband.leader.inventory['seeds'] = (pop_table.unit_of_warband.leader.inventory['seeds'] or 0) + food_produced * seeds_production
-			pop_table.unit_of_warband.leader.inventory['timber'] = (pop_table.unit_of_warband.leader.inventory['timber'] or 0) + timber_produced
+		local income = record_production(berries_index, timber_produced)
+		local warband = pop_table.unit_of_warband
+		if warband and warband.leader then
+			warband.leader.inventory['berries'] = (warband.leader.inventory['berries'] or 0) + food_produced * berries_production
+			warband.leader.inventory['grain'] = (warband.leader.inventory['grain'] or 0) + food_produced * seeds_production
 		else
-					local income = 0
-		income = income + income + record_production(berries_index, food_produced * berries_production)
-		income = income + income + record_production(berries_index, food_produced * seeds_production)
-		income = income + income + record_production(berries_index, timber_produced)
-		economic_effects.add_pop_savings(pop_table, income, economic_effects.reasons.Forage)
+			income = income + income + record_production(berries_index, food_produced * berries_production)
+			income = income + income + record_production(berries_index, food_produced * seeds_production)
 		end
+		economic_effects.add_warband_coffers(warband, income, economic_effects.reasons.Forage)
 	end
 
 	---Pop forages for food and game to sells it  \
@@ -289,7 +287,7 @@ function pro.run(province)
 	---@return number income
 	local function forage(pop_view, pop_table, time)
 		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
-		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.5 * timber_production * time
+		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.25 * timber_production * time
 		local income = 0
 		if pop_table:is_character() then -- hunt for meat and hide
 			income = income + record_production(meat_index, food_produced)

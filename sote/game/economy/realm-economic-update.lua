@@ -292,13 +292,20 @@ function rea.run(realm)
 	-- #######################
 	for _, province in pairs(realm.provinces) do
 		for _, warband in pairs(province.warbands) do
-			if warband.treasury > warband.total_upkeep then
-				warband.treasury = warband.treasury - warband.total_upkeep
+			local treasury = warband.treasury or 0
+			if treasury > warband.total_upkeep then
 				for pop, unit in pairs(warband.units) do
 					economic_effects.add_pop_savings(pop, unit.upkeep, economic_effects.reasons.Upkeep)
 				end
+				economic_effects.add_warband_coffers(warband, -warband.total_upkeep, economic_effects.reasons.Upkeep)
 			else
-
+				-- pay what you can to each troop
+				local weight =  treasury / warband.total_upkeep
+				for pop, unit in pairs(warband.units) do
+					local upkeep = unit.upkeep * weight
+					economic_effects.add_pop_savings(pop, upkeep , economic_effects.reasons.Upkeep)
+				end
+				economic_effects.add_warband_coffers(warband, -treasury, economic_effects.reasons.Upkeep)
 			end
 		end
 	end

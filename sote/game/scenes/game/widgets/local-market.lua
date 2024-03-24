@@ -367,7 +367,7 @@ return function(province, ui_panel, base_unit, gam)
             local good_supply = production[good_reference] or 0
             local good_demand = demand[good_reference] or 0
             local good_consumption = consumption[good_reference] or 0
-            local inventory = 0
+            local inventory = WORLD.player_character.inventory[good_reference] or 0
             if character then
                 inventory = character.inventory[good_reference] or 0
             end

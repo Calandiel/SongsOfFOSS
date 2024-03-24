@@ -47,7 +47,7 @@ local tabb = require "engine.table"
 ---@field player_deferred_actions table<ActionData, ActionData>
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
----@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
+---@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, filter: nil|"character"|"realm"|"warband")
 ---@field pending_player_event_reaction boolean
 ---@field base_visibility fun(self:World, size: number):number
 
@@ -491,8 +491,9 @@ function world.World:tick()
 					treasury.run(realm)
 					military.run(realm)
 				else
-					self:emit_treasury_change_effect(0, "new month")
-					self:emit_treasury_change_effect(0, "new month", true)
+					self:emit_treasury_change_effect(0, "new month", "realm")
+					self:emit_treasury_change_effect(0, "new month", "character")
+					self:emit_treasury_change_effect(0, "new month", "warband")
 				end
 
 				--print("Construct")
@@ -687,18 +688,15 @@ end
 ---@field day number
 ---@field month number
 ---@field year number
----@field character_flag boolean
+---@field filter nil|"character"|"realm"|"warband"
 
 ---Emits a treasury change to player
 ---@param amount number
 ---@param reason EconomicReason
----@param character_flag boolean?
-function world.World:emit_treasury_change_effect(amount, reason, character_flag)
-	if character_flag == nil then
-		character_flag = false
-	end
+---@param filter nil|"character"|"realm"|"warband"
+function world.World:emit_treasury_change_effect(amount, reason, filter)
 	---@type TreasuryEffectRecord
-	local effect = {amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag}
+	local effect = {amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, filter = filter}
 	self.treasury_effects:enqueue(effect)
 end
 

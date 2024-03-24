@@ -15,7 +15,7 @@ local units_scroll = 0
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 25 , fs.height - ut.BASE_HEIGHT * 2, "left", 'up')
+	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, 600, 680, "left", 'up')
 	return panel
 end
 

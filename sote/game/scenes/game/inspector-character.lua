@@ -28,7 +28,7 @@ local list_widget_state = {state = nil}
 function window.rect()
     local unit = ut.BASE_HEIGHT
     local fs = ui.fullscreen()
-    return fs:subrect(unit * 2, unit * 2, unit * (16 + 4), unit * 34, "left", "up")
+    return fs:subrect(unit * 2, unit * 2, 600, 680, "left", "up")
 end
 
 function window.mask()
@@ -43,7 +43,6 @@ end
 ---@param game GameScene
 function window.draw(game)
     local character = game.selected.character
-
     if character == nil then
         return
     end
@@ -64,31 +63,29 @@ function window.draw(game)
         inventory_panel,
         function (index, rect)
             if index > 0 then
-                local good = tabb.nth(RAWS_MANAGER.trade_goods_by_name, index)
-                local amount = character.inventory[good] or 0
+                local good, amount = tabb.nth(character.inventory, index)
                 local good_entity = trade_good(good)
-
+                local f = "He"
+                if character.female then
+                    f = "She"
+                end
                 local tooltip = "Amount of "
                     .. good_entity.name
                     .. " "
                     .. character.name
-                    .. " owns. They think that its price is "
-                    .. ut.to_fixed_point2(character.price_memory[good] or 0)
+                    .. " owns. " .. f .. " think that its price is "
+                    .. ut.to_fixed_point2(character.price_memory[good] or 0) .. "."
                 ut.sqrt_number_entry_icon(
                     good_entity.icon,
                     amount or 0,
                     rect,
-                    tooltip
-                )
+                    tooltip)
             end
         end,
         UI_STYLE.scrollable_list_large_item_height,
-        tabb.size(tabb.filter(RAWS_MANAGER.trade_goods_by_name,function (a)
-            return character.inventory[a.name] and character.inventory[a.name] > 0 or false
-        end)),
+        tabb.size(character.inventory),
         unit,
-        inventory_slider
-    )
+        inventory_slider)
 
 
     -- name panel

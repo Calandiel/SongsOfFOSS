@@ -146,7 +146,7 @@ function tb.draw(gam)
 			"My personal savings")
 
 
-		local amount = character.inventory["food"] or 0
+		local amount = character:available_use_case_from_inventory('food')
 		uit.sqrt_number_entry_icon(
 			"noodles.png",
 			amount,

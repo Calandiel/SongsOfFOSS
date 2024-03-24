@@ -7,6 +7,7 @@ local ut = require "game.ui-utils"
 local window = {}
 
 local scroll_character = 0
+local scroll_warband = 0
 local scroll_realm = 0
 local scroll_news = 0
 window.current_tab = "Character"
@@ -45,6 +46,7 @@ function window.draw(game, realm)
     panel.y = panel.y + base_unit * 2.5
 
     local treasury_tab = nil
+    local warband_tab = nil
 
     if WORLD.player_character.rank == require "game.raws.ranks.character_ranks".CHIEF then
         treasury_tab = {
@@ -52,6 +54,16 @@ function window.draw(game, realm)
             tooltip = "Realm treasury ledger",
             closure = function()
                 scroll_realm = require "game.scenes.game.widgets.treasury-ledger"(panel, "realm", scroll_realm, base_unit)
+            end
+        }
+    end
+
+    if WORLD.player_character.leading_warband then
+        warband_tab = {
+            text = "Warband",
+            tooltip = "Warband treasury ledger",
+            closure = function()
+                scroll_warband = require "game.scenes.game.widgets.treasury-ledger"(panel, "warband", scroll_warband, base_unit)
             end
         }
     end
@@ -64,6 +76,7 @@ function window.draw(game, realm)
                 scroll_character = require "game.scenes.game.widgets.treasury-ledger"(panel, "character", scroll_character, base_unit)
             end
         },
+        warband_tab,
         treasury_tab,
         {
             text = "News",

@@ -216,34 +216,18 @@ end
 function warband:daily_supply_consumption()
 	local total = 0
 	for _, pop in pairs(self.pops) do
-		local need = pop.race.male_needs[NEED.FOOD]
-		if pop.female then
-			need = pop.race.female_needs[NEED.FOOD]
-		end
-		total = total + need
+		total = total + (pop.need_satisfaction[NEED.FOOD]['food'].demanded or 0)
 	end
 
 	if self.leader then
-		local leader_supplies = self.leader.race.male_needs[NEED.FOOD]
-		if self.leader.female then
-			leader_supplies = self.leader.race.female_needs[NEED.FOOD]
-		end
-
-		---@type number
-		total = total + leader_supplies
+		total = total + (self.leader.need_satisfaction[NEED.FOOD]['food'].demanded or 0)
 	end
 
 	if self.recruiter then
-		local recruiter_supplies = self.recruiter.race.male_needs[NEED.FOOD]
-		if self.recruiter.female then
-			recruiter_supplies = self.recruiter.race.female_needs[NEED.FOOD]
-		end
-
-		---@type number
-		total = total + recruiter_supplies
+		total = total + (self.recruiter.need_satisfaction[NEED.FOOD]['food'].demanded or 0)
 	end
 
-	return total * 0.10 --- made up value: raw value leads to VERY expensive trading
+	return total * 1 / 30 / 2 --- assuming 1/2 demand used a month, months are 30 days
 end
 
 function warband:supplies_target()
@@ -254,21 +238,32 @@ end
 ---@param days number
 ---@return number
 function warband:consume_supplies(days)
-	local consumption = days * self:daily_supply_consumption()
-	self.leader.inventory['grain'] = self.leader.inventory['grain'] - consumption
-	return consumption
+	local daily_consumption = self:daily_supply_consumption()
+	local consumption = days * daily_consumption
+	local consumed = self.leader:consume_use_case_from_inventory('food', consumption)
+	if consumed > consumption then
+		error("CONSUMED TOO LITTLE: "
+			.. "\n consumed = "
+			.. tostring(consumed)
+			.. "\n consumption = "
+			.. tostring(consumption)
+			.. "\n daily_consumption = "
+			.. tostring(daily_consumption)
+			.. "\n days = "
+			.. tostring(days))
+	end
+	return consumed
 end
 
 ---Returns amount of days warband can travel depending on collected supplies
 ---@return number
 function warband:days_of_travel()
-	local supplies = self.leader.inventory['grain'] or 0
+	local supplies = self.leader:available_use_case_from_inventory('food')
 	local per_day = self:daily_supply_consumption()
 
 	if per_day == 0 then
 		return 9999
 	end
-
 	return supplies / per_day
 end
 

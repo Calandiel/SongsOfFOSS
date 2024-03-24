@@ -4,39 +4,26 @@ local ut = require "game.ui-utils"
 
 ---Filters treasury changes
 ---@param data TreasuryEffectRecord[]
----@param filter nil|"character"|"realm"
+---@param filter nil|"character"|"realm"|"warband"
 ---@return TreasuryEffectRecord[]
 local function filter(data, filter)
     if filter == nil then
         return data
     end
 
-    if filter == "character" then
-        local filtered_data = {}
-        for i, v in ipairs(data) do
-            if v.character_flag then
-                table.insert(filtered_data, v)
-            end
+    local filtered_data = {}
+    for i, v in ipairs(data) do
+        if v.filter == filter then
+            table.insert(filtered_data, v)
         end
-        return filtered_data
     end
 
-    if filter == "realm" then
-        local filtered_data = {}
-        for i, v in ipairs(data) do
-            if not v.character_flag then
-                table.insert(filtered_data, v)
-            end
-        end
-        return filtered_data
-    end
-
-    return data
+    return filtered_data
 end
 
 ---Renders selected treasury ledger and returns current scroll
 ---@param rect Rect
----@param filter_tag nil|"character"|"realm"
+---@param filter_tag nil|"character"|"realm"|"warband"
 ---@param scroll number
 ---@param base_unit number
 ---@return number

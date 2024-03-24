@@ -1,3 +1,5 @@
+local trade_good_use_case = require "game.raws.raws-utils".trade_good_use_case
+local tabb = require "engine.table"
 
 ---@class POP
 ---@field race Race
@@ -171,6 +173,64 @@ function rtab.POP:get_need_satisfaction()
 	self.life_needs_satisfaction = life_consumed / life_demanded
 	self.basic_needs_satisfaction = (total_consumed + life_consumed) / (total_demanded + life_demanded)
 	return self.life_needs_satisfaction, self.basic_needs_satisfaction
+end
+
+---Returns available units for satisfying a use case from pop inventory
+---@param use_case TradeGoodUseCaseReference
+---@return number
+function rtab.POP:available_use_case_from_inventory(use_case)
+	local use = trade_good_use_case(use_case)
+	local supply = tabb.accumulate(use.goods, 0, function (a, good, weight)
+		local inventory = self.inventory[good]
+		if inventory and inventory > 0 then
+			a = a + inventory * weight
+		end
+		return a
+	end)
+	return supply
+end
+--- Consumes up to amount of use case from inventory proportially to availability.
+--- Returns total amount able to be satisfied.
+---@param use_case TradeGoodUseCaseReference
+---@param amount number
+---@return number consumed
+function rtab.POP:consume_use_case_from_inventory(use_case, amount)
+	local use = trade_good_use_case(use_case)
+	local supply = self:available_use_case_from_inventory(use_case)
+	local consumed = tabb.accumulate(use.goods, 0, function (a, good, weight)
+		local inventory = self.inventory[good]
+		if inventory > 0 then
+			local available = inventory * weight
+			local satisfied = amount * available / supply
+			local used = satisfied / weight
+			if satisfied + 0.01 > available
+				or used + 0.01 > inventory
+			then
+				error("CONSUMED TOO MUCH: "
+					.. "\n satisfied = "
+					.. tostring(satisfied)
+					.. "\n available = "
+					.. tostring(available)
+					.. "\n used = "
+					.. tostring(used)
+					.. "\n inventory = "
+					.. tostring(inventory))
+			end
+			self.inventory[good] = math.max(0, self.inventory[good] - used)
+			a = a + satisfied
+		end
+		return a
+	end)
+
+	if consumed + 0.01 > amount then
+		error("CONSUMED TOO MUCH: "
+			.. "\n consumed = "
+			.. tostring(consumed)
+			.. "\n amount = "
+			.. tostring(amount))
+	end
+
+	return consumed
 end
 
 return rtab

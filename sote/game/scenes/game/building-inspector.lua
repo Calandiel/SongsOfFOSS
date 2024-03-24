@@ -4,13 +4,14 @@ local trade_good = require "game.raws.raws-utils".trade_good
 local use_case = require "game.raws.raws-utils".trade_good_use_case
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+local ib = require "game.scenes.game.widgets.base.to-inspector-buttons"
 local portrait_widget = require "game.scenes.game.widgets.portrait"
-local list_widget = require "game.scenes.game.widgets.list-widget"
+local list_widget = require "game.scenes.game.widgets.base.list-widget"
 local economical = require "game.raws.values.economical"
 
-local output_state = {state = nil}
-local inpute_state = {state = nil}
-local worker_state = {state = nil}
+local output_list_state = nil
+local input_list_state = nil
+local worker_list_state = nil
 
 ---@return Rect
 local function get_main_panel()
@@ -79,22 +80,16 @@ function re.draw(gam)
 		owner_button.x = owner_icon.x + owner_icon.width + 5
 		if building.owner ~= nil then
 			-- target character
-			portrait_widget(owner_icon, building.owner)
-			if uit.text_button(building.owner.name, owner_button) then
-				gam.inspector = "character"
-				gam.selected.character = building.owner
-			end
+			ib.portrait_to_character_button(owner_icon, building.owner, gam)
+			ib.text_to_character_button(owner_button, building.owner.name, building.owner, gam)
 		else
-			-- target province
+			-- target realm if possible
 			if building.province.realm then
-				uit.coa(building.province.realm, owner_icon)
+				ib.coa_to_realm_button(owner_icon, building.province.realm, gam)
 			else
 				uit.render_icon(owner_icon, "world.png", 1, 1, 1, 1)
 			end
-			if uit.text_button(building.province.name, owner_button) then
-				gam.inspector = "tile"
-				gam.selected.tile = building.province.center
-			end
+			ib.text_to_province_button(owner_button, building.province.name, building.province, gam)
 		end
 		owner_icon.y = owner_icon.y + uit.BASE_HEIGHT * 2 + 10
 
@@ -237,7 +232,7 @@ function re.draw(gam)
 		if tabb.size(outputs) < 1 then
 			outputs = building.type.production_method.outputs
 		end
-		list_widget(next_panel, outputs, {
+		output_list_state = list_widget(next_panel, outputs, {
 			{
 				header = ".",
 				render_closure = render_good_icon,
@@ -342,12 +337,12 @@ function re.draw(gam)
 					return economical.get_local_price(building.province, k) or 0
 				end
 			}
-		}, output_state, "Outputs:")()
+		}, output_list_state, "Outputs:")()
 
 		next_panel.y = next_panel.y + 5 + next_panel.height
 
 		-- list of inputs
-		list_widget(next_panel, building.type.production_method.inputs, {
+		input_list_state = list_widget(next_panel, building.type.production_method.inputs, {
 			{
 				header = ".",
 				render_closure = render_use_case_icon,
@@ -452,7 +447,7 @@ function re.draw(gam)
 					return economical.get_local_price_of_use(building.province, k) or 0
 				end
 			}
-		}, inpute_state, "Inputs:")()
+		}, input_list_state, "Inputs:")()
 
 		---comment
 		---@param pop POP
@@ -472,7 +467,7 @@ function re.draw(gam)
 		next_panel.y = next_panel.y + 5 + next_panel.height
 
 		-- list of employees
-		list_widget(next_panel, building.workers, {
+		worker_list_state = list_widget(next_panel, building.workers, {
 			{
 				header = ".",
 				---@param k POP
@@ -675,7 +670,7 @@ function re.draw(gam)
 					return building.worker_income[k] or 0
 				end
 			}
-		}, worker_state, "Workers:")()
+		}, worker_list_state, "Workers:")()
 
 	end
 end

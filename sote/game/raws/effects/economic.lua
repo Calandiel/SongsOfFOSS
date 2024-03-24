@@ -41,7 +41,7 @@ EconomicEffects.reasons = {
     Siphon = "siphon",
     TradeSiphon = "trade siphon",
     NeighborSiphon = "neigbour siphon",
-    Colonisation = "colonisation"
+    Colonisation = "colonisation",
 }
 
 ---Change realm treasury and display effects to player
@@ -101,15 +101,33 @@ function EconomicEffects.add_pop_savings(pop, x, reason)
     end
 end
 
+function EconomicEffects.add_warband_coffers(warband, x, reason)
+    warband.treasury = warband.treasury + x
+
+    if warband.treasury ~= warband.treasury then
+        error("BAD POP SAVINGS INCREASE: " .. tostring(x) .. " " .. reason)
+    end
+
+    if math.abs(x) > 0 then
+        EconomicEffects.display_warband_coffers_change(warband, x, reason)
+    end
+end
+
 function EconomicEffects.display_character_savings_change(pop, x, reason)
     if WORLD.player_character == pop then
-        WORLD:emit_treasury_change_effect(x, reason, true)
+        WORLD:emit_treasury_change_effect(x, reason, "character")
     end
 end
 
 function EconomicEffects.display_treasury_change(realm, x, reason)
     if WORLD:does_player_control_realm(realm) then
-        WORLD:emit_treasury_change_effect(x, reason)
+        WORLD:emit_treasury_change_effect(x, reason, "realm")
+    end
+end
+
+function EconomicEffects.display_warband_coffers_change(warband, x, reason)
+    if WORLD.player_character == warband.leader then
+        WORLD:emit_treasury_change_effect(x, reason, "warband")
     end
 end
 
@@ -511,7 +529,7 @@ function EconomicEffects.gift_to_warband(character, amount)
     end
 
     EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Warband)
-    warband.treasury = warband.treasury + amount
+    EconomicEffects.add_warband_coffers(warband, amount, EconomicEffects.reasons.Donation)
 end
 
 return EconomicEffects

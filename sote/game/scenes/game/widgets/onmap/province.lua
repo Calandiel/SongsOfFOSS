@@ -33,7 +33,7 @@ return function(gam, tile, rect, x, y, size)
 	ut.data_entry_icon("duality-mask.png", ut.to_fixed_point2(tile.province.mood), rect, "Local mood")
 	rect.x = rect.x + rect.width
 	ut.data_entry_icon("village.png", tostring(tile.province:total_home_population()), rect, "Home population")
-	rect.y = y + length_of_line
+	rect.y = rect.y + height_unit
 	ut.data_entry_icon("minions.png", tostring(tile.province:local_population()), rect, "Local population")
 	rect.x = rect.x - rect.width
 	ut.data_entry_icon("inner-self.png", tostring(tile.province:local_characters()), rect, "Local characters")
