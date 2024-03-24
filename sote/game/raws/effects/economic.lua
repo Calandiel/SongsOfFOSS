@@ -519,4 +519,28 @@ function EconomicEffects.collect_tax(character)
     return total_tax
 end
 
+---Grants trading rights to character
+---@param character Character
+---@param realm Realm
+function EconomicEffects.grant_trade_rights(character, realm)
+    character.has_trade_permits_in[realm] = realm
+    realm.trading_right_given_to[character] = character
+end
+
+---Clears all trading rights of character
+---@param character Character
+function EconomicEffects.abandon_trade_rights(character)
+    ---@type Realm[]
+    local realms = {}
+
+    for _, realm in pairs(character.has_trade_permits_in) do
+        table.insert(realms, realm)
+    end
+
+    for _, realm in ipairs(realms) do
+        character.has_trade_permits_in[realm] = nil
+        realm.trading_right_given_to[character] = nil
+    end
+end
+
 return EconomicEffects

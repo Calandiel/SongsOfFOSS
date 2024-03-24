@@ -70,6 +70,9 @@ end
 ---@field capitol Province
 ---@field leader Character?
 ---@field overseer Character?
+---@field trading_right_given_to table<Character, Character>
+---@field trading_right_cost number
+---@field trading_right_law TradingRightLaw
 ---@field tribute_collectors table<Character, Character>
 ---@field paying_tribute_to table<Realm, Realm>
 ---@field tributaries table<Realm, Realm>
@@ -164,6 +167,12 @@ function realm.Realm:new()
 
 	o.tax_target = 0
 	o.tax_collected_this_year = 0
+
+
+	o.trading_right_given_to = {}
+	o.trading_right_cost = 10
+	o.trading_right_law = require "game.raws.laws.trade".TRADE_RIGHT.NOBLES
+
 
 	o.provinces = {}
 	o.bought = {}

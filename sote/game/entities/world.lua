@@ -324,6 +324,7 @@ local function handle_event(event, target_realm, associated_data)
 		end
 	end
 	if best.viable() then
+		assert(best.outcome, "Option of event " .. event .. " doesn't have outcome")
 		best.outcome()
 	end
 end

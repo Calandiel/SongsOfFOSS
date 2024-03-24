@@ -7,10 +7,73 @@ local diplomacy_effects = require "game.raws.effects.diplomacy"
 local political_values = require "game.raws.values.political"
 local economy_values = require "game.raws.values.economical"
 local economy_effects = require "game.raws.effects.economic"
+local economy_triggers = require "game.raws.triggers.economy"
 local localisation = require "game.raws.events._localisation"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
+local RANK = require "game.raws.ranks.character_ranks"
+
 local TRAIT = require "game.raws.traits.generic"
+
+local function negotiation_options(self, character, associated_data)
+	---@type NegotiationData
+	associated_data = associated_data
+
+	return {
+		--- this option is not used by NPC: NPC will use predefined negotiation terms set by decisions
+		{
+			text = localisation.add_personal_term_option(self, character, associated_data),
+			tooltip = localisation.add_personal_term_option_tooltip(self, character, associated_data),
+			viable = function() return true end,
+			outcome = function()
+				WORLD:emit_immediate_event("negotiation-initiator-add-personal-term", character, associated_data)
+			end,
+
+			ai_preference = function ()
+				return 0
+			end
+		},
+
+		--- this option is not used by NPC: NPC will use predefined negotiation terms set by decisions
+		{
+			text = localisation.add_realm_term_option(self, character, associated_data),
+			tooltip = localisation.add_realm_term_option_tooltip(self, character, associated_data),
+			viable = function() return true end,
+			outcome = function()
+				WORLD:emit_immediate_event("negotiation-initiator-realm-select-origin", character, associated_data)
+			end,
+			ai_preference = function ()
+				return 0
+			end
+		},
+
+		--- instead, NPC will proceed with already prepared negotiation terms
+		{
+			text = "Suggest",
+			tooltip = localisation.send_negotiation_terms_tooltip(self, character, associated_data),
+			viable = function() return true end,
+			outcome = function()
+				WORLD:emit_immediate_event("negotiation-target", associated_data.target, associated_data)
+			end,
+			ai_preference = function ()
+				return 1
+			end
+		},
+
+		--- AI doesn't back down: this logic should be handled in according decision
+		{
+			text = "Back down",
+			tooltip = "Back down",
+			viable = function() return true end,
+			outcome = function()
+				WORLD:emit_immediate_event("negotiation-end-no-reason", character, associated_data)
+			end,
+			ai_preference = function ()
+				return 0
+			end
+		}
+	}
+end
 
 return function ()
 
@@ -25,65 +88,19 @@ return function ()
 		trigger = function(self, character)
 			return false
 		end,
-		options = function(self, character, associated_data)
-			---@type NegotiationData
-			associated_data = associated_data
+		options = negotiation_options
+	}
 
-			return {
-				--- this option is not used by NPC: NPC will use predefined negotiation terms set by decisions
-				{
-					text = localisation.add_personal_term_option(self, character, associated_data),
-					tooltip = localisation.add_personal_term_option_tooltip(self, character, associated_data),
-					viable = function() return true end,
-					outcome = function()
-						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term", character, associated_data)
-					end,
-
-					ai_preference = function ()
-						return 0
-					end
-				},
-
-				--- this option is not used by NPC: NPC will use predefined negotiation terms set by decisions
-				{
-					text = localisation.add_realm_term_option(self, character, associated_data),
-					tooltip = localisation.add_realm_term_option_tooltip(self, character, associated_data),
-					viable = function() return true end,
-					outcome = function()
-						WORLD:emit_immediate_event("negotiation-initiator-realm-select-origin", character, associated_data)
-					end,
-					ai_preference = function ()
-						return 0
-					end
-				},
-
-				--- instead, NPC will proceed with already prepared negotiation terms
-				{
-					text = "Suggest",
-					tooltip = localisation.send_negotiation_terms_tooltip(self, character, associated_data),
-					viable = function() return true end,
-					outcome = function()
-						WORLD:emit_immediate_event("negotiation-target", associated_data.target, associated_data)
-					end,
-					ai_preference = function ()
-						return 1
-					end
-				},
-
-				--- AI doesn't back down: this logic should be handled in according decision
-				{
-					text = "Back down",
-					tooltip = "Back down",
-					viable = function() return true end,
-					outcome = function()
-						WORLD:emit_immediate_event("negotiation-end-no-reason", character, associated_data)
-					end,
-					ai_preference = function ()
-						return 0
-					end
-				}
-			}
-		end
+	Event:new {
+		name = "negotiation-initiator-got-adjustment",
+		event_text = localisation.negotiate_adjustment,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = function(self, character)
+			return false
+		end,
+		options = negotiation_options
 	}
 
 	Event:new {
@@ -96,6 +113,9 @@ return function ()
 			return false
 		end,
 		options = function(self, character, associated_data)
+			---@type NegotiationData
+			associated_data = associated_data
+
 			return {
 				{
 					text = "Return",
@@ -127,6 +147,20 @@ return function ()
 					viable = function() return true end,
 					outcome = function()
 						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-goods", character, associated_data)
+					end,
+					ai_preference = function ()
+						return 0
+					end
+				},
+
+				{
+					text = "Trade permission",
+					tooltip = "Request personal trade permission",
+					viable = function()
+						return true
+					end,
+					outcome = function()
+						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-trade-permission", character, associated_data)
 					end,
 					ai_preference = function ()
 						return 0
@@ -371,6 +405,65 @@ return function ()
 	}
 
 	Event:new {
+		name = "negotiation-initiator-add-personal-term-trade-permission",
+		event_text = function(self, root, associated_data) return "I need to choose in which realm I want to trade" end,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = function(self, character)
+			return false
+		end,
+		options = function(self, character, associated_data)
+			---@type NegotiationData
+			associated_data = associated_data
+
+			local options_list = {
+				{
+					text = "Return",
+					tooltip = "Return to negotiation draft",
+					viable = function() return true end,
+					outcome = function()
+						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term", character, associated_data)
+					end,
+					ai_preference = function ()
+						return 0
+					end
+				}
+			}
+
+			for _, realm in pairs(associated_data.target.leader_of) do
+				table.insert(options_list, {
+					text = realm.name,
+					tooltip = "Choose " .. realm.name,
+					viable = function ()
+						-- if we are already allowed to trade there, we can't buy permission
+						if economy_triggers.allowed_to_trade(character, realm) then
+							return false
+						end
+						return true
+					end,
+					outcome = function ()
+						---@type NegotiationCharacterToRealm
+						local new_term = {
+							target = realm,
+							trade_permission = true
+						}
+						table.insert(associated_data.negotiations_terms_character_to_realm, new_term)
+
+						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term", character, associated_data)
+					end,
+					ai_preference = function ()
+						return 0
+					end
+				})
+			end
+
+			return options_list
+		end
+	}
+
+
+	Event:new {
 		name = "negotiation-initiator-add-realm-term",
 		event_text = localisation.negotiate,
 		event_background_path = "data/gfx/backgrounds/background.png",
@@ -490,13 +583,26 @@ return function ()
 			associated_data = associated_data
 
 			--- NPC calculates if this agreement is beneficial for him:
-			local wealth_gain = 0
-			local trade_agreement = associated_data.negotiations_terms_characters.trade
 
-			wealth_gain = wealth_gain + trade_agreement.wealth_transfer_from_initiator_to_target
+			local trade_agreement = associated_data.negotiations_terms_characters.trade
+			local wealth_gain = 0
+			---negative number
+			local wealth_reduction = 0
+
+			if trade_agreement.wealth_transfer_from_initiator_to_target > 0 then
+				wealth_gain = wealth_gain + trade_agreement.wealth_transfer_from_initiator_to_target
+			else
+				wealth_reduction = wealth_reduction + trade_agreement.wealth_transfer_from_initiator_to_target
+			end
 
 			for good, amount in pairs(trade_agreement.goods_transfer_from_initiator_to_target) do
-				wealth_gain = wealth_gain + amount * character.price_memory[good]
+				local change = amount * character.price_memory[good]
+
+				if change > 0 then
+					wealth_gain = wealth_gain + change
+				else
+					wealth_reduction = wealth_reduction + change
+				end
 			end
 
 			--- NPC calculates if this agreement is benefitial for his realms
@@ -518,15 +624,21 @@ return function ()
 				end
 			end
 
-			local perceived_change = wealth_gain + realm_wealth_gain
+			local desired_gift = 0
 
-			--- for greedy characters, personal wealth is much more important:
-			if character.traits[TRAIT.GREEDY] then
-				perceived_change = wealth_gain * 10 + realm_wealth_gain
+			for _, item in ipairs(associated_data.negotiations_terms_character_to_realm) do
+				if item.trade_permission then
+					desired_gift = desired_gift + item.target.trading_right_cost
+				end
 			end
 
-			--- for now we will not allow counteroffers
-			--- TODO: implement at least wealth counteroffer
+			local perceived_change = wealth_gain + wealth_reduction - desired_gift + realm_wealth_gain
+
+			--- greedy characters desire far more money
+			if character.traits[TRAIT.GREEDY] then
+				perceived_change = wealth_gain + wealth_reduction * 2 - desired_gift * 2 + realm_wealth_gain
+			end
+
 			return {
 				{
 					text = "OK",
@@ -540,11 +652,27 @@ return function ()
 					end
 				},
 				{
-					text = "not OK",
-					tooltip = "not OK",
+					text = "Not OK",
+					tooltip = "Not OK",
 					viable = function() return true end,
 					outcome = function()
 						WORLD:emit_immediate_event("negotiation-end-failure-initiator", associated_data.initiator, associated_data)
+					end,
+					ai_preference = function ()
+						return -1
+					end
+				},
+				{
+					text = "Ask for more money(AI)",
+					tooltip = "Ask for more money(AI)",
+					viable = function() return true end,
+					outcome = function()
+						associated_data.negotiations_terms_characters.trade.wealth_transfer_from_initiator_to_target =
+							associated_data.negotiations_terms_characters.trade.wealth_transfer_from_initiator_to_target
+							- perceived_change
+							+ 1
+
+						WORLD:emit_immediate_event("negotiation-initiator-got-adjustment", associated_data.initiator, associated_data)
 					end,
 					ai_preference = function ()
 						return 0
@@ -614,6 +742,9 @@ return function ()
 						viable = function ()
 							return true
 						end,
+						outcome = function ()
+							return
+						end,
 						ai_preference = function ()
 							return 1
 						end
@@ -654,6 +785,12 @@ return function ()
 
 							if item.subjugate then
 								diplomacy_effects.set_tributary(A, B)
+							end
+						end
+
+						for _, item in ipairs(associated_data.negotiations_terms_character_to_realm) do
+							if item.trade_permission then
+								economy_effects.grant_trade_rights(initiator, item.target)
 							end
 						end
 					end,

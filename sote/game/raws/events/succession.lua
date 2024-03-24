@@ -21,6 +21,9 @@ local function load()
 		on_trigger = function(self, character, associated_data)
             local successor = character.successor
 
+            -- clear trade rights:
+            ee.abandon_trade_rights(character)
+
             for _, realm in pairs(character.leader_of) do
                 character.leader_of[realm] = nil
                 local capitol = character.realm.capitol

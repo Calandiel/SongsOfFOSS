@@ -1,4 +1,5 @@
 local office_triggers = require "game.raws.triggers.offices"
+local economy_triggers = require "game.raws.triggers.economy"
 
 local Trigger = {}
 
@@ -154,6 +155,38 @@ Trigger.Targeted.is_not_in_negotiations = {
 	end,
 	condition = function (root, primary_target)
 		return root.current_negotiations[primary_target] == nil
+	end
+}
+
+---@type TriggerProvince
+Trigger.Targeted.settled = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"This province is not settled"}
+	end,
+	condition = function (root, primary_target)
+		return primary_target.realm ~= nil
+	end
+}
+
+---@type TriggerProvince
+Trigger.Targeted.has_local_trade_permit = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"You are allowed to trade in this province"}
+	end,
+	condition = function (root, primary_target)
+		if primary_target.realm == nil then return false end
+		return economy_triggers.allowed_to_trade(root, primary_target.realm)
+	end
+}
+
+---@type TriggerProvince
+Trigger.Targeted.has_no_local_trade_permit = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"You are not allowed to trade in this province"}
+	end,
+	condition = function (root, primary_target)
+		if primary_target.realm == nil then return false end
+		return not economy_triggers.allowed_to_trade(root, primary_target.realm)
 	end
 }
 

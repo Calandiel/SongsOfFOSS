@@ -14,7 +14,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 
 ---@alias DecisionTarget 'none' | 'character' | 'tile' | 'province' | 'realm' | 'building'
 
-
+--- I wish generics were properly implemented...
 
 ---@class DecisionRealm
 ---@field new fun(self:DecisionRealm, o:DecisionRealm):DecisionRealm
@@ -220,6 +220,72 @@ Decision.CharacterCharacter = {}
 function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do, ai_target)
 	Decision.Character:new({
 		primary_target = 'character',
+		secondary_target = 'none',
+		name = name,
+		ui_name = ui_name,
+		base_probability = base_probability,
+		tooltip = function (root, primary_target)
+			local tooltip_result = tooltip(root, primary_target) .. "\n"
+			for _, pretrigger in ipairs(pretriggers) do
+				if not pretrigger.condition(root) then
+					for _, actual_tooltip in ipairs(pretrigger.tooltip_on_condition_failure(root)) do
+						tooltip_result = tooltip_result .. actual_tooltip .. "\n"
+					end
+				end
+			end
+			for _, trigger in ipairs(availability) do
+				if not trigger.condition(root, primary_target) then
+					for _, actual_tooltip in ipairs(trigger.tooltip_on_condition_failure(root, primary_target)) do
+						tooltip_result = tooltip_result .. actual_tooltip .. "\n"
+					end
+				end
+			end
+			return tooltip_result
+		end,
+		pretrigger = function (root)
+			for _, trigger in ipairs(pretriggers) do
+				if not trigger.condition(root) then
+					return false
+				end
+			end
+			return true
+		end,
+		clickable = function (root, primary_target)
+			for _, trigger in ipairs(visibility) do
+				if not trigger.condition(root, primary_target) then
+					return false
+				end
+			end
+			return true
+		end,
+		available = function (root, primary_target, secondary_target)
+			for _, trigger in ipairs(availability) do
+				if not trigger.condition(root, primary_target) then
+					return false
+				end
+			end
+			return true
+		end,
+		effect = effect,
+		ai_will_do = ai_will_do,
+		ai_target = ai_target
+	})
+end
+
+---Creates decision from the list of triggers
+---@param name string
+---@param ui_name string
+---@param tooltip fun(root: Character, primary_target:Province): string
+---@param base_probability number
+---@param pretriggers Pretrigger[]
+---@param visibility TriggerProvince[]
+---@param availability TriggerProvince[]
+---@param effect fun(root:Character, primary_target:Province, secondary_target:any)
+---@param ai_will_do fun(root:Character, primary_target:Province, secondary_target:any):number
+---@param ai_target fun(root:Character):Province | nil,boolean
+function Decision.CharacterProvince:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do, ai_target)
+	Decision.Character:new({
+		primary_target = 'province',
 		secondary_target = 'none',
 		name = name,
 		ui_name = ui_name,

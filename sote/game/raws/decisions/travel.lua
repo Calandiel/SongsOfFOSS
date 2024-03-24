@@ -106,15 +106,19 @@ local function load()
 			---@type Province[]
 			local targets = {}
 			for _, province in pairs(root.realm.capitol.neighbors) do
-				if province.realm then
+				if province.realm and economy_triggers.allowed_to_trade(root, province.realm) then
 					targets[province] = province
 				end
 			end
 			for _, overlord in pairs(root.realm.paying_tribute_to) do
-				targets[overlord.capitol] = overlord.capitol
+				if economy_triggers.allowed_to_trade(root, overlord) then
+					targets[overlord.capitol] = overlord.capitol
+				end
 			end
 			for _, tributary in pairs(root.realm.tributaries) do
-				targets[tributary.capitol] = tributary.capitol
+				if economy_triggers.allowed_to_trade(root, tributary) then
+					targets[tributary.capitol] = tributary.capitol
+				end
 			end
 			for _, reward in pairs(root.realm.quests_explore) do
 				targets[_] = _

@@ -257,6 +257,18 @@ function text.negotiation_string(negotiation)
 		realm_string = realm_string .. trade_realm_string_initiator .. trade_realm_string_target .. "\n"
 	end
 
+	local character_realm_string = ""
+
+	for _, item in ipairs(negotiation.negotiations_terms_character_to_realm) do
+		if item.trade_permission then
+			character_realm_string = character_realm_string
+			.. negotiation.initiator.name
+			.. " will be allowed to trade in lands of "
+			.. item.target.name
+			.. "\n"
+		end
+	end
+
 	return trade_string_initiator .. trade_string_target .. realm_string
 
 
@@ -296,6 +308,19 @@ function text.negotiate(self, character, associated_data)
 
 
 	return intro .. "Our current negotiation draft: \n" .. text.negotiation_string(associated_data)
+end
+
+function text.negotiate_adjustment(self, character, associated_data)
+	---@type Character
+	character = character
+
+	---@type NegotiationData
+	associated_data = associated_data
+
+	local intro = "We got response from " .. associated_data.target.name .. ".\n"
+
+
+	return intro .. "He presented us with a following adjusted negotiation draft: \n" .. text.negotiation_string(associated_data)
 end
 
 function text.negotiation_status_quo()
