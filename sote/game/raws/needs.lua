@@ -34,7 +34,7 @@ NEEDS = {
 	[NEED.WATER] = {
 		life_need = true,
 		job_to_satisfy = JOBTYPE.FORAGER,
-		time_to_satisfy = 0.05,
+		time_to_satisfy = 0.5,
 	},
 	[NEED.FOOD] = {
 		-- age_independent = true,
@@ -43,27 +43,27 @@ NEEDS = {
 		time_to_satisfy = 1.5,
 	},
 	[NEED.CLOTHING] = {
-		job_to_satisfy = JOBTYPE.FORAGER,
-		time_to_satisfy = 0.3
+		job_to_satisfy = JOBTYPE.LABOURER,
+		time_to_satisfy = 0.5
 	},
 	[NEED.TOOLS] = {
 		job_to_satisfy = JOBTYPE.ARTISAN,
-		time_to_satisfy = 0.3
+		time_to_satisfy = 1.0
 	},
 	[NEED.FURNITURE] = {
-		job_to_satisfy = JOBTYPE.ARTISAN,
-		time_to_satisfy = 0.3
+		job_to_satisfy = JOBTYPE.LABOURER,
+		time_to_satisfy = 2.0
 	},
 	[NEED.HEALTHCARE] = {
 		job_to_satisfy = JOBTYPE.CLERK,
-		time_to_satisfy = 0.3
+		time_to_satisfy = 1.0
 	},
 	[NEED.STORAGE] = {
-		job_to_satisfy = JOBTYPE.ARTISAN,
-		time_to_satisfy = 0.3
+		job_to_satisfy = JOBTYPE.LABOURER,
+		time_to_satisfy = 1.0
 	},
 	[NEED.LUXURY] = {
 		job_to_satisfy = JOBTYPE.ARTISAN,
-		time_to_satisfy = 2.0
+		time_to_satisfy = 3.0
 	}
 }

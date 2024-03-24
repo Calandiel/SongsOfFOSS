@@ -139,7 +139,9 @@ function pro.run(province)
 
 	-- Clear building stats
 	for key, value in pairs(province.buildings) do
+		tabb.clear(value.amount_of_outputs)
 		tabb.clear(value.earn_from_outputs)
+		tabb.clear(value.amount_of_inputs)
 		tabb.clear(value.spent_on_inputs)
 		value.last_donation_to_owner = 0
 		value.last_income = 0
@@ -226,9 +228,18 @@ function pro.run(province)
 	local efficiency_from_infrastructure = math.min(1.5, 0.5 + 0.5 * math.sqrt(2 * inf))
 	-- Record local production...
 	local foragers_count = 0
-	local foraging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, province.foragers)))
-	foraging_efficiency = foraging_efficiency * foraging_efficiency
+	local function foraging_efficiency()
+		local foraging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, foragers_count)))
+		return foraging_efficiency * foraging_efficiency
+	end
 
+	local function get_foraging_production(pop_view, pop_table, time)
+		local initial = foraging_efficiency()
+		foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
+		local final = foraging_efficiency()
+		return pop_view[zero].foraging_efficiency * time * (initial + final) * 0.5
+	end
+		
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = province:total_population()
 	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
@@ -240,42 +251,11 @@ function pro.run(province)
 
 	DISPLAY_INCOME_OWNER_RATIO = (1 - INCOME_TO_LOCAL_WEALTH_MULTIPLIER) * fraction_of_income_given_to_owner
 
-	local blanks_production =
-		tabb.accumulate(province.bedrocks, 0, function (produced, rock, weight)
-			if
-				rock == "quartzite"
-				or rock == "chert"
-			then
-				produced = produced + 0.1 * weight
-			elseif
-				rock == "andesite"
-				or rock == "basalt"
-				or rock == "dacite"
-				or rock == "rhyolite"
-			then
-				produced = produced + 0.05 * weight
-			elseif
-				rock == "shale"
-				or rock == "siltstone"
-				or rock == "mudstone"
-			then
-				produced = produced + 0.02 * weight
-			elseif
-				rock == "chalk"
-				or rock == "limestone"
-			then
-				produced = produced + 0.01 * weight
-			else
-				produced = produced + 0.001 * weight
-			end
-			return produced
-		end)
+	local timber_production = (province.flora_spread.broadleaf + province.flora_spread.conifer) * 0.1
+		+ province.flora_spread.shrub * 0.05 + province.flora_spread.grass * 0.01
 
 	local berries_production = province.flora_spread.shrub + province.flora_spread.broadleaf
 	local seeds_production = province.flora_spread.grass + province.flora_spread.conifer
-
-	local timber_production = (province.flora_spread.broadleaf + province.flora_spread.conifer) * 0.1
-		+ province.flora_spread.shrub * 0.05 + province.flora_spread.grass * 0.01
 
 	---Pop forages for food and gives it to warband  \
 	-- Not very efficient
@@ -283,25 +263,19 @@ function pro.run(province)
 	---@param pop_table POP
 	---@param time number ratio of daily active time pop can spend on foraging
 	local function forage_warband(pop_view, pop_table, time)
-		foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
-		local food_produced = pop_view[zero].foraging_efficiency * 0.25 * time
-		local blanks_produced = pop_job_efficiency[JOBTYPE.LABOURER] * blanks_production * 0.125 * time
-		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.125 * time
-
-		-- TODO consume up to half of it to satisfy up to 50% food needs
+		local food_produced = get_foraging_production(time) * 0.25
+		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.25 * time
 
 		if pop_table.unit_of_warband.leader then
 			pop_table.unit_of_warband.leader.inventory['berries'] = (pop_table.unit_of_warband.leader.inventory['berries'] or 0) + food_produced * berries_production
 			pop_table.unit_of_warband.leader.inventory['seeds'] = (pop_table.unit_of_warband.leader.inventory['seeds'] or 0) + food_produced * seeds_production
-			pop_table.unit_of_warband.leader.inventory['blanks-flint'] = (pop_table.unit_of_warband.leader.inventory['blanks-flint'] or 0) + blanks_produced
 			pop_table.unit_of_warband.leader.inventory['timber'] = (pop_table.unit_of_warband.leader.inventory['timber'] or 0) + timber_produced
 		else
-			local income = 0
-			income = income + income + record_production(berries_index, food_produced * berries_production)
-			income = income + income + record_production(berries_index, food_produced * seeds_production)
-			income = income + income + record_production(berries_index, blanks_produced)
-			income = income + income + record_production(berries_index, timber_produced)
-			economic_effects.add_pop_savings(pop_table, income, economic_effects.reasons.Forage)
+					local income = 0
+		income = income + income + record_production(berries_index, food_produced * berries_production)
+		income = income + income + record_production(berries_index, food_produced * seeds_production)
+		income = income + income + record_production(berries_index, timber_produced)
+		economic_effects.add_pop_savings(pop_table, income, economic_effects.reasons.Forage)
 		end
 	end
 
@@ -312,10 +286,8 @@ function pro.run(province)
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return number income
 	local function forage(pop_view, pop_table, time)
-		foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
-		local food_produced = pop_view[zero].foraging_efficiency * 0.5 * time
-		local blanks_produced = pop_job_efficiency[JOBTYPE.LABOURER] * 0.25 * blanks_production * time
-		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.25 * timber_production * time
+		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
+		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.5 * timber_production * time
 		local income = 0
 		if pop_table:is_character() then -- hunt for meat and hide
 			income = income + record_production(meat_index, food_produced)
@@ -324,8 +296,7 @@ function pro.run(province)
 			income = income + record_production(berries_index, food_produced * berries_production)
 			income = income + record_production(grain_index, food_produced * seeds_production)
 		end
-		-- gathering timber and stone-blanks
-		income = income + record_production(blanks_index, blanks_produced)
+		-- gathering timber
 		income = income + record_production(timber_index, timber_produced)
 		return income
 	end
@@ -363,14 +334,14 @@ function pro.run(province)
 
 		local total_bought = 0
 		local spendings = 0
-
+		
 		for good, weight in pairs(use.goods) do
-			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
+						local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
 			local goods_price = math.max(market_data[c_index].price, 0.0001)
 			local goods_available = market_data[c_index].available
 			local goods_available_weight = math.max(market_data[c_index].available / weight / available, 0)
 			local goods_feature_weight = math.max(market_data[c_index].feature / total_exp, 0)
-			local demanded_amount = demanded_use / weight * goods_feature_weight
+						local demanded_amount = demanded_use / weight * goods_feature_weight
 			local consumed_amount = math.min(goods_available, demanded_amount,
 				potential_amount / weight * goods_available_weight,
 				savings / goods_price)
@@ -458,7 +429,7 @@ function pro.run(province)
 		local cottage_time_per_unit = need.time_to_satisfy / need_job_efficiency
 
 		-- wealth pop can earn by foraging instead
-		local food_produced = pop_job_efficiency[JOBTYPE.FORAGER] / foraging_efficiency * 0.5
+		local food_produced = pop_job_efficiency[JOBTYPE.FORAGER] * 0.5
 		local food_income
 		if pop_table:is_character() then
 			food_income = meat_price + hide_price * 0.5
@@ -467,7 +438,6 @@ function pro.run(province)
 		end
 		local income_per_unit_of_time = food_income * food_produced
 			+ timber_price * pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.25
-			+ blanks_price * pop_job_efficiency[JOBTYPE.LABOURER] * blanks_production * 0.25
 
 		-- collect data, get all need use_cases demand
 		-- expected costs and estimated time needed to satisfy
@@ -602,19 +572,19 @@ function pro.run(province)
 		local dependants = tabb.filter(pop_table.children, function (a)
 			return a. age < a.race.teen_age
 		end)
-		local count = 1 + tabb.size(dependants)
-		local time_after_life = 0
+		local count = 2 * tabb.size(dependants)
+		local time_after_children = 0
 		if count > 1 then
 			local time_fraction = free_time / count
 			local savings_fraction = savings / count
-			time_after_life = time_after_life + time_fraction
+			time_after_children = time_after_children + time_fraction
 			for _, child in pairs(dependants) do
 				local time_after_need = time_fraction
 				local savings_after_need = savings_fraction
 				for index, need in pairs(NEEDS) do
 					if need.life_need then
 						local free_time_after_need, income, expense = satisfy_need(
-							pop_view, child, index, need, time_after_need, savings_after_need, 0.25)
+							pop_view, child, index, need, time_after_need, savings_after_need, 0.5)
 
 						if time_after_need > time_fraction + 0.01
 							or savings_after_need + income + 0.01 < expense
@@ -647,9 +617,9 @@ function pro.run(province)
 
 					end
 				end
-				time_after_life = time_after_life + time_after_need
+				time_after_children = time_after_children + time_after_need
 
-				if time_after_life > free_time + 0.01
+				if time_after_children > free_time + 0.01
 					or savings + total_income + 0.01 < total_expense
 				then
 					error("INVALID CHILD SATISFY_NEEDS"
@@ -673,22 +643,22 @@ function pro.run(province)
 				end
 			end
 		else
-			time_after_life = time_after_life + free_time
+			time_after_children = time_after_children + free_time
 		end
 
-		local savings_after_life = savings + total_income - total_expense
-
+		local savings_after_children = savings + total_income - total_expense
+		local time_after_life = 0
+		
 		-- buying life needs
 		for index, need in pairs(NEEDS) do
 			if need.life_need then
 				local free_time_after_need, income, expense = satisfy_need(
-					pop_view, pop_table, index, need, time_after_life, savings_after_life, 0.5)
+					pop_view, pop_table, index, need, time_after_children / life_need_count, savings_after_children / life_need_count, 1)
 
 				total_income = total_income + income
 				total_expense = total_expense + expense
 
-				time_after_life = free_time_after_need
-				savings_after_life = savings + total_income - total_expense
+				time_after_life = time_after_life + free_time_after_need
 			end
 		end
 
@@ -711,6 +681,7 @@ function pro.run(province)
 
 		local fraction = 1 + total_need_count
 		local time_after_basic = time_after_life / fraction
+		local savings_after_life = savings + total_income - total_expense
 
 		-- buying other needs
 		for index, need in pairs(NEEDS) do
@@ -851,7 +822,7 @@ function pro.run(province)
 		if pop.female then
 			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
 		end
-		pop_view[zero].foraging_efficiency = foraging_multiplier * foraging_efficiency
+		pop_view[zero].foraging_efficiency = foraging_multiplier
 		pop_view[zero].age_multiplier = pop:get_age_multiplier()
 
 		local pop_needs = pop.race.male_needs
@@ -876,8 +847,6 @@ function pro.run(province)
 				pop_need_amount[tag] = pop_need_amount[tag] * pop_view[zero].age_multiplier
 			end
 		end
-
-		pop_job_efficiency[JOBTYPE.FORAGER] = pop_job_efficiency[JOBTYPE.FORAGER] * foraging_efficiency
 
 
 		-- base income: all adult pops forage and help each other which translates into a bit of wealth
@@ -909,11 +878,11 @@ function pro.run(province)
 			if building ~= nil then
 				local prod = building.type.production_method
 
-
+				local income = 0
+				local work_time = math.min(building.work_ratio, free_time_of_pop)
 				local local_foraging_efficiency = 1
 				if prod.foraging then
-					foragers_count = foragers_count + math.min(building.work_ratio, free_time_of_pop) * pop_view[zero].foraging_efficiency -- Record a new forager!
-					local_foraging_efficiency = foraging_efficiency
+					local_foraging_efficiency = get_foraging_production(pop_view, pop, work_time)
 				end
 				local yield = 1
 				local local_tile = province.center
@@ -922,14 +891,24 @@ function pro.run(province)
 				end
 				if local_tile then
 					yield = prod:get_efficiency(local_tile)
-
 				end
 
 				local efficiency = yield
 									* local_foraging_efficiency
 									* efficiency_from_infrastructure
-									* math.min(pop.employer.work_ratio, free_time_of_pop)
+									* work_time
 
+				if prod.foraging and building.tile then
+					-- foraging buildings produce wood from tile data, like a localized hunting or foraging job
+					local timber_production = (building.tile.broadleaf + building.tile.conifer) * 0.1
+					+ building.tile.shrub * 0.05 + building.tile.grass * 0.01
+					local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * yield * timber_production * work_time * 0.5
+					local timber_income = record_production(timber_index, timber_produced)
+					income = income + timber_income
+
+					building.amount_of_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_production
+					building.earn_from_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_income
+				end
 				-- expected input satisfaction
 				local input_satisfaction = 1
 
@@ -991,7 +970,6 @@ function pro.run(province)
 					require "game.raws.effects.geography".deforest_random_tile(province, total_power)
 				end
 
-				local income = 0
 
 				-- real input satisfaction
 				local input_satisfaction_2 = 1
@@ -1005,7 +983,7 @@ function pro.run(province)
 						input_satisfaction_2 = math.min(input_satisfaction_2, consumed / required)
 						income = income - spent
 
-						building.amount_of_inputs[input] = consumed
+						building.amount_of_inputs[input] = (building.amount_of_inputs[input] or 0) + consumed
 						building.spent_on_inputs[input] = (building.spent_on_inputs[input] or 0) + spent
 					end
 				end
@@ -1019,7 +997,7 @@ function pro.run(province)
 					local earnt = price * produced
 					income = income + earnt
 
-					building.amount_of_outputs[output] = produced
+					building.amount_of_outputs[output] = (building.amount_of_outputs[output] or 0) + produced
 					building.earn_from_outputs[output] = (building.earn_from_outputs[output] or 0) + earnt
 
 					record_production(output_index, amount * efficiency * output_boost * throughput_boost)
@@ -1054,7 +1032,7 @@ function pro.run(province)
 
 				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
 
-				if income > 0 and pop.life_needs_satisfaction > 0.5 then
+				if income > 0 then
 					---@type number
 					local contrib = income * fraction_of_income_given_voluntarily
 					if owner then
@@ -1071,13 +1049,13 @@ function pro.run(province)
 					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				else
 					-- reduce working hours to negate losses or satisfy life needs
-					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.5)
+					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
 				end
 
 				-- reduce working time if not enough life needs satisfied
 				local min_life_satisfaction = tabb.accumulate(pop.need_satisfaction, 1, function (a, need, values)
 					if NEEDS[need].life_need then
-						local min_need = tabb.accumulate(values, 0, function (b, k, v)
+						local min_need = tabb.accumulate(values, 1, function (b, k, v)
 							local ratio = v.consumed / v.demanded
 							if ratio < b then
 								b = ratio
@@ -1090,8 +1068,10 @@ function pro.run(province)
 					end
 					return a
 				end)
-				if min_life_satisfaction < 0.4 then
-					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.5)
+				if min_life_satisfaction < 0.125 then -- has been halfed and before needs satisfaction, equivalent to 0.25
+					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
+				else -- has been halfed and before needs satisfaction, equivalent to 2/3
+					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				end
 
 				if province.trade_wealth > income then
@@ -1101,7 +1081,7 @@ function pro.run(province)
 				end
 			end
 			PROFILER:end_timer('production-building-update')
-			
+
 			if pop.age < pop.race.teen_age then
 
 				-- gives donation share children if they have no parent
@@ -1117,7 +1097,7 @@ function pro.run(province)
 
 			-- every pop spends some time or wealth on fullfilling their needs:
 			--PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 12)
+			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 6)
 			--PROFILER:end_timer("production-satisfy-needs")
 		end
 

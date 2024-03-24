@@ -35,7 +35,7 @@ function ll.load()
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 1,
 			[JOBTYPE.ARTISAN] = 1.5,
-			[JOBTYPE.CLERK] = 1.2,
+			[JOBTYPE.CLERK] = 1,
 			[JOBTYPE.LABOURER] = 2,
 			[JOBTYPE.WARRIOR] = 1.1,
 			[JOBTYPE.HAULING] = 2,
@@ -46,9 +46,9 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['food'] = 1,
-				['timber'] = 0.25,
-				['grain'] = 0.25,
+				['food'] = 1.2,
+				['timber'] = 0.1,
+				['grain'] = 0.2,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur
@@ -74,8 +74,8 @@ function ll.load()
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 1,
 			[JOBTYPE.ARTISAN] = 1.5,
-			[JOBTYPE.CLERK] = 1.2,
-			[JOBTYPE.LABOURER] = 2.5,
+			[JOBTYPE.CLERK] = 1,
+			[JOBTYPE.LABOURER] = 2,
 			[JOBTYPE.WARRIOR] = 1.1,
 			[JOBTYPE.HAULING] = 2,
 			[JOBTYPE.FORAGER] = 1.2
@@ -85,9 +85,9 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.25,
-				['timber'] = 0.25,
-				['grain'] = 0.25,
+				['food'] = 1.2,
+				['timber'] = 0.1,
+				['grain'] = 0.2,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur

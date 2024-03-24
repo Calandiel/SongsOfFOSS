@@ -1,5 +1,9 @@
 ---@class GameScene
 ---@field tile_inspector_tab string
+---@field realm_inspector_tab string
+---@field realm_stockpile_scrollbar number
+---@field realm_capacities_scrollbar number
+---@field wars_slider_level number
 local gam = {}
 
 require "game.scenes.global-style"

@@ -7,6 +7,10 @@ local uit = require "game.ui-utils"
 local ef = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
 
+local list_widget = require "game.scenes.game.widgets.list-widget"
+
+local noble_state = {state = nil}
+
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
@@ -183,11 +187,11 @@ function re.draw(gam)
 					local function render_name(rect, k, v)
 						local children = tabb.size(v.children)
 						local name = v.name
-						if v.parent then
-							name = name .. " [" .. v.parent.name .. "]"
-						end
 						if children > 0 then
 							name = name .. " (" .. children .. ")"
+						end
+						if v.parent then
+							name = name .. " [" .. v.parent.name .. "]"
 						end
 						if uit.text_button(name, rect) then
 							inspect = "character"
@@ -208,7 +212,7 @@ function re.draw(gam)
 					local noble_list = a:copy()
 					noble_list.width = ui_panel.width
 					noble_list.height = ui_panel.height - ui_panel.y
-					local response = require "game.scenes.game.widgets.list-widget"(
+					local response = list_widget(
 						noble_list,
 						tabb.filter(realm.capitol.home_to,
 							function(a)
@@ -374,8 +378,8 @@ function re.draw(gam)
 										return v.basic_needs_satisfaction
 									end
 								}
-							}
-					)()
+							},
+					noble_state)()
 					if response then
 						if inspect == "character" then
 							gam.selected.character = response

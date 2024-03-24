@@ -186,11 +186,11 @@ function re.draw(gam)
 		-- ROW #1
 		-- worker count out of max
 		local worker_cur = tabb.size(building.workers)
-		local worker_max = tabb.size(building.type.production_method.jobs)
+		local worker_max = building.type.production_method:total_jobs()
 		local worker_count = worker_cur .. " / " .. worker_max
 		ui.centered_text("Worker count: ", left_text_rect)
 		uit.generic_string_field("", worker_count, left_value_rect, "Curently employing "
-			.. worker_cur .. "workers out of a maximum of " .. worker_max .. ".",
+			.. worker_cur .. " workers out of a maximum of " .. worker_max .. ".",
 			uit.NAME_MODE.NAME)
 		-- work ratio
 		ui.centered_text("Work ratio: ", middle_text_rect)
@@ -223,7 +223,11 @@ function re.draw(gam)
 		local next_panel = owner_icon:subrect(0, uit.BASE_HEIGHT * 4 + 5, pan.width, uit.BASE_HEIGHT * 6, "left", "up")
 
 		-- list of outputs
-		list_widget(next_panel, building.type.production_method.outputs, {
+		local outputs = building.amount_of_outputs
+		if tabb.size(outputs) < 1 then
+			outputs = building.type.production_method.outputs
+		end
+		list_widget(next_panel, outputs, {
 			{
 				header = ".",
 				render_closure = render_good_icon,
@@ -253,13 +257,13 @@ function re.draw(gam)
 				---@param k string
 				---@param v number
 				render_closure = function(rect, k, v)
-					ui.centered_text(uit.to_fixed_point2(v), rect)
+					ui.centered_text(uit.to_fixed_point2(building.type.production_method.outputs[v] or 0), rect)
 				end,
 				width = 3,
 				---@param k string
 				---@param v number
 				value = function(k, v)
-					return v
+					return building.type.production_method.outputs[v] or 0
 				end,
 			},
 			{
