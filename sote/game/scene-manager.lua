@@ -6,7 +6,7 @@ local mm = require "game.scenes.main-menu"
 local wl = require "game.scenes.world-loader"
 local ws = require "game.scenes.world-saver"
 local gam = require "game.scenes.game"
-if IS_WINDOWS then
+if love.system.getOS() == "Windows" then
 	local wg = require "game.scenes.world-gen"
 end
 
