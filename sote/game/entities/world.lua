@@ -446,7 +446,7 @@ function world.World:tick()
 			wealth_decay.run(settled_province)
 			infrastructure.run(settled_province)
 			research.run(settled_province)
---			recruit.run(settled_province)
+			recruit.run(settled_province)
 			PROFILER:end_timer("province")
 			PROFILER:start_timer("growth")
 
@@ -512,7 +512,7 @@ function world.World:tick()
 				-- Handle events!
 				--print("Event handling")
 				events.run(realm)
---[[
+
 				PROFILER:end_timer("realm")
 
 				PROFILER:start_timer("war")
@@ -548,7 +548,7 @@ function world.World:tick()
 				end
 
 				PROFILER:end_timer("war")
-]]
+
 				t = love.timer.getTime()
 			end
 		end
