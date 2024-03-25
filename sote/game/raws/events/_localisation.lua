@@ -25,8 +25,8 @@ function text.exploration_progress(self, character, associated_data)
 		.. associated_data.explored_province.name
 		.. "."
 		.. " I estimate that exploration will take roughly "
-		.. tostring(math.floor(associated_data._exploration_days_left / 30 / character.leading_warband:size()))
-		.. " months."
+		.. tostring(math.floor(associated_data._exploration_days_left / character.leading_warband:size()))
+		.. " days."
 		.. " We have enough supplies for "
 		.. ut.to_fixed_point2(character.leading_warband:days_of_travel())
 		.. " days of exploration"

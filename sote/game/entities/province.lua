@@ -880,4 +880,8 @@ function prov.Province:vacant_warbands()
 	return res
 end
 
+function prov.Province:exploration_days()
+	return self.movement_cost / 5
+end
+
 return prov

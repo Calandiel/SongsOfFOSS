@@ -39,7 +39,7 @@ return function()
 				explored_province = character.province,
 				explorer = character,
 				last_conversation = conversation,
-				_exploration_days_left = character.province.movement_cost,
+				_exploration_days_left = character.province:exploration_days(),
 				_exploration_speed = 1.0
 			}
 
@@ -61,7 +61,7 @@ return function()
 				explored_province = character.province,
 				explorer = character,
 				last_conversation = nil,
-				_exploration_days_left = character.province.movement_cost,
+				_exploration_days_left = character.province:exploration_days(),
 				_exploration_speed = 1.5
 			}
 
@@ -103,7 +103,7 @@ return function()
 							explored_province = character.province,
 							explorer = character,
 							last_conversation = nil,
-							_exploration_days_left = character.province.movement_cost,
+							_exploration_days_left = character.province:exploration_days(),
 							_exploration_speed = 1.5
 						}
 
@@ -138,7 +138,7 @@ return function()
 							explored_province = character.province,
 							explorer = character,
 							last_conversation = conversation,
-							_exploration_days_left = character.province.movement_cost,
+							_exploration_days_left = character.province:exploration_days(),
 							_exploration_speed = 1.0
 						}
 
