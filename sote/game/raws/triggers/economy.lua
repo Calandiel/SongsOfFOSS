@@ -28,7 +28,7 @@ function triggers.allowed_to_trade(character, realm)
     end
 
     if realm.trading_right_law == TRADE_LAW.TRADE_RIGHT.NOBLES then
-        if character.realm == realm then
+        if character.realm == realm or realm.trading_right_given_to[character] then
             return true
         end
     end
