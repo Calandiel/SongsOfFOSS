@@ -452,6 +452,7 @@ function prov.Province:fire_pop(pop)
 			pop.employer.last_income = 0
 			pop.employer.last_donation_to_owner = 0
 			pop.employer.subsidy_last = 0
+			pop.employer.work_ratio = 1
 		end
 		pop.employer = nil
 		pop.job = nil -- clear the job!

@@ -227,8 +227,8 @@ function pro.run(province)
 	local inf = province:get_infrastructure_efficiency()
 	local efficiency_from_infrastructure = math.min(1.5, 0.5 + 0.5 * math.sqrt(2 * inf))
 	-- Record local production...
-	local building_foragers = math.min(1.15, (province.foragers_limit / math.max(1, province.foragers)))
-	building_foragers = building_foragers * building_foragers
+	local last_foraaging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, province.foragers)))
+	last_foraaging_efficiency = last_foraaging_efficiency * last_foraaging_efficiency
 	local foragers_count = 0
 	local function foraging_efficiency()
 		local foraging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, foragers_count)))
@@ -236,6 +236,10 @@ function pro.run(province)
 	end
 
 	local function get_foraging_production(pop_view, pop_table, time)
+		if foragers_count < province.foragers then
+			foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
+			return last_foraaging_efficiency
+		end
 		local initial = foraging_efficiency()
 		foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
 		local final = foraging_efficiency()
@@ -287,11 +291,11 @@ function pro.run(province)
 	---@return number income
 	local function forage(pop_view, pop_table, time)
 		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
-		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.25 * timber_production * time
+		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.1 * timber_production * time
 		local income = 0
 		if pop_table:is_character() then -- hunt for meat and hide
-			income = income + record_production(meat_index, food_produced)
-			income = income + record_production(hide_index, food_produced / 2)
+			income = income + record_production(meat_index, food_produced / 2)
+			income = income + record_production(hide_index, food_produced / 4)
 		else -- forage for food based on province flora_spread
 			income = income + record_production(berries_index, food_produced * berries_production)
 			income = income + record_production(grain_index, food_produced * seeds_production)
@@ -436,7 +440,7 @@ function pro.run(province)
 		else
 			food_income = seeds_production * grain_price + berries_production * berries_price
 		end
-		local income_per_unit_of_time = food_income * food_produced
+		local income_per_unit_of_time = food_income * food_produced * last_foraaging_efficiency
 			+ timber_price * pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.25
 
 		-- collect data, get all need use_cases demand
@@ -748,9 +752,9 @@ function pro.run(province)
 		return a.age < a.race.teen_age and a.province == province
 	end))
 	-- calculate donations for home children
-	local wealth_cycle = province.local_wealth * 0.1
+	local wealth_cycle = province.local_wealth / 24
 	local wealth_cycle_fraction = math.max(wealth_cycle / province:total_home_population(), 0)
-	local donations_for_childen = math.min(province.local_wealth * 0.1, children * use_case_price_expectation['food'] * 0.5)
+	local donations_for_childen = math.min(wealth_cycle, children * use_case_price_expectation['food'] * 0.5)
 	local donations_for_child = math.max(donations_for_childen / children, 0)
 
 	if donations_for_child ~= donations_for_child
@@ -822,7 +826,7 @@ function pro.run(province)
 		if pop.female then
 			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
 		end
-		pop_view[zero].foraging_efficiency = foraging_multiplier
+		pop_view[zero].foraging_efficiency = pop.race.carrying_capacity_weight / foraging_multiplier
 		pop_view[zero].age_multiplier = pop:get_age_multiplier()
 
 		local pop_needs = pop.race.male_needs
@@ -854,8 +858,8 @@ function pro.run(province)
 		-- buidings are essentially wealth sinks currently
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
-		--local base_income = 1 * pop.age / 100;
-		--economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
+		local base_income = 1 * pop.age / pop.race.max_age;
+		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
 
 		-- Drafted pops work only when warband is "idle"
 		if (pop.unit_of_warband == nil) or (pop.unit_of_warband.status == "idle") then
@@ -884,7 +888,7 @@ function pro.run(province)
 				if prod.foraging then
 					-- buildings operate off off last month's foraging use, otherwise race conditions on output
 					foragers_count = foragers_count + work_time * pop_view[zero].foraging_efficiency
-					local_foraging_efficiency = building_foragers
+					local_foraging_efficiency = last_foraaging_efficiency
 				end
 				local yield = 1
 				local local_tile = province.center
@@ -904,11 +908,11 @@ function pro.run(province)
 					-- foraging buildings produce wood from tile data, like a localized hunting or foraging job
 					local timber_production = (building.tile.broadleaf + building.tile.conifer) * 0.1
 					+ building.tile.shrub * 0.05 + building.tile.grass * 0.01
-					local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * yield * timber_production * work_time * 0.5
+					local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * yield * timber_production * 0.25
 					local timber_income = record_production(timber_index, timber_produced)
 					income = income + timber_income
 
-					building.amount_of_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_production
+					building.amount_of_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_produced
 					building.earn_from_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_income
 				end
 				-- expected input satisfaction

@@ -276,7 +276,8 @@ function EconomicEffects.construct_building_with_payment(building_type, province
     else
         EconomicEffects.add_pop_savings(owner, -construction_cost, EconomicEffects.reasons.Building)
     end
-
+    -- add funds back into province wealth
+    EconomicEffects.change_local_wealth(province, construction_cost, EconomicEffects.reasons.Building)
     return building
 end
 
