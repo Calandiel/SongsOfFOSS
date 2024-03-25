@@ -263,7 +263,7 @@ local function load()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			local reward = root.realm.quests_explore[primary_target] or 0
+			local reward = root.realm.quests_explore[root.province] or 0
 
 			if root.traits[TRAIT.TRADER] then
 				return 1 / 36 + reward / 40 -- explore sometimes

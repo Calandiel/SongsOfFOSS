@@ -314,6 +314,8 @@ local function handle_event(event, target_realm, associated_data)
 		if oo.viable() then
 			local pre = oo.ai_preference()
 
+			assert(pre ~= nil, "Option " .. tostring(_) .. " of event " .. event .. " produced nil ai_preference")
+
 			-- print(oo.text)
 			-- print(oo.ai_preference())
 

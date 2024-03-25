@@ -57,6 +57,10 @@ function window.draw(game)
     local coa = ui_panel:subrect(unit * 3 - 2, unit * 3 - 2, unit, unit, "left", "up")
     require "game.scenes.game.widgets.portrait" (portrait, character)
 
+    if character.dead then
+        return
+    end
+
     local inventory_panel = ui_panel:subrect(0, 0, 4 * unit, ui_panel.height, "right", "up")
 
     inventory_slider = ut.scrollview(

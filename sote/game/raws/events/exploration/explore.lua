@@ -4,6 +4,7 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
+local economic_values = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
 local political_effects = require "game.raws.effects.political"
 local political_values = require "game.raws.values.political"
@@ -191,6 +192,8 @@ return function()
 				}
 			end
 
+			local food_price = economic_values.get_local_price(associated_data.explored_province, 'food')
+
 			return {
 				{
 					text = "Continue exploration",
@@ -257,6 +260,25 @@ return function()
 					end,
 					ai_preference = function ()
 						return 0.5
+					end
+				},
+
+				{
+					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
+					tooltip = "Buy supplies from locals",
+					viable = function ()
+						return character.savings > food_price
+					end,
+					outcome = function ()
+						economic_effects.buy(character, 'food', 1)
+					end,
+					ai_preference = function ()
+						local potential_days = character.leading_warband:days_of_travel()
+						if potential_days < 10 then
+							return 1.2
+						end
+
+						return 0
 					end
 				},
 

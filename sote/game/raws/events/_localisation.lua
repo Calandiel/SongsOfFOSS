@@ -257,7 +257,7 @@ function text.negotiation_string(negotiation)
 		realm_string = realm_string .. trade_realm_string_initiator .. trade_realm_string_target .. "\n"
 	end
 
-	local character_realm_string = ""
+	local character_realm_string = "Also, \n"
 
 	for _, item in ipairs(negotiation.negotiations_terms_character_to_realm) do
 		if item.trade_permission then
@@ -269,7 +269,7 @@ function text.negotiation_string(negotiation)
 		end
 	end
 
-	return trade_string_initiator .. trade_string_target .. realm_string
+	return trade_string_initiator .. trade_string_target .. realm_string .. character_realm_string
 
 
 
@@ -304,10 +304,9 @@ function text.negotiate(self, character, associated_data)
 	---@type NegotiationData
 	associated_data = associated_data
 
-	local intro = "We negotiate with " .. associated_data.target.name .. ".\n"
+	local intro = "INITIATOR: " .. associated_data.initiator.name .. " NEGOTIATION PARTNER: " .. associated_data.target.name .. ".\n"
 
-
-	return intro .. "Our current negotiation draft: \n" .. text.negotiation_string(associated_data)
+	return intro .. "Current negotiation draft: \n" .. text.negotiation_string(associated_data)
 end
 
 function text.negotiate_adjustment(self, character, associated_data)

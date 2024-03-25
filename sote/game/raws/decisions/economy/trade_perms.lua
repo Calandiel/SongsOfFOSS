@@ -8,6 +8,7 @@ local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
 local NOT_BUSY = pretriggers.not_busy
 
 local economic_values = require "game.raws.values.economical"
+local economic_triggers = require "game.raws.triggers.economy"
 
 return function ()
 
@@ -39,7 +40,12 @@ return function ()
 						goods_transfer_from_initiator_to_target = {}
 					}
 				},
-				negotiations_terms_character_to_realm = {},
+				negotiations_terms_character_to_realm = {
+                    {
+                        target = primary_target.realm,
+                        trade_permission = true
+                    }
+                },
 				negotiations_terms_realms = {},
 				days_of_travel = 10
 			}
@@ -83,6 +89,10 @@ return function ()
             for _, target in ipairs(targets) do
                 local trade_profits = 0
 
+                if economic_triggers.allowed_to_trade(root, target.realm) then
+                    goto continue
+                end
+
                 for _, good in ipairs(RAWS_MANAGER.trade_goods_list) do
                     --- checking if we can sell with profit
                     local target_sell_price = economic_values.get_pessimistic_local_price(target, good, 5, true) / 5
@@ -108,6 +118,7 @@ return function ()
                     best_target = target
                     best_trade_profits = trade_profits
                 end
+                ::continue::
             end
 
             if best_target then
