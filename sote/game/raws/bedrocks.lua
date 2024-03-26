@@ -17,7 +17,6 @@ Bedrock.__index = Bedrock
 ---@param o Bedrock
 ---@return Bedrock
 function Bedrock:new(o)
-	print("1")
 	local r = {}
 	r.name = "bedrock"
 	r.r = 0
@@ -29,27 +28,19 @@ function Bedrock:new(o)
 	r.organics = 0
 	r.minerals = 0
 	r.weathering = 0
-	print("2")
 	for k, v in pairs(o) do
 		r[k] = v
 	end
-	print("3")
 	setmetatable(r, Bedrock)
-	print("4")
 
-	print("5")
 	local id = col.rgb_to_id(r.r, r.g, r.b)
 	if RAWS_MANAGER.bedrocks_by_name[r.name] ~= nil or RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
-		print("6")
 		local msg = "Failed to load a bedrock (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	print("7")
 	RAWS_MANAGER.bedrocks_by_name[r.name] = r
-	print("8")
 	RAWS_MANAGER.bedrocks_by_color[id] = r
-	print("9")
 
 	return r
 end

@@ -90,23 +90,23 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
     if ei == 1 then
         ti = r
         if nei == 3 then
-            nti = -r
+            nti = r
         else
-            nti = icosa.size - ti
+            nti = icosa.size - r
         end
     elseif ei == 2 then
         ti = q
-        if nei == 2 then
-            nti = icosa.size - q
-        elseif nei == 3 then
+        if nei == 3 then
             nti = q
+        else
+            nti = icosa.size - q
         end
     elseif ei == 3 then
         ti = -r
-        if nei == 2 then
-            nti = -r
-        elseif nei == 3 then
+        if nei == 3 then
             nti = icosa.size + r
+        else
+            nti = -r
         end
     end
 
@@ -120,8 +120,8 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
     return edge.tiles[ti], index + 1
 end
 
-function wa.allocate(size)
-    local world = require("libsote.world"):new(size)
+function wa.allocate(size, seed)
+    local world = require("libsote.world"):new(size, seed)
 
     local icosa_obj = build_icosa(size)
 

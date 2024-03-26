@@ -18,7 +18,9 @@ local function elev_to_gray(elev, is_land)
     return final_color_value
 end
 
-function wl.load_heightmap_from(world)
+local color_utils = require "game.color"
+
+function wl.load_maps_from(world)
     local start = love.timer.getTime()
 
     for _, tile in pairs(WORLD.tiles) do
@@ -37,30 +39,42 @@ function wl.load_heightmap_from(world)
 
         tile.elevation = elev
         tile.is_land = is_land
+
+        -------------------------------------------------
+
+        local rocks = world:get_rocks(q, r, face)
+        local id = color_utils.rgb_to_id(rocks.r, rocks.g, rocks.b)
+
+        if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
+            tile.bedrock = RAWS_MANAGER.bedrocks_by_color[id]
+        else
+            tile.bedrock = RAWS_MANAGER.bedrocks_by_name['limestone']
+        end
     end
 
     local duration = love.timer.getTime() - start
-    print("load_heightmap: " .. tostring(duration * 1000) .. "ms")
+    print("loaded maps: " .. tostring(duration * 1000) .. "ms")
 end
+
+-- local hex = require("libsote.hex_utils")
 
 -- local data_loader = require("libsote.debug_data_loader")
 -- data_loader.loadDataFromFile("D:/temp/sote_output.txt")
 
--- function wl.load_heightmap_from(world)
---     -- print(love.filesystem.getSaveDirectory())
+-- function wl.load_maps_from(world)
+--     print(love.filesystem.getSaveDirectory())
 --     -- local file = love.filesystem.newFile("lua.txt", "w")
 
 --     local width = 1600
 --     local height = 800
---     local image_data = love.image.newImageData(width, height)
-
---     local start = love.timer.getTime()
+--     local image_elevation_data = love.image.newImageData(width, height)
+--     local image_rocks_data = love.image.newImageData(width, height)
 
 --     for x = 0, width-1 do
 --         for y = 0, height-1 do
 --             local lon = x / width * 2.0 * math.pi
 --             local lat = (y / height - 0.5) * math.pi
---             local q, r, face = world:latlon_to_hex_coords(lat, lon)
+--             local q, r, face = hex.latlon_to_hex_coords(lat, lon, world.size)
 --             local generated_elev = world:get_elevation(q, r, face)
 --             -- local imported_vals = data_loader.getValuesForCoordinates(x, y)
 --             local is_land = world:get_is_land(q, r, face)
@@ -83,18 +97,31 @@ end
 --             --     world:_investigate_tile(q, r, face)
 --             -- end
 
---             image_data:setPixel(x, height-1 - y, col_r, col_g, col_b, 1)
+--             image_elevation_data:setPixel(x, height-1 - y, col_r, col_g, col_b, 1)
+
+--             local rocks = world:get_rocks(q, r, face)
+--             local id = color_utils.rgb_to_id(rocks.r, rocks.g, rocks.b)
+--             if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
+--                 col_r = rocks.r
+--                 col_g = rocks.g
+--                 col_b = rocks.b
+--             else
+--                 col_r = RAWS_MANAGER.bedrocks_by_name['limestone'].r
+--                 col_g = RAWS_MANAGER.bedrocks_by_name['limestone'].g
+--                 col_b = RAWS_MANAGER.bedrocks_by_name['limestone'].b
+--             end
+
+--             image_rocks_data:setPixel(x, height-1 - y, col_r, col_g, col_b, 1)
 --         end
 --     end
 
---     local duration = love.timer.getTime() - start
---     print("load_heightmap: " .. tostring(duration * 1000) .. "ms")
-
 --     -- Encode the ImageData to a PNG FileData
---     local file_data = image_data:encode('png')
+--     local elevation_file_data = image_elevation_data:encode('png')
+--     local rocks_file_data = image_rocks_data:encode('png')
 
 --     -- Write the FileData to a file
---     love.filesystem.write('output.png', file_data)
+--     love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
+--     love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
 
 --     -- file:close()
 -- end

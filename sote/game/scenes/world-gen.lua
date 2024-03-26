@@ -4,15 +4,22 @@ local wg = {}
 local STATES = {
   init = 0,
   error = 1,
-  generated = 2
+  phase_01 = 2
 }
 
 local libsote = require("libsote.libsote")
 local cpml = require "cpml"
+local hex = require("libsote.hex_utils")
 
-local function load_data_from(world)
-  local wl = require "libsote.world_loader"
-  wl.load_heightmap_from(world)
+local function run_with_profiling(func, log_text)
+  local start = love.timer.getTime()
+  func()
+  local duration = love.timer.getTime() - start
+  print(log_text .. ": " .. tostring(duration * 1000) .. "ms")
+end
+
+local function gen_phase_02(world)
+  run_with_profiling(function() require "libsote.gen_rocks".run(world) end, "gen_rocks")
 end
 
 local function cache_tile_coord(world)
@@ -20,7 +27,7 @@ local function cache_tile_coord(world)
 
   for _, tile in pairs(WORLD.tiles) do
     local lat, lon = tile:latlon()
-    local q, r, face = world:latlon_to_hex_coords(lat, lon)
+    local q, r, face = hex.latlon_to_hex_coords(lat, lon, world.size)
     world:cache_tile_coord(tile.tile_id, q, r, face)
   end
 
@@ -46,12 +53,18 @@ function wg.init()
   end
   libsote.shutdown()
 
-  wg.state = STATES.generated
+  wg.state = STATES.phase_01
 
+  gen_phase_02(wg.world)
 
   require "game.entities.world".empty()
+  require "game.raws.raws" ()
+
   cache_tile_coord(wg.world)
-  load_data_from(wg.world)
+
+  local wl = require "libsote.world_loader"
+  wl.load_maps_from(wg.world)
+
 
   wg.world_size = DEFINES.world_size
   local dim = wg.world_size * 3
@@ -85,9 +98,9 @@ local origin_point = cpml.vec3.new(0, 0, 0)
 wg.locked_screen_x = 0
 wg.locked_screen_y = 0
 
-function wg.handle_camera_controls()
-  local ui = require "engine.ui"
+local ui = require "engine.ui"
 
+function wg.handle_camera_controls()
   local up = up_direction
   local camera_speed = (wg.camera_position:len() - 0.75) * 0.0015
 
@@ -170,6 +183,14 @@ function wg.handle_camera_controls()
   end
 end
 
+function wg.handle_keyboard_input()
+  if ui.is_key_pressed('r') then
+    wg.update_map_mode("rocks")
+  elseif ui.is_key_pressed('e') then
+    wg.update_map_mode("elevation")
+  end
+end
+
 function wg.draw()
   local ui = require "engine.ui"
   local fs = ui.fullscreen()
@@ -204,12 +225,11 @@ function wg.draw()
     ) then
       love.event.quit()
     end
-  elseif wg.state == STATES.generated then
+  elseif wg.state == STATES.phase_01 then
     -- ui.text_panel(wg.message, ui.fullscreen():subrect(0, 0, 300, 60, "center", "down"))
 
-    local ui = require "engine.ui"
-
     wg.handle_camera_controls()
+    wg.handle_keyboard_input()
 
     local model = cpml.mat4.identity()
     local view = cpml.mat4.identity()
@@ -312,6 +332,12 @@ function wg.tile_id_to_color_coords(tile)
   end
 
   return x + fx, y + fy
+end
+
+---@param new_map_mode string Valid map mode ID
+function wg.update_map_mode(new_map_mode)
+	wg.map_mode = new_map_mode
+	wg.refresh_map_mode()
 end
 
 return wg

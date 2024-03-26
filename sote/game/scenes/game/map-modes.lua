@@ -256,7 +256,7 @@ function mm.set_up_map_modes(game_thingy)
 			"A debug map mode showing the debug color that was set on tiles by the developers!",
 			debug_map_modes.debug_color
 		},
-        atlas = {
+		atlas = {
 			"Atlas",
 			"flying-flag.png",
 			"Shows combined information.",

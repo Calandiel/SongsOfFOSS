@@ -308,15 +308,16 @@ function libsote.generate_world()
 
   math.randomseed(os.time())
   local seed = math.random(1, 100000)
+  -- local seed = 51804
 
   set_sote_params(seed)
   init_world()
 
   local world_size = sote_params[2].value
-  -- local world_size = 3
+  -- local world_size = 2
 
   local start = love.timer.getTime()
-  local world = require("libsote.world_allocator").allocate(world_size)
+  local world = require("libsote.world_allocator").allocate(world_size, seed)
   local duration = love.timer.getTime() - start
   print("allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
 
