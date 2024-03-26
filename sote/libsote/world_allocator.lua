@@ -31,9 +31,7 @@ local function build_icosa(size)
             }
             local edge = face.edges[ei]
 
-            local neighbor_face, neighbor_edge = icosa_defines.neighbor_face_edge_at(fi, ei)
-            edge.neighbor_face = neighbor_face
-            edge.neighbor_edge = neighbor_edge
+            edge.neighbor_face, edge.neighbor_edge = icosa_defines.neighbor_face_edge_at(fi, ei)
 
             for i = 1, edge_tile_count do
                 edge.tiles[i] = -1
