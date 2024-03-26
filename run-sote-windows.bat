@@ -1,1 +1,1 @@
-.\sote\engine\bins\win\love.exe sote --windows
+.\sote\engine\bins\win\love.exe sote
