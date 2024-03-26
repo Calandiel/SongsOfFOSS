@@ -7,4 +7,11 @@ laws.TRADE_RIGHT = {
     PERMISSION_ONLY = 3
 }
 
+---@enum BuildingRightLaw
+laws.BUILDING_RIGHT = {
+    GUESTS = 1,
+    NOBLES = 2,
+    PERMISSION_ONLY = 3
+}
+
 return laws

@@ -23,6 +23,7 @@ local function load()
 
             -- clear trade rights:
             ee.abandon_trade_rights(character)
+            ee.abandon_building_rights(character)
 
             for _, realm in pairs(character.leader_of) do
                 character.leader_of[realm] = nil

@@ -1,5 +1,5 @@
 local ev = require "game.raws.values.economical"
-local TRADE_LAW = require "game.raws.laws.trade"
+local ECONOMY_LAW = require "game.raws.laws.economy"
 
 local triggers = {}
 
@@ -23,18 +23,46 @@ function triggers.allowed_to_trade(character, realm)
         return true
     end
 
-    if realm.trading_right_law == TRADE_LAW.TRADE_RIGHT.GUESTS then
+    if realm.trading_right_law == ECONOMY_LAW.TRADE_RIGHT.GUESTS then
         return true
     end
 
-    if realm.trading_right_law == TRADE_LAW.TRADE_RIGHT.NOBLES then
+    if realm.trading_right_law == ECONOMY_LAW.TRADE_RIGHT.NOBLES then
         if character.realm == realm or realm.trading_right_given_to[character] then
             return true
         end
     end
 
-    if realm.trading_right_law == TRADE_LAW.TRADE_RIGHT.PERMISSION_ONLY then
+    if realm.trading_right_law == ECONOMY_LAW.TRADE_RIGHT.PERMISSION_ONLY then
         if realm.trading_right_given_to[character] then
+            return true
+        end
+    end
+
+    return false
+end
+
+function triggers.allowed_to_build(character, realm)
+    if realm == nil then
+        return true
+    end
+
+    if character == nil then
+        return true --- when population tries to build stuff with local wealth
+    end
+
+    if realm.building_gright_law == ECONOMY_LAW.BUILDING_RIGHT.GUESTS then
+        return true
+    end
+
+    if realm.building_right_law == ECONOMY_LAW.BUILDING_RIGHT.NOBLES then
+        if character.realm == realm or realm.building_right_given_to[character] then
+            return true
+        end
+    end
+
+    if realm.building_right_law == ECONOMY_LAW.BUILDING_RIGHT.PERMISSION_ONLY then
+        if realm.building_right_given_to[character] then
             return true
         end
     end

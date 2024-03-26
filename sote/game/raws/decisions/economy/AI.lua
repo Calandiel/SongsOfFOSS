@@ -92,15 +92,15 @@ return function ()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-                local price = economic_values.get_local_price(root.province, name)
-                if root.price_memory[name] == nil then
-                    root.price_memory[name] = price
-                else
-                    if WORLD.player_character ~= root then
-                        root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
-                    end
-                end
-            end
+				local price = economic_values.get_local_price(root.province, name)
+				if root.price_memory[name] == nil then
+					root.price_memory[name] = price
+				else
+					if WORLD.player_character ~= root then
+						root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
+					end
+				end
+			end
 		end
 	}
 

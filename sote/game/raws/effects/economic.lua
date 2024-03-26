@@ -543,4 +543,28 @@ function EconomicEffects.abandon_trade_rights(character)
     end
 end
 
+---Grants trading rights to character
+---@param character Character
+---@param realm Realm
+function EconomicEffects.grant_building_rights(character, realm)
+    character.has_building_permits_in[realm] = realm
+    realm.building_right_given_to[character] = character
+end
+
+---Clears all trading rights of character
+---@param character Character
+function EconomicEffects.abandon_building_rights(character)
+    ---@type Realm[]
+    local realms = {}
+
+    for _, realm in pairs(character.has_building_permits_in) do
+        table.insert(realms, realm)
+    end
+
+    for _, realm in ipairs(realms) do
+        character.has_building_permits_in[realm] = nil
+        realm.building_right_given_to[character] = nil
+    end
+end
+
 return EconomicEffects

@@ -1,6 +1,8 @@
 local office_triggers = require "game.raws.triggers.offices"
 local economy_triggers = require "game.raws.triggers.economy"
 
+local ut = require "game.ui-utils"
+
 local Trigger = {}
 
 Trigger.Pretrigger = {}
@@ -187,6 +189,32 @@ Trigger.Targeted.has_no_local_trade_permit = {
 	condition = function (root, primary_target)
 		if primary_target.realm == nil then return false end
 		return not economy_triggers.allowed_to_trade(root, primary_target.realm)
+	end
+}
+
+---commenting
+---@param x number
+---@return Pretrigger
+function Trigger.Pretrigger.savings_at_least(x)
+	---@type Pretrigger
+	local result = {
+		tooltip_on_condition_failure = function(root, primary_target)
+			return {"You don't have " .. ut.to_fixed_point2(x) .. MONEY_SYMBOL}
+		end,
+		condition = function (root)
+			return root.savings >= x
+		end
+	}
+end
+
+---@type TriggerProvince
+Trigger.Targeted.has_no_local_building_permit = {
+	tooltip_on_condition_failure = function (root, primary_target)
+		return {"You are not allowed to trade in this province"}
+	end,
+	condition = function (root, primary_target)
+		if primary_target.realm == nil then return false end
+		return not economy_triggers.allowed_to_build(root, primary_target.realm)
 	end
 }
 

@@ -20,6 +20,7 @@
 ---@field successor_of table<POP, POP>
 ---@field owned_buildings table <Building, Building>
 ---@field has_trade_permits_in table<Realm, Realm>
+---@field has_building_permits_in table<Realm, Realm>
 ---@field inventory table <TradeGoodReference, number?>
 ---@field price_memory table<TradeGoodReference, number?>
 ---@field need_satisfaction table<NEED, number>
@@ -81,7 +82,9 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.successor_of = {}
 	r.current_negotiations = {}
 	r.need_satisfaction = {}
+
 	r.has_trade_permits_in = {}
+	r.has_building_permits_in = {}
 
 	r.basic_needs_satisfaction = 0
 	r.life_needs_satisfaction = 0

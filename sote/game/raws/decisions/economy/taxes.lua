@@ -95,7 +95,7 @@ return function ()
 	}
 
 
-    ---@type DecisionCharacter
+	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'collect-tax',
 		ui_name = "Collect tax from local province",

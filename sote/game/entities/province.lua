@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 local wb = require "game.entities.warband"
 
 local EconomicValues = require "game.raws.values.economical"
+local economic_triggers = require "game.raws.triggers.economy"
 
 ---@alias Character POP
 
@@ -588,7 +589,7 @@ function prov.Province:building_type_present(building_type)
 	return false
 end
 
----@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "tile_improvement" | "missing_local_resources"
+---@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "tile_improvement" | "missing_local_resources" | "no_permission"
 
 ---comment
 ---@param funds number
@@ -629,6 +630,10 @@ function prov.Province:can_build(funds, building, location, overseer, public)
 	end
 
 	local construction_cost = EconomicValues.building_cost(building, overseer, public)
+
+	if not economic_triggers.allowed_to_build(overseer, self.realm) then
+		return false, "no_permission"
+	end
 
 	if building.unique and self:building_type_present(building) then
 		return false, "unique_duplicate"

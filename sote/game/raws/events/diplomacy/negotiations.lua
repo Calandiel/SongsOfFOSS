@@ -165,6 +165,20 @@ return function ()
 					ai_preference = function ()
 						return 0
 					end
+				},
+
+				{
+					text = "Building permission",
+					tooltip = "Request personal building permission",
+					viable = function()
+						return true
+					end,
+					outcome = function()
+						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-building-permission", character, associated_data)
+					end,
+					ai_preference = function ()
+						return 0
+					end
 				}
 			}
 		end
@@ -446,7 +460,67 @@ return function ()
 						---@type NegotiationCharacterToRealm
 						local new_term = {
 							target = realm,
-							trade_permission = true
+							trade_permission = true,
+							building_permission = false
+						}
+						table.insert(associated_data.negotiations_terms_character_to_realm, new_term)
+
+						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term", character, associated_data)
+					end,
+					ai_preference = function ()
+						return 0
+					end
+				})
+			end
+
+			return options_list
+		end
+	}
+
+	Event:new {
+		name = "negotiation-initiator-add-personal-term-building-permission",
+		event_text = function(self, root, associated_data) return "I need to choose in which realm I want to be allowed to build" end,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = function(self, character)
+			return false
+		end,
+		options = function(self, character, associated_data)
+			---@type NegotiationData
+			associated_data = associated_data
+
+			local options_list = {
+				{
+					text = "Return",
+					tooltip = "Return to negotiation draft",
+					viable = function() return true end,
+					outcome = function()
+						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term", character, associated_data)
+					end,
+					ai_preference = function ()
+						return 0
+					end
+				}
+			}
+
+			for _, realm in pairs(associated_data.target.leader_of) do
+				table.insert(options_list, {
+					text = realm.name,
+					tooltip = "Choose " .. realm.name,
+					viable = function ()
+						-- if we are already allowed to trade there, we can't buy permission
+						if economy_triggers.allowed_to_trade(character, realm) then
+							return false
+						end
+						return true
+					end,
+					outcome = function ()
+						---@type NegotiationCharacterToRealm
+						local new_term = {
+							target = realm,
+							trade_permission = false,
+							building_permission = true
 						}
 						table.insert(associated_data.negotiations_terms_character_to_realm, new_term)
 
@@ -630,6 +704,10 @@ return function ()
 				if item.trade_permission then
 					desired_gift = desired_gift + item.target.trading_right_cost
 				end
+
+				if item.building_permission then
+					desired_gift = desired_gift + item.target.building_right_cost
+				end
 			end
 
 			local perceived_change = wealth_gain + wealth_reduction - desired_gift + realm_wealth_gain
@@ -791,6 +869,10 @@ return function ()
 						for _, item in ipairs(associated_data.negotiations_terms_character_to_realm) do
 							if item.trade_permission then
 								economy_effects.grant_trade_rights(initiator, item.target)
+							end
+
+							if item.building_permission then
+								economy_effects.grant_building_rights(initiator, item.target)
 							end
 						end
 					end,

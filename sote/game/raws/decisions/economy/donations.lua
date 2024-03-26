@@ -9,7 +9,7 @@ local political_effects = require "game.raws.effects.political"
 local base_gift_size = 20
 
 return function ()
-    ---@type DecisionCharacter
+	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'donate-wealth-local-wealth',
 		ui_name = "Donate wealth to locals.",

@@ -267,6 +267,14 @@ function text.negotiation_string(negotiation)
 			.. item.target.name
 			.. "\n"
 		end
+
+		if item.building_permission then
+			character_realm_string = character_realm_string
+			.. negotiation.initiator.name
+			.. " will be allowed to build in lands of "
+			.. item.target.name
+			.. "\n"
+		end
 	end
 
 	return trade_string_initiator .. trade_string_target .. realm_string .. character_realm_string
