@@ -23,6 +23,7 @@ local function gen_phase_02(world)
 end
 
 local function cache_tile_coord(world)
+  print("Caching tile coordinates...")
   local start = love.timer.getTime()
 
   for _, tile in pairs(WORLD.tiles) do
