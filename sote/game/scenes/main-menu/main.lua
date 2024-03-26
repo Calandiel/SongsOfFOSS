@@ -46,7 +46,7 @@ function mm.draw()
 	) then
 		return "empty"
 	end
-	if IS_WINDOWS and ut.text_button(
+	if love.system.getOS() == "Windows" and ut.text_button(
 		"New planet (WIP)",
 		layout:next(menu_button_width, menu_button_height)
 	) then
