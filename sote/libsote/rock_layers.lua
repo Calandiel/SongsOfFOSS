@@ -26,9 +26,9 @@ require("libsote.stone_layers_loader").load()
 local stone_layers = require("libsote.stone_layer").get_layers_by_id()
 
 local function assign_igneous_extrusive(stone_layer)
-    if stone_layer.acidity < 0.33000001311302185 then
+    if stone_layer.acidity < 0.33 then
         table.insert(rock_layers[rock_types.basic_volcanics], stone_layer)
-    elseif stone_layer.acidity < 0.6600000262260437 then
+    elseif stone_layer.acidity < 0.66 then
         table.insert(rock_layers[rock_types.mixed_volcanics], stone_layer)
     else
         table.insert(rock_layers[rock_types.acid_volcanics], stone_layer)
@@ -36,9 +36,9 @@ local function assign_igneous_extrusive(stone_layer)
 end
 
 local function assign_igneous_intrusive(stone_layer)
-    if stone_layer.acidity < 0.33000001311302185 then
+    if stone_layer.acidity < 0.33 then
         table.insert(rock_layers[rock_types.basic_plutonics], stone_layer)
-    elseif stone_layer.acidity < 0.6600000262260437 then
+    elseif stone_layer.acidity < 0.66 then
         table.insert(rock_layers[rock_types.mixed_plutonics], stone_layer)
     else
         table.insert(rock_layers[rock_types.acid_plutonics], stone_layer)
@@ -47,9 +47,9 @@ end
 
 local function assign_sedimentary(stone_layer)
     if stone_layer.clastic then
-        if stone_layer.grain_size < 0.33000001311302185 then
+        if stone_layer.grain_size < 0.33 then
             table.insert(rock_layers[rock_types.mudstone], stone_layer)
-        elseif stone_layer.grain_size < 0.6600000262260437 then
+        elseif stone_layer.grain_size < 0.66 then
             table.insert(rock_layers[rock_types.siltstone], stone_layer)
         else
             table.insert(rock_layers[rock_types.sandstone], stone_layer)
