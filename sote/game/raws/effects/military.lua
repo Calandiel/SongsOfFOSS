@@ -1,5 +1,6 @@
 local path = require "game.ai.pathfinding"
 local ui_utils = require "game.ui-utils"
+local tabb = require "engine.table"
 
 local RewardFlag = require "game.entities.realm".RewardFlag
 
@@ -9,7 +10,14 @@ local military_values = require "game.raws.values.military"
 
 local MilitaryEffects = {}
 
----Sets character as a recruiter of warband
+---Sets character as a commander of the warband
+---@param character Character
+---@param warband Warband
+function MilitaryEffects.set_commander(warband, character, unit)
+   warband:set_commander(character, unit)
+end
+
+---Sets character as a recruiter of the warband
 ---@param character Character
 ---@param warband Warband
 function MilitaryEffects.set_recruiter(warband, character)
@@ -17,7 +25,17 @@ function MilitaryEffects.set_recruiter(warband, character)
     warband.recruiter = character
 end
 
----Sets character as a recruiter of warband
+---Removes a character as a commander of the warband
+--- and removes them from the units table.
+---@param character Character
+---@param warband Warband
+function MilitaryEffects.unset_commander(warband, character)
+    if character == warband.commander then
+        warband:unset_commander()
+    end
+end
+
+---Removes character as a recruiter of the warband
 ---@param character Character
 ---@param warband Warband
 function MilitaryEffects.unset_recruiter(warband, character)
@@ -37,10 +55,6 @@ function MilitaryEffects.gather_warband(leader)
     warband.leader = leader
     leader.leading_warband = warband
 
-    warband.commander = leader
-
-    MilitaryEffects.set_recruiter(warband, leader)
-
     if WORLD:does_player_see_realm_news(leader.province.realm) then
         WORLD:emit_notification(leader.name .. " is gathering his own warband.")
     end
@@ -52,7 +66,7 @@ function MilitaryEffects.gather_guard(realm)
     local province = realm.capitol
     local warband = province:new_warband()
     warband.name = "Guard of " .. realm.name
-
+    warband.guard_of = realm
     realm.capitol_guard = warband
 
     if WORLD:does_player_see_realm_news(realm) then
@@ -78,6 +92,11 @@ function MilitaryEffects.dissolve_guard(realm)
     end
 
     warband.recruiter = nil
+
+    if warband.commander then
+        MilitaryEffects.unset_commander(warband, warband.recruiter)
+    end
+
     warband.commander = nil
 
     ---@type POP[]
@@ -105,11 +124,13 @@ function MilitaryEffects.dissolve_warband(leader)
         return
     end
 
-    economy_effects.gift_to_warband(leader, -warband.treasury)
+    economy_effects.gift_to_warband(warband, leader, -warband.treasury)
     leader.leading_warband = nil
 
     warband.leader = nil
-    warband.commander = nil
+    if warband.commander then
+        MilitaryEffects.unset_commander(warband, warband.commander)
+    end
     if warband.recruiter then
         MilitaryEffects.unset_recruiter(warband, warband.recruiter)
     end

@@ -30,7 +30,7 @@ function ll.load()
 		minimum_absolute_temperature = -25,
 		fecundity = 0.85,
 		spotting = 0.5,
-		visibility = 5,
+		visibility = 2,
 		female_body_size = 1.5,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 1,
@@ -131,7 +131,7 @@ function ll.load()
 		minimum_absolute_temperature = -15,
 		fecundity = 0.5,
 		spotting = 2,
-		visibility = 0.25,
+		visibility = 0.5,
 		female_body_size = 0.9,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 1,
@@ -234,7 +234,7 @@ function ll.load()
 		minimum_comfortable_elevation = 800,
 		fecundity = 0.75,
 		spotting = 0.75,
-		visibility = 0.75,
+		visibility = 1.0,
 		female_body_size = 0.7,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 1.1,
@@ -334,8 +334,8 @@ function ll.load()
 		minimum_comfortable_temperature = 5,
 		minimum_absolute_temperature = -10,
 		fecundity = 4,
-		spotting = 1.5,
-		visibility = 0.5,
+		spotting = 0.75,
+		visibility = 0.75,
 		female_body_size = 0.5,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 0.25,

@@ -39,11 +39,7 @@ function re.draw(gam)
 		local panel = get_main_panel()
 		ui.panel(panel)
 
-		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up")) then
-			gam.click_tile(-1)
-			gam.selected.building = nil
-			gam.inspector = nil
-		end
+		ib.icon_button_to_close(gam, panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up"))
 
 		local topbar = ui.layout_builder()
 			:position(panel.x, panel.y)
@@ -201,7 +197,13 @@ function re.draw(gam)
 			uit.NAME_MODE.NAME)
 		-- work ratio
 		ui.centered_text("Work ratio: ", middle_text_rect)
-		uit.color_coded_percentage(building.work_ratio, middle_value_rect, true, "Percentage of time workers spent toiling.")
+		uit.generic_number_field(
+			"chart.png",
+			building.work_ratio,
+			middle_value_rect,
+			"Percentage of time workers spent toiling.",
+			uit.NUMBER_MODE.PERCENTAGE,
+			uit.NAME_MODE.ICON)
 		-- spent_on_inputs
 		local input_total = tabb.accumulate(building.spent_on_inputs, 0, function (a, _, v)
 			return a + v

@@ -3,6 +3,15 @@ local ut = require "game.ui-utils"
 
 local ib = {}
 
+
+---@param game GameScene
+---@param rect Rect
+function ib.icon_button_to_close(game, rect)
+    if ut.icon_button(ASSETS.icons["cancel.png"], rect) then
+        game.inspector = nil
+    end
+end
+
 ---@param game GameScene
 ---@param realm Realm
 ---@param rect Rect
@@ -61,6 +70,20 @@ function ib.text_button_to_province(game, province, rect, text, tooltip, potenti
         game.selected.province = province
         game.selected.tile = province.center
         game.inspector = "tile"
+    end
+end
+
+
+---@param game GameScene
+---@param warband Warband
+---@param rect Rect
+---@param tooltip string?
+---@param potential boolean?
+---@param active boolean?
+function ib.text_button_to_warband(game, warband, rect, text, tooltip, potential, active)
+    if ut.text_button(text, rect, tooltip, potential, active) then
+        game.selected.warband = warband
+        game.inspector = "warband"
     end
 end
 

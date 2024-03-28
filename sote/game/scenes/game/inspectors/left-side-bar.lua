@@ -86,7 +86,8 @@ function inspector.draw(gam)
         ["warband"] = function ()
             if WORLD.player_character == nil then return false end
             if WORLD.player_character.leading_warband then return true end
-            if office_triggers.guard_leader(WORLD.player_character, WORLD.player_character.realm) then return true end
+            --if office_triggers.guard_leader(WORLD.player_character, WORLD.player_character.realm) then return true end
+            if WORLD.player_character.recruiter_for_warband or WORLD.player_character.unit_of_warband then return true end
             return false
         end,
         ["property"] = function ()
@@ -119,6 +120,12 @@ function inspector.draw(gam)
                     local character = WORLD.player_character
                     if character and gam.inspector == "market" then
                         gam.selected.province = character.province
+                    end
+                    if character and gam.inspector == "warband" then
+                        local player_warband = character.leading_warband
+                        if not player_warband then player_warband = character.recruiter_for_warband end
+                        if not player_warband then player_warband = character.unit_of_warband end
+                        gam.selected.warband = player_warband
                     end
                 end
             end

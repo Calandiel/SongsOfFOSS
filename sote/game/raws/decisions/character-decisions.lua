@@ -361,7 +361,7 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			economic_effects.gift_to_warband(root, root.savings / 3)
+			economic_effects.gift_to_warband(root.leading_warband, root, root.savings / 3)
 		end
 	}
 

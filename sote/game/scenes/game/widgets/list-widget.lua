@@ -8,8 +8,10 @@ local ut = require "game.ui-utils"
 ---@return TableState state
 local function init_state(state, compact)
     local entry_height = UI_STYLE.scrollable_list_item_height
+    local slider_width = UI_STYLE.slider_width
     if compact then
         entry_height = UI_STYLE.scrollable_list_small_item_height
+        slider_width = UI_STYLE.scrollable_list_thin_item_height
     end
 
     if state == nil then
@@ -17,14 +19,14 @@ local function init_state(state, compact)
             header_height = UI_STYLE.table_header_height,
             individual_height = entry_height,
             slider_level = 0,
-            slider_width = UI_STYLE.slider_width,
+            slider_width = slider_width,
             sorted_field = 1,
             sorting_order = true
         }
     else
         state.header_height = UI_STYLE.table_header_height
         state.individual_height = entry_height
-        state.slider_width = UI_STYLE.slider_width
+        state.slider_width = slider_width
     end
     return state
 end
@@ -41,13 +43,6 @@ return function(rect, table, columns, state, title, compact)
         compact = false
     end
 
-    local portrait_width = UI_STYLE.scrollable_list_item_height
-    if compact then
-        portrait_width = UI_STYLE.scrollable_list_small_item_height
-    end
-
-    local rest_width = rect.width - portrait_width
-    local width_unit = rest_width / 12
     return function()
 
         local state = init_state(state, compact)

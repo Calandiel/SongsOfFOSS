@@ -510,10 +510,10 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
 end
 
 ---comment
+---@param warband Warband
 ---@param character Character
 ---@param amount number
-function EconomicEffects.gift_to_warband(character, amount)
-    local warband = character.leading_warband
+function EconomicEffects.gift_to_warband(warband, character, amount)
 
     if warband == nil then
         return

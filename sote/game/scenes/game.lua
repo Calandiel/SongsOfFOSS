@@ -28,6 +28,7 @@ local inspectors_table = {
 	["realm"] = require "game.scenes.game.realm-inspector",
 	["building"] = require "game.scenes.game.building-inspector",
 	["war"] = require "game.scenes.game.war-inspector",
+	["warband"] = require "game.scenes.game.inspectors.warband",
 	["options"] = require "game.scenes.main-menu.options",
 	["confirm-exit"] = require "game.scenes.game.confirm-exit",
 	["army"] = require "game.scenes.game.inspector-military",
@@ -38,7 +39,6 @@ local inspectors_table = {
 	["population"] = require "game.scenes.game.inspectors.population",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
-	["warband"] = require "game.scenes.game.inspectors.warband",
 	["property"] = require "game.scenes.game.inspectors.property",
 	["preferences"] = require "game.scenes.game.inspectors.character_stance"
 }
@@ -62,6 +62,7 @@ local tile_inspectors = {
 ---@field building Building?
 ---@field macrobuilder_building_type BuildingType?
 ---@field war War?
+---@field warband Warband?
 ---@field decision DecisionCharacter?
 ---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?

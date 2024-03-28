@@ -1436,7 +1436,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	for index = 1, #columns do
 		total_weight = total_weight + columns[index].width
 	end
-	local weight = (rect.width - 20) / total_weight
+	local weight = (rect.width - state.slider_width) / total_weight
 	for index = 1, #columns do
 		local header_rect =  layout:next(columns[index].width * weight, state.individual_height)
 		header_rect.height = rect.height

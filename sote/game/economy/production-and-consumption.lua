@@ -1075,9 +1075,9 @@ function pro.run(province)
 					return a
 				end)
 				if min_life_satisfaction < 1/6 then
-					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
-				else
-					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
+					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.75)
+				elseif income > 0 then
+					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.2)
 				end
 
 				if province.trade_wealth < income then
@@ -1105,7 +1105,7 @@ function pro.run(province)
 
 			-- every pop spends some time or wealth on fullfilling their needs:
 			--PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, free_time_of_pop, pop.savings / 6)
+			satisfy_needs(pop_view, pop, free_time_of_pop, math.max(0, pop.savings / 12))
 			--PROFILER:end_timer("production-satisfy-needs")
 		end
 

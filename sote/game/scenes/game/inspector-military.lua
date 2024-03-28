@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+local ib = require "game.scenes.game.widgets.to-inspector-buttons"
 
 local window = {}
 
@@ -52,23 +53,31 @@ function window.draw(game)
     local warbands = realm:get_warbands()
     slider_warbands = uit.scrollview(ui_panel, function(i, rect)
         if i > 0 then
+            local realm_icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "up")
+
             ---@type Rect
             local r = rect
+            r.x = r.x + rect.height
+            r.width = r.width - r.height
             local width_unit = r.width / 4
             local x = r.x
 
             r.width = width_unit * 2
             ---@type Warband
             local warband = warbands[i]
-            ui.left_text(warband.name, r)
+
+            ib.icon_button_to_realm(game, warband:realm(), realm_icon_rect)
+            
+            ib.text_button_to_warband(game, warband, r,
+                warband.name)
 
             r.width = width_unit
             r.x = x + width_unit * 2
-            ui.left_text(warband.status, r)
+            ui.centered_text(warband.status, r)
 
             r.x = x + width_unit * 3
             ui.left_text("units: ", r)
-            ui.right_text(" " .. warband:size(), r)
+            ui.right_text(warband:size() .. " / " .. warband:target_size() .. " (" .. warband:pop_size() .. ") ", r)
         end
     end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, slider_warbands)
 
@@ -89,16 +98,17 @@ function window.draw(game)
             local target = tabb.nth(targets, i)
             local warbands = realm.raiders_preparing[target]
             local size = 0
-            for _, warband in pairs(warbands) do
-                size = size  + warband:size()
-            end
-            if target.owner == WORLD.player_character then
-                if uit.text_button("", rect) then
-                    game.selected.reward_flag = target
-                    game.inspector = "reward-flag-edit"
+            if warbands then
+                for _, warband in pairs(warbands) do
+                    size = size  + warband:size()
+                end
+                if target.owner == WORLD.player_character then
+                    if uit.text_button("", rect) then
+                        game.selected.reward_flag = target
+                        game.inspector = "reward-flag-edit"
+                    end
                 end
             end
-
             uit.columns({
                 -- owner
                 function (rect)

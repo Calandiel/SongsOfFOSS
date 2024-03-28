@@ -60,7 +60,7 @@ function triggers.guard_leader(character, realm)
     if character.realm ~= realm then return false end
     local guard = realm.capitol_guard
     if guard == nil then return false end
-    if guard.commander ~= character then return false end
+    if guard.recruiter ~= character and guard.commander ~= character then return false end
 
     return true
 end
