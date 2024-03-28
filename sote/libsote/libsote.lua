@@ -319,7 +319,7 @@ function libsote.generate_world()
   local start = love.timer.getTime()
   local world = require("libsote.world_allocator").allocate(world_size, seed)
   local duration = love.timer.getTime() - start
-  print("allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
+  print("[worldgen profiling] allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
 
   if not world then
     log_and_set_msg("World allocation failed")

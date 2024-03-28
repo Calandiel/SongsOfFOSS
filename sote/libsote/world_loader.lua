@@ -53,7 +53,7 @@ function wl.load_maps_from(world)
     end
 
     local duration = love.timer.getTime() - start
-    print("loaded maps: " .. tostring(duration * 1000) .. "ms")
+    print("[worldgen profiling] loaded maps: " .. tostring(duration * 1000) .. "ms")
 end
 
 -- local hex = require("libsote.hex_utils")

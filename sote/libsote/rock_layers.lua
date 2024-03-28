@@ -22,77 +22,74 @@ for _, value in pairs(rock_types) do
     rock_layers[value] = {}
 end
 
-require("libsote.stone_layers_loader").load()
-local stone_layers = require("libsote.stone_layer").get_layers_by_id()
-
-local function assign_igneous_extrusive(stone_layer)
-    if stone_layer.acidity < 0.33 then
-        table.insert(rock_layers[rock_types.basic_volcanics], stone_layer)
-    elseif stone_layer.acidity < 0.66 then
-        table.insert(rock_layers[rock_types.mixed_volcanics], stone_layer)
+local function assign_igneous_extrusive(bedrock)
+    if bedrock.acidity < 0.33 then
+        table.insert(rock_layers[rock_types.basic_volcanics], bedrock)
+    elseif bedrock.acidity < 0.66 then
+        table.insert(rock_layers[rock_types.mixed_volcanics], bedrock)
     else
-        table.insert(rock_layers[rock_types.acid_volcanics], stone_layer)
+        table.insert(rock_layers[rock_types.acid_volcanics], bedrock)
     end
 end
 
-local function assign_igneous_intrusive(stone_layer)
-    if stone_layer.acidity < 0.33 then
-        table.insert(rock_layers[rock_types.basic_plutonics], stone_layer)
-    elseif stone_layer.acidity < 0.66 then
-        table.insert(rock_layers[rock_types.mixed_plutonics], stone_layer)
+local function assign_igneous_intrusive(bedrock)
+    if bedrock.acidity < 0.33 then
+        table.insert(rock_layers[rock_types.basic_plutonics], bedrock)
+    elseif bedrock.acidity < 0.66 then
+        table.insert(rock_layers[rock_types.mixed_plutonics], bedrock)
     else
-        table.insert(rock_layers[rock_types.acid_plutonics], stone_layer)
+        table.insert(rock_layers[rock_types.acid_plutonics], bedrock)
     end
 end
 
-local function assign_sedimentary(stone_layer)
-    if stone_layer.clastic then
-        if stone_layer.grain_size < 0.33 then
-            table.insert(rock_layers[rock_types.mudstone], stone_layer)
-        elseif stone_layer.grain_size < 0.66 then
-            table.insert(rock_layers[rock_types.siltstone], stone_layer)
+local function assign_sedimentary(bedrock)
+    if bedrock.clastic then
+        if bedrock.grain_size < 0.33 then
+            table.insert(rock_layers[rock_types.mudstone], bedrock)
+        elseif bedrock.grain_size < 0.66 then
+            table.insert(rock_layers[rock_types.siltstone], bedrock)
         else
-            table.insert(rock_layers[rock_types.sandstone], stone_layer)
+            table.insert(rock_layers[rock_types.sandstone], bedrock)
         end
-    elseif stone_layer.evaporative then -- redundant branch, for readability from the perspective of the underlying geological principles
-        table.insert(rock_layers[rock_types.limestone], stone_layer)
+    elseif bedrock.evaporative then -- redundant branch, for readability from the perspective of the underlying geological principles
+        table.insert(rock_layers[rock_types.limestone], bedrock)
     else
-        table.insert(rock_layers[rock_types.limestone], stone_layer)
+        table.insert(rock_layers[rock_types.limestone], bedrock)
     end
 end
 
-local function assign_to_rock_layer(stone_layer)
-    if stone_layer.igneous_extrusive then
-        assign_igneous_extrusive(stone_layer)
+local function assign_to_rock_layer(bedrock)
+    if bedrock.igneous_extrusive then
+        assign_igneous_extrusive(bedrock)
     end
 
-    if stone_layer.igneous_intrusive then
-        assign_igneous_intrusive(stone_layer)
+    if bedrock.igneous_intrusive then
+        assign_igneous_intrusive(bedrock)
     end
 
-    if stone_layer.sedimentary then
-        assign_sedimentary(stone_layer)
+    if bedrock.sedimentary then
+        assign_sedimentary(bedrock)
     end
 
-    if stone_layer.metamorphic_marble then
-        table.insert(rock_layers[rock_types.marble], stone_layer)
+    if bedrock.metamorphic_marble then
+        table.insert(rock_layers[rock_types.marble], bedrock)
     end
 
-    if stone_layer.metamorphic_slate then
-        table.insert(rock_layers[rock_types.slate], stone_layer)
+    if bedrock.metamorphic_slate then
+        table.insert(rock_layers[rock_types.slate], bedrock)
     end
 
-    if stone_layer.oceanic then
-        table.insert(rock_layers[rock_types.no_type], stone_layer)
+    if bedrock.oceanic then
+        table.insert(rock_layers[rock_types.no_type], bedrock)
     end
 
-    if stone_layer.sedimentary_ocean_deep or stone_layer.sedimentary_ocean_shallow then
-        table.insert(rock_layers[rock_types.limestone_reef], stone_layer)
+    if bedrock.sedimentary_ocean_deep or bedrock.sedimentary_ocean_shallow then
+        table.insert(rock_layers[rock_types.limestone_reef], bedrock)
     end
 end
 
-for _, stone_layer in pairs(stone_layers) do
-    assign_to_rock_layer(stone_layer)
+for _, bedrock in pairs(RAWS_MANAGER.bedrocks_by_color) do
+    assign_to_rock_layer(bedrock)
 end
 
 -- local rock_types_to_name = {}

@@ -15,7 +15,7 @@ local function run_with_profiling(func, log_text)
   local start = love.timer.getTime()
   func()
   local duration = love.timer.getTime() - start
-  print(log_text .. ": " .. tostring(duration * 1000) .. "ms")
+  print("[worldgen profiling] " .. log_text .. ": " .. tostring(duration * 1000) .. "ms")
 end
 
 local function gen_phase_02(world)
@@ -56,10 +56,11 @@ function wg.init()
 
   wg.state = STATES.phase_01
 
+  require "game.raws.raws" ()
+
   gen_phase_02(wg.world)
 
   require "game.entities.world".empty()
-  require "game.raws.raws" ()
 
   cache_tile_coord(wg.world)
 
