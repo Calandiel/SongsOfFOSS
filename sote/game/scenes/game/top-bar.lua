@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+local economical = require "game.raws.values.economical"
 
 local pv = require "game.raws.values.political"
 
@@ -148,7 +149,7 @@ function tb.draw(gam)
 
 		local amount = character:available_use_case_from_inventory('food')
 		uit.sqrt_number_entry_icon(
-			"noodles.png",
+			"sliced-bread.png",
 			amount,
 			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
 			"Food in my inventory")
@@ -204,7 +205,7 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = character.province.realm.resources["food"] or 0
+		local amount = economical.available_use(character.province, 'food')
 		uit.sqrt_number_entry_icon(
 			"noodles.png",
 			amount,

@@ -403,7 +403,11 @@ function realm.Realm:get_average_needs_satisfaction()
 	local total_population = 0
 	for _, province in pairs(self.provinces) do
 		for _, pop in pairs(province.all_pops) do
-			sum = sum + pop.basic_needs_satisfaction + pop.life_needs_satisfaction
+			sum = sum + pop.basic_needs_satisfaction
+			total_population = total_population + 1
+		end
+		for _, pop in pairs(province.characters) do
+			sum = sum + pop.basic_needs_satisfaction
 			total_population = total_population + 1
 		end
 	end

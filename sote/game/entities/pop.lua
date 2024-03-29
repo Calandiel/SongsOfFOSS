@@ -198,7 +198,7 @@ function rtab.POP:consume_use_case_from_inventory(use_case, amount)
 	local use = trade_good_use_case(use_case)
 	local supply = self:available_use_case_from_inventory(use_case)
 	local consumed = tabb.accumulate(use.goods, 0, function (a, good, weight)
-		local inventory = self.inventory[good]
+		local inventory = self.inventory[good] or 0
 		if inventory > 0 then
 			local available = inventory * weight
 			local satisfied = amount * available / supply
@@ -222,7 +222,7 @@ function rtab.POP:consume_use_case_from_inventory(use_case, amount)
 		return a
 	end)
 
-	if consumed + 0.01 > amount then
+	if consumed > amount + 0.01 then
 		error("CONSUMED TOO MUCH: "
 			.. "\n consumed = "
 			.. tostring(consumed)
