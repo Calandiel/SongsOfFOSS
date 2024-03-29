@@ -161,7 +161,7 @@ function warband:target_size()
 	local size = tabb.accumulate(self.units_target, 0, function (a, k, v)
 		return a + v
 	end)
-	-- commander unit only included in target if actually hired
+	-- commander unit only included in target if actually hired as unit
 	if self.commander then
 		size = size + 1
 	end
@@ -364,7 +364,7 @@ function warband:get_speed()
 	if self.leader and self.leader ~= self.recruiter and self.leader ~= self.commander then
 		total_speed = total_speed + 1
 	end
-	return total_speed, math.max(0, total_speed / self:pop_size())
+	return total_speed, math.max(total_speed / self:pop_size(), 0)
 end
 
 ---Returns speed of exploration

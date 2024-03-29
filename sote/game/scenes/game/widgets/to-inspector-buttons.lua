@@ -16,6 +16,9 @@ end
 ---@param realm Realm
 ---@param rect Rect
 function ib.icon_button_to_realm(game, realm, rect)
+    rect:shrink(1)
+    ui.panel(rect, 2, true)
+    rect:shrink(1)
     if ut.coa(realm, rect) then
         game.selected.realm = realm
         game.inspector = "realm"
@@ -39,6 +42,8 @@ end
 ---@param character Character
 ---@param rect Rect
 function ib.icon_button_to_character(game, character, rect)
+    ui.panel(rect, 1, true)
+    rect:shrink(-1)
     require "game.scenes.game.widgets.portrait"(rect, character)
     if ui.invisible_button(rect) then
         game.selected.character = character
