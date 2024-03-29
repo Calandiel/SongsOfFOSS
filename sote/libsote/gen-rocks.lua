@@ -1,6 +1,6 @@
 local gr = {}
 
-local rock_layers = require("libsote.rock_layers")
+local rock_layers = require("libsote.rock-layers")
 local rand = require("libsote.randomness")
 
 local function assign_rock_layer_to_tile(index, world)

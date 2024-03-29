@@ -9,7 +9,7 @@ local STATES = {
 
 local libsote = require("libsote.libsote")
 local cpml = require "cpml"
-local hex = require("libsote.hex_utils")
+local hex = require("libsote.hex-utils")
 
 local function run_with_profiling(func, log_text)
 	local start = love.timer.getTime()
@@ -19,7 +19,7 @@ local function run_with_profiling(func, log_text)
 end
 
 local function gen_phase_02(world)
-	run_with_profiling(function() require "libsote.gen_rocks".run(world) end, "gen_rocks")
+	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen_rocks")
 end
 
 local function cache_tile_coord(world)
@@ -64,7 +64,7 @@ function wg.init()
 
 	cache_tile_coord(wg.world)
 
-	local wl = require "libsote.world_loader"
+	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
 
 

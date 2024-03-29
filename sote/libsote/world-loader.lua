@@ -56,7 +56,7 @@ function wl.load_maps_from(world)
     print("[worldgen profiling] loaded maps: " .. tostring(duration * 1000) .. "ms")
 end
 
--- local hex = require("libsote.hex_utils")
+-- local hex = require("libsote.hex-utils")
 
 -- local data_loader = require("libsote.debug_data_loader")
 -- data_loader.loadDataFromFile("D:/temp/sote_output.txt")

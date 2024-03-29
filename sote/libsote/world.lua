@@ -1,5 +1,5 @@
 local world = {
-	world_size = nil,
+	size = nil,
 	seed = nil,
 	rng = nil,
 	tile_count = 0,
@@ -40,7 +40,7 @@ function world:new(world_size, seed)
 	obj.size = world_size
 	obj.seed = seed
 	obj.rng = require("libsote.randomness"):new(seed)
-	obj.tile_count = world_size * world_size * 30 + 2
+	obj.tile_count = obj.size * obj.size * 30 + 2
 	obj.coord = {}
 	obj.coord_by_tile_id = {}
 
@@ -191,7 +191,7 @@ function world:check()
 end
 
 function world:_check_collisions()
-	local expected = 3 + 0.5 * (3 * (self.world_size - 1)^2 + 3 * (self.world_size - 1) + 2) + 3 * (self.world_size - 1)
+	local expected = 3 + 0.5 * (3 * (self.size - 1)^2 + 3 * (self.size - 1) + 2) + 3 * (self.size - 1)
 	expected = expected * 20
 
 	local count = 0

@@ -61,7 +61,7 @@ function hu.latlon_to_hex_coords(lat, lon, ws)
         math.sin(colatitude) * math.sin(lon)
     )
 
-    local ico_defines = require("libsote.icosa_defines")
+    local ico_defines = require("libsote.icosa-defines")
     local faces = ico_defines.face_vertices
     local vertices = ico_defines.vertices
 
