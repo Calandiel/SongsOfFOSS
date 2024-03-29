@@ -27,6 +27,7 @@ local ll_utils = require "game.latlon"
 ---@field soil_organics number
 ---@field january_waterflow number
 ---@field july_waterflow number
+---@field waterlevel number
 ---@field has_river boolean
 ---@field has_marsh boolean
 ---@field ice number
@@ -54,7 +55,6 @@ local ll_utils = require "game.latlon"
 ---@field distance_to fun(self:Tile, other:Tile):number
 ---@field pathfinding_index number
 ---@field resource Resource?
----@field tile_improvement Building?
 
 ---@class Tile
 tile.Tile = {}
@@ -174,7 +174,8 @@ function tile.Tile:get_climate_data()
 
 	local r_ja, t_ja, r_ju, t_ju = a.january_rainfall * acf + b.january_rainfall * bcf + c.january_rainfall * ccf +
 		d.january_rainfall * dcf,
-		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf + d.january_temperature * dcf,
+		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf +
+		d.january_temperature * dcf,
 		a.july_rainfall * acf + b.july_rainfall * bcf + c.july_rainfall * ccf + d.july_rainfall * dcf,
 		a.july_temperature * acf + b.july_temperature * bcf + c.july_temperature * ccf + d.july_temperature * dcf
 
@@ -184,7 +185,7 @@ function tile.Tile:get_climate_data()
 	return r_ja, t_ja - TEMP_DELTA_PER_KM * dd, r_ju, t_ju - TEMP_DELTA_PER_KM * dd
 end
 
----@alias neighbourID 
+---@alias neighbourID
 ---|1 top
 ---|2 bottom
 ---|3 right

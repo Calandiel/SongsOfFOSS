@@ -76,12 +76,6 @@ function mm.set_up_map_modes(game_thingy)
 			"Shows income per realm",
 			economic_map_modes.realm_income
 		},
-		tile_improvements = {
-			"Tile improvements",
-			"horizon-road.png",
-			"Shows local tile improvements",
-			economic_map_modes.tile_infrastructure
-		},
 		resources = {
 			"Resources",
 			"rock.png",
@@ -256,7 +250,7 @@ function mm.set_up_map_modes(game_thingy)
 			"A debug map mode showing the debug color that was set on tiles by the developers!",
 			debug_map_modes.debug_color
 		},
-        atlas = {
+		atlas = {
 			"Atlas",
 			"flying-flag.png",
 			"Shows combined information.",
@@ -275,7 +269,7 @@ function mm.set_up_map_modes(game_thingy)
 		"realms", "population", "population_1000", "population_density", "plates", "rocks", "tile_carrying_capacity",
 		"resources", "soil_texture", "soil_depth", "soil_organics", "soil_minerals",
 		"jan_rain", "jul_rain", "jan_temp", "jul_temp", "jan_flow", "jul_flow",
-		"province", "carrying_capacity", "tile_improvements", "realm_income", "local_income", "coastlines",
+		"province", "carrying_capacity", "realm_income", "local_income", "coastlines",
 		"races", "cultures", "faiths", "military_target", "military", "diplomacy"
 	}
 	table.sort(game_thingy.map_mode_tabs.all, compare_map_modes)
@@ -293,7 +287,7 @@ function mm.set_up_map_modes(game_thingy)
 	}
 	table.sort(game_thingy.map_mode_tabs.debug, compare_map_modes)
 	game_thingy.map_mode_tabs.economic = {
-		"tile_improvements", "realm_income", "local_income"
+		"realm_income", "local_income"
 	}
 	table.sort(game_thingy.map_mode_tabs.economic, compare_map_modes)
 end

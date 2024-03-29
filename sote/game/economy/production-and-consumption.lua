@@ -22,7 +22,7 @@ local ffi = require "ffi"
 ---@field foraging_efficiency number
 ---@field age_multiplier number
 
-ffi.cdef[[
+ffi.cdef [[
 	typedef struct {
 		float price;
 		float feature;
@@ -116,7 +116,8 @@ local function get_price_expectation_weighted(set_of_goods)
 	local price_expectation = 0
 	for good, weight in pairs(set_of_goods) do
 		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
-		price_expectation = price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp / weight
+		price_expectation = price_expectation +
+		market_data[c_index].price * market_data[c_index].feature / total_exp / weight
 	end
 
 	return total_exp, price_expectation
@@ -144,16 +145,16 @@ function pro.run(province)
 		local consumption = province.local_consumption[good] or 0
 		local production = province.local_production[good] or 0
 		local storage = province.local_storage[good] or 0
-		market_data[i - 1].available = - consumption + production + storage
-		if market_data[i-1].available < 0 then
-			market_data[i-1].available = 0
+		market_data[i - 1].available = -consumption + production + storage
+		if market_data[i - 1].available < 0 then
+			market_data[i - 1].available = 0
 		end
 
 		-- prices:
 		local price = ev.get_local_price(province, good)
-		market_data[i-1].price = price
+		market_data[i - 1].price = price
 		old_prices[good] = price
-		market_data[i-1].feature = C.expf(-C.sqrtf(market_data[i-1].price) / (1 + market_data[i-1].available))
+		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + market_data[i - 1].available))
 
 		market_data[i - 1].consumption = 0
 		market_data[i - 1].supply = 0
@@ -193,7 +194,7 @@ function pro.run(province)
 			)
 		end
 
-		return market_data[good_index -1].price * amount
+		return market_data[good_index - 1].price * amount
 	end
 
 	---Record local production!
@@ -210,7 +211,7 @@ function pro.run(province)
 			)
 		end
 
-		return market_data[good_index -1].price * amount
+		return market_data[good_index - 1].price * amount
 	end
 
 
@@ -261,7 +262,8 @@ function pro.run(province)
 		local food_produced = pop[zero].foraging_efficiency * 0.25 * time
 
 		if pop_table.unit_of_warband.leader then
-			pop_table.unit_of_warband.leader.inventory['food'] = (pop_table.unit_of_warband.leader.inventory['food'] or 0) + food_produced
+			pop_table.unit_of_warband.leader.inventory['food'] = (pop_table.unit_of_warband.leader.inventory['food'] or 0) +
+			food_produced
 		end
 	end
 
@@ -573,7 +575,7 @@ function pro.run(province)
 	for _, pop in pairs(province.all_pops) do
 		table.insert(pops_by_wealth, pop)
 	end
-	table.sort(pops_by_wealth, function (a, b)
+	table.sort(pops_by_wealth, function(a, b)
 		return a.savings > b.savings
 	end)
 
@@ -581,7 +583,6 @@ function pro.run(province)
 
 	PROFILER:start_timer("production-pops-loop")
 	for _, pop in ipairs(pops_by_wealth) do
-
 		-- populate pop_view
 		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
 		if pop.female then
@@ -654,23 +655,20 @@ function pro.run(province)
 
 				local local_foraging_efficiency = 1
 				if prod.foraging then
-					foragers_count = foragers_count + math.min(building.work_ratio, free_time_of_pop) -- Record a new forager!
+					foragers_count = foragers_count +
+					math.min(building.work_ratio, free_time_of_pop)                    -- Record a new forager!
 					local_foraging_efficiency = foraging_efficiency
 				end
 				local yield = 1
 				local local_tile = province.center
-				if pop.employer.tile then
-					local_tile = pop.employer.tile
-				end
 				if local_tile then
 					yield = prod:get_efficiency(local_tile)
-
 				end
 
 				local efficiency = yield
-									* local_foraging_efficiency
-									* efficiency_from_infrastructure
-									* math.min(pop.employer.work_ratio, free_time_of_pop)
+					* local_foraging_efficiency
+					* efficiency_from_infrastructure
+					* math.min(pop.employer.work_ratio, free_time_of_pop)
 
 				-- expected input satisfaction
 				local input_satisfaction = 1
@@ -718,18 +716,19 @@ function pro.run(province)
 				end
 
 				local _, input_boost, output_boost, throughput_boost
-					= ev.projected_income(
-						pop.employer,
-						pop.race,
-						pop.female,
-						old_prices,
-						efficiency
-					)
+				= ev.projected_income(
+					pop.employer,
+					pop.race,
+					pop.female,
+					old_prices,
+					efficiency
+				)
 
 				if prod.forest_dependence > 0 then
 					local years_to_deforestate = 50
 					local days_to_deforestate = years_to_deforestate * 360
-					local total_power = prod.forest_dependence * efficiency * throughput_boost * input_boost / days_to_deforestate
+					local total_power = prod.forest_dependence * efficiency * throughput_boost * input_boost /
+					days_to_deforestate
 					require "game.raws.effects.geography".deforest_random_tile(province, total_power)
 				end
 
@@ -811,7 +810,8 @@ function pro.run(province)
 					pop.employer.work_ratio = math.max(0.01, pop.employer.work_ratio * 0.5)
 				end
 
-				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
+				free_time_of_pop = free_time_of_pop -
+				math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
 
 				if province.trade_wealth > income then
 					economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
@@ -838,7 +838,7 @@ function pro.run(province)
 						economic_effects.add_pop_savings(pop, siphon_to_child, economic_effects.reasons.Donation)
 						economic_effects.change_local_wealth(
 							province,
-							- siphon_to_child,
+							-siphon_to_child,
 							economic_effects.reasons.Donation
 						)
 					end

@@ -67,7 +67,6 @@ function d.load()
 		production_method = prod('hunting-0'),
 		construction_cost = COST_AREA,
 		building_group = BUILDING_GROUP.GROUNDS,
-		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
@@ -82,7 +81,6 @@ function d.load()
 		production_method = prod('hunting-1'),
 		construction_cost = COST_AREA,
 		building_group = BUILDING_GROUP.GROUNDS,
-		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
