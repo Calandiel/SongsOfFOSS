@@ -166,7 +166,7 @@ function world:_investigate_tile(q, r, face)
 	print("elev " .. self.elevation[investigate_index])
 
 	for qc = -self.size, self.size do
-		 for rc = -self.size, self.size do
+		for rc = -self.size, self.size do
 			if not self:is_valid(qc, rc) then goto continue end
 
 			for fi = 1, 20 do
