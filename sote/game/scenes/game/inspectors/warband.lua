@@ -206,7 +206,7 @@ end
 ---@return Rect
 function window.rect()
     local fs = ui.fullscreen()
-    return fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, ut.BASE_HEIGHT * 15, "left", "up")
+    return fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, fs.height / 2, "left", "up")
 end
 
 ---Returns whether or not clicks on the planet can be registered.
@@ -823,7 +823,7 @@ function window.draw(gamescene)
 			:spacing(0)
 			:build()
 
-		strength_layout:next(ut.BASE_HEIGHT * 15, strength_height)
+		ui.text("Warband strength: ", strength_layout:next(ut.BASE_HEIGHT * 15, strength_height), "right", "center")
 
 		-- total health
 		ut.generic_number_field(
@@ -933,7 +933,7 @@ function window.draw(gamescene)
 
 	local icon_width = 20 -- for square item, aligns with icon
 	local stat_width = 60 -- base height * 3, aligns with strenght stat render
-	local name_width = 275 -- magic number for fixing cetner stat alignment
+	local name_width = 295 -- magic number for fixing cetner stat alignment
 	local end_width = 90 -- magic number for fixing cetner stat alignment
 
 	--- builds and draws list of recruitable unit types
@@ -970,7 +970,7 @@ function window.draw(gamescene)
 					render_closure = function (rect, k, v)
 						ui.text(v.name, rect, "center", "center")
 					end,
-					width = name_width - stat_width * 2,
+					width = name_width - stat_width * 2 - icon_width,
 					---@param v UnitType
 					value = function (k, v)
 						return v.name
@@ -1251,7 +1251,7 @@ function window.draw(gamescene)
 					render_closure = function (rect, k, v)
 						ui.text(k.name, rect, "center", "center")
 					end,
-					width = name_width - stat_width * 2,
+					width = name_width - stat_width - icon_width * 5.5,
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
@@ -1269,7 +1269,7 @@ function window.draw(gamescene)
 						end
 						ui.text(f, rect, "center", "center")
 					end,
-					width = icon_width,
+					width = icon_width * 1.5,
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
@@ -1462,8 +1462,7 @@ function window.draw(gamescene)
 			type_list_state, nil, true
 		)()
 	end
-	local unit_panel = panel_layout:next(panel_width, ut.BASE_HEIGHT * 5 - spacing)
-	local unit_tab_width = ut.BASE_HEIGHT * 3
+	local unit_panel = panel_layout:next(panel_width, panel.height - (ut.BASE_HEIGHT * 8 + spacing * 9))
 	local unit_panel_layout = ui.layout_builder()
 		:horizontal()
 		:position(strength_panel.x, strength_panel.y)
