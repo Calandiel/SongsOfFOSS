@@ -1,14 +1,5 @@
 local cb = {}
 
-function cb.toggle_raiding_target(game, province)
-    return function ()
-        game.inspector = 'reward-flag'
-        game.flagged_province = province
-
-        game.recalculate_raiding_targets_map()
-    end
-end
-
 function cb.nothing()
     return function () end
 end

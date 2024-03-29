@@ -129,6 +129,30 @@ function asl.load_assets()
 	end
 	coroutine.yield()
 
+	asl.message = "Loading portraits..."
+	print(asl.message)
+
+	---@type table<string, love.Image>
+	ASSETS.portraits = {}
+	local fs = love.filesystem.getDirectoryItems("portraits")
+	for _, folder in pairs(fs) do
+		print(folder)
+		ASSETS.portraits[folder] = {}
+		local folder_content = love.filesystem.getDirectoryItems("portraits/" .. folder)
+		for _, image_name in pairs(folder_content) do
+			local c = love.graphics.newImage("portraits/" .. folder .. "/" .. image_name)
+			ASSETS.portraits[folder][image_name] = c
+			print("portraits/" .. folder .. "/" .. image_name)
+			-- Make sure to yield every now and then so that we don't hang the core!
+			yield_counter = yield_counter + 1
+			if yield_counter == 25 then
+				yield_counter = 0
+				coroutine.yield()
+			end
+		end
+	end
+	coroutine.yield()
+
 	ASSETS.all_done = true
 end
 

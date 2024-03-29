@@ -1,11 +1,5 @@
 local pv = require "game.raws.values.political"
 
----@class RewardFlag
----@field flag_type 'explore'|'raid'|'destroy'|'kill'|'devastate'
----@field reward number
----@field owner Character
----@field target Province
-
 
 ---@class BudgetCategory
 ---@field ratio number
@@ -65,6 +59,8 @@ end
 ---@field realm_id number
 ---@field name string
 ---@field budget Budget
+---@field tax_target number
+---@field tax_collected_this_year number
 ---@field r number
 ---@field g number
 ---@field b number
@@ -74,12 +70,20 @@ end
 ---@field capitol Province
 ---@field leader Character?
 ---@field overseer Character?
+---@field trading_right_given_to table<Character, Character>
+---@field trading_right_cost number
+---@field trading_right_law TradingRightLaw
+---@field building_right_given_to table<Character, Character>
+---@field building_right_cost number
+---@field building_right_law BuildingRightLaw
 ---@field tribute_collectors table<Character, Character>
 ---@field paying_tribute_to table<Realm, Realm>
 ---@field tributaries table<Realm, Realm>
+---@field tributary_status table<Realm, TributaryStatus>
 ---@field provinces table<Province, Province>
----@field reward_flags table<RewardFlag, RewardFlag>
----@field raiders_preparing table<RewardFlag, table<Warband, Warband>?>
+---@field quests_raid table<Province, nil|number> reward for raid
+---@field quests_explore table<Province, nil|number> reward for exploration
+---@field quests_patrol table<Province, nil|number> reward for patrol
 ---@field patrols table<Province, table<Warband, Warband>>
 ---@field capitol_guard Warband?
 ---@field prepare_attack_flag boolean?
@@ -125,8 +129,6 @@ end
 ---@field wars table<War, War> Wars
 ---@field at_war_with fun(self:Realm, other:Realm):boolean Wars
 ---@field get_warbands fun(self:Realm): Warband[]
----@field add_raider fun(self:Realm, f: RewardFlag, warband: Warband)
----@field remove_raider fun(self:Realm, f: RewardFlag, warband: Warband)
 ---@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
 ---@field get_top_realm fun(self:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):table<Realm, Realm> Returns the set of top dogs of a tributary chains. Handles loops.
@@ -136,23 +138,12 @@ end
 local realm = {}
 local tabb = require "engine.table"
 
----@class RewardFlag
-realm.RewardFlag = {}
-realm.RewardFlag.__index = realm.RewardFlag
-
----@param i RewardFlag
----@return RewardFlag
-function realm.RewardFlag:new(i)
-	---@type table
-	local o = {}
-	---@diagnostic disable-next-line: no-unknown
-	for k, v in pairs(i) do
-		---@diagnostic disable-next-line: no-unknown
-		o[k] = v
-	end
-	setmetatable(o, realm.RewardFlag)
-	return o
-end
+---@class TributaryStatus
+---@field wealth_transfer boolean
+---@field goods_transfer boolean
+---@field warriors_contribution boolean
+---@field protection boolean
+---@field local_ruler boolean
 
 ---@class Realm
 realm.Realm = {}
@@ -174,10 +165,22 @@ function realm.Realm:new()
 
 	o.tribute_collectors = {}
 	o.tributaries = {}
+	o.tributary_status = {}
 	o.paying_tribute_to = {}
 
+	o.tax_target = 0
+	o.tax_collected_this_year = 0
+
+
+	o.trading_right_given_to = {}
+	o.trading_right_cost = 10
+	o.trading_right_law = require "game.raws.laws.economy".TRADE_RIGHT.NOBLES
+
+	o.building_right_given_to = {}
+	o.building_right_cost = 50
+	o.building_right_law = require "game.raws.laws.economy".BUILDING_RIGHT.NOBLES
+
 	o.provinces = {}
-	o.reward_flags = {}
 	o.bought = {}
 	o.sold = {}
 	o.known_provinces = {}
@@ -199,8 +202,11 @@ function realm.Realm:new()
 	o.resources = {}
 	o.production = {}
 	o.armies = {}
-	o.raiders_preparing = {}
 	o.patrols = {}
+
+	o.quests_explore = {}
+	o.quests_patrol = {}
+	o.quests_raid = {}
 
 	-- print("bb")
 	if love.math.random() < 0.6 then
@@ -237,64 +243,9 @@ function realm.Realm:remove_province(prov)
 	end
 end
 
----Adds a province to the realm's raiding targets.
----@param f RewardFlag
-function realm.Realm:add_reward_flag(f)
-	self.reward_flags[f] = f
-	if self.raiders_preparing[f] == nil then
-		self.raiders_preparing[f] = {}
-	end
-end
-
----Removes a province from the realm's raiding targets.
----@param f RewardFlag
-function realm.Realm:remove_reward_flag(f)
-	self.reward_flags[f] = nil
-
-	if self.raiders_preparing[f] == nil then
-		return
-	end
-
-	for _, warband in pairs(self.raiders_preparing[f]) do
-		if warband.status == 'preparing_raid' then
-			warband.status = 'idle'
-		end
-	end
-	self.raiders_preparing[f] = {}
-end
-
--- function realm.Realm:toggle_reward_flag(f)
--- 	if self.reward_flags[f] then
--- 		self:remove_reward_flag(f)
--- 	else
--- 		self:add_reward_flag(f)
--- 	end
--- end
-
 function realm.Realm:get_random_province()
 	local n = tabb.size(self.provinces)
 	return tabb.nth(self.provinces, love.math.random(n))
-end
-
----Adds warband as potential raider of province
----@param f RewardFlag
----@param warband Warband
-function realm.Realm:add_raider(f, warband)
-	if warband.status ~= 'idle' then return end
-	if self.reward_flags[f] then
-		self.raiders_preparing[f][warband] = warband
-		warband.status = 'preparing_raid'
-	end
-end
-
----Removes warband as potential raider of province
----@param f RewardFlag
----@param warband Warband
-function realm.Realm:remove_raider(f, warband)
-	if self.reward_flags[f] then
-		self.raiders_preparing[f][warband] = nil
-		warband.status = "idle"
-	end
 end
 
 ---Adds warband as potential raider of province
@@ -320,16 +271,6 @@ function realm.Realm:remove_patrol(prov, warband)
 		self.patrols[prov][warband] = nil
 		warband.status = "idle"
 	end
-end
-
-function realm.Realm:roll_reward_flag()
-	---@type table<RewardFlag, number>
-	local targets = {}
-	for flag, k in pairs(self.reward_flags) do
-		local popularity = pv.popularity(k.owner, self)
-		targets[k] = k.reward * popularity
-	end
-	return tabb.random_select(targets)
 end
 
 ---Adds a province to the explored provinces list.
@@ -518,6 +459,9 @@ function realm.Realm:raise_warband(warband)
 	end
 end
 
+---Raise local army
+---@param province Province
+---@return Army
 function realm.Realm:raise_local_army(province)
 	local army = require "game.entities.army":new()
 

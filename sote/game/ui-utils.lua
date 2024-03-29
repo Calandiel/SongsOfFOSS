@@ -912,8 +912,9 @@ function ut.scrollview(rect, render_closure, individual_height, entries_count, s
 	return slider_level
 end
 
+---@generic T
 ---@param rect Rect
----@param data table<TableKey, TableEntry>
+---@param data table<TableKey, T>
 ---@param columns TableColumn[]
 ---@param state TableState
 function ut.table(rect, data, columns, state)

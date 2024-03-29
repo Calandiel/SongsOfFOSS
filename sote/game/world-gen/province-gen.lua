@@ -271,9 +271,9 @@ function pro.run()
 	print('creating river-like provinces')
 	local riverlike_prov_count = math.floor(prov_count / 8)
 	for _ = 1, riverlike_prov_count  do
-		if _ % 100 == 0 then
-			print(_ / riverlike_prov_count * 100)
-		end
+		-- if _ % 100 == 0 then
+		-- 	print(_ / riverlike_prov_count * 100)
+		-- end
 		-- Get a random soil rich tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0
@@ -288,9 +288,9 @@ function pro.run()
 	print('creating coastal provinces')
 	local coastal_count = math.floor(prov_count / 5)
 	for _ = 1, coastal_count  do
-		if _ % 100 == 0 then
-			print(_ / coastal_count * 100)
-		end
+		-- if _ % 100 == 0 then
+		-- 	print(_ / coastal_count * 100)
+		-- end
 
 		-- Get a random coastal tile with no province assigned to it
 		local tile = WORLD:random_tile()
@@ -314,9 +314,9 @@ function pro.run()
 
 	print('create rest of provinces')
 	for _ = 1, prov_count - coastal_count - riverlike_prov_count do
-		if _ % 100 == 0 then
-			print(_ / (prov_count - coastal_count - riverlike_prov_count) * 100)
-		end
+		-- if _ % 100 == 0 then
+		-- 	print(_ / (prov_count - coastal_count - riverlike_prov_count) * 100)
+		-- end
 		-- Get a random land tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0

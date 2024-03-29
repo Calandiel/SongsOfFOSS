@@ -24,6 +24,10 @@ local function load()
 		on_trigger = function(self, character, associated_data)
             local successor = character.successor
 
+            -- clear trade rights:
+            ee.abandon_trade_rights(character)
+            ee.abandon_building_rights(character)
+
             for _, realm in pairs(character.leader_of) do
                 character.leader_of[realm] = nil
                 local capitol = character.realm.capitol
@@ -193,19 +197,6 @@ local function load()
                 me.dissolve_warband(character)
             end
 
-            -- cancel all rewards:
-            if realm then
-                ---@type RewardFlag[]
-                local rewards = {}
-                for _, reward in pairs(realm.reward_flags) do
-                    if reward.owner == character then
-                        table.insert(rewards, reward)
-                    end
-                end
-                for _, reward in pairs(rewards) do
-                    ee.cancel_reward_flag(realm, reward)
-                end
-            end
 
             -- succession of wealth
             local wealth_successor = character.successor

@@ -1,7 +1,7 @@
 local ui = require "engine.ui";
 local uit = require "game.ui-utils"
 
-local EconomicEffects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local EconomicValues = require "game.raws.values.economical"
 local pv = require "game.raws.values.political"
 
@@ -96,7 +96,7 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
             if uit.icon_button(ASSETS.icons["hammer-drop.png"], rect,
                 "Build " .. tooltip .." (" .. tostring(construction_cost) .. MONEY_SYMBOL .. ")") then
 
-                EconomicEffects.construct_building_with_payment(
+                economic_effects.construct_building_with_payment(
                     building_type,
                     tile.province,
                     tile,

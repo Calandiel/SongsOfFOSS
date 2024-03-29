@@ -19,6 +19,8 @@
 ---@field successor POP?
 ---@field successor_of table<POP, POP>
 ---@field owned_buildings table <Building, Building>
+---@field has_trade_permits_in table<Realm, Realm>
+---@field has_building_permits_in table<Realm, Realm>
 ---@field inventory table <TradeGoodReference, number?>
 ---@field price_memory table<TradeGoodReference, number?>
 ---@field need_satisfaction table<NEED, number>
@@ -33,8 +35,10 @@
 ---@field home_province Province Points to home of pop/character.
 ---@field realm Realm? Represents the home realm of the character
 ---@field leader_of table<Realm, Realm>
+---@field current_negotiations table<Character, Character>
 ---@field rank CHARACTER_RANK?
 ---@field former_pop boolean
+---@field dna number[]
 
 local rtab = {}
 
@@ -76,7 +80,11 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	r.price_memory = {}
 	r.children = {}
 	r.successor_of = {}
+	r.current_negotiations = {}
 	r.need_satisfaction = {}
+
+	r.has_trade_permits_in = {}
+	r.has_building_permits_in = {}
 
 	r.basic_needs_satisfaction = 0
 	r.life_needs_satisfaction = 0
@@ -91,6 +99,11 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 
 	r.dead = false
 	r.former_pop = false
+
+	r.dna = {}
+	for i = 1, 20 do
+		table.insert(r.dna, love.math.random())
+	end
 
 	setmetatable(r, rtab.POP)
 

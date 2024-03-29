@@ -4,6 +4,7 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
+local economic_values = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
 local political_effects = require "game.raws.effects.political"
 local political_values = require "game.raws.values.political"
@@ -38,7 +39,7 @@ return function()
 				explored_province = character.province,
 				explorer = character,
 				last_conversation = conversation,
-				_exploration_days_left = character.province.movement_cost,
+				_exploration_days_left = character.province:exploration_days(),
 				_exploration_speed = 1.0
 			}
 
@@ -60,7 +61,7 @@ return function()
 				explored_province = character.province,
 				explorer = character,
 				last_conversation = nil,
-				_exploration_days_left = character.province.movement_cost,
+				_exploration_days_left = character.province:exploration_days(),
 				_exploration_speed = 1.5
 			}
 
@@ -102,7 +103,7 @@ return function()
 							explored_province = character.province,
 							explorer = character,
 							last_conversation = nil,
-							_exploration_days_left = character.province.movement_cost,
+							_exploration_days_left = character.province:exploration_days(),
 							_exploration_speed = 1.5
 						}
 
@@ -137,7 +138,7 @@ return function()
 							explored_province = character.province,
 							explorer = character,
 							last_conversation = conversation,
-							_exploration_days_left = character.province.movement_cost,
+							_exploration_days_left = character.province:exploration_days(),
 							_exploration_speed = 1.0
 						}
 
@@ -190,6 +191,8 @@ return function()
 					},
 				}
 			end
+
+			local food_price = economic_values.get_local_price(associated_data.explored_province, 'food')
 
 			return {
 				{
@@ -260,6 +263,25 @@ return function()
 					end
 				},
 
+				{
+					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
+					tooltip = "Buy supplies from locals",
+					viable = function ()
+						return character.savings > food_price
+					end,
+					outcome = function ()
+						economic_effects.buy(character, 'food', 1)
+					end,
+					ai_preference = function ()
+						local potential_days = character.leading_warband:days_of_travel()
+						if potential_days < 10 then
+							return 1.2
+						end
+
+						return 0
+					end
+				},
+
 				event_utils.option_stop(
 					"Abort exploration",
 					"I will drop my attempts to explore this province",
@@ -306,6 +328,11 @@ return function()
             if root.dead then
                 return
             end
+
+			if root.realm.quests_explore[root.province] then
+				economic_effects.add_pop_savings(root, root.realm.quests_explore[root.province], economic_effects.reasons.Quest)
+				root.realm.quests_explore[root.province] = nil
+			end
 
 			political_effects.medium_popularity_boost(root, root.realm)
             root.realm:explore(root.province)

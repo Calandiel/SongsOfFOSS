@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
-local EconomicEffects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local MilitaryEffects = require "game.raws.effects.military"
 local PoliticalEffects = require "game.raws.effects.political"
 local TRAIT = require "game.raws.traits.generic"
@@ -181,15 +181,11 @@ local function load()
 				return 0
 			end
 
-			if tabb.size(root.realm.tributaries) == 0 then
-				return 0
+			if tabb.size(root.realm.tribute_collectors) < 1 + root.realm.capitol:population() / 20 then
+				return 0.25 * loyalty_multiplier
 			end
 
-			if tabb.size(root.realm.tribute_collectors) == 0 and tabb.size(root.realm.tributaries) > 0 then
-				return 10
-			end
-
-			return 0.5 * loyalty_multiplier - tabb.size(root.realm.tribute_collectors) / tabb.size(root.realm.tributaries)
+			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			if WORLD.player_character == root then

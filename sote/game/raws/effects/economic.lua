@@ -4,7 +4,7 @@ local ev = require "game.raws.values.economical"
 local et = require "game.raws.triggers.economy"
 local traits = require "game.raws.traits.generic"
 
-EconomicEffects = {}
+local EconomicEffects = {}
 
 ---@enum EconomicReason
 EconomicEffects.reasons = {
@@ -19,7 +19,6 @@ EconomicEffects.reasons = {
     Exploration = "exploration",
     Upkeep = "upkeep",
     NewMonth = "new month",
-    RewardFlag = "reward flag",
     LoyaltyGift = "loyalty gift",
     Building = "building",
     BuildingIncome = "building income",
@@ -38,8 +37,11 @@ EconomicEffects.reasons = {
     Other = "other",
     Siphon = "siphon",
     TradeSiphon = "trade siphon",
+    Quest = "quest",
     NeighborSiphon = "neigbour siphon",
-    Colonisation = "colonisation"
+    Colonisation = "colonisation",
+    Tax = "tax",
+    Negotiations = "negotiations"
 }
 
 ---Change realm treasury and display effects to player
@@ -52,6 +54,11 @@ function EconomicEffects.change_treasury(realm, x, reason)
         realm.budget.treasury_change_by_category[reason] = 0
     end
     realm.budget.treasury_change_by_category[reason] = realm.budget.treasury_change_by_category[reason] + x
+
+    if reason == EconomicEffects.reasons.Tax and x > 0 then
+        realm.tax_collected_this_year = realm.tax_collected_this_year + x
+    end
+
     EconomicEffects.display_treasury_change(realm, x, reason)
 end
 
@@ -65,6 +72,11 @@ function EconomicEffects.register_income(realm, x, reason)
     if realm.budget.income_by_category[reason] == nil then
         realm.budget.income_by_category[reason] = 0
     end
+
+    if reason == EconomicEffects.reasons.Tax and x > 0 then
+        realm.tax_collected_this_year = realm.tax_collected_this_year + x
+    end
+
     realm.budget.income_by_category[reason] = realm.budget.income_by_category[reason] + x
     EconomicEffects.display_treasury_change(realm, x, reason)
 end
@@ -260,35 +272,6 @@ function EconomicEffects.construct_building_with_payment(building_type, province
     return building
 end
 
-
----comment
----@param realm Realm
----@param reward_flag RewardFlag
-function EconomicEffects.cancel_reward_flag(realm, reward_flag)
-    if realm.reward_flags[reward_flag] == nil then
-        return
-    end
-    EconomicEffects.add_pop_savings(reward_flag.owner, reward_flag.reward, EconomicEffects.reasons.RewardFlag)
-    realm:remove_reward_flag(reward_flag)
-end
-
----comment
----@param origin Realm
----@param target Realm
-function EconomicEffects.remove_raiding_flags(origin, target)
-    ---@type RewardFlag[]
-    local flags_to_remove = {}
-
-    for reward_flag, _ in pairs(origin.reward_flags) do
-        if reward_flag.target.realm == target then
-            table.insert(flags_to_remove, reward_flag)
-        end
-    end
-
-    for _, flag in pairs(flags_to_remove) do
-        EconomicEffects.cancel_reward_flag(origin, flag)
-    end
-end
 
 ---character collects tribute into his pocket and returns collected value
 ---@param collector Character
@@ -510,6 +493,78 @@ function EconomicEffects.gift_to_warband(character, amount)
 
     EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Warband)
     warband.treasury = warband.treasury + amount
+end
+
+---commenting
+---@param character Character
+---@return number
+function EconomicEffects.collect_tax(character)
+    local total_tax = 0
+    local tax_collection_ability = 0.05
+    if character.traits[traits.HARDWORKER] then
+        tax_collection_ability = tax_collection_ability + 0.01
+    end
+    if character.traits[traits.GREEDY] then
+        tax_collection_ability = tax_collection_ability + 0.03
+    end
+    if character.traits[traits.LAZY] then
+        tax_collection_ability = tax_collection_ability - 0.01
+    end
+    for _, pop in pairs(character.province.all_pops) do
+        if pop.savings > 0 then
+            total_tax = total_tax + pop.savings * tax_collection_ability
+            EconomicEffects.add_pop_savings(pop, -pop.savings * tax_collection_ability, EconomicEffects.reasons.Tax)
+        end
+    end
+    return total_tax
+end
+
+---Grants trading rights to character
+---@param character Character
+---@param realm Realm
+function EconomicEffects.grant_trade_rights(character, realm)
+    character.has_trade_permits_in[realm] = realm
+    realm.trading_right_given_to[character] = character
+end
+
+---Clears all trading rights of character
+---@param character Character
+function EconomicEffects.abandon_trade_rights(character)
+    ---@type Realm[]
+    local realms = {}
+
+    for _, realm in pairs(character.has_trade_permits_in) do
+        table.insert(realms, realm)
+    end
+
+    for _, realm in ipairs(realms) do
+        character.has_trade_permits_in[realm] = nil
+        realm.trading_right_given_to[character] = nil
+    end
+end
+
+---Grants trading rights to character
+---@param character Character
+---@param realm Realm
+function EconomicEffects.grant_building_rights(character, realm)
+    character.has_building_permits_in[realm] = realm
+    realm.building_right_given_to[character] = character
+end
+
+---Clears all trading rights of character
+---@param character Character
+function EconomicEffects.abandon_building_rights(character)
+    ---@type Realm[]
+    local realms = {}
+
+    for _, realm in pairs(character.has_building_permits_in) do
+        table.insert(realms, realm)
+    end
+
+    for _, realm in ipairs(realms) do
+        character.has_building_permits_in[realm] = nil
+        realm.building_right_given_to[character] = nil
+    end
 end
 
 return EconomicEffects

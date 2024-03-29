@@ -13,6 +13,11 @@ function d.load()
 		local retrieved_use_case = use_case(trade_good_use_case)
 		local retrieved_trade_good = good(trade_good)
 
+		assert(
+			retrieved_use_case.goods[trade_good] == nil,
+			trade_good .. " is already registered in use case " .. trade_good_use_case
+		)
+
 		retrieved_use_case.goods[trade_good] = weight
 		retrieved_trade_good.use_cases[trade_good_use_case] = weight
 	end
@@ -52,7 +57,7 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("food", "food", 0.5)
+	add_use_case("honey", "food", 0.5)
 	add_use_case("honey", "mead-substrate", 1)
 	-- CRUCIAL SETTLEMENT SERVICES
 	TradeGood:new {

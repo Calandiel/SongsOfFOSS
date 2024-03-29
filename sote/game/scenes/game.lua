@@ -3,6 +3,8 @@ local gam = {}
 
 require "game.scenes.global-style"
 
+local ui = require "engine.ui"
+
 local cpml = require "cpml"
 local world = require "game.entities.world"
 local cube = require "game.cube"
@@ -27,15 +29,14 @@ local inspectors_table = {
 	["confirm-exit"] = require "game.scenes.game.confirm-exit",
 	["army"] = require "game.scenes.game.inspector-military",
 	["character-decisions"] = require "game.scenes.game.inspector-character-decisions",
-	["reward-flag"] = require "game.scenes.game.inspector-reward-flag",
-	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
 	["market"] = require "game.scenes.game.inspectors.market",
 	["population"] = require "game.scenes.game.inspectors.population",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 	["warband"] = require "game.scenes.game.inspectors.warband",
 	["property"] = require "game.scenes.game.inspectors.property",
-	["preferences"] = require "game.scenes.game.inspectors.character_stance"
+	["preferences"] = require "game.scenes.game.inspectors.character_stance",
+	["quests"] = require "game.scenes.game.inspectors.quests"
 }
 
 local tile_inspectors = {
@@ -61,7 +62,6 @@ local tile_inspectors = {
 ---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?
 ---@field cached_tech Technology?
----@field reward_flag RewardFlag?
 
 ---@type Selection
 gam.selected = {}
@@ -242,6 +242,20 @@ end
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
+
+	if gam.map_update_coroutine ~= nil then
+		local time = love.timer.getTime()
+		while love.timer.getTime() - time < 1 / 24 do
+			coroutine.resume(gam.map_update_coroutine)
+			if coroutine.status(gam.map_update_coroutine) == "dead" then
+				gam.map_update_coroutine = nil
+				goto stop_update
+			end
+		end
+	end
+	::stop_update::
+
+
 	if PAUSE_REQUESTED then
 		gam.paused = true
 		PAUSE_REQUESTED = false
@@ -786,6 +800,10 @@ function gam.draw()
 					return
 				end
 
+				if decision.path == nil then
+					return
+				end
+
 				local hours, path = decision.path(player, province)
 
 				if path then
@@ -1290,6 +1308,18 @@ function gam.draw()
 	end
 
 
+	if (gam.map_update_coroutine ~= nil) and (gam.map_update_progress ~= nil) then
+		local loading_rect = ui.fullscreen():subrect(0, 0, 300, 50, "center", "center")
+		ui.panel(loading_rect)
+		local progress = gam.map_update_progress / WORLD:tile_count() * 300
+		local progress_bar = loading_rect:subrect(0, 0, progress, 50, "left", "up")
+		local temporary_r = ui.style.panel_inside.r
+		ui.style.panel_inside.r = 1.0
+		ui.panel(progress_bar)
+		ui.style.panel_inside.r = temporary_r
+	end
+
+
 	if PROFILE_FLAG then
 		local profile_rect = ui.fullscreen():subrect(0, 0, 800, 300, "center", "center")
 		ui.panel(profile_rect)
@@ -1601,8 +1631,15 @@ function gam.recalculate_raiding_targets_map()
 	gam.tile_raiding_targets_texture:setFilter("nearest", "nearest")
 end
 
----Refreshes the map mode
 function gam.refresh_map_mode(preserve_efficiency)
+	if gam.map_update_coroutine == nil then
+		print('create map update coroutine')
+		gam.map_update_coroutine = coroutine.create(function() return gam._refresh_map_mode(preserve_efficiency) end)
+	end
+end
+
+---Refreshes the map mode
+function gam._refresh_map_mode(preserve_efficiency)
 	local tim = love.timer.getTime()
 
 	-- Sanity check in case the function is called before init
@@ -1642,9 +1679,9 @@ function gam.refresh_map_mode(preserve_efficiency)
 	end
 
 	-- Apply the color
-	local provinces = WORLD.provinces
+	gam.map_update_progress = 0
 
-	for _, province in pairs(provinces) do
+	for _, province in pairs(WORLD.provinces) do
 		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 		local can_set = true
 		local player_character = WORLD.player_character
@@ -1655,6 +1692,9 @@ function gam.refresh_map_mode(preserve_efficiency)
 			end
 		end
 		for _, tile in pairs(province.tiles) do
+			gam.map_update_progress = gam.map_update_progress + 1
+			coroutine.yield(false)
+
 			local x, y = gam.tile_id_to_color_coords(tile)
 			local pixel_index = x + y * dim
 
@@ -1736,6 +1776,8 @@ function gam.refresh_map_mode(preserve_efficiency)
 
 	local time = love.timer.getTime() - tim
 	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
+
+	coroutine.yield(true)
 end
 
 return gam

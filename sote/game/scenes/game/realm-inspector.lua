@@ -4,7 +4,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
-local ef = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
 
 ---@return Rect
@@ -168,11 +168,11 @@ function re.draw(gam)
 							"Invest money into court. Press Ctrl or Shift to modify invested amount.",
 							possible
 						) then
-							ef.direct_investment(
+							economic_effects.direct_investment(
 								realm,
 								realm.budget.court,
 								TREASURY_GIFT_AMOUNT,
-								EconomicEffects.reasons.Court
+								economic_effects.reasons.Court
 							)
 						end
 						a.y = a.y + uit.BASE_HEIGHT
@@ -382,11 +382,11 @@ function re.draw(gam)
 							"Invest money into education. Press Ctrl or Shift to modify invested amount.",
 							possible
 						) then
-							ef.direct_investment(
+							economic_effects.direct_investment(
 								realm,
 								realm.budget.education,
 								TREASURY_GIFT_AMOUNT,
-								EconomicEffects.reasons.Education
+								economic_effects.reasons.Education
 							)
 						end
 					end

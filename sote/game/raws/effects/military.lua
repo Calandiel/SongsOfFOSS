@@ -1,11 +1,8 @@
 local path = require "game.ai.pathfinding"
 local ui_utils = require "game.ui-utils"
 
-local RewardFlag = require "game.entities.realm".RewardFlag
-
 local economy_effects = require "game.raws.effects.economic"
 local military_values = require "game.raws.values.military"
-
 
 local MilitaryEffects = {}
 
@@ -140,6 +137,7 @@ function MilitaryEffects.patrol(root, primary_target)
             " for a few months.")
     end
 
+    ---@type table<Warband, Warband>
     local patrol = {}
 
     for _, warband in pairs(root.patrols[primary_target]) do
@@ -162,69 +160,13 @@ function MilitaryEffects.patrol(root, primary_target)
     )
 end
 
----Starts a raid from root to primary_target
----@param root Realm
----@param primary_target RewardFlag
-function MilitaryEffects.covert_raid(root, primary_target)
-    local target_province = primary_target.target
-
-
-
-    -- A raid will raise up to a certain number of troops
-    -- local max_covert_raid_size = 10
-    local army = root:raise_army(root.raiders_preparing[primary_target])
-    army.destination = target_province
-
-    local travel_time, _ = path.hours_to_travel_days(path.pathfind(
-        root.capitol,
-        target_province,
-        military_values.army_speed(army),
-        root.known_provinces
-    ))
-
-    if WORLD:does_player_see_realm_news(root) then
-        WORLD:emit_notification("Our warriors move toward " ..
-            target_province.name ..
-            ", they should arrive in " ..
-            math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
-    end
-
-    for _, warband in pairs(army.warbands) do
-        root:remove_raider(primary_target, warband)
-        warband.status = "raiding"
-    end
-
-    ---@type RaidData
-    local raid_data = {
-        raider = primary_target.owner,
-        target = primary_target,
-        travel_time = travel_time,
-        army = army,
-        origin = root
-    }
-
-    WORLD:emit_action(
-        "covert-raid",
-        primary_target.owner,
-        raid_data,
-        travel_time, false
-    )
-end
-
 
 ---comment
 ---@param root Character
 ---@param primary_target Province
-function MilitaryEffects.covert_raid_no_reward(root, primary_target)
+function MilitaryEffects.covert_raid(root, primary_target)
     local warband = root.leading_warband
     if warband == nil then return end
-
-    local target = RewardFlag:new({
-        flag_type = 'raid',
-        owner = root,
-        reward = 0,
-        target = primary_target
-    })
 
     -- A raid will raise up to a certain number of troops
     -- local max_covert_raid_size = 10
@@ -255,12 +197,11 @@ function MilitaryEffects.covert_raid_no_reward(root, primary_target)
     ---@type RaidData
     local raid_data = {
         raider = root,
-        target = target,
+        target = primary_target,
         travel_time = travel_time,
         army = army,
         origin = root.realm
     }
-
 
     WORLD:emit_action(
         "covert-raid",

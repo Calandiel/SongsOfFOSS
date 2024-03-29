@@ -322,6 +322,59 @@ function ui.image(image, rect, rotation)
 	)
 end
 
+local temp_quad = love.graphics.newQuad(0, 0, 256, 256, 256, 256)
+
+--- Draws a part of UI image at x/y coordinates and with a given width and height
+---@param image love.Image
+---@param rect Rect
+---@param rotation number?
+function ui.image_ith(image, i, rect, rotation)
+	if rotation == nil then
+		rotation = 0
+	end
+
+	local x = rect.x
+	local y = rect.y
+	local width = rect.width
+	local height = rect.height
+	-- Pull data
+	local image_width = image:getWidth()
+	local image_height = image:getHeight()
+	local dims_x, dims_y = love.graphics.getDimensions()
+
+	local quads = image_width / image_height
+	if (i > 0) and (i < 1) then
+		i = math.floor(i * quads)
+	end
+	temp_quad:setViewport(image_height * i, 0, image_height, image_height, image_width, image_height)
+
+	image_width = image_height
+
+	-- Calculate "scaling" factor for width and height
+	local fill_x = width / reference_width
+	local fill_y = height / reference_height
+	local target_x = image_width / dims_x
+	local target_y = image_height / dims_y
+	local scale_x = fill_x / target_x
+	local scale_y = fill_y / target_y
+
+	-- Calculate "proper" x and y positions
+	local position_fraction_x = x / reference_width
+	local position_fraction_y = y / reference_height
+
+	-- Adjust them for drawing offset
+	position_fraction_x = position_fraction_x + fill_x / 2
+	position_fraction_y = position_fraction_y + fill_y / 2
+
+	love.graphics.draw(
+		image, temp_quad,
+		dims_x * position_fraction_x, dims_y * position_fraction_y,
+		rotation,
+		scale_x, scale_y,
+		image_width / 2, image_height / 2
+	)
+end
+
 ---@alias VerticalAlignMode "up" | "center" | "down"
 --- Draws text at x/y coordinates in a given width/height quad.
 --- Texts first line will be centered vertically.
@@ -1386,30 +1439,27 @@ end
 ---@field slider_level number
 ---@field header_height number
 
----@class TableColumn
----@field render_closure fun(rect: Rect, k:TableKey, v:TableEntry)
----@field header string
----@field width number
----@field value (fun(k: TableKey, v: TableEntry): TableField)
----@field active? boolean
+
+
+---@class TableColumn<TableEntry>: {render_closure: fun(rect: Rect, k:TableKey, v:TableEntry), header: string, width: number, value: (fun(k: TableKey, v: TableEntry): TableField), active: boolean|nil}
 
 ---@alias TableField number|string
-
 ---@alias TableKey table|string
----@alias TableEntry table
----@alias TablePair {key: TableKey, value: TableEntry}
+
+---@class TablePair<TableEntry>: {key: TableKey, value: TableEntry}
 
 ---TABLE
 ---Renders a sortable table with header and scroll. Mutates state in place.
+---@generic T : table
 ---@param rect Rect
----@param data table<TableKey, TableEntry>
----@param columns TableColumn[]
+---@param data table<TableKey, T>
+---@param columns TableColumn<T>[]
 ---@param state TableState
 ---@param circle_style boolean?
 ---@param slider_arrow_images ButtonImagesSet?
 function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	--- data sorting
-	---@type TablePair[]
+	---@type TablePair<T>[]
 	local sorted_data = {}
 	for _, entry in pairs(data) do
 		table.insert(sorted_data, {key = _, value = entry})
