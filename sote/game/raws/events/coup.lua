@@ -1,7 +1,7 @@
 local Event = require "game.raws.events"
 local E_ut = require "game.raws.events._utils"
 
-local EconomicEffects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
 local TRAIT = require "game.raws.traits.generic"
 local AI_VALUE = require "game.raws.values.ai_preferences"
@@ -25,16 +25,16 @@ return function()
 
             local pretender_power = calculate_power_base(character, province)
             local target_power = calculate_power_base(realm.leader, province)
-            
+
             local power_estimation_string = "I do not know the power of " .. realm.leader.name
-            
+
             if target_power >= pretender_power then
                 if target_power < pretender_power + 10  then
                     power_estimation_string = realm.leader.name .. " is slightly more powerful than me."
                 else
                     power_estimation_string = realm.leader.name .. " is more powerful than me."
                 end
-            else 
+            else
                 if target_power > pretender_power - 10  then
                     power_estimation_string = realm.leader.name .. " is slightly less powerful than me."
                 else

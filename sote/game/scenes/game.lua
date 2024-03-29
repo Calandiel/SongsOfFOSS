@@ -1,7 +1,18 @@
 ---@class GameScene
+---@field macrobuilder_public_mode boolean
+---@field tile_inspector_tab TileInspectorTabs | nil
+---@field realm_inspector_tab RealmInspectorTabs | nil
+---@field realm_stockpile_scrollbar number
+---@field realm_capacities_scrollbar number
+---@field wars_slider_level number
 local gam = {}
 
+---@alias TileInspectorTabs "GEN"
+---@alias RealmInspectorTabs "GEN"
+
 require "game.scenes.global-style"
+
+local ui = require "engine.ui"
 
 local cpml = require "cpml"
 local world = require "game.entities.world"
@@ -27,15 +38,14 @@ local inspectors_table = {
 	["confirm-exit"] = require "game.scenes.game.confirm-exit",
 	["army"] = require "game.scenes.game.inspector-military",
 	["character-decisions"] = require "game.scenes.game.inspector-character-decisions",
-	["reward-flag"] = require "game.scenes.game.inspector-reward-flag",
-	["reward-flag-edit"] = require "game.scenes.game.inspector-reward-flag-edit",
 	["market"] = require "game.scenes.game.inspectors.market",
 	["population"] = require "game.scenes.game.inspectors.population",
 	["macrobuilder"] = require "game.scenes.game.inspectors.macrobuilder",
 	["macrodecision"] = require "game.scenes.game.inspectors.macrodecision",
 	["warband"] = require "game.scenes.game.inspectors.warband",
 	["property"] = require "game.scenes.game.inspectors.property",
-	["preferences"] = require "game.scenes.game.inspectors.character_stance"
+	["preferences"] = require "game.scenes.game.inspectors.character_stance",
+	["quests"] = require "game.scenes.game.inspectors.quests"
 }
 
 local tile_inspectors = {
@@ -61,7 +71,6 @@ local tile_inspectors = {
 ---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?
 ---@field cached_tech Technology?
----@field reward_flag RewardFlag?
 
 ---@type Selection
 gam.selected = {}
@@ -176,6 +185,7 @@ function gam.init()
 	gam.ticks_without_map_update = 0
 
 	gam.speed = 1
+	gam.turbo = false
 
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
@@ -213,15 +223,6 @@ function gam.init()
 	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
 	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
 
-	local imd2 = love.image.newImageData(dim, dim, "rgba8")
-	for x = 1, dim do
-		for y = 1, dim do
-			imd2:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
-		end
-	end
-	gam.tile_improvement_texture_data = imd2
-	gam.tile_improvement_texture = love.graphics.newImage(imd2)
-
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
 
@@ -242,6 +243,19 @@ end
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
+	if gam.map_update_coroutine ~= nil then
+		local time = love.timer.getTime()
+		while love.timer.getTime() - time < 1 / 24 do
+			coroutine.resume(gam.map_update_coroutine)
+			if coroutine.status(gam.map_update_coroutine) == "dead" then
+				gam.map_update_coroutine = nil
+				goto stop_update
+			end
+		end
+	end
+	::stop_update::
+
+
 	if PAUSE_REQUESTED then
 		gam.paused = true
 		PAUSE_REQUESTED = false
@@ -261,11 +275,20 @@ function gam.update(dt)
 			-- the game is unpaused, call tick on world!
 			--print("-- tick start --")
 			local start = love.timer.getTime()
-			for _ = 1, 4 ^ gam.speed do
-				WORLD:tick()
-				gam.ticks_without_map_update = gam.ticks_without_map_update + 1
-				if love.timer.getTime() - start > 1 / 15 then
-					break
+			if gam.turbo then
+				while true do
+					WORLD:tick()
+					if love.timer.getTime() - start > 1 / 10 then
+						break
+					end
+				end
+			else
+				for _ = 1, 4 ^ gam.speed do
+					WORLD:tick()
+					gam.ticks_without_map_update = gam.ticks_without_map_update + 1
+					if love.timer.getTime() - start > 1 / 60 then
+						break
+					end
 				end
 			end
 			--print("-- tick end --")
@@ -540,9 +563,6 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("tile_colors") then
 		gam.planet_shader:send('tile_colors', gam.tile_color_texture)
 	end
-	if gam.planet_shader:hasUniform("tile_improvement_texture") then
-		gam.planet_shader:send('tile_improvement_texture', gam.tile_improvement_texture)
-	end
 	if gam.planet_shader:hasUniform("world_size") then
 		gam.planet_shader:send('world_size', WORLD.world_size)
 	end
@@ -783,6 +803,10 @@ function gam.draw()
 				end
 
 				if not decision.clickable(player, province) then
+					return
+				end
+
+				if decision.path == nil then
 					return
 				end
 
@@ -1290,6 +1314,20 @@ function gam.draw()
 	end
 
 
+	if (gam.map_update_coroutine ~= nil) and (gam.map_update_progress ~= nil) then
+		local loading_rect = ui.fullscreen():subrect(0, 100, 300, 50, "center", "up")
+		ui.panel(loading_rect)
+		local progress = gam.map_update_progress / WORLD:tile_count() * 300
+		local progress_bar = loading_rect:subrect(0, 0, progress, 50, "left", "up")
+		local temporary_r = ui.style.panel_inside.r
+		ui.style.panel_inside.r = 1.0
+		ui.panel(progress_bar)
+		ui.style.panel_inside.r = temporary_r
+
+		ui.text("Updating the map...", loading_rect, "center", "center")
+	end
+
+
 	if PROFILE_FLAG then
 		local profile_rect = ui.fullscreen():subrect(0, 0, 800, 300, "center", "center")
 		ui.panel(profile_rect)
@@ -1601,8 +1639,15 @@ function gam.recalculate_raiding_targets_map()
 	gam.tile_raiding_targets_texture:setFilter("nearest", "nearest")
 end
 
----Refreshes the map mode
 function gam.refresh_map_mode(preserve_efficiency)
+	if gam.map_update_coroutine == nil then
+		print('create map update coroutine')
+		gam.map_update_coroutine = coroutine.create(function() return gam._refresh_map_mode(preserve_efficiency) end)
+	end
+end
+
+---Refreshes the map mode
+function gam._refresh_map_mode(preserve_efficiency)
 	local tim = love.timer.getTime()
 
 	-- Sanity check in case the function is called before init
@@ -1613,7 +1658,6 @@ function gam.refresh_map_mode(preserve_efficiency)
 	local dim = WORLD.world_size * 3
 	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data:getFFIPointer())
 	local pointer_realm_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
-	local pointer_tile_improvement = require("ffi").cast("uint8_t*", gam.tile_improvement_texture_data:getFFIPointer())
 
 	-- if not OPTIONS.update_map then
 	-- 	return
@@ -1633,18 +1677,15 @@ function gam.refresh_map_mode(preserve_efficiency)
 	if (gam.clicked_tile) then
 		province = gam.clicked_tile.province
 		if province and gam.selected.building_type then
-			for _, p_tile in pairs(province.tiles) do
-				if not p_tile.tile_improvement then
-					best_eff = math.max(best_eff, gam.selected.building_type.production_method:get_efficiency(p_tile))
-				end
-			end
+			best_eff = math.max(best_eff,
+				gam.selected.building_type.production_method:get_efficiency(province))
 		end
 	end
 
 	-- Apply the color
-	local provinces = WORLD.provinces
+	gam.map_update_progress = 0
 
-	for _, province in pairs(provinces) do
+	for _, province in pairs(WORLD.provinces) do
 		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 		local can_set = true
 		local player_character = WORLD.player_character
@@ -1655,6 +1696,9 @@ function gam.refresh_map_mode(preserve_efficiency)
 			end
 		end
 		for _, tile in pairs(province.tiles) do
+			gam.map_update_progress = gam.map_update_progress + 1
+			coroutine.yield(false)
+
 			local x, y = gam.tile_id_to_color_coords(tile)
 			local pixel_index = x + y * dim
 
@@ -1664,25 +1708,13 @@ function gam.refresh_map_mode(preserve_efficiency)
 				local b = tile.real_b
 
 				local result_pixel = { r, g, b, 1 }
-				local result_improvement = { 0, 0, 0, 1 }
-
-				if tile.tile_improvement and gam.map_mode == "atlas" then
-					result_improvement[1] = 1
-				end
 
 				if gam.selected.building_type ~= nil then
-					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
+					local eff = gam.selected.building_type.production_method:get_efficiency(tile.province)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
 					result_pixel[1] = r
 					result_pixel[2] = g
 					result_pixel[3] = b
-
-					if tile.province == province and eff == best_eff then
-						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-						result_pixel[1] = r
-						result_pixel[2] = g
-						result_pixel[3] = b
-					end
 				end
 
 				local r, g, b, a = realm_neighbor_data(tile)
@@ -1695,35 +1727,21 @@ function gam.refresh_map_mode(preserve_efficiency)
 				pointer_realm_neigbours[pixel_index * 4 + 2] = 255 * b
 				pointer_realm_neigbours[pixel_index * 4 + 3] = 255 * a
 
-
 				pointer_tile_color[pixel_index * 4 + 0] = 255 * result_pixel[1]
 				pointer_tile_color[pixel_index * 4 + 1] = 255 * result_pixel[2]
 				pointer_tile_color[pixel_index * 4 + 2] = 255 * result_pixel[3]
 				pointer_tile_color[pixel_index * 4 + 3] = 255 * result_pixel[4]
-
-				pointer_tile_improvement[pixel_index * 4 + 0] = 255 * result_improvement[1]
-				pointer_tile_improvement[pixel_index * 4 + 1] = 255 * result_improvement[2]
-				pointer_tile_improvement[pixel_index * 4 + 2] = 255 * result_improvement[3]
-				pointer_tile_improvement[pixel_index * 4 + 3] = 255 * result_improvement[4]
 			else
 				pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
-
-				pointer_tile_improvement[pixel_index * 4 + 0] = 255 * 0
-				pointer_tile_improvement[pixel_index * 4 + 1] = 255 * 0
-				pointer_tile_improvement[pixel_index * 4 + 2] = 255 * 0
-				pointer_tile_improvement[pixel_index * 4 + 3] = 255 * 1
 			end
 		end
 	end
 	-- Update the texture
 	gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 	gam.tile_color_texture:setFilter("nearest", "nearest")
-
-	gam.tile_improvement_texture = love.graphics.newImage(gam.tile_improvement_texture_data)
-	gam.tile_improvement_texture:setFilter("nearest", "nearest")
 
 	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
 		mipmaps = false,
@@ -1736,6 +1754,8 @@ function gam.refresh_map_mode(preserve_efficiency)
 
 	local time = love.timer.getTime() - tim
 	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
+
+	coroutine.yield(true)
 end
 
 return gam

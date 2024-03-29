@@ -1,6 +1,7 @@
 local JOBTYPE = require "game.raws.job_types"
 
 ---@class (exact) ProductionMethod
+---@field __index ProductionMethod
 ---@field name string
 ---@field icon string
 ---@field description string
@@ -30,7 +31,7 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field clay_ideal_max number
 ---@field clay_extreme_min number
 ---@field clay_extreme_max number
----@field get_efficiency fun(self:ProductionMethod, tile:Tile):number Returns a fraction describing efficiency on a given tile (used for crops and gathering and such)
+---@field get_efficiency fun(self:ProductionMethod, province:Province):number Returns a fraction describing efficiency on a given province (used for crops and gathering and such)
 
 ---@class ProductionMethod
 local ProductionMethod = {}
@@ -95,62 +96,73 @@ function ProductionMethod:total_jobs()
 	return rett
 end
 
----@param tile Tile
+---@param province Province
 ---@return number
-function ProductionMethod:get_efficiency(tile)
-	local nature_yield = 1
-	local crop_yield = 1
-	if self.forest_dependence > 0 then
-		nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9
-	end
-	if self.nature_yield_dependence > 0 then
-		nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9 + tile.grass * 1
-	end
-	if self.crop then
-		nature_yield = tile.grass * 1.3
-		local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
-		local t = (jan_temp + jul_temp) / 2
-		local r = (jan_rain + jul_rain) / 2
-		if r > self.rainfall_ideal_min and r < self.rainfall_ideal_max then
-			-- Ideal conditions for growing this plant!
-		elseif r < self.rainfall_ideal_min then
-			local d = (r - self.rainfall_extreme_min) / (self.rainfall_ideal_min - self.rainfall_extreme_min)
-			crop_yield = crop_yield * math.max(0, d)
-		elseif r > self.rainfall_ideal_max then
-			local d = (r - self.rainfall_ideal_max) /
-				(self.rainfall_extreme_max - self.rainfall_ideal_max)
-			d = 1 - d
-			crop_yield = crop_yield * math.max(0, d)
-		end
-		if t > self.temperature_ideal_min and r < self.temperature_ideal_max then
-			-- Ideal conditions for growing this plant!
-		elseif t < self.temperature_ideal_min then
-			local d = (t - self.temperature_extreme_min) / (self.temperature_ideal_min - self.temperature_extreme_min)
-			crop_yield = crop_yield * math.max(0, d)
-		elseif t > self.temperature_ideal_max then
-			local d = (t - self.temperature_ideal_max) /
-				(self.temperature_extreme_max - self.temperature_ideal_max)
-			d = 1 - d
-			crop_yield = crop_yield * math.max(0, d)
-		end
-	end
-	local soil_efficiency = 1
-	if self.clay_ideal_min > 0 or self.clay_ideal_max < 1 then
-		local clay = tile.clay
-		if clay > self.clay_ideal_min and clay < self.clay_ideal_max then
-			-- Ideal conditions!
-		elseif clay < self.clay_ideal_min then
-			local d = (clay - self.clay_extreme_min) / (self.clay_ideal_min - self.clay_extreme_min)
-			soil_efficiency = soil_efficiency * math.max(0, d)
-		elseif clay > self.clay_ideal_max then
-			local d = (clay - self.clay_ideal_max) /
-				(self.clay_extreme_max - self.clay_ideal_max)
-			d = 1 - d
-			soil_efficiency = soil_efficiency * math.max(0, d)
-		end
+function ProductionMethod:get_efficiency(province)
+	-- Return 0 efficiency for water provinces
+	if not province.center.is_land then
+		return 0
 	end
 
-	return nature_yield * crop_yield * soil_efficiency
+	local total_efficiency = 0
+	local tile_count = 0
+	for _, tile in pairs(province.tiles) do
+		tile_count = tile_count + 1
+		local nature_yield = 1
+		local crop_yield = 1
+		if self.forest_dependence > 0 then
+			nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9
+		end
+		if self.nature_yield_dependence > 0 then
+			nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9 + tile.grass * 1
+		end
+		if self.crop then
+			nature_yield = tile.grass * 1.3
+			local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
+			local t = (jan_temp + jul_temp) / 2
+			local r = (jan_rain + jul_rain) / 2
+			if r > self.rainfall_ideal_min and r < self.rainfall_ideal_max then
+				-- Ideal conditions for growing this plant!
+			elseif r < self.rainfall_ideal_min then
+				local d = (r - self.rainfall_extreme_min) / (self.rainfall_ideal_min - self.rainfall_extreme_min)
+				crop_yield = crop_yield * math.max(0, d)
+			elseif r > self.rainfall_ideal_max then
+				local d = (r - self.rainfall_ideal_max) /
+					(self.rainfall_extreme_max - self.rainfall_ideal_max)
+				d = 1 - d
+				crop_yield = crop_yield * math.max(0, d)
+			end
+			if t > self.temperature_ideal_min and r < self.temperature_ideal_max then
+				-- Ideal conditions for growing this plant!
+			elseif t < self.temperature_ideal_min then
+				local d = (t - self.temperature_extreme_min) /
+					(self.temperature_ideal_min - self.temperature_extreme_min)
+				crop_yield = crop_yield * math.max(0, d)
+			elseif t > self.temperature_ideal_max then
+				local d = (t - self.temperature_ideal_max) /
+					(self.temperature_extreme_max - self.temperature_ideal_max)
+				d = 1 - d
+				crop_yield = crop_yield * math.max(0, d)
+			end
+		end
+		local soil_efficiency = 1
+		if self.clay_ideal_min > 0 or self.clay_ideal_max < 1 then
+			local clay = tile.clay
+			if clay > self.clay_ideal_min and clay < self.clay_ideal_max then
+				-- Ideal conditions!
+			elseif clay < self.clay_ideal_min then
+				local d = (clay - self.clay_extreme_min) / (self.clay_ideal_min - self.clay_extreme_min)
+				soil_efficiency = soil_efficiency * math.max(0, d)
+			elseif clay > self.clay_ideal_max then
+				local d = (clay - self.clay_ideal_max) /
+					(self.clay_extreme_max - self.clay_ideal_max)
+				d = 1 - d
+				soil_efficiency = soil_efficiency * math.max(0, d)
+			end
+		end
+		total_efficiency = total_efficiency + nature_yield * crop_yield * soil_efficiency
+	end
+	return total_efficiency / tile_count
 end
 
 return ProductionMethod

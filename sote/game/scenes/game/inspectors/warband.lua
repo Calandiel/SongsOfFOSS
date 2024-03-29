@@ -222,15 +222,16 @@ function inspector.draw(gam)
 	---comment
 	---@param x WarbandIdleStance
 	local function set_stance(x)
+
 		if ut.text_button(
 			x,
 			warbands_treasury_control,
 			"Order your party to "
 			.. x,
 			true,
-			WORLD.player_character.leading_warband.idle_stance == x
+			warband.idle_stance == x
 		) then
-			WORLD.player_character.leading_warband.idle_stance = x
+			warband.idle_stance = x
 		end
 
 		warbands_treasury_control.x = warbands_treasury_control.x + ut.BASE_HEIGHT * 4

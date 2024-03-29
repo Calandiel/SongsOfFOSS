@@ -36,7 +36,6 @@ function triggers.valid_tribute_collector_candidate(character, realm)
     if realm.tribute_collectors[character]      then return false end
     -- we can't desigante foreigners to this position
     if character.realm ~= realm                 then return false end
-    if realm.leader == character                then return false end
     -- guard leader has other things to do
     if triggers.guard_leader(character, realm)  then return false end
 

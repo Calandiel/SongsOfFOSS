@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 local wb = require "game.entities.warband"
 
 local EconomicValues = require "game.raws.values.economical"
+local economic_triggers = require "game.raws.triggers.economy"
 
 ---@alias Character POP
 
@@ -305,8 +306,8 @@ function prov.Province:transfer_pop(pop, target)
 		return self.all_pops[c] and c.home_province ~= self
 			and not c.unit_of_warband and not c.employer
 	end)
-	for _,c in pairs(children) do
-		self:transfer_pop(c,target)
+	for _, c in pairs(children) do
+		self:transfer_pop(c, target)
 	end
 end
 
@@ -362,11 +363,11 @@ function prov.Province:kill_pop(pop)
 		pop.home_province:unset_home(pop)
 	end
 
-    if pop.parent then pop.parent.children[pop] = nil end
-    for _,c in pairs(pop.children) do
-        c.parent = nil
-        pop.children[c] = nil
-    end
+	if pop.parent then pop.parent.children[pop] = nil end
+	for _, c in pairs(pop.children) do
+		c.parent = nil
+		pop.children[c] = nil
+	end
 end
 
 function prov.Province:local_army_size()
@@ -588,39 +589,25 @@ function prov.Province:building_type_present(building_type)
 	return false
 end
 
----@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "tile_improvement" | "missing_local_resources"
+---@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "missing_local_resources" | "no_permission"
 
 ---comment
 ---@param funds number
 ---@param building BuildingType
----@param location Tile?
 ---@param overseer POP?
 ---@param public boolean
 ---@return boolean
 ---@return BuildingAttemptFailureReason
-function prov.Province:can_build(funds, building, location, overseer, public)
+function prov.Province:can_build(funds, building, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then
 		resource_check_passed = false
-		if building.tile_improvement then
-			if location then
-				if location.resource then
-					for _, res in pairs(building.required_resource) do
-						if location.resource == res then
-							resource_check_passed = true
-							goto RESOURCE_CHECK_ENDED
-						end
-					end
-				end
-			end
-		else
-			for _, tile in pairs(self.tiles) do
-				if tile.resource then
-					for _, res in pairs(building.required_resource) do
-						if tile.resource == res then
-							resource_check_passed = true
-							goto RESOURCE_CHECK_ENDED
-						end
+		for _, tile in pairs(self.tiles) do
+			if tile.resource then
+				for _, res in pairs(building.required_resource) do
+					if tile.resource == res then
+						resource_check_passed = true
+						goto RESOURCE_CHECK_ENDED
 					end
 				end
 			end
@@ -630,10 +617,12 @@ function prov.Province:can_build(funds, building, location, overseer, public)
 
 	local construction_cost = EconomicValues.building_cost(building, overseer, public)
 
+	if not economic_triggers.allowed_to_build(overseer, self.realm) then
+		return false, "no_permission"
+	end
+
 	if building.unique and self:building_type_present(building) then
 		return false, "unique_duplicate"
-	elseif building.tile_improvement and location == nil then
-		return false, "tile_improvement"
 	elseif not resource_check_passed then
 		return false, "missing_local_resources"
 	elseif construction_cost <= funds then
@@ -878,6 +867,10 @@ function prov.Province:vacant_warbands()
 	end
 
 	return res
+end
+
+function prov.Province:exploration_days()
+	return self.movement_cost / 5
 end
 
 return prov

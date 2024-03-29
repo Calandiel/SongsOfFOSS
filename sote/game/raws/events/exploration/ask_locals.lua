@@ -82,8 +82,8 @@ return function()
 			end
 
 			local function outcome_accept()
-				EconomicEffects.add_pop_savings(character, -price, economic_effects.reasons.Exploration)
-				EconomicEffects.add_pop_savings(partner, price, economic_effects.reasons.Exploration)
+				economic_effects.add_pop_savings(character, -price, economic_effects.reasons.Exploration)
+				economic_effects.add_pop_savings(partner, price, economic_effects.reasons.Exploration)
 				help_outcome(character, associated_data)
 				WORLD:emit_immediate_event("exploration-help-payment-received", partner, associated_data)
 			end

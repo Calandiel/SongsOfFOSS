@@ -6,6 +6,19 @@ local dt = require "game.raws.triggers.diplomacy"
 local ot = require "game.raws.triggers.offices"
 local pv = require "game.raws.values.political"
 
+local pretriggers = require "game.raws.triggers.tooltiped_triggers".Pretrigger
+local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
+
+local OR = pretriggers.OR
+local NOT_BUSY = pretriggers.not_busy
+local IS_LEADER = pretriggers.leader
+local IS_LOCAL_LEADER = pretriggers.leader_of_local_territory
+
+
+
+local IS_OVERLORD_OF_TARGET = triggers.is_overlord_of_target
+local NOT_IN_NEGOTIATIONS = triggers.is_not_in_negotiations
+
 local economic_effects = require "game.raws.effects.economic"
 local character_values = require "game.raws.values.character"
 
@@ -131,103 +144,137 @@ local function load()
 		end
 	}
 
+	-- negotiation rough blueprint
 
+	---@class NegotiationTradeData
+	---@field goods_transfer_from_initiator_to_target table<TradeGoodReference, number?>
+	---@field wealth_transfer_from_initiator_to_target number
 
-	---@type DecisionCharacter
-	Decision.Character:new {
-		name = 'collect-tribute',
-		ui_name = "Collect tribute",
-		tooltip = function(root, primary_target)
-			if root.busy then
-				return "I am too busy to do it."
-			end
-			return "Time to visit our tributary."
-		end,
-		sorting = 1,
-		primary_target = "character",
-		secondary_target = 'none',
-		base_probability = 1 / 25,
-		pretrigger = function(root)
-			if root.busy then return false end
-			if not ot.tribute_collector(root, root.realm) then return false end
-			return true
-		end,
-		clickable = function(root, primary_target)
-			---@type Character
-			primary_target = primary_target
-			if primary_target.realm.paying_tribute_to[root.realm] == nil then
-				return false
-			end
-			return true
-		end,
-		available = function(root, primary_target)
-			return true
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
-			return primary_target.realm.budget.tribute.budget / 10
-		end,
-		ai_targetting_attempts = 2,
-		ai_target = function(root)
-			--print("ait")
-			---@type Character
-			local root = root
-			---@type Province
-			local p = root.province
+	---@class NegotiationRealmToRealm
+	---@field root Realm
+	---@field target Realm
+	---@field subjugate boolean
+	---@field free boolean
+	---@field demand_freedom boolean
+	---@field trade NegotiationTradeData
 
-			if p then
-				-- Once you target a province, try selecting a random neighbor
-				local s = tabb.size(p.neighbors)
-				---@type Province
-				local ne = tabb.nth(p.neighbors, love.math.random(s))
-				if ne then
-					if ne.realm and ne.realm ~= p.realm then
-						return ne.realm.leader, true
-					end
-				end
-			end
-			return nil, false
+	---@class NegotiationCharacterToRealm
+	---@field target Realm
+	---@field trade_permission boolean
+	---@field building_permission boolean
+
+	---@class NegotiationCharacterToCharacter
+	---@field trade NegotiationTradeData
+
+	---@class NegotiationData
+	---@field initiator Character
+	---@field target Character
+	---@field negotiations_terms_realms NegotiationRealmToRealm[]
+	---@field negotiations_terms_character_to_realm NegotiationCharacterToRealm[]
+	---@field selected_realm_origin Realm?
+	---@field selected_realm_target Realm?
+	---@field negotiations_terms_characters NegotiationCharacterToCharacter
+	---@field days_of_travel number
+
+	Decision.CharacterCharacter:new_from_trigger_lists (
+		'start-negotiations',
+		"Start negotiations",
+		function(root, primary_target)
+			return "Start negotiations with " .. primary_target.name
 		end,
-		ai_secondary_target = function(root, primary_target)
-			--print("ais")
-			return nil, true
-		end,
-		effect = function(root, primary_target, secondary_target)
-			---@type Character
-			primary_target = primary_target
+		0, -- never
+		{
+			NOT_BUSY
+		},
+		{
 
-			local travel_time, _ = path.hours_to_travel_days(
-				path.pathfind(
-					root.realm.capitol,
-					primary_target.realm.capitol,
-					character_values.travel_speed_race(root.realm.primary_race),
-					root.realm.known_provinces
-				)
-			)
-			if travel_time == math.huge then
-				travel_time = 150
-			end
+		},
+		{
 
-			root.busy = true
+		},
 
-			---@type TributeCollection
-			local associated_data = {
-				origin = root.realm,
-				target = primary_target.realm,
-				tribute = 0,
-				travel_time = travel_time
+		function(root, primary_target, secondary_target)
+			---@type NegotiationData
+			local negotiation_data = {
+				initiator = root,
+				target = primary_target,
+				negotiations_terms_characters = {
+					trade = {
+						wealth_transfer_from_initiator_to_target = 0,
+						goods_transfer_from_initiator_to_target = {}
+					}
+				},
+				negotiations_terms_character_to_realm = {},
+				negotiations_terms_realms = {},
+				days_of_travel = 10
 			}
 
-			WORLD:emit_action(
-				'tribute-collection-1',
-				root,
-				associated_data,
-				travel_time,
-				true
-			)
+			root.current_negotiations[primary_target] = primary_target
+			primary_target.current_negotiations[root] = root
+
+			WORLD:emit_immediate_event('negotiation-initiator', root, negotiation_data)
+		end,
+
+		--- AI SHOULD HAVE SEPARATE DECISIONS WITH PRESET NEGOTIATION PROPOSALS
+		function(root, primary_target, secondary_target)
+			return 0
+		end,
+		function(root)
+			return nil, false
 		end
-	}
+	)
 
 
+	Decision.CharacterProvince:new_from_trigger_lists (
+		'start-negotiations-province',
+		"Start negotiations",
+		function(root, primary_target)
+			return "Start negotiations with a leader of " .. primary_target.realm.name
+		end,
+		0, -- never
+		{
+			NOT_BUSY
+		},
+		{
+
+		},
+		{
+
+		},
+
+		function(root, primary_target, secondary_target)
+			---@type Character
+			local leader = primary_target.realm.leader
+
+			---@type NegotiationData
+			local negotiation_data = {
+				initiator = root,
+				target = leader,
+				negotiations_terms_characters = {
+					trade = {
+						wealth_transfer_from_initiator_to_target = 0,
+						goods_transfer_from_initiator_to_target = {}
+					}
+				},
+				negotiations_terms_character_to_realm = {},
+				negotiations_terms_realms = {},
+				days_of_travel = 10
+			}
+
+			root.current_negotiations[leader] = leader
+			leader.current_negotiations[root] = root
+
+			WORLD:emit_immediate_event('negotiation-initiator', root, negotiation_data)
+		end,
+
+		--- AI SHOULD HAVE SEPARATE DECISIONS WITH PRESET NEGOTIATION PROPOSALS
+		function(root, primary_target, secondary_target)
+			return 0
+		end,
+		function(root)
+			return nil, false
+		end
+	)
 
 	-- migrate decision
 
@@ -235,9 +282,9 @@ local function load()
 		name = 'migrate-realm',
 		ui_name = "Migrate to targeted province",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return "You have no right to order your tribe to do this"
 			end
@@ -255,7 +302,7 @@ local function load()
 					.. primary_target.name
 					.. "."
 			end
-        end,
+		end,
 		path = function (root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
@@ -281,12 +328,12 @@ local function load()
 			if root.realm.capitol.neighbors[primary_target] then
 				return true
 			end
-            return false
+			return false
 		end,
 		available = function(root, primary_target)
-            if root.busy then
-                return false
-            end
+			if root.busy then
+				return false
+			end
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return false
 			end
@@ -298,9 +345,9 @@ local function load()
 			end
 			return true
 		end,
-        ai_target = function(root)
+		ai_target = function(root)
 			return tabb.random_select_from_set(root.realm.capitol.neighbors), true
-        end,
+		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
 		end,
@@ -340,9 +387,9 @@ local function load()
 		name = 'migrate-realm-invasion',
 		ui_name = "Invade targeted province",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return "You have no right to order your tribe to do this"
 			end
@@ -354,7 +401,7 @@ local function load()
 				.. " controlled by "
 				.. primary_target.realm.name
 				.. ". Their tribe will be merged into our if we succeed."
-        end,
+		end,
 		path = function (root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
@@ -380,12 +427,12 @@ local function load()
 			if root.realm.capitol.neighbors[primary_target] then
 				return true
 			end
-            return false
+			return false
 		end,
 		available = function(root, primary_target)
-            if root.busy then
-                return false
-            end
+			if root.busy then
+				return false
+			end
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return false
 			end
@@ -397,9 +444,9 @@ local function load()
 			end
 			return true
 		end,
-        ai_target = function(root)
+		ai_target = function(root)
 			return tabb.random_select_from_set(root.realm.capitol.neighbors), true
-        end,
+		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
 		end,
@@ -418,9 +465,9 @@ local function load()
 		name = 'colonize-province',
 		ui_name = "Colonize targeted province",
 		tooltip = function (root, primary_target)
-            if root.busy then
-                return "You are too busy to consider it."
-            end
+			if root.busy then
+				return "You are too busy to consider it."
+			end
 			if root.realm.capitol:population() < 11 then
 				return "Your population is too low"
 			end
@@ -437,7 +484,7 @@ local function load()
 			return "Colonize "
 				.. primary_target.name
 				.. ". Our colonists will organise a new tribe which will pay tribute to us."
-        end,
+		end,
 		path = function (root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
@@ -469,12 +516,12 @@ local function load()
 			if not primary_target:neighbors_realm_tributary(root.realm) then
 				return false
 			end
-            return true
+			return true
 		end,
 		available = function(root, primary_target)
-            if root.busy then
-                return false
-            end
+			if root.busy then
+				return false
+			end
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return false
 			end
@@ -486,9 +533,9 @@ local function load()
 			end
 			return true
 		end,
-        ai_target = function(root)
+		ai_target = function(root)
 			return tabb.random_select_from_set(root.realm.capitol.neighbors), true
-        end,
+		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
 		end,

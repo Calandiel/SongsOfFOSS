@@ -15,6 +15,14 @@ function effects.set_tributary(overlord, tributary)
 	tributary.paying_tribute_to[overlord] = overlord
 	overlord.tributaries[tributary] = tributary
 
+	overlord.tributary_status[tributary] = {
+		warriors_contribution = false,
+		wealth_transfer = true,
+		goods_transfer = false,
+		local_ruler = false,
+		protection = false
+	}
+
 	for k, v in pairs(tributary.provinces) do
 		overlord:explore(v)
 	end
@@ -30,8 +38,13 @@ function effects.set_tributary(overlord, tributary)
 		WORLD:emit_notification("Our tribe now pays tribute to " .. overlord.name .. ". Outrageous!")
 	end
 
-	economy_effects.remove_raiding_flags(overlord, tributary)
-	economy_effects.remove_raiding_flags(tributary, overlord)
+	local reward_overlord = overlord.quests_raid[tributary] or 0
+	overlord.quests_raid[tributary.capitol] = 0
+	overlord.quests_patrol[tributary.capitol] = (overlord.quests_patrol[tributary.capitol] or 0) + reward_overlord
+
+	local reward_tributary = tributary.quests_raid[tributary] or 0
+	tributary.quests_raid[overlord.capitol] = 0
+	tributary.quests_patrol[tributary.capitol] = (tributary.quests_patrol[tributary.capitol] or 0) + reward_tributary
 end
 
 ---Removes the tributary relationship and explores provinces for the overlord
@@ -39,6 +52,7 @@ end
 ---@param tributary Realm
 function effects.unset_tributary(overlord, tributary)
 	overlord.tributaries[tributary] = nil
+	overlord.tributary_status[tributary] = nil
 	tributary.paying_tribute_to[overlord] = nil
 end
 
@@ -50,6 +64,7 @@ function effects.clear_diplomacy(realm)
 	end
 	for _, overlord_realm in pairs(realm.paying_tribute_to) do
 		overlord_realm.tributaries[realm] = nil
+		overlord_realm.tributary_status[realm] = nil
 	end
 
 	realm.paying_tribute_to = {}

@@ -32,19 +32,4 @@ function eco.realm_income()
 	end)
 end
 
-function eco.tile_infrastructure()
-
-	for _, tile in pairs(WORLD.tiles) do
-		ut.set_default_color(tile)
-
-		if tile.tile_improvement then
-			tile:set_real_color(
-				tile.tile_improvement.type.r,
-				tile.tile_improvement.type.g,
-				tile.tile_improvement.type.b
-			)
-		end
-	end
-end
-
 return eco

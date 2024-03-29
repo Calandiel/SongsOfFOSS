@@ -15,7 +15,6 @@ function dpi.determine()
 			tile.pathfinding_index = index
 			queue:enqueue(tile)
 			while queue:length() > 0 do
-				--print(queue:length())
 				local pt = queue:dequeue()
 				for neigh in pt:iter_neighbors() do
 					if neigh.pathfinding_index == 0 and neigh.is_land == tile.is_land then

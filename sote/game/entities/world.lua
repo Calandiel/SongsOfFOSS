@@ -33,7 +33,6 @@ local tabb = require "engine.table"
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
----@field tile_count fun(self:World):number returns number of tiles
 ---@field random_tile fun(self:World):Tile returns a random tile
 ---@field new_plate fun(self:World):Plate creates and returns a new plate
 ---@field new fun(self:World):World
@@ -223,7 +222,7 @@ end
 ---Schedules an event immediately
 ---@param event string
 ---@param root Character
----@param associated_data table
+---@param associated_data table|nil
 function world.World:emit_immediate_event(event, root, associated_data)
 	if root == nil then
 		error("Attempt to call event for nil root")
@@ -303,6 +302,8 @@ local function handle_event(event, target_realm, associated_data)
 		error(event .. " is not a valid event!")
 	end
 
+	assert(target_realm ~= nil, "CHARACTER DOES NOT EXIST")
+
 	-- First, find the best option
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
@@ -312,6 +313,8 @@ local function handle_event(event, target_realm, associated_data)
 		local oo = o
 		if oo.viable() then
 			local pre = oo.ai_preference()
+
+			assert(pre ~= nil, "Option " .. tostring(_) .. " of event " .. event .. " produced nil ai_preference")
 
 			-- print(oo.text)
 			-- print(oo.ai_preference())
@@ -323,6 +326,7 @@ local function handle_event(event, target_realm, associated_data)
 		end
 	end
 	if best.viable() then
+		assert(best.outcome, "Option of event " .. event .. " doesn't have outcome")
 		best.outcome()
 	end
 end
@@ -528,20 +532,6 @@ function world.World:tick()
 						military_effects.patrol(realm, target)
 					end
 				end
-				-- launch raids
-				for _, target in pairs(realm.reward_flags) do
-					local warbands = realm.raiders_preparing[target]
-					local units = 0
-					for _, warband in pairs(warbands) do
-						units = units + warband:size()
-					end
-
-					-- with some probability, launch the raid
-					-- larger groups launch raids faster
-					if (units > 0) and (love.math.random() > 0.5 + 1 / (units + 10)) then
-						military_effects.covert_raid(realm, target)
-					end
-				end
 
 				PROFILER:end_timer("war")
 
@@ -654,6 +644,9 @@ function world.World:tick()
 					local pop_aging = require "game.society.pop-aging"
 					for _, settled_province in pairs(WORLD.provinces) do
 						pop_aging.age(settled_province)
+						if settled_province.realm then
+							settled_province.realm.tax_collected_this_year = 0
+						end
 					end
 				end
 

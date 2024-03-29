@@ -3,17 +3,12 @@ local tabb = require "engine.table"
 local ll = {}
 local military_effects = require "game.raws.effects.military"
 local utils = require "game.raws.raws-utils"
-local ef = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 
 function ll.load()
 	local Decision = require "game.raws.decisions"
 
-	require "game.raws.decisions.war-decisions" ()
-	require "game.raws.decisions.character-decisions" ()
-	require "game.raws.decisions.office-decisions" ()
-	require "game.raws.decisions.diplomacy" ()
-	require "game.raws.decisions.interpersonal" ()
-	require "game.raws.decisions.travel" ()
+	require "game.raws.decisions._loader"()
 
 	-- Logic flow:
 	-- 1. Loop through all realms
@@ -134,7 +129,7 @@ function ll.load()
 			---@type Province
 			local primary_target = primary_target
 			primary_target.mood = math.min(10, primary_target.mood + 0.05)
-			ef.change_treasury(root, -primary_target:population() * gift_cost_per_pop, EconomicEffects.reasons.Donation)
+			economic_effects.change_treasury(root, -primary_target:population() * gift_cost_per_pop, economic_effects.reasons.Donation)
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("Population of " .. primary_target.name .. " is jubilant after receiving our gifts!")
 			end

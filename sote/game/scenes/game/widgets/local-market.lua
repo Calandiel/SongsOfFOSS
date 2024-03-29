@@ -96,7 +96,7 @@ return function(province, ui_panel, base_unit, gam)
             end
         },
         {
-            header = "Consumption",
+            header = "Used",
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v

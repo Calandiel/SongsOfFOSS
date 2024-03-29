@@ -7,6 +7,7 @@ local uit = require "game.ui-utils"
 local tabb = require "engine.table"
 
 local ef = require "game.raws.effects.economic"
+local btb = require "game.scenes.game.widgets.building-type-buttons"
 
 local military_effects = require "game.raws.effects.military"
 
@@ -90,7 +91,6 @@ local function header_panel(gam, tile, panel)
 		uit.NUMBER_MODE.INTEGER,
 		uit.NAME_MODE.ICON
 	)
-
 end
 
 local INVESTMENT_AMOUNT = 1
@@ -100,7 +100,6 @@ local INVESTMENT_AMOUNT = 1
 ---@param tile Tile
 ---@param panel Rect
 local function infrastructure_widget(gam, tile, panel)
-
 	if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
 		INVESTMENT_AMOUNT = 5
 	elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
@@ -133,12 +132,12 @@ local function infrastructure_widget(gam, tile, panel)
 				.. ". Press Ctrl or Shift to modify invested amount."
 
 			if uit.money_button(
-				"Invest",
-				INVESTMENT_AMOUNT,
-				rect,
-				tooltip,
-				potential
-			) then
+					"Invest",
+					INVESTMENT_AMOUNT,
+					rect,
+					tooltip,
+					potential
+				) then
 				ef.direct_investment_infrastructure(realm, province, INVESTMENT_AMOUNT)
 			end
 		end
@@ -183,28 +182,11 @@ local function infrastructure_widget(gam, tile, panel)
 				)
 			end,
 
-			function (rect)
+			function(rect)
 				if WORLD:does_player_control_realm(realm) then
 					invest_button()(rect)
 				end
 			end,
-
-			function(rect)
-				local impr = "none"
-				if tile.tile_improvement then
-					impr = tile.tile_improvement.type.name
-				end
-				uit.data_entry("", impr, rect, "Local tile improvement")
-			end,
-			function(rect)
-				if tile.tile_improvement then
-					if WORLD:is_player(tile.tile_improvement.owner) then
-						if uit.text_button("Destroy", rect, "Destroy the local tile improvement") then
-							tile.tile_improvement:remove_from_province()
-						end
-					end
-				end
-			end
 		},
 		panel,
 		base_unit
@@ -216,7 +198,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function demography_widget(gam, tile, panel)
-
 	panel:shrink(3)
 	ui.panel(panel, 3)
 	panel:shrink(3)
@@ -225,7 +206,7 @@ local function demography_widget(gam, tile, panel)
 	local realm = tile.province.realm
 	local province = tile.province
 
-	require "game.scenes.game.widgets.demography"({province}, panel, true)()
+	require "game.scenes.game.widgets.demography" ({ province }, panel, true)()
 end
 
 ---comment
@@ -233,7 +214,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function realm_widget(gam, tile, panel)
-
 	panel:shrink(3)
 	ui.panel(panel, 3)
 	panel:shrink(3)
@@ -266,11 +246,11 @@ local function realm_widget(gam, tile, panel)
 		:build()
 
 	if uit.icon_button(
-		ASSETS.icons["frog-prince.png"],
-		buttons_grid:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
-		"Take control over character from this country",
-		player == nil
-	) then
+			ASSETS.icons["frog-prince.png"],
+			buttons_grid:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
+			"Take control over character from this country",
+			player == nil
+		) then
 		-- gam.refresh_map_mode()
 		gam.inspector = "characters"
 		gam.selected.province = tile.province
@@ -286,24 +266,26 @@ local function realm_widget(gam, tile, panel)
 		local raid_tooltip = raid.tooltip(player, tile.province)
 		local patrol_tooltip = patrol.tooltip(player, tile.province)
 
-		local raid_potential = raid.clickable(player, tile.province) and raid.pretrigger(player) and raid.available(player, tile.province)
-		local patrol_potential = patrol.clickable(player, tile.province) and patrol.pretrigger(player) and patrol.available(player, tile.province)
+		local raid_potential = raid.clickable(player, tile.province) and raid.pretrigger(player) and
+			raid.available(player, tile.province)
+		local patrol_potential = patrol.clickable(player, tile.province) and patrol.pretrigger(player) and
+			patrol.available(player, tile.province)
 
 		if uit.icon_button(
-			ASSETS.icons["stone-spear.png"],
-			raid_rect,
-			raid_tooltip,
-			raid_potential
-		) then
+				ASSETS.icons["stone-spear.png"],
+				raid_rect,
+				raid_tooltip,
+				raid_potential
+			) then
 			raid.effect(player, tile.province)
 		end
 
 		if uit.icon_button(
-			ASSETS.icons["round-shield.png"],
-			patrol_rect,
-			patrol_tooltip,
-			patrol_potential
-		) then
+				ASSETS.icons["round-shield.png"],
+				patrol_rect,
+				patrol_tooltip,
+				patrol_potential
+			) then
 			patrol.effect(player, tile.province)
 		end
 	end
@@ -322,7 +304,6 @@ local function main_panel(gam, tile, panel)
 end
 
 local function military_widget(gam, tile, panel)
-
 	panel:shrink(3)
 	ui.panel(panel, 3)
 	panel:shrink(3)
@@ -377,7 +358,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function trade_widget(gam, tile, panel)
-
 	panel:shrink(3)
 	ui.panel(panel, 3)
 	panel:shrink(3)
@@ -430,7 +410,6 @@ end
 ---@param tile Tile
 ---@param panel Rect
 local function separate_inspectors(gam, tile, panel)
-
 	local layout = ui.layout_builder()
 		:position(panel.x + 5, panel.y)
 		:spacing(5)
@@ -438,18 +417,18 @@ local function separate_inspectors(gam, tile, panel)
 		:build()
 
 	if uit.icon_button(
-		ASSETS.icons["scales.png"],
-		layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
-		"Show market"
-	) then
+			ASSETS.icons["scales.png"],
+			layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
+			"Show market"
+		) then
 		gam.inspector = "market"
 	end
 
 	if uit.icon_button(
-		ASSETS.icons["minions.png"],
-		layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
-		"Show population"
-	) then
+			ASSETS.icons["minions.png"],
+			layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
+			"Show population"
+		) then
 		gam.inspector = "population"
 	end
 end
@@ -543,7 +522,8 @@ local function geography_tab(gam, tile, panel)
 						}, rect)
 					end,
 					function(rect)
-						uit.data_entry("Soil depth:", tostring(math.floor(tile:soil_depth() * 100) / 100), rect, "In meters")
+						uit.data_entry("Soil depth:", tostring(math.floor(tile:soil_depth() * 100) / 100), rect,
+							"In meters")
 					end,
 					function(rect)
 						uit.data_entry("Soil perm.:", tostring(math.floor(tile:soil_permeability() * 100) / 100), rect,
@@ -570,7 +550,8 @@ local function geography_tab(gam, tile, panel)
 								{
 									weight = 1 - tile.grass - tile.shrub - tile.conifer - tile.broadleaf,
 									tooltip = "Bare ground (" ..
-										math.floor((1 - tile.grass - tile.shrub - tile.conifer - tile.broadleaf) * 100) .. "%)",
+										math.floor((1 - tile.grass - tile.shrub - tile.conifer - tile.broadleaf) * 100) ..
+										"%)",
 									r = 0.2,
 									g = 0.1,
 									b = 0.1
@@ -624,7 +605,8 @@ local function geography_tab(gam, tile, panel)
 							uit.data_entry("Jan. rain:", tostring(math.floor(jan_r)), rect, "January rainfall")
 						end,
 						function(rect)
-							uit.data_entry("Jan. flow:", tostring(math.floor(tile.january_waterflow)), rect, "January waterflow")
+							uit.data_entry("Jan. flow:", tostring(math.floor(tile.january_waterflow)), rect,
+								"January waterflow")
 						end,
 						function(rect)
 							uit.data_entry("Ice:", tostring(math.floor(tile.ice)), rect, "Ice")
@@ -641,7 +623,8 @@ local function geography_tab(gam, tile, panel)
 							uit.data_entry("Jul. rain:", tostring(math.floor(jul_r)), rect, "July rainfall")
 						end,
 						function(rect)
-							uit.data_entry("Jul. flow:", tostring(math.floor(tile.july_waterflow)), rect, "July waterflow")
+							uit.data_entry("Jul. flow:", tostring(math.floor(tile.july_waterflow)), rect,
+								"July waterflow")
 						end,
 						function(rect)
 							uit.data_entry("Ice (ice age):", tostring(math.floor(tile.ice_age_ice)), rect,
@@ -675,12 +658,11 @@ local function buildings_construction_tab(gam, tile, panel)
 		function(number, rect)
 			if number > 0 then
 				local building_type = tabb.nth(tile.province.buildable_buildings, number)
-				require "game.scenes.game.widgets.building-type-buttons"(
+				btb.building_type_buttons(
 					gam,
 					rect,
 					building_type,
-					tile,
-					false
+					tile
 				)
 			end
 		end,
@@ -758,30 +740,30 @@ local function buildings_view_tab(gam, tile, rect)
 		-- Show individual buildings
 		re.buildings_scrollbar = re.buildings_scrollbar or 0
 		re.buildings_scrollbar = uit.scrollview(rect, function(number, rect)
-			if number > 0 and number <= tabb.size(tile.province.buildings) then
-				---@type Building
-				local building = tabb.nth(tile.province.buildings, number)
-				ui.tooltip(building.type:get_tooltip(), rect)
-				---@type Rect
-				local r = rect
-				local im = r:subrect(0, 0, base_unit, base_unit, "left", "up")
-				if uit.icon_button(ASSETS.icons[building.type.icon], im) then
-					gam.inspector = "building"
-					gam.selected.building = building
-				end
-				rect.x = rect.x + base_unit
-				ui.left_text(building.type.name, rect)
-				if WORLD:is_player(building.owner) then
-					local button = r:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
-					if uit.icon_button(ASSETS.get_icon("hammer-drop.png"), button, "Destroy the building") then
-						-- remove the building!
-						building:remove_from_province()
+				if number > 0 and number <= tabb.size(tile.province.buildings) then
+					---@type Building
+					local building = tabb.nth(tile.province.buildings, number)
+					ui.tooltip(building.type:get_tooltip(), rect)
+					---@type Rect
+					local r = rect
+					local im = r:subrect(0, 0, base_unit, base_unit, "left", "up")
+					if uit.icon_button(ASSETS.icons[building.type.icon], im) then
+						gam.inspector = "building"
+						gam.selected.building = building
 					end
-				else
-					-- ???
+					rect.x = rect.x + base_unit
+					ui.left_text(building.type.name, rect)
+					if WORLD:is_player(building.owner) then
+						local button = r:subrect(-base_unit, 0, base_unit, base_unit, "right", "up")
+						if uit.icon_button(ASSETS.get_icon("hammer-drop.png"), button, "Destroy the building") then
+							-- remove the building!
+							building:remove_from_province()
+						end
+					else
+						-- ???
+					end
 				end
-			end
-		end, UI_STYLE.scrollable_list_item_height, tabb.size(tile.province.buildings), UI_STYLE.slider_width,
+			end, UI_STYLE.scrollable_list_item_height, tabb.size(tile.province.buildings), UI_STYLE.slider_width,
 			re.buildings_scrollbar)
 	end
 end
@@ -792,7 +774,7 @@ local building_tab = "Construction"
 ---@param gam GameScene
 ---@param tile Tile
 ---@param panel Rect
-local function buildings_tab (gam, tile, panel)
+local function buildings_tab(gam, tile, panel)
 	local unit = uit.BASE_HEIGHT
 
 	local tab_content = panel:subrect(0, unit, panel.width, panel.height - unit, "left", "up")
@@ -840,16 +822,16 @@ local function technology_tab(gam, tile, panel)
 						rect.height = rect.height - UI_STYLE.table_header_height
 						re.researched_technologies_scrollbar = re.researched_technologies_scrollbar or 0
 						re.researched_technologies_scrollbar = uit.scrollview(rect, function(number, rect)
-							if number > 0 then
-								---@type Technology
-								local tech = tabb.nth(tile.province.technologies_present, number)
-								require "game.scenes.game.widgets.technology"(tech, rect, gam)
-							end
-						end,
-						UI_STYLE.scrollable_list_item_height,
-						tabb.size(tile.province.technologies_present),
-						UI_STYLE.slider_width,
-						re.researched_technologies_scrollbar)
+								if number > 0 then
+									---@type Technology
+									local tech = tabb.nth(tile.province.technologies_present, number)
+									require "game.scenes.game.widgets.technology" (tech, rect, gam)
+								end
+							end,
+							UI_STYLE.scrollable_list_item_height,
+							tabb.size(tile.province.technologies_present),
+							UI_STYLE.slider_width,
+							re.researched_technologies_scrollbar)
 					end
 				}, rect, base_unit)
 			end,
@@ -863,16 +845,16 @@ local function technology_tab(gam, tile, panel)
 						rect.height = rect.height - base_unit
 						re.researchable_technologies_scrollbar = re.researchable_technologies_scrollbar or 0
 						re.researchable_technologies_scrollbar = uit.scrollview(rect, function(number, rect)
-							if number > 0 then
-								---@type Technology
-								local tech = tabb.nth(tile.province.technologies_researchable, number)
-								require "game.scenes.game.widgets.technology"(tech, rect, gam)
-							end
-						end,
-						UI_STYLE.scrollable_list_item_height,
-						tabb.size(tile.province.technologies_researchable),
-						UI_STYLE.slider_width,
-						re.researchable_technologies_scrollbar)
+								if number > 0 then
+									---@type Technology
+									local tech = tabb.nth(tile.province.technologies_researchable, number)
+									require "game.scenes.game.widgets.technology" (tech, rect, gam)
+								end
+							end,
+							UI_STYLE.scrollable_list_item_height,
+							tabb.size(tile.province.technologies_researchable),
+							UI_STYLE.slider_width,
+							re.researchable_technologies_scrollbar)
 					end
 				}, rect, base_unit)
 			end
@@ -904,7 +886,7 @@ local function decisions_tab(gam, tile, panel)
 				gam.reset_decision_selection()
 			end,
 			closure = function()
-				require "game.scenes.game.widgets.decision-tab"(
+				require "game.scenes.game.widgets.decision-tab" (
 					tab_content,
 					tile,
 					"tile",
@@ -919,7 +901,7 @@ local function decisions_tab(gam, tile, panel)
 				gam.reset_decision_selection()
 			end,
 			closure = function()
-				require "game.scenes.game.widgets.decision-tab"(
+				require "game.scenes.game.widgets.decision-tab" (
 					tab_content,
 					tile.province,
 					"province",
@@ -1007,18 +989,18 @@ function re.draw(gam)
 			tooltip = "List of notable characters",
 			closure = function()
 				local tab_layout = ui.layout_builder()
-				:position(tab_content.x, tab_content.y)
-				:spacing(2)
-				:horizontal()
-				:build()
+					:position(tab_content.x, tab_content.y)
+					:spacing(2)
+					:horizontal()
+					:build()
 				tab_content.y = tab_content.y + unit * 1.2
 				tab_content.height = tab_content.height - unit * 1.2
 				re.cached_character_tab = uit.tabs(re.cached_character_tab, tab_layout, {
 					{
 						text = "All",
 						tooltip = "All characters in province",
-						closure = function ()
-							local response = require "game.scenes.game.widgets.character-list"(
+						closure = function()
+							local response = require "game.scenes.game.widgets.character-list" (
 								tab_content,
 								tile.province.characters
 							)()
@@ -1031,11 +1013,11 @@ function re.draw(gam)
 					{
 						text = "Home",
 						tooltip = "Characters that are at home.",
-						closure = function ()
-							local response = require "game.scenes.game.widgets.character-list"(
+						closure = function()
+							local response = require "game.scenes.game.widgets.character-list" (
 								tab_content,
 								tabb.filter(tile.province.characters,
-									function(a) 
+									function(a)
 										return a.province == a.home_province
 									end)
 							)()
@@ -1048,11 +1030,11 @@ function re.draw(gam)
 					{
 						text = "Guest",
 						tooltip = "All foreign characters present.",
-						closure = function ()
-							local response = require "game.scenes.game.widgets.character-list"(
+						closure = function()
+							local response = require "game.scenes.game.widgets.character-list" (
 								tab_content,
 								tabb.filter(tile.province.characters,
-									function(a) 
+									function(a)
 										return a.province ~= a.home_province
 									end)
 							)()
@@ -1094,64 +1076,6 @@ function re.draw(gam)
 		:build()
 
 	gam.tile_inspector_tab = uit.tabs(gam.tile_inspector_tab, layout, tabs, 1)
-end
-
----@param gam GameScene
-function re.draw_old(gam)
-	local tt = gam.clicked_tile_id
-	local mbt = WORLD.tiles[tt]
-	if mbt ~= nil then
-		---@type Tile
-		local tile = mbt
-		if tile.province == nil then
-			return -- the world isn't fully generated... return
-		end
-
-		-- The clicked tile exists!
-		local panel = get_main_panel()
-		local base_unit = uit.BASE_HEIGHT
-
-		ui.panel(panel)
-
-		local top_bar_rect = panel:subrect(0, 0, panel.width, base_unit * 2, "left", "up")
-
-		-- All the other data (as in, tabs)
-		local ui_panel = panel:subrect(
-			0,
-			base_unit * 3,
-			panel.width,
-			panel.height - base_unit * 3,
-			"left", "up"):shrink(5)
-
-		gam.tile_inspector_tab = gam.tile_inspector_tab or "GEN"
-
-		uit.rows({
-
-			function(rect)
-				local player_character = WORLD.player_character
-				if player_character then
-					local player_realm = player_character.realm
-					if player_realm and WORLD:does_player_control_realm(player_realm) then
-						local explore_cost = player_realm:get_explore_cost(tile.province)
-						local explore_cost_string = tostring(math.floor(100 * explore_cost) / 100) .. MONEY_SYMBOL
-						if player_realm.budget.treasury > explore_cost then
-							if uit.text_button("Explore (" .. explore_cost_string .. ")", rect, "Explore this province") then
-								player_realm:explore(tile.province)
-								EconomicEffects.change_treasury(player_realm, -explore_cost, EconomicEffects.reasons.Exploration)
-								gam.refresh_map_mode()
-							end
-						else
-							if uit.text_button("Explore (n/a)", rect,
-								"Not enough funds! (" ..
-								explore_cost_string .. " needed)") then
-								--
-							end
-						end
-					end
-				end
-			end
-		}, rect)
-	end
 end
 
 return re

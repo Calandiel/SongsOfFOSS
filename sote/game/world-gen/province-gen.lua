@@ -241,12 +241,12 @@ function pro.run()
 
 		-- print('???')
 		tile:set_debug_color(1, 1, 1)
-		tile.temp = true
 
 		local response = nil
 		for n in tile:iter_neighbors() do
 			if n.is_land == tile.is_land then
-				local next_tile =  waterflow_recursion(n, depth - 1, math.min(water_seek, low_waterflow_counter + d), province)
+				local next_tile = waterflow_recursion(n, depth - 1, math.min(water_seek, low_waterflow_counter + d),
+					province)
 				if next_tile then
 					response = next_tile
 				end
@@ -270,10 +270,10 @@ function pro.run()
 
 	print('creating river-like provinces')
 	local riverlike_prov_count = math.floor(prov_count / 8)
-	for _ = 1, riverlike_prov_count  do
-		if _ % 100 == 0 then
-			print(_ / riverlike_prov_count * 100)
-		end
+	for _ = 1, riverlike_prov_count do
+		-- if _ % 100 == 0 then
+		-- 	print(_ / riverlike_prov_count * 100)
+		-- end
 		-- Get a random soil rich tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0
@@ -287,10 +287,10 @@ function pro.run()
 
 	print('creating coastal provinces')
 	local coastal_count = math.floor(prov_count / 5)
-	for _ = 1, coastal_count  do
-		if _ % 100 == 0 then
-			print(_ / coastal_count * 100)
-		end
+	for _ = 1, coastal_count do
+		-- if _ % 100 == 0 then
+		-- 	print(_ / coastal_count * 100)
+		-- end
 
 		-- Get a random coastal tile with no province assigned to it
 		local tile = WORLD:random_tile()
@@ -314,9 +314,9 @@ function pro.run()
 
 	print('create rest of provinces')
 	for _ = 1, prov_count - coastal_count - riverlike_prov_count do
-		if _ % 100 == 0 then
-			print(_ / (prov_count - coastal_count - riverlike_prov_count) * 100)
-		end
+		-- if _ % 100 == 0 then
+		-- 	print(_ / (prov_count - coastal_count - riverlike_prov_count) * 100)
+		-- end
 		-- Get a random land tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0
@@ -362,7 +362,7 @@ function pro.run()
 		end
 	end
 
-	local function recalculate_provincial_centers ()
+	local function recalculate_provincial_centers()
 		for _, province in pairs(WORLD.provinces) do
 			local N = 20
 			-- sample N random tiles
@@ -388,7 +388,7 @@ function pro.run()
 			local best_dist = 10000000
 			for _, tile in pairs(province.tiles) do
 				local tmp_lat, tmp_lon = tile:latlon()
-				local dist = math.abs(tmp_lat- lat) + math.abs(tmp_lon - lon)
+				local dist = math.abs(tmp_lat - lat) + math.abs(tmp_lon - lon)
 
 				if dist < best_dist then
 					best_dist = dist
@@ -572,7 +572,7 @@ function pro.run()
 			end
 		end
 
-		if forestCount > tabb.size(province.tiles)/2 then
+		if forestCount > tabb.size(province.tiles) / 2 then
 			province.on_a_forest = true
 		end
 

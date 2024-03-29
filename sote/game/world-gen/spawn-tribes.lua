@@ -32,9 +32,12 @@ local function make_new_realm(capitol, race, culture, faith)
 	r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.4 - 0.2))))
 
 	r.name = culture.language:get_random_realm_name()
+
+	--[[
 	for _, neigh in pairs(capitol.neighbors) do
 		r:explore(neigh)
 	end
+	]]--
 
 	-- Mark the province as settled for processing...
 	WORLD:set_settled_province(capitol)

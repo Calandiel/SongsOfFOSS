@@ -1,5 +1,5 @@
 local Event = require "game.raws.events"
-local EconomicEffects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economic"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
 local TRAIT = require "game.raws.traits.generic"
 local AI_VALUE = require "game.raws.values.ai_preferences"
@@ -143,8 +143,8 @@ return function ()
 					tooltip = "Pay",
 					viable = function() return true end,
 					outcome = function()
-                        EconomicEffects.add_pop_savings(character, -price, EconomicEffects.reasons.LoyaltyGift)
-                        EconomicEffects.add_pop_savings(associated_data, price, EconomicEffects.reasons.LoyaltyGift)
+                        economic_effects.add_pop_savings(character, -price, economic_effects.reasons.LoyaltyGift)
+                        economic_effects.add_pop_savings(associated_data, price, economic_effects.reasons.LoyaltyGift)
 						InterpersonalEffects.set_loyalty(associated_data, character)
                         -- WORLD:emit_notification("I asked for payment from " .. associated_data.name)
 					end,

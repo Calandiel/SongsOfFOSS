@@ -1,5 +1,7 @@
 local ut = require "game.ui-utils"
 
+local political_values = require "game.raws.values.political"
+
 local text = {}
 
 
@@ -23,8 +25,8 @@ function text.exploration_progress(self, character, associated_data)
 		.. associated_data.explored_province.name
 		.. "."
 		.. " I estimate that exploration will take roughly "
-		.. tostring(math.floor(associated_data._exploration_days_left / 30 / character.leading_warband:size()))
-		.. " months."
+		.. tostring(math.floor(associated_data._exploration_days_left / character.leading_warband:size()))
+		.. " days."
 		.. " We have enough supplies for "
 		.. ut.to_fixed_point2(character.leading_warband:days_of_travel())
 		.. " days of exploration"
@@ -101,5 +103,284 @@ function text.exploration_helper_payment_received(self, character, associated_da
 	end
 end
 
+---Character was paid for his help in exploration
+---@param self table
+---@param character Character
+---@param associated_data nil
+---@return string
+function text.tax_collection_1(self, character, associated_data)
+	return "I was collecting taxes on behalf of " .. character.realm.leader.name .. ". " ..
+		"I have already collected a sizable amount but I can collect even more taxes and keep them myself." ..
+		" My reputation among our people will suffer even more but as long I am on a good side of "
+		.. character.realm.leader.name .. " it's probably fine."
+end
+
+
+function text.request_tribute(self, character, associated_data)
+	---@type Character
+	associated_data = associated_data
+
+	local name = associated_data.name
+	local temp = "him"
+	if associated_data.female then
+		temp = "her"
+	end
+
+	local my_warlords, my_power = political_values.military_strength(character)
+	local their_warlords, their_power = political_values.military_strength(associated_data)
+
+	local strength_estimation_string =
+		"There are " .. my_warlords .. " warlords on my side with total strength of " .. my_power
+		.. " warriors. And on their side there are " .. their_warlords .. " warlords with total strength of "
+		.. their_power	.. " warriors."
+	return name	.. " requested me to pay tribute to " .. temp .. ". "
+		.. strength_estimation_string .. " What should I do?"
+end
+
+function text.request_tribute_refusal(self, character, associated_data)
+	---@type Character
+	associated_data = associated_data
+
+	local name = associated_data.name
+	local my_warlords, my_power = political_values.military_strength(character)
+	local their_warlords, their_power = political_values.military_strength(associated_data)
+
+	local strength_estimation_string =
+		"There are "
+		.. my_warlords
+		.. " warlords on my side with total strength of "
+		.. my_power
+		.. " warriors. And on their side there are "
+		.. their_warlords
+		.. " warlords with total strength of "
+		.. their_power
+		.. " warriors."
+
+	return name
+		.. " refused to pay tribute to me. "
+		.. strength_estimation_string
+		.. " What should I do?"
+end
+
+function text.not_a_leader()
+	return "I'm not a leader of the tribe"
+end
+
+function text.negotiation_not_a_tributary()
+	return "We are not the tributary of them"
+end
+
+
+---Produces a string which summarizes current negotiation
+---@param negotiation NegotiationData
+function text.negotiation_string(negotiation)
+
+	local trade_string_initiator = ""
+	if negotiation.negotiations_terms_characters then
+		trade_string_initiator = negotiation.initiator.name .. " will: \n"
+		for good, amount in pairs(negotiation.negotiations_terms_characters.trade.goods_transfer_from_initiator_to_target) do
+			if amount > 0 then
+				trade_string_initiator = trade_string_initiator ..
+					"- Transfer " .. tostring(amount) .. " of " .. good .. "\n"
+			end
+		end
+
+		if negotiation.negotiations_terms_characters.trade.wealth_transfer_from_initiator_to_target > 0 then
+			trade_string_initiator = trade_string_initiator ..
+				"- Transfer "
+				.. tostring(negotiation.negotiations_terms_characters.trade.wealth_transfer_from_initiator_to_target)
+				.. " of wealth \n"
+		end
+	end
+
+	local trade_string_target = ""
+	if negotiation.negotiations_terms_characters then
+		trade_string_target = negotiation.target.name .. " will: \n"
+		for good, amount in pairs(negotiation.negotiations_terms_characters.trade.goods_transfer_from_initiator_to_target) do
+			if amount < 0 then
+				trade_string_target = trade_string_target ..
+					"- Transfer " .. tostring(-amount) .. " of " .. good .. "\n"
+			end
+		end
+
+		if negotiation.negotiations_terms_characters.trade.wealth_transfer_from_initiator_to_target < 0 then
+			trade_string_target = trade_string_target ..
+				"- Transfer "
+				.. tostring(-negotiation.negotiations_terms_characters.trade.wealth_transfer_from_initiator_to_target)
+				.. " of wealth \n"
+		end
+	end
+
+	local realm_string = ""
+
+	-- diplomacy
+	for _, item in ipairs(negotiation.negotiations_terms_realms) do
+
+		if item.free then
+			realm_string = realm_string ..
+			"- ".. item.root.name .. " will set " .. item.target.name .. " free. \n"
+		end
+
+		if item.subjugate then
+			realm_string = realm_string ..
+			"- ".. item.target.name .. " will recognise " .. item.root.name .. " as an overlord. \n"
+		end
+
+		realm_string = realm_string .. "These realms will will negotiate a following trade agreement \n"
+		local trade_realm_string_initiator = negotiation.initiator.name .. " will: \n"
+		for good, amount in pairs(item.trade.goods_transfer_from_initiator_to_target) do
+			if amount > 0 then
+				trade_realm_string_initiator = trade_realm_string_initiator ..
+					"- Transfer " .. tostring(amount) .. " of " .. good .. "\n"
+			end
+		end
+		if item.trade.wealth_transfer_from_initiator_to_target > 0 then
+			trade_realm_string_initiator = trade_realm_string_initiator ..
+				"- Transfer "
+				.. tostring(item.trade.wealth_transfer_from_initiator_to_target)
+				.. " of wealth \n"
+		end
+		local trade_realm_string_target = negotiation.target.name .. " will: \n"
+		for good, amount in pairs(item.trade.goods_transfer_from_initiator_to_target) do
+			if amount < 0 then
+				trade_realm_string_target = trade_realm_string_target ..
+					"- Transfer " .. tostring(-amount) .. " of " .. good .. "\n"
+			end
+		end
+		if item.trade.wealth_transfer_from_initiator_to_target < 0 then
+			trade_realm_string_target = trade_realm_string_target ..
+				"- Transfer "
+				.. tostring(-item.trade.wealth_transfer_from_initiator_to_target)
+				.. " of wealth \n"
+		end
+
+		realm_string = realm_string .. trade_realm_string_initiator .. trade_realm_string_target .. "\n"
+	end
+
+	local character_realm_string = "Also, \n"
+
+	for _, item in ipairs(negotiation.negotiations_terms_character_to_realm) do
+		if item.trade_permission then
+			character_realm_string = character_realm_string
+			.. negotiation.initiator.name
+			.. " will be allowed to trade in lands of "
+			.. item.target.name
+			.. "\n"
+		end
+
+		if item.building_permission then
+			character_realm_string = character_realm_string
+			.. negotiation.initiator.name
+			.. " will be allowed to build in lands of "
+			.. item.target.name
+			.. "\n"
+		end
+	end
+
+	return trade_string_initiator .. trade_string_target .. realm_string .. character_realm_string
+
+
+
+	-- maybe it could be reused later
+	--[[
+	if status.goods_transfer then
+		current_status_string = current_status_string .. "Transfer a part of their stockpile to overlord. \n"
+	end
+	if status.wealth_transfer then
+		current_status_string = current_status_string .. "Transfer a part of their wealth to overlord. \n"
+	end
+	if status.warriors_contribution then
+		current_status_string = current_status_string .. "Provide overlord with warriors. \n"
+	end
+
+	if status.protection then
+		current_status_string = current_status_string .. "Overlord is obliged to protect them. \n"
+	end
+
+	if status.local_ruler then
+		current_status_string = current_status_string .. "Subject's ruler is decided locally. \n"
+	else
+		current_status_string = current_status_string .. "Subject's ruler is decided by overlord. \n"
+	end
+	]]--
+end
+
+function text.negotiate(self, character, associated_data)
+	---@type Character
+	character = character
+
+	---@type NegotiationData
+	associated_data = associated_data
+
+	local intro = "INITIATOR: " .. associated_data.initiator.name .. " NEGOTIATION PARTNER: " .. associated_data.target.name .. ".\n"
+
+	return intro .. "Current negotiation draft: \n" .. text.negotiation_string(associated_data)
+end
+
+function text.negotiate_adjustment(self, character, associated_data)
+	---@type Character
+	character = character
+
+	---@type NegotiationData
+	associated_data = associated_data
+
+	local intro = "We got response from " .. associated_data.target.name .. ".\n"
+
+
+	return intro .. "He presented us with a following adjusted negotiation draft: \n" .. text.negotiation_string(associated_data)
+end
+
+function text.negotiation_status_quo()
+	return "Or maybe we don't want any changes after all."
+end
+
+function text.negotiation_agree()
+	return "We agree with the new terms"
+end
+
+function text.negotiation_disagree()
+	return "We disagree with the new terms"
+end
+
+---@param self table
+---@param character Character
+---@param negotiation_data NegotiationData
+---@return string
+function text.target_accepts(self, character, negotiation_data)
+	return character.name .. " accepted our offer"
+end
+
+function text.negotiation_back_down(self, character, negotiation_data)
+	return "I decided to back down"
+end
+
+---@param self table
+---@param character Character
+---@param negotiation_data NegotiationData
+---@return string
+function text.target_declines(self, character, negotiation_data)
+	return character.name .. " declined our offer"
+end
+
+
+function text.add_personal_term_option(self, character, negotiation_data)
+	return "Add new personal term"
+end
+
+function text.add_personal_term_option_tooltip(self, character, negotiation_data)
+	return "Personal goods or wealth exchange."
+end
+
+function text.add_realm_term_option(self, character, negotiation_data)
+	return "Add new realm-related term"
+end
+
+function text.add_realm_term_option_tooltip(self, character, negotiation_data)
+	return "Diplomacy"
+end
+
+function text.send_negotiation_terms_tooltip(self, character, negotiation_data)
+	return "Send your terms to your target"
+end
 
 return text

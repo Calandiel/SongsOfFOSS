@@ -808,23 +808,33 @@ function ut.calendar(gam)
 	if ui.is_key_pressed("space") then
 		gam.paused = not gam.paused
 	end
+	local turbo = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	local speed_up = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
-	local speed = hor:next(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT)
+	local speed = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 	local speed_down = hor:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
+
+	gam.turbo = ui.checkbox(turbo, gam.turbo, 1)
+	ui.tooltip("Max speed ahead", turbo)
+
 	if ut.icon_button(ASSETS.icons["fast-forward-button.png"], speed_up, "Speed up") or ui.is_key_pressed("+") or
 		ui.is_key_pressed("kp+") then
-		gam.speed = math.min(10, gam.speed + 1)
+		gam.speed = math.min(5, gam.speed + 1)
 	end
 	ui.panel(speed)
-	ui.centered_text(tostring(gam.speed) .. " / 10", speed)
+	ui.centered_text(tostring(gam.speed), speed)
 	ui.tooltip("Game speed", speed)
 	if ut.icon_button(ASSETS.icons["fast-backward-button.png"], speed_down, "Slown down") or ui.is_key_pressed("-") or
 		ui.is_key_pressed("kp-") then
 		gam.speed = math.max(1, gam.speed - 1)
 	end
 
-	return ui.trigger(main) or ui.trigger(main_button) or ui.trigger(speed_up) or ui.trigger(speed) or
-		ui.trigger(speed_down)
+	return
+		ui.trigger(main)
+		or ui.trigger(main_button)
+		or ui.trigger(speed_up)
+		or ui.trigger(speed)
+		or ui.trigger(speed_down)
+		or ui.trigger(turbo)
 end
 
 ---@class Tab
@@ -912,8 +922,9 @@ function ut.scrollview(rect, render_closure, individual_height, entries_count, s
 	return slider_level
 end
 
+---@generic T
 ---@param rect Rect
----@param data table<TableKey, TableEntry>
+---@param data table<TableKey, T>
 ---@param columns TableColumn[]
 ---@param state TableState
 function ut.table(rect, data, columns, state)

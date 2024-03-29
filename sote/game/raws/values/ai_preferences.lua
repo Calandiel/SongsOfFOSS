@@ -89,6 +89,7 @@ end
 ---@field submission boolean?
 ---@field work boolean?
 ---@field aggression boolean?
+---@field power_abuse boolean?
 
 
 ---generates callback which calculates ai preference on demand
@@ -148,6 +149,10 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 
 		if flags.aggression and character.traits[TRAIT.LAZY] then
 			base_value = base_value - 20
+		end
+
+		if flags.power_abuse then
+			base_value = base_value - 10
 		end
 
 		return base_value
@@ -231,6 +236,10 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 
 		if flags.aggression and character.traits[TRAIT.LAZY] then
 			base_value = base_value - 20
+		end
+
+		if flags.power_abuse then
+			base_value = base_value - 10
 		end
 
 		-- print(base_value)

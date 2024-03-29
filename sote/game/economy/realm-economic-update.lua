@@ -215,7 +215,7 @@ function rea.run(realm)
 					)
 				end
 
-				EconomicEffects.change_local_price(province, good_reference, price_derivative * INTEGRATION_STEP)
+				economic_effects.change_local_price(province, good_reference, price_derivative * INTEGRATION_STEP)
 			end
 		end
 	end

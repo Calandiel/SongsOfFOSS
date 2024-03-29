@@ -1,62 +1,19 @@
 local tabb = require "engine.table"
-local path = require "game.ai.pathfinding"
 
 local Event = require "game.raws.events"
-local event_utils = require "game.raws.events._utils"
+local EventUtils = require "game.raws.events._utils"
 
-local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
-local character_ranks   = require "game.raws.ranks.character_ranks"
-
+local diplomacy_effects = require "game.raws.effects.diplomacy"
+local political_values = require "game.raws.values.political"
+local economy_values = require "game.raws.values.economical"
+local localisation = require "game.raws.events._localisation"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
-local pv = require "game.raws.values.political"
-local de = require "game.raws.effects.diplomacy"
-local ev = require "game.raws.values.economical"
-local economic_effects = require "game.raws.effects.economic"
-local military_effects = require "game.raws.effects.military"
-
-
----@class TributeCollection
----@field origin Realm
----@field target Realm
----@field travel_time number
----@field tribute number
-
-
-local function load()
+return function ()
 
 	Event:new {
 		name = "request-tribute",
-		event_text = function(self, character, associated_data)
-			---@type Character
-			associated_data = associated_data
-
-			local name = associated_data.name
-			local temp = "him"
-			if associated_data.female then
-				temp = "her"
-			end
-
-			local my_warlords, my_power = pv.military_strength(character)
-			local their_warlords, their_power = pv.military_strength(associated_data)
-
-			local strength_estimation_string =
-				"There are "
-				.. my_warlords
-				.. " warlords on my side with total strength of "
-				.. my_power
-				.. " warriors. And on their side there are "
-				.. their_warlords
-				.. " warlords with total strength of "
-				.. their_power
-				.. " warriors."
-
-			return name
-				.. " requested me to pay tribute to "
-				.. temp .. ". "
-				.. strength_estimation_string
-				.. " What should I do?"
-		end,
+		event_text = localisation.request_tribute,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
@@ -73,11 +30,11 @@ local function load()
 			-- character assumes that realm will lose money at least for a year
 			local loss_of_money = 0
 			if realm then
-				loss_of_money = ev.potential_monthly_tribute_size(realm) * 12
+				loss_of_money = economy_values.potential_monthly_tribute_size(realm) * 12
 			end
 
-			local my_warlords, my_power = pv.military_strength(character)
-			local their_warlords, their_power = pv.military_strength(associated_data)
+			local my_warlords, my_power = political_values.military_strength(character)
+			local their_warlords, their_power = political_values.military_strength(associated_data)
 
 			if realm == nil then
 				return {{
@@ -121,7 +78,7 @@ local function load()
 							WORLD:emit_notification(character.name .. " agreed to pay tribute to my tribe")
 						end
 
-						de.set_tributary(associated_data.realm, character.realm)
+						diplomacy_effects.set_tributary(associated_data.realm, character.realm)
 					end,
 
 					ai_preference = function ()
@@ -153,30 +110,7 @@ local function load()
 
 	Event:new {
 		name = "request-tribute-refusal",
-		event_text = function(self, character, associated_data)
-			---@type Character
-			associated_data = associated_data
-
-			local name = associated_data.name
-			local my_warlords, my_power = pv.military_strength(character)
-			local their_warlords, their_power = pv.military_strength(associated_data)
-
-			local strength_estimation_string =
-				"There are "
-				.. my_warlords
-				.. " warlords on my side with total strength of "
-				.. my_power
-				.. " warriors. And on their side there are "
-				.. their_warlords
-				.. " warlords with total strength of "
-				.. their_power
-				.. " warriors."
-
-			return name
-				.. " refused to pay tribute to me. "
-				.. strength_estimation_string
-				.. " What should I do?"
-		end,
+		event_text = localisation.request_tribute_refusal,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
@@ -187,15 +121,15 @@ local function load()
 			---@type Character
 			associated_data = associated_data
 			local target_realm = associated_data.realm
+			assert(target_realm)
 
 			-- character assumes that realm will gain money at least for a year
 			local gain_of_money = 0
-			if target_realm then
-				gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
-			end
 
-			local my_warlords, my_power = pv.military_strength(character)
-			local their_warlords, their_power = pv.military_strength(associated_data)
+			gain_of_money = economy_values.potential_monthly_tribute_size(target_realm) * 12
+			local my_warlords, my_power = political_values.military_strength(character)
+			local their_warlords, their_power = political_values.military_strength(associated_data)
+
 
 			if character.dead then
 				return {{
@@ -219,7 +153,6 @@ local function load()
 
 						local realm = character.realm
 						realm.prepare_attack_flag = true
-
 						character.busy = true
 
 						WORLD:emit_event("request-tribute-raid", character, target_realm, 10)
@@ -249,28 +182,4 @@ local function load()
 			}
 		end
 	}
-
-	Event:new {
-		name = "tribute-collection-1",
-		automatic = false,
-		on_trigger = function(self, root, associated_data)
-			---@type TributeCollection
-			associated_data = associated_data
-			associated_data.tribute = economic_effects.collect_tribute(root, associated_data.target)
-			WORLD:emit_action("tribute-collection-2", root, associated_data, associated_data.travel_time, true)
-		end,
-	}
-
-	Event:new {
-		name = "tribute-collection-2",
-		automatic = false,
-		on_trigger = function(self, root, associated_data)
-			---@type TributeCollection
-			associated_data = associated_data
-			economic_effects.return_tribute_home(root, associated_data.origin, associated_data.tribute)
-			root.busy = false
-		end,
-	}
 end
-
-return load
