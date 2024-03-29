@@ -86,7 +86,7 @@ function tab.nth(table_to_use, n)
 	return nil, nil
 end
 
----@class WeightedEntry
+---@class (exact) WeightedEntry
 ---@field entry any
 ---@field weight number
 
@@ -151,7 +151,7 @@ end
 ---@return table<K, V>
 function tab.filter(items, filter)
 	local r = {}
-	for k,v in pairs(items) do
+	for k, v in pairs(items) do
 		if filter(v) then
 			r[k] = v
 		end
@@ -168,7 +168,7 @@ end
 ---@param accumulator fun(a: A, k: K, v: V):A
 ---@return table<K, V>
 function tab.accumulate(items, accumulable, accumulator)
-	for k,v in pairs(items) do
+	for k, v in pairs(items) do
 		accumulator(accumulable, k, v)
 	end
 	return accumulable

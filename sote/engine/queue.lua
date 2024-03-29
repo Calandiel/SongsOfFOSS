@@ -13,12 +13,14 @@ local queue_capacity = 10000000
 -- The queue is implemented as a circular buffer.
 -- The capacity of this buffer is by default set to 10 million
 ---@generic T
----@class Queue<T> : {(new: fun():Queue<T>), data:table<number,T>, first:integer, last:integer, enqueue:fun(self:Queue, element:T), enqueue_front:fun(self:Queue, element:T), (length:fun(self:Queue):integer), clear:fun(self), (dequeue:fun(self:Queue):T), (peek:fun(self:Queue):T)}
+---@class (exact) Queue<T> : {(new: fun():Queue<T>), data:table<number,T>, first:integer, last:integer, enqueue:fun(self:Queue, element:T), enqueue_front:fun(self:Queue, element:T), (length:fun(self:Queue):integer), clear:fun(self), (dequeue:fun(self:Queue):T), (peek:fun(self:Queue):T)}
+
 
 local Queue = {}
 Queue.__index = Queue
 ---Returns a new queue
----@return Queue
+---@generic T
+---@return Queue<T>
 function Queue:new()
 	local q = {}
 
@@ -32,7 +34,8 @@ function Queue:new()
 end
 
 ---Enqueues an element
----@param element any
+---@generic T
+---@param element T
 function Queue:enqueue(element)
 	self.last = fix(self.last + 1, queue_capacity)
 	self.len = self.len + 1
@@ -44,6 +47,8 @@ function Queue:enqueue(element)
 end
 
 ---Enqueues an element IN FRONT of the queue (this is technically a stack then)
+---@generic T
+---@param element T
 function Queue:enqueue_front(element)
 	if self:length() > 0 then
 		self.data[self.first] = element
@@ -55,7 +60,8 @@ function Queue:enqueue_front(element)
 end
 
 ---Dequeues an element and returns it
--- -@return any
+---@generic T
+---@return T
 function Queue:dequeue()
 	self.first = fix(self.first + 1, queue_capacity)
 	self.len = self.len - 1
@@ -65,13 +71,15 @@ function Queue:dequeue()
 end
 
 ---Returns an element without dequeuing it
----@return any
+---@generic T
+---@return T
 function Queue:peek()
 	return self.data[fix(self.first + 1, queue_capacity)]
 end
 
 ---Returns the length of the queue
----@return integer
+---@generic T
+---@return T
 function Queue:length()
 	return self.len
 end

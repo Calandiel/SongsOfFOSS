@@ -44,7 +44,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 
 	-- calculate ROI
 	---@type table<BuildingType, number>
-	local ROI_per_building_type	= {}
+	local ROI_per_building_type = {}
 	local min_ROI = nil
 	for _, building_type in pairs(province.buildable_buildings) do
 		local predicted_profit = eco_values.projected_income_building_type(
@@ -59,11 +59,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 
 		-- select random tile because it's cheaper
 		-- and check if building is possible:
-		local tile = nil
-		if building_type.tile_improvement then
-			tile = tabb.random_select_from_set(province.tiles)
-		end
-		local can_build, reason = province:can_build(funds, building_type, tile, overseer, public_flag)
+		local can_build, reason = province:can_build(funds, building_type, overseer, public_flag)
 		if (not can_build) and (reason ~= 'not_enough_funds') then
 			predicted_profit = 0.001
 		end
@@ -91,7 +87,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		local feature = nil
 		-- do not consider buildings with ROI over half of your life...
 		if random_pop.race.max_age / 2 * 12 > ROI then
-			feature = - ROI + min_ROI
+			feature = -ROI + min_ROI
 		end
 
 		-- if WORLD.player_character then
@@ -172,24 +168,11 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		-- Only build if there are unemployed pops...
 		-- Actually let's build anyway, because simulation is much more robust now
 
-		local tile = nil
-		local best_eff = 0
-		-- finding good enough tile if building requires it:
-		if to_build.tile_improvement then
-			for _, candidate in pairs(province.tiles) do
-				local candidate_eff = to_build.production_method:get_efficiency(candidate)
-				if (tile == nil or candidate_eff > best_eff) and candidate.tile_improvement == nil then
-					tile = candidate
-					best_eff = candidate_eff
-				end
-			end
-		end
-
-		if province:can_build(funds, to_build, tile, overseer, public_flag) then
+		if province:can_build(funds, to_build, overseer, public_flag) then
 			local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
 			-- We can build! But only build if we have enough excess money to pay for the upkeep...
 			if excess >= to_build.upkeep then
-				economic_effects.construct_building(to_build, province, tile, owner)
+				economic_effects.construct_building(to_build, province, owner)
 				funds = math.max(0, funds - construction_cost)
 			end
 		end
@@ -199,7 +182,6 @@ end
 
 ---@param realm Realm
 function co.run(realm)
-
 	local excess = realm.budget.education.budget -- Treat monthly education investments as an indicator of "free" income
 	local funds = realm.budget.treasury
 
@@ -207,7 +189,6 @@ function co.run(realm)
 		-- disabled for now, dunno if its worth making realm construction rare again
 		if true or love.math.random() < 1.0 / 6.0 then
 			for province in pairs(realm.provinces) do
-
 				if WORLD:does_player_control_realm(realm) then
 					-- Player realms shouldn't run their AI for building construction... unless...
 				else

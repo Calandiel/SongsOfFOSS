@@ -3,11 +3,11 @@ local tile = {}
 local cube = require "game.cube"
 local ll_utils = require "game.latlon"
 
----@class Tile
+---@class (exact) Tile
+---@field __index Tile
 ---@field tile_id number
 ---@field is_land boolean
 ---@field is_fresh boolean
----@field is_coast fun(self:Tile):boolean
 ---@field plate ?Plate
 ---@field elevation number
 ---@field grass number
@@ -21,12 +21,11 @@ local ll_utils = require "game.latlon"
 ---@field silt number
 ---@field clay number
 ---@field sand number
----@field soil_depth fun(self:Tile): number Returns the soil depth, in meters
----@field soil_permeability fun(self:Tile): number Returns soil permeability, as an abstract D-value (Demian value)
 ---@field soil_minerals number
 ---@field soil_organics number
 ---@field january_waterflow number
 ---@field july_waterflow number
+---@field waterlevel number
 ---@field has_river boolean
 ---@field has_marsh boolean
 ---@field ice number
@@ -41,20 +40,8 @@ local ll_utils = require "game.latlon"
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field perlin fun(self:Tile, frequency:number, seed:number):number returns a random perlin number
----@field get_neighbor fun(self:Tile, neighbor_index:number):Tile
----@field iter_neighbors fun(self:Tile):(fun():Tile|nil) iterates over neighbors
----@field set_debug_color fun(self:Tile, r:number, g:number, b:number) sets tiles debug color
----@field set_real_color fun(self:Tile, r:number, g:number, b:number) sets tiles real color
----@field latlon fun(self:Tile):number, number returns tiles latitude and longitude, in radians
----@field average_waterflow fun(self:Tile):number returns average waterflow
----@field get_climate_data fun(self:Tile):number,number,number,number january_rainfall, january_temperature, july_rainfall, july_temperature
----@field move_across_face fun(self:Tile, neighbor_index:number):Tile,number
----@field line_iterator fun(self:Tile, direction:number, length:number):(fun():Tile|nil)
----@field distance_to fun(self:Tile, other:Tile):number
 ---@field pathfinding_index number
 ---@field resource Resource?
----@field tile_improvement Building?
 
 ---@class Tile
 tile.Tile = {}
@@ -174,7 +161,8 @@ function tile.Tile:get_climate_data()
 
 	local r_ja, t_ja, r_ju, t_ju = a.january_rainfall * acf + b.january_rainfall * bcf + c.january_rainfall * ccf +
 		d.january_rainfall * dcf,
-		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf + d.january_temperature * dcf,
+		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf +
+		d.january_temperature * dcf,
 		a.july_rainfall * acf + b.july_rainfall * bcf + c.july_rainfall * ccf + d.july_rainfall * dcf,
 		a.july_temperature * acf + b.july_temperature * bcf + c.july_temperature * ccf + d.july_temperature * dcf
 
@@ -184,7 +172,7 @@ function tile.Tile:get_climate_data()
 	return r_ja, t_ja - TEMP_DELTA_PER_KM * dd, r_ju, t_ju - TEMP_DELTA_PER_KM * dd
 end
 
----@alias neighbourID 
+---@alias neighbourID
 ---|1 top
 ---|2 bottom
 ---|3 right
@@ -199,7 +187,7 @@ local NEIGH_LEFT = 4
 ---@param self Tile
 ---@param neighbor_index neighbourID Ranges from 1 to 4 (both inclusive)
 ---@return Tile neigbhbor
-function tile.Tile.get_neighbor(self, neighbor_index)
+function tile.Tile:get_neighbor(neighbor_index)
 	local id = self.tile_id
 	local x, y, f = tile.index_to_coords(id)
 	local wsmo = WORLD.world_size - 1
@@ -374,7 +362,7 @@ end
 ---@param neighbor_index number
 ---@return Tile
 ---@return number
-function tile.Tile.move_across_face(self, neighbor_index)
+function tile.Tile:move_across_face(neighbor_index)
 	local nn = self:get_neighbor(neighbor_index)
 
 	local _, _, old_face = tile.index_to_coords(self.tile_id)
@@ -430,7 +418,7 @@ end
 ---@param self Tile
 ---@param direction number neighbor index
 ---@param length number
-function tile.Tile.line_iterator(self, direction, length)
+function tile.Tile:line_iterator(direction, length)
 	local curr = 0
 	local tt = self
 	local dir = direction

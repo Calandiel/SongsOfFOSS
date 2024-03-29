@@ -1,4 +1,5 @@
----@class Resource
+---@class (exact) Resource
+---@field __index Resource
 ---@field name string
 ---@field icon string
 ---@field description string

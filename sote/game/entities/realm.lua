@@ -1,7 +1,7 @@
 local pv = require "game.raws.values.political"
 
 
----@class BudgetCategory
+---@class (exact) BudgetCategory
 ---@field ratio number
 ---@field budget number
 ---@field to_be_invested number
@@ -20,7 +20,7 @@ end
 
 ---@alias WealthByCategory table<EconomicReason, number?>
 
----@class Budget
+---@class (exact) Budget
 ---@field change number
 ---@field saved_change number
 ---@field spending_by_category WealthByCategory
@@ -55,7 +55,8 @@ local function generate_empty_budget()
 	}
 end
 
----@class Realm
+---@class (exact) Realm
+---@field __index Realm
 ---@field realm_id number
 ---@field name string
 ---@field budget Budget
@@ -87,10 +88,7 @@ end
 ---@field patrols table<Province, table<Warband, Warband>>
 ---@field capitol_guard Warband?
 ---@field prepare_attack_flag boolean?
----@field add_province fun(self:Realm, province:Province)
----@field new fun(self:Realm):Realm
 ---@field known_provinces table<Province, Province> For terra incognita.
----@field get_explore_cost fun(self:Realm, province:Province): number
 ---@field coa_base_r number
 ---@field coa_base_g number
 ---@field coa_base_b number
@@ -111,34 +109,13 @@ end
 ---@field bought table<TradeGoodReference, number>
 ---@field sold table<TradeGoodReference, number>
 ---@field expected_food_consumption number
----@field get_realm_population fun(self:Realm):number
----@field get_realm_military fun(self:Realm):number Returns a sum of "unraised" military and active armies
----@field get_realm_ready_military fun(self:Realm):number Returns the "unraised" military
----@field get_realm_military_target fun(self:Realm):number Returns the sum of military targets, not that it DOESNT include active armies.
----@field get_realm_active_army_size fun(self:Realm):number Returns the size of active armies on the field
----@field get_realm_militarization fun(self:Realm):number
----@field raise_warband fun(self: Realm, warband: Warband)
----@field disband_army fun(self:Realm, army:Army): table<Warband, Warband>
----@field get_speechcraft_efficiency fun(self:Realm):number
----@field get_province_pop_weights fun(self:Realm):table<Province, number> Returns a table mapping provinces to numbers that add up to 1 and which represent the 'weight' of a province based on its population. Useful for pop weighted selections of provinces
----@field get_random_pop_weighted_province fun(self:Realm):Province
----@field get_n_random_pop_weighted_provinces fun(self:Realm, n:number):table<number, Province>
----@field get_province_from_weights fun(self:Realm, weights:table<Province,number>):Province
 ---@field armies table<Army, Army>
----@field neighbors_realm fun(self:Realm, other:Realm):boolean
 ---@field wars table<War, War> Wars
----@field at_war_with fun(self:Realm, other:Realm):boolean Wars
----@field get_warbands fun(self:Realm): Warband[]
----@field add_patrol fun(self:Realm, prov: Province, warband: Warband)
----@field remove_patrol fun(self:Realm, prov: Province, warband: Warband)
----@field get_top_realm fun(self:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):table<Realm, Realm> Returns the set of top dogs of a tributary chains. Handles loops.
----@field is_realm_in_hierarchy fun(self:Realm, realm_to_check_for:Realm, sources:table<Realm, Realm> | nil, depth: number | nil):boolean Checks if a realm is in the overlord chain of a tributary.
----@field get_random_province fun(self:Realm): Province | nil
 
 local realm = {}
 local tabb = require "engine.table"
 
----@class TributaryStatus
+---@class (exact) TributaryStatus
 ---@field wealth_transfer boolean
 ---@field goods_transfer boolean
 ---@field warriors_contribution boolean

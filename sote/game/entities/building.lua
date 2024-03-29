@@ -1,5 +1,5 @@
----@class Building
----@field new fun(self:Building, province:Province, building_type:BuildingType, tile: Tile?):Building
+---@class (exact) Building
+---@field __index Building
 ---@field type BuildingType
 ---@field x number?
 ---@field y number?
@@ -15,7 +15,6 @@
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 ---@field last_donation_to_owner number
 ---@field unused number
----@field tile Tile?
 ------@field employ fun(self:Building, pop:POP, province:Province)
 
 local bld = {}
@@ -25,9 +24,8 @@ bld.Building = {}
 bld.Building.__index = bld.Building
 ---@param province Province province to build the building in
 ---@param building_type BuildingType
----@param tile Tile?
 ---@return Building
-function bld.Building:new(province, building_type, tile)
+function bld.Building:new(province, building_type)
 	---@type Building
 	local o = {}
 
@@ -50,14 +48,6 @@ function bld.Building:new(province, building_type, tile)
 
 	o.province = province
 	province.buildings[o] = o -- add a new building!
-	if tile and building_type.tile_improvement then
-		-- Remove the previous building!
-		if tile.tile_improvement then
-			tile.tile_improvement:remove_from_province()
-		end
-		o.tile = tile
-		tile.tile_improvement = o
-	end
 
 	return o
 end
@@ -73,11 +63,6 @@ function bld.Building:remove_from_province()
 
 	-- Remove yourself from provincial data structures
 	province.buildings[self] = nil
-
-	if self.tile then
-		self.tile.tile_improvement = nil
-		self.tile = nil
-	end
 end
 
 return bld

@@ -1,22 +1,22 @@
 local cl = {}
 
----@class CultureGroup
+---@class (exact) CultureGroup
+---@field __index CultureGroup
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
 ---@field language Language
 ---@field view_on_treason number
----@field new fun(self:CultureGroup):CultureGroup
 
----@class Culture
+---@class (exact) Culture
+---@field __index Culture
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
 ---@field language Language
 ---@field culture_group CultureGroup
----@field new fun(self:Culture, group:CultureGroup):Culture
 ---@field traditional_units table<string, number> -- Defines "traditional" ratios for units recruited from this culture.
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
 

@@ -19,7 +19,7 @@ local function load()
 	---@param root Character
 	---@param primary_target Province
 	---@return number, Province[]|nil
-	local function path_property (root, primary_target)
+	local function path_property(root, primary_target)
 		local warband = root.leading_warband
 		if warband then
 			return pathfinding.pathfind(
@@ -37,7 +37,7 @@ local function load()
 		)
 	end
 
-	---@class TravelData
+	---@class (exact) TravelData
 	---@field destination Province
 	---@field travel_time number
 	---@field goal "travel"|"migration"
@@ -191,7 +191,7 @@ local function load()
 		sorting = 2,
 		primary_target = 'none',
 		secondary_target = 'none',
-		base_probability = 1/36, -- travel home once a few years
+		base_probability = 1 / 36, -- travel home once a few years
 		pretrigger = function(root)
 			if root.busy then return false end
 			if root.province == root.realm.capitol then
@@ -273,7 +273,7 @@ local function load()
 		effect = function(root, primary_target, secondary_target)
 			root.busy = true
 
-			if  WORLD.player_character ~= root then
+			if WORLD.player_character ~= root then
 				WORLD:emit_immediate_event("exploration-preparation", root, root.province)
 			elseif OPTIONS["exploration"] == 0 then
 				WORLD:emit_immediate_event("exploration-preparation", root, root.province)
@@ -302,7 +302,6 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.2,
 		pretrigger = function(root)
-
 			if root.leading_warband == nil then
 				return false
 			end
@@ -466,7 +465,6 @@ local function load()
 			root.leading_warband.idle_stance = "work"
 		end
 	}
-
 end
 
 

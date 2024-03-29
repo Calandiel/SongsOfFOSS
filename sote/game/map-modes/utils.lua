@@ -2,7 +2,7 @@ local col = require "cpml".color
 
 local ut = {}
 
----@class FastMapModeEntry
+---@class (exact) FastMapModeEntry
 ---@field r number
 ---@field g number
 ---@field b number
@@ -102,242 +102,242 @@ function ut.clear_color()
 end
 
 ut.elevation_threshold = {
-		-- WATER
-		{
-			threshold = -7500,
-			r = 0.1,
-			g = 0.1,
-			b = 0.1
-		},
-		{
-			threshold = -5000,
-			r = 0.15,
-			g = 0.15,
-			b = 0.3
-		},
-		{
-			threshold = -4000,
-			r = 0.2,
-			g = 0.2,
-			b = 0.4
-		},
-		{
-			threshold = -3500,
-			r = 0.2125,
-			g = 0.225,
-			b = 0.45
-		},
-		{
-			threshold = -3000,
-			r = 0.225,
-			g = 0.25,
-			b = 0.5
-		},
-		{
-			threshold = -2500,
-			r = 0.2375,
-			g = 0.275,
-			b = 0.55
-		},
-		{
-			threshold = -2000,
-			r = 0.25,
-			g = 0.3,
-			b = 0.6
-		},
-		{
-			threshold = -1750,
-			r = 0.275,
-			g = 0.35,
-			b = 0.65
-		},
-		{
-			threshold = -1500,
-			r = 0.3,
-			g = 0.4,
-			b = 0.7
-		},
-		{
-			threshold = -1250,
-			r = 0.325,
-			g = 0.45,
-			b = 0.75
-		},
-		{
-			threshold = -1000,
-			r = 0.35,
-			g = 0.5,
-			b = 0.8
-		},
-		{
-			threshold = -750,
-			r = 0.375,
-			g = 0.55,
-			b = 0.85
-		},
-		{
-			threshold = -500,
-			r = 0.4,
-			g = 0.6,
-			b = 0.9
-		},
-		{
-			threshold = -250,
-			r = 0.6,
-			g = 0.75,
-			b = 0.95
-		},
-		{
-			threshold = -125,
-			r = 0.7,
-			g = 0.825,
-			b = 0.975
-		},
-		{
-			threshold = -75,
-			r = 0.75,
-			g = 0.8625,
-			b = 0.9875
-		},
-		{
-			threshold = 0,
-			r = 0.8,
-			g = 0.9,
-			b = 1
-		},
-		-- LAND
-		{
-			threshold = 2.5,
-			r = 0.4,
-			g = 0.6,
-			b = 0.4
-		},
-		{
-			threshold = 10,
-			r = 0.42,
-			g = 0.62,
-			b = 0.42
-		},
-		{
-			threshold = 30,
-			r = 0.44,
-			g = 0.64,
-			b = 0.44
-		},
-		{
-			threshold = 50,
-			r = 0.46,
-			g = 0.66,
-			b = 0.46
-		},
-		{
-			threshold = 200,
-			r = 0.47,
-			g = 0.7,
-			b = 0.47
-		},
-		{
-			threshold = 275,
-			r = 0.48,
-			g = 0.75,
-			b = 0.49
-		},
-		{
-			threshold = 350,
-			r = 0.5,
-			g = 0.8,
-			b = 0.5
-		},
-		{
-			threshold = 450,
-			r = 0.65,
-			g = 0.8,
-			b = 0.5
-		},
-		{
-			threshold = 650,
-			r = 0.8,
-			g = 0.8,
-			b = 0.5
-		},
-		{
-			threshold = 1500,
-			r = 0.8,
-			g = 0.75,
-			b = 0.55
-		},
-		{
-			threshold = 2000,
-			r = 0.8,
-			g = 0.7,
-			b = 0.6
-		},
-		{
-			threshold = 2250,
-			r = 0.75,
-			g = 0.65,
-			b = 0.55
-		},
-		{
-			threshold = 2500,
-			r = 0.7,
-			g = 0.6,
-			b = 0.5
-		},
-		{
-			threshold = 3000,
-			r = 0.65,
-			g = 0.55,
-			b = 0.45
-		},
-		{
-			threshold = 3500,
-			r = 0.6,
-			g = 0.5,
-			b = 0.4
-		},
-		{
-			threshold = 3750,
-			r = 0.525,
-			g = 0.45,
-			b = 0.375
-		},
-		{
-			threshold = 4000,
-			r = 0.45,
-			g = 0.4,
-			b = 0.35
-		},
-		{
-			threshold = 4500,
-			r = 0.4,
-			g = 0.375,
-			b = 0.35
-		},
-		{
-			threshold = 4750,
-			r = 0.375,
-			g = 0.3825,
-			b = 0.35
-		},
-		{
-			threshold = 5000,
-			r = 0.35,
-			g = 0.35,
-			b = 0.35
-		},
-		{
-			threshold = 6000,
-			r = 0.3,
-			g = 0.3,
-			b = 0.3
-		},
-		{
-			threshold = 9999999,
-			r = 0.25,
-			g = 0.25,
-			b = 0.25
-		},
-	}
+	-- WATER
+	{
+		threshold = -7500,
+		r = 0.1,
+		g = 0.1,
+		b = 0.1
+	},
+	{
+		threshold = -5000,
+		r = 0.15,
+		g = 0.15,
+		b = 0.3
+	},
+	{
+		threshold = -4000,
+		r = 0.2,
+		g = 0.2,
+		b = 0.4
+	},
+	{
+		threshold = -3500,
+		r = 0.2125,
+		g = 0.225,
+		b = 0.45
+	},
+	{
+		threshold = -3000,
+		r = 0.225,
+		g = 0.25,
+		b = 0.5
+	},
+	{
+		threshold = -2500,
+		r = 0.2375,
+		g = 0.275,
+		b = 0.55
+	},
+	{
+		threshold = -2000,
+		r = 0.25,
+		g = 0.3,
+		b = 0.6
+	},
+	{
+		threshold = -1750,
+		r = 0.275,
+		g = 0.35,
+		b = 0.65
+	},
+	{
+		threshold = -1500,
+		r = 0.3,
+		g = 0.4,
+		b = 0.7
+	},
+	{
+		threshold = -1250,
+		r = 0.325,
+		g = 0.45,
+		b = 0.75
+	},
+	{
+		threshold = -1000,
+		r = 0.35,
+		g = 0.5,
+		b = 0.8
+	},
+	{
+		threshold = -750,
+		r = 0.375,
+		g = 0.55,
+		b = 0.85
+	},
+	{
+		threshold = -500,
+		r = 0.4,
+		g = 0.6,
+		b = 0.9
+	},
+	{
+		threshold = -250,
+		r = 0.6,
+		g = 0.75,
+		b = 0.95
+	},
+	{
+		threshold = -125,
+		r = 0.7,
+		g = 0.825,
+		b = 0.975
+	},
+	{
+		threshold = -75,
+		r = 0.75,
+		g = 0.8625,
+		b = 0.9875
+	},
+	{
+		threshold = 0,
+		r = 0.8,
+		g = 0.9,
+		b = 1
+	},
+	-- LAND
+	{
+		threshold = 2.5,
+		r = 0.4,
+		g = 0.6,
+		b = 0.4
+	},
+	{
+		threshold = 10,
+		r = 0.42,
+		g = 0.62,
+		b = 0.42
+	},
+	{
+		threshold = 30,
+		r = 0.44,
+		g = 0.64,
+		b = 0.44
+	},
+	{
+		threshold = 50,
+		r = 0.46,
+		g = 0.66,
+		b = 0.46
+	},
+	{
+		threshold = 200,
+		r = 0.47,
+		g = 0.7,
+		b = 0.47
+	},
+	{
+		threshold = 275,
+		r = 0.48,
+		g = 0.75,
+		b = 0.49
+	},
+	{
+		threshold = 350,
+		r = 0.5,
+		g = 0.8,
+		b = 0.5
+	},
+	{
+		threshold = 450,
+		r = 0.65,
+		g = 0.8,
+		b = 0.5
+	},
+	{
+		threshold = 650,
+		r = 0.8,
+		g = 0.8,
+		b = 0.5
+	},
+	{
+		threshold = 1500,
+		r = 0.8,
+		g = 0.75,
+		b = 0.55
+	},
+	{
+		threshold = 2000,
+		r = 0.8,
+		g = 0.7,
+		b = 0.6
+	},
+	{
+		threshold = 2250,
+		r = 0.75,
+		g = 0.65,
+		b = 0.55
+	},
+	{
+		threshold = 2500,
+		r = 0.7,
+		g = 0.6,
+		b = 0.5
+	},
+	{
+		threshold = 3000,
+		r = 0.65,
+		g = 0.55,
+		b = 0.45
+	},
+	{
+		threshold = 3500,
+		r = 0.6,
+		g = 0.5,
+		b = 0.4
+	},
+	{
+		threshold = 3750,
+		r = 0.525,
+		g = 0.45,
+		b = 0.375
+	},
+	{
+		threshold = 4000,
+		r = 0.45,
+		g = 0.4,
+		b = 0.35
+	},
+	{
+		threshold = 4500,
+		r = 0.4,
+		g = 0.375,
+		b = 0.35
+	},
+	{
+		threshold = 4750,
+		r = 0.375,
+		g = 0.3825,
+		b = 0.35
+	},
+	{
+		threshold = 5000,
+		r = 0.35,
+		g = 0.35,
+		b = 0.35
+	},
+	{
+		threshold = 6000,
+		r = 0.3,
+		g = 0.3,
+		b = 0.3
+	},
+	{
+		threshold = 9999999,
+		r = 0.25,
+		g = 0.25,
+		b = 0.25
+	},
+}
 
 return ut

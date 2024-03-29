@@ -1,8 +1,6 @@
-
-
 local def = {}
 
----@class Defines
+---@class (exact) Defines
 ---@field observer boolean
 ---@field world_gen boolean
 ---@field world_to_load string
@@ -17,7 +15,7 @@ function def.init()
 		observer = true,
 		world_gen = true,
 		world_to_load = "<error>",
-		world_size = 410,--409,
+		world_size = 410, --409,
 		empty = false,
 		default = false,
 	}

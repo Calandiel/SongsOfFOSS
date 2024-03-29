@@ -27,26 +27,12 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 	local building_type = gam.selected.macrobuilder_building_type
 
 	if building_type then
-
-		local best_location = nil
-
-		if building_type.tile_improvement then
-			local best_eff = 0
-			local province = tile.province
-			if province and building_type then
-				for _, p_tile in pairs(province.tiles) do
-					if not p_tile.tile_improvement then
-						best_eff = math.max(best_eff, building_type.production_method:get_efficiency(p_tile))
-						best_location = p_tile
-					end
-				end
-			end
-		end
-
 		local public_flag = false
-		local overseer = player_character
 		local funds = player_character.savings
+		---@type Character | nil
 		local owner = player_character
+		---@type Character | nil
+		local overseer = player_character
 
 		if gam.macrobuilder_public_mode then
 			overseer = pv.overseer(tile.province.realm)
@@ -55,7 +41,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 			owner = nil
 		end
 
-		if not tile.province:can_build(9999, building_type, best_location, overseer, public_flag) then
+		if not tile.province:can_build(9999, building_type, overseer, public_flag) then
 			return
 		end
 
@@ -73,7 +59,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 		local unit = size * 1.5
 
 		local rect = ui.rect(
-			x - unit / 2 ,
+			x - unit / 2,
 			y - unit / 2,
 			unit,
 			unit
@@ -90,12 +76,11 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 
 		if funds < construction_cost then
 			ut.icon_button(ASSETS.icons["cancel.png"], icon_rect, "Not possible to build", false)
-		elseif ut.icon_button(ASSETS.get_icon(icon), icon_rect, "Build " .. name .. " for " .. ut.to_fixed_point2(construction_cost) .. MONEY_SYMBOL ) then
+		elseif ut.icon_button(ASSETS.get_icon(icon), icon_rect, "Build " .. name .. " for " .. ut.to_fixed_point2(construction_cost) .. MONEY_SYMBOL) then
 			return function()
 				ee.construct_building_with_payment(
 					building_type,
 					tile.province,
-					best_location,
 					owner,
 					overseer,
 					public_flag

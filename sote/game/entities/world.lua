@@ -1,21 +1,22 @@
-local world = {}
+local world            = {}
 
-local decide = require "game.ai.decide"
+local decide           = require "game.ai.decide"
 
-local plate_utils = require "game.entities.plate"
-local utils       = require "game.ui-utils"
+local plate_utils      = require "game.entities.plate"
+local utils            = require "game.ui-utils"
 
 local military_effects = require "game.raws.effects.military"
 local political_values = require "game.raws.values.political"
 
-local tabb = require "engine.table"
+local tabb             = require "engine.table"
 
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
 ---@alias Notification string
 
----@class World
+---@class (exact) World
+---@field __index World
 ---@field player_character Character?
 ---@field player_province Province?
 ---@field sub_hourly_tick number
@@ -33,12 +34,7 @@ local tabb = require "engine.table"
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
----@field random_tile fun(self:World):Tile returns a random tile
----@field new_plate fun(self:World):Plate creates and returns a new plate
----@field new fun(self:World):World
 ---@field entity_counter number -- a global counter for entities...
----@field tick fun(self:World)
----@field emit_notification fun(self:World, notification:string)
 ---@field notification_queue Queue<Notification>
 ---@field events_queue Queue<InstantEvent>
 ---@field deferred_events_queue Queue<ScheduledEvent>
@@ -46,13 +42,11 @@ local tabb = require "engine.table"
 ---@field player_deferred_actions table<ActionData, ActionData>
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
----@field emit_treasury_change_effect fun(self:World, amount:number, reason: string, character_flag: boolean?)
 ---@field pending_player_event_reaction boolean
----@field base_visibility fun(self:World, size: number):number
 
 ---@class World
-world.World = {}
-world.World.__index = world.World
+world.World            = {}
+world.World.__index    = world.World
 
 ---Returns a new World object
 ---@return World
@@ -93,7 +87,7 @@ function world.World:new()
 	w.deferred_actions_queue = require "engine.queue":new()
 	w.player_deferred_actions = {}
 	w.treasury_effects = require "engine.queue":new()
-	w.old_treasury_effects =require "engine.queue":new()
+	w.old_treasury_effects = require "engine.queue":new()
 
 	for tile_id = 1, 6 * ws * ws do
 		table.insert(w.tiles, tile.Tile:new(tile_id))
@@ -194,14 +188,10 @@ function world.load(file)
 	WORLD_PROGRESS.is_loading = false
 end
 
-
-
-
-
 ---Schedules an event
 ---@param event string
 ---@param root Character
----@param associated_data table
+---@param associated_data table|nil
 ---@param delay number|nil In days
 function world.World:emit_event(event, root, associated_data, delay)
 	if root == nil then
@@ -281,7 +271,6 @@ function world.World:emit_action(event, root, associated_data, delay, hidden)
 		self.player_deferred_actions[action_data] = action_data
 	end
 end
-
 
 ---Handles events
 ---@param event string
@@ -392,10 +381,10 @@ function world.World:tick()
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
 			for _, tile in pairs(settled_province.tiles) do
-				tile.conifer 	= tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
-				tile.broadleaf 	= tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
-				tile.shrub 		= tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
-				tile.grass 		= tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
+				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
+				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
+				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
 			end
 		end
 
@@ -482,7 +471,6 @@ function world.World:tick()
 			end
 
 			if realm ~= nil and settled_province.realm.capitol == settled_province then
-
 				PROFILER:start_timer("realm")
 
 				-- Run the realm AI once a month
@@ -550,7 +538,6 @@ function world.World:tick()
 		end
 
 		PROFILER:end_timer("decisions")
-
 	end
 
 	-- print('simulation update')
@@ -670,7 +657,7 @@ function world.World:emit_notification(notification)
 	self.notification_queue:enqueue(date .. ':  ' .. notification)
 end
 
----@class TreasuryEffectRecord
+---@class (exact) TreasuryEffectRecord
 ---@field amount number
 ---@field reason EconomicReason
 ---@field day number
@@ -687,7 +674,15 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 		character_flag = false
 	end
 	---@type TreasuryEffectRecord
-	local effect = {amount = amount, reason = reason, day = self.day, month = self.month, year = self.year, character_flag = character_flag}
+	local effect = {
+		amount = amount,
+		reason = reason,
+		day = self.day,
+		month = self.month,
+		year = self.year,
+		character_flag =
+			character_flag
+	}
 	self.treasury_effects:enqueue(effect)
 end
 

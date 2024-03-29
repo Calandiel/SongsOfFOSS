@@ -2,6 +2,9 @@ local utils = require "game.raws.raws-utils"
 
 local Decision = {}
 
+---@class (exact) DecisionRealm
+---@field __index DecisionRealm
+
 ---@class DecisionRealm
 Decision.Realm = {}
 Decision.Realm.__index = Decision.Realm
@@ -16,7 +19,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 
 --- I wish generics were properly implemented...
 
----@class DecisionRealm
+---@class (exact) DecisionRealm
 ---@field new fun(self:DecisionRealm, o:DecisionRealm):DecisionRealm
 ---@field primary_target DecisionTarget
 ---@field secondary_target DecisionTarget
@@ -36,7 +39,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field get_secondary_targets fun(root:Realm, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
 
 
----@class DecisionCharacterData
+---@class (exact) DecisionCharacterData
 ---@field primary_target 			DecisionTarget
 ---@field secondary_target 			DecisionTarget
 ---@field sorting 					nil|number Controls how high or how low on the list of available decisions this decision is in the UI
@@ -54,7 +57,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets 	nil|fun(root:Character, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
 
----@class DecisionCharacter
+---@class (exact) DecisionCharacter
 ---@field new fun(self:DecisionCharacter, o:DecisionCharacter):DecisionCharacter
 ---@field primary_target DecisionTarget
 ---@field secondary_target DecisionTarget
@@ -73,7 +76,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets fun(root:Character, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
 
----@class DecisionCharacterProvinceData
+---@class (exact) DecisionCharacterProvinceData
 ---@field primary_target 			'province'
 ---@field secondary_target 			DecisionTarget
 ---@field sorting 					nil|number Controls how high or how low on the list of available decisions this decision is in the UI
@@ -92,7 +95,7 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 ---@field base_probability 			number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
 ---@field get_secondary_targets 	nil|fun(root:Character, primary_target:Province):table<number, any> Returns potential targets FOR THE PLAYER
 
----@class DecisionCharacterProvince
+---@class (exact) DecisionCharacterProvince
 ---@field new fun(self:DecisionCharacterProvince, o:DecisionCharacterData):DecisionCharacterProvince
 ---@field primary_target "province"
 ---@field secondary_target DecisionTarget
@@ -199,6 +202,8 @@ print('load generic character decision class')
 ---@return DecisionCharacterProvince
 function Decision.CharacterProvince:new(i)
 	---@type DecisionCharacterProvince
+	---[Cala, 30 Mar 2024] I don't know if this is correct. I encountered it while making classes 'exact' Verify it. TODO
+	---@diagnostic disable-next-line: param-type-mismatch
 	return Decision.Character:new(i)
 end
 
@@ -217,14 +222,15 @@ Decision.CharacterCharacter = {}
 ---@param effect fun(root:Character, primary_target:Character, secondary_target:any)
 ---@param ai_will_do fun(root:Character, primary_target:Character, secondary_target:any):number
 ---@param ai_target fun(root:Character):Character | nil,boolean
-function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do, ai_target)
+function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers,
+															visibility, availability, effect, ai_will_do, ai_target)
 	Decision.Character:new({
 		primary_target = 'character',
 		secondary_target = 'none',
 		name = name,
 		ui_name = ui_name,
 		base_probability = base_probability,
-		tooltip = function (root, primary_target)
+		tooltip = function(root, primary_target)
 			local tooltip_result = tooltip(root, primary_target) .. "\n"
 			for _, pretrigger in ipairs(pretriggers) do
 				if not pretrigger.condition(root) then
@@ -242,7 +248,7 @@ function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, toolt
 			end
 			return tooltip_result
 		end,
-		pretrigger = function (root)
+		pretrigger = function(root)
 			for _, trigger in ipairs(pretriggers) do
 				if not trigger.condition(root) then
 					return false
@@ -250,7 +256,7 @@ function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, toolt
 			end
 			return true
 		end,
-		clickable = function (root, primary_target)
+		clickable = function(root, primary_target)
 			for _, trigger in ipairs(visibility) do
 				if not trigger.condition(root, primary_target) then
 					return false
@@ -258,7 +264,7 @@ function Decision.CharacterCharacter:new_from_trigger_lists(name, ui_name, toolt
 			end
 			return true
 		end,
-		available = function (root, primary_target, secondary_target)
+		available = function(root, primary_target, secondary_target)
 			for _, trigger in ipairs(availability) do
 				if not trigger.condition(root, primary_target) then
 					return false
@@ -283,14 +289,15 @@ end
 ---@param effect fun(root:Character, primary_target:Province, secondary_target:any)
 ---@param ai_will_do fun(root:Character, primary_target:Province, secondary_target:any):number
 ---@param ai_target fun(root:Character):Province | nil,boolean
-function Decision.CharacterProvince:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers, visibility, availability, effect, ai_will_do, ai_target)
+function Decision.CharacterProvince:new_from_trigger_lists(name, ui_name, tooltip, base_probability, pretriggers,
+														   visibility, availability, effect, ai_will_do, ai_target)
 	Decision.Character:new({
 		primary_target = 'province',
 		secondary_target = 'none',
 		name = name,
 		ui_name = ui_name,
 		base_probability = base_probability,
-		tooltip = function (root, primary_target)
+		tooltip = function(root, primary_target)
 			local tooltip_result = tooltip(root, primary_target) .. "\n"
 			for _, pretrigger in ipairs(pretriggers) do
 				if not pretrigger.condition(root) then
@@ -308,7 +315,7 @@ function Decision.CharacterProvince:new_from_trigger_lists(name, ui_name, toolti
 			end
 			return tooltip_result
 		end,
-		pretrigger = function (root)
+		pretrigger = function(root)
 			for _, trigger in ipairs(pretriggers) do
 				if not trigger.condition(root) then
 					return false
@@ -316,7 +323,7 @@ function Decision.CharacterProvince:new_from_trigger_lists(name, ui_name, toolti
 			end
 			return true
 		end,
-		clickable = function (root, primary_target)
+		clickable = function(root, primary_target)
 			for _, trigger in ipairs(visibility) do
 				if not trigger.condition(root, primary_target) then
 					return false
@@ -324,7 +331,7 @@ function Decision.CharacterProvince:new_from_trigger_lists(name, ui_name, toolti
 			end
 			return true
 		end,
-		available = function (root, primary_target, secondary_target)
+		available = function(root, primary_target, secondary_target)
 			for _, trigger in ipairs(availability) do
 				if not trigger.condition(root, primary_target) then
 					return false
@@ -365,7 +372,7 @@ function Decision.Character:new_from_trigger_lists(
 		name = name,
 		ui_name = ui_name,
 		base_probability = base_probability,
-		tooltip = function (root, primary_target)
+		tooltip = function(root, primary_target)
 			local tooltip_result = tooltip(root, primary_target) .. "\n"
 			for _, pretrigger in ipairs(pretriggers) do
 				if not pretrigger.condition(root) then
@@ -383,7 +390,7 @@ function Decision.Character:new_from_trigger_lists(
 			end
 			return tooltip_result
 		end,
-		pretrigger = function (root)
+		pretrigger = function(root)
 			for _, trigger in ipairs(pretriggers) do
 				if not trigger.condition(root) then
 					return false
@@ -391,7 +398,7 @@ function Decision.Character:new_from_trigger_lists(
 			end
 			return true
 		end,
-		clickable = function (root, primary_target)
+		clickable = function(root, primary_target)
 			for _, trigger in ipairs(visibility) do
 				if not trigger.condition(root, primary_target) then
 					return false
@@ -399,7 +406,7 @@ function Decision.Character:new_from_trigger_lists(
 			end
 			return true
 		end,
-		available = function (root, primary_target, secondary_target)
+		available = function(root, primary_target, secondary_target)
 			for _, trigger in ipairs(availability) do
 				if not trigger.condition(root, primary_target) then
 					return false
@@ -411,6 +418,5 @@ function Decision.Character:new_from_trigger_lists(
 		ai_will_do = ai_will_do,
 	})
 end
-
 
 return Decision

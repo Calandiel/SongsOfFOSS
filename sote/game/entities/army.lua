@@ -1,14 +1,9 @@
----@class Army
+---@class (exact) Army
+---@field __index Army
 ---@field destination Province|nil
 ---@field warbands table<Warband, Warband>
----@field units fun(self: Army): table<POP, UnitType>
----@field kill_off fun(self: Army, ratio: number): number
----@field pops fun(self: Army): table<POP, Province>
----@field get_visibility fun(self: Army): number
----@field attack fun(self: Army, prov: Province, spotted: boolean, defender: Army): boolean, number, number
----@field get_loot_capacity fun(self: Army): number
----@field decimate fun(self: Army)
 
+---@class Army
 local army = {
 	warbands = {}, ---@type Warband[]
 	destination = nil, ---@type Province|nil
@@ -61,7 +56,6 @@ function army:units()
 
 	return res
 end
-
 
 ---Returns pops in the army
 ---@return table<POP, Province>

@@ -7,7 +7,7 @@ ut.BASE_HEIGHT = 20
 ut.BORDER_PADDING = 1
 ut.DATA_PADDING = 2
 
----@class Entry
+---@class (exact) Entry
 ---@field weight number
 ---@field tooltip string
 ---@field r number
@@ -193,7 +193,7 @@ local function render_percentage(number, rect, negative)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
-	ui.right_text( tostring(math.floor(number * 100 + 0.5)) .. "%", rect)
+	ui.right_text(tostring(math.floor(number * 100 + 0.5)) .. "%", rect)
 	ut.main_font()
 	love.graphics.setColor(cr, cg, cb, ca)
 end
@@ -208,10 +208,10 @@ end
 function ut.render_icon(rect, icon_name, r, g, b, a)
 	local _r, _g, _b, _a = love.graphics.getColor()
 
-	love.graphics.setColor(r, g, b ,a)
+	love.graphics.setColor(r, g, b, a)
 	ui.image(ASSETS.icons[icon_name], rect)
 
-	love.graphics.setColor(_r, _g, _b ,_a)
+	love.graphics.setColor(_r, _g, _b, _a)
 end
 
 ---comment
@@ -319,7 +319,6 @@ function ut.generic_string_field(name_or_icon, data, rect, tooltip, name_mode, p
 		ui.tooltip(tooltip, rect)
 	end
 end
-
 
 ---Draws a data field
 ---@param name string
@@ -465,7 +464,6 @@ function ut.color_coded_percentage(value, rect, positive, tooltip, panel)
 	end
 	ut.generic_number_field("", value, rect, tooltip, ut.NUMBER_MODE.PERCENTAGE, ut.NAME_MODE.NAME, not positive, panel)
 end
-
 
 function ut.reload_font()
 	-- ASSETS.main_font = love.graphics.newFont("data/fonts/Pelagiad.ttf", ui.font_size(12))
@@ -726,7 +724,6 @@ function ut.icon_button(icon, rect, tooltip, potential, active)
 	return result
 end
 
-
 ---comment
 ---@param text string
 ---@param rect Rect
@@ -749,7 +746,6 @@ function ut.text_button(text, rect, tooltip, potential, active)
 	return result
 end
 
-
 ---@param name string
 ---@param value number
 ---@param rect Rect
@@ -767,7 +763,6 @@ function ut.money_button(name, value, rect, tooltip, potential, active)
 
 	return result
 end
-
 
 ---Draws the calendar and returns whether or not the mouse if over it
 ---@param gam table
@@ -837,7 +832,7 @@ function ut.calendar(gam)
 		or ui.trigger(turbo)
 end
 
----@class Tab
+---@class (exact) Tab
 ---@field text string
 ---@field icon love.Image?
 ---@field tooltip string

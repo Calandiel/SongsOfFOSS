@@ -119,6 +119,7 @@ function dem.prices()
 		local total = 0
 		local mean = 0
 
+		---@type table<number, Province> | table<Province, Province>
 		local provinces = WORLD.provinces
 		if WORLD.player_character then
 			provinces = WORLD.player_character.realm.known_provinces

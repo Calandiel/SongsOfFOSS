@@ -1,7 +1,5 @@
 local ui = {}
 
----@alias love.AlignMode "center" | "left" | "right"
-
 -- #######################
 -- ### DEFAULT STYLING ###
 -- #######################
@@ -168,7 +166,8 @@ end
 -- ### RECT ###
 -- ############
 
----@class Rect
+---@class (exact) Rect
+---@field __index Rect
 ---@field x number
 ---@field y number
 ---@field width number
@@ -210,7 +209,6 @@ function Rect:copy()
 end
 
 ---Returns a new rect, using this rect as the new reference point.
----@alias love.AlignMode "center"  | "left" | "right"
 ---@param x number
 ---@param y number
 ---@param width number
@@ -684,7 +682,8 @@ end
 -- ### LAYOUTS ###
 -- ###############
 
----@class Layout
+---@class (exact) Layout
+---@field __index Layout
 ---@field _position_x number
 ---@field _position_y number
 ---@field _pivot_x number
@@ -694,7 +693,6 @@ end
 ---@field _pivot_type string
 ---@field _entries_per_row number
 ---@field _entries_in_row number
----@field next fun(self:Layout,width:number,height:number):Rect
 local Layout = {}
 Layout.__index = Layout
 function Layout:new()
@@ -782,26 +780,33 @@ function Layout:next(width, height)
 	return Rect:new(x, y, width, height)
 end
 
+---@alias LayoutType "horizontal-right" | "horizontal-left" | "vertical-up" | "vertical-down" | "grid"
+---@alias PivotType "normal" | "flipped" | "centered"
+
+---@class (exact) LayoutBuilder
+---@field __index LayoutBuilder
+---@field _x number
+---@field _y number
+---@field _spacing number
+---@field _entries_per_row number
+---@field _layout_type LayoutType
+---@field _pivot_type PivotType
+
 ---@class LayoutBuilder
----@field new fun(self: LayoutBuilder):LayoutBuilder
----@field position fun(self:LayoutBuilder,x:number,y:number):LayoutBuilder
----@field spacing fun(self:LayoutBuilder,space:number):LayoutBuilder
----@field horizontal fun(self:LayoutBuilder,left:boolean|nil):LayoutBuilder
----@field vertical fun(self:LayoutBuilder,up:boolean|nil):LayoutBuilder
----@field grid fun(self:LayoutBuilder,entries_per_row:number):LayoutBuilder
----@field flipped fun(self: LayoutBuilder):LayoutBuilder
----@field centered fun(self: LayoutBuilder):LayoutBuilder
----@field build fun(self: LayoutBuilder):Layout
 local LayoutBuilder = {}
 LayoutBuilder.__index = LayoutBuilder
+---@return LayoutBuilder
 function LayoutBuilder:new()
+	---@type LayoutBuilder
 	local lb = {}
+
 	lb._x = 0
 	lb._y = 0
 	lb._spacing = 0
 	lb._layout_type = "horizontal-right"
 	lb._pivot_type = "normal"
 	lb._entries_per_row = 1 -- used by grids
+
 	setmetatable(lb, self)
 	return lb
 end
@@ -960,7 +965,7 @@ function ui.hover_clicking_status(rect)
 	return hover, clicking
 end
 
----@class (strict) ButtonImagesSet
+---@class (exact) ButtonImagesSet
 ---@field passive love.Image
 ---@field hovered love.Image
 ---@field clicked love.Image
@@ -1305,7 +1310,8 @@ end
 ---@param circle_style boolean?
 ---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_value
-function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, circle_style, slider_arrow_images)
+function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, circle_style,
+						 slider_arrow_images)
 	local up = ui.rect(rect.x, rect.y, rect.width, rect.height / 2)
 	local down = ui.rect(rect.x, rect.y + rect.height / 2, rect.width, rect.height / 2)
 	ui.text_panel(slider_name, up)
@@ -1363,16 +1369,15 @@ end
 ---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_slider_level
 function ui.scrollview(
-    rect,
-    render_closure,
-    individual_height,
-    entries_count,
-    slider_width,
-    slider_level,
+	rect,
+	render_closure,
+	individual_height,
+	entries_count,
+	slider_width,
+	slider_level,
 	circle_style,
 	slider_arrow_images
 )
-
 	-- "mouse scroll"
 	if ui.trigger(rect) then
 		slider_level = math.min(math.max(0, slider_level - ui.mouse_wheel() / entries_count), 1)
@@ -1405,8 +1410,8 @@ function ui.scrollview(
 
 	local old_color = ui.style.button_inside
 
-	local color_1 = {r=0, g=0, b=0, a=0.05}
-	local color_2 = {r=1, g=1, b=1, a=0.05}
+	local color_1 = { r = 0, g = 0, b = 0, a = 0.05 }
+	local color_2 = { r = 1, g = 1, b = 1, a = 0.05 }
 
 	for i = current, last do
 		local item_rect = layout:next(
@@ -1431,7 +1436,7 @@ function ui.scrollview(
 	return ui.slider(sl, slider_level, 0, 1, true, slider_height, circle_style, slider_arrow_images)
 end
 
----@class TableState
+---@class (exact) TableState
 ---@field sorted_field number
 ---@field sorting_order boolean
 ---@field individual_height number
@@ -1441,12 +1446,12 @@ end
 
 
 
----@class TableColumn<TableEntry>: {render_closure: fun(rect: Rect, k:TableKey, v:TableEntry), header: string, width: number, value: (fun(k: TableKey, v: TableEntry): TableField), active: boolean|nil}
+---@class (exact) TableColumn<TableEntry>: {render_closure: fun(rect: Rect, k:TableKey, v:TableEntry), header: string, width: number, value: (fun(k: TableKey, v: TableEntry): TableField), active: boolean|nil}
 
 ---@alias TableField number|string
 ---@alias TableKey table|string
 
----@class TablePair<TableEntry>: {key: TableKey, value: TableEntry}
+---@class (exact) TablePair<TableEntry>: {key: TableKey, value: TableEntry}
 
 ---TABLE
 ---Renders a sortable table with header and scroll. Mutates state in place.
@@ -1462,7 +1467,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	---@type TablePair<T>[]
 	local sorted_data = {}
 	for _, entry in pairs(data) do
-		table.insert(sorted_data, {key = _, value = entry})
+		table.insert(sorted_data, { key = _, value = entry })
 	end
 	table.sort(sorted_data, function(a, b)
 		local value_a = columns[state.sorted_field].value(a.key, a.value)
@@ -1489,7 +1494,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	end
 	local weight = (rect.width - 20) / total_weight
 	for index = 1, #columns do
-		local header_rect =  layout:next(columns[index].width * weight, state.individual_height)
+		local header_rect = layout:next(columns[index].width * weight, state.individual_height)
 		header_rect.height = rect.height
 		if not columns[index].active and ui.text_button("", header_rect) then
 			if state.sorted_field == index then
@@ -1532,14 +1537,16 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 			:spacing(0)
 			:build()
 		for index = 1, #columns do
-			local temp = columns[index].render_closure(layout:next(columns[index].width * weight, state.individual_height), entry.key, entry.value)
+			local temp = columns[index].render_closure(
+				layout:next(columns[index].width * weight, state.individual_height), entry.key, entry.value)
 			if temp then
 				result = temp
 			end
 		end
 	end
 
-	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level, circle_style, slider_arrow_images)
+	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width,
+		state.slider_level, circle_style, slider_arrow_images)
 	return result
 end
 
@@ -1548,10 +1555,10 @@ end
 ---@param individual_height number height of a single entry, in pixels
 ---@param entries_count number number of entries in the scrollview
 function ui.listview(
-    rect,
-    render_closure,
-    individual_height,
-    entries_count
+	rect,
+	render_closure,
+	individual_height,
+	entries_count
 )
 	-- Draw the main panel
 	local main_panel = ui.rect(rect.x, rect.y, rect.width, rect.height)

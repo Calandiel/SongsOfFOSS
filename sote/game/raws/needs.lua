@@ -1,6 +1,6 @@
 local JOBTYPE = require "game.raws.job_types"
 
----@class Need
+---@class (exact) Need
 ---@field goods TradeGoodReference[]
 ---@field age_independent boolean?
 ---@field life_need boolean?
@@ -33,20 +33,20 @@ NEED_NAME = {
 ---@type table<NEED, Need>
 NEEDS = {
 	[NEED.WATER] = {
-		goods = {"water", "liquors"},
+		goods = { "water", "liquors" },
 		life_need = true,
 		job_to_satisfy = JOBTYPE.FORAGER,
 		time_to_satisfy = 0.05,
 	},
 	[NEED.FOOD] = {
-		goods = {"food", "meat", "liquors"},
+		goods = { "food", "meat", "liquors" },
 		-- age_independent = true,
 		life_need = true,
 		job_to_satisfy = JOBTYPE.FORAGER,
 		time_to_satisfy = 1.5,
 	},
 	[NEED.CLOTHING] = {
-		goods = {"hide", "leather", "clothes"},
+		goods = { "hide", "leather", "clothes" },
 		job_to_satisfy = JOBTYPE.FORAGER,
 		time_to_satisfy = 0.3
 	},
@@ -65,22 +65,22 @@ NEEDS = {
 		time_to_satisfy = 0.3
 	},
 	[NEED.FURNITURE] = {
-		goods = {"furniture", "timber", "stone"},
+		goods = { "furniture", "timber", "stone" },
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 0.3
 	},
 	[NEED.HEALTHCARE] = {
-		goods = {"healthcare"},
+		goods = { "healthcare" },
 		job_to_satisfy = JOBTYPE.CLERK,
 		time_to_satisfy = 0.3
 	},
 	[NEED.STORAGE] = {
-		goods = {"containers", "clay", "timber"},
+		goods = { "containers", "clay", "timber" },
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 0.3
 	},
 	[NEED.LUXURY] = {
-		goods = {"copper-bars"},
+		goods = { "copper-bars" },
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 2.0
 	}

@@ -1,4 +1,4 @@
----@class BiogeographicRealm
+---@class (exact) BiogeographicRealm
 ---@field name string
 ---@field r number
 ---@field g number

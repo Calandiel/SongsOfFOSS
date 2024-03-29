@@ -8,14 +8,14 @@ local economic_triggers = require "game.raws.triggers.economy"
 
 local prov = {}
 
----@class Province
+---@class (exact) Province
+---@field __index Province
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
 ---@field is_land boolean
 ---@field province_id number
----@field add_tile fun(self: Province, tile: Tile)
 ---@field size number
 ---@field tiles table<Tile, Tile>
 ---@field hydration number Number of humans that can live of off this provinces innate water
@@ -25,21 +25,14 @@ local prov = {}
 ---@field infrastructure_needed number
 ---@field infrastructure number
 ---@field infrastructure_investment number
----@field get_infrastructure_efficiency fun(self:Province):number
 ---@field realm Realm?
 ---@field buildings table<Building, Building>
 ---@field all_pops table<POP, POP> -- all pops
 ---@field characters table<Character, Character>
 ---@field home_to table<POP, POP> Set of characters and pops which think of this province as their home
----@field military fun(self:Province):number
----@field military_target fun(self:Province):number
----@field population fun(self:Province):number
----@field employ_pop fun(self:Province, pop:POP, building:Building)
----@field potential_job fun(self:Province, building:Building):Job?
 ---@field technologies_present table<Technology, Technology>
 ---@field technologies_researchable table<Technology, Technology>
 ---@field buildable_buildings table<BuildingType, BuildingType>
----@field research fun(self:Province, technology:Technology)
 ---@field local_production table<TradeGoodReference, number>
 ---@field local_consumption table<TradeGoodReference, number>
 ---@field local_demand table<TradeGoodReference, number>
@@ -51,33 +44,17 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
----@field building_type_present fun(self:Province, building:BuildingType):boolean Returns true when a building of a given type has been built in a province
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
 ---@field mood number how local population thinks about the state
 ---@field outlaws table<POP, POP>
----@field outlaw_pop fun(self:Province, pop:POP) Marks a pop as an outlaw
----@field get_dominant_culture fun(self:Province):Culture|nil
----@field get_dominant_faith fun(self:Province):Faith|nil
----@field get_dominant_race fun(self:Province):Race|nil
 ---@field unit_types table<UnitType, UnitType>
 ---@field warbands table<Warband, Warband>
----@field vacant_warbands fun(self: Province): Warband[]
----@field new_warband fun(self: Province): Warband
----@field num_of_warbands fun(self: Province): number
----@field get_spotting fun(self:Province):number Returns the local "spotting" power
----@field get_hiding fun(self:Province):number Returns the local "hiding" space
----@field spot_chance fun(self:Province, visibility: number): number Returns a chance to spot an army with given visibility.
----@field army_spot_test fun(self:Province, army:Army, stealth_penalty: number?):boolean Performs an army spotting test in this province.
----@field get_job_ratios fun(self:Province):table<Job, number> Returns a table containing jobs mapped to fractions of population. Used for, among other things, research.
 ---@field throughput_boosts table<ProductionMethod, number>
 ---@field input_efficiency_boosts table<ProductionMethod, number>
 ---@field output_efficiency_boosts table<ProductionMethod, number>
 ---@field on_a_river boolean
 ---@field on_a_forest boolean
----@field return_pop_from_army fun(self:Province, pop:POP, unit_type:UnitType): POP
----@field local_army_size fun(self:Province):number
----@field get_random_neighbor fun(self:Province):Province | nil
 
 local col = require "game.color"
 
@@ -306,8 +283,8 @@ function prov.Province:transfer_pop(pop, target)
 		return self.all_pops[c] and c.home_province ~= self
 			and not c.unit_of_warband and not c.employer
 	end)
-	for _,c in pairs(children) do
-		self:transfer_pop(c,target)
+	for _, c in pairs(children) do
+		self:transfer_pop(c, target)
 	end
 end
 
@@ -363,11 +340,11 @@ function prov.Province:kill_pop(pop)
 		pop.home_province:unset_home(pop)
 	end
 
-    if pop.parent then pop.parent.children[pop] = nil end
-    for _,c in pairs(pop.children) do
-        c.parent = nil
-        pop.children[c] = nil
-    end
+	if pop.parent then pop.parent.children[pop] = nil end
+	for _, c in pairs(pop.children) do
+		c.parent = nil
+		pop.children[c] = nil
+	end
 end
 
 function prov.Province:local_army_size()
@@ -589,39 +566,25 @@ function prov.Province:building_type_present(building_type)
 	return false
 end
 
----@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "tile_improvement" | "missing_local_resources" | "no_permission"
+---@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "missing_local_resources" | "no_permission"
 
 ---comment
 ---@param funds number
 ---@param building BuildingType
----@param location Tile?
 ---@param overseer POP?
 ---@param public boolean
 ---@return boolean
 ---@return BuildingAttemptFailureReason
-function prov.Province:can_build(funds, building, location, overseer, public)
+function prov.Province:can_build(funds, building, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then
 		resource_check_passed = false
-		if building.tile_improvement then
-			if location then
-				if location.resource then
-					for _, res in pairs(building.required_resource) do
-						if location.resource == res then
-							resource_check_passed = true
-							goto RESOURCE_CHECK_ENDED
-						end
-					end
-				end
-			end
-		else
-			for _, tile in pairs(self.tiles) do
-				if tile.resource then
-					for _, res in pairs(building.required_resource) do
-						if tile.resource == res then
-							resource_check_passed = true
-							goto RESOURCE_CHECK_ENDED
-						end
+		for _, tile in pairs(self.tiles) do
+			if tile.resource then
+				for _, res in pairs(building.required_resource) do
+					if tile.resource == res then
+						resource_check_passed = true
+						goto RESOURCE_CHECK_ENDED
 					end
 				end
 			end
@@ -637,8 +600,6 @@ function prov.Province:can_build(funds, building, location, overseer, public)
 
 	if building.unique and self:building_type_present(building) then
 		return false, "unique_duplicate"
-	elseif building.tile_improvement and location == nil then
-		return false, "tile_improvement"
 	elseif not resource_check_passed then
 		return false, "missing_local_resources"
 	elseif construction_cost <= funds then

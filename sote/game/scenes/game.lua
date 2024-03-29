@@ -1,5 +1,81 @@
+---@class (exact) GameScene
+---@field macrobuilder_public_mode boolean
+---@field tile_inspector_tab TileInspectorTabs | nil
+---@field realm_inspector_tab RealmInspectorTabs | nil
+---@field realm_stockpile_scrollbar number
+---@field realm_capacities_scrollbar number
+---@field wars_slider_level number
+---@field selected Selection
+---@field show_map_mode_panel boolean
+---@field map_mode_slider number
+---@field game_canvas love.Canvas
+---@field planet_mesh love.Mesh
+---@field planet_shader love.Shader
+---@field map_mode_data table TODO difficult to untangle, port to Teal
+---@field map_mode_tabs table TODO difficult to untangle, port to Teal
+---@field init fun()
+---@field handle_zoom fun()
+---@field on_tile_click fun()
+---@field _refresh_map_mode fun(boolean)
+---@field debug_ui fun()
+---@field paused boolean
+---@field tile_realm_texture love.Texture
+---@field ticks_without_map_update number
+---@field speed number
+---@field camera_lock boolean
+---@field turbo boolean
+---@field handle_camera_controls fun()
+---@field click_callback fun() | nil
+---@field update_map_mode fun(string)
+---@field tile_neighbor_provinces_texture love.Texture
+---@field tile_province_texture love.Texture
+---@field tile_neighbor_realm_texture love.Texture
+---@field map_update_progress number
+---@field tile_raiding_targets_texture love.Texture
+---@field refresh_map_mode fun(boolean)
+---@field map_mode string TODO this should be a map mode enum...
+---@field camera_position any TODO type porting cpml is hell...
+---@field tile_id_to_color_coords fun(Tile):number,number
+---@field tile_raiding_targets_image_data love.ImageData
+---@field time_since_last_tick number
+---@field tile_color_image_data love.ImageData
+---@field load_camera_position_or_set_to_default fun()
+---@field locked_screen_x number
+---@field locked_screen_y number
+---@field draw fun()
+---@field click_tile fun(number)
+---@field clicked_tile_id number
+---@field clicked_tile Tile
+---@field reset_decision_selection fun()
+---@field notification_slider number
+---@field outliner_slider number
+---@field tile_province_image_data love.ImageData
+---@field tile_neighbor_provinces_data love.ImageData
+---@field minimap love.Image
+---@field tile_realm_image_data love.ImageData
+---@field tile_neighbor_realm_data love.ImageData
+---@field recalculate_realm_map fun()
+---@field tile_color_texture love.Image
+---@field empty_texture_image_data love.ImageData
+---@field empty_texture love.Image
+---@field update fun(number)
+---@field outliner number
+---@field map_mode_selected_tab MapModeTab
+---@field inspector nil | InspectorType
+---@field recalculate_province_map fun()
+---@field map_update_coroutine nil | thread
+---@field recalculate_raiding_targets_map fun()
+---@field decision_target_primary any TODO this is difficult to untangle, port to Teal to fix it
+---@field decision_target_secondary any TODO this is difficult to untangle, port to Teal to fix it
+
+---@alias InspectorType "tile"|'confirm-exit'
+---@alias MapModeTab 'all'|'debug'|'demographic'|'economic'|'political'
+
 ---@class GameScene
 local gam = {}
+
+---@alias TileInspectorTabs "GEN"
+---@alias RealmInspectorTabs "GEN"
 
 require "game.scenes.global-style"
 
@@ -49,7 +125,7 @@ local tile_inspectors = {
 
 
 
----@class Selection
+---@class (exact) Selection
 ---@field character Character?
 ---@field tile Tile?
 ---@field province Province?
@@ -63,7 +139,6 @@ local tile_inspectors = {
 ---@field tech Technology?
 ---@field cached_tech Technology?
 
----@type Selection
 gam.selected = {}
 
 ---Called when a tile is clicked.
@@ -210,18 +285,8 @@ function gam.init()
 	end
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
-
 	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
 	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
-
-	local imd2 = love.image.newImageData(dim, dim, "rgba8")
-	for x = 1, dim do
-		for y = 1, dim do
-			imd2:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
-		end
-	end
-	gam.tile_improvement_texture_data = imd2
-	gam.tile_improvement_texture = love.graphics.newImage(imd2)
 
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
@@ -243,7 +308,6 @@ end
 gam.time_since_last_tick = 0
 ---@param dt number
 function gam.update(dt)
-
 	if gam.map_update_coroutine ~= nil then
 		local time = love.timer.getTime()
 		while love.timer.getTime() - time < 1 / 24 do
@@ -563,9 +627,6 @@ function gam.draw()
 	gam.planet_shader:send('projection', 'column', projection)
 	if gam.planet_shader:hasUniform("tile_colors") then
 		gam.planet_shader:send('tile_colors', gam.tile_color_texture)
-	end
-	if gam.planet_shader:hasUniform("tile_improvement_texture") then
-		gam.planet_shader:send('tile_improvement_texture', gam.tile_improvement_texture)
 	end
 	if gam.planet_shader:hasUniform("world_size") then
 		gam.planet_shader:send('world_size', WORLD.world_size)
@@ -1371,6 +1432,7 @@ require "game.scenes.game.map-modes".set_up_map_modes(gam)
 
 ---Given a tile coordinate, returns x/y coordinates on a texture to write!
 ---@param tile Tile
+---@return number, number
 function gam.tile_id_to_color_coords(tile)
 	local tile_id = tile.tile_id
 	local ws = WORLD.world_size
@@ -1662,7 +1724,6 @@ function gam._refresh_map_mode(preserve_efficiency)
 	local dim = WORLD.world_size * 3
 	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data:getFFIPointer())
 	local pointer_realm_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
-	local pointer_tile_improvement = require("ffi").cast("uint8_t*", gam.tile_improvement_texture_data:getFFIPointer())
 
 	-- if not OPTIONS.update_map then
 	-- 	return
@@ -1682,11 +1743,8 @@ function gam._refresh_map_mode(preserve_efficiency)
 	if (gam.clicked_tile) then
 		province = gam.clicked_tile.province
 		if province and gam.selected.building_type then
-			for _, p_tile in pairs(province.tiles) do
-				if not p_tile.tile_improvement then
-					best_eff = math.max(best_eff, gam.selected.building_type.production_method:get_efficiency(p_tile))
-				end
-			end
+			best_eff = math.max(best_eff,
+				gam.selected.building_type.production_method:get_efficiency(province))
 		end
 	end
 
@@ -1716,25 +1774,13 @@ function gam._refresh_map_mode(preserve_efficiency)
 				local b = tile.real_b
 
 				local result_pixel = { r, g, b, 1 }
-				local result_improvement = { 0, 0, 0, 1 }
-
-				if tile.tile_improvement and gam.map_mode == "atlas" then
-					result_improvement[1] = 1
-				end
 
 				if gam.selected.building_type ~= nil then
-					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
+					local eff = gam.selected.building_type.production_method:get_efficiency(tile.province)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
 					result_pixel[1] = r
 					result_pixel[2] = g
 					result_pixel[3] = b
-
-					if tile.province == province and eff == best_eff then
-						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-						result_pixel[1] = r
-						result_pixel[2] = g
-						result_pixel[3] = b
-					end
 				end
 
 				local r, g, b, a = realm_neighbor_data(tile)
@@ -1747,35 +1793,21 @@ function gam._refresh_map_mode(preserve_efficiency)
 				pointer_realm_neigbours[pixel_index * 4 + 2] = 255 * b
 				pointer_realm_neigbours[pixel_index * 4 + 3] = 255 * a
 
-
 				pointer_tile_color[pixel_index * 4 + 0] = 255 * result_pixel[1]
 				pointer_tile_color[pixel_index * 4 + 1] = 255 * result_pixel[2]
 				pointer_tile_color[pixel_index * 4 + 2] = 255 * result_pixel[3]
 				pointer_tile_color[pixel_index * 4 + 3] = 255 * result_pixel[4]
-
-				pointer_tile_improvement[pixel_index * 4 + 0] = 255 * result_improvement[1]
-				pointer_tile_improvement[pixel_index * 4 + 1] = 255 * result_improvement[2]
-				pointer_tile_improvement[pixel_index * 4 + 2] = 255 * result_improvement[3]
-				pointer_tile_improvement[pixel_index * 4 + 3] = 255 * result_improvement[4]
 			else
 				pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
-
-				pointer_tile_improvement[pixel_index * 4 + 0] = 255 * 0
-				pointer_tile_improvement[pixel_index * 4 + 1] = 255 * 0
-				pointer_tile_improvement[pixel_index * 4 + 2] = 255 * 0
-				pointer_tile_improvement[pixel_index * 4 + 3] = 255 * 1
 			end
 		end
 	end
 	-- Update the texture
 	gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 	gam.tile_color_texture:setFilter("nearest", "nearest")
-
-	gam.tile_improvement_texture = love.graphics.newImage(gam.tile_improvement_texture_data)
-	gam.tile_improvement_texture:setFilter("nearest", "nearest")
 
 	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
 		mipmaps = false,

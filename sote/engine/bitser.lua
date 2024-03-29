@@ -24,14 +24,17 @@ local getmetatable = getmetatable
 local setmetatable = setmetatable
 
 local ffi = require("ffi")
+---@type number
 local buf_pos = 0
+---@type number | nil
 local buf_size = -1
 local buf = nil
 local writable_buf = nil
+---@type number | nil
 local writable_buf_size = nil
 local SEEN_LEN = {}
 
----@class BitserCallback
+---@class (exact) BitserCallback
 ---@field callback fun(value: any, seen: any, counter: any): Queue<BitserCallback>
 ---@field value any
 ---@field seen boolean
@@ -115,6 +118,9 @@ end
 
 local function Buffer_read_byte()
 	Buffer_ensure(1)
+	if not buf then
+		error('buf is nul during serialization!')
+	end
 	local x = buf[buf_pos]
 	buf_pos = buf_pos + 1
 	return x
@@ -196,10 +202,10 @@ local function write_table(value, seen, tiles_counter)
 
 	local classkey
 	local classname = (class_name_registry[value.class] -- MiddleClass
-		or class_name_registry[value.__baseclass] -- SECL
-		or class_name_registry[getmetatable(value)] -- hump.class
-		or class_name_registry[value.__class__] -- Slither
-		or class_name_registry[value.__class]) -- Moonscript class
+		or class_name_registry[value.__baseclass]    -- SECL
+		or class_name_registry[getmetatable(value)]  -- hump.class
+		or class_name_registry[value.__class__]      -- Slither
+		or class_name_registry[value.__class])       -- Moonscript class
 	if classname then
 		classkey = classkey_registry[classname]
 		if tiles_counter ~= nil then
@@ -281,8 +287,14 @@ local function write_cdata(value, seen)
 	Buffer_write_raw(ffi.typeof('$[1]', ty)(value), len)
 end
 
-local types = { number = write_number, string = write_string, table = write_table, boolean = write_boolean,
-	["nil"] = write_nil, cdata = write_cdata }
+local types = {
+	number = write_number,
+	string = write_string,
+	table = write_table,
+	boolean = write_boolean,
+	["nil"] = write_nil,
+	cdata = write_cdata
+}
 
 
 ---Serializes a value
@@ -323,20 +335,20 @@ serialize_value = function(value, seen, tiles_counter)
 	end
 
 	-- if t == 'table' then
-		-- callback_stack:enqueue_front({
-		-- 	callback = types[t] or error("cannot serialize type " .. t), 
-		-- 	value = value, seen = seen
-		-- })
+	-- callback_stack:enqueue_front({
+	-- 	callback = types[t] or error("cannot serialize type " .. t),
+	-- 	value = value, seen = seen
+	-- })
 	-- else
 	-- 	(types[t] or error("cannot serialize type " .. t))(value, seen)
 	-- end
 	local res = (types[t] or
 		error("cannot serialize type " .. t)
-		)(value, seen, tiles_counter)
-	
+	)(value, seen, tiles_counter)
+
 	if res == nil then
 		return require "engine.queue":new()
-	else 
+	else
 		return res
 	end
 end
@@ -471,7 +483,7 @@ local function read_string(seen)
 	end
 end
 
----@class TableReader
+---@class (exact) TableReader
 ---@field data table
 ---@field array_length number|nil
 ---@field current_array_index number
@@ -496,7 +508,7 @@ local function TableReaderApplyValue(table_reader, value)
 		return
 	end
 
-	if table_reader.current_mode == 'await dict key' then		
+	if table_reader.current_mode == 'await dict key' then
 		table_reader.current_key = value
 		table_reader.current_mode = "await dict value"
 		return
@@ -512,11 +524,11 @@ local function TableReaderApplyValue(table_reader, value)
 end
 
 local function deserialize(seen)
-	local queue = require "engine.queue":new()
+	local queue         = require "engine.queue":new()
 	---@type Queue<TableReader>
-	local tables_queue 	= require "engine.queue":new()
+	local tables_queue  = require "engine.queue":new()
 	local tiles_counter = 0
-	local tiles_yielded  = false
+	local tiles_yielded = false
 	while true do
 		if not tiles_yielded and tiles_counter % 10000 == 0 then
 			coroutine.yield("tiles count", tiles_counter)
@@ -524,15 +536,15 @@ local function deserialize(seen)
 		end
 		-- print(tables_queue:length())
 		local current_table = tables_queue:peek()
-		
+
 		-- if current_table ~= nil then
 		-- 	print("\t" .. tostring(current_table.classname) ..
 		-- 	"\t \t" .. tostring(current_table.current_array_index) .. "/" .. tostring(current_table.array_length) ..
 		-- 	"\t" .. tostring(current_table.current_dict_index) .. "/" .. tostring(current_table.dict_length) ..
 		-- 	"\t" .. tostring(current_table.current_mode))
 		-- end
-				
-		if current_table == nil 
+
+		if current_table == nil
 			or current_table.current_mode == 'await array value'
 			or current_table.current_mode == 'await dict key'
 			or current_table.current_mode == 'await dict value' then
@@ -540,7 +552,7 @@ local function deserialize(seen)
 			-- print(t)
 			if current_table == nil then
 				if t == 240 then
-					-- table 
+					-- table
 					local v = add_to_seen({}, seen)
 					tables_queue:enqueue_front({
 						data = v,
@@ -579,7 +591,7 @@ local function deserialize(seen)
 				TableReaderApplyValue(current_table, add_to_seen(resource_registry[Buffer_read_string(t - 224)], seen))
 			elseif t == 240 then
 				-- print('table detected')
-				-- table 
+				-- table
 				local v = add_to_seen({}, seen)
 				tables_queue:enqueue_front({
 					data = v,
@@ -827,147 +839,162 @@ local function deserialize_Moonscript(instance, class)
 	return setmetatable(instance, class.__base)
 end
 
-return { dumps = function(value)
-	serialize(value)
-	return ffi.string(buf, buf_pos)
-end, dumpLoveFile = function(fname, value)
-	print("Serialization starts...")
-	serialize(value)
-	print("Serialization ended!")
-	assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
-end, dumpLoveFile_async = function(fname, value)
-	print("Serialization starts...")
-	local saving_coroutine = coroutine.create(function () serialize_async(value) end)
-	local success, data = true, 0
-	while success do
-		success, data = coroutine.resume(saving_coroutine)
-		coroutine.yield(data)
-	end
-	print("Serialization ended!")
-	assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
-	-- assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
-end, loadLoveFile = function(fname, progress_table)
-	local serializedData, error = love.filesystem.newFileData(fname)
-	assert(serializedData, error)
-	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
+return {
+	dumps = function(value)
+		serialize(value)
+		return ffi.string(buf, buf_pos)
+	end,
+	dumpLoveFile = function(fname, value)
+		print("Serialization starts...")
+		serialize(value)
+		print("Serialization ended!")
+		assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+	end,
+	dumpLoveFile_async = function(fname, value)
+		print("Serialization starts...")
+		local saving_coroutine = coroutine.create(function() serialize_async(value) end)
+		local success, data = true, 0
+		while success do
+			success, data = coroutine.resume(saving_coroutine)
+			coroutine.yield(data)
+		end
+		print("Serialization ended!")
+		assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+		-- assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
+	end,
+	loadLoveFile = function(fname, progress_table)
+		local serializedData, error = love.filesystem.newFileData(fname)
+		assert(serializedData, error)
+		Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
 
-	-- local value = deserialize_value({})
-	local loading_coroutine = coroutine.create(function()
-		local value = deserialize({})
-		return value
-	end)
-	while true do
-		local co_status, loading_status, data = coroutine.resume(loading_coroutine)
-		-- print(co_status, loading_status, data)
+		-- local value = deserialize_value({})
+		local loading_coroutine = coroutine.create(function()
+			local value = deserialize({})
+			return value
+		end)
+		while true do
+			local co_status, loading_status, data = coroutine.resume(loading_coroutine)
+			-- print(co_status, loading_status, data)
 
-		if loading_status == "finished" then
-			print('loading completed')
-			-- print(data)
-			-- coroutine.yield("finished")
-			return data
+			if loading_status == "finished" then
+				print('loading completed')
+				-- print(data)
+				-- coroutine.yield("finished")
+				return data
+			end
+			if loading_status == 'tiles count' and progress_table ~= nil then
+				progress_table.total = data
+				-- coroutine.yield("in process")
+				-- print(loading_status, data)
+			end
 		end
-		if loading_status == 'tiles count' and progress_table ~= nil then
-			progress_table.total = data
-			-- coroutine.yield("in process")
-			-- print(loading_status, data)
-		end
-	end
 
-	
-	
-	-- local value = deserialize({})
-	-- serializedData needs to not be collected early in a tail-call
-	-- so make sure deserialize_value returns before loadLoveFile does
-	-- return value
-end, loadLoveFile_async = function(fname, progress_table) 
-	local serializedData, error = love.filesystem.newFileData(fname)
-	assert(serializedData, error)
-	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
-	local loading_coroutine = coroutine.create(function()
-		local value = deserialize({})
-		return value
-	end)
-	while true do
-		local co_status, loading_status, data = coroutine.resume(loading_coroutine)
-		if loading_status == "finished" then
-			print('loading completed')
-			coroutine.yield("finished", data)
-			return data
+
+
+		-- local value = deserialize({})
+		-- serializedData needs to not be collected early in a tail-call
+		-- so make sure deserialize_value returns before loadLoveFile does
+		-- return value
+	end,
+	loadLoveFile_async = function(fname, progress_table)
+		local serializedData, error = love.filesystem.newFileData(fname)
+		assert(serializedData, error)
+		Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
+		local loading_coroutine = coroutine.create(function()
+			local value = deserialize({})
+			return value
+		end)
+		while true do
+			local co_status, loading_status, data = coroutine.resume(loading_coroutine)
+			if loading_status == "finished" then
+				print('loading completed')
+				coroutine.yield("finished", data)
+				return data
+			end
+			if loading_status == 'tiles count' and progress_table ~= nil then
+				progress_table.total = data
+				coroutine.yield("in process")
+			end
 		end
-		if loading_status == 'tiles count' and progress_table ~= nil then
-			progress_table.total = data
-			coroutine.yield("in process")
+	end,
+	loadData = function(data, size)
+		if size == 0 then
+			error('cannot load value from empty data')
 		end
-	end
-end, loadData = function(data, size)
-	if size == 0 then
-		error('cannot load value from empty data')
-	end
-	Buffer_newDataReader(data, size)
-	return deserialize_value({})
-end, loads = function(str)
-	if #str == 0 then
-		error('cannot load value from empty string')
-	end
-	Buffer_newReader(str)
-	return deserialize_value({})
-end, register = function(name, resource)
-	assert(not resource_registry[name], name .. " already registered")
-	resource_registry[name] = resource
-	resource_name_registry[resource] = name
-	return resource
-end, unregister = function(name)
-	resource_name_registry[ resource_registry[name] ] = nil
-	resource_registry[name] = nil
-end, registerClass = function(name, class, classkey, deserializer)
-	if not class then
-		class = name
-		name = class.__name__ or class.name or class.__name
-	end
-	if not classkey then
-		if class.__instanceDict then
-			-- assume MiddleClass
-			classkey = 'class'
-		elseif class.__baseclass then
-			-- assume SECL
-			classkey = '__baseclass'
+		Buffer_newDataReader(data, size)
+		return deserialize_value({})
+	end,
+	loads = function(str)
+		if #str == 0 then
+			error('cannot load value from empty string')
 		end
-		-- assume hump.class, Slither, Moonscript class or something else that doesn't store the
-		-- class directly on the instance
-	end
-	if not deserializer then
-		if class.__instanceDict then
-			-- assume MiddleClass
-			print("using MiddleClass deserializer for " .. name)
-			deserializer = deserialize_MiddleClass
-		elseif class.__baseclass then
-			-- assume SECL
-			print("using SECL deserializer for " .. name)
-			deserializer = deserialize_SECL
-		elseif class.__index == class then
-			-- assume hump.class
-			print("using humpclass deserializer for " .. name)
-			deserializer = deserialize_humpclass
-		elseif class.__name__ then
-			-- assume Slither
-			print("using Slither deserializer for " .. name)
-			deserializer = deserialize_Slither
-		elseif class.__base then
-			-- assume Moonscript class
-			print("using Moonscript deserializer for " .. name)
-			deserializer = deserialize_Moonscript
-		else
-			error("no deserializer given for unsupported class library")
+		Buffer_newReader(str)
+		return deserialize_value({})
+	end,
+	register = function(name, resource)
+		assert(not resource_registry[name], name .. " already registered")
+		resource_registry[name] = resource
+		resource_name_registry[resource] = name
+		return resource
+	end,
+	unregister = function(name)
+		resource_name_registry[resource_registry[name]] = nil
+		resource_registry[name] = nil
+	end,
+	registerClass = function(name, class, classkey, deserializer)
+		if not class then
+			class = name
+			name = class.__name__ or class.name or class.__name
 		end
-	end
-	class_registry[name] = class
-	classkey_registry[name] = classkey
-	class_deserialize_registry[name] = deserializer
-	class_name_registry[class] = name
-	return class
-end, unregisterClass = function(name)
-	class_name_registry[ class_registry[name] ] = nil
-	classkey_registry[name] = nil
-	class_deserialize_registry[name] = nil
-	class_registry[name] = nil
-end, reserveBuffer = Buffer_prereserve, clearBuffer = Buffer_clear, version = VERSION }
+		if not classkey then
+			if class.__instanceDict then
+				-- assume MiddleClass
+				classkey = 'class'
+			elseif class.__baseclass then
+				-- assume SECL
+				classkey = '__baseclass'
+			end
+			-- assume hump.class, Slither, Moonscript class or something else that doesn't store the
+			-- class directly on the instance
+		end
+		if not deserializer then
+			if class.__instanceDict then
+				-- assume MiddleClass
+				print("using MiddleClass deserializer for " .. name)
+				deserializer = deserialize_MiddleClass
+			elseif class.__baseclass then
+				-- assume SECL
+				print("using SECL deserializer for " .. name)
+				deserializer = deserialize_SECL
+			elseif class.__index == class then
+				-- assume hump.class
+				print("using humpclass deserializer for " .. name)
+				deserializer = deserialize_humpclass
+			elseif class.__name__ then
+				-- assume Slither
+				print("using Slither deserializer for " .. name)
+				deserializer = deserialize_Slither
+			elseif class.__base then
+				-- assume Moonscript class
+				print("using Moonscript deserializer for " .. name)
+				deserializer = deserialize_Moonscript
+			else
+				error("no deserializer given for unsupported class library")
+			end
+		end
+		class_registry[name] = class
+		classkey_registry[name] = classkey
+		class_deserialize_registry[name] = deserializer
+		class_name_registry[class] = name
+		return class
+	end,
+	unregisterClass = function(name)
+		class_name_registry[class_registry[name]] = nil
+		classkey_registry[name] = nil
+		class_deserialize_registry[name] = nil
+		class_registry[name] = nil
+	end,
+	reserveBuffer = Buffer_prereserve,
+	clearBuffer = Buffer_clear,
+	version = VERSION
+}
