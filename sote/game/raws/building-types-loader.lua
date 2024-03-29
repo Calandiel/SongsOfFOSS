@@ -95,7 +95,6 @@ function d.load()
 		production_method = prod('hunting-2'),
 		construction_cost = COST_AREA,
 		building_group = BUILDING_GROUP.GROUNDS,
-		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
@@ -111,7 +110,6 @@ function d.load()
 		production_method = prod('gathering-0'),
 		building_group = BUILDING_GROUP.GROUNDS,
 		construction_cost = COST_AREA,
-		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
@@ -127,7 +125,6 @@ function d.load()
 		production_method = prod('gathering-1'),
 		building_group = BUILDING_GROUP.GROUNDS,
 		construction_cost = COST_AREA,
-		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
@@ -143,7 +140,6 @@ function d.load()
 		production_method = prod('gathering-2'),
 		building_group = BUILDING_GROUP.GROUNDS,
 		construction_cost = COST_AREA,
-		tile_improvement = true,
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
@@ -358,7 +354,6 @@ function d.load()
 		b = 0.22,
 		unlocked_by = tec('pottery'),
 		production_method = prod('clay-extraction'),
-		tile_improvement = true,
 		needed_infrastructure = 3.5,
 		ai_weight = 50,
 		construction_cost = COST_MINE,
@@ -386,7 +381,6 @@ function d.load()
 		b = 0.62,
 		unlocked_by = tec('dedicated-woodcutters'),
 		production_method = prod('woodcutting'),
-		tile_improvement = true,
 		needed_infrastructure = 5,
 		ai_weight = 20,
 		construction_cost = COST_AREA,
@@ -444,7 +438,6 @@ function d.load()
 		unlocked_by = tec('agriculture'),
 		production_method = prod('rye-farming'),
 		required_resource = {},
-		tile_improvement = true,
 		needed_infrastructure = 2.5,
 		ai_weight = 50,
 		construction_cost = COST_FARM,
@@ -460,7 +453,6 @@ function d.load()
 		unlocked_by = tec('beekeeping'),
 		production_method = prod('beekeeping'),
 		required_resource = { res("bees") },
-		tile_improvement = true,
 		needed_infrastructure = 0.5,
 		ai_weight = 150,
 		construction_cost = COST_FARM,

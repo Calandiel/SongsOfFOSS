@@ -117,7 +117,7 @@ local function get_price_expectation_weighted(set_of_goods)
 	for good, weight in pairs(set_of_goods) do
 		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
 		price_expectation = price_expectation +
-		market_data[c_index].price * market_data[c_index].feature / total_exp / weight
+			market_data[c_index].price * market_data[c_index].feature / total_exp / weight
 	end
 
 	return total_exp, price_expectation
@@ -263,7 +263,7 @@ function pro.run(province)
 
 		if pop_table.unit_of_warband.leader then
 			pop_table.unit_of_warband.leader.inventory['food'] = (pop_table.unit_of_warband.leader.inventory['food'] or 0) +
-			food_produced
+				food_produced
 		end
 	end
 
@@ -656,13 +656,13 @@ function pro.run(province)
 				local local_foraging_efficiency = 1
 				if prod.foraging then
 					foragers_count = foragers_count +
-					math.min(building.work_ratio, free_time_of_pop)                    -- Record a new forager!
+						math.min(building.work_ratio, free_time_of_pop) -- Record a new forager!
 					local_foraging_efficiency = foraging_efficiency
 				end
 				local yield = 1
 				local local_tile = province.center
 				if local_tile then
-					yield = prod:get_efficiency(local_tile)
+					yield = prod:get_efficiency(local_tile.province)
 				end
 
 				local efficiency = yield
@@ -728,7 +728,7 @@ function pro.run(province)
 					local years_to_deforestate = 50
 					local days_to_deforestate = years_to_deforestate * 360
 					local total_power = prod.forest_dependence * efficiency * throughput_boost * input_boost /
-					days_to_deforestate
+						days_to_deforestate
 					require "game.raws.effects.geography".deforest_random_tile(province, total_power)
 				end
 
@@ -811,7 +811,7 @@ function pro.run(province)
 				end
 
 				free_time_of_pop = free_time_of_pop -
-				math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
+					math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
 
 				if province.trade_wealth > income then
 					economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)

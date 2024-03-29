@@ -1665,9 +1665,8 @@ function gam._refresh_map_mode(preserve_efficiency)
 	if (gam.clicked_tile) then
 		province = gam.clicked_tile.province
 		if province and gam.selected.building_type then
-			for _, p_tile in pairs(province.tiles) do
-				best_eff = math.max(best_eff, gam.selected.building_type.production_method:get_efficiency(p_tile))
-			end
+			best_eff = math.max(best_eff,
+				gam.selected.building_type.production_method:get_efficiency(province))
 		end
 	end
 
@@ -1699,18 +1698,11 @@ function gam._refresh_map_mode(preserve_efficiency)
 				local result_pixel = { r, g, b, 1 }
 
 				if gam.selected.building_type ~= nil then
-					local eff = gam.selected.building_type.production_method:get_efficiency(tile)
+					local eff = gam.selected.building_type.production_method:get_efficiency(tile.province)
 					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
 					result_pixel[1] = r
 					result_pixel[2] = g
 					result_pixel[3] = b
-
-					if tile.province == province and eff == best_eff then
-						local r, g, b = political.hsv_to_rgb(eff * 90, 1, 1)
-						result_pixel[1] = r
-						result_pixel[2] = g
-						result_pixel[3] = b
-					end
 				end
 
 				local r, g, b, a = realm_neighbor_data(tile)
@@ -1722,7 +1714,6 @@ function gam._refresh_map_mode(preserve_efficiency)
 				pointer_realm_neigbours[pixel_index * 4 + 1] = 255 * g
 				pointer_realm_neigbours[pixel_index * 4 + 2] = 255 * b
 				pointer_realm_neigbours[pixel_index * 4 + 3] = 255 * a
-
 
 				pointer_tile_color[pixel_index * 4 + 0] = 255 * result_pixel[1]
 				pointer_tile_color[pixel_index * 4 + 1] = 255 * result_pixel[2]

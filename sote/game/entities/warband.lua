@@ -3,7 +3,8 @@ local JOBTYPE = require "game.raws.job_types"
 ---@alias WarbandStatus "idle" | "raiding" | "preparing_raid" | "preparing_patrol" | "patrol" | "attacking" | "travelling" | "off_duty"
 ---@alias WarbandIdleStance "work"|"forage"
 
----@class Warband
+---@class (exact) Warband
+---@field __index Warband
 ---@field name string
 ---@field treasury number
 ---@field leader Character?
@@ -22,14 +23,14 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field supplies_target_days number
 ---@field morale number
 local warband = {
-	name = "Warband",  ---@type string
+	name = "Warband", ---@type string
 	treasury = 0, ---@type number
 	leader = nil, ---@type Character?
 	pops = {}, ---@type table<POP, Province> A table mapping pops to their home provinces.
 	units = {}, ---@type table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
 	units_current = {},
 	units_target = {},
-	status = "idle",  ---@type WarbandStatus
+	status = "idle", ---@type WarbandStatus
 	supplies_target_days = 60,
 	morale = 0.5,
 	current_free_time_ratio = 1.0,
@@ -76,11 +77,9 @@ function warband:get_loot_capacity()
 	return cap
 end
 
-
 function warband:total_hauling()
 	return self:get_loot_capacity()
 end
-
 
 ---comment
 ---@return number
@@ -128,7 +127,6 @@ function warband:decimate()
 	self.units = {}
 end
 
-
 ---Handles hiring logic on warband's side
 ---@param province Province
 ---@param pop POP
@@ -158,7 +156,6 @@ function warband:fire_unit(pop)
 	self.units_current[unit] = (self.units_current[unit] or 0) - 1
 	self.total_upkeep = self.total_upkeep - unit.upkeep
 end
-
 
 ---Predicts upkeep given the current units target of warbands
 ---@return number
