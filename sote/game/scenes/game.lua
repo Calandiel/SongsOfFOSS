@@ -185,6 +185,7 @@ function gam.init()
 	gam.ticks_without_map_update = 0
 
 	gam.speed = 1
+	gam.turbo = false
 
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
@@ -274,11 +275,20 @@ function gam.update(dt)
 			-- the game is unpaused, call tick on world!
 			--print("-- tick start --")
 			local start = love.timer.getTime()
-			for _ = 1, 4 ^ gam.speed do
-				WORLD:tick()
-				gam.ticks_without_map_update = gam.ticks_without_map_update + 1
-				if love.timer.getTime() - start > 1 / 15 then
-					break
+			if gam.turbo then
+				while true do
+					WORLD:tick()
+					if love.timer.getTime() - start > 1 / 10 then
+						break
+					end
+				end
+			else
+				for _ = 1, 4 ^ gam.speed do
+					WORLD:tick()
+					gam.ticks_without_map_update = gam.ticks_without_map_update + 1
+					if love.timer.getTime() - start > 1 / 60 then
+						break
+					end
 				end
 			end
 			--print("-- tick end --")
@@ -1305,7 +1315,7 @@ function gam.draw()
 
 
 	if (gam.map_update_coroutine ~= nil) and (gam.map_update_progress ~= nil) then
-		local loading_rect = ui.fullscreen():subrect(0, 0, 300, 50, "center", "center")
+		local loading_rect = ui.fullscreen():subrect(0, 100, 300, 50, "center", "up")
 		ui.panel(loading_rect)
 		local progress = gam.map_update_progress / WORLD:tile_count() * 300
 		local progress_bar = loading_rect:subrect(0, 0, progress, 50, "left", "up")
@@ -1313,6 +1323,8 @@ function gam.draw()
 		ui.style.panel_inside.r = 1.0
 		ui.panel(progress_bar)
 		ui.style.panel_inside.r = temporary_r
+
+		ui.text("Updating the map...", loading_rect, "center", "center")
 	end
 
 
