@@ -1,4 +1,4 @@
-local icosa_defines = require("libsote.icosa_defines")
+local icosa_defines = require("sote.libsote.icosa-defines")
 
 local function calc_edge_tile_count(size)
     return size - 1

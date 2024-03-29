@@ -1,7 +1,5 @@
 local ui = {}
 
----@alias love.AlignMode "center" | "left" | "right"
-
 -- #######################
 -- ### DEFAULT STYLING ###
 -- #######################
@@ -210,7 +208,6 @@ function Rect:copy()
 end
 
 ---Returns a new rect, using this rect as the new reference point.
----@alias love.AlignMode "center"  | "left" | "right"
 ---@param x number
 ---@param y number
 ---@param width number
@@ -1305,7 +1302,8 @@ end
 ---@param circle_style boolean?
 ---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_value
-function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, circle_style, slider_arrow_images)
+function ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, circle_style,
+						 slider_arrow_images)
 	local up = ui.rect(rect.x, rect.y, rect.width, rect.height / 2)
 	local down = ui.rect(rect.x, rect.y + rect.height / 2, rect.width, rect.height / 2)
 	ui.text_panel(slider_name, up)
@@ -1363,16 +1361,15 @@ end
 ---@param slider_arrow_images ButtonImagesSet?
 ---@return number new_slider_level
 function ui.scrollview(
-    rect,
-    render_closure,
-    individual_height,
-    entries_count,
-    slider_width,
-    slider_level,
+	rect,
+	render_closure,
+	individual_height,
+	entries_count,
+	slider_width,
+	slider_level,
 	circle_style,
 	slider_arrow_images
 )
-
 	-- "mouse scroll"
 	if ui.trigger(rect) then
 		slider_level = math.min(math.max(0, slider_level - ui.mouse_wheel() / entries_count), 1)
@@ -1405,8 +1402,8 @@ function ui.scrollview(
 
 	local old_color = ui.style.button_inside
 
-	local color_1 = {r=0, g=0, b=0, a=0.05}
-	local color_2 = {r=1, g=1, b=1, a=0.05}
+	local color_1 = { r = 0, g = 0, b = 0, a = 0.05 }
+	local color_2 = { r = 1, g = 1, b = 1, a = 0.05 }
 
 	for i = current, last do
 		local item_rect = layout:next(
@@ -1462,7 +1459,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	---@type TablePair<T>[]
 	local sorted_data = {}
 	for _, entry in pairs(data) do
-		table.insert(sorted_data, {key = _, value = entry})
+		table.insert(sorted_data, { key = _, value = entry })
 	end
 	table.sort(sorted_data, function(a, b)
 		local value_a = columns[state.sorted_field].value(a.key, a.value)
@@ -1489,7 +1486,7 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 	end
 	local weight = (rect.width - 20) / total_weight
 	for index = 1, #columns do
-		local header_rect =  layout:next(columns[index].width * weight, state.individual_height)
+		local header_rect = layout:next(columns[index].width * weight, state.individual_height)
 		header_rect.height = rect.height
 		if not columns[index].active and ui.text_button("", header_rect) then
 			if state.sorted_field == index then
@@ -1532,14 +1529,16 @@ function ui.table(rect, data, columns, state, circle_style, slider_arrow_images)
 			:spacing(0)
 			:build()
 		for index = 1, #columns do
-			local temp = columns[index].render_closure(layout:next(columns[index].width * weight, state.individual_height), entry.key, entry.value)
+			local temp = columns[index].render_closure(
+				layout:next(columns[index].width * weight, state.individual_height), entry.key, entry.value)
 			if temp then
 				result = temp
 			end
 		end
 	end
 
-	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width, state.slider_level, circle_style, slider_arrow_images)
+	state.slider_level = ui.scrollview(rect, render_closure, state.individual_height, #sorted_data, state.slider_width,
+		state.slider_level, circle_style, slider_arrow_images)
 	return result
 end
 
@@ -1548,10 +1547,10 @@ end
 ---@param individual_height number height of a single entry, in pixels
 ---@param entries_count number number of entries in the scrollview
 function ui.listview(
-    rect,
-    render_closure,
-    individual_height,
-    entries_count
+	rect,
+	render_closure,
+	individual_height,
+	entries_count
 )
 	-- Draw the main panel
 	local main_panel = ui.rect(rect.x, rect.y, rect.width, rect.height)
