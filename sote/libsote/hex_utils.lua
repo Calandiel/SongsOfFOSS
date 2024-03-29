@@ -7,6 +7,10 @@ local vec3 = cpml.vec3
 
 local eps = 1e-12
 
+---@param tri_x number
+---@param tri_y number
+---@param world_size number
+---@return table
 local function get_triangle_coords(tri_x, tri_y, world_size)
     local tri_count = world_size * 3
 
@@ -18,6 +22,9 @@ local function get_triangle_coords(tri_x, tri_y, world_size)
     return vec3(x, y, math.floor(frac_x + frac_y))
 end
 
+---@param triangle_coords table
+---@param world_size number
+---@return table
 local function triangle_coords_to_hex_coords(triangle_coords, world_size)
     local tri_x = triangle_coords.x
     local tri_y = triangle_coords.y
@@ -41,6 +48,10 @@ local function triangle_coords_to_hex_coords(triangle_coords, world_size)
     return vec2(hex_y - hex_x, hex_y_adjusted - math.floor((tri_x + tri_y_adjusted2) / 3))
 end
 
+---@param lat number
+---@param lon number
+---@param ws number
+---@return number, number, number
 function hu.latlon_to_hex_coords(lat, lon, ws)
     local colatitude = require("game.latlon").lat_to_colat(lat)
 

@@ -12,6 +12,8 @@ function rand:new(seed)
     return new
 end
 
+---@param max number
+---@return number
 function rand:random_max(max)
     return self.rng:random(max)
 end
@@ -23,7 +25,8 @@ ffi.cdef[[
 typedef uint32_t uint;
 ]]
 
--- github copilot port, unvalidated, untested
+---@param input number
+---@return number?
 function rand.pcg_hash(input)
     local state = ffi.new("uint", input * 747796405 + 2891336453)
     local word = ffi.new("uint", bit.bxor(state, bit.rshift(state, bit.bxor(bit.rshift(state, 28), 4))) * 277803737)

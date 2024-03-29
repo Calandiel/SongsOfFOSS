@@ -2,10 +2,14 @@ local wa = {}
 
 local icosa_defines = require("libsote.icosa_defines")
 
+---@param size number
+---@return number
 local function calc_edge_tile_count(size)
     return size - 1
 end
 
+---@param size number
+---@return table
 local function build_icosa(size)
     local icosa = {
         size = size,
@@ -50,6 +54,10 @@ local function build_icosa(size)
     return icosa
 end
 
+---@param q number
+---@param r number
+---@param size number
+---@return number
 local function icosa_edge_index(q, r, size)
     local s = -(q + r)
     if q - s == size then return 2 end
@@ -58,6 +66,10 @@ local function icosa_edge_index(q, r, size)
     return 0
 end
 
+---@param q number
+---@param r number
+---@param size number
+---@return number
 local function icosa_vertex_index(q, r, size)
     if q == size then return 1 end
     if q == -size then return 3 end
@@ -65,6 +77,12 @@ local function icosa_vertex_index(q, r, size)
     return 0
 end
 
+---@param q number
+---@param r number
+---@param face_index number
+---@param icosa table
+---@param index number
+---@return number, number
 local function resolve_index_for_penta(q, r, face_index, icosa, index)
     local vi = icosa.faces[face_index].vertices[icosa_vertex_index(q, r, icosa.size)]
 
@@ -77,6 +95,12 @@ local function resolve_index_for_penta(q, r, face_index, icosa, index)
     return icosa.vertices[vi], index + 1
 end
 
+---@param q number
+---@param r number
+---@param face_index number
+---@param icosa table
+---@param index number
+---@return number, number
 local function resolve_index_for_edge(q, r, face_index, icosa, index)
     local ei = icosa_edge_index(q, r, icosa.size)
     local edge = icosa.faces[face_index].edges[ei]
@@ -118,6 +142,8 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
     return edge.tiles[ti], index + 1
 end
 
+---@param size number
+---@param seed number
 function wa.allocate(size, seed)
     local world = require("libsote.world"):new(size, seed)
 
