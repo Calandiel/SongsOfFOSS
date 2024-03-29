@@ -1,8 +1,14 @@
+---@class (exact) War
+---@field __index War
+---@field attackers table<Realm, Realm> A set of all attackers
+---@field defenders table<Realm, Realm> A set of all defenders
+---@field claims table<Province, Realm> A table mapping provinces to their claimants. When the war ends, the winning side will enforce their claims.
+
 ---@class War
 local war = {
-	attackers = {}, ---@type table<Realm, Realm> A set of all attackers
-	defenders = {}, ---@type table<Realm, Realm> A set of all defenders
-	claims = {}, ---@type table<Province, Realm> A table mapping provinces to their claimants. When the war ends, the winning side will enforce their claims.
+	attackers = {},
+	defenders = {},
+	claims = {}
 }
 war.__index = war
 

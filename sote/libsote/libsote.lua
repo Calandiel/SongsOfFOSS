@@ -74,12 +74,12 @@ local sote_tasks = {
 
 ---@enum sote_vals
 local sote_vals = {
-	latitude = 40,         -- Colatitude
-	longitude = 41,        -- MinusLongitude
-	elevation = 1,         -- Elevation
+	latitude = 40,      -- Colatitude
+	longitude = 41,     -- MinusLongitude
+	elevation = 1,      -- Elevation
 	-- water_movement = 20, -- skipped?
-	rugosity = 43,         -- Hilliness
-	rock_type = 35,        -- RockType (needs some translation)
+	rugosity = 43,      -- Hilliness
+	rock_type = 35,     -- RockType (needs some translation)
 	volcanic_activity = 5, -- VolcanicActivity
 	-- IsLand: computed from elevation
 	plate = 15,
@@ -193,6 +193,9 @@ local function hex_coord_to_hex_number(face, q, r)
 end
 
 local function get_val(desc, err_msg, val)
+	if not lib_sote_instance then
+		error('libSOTE not initialized')
+	end
 	local ret_code = lib_sote_instance.LIBSOTE_GetVar(err_msg, 3, desc, ffi.cast("void*", val))
 	if ret_code ~= 0 then
 		log_sote(err_msg)
@@ -218,6 +221,8 @@ local function set_sote_params(seed)
 		end
 
 		desc[2] = v.index
+		--- [Cala, 30 Mar 2024] This is fine, sumneko is just a bit iffy with LuaJIT's ffi
+		---@diagnostic disable-next-line: param-type-mismatch
 		local cval = ffi.new(v.ctype .. "[1]", value)
 		_ = lib_sote_instance.LIBSOTE_SetVar(err_msg, 3, desc, ffi.cast("void*", cval))
 

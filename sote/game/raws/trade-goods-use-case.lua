@@ -1,6 +1,7 @@
 ---@alias TradeGoodUseCaseReference string
 
----@class TradeGoodUseCase
+---@class (exact) TradeGoodUseCase
+---@field __index TradeGoodUseCase
 ---@field name TradeGoodUseCaseReference
 ---@field icon string
 ---@field description string

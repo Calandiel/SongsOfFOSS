@@ -10,7 +10,7 @@ local pro = {}
 
 local ffi = require "ffi"
 
----@class MarketData
+---@class (exact) MarketData
 ---@field price number
 ---@field feature number
 ---@field available number
@@ -18,7 +18,7 @@ local ffi = require "ffi"
 ---@field demand number
 ---@field supply number
 
----@class POPView
+---@class (exact) POPView
 ---@field foraging_efficiency number
 ---@field age_multiplier number
 

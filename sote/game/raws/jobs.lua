@@ -1,13 +1,13 @@
 local JOBTYPE = require "game.raws.job_types"
 
----@class Job
+---@class (exact) Job
+---@field __index Job
 ---@field name string
 ---@field icon string
 ---@field description string
 ---@field r number
 ---@field g number
 ---@field b number
----@field new fun(self:Job, o:Job):Job
 
 ---@class Job
 local Job = {}

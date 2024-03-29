@@ -1,6 +1,5 @@
-
-
----@class Event
+---@class (exact) Event
+---@field __index Event
 ---@field new fun(self:Event, e:Event):Event
 ---@field name string
 ---@field automatic boolean Automatic events are rolled each month on every root in the game
@@ -11,8 +10,7 @@
 ---@field event_background_path string
 ---@field options fun(self:Event, root:Character, associated_data:table|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
 
-
----@class EventOption
+---@class (exact) EventOption
 ---@field text string
 ---@field tooltip string
 ---@field viable fun():boolean Returns whether or not an action can be taken at all
@@ -38,8 +36,8 @@ function Event:new(e)
 	o.trigger = function(self, root)
 		return true
 	end
-	o.on_trigger = function(self, root)
-		WORLD:emit_event(self.name, root, nil)
+	o.on_trigger = function(self, root, associated_data)
+		WORLD:emit_event(self.name, root, associated_data)
 	end
 	o.options = function(self, root, associated_data)
 		return {

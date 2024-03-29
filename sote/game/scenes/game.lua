@@ -1,10 +1,77 @@
----@class GameScene
+---@class (exact) GameScene
 ---@field macrobuilder_public_mode boolean
 ---@field tile_inspector_tab TileInspectorTabs | nil
 ---@field realm_inspector_tab RealmInspectorTabs | nil
 ---@field realm_stockpile_scrollbar number
 ---@field realm_capacities_scrollbar number
 ---@field wars_slider_level number
+---@field selected Selection
+---@field show_map_mode_panel boolean
+---@field map_mode_slider number
+---@field game_canvas love.Canvas
+---@field planet_mesh love.Mesh
+---@field planet_shader love.Shader
+---@field map_mode_data table TODO difficult to untangle, port to Teal
+---@field map_mode_tabs table TODO difficult to untangle, port to Teal
+---@field init fun()
+---@field handle_zoom fun()
+---@field on_tile_click fun()
+---@field _refresh_map_mode fun(boolean)
+---@field debug_ui fun()
+---@field paused boolean
+---@field tile_realm_texture love.Texture
+---@field ticks_without_map_update number
+---@field speed number
+---@field camera_lock boolean
+---@field turbo boolean
+---@field handle_camera_controls fun()
+---@field click_callback fun() | nil
+---@field update_map_mode fun(string)
+---@field tile_neighbor_provinces_texture love.Texture
+---@field tile_province_texture love.Texture
+---@field tile_neighbor_realm_texture love.Texture
+---@field map_update_progress number
+---@field tile_raiding_targets_texture love.Texture
+---@field refresh_map_mode fun(boolean)
+---@field map_mode string TODO this should be a map mode enum...
+---@field camera_position any TODO type porting cpml is hell...
+---@field tile_id_to_color_coords fun(Tile):number,number
+---@field tile_raiding_targets_image_data love.ImageData
+---@field time_since_last_tick number
+---@field tile_color_image_data love.ImageData
+---@field load_camera_position_or_set_to_default fun()
+---@field locked_screen_x number
+---@field locked_screen_y number
+---@field draw fun()
+---@field click_tile fun(number)
+---@field clicked_tile_id number
+---@field clicked_tile Tile
+---@field reset_decision_selection fun()
+---@field notification_slider number
+---@field outliner_slider number
+---@field tile_province_image_data love.ImageData
+---@field tile_neighbor_provinces_data love.ImageData
+---@field minimap love.Image
+---@field tile_realm_image_data love.ImageData
+---@field tile_neighbor_realm_data love.ImageData
+---@field recalculate_realm_map fun()
+---@field tile_color_texture love.Image
+---@field empty_texture_image_data love.ImageData
+---@field empty_texture love.Image
+---@field update fun(number)
+---@field outliner number
+---@field map_mode_selected_tab MapModeTab
+---@field inspector nil | InspectorType
+---@field recalculate_province_map fun()
+---@field map_update_coroutine nil | thread
+---@field recalculate_raiding_targets_map fun()
+---@field decision_target_primary any TODO this is difficult to untangle, port to Teal to fix it
+---@field decision_target_secondary any TODO this is difficult to untangle, port to Teal to fix it
+
+---@alias InspectorType "tile"|'confirm-exit'
+---@alias MapModeTab 'all'|'debug'|'demographic'|'economic'|'political'
+
+---@class GameScene
 local gam = {}
 
 ---@alias TileInspectorTabs "GEN"
@@ -58,7 +125,7 @@ local tile_inspectors = {
 
 
 
----@class Selection
+---@class (exact) Selection
 ---@field character Character?
 ---@field tile Tile?
 ---@field province Province?
@@ -72,7 +139,6 @@ local tile_inspectors = {
 ---@field tech Technology?
 ---@field cached_tech Technology?
 
----@type Selection
 gam.selected = {}
 
 ---Called when a tile is clicked.
@@ -219,7 +285,6 @@ function gam.init()
 	end
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
-
 	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
 	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
 
@@ -1367,6 +1432,7 @@ require "game.scenes.game.map-modes".set_up_map_modes(gam)
 
 ---Given a tile coordinate, returns x/y coordinates on a texture to write!
 ---@param tile Tile
+---@return number, number
 function gam.tile_id_to_color_coords(tile)
 	local tile_id = tile.tile_id
 	local ws = WORLD.world_size

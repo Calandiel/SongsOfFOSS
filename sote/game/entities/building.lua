@@ -1,5 +1,5 @@
----@class Building
----@field new fun(self:Building, province:Province, building_type:BuildingType, tile: Tile?):Building
+---@class (exact) Building
+---@field __index Building
 ---@field type BuildingType
 ---@field x number?
 ---@field y number?

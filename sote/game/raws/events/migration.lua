@@ -1,30 +1,29 @@
-local tabb = require "engine.table"
-local path = require "game.ai.pathfinding"
+local tabb              = require "engine.table"
+local path              = require "game.ai.pathfinding"
 
-local province = require "game.entities.province"
-local realm = require "game.entities.realm"
+local province          = require "game.entities.province"
+local realm             = require "game.entities.realm"
 
-local Event = require "game.raws.events"
-local event_utils = require "game.raws.events._utils"
+local Event             = require "game.raws.events"
+local event_utils       = require "game.raws.events._utils"
 
 local character_ranks   = require "game.raws.ranks.character_ranks"
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
-local TRAIT = require "game.raws.traits.generic"
+local AI_VALUE          = require "game.raws.values.ai_preferences"
+local TRAIT             = require "game.raws.traits.generic"
 
-local pv = require "game.raws.values.political"
-local diplomacy_events = require "game.raws.effects.diplomacy"
-local economic_effects = require "game.raws.effects.economic"
-local military_effects = require "game.raws.effects.military"
+local pv                = require "game.raws.values.political"
+local diplomacy_events  = require "game.raws.effects.diplomacy"
+local economic_effects  = require "game.raws.effects.economic"
+local military_effects  = require "game.raws.effects.military"
 local political_effects = require "game.raws.effects.political"
 
-local character_values = require "game.raws.values.character"
+local character_values  = require "game.raws.values.character"
 
-local messages = require "game.raws.effects.messages"
+local messages          = require "game.raws.effects.messages"
 
 function load()
-
-	---@class MigrationData
+	---@class (exact) MigrationData
 	---@field target_province Province
 	---@field origin_province Province
 	---@field invasion boolean
@@ -68,7 +67,7 @@ function load()
 			for _, pop in pairs(associated_data.origin_province.all_pops) do
 				table.insert(migration_pool_pops, pop)
 			end
-			for _, warband in pairs (associated_data.origin_province.warbands) do
+			for _, warband in pairs(associated_data.origin_province.warbands) do
 				table.insert(migration_pool_warbands, warband)
 			end
 			for _, character in pairs(associated_data.origin_province.characters) do
@@ -382,7 +381,8 @@ function load()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I agreed to allow migration of people of " .. associated_data.realm.name .. " into our lands.")
+							WORLD:emit_notification("I agreed to allow migration of people of " ..
+								associated_data.realm.name .. " into our lands.")
 						end
 
 						if associated_data == WORLD.player_character then
@@ -399,7 +399,7 @@ function load()
 						WORLD:emit_action("migration-merge", associated_data, migration_data, travel_time, false)
 						WORLD:emit_immediate_event("migration-target-agrees", associated_data, character)
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						if character.culture == associated_data.culture then
 							return 1
 						end
@@ -424,7 +424,7 @@ function load()
 
 						WORLD:emit_event("migration-target-refuses", associated_data, character, travel_time)
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						return 0.4
 					end
 				},
@@ -432,10 +432,10 @@ function load()
 					text = "Suggest to swap lands",
 					tooltip = "Suggest to exchange lands",
 					viable = function() return true end,
-					outcome = function ()
+					outcome = function()
 						WORLD:emit_event("migration-suggest-swapping", associated_data, character, travel_time)
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						return 0
 					end
 				}
@@ -491,7 +491,7 @@ function load()
 						WORLD:emit_action("migration-swap", associated_data, migration_data, travel_time, false)
 						WORLD:emit_immediate_event("migration-target-agrees", associated_data, character)
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						return 1
 					end
 				},
@@ -502,7 +502,7 @@ function load()
 					outcome = function()
 						WORLD:emit_immediate_event("migration-invasion-preparation", character, associated_data.realm)
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						if character.traits[TRAIT.WARLIKE] then return 2 end
 						return 0.25
 					end
@@ -514,7 +514,7 @@ function load()
 					outcome = function()
 
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						return 0
 					end
 				},
@@ -524,7 +524,7 @@ function load()
 
 	event_utils.notification_event(
 		"migration-target-agrees",
-		function (self, root, associated_data)
+		function(self, root, associated_data)
 			---@type Character
 			associated_data = associated_data
 
@@ -532,10 +532,10 @@ function load()
 				.. associated_data.name
 				.. " agreed to allow us into their land."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			return "Finally!"
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			---@type Character
 			associated_data = associated_data
 
@@ -696,7 +696,7 @@ function load()
 						end
 					end,
 
-					ai_preference = function ()
+					ai_preference = function()
 						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
 							aggression = true,
 						})()
@@ -716,7 +716,7 @@ function load()
 
 						WORLD:emit_event('migration-invasion-preparation', character, target_realm, 10)
 					end,
-					ai_preference = function ()
+					ai_preference = function()
 						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
 							aggression = true,
 						})()
@@ -798,21 +798,21 @@ function load()
 
 	event_utils.notification_event(
 		"migration-invasion-failure",
-		function (self, root, associated_data)
+		function(self, root, associated_data)
 			---@type Character
 			associated_data = associated_data
 
 			return "Our invasion failed!"
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			return "I see."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			---@type Character
 			associated_data = associated_data
 			return "We will have another chance."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			---@type Army
 			associated_data = associated_data
 			root.realm:disband_army(associated_data)
@@ -821,16 +821,16 @@ function load()
 
 	event_utils.notification_event(
 		"migration-invasion-success",
-		function (self, root, associated_data)
+		function(self, root, associated_data)
 			return "Our invasion is successful! "
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			return "New home awaits."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			return "Our tribe moves to the invaded province."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			---@type Army
 			associated_data = associated_data
 			root.realm:disband_army(associated_data)
@@ -839,16 +839,16 @@ function load()
 
 	event_utils.notification_event(
 		"migration-invasion-success-target",
-		function (self, root, associated_data)
+		function(self, root, associated_data)
 			---@type Character
 			associated_data = associated_data
 
 			return "Our realm was invaded! We are subjects of " .. associated_data.name .. " now."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			return "It's over."
 		end,
-		function (root, associated_data)
+		function(root, associated_data)
 			return "At least I am alive."
 		end
 	)

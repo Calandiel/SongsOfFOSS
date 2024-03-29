@@ -1,6 +1,7 @@
 local gr = {}
 
----@class OneToOne A class which maps a 1:1 relationship
+---@class (exact) OneToOne A class which maps a 1:1 relationship
+---@field __index OneToOne
 ---@field new fun(self: OneToOne):OneToOne
 ---@field set fun(self: OneToOne, a: any, b: any)
 ---@field get fun(self: OneToOne, a: any):any
@@ -36,7 +37,8 @@ function gr.OneToOne:get(a)
 	return self._a[a]
 end
 
----@class OneToMany A class which maps a 1:MANY relationship. For example, "mother" vs "children" or "tiles" to "provinces"
+---@class (exact) OneToMany A class which maps a 1:MANY relationship. For example, "mother" vs "children" or "tiles" to "provinces"
+---@field __index OneToMany
 ---@field new fun(self: OneToOne):OneToMany
 ---@field set fun(self: OneToMany, one: any, many: any)
 ---@field get_many fun(self: OneToMany, one: any):(any|nil)

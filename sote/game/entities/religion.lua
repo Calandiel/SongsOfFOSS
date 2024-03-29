@@ -2,21 +2,21 @@ local cl = {}
 
 ---@alias BurialRites 'cremation' | 'burial' | 'none'
 
----@class Religion
+---@class (exact) Religion
+---@field __index Religion
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
----@field new fun(self:Religion, culture:Culture):Religion
 
----@class Faith
+---@class (exact) Faith
+---@field __index Faith
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
 ---@field religion Religion
 ---@field burial_rites BurialRites
----@field new fun(self:Faith, religion:Religion, culture:Culture):Faith
 
 ---@class Religion
 cl.Religion = {}

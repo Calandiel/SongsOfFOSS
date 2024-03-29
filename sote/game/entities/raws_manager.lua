@@ -1,4 +1,5 @@
----@class RawsManager
+---@class (exact) RawsManager
+---@field __index RawsManager
 ---@field biomes_by_name table<string, Biome>
 ---@field biomes_load_order table<number, Biome>
 ---@field bedrocks_by_name table<string, Bedrock>

@@ -13,7 +13,7 @@ local queue_capacity = 10000000
 -- The queue is implemented as a circular buffer.
 -- The capacity of this buffer is by default set to 10 million
 ---@generic T
----@class Queue<T> : {(new: fun():Queue<T>), data:table<number,T>, first:integer, last:integer, enqueue:fun(self:Queue, element:T), enqueue_front:fun(self:Queue, element:T), (length:fun(self:Queue):integer), clear:fun(self), (dequeue:fun(self:Queue):T), (peek:fun(self:Queue):T)}
+---@class (exact) Queue<T> : {(new: fun():Queue<T>), data:table<number,T>, first:integer, last:integer, enqueue:fun(self:Queue, element:T), enqueue_front:fun(self:Queue, element:T), (length:fun(self:Queue):integer), clear:fun(self), (dequeue:fun(self:Queue):T), (peek:fun(self:Queue):T)}
 
 
 local Queue = {}

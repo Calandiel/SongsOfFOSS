@@ -1,11 +1,11 @@
----@class UnitType
+---@class (exact) UnitType
+---@field __index UnitType
 ---@field name string
 ---@field icon string
 ---@field description string
 ---@field r number
 ---@field g number
 ---@field b number
----@field new fun(self:UnitType, o:UnitType):UnitType
 ---@field base_price number
 ---@field upkeep number
 ---@field supply_useds number how much food does this unit consume each month

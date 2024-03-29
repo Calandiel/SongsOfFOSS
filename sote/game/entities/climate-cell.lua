@@ -1,4 +1,5 @@
----@class ClimateCell
+---@class (exact) ClimateCell
+---@field __index ClimateCell
 ---@field cell_id number
 ---@field elevation number
 ---@field water_fraction number
@@ -20,7 +21,6 @@
 ---@field saldo_north number abstract number showing the "weight" of landmasses on either of the hemispheres...
 ---@field saldo_south number abstract number showing the "weight" of landmasses on either of the hemispheres...
 ---@field cache table<number, number> A debug cache containing a bunch of values to use... (10 by default)
----@field new fun(self, cell_id: number):ClimateCell Returns a new cell
 ---@field land_tiles number
 ---@field water_tiles number
 

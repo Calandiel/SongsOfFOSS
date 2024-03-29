@@ -18,28 +18,28 @@ local pe = require "game.raws.effects.political"
 local messages = require "game.raws.effects.messages"
 
 
----@class PatrolData
+---@class (exact) PatrolData
 ---@field defender Character
 ---@field origin Realm
 ---@field target Province
 ---@field travel_time number
 ---@field patrol table<Warband, Warband>
 
----@class RaidData
+---@class (exact) RaidData
 ---@field raider Character
 ---@field origin Realm
 ---@field target Province
 ---@field travel_time number
 ---@field army Army
 
----@class AttackData
+---@class (exact) AttackData
 ---@field raider Character
 ---@field origin Realm
 ---@field target Province
 ---@field travel_time number
 ---@field army Army
 
----@class RaidResultSuccess
+---@class (exact) RaidResultSuccess
 ---@field raider Character
 ---@field origin Realm
 ---@field losses number
@@ -47,14 +47,14 @@ local messages = require "game.raws.effects.messages"
 ---@field loot number
 ---@field target Province
 
----@class RaidResultFail
+---@class (exact) RaidResultFail
 ---@field raider Character
 ---@field origin Realm
 ---@field losses number
 ---@field army Army
 ---@field target Province
 
----@class RaidResultRetreat
+---@class (exact) RaidResultRetreat
 ---@field raider Character
 ---@field origin Realm
 ---@field army Army
@@ -72,7 +72,8 @@ local function load()
 
 			associated_data.target.mood = associated_data.target.mood + 0.025
 			if WORLD:does_player_see_realm_news(associated_data.target.realm) then
-				WORLD:emit_notification("Several of our warbands had finished patrolling of " .. associated_data.target.name .. ". Local people feel safety")
+				WORLD:emit_notification("Several of our warbands had finished patrolling of " ..
+				associated_data.target.name .. ". Local people feel safety")
 			end
 
 			local total_patrol_size = 0
@@ -85,12 +86,12 @@ local function load()
 			if root.realm.quests_patrol[associated_data.target] then
 				reward = math.min(root.realm.quests_patrol[associated_data.target] or 0, total_patrol_size)
 			end
-			root.realm.quests_patrol[associated_data.target] = (root.realm.quests_patrol[associated_data.target] or 0) - reward
+			root.realm.quests_patrol[associated_data.target] = (root.realm.quests_patrol[associated_data.target] or 0) -
+			reward
 
 			for _, w in pairs(associated_data.patrol) do
 				w.treasury = w.treasury + reward * w:size() / total_patrol_size
 			end
-
 		end
 	}
 
@@ -98,36 +99,36 @@ local function load()
 	Event:new {
 		name = "request-tribute-raid",
 		event_text = function(self, character, associated_data)
-            ---@type Realm
-            associated_data = associated_data
+			---@type Realm
+			associated_data = associated_data
 			local name = associated_data.name
 
-            local my_warlords, my_power = pv.military_strength(character)
+			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
-            local their_warlords, their_power = pv.military_strength(associated_data.leader)
+			local their_warlords, their_power = pv.military_strength(associated_data.leader)
 
-            local strength_estimation_string =
-                "On my side there are "
-                .. my_warlords
-                .. " warlords with total strength of "
-                .. my_power
-                .. " warriors in total."
+			local strength_estimation_string =
+				"On my side there are "
+				.. my_warlords
+				.. " warlords with total strength of "
+				.. my_power
+				.. " warriors in total."
 				.. "Currently, I have "
 				.. my_warlords_ready
 				.. " warlords with total strength of "
 				.. my_power_ready
 				.. " ready to join my campaign."
 				.. " Enemies potential forces consist of "
-                .. their_warlords
-                .. " warlords with total size of "
-                .. their_power
-                .. " warriors."
+				.. their_warlords
+				.. " warlords with total size of "
+				.. their_power
+				.. " warriors."
 
 			return " We are planning the invasion of "
 				.. name
 				.. ". "
-                .. strength_estimation_string
-                .. " What should I do?"
+				.. strength_estimation_string
+				.. " What should I do?"
 		end,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
@@ -136,8 +137,8 @@ local function load()
 			return false
 		end,
 		on_trigger = function(self, character, associated_data)
-            ---@type Realm
-            associated_data = associated_data
+			---@type Realm
+			associated_data = associated_data
 			if WORLD.player_character == character then
 				WORLD:emit_notification("I was asked to start paying tribute to " .. associated_data.name)
 			end
@@ -145,22 +146,22 @@ local function load()
 		options = function(self, character, associated_data)
 			assert(associated_data ~= nil, "INVALID ASSOCIATED DATA IN EVENT")
 
-            ---@type Realm
-            local target_realm = associated_data
+			---@type Realm
+			local target_realm = associated_data
 
-            -- character assumes that realm will gain money at least for a year
-            local gain_of_money = 0
-            if target_realm then
-                gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
-            end
+			-- character assumes that realm will gain money at least for a year
+			local gain_of_money = 0
+			if target_realm then
+				gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
+			end
 
 			if character.dead then
 				return event_utils.dead_options
 			end
 
-            local my_warlords, my_power = pv.military_strength(character)
+			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
-            local their_warlords, their_power = pv.military_strength(target_realm.leader)
+			local their_warlords, their_power = pv.military_strength(target_realm.leader)
 
 			return {
 				{
@@ -168,7 +169,7 @@ local function load()
 					tooltip = "Launch the invasion",
 					viable = function() return true end,
 					outcome = function()
-                        local realm = character.realm
+						local realm = character.realm
 
 						local army = me.gather_loyal_army_attack(character)
 						if army == nil then
@@ -197,50 +198,50 @@ local function load()
 						end
 					end,
 
-					ai_preference = function ()
-                        local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
-                            aggression = true,
-                        })()
+					ai_preference = function()
+						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+							aggression = true,
+						})()
 
-                        base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
-                        base_value = base_value + (my_power_ready - their_power) * 20
+						base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
+						base_value = base_value + (my_power_ready - their_power) * 20
 						if my_power_ready <= 0 then
 							base_value = 0
 						end
-                        return base_value
-                    end
+						return base_value
+					end
 				},
 				{
 					text = "Wait for 10 days",
 					tooltip = "Wait for our warlords to gather.",
 					viable = function() return true end,
 					outcome = function()
-                        if WORLD.player_character == character then
-                            WORLD:emit_notification("I have decided to wait. We need more forces.")
-                        end
+						if WORLD.player_character == character then
+							WORLD:emit_notification("I have decided to wait. We need more forces.")
+						end
 
 						WORLD:emit_event('request-tribute-raid', character, target_realm, 10)
-                    end,
-					ai_preference = function ()
-                        local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
-                            aggression = true,
-                        })()
+					end,
+					ai_preference = function()
+						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+							aggression = true,
+						})()
 
-                        base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
-                        base_value = base_value + (my_power - their_power) * 15
-                        return base_value
-                    end
+						base_value = base_value + AI_VALUE.money_utility(character) * gain_of_money
+						base_value = base_value + (my_power - their_power) * 15
+						return base_value
+					end
 				},
 				{
 					text = "Back down",
 					tooltip = "We are not ready to fight",
 					viable = function() return true end,
 					outcome = function()
-                        if WORLD.player_character == character then
-                            WORLD:emit_notification("I decided to not attack " .. target_realm.leader.name)
-                        end
+						if WORLD.player_character == character then
+							WORLD:emit_notification("I decided to not attack " .. target_realm.leader.name)
+						end
 						character.busy = false
-                    end,
+					end,
 					ai_preference = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {})
 				}
 			}
@@ -317,19 +318,19 @@ local function load()
 	}
 
 	event_utils.notification_event(
-        "request-tribute-army-returns-success-notification",
-        function(self, character, associated_data)
-            ---@type Army
+		"request-tribute-army-returns-success-notification",
+		function(self, character, associated_data)
+			---@type Army
 			local army = associated_data
-            return "We succeeded to enforce tribute on " .. army.destination.realm.name
+			return "We succeeded to enforce tribute on " .. army.destination.realm.name
 		end,
-        function (root, associated_data)
-            return "Great!"
-        end,
-        function (root, associated_data)
-            return ""
-        end
-    )
+		function(root, associated_data)
+			return "Great!"
+		end,
+		function(root, associated_data)
+			return ""
+		end
+	)
 
 	Event:new {
 		name = "request-tribute-army-returns-fail",
@@ -356,19 +357,19 @@ local function load()
 	}
 
 	event_utils.notification_event(
-        "request-tribute-army-returns-fail-notification",
-        function(self, character, associated_data)
-            ---@type Army
+		"request-tribute-army-returns-fail-notification",
+		function(self, character, associated_data)
+			---@type Army
 			local army = associated_data
-            return "We failed to enforce tribute on " .. army.destination.realm.name
+			return "We failed to enforce tribute on " .. army.destination.realm.name
 		end,
-        function (root, associated_data)
-            return "Whatever. We will succeed next time"
-        end,
-        function (root, associated_data)
-            return ""
-        end
-    )
+		function(root, associated_data)
+			return "Whatever. We will succeed next time"
+		end,
+		function(root, associated_data)
+			return ""
+		end
+	)
 
 
 	Event:new {
@@ -414,7 +415,8 @@ local function load()
 								raider.name ..
 								", sent warriors to raid us. We lost " ..
 								tostring(def_losses) ..
-								" warriors and our enemies lost " .. tostring(attack_losses) .. " and our province was looted.")
+								" warriors and our enemies lost " ..
+								tostring(attack_losses) .. " and our province was looted.")
 						end
 					else
 						success = false
@@ -423,7 +425,8 @@ local function load()
 								raider.name ..
 								", sent warriors to raid us. We lost " ..
 								tostring(def_losses) ..
-								" warriors and our enemies lost " .. tostring(attack_losses) .. ". We managed to fight off the aggresors.")
+								" warriors and our enemies lost " ..
+								tostring(attack_losses) .. ". We managed to fight off the aggresors.")
 						end
 					end
 				end
@@ -456,13 +459,15 @@ local function load()
 				end
 
 				---@type RaidResultSuccess
-				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin = origin }
+				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin =
+				origin }
 				WORLD:emit_action("covert-raid-success", raider,
 					success_data,
 					travel_time, true)
 				if WORLD:does_player_see_realm_news(realm) then
 					WORLD:emit_notification("An unknown adversary raided our province " ..
-						province.name .. " and stole " .. ut.to_fixed_point2(real_loot) .. MONEY_SYMBOL .. " worth of goods!")
+						province.name ..
+						" and stole " .. ut.to_fixed_point2(real_loot) .. MONEY_SYMBOL .. " worth of goods!")
 				end
 			else
 				if retreat then
@@ -472,7 +477,8 @@ local function load()
 						travel_time, true)
 				else
 					---@type RaidResultFail
-					local retreat_data = { army = army, target = target, raider = raider, losses = losses, origin = origin }
+					local retreat_data = { army = army, target = target, raider = raider, losses = losses, origin =
+					origin }
 
 					WORLD:emit_action("covert-raid-fail", raider,
 						retreat_data,
@@ -541,7 +547,8 @@ local function load()
 			-- pay quest rewards to warband leaders
 			for _, w in pairs(warbands) do
 				if w.leader then
-					economic_effects.add_pop_savings(w.leader, quest_reward / num_of_warbands, economic_effects.reasons.Quest)
+					economic_effects.add_pop_savings(w.leader, quest_reward / num_of_warbands,
+						economic_effects.reasons.Quest)
 				end
 			end
 
@@ -557,7 +564,8 @@ local function load()
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid in " .. target.name .. " succeeded. Warriors brought home " ..
 					ut.to_fixed_point2(total_loot) .. MONEY_SYMBOL .. " worth of loot. " ..
-					' Warband leaders were additionally rewarded with ' .. ut.to_fixed_point2(quest_reward) .. MONEY_SYMBOL .. '. '
+					' Warband leaders were additionally rewarded with ' ..
+					ut.to_fixed_point2(quest_reward) .. MONEY_SYMBOL .. '. '
 					.. tostring(losses) .. " warriors died.")
 			end
 		end,

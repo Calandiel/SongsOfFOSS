@@ -82,7 +82,7 @@ function AiPreferences.loyalty_price(character)
 	return AiPreferences.percieved_inflation(character) * (10 + popularity) * 2
 end
 
----@class AIDecisionFlags
+---@class (exact) AIDecisionFlags
 ---@field treason boolean?
 ---@field ambition boolean?
 ---@field help boolean?
@@ -98,7 +98,7 @@ end
 ---@param flags AIDecisionFlags
 ---@return fun(): number
 function AiPreferences.generic_event_option_untargeted(character, income, flags)
-	return function ()
+	return function()
 		---@type Character
 		character = character
 
@@ -159,7 +159,6 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 	end
 end
 
-
 ---generates callback which calculates ai preference on demand
 ---@param character Character
 ---@param associated_data Character
@@ -167,7 +166,7 @@ end
 ---@param flags AIDecisionFlags
 ---@return fun(): number
 function AiPreferences.generic_event_option(character, associated_data, income, flags)
-	return function ()
+	return function()
 		---@type Character
 		character = character
 

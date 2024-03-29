@@ -1,4 +1,4 @@
----@class Bedrock
+---@class (exact) Bedrock
 ---@field name string
 ---@field r number
 ---@field g number

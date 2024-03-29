@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 
----@class Technology
+---@class (exact) Technology
+---@field __index Technology
 ---@field name string
 ---@field icon string
 ---@field description string

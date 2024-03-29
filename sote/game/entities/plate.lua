@@ -1,11 +1,10 @@
----@class Plate
----@field new fun(self:Plate):Plate
+---@class (exact) Plate
+---@field __index Plate
 ---@field tiles table<Tile, Tile> Table containing tile references
 ---@field plate_id number ID of this plate
 ---@field r number
 ---@field g number
 ---@field b number
----@field add_tile fun(self:Plate, tile:Tile)
 ---@field speed number
 ---@field direction number
 ---@field done_expanding boolean

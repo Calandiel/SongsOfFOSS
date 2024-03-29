@@ -1,4 +1,4 @@
----@class Biome
+---@class (exact) Biome
 ---@field name string
 ---@field r number
 ---@field g number

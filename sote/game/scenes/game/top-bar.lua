@@ -25,8 +25,7 @@ function tb.mask(gam)
 	end
 end
 
-
----@class TreasuryDisplayEffect
+---@class (exact) TreasuryDisplayEffect
 ---@field reason EconomicReason
 ---@field amount number
 ---@field timer number
@@ -70,7 +69,8 @@ function DRAW_EFFECTS(parent_rect)
 			end
 
 			new_rect.x = parent_rect.x
-			new_rect.y = parent_rect.y + 2 * uit.BASE_HEIGHT * (1 + 4 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
+			new_rect.y = parent_rect.y +
+			2 * uit.BASE_HEIGHT * (1 + 4 * (MAX_TREASURY_TIMER - effect.timer) / MAX_TREASURY_TIMER)
 			ui.right_text(uit.to_fixed_point2(effect.amount) .. MONEY_SYMBOL, new_rect)
 
 			new_rect.x = parent_rect.x - parent_rect.width
@@ -118,7 +118,7 @@ function tb.draw(gam)
 				gam.inspector = "character"
 			end
 		end
-		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
+		require "game.scenes.game.widgets.portrait" (portrait_rect, WORLD.player_character)
 		ui.tooltip("Click the portrait to open character screen", portrait_rect)
 
 
@@ -178,7 +178,7 @@ function tb.draw(gam)
 			:horizontal()
 			:build()
 
-		require "game.scenes.game.widgets.realm-name"(
+		require "game.scenes.game.widgets.realm-name" (
 			gam,
 			character.province.realm,
 			layout:next(
@@ -214,13 +214,15 @@ function tb.draw(gam)
 		-- Technology
 		local amount = character.province.realm:get_education_efficiency()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
-		local trs = "Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
+		local trs =
+		"Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
 		uit.generic_number_field("erlenmeyer.png", amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 
 		-- Happiness
 		local amount = character.province.realm:get_average_mood()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
-		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
+		local trs =
+		"Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
 		uit.balance_entry_icon("duality-mask.png", amount, tr, trs)
 
 		-- Quality of life
@@ -237,14 +239,15 @@ function tb.draw(gam)
 
 		-- Army size
 		local amount = character.province.realm:get_realm_military()
-		local target = character.province.realm:get_realm_military_target() + character.province.realm:get_realm_active_army_size()
+		local target = character.province.realm:get_realm_military_target() +
+		character.province.realm:get_realm_active_army_size()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Size of our realms armies."
 		uit.data_entry_icon("barbute.png", tostring(math.floor(amount)) .. " / " .. tostring(math.floor(target)), tr, trs)
 
 
 		-- ALERTS
-		---@class Alert
+		---@class (exact) Alert
 		---@field icon string
 		---@field tooltip string
 
@@ -254,7 +257,8 @@ function tb.draw(gam)
 		if character.province:get_unemployment() > 5 then
 			table.insert(alerts, {
 				["icon"] = "miner.png",
-				["tooltip"] = "Unemployment is high. Consider construction of new buildings or investment into local economy.",
+				["tooltip"] =
+				"Unemployment is high. Consider construction of new buildings or investment into local economy.",
 			})
 		end
 
@@ -269,14 +273,16 @@ function tb.draw(gam)
 			if character.province:get_infrastructure_efficiency() < 0.9 then
 				table.insert(alerts, {
 					["icon"] = "horizon-road.png",
-					["tooltip"] = "Infrastructure efficiency is low. It might be a temporary effect or a sign of a low infrastructure budget.",
+					["tooltip"] =
+					"Infrastructure efficiency is low. It might be a temporary effect or a sign of a low infrastructure budget.",
 				})
 			end
 
 			if character.realm:get_education_efficiency() < 0.9 then
 				table.insert(alerts, {
 					["icon"] = "erlenmeyer.png",
-					["tooltip"] = "Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
+					["tooltip"] =
+					"Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
 				})
 			end
 		end

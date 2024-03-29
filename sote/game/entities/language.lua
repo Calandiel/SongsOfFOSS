@@ -17,22 +17,13 @@ local endings_realm = {
 	'gard', 'gard', 'stan', ''
 }
 
----@class Language
+---@class (exact) Language
+---@field __index Language
 ---@field syllables table<number, string>
 ---@field consonants table<number, string>
 ---@field vowels table<number, string>
 ---@field ending_province string
 ---@field ending_realm string
----@field new fun(self:Language):Language
----@field random_vowel fun(self:Language):string
----@field random_consonant fun(self:Language):string
----@field random_syllable fun(self:Language):string
----@field random_word fun(self:Language, word_length:number):string
----@field get_random_culture_name fun(self:Language):string
----@field get_random_faith_name fun(self:Language):string
----@field get_random_realm_name fun(self:Language):string
----@field get_random_province_name fun(self:Language):string
----@field get_random_name fun(self:Language):string
 
 ---@class Language
 lang.Language = {}
@@ -159,7 +150,7 @@ end
 
 function lang.Language:get_random_province_name()
 	local ll = love.math.random(3)
-	local n = self:random_word(ll)	
+	local n = self:random_word(ll)
 	return n .. self.ending_province
 end
 

@@ -1,15 +1,14 @@
 local Event = require "game.raws.events"
 local economic_effects = require "game.raws.effects.economic"
 
----@class TributeCollection
+---@class (exact) TributeCollection
 ---@field origin Realm
 ---@field target Realm
 ---@field travel_time number
 ---@field tribute number
 ---@field trade_goods_tribute table<TradeGoodReference, number?>
 
-return function ()
-
+return function()
 	Event:new {
 		name = "tribute-collection-1",
 		automatic = false,

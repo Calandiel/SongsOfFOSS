@@ -146,11 +146,11 @@ local function load()
 
 	-- negotiation rough blueprint
 
-	---@class NegotiationTradeData
+	---@class (exact) NegotiationTradeData
 	---@field goods_transfer_from_initiator_to_target table<TradeGoodReference, number?>
 	---@field wealth_transfer_from_initiator_to_target number
 
-	---@class NegotiationRealmToRealm
+	---@class (exact) NegotiationRealmToRealm
 	---@field root Realm
 	---@field target Realm
 	---@field subjugate boolean
@@ -158,15 +158,15 @@ local function load()
 	---@field demand_freedom boolean
 	---@field trade NegotiationTradeData
 
-	---@class NegotiationCharacterToRealm
+	---@class (exact) NegotiationCharacterToRealm
 	---@field target Realm
 	---@field trade_permission boolean
 	---@field building_permission boolean
 
-	---@class NegotiationCharacterToCharacter
+	---@class (exact) NegotiationCharacterToCharacter
 	---@field trade NegotiationTradeData
 
-	---@class NegotiationData
+	---@class (exact) NegotiationData
 	---@field initiator Character
 	---@field target Character
 	---@field negotiations_terms_realms NegotiationRealmToRealm[]
@@ -176,7 +176,7 @@ local function load()
 	---@field negotiations_terms_characters NegotiationCharacterToCharacter
 	---@field days_of_travel number
 
-	Decision.CharacterCharacter:new_from_trigger_lists (
+	Decision.CharacterCharacter:new_from_trigger_lists(
 		'start-negotiations',
 		"Start negotiations",
 		function(root, primary_target)
@@ -225,7 +225,7 @@ local function load()
 	)
 
 
-	Decision.CharacterProvince:new_from_trigger_lists (
+	Decision.CharacterProvince:new_from_trigger_lists(
 		'start-negotiations-province',
 		"Start negotiations",
 		function(root, primary_target)
@@ -281,7 +281,7 @@ local function load()
 	Decision.CharacterProvince:new {
 		name = 'migrate-realm',
 		ui_name = "Migrate to targeted province",
-		tooltip = function (root, primary_target)
+		tooltip = function(root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
 			end
@@ -303,7 +303,7 @@ local function load()
 					.. "."
 			end
 		end,
-		path = function (root, primary_target)
+		path = function(root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
 				primary_target.realm.capitol,
@@ -314,7 +314,7 @@ local function load()
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
-		base_probability = 0.9 , -- Almost every month
+		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return false
@@ -386,7 +386,7 @@ local function load()
 	Decision.CharacterProvince:new {
 		name = 'migrate-realm-invasion',
 		ui_name = "Invade targeted province",
-		tooltip = function (root, primary_target)
+		tooltip = function(root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
 			end
@@ -402,7 +402,7 @@ local function load()
 				.. primary_target.realm.name
 				.. ". Their tribe will be merged into our if we succeed."
 		end,
-		path = function (root, primary_target)
+		path = function(root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
 				primary_target.realm.capitol,
@@ -413,7 +413,7 @@ local function load()
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
-		base_probability = 0.9 , -- Almost every month
+		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return false
@@ -464,7 +464,7 @@ local function load()
 	Decision.CharacterProvince:new {
 		name = 'colonize-province',
 		ui_name = "Colonize targeted province",
-		tooltip = function (root, primary_target)
+		tooltip = function(root, primary_target)
 			if root.busy then
 				return "You are too busy to consider it."
 			end
@@ -485,7 +485,7 @@ local function load()
 				.. primary_target.name
 				.. ". Our colonists will organise a new tribe which will pay tribute to us."
 		end,
-		path = function (root, primary_target)
+		path = function(root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
 				primary_target.realm.capitol,
@@ -496,7 +496,7 @@ local function load()
 		sorting = 1,
 		primary_target = "province",
 		secondary_target = 'none',
-		base_probability = 0.9 , -- Almost every month
+		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
 			if not ot.decides_foreign_policy(root, root.realm) then
 				return false

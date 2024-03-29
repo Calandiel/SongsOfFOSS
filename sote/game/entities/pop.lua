@@ -1,5 +1,5 @@
-
----@class POP
+---@class (exact) POP
+---@field __index POP
 ---@field race Race
 ---@field faith Faith
 ---@field culture Culture
@@ -30,7 +30,6 @@
 ---@field busy boolean
 ---@field job Job?
 ---@field dead boolean
----@field get_age_multiplier fun(self:POP):number
 ---@field province Province Points to current position of pop/character.
 ---@field home_province Province Points to home of pop/character.
 ---@field realm Realm? Represents the home realm of the character
@@ -74,33 +73,33 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 		location:add_guest_pop(r)
 	end
 
-	r.busy = false
-	r.owned_buildings = {}
-	r.inventory = {}
-	r.price_memory = {}
-	r.children = {}
-	r.successor_of = {}
-	r.current_negotiations = {}
-	r.need_satisfaction = {}
+	r.busy                     = false
+	r.owned_buildings          = {}
+	r.inventory                = {}
+	r.price_memory             = {}
+	r.children                 = {}
+	r.successor_of             = {}
+	r.current_negotiations     = {}
+	r.need_satisfaction        = {}
 
-	r.has_trade_permits_in = {}
-	r.has_building_permits_in = {}
+	r.has_trade_permits_in     = {}
+	r.has_building_permits_in  = {}
 
 	r.basic_needs_satisfaction = 0
-	r.life_needs_satisfaction = 0
+	r.life_needs_satisfaction  = 0
 
-	r.savings = 0
-	r.popularity = {}
-	r.loyalty = nil
-	r.loyal	 = {}
-	r.traits = {}
+	r.savings                  = 0
+	r.popularity               = {}
+	r.loyalty                  = nil
+	r.loyal                    = {}
+	r.traits                   = {}
 
-	r.leader_of = {}
+	r.leader_of                = {}
 
-	r.dead = false
-	r.former_pop = false
+	r.dead                     = false
+	r.former_pop               = false
 
-	r.dna = {}
+	r.dna                      = {}
 	for i = 1, 20 do
 		table.insert(r.dna, love.math.random())
 	end

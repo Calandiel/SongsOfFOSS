@@ -1,13 +1,13 @@
 ---@alias TradeGoodReference string
 
----@class TradeGood
+---@class (exact) TradeGood
+---@field __index TradeGood
 ---@field name TradeGoodReference
 ---@field icon string
 ---@field description string
 ---@field r number
 ---@field g number
 ---@field b number
----@field new fun(self:TradeGood, o:TradeGood):TradeGood
 ---@field category TradeGoodCategory
 ---@field base_price number
 ---@field use_cases table<TradeGoodUseCaseReference, number> Maps use cases to their weights

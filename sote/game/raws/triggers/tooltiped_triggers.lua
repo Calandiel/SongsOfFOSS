@@ -11,19 +11,19 @@ Trigger.Targeted = {}
 CHECKBOX_POSITIVE = " v "
 CHECKBOX_NEGATIVE = " x "
 
----@class Trigger
+---@class (exact) Trigger
 ---@field tooltip_on_condition_failure fun(root: Character, primary_target:any): string[]
 ---@field condition fun(root: Character, primary_target:any): boolean
 
----@class Pretrigger : Trigger
+---@class (exact) Pretrigger : Trigger
 ---@field tooltip_on_condition_failure fun(root: Character, primary_target:any): string[]
 ---@field condition fun(root: Character): boolean
 
----@class TriggerCharacter : Trigger
+---@class (exact) TriggerCharacter : Trigger
 ---@field tooltip_on_condition_failure fun(root: Character, primary_target:Character): string[]
 ---@field condition fun(root: Character, primary_target:Character): boolean
 
----@class TriggerProvince : Trigger
+---@class (exact) TriggerProvince : Trigger
 ---@field tooltip_on_condition_failure fun(root: Character, primary_target:Province): string[]
 ---@field condition fun(root: Character, primary_target:Province): boolean
 

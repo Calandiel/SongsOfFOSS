@@ -14,7 +14,8 @@ GROUP_TO_BUILDING_TYPES = {
 	[BUILDING_GROUP.WORKSHOP] = {}
 }
 
----@class BuildingType
+---@class (exact) BuildingType
+---@field __index BuildingType
 ---@field name string
 ---@field icon string
 ---@field description string
@@ -33,8 +34,6 @@ GROUP_TO_BUILDING_TYPES = {
 ---@field government boolean only the government can build this building!
 ---@field needed_infrastructure number
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
----@field new fun(self:BuildingType, o:BuildingType):BuildingType
----@field get_tooltip fun(self:BuildingType):string
 
 ---@class BuildingType
 BuildingType = {}
