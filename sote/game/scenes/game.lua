@@ -176,6 +176,7 @@ function gam.init()
 	gam.ticks_without_map_update = 0
 
 	gam.speed = 1
+	gam.turbo = false
 
 	gam.tile_province_image_data = nil
 	gam.tile_province_texture = nil
@@ -275,11 +276,20 @@ function gam.update(dt)
 			-- the game is unpaused, call tick on world!
 			--print("-- tick start --")
 			local start = love.timer.getTime()
-			for _ = 1, 4 ^ gam.speed do
-				WORLD:tick()
-				gam.ticks_without_map_update = gam.ticks_without_map_update + 1
-				if love.timer.getTime() - start > 1 / 15 then
-					break
+			if gam.turbo then
+				while true do
+					WORLD:tick()
+					if love.timer.getTime() - start > 1 / 10 then
+						break
+					end
+				end
+			else
+				for _ = 1, 4 ^ gam.speed do
+					WORLD:tick()
+					gam.ticks_without_map_update = gam.ticks_without_map_update + 1
+					if love.timer.getTime() - start > 1 / 60 then
+						break
+					end
 				end
 			end
 			--print("-- tick end --")
