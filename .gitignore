@@ -1,5 +1,9 @@
 .vscode
 sote/.vscode
+.idea
 *.zip
 
 token.txt
+seed.txt
+sote/seed.txt
+sote/logs/

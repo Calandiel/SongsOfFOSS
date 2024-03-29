@@ -1,3 +1,8 @@
+if arg and arg[#arg] == "-debug" then
+  require("mobdebug").start()
+  require("mobdebug").coro()
+end
+
 print("Initial random number:")
 print(love.math.random(100))
 local tab = require "engine.table"

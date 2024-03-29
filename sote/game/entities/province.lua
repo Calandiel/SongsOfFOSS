@@ -268,7 +268,7 @@ end
 function prov.Province:set_home(pop)
 	-- print('SET HOME', pop.name)
 
-	self:set_home_pop_nil_wrapper(pop)
+	self.home_to[pop] = pop
 	pop.home_province = self
 	pop.realm = self.realm
 end

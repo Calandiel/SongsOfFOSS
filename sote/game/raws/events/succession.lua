@@ -3,11 +3,14 @@ local E_ut = require "game.raws.events._utils"
 
 local ut = require "game.ui-utils"
 
+local tabb = require "engine.table"
+
 local pe = require "game.raws.effects.political"
 local pv = require "game.raws.values.political"
 local ee = require "game.raws.effects.economic"
 local me = require "game.raws.effects.military"
 local ie = require "game.raws.effects.interpersonal"
+local di = require "game.raws.effects.diplomacy"
 
 local offices_triggers = require "game.raws.triggers.offices"
 
@@ -38,17 +41,18 @@ local function load()
                         else
                             ---@type Character?
                             local final_successor = nil
+                            -- try to find a local noble
                             for _, pretender in pairs(capitol.characters) do
-                                if
-                                    final_successor == nil
-                                    and pretender ~= character
-                                then
-                                    final_successor = pretender
-                                elseif
-                                    pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
-                                    and pretender ~= character
-                                then
-                                    final_successor = pretender
+                                if pretender ~= character and pretender.home_province == realm.capitol then
+                                    if
+                                        final_successor == nil
+                                    then
+                                        final_successor = pretender
+                                    elseif
+                                        pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                                    then
+                                        final_successor = pretender
+                                    end
                                 end
                             end
 
@@ -59,36 +63,95 @@ local function load()
                     if not successor then
                         ---@type Character?
                         local final_successor = nil
+                        -- attempt to find a realm noble outside capitol
                         for _, pretender in pairs(capitol.home_to) do
-                            if
-                                final_successor == nil
-                                and pretender:is_character()
-                                and pretender ~= character
-                            then
-                                final_successor = pretender
-                            elseif
-                                pretender:is_character()
-                                and pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
-                                and pretender ~= character
-                            then
-                                final_successor = pretender
+                            if pretender ~= character then
+                                if
+                                    final_successor == nil
+                                    and pretender:is_character()
+                                then
+                                    final_successor = pretender
+                                elseif
+                                    pretender:is_character()
+                                    and pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
+                                then
+                                    final_successor = pretender
+                                end
                             end
                         end
 
                         successor = final_successor
                     end
-
+                    -- failing to find any realm nobles
                     if not successor then
-                        successor = pe.grant_nobility_to_random_pop(capitol, pe.reasons.NOT_ENOUGH_NOBLES)
+                        -- attempt to get any local tribe pop
+                        successor = tabb.random_select_from_set(tabb.filter(capitol.home_to, function (a)
+                            return a.province and a.province == capitol and not a:is_character()
+                        end))
+                        if successor then
+                            pe.grant_nobility(successor, capitol, pe.reasons.NOT_ENOUGH_NOBLES)
+                        end
                     end
-
                     if successor then
                         pe.transfer_power(realm, successor, pe.reasons.SUCCESSION)
                         WORLD:emit_immediate_event("succession-leader-notification", successor, realm)
                     else
                         -- no pops left: destroy realm
-                        pe.dissolve_realm(realm)
+                        di.dissolve_realm_and_clear_diplomacy(realm)
                         realm.leader = nil
+                        -- at this point the original realm is extinquished and a new realm rises to fill the vacuum
+                        if tabb.size(capitol.all_pops) then
+                            -- make new realm for remaining pop
+                            local r = require "game.entities.realm".Realm:new()
+                            r.capitol = capitol
+                            r:add_province(capitol)
+                            r:explore(capitol)
+                            --attempt to find random local character to fill vaccuum
+                            for _, pretender in pairs(capitol.characters) do
+                                if pretender ~= character and pretender.home_province == realm.capitol then
+                                    if
+                                        successor == nil
+                                    then
+                                        successor = pretender
+                                    elseif
+                                        pv.popularity(pretender, realm) > pv.popularity(successor, realm)
+                                    then
+                                        successor = pretender
+                                    end
+                                end
+                            end
+                            --failing all else, grab random pop and make noble
+                            if not successor then
+                                successor = pe.grant_nobility_to_random_pop(capitol, pe.reasons.INITIAL_NOBLE)
+                            end
+                            -- use new leader to finish setting up the new realm
+                            if successor then
+                                pe.transfer_power(r, successor, pe.reasons.INITIAL_RULER)
+                                local culture = successor.culture
+                                r.primary_race = successor.race
+                                r.primary_culture = culture
+                                r.primary_faith = successor.faith
+                                -- Initialize realm colors
+                                r.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.4 - 0.2))))
+                                r.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.4 - 0.2))))
+                                r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.4 - 0.2))))
+                                r.name = culture.language:get_random_realm_name()
+                                capitol.name = culture.language:get_random_province_name()
+                                for _, neigh in pairs(capitol.neighbors) do
+                                    r:explore(neigh)
+                                end
+                                -- grab whatever similar pops you can and set their home to give the new realm pop
+                                for _, v in pairs(tabb.filter(capitol.all_pops, function (a)
+                                    return a.culture == successor.culture and a.faith == successor.faith and a.race == successor.race
+                                end)) do
+                                    capitol:set_home(v)
+                                end
+                            else
+                                -- if we can't manage to grab a successor from characters or all_pops
+                                -- cancel making a a new realm - shouldn't be possible! just in case
+                                pe.dissolve_realm(r)
+                            end
+                        end
                     end
                 end
 

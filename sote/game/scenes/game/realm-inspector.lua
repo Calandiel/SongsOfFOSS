@@ -175,8 +175,144 @@ function re.draw(gam)
 								economic_effects.reasons.Court
 							)
 						end
+						a.y = a.y + uit.BASE_HEIGHT
 					end
 					a.y = a.y + uit.BASE_HEIGHT
+
+					local inspect = nil
+					local function render_name(rect, k, v)
+						if uit.text_button(v.name, rect) then
+							inspect = "character"
+							return v
+						end
+					end
+					local function render_province(rect, k, v)
+						if uit.text_button(v.province.name, rect) then
+							inspect = "tile"
+							return v.province
+						end
+					end
+					local function pop_sex(pop)
+						local f = "m"
+						if pop.female then f = "f" end
+						return f
+					end
+					local noble_list = a:copy()
+					noble_list.width = ui_panel.width - ui_panel.x
+					noble_list.height = ui_panel.height - ui_panel.y
+					local response = require "game.scenes.game.widgets.list-widget"(
+						noble_list,
+						tabb.filter(realm.capitol.home_to,
+							function(a)
+								return a:is_character()
+							end),
+							{
+								{
+									header = ".",
+									render_closure = function(rect, k, v)
+										require "game.scenes.game.widgets.portrait"(rect, v)
+									end,
+									width = UI_STYLE.scrollable_list_item_height,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.race.name
+									end
+								},
+								{
+									header = "name",
+									render_closure = render_name,
+									width = UI_STYLE.scrollable_list_item_height * 4,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.name
+									end,
+									active = true
+								},
+								{
+									header = "race",
+									render_closure = function (rect, k, v)
+										ui.right_text(v.race.name, rect)
+									end,
+									width = UI_STYLE.scrollable_list_item_height * 4,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.race.name
+									end,
+									active = true
+								},
+								{
+									header = "faith",
+									render_closure = function (rect, k, v)
+										ui.right_text(v.faith.name, rect)
+									end,
+									width = UI_STYLE.scrollable_list_item_height * 4,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.faith.name
+									end,
+									active = true
+								},
+								{
+									header = "culture",
+									render_closure = function (rect, k, v)
+										ui.right_text(v.culture.name, rect)
+									end,
+									width = UI_STYLE.scrollable_list_item_height * 4,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.culture.name
+									end,
+									active = true
+								},
+								{
+									header = "age",
+									render_closure = function (rect, k, v)
+										ui.right_text(tostring(v.age), rect)
+									end,
+									width = UI_STYLE.scrollable_list_item_height * 2,
+									value = function(k, v)
+										return v.age
+									end
+								},
+								{
+									header = "sex",
+									render_closure = function (rect, k, v)
+										ui.centered_text(pop_sex(v), rect)
+									end,
+									width = UI_STYLE.scrollable_list_item_height * 1,
+									value = function(k, v)
+										return pop_sex(v)
+									end
+								},
+								{
+									header = "location",
+									render_closure = render_province,
+									width = UI_STYLE.scrollable_list_item_height * 4,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.province.name
+									end,
+									active = true
+								}
+							}
+					)()
+					if response then
+						if inspect == "character" then
+							gam.selected.character = response
+							gam.inspector = inspect
+						elseif inspect == "tile" then
+							gam.selected.province = response
+							gam.selected.tile = response.center
+							gam.clicked_tile_id = response.center.tile_id
+							gam.inspector = inspect
+						end
+					end
 				end
 			},
 			-- {

@@ -159,4 +159,19 @@ function tab.filter(items, filter)
 	return r
 end
 
+---Given a table, an accumulable of any type, and an accumulator function with parameter the accumulable type,
+---and the table's key and value types that return an accumulable type, apply the function on each key value pair
+---and return the accumulable.
+---@generic A, K, V
+---@param items table<K, V>
+---@param accumulable A
+---@param accumulator fun(a: A, k: K, v: V):A
+---@return table<K, V>
+function tab.accumulate(items, accumulable, accumulator)
+	for k,v in pairs(items) do
+		accumulator(accumulable, k, v)
+	end
+	return accumulable
+end
+
 return tab
