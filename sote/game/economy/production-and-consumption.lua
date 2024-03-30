@@ -339,14 +339,14 @@ function pro.run(province)
 
 		local total_bought = 0
 		local spendings = 0
-		
+
 		for good, weight in pairs(use.goods) do
-						local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
+			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
 			local goods_price = math.max(market_data[c_index].price, 0.0001)
 			local goods_available = market_data[c_index].available
 			local goods_available_weight = math.max(market_data[c_index].available / weight / available, 0)
 			local goods_feature_weight = math.max(market_data[c_index].feature / total_exp, 0)
-						local demanded_amount = demanded_use / weight * goods_feature_weight
+			local demanded_amount = demanded_use / weight * goods_feature_weight
 			local consumed_amount = math.min(goods_available, demanded_amount,
 				potential_amount / weight * goods_available_weight,
 				savings / goods_price)

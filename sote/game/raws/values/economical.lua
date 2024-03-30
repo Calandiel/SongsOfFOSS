@@ -146,6 +146,22 @@ function eco_values.get_local_price_of_use(province, use)
     return total_cost
 end
 
+---returns total amount of unit of use in local stockpile
+---@param province Province
+---@param use TradeGoodUseCaseReference
+---@return number total_amount
+function eco_values.get_local_amount_of_use(province, use)
+
+    local data = use_case(use)
+
+    local total_amount = 0
+    for trade_good, weight in pairs(data.goods) do
+        total_amount = total_amount + (province.local_storage[trade_good] or 0) * weight
+    end
+
+    return total_amount
+end
+
 ---calculates price estimation of unit of use given a price table
 ---@param province Province
 ---@param use TradeGoodUseCaseReference

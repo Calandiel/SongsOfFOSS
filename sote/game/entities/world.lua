@@ -553,7 +553,7 @@ function world.World:tick()
 				t = love.timer.getTime()
 			end
 		end
---[[
+
 		PROFILER:start_timer("decisions")
 
 		for _, settled_province in pairs(ta) do
@@ -565,7 +565,7 @@ function world.World:tick()
 		end
 
 		PROFILER:end_timer("decisions")
-]]
+
 	end
 
 	-- print('simulation update')

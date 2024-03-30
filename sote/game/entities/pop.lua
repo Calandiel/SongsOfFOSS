@@ -203,8 +203,8 @@ function rtab.POP:consume_use_case_from_inventory(use_case, amount)
 			local available = inventory * weight
 			local satisfied = amount * available / supply
 			local used = satisfied / weight
-			if satisfied + 0.01 > available
-				or used + 0.01 > inventory
+			if satisfied > available + 0.01
+				or used > inventory + 0.01
 			then
 				error("CONSUMED TOO MUCH: "
 					.. "\n satisfied = "

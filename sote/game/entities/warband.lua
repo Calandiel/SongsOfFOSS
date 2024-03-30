@@ -318,8 +318,11 @@ function warband:consume_supplies(days)
 	local daily_consumption = self:daily_supply_consumption()
 	local consumption = days * daily_consumption
 	local consumed = self.leader:consume_use_case_from_inventory('food', consumption)
-	if consumed > consumption then
-		error("CONSUMED TOO LITTLE: "
+
+	-- give some wiggle room for floats
+	if consumed > consumption + 0.01
+		or consumed < consumption - 0.01 then
+		error("CONSUMED WRONG AMOUNT: "
 			.. "\n consumed = "
 			.. tostring(consumed)
 			.. "\n consumption = "
