@@ -6,6 +6,7 @@ local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
 local economic_values = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
+local economic_triggers = require "game.raws.triggers.economy"
 local political_effects = require "game.raws.effects.political"
 local political_values = require "game.raws.values.political"
 
@@ -267,10 +268,12 @@ return function()
 					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
 					tooltip = "Buy supplies from locals",
 					viable = function ()
-						return character.savings > food_price
+						local result, _ = economic_triggers.can_buy(character, 'food', 1)
+						return result
 					end,
 					outcome = function ()
 						economic_effects.buy(character, 'food', 1)
+						WORLD:emit_immediate_event("exploration-progress", character, associated_data)
 					end,
 					ai_preference = function ()
 						local potential_days = character.leading_warband:days_of_travel()
