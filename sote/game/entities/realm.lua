@@ -628,12 +628,12 @@ function realm.Realm:get_total_population()
 	---@type number
 	local pop = 0
 
-	for _, army in pairs(self.armies) do
-		pop = pop + tabb.size(army:pops())
-	end
+	--for _, army in pairs(self.armies) do
+	--	pop = pop + tabb.size(army:pops())
+	--end
 	for _, prov in pairs(self.provinces) do
 		---@type number
-		pop = pop + tabb.size(prov.all_pops)
+		pop = pop + tabb.size(prov.home_to)
 	end
 
 	return pop

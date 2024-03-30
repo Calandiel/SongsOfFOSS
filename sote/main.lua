@@ -192,9 +192,9 @@ Possible command line arguments:
 		msaa = 2
 	})
 	if tab.contains(args, "--windowed") then
-		require "game.options".setFullscreen("false")
+		require "game.options".setFullscreen("normal")
 	else
-		if OPTIONS.fullscreen ~= "false" then
+		if OPTIONS.fullscreen ~= "normal" then
 			love.window.setFullscreen(true, OPTIONS.fullscreen)
 		else
 			love.window.setFullscreen(false)
@@ -248,11 +248,11 @@ function love.keypressed(key)
 		input_counter = input_counter + 1
 		print("the game is responsive: " .. tostring(input_counter))
 	elseif key == "f4" then
-		if OPTIONS.fullscreen == "false" then
+		if OPTIONS.fullscreen == "normal" then
 			require "game.options".updateFullscreen("exclusive")
 		else
-			OPTIONS.fullscreen = "false"
-			require "game.options".updateFullscreen("false")
+			OPTIONS.fullscreen = "normal"
+			require "game.options".updateFullscreen("normal")
 		end
 	end
 

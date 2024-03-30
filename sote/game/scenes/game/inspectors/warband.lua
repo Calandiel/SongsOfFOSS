@@ -287,7 +287,7 @@ function window.draw(gamescene)
 	local function draw_office_panel(gam, rect, office_title, office_action, character, middle_rect_space, bottom_rect_space)
 		ui.panel(rect)
 		rect:shrink(spacing)
-		ui.text(office_title .. ":  ", rect:subrect(ut.BASE_HEIGHT * 2, 0, rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "up"), "center", "center")
+		ui.text(office_title, rect:subrect(ut.BASE_HEIGHT * 2, 0, rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "up"), "center", "center")
 		local portrait_rect = rect:subrect(0, 0, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, "left", "up")
 		local realm_rect = rect:subrect(ut.BASE_HEIGHT * 2, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "center")
 		local button_rect = rect:subrect(ut.BASE_HEIGHT * 3, 0, ut.BASE_HEIGHT * 6, ut.BASE_HEIGHT, "left", "center")
@@ -462,7 +462,7 @@ function window.draw(gamescene)
 		local third_width = rect.width / 3
 		local fourth_width = half_width / 2
 
-		ui.text("Treasury:  ", rect:subrect(0, 0, rect.width, ut.BASE_HEIGHT, "center", "up"), "center", "up")
+		ui.text("Treasury", rect:subrect(0, 0, rect.width, ut.BASE_HEIGHT, "center", "up"), "center", "up")
 
 		---@param x number
 		local function gift_to_treasury_target(rect, x)
@@ -559,7 +559,7 @@ function window.draw(gamescene)
 
 		local rect_width = rect.width
 		local rect_height = rect.height
-		ui.text("Supplies:  ", rect:subrect(0, 0, rect_width, rect_height / 3, "center", "up"), "center", "up")
+		ui.text("Supplies", rect:subrect(0, 0, rect_width, rect_height / 3, "center", "up"), "center", "up")
 
 		local permission = false
 		if (player_character and player_character == warband.leader)
@@ -622,7 +622,7 @@ function window.draw(gamescene)
 	local function draw_location_panel(rect)
 		ui.panel(rect)
 		rect:shrink(spacing)
-		ui.text("Location:", rect:subrect(0, 0, rect.width, ut.BASE_HEIGHT, "right", "up"), "center", "up")
+		ui.text("Location", rect:subrect(0, 0, rect.width, ut.BASE_HEIGHT, "right", "up"), "center", "up")
 		local realm_icon_rect = rect:subrect(0, 0, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "center")
 		local realm_text_rect = rect:subrect(0, 0, rect.width - ut.BASE_HEIGHT, ut.BASE_HEIGHT, "right", "center")
 		local province_name_rect = rect:subrect(0, 0, rect.width, ut.BASE_HEIGHT, "right", "down")
@@ -1392,31 +1392,7 @@ function window.draw(gamescene)
 				},
 				{
 					header = "satisfac.",
-					---@param k POP
-					---@param v UnitType
-					render_closure = function (rect, k, v)
-						local needs_tooltip = ""
-						for need, values in pairs(k.need_satisfaction) do
-							local tooltip = ""
-							for case, value in pairs(values) do
-								if value.demanded > 0 then
-									tooltip = tooltip .. "\n  " .. case .. ": "
-										.. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
-										.. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
-								end
-							end
-							if tooltip ~= "" then
-								needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
-							end
-						end
-
-						ut.data_entry_percentage(
-							"",
-							k.basic_needs_satisfaction,
-							rect,
-							"Satisfaction of needs of this character. \n" .. needs_tooltip
-						)
-					end,
+					render_closure = ut.render_pop_satsifaction,
 					width = end_width - icon_width,
 					---@param k POP
 					---@param v UnitType

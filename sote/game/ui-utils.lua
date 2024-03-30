@@ -942,4 +942,33 @@ function ut.named_slider(slider_name, rect, current_value, min_value, max_value,
 	return ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, true, ASSETS.slider_images)
 end
 
+---Draw a generic percentage for a pop need sasifcation with tooltip
+---@param rect Rect
+---@param pop POP
+function ut.render_pop_satsifaction(rect, pop)
+	local needs_tooltip = ""
+	for need, values in pairs(pop.need_satisfaction) do
+		local tooltip = ""
+		for case, value in pairs(values) do
+			if value.demanded > 0 then
+				tooltip = tooltip .. "\n  " .. case .. ": "
+					.. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
+					.. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+			end
+		end
+		if tooltip ~= "" then
+			needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
+		end
+	end
+
+	ut.generic_number_field(
+		"inner-self.png",
+		pop.basic_needs_satisfaction,
+		rect,
+		"Satisfaction of needs of this character. \n" .. needs_tooltip,
+		ut.NUMBER_MODE.PERCENTAGE,
+		ut.NAME_MODE.ICON
+	)
+end
+
 return ut

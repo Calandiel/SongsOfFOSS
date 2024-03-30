@@ -122,7 +122,6 @@ function tb.draw(gam)
 		require "game.scenes.game.widgets.portrait"(portrait_rect, WORLD.player_character)
 		ui.tooltip("Click the portrait to open character screen", portrait_rect)
 
-
 		--- current character
 		local layout = ui.layout_builder()
 			:position(uit.BASE_HEIGHT * 2, uit.BASE_HEIGHT)
@@ -146,7 +145,6 @@ function tb.draw(gam)
 			rect,
 			"My personal savings")
 
-
 		local amount = character:available_use_case_from_inventory('food')
 		uit.sqrt_number_entry_icon(
 			"sliced-bread.png",
@@ -164,14 +162,15 @@ function tb.draw(gam)
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 			"Days my party can travel. Zero if I do not lead any party.")
 
-
-
 		uit.balance_entry_icon(
-			"duality-mask.png",
+			"check-mark.png",
 			pv.popularity(character, character.province.realm),
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 			"My popularity")
 
+		uit.render_pop_satsifaction(
+			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
+			character)
 
 		-- COA + name
 		local layout = ui.layout_builder()
@@ -196,10 +195,7 @@ function tb.draw(gam)
 			(require "game.scenes.game.inspector-treasury-ledger").current_tab = "Treasury"
 		end
 
-		uit.money_entry_icon(
-			character.province.realm.budget.treasury,
-			trt,
-			"Realm treasury")
+		uit.generic_number_field("bank.png", character.province.realm.budget.treasury, trt, "Realm treasury", uit.NUMBER_MODE.MONEY, uit.NAME_MODE.ICON)
 
 		HANDLE_EFFECTS()
 		DRAW_EFFECTS(trt)
@@ -222,7 +218,7 @@ function tb.draw(gam)
 		local amount = character.province.realm:get_average_mood()
 		local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 		local trs = "Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
-		uit.balance_entry_icon("duality-mask.png", amount, tr, trs)
+		uit.balance_entry_icon("musical-notes.png", amount, tr, trs)
 
 		-- Quality of life
 		local amount = character.province.realm:get_average_needs_satisfaction()
@@ -280,6 +276,41 @@ function tb.draw(gam)
 					["tooltip"] = "Education efficiency is low. It might be a temporary effect or a sign of a low education budget.",
 				})
 			end
+		end
+
+		if character.age > character.race.elder_age then
+			table.insert(alerts, {
+				["icon"] = "tombstone.png",
+				["tooltip"] = "You have reached elder age age will make a death roll each month. Keep your needs satisfaction up to reduce the chance of dieing from old age.",
+			})
+		end
+
+		local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
+			local ratio = v.consumed / v.demanded
+			if ratio < a then
+				return ratio
+			end
+			return a
+		end)
+		if character.age > character.race.elder_age then
+			table.insert(alerts, {
+				["icon"] = "sliced-bread.png",
+				["tooltip"] = "You have did consumed enough food last month. Unless you consume at least 20% of each food need, you will make a death roll every month.",
+			})
+		end
+
+		local min_water_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
+			local ratio = v.consumed / v.demanded
+			if ratio < a then
+				return ratio
+			end
+			return a
+		end)
+		if character.age > character.race.elder_age then
+			table.insert(alerts, {
+				["icon"] = "droplets.png",
+				["tooltip"] = "You have did consumed enough water last month. Unless you consume at least 20% of each water need, you will make a death roll every month.",
+			})
 		end
 
 		for _, alert in ipairs(alerts) do

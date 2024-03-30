@@ -571,6 +571,11 @@ function pro.run(province)
 
 		local total_expense = 0
 		local total_income = 0
+		local start_time = free_time
+		if WORLD.player_character and WORLD.player_character == pop_table then
+			total_income = forage(pop_view, pop_table, math.min(OPTIONS["needs-hunt"], free_time))
+			start_time = math.max(free_time - OPTIONS["needs-hunt"], 0)
+		end
 
 		-- work for children first
 		local dependants = tabb.filter(pop_table.children, function (a)
@@ -579,7 +584,7 @@ function pro.run(province)
 		local count = 2 * tabb.size(dependants)
 		local time_after_children = 0
 		if count > 1 then
-			local time_fraction = free_time / count
+			local time_fraction = start_time / count
 			local savings_fraction = savings / count
 			time_after_children = time_after_children + time_fraction
 			for _, child in pairs(dependants) do
@@ -1104,9 +1109,13 @@ function pro.run(province)
 			end
 
 			-- every pop spends some time or wealth on fullfilling their needs:
-			--PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, free_time_of_pop, math.max(0, pop.savings / 12))
-			--PROFILER:end_timer("production-satisfy-needs")
+			local savings_fraction = pop.savings / 12
+			if WORLD.player_character and WORLD.player_character == pop then
+				savings_fraction = OPTIONS['needs-savings'] * pop.savings
+			end
+			PROFILER:start_timer("production-satisfy-needs")
+			satisfy_needs(pop_view, pop, free_time_of_pop, math.max(0, savings_fraction))
+			PROFILER:end_timer("production-satisfy-needs")
 		end
 
 		::continue::

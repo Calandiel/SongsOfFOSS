@@ -171,32 +171,7 @@ return function(rect, base_unit, province)
             },
             {
                 header = "satisfac.",
-                render_closure = function (rect, k, v)
-                    ---@type POP
-                    v = v
-
-                    local needs_tooltip = ""
-                    for need, values in pairs(v.need_satisfaction) do
-                        local tooltip = ""
-                        for case, value in pairs(values) do
-                            if value.demanded > 0 then
-                                tooltip = tooltip .. "\n  " .. case .. ": "
-                                    .. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
-                                    .. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
-                            end
-                        end
-                        if tooltip ~= "" then
-                            needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
-                        end
-                    end
-
-                    ut.data_entry_percentage(
-                        "",
-                        v.basic_needs_satisfaction,
-                        rect,
-                        "Satisfaction of needs of this character. \n" .. needs_tooltip
-                    )
-                end,
+                render_closure = ut.render_pop_satsifaction,
                 width = 2,
                 value = function(k, v)
                     return v.basic_needs_satisfaction
