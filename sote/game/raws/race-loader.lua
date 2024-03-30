@@ -271,7 +271,7 @@ function ll.load()
 	}
 
 	Race:new {
-		name = 'Goblin',
+		name = 'goblin',
 		r = 0.1,
 		g = 0.7,
 		b = 0.1,

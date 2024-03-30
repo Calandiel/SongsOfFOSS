@@ -13,6 +13,8 @@ local custom_characters_list_widget = require "game.scenes.game.widgets.list-wid
 local character_decisions_widget = require "game.scenes.game.widgets.decision-selection-character"
 local character_name_widget = require "game.scenes.game.widgets.character-name"
 
+local string = require "engine.string"
+
 
 local window = {}
 local selected_decision = nil
@@ -127,8 +129,8 @@ function window.draw(game)
         sex = "female"
     end
 
-    ui.left_text(sex .. " " .. character.race.name, age_panel)
-    ui.right_text("age: " .. character.age, age_panel)
+    ui.left_text(string.title(sex) .. " " .. string.title(character.race.name), age_panel)
+    ui.right_text("Age: " .. character.age, age_panel)
 
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
 

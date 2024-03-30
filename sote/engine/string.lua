@@ -34,4 +34,10 @@ function string.trim(str, chars)
 	return str:match("^[" .. chars .. "]*(.-)[" .. chars .. "]*$")
 end
 
+---
+---@param str string
+function string.title(str)
+    return (str:gsub("^%l", str.upper))
+end
+
 return string
