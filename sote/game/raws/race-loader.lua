@@ -306,7 +306,7 @@ function ll.load()
 		max_age = 50,
 		minimum_comfortable_temperature = 5,
 		minimum_absolute_temperature = -10,
-		fecundity = 4,
+		fecundity = 2,
 		spotting = 1.5,
 		visibility = 0.5,
 		female_body_size = 0.5,
@@ -358,6 +358,94 @@ function ll.load()
 		},
 		male_infrastructure_needs = 0.25,
 		carrying_capacity_weight = 0.25,
+	}
+
+	Race:new {
+		name = 'verman',
+		r = 0.6,
+		g = 0.6,
+		b = 0.6,
+		icon = 'rat.png',
+		male_portrait = {
+			fallback = {
+				folder = "vermen",
+				layers = {"ear_behind.PNG", "base.PNG", "ear_front.PNG", "eye.PNG", "patterns.PNG", "cloth.PNG", "hat.PNG"},
+				layers_groups = {
+					ear = {"ear_behind.PNG", "ear_front.PNG"}
+				}
+			}
+		},
+		female_portrait = {
+			fallback = {
+				folder = "vermen",
+				layers = {"ear_behind.PNG", "base.PNG", "ear_front.PNG", "eye.PNG", "patterns.PNG", "cloth.PNG", "hat.PNG"},
+				layers_groups = {
+					ear = {"ear_behind.PNG", "ear_front.PNG"}
+				}
+			}
+		},
+		description = 'verman',
+		males_per_hundred_females = 110,
+		child_age = 1,
+		teen_age = 2,
+		adult_age = 4,
+		middle_age = 12,
+		elder_age = 21,
+		max_age = 25,
+		minimum_comfortable_temperature = 15,
+		minimum_absolute_temperature = -10,
+		fecundity = 4,
+		spotting = 2.0,
+		visibility = 0.05,
+		female_body_size = 0.2,
+		female_efficiency = {
+			[JOBTYPE.FARMER] = 0.2,
+			[JOBTYPE.ARTISAN] = 0.2,
+			[JOBTYPE.CLERK] = 0.2,
+			[JOBTYPE.LABOURER] = 0.2,
+			[JOBTYPE.WARRIOR] = 0.2,
+			[JOBTYPE.HAULING] = 0.2,
+			[JOBTYPE.FORAGER] = 0.5
+		},
+		female_needs = {
+			[NEED.WATER] = 0.2,
+			[NEED.FOOD] = 0.4,
+			-- [NEED.FRUIT] = 0.25,
+			-- [NEED.GRAIN] = 0.25,
+			-- [NEED.MEAT] = 0.25,
+			[NEED.CLOTHING] = 0.2,
+			[NEED.FURNITURE] = 0.2,
+			[NEED.TOOLS] = 0.05,
+			[NEED.HEALTHCARE] = 0.01,
+			[NEED.STORAGE] = 0.05,
+			[NEED.LUXURY] = 1
+		},
+		female_infrastructure_needs = 0.1,
+		male_body_size = 0.2,
+		male_efficiency = {
+			[JOBTYPE.FARMER] = 0.2,
+			[JOBTYPE.ARTISAN] = 0.2,
+			[JOBTYPE.CLERK] = 0.2,
+			[JOBTYPE.LABOURER] = 0.2,
+			[JOBTYPE.WARRIOR] = 0.2,
+			[JOBTYPE.HAULING] = 0.2,
+			[JOBTYPE.FORAGER] = 0.5
+		},
+		male_needs = {
+			[NEED.WATER] = 0.2,
+			[NEED.FOOD] = 0.4,
+			-- [NEED.FRUIT] = 0.25,
+			-- [NEED.GRAIN] = 0.25,
+			-- [NEED.MEAT] = 0.25,
+			[NEED.CLOTHING] = 0.2,
+			[NEED.FURNITURE] = 0.2,
+			[NEED.TOOLS] = 0.05,
+			[NEED.HEALTHCARE] = 0.01,
+			[NEED.STORAGE] = 0.05,
+			[NEED.LUXURY] = 1
+		},
+		male_infrastructure_needs = 0.1,
+		carrying_capacity_weight = 0.1,
 	}
 
 
