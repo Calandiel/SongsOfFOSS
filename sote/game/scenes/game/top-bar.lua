@@ -292,10 +292,10 @@ function tb.draw(gam)
 			end
 			return a
 		end)
-		if character.age > character.race.elder_age then
+		if min_food_satsfaction < 0.2 then
 			table.insert(alerts, {
 				["icon"] = "sliced-bread.png",
-				["tooltip"] = "You have did consumed enough food last month. Unless you consume at least 20% of each food need, you will make a death roll every month.",
+				["tooltip"] = "You have not consumed enough food last month. Unless you consume at least 20% of each food need, you will make a death roll every month.",
 			})
 		end
 
@@ -306,10 +306,10 @@ function tb.draw(gam)
 			end
 			return a
 		end)
-		if character.age > character.race.elder_age then
+		if min_water_satsfaction < 0.2 then
 			table.insert(alerts, {
 				["icon"] = "droplets.png",
-				["tooltip"] = "You have did consumed enough water last month. Unless you consume at least 20% of each water need, you will make a death roll every month.",
+				["tooltip"] = "You have not consumed enough water last month. Unless you consume at least 20% of each water need, you will make a death roll every month.",
 			})
 		end
 

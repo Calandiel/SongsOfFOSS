@@ -531,7 +531,7 @@ function window.draw(gamescene)
 			"receive-money.png",
 			upkeep,
 			rect:subrect(0, 0, third_width, rect_height, "center", "down"),
-			"The warband at target size is predicted to to costs " .. ut.to_fixed_point2(-upkeep) .. MONEY_SYMBOL .. " each month.",
+			"The warband at target size is predicted to costs " .. ut.to_fixed_point2(-upkeep) .. MONEY_SYMBOL .. " each month.",
 			ut.NUMBER_MODE.BALANCE,
 			ut.NAME_MODE.ICON,
 			true,

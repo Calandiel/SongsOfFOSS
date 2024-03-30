@@ -234,16 +234,17 @@ function pro.run(province)
 		local foraging_efficiency = math.min(1.15, (province.foragers_limit / math.max(1, foragers_count)))
 		return foraging_efficiency * foraging_efficiency
 	end
-
+	-- builds up to old foragers count
 	local function get_foraging_production(pop_view, pop_table, time)
+		local effective_time = time * pop_view[zero].foraging_efficiency
 		if foragers_count < province.foragers then
-			foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
-			return last_foraaging_efficiency
+			foragers_count = foragers_count + effective_time -- Record a new forager!
+			return effective_time * last_foraaging_efficiency
 		end
 		local initial = foraging_efficiency()
-		foragers_count = foragers_count + time * pop_view[zero].foraging_efficiency -- Record a new forager!
+		foragers_count = foragers_count + effective_time -- Record a new forager!
 		local final = foraging_efficiency()
-		return pop_view[zero].foraging_efficiency * time * (initial + final) * 0.5
+		return effective_time * (initial + final) * 0.5
 	end
 		
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
@@ -269,8 +270,8 @@ function pro.run(province)
 	---@param pop_table POP
 	---@param time number ratio of daily active time pop can spend on foraging
 	local function forage_warband(pop_view, pop_table, time)
-		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
-		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.25 * time
+		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.25
+		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.1 * time
 		local income = record_production(berries_index, timber_produced)
 		local warband = pop_table.unit_of_warband
 		if warband and warband.leader then
@@ -290,7 +291,7 @@ function pro.run(province)
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return number income
 	local function forage(pop_view, pop_table, time)
-		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
+		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.25
 		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.1 * timber_production * time
 		local income = 0
 		if pop_table:is_character() then -- hunt for meat and hide
@@ -418,12 +419,11 @@ function pro.run(province)
 	---@param free_time number
 	---@param savings number
 	---@param target number
-	---@return number free_time_left
+	---@return number free_time_used
 	---@return number income
 	---@return number expenses
 	local function satisfy_need(pop_view, pop_table, need_index, need, free_time, savings, target)
 		local income, expenses, total_need_time, total_need_cost = 0, 0, 0, 0
-
 
 		-- start with calculation of distribution over goods:
 		-- "distribution" "density" is precalculated, we only need to find a normalizing coef.
@@ -559,7 +559,7 @@ function pro.run(province)
 				.. tostring(savings)
 			)
 		end
-		return free_time - total_time_used, income, expenses
+		return total_time_used, income, expenses
 	end
 
 	---comment
@@ -568,49 +568,51 @@ function pro.run(province)
 	---@param free_time number
 	---@param savings number
 	local function satisfy_needs(pop_view, pop_table, free_time, savings)
-
 		local total_expense = 0
 		local total_income = 0
-		local start_time = free_time
+		local start_time = math.max(0, free_time)
 		if WORLD.player_character and WORLD.player_character == pop_table then
-			total_income = forage(pop_view, pop_table, math.min(OPTIONS["needs-hunt"], free_time))
-			start_time = math.max(free_time - OPTIONS["needs-hunt"], 0)
+			local hunt_time = math.min(OPTIONS["needs-hunt"], free_time)
+			total_income = forage(pop_view, pop_table, hunt_time)
+			start_time = free_time - hunt_time
 		end
 
 		-- work for children first
 		local dependants = tabb.filter(pop_table.children, function (a)
 			return a. age < a.race.teen_age
 		end)
-		local count = 2 * tabb.size(dependants)
-		local time_after_children = 0
-		if count > 1 then
-			local time_fraction = start_time / count
-			local savings_fraction = savings / count
-			time_after_children = time_after_children + time_fraction
+		local dependent_count = 2 * tabb.size(dependants)
+		local time_after_children = start_time
+
+		if dependent_count > 1 then
+			local time_fraction = start_time / dependent_count
+			local savings_fraction = savings / dependent_count
 			for _, child in pairs(dependants) do
-				local time_after_need = time_fraction
-				local savings_after_need = savings_fraction
 				for index, need in pairs(NEEDS) do
 					if need.life_need then
-						local free_time_after_need, income, expense = satisfy_need(
-							pop_view, child, index, need, time_after_need, savings_after_need, 0.5)
+						local free_time_for_need, income, expense = satisfy_need(
+							pop_view, child, index, need,
+							time_fraction / life_need_count,
+							savings_fraction / life_need_count, 0.5)
 
-						if time_after_need > time_fraction + 0.01
-							or savings_after_need + income + 0.01 < expense
+						if free_time_for_need > time_fraction / life_need_count + 0.01
+							or savings_fraction / life_need_count + income + 0.01 < expense
 						then
 							error("INVALID CHILD SATISFY_NEED"
-								.. "\n time_after_need = "
-								.. tostring(time_after_need)
+								.. "\n free_time_for_need = "
+								.. tostring(free_time_for_need)
 								.. "\n time_fraction = "
 								.. tostring(time_fraction)
 								.. "\n free_time = "
 								.. tostring(free_time)
-								.. "\n count = "
-								.. tostring(count)
+								.. "\n life_need_count = "
+								.. tostring(life_need_count)
+								.. "\n dependent_count = "
+								.. tostring(dependent_count)
 								.. "\n savings = "
 								.. tostring(savings)
-								.. "\n savings_after_need = "
-								.. tostring(savings_after_need)
+								.. "\n savings_fraction = "
+								.. tostring(savings_fraction)
 								.. "\n income = "
 								.. tostring(income)
 								.. "\n expense = "
@@ -620,30 +622,22 @@ function pro.run(province)
 
 						total_income = total_income + income
 						total_expense = total_expense + expense
-
-						time_after_need = free_time_after_need
-						savings_after_need = savings_after_need + income - expense
-
+						time_after_children = time_after_children - free_time_for_need
 					end
 				end
-				time_after_children = time_after_children + time_after_need
 
-				if time_after_children > free_time + 0.01
+				if time_after_children < - 0.01
 					or savings + total_income + 0.01 < total_expense
 				then
 					error("INVALID CHILD SATISFY_NEEDS"
-						.. "\n time_after_need = "
-						.. tostring(time_after_need)
 						.. "\n time_fraction = "
 						.. tostring(time_fraction)
 						.. "\n free_time = "
 						.. tostring(free_time)
 						.. "\n count = "
-						.. tostring(count)
+						.. tostring(dependent_count)
 						.. "\n savings = "
 						.. tostring(savings)
-						.. "\n savings_after_need = "
-						.. tostring(savings_after_need)
 						.. "\n total_income = "
 						.. tostring(total_income)
 						.. "\n total_expense = "
@@ -652,31 +646,15 @@ function pro.run(province)
 				end
 			end
 		else
-			time_after_children = time_after_children + free_time
+			time_after_children = math.max(0, start_time)
 		end
 
-		local savings_after_children = savings + total_income - total_expense
-		local time_after_life = 0
-		
-		-- buying life needs
-		for index, need in pairs(NEEDS) do
-			if need.life_need then
-				local free_time_after_need, income, expense = satisfy_need(
-					pop_view, pop_table, index, need, time_after_children / life_need_count, savings_after_children / life_need_count, 1)
-
-				total_income = total_income + income
-				total_expense = total_expense + expense
-
-				time_after_life = time_after_life + free_time_after_need
-			end
-		end
-
-		if time_after_life > free_time + 0.01
+		if time_after_children < - 0.01
 			or savings + total_income + 0.01 < total_expense
 		then
 			error("INVALID LIFE SATISFY_NEEDS"
 				.. "\n time_after_life = "
-				.. tostring(time_after_life)
+				.. tostring(time_after_children)
 				.. "\n free_time = "
 				.. tostring(free_time)
 				.. "\n savings = "
@@ -688,27 +666,70 @@ function pro.run(province)
 			)
 		end
 
-		local fraction = 1 + total_need_count
-		local time_after_basic = time_after_life / fraction
-		local savings_after_life = savings + total_income - total_expense
+		local savings_after_children = savings + total_income - total_expense
+		local time_after_life = math.max(0, time_after_children)
 
-		-- buying other needs
+		local life_time_fraction = time_after_life / life_need_count
+		local savings_fraction = savings_after_children / life_need_count
+
+		-- buying life needs
 		for index, need in pairs(NEEDS) do
-				local free_time_after_need, income, expense = satisfy_need(
-					pop_view, pop_table, index, need, time_after_life / fraction, savings_after_life / fraction, 1)
+			if need.life_need then
+				local free_time_for_need, income, expense = satisfy_need(
+					pop_view, pop_table, index, need, life_time_fraction, savings_fraction, 0.75)
 
 				total_income = total_income + income
 				total_expense = total_expense + expense
 
-				time_after_basic = time_after_basic + free_time_after_need
+				time_after_life = time_after_life - free_time_for_need
+			end
 		end
 
-		if time_after_basic > free_time + 0.01
+		if time_after_life < - 0.01
+			or savings + total_income + 0.01 < total_expense
+		then
+			error("INVALID LIFE SATISFY_NEEDS"
+				.. "\n time_after_life = "
+				.. tostring(time_after_life)
+				.. "\n time_after_children = "
+				.. tostring(time_after_children)
+				.. "\n free_time = "
+				.. tostring(free_time)
+				.. "\n savings = "
+				.. tostring(savings)
+				.. "\n total_income = "
+				.. tostring(total_income)
+				.. "\n total_expense = "
+				.. tostring(total_expense)
+			)
+		end
+
+		local savings_after_life = savings + total_income - total_expense
+		local fraction = 1 + total_need_count
+		local time_after_basic = math.max(0, time_after_life)
+
+		local basic_time_fraction = time_after_life / fraction
+		local basic_savings_fraction = savings_after_life / fraction
+
+		-- buying other needs
+		for index, need in pairs(NEEDS) do
+				local free_time_for_need, income, expense = satisfy_need(
+					pop_view, pop_table, index, need, basic_time_fraction, basic_savings_fraction, 1)
+
+				total_income = total_income + income
+				total_expense = total_expense + expense
+
+				time_after_basic = time_after_basic - free_time_for_need
+		end
+
+		if time_after_basic < - 0.01
 			or savings + total_income + 0.01 < total_expense
 		then
 			error("INVALID BASIC SATISFY_NEEDS"
 				.. "\n time_after_basic = "
 				.. tostring(time_after_basic)
+				.. "\n time_after_life = "
+				.. tostring(time_after_life)
 				.. "\n free_time = "
 				.. tostring(free_time)
 				.. "\n savings = "
@@ -740,6 +761,10 @@ function pro.run(province)
 				.. tostring(total_income)
 				.. "\n total_expense = "
 				.. tostring(total_expense)
+				.. "\n time_after_basic = "
+				.. tostring(time_after_basic)
+				.. "\n free_time = "
+				.. tostring(free_time)
 			)
 		end
 
@@ -831,7 +856,7 @@ function pro.run(province)
 		if pop.female then
 			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
 		end
-		pop_view[zero].foraging_efficiency = pop.race.carrying_capacity_weight / foraging_multiplier
+		pop_view[zero].foraging_efficiency = foraging_multiplier
 		pop_view[zero].age_multiplier = pop:get_age_multiplier()
 
 		local pop_needs = pop.race.male_needs

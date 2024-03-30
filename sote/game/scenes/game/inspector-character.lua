@@ -114,7 +114,7 @@ function window.draw(game)
     local decisions_panel =                 layout:next(unit * 16, unit * 7)
     local decisions_confirmation_panel =    layout:next(unit * 16, unit * 1)
     local character_tab =                 layout:next(unit * 16, unit * 1)
-    local characters_list =                 layout:next(unit * 16, unit * 8)
+    local characters_list =                 layout:next(unit * 15, unit * 8)
 
     character_name_widget(name_panel, character)
 
