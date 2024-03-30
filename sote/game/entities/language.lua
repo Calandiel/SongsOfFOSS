@@ -10,6 +10,10 @@ local DROPOFF_S = 0.80 -- EV = 3
 local MIN_C = 6
 local MIN_V = 3
 local MIN_S = 2
+-- how many suffixes to generate for each semantic category
+local SAMPLES_ending_province = 10
+local SAMPLES_ending_realm = 10
+local SAMPLES_ending_adj = 5
 
 -- sort phonemes by frequency; ie. common phonemes first, then rarer ones
 local VOWELS = {
@@ -22,26 +26,14 @@ local CONSONANTS = {
 local SyllableType = {
 	'V', 'CV', 'CVn', 'CVr', 'CVl', 'CVC', 'VC' } -- , 'CrV', 'CnV', 'ClV'
 
-local endings_province = {
-	'pol', 'gard', 'holm', 'hold', 'is', 'on',
-	'shire', 'ton', 'bury', 'burg', 'berg',
-	'ow', 'ice', 'an', ''
-}
-
-local endings_realm = {
-	'land', 'land', 'land', 'land',
-	'ance', 'ance', 'ance',
-	'ia', 'ia', 'ia', 'ia',
-	'gard', 'gard', 'stan', ''
-}
-
 ---@class (exact) Language
 ---@field __index Language
 ---@field syllables table<number, string>
 ---@field consonants table<number, string>
 ---@field vowels table<number, string>
----@field ending_province string
----@field ending_realm string
+---@field ending_province table<number, string>
+---@field ending_realm table<number, string>
+---@field ending_adj table<number, string>
 
 ---@class Language
 lang.Language = {}
@@ -54,6 +46,9 @@ function lang.Language:new()
 	o.syllables = {}
 	o.consonants = {}
 	o.vowels = {}
+	o.ending_province = {}
+	o.ending_realm = {}
+	o.ending_adj = {}
 
 	setmetatable(o, lang.Language)
 	return o
@@ -88,8 +83,16 @@ function lang.random()
 		end
 	end
 
-	l.ending_province = endings_province[love.math.random(#endings_province)]
-	l.ending_realm = endings_realm[love.math.random(#endings_realm)]
+	-- generate several random province suffixes, and ditto for realms
+	for _ = 1, SAMPLES_ending_province do
+		table.insert(l.ending_province, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ending_realm do
+		table.insert(l.ending_realm, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ending_adj do
+		table.insert(l.ending_adj, l:random_word(1))
+	end
 
 	return l
 end
@@ -143,32 +146,25 @@ end
 function lang.Language:get_random_culture_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	local endings = {
-		'ean', 'an', 'ish', 'ese', 'ic', 'ian', 'i'
-	}
-	return n .. endings[love.math.random(#endings)]
+	return n .. self.ending_adj[love.math.random(#self.ending_adj)]
 end
 
 function lang.Language:get_random_faith_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	local endings = {
-		'ism', 'ism', 'ism', 'ism',
-		'ian', 'an', 'am', 'ic', 'i'
-	}
-	return n .. endings[love.math.random(#endings)]
+	return n .. self.ending_adj[love.math.random(#self.ending_adj)]
 end
 
 function lang.Language:get_random_realm_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_realm
+	return n .. self.ending_realm[love.math.random(#self.ending_realm)]
 end
 
 function lang.Language:get_random_province_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_province
+	return n .. self.ending_province[love.math.random(#self.ending_province)]
 end
 
 function lang.Language:get_random_name()
