@@ -6,4 +6,8 @@ local rank_names = {
     [ranks.CHIEF] = "Chief",
 }
 
-return rank_names
+local function rank_namef(character)
+	return character.culture.language.ranks[character.rank] .. " (" .. rank_names[character.rank] .. ")"
+end
+
+return rank_namef
