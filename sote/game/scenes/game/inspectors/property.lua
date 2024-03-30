@@ -68,7 +68,7 @@ function inspector.draw(gam)
     ---@type TableColumn[]
     local columns = {
         {
-            header = ".",
+            header = "",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -82,7 +82,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "name",
+            header = "Name",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -96,7 +96,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "your share",
+            header = "Your share",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -117,7 +117,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "subsidy",
+            header = "Subsidy",
             render_closure = function (rect, k, v)
                 ---@type Building
                 v = v
@@ -144,7 +144,7 @@ function inspector.draw(gam)
             active = true
         },
         {
-            header = "income",
+            header = "Income",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -158,7 +158,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "inputs",
+            header = "Inputs",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -201,7 +201,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "outputs",
+            header = "Outputs",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -244,7 +244,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "province",
+            header = "Province",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
@@ -258,7 +258,7 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "jobs",
+            header = "Jobs",
             render_closure = function(rect, k, v)
                 ---@type Building
                 v = v
