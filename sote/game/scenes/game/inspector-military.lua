@@ -26,10 +26,12 @@ end
 ---@param game GameScene
 function window.draw(game)
     local player_character = WORLD.player_character
-    if player_character == nil then
-        return
+    local province = game.selected.province
+    local realm = province and province.realm
+
+    if player_character and realm == nil then
+        realm = player_character.realm
     end
-    local realm = player_character.realm
 
     if realm == nil then
         return

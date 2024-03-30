@@ -122,7 +122,7 @@ end
 ---Checks if pop belongs to characters table of current province
 ---@return boolean
 function rtab.POP:is_character()
-	return self.province.characters[self] == self
+	return self.rank ~= nil
 end
 
 ---Unregisters a pop as a military pop.  \
@@ -130,6 +130,14 @@ end
 function rtab.POP:unregister_military()
 	if self.unit_of_warband then
 		self.unit_of_warband:fire_unit(self)
+	end
+	if self.recruiter_for_warband then
+		self.recruiter_for_warband.recruiter = nil
+		self.recruiter_for_warband = nil
+	end
+	if self.leading_warband then
+		self.leading_warband.recruiter = nil
+		self.leading_warband = nil
 	end
 end
 

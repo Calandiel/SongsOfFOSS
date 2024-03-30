@@ -66,7 +66,8 @@ function warband:location()
 	end
 end
 
----Returns location of province, either the leader's province or the guard realm
+
+---Returns realm of province, either the leader's province or the guard realm
 ---@return Realm
 function warband:realm()
 	if self.leader then
@@ -75,6 +76,7 @@ function warband:realm()
 		return self.guard_of
 	end
 end
+
 
 ---Returns the warbands total loot capacity from combatants and noncombatants
 ---@return number
@@ -213,13 +215,17 @@ end
 function warband:fire_unit(pop)
 	-- print(pop.name, "leaves warband")
 
-	local unit = self.units[pop]
+	if pop:is_character() then
+		self:unset_commander()
+	else
+		local unit = self.units[pop]
 
-	pop.unit_of_warband = nil
-	self.units[pop] = nil
-	self.pops[pop] = nil
-	self.units_current[unit] = (self.units_current[unit] or 0) - 1
-	self.total_upkeep = self.total_upkeep - unit.upkeep
+		pop.unit_of_warband = nil
+		self.units[pop] = nil
+		self.pops[pop] = nil
+		self.units_current[unit] = (self.units_current[unit] or 0) - 1
+		self.total_upkeep = self.total_upkeep - unit.upkeep
+	end
 end
 
 
@@ -246,7 +252,9 @@ function warband:kill_off(ratio)
 	local pops_to_kill = {}
 
 	for pop, _ in pairs(self.units) do
-		if not pop:is_character() and love.math.random() < ratio then
+		if love.math.random() < ratio
+			and self.leader ~= pop and self.recruiter ~= pop -- prevent characters from dying in combat for now
+		then
 			table.insert(pops_to_kill, pop)
 			losses = losses + 1
 		end

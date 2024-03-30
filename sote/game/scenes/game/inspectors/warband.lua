@@ -474,7 +474,7 @@ function window.draw(gamescene)
 			if x > 0 then
 				tooltip = "Give "
 				preposition = 'to'
-				amount = math.min(amount, WORLD.player_character.savings)
+				amount = math.min(amount, (player_character and player_character.savings) or 0)
 			elseif x < 0 then
 				amount = math.max(amount, -warband.treasury)
 			end
@@ -500,7 +500,9 @@ function window.draw(gamescene)
 				tooltip,
 				(x < 0 and can_take_money) or (x > 0 and can_gift_money)
 			) then
-				economic_effects.gift_to_warband(warband, WORLD.player_character, amount)
+				if player_character then
+					economic_effects.gift_to_warband(warband, player_character, amount)
+				end
 			end
 		end
 
@@ -1411,13 +1413,10 @@ function window.draw(gamescene)
 						if player_character then
 							text = "Unrecruit this warrior!?"
 						end
-						if ut.icon_button(icon,
-							rect,
-							text,
-							player_character and ( player_character == warband.leader
+						if ut.icon_button(icon, rect, text,
+							player_character and (player_character == warband.leader
 								or (warband.recruiter and player_character == warband.recruiter)
-							-- hackish: 'let the realm leader fire warriors they want to'
-								or (not warband.leader and warband.recruiter and player_character == warband.recruiter.realm.leader))
+								or (not warband.leader and warband.guard_of and player_character == warband.guard_of.leader))
 						) then
 							-- check if trying to fire commander first
 							if warband.commander and warband.commander == k then

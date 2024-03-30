@@ -830,9 +830,15 @@ function pro.run(province)
 			-- recalculate pop needs
 			local needs_satisfaction = pop.race.male_needs
 			if pop.female then needs_satisfaction = pop.race.female_needs end
+			-- TODO replace with warband supplies?
+			-- block of starvation, if the pop is not able to call staisfy_need
+			local consumption_percentage = 0.5
+			if pop.unit_of_warband ~= nil and pop.unit_of_warband.status ~= "idle" then
+				consumption_percentage = 1
+			end
 			tabb.accumulate(needs_satisfaction, nil, function (_, need, values)
 				tabb.accumulate(values, nil, function (_, k, v)
-					pop.need_satisfaction[need][k].consumed = pop.need_satisfaction[need][k].consumed / 2
+					pop.need_satisfaction[need][k].consumed = pop.need_satisfaction[need][k].consumed * consumption_percentage
 						pop.need_satisfaction[need][k].demanded = needs_satisfaction[need][k]
 					if not NEEDS[need].age_independent then
 						pop.need_satisfaction[need][k].demanded = pop.need_satisfaction[need][k].demanded * pop:get_age_multiplier()

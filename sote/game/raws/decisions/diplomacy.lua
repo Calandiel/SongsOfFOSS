@@ -441,7 +441,7 @@ local function load()
 		path = function (root, primary_target)
 			return path.pathfind(
 				root.realm.capitol,
-				primary_target.realm.capitol,
+				primary_target,
 				character_values.travel_speed_race(root.realm.primary_race),
 				root.realm.known_provinces
 			)

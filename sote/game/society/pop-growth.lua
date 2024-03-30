@@ -49,7 +49,10 @@ function pg.growth(province)
 			to_remove[#to_remove + 1] = pp
 		elseif min_life_satisfaction < starvation_check or pp.age >= pp.race.elder_age then
 			-- Deaths due to starvation or old age!
-			if love.math.random() < math.max(death_rate, (starvation_check - min_life_satisfaction) / starvation_check) then
+			-- TODO figure out how player deals with starvation while on campaign
+			if pp == WORLD.player_character and pp.unit_of_warband and pp.unit_of_warband.status ~= "idle" then
+				-- this is here just to guard against killing the player character on campaign in a warband
+			elseif love.math.random() < math.max(death_rate, (starvation_check - min_life_satisfaction) / starvation_check) then
 				to_remove[#to_remove + 1] = pp
 			end
 		elseif pp.age >= pp.race.teen_age then -- check if eligible to create more pop

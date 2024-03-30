@@ -463,7 +463,7 @@ local function separate_inspectors(gam, tile, panel)
 	if uit.icon_button(
 		ASSETS.icons["scales.png"],
 		layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
-		"Show market"
+		"Show local market"
 	) then
 		gam.inspector = "market"
 	end
@@ -471,9 +471,17 @@ local function separate_inspectors(gam, tile, panel)
 	if uit.icon_button(
 		ASSETS.icons["minions.png"],
 		layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
-		"Show population"
+		"Show local population"
 	) then
 		gam.inspector = "population"
+	end
+
+	if uit.icon_button(
+		ASSETS.icons["guards.png"],
+		layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
+		"Show local warriors"
+	) then
+		gam.inspector = "army"
 	end
 end
 
