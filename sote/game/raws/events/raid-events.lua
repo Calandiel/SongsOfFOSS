@@ -118,7 +118,7 @@ local function load()
 				.. " warlords with total strength of "
 				.. my_power_ready
 				.. " ready to join my campaign."
-				.. " Enemies potential forces consist of "
+				.. " Enemy's potential forces consist of "
 				.. their_warlords
 				.. " warlords with total size of "
 				.. their_power
@@ -322,7 +322,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Army
 			local army = associated_data
-			return "We succeeded to enforce tribute on " .. army.destination.realm.name
+			return "We succeeded in enforcing tribute on " .. army.destination.realm.name
 		end,
 		function(root, associated_data)
 			return "Great!"
@@ -426,7 +426,7 @@ local function load()
 								", sent warriors to raid us. We lost " ..
 								tostring(def_losses) ..
 								" warriors and our enemies lost " ..
-								tostring(attack_losses) .. ". We managed to fight off the aggresors.")
+								tostring(attack_losses) .. ". We managed to fight off the aggressors.")
 						end
 					end
 				end

@@ -62,11 +62,11 @@ function window.draw(game)
         name(rect, character)
 
         rect.x = rect.x + rect.width
-        ui.left_text(character.age .. " years old " .. character.race.name, rect)
+        ui.left_text(character.age .. " year old " .. character.race.name, rect)
 
         rect.x = rect.x + rect.width - rect.height
         rect.width = rect.height
-        if uit.icon_button(ASSETS.icons["frog-prince.png"], rect, "Take control over this character") then
+        if uit.icon_button(ASSETS.icons["frog-prince.png"], rect, "Take control of this character") then
             require "game.raws.effects.player".take_control(character)
             game.refresh_map_mode()
             game.inspector = nil
