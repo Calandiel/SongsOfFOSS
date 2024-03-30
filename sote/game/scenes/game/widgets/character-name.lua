@@ -1,5 +1,6 @@
 local ui = require "engine.ui"
 local ranks_localisation = require "game.raws.ranks.localisation"
+local string = require "engine.string"
 
 ---comment
 ---@param rect Rect
@@ -23,7 +24,7 @@ local function name(rect, character)
 
     end
 
-    title = title .. " \n" .. ranks_localisation(character)
+    title = title .. " \n" .. string.title(ranks_localisation(character))
     ui.text(title .. " of " .. character.realm.name, rect, "left", "up")
 end
 

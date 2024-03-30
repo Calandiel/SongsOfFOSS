@@ -1,3 +1,5 @@
+local string = require "engine.string"
+
 local lang = {}
 
 -- dropoff coefficients control how fast the "cutoff" happens
@@ -155,31 +157,31 @@ end
 function lang.Language:get_random_culture_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_adj[love.math.random(#self.ending_adj)]
+	return string.title(n .. self.ending_adj[love.math.random(#self.ending_adj)])
 end
 
 function lang.Language:get_random_faith_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_adj[love.math.random(#self.ending_adj)]
+	return string.title(n .. self.ending_adj[love.math.random(#self.ending_adj)])
 end
 
 function lang.Language:get_random_realm_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_realm[love.math.random(#self.ending_realm)]
+	return string.title(n .. self.ending_realm[love.math.random(#self.ending_realm)])
 end
 
 function lang.Language:get_random_province_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_province[love.math.random(#self.ending_province)]
+	return string.title(n .. self.ending_province[love.math.random(#self.ending_province)])
 end
 
 function lang.Language:get_random_name()
 	local ll = love.math.random(4)
 	local n = self:random_word(ll)
-	return n
+	return string.title(n)
 end
 
 return lang
