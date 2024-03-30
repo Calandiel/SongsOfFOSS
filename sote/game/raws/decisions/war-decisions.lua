@@ -27,6 +27,9 @@ local function load()
 				end
 
 				local warband = root.recruiter_for_warband
+				if warband == nil and root.leading_warband and not root.leading_warband.recruiter then
+					warband = root.leading_warband
+				end
 				if warband == nil then
 					return false
 				end
@@ -54,13 +57,16 @@ local function load()
 			end,
 			ai_will_do = function(root, primary_target, secondary_target)
 				local warband = root.recruiter_for_warband
+				if warband == nil and root.leading_warband and not root.leading_warband.recruiter then
+					warband = root.leading_warband
+				end
 				if warband == nil then
 					return 0
 				end
 
 				local predicted_upkeep = warband:predict_upkeep() + unit.upkeep
 
-				if warband.treasury < predicted_upkeep * 12 * 5 then
+				if warband.treasury < predicted_upkeep * 12 * 2 then
 					return 0
 				end
 
@@ -68,6 +74,9 @@ local function load()
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = root.recruiter_for_warband
+				if warband == nil and root.leading_warband and not root.leading_warband.recruiter then
+					warband = root.leading_warband
+				end
 				if warband == nil then
 					return
 				end
@@ -93,6 +102,9 @@ local function load()
 				end
 
 				local warband = root.recruiter_for_warband
+				if warband == nil and root.leading_warband and not root.leading_warband.recruiter then
+					warband = root.leading_warband
+				end
 				if warband == nil then
 					return false
 				end
@@ -119,13 +131,16 @@ local function load()
 			end,
 			ai_will_do = function(root, primary_target, secondary_target)
 				local warband = root.recruiter_for_warband
+				if warband == nil and root.leading_warband and not root.leading_warband.recruiter then
+					warband = root.leading_warband
+				end
 				if warband == nil then
 					return 0
 				end
 
 				local predicted_upkeep = warband:predict_upkeep()
 
-				if warband.treasury / 12 > predicted_upkeep * 2 then
+				if warband.treasury / 12 > predicted_upkeep then
 					return 0
 				end
 
@@ -133,6 +148,9 @@ local function load()
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = root.recruiter_for_warband
+				if warband == nil and root.leading_warband and not root.leading_warband.recruiter then
+					warband = root.leading_warband
+				end
 				if warband == nil then
 					return
 				end

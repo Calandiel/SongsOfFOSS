@@ -281,7 +281,6 @@ function pro.run(province)
 			income = income + income + record_production(berries_index, food_produced * berries_production)
 			income = income + income + record_production(berries_index, food_produced * seeds_production)
 		end
-		economic_effects.add_warband_coffers(warband, income, economic_effects.reasons.Forage)
 	end
 
 	---Pop forages for food and game to sells it  \

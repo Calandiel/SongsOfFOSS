@@ -297,7 +297,6 @@ function rea.run(realm)
 				for pop, unit in pairs(warband.units) do
 					economic_effects.add_pop_savings(pop, unit.upkeep, economic_effects.reasons.Upkeep)
 				end
-				economic_effects.add_warband_coffers(warband, -warband.total_upkeep, economic_effects.reasons.Upkeep)
 			else
 				-- pay what you can to each troop
 				local weight =  treasury / warband.total_upkeep
@@ -305,7 +304,6 @@ function rea.run(realm)
 					local upkeep = unit.upkeep * weight
 					economic_effects.add_pop_savings(pop, upkeep , economic_effects.reasons.Upkeep)
 				end
-				economic_effects.add_warband_coffers(warband, -treasury, economic_effects.reasons.Upkeep)
 			end
 		end
 	end

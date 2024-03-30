@@ -1163,9 +1163,8 @@ function window.draw(gamescene)
 					header = "target",
 					---@param v UnitType
 					render_closure = function (rect, k, v)
-						local can_recruit = player_character and (warband == player_character.leading_warband 
-							or warband == player_character.recruiter_for_warband
-							or warband.guard_of and player_character == warband.guard_of.leader)
+						local can_recruit = player_character and (warband == player_character.leading_warband
+							or warband == player_character.recruiter_for_warband)
 
 						local target = warband.units_target[v] or 0
 						local current = warband.units_current[v] or 0
@@ -1408,21 +1407,20 @@ function window.draw(gamescene)
 					---@param v UnitType
 					render_closure = function (rect, k, v)
 						local icon = ASSETS.icons["cancel.png"]
-						local player_character = WORLD.player_character
 						local text = "You do not have any control over this warband."
-						if player_character then
+						local can_recruit = player_character and (warband == player_character.leading_warband
+							or warband == player_character.recruiter_for_warband)
+						if can_recruit then
 							text = "Unrecruit this warrior!?"
 						end
-						if ut.icon_button(icon, rect, text,
-							player_character and (player_character == warband.leader
-								or (warband.recruiter and player_character == warband.recruiter)
-								or (not warband.leader and warband.guard_of and player_character == warband.guard_of.leader))
-						) then
-							-- check if trying to fire commander first
-							if warband.commander and warband.commander == k then
-								warband:unset_commander()
-							else
-								warband:fire_unit(k)
+						if player_character then
+							if ut.icon_button(icon, rect, text, can_recruit) then
+								-- check if trying to fire commander first
+								if warband.commander and warband.commander == k then
+									warband:unset_commander()
+								else
+									warband:fire_unit(k)
+								end
 							end
 						end
 					end,
