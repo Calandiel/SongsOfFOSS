@@ -23,7 +23,7 @@ local function name(rect, character)
 
     end
 
-    title = title .. " \n" .. ranks_localisation[character.rank]
+    title = title .. " \n" .. ranks_localisation(character)
     ui.text(title .. " of " .. character.realm.name, rect, "left", "up")
 end
 

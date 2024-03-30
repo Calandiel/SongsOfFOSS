@@ -14,6 +14,7 @@ local MIN_S = 2
 local SAMPLES_ending_province = 10
 local SAMPLES_ending_realm = 10
 local SAMPLES_ending_adj = 5
+local SAMPLES_ranks = 2
 
 -- sort phonemes by frequency; ie. common phonemes first, then rarer ones
 local VOWELS = {
@@ -34,6 +35,7 @@ local SyllableType = {
 ---@field ending_province table<number, string>
 ---@field ending_realm table<number, string>
 ---@field ending_adj table<number, string>
+---@field ranks table<number, string>
 
 ---@class Language
 lang.Language = {}
@@ -49,6 +51,7 @@ function lang.Language:new()
 	o.ending_province = {}
 	o.ending_realm = {}
 	o.ending_adj = {}
+	o.ranks = {}
 
 	setmetatable(o, lang.Language)
 	return o
@@ -92,6 +95,12 @@ function lang.random()
 	end
 	for _ = 1, SAMPLES_ending_adj do
 		table.insert(l.ending_adj, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ending_adj do
+		table.insert(l.ending_adj, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ranks do
+		table.insert(l.ranks, l:random_word(3))
 	end
 
 	return l
