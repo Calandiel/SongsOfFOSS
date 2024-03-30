@@ -31,12 +31,10 @@
 ---@field tile_province_texture love.Texture
 ---@field tile_neighbor_realm_texture love.Texture
 ---@field map_update_progress number
----@field tile_raiding_targets_texture love.Texture
 ---@field refresh_map_mode fun(boolean)
 ---@field map_mode string TODO this should be a map mode enum...
 ---@field camera_position any TODO type porting cpml is hell...
 ---@field tile_id_to_color_coords fun(Tile):number,number
----@field tile_raiding_targets_image_data love.ImageData
 ---@field time_since_last_tick number
 ---@field tile_color_image_data love.ImageData
 ---@field load_camera_position_or_set_to_default fun()
@@ -305,21 +303,34 @@ function gam.load_camera_position_or_set_to_default()
 	end
 end
 
-gam.time_since_last_tick = 0
----@param dt number
-function gam.update(dt)
+--- The amount of time within a frame that can be spent on calculations in the update function
+---@type number
+local timer_threshold = 1 / 120
+
+---@return boolean should_cancel_update Whether or not the calculations are proceeding and require returning in the update function
+local function handle_map_refresh()
 	if gam.map_update_coroutine ~= nil then
 		local time = love.timer.getTime()
-		while love.timer.getTime() - time < 1 / 24 do
+		while love.timer.getTime() - time < timer_threshold do
 			coroutine.resume(gam.map_update_coroutine)
 			if coroutine.status(gam.map_update_coroutine) == "dead" then
 				gam.map_update_coroutine = nil
 				goto stop_update
 			end
 		end
+		::stop_update::
+		return true
 	end
-	::stop_update::
+	return false
+end
 
+gam.time_since_last_tick = 0
+---@param dt number
+function gam.update(dt)
+	-- Handle map updates
+	if handle_map_refresh() then
+		return
+	end
 
 	if PAUSE_REQUESTED then
 		gam.paused = true
@@ -351,7 +362,7 @@ function gam.update(dt)
 				for _ = 1, 4 ^ gam.speed do
 					WORLD:tick()
 					gam.ticks_without_map_update = gam.ticks_without_map_update + 1
-					if love.timer.getTime() - start > 1 / 60 then
+					if love.timer.getTime() - start > timer_threshold then
 						break
 					end
 				end
@@ -674,13 +685,6 @@ function gam.draw()
 			gam.recalculate_realm_map()
 		end
 		gam.planet_shader:send('tile_neighbor_realm', gam.tile_neighbor_realm_texture)
-	end
-	if gam.planet_shader:hasUniform("tile_raiding_targets") then
-		if gam.map_mode == "atlas" then
-			gam.planet_shader:send('tile_raiding_targets', gam.tile_raiding_targets_texture or gam.empty_texture)
-		else
-			gam.planet_shader:send('tile_raiding_targets', gam.empty_texture)
-		end
 	end
 
 	love.graphics.setDepthMode("lequal", true)
@@ -1692,17 +1696,6 @@ function gam.recalculate_realm_map()
 		linear = true
 	})
 	gam.tile_neighbor_realm_texture:setFilter("nearest", "nearest")
-end
-
-function gam.recalculate_raiding_targets_map()
-	local dim = WORLD.world_size * 3
-	gam.tile_raiding_targets_image_data = love.image.newImageData(dim, dim, "rgba8")
-
-	gam.tile_raiding_targets_texture = love.graphics.newImage(gam.tile_raiding_targets_image_data, {
-		mipmaps = false,
-		linear = true
-	})
-	gam.tile_raiding_targets_texture:setFilter("nearest", "nearest")
 end
 
 function gam.refresh_map_mode(preserve_efficiency)

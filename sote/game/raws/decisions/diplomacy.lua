@@ -11,6 +11,7 @@ local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
 
 local OR = pretriggers.OR
 local NOT_BUSY = pretriggers.not_busy
+local SETTLED = triggers.settled
 local IS_LEADER = pretriggers.leader
 local IS_LOCAL_LEADER = pretriggers.leader_of_local_territory
 
@@ -236,7 +237,7 @@ local function load()
 			NOT_BUSY
 		},
 		{
-
+			SETTLED
 		},
 		{
 

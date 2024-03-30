@@ -816,7 +816,11 @@ function ut.calendar(gam)
 		gam.speed = math.min(5, gam.speed + 1)
 	end
 	ui.panel(speed)
-	ui.centered_text(tostring(gam.speed), speed)
+	local speed_text = tostring(gam.speed)
+	if gam.turbo then
+		speed_text = ">>"
+	end
+	ui.centered_text(speed_text, speed) -- speed text
 	ui.tooltip("Game speed", speed)
 	if ut.icon_button(ASSETS.icons["fast-backward-button.png"], speed_down, "Slown down") or ui.is_key_pressed("-") or
 		ui.is_key_pressed("kp-") then

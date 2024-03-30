@@ -18,7 +18,6 @@ function pla.get_shader()
 	local fs = [[
 		uniform float world_size;
 		uniform sampler2D tile_colors;
-		uniform sampler2D tile_raiding_targets;
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
 		uniform sampler2D tile_realms;
@@ -102,7 +101,6 @@ function pla.get_shader()
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			vec4 texcolor = Texel(tile_colors, face_offset);
-			vec4 texcolor_raiding = Texel(tile_raiding_targets, face_offset);
 
 			float distance_for_improvments_and_clicked_tiles = 0.15; // controls the distance threshold from the sphere at which details on tiles are rendered.
 			if (camera_distance_from_sphere < distance_for_improvments_and_clicked_tiles) {
@@ -199,12 +197,7 @@ function pla.get_shader()
 				}
 			}
 
-			float raiding_target_indicator = 0.0;
-			if (texcolor_raiding.r > 0.5) {
-				raiding_target_indicator = abs(fract(time * 0.4) - 0.5) * 2.0;
-			}
-			vec4 red_overlay = vec4(1, 0, 0, 1);
-			return texcolor * mix(color, red_overlay, raiding_target_indicator);
+			return texcolor * color;
 		}
 	]]
 

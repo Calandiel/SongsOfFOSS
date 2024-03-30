@@ -12,7 +12,10 @@ function d.load()
 		silt = 0.5,
 		organics = 0,
 		minerals = 0.05,
-		weathering = 0.8
+		weathering = 0.8,
+		sedimentary = true,
+		clastic = true,
+		grain_size = 0.5
 	}
 	Bedrock:new {
 		name = "claystone",
@@ -24,7 +27,10 @@ function d.load()
 		silt = 0.1,
 		organics = 0,
 		minerals = 0.05,
-		weathering = 0.75
+		weathering = 0.75,
+		sedimentary = true,
+		clastic = true,
+		grain_size = 0
 	}
 	Bedrock:new {
 		name = "mudstone",
@@ -36,7 +42,10 @@ function d.load()
 		silt = 0.2,
 		organics = 0,
 		minerals = 0.2,
-		weathering = 0.8
+		weathering = 0.8,
+		sedimentary = true,
+		clastic = true,
+		grain_size = 0.1
 	}
 	Bedrock:new {
 		name = "sandstone",
@@ -48,7 +57,11 @@ function d.load()
 		silt = 0.1,
 		organics = 0,
 		minerals = 0.05,
-		weathering = 0.7
+		weathering = 0.7,
+		sedimentary = true,
+		clastic = true,
+		grain_size = 1,
+		sedimentary_ocean_shallow = true
 	}
 	Bedrock:new {
 		name = "conglomerate",
@@ -60,7 +73,11 @@ function d.load()
 		silt = 0.075,
 		organics = 0,
 		minerals = 0.15,
-		weathering = 0.6
+		weathering = 0.6,
+		sedimentary = true,
+		clastic = true,
+		grain_size = 1,
+		sedimentary_ocean_shallow = true
 	}
 	Bedrock:new {
 		name = "shale",
@@ -72,7 +89,11 @@ function d.load()
 		silt = 0.2,
 		organics = 0,
 		minerals = 0.2,
-		weathering = 0.8
+		weathering = 0.8,
+		sedimentary = true,
+		clastic = true,
+		grain_size = 0.4,
+		sedimentary_ocean_shallow = true
 	}
 	Bedrock:new {
 		name = "limestone",
@@ -84,7 +105,9 @@ function d.load()
 		silt = 0.3,
 		organics = 0,
 		minerals = 0.25,
-		weathering = 1
+		weathering = 1,
+		sedimentary = true,
+		sedimentary_ocean_deep = true
 	}
 	Bedrock:new {
 		name = "dolostone",
@@ -108,7 +131,8 @@ function d.load()
 		silt = 0.4,
 		organics = 0,
 		minerals = 0.01,
-		weathering = 1
+		weathering = 1,
+		sedimentary = true
 	}
 	Bedrock:new {
 		name = "chalk",
@@ -120,7 +144,8 @@ function d.load()
 		silt = 0.35,
 		organics = 0,
 		minerals = 0.01,
-		weathering = 1
+		weathering = 1,
+		sedimentary = true
 	}
 	Bedrock:new {
 		name = "granite",
@@ -132,7 +157,9 @@ function d.load()
 		silt = 0,
 		organics = 0,
 		minerals = 0.55,
-		weathering = 0.4
+		weathering = 0.4,
+		acidity = 0.8,
+		igneous_intrusive = true
 	}
 	Bedrock:new {
 		name = "granodiorite",
@@ -156,7 +183,9 @@ function d.load()
 		silt = 0,
 		organics = 0,
 		minerals = 0.65,
-		weathering = 0.75
+		weathering = 0.75,
+		acidity = 0.5,
+		igneous_intrusive = true
 	}
 	Bedrock:new {
 		name = "gabbro",
@@ -168,7 +197,10 @@ function d.load()
 		silt = 0,
 		organics = 0,
 		minerals = 0.7,
-		weathering = 0.8
+		weathering = 0.8,
+		acidity = 0.2,
+		igneous_intrusive = true,
+		oceanic = true
 	}
 	Bedrock:new {
 		name = "peridotite",
@@ -192,7 +224,9 @@ function d.load()
 		silt = 0.33,
 		organics = 0,
 		minerals = 0.85,
-		weathering = 0.7
+		weathering = 0.7,
+		igneous_extrusive = true,
+		acidity = 0.8
 	}
 	Bedrock:new {
 		name = "dacite",
@@ -204,7 +238,9 @@ function d.load()
 		silt = 0.3,
 		organics = 0,
 		minerals = 0.9,
-		weathering = 0.8
+		weathering = 0.8,
+		igneous_extrusive = true,
+		acidity = 0.8
 	}
 	Bedrock:new {
 		name = "andesite",
@@ -216,7 +252,9 @@ function d.load()
 		silt = 0.35,
 		organics = 0,
 		minerals = 0.95,
-		weathering = 0.9
+		weathering = 0.9,
+		igneous_extrusive = true,
+		acidity = 0.5
 	}
 	Bedrock:new {
 		name = "basalt",
@@ -228,7 +266,9 @@ function d.load()
 		silt = 0.5,
 		organics = 0,
 		minerals = 1,
-		weathering = 1
+		weathering = 1,
+		igneous_extrusive = true,
+		acidity = 0.2
 	}
 	Bedrock:new {
 		name = "komatiite",
@@ -252,7 +292,8 @@ function d.load()
 		silt = 0.33,
 		organics = 0,
 		minerals = 0.4,
-		weathering = 0.8
+		weathering = 0.8,
+		metamorphic_slate = true
 	}
 	Bedrock:new {
 		name = "schist",
@@ -264,7 +305,8 @@ function d.load()
 		silt = 0.05,
 		organics = 0,
 		minerals = 0.4,
-		weathering = 0.8
+		weathering = 0.8,
+		metamorphic_slate = true
 	}
 	Bedrock:new {
 		name = "phyllite",
@@ -276,7 +318,8 @@ function d.load()
 		silt = 0.2,
 		organics = 0,
 		minerals = 0.4,
-		weathering = 0.8
+		weathering = 0.8,
+		metamorphic_slate = true
 	}
 	Bedrock:new {
 		name = "slate",
@@ -288,7 +331,8 @@ function d.load()
 		silt = 0.05,
 		organics = 0,
 		minerals = 0.4,
-		weathering = 0.7
+		weathering = 0.7,
+		metamorphic_slate = true
 	}
 	Bedrock:new {
 		name = "quartzite",
@@ -300,7 +344,8 @@ function d.load()
 		silt = 0.1,
 		organics = 0,
 		minerals = 0.05,
-		weathering = 0.4
+		weathering = 0.4,
+		metamorphic_slate = true
 	}
 	Bedrock:new {
 		name = "marble",
@@ -312,7 +357,37 @@ function d.load()
 		silt = 0.3,
 		organics = 0,
 		minerals = 0.25,
-		weathering = 1
+		weathering = 1,
+		metamorphic_marble = true
+	}
+	Bedrock:new {
+		name = "rock salt",
+		r = 240 / 255,
+		g = 240 / 255,
+		b = 240 / 255,
+		sand = 0,
+		clay = 0,
+		silt = 0,
+		organics = 0,
+		minerals = 0,
+		weathering = 0,
+		sedimentary = true,
+		grain_size = 1,
+		evaporative = true
+	}
+	Bedrock:new {
+		name = "obsidian",
+		r = 200 / 255,
+		g = 191 / 255,
+		b = 231 / 255,
+		sand = 0,
+		clay = 0,
+		silt = 0,
+		organics = 0,
+		minerals = 0,
+		weathering = 0,
+		igneous_extrusive = true,
+		acidity = 0.8
 	}
 end
 
