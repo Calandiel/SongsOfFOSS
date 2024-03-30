@@ -107,11 +107,20 @@ end
 function warband:size()
 	local tabb = require "engine.table"
 
-	local size = tabb.size(self.pops)
-	if self.commander ~= nil then
-		size = size + 1
+	---@type table<Character, Character>
+	local officers = {}
+
+	if self.leader then
+		officers[self.leader] = self.leader
 	end
-	return size
+	if self.commander then
+		officers[self.commander] = self.commander
+	end
+	if self.recruiter then
+		officers[self.recruiter] = self.recruiter
+	end
+
+	return tabb.size(self.pops) + tabb.size(officers)
 end
 
 ---comment

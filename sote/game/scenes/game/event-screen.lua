@@ -48,7 +48,7 @@ function ev.draw(gam)
 			gam.event_scrollbar = uit.scrollview(bot, function(i, rect)
 				if i > 0 then
 					local opt = opts[i]
-					if uit.text_button(opt.text, rect, opt.tooltip) then
+					if uit.text_button(opt.text, rect, opt.tooltip, opt.viable()) then
 						-- Clear the event from the queue!
 						WORLD.events_queue:dequeue()
 						WORLD.pending_player_event_reaction = false
