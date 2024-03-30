@@ -72,7 +72,7 @@ local function load()
 
 			associated_data.target.mood = associated_data.target.mood + 0.025
 			if WORLD:does_player_see_realm_news(associated_data.target.realm) then
-				WORLD:emit_notification("Several of our warbands had finished patrolling of " ..
+				WORLD:emit_notification("Several of our warbands had finished patrolling " ..
 				associated_data.target.name .. ". Local people feel safety")
 			end
 

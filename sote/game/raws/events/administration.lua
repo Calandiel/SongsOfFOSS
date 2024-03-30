@@ -19,7 +19,7 @@ local function load()
 			if associated_data.female then
 				temp = 'her'
 			end
-			return name .. " requested my participation in " .. temp .. " administration. My task would be overseering of construction and other public activities. What should I do?"
+			return name .. " requested my participation in " .. temp .. " administration. My task would be overseering construction and other public activities. What should I do?"
 		end,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
@@ -106,7 +106,7 @@ local function load()
 			if associated_data.female then
 				temp = 'her'
 			end
-			return name .. " requested my participation in " .. temp .. " administration. My task would be collection of tribute from our subjects. What is my responce?"
+			return name .. " requested my participation in " .. temp .. " administration. My task would be collection of tribute from our subjects. What is my response?"
 		end,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
@@ -202,7 +202,7 @@ local function load()
 			if associated_data.female then
 				temp = 'her'
 			end
-			return name .. " requested my participation in " .. temp .. " guard. My task would be patrolling of our lands and protection them from intruders. What should I do?"
+			return name .. " requested my participation in " .. temp .. " guard. My task would be patrolling our lands and protecting them from intruders. What should I do?"
 		end,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,

@@ -43,7 +43,7 @@ return function ()
 
 			return {
 				{
-					text = "I am a honest tax collector...",
+					text = "I am an honest tax collector...",
 					tooltip = "Return with collected wealth to your chief",
 					viable = function() return true end,
 					outcome = function()

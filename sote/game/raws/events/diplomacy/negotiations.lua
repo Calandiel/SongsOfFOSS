@@ -600,7 +600,7 @@ return function ()
 			if origin.tributaries[target] == nil then
 				table.insert(options_list, {
 					text = "Demand tribute",
-					tooltip = "Demand target to become my tributary",
+					tooltip = "Demand that the target become my tributary",
 					viable = function ()
 						return true
 					end,

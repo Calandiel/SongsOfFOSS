@@ -17,8 +17,8 @@ function load()
         options = function(self, character)
             return {
                 {
-                    text = "Everything comes to end.",
-                    tooltip = "Return to character selection screen.",
+                    text = "Everything comes to an end.",
+                    tooltip = "Return to the character selection screen.",
                     viable = function() 
                         return true
                     end,
