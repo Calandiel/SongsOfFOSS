@@ -1,12 +1,30 @@
 local lang = {}
 
-local VOWELS = { 'a', 'e', 'i', 'o', 'u' }
-local CONSONANTS = { 'q', 'w', 'r', 't', 'y', 'p', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n',
-	'm' }
-local SyllableType = { 'V', 'CV', 'CrV', 'CVn', 'CnV', 'ClV', 'CVC', 'VC' }
+-- dropoff coefficients control how fast the "cutoff" happens
+-- for determining which phonemes make it into the language
+-- https://www.desmos.com/calculator/hf7rx0ihhk
+local DROPOFF_C = 0.96 -- EV = 17
+local DROPOFF_V = 0.87 -- EV = 5
+local DROPOFF_S = 0.80 -- EV = 3
+-- at a minimum, the first N phonemes of this class will be included
+local MIN_C = 6
+local MIN_V = 3
+local MIN_S = 2
+
+-- sort phonemes by frequency; ie. common phonemes first, then rarer ones
+local VOWELS = {
+	'a', 'i', 'u', 'e', 'o', 'y', 'á', 'í', 'ú', 'é',
+	'ó' }
+local CONSONANTS = {
+	'm', 'k', 'j', 'p', 'w', 'b', 'h', 'g', 'n', 's',
+	't', 'f', 'l', 'r', 'd', 'z', 'c', 'v', 'ś', 'ż',
+	'ź', 'ń', 'q', 'x' }
+local SyllableType = {
+	'V', 'CV', 'CVn', 'CVr', 'CVl', 'CVC', 'VC' } -- , 'CrV', 'CnV', 'ClV'
 
 local endings_province = {
 	'pol', 'gard', 'holm', 'hold', 'is', 'on',
+	'shire', 'ton', 'bury', 'burg', 'berg',
 	'ow', 'ice', 'an', ''
 }
 
@@ -47,30 +65,27 @@ function lang.random()
 	local l = lang.Language:new()
 
 	for _, v in ipairs(VOWELS) do
-		if love.math.random() > 0.5 then
+		if _ <= MIN_V or love.math.random() < DROPOFF_V then
 			table.insert(l.vowels, v)
+		else
+			break
 		end
-	end
-	if #l.vowels == 0 then
-		table.insert(l.vowels, VOWELS[1])
 	end
 
 	for _, v in ipairs(CONSONANTS) do
-		if love.math.random() > 0.5 then
+		if _ <= MIN_C or love.math.random() < DROPOFF_C then
 			table.insert(l.consonants, v)
+		else
+			break
 		end
-	end
-	if #l.consonants == 0 then
-		table.insert(l.consonants, CONSONANTS[1])
 	end
 
 	for _, v in ipairs(SyllableType) do
-		if love.math.random() > 0.5 then
+		if _ <= MIN_S or love.math.random() < DROPOFF_S then
 			table.insert(l.syllables, v)
+		else
+			break
 		end
-	end
-	if #l.syllables == 0 then
-		table.insert(l.syllables, SyllableType[1])
 	end
 
 	l.ending_province = endings_province[love.math.random(#endings_province)]
@@ -104,8 +119,6 @@ function lang.Language:random_word(word_length)
 			w = w .. self:random_vowel()
 		elseif syl == 'CV' then
 			w = w .. self:random_consonant() .. self:random_vowel()
-		elseif syl == 'CV' then
-			w = w .. self:random_consonant() .. self:random_vowel()
 		elseif syl == 'CrV' then
 			w = w .. self:random_consonant() .. 'r' .. self:random_vowel()
 		elseif syl == 'CVn' then
@@ -114,6 +127,10 @@ function lang.Language:random_word(word_length)
 			w = w .. self:random_consonant() .. 'n' .. self:random_vowel()
 		elseif syl == 'ClV' then
 			w = w .. self:random_consonant() .. 'l' .. self:random_vowel()
+		elseif syl == 'CVl' then
+			w = w .. self:random_consonant() .. self:random_vowel() .. 'l'
+		elseif syl == 'CVr' then
+			w = w .. self:random_consonant() .. self:random_vowel() .. 'r'
 		elseif syl == 'CVC' then
 			w = w .. self:random_consonant() .. self:random_vowel() .. self:random_consonant()
 		elseif syl == 'VC' then
@@ -127,7 +144,7 @@ function lang.Language:get_random_culture_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
 	local endings = {
-		'ean', 'an', 'ish', 'ese', 'ic', 'ench'
+		'ean', 'an', 'ish', 'ese', 'ic', 'ian', 'i'
 	}
 	return n .. endings[love.math.random(#endings)]
 end
@@ -137,7 +154,7 @@ function lang.Language:get_random_faith_name()
 	local n = self:random_word(ll)
 	local endings = {
 		'ism', 'ism', 'ism', 'ism',
-		'ean', 'an', 'am', 'ic', 'y'
+		'ian', 'an', 'am', 'ic', 'i'
 	}
 	return n .. endings[love.math.random(#endings)]
 end
