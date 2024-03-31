@@ -190,6 +190,91 @@ function ll.load()
 		carrying_capacity_weight = 2
 	}
 
+	local orc_portrait = {
+		folder = "orc",
+		layers = {"base.PNG", "chin.PNG", "right_eye.PNG", "nose_mouth.PNG", "left_eye.PNG", "pattern.PNG", "hair.PNG", "cloth.PNG"},
+		layers_groups = {
+			eyes = {"right_eye.PNG", "left_eye.PNG"}
+		}
+	}
+
+	Race:new {
+		name = 'orc',
+		r = 0.1,
+		g = 0.8,
+		b = 0.3,
+		icon = 'orc-head.png',
+		male_portrait = {
+			fallback = orc_portrait
+		},
+		female_portrait = {
+			fallback = orc_portrait
+		},
+		description = 'orc',
+		males_per_hundred_females = 50,
+		child_age = 3,
+		teen_age = 7,
+		adult_age = 10,
+		middle_age = 30,
+		elder_age = 50,
+		max_age = 65,
+		minimum_comfortable_temperature = 0,
+		minimum_absolute_temperature = -15,
+		fecundity = 1.1,
+		spotting = 1,
+		visibility = 1.1,
+		female_body_size = 1.1,
+		female_efficiency = {
+			[JOBTYPE.FARMER] = 0.7,
+			[JOBTYPE.ARTISAN] = 0.7,
+			[JOBTYPE.CLERK] = 0.7,
+			[JOBTYPE.LABOURER] = 1.5,
+			[JOBTYPE.WARRIOR] = 1.5,
+			[JOBTYPE.HAULING] = 1.5,
+			[JOBTYPE.FORAGER] = 1.5
+		},
+		female_needs = {
+			[NEED.WATER] = 1,
+			[NEED.FOOD] = 1.5,
+			-- [NEED.FRUIT] = 2,
+			-- [NEED.GRAIN] = 2,
+			-- [NEED.MEAT] = 1,
+			[NEED.CLOTHING] = 1.5,
+			[NEED.FURNITURE] = 1,
+			[NEED.TOOLS] = 1,
+			[NEED.HEALTHCARE] = 1,
+			[NEED.STORAGE] = 1,
+			[NEED.LUXURY] = 1
+		},
+		female_infrastructure_needs = 1.1,
+		male_body_size = 1.1,
+		male_efficiency = {
+			[JOBTYPE.FARMER] = 0.7,
+			[JOBTYPE.ARTISAN] = 0.7,
+			[JOBTYPE.CLERK] = 0.7,
+			[JOBTYPE.LABOURER] = 1.5,
+			[JOBTYPE.WARRIOR] = 1.5,
+			[JOBTYPE.HAULING] = 1.5,
+			[JOBTYPE.FORAGER] = 1.5
+		},
+		male_needs = {
+			[NEED.WATER] = 1,
+			[NEED.FOOD] = 1.5,
+			-- [NEED.FRUIT] = 2,
+			-- [NEED.GRAIN] = 2,
+			-- [NEED.MEAT] = 1,
+			[NEED.CLOTHING] = 1.5,
+			[NEED.FURNITURE] = 1,
+			[NEED.TOOLS] = 1,
+			[NEED.HEALTHCARE] = 1,
+			[NEED.STORAGE] = 1,
+			[NEED.LUXURY] = 1
+		},
+		male_infrastructure_needs = 1.1,
+
+		carrying_capacity_weight = 1.5
+	}
+
 	Race:new {
 		name = 'elf',
 		r = 0.1,
@@ -441,7 +526,7 @@ function ll.load()
 			[NEED.LUXURY] = 1
 		},
 		male_infrastructure_needs = 0.25,
-		carrying_capacity_weight = 0.25,
+		carrying_capacity_weight = 0.8,
 	}
 
 	Race:new {
@@ -529,7 +614,7 @@ function ll.load()
 			[NEED.LUXURY] = 1
 		},
 		male_infrastructure_needs = 0.1,
-		carrying_capacity_weight = 0.1,
+		carrying_capacity_weight = 0.5,
 	}
 
 
