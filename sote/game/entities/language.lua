@@ -1,29 +1,43 @@
+local string = require "engine.string"
+
 local lang = {}
 
-local VOWELS = { 'a', 'e', 'i', 'o', 'u' }
-local CONSONANTS = { 'q', 'w', 'r', 't', 'y', 'p', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n',
-	'm' }
-local SyllableType = { 'V', 'CV', 'CrV', 'CVn', 'CnV', 'ClV', 'CVC', 'VC' }
+-- dropoff coefficients control how fast the "cutoff" happens
+-- for determining which phonemes make it into the language
+-- https://www.desmos.com/calculator/hf7rx0ihhk
+local DROPOFF_C = 0.96 -- EV = 17
+local DROPOFF_V = 0.87 -- EV = 5
+local DROPOFF_S = 0.80 -- EV = 3
+-- at a minimum, the first N phonemes of this class will be included
+local MIN_C = 6
+local MIN_V = 3
+local MIN_S = 2
+-- how many suffixes to generate for each semantic category
+local SAMPLES_ending_province = 10
+local SAMPLES_ending_realm = 10
+local SAMPLES_ending_adj = 5
+local SAMPLES_ranks = 2
 
-local endings_province = {
-	'pol', 'gard', 'holm', 'hold', 'is', 'on',
-	'ow', 'ice', 'an', ''
-}
-
-local endings_realm = {
-	'land', 'land', 'land', 'land',
-	'ance', 'ance', 'ance',
-	'ia', 'ia', 'ia', 'ia',
-	'gard', 'gard', 'stan', ''
-}
+-- sort phonemes by frequency; ie. common phonemes first, then rarer ones
+local VOWELS = {
+	'a', 'i', 'u', 'e', 'o', 'y', 'á', 'í', 'ú', 'é',
+	'ó' }
+local CONSONANTS = {
+	'm', 'k', 'j', 'p', 'w', 'b', 'h', 'g', 'n', 's',
+	't', 'f', 'l', 'r', 'd', 'z', 'c', 'v', 'ś', 'ż',
+	'ź', 'ń', 'q', 'x' }
+local SyllableType = {
+	'V', 'CV', 'CVn', 'CVr', 'CVl', 'CVC', 'VC' } -- , 'CrV', 'CnV', 'ClV'
 
 ---@class (exact) Language
 ---@field __index Language
 ---@field syllables table<number, string>
 ---@field consonants table<number, string>
 ---@field vowels table<number, string>
----@field ending_province string
----@field ending_realm string
+---@field ending_province table<number, string>
+---@field ending_realm table<number, string>
+---@field ending_adj table<number, string>
+---@field ranks table<number, string>
 
 ---@class Language
 lang.Language = {}
@@ -36,6 +50,10 @@ function lang.Language:new()
 	o.syllables = {}
 	o.consonants = {}
 	o.vowels = {}
+	o.ending_province = {}
+	o.ending_realm = {}
+	o.ending_adj = {}
+	o.ranks = {}
 
 	setmetatable(o, lang.Language)
 	return o
@@ -47,34 +65,45 @@ function lang.random()
 	local l = lang.Language:new()
 
 	for _, v in ipairs(VOWELS) do
-		if love.math.random() > 0.5 then
+		if _ <= MIN_V or love.math.random() < DROPOFF_V then
 			table.insert(l.vowels, v)
+		else
+			break
 		end
-	end
-	if #l.vowels == 0 then
-		table.insert(l.vowels, VOWELS[1])
 	end
 
 	for _, v in ipairs(CONSONANTS) do
-		if love.math.random() > 0.5 then
+		if _ <= MIN_C or love.math.random() < DROPOFF_C then
 			table.insert(l.consonants, v)
+		else
+			break
 		end
-	end
-	if #l.consonants == 0 then
-		table.insert(l.consonants, CONSONANTS[1])
 	end
 
 	for _, v in ipairs(SyllableType) do
-		if love.math.random() > 0.5 then
+		if _ <= MIN_S or love.math.random() < DROPOFF_S then
 			table.insert(l.syllables, v)
+		else
+			break
 		end
 	end
-	if #l.syllables == 0 then
-		table.insert(l.syllables, SyllableType[1])
-	end
 
-	l.ending_province = endings_province[love.math.random(#endings_province)]
-	l.ending_realm = endings_realm[love.math.random(#endings_realm)]
+	-- generate several random province suffixes, and ditto for realms
+	for _ = 1, SAMPLES_ending_province do
+		table.insert(l.ending_province, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ending_realm do
+		table.insert(l.ending_realm, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ending_adj do
+		table.insert(l.ending_adj, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ending_adj do
+		table.insert(l.ending_adj, l:random_word(1))
+	end
+	for _ = 1, SAMPLES_ranks do
+		table.insert(l.ranks, l:random_word(3))
+	end
 
 	return l
 end
@@ -104,8 +133,6 @@ function lang.Language:random_word(word_length)
 			w = w .. self:random_vowel()
 		elseif syl == 'CV' then
 			w = w .. self:random_consonant() .. self:random_vowel()
-		elseif syl == 'CV' then
-			w = w .. self:random_consonant() .. self:random_vowel()
 		elseif syl == 'CrV' then
 			w = w .. self:random_consonant() .. 'r' .. self:random_vowel()
 		elseif syl == 'CVn' then
@@ -114,6 +141,10 @@ function lang.Language:random_word(word_length)
 			w = w .. self:random_consonant() .. 'n' .. self:random_vowel()
 		elseif syl == 'ClV' then
 			w = w .. self:random_consonant() .. 'l' .. self:random_vowel()
+		elseif syl == 'CVl' then
+			w = w .. self:random_consonant() .. self:random_vowel() .. 'l'
+		elseif syl == 'CVr' then
+			w = w .. self:random_consonant() .. self:random_vowel() .. 'r'
 		elseif syl == 'CVC' then
 			w = w .. self:random_consonant() .. self:random_vowel() .. self:random_consonant()
 		elseif syl == 'VC' then
@@ -126,38 +157,31 @@ end
 function lang.Language:get_random_culture_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	local endings = {
-		'ean', 'an', 'ish', 'ese', 'ic', 'ench'
-	}
-	return n .. endings[love.math.random(#endings)]
+	return string.title(n .. self.ending_adj[love.math.random(#self.ending_adj)])
 end
 
 function lang.Language:get_random_faith_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	local endings = {
-		'ism', 'ism', 'ism', 'ism',
-		'ean', 'an', 'am', 'ic', 'y'
-	}
-	return n .. endings[love.math.random(#endings)]
+	return string.title(n .. self.ending_adj[love.math.random(#self.ending_adj)])
 end
 
 function lang.Language:get_random_realm_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_realm
+	return string.title(n .. self.ending_realm[love.math.random(#self.ending_realm)])
 end
 
 function lang.Language:get_random_province_name()
 	local ll = love.math.random(3)
 	local n = self:random_word(ll)
-	return n .. self.ending_province
+	return string.title(n .. self.ending_province[love.math.random(#self.ending_province)])
 end
 
 function lang.Language:get_random_name()
 	local ll = love.math.random(4)
 	local n = self:random_word(ll)
-	return n
+	return string.title(n)
 end
 
 return lang

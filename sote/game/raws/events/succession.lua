@@ -310,7 +310,7 @@ local function load()
         function(self, character, associated_data)
             ---@type Character
             associated_data = associated_data
-            return "I was set as a successor of "
+            return "I was designated successor of "
                     .. associated_data.name
                     .. "."
 		end,

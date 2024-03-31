@@ -74,7 +74,7 @@ return function()
 	event_utils.notification_event(
 		"exploration-failed-to-find-help",
 		function (self, root, associated_data)
-			return "I failed to find any help in exploration of " .. root.province.name
+			return "I failed to find any help in the exploration of " .. root.province.name
 		end,
 		function (root, associated_data)
 			return "Okay."
@@ -116,8 +116,8 @@ return function()
 				},
 
 				{
-					text = "I will ask local ruler for help.",
-					tooltip = "With help we could proceed much faster",
+					text = "I will ask the local ruler for help.",
+					tooltip = "With help, we could proceed much faster",
 					viable = function()
 						if character.province.realm == nil then
 							return false
@@ -198,7 +198,7 @@ return function()
 			return {
 				{
 					text = "Continue exploration",
-					tooltip = "I will spend another month on exploration of this province",
+					tooltip = "I will spend another month on the exploration of this province",
 					viable = function()
 						return character.leading_warband:days_of_travel() >= 30
 					end,
@@ -225,7 +225,7 @@ return function()
 
 				{
 					text = "Reduced exploration efforts",
-					tooltip = "We can't afford to dedicate all our time to exploration. I will let my people to forage or work as well.",
+					tooltip = "We can't afford to dedicate all our time to exploration. I will let my people forage or work as well.",
 					viable = function()
 						return character.leading_warband:days_of_travel() >= 15
 					end,
@@ -251,7 +251,7 @@ return function()
 
 				{
 					text = "Delay exploration",
-					tooltip = "My party will rest during next month and will forage or work.",
+					tooltip = "My party will rest next month and forage or work.",
 					viable = function()
 						return true
 					end,

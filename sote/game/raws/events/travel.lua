@@ -111,7 +111,7 @@ local function load()
         function (self, root, data)
             ---@type Province
             data = data
-            return "I have arrived to " .. data.name .. ". "
+            return "I have arrived at " .. data.name .. ". "
                 .. "This land is controlled by people of " .. data.realm.name .. ". "
                 .. data.realm.leader.race.name .. " " .. data.realm.leader.name .. " rules over them."
         end,
