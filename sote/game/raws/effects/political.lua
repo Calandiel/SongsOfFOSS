@@ -172,7 +172,6 @@ end
 ---@param guard_leader Character
 function PoliticalEffects.set_guard_leader(realm, guard_leader)
 	military_effects.set_recruiter(realm.capitol_guard, guard_leader)
-	realm.capitol_guard.commander = guard_leader
 
 	if WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification(guard_leader.name .. " now commands guards of " .. realm.name .. ".")
@@ -189,7 +188,9 @@ function PoliticalEffects.remove_guard_leader(realm)
 	end
 
 	military_effects.unset_recruiter(realm.capitol_guard, guard_leader)
-	realm.capitol_guard.commander = nil
+	if guard_leader == realm.capitol_guard.commander then
+		realm.capitol_guard:unset_commander()
+	end
 
 	if guard_leader and WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification(guard_leader.name .. " no longer commands guards of " .. realm.name .. ".")

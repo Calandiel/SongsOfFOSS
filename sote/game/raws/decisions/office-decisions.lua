@@ -181,7 +181,7 @@ local function load()
 				return 0
 			end
 
-			if tabb.size(root.realm.tribute_collectors) < 1 + root.realm.capitol:population() / 20 then
+			if tabb.size(root.realm.tribute_collectors) < 1 + root.realm.capitol:total_population() / 20 then
 				return 0.25 * loyalty_multiplier
 			end
 

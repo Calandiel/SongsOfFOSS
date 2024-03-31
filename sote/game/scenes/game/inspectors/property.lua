@@ -2,6 +2,7 @@ local tabb = require "engine.table"
 
 local ui = require "engine.ui";
 local ut = require "game.ui-utils"
+local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
 local trade_good = require "game.raws.raws-utils".trade_good
 
@@ -12,11 +13,12 @@ local economy_effects = require "game.raws.effects.economic"
 
 local inspector = {}
 
+local BUILDING_SUBSIDY_AMOUNT = 0.125
+
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, ut.BASE_HEIGHT * 15, "left", "up")
-	return panel
+    return fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, fs.height / 2, "left", "up")
 end
 
 ---Returns whether or not clicks on the planet can be registered.
@@ -50,13 +52,30 @@ local function init_state(base_unit)
 end
 
 ---comment
----@param gam GameScene
-function inspector.draw(gam)
+---@param gamescene GameScene
+function inspector.draw(gamescene)
     local rect = get_main_panel()
+
+
+	--- combining key presses for increments of 1, 5, 10, and 50
+	BUILDING_SUBSIDY_AMOUNT = 0.125
+	if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
+		BUILDING_SUBSIDY_AMOUNT = BUILDING_SUBSIDY_AMOUNT * 2
+	end
+	if ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+		BUILDING_SUBSIDY_AMOUNT = BUILDING_SUBSIDY_AMOUNT * 4
+	end
+
+    ---@param rect Rect
+    ---@param k any
+    ---@param v Building
+    local function render_province(rect, k, v)
+        ib.text_button_to_province(gamescene, v.province, rect, v.province.name, "This building is location in " .. v.province.name .. ".")
+    end
 
     ui.panel(rect)
 
-    local province = gam.selected.province
+    local province = gamescene.selected.province
 
     if province == nil then
         return
@@ -68,38 +87,32 @@ function inspector.draw(gam)
     ---@type TableColumn[]
     local columns = {
         {
-            header = "",
+            header = ".",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
                 ui.image(ASSETS.get_icon(v.type.icon), rect)
             end,
             width = base_unit * 1,
+            ---@param v Building
             value = function(k, v)
-                ---@type Building
-                v = v
                 return v.type.description
             end
         },
         {
-            header = "Name",
+            header = "name",
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
-                ui.left_text(v.type.description, rect)
+                ib.text_button_to_building(gamescene, v, rect, v.name)
             end,
             width = base_unit * 6,
+            ---@param v Building
             value = function(k, v)
-                ---@type Building
-                v = v
                 return v.type.description
             end
         },
         {
-            header = "Your share",
+            header = "your share",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
                 ut.money_entry(
                     "",
                     v.last_donation_to_owner,
@@ -110,86 +123,89 @@ function inspector.draw(gam)
                 )
             end,
             width = base_unit * 3,
+            ---@param v Building
             value = function(k, v)
-                ---@type Building
-                v = v
                 return v.last_donation_to_owner
             end
         },
         {
-            header = "Subsidy",
+            header = "subsidy",
+            ---@param v Building
             render_closure = function (rect, k, v)
-                ---@type Building
-                v = v
                 local dec_rect = rect:subrect(0, 0, base_unit, base_unit, "left", "up")
                 local value_rect = rect:subrect(0, 0, base_unit * 3, base_unit, "center", "up")
                 local inc_rect = rect:subrect(0, 0, base_unit, base_unit, "right", "up")
 
-                if ut.text_button("-", dec_rect, "Decrease subsidy", v.subsidy >= 0.125) then
-                    v.subsidy = v.subsidy - 0.125
+                if ut.icon_button(
+                    ASSETS.icons["minus.png"], dec_rect,
+                    "Decrease next month's subsidies by ".. ut.to_fixed_point2(-BUILDING_SUBSIDY_AMOUNT).." per worker."
+                    .. "\nPress Ctrl and/or Shift to modify amount."
+                ) then
+                    v.subsidy = v.subsidy - BUILDING_SUBSIDY_AMOUNT
                 end
-
-                if ut.text_button("+", inc_rect, "Increase subsidy") then
-                    v.subsidy = v.subsidy + 0.125
+                if ut.icon_button(ASSETS.icons["plus.png"], inc_rect,
+                    "Increase next month's subsidies by " .. ut.to_fixed_point2(BUILDING_SUBSIDY_AMOUNT) .. " per worker."
+                    .. "\nPress Ctrl and/or Shift to modify amount."
+                ) then
+                    v.subsidy = v.subsidy + BUILDING_SUBSIDY_AMOUNT
                 end
 
                 ut.money_entry("", v.subsidy, value_rect, "Current subsidy per worker. Paid monthly to attract workers.", true)
             end,
             width = base_unit * 5,
+            ---@param v Building
             value = function (k, v)
-                ---@type Building
-                v = v
                 return v.subsidy
             end,
             active = true
         },
         {
-            header = "Income",
+            header = "income",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
                 ut.money_entry("", v.last_income, rect)
             end,
             width = base_unit * 3,
+            ---@param v Building
             value = function(k, v)
-                ---@type Building
-                v = v
                 return v.last_income
             end
         },
         {
-            header = "Inputs",
+            header = "inputs",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
                 local input_rect = rect:subrect(0, 0, rect.height * 3, rect.height, "left", "up")
 
-                local total_estimated_cost = 0
+                local total_cost = 0
+                local tooltip = ""
 
-                for key, value in pairs(v.spent_on_inputs) do
+                for key, value in pairs(v.amount_of_inputs) do
                     local good = use_case(key)
                     ut.generic_number_field(
                         good.icon,
                         -value,
                         input_rect,
                         nil,
-                        ut.NUMBER_MODE.MONEY,
+                        ut.NUMBER_MODE.BALANCE,
                         ut.NAME_MODE.ICON,
-                        nil,
+                        true,
                         false
                     )
+                    if value > 0 then
+                        tooltip = tooltip .. ut.to_fixed_point2(value) .. " (" ..  ut.to_fixed_point2(v.spent_on_inputs[key] or 0) .. MONEY_SYMBOL .. "). "
+                    end
 
-                    total_estimated_cost = total_estimated_cost + value
+                    total_cost = total_cost + (v.spent_on_inputs[key] or 0)
+                    if total_cost > 0 then tooltip = "Total consumed: " .. tooltip .. " " end
 
                     input_rect.x = input_rect.x + input_rect.width
                 end
-
-                ui.tooltip("Total estimated cost: " .. ut.to_fixed_point2(total_estimated_cost), rect)
+                ui.tooltip(tooltip .. " All inputs cost a total of " .. ut.to_fixed_point2(total_cost) .. MONEY_SYMBOL, rect)
             end,
             width = base_unit * 9,
+            ---@param v Building
             value = function(k, v)
-                ---@type Building
-                v = v
 
                 local total_estimated_cost = 0
 
@@ -201,38 +217,39 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "Outputs",
+            header = "outputs",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
                 local output_rect = rect:subrect(0, 0, rect.height * 3, rect.height, "left", "up")
 
-                local total_estimated_cost = 0
+                local total_earn = 0
+                local tooltip = ""
 
-                for key, value in pairs(v.earn_from_outputs) do
+                for key, value in pairs(v.amount_of_outputs) do
                     local good = trade_good(key)
                     ut.generic_number_field(
                         good.icon,
                         value,
                         output_rect,
                         nil,
-                        ut.NUMBER_MODE.MONEY,
+                        ut.NUMBER_MODE.BALANCE,
                         ut.NAME_MODE.ICON,
                         nil,
                         false
                     )
+                    if value > 0 then
+                        tooltip = tooltip .. ut.to_fixed_point2(value) .. " (" ..  ut.to_fixed_point2(v.earn_from_outputs[key] or 0) .. MONEY_SYMBOL .. "). "
+                    end
 
-                    total_estimated_cost = total_estimated_cost + value
-
+                    total_earn = total_earn + (v.earn_from_outputs[key] or 0)
+                    if total_earn > 0 then tooltip = "Total produced: " .. tooltip .. " " end
                     output_rect.x = output_rect.x + output_rect.width
                 end
-
-                ui.tooltip("Total estimated cost: " .. ut.to_fixed_point2(total_estimated_cost), rect)
+                ui.tooltip(tooltip .. "All outputs earned a total of " .. ut.to_fixed_point2(total_earn) .. MONEY_SYMBOL, rect)
             end,
             width = base_unit * 9,
+            ---@param v Building
             value = function(k, v)
-                ---@type Building
-                v = v
 
                 local total_estimated_cost = 0
 
@@ -244,12 +261,8 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "Province",
-            render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
-                ut.data_entry(v.province.name, "", rect)
-            end,
+            header = "province",
+            render_closure = render_province,
             width = base_unit * 5,
             value = function(k, v)
                 ---@type Building
@@ -258,10 +271,9 @@ function inspector.draw(gam)
             end
         },
         {
-            header = "Jobs",
+            header = "jobs",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
 
                 local employed = tabb.size(v.workers)
                 local total_needed = v.type.production_method:total_jobs()
@@ -281,9 +293,8 @@ function inspector.draw(gam)
         },
         {
             header = "X",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ---@type Building
-                v = v
                 if ut.icon_button(ASSETS.get_icon("hammer-drop.png"), rect, "Destroy building") then
                     economy_effects.destroy_building(v)
                 end

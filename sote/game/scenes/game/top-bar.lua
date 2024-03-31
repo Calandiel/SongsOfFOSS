@@ -3,6 +3,8 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
 local pv = require "game.raws.values.political"
+local ev = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economic"
 
 local RANKS = require "game.raws.ranks.character_ranks"
 
@@ -146,9 +148,9 @@ function tb.draw(gam)
 			"My personal savings")
 
 
-		local amount = character.inventory["food"] or 0
+		local amount = economic_effects.available_use_case_from_inventory(character, 'food')
 		uit.sqrt_number_entry_icon(
-			"noodles.png",
+			"sliced-bread.png",
 			amount,
 			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
 			"Food in my inventory")
@@ -171,6 +173,9 @@ function tb.draw(gam)
 			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 			"My popularity")
 
+		uit.render_pop_satsifaction(
+			layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
+			character)
 
 		-- COA + name
 		local layout = ui.layout_builder()
@@ -204,7 +209,7 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = character.province.realm.resources["food"] or 0
+		local amount = ev.get_local_amount_of_use(character.province, 'food')
 		uit.sqrt_number_entry_icon(
 			"noodles.png",
 			amount,
@@ -253,6 +258,41 @@ function tb.draw(gam)
 
 		---@type Alert[]
 		local alerts = {}
+
+		if character.age > character.race.elder_age then
+			table.insert(alerts, {
+				["icon"] = "tombstone.png",
+				["tooltip"] = "You have reached elder age age will make a death roll each month. Keep your needs satisfaction up to reduce the chance of dieing from old age.",
+			})
+		end
+
+		local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
+			local ratio = v.consumed / v.demanded
+			if ratio < a then
+				return ratio
+			end
+			return a
+		end)
+		if min_food_satsfaction < 0.2 then
+			table.insert(alerts, {
+				["icon"] = "sliced-bread.png",
+				["tooltip"] = "You have not consumed enough food last month. Unless you consume at least 20% of each food need, you will make a death roll every month.",
+			})
+		end
+
+		local min_water_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
+			local ratio = v.consumed / v.demanded
+			if ratio < a then
+				return ratio
+			end
+			return a
+		end)
+		if min_water_satsfaction < 0.2 then
+			table.insert(alerts, {
+				["icon"] = "droplets.png",
+				["tooltip"] = "You have not consumed enough water last month. Unless you consume at least 20% of each water need, you will make a death roll every month.",
+			})
+		end
 
 		if character.province:get_unemployment() > 5 then
 			table.insert(alerts, {

@@ -5,6 +5,8 @@ local rea = {}
 local economic_effects = require "game.raws.effects.economic"
 local economic_values = require "game.raws.values.economical"
 
+local use_case = require "game.raws.raws-utils".trade_good_use_case
+
 
 ---@param realm Realm
 function rea.prerun(realm)
@@ -53,8 +55,9 @@ function rea.run(realm)
 			realm.production[prod] = old - amount
 			local vold = realm.bought[prod] or 0
 			realm.bought[prod] = vold + amount -- a '+', even tho we're consuming, because this stands for volume
-			if prod == 'food' then
-				realm.expected_food_consumption = realm.expected_food_consumption + amount
+			local weight = use_case('food').goods[prod]
+			if weight then
+				realm.expected_food_consumption = realm.expected_food_consumption + amount * weight
 			end
 
 			local resource = good(prod)

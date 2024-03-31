@@ -469,7 +469,7 @@ local function load()
 			if root.busy then
 				return "You are too busy to consider it."
 			end
-			if root.realm.capitol:population() < 11 then
+			if root.realm.capitol:home_population() < 11 then
 				return "Your population is too low"
 			end
 			if root.realm.budget.treasury < colonisation_cost then
@@ -508,7 +508,7 @@ local function load()
 			if not primary_target.center.is_land then
 				return false
 			end
-			if root.realm.capitol:population() < 11 then
+			if root.realm.capitol:home_population() < 11 then
 				return false
 			end
 			if primary_target.realm ~= nil then
@@ -541,7 +541,7 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.realm.capitol:population() > 20 and primary_target.realm == nil then
+			if root.realm.capitol:home_population() > 20 and primary_target.realm == nil then
 				return 1
 			end
 			return 0

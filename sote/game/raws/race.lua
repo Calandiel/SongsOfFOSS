@@ -39,11 +39,11 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field minimum_comfortable_elevation number
 ---@field female_body_size number
 ---@field female_efficiency table<JOBTYPE, number>
----@field female_needs table<NEED, number>
+---@field female_needs table<NEED, table<TradeGoodUseCaseReference, number>>
 ---@field female_infrastructure_needs number
 ---@field male_body_size number
 ---@field male_efficiency table<JOBTYPE, number>
----@field male_needs table<NEED, number>
+---@field male_needs table<NEED, table<TradeGoodUseCaseReference, number>>
 ---@field male_infrastructure_needs number
 ---@field requires_large_river boolean
 ---@field requires_large_forest boolean
@@ -95,17 +95,32 @@ function Race:new(o)
 	}
 
 	r.female_needs = {
-		[NEED.WATER] = 1,
-		[NEED.FOOD] = 1,
-		-- [NEED.FRUIT] = 1,
-		-- [NEED.GRAIN] = 1,
-		-- [NEED.MEAT] = 1,
-		[NEED.CLOTHING] = 1,
-		[NEED.FURNITURE] = 1,
-		[NEED.TOOLS] = 0.125,
-		[NEED.HEALTHCARE] = 0.125,
-		[NEED.STORAGE] = 0.125,
-		[NEED.LUXURY] = 1
+		[NEED.WATER] = {
+			['water'] = 1,
+		},
+		[NEED.FOOD] = {
+			['food'] = 0.5,
+			['meat'] = 0.25,
+			['fruit'] = 0.25,
+		},
+		[NEED.CLOTHING] = {
+			['clothes'] = 1,
+		},
+		[NEED.FURNITURE] = {
+			['furniture'] = 1,
+		},
+		[NEED.TOOLS] = {
+			['tools-like'] = 0.125,
+		},
+		[NEED.HEALTHCARE] = {
+			['healthcare'] = 0.125,
+		},
+		[NEED.STORAGE] = {
+			['containers'] = 0.125,
+		},
+		[NEED.LUXURY] = {
+			['liquors'] = 1,
+		},
 	}
 
 	r.male_efficiency = {
@@ -119,17 +134,32 @@ function Race:new(o)
 	}
 
 	r.male_needs = {
-		[NEED.WATER] = 1,
-		[NEED.FOOD] = 1,
-		-- [NEED.FRUIT] = 1,
-		-- [NEED.GRAIN] = 1,
-		-- [NEED.MEAT] = 1,
-		[NEED.CLOTHING] = 1,
-		[NEED.FURNITURE] = 1,
-		[NEED.TOOLS] = 0.125,
-		[NEED.HEALTHCARE] = 0.125,
-		[NEED.STORAGE] = 0.125,
-		[NEED.LUXURY] = 1
+		[NEED.WATER] = {
+			['water'] = 1,
+		},
+		[NEED.FOOD] = {
+			['food'] = 0.5,
+			['meat'] = 0.25,
+			['fruit'] = 0.25,
+		},
+		[NEED.CLOTHING] = {
+			['clothes'] = 1,
+		},
+		[NEED.FURNITURE] = {
+			['furniture'] = 1,
+		},
+		[NEED.TOOLS] = {
+			['tools-like'] = 0.125,
+		},
+		[NEED.HEALTHCARE] = {
+			['healthcare'] = 0.125,
+		},
+		[NEED.STORAGE] = {
+			['containers'] = 0.125,
+		},
+		[NEED.LUXURY] = {
+			['liquors'] = 1,
+		},
 	}
 
 	r.requires_large_river = false

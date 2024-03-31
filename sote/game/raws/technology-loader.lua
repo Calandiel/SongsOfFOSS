@@ -44,12 +44,10 @@ function d.load()
 		unlocked_by = { tec("paleolithic-knowledge") },
 		research_cost = 0.2,
 		throughput_boosts = {
-			[prod("flint-knapping")] = 0.1,
-			[prod("obsidian-knapping")] = 0.1
+			[prod("blanks-knapping")] = 0.1,
 		},
 		input_efficiency_boosts = {
-			[prod("flint-knapping")] = 0.75,
-			[prod("obsidian-knapping")] = 0.75,
+			[prod("blanks-knapping")] = 0.75,
 		},
 		output_efficiency_boosts = {
 			[prod("flint-extraction")] = 1.25,
@@ -182,7 +180,10 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("basic-fermentation"), },
 		research_cost = 1,
-		throughput_boosts = { [prod("brewing")] = 0.15 },
+		throughput_boosts = {
+			[prod("brewing-grain")] = 0.15,
+			[prod("brewing-fruit")] = 0.15
+		},
 	}
 	Technology:new {
 		name = "mead",
