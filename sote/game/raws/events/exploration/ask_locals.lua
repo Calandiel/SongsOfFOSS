@@ -137,7 +137,7 @@ return function()
 			return {
 				{
 					text = "Thanks...",
-					tooltip = "I get back to exploration of local lands.",
+					tooltip = "I get back to the exploration of local lands.",
 					viable = function() return true end,
 					outcome = outcome_accept,
 					ai_preference = 1

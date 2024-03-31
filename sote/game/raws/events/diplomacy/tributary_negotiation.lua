@@ -52,7 +52,7 @@ return function ()
 
 			if character.dead and realm.leader then
 				return {{
-					text = "I am dead, it's someone else problem",
+					text = "I am dead; it's someone else's problem",
 					tooltip = "",
 					viable = function() return true end,
 					outcome = function()
@@ -133,7 +133,7 @@ return function ()
 
 			if character.dead then
 				return {{
-					text = "I am dead, there is nothing i could do.",
+					text = "I am dead; there is nothing I could do.",
 					tooltip = "",
 					viable = function() return true end,
 					outcome = function () end,

@@ -348,7 +348,7 @@ function load()
 				.. tabb.size(associated_data.realm.capitol.characters) .. " nobles in total."
 
 			return name
-				.. " requested me to allow his people to migrate to my lands. "
+				.. " requested that I allow his people to migrate to my lands."
 				.. population_string
 				.. " What should I do?"
 		end,
@@ -415,7 +415,7 @@ function load()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I refused to pay allow foreigners into our lands.")
+							WORLD:emit_notification("I refused to allow foreigners into our lands.")
 						end
 
 						if associated_data == WORLD.player_character then
@@ -429,8 +429,8 @@ function load()
 					end
 				},
 				{
-					text = "Suggest to swap lands",
-					tooltip = "Suggest to exchange lands",
+					text = "Suggest swapping lands",
+					tooltip = "Suggest exchanging lands",
 					viable = function() return true end,
 					outcome = function()
 						WORLD:emit_event("migration-suggest-swapping", associated_data, character, travel_time)
@@ -451,7 +451,7 @@ function load()
 			local name = associated_data.name
 
 			return name
-				.. " refused my request to allow our people to migrate to their lands, but suggested to swap our lands instead."
+				.. " refused my request to allow our people to migrate to their lands, but suggested swapping our lands instead."
 		end,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
@@ -497,7 +497,7 @@ function load()
 				},
 				{
 					text = "Escalate",
-					tooltip = "Prepare invasion instead",
+					tooltip = "Prepare an invasion instead",
 					viable = function() return true end,
 					outcome = function()
 						WORLD:emit_immediate_event("migration-invasion-preparation", character, associated_data.realm)
@@ -528,7 +528,7 @@ function load()
 			---@type Character
 			associated_data = associated_data
 
-			return "After short negotiation, "
+			return "After a short negotiation, "
 				.. associated_data.name
 				.. " agreed to allow us into their land."
 		end,
@@ -632,10 +632,10 @@ function load()
 				.. " warriors in total."
 				.. "Currently, I have "
 				.. my_warlords_ready
-				.. " warlords with total strength of "
+				.. " warlords with a total strength of "
 				.. my_power_ready
 				.. " ready to join my campaign."
-				.. " Enemies potential forces consist of "
+				.. " Enemy's potential forces consist of "
 				.. their_warlords
 				.. " warlords with total size of "
 				.. their_power
@@ -822,10 +822,10 @@ function load()
 	event_utils.notification_event(
 		"migration-invasion-success",
 		function(self, root, associated_data)
-			return "Our invasion is successful! "
+			return "Our invasion is successful!"
 		end,
 		function(root, associated_data)
-			return "New home awaits."
+			return "Our new home awaits."
 		end,
 		function(root, associated_data)
 			return "Our tribe moves to the invaded province."
