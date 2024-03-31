@@ -14,7 +14,7 @@ function MilitaryEffects.set_recruiter(warband, character)
     warband.recruiter = character
 end
 
----Sets character as a recruiter of warband
+---unets character as a recruiter of warband
 ---@param character Character
 ---@param warband Warband
 function MilitaryEffects.unset_recruiter(warband, character)
@@ -34,8 +34,6 @@ function MilitaryEffects.gather_warband(leader)
     warband.leader = leader
     leader.leading_warband = warband
 
-    warband.commander = leader
-
     MilitaryEffects.set_recruiter(warband, leader)
 
     if WORLD:does_player_see_realm_news(leader.province.realm) then
@@ -50,6 +48,7 @@ function MilitaryEffects.gather_guard(realm)
     local warband = province:new_warband()
     warband.name = "Guard of " .. realm.name
 
+    warband.guard_of = realm
     realm.capitol_guard = warband
 
     if WORLD:does_player_see_realm_news(realm) then
@@ -74,8 +73,7 @@ function MilitaryEffects.dissolve_guard(realm)
         MilitaryEffects.unset_recruiter(warband, warband.recruiter)
     end
 
-    warband.recruiter = nil
-    warband.commander = nil
+    warband:unset_commander()
 
     ---@type POP[]
     local to_unregister = {}
@@ -102,11 +100,12 @@ function MilitaryEffects.dissolve_warband(leader)
         return
     end
 
-    economy_effects.gift_to_warband(leader, -warband.treasury)
+    economy_effects.gift_to_warband(warband, leader, -warband.treasury)
     leader.leading_warband = nil
 
     warband.leader = nil
-    warband.commander = nil
+    warband:unset_commander()
+
     if warband.recruiter then
         MilitaryEffects.unset_recruiter(warband, warband.recruiter)
     end

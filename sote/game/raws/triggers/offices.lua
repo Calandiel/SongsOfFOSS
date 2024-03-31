@@ -52,6 +52,18 @@ function triggers.tribute_collector(character, realm)
     return true
 end
 
+---checks if character is a warband leader
+---@param character Character
+---@param warband Warband
+function triggers.warband_leader(character, warband)
+    -- go through officer posts and check if that of highest filled
+    if warband.leader and warband.leader ~= character then return false end
+    if warband.recruiter and warband.recruiter ~= character then return false end
+    if warband.commander and warband.commander ~= character then return false end
+
+    return true
+end
+
 ---checks if character is a guard leader
 ---@param character Character
 ---@param realm Realm
@@ -59,9 +71,7 @@ function triggers.guard_leader(character, realm)
     if character.realm ~= realm then return false end
     local guard = realm.capitol_guard
     if guard == nil then return false end
-    if guard.commander ~= character then return false end
-
-    return true
+    return triggers.warband_leader(character, guard)
 end
 
 ---checks if character can patrol the province
@@ -75,12 +85,12 @@ function triggers.valid_patrol_participant(character, province)
     -- sanity checks passed, now check if character leads controls some warband
     if character.leading_warband then
         local warband = character.leading_warband
-        if warband.status ~= 'idle' then
+        if warband and warband.status ~= 'idle' then
             return false
         end
     elseif triggers.guard_leader(character, province.realm) then
         local warband = character.realm.capitol_guard
-        if warband.status ~= 'idle' then
+        if warband and warband.status ~= 'idle' then
             return false
         end
         return true

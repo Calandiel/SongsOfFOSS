@@ -57,17 +57,18 @@
 ---@field empty_texture_image_data love.ImageData
 ---@field empty_texture love.Image
 ---@field update fun(number)
----@field outliner number
+---@field outliner boolean
 ---@field map_mode_selected_tab MapModeTab
----@field inspector nil | InspectorType
+---@field inspector nil | InspectorType | MenuTypes
 ---@field recalculate_province_map fun()
 ---@field map_update_coroutine nil | thread
 ---@field recalculate_raiding_targets_map fun()
 ---@field decision_target_primary any TODO this is difficult to untangle, port to Teal to fix it
 ---@field decision_target_secondary any TODO this is difficult to untangle, port to Teal to fix it
 
----@alias InspectorType "tile"|'confirm-exit'
----@alias MapModeTab 'all'|'debug'|'demographic'|'economic'|'political'
+---@alias InspectorType 'characters' | 'treasury-ledger' | 'character' | 'tile' | 'realm' | 'building' | 'war' | 'army' | 'character-decisions' | 'market' | 'population' | 'macrobuilder' | 'macrodecision' | 'warband' | 'property' | 'quests'
+---@alias MenuTypes 'options' | 'confirm-exit' | 'preferences'
+---@alias MapModeTab 'all' | 'debug' | 'demographic' | 'economic' | 'political'
 
 ---@class GameScene
 local gam = {}
@@ -132,6 +133,7 @@ local tile_inspectors = {
 ---@field building Building?
 ---@field macrobuilder_building_type BuildingType?
 ---@field war War?
+---@field warband Warband?
 ---@field decision DecisionCharacter?
 ---@field macrodecision DecisionCharacterProvince?
 ---@field tech Technology?
@@ -821,7 +823,7 @@ function gam.draw()
 		province_on_map_interaction = true
 		---comment
 		---@param province Province
-		---@param mode "path"|"label"|"decision"|"macrobuilder"
+		---@param mode 'path' | 'label' | 'decision' | 'macrobuilder'
 		local function draw_province(province, mode)
 			-- sanity checks
 			local visibility = true
@@ -911,17 +913,17 @@ function gam.draw()
 			local character = WORLD.player_character
 			if character then
 				for _, province in pairs(character.realm.known_provinces) do
-					draw_province(province, "path")
+					draw_province(province, 'path')
 				end
 				for _, province in pairs(character.realm.known_provinces) do
-					draw_province(province, "decision")
+					draw_province(province, 'decision')
 				end
 			end
 		elseif gam.inspector == 'macrobuilder' then
 			local character = WORLD.player_character
 			if character then
 				for _, province in pairs(character.realm.known_provinces) do
-					draw_province(province, "macrobuilder")
+					draw_province(province, 'macrobuilder')
 				end
 			end
 		else
@@ -1285,6 +1287,15 @@ function gam.draw()
 						gam.inspector = "tile"
 					else
 						gam.selected.realm = WORLD.tiles[new_clicked_tile].province.realm
+					end
+				end
+			elseif gam.inspector == "army" then
+				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
+					if gam.selected.realm == WORLD.tiles[new_clicked_tile].province.realm then
+						-- If we double click a realm, change the inspector to tile
+						gam.inspector = "tile"
+					else
+						gam.selected.province = WORLD.tiles[new_clicked_tile].province
 					end
 				end
 			elseif tile_inspectors[gam.inspector] then

@@ -1,11 +1,11 @@
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
 local window = {}
 
 local slider_warbands = 0
-local slider_raiding_targets = 0
 
 
 ---@return Rect
@@ -27,10 +27,11 @@ end
 ---@param game GameScene
 function window.draw(game)
     local player_character = WORLD.player_character
-    if player_character == nil then
-        return
+
+    local realm = game.selected.province.realm
+    if realm == nil and player_character then
+        realm = player_character.province.realm
     end
-    local realm = player_character.realm
 
     if realm == nil then
         return
@@ -54,23 +55,31 @@ function window.draw(game)
     local warbands = realm:get_warbands()
     slider_warbands = uit.scrollview(ui_panel, function(i, rect)
         if i > 0 then
+            local realm_icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "up")
+
             ---@type Rect
             local r = rect
+            r.x = r.x + rect.height
+            r.width = r.width - r.height
             local width_unit = r.width / 4
             local x = r.x
 
             r.width = width_unit * 2
             ---@type Warband
             local warband = warbands[i]
-            ui.left_text(warband.name, r)
+
+            ib.icon_button_to_realm(game, warband:realm(), realm_icon_rect)
+            
+            ib.text_button_to_warband(game, warband, r,
+                warband.name)
 
             r.width = width_unit
             r.x = x + width_unit * 2
-            ui.left_text(warband.status, r)
+            ui.centered_text(warband.status, r)
 
             r.x = x + width_unit * 3
             ui.left_text("units: ", r)
-            ui.right_text(" " .. warband:size(), r)
+            ui.right_text(warband:war_size() .. " / " .. warband:target_size() .. " (" .. warband:size() .. ") ", r)
         end
     end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, slider_warbands)
 end

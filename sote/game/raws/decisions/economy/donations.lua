@@ -49,7 +49,7 @@ return function ()
 			local province = root.province
 			if province == nil then return end
 
-			province.mood = math.min(10, province.mood + base_gift_size / province:population() / 2)
+			province.mood = math.min(10, province.mood + base_gift_size / province:total_population() / 2)
 			economic_effects.change_local_wealth(province, base_gift_size, economic_effects.reasons.Donation)
 			economic_effects.add_pop_savings(root, -base_gift_size, economic_effects.reasons.Donation)
 			political_effects.small_popularity_boost(root, province.realm)

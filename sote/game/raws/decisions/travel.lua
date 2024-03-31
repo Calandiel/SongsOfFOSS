@@ -372,7 +372,7 @@ local function load()
 				end
 			end
 
-			if not economy_triggers.can_buy(root, 'food', 1) then
+			if not economy_triggers.can_buy_use(root, 'food', 1) then
 				return false
 			end
 
@@ -399,7 +399,7 @@ local function load()
 			return 1
 		end,
 		effect = function(root, primary_target, secondary_target)
-			economy_effects.buy(root, 'food', 1)
+			economy_effects.buy_use(root, 'food', 1)
 			root.leading_warband.idle_stance = "forage"
 		end
 	}

@@ -40,7 +40,7 @@ function dem.population()
 		---@type Tile
 		local t = tile
 		if (t.province.size == 0) then return 0 end
-		return math.min(1, t.province:population() / 100)
+		return math.min(1, t.province:total_population() / 100)
 	end)
 end
 
@@ -49,7 +49,7 @@ function dem.population_1000()
 		---@type Tile
 		local t = tile
 		if (t.province.size == 0) then return 0 end
-		return math.min(1, t.province:population() / 1000)
+		return math.min(1, t.province:total_population() / 1000)
 	end)
 end
 
@@ -58,7 +58,7 @@ function dem.population_density()
 		---@type Tile
 		local t = tile
 		if (t.province.size == 0) then return 0 end
-		return math.min(1, math.max(0, t.province:population() - 10) / t.province.size)
+		return math.min(1, math.max(0, t.province:total_population() - 10) / t.province.size)
 	end)
 end
 
