@@ -1587,10 +1587,10 @@ local function realm_neighbor_neighbor_data(tile)
 	local right_neigh = tile.get_neighbor(tile, 3)
 	local left_neigh = tile.get_neighbor(tile, 4)
 
-	local up_r, up_g, up_b, up_a = neighbor_data(up_neigh)
-	local down_r, down_g, down_b, down_a = neighbor_data(down_neigh)
-	local right_r, right_g, right_b, right_a = neighbor_data(right_neigh)
-	local left_r, left_g, left_b, left_a = neighbor_data(left_neigh)
+	local up_r, up_g, up_b, up_a = realm_neighbor_data(up_neigh)
+	local down_r, down_g, down_b, down_a = realm_neighbor_data(down_neigh)
+	local right_r, right_g, right_b, right_a = realm_neighbor_data(right_neigh)
+	local left_r, left_g, left_b, left_a = realm_neighbor_data(left_neigh)
 
 	local r = (up_r + down_r + right_r + left_r) / 4
 	local g = (up_g + down_g + right_g + left_g) / 4
