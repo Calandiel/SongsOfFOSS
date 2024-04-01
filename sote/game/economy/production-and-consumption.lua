@@ -248,7 +248,7 @@ function pro.run(province)
 	end
 		
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
-	local population = province:total_population()
+	local population = province:local_population()
 	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
 
 
@@ -290,7 +290,7 @@ function pro.run(province)
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return number income
 	local function forage(pop_view, pop_table, time)
-		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.25
+		local food_produced = get_foraging_production(pop_view, pop_table, time) * 0.5
 		local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * 0.1 * timber_production * time
 		local income = 0
 		if pop_table:is_character() then -- hunt for meat and hide

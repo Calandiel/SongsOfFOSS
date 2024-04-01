@@ -29,7 +29,7 @@ return function(gam, tile, rect, x, y, size)
 	local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, rect, "callback")
 
 	rect.y = y - length_of_line - height_unit
-	local population = tile.province:total_population()
+	local population = tile.province:local_population()
 	ut.data_entry("", tostring(population), rect)
 
 	local line_rect = ui.rect(x - 1, y - length_of_line, 2, 50 - height_unit)

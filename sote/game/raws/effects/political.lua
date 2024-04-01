@@ -30,6 +30,7 @@ function PoliticalEffects.dissolve_realm(realm)
 	WORLD.realms[realm.realm_id] = nil
 	military_effects.dissolve_guard(realm)
 	realm:remove_province(realm.capitol)
+	WORLD:unset_settled_province(realm.capitol)
 end
 
 ---Returns result of coup: true if success, false if failure

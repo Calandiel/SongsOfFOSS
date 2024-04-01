@@ -3,6 +3,7 @@ local cult = require "game.entities.culture"
 local rel = require "game.entities.religion"
 local pop = require "game.entities.pop"
 local tabb = require "engine.table"
+local job_types = require "game.raws.job_types"
 
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
@@ -42,15 +43,20 @@ local function make_new_realm(capitol, race, culture, faith)
 	-- Mark the province as settled for processing...
 	WORLD:set_settled_province(capitol)
 
+	--calculate average ratial foraging_efficiency from males per 100 females
+	local male_percentage = race.males_per_hundred_females / (100 + race.males_per_hundred_females)
+	local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] + (1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
+	local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] + (1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
+
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * 2)
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.middle_age, 0)) + 1)
 		pop.POP:new(
 			race,
 			faith,
 			culture,
-			love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
+			love.math.random() > male_percentage,
 			age,
 			capitol, capitol
 		)
@@ -254,11 +260,14 @@ function st.run()
 
 	-- At the end, print the amount of spawned tribes
 	print("Spawned tribes:", tabb.size(WORLD.realms))
-	local pp = 0
+	local pops = 0
+	local characters = 0
 	for _, prov in pairs(WORLD.provinces) do
-		pp = pp + prov:total_population()
+		pops = pops + prov:local_population()
+		characters = characters + tabb.size(prov.characters)
 	end
-	print("Spawned population: " .. tostring(pp))
+	print("Spawned population: " .. tostring(pops))
+	print("Spawned characters: " .. tostring(characters))
 end
 
 return st

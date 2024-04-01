@@ -97,7 +97,7 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			local pop = primary_target:total_population()
+			local pop = primary_target:local_population()
 			return root.budget.treasury > pop * gift_cost_per_pop
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
@@ -129,7 +129,7 @@ function ll.load()
 			---@type Province
 			local primary_target = primary_target
 			primary_target.mood = math.min(10, primary_target.mood + 0.05)
-			economic_effects.change_treasury(root, -primary_target:total_population() * gift_cost_per_pop, economic_effects.reasons.Donation)
+			economic_effects.change_treasury(root, -primary_target:local_population() * gift_cost_per_pop, economic_effects.reasons.Donation)
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("Population of " .. primary_target.name .. " is jubilant after receiving our gifts!")
 			end

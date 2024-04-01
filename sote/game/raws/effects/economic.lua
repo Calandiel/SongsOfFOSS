@@ -653,8 +653,8 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
 	EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Donation)
 	EconomicEffects.change_treasury(realm, amount, EconomicEffects.reasons.Donation)
 
-	realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:total_population() / 100
-	character.popularity[realm] = (character.popularity[realm] or 0) + amount / (realm.capitol:total_population() + 1) / 100
+	realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:local_population() / 100
+	character.popularity[realm] = (character.popularity[realm] or 0) + amount / (realm.capitol:local_population() + 1) / 100
 end
 
 ---comment

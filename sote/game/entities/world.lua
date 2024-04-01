@@ -410,17 +410,6 @@ function world.World:tick()
 			ta[province] = nil
 		end
 
-		PROFILER:start_timer("growth")
-
-		-- "POP" update
-		local pop_growth = require "game.society.pop-growth"
-		for _, settled_province in pairs(ta) do
-			--print("Pop growth")
-			pop_growth.growth(settled_province)
-		end
-
-		PROFILER:end_timer("growth")
-
 
 		-- "Province" update
 		local employ = require "game.economy.employment"
@@ -452,6 +441,14 @@ function world.World:tick()
 			research.run(settled_province)
 			recruit.run(settled_province)
 			PROFILER:end_timer("province")
+
+			PROFILER:start_timer("growth")
+			-- "POP" update
+			local pop_growth = require "game.society.pop-growth"
+			--print("Pop growth")
+			pop_growth.growth(settled_province)
+			PROFILER:end_timer("growth")
+
 			--print("done")
 		end
 

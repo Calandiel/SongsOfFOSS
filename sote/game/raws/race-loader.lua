@@ -57,21 +57,21 @@ function ll.load()
 		female_body_size = 1.25,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 1,
-			[JOBTYPE.ARTISAN] = 1.5,
+			[JOBTYPE.ARTISAN] = 2,
 			[JOBTYPE.CLERK] = 1.2,
 			[JOBTYPE.LABOURER] = 2,
-			[JOBTYPE.WARRIOR] = 1.1,
-			[JOBTYPE.HAULING] = 2,
-			[JOBTYPE.FORAGER] = 1.2
+			[JOBTYPE.WARRIOR] = 1.25,
+			[JOBTYPE.HAULING] = 1.5,
+			[JOBTYPE.FORAGER] = 1.5
 		},
 		female_needs = {
 			[NEED.WATER] = {
-				['water'] = 3
+				['water'] = 2.5
 			},
 			[NEED.FOOD] = {
 				['calories'] = 1.5,
-				['timber'] = 0.1,
-				['grain'] = 0.1,
+				['grain'] = 1,
+				['timber'] = 1,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur
@@ -96,21 +96,21 @@ function ll.load()
 		male_body_size = 2,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 1,
-			[JOBTYPE.ARTISAN] = 1.5,
+			[JOBTYPE.ARTISAN] = 2,
 			[JOBTYPE.CLERK] = 1.2,
-			[JOBTYPE.LABOURER] = 2.5,
-			[JOBTYPE.WARRIOR] = 1.1,
+			[JOBTYPE.LABOURER] = 2,
+			[JOBTYPE.WARRIOR] = 1.25,
 			[JOBTYPE.HAULING] = 2,
-			[JOBTYPE.FORAGER] = 1.2
+			[JOBTYPE.FORAGER] = 1.5
 		},
 		male_needs = {
 			[NEED.WATER] = {
 				['water'] = 4
 			},
 			[NEED.FOOD] = {
-				['calories'] = 2.0,
-				['timber'] = 0.2,
-				['grain'] = 0.2,
+				['calories'] = 1.75,
+				['grain'] = 2,
+				['timber'] = 1,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.125 / 2 -- beavers have really nice fur
@@ -170,21 +170,21 @@ function ll.load()
 		visibility = 2,
 		female_body_size = 2,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 0.01,
+			[JOBTYPE.FARMER] = 0.25,
 			[JOBTYPE.ARTISAN] = 0.1,
 			[JOBTYPE.CLERK] = 0.3,
 			[JOBTYPE.LABOURER] = 2,
-			[JOBTYPE.WARRIOR] = 4,
-			[JOBTYPE.HAULING] = 4,
-			[JOBTYPE.FORAGER] = 4
+			[JOBTYPE.WARRIOR] = 1.5,
+			[JOBTYPE.HAULING] = 2,
+			[JOBTYPE.FORAGER] = 1.5
 		},
 		female_needs = {
 			[NEED.WATER] = {
-				['water'] = 4
+				['water'] = 2
 			},
 			[NEED.FOOD] = {
-				['calories'] = 2.0,
-				['meat'] = 0.5,
+				['calories'] = 2,
+				['meat'] = 2,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.01, -- gnolls have really nice fur
@@ -208,21 +208,21 @@ function ll.load()
 		female_infrastructure_needs = 4,
 		male_body_size = 1.2,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 0.01,
+			[JOBTYPE.FARMER] = 0.25,
 			[JOBTYPE.ARTISAN] = 0.2,
 			[JOBTYPE.CLERK] = 0.4,
-			[JOBTYPE.LABOURER] = 1.5,
-			[JOBTYPE.WARRIOR] = 3,
-			[JOBTYPE.HAULING] = 3,
-			[JOBTYPE.FORAGER] = 3
+			[JOBTYPE.LABOURER] = 2,
+			[JOBTYPE.WARRIOR] = 1.25,
+			[JOBTYPE.HAULING] = 1.5,
+			[JOBTYPE.FORAGER] = 1.5
 		},
 		male_needs = {
 			[NEED.WATER] = {
-				['water'] = 2.4
+				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['calories'] = 1.2,
-				['meat'] = 0.25,
+				['calories'] = 1.5,
+				['meat'] = 1.5,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.01, -- gnolls have really nice fur
@@ -380,16 +380,16 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 0.8,
 			[JOBTYPE.WARRIOR] = 1.5,
 			[JOBTYPE.HAULING] = 0.8,
-			[JOBTYPE.FORAGER] = 1.5
+			[JOBTYPE.FORAGER] = 1
 		},
 		female_needs = {
 			[NEED.WATER] = {
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.9,
-				['fruit'] = 0.2,
-				['grain'] = 0.2,
+				['calories'] = 1.5,
+				['fruit'] = 1.25,
+				['grain'] = 1.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -426,9 +426,9 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.95,
-				['fruit'] = 0.25,
-				['grain'] = 0.2,
+				['calories'] = 1.5,
+				['fruit'] = 1.25,
+				['grain'] = 1.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -483,16 +483,16 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 1.8,
 			[JOBTYPE.WARRIOR] = 1.1,
 			[JOBTYPE.HAULING] = 1.1,
-			[JOBTYPE.FORAGER] = 0.8
+			[JOBTYPE.FORAGER] = 1.1
 		},
 		female_needs = {
 			[NEED.WATER] = {
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.7,
-				['meat'] = 0.2,
-				['grain'] = 0.2,
+				['calories'] = 1.25,
+				['fruit'] = 1.1,
+				['meat'] = 1.1,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -522,16 +522,16 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 1.8,
 			[JOBTYPE.WARRIOR] = 1.1,
 			[JOBTYPE.HAULING] = 1.1,
-			[JOBTYPE.FORAGER] = 0.8
+			[JOBTYPE.FORAGER] = 1.1
 		},
 		male_needs = {
 			[NEED.WATER] = {
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.8,
-				['meat'] = 0.25,
-				['grain'] = 0.2,
+				['calories'] = 1.25,
+				['fruit'] = 1.1,
+				['meat'] = 1.1,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1
@@ -604,7 +604,7 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 0.25,
 			[JOBTYPE.WARRIOR] = 0.25,
 			[JOBTYPE.HAULING] = 0.5,
-			[JOBTYPE.FORAGER] = 0.25
+			[JOBTYPE.FORAGER] = 0.5
 		},
 		female_needs = {
 			[NEED.WATER] = {
@@ -612,8 +612,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = 0.5,
-				['fruit'] = 0.1,
-				['meat'] = 0.1,
+				['fruit'] = 0.5,
+				['meat'] = 0.5,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.25
@@ -643,16 +643,16 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 0.25,
 			[JOBTYPE.WARRIOR] = 0.25,
 			[JOBTYPE.HAULING] = 0.5,
-			[JOBTYPE.FORAGER] = 0.25
+			[JOBTYPE.FORAGER] = 0.5
 		},
 		male_needs = {
 			[NEED.WATER] = {
 				['water'] = 0.25
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.6,
-				['fruit'] = 0.1,
-				['meat'] = 0.1,
+				['calories'] = 0.5,
+				['fruit'] = 0.5,
+				['meat'] = 0.5,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.25
@@ -722,19 +722,17 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 0.2,
 			[JOBTYPE.WARRIOR] = 0.2,
 			[JOBTYPE.HAULING] = 0.2,
-			[JOBTYPE.FORAGER] = 0.5
+			[JOBTYPE.FORAGER] = 0.4
 		},
 		female_needs = {
 			[NEED.WATER] = {
 				['water'] = 0.2
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.3,
-				['fruit'] = 0.1,
-				['grain'] = 0.1,
-				['meat'] = 0.1,
+				['calories'] = 0.5,
+				['grain'] = 0.5,
+				['fruit'] = 0.5,
 			},
-
 			[NEED.CLOTHING] = {
 				['clothes'] = 0.2
 			},
@@ -763,17 +761,16 @@ function ll.load()
 			[JOBTYPE.LABOURER] = 0.2,
 			[JOBTYPE.WARRIOR] = 0.2,
 			[JOBTYPE.HAULING] = 0.2,
-			[JOBTYPE.FORAGER] = 0.5
+			[JOBTYPE.FORAGER] = 0.4
 		},
 		male_needs = {
 			[NEED.WATER] = {
 				['water'] = 0.2
 			},
 			[NEED.FOOD] = {
-				['calories'] = 0.3,
-				['fruit'] = 0.05,
-				['grain'] = 0.05,
-				['meat'] = 0.05,
+				['calories'] = 0.5,
+				['grain'] = 0.5,
+				['fruit'] = 0.5,
 			},
 
 			[NEED.CLOTHING] = {

@@ -196,13 +196,6 @@ function prov.Province:home_characters()
 	end))
 end
 
----Returns the total population of the province, including characters.
----Doesn't include outlaws and active armies.
----@return number
-function prov.Province:total_population()
-	return tabb.size(self.all_pops) + tabb.size(self.characters)
-end
-
 ---Returns the total count of all pops who consider this province home, including characters.
 ---Doesn't include outlaws and active armies.
 ---@return number
@@ -412,6 +405,7 @@ function prov.Province:fire_pop(pop)
 	if pop.employer then
 		pop.employer.workers[pop] = nil
 		if tabb.size(pop.employer.workers) == 0 then
+			pop.employer.work_ratio = 1
 			pop.employer.last_income = 0
 			pop.employer.last_donation_to_owner = 0
 			pop.employer.subsidy_last = 0
