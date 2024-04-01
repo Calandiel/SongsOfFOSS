@@ -11,7 +11,7 @@ local economic_effects = require "game.raws.effects.economic"
 function pg.growth(province)
 	-- First, get the carrying capacity...
 	local cc = province.foragers_limit
-	local pop = province:population_weight()
+	local pop = province:local_population()
 	local starvation_check = 1 / 5
 
 	local death_rate = 1 / 12 / 7
@@ -58,8 +58,8 @@ function pg.growth(province)
 		elseif min_life_satisfaction < starvation_check
 			and love.math.random() < math.max(death_rate, (starvation_check - min_life_satisfaction) / starvation_check) then
 			to_remove[#to_remove + 1] = pp
-		-- next check for capacity, simulated disease culling
-		elseif not pp:is_character() and pop > cc and love.math.random() < (1 - cc / pop) * death_rate * min_healthcare then
+		-- next check for capacity, simulated disease culling on pops
+		elseif not pp:is_character() and pop > cc and love.math.random() < (1 - cc / pop) * math.max(death_rate, (1 - min_healthcare)) then
 			to_remove[#to_remove + 1] = pp
 		-- next remove elders for old age check
 		elseif pp.age >= pp.race.elder_age then
