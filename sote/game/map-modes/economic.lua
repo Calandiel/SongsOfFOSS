@@ -13,19 +13,15 @@ function eco.local_income()
 		end
 	end
 	avg = avg / count
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		return math.max(0, t.province.local_income) / (avg * 5.0)
+	ut.provincial_hue_map_mode(function(prov)
+		return math.max(0, prov.local_income) / (avg * 5.0)
 	end)
 end
 
 function eco.realm_income()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		if t.province.realm then
-			return math.max(0, t.province.realm.budget.change) / 10
+	ut.provincial_hue_map_mode(function(prov)
+		if prov.realm then
+			return math.max(0, prov.realm.budget.change) / 10
 		else
 			return 0
 		end

@@ -18,9 +18,13 @@ function pla.get_shader()
 	local fs = [[
 		uniform float world_size;
 		uniform sampler2D tile_colors;
+
+		uniform sampler2D province_colors;
+		uniform sampler2D province_index;
+		uniform float max_province_index;
+
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
-		uniform sampler2D tile_realms;
 		uniform sampler2D tile_neighbor_realm;
 		uniform float clicked_tile;
 		uniform float player_tile;
@@ -100,7 +104,9 @@ function pla.get_shader()
 			player += get_face_offset(player_face);
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
-			vec4 texcolor = Texel(tile_colors, face_offset);
+			float province_id = (Texel(province_index, face_offset).r + 0.5) / max_province_index;
+
+			vec4 texcolor = Texel(tile_colors, face_offset) + Texel(province_colors, vec2(province_id, 0.5));
 
 			float distance_for_improvments_and_clicked_tiles = 0.15; // controls the distance threshold from the sphere at which details on tiles are rendered.
 			if (camera_distance_from_sphere < distance_for_improvments_and_clicked_tiles) {

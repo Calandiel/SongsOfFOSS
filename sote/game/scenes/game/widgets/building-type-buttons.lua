@@ -106,7 +106,7 @@ end
 
 local btb = {}
 ---comment
----@param gam table
+---@param gam GameScene
 ---@param rect Rect
 ---@param building_type BuildingType
 ---@param tile Tile
@@ -125,7 +125,8 @@ function btb.building_type_buttons(gam, rect, building_type, tile)
 	r.width = rect.height
 	if uit.icon_button(ASSETS.icons["mesh-ball.png"], r,
 			"Show local efficiency on map") then
-		gam.selected.building_type = building_type
+		CACHED_BUILDING_TYPE = building_type
+		gam.update_map_mode("selected_building_type_efficiency")
 		gam.refresh_map_mode(true)
 	end
 
