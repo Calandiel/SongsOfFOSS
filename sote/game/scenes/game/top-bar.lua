@@ -148,7 +148,7 @@ function tb.draw(gam)
 			"My personal savings")
 
 
-		local amount = economic_effects.available_use_case_from_inventory(character, 'food')
+		local amount = economic_effects.available_use_case_from_inventory(character, 'calories')
 		uit.sqrt_number_entry_icon(
 			"sliced-bread.png",
 			amount,
@@ -209,12 +209,12 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = ev.get_local_amount_of_use(character.province, 'food')
+		local amount = ev.get_local_amount_of_use(character.province, 'calories')
 		uit.sqrt_number_entry_icon(
 			"noodles.png",
 			amount,
 			layout:next(uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT),
-			"Food")
+			"Purchasable local calories")
 
 		-- Technology
 		local amount = character.province.realm:get_education_efficiency()

@@ -687,6 +687,9 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 		character_flag =
 			character_flag
 	}
+	if reason == nil then
+		error("NO REASON GIVEN!")
+	end
 	self.treasury_effects:enqueue(effect)
 end
 
