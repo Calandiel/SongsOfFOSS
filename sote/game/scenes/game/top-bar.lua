@@ -262,21 +262,7 @@ function tb.draw(gam)
 		if character.age > character.race.elder_age then
 			table.insert(alerts, {
 				["icon"] = "tombstone.png",
-				["tooltip"] = "You have reached elder age age will make a death roll each month. Keep your needs satisfaction up to reduce the chance of dieing from old age.",
-			})
-		end
-
-		local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
-			local ratio = v.consumed / v.demanded
-			if ratio < a then
-				return ratio
-			end
-			return a
-		end)
-		if min_food_satsfaction < 0.2 then
-			table.insert(alerts, {
-				["icon"] = "sliced-bread.png",
-				["tooltip"] = "You have not consumed enough food last month. Unless you consume at least 20% of each food need, you will make a death roll every month.",
+				["tooltip"] = "You have reached elder age age will make a death roll of " .. uit.to_fixed_point2((character.race.max_age - character.age) / (character.race.max_age - character.race.elder_age) * character.race.fecundity / 12 / 7).. "% each month. This chance increases each year you continue to live.",
 			})
 		end
 
@@ -290,7 +276,23 @@ function tb.draw(gam)
 		if min_water_satsfaction < 0.2 then
 			table.insert(alerts, {
 				["icon"] = "droplets.png",
-				["tooltip"] = "You have not consumed enough water last month. Unless you consume at least 20% of each water need, you will make a death roll every month.",
+				["tooltip"] = "You have not consumed enough food last month and survived a death roll of " .. math.max(1 /12 /7, (0.2 - min_water_satsfaction) / 0.2)
+					.."%. Unless you consume at least 20% of each water need, you will make a death roll every month.",
+			})
+		end
+
+		local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
+			local ratio = v.consumed / v.demanded
+			if ratio < a then
+				return ratio
+			end
+			return a
+		end)
+		if min_food_satsfaction < 0.2 then
+			table.insert(alerts, {
+				["icon"] = "sliced-bread.png",
+				["tooltip"] = "You have not consumed enough food last month and survived a death roll of " .. math.max(1 /12 /7, (0.2 - min_food_satsfaction) / 0.2)
+					.."%. Unless you consume at least 20% of each food need, you will make a death roll every month.",
 			})
 		end
 

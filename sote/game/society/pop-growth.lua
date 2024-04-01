@@ -23,47 +23,52 @@ function pg.growth(province)
 	---@type POP[]
 	local to_add = {}
 
-	local eligible = {}
 	for _, pp in pairs(province.outlaws) do
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
 		end
 	end
 
-	local race_sex = tabb.accumulate(tabb.join(tabb.copy(province.all_pops), province.characters), {}, function (a, _, pp)
+	local eligible = tabb.accumulate(tabb.join(tabb.copy(province.all_pops), province.characters), {}, function (a, _, pp)
 		-- update pop life and basic need satisfaction percentages after production-and-consumption tick
 		local _, _ = pp:get_need_satisfaction()
 		local min_life_satisfaction = tabb.accumulate(pp.need_satisfaction, 1, function(b, need, cases)
 			if NEEDS[need].life_need then
-				tabb.accumulate(cases, b, function (c, k, v)
+				tabb.accumulate(cases, b, function (c, _, v)
 					local ratio = v.consumed / v.demanded
 					if ratio < c then
-						c = ratio
+						return ratio
 					end
-					return c
+					return b
 				end)
 			end
 			return b
 		end)
+		local min_healthcare = tabb.accumulate(pp.need_satisfaction[NEED.HEALTHCARE], 1, function (b, _, v)
+			local ratio = v.consumed / v.demanded
+			if ratio < b then
+				return ratio
+			end
+			return b
+		end)
+		-- first remove all pop that reach max age
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
-		elseif min_life_satisfaction < starvation_check or pp.age >= pp.race.elder_age then
-			-- Deaths due to starvation or old age!
-			-- TODO figure out how player deals with starvation while on campaign
-			if pp == WORLD.player_character and pp.unit_of_warband and pp.unit_of_warband.status ~= "idle" then
-				-- this is here just to guard against killing the player character on campaign in a warband
-			elseif love.math.random() < math.max(death_rate, (starvation_check - min_life_satisfaction) / starvation_check) then
+		-- next check for starvation
+		elseif min_life_satisfaction < starvation_check
+			and love.math.random() < math.max(death_rate, (starvation_check - min_life_satisfaction) / starvation_check) then
+			to_remove[#to_remove + 1] = pp
+		-- next check for capacity, simulated disease culling
+		elseif not pp:is_character() and pop > cc and love.math.random() < (1 - cc / pop) * death_rate * min_healthcare then
+			to_remove[#to_remove + 1] = pp
+		-- next remove elders for old age check
+		elseif pp.age >= pp.race.elder_age then
+			if love.math.random() < (pp.race.max_age - pp.age) / (pp.race.max_age - pp.race.elder_age) * death_rate * pp.race.fecundity then
 				to_remove[#to_remove + 1] = pp
 			end
-		elseif pp.age >= pp.race.teen_age then -- check if eligible to create more pop
-			if a[pp.race] == nil then
-				a[pp.race] = {
-					[true] = 0,
-					[false] = 0,
-				}
-			end
-			a[pp.race][pp.female] = a[pp.race][pp.female] + 1
-			eligible[pp] = pp
+		-- finally, pop is eligable to breed if old enough
+		elseif pp.age >= pp.race.teen_age then
+			a[pp] = pp
 		end
 		return a
 	end)
@@ -71,9 +76,6 @@ function pg.growth(province)
 	tabb.accumulate(eligible, to_add, function (a, _, pp)
 		---@type POP
 		pp = pp
-
-		-- base on ratio of available breeding age pops
-		local sex_prob = math.max(race_sex[pp.race][not pp.female] / race_sex[pp.race][pp.female], 0)
 
 		-- This pop growth is caused by overproduction of resources in the realm.
 		-- The chance for growth should then depend on the amount of food produced
@@ -102,7 +104,7 @@ function pg.growth(province)
 		food_satisfaction = math.max(0, food_satisfaction - (starvation_check + dependents * starvation_check / pp.race.fecundity))
 		base = base * food_satisfaction
 
-		if love.math.random() < sex_prob * base * birth_rate * pp.race.fecundity then
+		if love.math.random() < base * birth_rate * pp.race.fecundity then
 			-- yay! spawn a new pop!
 			a[#to_add + 1] = pp
 		end
