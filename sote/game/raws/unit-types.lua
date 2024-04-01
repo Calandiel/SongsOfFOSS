@@ -141,9 +141,9 @@ end
 ---@param pop POP
 ---@return number pop_adjusted food need modified by pop race and sex
 function UnitType:get_supply_use(pop)
-	local food = pop.race.male_needs[NEED.FOOD]['food']
+	local food = pop.race.male_needs[NEED.FOOD]['calories']
 	if pop.female then
-		food = pop.race.female_needs[NEED.FOOD]['food']
+		food = pop.race.female_needs[NEED.FOOD]['calories']
 	end
 	return (self.supply_useds + food) / 30
 end

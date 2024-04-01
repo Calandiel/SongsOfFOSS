@@ -783,7 +783,7 @@ function pro.run(province)
 	-- calculate donations for home children
 	local wealth_cycle = province.local_wealth / 24
 	local wealth_cycle_fraction = math.max(wealth_cycle / province:total_home_population(), 0)
-	local donations_for_childen = math.min(wealth_cycle, children * use_case_price_expectation['food'] * 0.5)
+	local donations_for_childen = math.min(wealth_cycle, children * use_case_price_expectation['calories'] * 0.5)
 	local donations_for_child = math.max(donations_for_childen / children, 0)
 
 	if donations_for_child ~= donations_for_child

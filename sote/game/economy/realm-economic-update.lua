@@ -55,7 +55,7 @@ function rea.run(realm)
 			realm.production[prod] = old - amount
 			local vold = realm.bought[prod] or 0
 			realm.bought[prod] = vold + amount -- a '+', even tho we're consuming, because this stands for volume
-			local weight = use_case('food').goods[prod]
+			local weight = use_case('calories').goods[prod]
 			if weight then
 				realm.expected_food_consumption = realm.expected_food_consumption + amount * weight
 			end

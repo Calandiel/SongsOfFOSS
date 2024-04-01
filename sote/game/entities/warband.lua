@@ -394,9 +394,9 @@ function warband:daily_supply_consumption()
 
 	for _, pop in pairs(self:get_officers()) do
 		if not self.units[pop] then
-			local supplies = pop.race.male_needs[NEED.FOOD]['food']
+			local supplies = pop.race.male_needs[NEED.FOOD]['calories']
 			if pop.female then
-				supplies = pop.race.female_needs[NEED.FOOD]['food']
+				supplies = pop.race.female_needs[NEED.FOOD]['calories']
 			end
 			---@type number
 			total = total + supplies
@@ -416,7 +416,7 @@ end
 function warband:consume_supplies(days)
 	local daily_consumption = self:daily_supply_consumption()
 	local consumption = days * daily_consumption
-	local consumed = economic_effects.consume_use_case_from_inventory(self.leader, 'food', consumption)
+	local consumed = economic_effects.consume_use_case_from_inventory(self.leader, 'calories', consumption)
 
 	-- give some wiggle room for floats
 	if consumed > consumption + 0.01
@@ -437,7 +437,7 @@ end
 ---Returns total food supply from warband
 ---@return number
 function warband:get_supply_available()
-	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader, 'food')) or 0
+	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader, 'calories')) or 0
 end
 
 ---Returns amount of days warband can travel depending on collected supplies

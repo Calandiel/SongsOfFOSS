@@ -26,7 +26,7 @@ function d.load()
 	-- NEED.WATER
 	make_use_case("water", "water", "droplets.png", 0.12, 1, 1)
 	-- NEED.FOOD
-	make_use_case("food", "food", "potato.png", 0.71, 0.57, 0.44)
+	make_use_case("calories", "calories", "potato.png", 0.71, 0.57, 0.44)
 	make_use_case("meat", "meat", "meat.png", 1, 0.1, 0.1)
 	make_use_case("fruit", "fruit", "fruit-bowl.png", 0.82, 0.88, 19)
 	make_use_case("grain", "grains and vegetables", "wheat.png", 0.91, 0, 0.7)

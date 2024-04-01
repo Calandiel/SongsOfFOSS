@@ -163,11 +163,11 @@ end
 ---@param v UnitType
 local function render_unit_supply_use (rect, k, v)
 	local base, stat = v.supply_useds / 30, v:get_supply_use(k)
-	local food_need = k.race.male_needs[NEED.FOOD]['food']
+	local food_need = k.race.male_needs[NEED.FOOD]['calories']
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
-		food_need = k.race.female_needs[NEED.FOOD]['food']
+		food_need = k.race.female_needs[NEED.FOOD]['calories']
 	end
 	ut.generic_number_field(
 		"sliced-bread.png",
@@ -365,12 +365,12 @@ function window.draw(gamescene)
 				local unit_name = "noncombatant"
 				-- declare variables and intialize as a male noncombatant character
 				local race_spot, race_vis, race_size = character.race.spotting, character.race.visibility, character.race.male_body_size
-				local race_food, race_carry = character.race.male_needs[NEED.FOOD]['food'] / 30, character.race.male_efficiency[job_types.HAULING]
+				local race_food, race_carry = character.race.male_needs[NEED.FOOD]['calories'] / 30, character.race.male_efficiency[job_types.HAULING]
 				local female, her = "male", "his"
 				-- check if female match gender and racial modifiers
 				if character.female then
 					female, her = "female", "her"
-					race_food = character.race.female_needs[NEED.FOOD]['food'] / 30
+					race_food = character.race.female_needs[NEED.FOOD]['calories'] / 30
 					race_size = character.race.female_body_size
 					race_carry = character.race.female_efficiency[job_types.HAULING]
 				end

@@ -39,7 +39,7 @@ function d.load()
 		r = 0,
 		g = 1,
 		b = 1,
-		inputs = { ["food"] = 0.5 },
+		inputs = { ["calories"] = 0.5 },
 		outputs = { ["healthcare"] = 2 },
 		jobs = { [job("shamans")] = 1 },
 		job_type = JOBTYPE.CLERK,

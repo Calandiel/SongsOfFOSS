@@ -69,7 +69,7 @@ function ll.load()
 				['water'] = 3
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.5,
+				['calories'] = 1.5,
 				['timber'] = 0.1,
 				['grain'] = 0.1,
 			},
@@ -108,7 +108,7 @@ function ll.load()
 				['water'] = 4
 			},
 			[NEED.FOOD] = {
-				['food'] = 2.0,
+				['calories'] = 2.0,
 				['timber'] = 0.2,
 				['grain'] = 0.2,
 			},
@@ -183,7 +183,7 @@ function ll.load()
 				['water'] = 4
 			},
 			[NEED.FOOD] = {
-				['food'] = 2.0,
+				['calories'] = 2.0,
 				['meat'] = 0.5,
 			},
 			[NEED.CLOTHING] = {
@@ -221,7 +221,7 @@ function ll.load()
 				['water'] = 2.4
 			},
 			[NEED.FOOD] = {
-				['food'] = 1.2,
+				['calories'] = 1.2,
 				['meat'] = 0.25,
 			},
 			[NEED.CLOTHING] = {
@@ -387,7 +387,7 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.9,
+				['calories'] = 0.9,
 				['fruit'] = 0.2,
 				['grain'] = 0.2,
 			},
@@ -426,7 +426,7 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.95,
+				['calories'] = 0.95,
 				['fruit'] = 0.25,
 				['grain'] = 0.2,
 			},
@@ -490,7 +490,7 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.7,
+				['calories'] = 0.7,
 				['meat'] = 0.2,
 				['grain'] = 0.2,
 			},
@@ -529,7 +529,7 @@ function ll.load()
 				['water'] = 1.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.8,
+				['calories'] = 0.8,
 				['meat'] = 0.25,
 				['grain'] = 0.2,
 			},
@@ -611,7 +611,7 @@ function ll.load()
 				['water'] = 0.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.5,
+				['calories'] = 0.5,
 				['fruit'] = 0.1,
 				['meat'] = 0.1,
 			},
@@ -650,7 +650,7 @@ function ll.load()
 				['water'] = 0.25
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.6,
+				['calories'] = 0.6,
 				['fruit'] = 0.1,
 				['meat'] = 0.1,
 			},
@@ -729,7 +729,7 @@ function ll.load()
 				['water'] = 0.2
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.3,
+				['calories'] = 0.3,
 				['fruit'] = 0.1,
 				['grain'] = 0.1,
 				['meat'] = 0.1,
@@ -770,7 +770,7 @@ function ll.load()
 				['water'] = 0.2
 			},
 			[NEED.FOOD] = {
-				['food'] = 0.3,
+				['calories'] = 0.3,
 				['fruit'] = 0.05,
 				['grain'] = 0.05,
 				['meat'] = 0.05,

@@ -118,7 +118,7 @@ function pg.growth(province)
 		end
 	end
 	-- Add new pops...
-	local food_price = economical.get_local_price_of_use(province,'food')
+	local food_price = economical.get_local_price_of_use(province,'calories')
 	for _, pp in pairs(to_add) do
 		local character = pp:is_character()
 		local newborn = POP:new(

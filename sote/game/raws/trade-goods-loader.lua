@@ -47,7 +47,7 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("berries", "food", 1)
+	add_use_case("berries", "calories", 1)
 	add_use_case("berries", "fruit", 1)
 	add_use_case("berries", "tannin", 0.5)
 
@@ -61,7 +61,7 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("grain", "food", 1)
+	add_use_case("grain", "calories", 1)
 	add_use_case("grain", "grain", 1)
 
 	TradeGood:new {
@@ -74,7 +74,7 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("honey", "food", 0.5)
+	add_use_case("honey", "calories", 0.5)
 	add_use_case("honey", "mead-substrate", 1)
 
 	-- CRUCIAL SETTLEMENT SERVICES
