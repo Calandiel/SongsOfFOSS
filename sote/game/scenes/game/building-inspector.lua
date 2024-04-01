@@ -233,8 +233,9 @@ function re.draw(gam)
 		---@param v number
 		local function render_good_icon(rect, k , v)
 			local good = trade_good(k)
-                ut.render_icon(rect:copy():shrink(-1), good.icon, 1, 1, 1, 1)
-                ut.render_icon(rect, good.icon, good.r, good.g, good.b, 1)
+				local centered_rect = ut.centered_square(rect)
+                ut.render_icon(centered_rect:copy():shrink(-1), good.icon, 1, 1, 1, 1)
+                ut.render_icon(centered_rect, good.icon, good.r, good.g, good.b, 1)
 		end
 		---@param k string
 		---@param v number

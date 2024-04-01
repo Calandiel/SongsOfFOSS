@@ -971,4 +971,15 @@ function ut.render_pop_satsifaction(rect, pop)
 	)
 end
 
+-- returns a square Rect centered in the provided rect
+---comment
+---@param rect Rect
+---@return Rect square
+function ut.centered_square(rect)
+	local square
+	local side = math.min(rect.height, rect.width)
+	square = rect:subrect(0, 0, side, side, "center", "center")
+	return square
+end
+
 return ut
