@@ -74,22 +74,22 @@ function ll.load()
 				['timber'] = 1,
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = 0.125 / 2 -- beavers have really nice fur
+				['clothes'] = 1 / 4 -- beavers have really nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = 1
+				['furniture'] = 1.5
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 / 4,
+				['tools-like'] = 1 / 4, -- beavers have really sharp teeth
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 1.5,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 1.5,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = 2,
+				['liquors'] = 1.5,
 			},
 		},
 		female_infrastructure_needs = 2,
@@ -113,19 +113,19 @@ function ll.load()
 				['timber'] = 1,
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = 0.125 / 2 -- beavers have really nice fur
+				['clothes'] = 1 / 4 -- beavers have really nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = 1
+				['furniture'] = 2
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 / 4,
+				['tools-like'] = 1 / 4, -- beavers have really sharp teeth
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 2,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 2,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 2,
@@ -187,19 +187,19 @@ function ll.load()
 				['meat'] = 2,
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = 0.01, -- gnolls have really nice fur
+				['clothes'] = 1 / 2, -- gnolls have nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = 1
+				['furniture'] = 2
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.1,
+				['tools-like'] = 1 / 2, -- gnolls have sharp teeth
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.1,
+				['healthcare'] = 2,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.1,
+				['containers'] = 2,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 2,
@@ -225,22 +225,22 @@ function ll.load()
 				['meat'] = 1.5,
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = 0.01, -- gnolls have really nice fur
+				['clothes'] = 1 / 2, -- gnolls have nice fur
 			},
 			[NEED.FURNITURE] = {
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.1,
+				['tools-like'] = 1 / 2, -- gnolls have sharp teeth
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.1,
+				['healthcare'] = 1.25,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.1,
+				['containers'] = 1.5,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = 2,
+				['liquors'] = 1.5,
 			}
 		},
 		male_infrastructure_needs = 2,
@@ -292,17 +292,32 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 1.5
 		},
 		female_needs = {
-			[NEED.WATER] = 1,
-			[NEED.FOOD] = 1.5,
-			-- [NEED.FRUIT] = 2,
-			-- [NEED.GRAIN] = 2,
-			-- [NEED.MEAT] = 1,
-			[NEED.CLOTHING] = 1.5,
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 1,
-			[NEED.HEALTHCARE] = 1,
-			[NEED.STORAGE] = 1,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 1
+			},
+			[NEED.FOOD] = {
+				['calories'] = 1.5,
+				['grain'] = 1,
+				['meat'] = 2,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 1.5
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools-like'] = 1 /2 , -- orks have tusks
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 1,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 1,
+			},
+			[NEED.LUXURY] = {
+				['liquors'] = 1,
+			},
 		},
 		female_infrastructure_needs = 1.1,
 		male_body_size = 1.1,
@@ -316,17 +331,32 @@ function ll.load()
 			[JOBTYPE.FORAGER] = 1.5
 		},
 		male_needs = {
-			[NEED.WATER] = 1,
-			[NEED.FOOD] = 1.5,
-			-- [NEED.FRUIT] = 2,
-			-- [NEED.GRAIN] = 2,
-			-- [NEED.MEAT] = 1,
-			[NEED.CLOTHING] = 1.5,
-			[NEED.FURNITURE] = 1,
-			[NEED.TOOLS] = 1,
-			[NEED.HEALTHCARE] = 1,
-			[NEED.STORAGE] = 1,
-			[NEED.LUXURY] = 1
+			[NEED.WATER] = {
+				['water'] = 1
+			},
+			[NEED.FOOD] = {
+				['calories'] = 1.5,
+				['grain'] = 1,
+				['meat'] = 2,
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = 1.5
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = 1
+			},
+			[NEED.TOOLS] = {
+				['tools-like'] = 1 / 2, -- orks have tusks
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = 1,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = 1,
+			},
+			[NEED.LUXURY] = {
+				['liquors'] = 1,
+			},
 		},
 		male_infrastructure_needs = 1.1,
 
@@ -398,13 +428,13 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 / 4,
+				['tools-like'] = 1,
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 1,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 1,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 1,
@@ -437,13 +467,13 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 / 2,
+				['tools-like'] = 1,
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 1,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 1,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 1,
@@ -501,16 +531,16 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 * 2,
+				['tools-like'] = 1.25, -- a short, sturdy creature fond of drink and industry 
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 1,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 1,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = 1.5,
+				['liquors'] = 1.5, -- a short, sturdy creature fond of drink and industry 
 			},
 		},
 		female_infrastructure_needs = 3,
@@ -540,16 +570,16 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 * 2,
+				['tools-like'] = 1.25, -- a short, sturdy creature fond of drink and industry 
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 1,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 1,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = 1.5,
+				['liquors'] = 1.5, -- a short, sturdy creature fond of drink and industry 
 			},
 		},
 		male_infrastructure_needs = 3,
@@ -622,13 +652,13 @@ function ll.load()
 				['furniture'] = 0.25
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 / 2,
+				['tools-like'] = 0.5,
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 0.5,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 0.5,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 1,
@@ -661,13 +691,13 @@ function ll.load()
 				['furniture'] = 0.25
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.125 / 2,
+				['tools-like'] = 0.5,
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.125,
+				['healthcare'] = 0.5,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.125,
+				['containers'] = 0.5,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 1,
@@ -734,19 +764,19 @@ function ll.load()
 				['fruit'] = 0.5,
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = 0.2
+				['clothes'] = 0.25
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = 0.2
+				['furniture'] = 0.25
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 0.05,
+				['tools-like'] = 0.25,
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = 0.01,
+				['healthcare'] = 0.5,
 			},
 			[NEED.STORAGE] = {
-				['containers'] = 0.05,
+				['containers'] = 0.5,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = 1,

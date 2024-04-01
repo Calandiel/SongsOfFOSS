@@ -110,13 +110,13 @@ function Race:new(o)
 			['furniture'] = 1,
 		},
 		[NEED.TOOLS] = {
-			['tools-like'] = 0.125,
+			['tools-like'] = 1,
 		},
 		[NEED.HEALTHCARE] = {
-			['healthcare'] = 0.125,
+			['healthcare'] = 1,
 		},
 		[NEED.STORAGE] = {
-			['containers'] = 0.125,
+			['containers'] = 1,
 		},
 		[NEED.LUXURY] = {
 			['liquors'] = 1,
