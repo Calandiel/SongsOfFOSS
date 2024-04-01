@@ -51,7 +51,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	-- We also need to spawn in some population...
 	local pop_to_spawn = math.max(5, capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
 	for _ = 1, pop_to_spawn do
-		local age = math.floor(math.abs(love.math.randomNormal(race.middle_age, 0)) + 1)
+		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
 		pop.POP:new(
 			race,
 			faith,
@@ -104,21 +104,6 @@ local function make_new_realm(capitol, race, culture, faith)
 	end
 
 	-- capitol:validate_population()
-
-	-- try to assign a parent to generated children
-	for _,x in pairs(capitol.all_pops) do
-		if x.age < x.race.adult_age then
-			local potentials = tabb.filter(capitol.all_pops, function(a)
-				return a.age <= x.age + x.race.adult_age and a.age < x.race.elder_age + x.age
-			end)
-			local size = #potentials
-			local parent = tabb.nth(potentials, math.random(1,size))
-			if parent then
-				parent.children[x] = x
-				x.parent = parent
-			end
-		end
-	end
 
 	-- print("test battle")
 	-- local size_1, size_2 = love.math.random(50) + 10, love.math.random(50) + 10

@@ -570,7 +570,7 @@ function pro.run(province)
 	local function satisfy_needs(pop_view, pop_table, free_time, savings)
 		local total_expense = 0
 		local total_income = 0
-		local start_time = math.max(0, free_time)
+		local start_time = free_time
 		if WORLD.player_character and WORLD.player_character == pop_table then
 			local hunt_time = math.min(OPTIONS["needs-hunt"], free_time)
 			total_income = forage(pop_view, pop_table, hunt_time)
@@ -593,7 +593,7 @@ function pro.run(province)
 						local free_time_for_need, income, expense = satisfy_need(
 							pop_view, child, index, need,
 							time_fraction / life_need_count,
-							savings_fraction / life_need_count, 0.5)
+							savings_fraction / life_need_count, 1)
 
 						if free_time_for_need > time_fraction / life_need_count + 0.01
 							or savings_fraction / life_need_count + income + 0.01 < expense
@@ -646,7 +646,7 @@ function pro.run(province)
 				end
 			end
 		else
-			time_after_children = math.max(0, start_time)
+			time_after_children = math.max(0, free_time)
 		end
 
 		if time_after_children < - 0.01
@@ -795,6 +795,7 @@ function pro.run(province)
 	economic_effects.change_local_wealth(province, -wealth_cycle, economic_effects.reasons.Donation)
 	economic_effects.change_local_wealth(province, -donations_for_childen, economic_effects.reasons.Welfare)
 
+	local additional_family_time = {}
 	-- sort pops by wealth:
 	---@type POP[]
 	local pops_by_wealth = tabb.accumulate(
@@ -806,7 +807,13 @@ function pro.run(province)
 			if pop.home_province == province then
 				if donations_for_child > 0 then
 				local dependents = tabb.size(tabb.filter(pop.children, function (child)
-					return child.age < child.race.teen_age
+					if child.age < child.race.teen_age then
+						if not pop:is_character() then
+							additional_family_time[pop] = (additional_family_time[pop] or 0) + child.age / child.race.teen_age
+						end
+						return true
+					end
+					return false
 					end))
 					if dependents > 0 and pop.age >= pop.race.teen_age then
 						-- donate children's share to parents
@@ -821,11 +828,17 @@ function pro.run(province)
 				total_local_donations = total_local_donations + pop_donation_total * 0.25
 				total_trade_donations = total_trade_donations + pop_donation_total * 0.25
 				economic_effects.add_pop_savings(pop, -pop_donation_total, economic_effects.reasons.Donation)
+				-- add to pop satisfy needs list only if no parent
+				if not pop.parent then
+					table.insert(a, pop)
+					-- add children's free time to parent for satisfy needs
+				end
 			else
 				local popularity = pv.popularity(pop, province.realm)
 				if popularity > 0 then
 					total_popularity = total_popularity + popularity
 				end
+				table.insert(a, pop)
 			end
 			-- recalculate pop needs
 			local needs_satisfaction = pop.race.male_needs
@@ -845,7 +858,6 @@ function pro.run(province)
 					end
 				end)
 			end)
-			table.insert(a, pop)
 			return a
 		end)
 	table.sort(pops_by_wealth, function (a, b)
@@ -1135,7 +1147,7 @@ function pro.run(province)
 				savings_fraction = OPTIONS['needs-savings'] * pop.savings
 			end
 			PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, free_time_of_pop, math.max(0, savings_fraction))
+			satisfy_needs(pop_view, pop, math.max(free_time_of_pop + (additional_family_time[pop] or 0), 0), math.max(0, savings_fraction))
 			PROFILER:end_timer("production-satisfy-needs")
 		end
 
