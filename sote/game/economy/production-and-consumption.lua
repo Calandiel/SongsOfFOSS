@@ -143,6 +143,7 @@ function pro.run(province)
 		tabb.clear(value.earn_from_outputs)
 		tabb.clear(value.amount_of_inputs)
 		tabb.clear(value.spent_on_inputs)
+		tabb.clear(value.worker_income)
 		value.last_donation_to_owner = 0
 		value.last_income = 0
 		value.subsidy_last = 0
@@ -1100,16 +1101,16 @@ function pro.run(province)
 					return a
 				end)
 				if min_life_satisfaction < 1/6 then
-					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.75)
+					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
 				elseif income > 0 then
-					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.2)
+					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
 				end
 
 				if province.trade_wealth < income then
 					-- generate some wealth if selling more goods than market can afford
 					income = math.min(province.trade_wealth, income) + 0.1 * (income - province.trade_wealth)
 				end
-				building.worker_income[pop] = income
+				building.worker_income[pop] = (building.worker_income[pop] or 0) + income
 				economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
 				province.trade_wealth = math.max(0, province.trade_wealth - income)
 			end
