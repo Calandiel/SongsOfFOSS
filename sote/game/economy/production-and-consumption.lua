@@ -420,7 +420,6 @@ function pro.run(province)
 	---@param savings number
 	---@param target number
 	---@return number free_time_used
-	---@return number income
 	---@return number expenses
 	local function satisfy_need(pop_view, pop_table, need_index, need, free_time, savings, target)
 		local income, expenses, total_need_time, total_need_cost = 0, 0, 0, 0
@@ -462,25 +461,27 @@ function pro.run(province)
 			local time_fraction = math.max(free_time * values.need_time / total_need_time, 0)
 			local savings_fraction = math.max(savings * values.need_cost / total_need_cost, 0)
 			-- attempt to buy from market with savings fraction
-			local spendings, consumed = buy_use(case, values.need_amount, savings_fraction)
-			pop_table.need_satisfaction[need_index][case].consumed = pop_table.need_satisfaction[need_index][case].consumed + consumed
-			expenses = expenses + spendings
+			if savings_fraction > 0 then
+				local spendings, consumed = buy_use(case, values.need_amount, savings_fraction)
+				pop_table.need_satisfaction[need_index][case].consumed = pop_table.need_satisfaction[need_index][case].consumed + consumed
+				expenses = expenses + spendings
 
-			if consumed > values.need_amount + 0.01
-				or spendings > savings_fraction + 0.01
-			then
-				error("INVALID BUY_USE ATTEMPT IN SATISFY_NEED"
-					.. "\n case = "
-					.. tostring(case)
-					.. "\n spendings = "
-					.. tostring(spendings)
-					.. "\n savings_fraction = "
-					.. tostring(savings_fraction)
-					.. "\n consumed = "
-					.. tostring(consumed)
-					.. "\n need_amount = "
-					.. tostring(values.need_amount)
-				)
+				if consumed > values.need_amount + 0.01
+					or spendings > savings_fraction + 0.01
+				then
+					error("INVALID BUY_USE ATTEMPT IN SATISFY_NEED"
+						.. "\n case = "
+						.. tostring(case)
+						.. "\n spendings = "
+						.. tostring(spendings)
+						.. "\n savings_fraction = "
+						.. tostring(savings_fraction)
+						.. "\n consumed = "
+						.. tostring(consumed)
+						.. "\n need_amount = "
+						.. tostring(values.need_amount)
+					)
+				end
 			end
 
 			-- use time fraction to satisfy remaning need
@@ -542,7 +543,7 @@ function pro.run(province)
 				.. tostring(savings)
 			)
 		end
-		return total_time_used, income, expenses
+		return total_time_used, expenses
 	end
 
 	---comment
@@ -552,11 +553,11 @@ function pro.run(province)
 	---@param savings number
 	local function satisfy_needs(pop_view, pop_table, free_time, savings)
 		local total_expense = 0
-		local total_income = 0
+		local income = 0
 		local start_time = free_time
 		if WORLD.player_character and WORLD.player_character == pop_table then
 			local hunt_time = math.min(OPTIONS["needs-hunt"], free_time)
-			total_income = forage(pop_view, pop_table, hunt_time)
+			income = forage(pop_view, pop_table, hunt_time)
 			start_time = free_time - hunt_time
 		end
 
@@ -573,13 +574,13 @@ function pro.run(province)
 			for _, child in pairs(dependants) do
 				for index, need in pairs(NEEDS) do
 					if need.life_need then
-						local free_time_for_need, income, expense = satisfy_need(
+						local free_time_for_need, expense = satisfy_need(
 							pop_view, child, index, need,
 							time_fraction / life_need_count,
 							savings_fraction / life_need_count, 1)
 
 						if free_time_for_need > time_fraction / life_need_count + 0.01
-							or savings_fraction / life_need_count + income + 0.01 < expense
+							or savings_fraction / life_need_count + 0.01 < expense
 						then
 							error("INVALID CHILD SATISFY_NEED"
 								.. "\n free_time_for_need = "
@@ -596,21 +597,18 @@ function pro.run(province)
 								.. tostring(savings)
 								.. "\n savings_fraction = "
 								.. tostring(savings_fraction)
-								.. "\n income = "
-								.. tostring(income)
 								.. "\n expense = "
 								.. tostring(expense)
 							)
 						end
 
-						total_income = total_income + income
 						total_expense = total_expense + expense
 						time_after_children = time_after_children - free_time_for_need
 					end
 				end
 
 				if time_after_children < - 0.01
-					or savings + total_income + 0.01 < total_expense
+					or savings + income + 0.01 < total_expense
 				then
 					error("INVALID CHILD SATISFY_NEEDS"
 						.. "\n time_fraction = "
@@ -622,7 +620,7 @@ function pro.run(province)
 						.. "\n savings = "
 						.. tostring(savings)
 						.. "\n total_income = "
-						.. tostring(total_income)
+						.. tostring(income)
 						.. "\n total_expense = "
 						.. tostring(total_expense)
 					)
@@ -633,47 +631,9 @@ function pro.run(province)
 		end
 
 		if time_after_children < - 0.01
-			or savings + total_income + 0.01 < total_expense
+			or savings + income + 0.01 < total_expense
 		then
 			error("INVALID LIFE SATISFY_NEEDS"
-				.. "\n time_after_life = "
-				.. tostring(time_after_children)
-				.. "\n free_time = "
-				.. tostring(free_time)
-				.. "\n savings = "
-				.. tostring(savings)
-				.. "\n total_income = "
-				.. tostring(total_income)
-				.. "\n total_expense = "
-				.. tostring(total_expense)
-			)
-		end
-
-		local savings_after_children = savings + total_income - total_expense
-		local time_after_life = math.max(0, time_after_children)
-
-		local life_time_fraction = time_after_life / life_need_count
-		local savings_fraction = savings_after_children / life_need_count
-
-		-- buying life needs
-		for index, need in pairs(NEEDS) do
-			if need.life_need then
-				local free_time_for_need, income, expense = satisfy_need(
-					pop_view, pop_table, index, need, life_time_fraction, savings_fraction, 0.75)
-
-				total_income = total_income + income
-				total_expense = total_expense + expense
-
-				time_after_life = time_after_life - free_time_for_need
-			end
-		end
-
-		if time_after_life < - 0.01
-			or savings + total_income + 0.01 < total_expense
-		then
-			error("INVALID LIFE SATISFY_NEEDS"
-				.. "\n time_after_life = "
-				.. tostring(time_after_life)
 				.. "\n time_after_children = "
 				.. tostring(time_after_children)
 				.. "\n free_time = "
@@ -681,73 +641,77 @@ function pro.run(province)
 				.. "\n savings = "
 				.. tostring(savings)
 				.. "\n total_income = "
-				.. tostring(total_income)
+				.. tostring(income)
 				.. "\n total_expense = "
 				.. tostring(total_expense)
 			)
 		end
 
-		local savings_after_life = savings + total_income - total_expense
-		local fraction = 1 + total_need_count
-		local time_after_basic = math.max(0, time_after_life)
+		local savings_after_children = math.max(0, savings + income - total_expense)
+		local time_after_needs = math.max(0, time_after_children)
+		local need_weight = 1 + life_need_count + total_need_count
+		local time_fraction = time_after_needs / need_weight
+		local savings_fraction = savings_after_children / need_weight
 
-		local basic_time_fraction = time_after_life / fraction
-		local basic_savings_fraction = savings_after_life / fraction
-
-		-- buying other needs
+		-- buying life needs
 		for index, need in pairs(NEEDS) do
-				local free_time_for_need, income, expense = satisfy_need(
-					pop_view, pop_table, index, need, basic_time_fraction, basic_savings_fraction, 1)
+			local need_savings, need_time = 1, 1
+			if need.life_need then
+				need_savings, need_time = 2, 2
+			end
+			local free_time_for_need, expense = satisfy_need(
+				pop_view, pop_table, index, need, time_fraction * need_time, savings_fraction * need_savings, 1)
 
-				total_income = total_income + income
-				total_expense = total_expense + expense
+			total_expense = total_expense + expense
 
-				time_after_basic = time_after_basic - free_time_for_need
+			time_after_needs = time_after_needs - free_time_for_need
+
+
+			if expense > savings_fraction * need_savings + 0.01
+				or free_time_for_need > time_fraction * need_time + 0.01
+				or savings + income + 0.01 < total_expense
+			then
+				error("INVALID LIFE SATISFY_NEED"
+					.. "\n need = "
+					.. tostring(NEED_NAME[index])
+					.. "\n expense = "
+					.. tostring(expense)
+					.. "\n savings_fraction * need_savings = "
+					.. tostring(savings_fraction * need_savings)
+					.. "\n savings = "
+					.. tostring(savings)
+					.. "\n income = "
+					.. tostring(income)
+					.. "\n total_expense = "
+					.. tostring(total_expense)
+					.. "\n free_time_for_need = "
+					.. tostring(free_time_for_need)
+					.. "\n time_fraction * need_time = "
+					.. tostring(time_fraction * need_time)
+				)
+			end
 		end
 
-		if time_after_basic < - 0.01
-			or savings + total_income + 0.01 < total_expense
-		then
-			error("INVALID BASIC SATISFY_NEEDS"
-				.. "\n time_after_basic = "
-				.. tostring(time_after_basic)
-				.. "\n time_after_life = "
-				.. tostring(time_after_life)
-				.. "\n free_time = "
-				.. tostring(free_time)
-				.. "\n savings = "
-				.. tostring(savings)
-				.. "\n total_income = "
-				.. tostring(total_income)
-				.. "\n total_expense = "
-				.. tostring(total_expense)
-			)
-		end
-
-		if savings + total_income + 0.01 < total_expense
-			or total_income ~= total_income
+		if savings + income + 0.01 < total_expense
+			or income ~= income
 			or total_expense ~= total_expense
 		then
 			error("INVALID SATISFY_NEEDS"
-				.. "\n total_income = "
-				.. tostring(total_income)
-				.. "\n total_expense = "
-				.. tostring(total_expense)
 				.. "\n savings = "
 				.. tostring(savings)
-				.. "\n total_income = "
-				.. tostring(total_income)
+				.. "\n income = "
+				.. tostring(income)
 				.. "\n total_expense = "
 				.. tostring(total_expense)
-				.. "\n time_after_basic = "
-				.. tostring(time_after_basic)
+				.. "\n time_after_needs = "
+				.. tostring(time_after_needs)
 				.. "\n free_time = "
 				.. tostring(free_time)
 			)
 		end
 
 		-- adjust pop savings
-		economic_effects.add_pop_savings(pop_table, total_income, economic_effects.reasons.Forage)
+		economic_effects.add_pop_savings(pop_table, income, economic_effects.reasons.Forage)
 		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.BasicNeeds)
 
 	end
