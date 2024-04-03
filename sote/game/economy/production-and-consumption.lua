@@ -741,11 +741,6 @@ function pro.run(province)
 			)
 		end
 
-		-- use remaining time to forage
-		if time_after_basic > 0 then
-			total_income = total_income + forage(pop_view, pop_table, time_after_basic)
-		end
-
 		if savings + total_income + 0.01 < total_expense
 			or total_income ~= total_income
 			or total_expense ~= total_expense

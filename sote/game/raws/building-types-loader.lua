@@ -11,7 +11,7 @@ function d.load()
 	local tec = require "game.raws.raws-utils".technology
 	local good = require "game.raws.raws-utils".trade_good
 	local res = require "game.raws.raws-utils".resource
-
+--[[
 	BuildingType:new {
 		name = "communal-fire",
 		description = "communal fire",
@@ -457,7 +457,7 @@ function d.load()
 		ai_weight = 150,
 		construction_cost = COST_FARM,
 		building_group = BUILDING_GROUP.FARM
-	}
+	}]]
 end
 
 return d

@@ -93,7 +93,7 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 				if age_dependant then
 					demand = demand * rtab.POP.get_age_multiplier(r)
 				end
-				b[use_case] = {consumed = demand / 4, demanded = demand}
+				b[use_case] = {consumed = demand, demanded = demand}
 				return b
 			end)
 			return a

@@ -24,7 +24,7 @@ function d.load()
 		unlocked_by = {},
 		research_cost = 0.2,
 	}
-	Technology:new {
+--[[	Technology:new {
 		name = "vegetable-tanning",
 		icon = "animal-hide.png",
 		description = "vegetable tanning",
@@ -425,7 +425,7 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("surface-mining"), },
 		research_cost = 1,
-	}
+	}]]
 end
 
 return d

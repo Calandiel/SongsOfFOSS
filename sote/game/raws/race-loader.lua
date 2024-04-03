@@ -12,7 +12,7 @@ function ll.load()
 		b = 0.85,
 		icon = 'barbute.png',
 	}
-
+--[[
 	local beaver_portrait = {
 		folder = "beaver",
 		layers = {"cloth_behind.png", "base.png", "over_1.png", "over_2.png", "ear.png", "cloth.png"},
@@ -299,8 +299,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = 1.5,
-				['grain'] = 1,
 				['fruit'] = 1,
+				['meat'] = 1.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1.5
@@ -338,8 +338,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = 1.5,
-				['grain'] = 0.5,
-				['meat'] = 0.5,
+				['fruit'] = 1,
+				['meat'] = 1.25,
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = 1.5
@@ -839,7 +839,7 @@ function ll.load()
 		},
 		male_infrastructure_needs = 0.1,
 		carrying_capacity_weight = 0.5,
-	}
+	}]]
 
 
 	-- for testing purpose
