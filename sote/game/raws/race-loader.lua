@@ -365,14 +365,27 @@ function ll.load()
 		carrying_capacity_weight = 2,
 
 		requires_large_forest = true
-
 	}
+
+	---@type PortraitDescription
+	local dwarf_portrait = {
+		folder = "dwarf",
+		layers = {"cloth behind.PNG", "base.PNG", "cloth.PNG", "beard_front.PNG", "hair_front.PNG", "hat.PNG"},
+		layers_groups = {cloth = {"cloth behind.PNG", "cloth.PNG"}}
+	}
+
 	Race:new {
 		name = 'dwarf',
 		r = 0.99,
 		g = 0.106,
 		b = 0.133,
 		icon = 'dwarf.png',
+		male_portrait = {
+			fallback = dwarf_portrait
+		},
+		female_portrait = {
+			fallback = dwarf_portrait
+		},
 		description = 'dwarf',
 		males_per_hundred_females = 102,
 		child_age = 4,
