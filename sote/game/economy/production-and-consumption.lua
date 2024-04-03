@@ -432,17 +432,6 @@ function pro.run(province)
 
 		local cottage_time_per_unit = need.time_to_satisfy / need_job_efficiency
 
-		-- wealth pop can earn by foraging instead
-		local food_produced = pop_job_efficiency[JOBTYPE.FORAGER] * 0.5
-		local food_income
-		if pop_table:is_character() then
-			food_income = meat_price + hide_price * 0.5
-		else
-			food_income = seeds_production * grain_price + berries_production * berries_price
-		end
-		local income_per_unit_of_time = food_income * food_produced * last_foraaging_efficiency
-			+ timber_price * pop_job_efficiency[JOBTYPE.HAULING] * timber_production * 0.25
-
 		-- collect data, get all need use_cases demand
 		-- expected costs and estimated time needed to satisfy
 		---@type table<string,{need_amount: number, need_cost: number, need_time: number}>
@@ -470,54 +459,48 @@ function pro.run(province)
 		local total_time_used = 0
 		for case, values in pairs(need_cases) do
 			-- split time and money up to satisfy each need case
-			local time_fraction = math.max(0, free_time * values.need_time / total_need_time, 0)
-			local savings_fraction = math.max(0, savings * values.need_cost / total_need_cost, 0)
-		-- how many units pop can buy with potential income + savings
-			-- estimate cost of purchasable goods
-			local potential_income = math.min(time_fraction * income_per_unit_of_time, province.trade_wealth)
-			local buy_potential = math.min(values.need_amount, (potential_income + savings_fraction) / values.need_cost, available_goods_for_use(case))
-			-- check if more efficient to forage and buy or cottage
-			local utility_work_and_buy = buy_potential
-			local utility_to_cottage = time_fraction / cottage_time_per_unit
-			local forage_time, forage_income = 0, 0
-			-- forage for money if more efficent than cottage
-			if utility_work_and_buy > utility_to_cottage then
-				-- calculate needed money to make purchase
-				local need_cost = values.need_amount * values.need_cost
-				local forage_goal = math.max(0, need_cost - savings_fraction)
-				forage_time = math.min(forage_goal / potential_income, time_fraction)
-				-- spend time foraging for money needed to buy
-				forage_income = forage_income + forage(pop_view, pop_table, forage_time)
-				income = income + forage_income
-			end
-			-- attempt to buy from market with savings fraction and forage income
-			local spendings, consumed = buy_use(case, values.need_amount, savings_fraction + forage_income)
+			local time_fraction = math.max(free_time * values.need_time / total_need_time, 0)
+			local savings_fraction = math.max(savings * values.need_cost / total_need_cost, 0)
+			-- attempt to buy from market with savings fraction
+			local spendings, consumed = buy_use(case, values.need_amount, savings_fraction)
 			pop_table.need_satisfaction[need_index][case].consumed = pop_table.need_satisfaction[need_index][case].consumed + consumed
 			expenses = expenses + spendings
-			-- use remaining time fraction to satisfy remaning need
-			local time_remaining = time_fraction - forage_time
-			if time_remaining > 0 then
+
+			if consumed > values.need_amount + 0.01
+				or spendings > savings_fraction + 0.01
+			then
+				error("INVALID BUY_USE ATTEMPT IN SATISFY_NEED"
+					.. "\n case = "
+					.. tostring(case)
+					.. "\n spendings = "
+					.. tostring(spendings)
+					.. "\n savings_fraction = "
+					.. tostring(savings_fraction)
+					.. "\n consumed = "
+					.. tostring(consumed)
+					.. "\n need_amount = "
+					.. tostring(values.need_amount)
+				)
+			end
+
+			-- use time fraction to satisfy remaning need
+			if time_fraction > 0 then
 				local consumed = pop_table.need_satisfaction[need_index][case].consumed
 				local demanded = pop_table.need_satisfaction[need_index][case].demanded * target
 				need_amount = math.max(0, demanded * 0.5 - consumed)
 				if need_amount > 0 then
-					local cottage_time = math.min(time_remaining, need_amount * cottage_time_per_unit)
+					local cottage_time = math.min(time_fraction, need_amount * cottage_time_per_unit)
 					if need.job_to_satisfy == JOBTYPE.FORAGER then
 						foragers_count = foragers_count + cottage_time * pop_view[zero].foraging_efficiency
 					end
 					local cottaged = cottage_time / cottage_time_per_unit
 
 					if cottaged > need_amount + 0.01
-						or time_fraction + 0.01 < forage_time
-						or time_remaining + 0.01 < cottage_time
+						or cottage_time > time_fraction + 0.01
 					then
-						error("INVALID COTTAGING ATTEMPT"
+						error("INVALID COTTAGING ATTEMPT IN SATISFY_NEED"
 							.. "\n time_fraction = "
 							.. tostring(time_fraction)
-							.. "\n forage_time = "
-							.. tostring(forage_time)
-							.. "\n time_remaining = "
-							.. tostring(time_remaining)
 							.. "\n cottage_time = "
 							.. tostring(cottage_time)
 							.. "\n cottaged = "
@@ -533,7 +516,7 @@ function pro.run(province)
 			end
 
 			if total_time_used > free_time + 0.01 then
-				error("INVALID AMOUNT OF TIME SPENT"
+				error("INVALID AMOUNT OF TIME SPENT IN SATISFY NEED"
 					.. "\n total_time_used = "
 					.. tostring(total_time_used)
 					.. "\n free_time = "
