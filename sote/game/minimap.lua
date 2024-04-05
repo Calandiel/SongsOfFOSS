@@ -6,18 +6,27 @@ local tile = require "game.entities.tile"
 local latlon = require "game.latlon"
 
 ---Creates and returns a new minimap texture!
+---@param game GameScene
 ---@param width ?number
 ---@param height ?number
 ---@param province ?boolean
 ---@return love.ImageData
-function mm.make_minimap_image_data(width, height, province)
+function mm.make_minimap_image_data(game, width, height, province)
 	local w = width or 400
 	local h = height or 200
-	if province == nil then
-		province = false
-	end
 
 	local imd = love.image.newImageData(w, h)
+
+	local map_mode = game.map_mode
+
+	---@type number[]
+	local pointer_tile_color = require("ffi").cast("uint8_t*", game.tile_color_image_data:getFFIPointer())
+	---@type number[]
+	local pointer_province_color = require("ffi").cast("uint8_t*", game.province_color_data:getFFIPointer())
+	---@type number[]
+	local pointer_province_id = require("ffi").cast("uint8_t*", game.tile_province_id_data:getFFIPointer())
+
+	local dim = WORLD.world_size * 3
 
 	for x = 1, w do
 		for y = 1, h do
@@ -25,10 +34,14 @@ function mm.make_minimap_image_data(width, height, province)
 			local lat = ((y - 0.5) / h - 0.5) * math.pi
 			local tt = WORLD.tiles[tile.lat_lont_to_index(lat, lon)]
 
-			if province then
-				tt = tt.province.center
-			end
+			local tile_x, tile_y = game.tile_id_to_color_coords(tt)
+			local pixel_index = tile_x + tile_y * dim
 
+			local prov_id_r = pointer_province_id[pixel_index * 4 + 0]
+			local prov_id_g = pointer_province_id[pixel_index * 4 + 1]
+			local prov_id_b = pointer_province_id[pixel_index * 4 + 2]
+
+			local prov_id = prov_id_g * 256 + prov_id_r
 			local character = WORLD.player_character
 			local visible = true
 
@@ -39,9 +52,10 @@ function mm.make_minimap_image_data(width, height, province)
 				end
 			end
 
-			local r = tt.real_r
-			local g = tt.real_g
-			local b = tt.real_b
+			local r = pointer_tile_color[pixel_index * 4 + 0] / 255 * pointer_province_color[prov_id * 4 + 0] / 255
+			local g = pointer_tile_color[pixel_index * 4 + 1] / 255 * pointer_province_color[prov_id * 4 + 1] / 255
+			local b = pointer_tile_color[pixel_index * 4 + 2] / 255 * pointer_province_color[prov_id * 4 + 2] / 255
+			local a = pointer_tile_color[pixel_index * 4 + 3] / 255 * pointer_province_color[prov_id * 4 + 3] / 255
 
 			if not visible then
 				r = 0
@@ -56,12 +70,13 @@ function mm.make_minimap_image_data(width, height, province)
 	return imd
 end
 ---Creates and returns a new minimap texture!
+---@param game GameScene
 ---@param width ?number
 ---@param height ?number
 ---@param province boolean
 ---@return love.Image
-function mm.make_minimap(width, height, province)
-	return love.graphics.newImage(mm.make_minimap_image_data(width, height, province))
+function mm.make_minimap(game, width, height, province)
+	return love.graphics.newImage(mm.make_minimap_image_data(game, width, height, province))
 end
 
 local ui = require "engine.ui"
