@@ -84,6 +84,28 @@ function ut.simple_hue_map_mode(get_val_closure, include_sea)
 	end
 end
 
+---@param get_val_closure fun(prov: Province):number Should return a number between 0 and 1
+---@param include_sea boolean?
+function ut.provincial_hue_map_mode(get_val_closure, include_sea)
+	--print("hue")
+	local prev = -1
+	for i, province in pairs(WORLD.provinces) do
+		if i == prev then
+			print("Repeated ID: " .. tostring(i))
+			error("Repeated ID: " .. tostring(i))
+			love.event.quit()
+			break
+		end
+		if include_sea then
+			-- nothing to do, we include sea!
+		else
+			local vval = get_val_closure(province)
+			ut.hue_from_value(province.center, vval)
+		end
+		prev = i
+	end
+end
+
 ---Sets the real color on a tile to the default color
 ---@param tile Tile
 function ut.set_default_color(tile)
@@ -98,6 +120,12 @@ end
 function ut.clear_color()
 	for _, tile in ipairs(WORLD.tiles) do
 		ut.set_default_color(tile)
+	end
+end
+
+function ut.clear_color_provinces()
+	for _, province in ipairs(WORLD.provinces) do
+		ut.set_default_color(province.center)
 	end
 end
 

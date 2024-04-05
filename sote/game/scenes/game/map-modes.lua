@@ -14,247 +14,295 @@ function mm.set_up_map_modes(game_thingy)
 			"Diplomacy",
 			"peace-dove.png",
 			"Shows the realm and its active conflicts",
-			political_map_modes.diplomacy
+			political_map_modes.diplomacy,
+			"province"
 		},
 		selected_technology = {
 			"Selected technology",
 			"barbute.png", -- doesn't matter, it can't be rendered in the map mode ui anyway...
 			"tooltip thingy",
-			demographic_map_modes.selected_technology
+			demographic_map_modes.selected_technology,
+			"province"
+		},
+		selected_building_type_efficiency = {
+			"Selected building type",
+			"barbute.png", -- doesn't matter, it can't be rendered in the map mode ui anyway...
+			"tooltip thingy",
+			demographic_map_modes.selected_building_efficiency,
+			"province"
 		},
 		military_target = {
 			"Military (target)",
 			"barbute.png",
 			"A map mode showing the desired size of the military per province",
-			demographic_map_modes.military_target
+			demographic_map_modes.military_target,
+			"province"
 		},
 		military = {
 			"Military",
 			"barbute.png",
 			"A map mode showing the amount of local troops per province",
-			demographic_map_modes.military
+			demographic_map_modes.military,
+			"province"
 		},
 		races = {
 			"Race",
 			"barbute.png",
 			"A map mode showing the most dominant race per province",
-			demographic_map_modes.race
+			demographic_map_modes.race,
+			"province"
 		},
 		cultures = {
 			"Culture",
 			"musical-notes.png",
 			"A map mode showing the most dominant culture per province",
-			demographic_map_modes.culture
+			demographic_map_modes.culture,
+			"province"
 		},
 		faiths = {
 			"Faith",
 			"fire-bowl.png",
 			"A map mode showing the most dominant faith per province",
-			demographic_map_modes.faith
+			demographic_map_modes.faith,
+			"province"
 		},
 		coastlines = {
 			"Coastlines",
 			"mesh-ball.png",
 			"A debug map mode visualizing coastlines. Potentially useful for map making too",
-			debug_map_modes.coastlines
+			debug_map_modes.coastlines,
+			"tile"
 		},
 		technologies = {
 			"Technologies",
 			"erlenmeyer.png",
 			"Visualizes number of technologies per province",
-			demographic_map_modes.technologies
+			demographic_map_modes.technologies,
+			"province"
 		},
 		local_income = {
 			"Local income",
 			"coins.png",
 			"Shows local income of a province",
-			economic_map_modes.local_income
+			economic_map_modes.local_income,
+			"province"
 		},
 		realm_income = {
 			"Realm income",
 			"coins.png",
 			"Shows income per realm",
-			economic_map_modes.realm_income
+			economic_map_modes.realm_income,
+			"province"
 		},
 		resources = {
 			"Resources",
 			"rock.png",
 			"Shows resources on tiles",
-			geo_map_modes.resources
+			geo_map_modes.resources,
+			"tile"
 		},
 		prices = {
 			"Prices",
 			"coins.png",
 			"Shows prices of the currently selected trade good",
-			demographic_map_modes.prices
+			demographic_map_modes.prices,
+			"province"
 		},
 		population = {
 			"Population (100)",
 			"minions.png",
 			"Shows population with the most blue shades representing 100 people.",
-			demographic_map_modes.population
+			demographic_map_modes.population,
+			"province"
 		},
 		population_1000 = {
 			"Population (1000)",
 			"minions.png",
 			"Shows population with the most blue shades representing 1000 people.",
-			demographic_map_modes.population_1000
+			demographic_map_modes.population_1000,
+			"province"
 		},
 		population_density = {
 			"Population density",
 			"minions.png",
 			"Shows population density.",
-			demographic_map_modes.population_density
+			demographic_map_modes.population_density,
+			"province"
 		},
 		tile_carrying_capacity = {
 			"Carrying capacity (tile)",
 			"noodles.png",
 			"Shows carrying capacity per tile.",
-			ecology_map_modes.tile_carrying_capacity
+			ecology_map_modes.tile_carrying_capacity,
+			"tile"
 		},
 		realms = {
 			"Realms",
 			"flying-flag.png",
 			"Shows realms.",
-			political_map_modes.realms
+			political_map_modes.realms,
+			"province"
 		},
 		carrying_capacity = {
 			"Carrying capacity",
 			"noodles.png",
 			"Shows carrying capacity.",
-			ecology_map_modes.carrying_capacity
+			ecology_map_modes.carrying_capacity,
+			"province"
 		},
 		province = {
 			"Provinces",
 			"mesh-ball.png",
 			"Shows provinces.",
-			political_map_modes.province
+			political_map_modes.province,
+			"province"
 		},
 		biomes = {
 			"Biomes",
 			"sprout-disc.png",
 			"Shows biomes.",
-			ecology_map_modes.biomes
+			ecology_map_modes.biomes,
+			"tile"
 		},
 		itcz = {
 			"ITCZ",
 			"info.png",
 			"Shows the ITCZ.",
-			cli_map_modes.itcz
+			cli_map_modes.itcz,
+			"tile"
 		},
 		plants = {
 			"Vegetation",
 			"pine-tree.png",
 			"Shows types of plants. Red for shrubs, green for grass, blue for trees.",
-			ecology_map_modes.plants
+			ecology_map_modes.plants,
+			"tile"
 		},
 		jan_flow = {
 			"January waterflow",
 			"waterfall.png",
 			"Shows january waterflow.",
-			cli_map_modes.jan_flow
+			cli_map_modes.jan_flow,
+			"tile"
 		},
 		jul_flow = {
 			"July waterflow",
 			"waterfall.png",
 			"Shows july waterflow.",
-			cli_map_modes.jul_flow
+			cli_map_modes.jul_flow,
+			"tile"
 		},
 		koppen = {
 			"Kopppen",
 			"raining.png",
 			"Shows the koppen classification.",
-			cli_map_modes.koppen
+			cli_map_modes.koppen,
+			"tile"
 		},
 		jan_rain = {
 			"January rainfall",
 			"droplets.png",
 			"Shows january rainfall.",
-			cli_map_modes.jan_rain
+			cli_map_modes.jan_rain,
+			"tile"
 		},
 		jul_rain = {
 			"July rainfall",
 			"droplets.png",
 			"Shows july rainfall.",
-			cli_map_modes.jul_rain
+			cli_map_modes.jul_rain,
+			"tile"
 		},
 		jan_temp = {
 			"January temperature",
 			"thermometer-cold.png",
 			"Shows january temperature.",
-			cli_map_modes.jan_temp
+			cli_map_modes.jan_temp,
+			"tile"
 		},
 		jul_temp = {
 			"July temperature",
 			"thermometer-hot.png",
 			"Shows july temperature.",
-			cli_map_modes.jul_temp
+			cli_map_modes.jul_temp,
+			"tile"
 		},
 		soil_organics = {
 			"Soil organics",
 			"plow.png",
 			"Shows soil organics.",
-			soil_map_modes.organics
+			soil_map_modes.organics,
+			"tile"
 		},
 		soil_minerals = {
 			"Soil minerals",
 			"plow.png",
 			"Shows soil minerals.",
-			soil_map_modes.minerals
+			soil_map_modes.minerals,
+			"tile"
 		},
 		soil_texture = {
 			"Soil texture",
 			"plow.png",
 			"Shows soil texture.",
-			soil_map_modes.texture
+			soil_map_modes.texture,
+			"tile"
 		},
 		soil_depth = {
 			"Soil depth",
 			"plow.png",
 			"Shows soil depth.",
-			soil_map_modes.depth
+			soil_map_modes.depth,
+			"tile"
 		},
 		plates = {
 			"Plates",
 			"world.png",
 			"Shows tectonic plates",
-			geo_map_modes.plates
+			geo_map_modes.plates,
+			"tile"
 		},
 		rocks = {
 			"Rocks",
 			"stone-block.png",
 			"Shows bedrocks",
-			geo_map_modes.rocks
+			geo_map_modes.rocks,
+			"tile"
 		},
 		elevation = {
 			"Elevation",
 			"mountains.png",
 			"Shows elevation",
-			geo_map_modes.elevation
+			geo_map_modes.elevation,
+			"tile"
 		},
 		yellow = {
 			"Yellow",
 			"mesh-ball.png",
 			"A debug map mode showing all tiles as yellow!",
-			debug_map_modes.yellow
+			debug_map_modes.yellow,
+			"tile"
 		},
 		selected_tile = {
 			"Selected tile",
 			"flat-platform.png",
 			"A debug map mode showing the selected tile!",
-			debug_map_modes.selected_tile
+			debug_map_modes.selected_tile,
+			"tile"
 		},
 		debug = {
 			"Debug color",
 			"magnifying-glass.png",
 			"A debug map mode showing the debug color that was set on tiles by the developers!",
-			debug_map_modes.debug_color
+			debug_map_modes.debug_color,
+			"tile"
 		},
 		atlas = {
 			"Atlas",
 			"flying-flag.png",
 			"Shows combined information.",
-			political_map_modes.atlas
+			political_map_modes.atlas,
+			"tile"
 		},
 	}
 
