@@ -1,5 +1,8 @@
+local tabb = require "engine.table"
+
 local TRAIT = require "game.raws.traits.generic"
 local trade_good = require "game.raws.raws-utils".trade_good
+local use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local AiPreferences = {}
 
@@ -11,12 +14,15 @@ local ev = require "game.raws.values.economical"
 ---@param character Character
 ---@return number
 function AiPreferences.percieved_inflation(character)
-	local temp = trade_good('food')
-	local price = ev.get_local_price(character.province, temp.name)
+	local use = use_case('calories')
+	local base_price = tabb.accumulate(use.goods, 0, function (a, k, v)
+		return a + trade_good(k).base_price * v
+	end) / math.min(tabb.size(use.goods), 1)
+	local price = ev.get_local_price_of_use(character.province, 'calories')
 	if price == 0 then
-		price = temp.base_price
+		price = base_price
 	end
-	return price / temp.base_price
+	return price / base_price
 end
 
 ---comment

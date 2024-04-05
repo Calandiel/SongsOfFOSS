@@ -32,7 +32,7 @@ end
 ---@param realm Realm
 function PoliticalValues.guard_leader(realm)
     if realm.capitol_guard == nil then return nil end
-    return realm.capitol_guard.commander
+    return realm.capitol_guard:active_leader()
 end
 
 ---calculates amount of warlods loyal to character and their total army size

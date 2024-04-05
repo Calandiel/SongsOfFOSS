@@ -1,28 +1,28 @@
 local opt = {}
 
----@alias Fullscreen "false" | "exclusive" | "desktop" | "normal"
----@class (exact) Options
----@field version string
----@field volume number
----@field fullscreen Fullscreen
----@field fitscreen boolean
----@field rotation boolean
----@field update_map boolean
----@field treasury_ledger number
----@field debug_mode boolean
----@field zoom_sensitivity number
----@field camera_sensitivity number
----@field exploration number
----@field travel-start number
----@field travel-end number
----@field screen_resolution {width: number, height: number}
+---@class Options
+---@field ["version"] string
+---@field ["volume"] number
+---@field ["screen_resolution"] {width: number, height: number}
+---@field ["fullscreen"] love.FullscreenType
+---@field ["fitscreen"] boolean
+---@field ["rotation"] boolean
+---@field ["update_map"] boolean
+---@field ["treasury_ledger"] number
+---@field ["debug_mode"] boolean
+---@field ["zoom_sensitivity"] number
+---@field ["camera_sensitivity"] number
+---@field ["exploration"] number
+---@field ["travel-start"] number
+---@field ["travel-end"] number
 
 ---@return Options
 function opt.init()
 	return {
-		["version"] = "v0.3.1",
+		["version"] = VERSION_STRING,
 		["volume"] = 0,
-		["fullscreen"] = "false",
+		["screen_resolution"] = {width = 1280, height = 720},
+		["fullscreen"] = "normal",
 		["fitscreen"] = true,
 		["rotation"] = false,
 		["update_map"] = false,
@@ -33,7 +33,9 @@ function opt.init()
 		["exploration"] = 0,
 		["travel-start"] = 0,
 		["travel-end"] = 0,
-		["screen_resolution"] = { width = 1280, height = 720 }
+		["needs-inventory"] = false,
+		["needs-savings"] = 1/12,
+		["needs-hunt"] = 1/4,
 	}
 end
 
@@ -55,7 +57,7 @@ function opt.verify()
 		OPTIONS = default
 		return
 	end
-
+	
 	for i, j in pairs(default) do
 		if OPTIONS[i] == nil then
 			OPTIONS[i] = j
@@ -63,37 +65,33 @@ function opt.verify()
 	end
 end
 
----@param fullscreen Fullscreen
+---@param fullscreen love.FullscreenType
 function opt.updateFullscreen(fullscreen)
 	if OPTIONS == nil then return end
 	---@class Options
 	OPTIONS = OPTIONS
 	local ui = require "engine.ui"
 	OPTIONS.fullscreen = fullscreen
-	if fullscreen == "false" then
+	if fullscreen == "normal" then
 		love.window.setFullscreen(false)
 	else
-		--- [Cala, 30 Mar, 2024] This is fine, see the above line
-		---@diagnostic disable-next-line: param-type-mismatch
 		love.window.setFullscreen(true, fullscreen)
 	end
 	local dim_x, dim_y = love.graphics.getDimensions()
-	if fullscreen ~= "false" and OPTIONS.fitscreen then
+	if fullscreen ~= "normal" and OPTIONS.fitscreen then
 		if fullscreen == "desktop" then
 			ui.set_reference_screen_dimensions(dim_x, dim_y)
 		else
-			ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width / dim_y,
-				OPTIONS.screen_resolution.height / dim_x)
+			ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width/dim_y,OPTIONS.screen_resolution.height/dim_x)
 		end
 	else
-		ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height)
+		ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
 	end
 	if GAME_STATE.scene[1] == "game" then
 		if fullscreen == "desktop" or (fullscreen == "exclusive" and OPTIONS.fitscreen) then
-			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x, dim_y)
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x,dim_y)
 		else
-			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(OPTIONS.screen_resolution.width,
-				OPTIONS.screen_resolution.height)
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
 		end
 	end
 	require "game.ui-utils".reload_font()

@@ -392,12 +392,16 @@ function world.World:tick()
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
+			local tc, fs = 0, {conifer = 0, broadleaf = 0, shrub = 0, grass = 0}
 			for _, tile in pairs(settled_province.tiles) do
 				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
 				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
 				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
 				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+				fs = {conifer = fs.conifer + tile.conifer, broadleaf = fs.broadleaf + tile.broadleaf, shrub = fs.shrub + tile.shrub, grass = fs.grass + tile.grass}
+				tc = tc + 1
 			end
+			settled_province.flora_spread = {conifer = fs.conifer / tc, broadleaf = fs.broadleaf / tc, shrub = fs.shrub / tc, grass = fs.grass / tc}
 		end
 
 		PROFILER:end_timer("vegetation")
@@ -417,17 +421,6 @@ function world.World:tick()
 		for _, province in pairs(to_remove) do
 			ta[province] = nil
 		end
-
-		PROFILER:start_timer("growth")
-
-		-- "POP" update
-		local pop_growth = require "game.society.pop-growth"
-		for _, settled_province in pairs(ta) do
-			--print("Pop growth")
-			pop_growth.growth(settled_province)
-		end
-
-		PROFILER:end_timer("growth")
 
 
 		-- "Province" update
@@ -460,6 +453,14 @@ function world.World:tick()
 			research.run(settled_province)
 			recruit.run(settled_province)
 			PROFILER:end_timer("province")
+
+			PROFILER:start_timer("growth")
+			-- "POP" update
+			local pop_growth = require "game.society.pop-growth"
+			--print("Pop growth")
+			pop_growth.growth(settled_province)
+			PROFILER:end_timer("growth")
+
 			--print("done")
 		end
 
@@ -695,6 +696,9 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 		character_flag =
 			character_flag
 	}
+	if reason == nil then
+		error("NO REASON GIVEN!")
+	end
 	self.treasury_effects:enqueue(effect)
 end
 

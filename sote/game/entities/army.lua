@@ -87,47 +87,41 @@ end
 ---@param defender Army The opposing defending army.
 ---@return boolean success, number attacker_losses, number defender_losses
 function army:attack(prov, spotted, defender)
-	local armor = 0
-	local speed = 0
-	local attack = 0
-	local hp = 0
-	local stack = 0
-	for pop, unit in pairs(self:units()) do
-		local size = pop.race.male_body_size
-		if pop.female then
-			size = pop.race.female_body_size
-		end
-		armor = armor + unit.base_armor
-		attack = attack + unit.base_attack
-		speed = speed + unit.speed
-		hp = hp + unit.base_health * size
-		stack = stack + 1
+	local atk_armor = 0
+	local atk_speed = 0
+	local atk_attack = 0
+	local atk_hp = 0
+	local atk_stack = 0
+	for _, warband in pairs(self.warbands) do
+		local health, attack, armor, speed, count = warband:get_total_strength()
+		atk_armor = atk_armor + armor
+		atk_attack = atk_attack + attack
+		atk_speed = atk_speed + speed
+		atk_hp = atk_hp + health
+		atk_stack = atk_stack + count
 	end
-	if stack == 0 then
+	if atk_stack == 0 then
 		return false, 0, 0
 	end
-	stack = math.max(1, stack)
+	atk_stack = math.max(1, atk_stack)
 
-	armor = armor / stack
-	speed = speed / stack
-	attack = attack / stack
-	hp = hp / stack
+	atk_armor = atk_armor / atk_stack
+	atk_speed = atk_speed / atk_stack
+	atk_attack = atk_attack / atk_stack
+	atk_hp = atk_hp / atk_stack
 
 	local def_armor = 0
 	local def_speed = 0
 	local def_attack = 0
 	local def_hp = 0
 	local def_stack = 0
-	for pop, unit in pairs(defender:units()) do
-		local size = pop.race.male_body_size
-		if pop.female then
-			size = pop.race.female_body_size
-		end
-		def_armor = def_armor + unit.base_armor
-		def_attack = def_attack + unit.base_attack
-		def_speed = def_speed + unit.speed
-		def_hp = def_hp + unit.base_health * size
-		def_stack = def_stack + 1
+	for _, warband in pairs(defender.warbands) do
+		local health, attack, armor, speed, count = warband:get_total_strength()
+		def_armor = def_armor + armor
+		def_attack = def_attack + attack
+		def_speed = def_speed + speed
+		def_hp = def_hp + health
+		def_stack = def_stack + count
 	end
 	if def_stack == 0 then
 		return true, 0, 0
@@ -143,10 +137,9 @@ function army:attack(prov, spotted, defender)
 	if spotted then
 		defender_advantage = defender_advantage + love.math.random() * 0.65
 	end
-
 	-- Expressed as fraction of the opposing army killed per "turn"
-	local damage_attacker = math.max(1, attack - def_armor) / math.max(1, def_hp * def_stack)
-	local damage_defender = defender_advantage * math.max(1, def_attack - armor) / math.max(1, hp * stack)
+	local damage_attacker = math.max(1, atk_attack - def_armor) / math.max(1, def_hp * def_stack)
+	local damage_defender = defender_advantage * math.max(1, def_attack - atk_armor) / math.max(1, atk_hp * atk_stack)
 
 	-- The fraction of the army at which it will run away
 	local stop_battle_threshold = 0.7
@@ -154,7 +147,7 @@ function army:attack(prov, spotted, defender)
 	local exponent = 0.1
 	-- Forward Euler integration
 	local power = 1
-	local defpower = def_stack / stack
+	local defpower = def_stack / atk_stack
 	local victory = true
 	-- print(power, defpower)
 	while true do
@@ -180,7 +173,7 @@ function army:attack(prov, spotted, defender)
 	-- After the battle, kill people!
 	--- fraction of people who survived
 	local frac = power
-	local def_frac = defpower / (def_stack / stack)
+	local def_frac = defpower / (def_stack / atk_stack)
 
 	--- kill dead ones
 	local losses = self:kill_off(1 - frac)
