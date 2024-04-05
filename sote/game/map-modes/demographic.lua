@@ -97,6 +97,8 @@ function dem.selected_technology()
 				else
 					prov.center:set_real_color(1, 0, 0)
 				end
+			else
+				ut.set_default_color(prov.center)
 			end
 		end
 	end
