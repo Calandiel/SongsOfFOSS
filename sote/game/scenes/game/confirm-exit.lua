@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+local mmut = require "game.map-modes.utils"
 
 local window = {}
 ---@return Rect
@@ -16,6 +17,8 @@ function window.mask()
 	end
 end
 
+---@param game GameScene
+---@return string
 function window.draw(game)
     local rect = window.rect()
     ui.panel(rect)
@@ -53,7 +56,10 @@ function window.draw(game)
 			layout:next(rect.width, base_unit),
 			"Export map"
 	) then
-		local to_save = require "game.minimap".make_minimap_image_data(1600, 800)
+		local to_save = require "game.minimap".make_minimap_image_data(
+			1600, 800,
+			game.map_mode_data[game.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE
+		)
 		to_save:encode("png", game.map_mode .. ".png")
 		-- game.click_callback = callback.nothing()
 	end

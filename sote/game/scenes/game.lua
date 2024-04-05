@@ -1,3 +1,5 @@
+---@alias MapModeEntry { [1]: string, [2]: string, [3]: string, [4]: fun(clicked_tile_id: number), [5]: MAP_MODE_GRANULARITY, [6]: MAP_MODE_UPDATES_TYPE, [7]: fun()|nil }
+
 ---@class (exact) GameScene
 ---@field macrobuilder_public_mode boolean
 ---@field tile_inspector_tab TileInspectorTabs | nil
@@ -11,12 +13,12 @@
 ---@field game_canvas love.Canvas
 ---@field planet_mesh love.Mesh
 ---@field planet_shader love.Shader
----@field map_mode_data table TODO difficult to untangle, port to Teal
+---@field map_mode_data table<string, MapModeEntry>
 ---@field map_mode_tabs table TODO difficult to untangle, port to Teal
 ---@field init fun()
 ---@field handle_zoom fun()
 ---@field on_tile_click fun()
----@field _refresh_map_mode fun(boolean)
+---@field _refresh_map_mode fun()
 ---@field debug_ui fun()
 ---@field paused boolean
 ---@field ticks_without_map_update number
@@ -59,16 +61,21 @@
 ---
 ---@field _recalculate_province_texture fun()
 ---@field province_id_data love.ImageData
----@field province_id_texture love.Texture
+---@field province_id_texture love.Image
 ---
----@field _refresh_provincial_map_mode fun()
+---@field _refresh_provincial_map_mode fun(use_secondary: boolean?)
 ---@field province_color_data love.ImageData
----@field province_color_texture love.Texture
+---@field province_color_texture love.Image
+---
+---@field _refresh_mixed_map_mode fun()
+---
+---@field TILE_MAP_MODE_CACHE table<string, love.Image>
+---@field PROVINCE_MAP_MODE_CACHE table<string, love.Image>
 ---
 ---@field tile_neighbor_provinces_data love.ImageData
 ---@field tile_neighbor_provinces_texture love.Texture
 ---
----@field tile_province_texture love.Texture
+---@field tile_province_texture love.Image
 ---@field tile_province_image_data love.ImageData
 ---
 ---@field update fun(number)
@@ -106,6 +113,7 @@ local tb = require "game.scenes.game.top-bar"
 local callback = require "game.scenes.callbacks"
 local tabb = require "engine.table"
 local political = require "game.map-modes.political"
+local mmut = require "game.map-modes.utils"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
@@ -268,6 +276,9 @@ function gam.init()
 	gam.paused = true
 	gam.ticks_without_map_update = 0
 
+	gam.TILE_MAP_MODE_CACHE = {}
+	gam.PROVINCE_MAP_MODE_CACHE = {}
+
 	gam.speed = 1
 	gam.turbo = false
 
@@ -305,10 +316,20 @@ function gam.init()
 	gam.tile_color_texture = love.graphics.newImage(imd)
 
 	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
+	for x = 1, dim do
+		for y = 1, dim do
+			gam.empty_texture_image_data:setPixel(x - 1, y - 1, 1, 1, 1, 1)
+		end
+	end
 	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
 
+
 	gam.province_empty_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
+	for x = 1, WORLD.province_count do
+		gam.province_empty_data:setPixel(x - 1, 0, 1, 1, 1, 1)
+	end
 	gam.province_empty_texture = love.graphics.newImage(gam.province_empty_data)
+
 
 	gam.province_id_data = love.image.newImageData(dim, dim, "r32f")
 	gam.province_id_texture = love.graphics.newImage(gam.province_id_data)
@@ -328,7 +349,7 @@ function gam.init()
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
 
-	gam.minimap = require "game.minimap".make_minimap()
+	gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
 end
 
 ---Call this to make sure that a camera position exists.
@@ -1440,10 +1461,12 @@ function gam.draw()
 		local loading_rect = ui.fullscreen():subrect(0, 100, 300, 50, "center", "up")
 		ui.panel(loading_rect)
 		local progress = 0
-		if gam.map_mode_data[gam.map_mode][5] == "tile" then
+		if gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.TILE then
 			progress = gam.map_update_progress / WORLD:tile_count() * 300
-		else
+		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE then
 			progress = gam.map_update_progress / WORLD.province_count * 300
+		else
+			progress = gam.map_update_progress / (WORLD.province_count + WORLD:tile_count()) * 300
 		end
 		local progress_bar = loading_rect:subrect(0, 0, progress, 50, "left", "up")
 		local temporary_r = ui.style.panel_inside.r
@@ -1802,12 +1825,30 @@ function gam.refresh_map_mode()
 
 	if gam.map_update_coroutine == nil then
 		print('create map update coroutine')
-		if gam.map_mode_data[gam.map_mode][5] == "tile" then
+		if gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.TILE then
 			print("tile map mode")
-			gam.map_update_coroutine = coroutine.create(function() return gam._refresh_map_mode() end)
-		elseif gam.map_mode_data[gam.map_mode][5] == "province" then
+			gam.map_update_progress = 0
+			gam.map_update_coroutine = coroutine.create(function()
+				gam._refresh_map_mode()
+				gam.province_color_texture = gam.province_empty_texture
+				gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
+			end)
+		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE then
 			print("province map mode")
-			gam.map_update_coroutine = coroutine.create(function() return gam._refresh_provincial_map_mode() end)
+			gam.map_update_progress = 0
+			gam.map_update_coroutine = coroutine.create(function()
+				gam._refresh_provincial_map_mode()
+				gam.tile_color_texture = gam.empty_texture
+				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
+			end)
+		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.MIXED then
+			print("mixed map mode")
+			gam.map_update_progress = 0
+			gam.map_update_coroutine = coroutine.create(function()
+				gam._refresh_mixed_map_mode()
+				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
+			end)
+
 		end
 	end
 end
@@ -1832,7 +1873,14 @@ function gam._recalculate_province_texture()
 	gam.province_id_texture:setFilter("nearest", "nearest")
 end
 
-function gam._refresh_provincial_map_mode()
+function gam._refresh_mixed_map_mode()
+	gam._refresh_provincial_map_mode(true)
+	gam._refresh_map_mode()
+end
+
+---Update province texture
+---@param use_secondary boolean? Use secondary update function in map mode definition if true
+function gam._refresh_provincial_map_mode(use_secondary)
 	local tim = love.timer.getTime()
 
 	if gam.tile_neighbor_realm_data == nil then
@@ -1844,47 +1892,72 @@ function gam._refresh_provincial_map_mode()
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
-	local func = dat[4]
-	func(gam.clicked_tile_id) -- set "real color" on tiles
 
-	gam.map_update_progress = 0
-
-	local id = 0
-
-	for _, province in ipairs(WORLD.ordered_provinces_list) do
-		local can_set = true
-		local player_character = WORLD.player_character
-		if player_character and player_character.realm then
-			can_set = false
-			if player_character.realm.known_provinces[province] then
-				can_set = true
-			end
-		end
-
-		gam.map_update_progress = gam.map_update_progress + 1
-		coroutine.yield(false)
-
-		local current_tile = province.center
-
-		if can_set then
-			pointer_province_color[id * 4 + 0] = 255 * current_tile.real_r
-			pointer_province_color[id * 4 + 1] = 255 * current_tile.real_g
-			pointer_province_color[id * 4 + 2] = 255 * current_tile.real_b
-			pointer_province_color[id * 4 + 3] = 255 * 1
+	if dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
+		if gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode] == nil then
+			print("static map mode but not found in cache: recalculating province colors...")
 		else
-			pointer_province_color[id * 4 + 0] = 255 * 0.15
-			pointer_province_color[id * 4 + 1] = 255 * 0.15
-			pointer_province_color[id * 4 + 2] = 255 * 0.15
-			pointer_province_color[id * 4 + 3] = 255 * 0
+			print("province map mode loaded from cache")
+			gam.province_color_texture = gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode]
+			goto finalize
 		end
-
-		id = id + 1
 	end
 
-	gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
-	gam.province_color_texture:setFilter("nearest", "nearest")
+	do
+		print("calculate province colors")
+		local func = dat[4]
+		if use_secondary then
+			func = dat[7]
+		end
+		assert(func ~= nil, "Map mode " .. gam.map_mode .. " lacks requested update function")
+		func(gam.clicked_tile_id) -- set "real color" on central tiles
 
-	gam.tile_color_texture = gam.empty_texture
+		local id = 0
+
+		print("update texture data")
+		for _, province in ipairs(WORLD.ordered_provinces_list) do
+			local can_set = true
+			local player_character = WORLD.player_character
+			if player_character and player_character.realm then
+				can_set = false
+				if player_character.realm.known_provinces[province] then
+					can_set = true
+				end
+			end
+
+			gam.map_update_progress = gam.map_update_progress + 1
+			coroutine.yield(false)
+
+			local current_tile = province.center
+
+			if can_set then
+				pointer_province_color[id * 4 + 0] = 255 * current_tile.real_r
+				pointer_province_color[id * 4 + 1] = 255 * current_tile.real_g
+				pointer_province_color[id * 4 + 2] = 255 * current_tile.real_b
+				pointer_province_color[id * 4 + 3] = 255 * 1
+			else
+				pointer_province_color[id * 4 + 0] = 255 * 0.15
+				pointer_province_color[id * 4 + 1] = 255 * 0.15
+				pointer_province_color[id * 4 + 2] = 255 * 0.15
+				pointer_province_color[id * 4 + 3] = 255 * 0
+			end
+
+			id = id + 1
+		end
+
+		print("generate texture from data")
+		gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
+		gam.province_color_texture:setFilter("nearest", "nearest")
+
+		if
+			dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+		then
+			print("map mode was cached!")
+			gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode] = gam.province_color_texture
+		end
+	end
+
+	::finalize::
 
 	local time = love.timer.getTime() - tim
 	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
@@ -1907,54 +1980,73 @@ function gam._refresh_map_mode()
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
-	local func = dat[4]
-	func(gam.clicked_tile_id) -- set "real color" on tiles
 
-	-- Apply the color
-	gam.map_update_progress = 0
-
-	for _, province in pairs(WORLD.provinces) do
-		-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
-		local can_set = true
-		local player_character = WORLD.player_character
-		if player_character and player_character.realm then
-			can_set = false
-			if player_character.realm.known_provinces[province] then
-				can_set = true
-			end
-		end
-		for _, tile in pairs(province.tiles) do
-			gam.map_update_progress = gam.map_update_progress + 1
-			coroutine.yield(false)
-
-			local x, y = gam.tile_id_to_color_coords(tile)
-			local pixel_index = x + y * dim
-
-			if can_set then
-				local r = tile.real_r
-				local g = tile.real_g
-				local b = tile.real_b
-
-				pointer_tile_color[pixel_index * 4 + 0] = 255 * r
-				pointer_tile_color[pixel_index * 4 + 1] = 255 * g
-				pointer_tile_color[pixel_index * 4 + 2] = 255 * b
-				pointer_tile_color[pixel_index * 4 + 3] = 255 * 1
-			else
-				pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
-				pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
-				pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
-				pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
-			end
+	if
+		dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+		or dat[6] == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
+	then
+		if gam.TILE_MAP_MODE_CACHE[gam.map_mode] == nil then
+			print("static map mode but not found in cache: recalculating tile colors...")
+		else
+			print("tile map mode loaded from cache")
+			gam.tile_color_texture = gam.TILE_MAP_MODE_CACHE[gam.map_mode]
+			goto finalize
 		end
 	end
-	-- Update the texture
-	gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
-	gam.tile_color_texture:setFilter("nearest", "nearest")
 
-	gam.province_color_texture = gam.province_empty_texture
+	do
+		local func = dat[4]
+		func(gam.clicked_tile_id) -- set "real color" on tiles
 
-	-- Update the minimap
-	gam.minimap = require "game.minimap".make_minimap()
+		-- Apply the color
+
+		for _, province in pairs(WORLD.provinces) do
+			-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
+			local can_set = true
+			local player_character = WORLD.player_character
+			if player_character and player_character.realm then
+				can_set = false
+				if player_character.realm.known_provinces[province] then
+					can_set = true
+				end
+			end
+			for _, tile in pairs(province.tiles) do
+				gam.map_update_progress = gam.map_update_progress + 1
+				coroutine.yield(false)
+
+				local x, y = gam.tile_id_to_color_coords(tile)
+				local pixel_index = x + y * dim
+
+				if can_set then
+					local r = tile.real_r
+					local g = tile.real_g
+					local b = tile.real_b
+
+					pointer_tile_color[pixel_index * 4 + 0] = 255 * r
+					pointer_tile_color[pixel_index * 4 + 1] = 255 * g
+					pointer_tile_color[pixel_index * 4 + 2] = 255 * b
+					pointer_tile_color[pixel_index * 4 + 3] = 255 * 1
+				else
+					pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
+					pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
+					pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
+					pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
+				end
+			end
+		end
+		-- Update the texture
+		gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
+		gam.tile_color_texture:setFilter("nearest", "nearest")
+
+		if
+			dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+			or dat[6] == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
+		then
+			gam.TILE_MAP_MODE_CACHE[gam.map_mode] = gam.tile_color_texture
+		end
+	end
+
+	::finalize::
 
 	local time = love.timer.getTime() - tim
 	print("Map mode update time: " .. tostring(time * 1000) .. "ms")

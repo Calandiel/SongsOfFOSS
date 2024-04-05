@@ -58,6 +58,7 @@ end
 ---@class (exact) Realm
 ---@field __index Realm
 ---@field realm_id number
+---@field exists boolean
 ---@field name string
 ---@field budget Budget
 ---@field tax_target number
@@ -184,6 +185,8 @@ function realm.Realm:new()
 	o.quests_explore = {}
 	o.quests_patrol = {}
 	o.quests_raid = {}
+
+	o.exists = true
 
 	-- print("bb")
 	if love.math.random() < 0.6 then
