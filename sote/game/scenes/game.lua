@@ -52,6 +52,7 @@
 ---
 ---@field tile_color_texture love.Image
 ---@field tile_color_image_data love.ImageData
+---@field tile_color_image_data_temp love.ImageData
 ---
 ---@field empty_texture_image_data love.ImageData
 ---@field empty_texture love.Image
@@ -64,6 +65,7 @@
 ---@field tile_province_id_texture love.Image
 ---
 ---@field _refresh_provincial_map_mode fun(use_secondary: boolean?, async_flag: boolean?)
+---@field province_color_data_temp love.ImageData
 ---@field province_color_data love.ImageData
 ---@field province_color_texture love.Image
 ---
@@ -74,7 +76,9 @@
 ---@field _refresh_mixed_map_mode fun(async_flag: boolean?)
 ---
 ---@field TILE_MAP_MODE_CACHE table<string, love.Image>
+---@field TILE_MAP_MODE_DATA_CACHE table<string, love.ImageData>
 ---@field PROVINCE_MAP_MODE_CACHE table<string, love.Image>
+---@field PROVINCE_MAP_MODE_DATA_CACHE table<string, love.ImageData>
 ---
 ---@field tile_neighbor_provinces_data love.ImageData
 ---@field tile_neighbor_provinces_texture love.Texture
@@ -282,6 +286,8 @@ function gam.init()
 
 	gam.TILE_MAP_MODE_CACHE = {}
 	gam.PROVINCE_MAP_MODE_CACHE = {}
+	gam.TILE_MAP_MODE_DATA_CACHE = {}
+	gam.PROVINCE_MAP_MODE_DATA_CACHE = {}
 
 	gam.speed = 1
 	gam.turbo = false
@@ -317,6 +323,7 @@ function gam.init()
 			imd:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
 		end
 	end
+	gam.tile_color_image_data_temp = imd
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
 
@@ -361,7 +368,8 @@ function gam.init()
 	gam.fog_of_war_texture = love.graphics.newImage(gam.fog_of_war_data)
 	gam.fog_of_war_texture:setFilter("nearest", "nearest")
 
-	gam.province_color_data = love.image.newImageData(256, 256, "rgba8")
+	gam.province_color_data_temp = love.image.newImageData(256, 256, "rgba8")
+	gam.province_color_data = gam.province_color_data_temp
 	gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
 	gam.province_color_texture:setFilter("nearest", "nearest")
 
@@ -376,7 +384,7 @@ function gam.init()
 	gam.refresh_map_mode(false)
 	gam.click_tile(-1)
 
-	gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
+	gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, false)
 
 	for map_mode, _ in pairs(gam.map_mode_data) do
 		if _[6] ~= mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC then
@@ -1878,18 +1886,20 @@ function gam.refresh_map_mode(async_flag)
 			gam.map_update_progress = 0
 
 			function update_function()
-				gam._refresh_map_mode(async_flag)
+				gam.province_color_data = gam.province_empty_data
 				gam.province_color_texture = gam.province_empty_texture
-				gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
+				gam._refresh_map_mode(async_flag)
+				gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, false)
 			end
 		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE then
 			print("province map mode")
 			gam.map_update_progress = 0
 
 			function update_function()
-				gam._refresh_provincial_map_mode(false, async_flag)
+				gam.tile_color_image_data = gam.empty_texture_image_data
 				gam.tile_color_texture = gam.empty_texture
-				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
+				gam._refresh_provincial_map_mode(false, async_flag)
+				gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, true)
 			end
 
 		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.MIXED then
@@ -1898,7 +1908,7 @@ function gam.refresh_map_mode(async_flag)
 
 			function update_function()
 				gam._refresh_mixed_map_mode(async_flag)
-				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
+				gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, true)
 			end
 		end
 
@@ -1964,7 +1974,8 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 	end
 
 	---@type number[]
-	local pointer_province_color = require("ffi").cast("uint8_t*", gam.province_color_data:getFFIPointer())
+	local pointer_province_color = require("ffi").cast("uint8_t*", gam.province_color_data_temp:getFFIPointer())
+	gam.province_color_data = gam.province_color_data_temp
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
@@ -1972,8 +1983,17 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 	if dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
 		if gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode] == nil then
 			print("static map mode but not found in cache: recalculating province colors...")
+			gam.PROVINCE_MAP_MODE_DATA_CACHE[gam.map_mode] = love.image.newImageData(256, 256, "rgba8")
+			for x = 1, 256 do
+				for y = 1, 256 do
+					gam.PROVINCE_MAP_MODE_DATA_CACHE[gam.map_mode]:setPixel(x - 1, y - 1, 1, 1, 1, 1)
+				end
+			end
+			pointer_province_color = require("ffi").cast("uint8_t*", gam.PROVINCE_MAP_MODE_DATA_CACHE[gam.map_mode]:getFFIPointer())
+			gam.province_color_data = gam.PROVINCE_MAP_MODE_DATA_CACHE[gam.map_mode]
 		else
 			print("province map mode loaded from cache")
+			gam.province_color_data = gam.PROVINCE_MAP_MODE_DATA_CACHE[gam.map_mode]
 			gam.province_color_texture = gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode]
 			goto finalize
 		end
@@ -2061,7 +2081,8 @@ function gam._refresh_map_mode(async_flag)
 
 	local dim = WORLD.world_size * 3
 	---@type number[]
-	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data:getFFIPointer())
+	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data_temp:getFFIPointer())
+	gam.tile_color_image_data = gam.tile_color_image_data_temp
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
@@ -2072,8 +2093,18 @@ function gam._refresh_map_mode(async_flag)
 	then
 		if gam.TILE_MAP_MODE_CACHE[gam.map_mode] == nil then
 			print("static map mode but not found in cache: recalculating tile colors...")
+			local imd = love.image.newImageData(dim, dim, "rgba8")
+			for x = 1, dim do
+				for y = 1, dim do
+					imd:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
+				end
+			end
+			gam.TILE_MAP_MODE_DATA_CACHE[gam.map_mode] = imd
+			pointer_tile_color = require("ffi").cast("uint8_t*", imd:getFFIPointer())
+			gam.tile_color_image_data = imd
 		else
 			print("tile map mode loaded from cache")
+			gam.tile_color_image_data = gam.TILE_MAP_MODE_DATA_CACHE[gam.map_mode]
 			gam.tile_color_texture = gam.TILE_MAP_MODE_CACHE[gam.map_mode]
 			goto finalize
 		end
