@@ -21,7 +21,6 @@ function pla.get_shader()
 
 		uniform sampler2D province_colors; // stores colors assigned to provinces
 		uniform sampler2D province_index; // sample to retrieve indices for province colors - it's technically a "tile" texture
-		uniform float max_province_index;
 
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
