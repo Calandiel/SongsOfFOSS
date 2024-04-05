@@ -106,7 +106,7 @@ function pla.get_shader()
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			float province_id = (Texel(province_index, face_offset).r + 0.5) / max_province_index;
 
-			vec4 texcolor = Texel(tile_colors, face_offset) + Texel(province_colors, vec2(province_id, 0.5));
+			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, vec2(province_id, 0.5));
 
 			float distance_for_improvments_and_clicked_tiles = 0.15; // controls the distance threshold from the sphere at which details on tiles are rendered.
 			if (camera_distance_from_sphere < distance_for_improvments_and_clicked_tiles) {

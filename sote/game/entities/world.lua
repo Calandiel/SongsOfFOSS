@@ -343,6 +343,9 @@ function world.World:event_tick(eve, root, dat)
 	else
 		WORLD.events_queue:dequeue()
 		handle_event(eve, root, dat)
+		if (not root.dead) then
+			assert(root.province ~= nil)
+		end
 		return false
 	end
 end

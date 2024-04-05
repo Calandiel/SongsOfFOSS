@@ -2,6 +2,20 @@ local col = require "cpml".color
 
 local ut = {}
 
+---@enum MAP_MODE_GRANULARITY
+ut.MAP_MODE_GRANULARITY = {
+	TILE = 1,
+	PROVINCE = 2,
+	MIXED = 3
+}
+
+---@enum MAP_MODE_UPDATES_TYPE
+ut.MAP_MODE_UPDATES_TYPE= {
+	STATIC = 1,
+	DYNAMIC = 2,
+	DYNAMIC_PROVINCE_STATIC_TILE = 3
+}
+
 ---@class (exact) FastMapModeEntry
 ---@field r number
 ---@field g number
@@ -125,7 +139,7 @@ end
 
 function ut.clear_color_provinces()
 	for _, province in ipairs(WORLD.provinces) do
-		ut.set_default_color(province.center)
+		province.center:set_real_color(0.1, 0.1, 0.1)
 	end
 end
 

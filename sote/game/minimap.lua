@@ -8,10 +8,14 @@ local latlon = require "game.latlon"
 ---Creates and returns a new minimap texture!
 ---@param width ?number
 ---@param height ?number
+---@param province ?boolean
 ---@return love.ImageData
-function mm.make_minimap_image_data(width, height)
+function mm.make_minimap_image_data(width, height, province)
 	local w = width or 400
 	local h = height or 200
+	if province == nil then
+		province = false
+	end
 
 	local imd = love.image.newImageData(w, h)
 
@@ -20,6 +24,10 @@ function mm.make_minimap_image_data(width, height)
 			local lon = ((x - 0.5) / w * 2 - 1) * math.pi
 			local lat = ((y - 0.5) / h - 0.5) * math.pi
 			local tt = WORLD.tiles[tile.lat_lont_to_index(lat, lon)]
+
+			if province then
+				tt = tt.province.center
+			end
 
 			local character = WORLD.player_character
 			local visible = true
@@ -50,9 +58,10 @@ end
 ---Creates and returns a new minimap texture!
 ---@param width ?number
 ---@param height ?number
+---@param province boolean
 ---@return love.Image
-function mm.make_minimap(width, height)
-	return love.graphics.newImage(mm.make_minimap_image_data(width, height))
+function mm.make_minimap(width, height, province)
+	return love.graphics.newImage(mm.make_minimap_image_data(width, height, province))
 end
 
 local ui = require "engine.ui"
