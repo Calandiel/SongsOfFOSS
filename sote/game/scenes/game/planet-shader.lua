@@ -19,8 +19,8 @@ function pla.get_shader()
 		uniform float world_size;
 		uniform sampler2D tile_colors;
 
-		uniform sampler2D province_colors;
-		uniform sampler2D province_index;
+		uniform sampler2D province_colors; // stores colors assigned to provinces
+		uniform sampler2D province_index; // sample to retrieve indices for province colors - it's technically a "tile" texture
 		uniform float max_province_index;
 
 		uniform sampler2D tile_provinces;
@@ -106,15 +106,13 @@ function pla.get_shader()
 			player += get_face_offset(player_face);
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
-			float province_id = (Texel(province_index, face_offset).r + 0.5) / max_province_index;
 
-			vec4 fog_of_war_rgba = Texel(fog_of_war, vec2(province_id, 0.5));
-
-			if (fog_of_war_rgba.a > 0.5) {
+			vec2 province_index_uv = Texel(province_index, face_offset).rg;
+      vec4 fog_of_war_rgba = Texel(fog_of_war, province_index_uv);
+      if (fog_of_war_rgba.a > 0.5) {
 				return fog_of_war_rgba;
 			}
-
-			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, vec2(province_id, 0.5));
+			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, province_index_uv);
 
 			float distance_for_improvments_and_clicked_tiles = 0.15; // controls the distance threshold from the sphere at which details on tiles are rendered.
 			if (camera_distance_from_sphere < distance_for_improvments_and_clicked_tiles) {

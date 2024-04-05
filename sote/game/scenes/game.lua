@@ -60,8 +60,8 @@
 ---@field province_empty_texture love.Image
 ---
 ---@field _recalculate_province_texture fun()
----@field province_id_data love.ImageData
----@field province_id_texture love.Image
+---@field tile_province_id_data love.ImageData
+---@field tile_province_id_texture love.Image
 ---
 ---@field _refresh_provincial_map_mode fun(use_secondary: boolean?, async_flag: boolean?)
 ---@field province_color_data love.ImageData
@@ -308,6 +308,7 @@ function gam.init()
 		gam.camera_lock = CACHED_LOCK_STATE
 	end
 
+	-- Setup render textures for map modes
 	local ws = WORLD.world_size
 	local dim = ws * 3
 	local imd = love.image.newImageData(dim, dim, "rgba8")
@@ -319,6 +320,7 @@ function gam.init()
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
 
+	-- Empty texture for faster map mode switching
 	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
 	for x = 1, dim do
 		for y = 1, dim do
@@ -327,12 +329,28 @@ function gam.init()
 	end
 	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
 
+	-- A sanity check before we proceed further
+	if WORLD.province_count > 256 * 256 then
+		error(
+			"Province count (" ..
+			tostring(WORLD.province_count) ..
+			") is larger than maximum province id texture size (" ..
+			tostring(256 * 256) ..
+			")! If you see this error message, please, notify the developers.")
+	end
 
-	gam.province_empty_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
-	for x = 1, WORLD.province_count do
-		gam.province_empty_data:setPixel(x - 1, 0, 1, 1, 1, 1)
+	-- Texture for empty province data for faster map mode switching
+	gam.province_empty_data = love.image.newImageData(256, 256, "rgba8")
+	for x = 1, 256 do
+		for y = 1, 256 do
+			gam.province_empty_data:setPixel(x - 1, y - 1, 1, 1, 1, 1)
+		end
 	end
 	gam.province_empty_texture = love.graphics.newImage(gam.province_empty_data)
+
+	gam.tile_province_id_data = love.image.newImageData(dim, dim, "rgba8")
+	gam.tile_province_id_texture = love.graphics.newImage(gam.tile_province_id_data)
+	gam.tile_province_id_texture:setFilter("nearest", "nearest")
 
 	gam.fog_of_war_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
 	for x = 1, WORLD.province_count do
@@ -341,10 +359,7 @@ function gam.init()
 	gam.fog_of_war_texture = love.graphics.newImage(gam.fog_of_war_data)
 	gam.fog_of_war_texture:setFilter("nearest", "nearest")
 
-	gam.province_id_data = love.image.newImageData(dim, dim, "r32f")
-	gam.province_id_texture = love.graphics.newImage(gam.province_id_data)
-
-	gam.province_color_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
+	gam.province_color_data = love.image.newImageData(256, 256, "rgba8")
 	gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
 	gam.province_color_texture:setFilter("nearest", "nearest")
 
@@ -728,8 +743,7 @@ function gam.draw()
 		gam.planet_shader:send('fog_of_war', gam.fog_of_war_texture)
 	end
 	if gam.planet_shader:hasUniform("province_index") then
-		gam.planet_shader:send('province_index', gam.province_id_texture)
-		gam.planet_shader:send('max_province_index', WORLD.province_count)
+		gam.planet_shader:send('province_index', gam.tile_province_id_texture)
 	end
 	if gam.planet_shader:hasUniform("world_size") then
 		gam.planet_shader:send('world_size', WORLD.world_size)
@@ -1704,7 +1718,7 @@ local function realm_neighbor_data(tile)
 	local b = same_realm_test(tile, right_neigh)
 	local a = same_realm_test(tile, left_neigh)
 
-	gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id] = {r, g, b, a}
+	gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id] = { r, g, b, a }
 
 	return r, g, b, a
 end
@@ -1788,8 +1802,6 @@ function gam.recalculate_province_map()
 	})
 	gam.tile_neighbor_provinces_texture:setFilter("nearest", "nearest")
 end
-
-
 
 function gam.recalculate_realm_map(update_all)
 	gam.REALMS_NEIGBOURS_TEST_CACHE = {}
@@ -1900,22 +1912,33 @@ end
 
 function gam._recalculate_province_texture()
 	---@type number[]
-	local pointer_province_id = require("ffi").cast("float*", gam.province_id_data:getFFIPointer())
+	local pointer_province_id = require("ffi").cast("uint8_t*", gam.tile_province_id_data:getFFIPointer())
 
 	local dim = WORLD.world_size * 3
-	local id = 0
+	local id_r = 0
+	local id_g = 0
+	local id_b = 0
 
 	for _, province in ipairs(WORLD.ordered_provinces_list) do
 		for _, tile in pairs(province.tiles) do
 			local x, y = gam.tile_id_to_color_coords(tile)
 			local pixel_index = x + y * dim
-			pointer_province_id[pixel_index] = id
+			pointer_province_id[pixel_index * 4 + 0] = id_r
+			pointer_province_id[pixel_index * 4 + 1] = id_g
+			pointer_province_id[pixel_index * 4 + 2] = id_b
 		end
-		id = id + 1
+		id_r = id_r + 1
+		if id_r == 256 then
+			id_r = 0
+			id_g = id_g + 1
+			if id_g == 256 then
+				error("Too many provinces! The renderer cannot support this!")
+			end
+		end
 	end
 
-	gam.province_id_texture = love.graphics.newImage(gam.province_id_data)
-	gam.province_id_texture:setFilter("nearest", "nearest")
+	gam.tile_province_id_texture = love.graphics.newImage(gam.tile_province_id_data)
+	gam.tile_province_id_texture:setFilter("nearest", "nearest")
 end
 
 ---commenting

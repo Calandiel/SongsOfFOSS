@@ -13,14 +13,14 @@ local PoliticalEffects = {}
 
 ---@enum POLITICAL_REASON
 PoliticalEffects.reasons = {
-	NOT_ENOUGH_NOBLES = "political vacuum",
-	INITIAL_NOBLE = "initial noble",
-	POPULATION_GROWTH = "population growth",
-	EXPEDITION_LEADER = "expedition leader",
-	SUCCESSION = "succession",
-	COUP = "coup",
-	INITIAL_RULER = "first ruler",
-	OTHER = "other"
+	NotEnoughNobles = "political vacuum",
+	InitialNoble = "initial noble",
+	PopulationGrowth = "population growth",
+	ExpeditionLeader = "expedition leader",
+	Succession = "succession",
+	Coup = "coup",
+	InitialRuler = "first ruler",
+	Other = "other"
 }
 
 ---Removes realm from the game
@@ -53,7 +53,7 @@ function PoliticalEffects.coup(character)
 	end
 
 	if PoliticalValues.power_base(character, realm.capitol) > PoliticalValues.power_base(realm.leader, realm.capitol) then
-		PoliticalEffects.transfer_power(character.province.realm, character, PoliticalEffects.reasons.COUP)
+		PoliticalEffects.transfer_power(character.province.realm, character, PoliticalEffects.reasons.Coup)
 		return true
 	else
 		if WORLD:does_player_see_realm_news(realm) then
@@ -167,7 +167,6 @@ function PoliticalEffects.set_overseer(realm, overseer)
 		WORLD:emit_notification(overseer.name .. " is a new overseer of " .. realm.name .. ".")
 	end
 end
-
 
 ---Sets character as a guard leader of the realm
 ---@param realm Realm
@@ -327,7 +326,7 @@ function PoliticalEffects.grant_nobility(pop, province, reason)
 		pop.parent.children[pop] = nil
 		pop.parent = nil
 	end
-	for _,v in pairs(pop.children) do
+	for _, v in pairs(pop.children) do
 		pop.children[v].parent = nil
 		pop.children[v] = nil
 	end
