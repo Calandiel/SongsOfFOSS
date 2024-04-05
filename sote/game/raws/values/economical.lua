@@ -361,6 +361,22 @@ function eco_values.available_use(province, use)
     return available_use
 end
 
+---returns total amount of unit of use in local stockpile
+---@param province Province
+---@param use TradeGoodUseCaseReference
+---@return number total_amount
+function eco_values.get_local_amount_of_use(province, use)
+
+    local data = use_case(use)
+
+    local total_amount = 0
+    for trade_good, weight in pairs(data.goods) do
+        total_amount = total_amount + (province.local_storage[trade_good] or 0) * weight
+    end
+
+    return total_amount
+end
+
 ---Estimates shortage_modifier
 ---@param prod ProductionMethod
 function eco_values.estimate_shortage(province, prod)

@@ -6,8 +6,7 @@ local inspector = {}
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-	local panel = fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 50, ut.BASE_HEIGHT * 15, "left", "up")
-	return panel
+	return fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, fs.height / 2, "left", "up")
 end
 
 ---Returns whether or not clicks on the planet can be registered.

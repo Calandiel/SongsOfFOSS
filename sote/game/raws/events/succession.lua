@@ -24,6 +24,8 @@ local function load()
 		on_trigger = function(self, character, associated_data)
             local successor = character.successor
 
+
+
             -- clear trade rights:
             ee.abandon_trade_rights(character)
             ee.abandon_building_rights(character)
@@ -32,6 +34,10 @@ local function load()
                 character.leader_of[realm] = nil
                 local capitol = character.realm.capitol
                 local leader = realm.leader
+
+                if realm and character == realm.overseer then
+                    pe.remove_overseer(realm)
+                end
 
                 -- succession of realm leadership
                 if leader == character then
@@ -146,6 +152,7 @@ local function load()
                                 end)) do
                                     capitol:set_home(v)
                                 end
+                                WORLD:set_settled_province(capitol)
                             else
                                 -- if we can't manage to grab a successor from characters or all_pops
                                 -- cancel making a a new realm - shouldn't be possible! just in case

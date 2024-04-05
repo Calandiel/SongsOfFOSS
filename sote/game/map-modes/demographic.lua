@@ -39,21 +39,21 @@ end
 function dem.population()
 	ut.provincial_hue_map_mode(function(province)
 		if (province.size == 0) then return 0 end
-		return math.min(1, province:population() / 100)
+		return math.min(1, province:local_population() / 100)
 	end)
 end
 
 function dem.population_1000()
 	ut.provincial_hue_map_mode(function(province)
 		if (province.size == 0) then return 0 end
-		return math.min(1, province:population() / 1000)
+		return math.min(1, province:local_population() / 1000)
 	end)
 end
 
 function dem.population_density()
 	ut.provincial_hue_map_mode(function(province)
 		if (province.size == 0) then return 0 end
-		return math.min(1, math.max(0, province:population() - 10) / province.size)
+		return math.min(1, math.max(0, province:local_population() - 10) / province.size)
 	end)
 end
 

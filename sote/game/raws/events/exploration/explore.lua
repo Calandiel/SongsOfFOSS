@@ -193,7 +193,7 @@ return function()
 				}
 			end
 
-			local food_price = economic_values.get_local_price(associated_data.explored_province, 'food')
+			local food_price = economic_values.get_local_price_of_use(associated_data.explored_province, 'calories')
 
 			return {
 				{
@@ -268,11 +268,11 @@ return function()
 					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
 					tooltip = "Buy supplies from locals",
 					viable = function ()
-						local result, _ = economic_triggers.can_buy(character, 'food', 1)
+						local result, _ = economic_triggers.can_buy_use(character, 'calories', 1)
 						return result
 					end,
 					outcome = function ()
-						economic_effects.buy(character, 'food', 1)
+						economic_effects.buy_use(character, 'calories', 1)
 						WORLD:emit_immediate_event("exploration-progress", character, associated_data)
 					end,
 					ai_preference = function ()

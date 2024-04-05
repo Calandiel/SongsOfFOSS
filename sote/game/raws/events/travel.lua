@@ -241,7 +241,7 @@ local function load()
 
                 local good_reserve = 0
 
-                if root.leading_warband and name == "food" then
+                if root.leading_warband and name == "calories" then
                     good_reserve = root.leading_warband:daily_supply_consumption() * 60
                 end
 

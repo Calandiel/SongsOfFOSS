@@ -9,6 +9,14 @@ function effects.death(character)
         WORLD:emit_notification(character.name .. " had died.")
     end
 
+    if character.unit_of_warband then
+        if character == character.unit_of_warband.commander then
+            character.unit_of_warband:unset_commander()
+        else
+            character.unit_of_warband:unset_character_as_unit(character)
+        end
+    end
+
     if character.parent then character.parent.children[character] = nil end
     for _,c in pairs(character.children) do
         c.parent = nil
