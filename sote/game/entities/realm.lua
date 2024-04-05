@@ -58,6 +58,7 @@ end
 ---@class (exact) Realm
 ---@field __index Realm
 ---@field realm_id number
+---@field exists boolean
 ---@field name string
 ---@field budget Budget
 ---@field tax_target number
@@ -185,6 +186,8 @@ function realm.Realm:new()
 	o.quests_patrol = {}
 	o.quests_raid = {}
 
+	o.exists = true
+
 	-- print("bb")
 	if love.math.random() < 0.6 then
 		o.coa_emblem_image = love.math.random(#ASSETS.emblems)
@@ -308,7 +311,7 @@ function realm.Realm:get_average_mood()
 	local mood = 0
 	local pop = 0
 	for _, p in pairs(self.provinces) do
-		local po = p:population()
+		local po = p:local_population()
 		mood = mood + p.mood * po
 		pop = pop + po
 	end
@@ -332,7 +335,7 @@ end
 function realm.Realm:get_realm_population()
 	local total = 0
 	for _, p in pairs(self.provinces) do
-		total = total + p:population()
+		total = total + p:home_population()
 	end
 	return total
 end
@@ -501,7 +504,7 @@ function realm.Realm:get_province_pop_weights()
 	local weights = {}
 	local total = 0
 	for _, p in pairs(self.provinces) do
-		local po = p:population()
+		local po = p:home_population()
 		total = total + po
 		weights[p] = po
 	end

@@ -1,12 +1,104 @@
-local tabb = require "engine.table"
 local Decision = require "game.raws.decisions"
-local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
-local tg = require "game.raws.raws-utils".trade_good
-local ev = require "game.raws.raws-utils".event
 local utils = require "game.raws.raws-utils"
-local path = require "game.ai.pathfinding"
+local TRAIT = require "game.raws.traits.generic"
 
 local function load()
+
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'take-up-command-warband',
+		ui_name = "Take command of my warband",
+		tooltip = function(root, primary_target)
+			if root.recruiter_for_warband and root.recruiter_for_warband.leader and root ~= root.recruiter_for_warband.leader then
+				return "Since I am not the leader, I must seek permission to take up command of this warband."
+			end
+			return "I have decided take up command of my warband."
+		end,
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 1 / 12 , -- Once every year on average
+		pretrigger = function(root)
+			if root.busy then return false end
+			if not root.recruiter_for_warband and not root.leading_warband then return false end
+			if root.unit_of_warband then return false end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if (not root.recruiter_for_warband and not root.leading_warband) or root.unit_of_warband then return false end
+			return true
+		end,
+		available = function(root, primary_target)
+			if root.recruiter_for_warband and root.recruiter_for_warband.leader and root ~= root.recruiter_for_warband.leader then return false end
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.WARLIKE] or root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.HARDWORKER] then
+				return 1
+			end
+
+			if root.traits[TRAIT.CONTENT] or root.traits[TRAIT.LAZY] then
+				return 0
+			end
+
+			return 0.5
+		end,
+		effect = function(root, primary_target, secondary_target)
+			-- for right now, one or the other
+			local warband = root.leading_warband
+			if not warband then
+				warband = root.recruiter_for_warband
+			end
+			WORLD:emit_immediate_event("pick-commander-unit", root, warband)
+		end
+	}
+
+	---@type DecisionCharacter
+	Decision.Character:new {
+		name = 'give-up-command-warband',
+		ui_name = "Give up commanding my warband",
+		tooltip = utils.constant_string("I have decided give up command of my warband."),
+		sorting = 1,
+		primary_target = "none",
+		secondary_target = 'none',
+		base_probability = 1 / 12 , -- Once every year on average
+		pretrigger = function(root)
+			if root.busy then return false end
+			if not root.unit_of_warband then return false end
+			if root ~= root.unit_of_warband.commander then return false end
+			return true
+		end,
+		clickable = function(root, primary_target)
+			if not root.unit_of_warband then return false end
+			return true
+		end,
+		available = function(root, primary_target)
+			return true
+		end,
+		ai_secondary_target = function(root, primary_target)
+
+			return nil, true
+		end,
+		ai_will_do = function(root, primary_target, secondary_target)
+			if root.traits[TRAIT.WARLIKE] or root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.HARDWORKER] then
+				return 0
+			end
+
+			if root.traits[TRAIT.CONTENT] or root.traits[TRAIT.LAZY] then
+				return 1
+			end
+
+			return 0.1
+		end,
+		effect = function(root, primary_target, secondary_target)
+			-- commander is always a unit
+			local warband = root.unit_of_warband
+			warband:unset_commander()
+		end
+	}
 
 	for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
 		Decision.Character:new {

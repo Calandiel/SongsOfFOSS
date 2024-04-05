@@ -121,13 +121,7 @@ local function render_money(number, rect, negative)
 	end
 	local hue = 40 + saturation * 40 * sign
 
-	-- local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, saturation, 1)
-	-- local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, saturation, 1)
-	-- if number < 0 and not negative or number > 0 and negative then
-	-- 	r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, saturation, 1)
-	-- end
-
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, saturation, 1)
 
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
@@ -141,7 +135,7 @@ local function render_log(number, rect)
 	local hue = math.min(math.log(number + 1) * 10, 360)
 	local saturation = 1
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, saturation, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
@@ -154,7 +148,7 @@ local function render_sqrt(number, rect)
 	local hue = math.min(math.sqrt(number) * 10, 360)
 	local saturation = 1
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, saturation, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
@@ -175,7 +169,7 @@ local function render_balance(number, rect, negative)
 		h = math.atan(-number / 100) / math.pi * 120 + 60
 	end
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(h, 1, 1)
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
 	ui.right_text(ut.to_fixed_point2(number), rect)
@@ -189,7 +183,7 @@ local function render_percentage(number, rect, negative)
 		hue = math.max(0, 120 - number * 120)
 	end
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, 1, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
@@ -940,6 +934,46 @@ end
 ---@return number new_value
 function ut.named_slider(slider_name, rect, current_value, min_value, max_value, height)
 	return ui.named_slider(slider_name, rect, current_value, min_value, max_value, height, true, ASSETS.slider_images)
+end
+
+---Draw a generic percentage for a pop need sasifcation with tooltip
+---@param rect Rect
+---@param pop POP
+function ut.render_pop_satsifaction(rect, pop)
+	local needs_tooltip = ""
+	for need, values in pairs(pop.need_satisfaction) do
+		local tooltip = ""
+		for case, value in pairs(values) do
+			if value.demanded > 0 then
+				tooltip = tooltip .. "\n  " .. case .. ": "
+					.. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
+					.. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+			end
+		end
+		if tooltip ~= "" then
+			needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
+		end
+	end
+
+	ut.generic_number_field(
+		"inner-self.png",
+		pop.basic_needs_satisfaction,
+		rect,
+		"Satisfaction of needs of this character. \n" .. needs_tooltip,
+		ut.NUMBER_MODE.PERCENTAGE,
+		ut.NAME_MODE.ICON
+	)
+end
+
+-- returns a square Rect centered in the provided rect
+---comment
+---@param rect Rect
+---@return Rect square
+function ut.centered_square(rect)
+	local square
+	local side = math.min(rect.height, rect.width)
+	square = rect:subrect(0, 0, side, side, "center", "center")
+	return square
 end
 
 return ut

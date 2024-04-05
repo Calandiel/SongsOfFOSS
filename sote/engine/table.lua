@@ -159,19 +159,33 @@ function tab.filter(items, filter)
 	return r
 end
 
----Given a table, an accumulable of any type, and an accumulator function with parameter the accumulable type,
----and the table's key and value types that return an accumulable type, apply the function on each key value pair
+---Given a table; an accumulable of any type; and an accumulator function with parameter the accumulable type,
+---and the table's key and value types and returns an accumulable type, apply the function on each key value pair
 ---and return the accumulable.
 ---@generic A, K, V
 ---@param items table<K, V>
 ---@param accumulable A
 ---@param accumulator fun(a: A, k: K, v: V):A
----@return table<K, V>
+---@return A
 function tab.accumulate(items, accumulable, accumulator)
+	local a = accumulable
 	for k, v in pairs(items) do
-		accumulator(accumulable, k, v)
+		a = accumulator(a, k, v)
 	end
-	return accumulable
+	return a
+end
+
+---Given two tables of similar key-value pairs, insert all values from the second table into the first.
+---Returns the first table with all values in both tables, where the second overwrites the first
+---@generic K, V
+---@param first table<K, V>
+---@param second table<K, V>
+---@return table<K, V>
+function tab.join(first, second)
+	for k,v in pairs(second) do
+		first[k] = v
+	end
+	return first
 end
 
 return tab

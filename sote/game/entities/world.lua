@@ -29,6 +29,8 @@ local tabb             = require "engine.table"
 ---@field tiles table<number, Tile>
 ---@field plates table<number, Plate>
 ---@field provinces table<number, Province>
+---@field ordered_provinces_list Province[]
+---@field province_count number
 ---@field settled_provinces table<Province, Province>
 ---@field settled_provinces_by_identifier table<number, table<Province, Province>>
 ---@field realms table<number, Realm>
@@ -43,6 +45,8 @@ local tabb             = require "engine.table"
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
+---@field realms_changed boolean
+---@field provinces_to_update_on_map table<Province, Province>
 
 ---@class World
 world.World            = {}
@@ -64,7 +68,9 @@ function world.World:new()
 	w.tiles = {}
 	w.plates = {}
 	w.provinces = {}
+	w.ordered_provinces_list = {}
 	w.settled_provinces = {}
+	w.province_count = 0
 	w.settled_provinces_by_identifier = {}
 	for i = 1, 30 * 24 * world.ticks_per_hour do
 		w.settled_provinces_by_identifier[i] = {}
@@ -88,6 +94,9 @@ function world.World:new()
 	w.player_deferred_actions = {}
 	w.treasury_effects = require "engine.queue":new()
 	w.old_treasury_effects = require "engine.queue":new()
+
+	w.realms_changed = false
+	w.provinces_to_update_on_map = {}
 
 	for tile_id = 1, 6 * ws * ws do
 		table.insert(w.tiles, tile_t.Tile:new(tile_id))
@@ -321,8 +330,8 @@ local function handle_event(event, target_realm, associated_data)
 end
 
 ---Returns true if player event and false otherwise
----@param eve any
----@param root any
+---@param eve string
+---@param root Character
 ---@param dat any
 ---@return boolean
 function world.World:event_tick(eve, root, dat)
@@ -334,6 +343,9 @@ function world.World:event_tick(eve, root, dat)
 	else
 		WORLD.events_queue:dequeue()
 		handle_event(eve, root, dat)
+		if (not root.dead) then
+			assert(root.province ~= nil, "character is alive but province is nil after event " .. eve)
+		end
 		return false
 	end
 end
@@ -380,12 +392,16 @@ function world.World:tick()
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
+			local tc, fs = 0, {conifer = 0, broadleaf = 0, shrub = 0, grass = 0}
 			for _, tile in pairs(settled_province.tiles) do
 				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
 				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
 				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
 				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+				fs = {conifer = fs.conifer + tile.conifer, broadleaf = fs.broadleaf + tile.broadleaf, shrub = fs.shrub + tile.shrub, grass = fs.grass + tile.grass}
+				tc = tc + 1
 			end
+			settled_province.flora_spread = {conifer = fs.conifer / tc, broadleaf = fs.broadleaf / tc, shrub = fs.shrub / tc, grass = fs.grass / tc}
 		end
 
 		PROFILER:end_timer("vegetation")
@@ -405,17 +421,6 @@ function world.World:tick()
 		for _, province in pairs(to_remove) do
 			ta[province] = nil
 		end
-
-		PROFILER:start_timer("growth")
-
-		-- "POP" update
-		local pop_growth = require "game.society.pop-growth"
-		for _, settled_province in pairs(ta) do
-			--print("Pop growth")
-			pop_growth.growth(settled_province)
-		end
-
-		PROFILER:end_timer("growth")
 
 
 		-- "Province" update
@@ -448,6 +453,14 @@ function world.World:tick()
 			research.run(settled_province)
 			recruit.run(settled_province)
 			PROFILER:end_timer("province")
+
+			PROFILER:start_timer("growth")
+			-- "POP" update
+			local pop_growth = require "game.society.pop-growth"
+			--print("Pop growth")
+			pop_growth.growth(settled_province)
+			PROFILER:end_timer("growth")
+
 			--print("done")
 		end
 
@@ -683,6 +696,9 @@ function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 		character_flag =
 			character_flag
 	}
+	if reason == nil then
+		error("NO REASON GIVEN!")
+	end
 	self.treasury_effects:enqueue(effect)
 end
 

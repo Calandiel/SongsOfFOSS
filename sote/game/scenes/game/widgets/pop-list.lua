@@ -23,11 +23,15 @@ local function init_state(base_unit)
 end
 
 local function render_name(rect, k, v)
-    ui.left_text(v.name, rect)
-end
-
-local function render_race(rect, k, v)
-    ui.centered_text(v.race.name, rect)
+    local children = tabb.size(v.children)
+    local name = v.name
+    if v.parent then
+        name = name .. " [" .. v.parent.name .. "]"
+    end
+    if children > 0 then
+        name = name .. " (" .. children .. ")"
+    end
+    ui.left_text(name, rect)
 end
 
 ---comment
@@ -61,9 +65,10 @@ return function(rect, base_unit, province)
             {
                 header = ".",
                 render_closure = function(rect, k, v)
-                    ui.image(ASSETS.get_icon(v.race.icon), rect)
+                    --ui.image(ASSETS.get_icon(v.race.icon)
+                    require "game.scenes.game.widgets.portrait"(rect, v)
                 end,
-                width = UI_STYLE.scrollable_list_item_height,
+                width = 1,
                 value = function(k, v)
                     ---@type POP
                     v = v
@@ -73,7 +78,7 @@ return function(rect, base_unit, province)
             {
                 header = "name",
                 render_closure = render_name,
-                width = base_unit * 6,
+                width = 6,
                 value = function(k, v)
                     ---@type POP
                     v = v
@@ -82,8 +87,10 @@ return function(rect, base_unit, province)
             },
             {
                 header = "race",
-                render_closure = render_race,
-                width = base_unit * 6,
+                render_closure = function (rect, k, v)
+                    ui.centered_text(v.race.name, rect)
+                end,
+                width = 4,
                 value = function(k, v)
                     ---@type POP
                     v = v
@@ -91,11 +98,35 @@ return function(rect, base_unit, province)
                 end
             },
             {
+                header = "culture",
+                render_closure = function (rect, k, v)
+                    ui.centered_text(v.culture.name, rect)
+                end,
+                width = 4,
+                value = function(k, v)
+                    ---@type POP
+                    v = v
+                    return v.culture.name
+                end
+            },
+            {
+                header = "faith",
+                render_closure = function (rect, k, v)
+                    ui.centered_text(v.faith.name, rect)
+                end,
+                width = 4,
+                value = function(k, v)
+                    ---@type POP
+                    v = v
+                    return v.faith.name
+                end
+            },
+            {
                 header = "job",
                 render_closure = function (rect, k, v)
                     ui.centered_text(pop_display_occupation(v), rect)
                 end,
-                width = base_unit * 8,
+                width = 4,
                 value = function(k, v)
                     return pop_display_occupation(v)
                 end
@@ -105,7 +136,7 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ui.right_text(tostring(v.age), rect)
                 end,
-                width = base_unit * 3,
+                width = 2,
                 value = function(k, v)
                     return v.age
                 end
@@ -115,7 +146,7 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ui.centered_text(pop_sex(v), rect)
                 end,
-                width = base_unit * 1.5,
+                width = 1,
                 value = function(k, v)
                     return pop_sex(v)
                 end
@@ -133,31 +164,15 @@ return function(rect, base_unit, province)
                         .. "Characters spend them on buying food and other commodities."
                     )
                 end,
-                width = base_unit * 4,
+                width = 3,
                 value = function(k, v)
                     return v.savings
                 end
             },
             {
                 header = "satisfac.",
-                render_closure = function (rect, k, v)
-                    ---@type POP
-                    v = v
-
-                    local needs_tooltip = ""
-                    for need, value in pairs(v.need_satisfaction) do
-                        needs_tooltip = needs_tooltip
-                            .. NEED_NAME[need] .. " " .. ut.to_fixed_point2(value) .. "\n"
-                    end
-
-                    ut.data_entry_percentage(
-                        "",
-                        v.basic_needs_satisfaction,
-                        rect,
-                        "Satisfaction of needs of this character. \n" .. needs_tooltip
-                    )
-                end,
-                width = base_unit * 3,
+                render_closure = ut.render_pop_satsifaction,
+                width = 2,
                 value = function(k, v)
                     return v.basic_needs_satisfaction
                 end
@@ -167,14 +182,32 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ---@type POP
                     v = v
+
+                    local needs_tooltip = ""
+                    for need, values in pairs(v.need_satisfaction) do
+                        local tooltip = ""
+                        if NEEDS[need].life_need then
+                            for case, value in pairs(values) do
+                                if value.demanded > 0 then
+                                    tooltip = tooltip .. "\n  " .. case .. ": "
+                                        .. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
+                                        .. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
+                                end
+                            end
+                        end
+                        if tooltip ~= "" then
+                            needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
+                        end
+                    end
+
                     ut.data_entry_percentage(
                         "",
                         v.life_needs_satisfaction,
                         rect,
-                        "Satisfaction of life needs of this character. "
+                        "Satisfaction of life needs of this character. " .. needs_tooltip
                     )
                 end,
-                width = base_unit * 3,
+                width = 2,
                 value = function(k, v)
                     return v.life_needs_satisfaction
                 end

@@ -13,14 +13,14 @@ local PoliticalEffects = {}
 
 ---@enum POLITICAL_REASON
 PoliticalEffects.reasons = {
-	NOT_ENOUGH_NOBLES = "political vacuum",
-	INITIAL_NOBLE = "initial noble",
-	POPULATION_GROWTH = "population growth",
-	EXPEDITION_LEADER = "expedition leader",
-	SUCCESSION = "succession",
-	COUP = "coup",
-	INITIAL_RULER = "first ruler",
-	OTHER = "other"
+	NotEnoughNobles = "political vacuum",
+	InitialNoble = "initial noble",
+	PopulationGrowth = "population growth",
+	ExpeditionLeader = "expedition leader",
+	Succession = "succession",
+	Coup = "coup",
+	InitialRuler = "first ruler",
+	Other = "other"
 }
 
 ---Removes realm from the game
@@ -28,8 +28,10 @@ PoliticalEffects.reasons = {
 ---@param realm Realm
 function PoliticalEffects.dissolve_realm(realm)
 	WORLD.realms[realm.realm_id] = nil
+	realm.exists = false
 	military_effects.dissolve_guard(realm)
 	realm:remove_province(realm.capitol)
+	WORLD:unset_settled_province(realm.capitol)
 end
 
 ---Returns result of coup: true if success, false if failure
@@ -51,7 +53,7 @@ function PoliticalEffects.coup(character)
 	end
 
 	if PoliticalValues.power_base(character, realm.capitol) > PoliticalValues.power_base(realm.leader, realm.capitol) then
-		PoliticalEffects.transfer_power(character.province.realm, character, PoliticalEffects.reasons.COUP)
+		PoliticalEffects.transfer_power(character.province.realm, character, PoliticalEffects.reasons.Coup)
 		return true
 	else
 		if WORLD:does_player_see_realm_news(realm) then
@@ -166,13 +168,11 @@ function PoliticalEffects.set_overseer(realm, overseer)
 	end
 end
 
-
 ---Sets character as a guard leader of the realm
 ---@param realm Realm
 ---@param guard_leader Character
 function PoliticalEffects.set_guard_leader(realm, guard_leader)
 	military_effects.set_recruiter(realm.capitol_guard, guard_leader)
-	realm.capitol_guard.commander = guard_leader
 
 	if WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification(guard_leader.name .. " now commands guards of " .. realm.name .. ".")
@@ -189,7 +189,9 @@ function PoliticalEffects.remove_guard_leader(realm)
 	end
 
 	military_effects.unset_recruiter(realm.capitol_guard, guard_leader)
-	realm.capitol_guard.commander = nil
+	if guard_leader == realm.capitol_guard.commander then
+		realm.capitol_guard:unset_commander()
+	end
 
 	if guard_leader and WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification(guard_leader.name .. " no longer commands guards of " .. realm.name .. ".")
@@ -324,7 +326,7 @@ function PoliticalEffects.grant_nobility(pop, province, reason)
 		pop.parent.children[pop] = nil
 		pop.parent = nil
 	end
-	for _,v in pairs(pop.children) do
+	for _, v in pairs(pop.children) do
 		pop.children[v].parent = nil
 		pop.children[v] = nil
 	end

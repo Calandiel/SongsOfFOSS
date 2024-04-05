@@ -74,7 +74,7 @@ local function header_panel(gam, tile, panel)
 	population_panel.x = population_panel.x + population_panel.width
 	uit.generic_number_field(
 		"minions.png",
-		tile.province:population(),
+		tile.province:local_population(),
 		population_panel,
 		"Local population",
 		uit.NUMBER_MODE.INTEGER,
@@ -88,6 +88,30 @@ local function header_panel(gam, tile, panel)
 		tile.province:get_unemployment(),
 		population_panel,
 		"Local unemployed population",
+		uit.NUMBER_MODE.INTEGER,
+		uit.NAME_MODE.ICON
+	)
+	local character_panel = unemployed_panel
+	character_panel.y = character_panel.y - character_panel.height
+	character_panel.x = character_panel.x + character_panel.width
+	uit.generic_number_field(
+		"inner-self.png",
+		tabb.size(tile.province.characters),
+		population_panel,
+		"Local character count",
+		uit.NUMBER_MODE.INTEGER,
+		uit.NAME_MODE.ICON
+	)
+
+	local warrior_panel = character_panel
+	warrior_panel.y = warrior_panel.y + warrior_panel.height
+	uit.generic_number_field(
+		"barbute.png",
+		tabb.accumulate(tile.province.warbands, 0, function (a, k, v)
+			return a + v:war_size()
+		end),
+		population_panel,
+		"Local warrior count",
 		uit.NUMBER_MODE.INTEGER,
 		uit.NAME_MODE.ICON
 	)
@@ -430,6 +454,14 @@ local function separate_inspectors(gam, tile, panel)
 			"Show population"
 		) then
 		gam.inspector = "population"
+	end
+
+	if uit.icon_button(
+		ASSETS.icons["guards.png"],
+		layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
+		"Show local warriors"
+	) then
+		gam.inspector = "army"
 	end
 end
 

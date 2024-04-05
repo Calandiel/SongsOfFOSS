@@ -1,88 +1,77 @@
 local ut = require "game.map-modes.utils"
 local tabb = require "engine.table"
+local csu = require "game.map-modes._color-space-utils"
 
 local ev = require "game.raws.values.economical"
 
 local dem = {}
 
 function dem.culture()
-	for _, t in ipairs(WORLD.tiles) do
-		ut.set_default_color(t)
-		local e = t.province:get_dominant_culture()
+	for _, p in pairs(WORLD.provinces) do
+		ut.set_default_color(p.center)
+		local e = p:get_dominant_culture()
 		if e ~= nil then
-			t:set_real_color(e.r, e.g, e.b)
+			p.center:set_real_color(e.r, e.g, e.b)
 		end
 	end
 end
 
 function dem.faith()
-	for _, t in ipairs(WORLD.tiles) do
-		ut.set_default_color(t)
-		local e = t.province:get_dominant_faith()
+	for _, p in pairs(WORLD.provinces) do
+		ut.set_default_color(p.center)
+		local e = p:get_dominant_faith()
 		if e ~= nil then
-			t:set_real_color(e.r, e.g, e.b)
+			p.center:set_real_color(e.r, e.g, e.b)
 		end
 	end
 end
 
 function dem.race()
-	for _, t in ipairs(WORLD.tiles) do
-		ut.set_default_color(t)
-		local e = t.province:get_dominant_race()
+	for _, p in pairs(WORLD.provinces) do
+		ut.set_default_color(p.center)
+		local e = p:get_dominant_race()
 		if e ~= nil then
-			t:set_real_color(e.r, e.g, e.b)
+			p.center:set_real_color(e.r, e.g, e.b)
 		end
 	end
 end
 
 function dem.population()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		if (t.province.size == 0) then return 0 end
-		return math.min(1, t.province:population() / 100)
+	ut.provincial_hue_map_mode(function(province)
+		if (province.size == 0) then return 0 end
+		return math.min(1, province:local_population() / 100)
 	end)
 end
 
 function dem.population_1000()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		if (t.province.size == 0) then return 0 end
-		return math.min(1, t.province:population() / 1000)
+	ut.provincial_hue_map_mode(function(province)
+		if (province.size == 0) then return 0 end
+		return math.min(1, province:local_population() / 1000)
 	end)
 end
 
 function dem.population_density()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		if (t.province.size == 0) then return 0 end
-		return math.min(1, math.max(0, t.province:population() - 10) / t.province.size)
+	ut.provincial_hue_map_mode(function(province)
+		if (province.size == 0) then return 0 end
+		return math.min(1, math.max(0, province:local_population() - 10) / province.size)
 	end)
 end
 
 function dem.military()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		return math.max(0, t.province:military()) / 15
+	ut.provincial_hue_map_mode(function(province)
+		return math.max(0, province:military()) / 15
 	end)
 end
 
 function dem.military_target()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		return math.max(0, t.province:military_target()) / 15
+	ut.provincial_hue_map_mode(function(province)
+		return math.max(0, province:military_target()) / 15
 	end)
 end
 
 function dem.technologies()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		local count = tabb.size(t.province.technologies_present)
+	ut.provincial_hue_map_mode(function(province)
+		local count = tabb.size(province.technologies_present)
 		return math.max(0, count) / 10
 	end)
 end
@@ -96,15 +85,35 @@ function dem.selected_technology()
 		print(tt.name)
 	end
 
-	ut.clear_color()
+	ut.clear_color_provinces()
 	if tt then
-		for _, tile in ipairs(WORLD.tiles) do
-			local prov = tile.province
+		for _, prov in pairs(WORLD.provinces) do
 			if prov.technologies_present[tt] then
-				tile:set_real_color(0, 0, 1)
+				prov.center:set_real_color(0, 0, 1)
 			elseif prov.technologies_researchable[tt] then
-				tile:set_real_color(0, 1, 1)
+				prov.center:set_real_color(0, 1, 1)
 			end
+		end
+	end
+end
+
+---@type BuildingType?
+CACHED_BUILDING_TYPE = nil
+
+
+function dem.selected_building_efficiency()
+	if CACHED_BUILDING_TYPE == nil then
+		print("Nil tech")
+	else
+		print(CACHED_BUILDING_TYPE.name)
+	end
+
+	ut.clear_color_provinces()
+	if CACHED_BUILDING_TYPE ~= nil then
+		for _, province in pairs(WORLD.provinces) do
+			local eff = CACHED_BUILDING_TYPE.production_method:get_efficiency(province)
+			local r, g, b = csu.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
+			province.center:set_real_color(r, g, b)
 		end
 	end
 end
@@ -145,14 +154,14 @@ function dem.prices()
 		std = math.sqrt(std / (total - 1)) + 0.001 -- to avoid division by zero
 		print("std of price: ", std)
 
-		for _, tile in ipairs(WORLD.tiles) do
-			ut.set_default_color(tile)
-			if tile.is_land then
-				if tile.province.realm ~= nil then
-					local price = ev.get_local_price(tile.province, c)
+		for _, province in pairs(WORLD.provinces) do
+			ut.set_default_color(province.center)
+			if province.center.is_land then
+				if province.realm ~= nil then
+					local price = ev.get_local_price(province, c)
 					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)
 					local normalized = (price - mean) / std
-					ut.hue_from_value(tile, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
+					ut.hue_from_value(province.center, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
 				end
 			end
 		end

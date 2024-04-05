@@ -3,10 +3,8 @@ local ut = require "game.map-modes.utils"
 local ec = {}
 
 function ec.carrying_capacity()
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		return (t.province.foragers_limit - 5) / 50
+	ut.provincial_hue_map_mode(function(prov)
+		return (prov.foragers_limit - 5) / 50
 	end)
 end
 

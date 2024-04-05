@@ -68,9 +68,9 @@ function mm.draw()
 		fullscreen_text,
 		layout:next(menu_button_width, menu_button_height)
 	) then
-		if original == "false" then changed = "exclusive"
+		if original == "normal" then changed = "exclusive"
 		elseif original == "exclusive" then changed = "desktop"
-		else changed = "false" end
+		else changed = "normal" end
 	end
 	if original ~= changed then require "game.options".updateFullscreen(changed) end
 

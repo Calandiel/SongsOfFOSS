@@ -22,6 +22,7 @@ local prov = {}
 ---@field neighbors table<Province, Province>
 ---@field movement_cost number
 ---@field center Tile The tile which contains this province's settlement, if there is any.
+---@field flora_spread {conifer: number, broadleaf: number, shrub: number, grass: number} average confier, broadleaf, shrub grass percentage of province
 ---@field infrastructure_needed number
 ---@field infrastructure number
 ---@field infrastructure_investment number
@@ -123,6 +124,8 @@ function prov.Province:new(fake_flag)
 	if not fake_flag then
 		WORLD.entity_counter = WORLD.entity_counter + 1
 		WORLD.provinces[o.province_id] = o
+		table.insert(WORLD.ordered_provinces_list, o)
+		WORLD.province_count = WORLD.province_count + 1
 	end
 
 	setmetatable(o, prov.Province)
@@ -137,6 +140,11 @@ end
 ---Adds a tile to the province. Handles removal from the previous province, if necessary.
 ---@param tile Tile
 function prov.Province:add_tile(tile)
+	--- easiest way to handle it, i guess
+	if tile.is_land then
+		self.is_land = true
+	end
+
 	if tile.province ~= nil then
 		tile.province.size = tile.province.size - 1
 		tile.province.tiles[tile] = nil
@@ -170,12 +178,36 @@ function prov.Province:military_target()
 	return sum
 end
 
----Returns the total population of the province.
+---Returns the total population of the province, not including characters.
 ---Doesn't include outlaws and active armies.
 ---@return number
-function prov.Province:population()
-	local tabb = require "engine.table"
+function prov.Province:local_population()
 	return tabb.size(self.all_pops)
+end
+
+---Returns the total count of all pops who consider this province home, not including characters.
+---Doesn't include outlaws and active armies.
+---@return number
+function prov.Province:home_population()
+	return tabb.size(tabb.filter(self.home_to, function (a)
+		return not a:is_character()
+	end))
+end
+
+---Returns the total count of all pops who consider this province home, not including characters.
+---Doesn't include outlaws and active armies.
+---@return number
+function prov.Province:home_characters()
+	return tabb.size(tabb.filter(self.home_to, function (a)
+		return a:is_character()
+	end))
+end
+
+---Returns the total count of all pops who consider this province home, including characters.
+---Doesn't include outlaws and active armies.
+---@return number
+function prov.Province:total_home_population()
+	return tabb.size(self.home_to)
 end
 
 function prov.Province:validate_population()
@@ -380,6 +412,7 @@ function prov.Province:fire_pop(pop)
 	if pop.employer then
 		pop.employer.workers[pop] = nil
 		if tabb.size(pop.employer.workers) == 0 then
+			pop.employer.work_ratio = 1
 			pop.employer.last_income = 0
 			pop.employer.last_donation_to_owner = 0
 			pop.employer.subsidy_last = 0

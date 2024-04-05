@@ -341,7 +341,7 @@ local function load()
 			---@type Army
 			local army = associated_data
 
-			if realm == nil then
+			if realm == nil or not realm.exists then
 				return
 			end
 
@@ -452,7 +452,7 @@ local function load()
 					real_loot = real_loot + extra
 				end
 
-				local mood_swing = real_loot / (province:population() + 1)
+				local mood_swing = real_loot / (province:local_population() + 1)
 				province.mood = province.mood - mood_swing
 				if realm then
 					raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
@@ -524,7 +524,7 @@ local function load()
 
 			local warbands = realm:disband_army(army)
 
-			local mood_swing = loot / (realm.capitol:population() + 1) / 2
+			local mood_swing = loot / (realm.capitol:local_population() + 1) / 2
 
 			-- improve mood in a province
 			realm.capitol.mood = realm.capitol.mood + mood_swing

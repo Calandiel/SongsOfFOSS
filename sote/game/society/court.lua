@@ -13,12 +13,11 @@ function co.run(realm)
 	-- Your court is nobles of your capital
 	for _, character in pairs(realm.capitol.characters) do
 		if character.province == nil then
-
 			error("CHARACTER DOES NOT HAVE A PROVINCE .. \n"
-			.. character.name .. "\n"
-			.. tostring(character.age) .. "\n"
-			.. tostring(character.dead) .. "\n"
-			.. tostring(character.former_pop))
+				.. character.name .. "\n"
+				.. tostring(character.age) .. "\n"
+				.. tostring(character.dead) .. "\n"
+				.. tostring(character.former_pop))
 		end
 		con = con + values.money_utility(character)
 	end
@@ -32,16 +31,16 @@ function co.run(realm)
 		spillover = inv - con
 	end
 	-- If we're overinvested, remove a fraction above the invested amount
-	inv = inv - spillover * 0.85
+	inv                               = inv - spillover * 0.85
 
 	-- Lastly, invest a fraction of the investment into actual investment
-	local invested = inv * (1 / (12 * 7.5)) -- 7.5 years to invest everything
-	realm.budget.court.to_be_invested 	= inv - invested
-	realm.budget.court.budget 			= realm.budget.court.budget + invested
+	local invested                    = inv * (1 / (12 * 7.5)) -- 7.5 years to invest everything
+	realm.budget.court.to_be_invested = inv - invested
+	realm.budget.court.budget         = realm.budget.court.budget + invested
 
 	-- Nobles get their share of a court wealth
 	-- At the very end, apply some decay to present investment to prevent runaway growth
-	local wealth_decay_rate = 1 - 1 / (12 * 2) -- 2 years to decay everything
+	local wealth_decay_rate           = 1 - 1 / (12 * 2) -- 2 years to decay everything
 	if realm.budget.court.budget > con then
 		wealth_decay_rate = 1 - 1 / (12 * 1) -- 1 years to decay the part above the needed amount
 	end
@@ -66,8 +65,8 @@ function co.run(realm)
 	-- raise new nobles
 	local NOBLES_RATIO = 0.15
 	for _, prov in pairs(realm.provinces) do
-		local p = {nobles = 0, population = 0, elligible = {}}
-		tabb.accumulate(prov.home_to, p, function (a, k, v)
+		local p = { nobles = 0, population = 0, elligible = {} }
+		tabb.accumulate(prov.home_to, p, function(a, k, v)
 			if v.province == prov then
 				if v:is_character() then
 					a.nobles = a.nobles + 1
@@ -79,11 +78,11 @@ function co.run(realm)
 			return a
 		end)
 		if (p.nobles < NOBLES_RATIO * p.population) and (p.population > 5) and (p.nobles < 15) then
-			local pop = tabb.random_select_from_set(tabb.filter(p.elligible, function (a)
+			local pop = tabb.random_select_from_set(tabb.filter(p.elligible, function(a)
 				return a.province == prov
 			end))
 			if pop then
-				pe.grant_nobility(pop,prov, pe.reasons.POPULATION_GROWTH)
+				pe.grant_nobility(pop, prov, pe.reasons.PopulationGrowth)
 			end
 		end
 	end

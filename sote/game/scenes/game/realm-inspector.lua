@@ -3,9 +3,12 @@ local trade_good = require "game.raws.raws-utils".trade_good
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
 local economic_effects = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
+
+local list_widget = require "game.scenes.game.widgets.list-widget"
 
 ---@return Rect
 local function get_main_panel()
@@ -25,16 +28,17 @@ function re.mask()
 end
 
 local TREASURY_GIFT_AMOUNT = 1
+local character_list_state = nil
 
 ---@param gam GameScene
 function re.draw(gam)
 
+	TREASURY_GIFT_AMOUNT = 1
 	if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
-		TREASURY_GIFT_AMOUNT = 5
-	elseif ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
-		TREASURY_GIFT_AMOUNT = 50
-	else
-		TREASURY_GIFT_AMOUNT = 1
+		TREASURY_GIFT_AMOUNT = TREASURY_GIFT_AMOUNT * 5
+	end
+	if ui.is_key_held("lctrl") or ui.is_key_held("rctrl") then
+		TREASURY_GIFT_AMOUNT = TREASURY_GIFT_AMOUNT * 10
 	end
 
 	---@diagnostic disable-next-line: assign-type-mismatch
@@ -181,16 +185,10 @@ function re.draw(gam)
 
 					local inspect = nil
 					local function render_name(rect, k, v)
-						if uit.text_button(v.name, rect) then
-							inspect = "character"
-							return v
-						end
+						ib.text_button_to_character(gam, k, rect, k.name)
 					end
 					local function render_province(rect, k, v)
-						if uit.text_button(v.province.name, rect) then
-							inspect = "tile"
-							return v.province
-						end
+						ib.text_button_to_province(gam,k.province, rect, k.province.name)
 					end
 					local function pop_sex(pop)
 						local f = "m"
@@ -200,7 +198,7 @@ function re.draw(gam)
 					local noble_list = a:copy()
 					noble_list.width = ui_panel.width - ui_panel.x
 					noble_list.height = ui_panel.height - ui_panel.y
-					local response = require "game.scenes.game.widgets.list-widget"(
+					character_list_state = list_widget(
 						noble_list,
 						tabb.filter(realm.capitol.home_to,
 							function(a)
@@ -212,7 +210,7 @@ function re.draw(gam)
 									render_closure = function(rect, k, v)
 										require "game.scenes.game.widgets.portrait"(rect, v)
 									end,
-									width = UI_STYLE.scrollable_list_item_height,
+									width = 1,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -222,7 +220,7 @@ function re.draw(gam)
 								{
 									header = "name",
 									render_closure = render_name,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 6,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -231,11 +229,26 @@ function re.draw(gam)
 									active = true
 								},
 								{
+									header = "popularity",
+									render_closure = function (rect, k, v)
+										---@type POP
+										v = v
+										ui.centered_text(uit.to_fixed_point2(v.popularity[realm] or 0), rect)
+									end,
+									width = 2,
+									value = function(k, v)
+										---@type POP
+										v = v
+										return v.popularity[realm] or 0
+									end,
+									active = true
+								},
+								{
 									header = "race",
 									render_closure = function (rect, k, v)
-										ui.right_text(v.race.name, rect)
+										ui.centered_text(v.race.name, rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -246,9 +259,9 @@ function re.draw(gam)
 								{
 									header = "faith",
 									render_closure = function (rect, k, v)
-										ui.right_text(v.faith.name, rect)
+										ui.centered_text(v.faith.name, rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -259,9 +272,9 @@ function re.draw(gam)
 								{
 									header = "culture",
 									render_closure = function (rect, k, v)
-										ui.right_text(v.culture.name, rect)
+										ui.centered_text(v.culture.name, rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
@@ -272,9 +285,9 @@ function re.draw(gam)
 								{
 									header = "age",
 									render_closure = function (rect, k, v)
-										ui.right_text(tostring(v.age), rect)
+										ui.centered_text(tostring(v.age), rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 2,
+									width = 2,
 									value = function(k, v)
 										return v.age
 									end
@@ -284,7 +297,7 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										ui.centered_text(pop_sex(v), rect)
 									end,
-									width = UI_STYLE.scrollable_list_item_height * 1,
+									width = 1,
 									value = function(k, v)
 										return pop_sex(v)
 									end
@@ -292,27 +305,42 @@ function re.draw(gam)
 								{
 									header = "location",
 									render_closure = render_province,
-									width = UI_STYLE.scrollable_list_item_height * 4,
+									width = 4,
 									value = function(k, v)
 										---@type POP
 										v = v
 										return v.province.name
 									end,
 									active = true
+								},
+								{
+									header = "savings",
+									render_closure = function (rect, k, v)
+										---@type POP
+										v = v
+										uit.money_entry(
+											"",
+											v.savings,
+											rect,
+											"Savings of this character. "
+											.. "Characters spend them on buying food and other commodities."
+										)
+									end,
+									width = 3,
+									value = function(k, v)
+										return v.savings
+									end
+								},
+								{
+									header = "satisfac.",
+									render_closure = uit.render_pop_satsifaction,
+									width = 2,
+									value = function(k, v)
+										return v.basic_needs_satisfaction
+									end
 								}
-							}
-					)()
-					if response then
-						if inspect == "character" then
-							gam.selected.character = response
-							gam.inspector = inspect
-						elseif inspect == "tile" then
-							gam.selected.province = response
-							gam.selected.tile = response.center
-							gam.clicked_tile_id = response.center.tile_id
-							gam.inspector = inspect
-						end
-					end
+							},
+						character_list_state)()
 				end
 			},
 			-- {
