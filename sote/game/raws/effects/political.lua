@@ -20,7 +20,7 @@ PoliticalEffects.reasons = {
 	Succession = "succession",
 	Coup = "coup",
 	InitialRuler = "first ruler",
-	OTHER = "other"
+	Other = "other"
 }
 
 ---Removes realm from the game
