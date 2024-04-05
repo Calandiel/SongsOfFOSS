@@ -367,7 +367,7 @@ function gam.init()
 		end
 	end
 
-	gam.update_map_mode('elevation', false)
+	gam.update_map_mode('elevation', true)
 end
 
 ---Call this to make sure that a camera position exists.
