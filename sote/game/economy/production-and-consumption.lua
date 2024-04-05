@@ -470,8 +470,8 @@ function pro.run(province)
 		local total_time_used = 0
 		for case, values in pairs(need_cases) do
 			-- split time and money up to satisfy each need case
-			local time_fraction = math.max(free_time * values.need_time / total_need_time, 0)
-			local savings_fraction = math.max(savings * values.need_cost / total_need_cost, 0)
+			local time_fraction = math.max(0, free_time * values.need_time / total_need_time, 0)
+			local savings_fraction = math.max(0, savings * values.need_cost / total_need_cost, 0)
 		-- how many units pop can buy with potential income + savings
 			-- estimate cost of purchasable goods
 			local potential_income = math.min(time_fraction * income_per_unit_of_time, province.trade_wealth)

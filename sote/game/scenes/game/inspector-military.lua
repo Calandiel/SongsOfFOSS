@@ -67,9 +67,12 @@ function window.draw(game)
             r.width = width_unit * 2
             ---@type Warband
             local warband = warbands[i]
+            if warband.leader then
+                ib.icon_button_to_character(game, warband.leader, realm_icon_rect)
+            else
+                ib.icon_button_to_realm(game, warband:realm(), realm_icon_rect)
+            end
 
-            ib.icon_button_to_realm(game, warband:realm(), realm_icon_rect)
-            
             ib.text_button_to_warband(game, warband, r,
                 warband.name)
 
