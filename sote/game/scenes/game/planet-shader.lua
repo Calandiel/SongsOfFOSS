@@ -108,8 +108,8 @@ function pla.get_shader()
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 
 			vec2 province_index_uv = Texel(province_index, face_offset).rg;
-      vec4 fog_of_war_rgba = Texel(fog_of_war, province_index_uv);
-      if (fog_of_war_rgba.a > 0.5) {
+			vec4 fog_of_war_rgba = Texel(fog_of_war, province_index_uv);
+			if (fog_of_war_rgba.a > 0.5) {
 				return fog_of_war_rgba;
 			}
 			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, province_index_uv);
