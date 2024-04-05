@@ -356,16 +356,18 @@ function gam.init()
 
 	gam.recalculate_realm_map(true)
 
-	gam.refresh_map_mode()
+	gam.refresh_map_mode(false)
 	gam.click_tile(-1)
 
 	gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
 
 	for map_mode, _ in pairs(gam.map_mode_data) do
-		gam.update_map_mode(map_mode)
+		if _[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
+			gam.update_map_mode(map_mode, false)
+		end
 	end
 
-	gam.update_map_mode('elevation')
+	gam.update_map_mode('elevation', false)
 end
 
 ---Call this to make sure that a camera position exists.
