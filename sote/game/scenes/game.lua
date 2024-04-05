@@ -352,9 +352,11 @@ function gam.init()
 	gam.tile_province_id_texture = love.graphics.newImage(gam.tile_province_id_data)
 	gam.tile_province_id_texture:setFilter("nearest", "nearest")
 
-	gam.fog_of_war_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
-	for x = 1, WORLD.province_count do
-		gam.fog_of_war_data:setPixel(x - 1, 0, 0.15, 0.15, 0.15, 0)
+	gam.fog_of_war_data = love.image.newImageData(256, 256, "rgba8")
+	for x = 1, 256 do
+		for y = 1, 256 do
+			gam.fog_of_war_data:setPixel(x - 1, y - 1, 0.15, 0.15, 0.15, 1)
+		end
 	end
 	gam.fog_of_war_texture = love.graphics.newImage(gam.fog_of_war_data)
 	gam.fog_of_war_texture:setFilter("nearest", "nearest")
@@ -377,7 +379,7 @@ function gam.init()
 	gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
 
 	for map_mode, _ in pairs(gam.map_mode_data) do
-		if _[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
+		if _[6] ~= mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC then
 			gam.update_map_mode(map_mode, false)
 		end
 	end
@@ -2000,13 +2002,13 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 			end
 
 			gam.map_update_progress = gam.map_update_progress + 1
-			if async_flag then
+			if async_flag and gam.map_update_progress % 100 == 0 then
 				coroutine.yield(false)
 			end
 
 			local current_tile = province.center
 
-			if can_set then
+			if can_set or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
 				pointer_province_color[id * 4 + 0] = 255 * current_tile.real_r
 				pointer_province_color[id * 4 + 1] = 255 * current_tile.real_g
 				pointer_province_color[id * 4 + 2] = 255 * current_tile.real_b
@@ -2096,14 +2098,17 @@ function gam._refresh_map_mode(async_flag)
 			for _, tile in pairs(province.tiles) do
 				gam.map_update_progress = gam.map_update_progress + 1
 
-				if async_flag then
+				if async_flag and gam.map_update_progress % 1000 == 0 then
 					coroutine.yield(false)
 				end
 
 				local x, y = gam.tile_id_to_color_coords(tile)
 				local pixel_index = x + y * dim
 
-				if can_set then
+				if can_set
+					or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+					or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
+				then
 					local r = tile.real_r
 					local g = tile.real_g
 					local b = tile.real_b
@@ -2172,9 +2177,9 @@ function gam._refresh_fog_of_war(async_flag)
 			end
 
 			if can_set then
-				pointer_province_color[id * 4 + 3] = 255 * 0
+				pointer_province_color[id * 4 + 3] = 0
 			else
-				pointer_province_color[id * 4 + 3] = 255 * 1
+				pointer_province_color[id * 4 + 3] = 255
 			end
 
 			id = id + 1
