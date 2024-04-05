@@ -19,7 +19,6 @@
 ---@field _refresh_map_mode fun(boolean)
 ---@field debug_ui fun()
 ---@field paused boolean
----@field tile_realm_texture love.Texture
 ---@field ticks_without_map_update number
 ---@field speed number
 ---@field camera_lock boolean
@@ -27,16 +26,12 @@
 ---@field handle_camera_controls fun()
 ---@field click_callback fun() | nil
 ---@field update_map_mode fun(string)
----@field tile_neighbor_provinces_texture love.Texture
----@field tile_province_texture love.Texture
----@field tile_neighbor_realm_texture love.Texture
 ---@field map_update_progress number
 ---@field refresh_map_mode fun(boolean)
 ---@field map_mode string TODO this should be a map mode enum...
 ---@field camera_position any TODO type porting cpml is hell...
 ---@field tile_id_to_color_coords fun(Tile):number,number
 ---@field time_since_last_tick number
----@field tile_color_image_data love.ImageData
 ---@field load_camera_position_or_set_to_default fun()
 ---@field locked_screen_x number
 ---@field locked_screen_y number
@@ -47,15 +42,35 @@
 ---@field reset_decision_selection fun()
 ---@field notification_slider number
 ---@field outliner_slider number
----@field tile_province_image_data love.ImageData
----@field tile_neighbor_provinces_data love.ImageData
 ---@field minimap love.Image
----@field tile_realm_image_data love.ImageData
+---
+---@field recalculate_realm_map fun(update_all?: boolean)
 ---@field tile_neighbor_realm_data love.ImageData
----@field recalculate_realm_map fun()
+---@field tile_neighbor_realm_texture love.Texture
+---
 ---@field tile_color_texture love.Image
+---@field tile_color_image_data love.ImageData
+---
 ---@field empty_texture_image_data love.ImageData
 ---@field empty_texture love.Image
+---
+---@field province_empty_data love.ImageData
+---@field province_empty_texture love.Image
+---
+---@field _recalculate_province_texture fun()
+---@field province_id_data love.ImageData
+---@field province_id_texture love.Texture
+---
+---@field _refresh_provincial_map_mode fun()
+---@field province_color_data love.ImageData
+---@field province_color_texture love.Texture
+---
+---@field tile_neighbor_provinces_data love.ImageData
+---@field tile_neighbor_provinces_texture love.Texture
+---
+---@field tile_province_texture love.Texture
+---@field tile_province_image_data love.ImageData
+---
 ---@field update fun(number)
 ---@field outliner boolean
 ---@field map_mode_selected_tab MapModeTab
@@ -65,6 +80,9 @@
 ---@field recalculate_raiding_targets_map fun()
 ---@field decision_target_primary any TODO this is difficult to untangle, port to Teal to fix it
 ---@field decision_target_secondary any TODO this is difficult to untangle, port to Teal to fix it
+---
+---@field REALMS_NEIGBOURS_TEST_CACHE {[1]: number, [2]: number, [3]: number, [4]: number}[]
+---@field BORDER_TILES_CACHE table<Tile, Tile>
 
 ---@alias InspectorType 'characters' | 'treasury-ledger' | 'character' | 'tile' | 'realm' | 'building' | 'war' | 'army' | 'character-decisions' | 'market' | 'population' | 'macrobuilder' | 'macrodecision' | 'warband' | 'property' | 'quests'
 ---@alias MenuTypes 'options' | 'confirm-exit' | 'preferences'
@@ -285,8 +303,27 @@ function gam.init()
 	end
 	gam.tile_color_image_data = imd
 	gam.tile_color_texture = love.graphics.newImage(imd)
+
 	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
 	gam.empty_texture = love.graphics.newImage(gam.empty_texture_image_data)
+
+	gam.province_empty_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
+	gam.province_empty_texture = love.graphics.newImage(gam.province_empty_data)
+
+	gam.province_id_data = love.image.newImageData(dim, dim, "r32f")
+	gam.province_id_texture = love.graphics.newImage(gam.province_id_data)
+
+	gam.province_color_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
+	gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
+	gam.province_color_texture:setFilter("nearest", "nearest")
+
+	gam.BORDER_TILES_CACHE = {}
+
+	gam._recalculate_province_texture()
+
+	gam.REALMS_NEIGBOURS_TEST_CACHE = {}
+
+	gam.recalculate_realm_map(true)
 
 	gam.refresh_map_mode()
 	gam.click_tile(-1)
@@ -341,7 +378,11 @@ function gam.update(dt)
 
 	if gam.paused and gam.ticks_without_map_update > world.ticks_per_hour * 24 * 10 then
 		gam.ticks_without_map_update = 0
-		gam.refresh_map_mode(true)
+		gam.refresh_map_mode()
+
+		if WORLD.realms_changed then
+			gam.recalculate_realm_map()
+		end
 	end
 
 	gam.speed = gam.speed or 1
@@ -641,6 +682,13 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("tile_colors") then
 		gam.planet_shader:send('tile_colors', gam.tile_color_texture)
 	end
+	if gam.planet_shader:hasUniform("province_colors") then
+		gam.planet_shader:send('province_colors', gam.province_color_texture)
+	end
+	if gam.planet_shader:hasUniform("province_index") then
+		gam.planet_shader:send('province_index', gam.province_id_texture)
+		gam.planet_shader:send('max_province_index', WORLD.province_count)
+	end
 	if gam.planet_shader:hasUniform("world_size") then
 		gam.planet_shader:send('world_size', WORLD.world_size)
 	end
@@ -675,12 +723,6 @@ function gam.draw()
 			gam.recalculate_province_map()
 		end
 		gam.planet_shader:send('tile_neighbor_province', gam.tile_neighbor_provinces_texture)
-	end
-	if gam.planet_shader:hasUniform("tile_realms") then
-		if gam.tile_realm_texture == nil then
-			gam.recalculate_realm_map()
-		end
-		gam.planet_shader:send('tile_realms', gam.tile_realm_texture)
 	end
 	if gam.planet_shader:hasUniform("tile_neighbor_realm") then
 		if gam.tile_neighbor_realm_texture == nil then
@@ -1397,7 +1439,12 @@ function gam.draw()
 	if (gam.map_update_coroutine ~= nil) and (gam.map_update_progress ~= nil) then
 		local loading_rect = ui.fullscreen():subrect(0, 100, 300, 50, "center", "up")
 		ui.panel(loading_rect)
-		local progress = gam.map_update_progress / WORLD:tile_count() * 300
+		local progress = 0
+		if gam.map_mode_data[gam.map_mode][5] == "tile" then
+			progress = gam.map_update_progress / WORLD:tile_count() * 300
+		else
+			progress = gam.map_update_progress / WORLD.province_count * 300
+		end
 		local progress_bar = loading_rect:subrect(0, 0, progress, 50, "left", "up")
 		local temporary_r = ui.style.panel_inside.r
 		ui.style.panel_inside.r = 1.0
@@ -1486,6 +1533,11 @@ function gam.update_map_mode(new_map_mode)
 	CACHED_MAP_MODE = new_map_mode
 end
 
+---@param tile Tile
+---@return number
+---@return number
+---@return number
+---@return number
 local function neighbor_data(tile)
 	local up_neigh = tile.get_neighbor(tile, 1)
 	local down_neigh = tile.get_neighbor(tile, 2)
@@ -1510,6 +1562,11 @@ local function neighbor_data(tile)
 	return r, g, b, a
 end
 
+---@param tile Tile
+---@return number
+---@return number
+---@return number
+---@return number
 local function neighbor_neighbor_data(tile)
 	local up_neigh = tile.get_neighbor(tile, 1)
 	local down_neigh = tile.get_neighbor(tile, 2)
@@ -1577,6 +1634,15 @@ end
 ---@return integer
 ---@return integer
 local function realm_neighbor_data(tile)
+	if gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id] ~= nil then
+		local r = gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id][1]
+		local g = gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id][2]
+		local b = gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id][3]
+		local a = gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id][4]
+
+		return r, g, b, a
+	end
+
 	-- retrieve tile neigbours
 	local up_neigh = tile.get_neighbor(tile, 1)
 	local down_neigh = tile.get_neighbor(tile, 2)
@@ -1589,9 +1655,17 @@ local function realm_neighbor_data(tile)
 	local b = same_realm_test(tile, right_neigh)
 	local a = same_realm_test(tile, left_neigh)
 
+	gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id] = {r, g, b, a}
+
 	return r, g, b, a
 end
 
+---comment
+---@param tile Tile
+---@return number
+---@return number
+---@return number
+---@return number
 local function realm_neighbor_neighbor_data(tile)
 	local up_neigh = tile.get_neighbor(tile, 1)
 	local down_neigh = tile.get_neighbor(tile, 2)
@@ -1611,12 +1685,20 @@ local function realm_neighbor_neighbor_data(tile)
 	return r, g, b, a
 end
 
+
+
 function gam.recalculate_province_map()
+	---@type table<Tile, Tile>
+	gam.BORDER_TILES_CACHE = {}
+
 	local dim = WORLD.world_size * 3
+
 	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim, dim, "rgba8")
 	gam.tile_neighbor_provinces_data = gam.tile_neighbor_provinces_data or love.image.newImageData(dim, dim, "rgba8")
 
+	---@type number[]
 	local pointer = require("ffi").cast("uint8_t*", gam.tile_province_image_data:getFFIPointer())
+	---@type number[]
 	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_provinces_data:getFFIPointer())
 
 	for _, tile in pairs(WORLD.tiles) do
@@ -1633,6 +1715,10 @@ function gam.recalculate_province_map()
 		local r, g, b, a = neighbor_data(tile)
 		if (math.max(r, g, b, a) < 0.1) then
 			r, g, b, a = neighbor_neighbor_data(tile)
+		end
+
+		if (math.max(r, g, b, a) >= 0.1) then
+			gam.BORDER_TILES_CACHE[tile] = tile
 		end
 
 		pointer_neigbours[pixel_index * 4 + 0] = 255 * r
@@ -1654,103 +1740,175 @@ function gam.recalculate_province_map()
 	gam.tile_neighbor_provinces_texture:setFilter("nearest", "nearest")
 end
 
-function gam.recalculate_realm_map()
+
+
+function gam.recalculate_realm_map(update_all)
+	gam.REALMS_NEIGBOURS_TEST_CACHE = {}
+
+	-- sanity check:
+	if tabb.size(gam.BORDER_TILES_CACHE) == 0 then
+		gam.recalculate_province_map()
+	end
+
 	local dim = WORLD.world_size * 3
-	gam.tile_realm_image_data = gam.tile_realm_image_data or love.image.newImageData(dim, dim, "rgba8")
 	gam.tile_neighbor_realm_data = gam.tile_neighbor_realm_data or love.image.newImageData(dim, dim, "rgba8")
 
 	-- imageData has one byte per channel per pixel.
-	local pointer = require("ffi").cast("uint8_t*", gam.tile_realm_image_data:getFFIPointer())
+	---@type number[]
 	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
 
-	for _, tile in pairs(WORLD.tiles) do
-		local x, y = gam.tile_id_to_color_coords(tile)
-		local pixel_index = x + y * dim
-
-		if tile.province and tile.province.realm then
-			local overlords = tile.province.realm:get_top_realm()
-			local r = tile.province.realm.r
-			local g = tile.province.realm.g
-			local b = tile.province.realm.b
-			if tabb.size(overlords) == 1 then
-				local overlord = tabb.nth(overlords, 1)
-				r = overlord.r
-				g = overlord.g
-				b = overlord.b
-			end
-
-			pointer[pixel_index * 4 + 0] = 255 * r
-			pointer[pixel_index * 4 + 1] = 255 * g
-			pointer[pixel_index * 4 + 2] = 255 * b
-			pointer[pixel_index * 4 + 3] = 255 * 1
-		end
-
-		local r, g, b, a = realm_neighbor_data(tile)
-		if (math.max(r, g, b, a) < 0.1) then
-			r, g, b, a = realm_neighbor_neighbor_data(tile)
-		end
-
-		pointer_neigbours[pixel_index * 4 + 0] = 255 * r
-		pointer_neigbours[pixel_index * 4 + 1] = 255 * g
-		pointer_neigbours[pixel_index * 4 + 2] = 255 * b
-		pointer_neigbours[pixel_index * 4 + 3] = 255 * a
+	if update_all then
+		print("UPDATING ALL REALM BORDERS")
+		WORLD.provinces_to_update_on_map = WORLD.provinces
 	end
 
-	gam.tile_realm_texture = love.graphics.newImage(gam.tile_realm_image_data, {
-		mipmaps = false,
-		linear = true
-	})
-	gam.tile_realm_texture:setFilter("nearest", "nearest")
+	for _, province in pairs(WORLD.provinces_to_update_on_map) do
+		for _, tile in pairs(province.tiles) do
+			if gam.BORDER_TILES_CACHE[tile] == nil then
+				goto continue
+			end
+
+			local x, y = gam.tile_id_to_color_coords(tile)
+			local pixel_index = x + y * dim
+
+			local r2, g2, b2, a2 = realm_neighbor_data(tile)
+			if (math.max(r2, g2, b2, a2) < 0.1) then
+				r2, g2, b2, a2 = realm_neighbor_neighbor_data(tile)
+			end
+
+			pointer_neigbours[pixel_index * 4 + 0] = 255 * r2
+			pointer_neigbours[pixel_index * 4 + 1] = 255 * g2
+			pointer_neigbours[pixel_index * 4 + 2] = 255 * b2
+			pointer_neigbours[pixel_index * 4 + 3] = 255 * a2
+
+			::continue::
+		end
+	end
 
 	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
 		mipmaps = false,
 		linear = true
 	})
 	gam.tile_neighbor_realm_texture:setFilter("nearest", "nearest")
+
+	WORLD.realms_changed = false
+	WORLD.provinces_to_update_on_map = {}
 end
 
-function gam.refresh_map_mode(preserve_efficiency)
-	if gam.map_update_coroutine == nil then
-		print('create map update coroutine')
-		gam.map_update_coroutine = coroutine.create(function() return gam._refresh_map_mode(preserve_efficiency) end)
-	end
-end
-
----Refreshes the map mode
-function gam._refresh_map_mode(preserve_efficiency)
-	local tim = love.timer.getTime()
-
-	-- Sanity check in case the function is called before init
-	if gam.tile_neighbor_realm_data == nil then
+function gam.refresh_map_mode()
+	if WORLD.realms_changed then
 		gam.recalculate_realm_map()
 	end
 
-	local dim = WORLD.world_size * 3
-	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data:getFFIPointer())
-	local pointer_realm_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
-
-	-- if not OPTIONS.update_map then
-	-- 	return
-	-- end
-
-	if not preserve_efficiency then
-		gam.selected.building_type = nil
+	if gam.map_update_coroutine == nil then
+		print('create map update coroutine')
+		if gam.map_mode_data[gam.map_mode][5] == "tile" then
+			print("tile map mode")
+			gam.map_update_coroutine = coroutine.create(function() return gam._refresh_map_mode() end)
+		elseif gam.map_mode_data[gam.map_mode][5] == "province" then
+			print("province map mode")
+			gam.map_update_coroutine = coroutine.create(function() return gam._refresh_provincial_map_mode() end)
+		end
 	end
+end
+
+function gam._recalculate_province_texture()
+	---@type number[]
+	local pointer_province_id = require("ffi").cast("float*", gam.province_id_data:getFFIPointer())
+
+	local dim = WORLD.world_size * 3
+	local id = 0
+
+	for _, province in ipairs(WORLD.ordered_provinces_list) do
+		for _, tile in pairs(province.tiles) do
+			local x, y = gam.tile_id_to_color_coords(tile)
+			local pixel_index = x + y * dim
+			pointer_province_id[pixel_index] = id
+		end
+		id = id + 1
+	end
+
+	gam.province_id_texture = love.graphics.newImage(gam.province_id_data)
+	gam.province_id_texture:setFilter("nearest", "nearest")
+end
+
+function gam._refresh_provincial_map_mode()
+	local tim = love.timer.getTime()
+
+	if gam.tile_neighbor_realm_data == nil then
+		gam.recalculate_realm_map(true)
+	end
+
+	---@type number[]
+	local pointer_province_color = require("ffi").cast("uint8_t*", gam.province_color_data:getFFIPointer())
 
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
 	local func = dat[4]
 	func(gam.clicked_tile_id) -- set "real color" on tiles
 
-	local province = nil
-	local best_eff = 0
-	if (gam.clicked_tile) then
-		province = gam.clicked_tile.province
-		if province and gam.selected.building_type then
-			best_eff = math.max(best_eff,
-				gam.selected.building_type.production_method:get_efficiency(province))
+	gam.map_update_progress = 0
+
+	local id = 0
+
+	for _, province in ipairs(WORLD.ordered_provinces_list) do
+		local can_set = true
+		local player_character = WORLD.player_character
+		if player_character and player_character.realm then
+			can_set = false
+			if player_character.realm.known_provinces[province] then
+				can_set = true
+			end
 		end
+
+		gam.map_update_progress = gam.map_update_progress + 1
+		coroutine.yield(false)
+
+		local current_tile = province.center
+
+		if can_set then
+			pointer_province_color[id * 4 + 0] = 255 * current_tile.real_r
+			pointer_province_color[id * 4 + 1] = 255 * current_tile.real_g
+			pointer_province_color[id * 4 + 2] = 255 * current_tile.real_b
+			pointer_province_color[id * 4 + 3] = 255 * 1
+		else
+			pointer_province_color[id * 4 + 0] = 255 * 0.15
+			pointer_province_color[id * 4 + 1] = 255 * 0.15
+			pointer_province_color[id * 4 + 2] = 255 * 0.15
+			pointer_province_color[id * 4 + 3] = 255 * 0
+		end
+
+		id = id + 1
 	end
+
+	gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
+	gam.province_color_texture:setFilter("nearest", "nearest")
+
+	gam.tile_color_texture = gam.empty_texture
+
+	local time = love.timer.getTime() - tim
+	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
+
+	coroutine.yield(true)
+end
+
+---Refreshes the map mode
+function gam._refresh_map_mode()
+	local tim = love.timer.getTime()
+
+	-- Sanity check in case the function is called before init
+	if gam.tile_neighbor_realm_data == nil then
+		gam.recalculate_realm_map(true)
+	end
+
+	local dim = WORLD.world_size * 3
+	---@type number[]
+	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data:getFFIPointer())
+
+	print(gam.map_mode)
+	local dat = gam.map_mode_data[gam.map_mode]
+	local func = dat[4]
+	func(gam.clicked_tile_id) -- set "real color" on tiles
 
 	-- Apply the color
 	gam.map_update_progress = 0
@@ -1777,30 +1935,10 @@ function gam._refresh_map_mode(preserve_efficiency)
 				local g = tile.real_g
 				local b = tile.real_b
 
-				local result_pixel = { r, g, b, 1 }
-
-				if gam.selected.building_type ~= nil then
-					local eff = gam.selected.building_type.production_method:get_efficiency(tile.province)
-					local r, g, b = political.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-					result_pixel[1] = r
-					result_pixel[2] = g
-					result_pixel[3] = b
-				end
-
-				local r, g, b, a = realm_neighbor_data(tile)
-				if (math.max(r, g, b, a) < 0.1) then
-					r, g, b, a = realm_neighbor_neighbor_data(tile)
-				end
-
-				pointer_realm_neigbours[pixel_index * 4 + 0] = 255 * r
-				pointer_realm_neigbours[pixel_index * 4 + 1] = 255 * g
-				pointer_realm_neigbours[pixel_index * 4 + 2] = 255 * b
-				pointer_realm_neigbours[pixel_index * 4 + 3] = 255 * a
-
-				pointer_tile_color[pixel_index * 4 + 0] = 255 * result_pixel[1]
-				pointer_tile_color[pixel_index * 4 + 1] = 255 * result_pixel[2]
-				pointer_tile_color[pixel_index * 4 + 2] = 255 * result_pixel[3]
-				pointer_tile_color[pixel_index * 4 + 3] = 255 * result_pixel[4]
+				pointer_tile_color[pixel_index * 4 + 0] = 255 * r
+				pointer_tile_color[pixel_index * 4 + 1] = 255 * g
+				pointer_tile_color[pixel_index * 4 + 2] = 255 * b
+				pointer_tile_color[pixel_index * 4 + 3] = 255 * 1
 			else
 				pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
 				pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
@@ -1813,11 +1951,7 @@ function gam._refresh_map_mode(preserve_efficiency)
 	gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 	gam.tile_color_texture:setFilter("nearest", "nearest")
 
-	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
-		mipmaps = false,
-		linear = true
-	})
-	gam.tile_neighbor_realm_texture:setFilter("nearest", "nearest")
+	gam.province_color_texture = gam.province_empty_texture
 
 	-- Update the minimap
 	gam.minimap = require "game.minimap".make_minimap()

@@ -124,6 +124,8 @@ function prov.Province:new(fake_flag)
 	if not fake_flag then
 		WORLD.entity_counter = WORLD.entity_counter + 1
 		WORLD.provinces[o.province_id] = o
+		table.insert(WORLD.ordered_provinces_list, o)
+		WORLD.province_count = WORLD.province_count + 1
 	end
 
 	setmetatable(o, prov.Province)
@@ -138,6 +140,11 @@ end
 ---Adds a tile to the province. Handles removal from the previous province, if necessary.
 ---@param tile Tile
 function prov.Province:add_tile(tile)
+	--- easiest way to handle it, i guess
+	if tile.is_land then
+		self.is_land = true
+	end
+
 	if tile.province ~= nil then
 		tile.province.size = tile.province.size - 1
 		tile.province.tiles[tile] = nil

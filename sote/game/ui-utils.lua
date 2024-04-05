@@ -121,13 +121,7 @@ local function render_money(number, rect, negative)
 	end
 	local hue = 40 + saturation * 40 * sign
 
-	-- local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, saturation, 1)
-	-- local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(51, saturation, 1)
-	-- if number < 0 and not negative or number > 0 and negative then
-	-- 	r, g, b, a = require "game.map-modes.political".hsv_to_rgb(0, saturation, 1)
-	-- end
-
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, saturation, 1)
 
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
@@ -141,7 +135,7 @@ local function render_log(number, rect)
 	local hue = math.min(math.log(number + 1) * 10, 360)
 	local saturation = 1
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, saturation, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
@@ -154,7 +148,7 @@ local function render_sqrt(number, rect)
 	local hue = math.min(math.sqrt(number) * 10, 360)
 	local saturation = 1
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, saturation, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, saturation, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
@@ -175,7 +169,7 @@ local function render_balance(number, rect, negative)
 		h = math.atan(-number / 100) / math.pi * 120 + 60
 	end
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(h, 1, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(h, 1, 1)
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()
 	ui.right_text(ut.to_fixed_point2(number), rect)
@@ -189,7 +183,7 @@ local function render_percentage(number, rect, negative)
 		hue = math.max(0, 120 - number * 120)
 	end
 
-	local r, g, b, a = require "game.map-modes.political".hsv_to_rgb(hue, 1, 1)
+	local r, g, b, a = require "game.map-modes._color-space-utils".hsv_to_rgb(hue, 1, 1)
 	local cr, cg, cb, ca = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, a)
 	ut.data_font()

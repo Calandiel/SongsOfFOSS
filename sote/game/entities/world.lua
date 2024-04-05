@@ -29,6 +29,8 @@ local tabb             = require "engine.table"
 ---@field tiles table<number, Tile>
 ---@field plates table<number, Plate>
 ---@field provinces table<number, Province>
+---@field ordered_provinces_list Province[]
+---@field province_count number
 ---@field settled_provinces table<Province, Province>
 ---@field settled_provinces_by_identifier table<number, table<Province, Province>>
 ---@field realms table<number, Realm>
@@ -43,6 +45,8 @@ local tabb             = require "engine.table"
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
+---@field realms_changed boolean
+---@field provinces_to_update_on_map table<Province, Province>
 
 ---@class World
 world.World            = {}
@@ -64,7 +68,9 @@ function world.World:new()
 	w.tiles = {}
 	w.plates = {}
 	w.provinces = {}
+	w.ordered_provinces_list = {}
 	w.settled_provinces = {}
+	w.province_count = 0
 	w.settled_provinces_by_identifier = {}
 	for i = 1, 30 * 24 * world.ticks_per_hour do
 		w.settled_provinces_by_identifier[i] = {}
@@ -88,6 +94,9 @@ function world.World:new()
 	w.player_deferred_actions = {}
 	w.treasury_effects = require "engine.queue":new()
 	w.old_treasury_effects = require "engine.queue":new()
+
+	w.realms_changed = false
+	w.provinces_to_update_on_map = {}
 
 	for tile_id = 1, 6 * ws * ws do
 		table.insert(w.tiles, tile.Tile:new(tile_id))

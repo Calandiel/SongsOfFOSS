@@ -45,12 +45,22 @@ function effects.set_tributary(overlord, tributary)
 	local reward_tributary = tributary.quests_raid[tributary] or 0
 	tributary.quests_raid[overlord.capitol] = 0
 	tributary.quests_patrol[tributary.capitol] = (tributary.quests_patrol[tributary.capitol] or 0) + reward_tributary
+
+	for _, item in pairs(overlord.known_provinces) do
+		WORLD.provinces_to_update_on_map[item] = item
+	end
+	WORLD.realms_changed = true
 end
 
 ---Removes the tributary relationship and explores provinces for the overlord
 ---@param overlord Realm
 ---@param tributary Realm
 function effects.unset_tributary(overlord, tributary)
+	for _, item in pairs(overlord.known_provinces) do
+		WORLD.provinces_to_update_on_map[item] = item
+	end
+	WORLD.realms_changed = true
+
 	overlord.tributaries[tributary] = nil
 	overlord.tributary_status[tributary] = nil
 	tributary.paying_tribute_to[overlord] = nil
@@ -59,6 +69,11 @@ end
 ---Clears diplomatic relationships of the realms
 ---@param realm Realm
 function effects.clear_diplomacy(realm)
+	for _, item in pairs(realm.known_provinces) do
+		WORLD.provinces_to_update_on_map[item] = item
+	end
+	WORLD.realms_changed = true
+
 	for _, tributary_realm in pairs(realm.tributaries) do
 		tributary_realm.paying_tribute_to[realm] = nil
 	end
@@ -77,8 +92,15 @@ end
 ---and it's better to do it separately
 ---@param realm Realm
 function effects.dissolve_realm_and_clear_diplomacy(realm)
+	for _, item in pairs(realm.known_provinces) do
+		WORLD.provinces_to_update_on_map[item] = item
+	end
+	WORLD.realms_changed = true
+
 	effects.clear_diplomacy(realm)
 	politics_effects.dissolve_realm(realm)
+
+
 end
 
 return effects
