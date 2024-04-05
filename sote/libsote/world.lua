@@ -175,6 +175,10 @@ function world:get_elevation(q, r, face)
 	return self.elevation[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+function world:get_elevation_by_index(index)
+	return self.elevation[index - 1]
+end
+
 function world:get_hilliness(q, r, face)
 	return self.hilliness[self.coord[self:_key_from_coord(q, r, face)]]
 end
@@ -189,6 +193,10 @@ end
 
 function world:get_is_land(q, r, face)
 	return self.is_land[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_is_land_by_index(index)
+	return self.is_land[index - 1]
 end
 
 function world:get_plate(q, r, face)
