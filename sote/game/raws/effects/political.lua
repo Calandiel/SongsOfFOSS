@@ -28,6 +28,7 @@ PoliticalEffects.reasons = {
 ---@param realm Realm
 function PoliticalEffects.dissolve_realm(realm)
 	WORLD.realms[realm.realm_id] = nil
+	realm.exists = false
 	military_effects.dissolve_guard(realm)
 	realm:remove_province(realm.capitol)
 end

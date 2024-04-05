@@ -341,7 +341,7 @@ local function load()
 			---@type Army
 			local army = associated_data
 
-			if realm == nil then
+			if realm == nil or not realm.exists then
 				return
 			end
 

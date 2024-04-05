@@ -330,8 +330,8 @@ local function handle_event(event, target_realm, associated_data)
 end
 
 ---Returns true if player event and false otherwise
----@param eve any
----@param root any
+---@param eve string
+---@param root Character
 ---@param dat any
 ---@return boolean
 function world.World:event_tick(eve, root, dat)
@@ -344,7 +344,7 @@ function world.World:event_tick(eve, root, dat)
 		WORLD.events_queue:dequeue()
 		handle_event(eve, root, dat)
 		if (not root.dead) then
-			assert(root.province ~= nil)
+			assert(root.province ~= nil, "character is alive but province is nil after event " .. eve)
 		end
 		return false
 	end
