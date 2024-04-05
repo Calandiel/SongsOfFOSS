@@ -38,18 +38,22 @@ local function make_new_realm(capitol, race, culture, faith)
 	for _, neigh in pairs(capitol.neighbors) do
 		r:explore(neigh)
 	end
-	]]--
+	]]
+	--
 
 	-- Mark the province as settled for processing...
 	WORLD:set_settled_province(capitol)
 
 	--calculate average ratial foraging_efficiency from males per 100 females
 	local male_percentage = race.males_per_hundred_females / (100 + race.males_per_hundred_females)
-	local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] + (1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
-	local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] + (1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
+	local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] +
+	(1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
+	local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] +
+	(1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5, capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
+	local pop_to_spawn = math.max(5,
+		capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
 		pop.POP:new(
@@ -65,7 +69,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	-- spawn leader
 	local elite_character = pe.generate_new_noble(r, capitol, race, faith, culture)
 	elite_character.popularity[r] = elite_character.age / 10
-	pe.transfer_power(r, elite_character, pe.reasons.INITIAL_RULER)
+	pe.transfer_power(r, elite_character, pe.reasons.InitialRuler)
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 5 + 1 do
@@ -233,7 +237,8 @@ function st.run()
 				if (love.math.random() > 0.001 + neigh.movement_cost / 1000.0 * river_bonus) then
 					if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 8 then -- formerly 5.5
 						-- We can spawn a new realm in this province! It's unused!
-						make_new_realm(neigh, prov.realm.primary_race, prov.realm.primary_culture, prov.realm.primary_faith)
+						make_new_realm(neigh, prov.realm.primary_race, prov.realm.primary_culture,
+							prov.realm.primary_faith)
 						queue:enqueue(neigh)
 					end
 				end

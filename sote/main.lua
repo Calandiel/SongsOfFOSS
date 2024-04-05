@@ -1,12 +1,24 @@
 if arg and arg[#arg] == "-debug" then
-  require("mobdebug").start()
-  require("mobdebug").coro()
+	require("mobdebug").start()
+	require("mobdebug").coro()
 end
 
 print("Initial random number:")
 print(love.math.random(100))
 local tab = require "engine.table"
 local ui = require "engine.ui"
+
+print("=== TEXTURE TYPES ===")
+local texture_types = love.graphics.getTextureTypes()
+for k, v in pairs(texture_types) do
+	print(tostring(k) .. " : " .. tostring(v))
+end
+print("=== SYSTEM LIMITS ===")
+local limits = love.graphics.getSystemLimits()
+for k, v in pairs(limits) do
+	print(tostring(k) .. " : " .. tostring(v))
+end
+print("===")
 
 -- Reloads the font used for rendering
 local reload_font = require "game.ui-utils".reload_font
@@ -73,7 +85,6 @@ function PROFILER.clear(self)
 		self.count[tag] = 0
 	end
 end
-
 
 -- LOGS = love.filesystem.newFile("logs.txt")
 -- LOGS:open("w")

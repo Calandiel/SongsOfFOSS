@@ -9,8 +9,10 @@ local trade_good_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local EconomicEffects = {}
 
----@enum EconomicReason
+---@enum (exact) EconomicReason
 EconomicEffects.reasons = {
+	BasicNeeds = "basic needs",
+	Welfare = "welfare",
 	Raid = "raid",
 	Donation = "donation",
 	MonthlyChange = "monthly change",
@@ -407,13 +409,12 @@ function EconomicEffects.buy(character, good, amount)
 	return true
 end
 
-
 ---Returns available units for satisfying a use case from pop inventory
 ---@param use_case TradeGoodUseCaseReference
 ---@return number
 function EconomicEffects.available_use_case_from_inventory(character, use_case)
 	local use = trade_good_use_case(use_case)
-	local supply = tabb.accumulate(use.goods, 0, function (a, good, weight)
+	local supply = tabb.accumulate(use.goods, 0, function(a, good, weight)
 		local inventory = character.inventory[good]
 		if inventory and inventory > 0 then
 			a = a + inventory * weight
@@ -422,6 +423,7 @@ function EconomicEffects.available_use_case_from_inventory(character, use_case)
 	end)
 	return supply
 end
+
 --- Consumes up to amount of use case from inventory proportially to availability.
 --- Returns total amount able to be satisfied.
 ---@param use_case TradeGoodUseCaseReference
@@ -430,7 +432,7 @@ end
 function EconomicEffects.consume_use_case_from_inventory(character, use_case, amount)
 	local use = trade_good_use_case(use_case)
 	local supply = EconomicEffects.available_use_case_from_inventory(character, use_case)
-	local consumed = tabb.accumulate(use.goods, 0, function (a, good, weight)
+	local consumed = tabb.accumulate(use.goods, 0, function(a, good, weight)
 		local inventory = character.inventory[good] or 0
 		if inventory > 0 then
 			local available = inventory * weight
@@ -471,123 +473,125 @@ end
 ---@param use TradeGoodReference
 ---@param amount number
 function EconomicEffects.buy_use(character, use, amount)
-    local can_buy, _ = et.can_buy_use(character, use, amount)
-    if not can_buy then
-        return false
-    end
+	local can_buy, _ = et.can_buy_use(character, use, amount)
+	if not can_buy then
+		return false
+	end
 
-    local use_case = require "game.raws.raws-utils".trade_good_use_case(use)
+	local use_case = require "game.raws.raws-utils".trade_good_use_case(use)
 
-    -- can_buy validates province
-    ---@type Province
-    local province = character.province
-    local price = ev.get_local_price_of_use(province, use)
+	-- can_buy validates province
+	---@type Province
+	local province = character.province
+	local price = ev.get_local_price_of_use(province, use)
 
-    local cost = price * amount
+	local cost = price * amount
 
-    if cost ~= cost then
-        error(
-            "WRONG BUY OPERATION "
-            .. "\n price = "
-            .. tostring(price)
-            .. "\n amount = "
-            .. tostring(amount)
-        )
-    end
+	if cost ~= cost then
+		error(
+			"WRONG BUY OPERATION "
+			.. "\n price = "
+			.. tostring(price)
+			.. "\n amount = "
+			.. tostring(amount)
+		)
+	end
 
-    local price_expectation = ev.get_local_price_of_use(province, use)
-    local use_available = ev.get_local_amount_of_use(province, use)
+	local price_expectation = ev.get_local_price_of_use(province, use)
+	local use_available = ev.get_local_amount_of_use(province, use)
 
-    local total_bought = 0
-    local spendings = 0
+	local total_bought = 0
+	local spendings = 0
 
-    local goods = {}
-    for good, weight in pairs(use_case.goods) do
-        local good_price = ev.get_local_price(province, good)
-        if character.price_memory[good] == nil then
-            character.price_memory[good] = good_price
-        else
-            character.price_memory[good] = character.price_memory[good] * (3 / 4) + good_price * (1 / 4)
-        end
-        local goods_available = province.local_storage[good] or 0
-        if goods_available > 0 then
-            goods[#goods+1] = {good = good, weight = weight, price = good_price, available = goods_available}
-        end
-    end
-    for _, values in pairs(goods) do
-        local good_use_amount = values.available / values.weight
-        local goods_available_weight = math.max(good_use_amount / use_available, 0)
-        local consumed_amount = amount / values.weight * goods_available_weight
+	local goods = {}
+	for good, weight in pairs(use_case.goods) do
+		local good_price = ev.get_local_price(province, good)
+		if character.price_memory[good] == nil then
+			character.price_memory[good] = good_price
+		else
+			character.price_memory[good] = character.price_memory[good] * (3 / 4) + good_price * (1 / 4)
+		end
+		local goods_available = province.local_storage[good] or 0
+		if goods_available > 0 then
+			goods[#goods + 1] = { good = good, weight = weight, price = good_price, available = goods_available }
+		end
+	end
+	for _, values in pairs(goods) do
+		local good_use_amount = values.available / values.weight
+		local goods_available_weight = math.max(good_use_amount / use_available, 0)
+		local consumed_amount = amount / values.weight * goods_available_weight
 
-        if goods_available_weight ~= goods_available_weight
-            or consumed_amount ~= consumed_amount
-        then
-            error("BUY USE CALCULATED AMOUNT IS NAN"
-            .. "\n use = "
-            .. tostring(use)
-            .. "\n use_available = "
-            .. tostring(use_available)
-            .. "\n good = "
-            .. tostring(values.good)
-            .. "\n good_price = "
-            .. tostring(values.price)
-            .. "\n goods_available = "
-            .. tostring(values.available)
-            .. "\n good_use_amount = "
-            .. tostring(good_use_amount)
-            .. "\n good use weight = "
-            .. tostring(values.weight)
-            .. "\n goods_available_weight = "
-            .. tostring(goods_available_weight)
-            .. "\n consumed_amount = "
-            .. tostring(consumed_amount)
-            .. "\n amount = "
-            .. tostring(amount)
-            )
-        end
+		if goods_available_weight ~= goods_available_weight
+			or consumed_amount ~= consumed_amount
+		then
+			error("BUY USE CALCULATED AMOUNT IS NAN"
+				.. "\n use = "
+				.. tostring(use)
+				.. "\n use_available = "
+				.. tostring(use_available)
+				.. "\n good = "
+				.. tostring(values.good)
+				.. "\n good_price = "
+				.. tostring(values.price)
+				.. "\n goods_available = "
+				.. tostring(values.available)
+				.. "\n good_use_amount = "
+				.. tostring(good_use_amount)
+				.. "\n good use weight = "
+				.. tostring(values.weight)
+				.. "\n goods_available_weight = "
+				.. tostring(goods_available_weight)
+				.. "\n consumed_amount = "
+				.. tostring(consumed_amount)
+				.. "\n amount = "
+				.. tostring(amount)
+			)
+		end
 
-        -- we need to get back to use "units" so we multiplay consumed amount back by weight
-        total_bought = total_bought + consumed_amount * values.weight
+		-- we need to get back to use "units" so we multiplay consumed amount back by weight
+		total_bought = total_bought + consumed_amount * values.weight
 
-        local costs = consumed_amount * values.price
-        spendings = spendings + costs
+		local costs = consumed_amount * values.price
+		spendings = spendings + costs
 
-        --MAKE TRANSACTION
-        province.trade_wealth = province.trade_wealth + costs
-        character.inventory[values.good] = (character.inventory[values.good] or 0) + amount
+		--MAKE TRANSACTION
+		province.trade_wealth = province.trade_wealth + costs
+		character.inventory[values.good] = (character.inventory[values.good] or 0) + amount
 
-        EconomicEffects.change_local_stockpile(province, values.good, -amount)
+		EconomicEffects.change_local_stockpile(province, values.good, -amount)
 
-        local trade_volume = (province.local_consumption[values.good] or 0) + (province.local_production[values.good] or 0) + amount
-        local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * values.price
+		local trade_volume = (province.local_consumption[values.good] or 0) +
+			(province.local_production[values.good] or 0) + amount
+		local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * values.price
 
-        EconomicEffects.change_local_price(province, values.good, price_change)
+		EconomicEffects.change_local_price(province, values.good, price_change)
+	end
+	if total_bought < amount - 0.01
+		or total_bought > amount + 0.01
+	then
+		error("INVALID BUY USE ATTEMPT"
+			.. "\n use = "
+			.. tostring(use)
+			.. "\n spendings = "
+			.. tostring(spendings)
+			.. "\n total_bought = "
+			.. tostring(total_bought)
+			.. "\n amount = "
+			.. tostring(amount)
+			.. "\n price_expectation = "
+			.. tostring(price_expectation)
+			.. "\n use_available = "
+			.. tostring(use_available)
+		)
+	end
 
-    end
-    if total_bought < amount - 0.01
-        or total_bought > amount + 0.01
-    then
-        error("INVALID BUY USE ATTEMPT"
-            .. "\n use = "
-            .. tostring(use)
-            .. "\n spendings = "
-            .. tostring(spendings)
-            .. "\n total_bought = "
-            .. tostring(total_bought)
-            .. "\n amount = "
-            .. tostring(amount)
-            .. "\n price_expectation = "
-            .. tostring(price_expectation)
-            .. "\n use_available = "
-            .. tostring(use_available)
-        )
-    end
+	EconomicEffects.add_pop_savings(character, -spendings, EconomicEffects.reasons.Trade)
 
-    EconomicEffects.add_pop_savings(character, -spendings, EconomicEffects.reasons.Trade)
-
-    if WORLD:does_player_see_province_news(province) then
-        WORLD:emit_notification("Trader " .. character.name .. " bought " .. amount .. " " .. use .. " for " .. ut.to_fixed_point2(spendings) .. MONEY_SYMBOL)
-    end
+	if WORLD:does_player_see_province_news(province) then
+		WORLD:emit_notification("Trader " ..
+			character.name ..
+			" bought " .. amount .. " " .. use .. " for " .. ut.to_fixed_point2(spendings) .. MONEY_SYMBOL)
+	end
 end
 
 ---comment
@@ -654,7 +658,8 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
 	EconomicEffects.change_treasury(realm, amount, EconomicEffects.reasons.Donation)
 
 	realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:local_population() / 100
-	character.popularity[realm] = (character.popularity[realm] or 0) + amount / (realm.capitol:local_population() + 1) / 100
+	character.popularity[realm] = (character.popularity[realm] or 0) +
+		amount / (realm.capitol:local_population() + 1) / 100
 end
 
 ---comment

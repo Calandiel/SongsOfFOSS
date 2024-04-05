@@ -192,7 +192,7 @@ function load()
 
 
 			local expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province,
-				political_effects.reasons.EXPEDITION_LEADER)
+				political_effects.reasons.ExpeditionLeader)
 
 			if expedition_leader == nil then
 				return
@@ -291,7 +291,7 @@ function load()
 				associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name()
 			end
 
-			political_effects.transfer_power(new_realm, expedition_leader, political_effects.reasons.EXPEDITION_LEADER)
+			political_effects.transfer_power(new_realm, expedition_leader, political_effects.reasons.ExpeditionLeader)
 
 			-- explore neighbour lands
 			new_realm:explore(new_realm.capitol)
