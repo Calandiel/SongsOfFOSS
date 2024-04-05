@@ -19,7 +19,8 @@ local function run_with_profiling(func, log_text)
 end
 
 local function gen_phase_02(world)
-	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen_rocks")
+	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen-rocks")
+	run_with_profiling(function() require "libsote.gen-climate".run(world) end, "gen-climate")
 end
 
 local function cache_tile_coord(world)
@@ -57,10 +58,9 @@ function wg.init()
 	wg.state = STATES.phase_01
 
 	require "game.raws.raws" ()
+	require "game.entities.world".empty()
 
 	gen_phase_02(wg.world)
-
-	require "game.entities.world".empty()
 
 	cache_tile_coord(wg.world)
 

@@ -5,6 +5,7 @@ local world = {
 	tile_count = 0,
 	coord = nil,
 	coord_by_tile_id = nil,
+	climate_cells = nil,
 
 	colatitude = nil,
 	minus_longitude = nil,
@@ -43,6 +44,7 @@ function world:new(world_size, seed)
 	obj.tile_count = obj.size * obj.size * 30 + 2
 	obj.coord = {}
 	obj.coord_by_tile_id = {}
+	obj.climate_cells = {}
 
 	obj.colatitude        = ffi.new("float["   .. obj.tile_count .. "]")
 	obj.minus_longitude   = ffi.new("float["   .. obj.tile_count .. "]")
@@ -127,8 +129,17 @@ function world:get_minus_longitude(q, r, face)
 	return self.minus_longitude[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+local llu = require("game.latlon")
+function world:get_latlon_by_index(index)
+	return llu.colat_to_lat(self.colatitude[index - 1]), self.minus_longitude[index - 1]
+end
+
 function world:get_elevation(q, r, face)
 	return self.elevation[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_elevation_by_index(index)
+	return self.elevation[index - 1]
 end
 
 function world:get_hilliness(q, r, face)
@@ -145,6 +156,10 @@ end
 
 function world:get_is_land(q, r, face)
 	return self.is_land[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_is_land_by_index(index)
+	return self.is_land[index - 1]
 end
 
 function world:get_plate(q, r, face)

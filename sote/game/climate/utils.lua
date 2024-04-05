@@ -90,10 +90,11 @@ function ut.in_bounds(y)
 	return not (y < 0 or y >= WORLD.climate_grid_size)
 end
 
----Sets the tile reference on a tile
----@param tile Tile
-function ut.set_climate_cell(tile)
-	local lat, lon = tile:latlon()
+---Returns the climate cell at a given latitude and longitude
+---@param lat number
+---@param lon number
+---@return ClimateCell
+function ut.get_climate_cell(lat, lon)
 	local climate_cell_x = 0.5 + 0.5 * lon / math.pi
 	climate_cell_x = climate_cell_x * WORLD.climate_grid_size
 	climate_cell_x = math.floor(climate_cell_x)
@@ -106,7 +107,7 @@ function ut.set_climate_cell(tile)
 	local cell_id = climate_cell_x + climate_cell_y * WORLD.climate_grid_size
 	local lua_cell_id = cell_id + 1
 
-	tile.climate_cell = WORLD.climate_cells[lua_cell_id]
+	return WORLD.climate_cells[lua_cell_id]
 end
 
 ---Returns lerp factors for climate data

@@ -17,9 +17,7 @@ local AXIAL_TILT_WINTER_RAINFALL_DIVISOR = 40.0
 local MEDITERRANEAN_SUBTRACTION_CONSTANT = 0.05
 local MEDITERRANEAN_COAST_IMPACT_MULTIPLIER = 1.0
 
-function sim.run()
-	require "game.climate.buffer-tile-data".run()
-
+local function simulate_climate()
 	--print("A")
 	local ut = require "game.climate.utils"
 
@@ -224,6 +222,16 @@ function sim.run()
 		cell.july_temperature = jul_temp_base
 		--print("G")
 	end
+end
+
+function sim.run()
+	require "game.climate.buffer-tile-data".run()
+	simulate_climate()
+end
+
+function sim.run_hex(world)
+	require "game.climate.buffer-tile-data".run_hex(world)
+	simulate_climate()
 end
 
 return sim
