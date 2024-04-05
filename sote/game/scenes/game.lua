@@ -18,7 +18,7 @@
 ---@field init fun()
 ---@field handle_zoom fun()
 ---@field on_tile_click fun()
----@field _refresh_map_mode fun()
+---@field _refresh_map_mode fun(async_flag: boolean?)
 ---@field debug_ui fun()
 ---@field paused boolean
 ---@field ticks_without_map_update number
@@ -27,9 +27,9 @@
 ---@field turbo boolean
 ---@field handle_camera_controls fun()
 ---@field click_callback fun() | nil
----@field update_map_mode fun(string)
+---@field update_map_mode fun(string, async_flag: boolean?)
 ---@field map_update_progress number
----@field refresh_map_mode fun(boolean)
+---@field refresh_map_mode fun(async_flag: boolean?)
 ---@field map_mode string TODO this should be a map mode enum...
 ---@field camera_position any TODO type porting cpml is hell...
 ---@field tile_id_to_color_coords fun(Tile):number,number
@@ -63,11 +63,15 @@
 ---@field province_id_data love.ImageData
 ---@field province_id_texture love.Image
 ---
----@field _refresh_provincial_map_mode fun(use_secondary: boolean?)
+---@field _refresh_provincial_map_mode fun(use_secondary: boolean?, async_flag: boolean?)
 ---@field province_color_data love.ImageData
 ---@field province_color_texture love.Image
 ---
----@field _refresh_mixed_map_mode fun()
+---@field _refresh_fog_of_war fun(async_flag: boolean?)
+---@field fog_of_war_data love.ImageData
+---@field fog_of_war_texture love.Image
+---
+---@field _refresh_mixed_map_mode fun(async_flag: boolean?)
 ---
 ---@field TILE_MAP_MODE_CACHE table<string, love.Image>
 ---@field PROVINCE_MAP_MODE_CACHE table<string, love.Image>
@@ -330,6 +334,12 @@ function gam.init()
 	end
 	gam.province_empty_texture = love.graphics.newImage(gam.province_empty_data)
 
+	gam.fog_of_war_data = love.image.newImageData(WORLD.province_count, 1, "rgba8")
+	for x = 1, WORLD.province_count do
+		gam.fog_of_war_data:setPixel(x - 1, 0, 0.15, 0.15, 0.15, 0)
+	end
+	gam.fog_of_war_texture = love.graphics.newImage(gam.fog_of_war_data)
+	gam.fog_of_war_texture:setFilter("nearest", "nearest")
 
 	gam.province_id_data = love.image.newImageData(dim, dim, "r32f")
 	gam.province_id_texture = love.graphics.newImage(gam.province_id_data)
@@ -350,6 +360,12 @@ function gam.init()
 	gam.click_tile(-1)
 
 	gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
+
+	for map_mode, _ in pairs(gam.map_mode_data) do
+		gam.update_map_mode(map_mode)
+	end
+
+	gam.update_map_mode('elevation')
 end
 
 ---Call this to make sure that a camera position exists.
@@ -705,6 +721,9 @@ function gam.draw()
 	end
 	if gam.planet_shader:hasUniform("province_colors") then
 		gam.planet_shader:send('province_colors', gam.province_color_texture)
+	end
+	if gam.planet_shader:hasUniform("fog_of_war") then
+		gam.planet_shader:send('fog_of_war', gam.fog_of_war_texture)
 	end
 	if gam.planet_shader:hasUniform("province_index") then
 		gam.planet_shader:send('province_index', gam.province_id_texture)
@@ -1550,9 +1569,14 @@ end
 
 ---Changes the map mode to a new one
 ---@param new_map_mode string Valid map mode ID
-function gam.update_map_mode(new_map_mode)
+---@param async_flag boolean|nil True by default
+function gam.update_map_mode(new_map_mode, async_flag)
+	if async_flag == nil then
+		async_flag = true
+	end
+
 	gam.map_mode = new_map_mode
-	gam.refresh_map_mode()
+	gam.refresh_map_mode(async_flag)
 	CACHED_MAP_MODE = new_map_mode
 end
 
@@ -1818,38 +1842,57 @@ function gam.recalculate_realm_map(update_all)
 	WORLD.provinces_to_update_on_map = {}
 end
 
-function gam.refresh_map_mode()
+function gam.refresh_map_mode(async_flag)
+	if async_flag == nil then
+		async_flag = true
+	end
+
 	if WORLD.realms_changed then
 		gam.recalculate_realm_map()
 	end
 
 	if gam.map_update_coroutine == nil then
 		print('create map update coroutine')
+		local function update_function()
+			return
+		end
+
 		if gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.TILE then
 			print("tile map mode")
 			gam.map_update_progress = 0
-			gam.map_update_coroutine = coroutine.create(function()
-				gam._refresh_map_mode()
+
+			function update_function()
+				gam._refresh_map_mode(async_flag)
 				gam.province_color_texture = gam.province_empty_texture
 				gam.minimap = require "game.minimap".make_minimap(nil, nil, false)
-			end)
+			end
 		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE then
 			print("province map mode")
 			gam.map_update_progress = 0
-			gam.map_update_coroutine = coroutine.create(function()
-				gam._refresh_provincial_map_mode()
+
+			function update_function()
+				gam._refresh_provincial_map_mode(false, async_flag)
 				gam.tile_color_texture = gam.empty_texture
 				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
-			end)
+			end
+
 		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.MIXED then
 			print("mixed map mode")
 			gam.map_update_progress = 0
-			gam.map_update_coroutine = coroutine.create(function()
-				gam._refresh_mixed_map_mode()
-				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
-			end)
 
+			function update_function()
+				gam._refresh_mixed_map_mode(async_flag)
+				gam.minimap = require "game.minimap".make_minimap(nil, nil, true)
+			end
 		end
+
+		if async_flag then
+			gam.map_update_coroutine = coroutine.create(update_function)
+		else
+			update_function()
+		end
+
+		gam._refresh_fog_of_war(false)
 	end
 end
 
@@ -1873,14 +1916,20 @@ function gam._recalculate_province_texture()
 	gam.province_id_texture:setFilter("nearest", "nearest")
 end
 
-function gam._refresh_mixed_map_mode()
-	gam._refresh_provincial_map_mode(true)
-	gam._refresh_map_mode()
+---commenting
+---@param async_flag boolean|nil
+function gam._refresh_mixed_map_mode(async_flag)
+	gam._refresh_provincial_map_mode(true, async_flag)
+	gam._refresh_map_mode(async_flag)
 end
 
 ---Update province texture
 ---@param use_secondary boolean? Use secondary update function in map mode definition if true
-function gam._refresh_provincial_map_mode(use_secondary)
+---@param async_flag boolean|nil
+function gam._refresh_provincial_map_mode(use_secondary, async_flag)
+	if async_flag == nil then
+		async_flag = true
+	end
 	local tim = love.timer.getTime()
 
 	if gam.tile_neighbor_realm_data == nil then
@@ -1926,7 +1975,9 @@ function gam._refresh_provincial_map_mode(use_secondary)
 			end
 
 			gam.map_update_progress = gam.map_update_progress + 1
-			coroutine.yield(false)
+			if async_flag then
+				coroutine.yield(false)
+			end
 
 			local current_tile = province.center
 
@@ -1936,10 +1987,10 @@ function gam._refresh_provincial_map_mode(use_secondary)
 				pointer_province_color[id * 4 + 2] = 255 * current_tile.real_b
 				pointer_province_color[id * 4 + 3] = 255 * 1
 			else
-				pointer_province_color[id * 4 + 0] = 255 * 0.15
-				pointer_province_color[id * 4 + 1] = 255 * 0.15
-				pointer_province_color[id * 4 + 2] = 255 * 0.15
-				pointer_province_color[id * 4 + 3] = 255 * 0
+				--pointer_province_color[id * 4 + 0] = 255 * 0.15
+				--pointer_province_color[id * 4 + 1] = 255 * 0.15
+				--pointer_province_color[id * 4 + 2] = 255 * 0.15
+				--pointer_province_color[id * 4 + 3] = 255 * 0
 			end
 
 			id = id + 1
@@ -1962,11 +2013,18 @@ function gam._refresh_provincial_map_mode(use_secondary)
 	local time = love.timer.getTime() - tim
 	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
 
-	coroutine.yield(true)
+	if async_flag then
+		coroutine.yield(true)
+	end
 end
 
 ---Refreshes the map mode
-function gam._refresh_map_mode()
+---@param async_flag boolean?
+function gam._refresh_map_mode(async_flag)
+	if async_flag == nil then
+		async_flag = true
+	end
+
 	local tim = love.timer.getTime()
 
 	-- Sanity check in case the function is called before init
@@ -2012,7 +2070,10 @@ function gam._refresh_map_mode()
 			end
 			for _, tile in pairs(province.tiles) do
 				gam.map_update_progress = gam.map_update_progress + 1
-				coroutine.yield(false)
+
+				if async_flag then
+					coroutine.yield(false)
+				end
 
 				local x, y = gam.tile_id_to_color_coords(tile)
 				local pixel_index = x + y * dim
@@ -2027,10 +2088,10 @@ function gam._refresh_map_mode()
 					pointer_tile_color[pixel_index * 4 + 2] = 255 * b
 					pointer_tile_color[pixel_index * 4 + 3] = 255 * 1
 				else
-					pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
-					pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
-					pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
-					pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
+					--pointer_tile_color[pixel_index * 4 + 0] = 255 * 0.15
+					--pointer_tile_color[pixel_index * 4 + 1] = 255 * 0.15
+					--pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
+					--pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
 				end
 			end
 		end
@@ -2051,7 +2112,61 @@ function gam._refresh_map_mode()
 	local time = love.timer.getTime() - tim
 	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
 
-	coroutine.yield(true)
+	if async_flag then
+		coroutine.yield(true)
+	end
+end
+
+function gam._refresh_fog_of_war(async_flag)
+	if async_flag == nil then
+		async_flag = true
+	end
+
+	local tim = love.timer.getTime()
+
+	---@type number[]
+	local pointer_province_color = require("ffi").cast("uint8_t*", gam.fog_of_war_data:getFFIPointer())
+
+	print("update fog of war")
+
+	do
+		local id = 0
+		for _, province in ipairs(WORLD.ordered_provinces_list) do
+			local can_set = true
+			local player_character = WORLD.player_character
+			if player_character and player_character.realm then
+				can_set = false
+				if player_character.realm.known_provinces[province] then
+					can_set = true
+				end
+			end
+
+			gam.map_update_progress = gam.map_update_progress + 1
+			if async_flag then
+				coroutine.yield(false)
+			end
+
+			if can_set then
+				pointer_province_color[id * 4 + 3] = 255 * 0
+			else
+				pointer_province_color[id * 4 + 3] = 255 * 1
+			end
+
+			id = id + 1
+		end
+
+		print("generate texture from data")
+		gam.fog_of_war_texture = love.graphics.newImage(gam.fog_of_war_data)
+		gam.fog_of_war_texture:setFilter("nearest", "nearest")
+	end
+
+
+	local time = love.timer.getTime() - tim
+	print("Fog of war update time: " .. tostring(time * 1000) .. "ms")
+
+	if async_flag then
+		coroutine.yield(true)
+	end
 end
 
 return gam

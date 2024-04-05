@@ -26,6 +26,8 @@ function pla.get_shader()
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
 		uniform sampler2D tile_neighbor_realm;
+		uniform sampler2D fog_of_war;
+
 		uniform float clicked_tile;
 		uniform float player_tile;
 		uniform float camera_distance_from_sphere;
@@ -105,6 +107,12 @@ function pla.get_shader()
 
 			vec2 face_offset = get_face_offset(FaceValue) + texcoord / 3;
 			float province_id = (Texel(province_index, face_offset).r + 0.5) / max_province_index;
+
+			vec4 fog_of_war_rgba = Texel(fog_of_war, vec2(province_id, 0.5));
+
+			if (fog_of_war_rgba.a > 0.5) {
+				return fog_of_war_rgba;
+			}
 
 			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, vec2(province_id, 0.5));
 
