@@ -107,6 +107,18 @@ local function make_new_realm(capitol, race, culture, faith)
 		end
 	end
 
+	-- match children pop to some possible parent
+	for _, child in pairs(tabb.filter(capitol.all_pops, function (a)
+		return a.age < a.race.teen_age
+	end)) do
+		local parent = tabb.random_select_from_set(tabb.filter(capitol.all_pops, function (a)
+			return a.age > child.age + child.race.adult_age and a.age < child.age + child.race.elder_age
+		end))
+		if parent then
+			child.parent = parent
+			parent.children[child] = child
+		end
+	end
 	-- capitol:validate_population()
 
 	-- print("test battle")
