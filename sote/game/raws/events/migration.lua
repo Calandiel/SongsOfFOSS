@@ -203,7 +203,7 @@ function load()
 
 			-- populate temporary tables with not drafted pops
 			for _, pop in pairs(associated_data.origin_province.all_pops) do
-				if not pop.unit_of_warband and pop.home_province == associated_data.origin_province then
+				if not pop.unit_of_warband and pop.home_province == associated_data.origin_province and not pop.parent then
 					table.insert(migration_pool_pops, pop)
 					candidates = candidates + 1
 				end
@@ -221,8 +221,9 @@ function load()
 				if not pop.employer or not pop.employer.type.movable then
 					associated_data.origin_province:fire_pop(pop)
 				end
-				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
+				-- need to set new home province first before transfering so children are pulled along
 				associated_data.origin_province:transfer_home(pop, associated_data.target_province)
+				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
 			end
 
 			-- move character
@@ -287,9 +288,9 @@ function load()
 				WORLD:set_settled_province(associated_data.target_province)
 			end
 
-			if associated_data.target_province.name == "<uninhabited>" then
-				associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name()
-			end
+			--if associated_data.target_province.name == "<uninhabited>" then
+			associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name() -- manifest destiny!
+			--end
 
 			political_effects.transfer_power(new_realm, expedition_leader, political_effects.reasons.ExpeditionLeader)
 

@@ -34,7 +34,7 @@ NEEDS = {
 	[NEED.WATER] = {
 		life_need = true,
 		job_to_satisfy = JOBTYPE.FORAGER,
-		time_to_satisfy = 0.5,
+		time_to_satisfy = 0.05,
 	},
 	[NEED.FOOD] = {
 		-- age_independent = true,

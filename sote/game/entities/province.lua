@@ -329,8 +329,13 @@ function prov.Province:transfer_home(pop, target)
 	end
 
 	self:set_home_pop_nil_wrapper(pop)
-
 	target:set_home(pop)
+	local children = tabb.filter(pop.children, function(c)
+		return self.all_pops[c] and not c.unit_of_warband and not c.employer
+	end)
+	for _, c in pairs(children) do
+		self:transfer_home(c, target)
+	end
 end
 
 --- Removes a character from the province

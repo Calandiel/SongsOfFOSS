@@ -100,8 +100,8 @@ function Race:new(o)
 		},
 		[NEED.FOOD] = {
 			['calories'] = 1,
-			['fruit'] = 1,
-			['meat'] = 1,
+			['fruit'] = 0.25,
+			['meat'] = 0.25,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -139,9 +139,8 @@ function Race:new(o)
 		},
 		[NEED.FOOD] = {
 			['calories'] = 1,
-			['fruit'] = 1,
-			['grain'] = 1,
-			['meat'] = 1,
+			['fruit'] = 0.25,
+			['meat'] = 0.25,
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,

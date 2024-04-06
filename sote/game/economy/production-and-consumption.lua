@@ -426,7 +426,7 @@ function pro.run(province)
 	local function satisfy_need(pop_view, pop_table, need_satisfaction, need_index, need, free_time, savings, target)
 		local income, expenses, total_need_time, total_need_cost = 0, 0, 0.001, 0.001
 		local total_bought = {[need_index] = {}}
-
+		print("  ".. NEED_NAME[need_index] .. " free_time: " .. free_time .. " saving: " .. savings ..  " saving: " .. target)
 		-- start with calculation of distribution over goods:
 		-- "distribution" "density" is precalculated, we only need to find a normalizing coef.
 		local need_job_efficiency = pop_job_efficiency[need.job_to_satisfy]
@@ -442,6 +442,7 @@ function pro.run(province)
 			-- induced demand:
 			local price_expectation = math.max(0.0001, use_case_price_expectation[case])
 			local induced_demand = math.min(2, math.max(0, 1 / math.max(price_expectation, 0.001) - 1))
+			print("    " .. " case: " .. case .." need: " .. need_amount .. " induced_demand: " .. need_amount * (1 + induced_demand))
 			need_amount = need_amount * (1 + induced_demand)
 			need_amount = need_amount * target
 			if need_amount < 0 then
@@ -465,6 +466,7 @@ function pro.run(province)
 			-- attempt to buy from market with savings fraction
 			if savings_fraction > 0 then
 				local spendings, consumed = buy_use(case, values.need_amount, savings_fraction)
+				print("    " .. " case: " .. case .." spendings: " .. spendings .. " consumed: " .. consumed)
 				total_bought[need_index][case] = (total_bought[need_index][case] or 0) + consumed
 				expenses = expenses + spendings
 				total_bought[need_index][case] = (total_bought[need_index][case] or 0) + consumed
@@ -489,7 +491,7 @@ function pro.run(province)
 
 			-- use time fraction to satisfy remaning need
 			if time_fraction > 0 then
-				local demanded = need_satisfaction[need_index][case] * target
+				local demanded = math.max(0, need_satisfaction[need_index][case] * target - total_bought[need_index][case])
 				local need_amount = math.max(0, demanded * 0.5 - total_bought[need_index][case])
 				if need_amount > 0 then
 					local cottage_time = math.min(time_fraction, need_amount * cottage_time_per_unit)
@@ -571,6 +573,7 @@ function pro.run(province)
 		-- BUILD TOTAL FAMILY NEEDS
 		-- start with family head (parent) as base
 		---@type table<NEED, table<TradeGoodReference, number>>
+		print("Family needs: " .. pop_table.name)
 		local family_unit_needs = tabb.accumulate(pop_table.need_satisfaction, {}, function (family_head_needs, need, use_cases) ---@param family_head_needs table<NEED, table<TradeGoodReference, number>>
 			family_head_needs[need] = tabb.accumulate(use_cases, {}, function (need_satisfaction, case, case_values)---@param need_satisfaction table<TradeGoodReference, number>
 				need_satisfaction[case] = math.max(0, case_values.demanded - case_values.consumed)
@@ -578,15 +581,34 @@ function pro.run(province)
 			end)
 			return family_head_needs
 		end)
+		print("  Family head needs:")
+		for need, need_use_case in pairs(family_unit_needs) do
+			print("    " .. NEED_NAME[need] .. ": ")
+			for case, value in pairs(need_use_case) do
+				print("      " .. case .. ": " .. value)
+			end
+		end
 		-- collect children's needs
 		tabb.accumulate(pop_table.children, nil, function (_, _, v)
+			print("  Child needs: " .. v.name)
 			tabb.accumulate(v.need_satisfaction, nil, function (_, need, use_cases)
+				print("    " .. NEED_NAME[need] .. ": ")
 				tabb.accumulate(use_cases, nil, function (_, case, case_values)
+					print("      " .. case .. ": " .. math.max(0, case_values.demanded - case_values.consumed))
 					family_unit_needs[need][case] = (family_unit_needs[need][case] or 0) + math.max(0, case_values.demanded - case_values.consumed)
 				end)
 			end)
 		end)
 
+		print("  Total Family Need:")
+		for need, cases in pairs(family_unit_needs) do
+			print("    " .. NEED_NAME[need] .. ": ")
+			for case, value in pairs(cases) do
+				print("      " .. case .. ": " .. value)
+			end
+		end
+
+		-- build table to tracking consumption
 		local total_expense = 0
 		local income = 0
 		local total_consumed = tabb.accumulate(NEED, {}, function (a, k, v)
@@ -612,7 +634,7 @@ function pro.run(province)
 		local total_needs_cottage_time = tabb.accumulate(NEEDS, 0, function (total_needs_cottage_time, index, need)
 			local life_need_weight = 1
 			if need.life_need then
-				life_need_weight = 10
+				life_need_weight = 5
 			end
 			local cummulative_use_totals = tabb.accumulate(family_unit_needs[index], 0, function (a, case, value)
 				return a + value
@@ -620,20 +642,20 @@ function pro.run(province)
 			return total_needs_cottage_time + life_need_weight * cummulative_use_totals * need.time_to_satisfy / pop_job_efficiency[need.job_to_satisfy]
 		end)
 		local need_weight = life_need_count + total_need_count
-		local savings_temp = (savings + income)
+		local savings_temp = savings + income
 
 		for index, need in pairs(NEEDS) do
 			local need_savings, need_time = 1, 1
 			local life_need_weight = need.time_to_satisfy / pop_job_efficiency[need.job_to_satisfy] / total_needs_cottage_time
 			if need.life_need then
-				need_savings, need_time = 2, 10
+				need_savings, need_time = 2, 5
 			end
 			local time_fraction = need_time * time_after_foraging * life_need_weight
 			local savings_fraction = savings_temp * need_savings / need_weight
 			local free_time_for_need, expense, consumed = satisfy_need(
 				pop_view, pop_table, family_unit_needs, index, need,
 				time_fraction,
-				savings_fraction, 1)
+				savings_fraction, 0.5)
 
 			total_expense = total_expense + expense
 
@@ -668,12 +690,19 @@ function pro.run(province)
 			end
 		end
 
+		print("  Satisfied Family Need:")
+		for need, cases in pairs(total_consumed) do
+			print("    " .. NEED_NAME[need] .. ": ")
+			for case, value in pairs(cases) do
+				print("      " .. case .. ": " .. value)
+			end
+		end
+
 		-- DISTRIBUTE PURCHASES TO PARENT AND CHILDREN
 		-- first give parent its share
 		tabb.accumulate(pop_table.need_satisfaction, nil, function (_, need, use_cases)
 			tabb.accumulate(use_cases, nil, function (_, case, case_values)
 				local pop_need = case_values.demanded - case_values.consumed
-				print((total_consumed[need][case] or 0) .. " / " .. (family_unit_needs[need][case] or 0))
 				case_values.consumed = case_values.consumed + pop_need / (family_unit_needs[need][case] or 0) * (total_consumed[need][case] or 0)
 
 				if case_values.consumed ~= case_values.consumed

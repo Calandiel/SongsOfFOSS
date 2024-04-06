@@ -163,7 +163,7 @@ function st.run()
 
 	---@type Race[]
 	local order = {}
-	for _, r in pairs(RAWS_MANAGER.races_by_name) do
+--[[	for _, r in pairs(RAWS_MANAGER.races_by_name) do
 		if r.requires_large_river then
 			table.insert(order, r)
 		end
@@ -174,7 +174,7 @@ function st.run()
 			table.insert(order, r)
 		end
 	end
-
+]]
 	for _, r in pairs(RAWS_MANAGER.races_by_name) do
 		table.insert(order, r)
 	end
@@ -182,7 +182,7 @@ function st.run()
 	local civs = 500 / tabb.size(order) -- one per race...
 
 
-	for _ = 1, civs do
+	for _ = 1, 1 do --civs do
 		for _, r in ipairs(order) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile().province
@@ -228,7 +228,7 @@ function st.run()
 		end
 	end
 	-- Loop through all entries in the queue and flood fill out
-	while queue:length() > 0 do
+--[[	while queue:length() > 0 do
 		---@type Province
 		local prov = queue:dequeue()
 		-- First, check for rng based on movement cost.
@@ -259,6 +259,7 @@ function st.run()
 			-- queue:enqueue(prov)
 		end
 	end
+]]
 
 	-- At the end, print the amount of spawned tribes
 	print("Spawned tribes:", tabb.size(WORLD.realms))

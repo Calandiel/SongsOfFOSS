@@ -466,11 +466,17 @@ local function load()
 		name = 'colonize-province',
 		ui_name = "Colonize targeted province",
 		tooltip = function(root, primary_target)
+			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
+				if not v:is_character() and not v.parent then
+					return a + 1
+				end
+				return a
+			end)
 			if root.busy then
 				return "You are too busy to consider it."
 			end
-			if root.realm.capitol:home_population() < 11 then
-				return "Your population is too low"
+			if home_family_units < 11 then
+				return "Your population is too low, you need at least 11 independent pops while you only have " .. home_family_units .. "."
 			end
 			if root.realm.budget.treasury < colonisation_cost then
 				return "You need " .. colonisation_cost .. MONEY_SYMBOL
@@ -505,10 +511,16 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
+			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
+				if not v:is_character() and not v.parent then
+					return a + 1
+				end
+				return a
+			end)
 			if not primary_target.center.is_land then
 				return false
 			end
-			if root.realm.capitol:home_population() < 11 then
+			if home_family_units < 11 then
 				return false
 			end
 			if primary_target.realm ~= nil then
