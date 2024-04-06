@@ -444,14 +444,14 @@ function window.draw(gamescene)
 	-- leader officer panel
 	local leader_rect = leader_layout:next(ut.BASE_HEIGHT * 14 + spacing * 2, ut.BASE_HEIGHT * 3 + spacing * 2)
 	local realm = warband.guard_of
-	local recuiter_title = "Recruiter"
-	local recuiter_adjective = "recuiting"
+	local recruiter_title = "Recruiter"
+	local recruiter_adjective = "recruiting"
 	if warband.leader then
 		draw_office_panel(gamescene, leader_rect, "Leader", "leading", warband.leader, render_character_unit_name, render_character_unit_stat)
 	elseif realm then -- if no leader then guard, draw realm icon and name
 		local province = realm.capitol
-		recuiter_title = "Captain"
-		recuiter_adjective = "leading"
+		recruiter_title = "Captain"
+		recruiter_adjective = "leading"
 		ui.panel(leader_rect)
 		leader_rect:shrink(spacing)
 		ui.text("Capitol Guard", leader_rect:subrect(0, 0, leader_rect.width, ut.BASE_HEIGHT, "left", "up"), "center", "center")
@@ -459,7 +459,7 @@ function window.draw(gamescene)
 		ib.text_button_to_realm(gamescene, realm, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0, leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "center"), realm.name,
 			"This warband is the capitol guard of " .. realm.name .. ".")
 		ib.text_button_to_province(gamescene, province, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0,leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "down"), province.name,
-			"This warband is guards the province of " .. province.name .. ".")
+			"This warband guards the province of " .. province.name .. ".")
 	end
 
 	-- SUPPLIES AND TREASURY PANELS
@@ -683,7 +683,7 @@ function window.draw(gamescene)
 		:build()
 
 	local recruiter_rect = recruiter_layout:next(ut.BASE_HEIGHT * 14 + spacing * 2, ut.BASE_HEIGHT * 3 + spacing * 2)
-	draw_office_panel(gamescene, recruiter_rect, recuiter_title, recuiter_adjective .. " for", warband.recruiter, render_character_unit_name, render_character_unit_stat)
+	draw_office_panel(gamescene, recruiter_rect, recruiter_title, recruiter_adjective .. " for", warband.recruiter, render_character_unit_name, render_character_unit_stat)
 
 	--- draws row with comander and stats (if there is one)
 	---@param rect Rect
@@ -968,7 +968,7 @@ function window.draw(gamescene)
 
 	--- builds and draws list of recruitable unit types
 	---@param rect Rect
-	local function draw_recuit_panel(rect)
+	local function draw_recruit_panel(rect)
 
 		-- UNIT TYPE RECRUIT PANEL
 		---@type table<UnitType, UnitType>
@@ -1474,9 +1474,9 @@ function window.draw(gamescene)
 	unit_panel_tab = ut.tabs(unit_panel_tab, unit_panel_layout, {
 		{
 			text = "RECRUIT",
-			tooltip = "Show all recuitable units in this province.",
+			tooltip = "Show all recruitable units in this province.",
 			closure = function ()
-				draw_recuit_panel(unit_panel)
+				draw_recruit_panel(unit_panel)
 			end
 		},
 		{
