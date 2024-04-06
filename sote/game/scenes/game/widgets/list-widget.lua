@@ -44,7 +44,7 @@ return function(rect, table, columns, state, title, compact)
 
     return function()
 
-        local state = init_state(state, compact)
+        local local_state = init_state(state, compact)
         local bottom_height = rect.height
         local bottom_y = 0
         if title then
@@ -54,7 +54,7 @@ return function(rect, table, columns, state, title, compact)
             ui.centered_text(title, top)
         end
         local bottom = rect:subrect(0, bottom_y, rect.width, bottom_height, "left", "up")
-        ut.table(bottom, table, columns, state)
-        return state
+        ut.table(bottom, table, columns, local_state)
+        return local_state
     end
 end

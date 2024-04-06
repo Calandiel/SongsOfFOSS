@@ -195,6 +195,7 @@ function d.load()
 		b = 0.1,
 		base_price = 6,
 	}
+	add_use_case("meat", "calories", 1)
 	add_use_case("meat", "meat", 1)
 
 	TradeGood:new {
