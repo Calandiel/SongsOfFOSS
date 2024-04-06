@@ -98,13 +98,17 @@
 ---
 ---@field REALMS_NEIGBOURS_TEST_CACHE {[1]: number, [2]: number, [3]: number, [4]: number}[]
 ---@field BORDER_TILES_CACHE table<Tile, Tile>
+---@field recalculate_smooth_data_map fun(data_function: TileForm, data_id: string, provinces_to_update: table<Province, Province>|Province[]|nil, direct_neigbours_weight: number?, secondary_neighbour_weight: number?)
+---@field DATA_CACHE table<string, love.ImageData>
+---@field DATA_TEXTURES_CACHE table<string, love.Image>
+local gam = {}
+
+---@alias TileForm fun(origin_tile: Tile, tile: Tile): number
+
 
 ---@alias InspectorType 'characters' | 'treasury-ledger' | 'character' | 'tile' | 'realm' | 'building' | 'war' | 'army' | 'character-decisions' | 'market' | 'population' | 'macrobuilder' | 'macrodecision' | 'warband' | 'property' | 'quests'
 ---@alias MenuTypes 'options' | 'confirm-exit' | 'preferences'
 ---@alias MapModeTab 'all' | 'debug' | 'demographic' | 'economic' | 'political'
-
----@class GameScene
-local gam = {}
 
 ---@alias TileInspectorTabs "GEN"
 ---@alias RealmInspectorTabs "GEN"
@@ -378,6 +382,8 @@ function gam.init()
 	gam._recalculate_province_texture()
 
 	gam.REALMS_NEIGBOURS_TEST_CACHE = {}
+	gam.DATA_CACHE = {}
+	gam.DATA_TEXTURES_CACHE = {}
 
 	gam.recalculate_realm_map(true)
 
@@ -790,12 +796,30 @@ function gam.draw()
 		end
 		gam.planet_shader:send('tile_neighbor_province', gam.tile_neighbor_provinces_texture)
 	end
-	if gam.planet_shader:hasUniform("tile_neighbor_realm") then
+
+	if gam.planet_shader:hasUniform("tile_corner_neighbor_realm") then
+		if gam.DATA_TEXTURES_CACHE["tile_corner_neighbor_realm"] == nil then
+			gam.recalculate_realm_map()
+		end
+		gam.planet_shader:send('tile_corner_neighbor_realm', gam.DATA_TEXTURES_CACHE["tile_corner_neighbor_realm"])
+	end
+
+	if gam.planet_shader:hasUniform("tile_corner_neighbor_realm") then
 		if gam.tile_neighbor_realm_texture == nil then
 			gam.recalculate_realm_map()
 		end
 		gam.planet_shader:send('tile_neighbor_realm', gam.tile_neighbor_realm_texture)
 	end
+
+	--- example of usage of recalculate_smooth_data_map
+	--[[
+	if gam.planet_shader:hasUniform("tile_sea") then
+		if gam.DATA_TEXTURES_CACHE["sea"] == nil then
+			gam.recalculate_smooth_data_map(sea, "sea")
+		end
+		gam.planet_shader:send("tile_sea", gam.DATA_TEXTURES_CACHE["sea"])
+	end
+	--]]
 
 	love.graphics.setDepthMode("lequal", true)
 	love.graphics.clear()
@@ -1813,8 +1837,172 @@ function gam.recalculate_province_map()
 	gam.tile_neighbor_provinces_texture:setFilter("nearest", "nearest")
 end
 
+local function get_pair_index(embedding)
+	if embedding[1] + embedding[3] == 2 then
+		return 1
+	end
+	if embedding[3] + embedding[2] == 2 then
+		return 2
+	end
+	if embedding[2] + embedding[4] == 2 then
+		return 3
+	end
+	if embedding[4] + embedding[1] == 2 then
+		return 4
+	end
+end
+
+--- Takes scalar field on tiles and turns it into love.Image
+--- which stores average values of a provided function on corners of tile in according channels
+---@param data_function TileForm
+---@param data_id string
+---@param provinces_to_update table<Province, Province>|Province[]|nil
+---@param direct_neigbours_weight number?
+---@param secondary_neighbour_weight number?
+function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_update, direct_neigbours_weight, secondary_neighbour_weight)
+	local dim = WORLD.world_size * 3
+
+	if direct_neigbours_weight == nil then
+		direct_neigbours_weight = 1
+	end
+
+	if secondary_neighbour_weight == nil then
+		secondary_neighbour_weight = 1
+	end
+
+	if provinces_to_update == nil then
+		provinces_to_update = WORLD.provinces
+	end
+
+	local data = gam.DATA_CACHE[data_id]
+	if data == nil then
+		data = love.image.newImageData(dim, dim, "rgba8")
+		gam.DATA_CACHE[data_id] = data
+	end
+
+	---@type number[]
+	local pointer = require("ffi").cast("uint8_t*", data:getFFIPointer())
+
+	print("calculating ", data_id)
+
+	local corners = 0
+
+	for _, province in pairs(provinces_to_update) do
+		for _, tile in pairs(province.tiles) do
+			local current_tile_data = {0, 0, 0, 0}
+			local x, y = gam.tile_id_to_color_coords(tile)
+			local pixel_index = x + y * dim
+
+			if tile.friends ~= nil then
+				for i = 1, 4 do
+					local csum = 0
+					local count = 3
+
+					csum = csum + data_function(tile, tile)
+					csum = csum + data_function(tile, tile.friends[i][2]) * direct_neigbours_weight
+					csum = csum + data_function(tile, tile.friends[i][3]) * direct_neigbours_weight
+
+					if tile.friends[i][4] ~= nil then
+						csum = csum + data_function(tile, tile.friends[i][4]) * secondary_neighbour_weight
+						count = count + 1
+					end
+
+					current_tile_data[i] = csum / count
+				end
+
+				goto save_data_to_texture_data
+			end
+
+			do
+				local neighbours = {tile:get_neighbor(1), tile:get_neighbor(2), tile:get_neighbor(3), tile:get_neighbor(4)}
+
+				tile.friends = {{}, {}, {}, {}}
+
+				local corner_flag = false
+				local corner_pair = {0, 0, 0, 0}
+
+				for n_index, neighbour in ipairs(neighbours) do
+					for neighbour_of_neighour in neighbour:iter_neighbors() do
+						if neighbour_of_neighour == tile then
+							goto continue
+						end
+						local counter = 0
+						local visiter_neigbours = {0, 0, 0, 0}
+
+						-- how many neighbours of neighbours of neighbor are neighbours of initial tile
+						for neighbour_of_neighour_of_neigbour in neighbour_of_neighour:iter_neighbors() do
+							for _, cached_neighbour in ipairs(neighbours) do
+								if cached_neighbour == neighbour_of_neighour_of_neigbour then
+									counter = counter + 1
+									visiter_neigbours[_] = 1
+								end
+
+								if neighbour_of_neighour_of_neigbour == tile then
+									corner_flag = true
+									corner_pair[n_index] = 1
+								end
+							end
+						end
+
+						if counter == 2 then
+							local pair_index = get_pair_index(visiter_neigbours)
+							current_tile_data[pair_index] = data_function(tile, tile)
+							table.insert(tile.friends[pair_index], tile)
+							for _, cached_neigbour in ipairs(neighbours) do
+								if visiter_neigbours[_] == 1 then
+									current_tile_data[pair_index] = current_tile_data[pair_index] + data_function(tile, cached_neigbour) * direct_neigbours_weight
+									table.insert(tile.friends[pair_index], cached_neigbour)
+								end
+							end
+							current_tile_data[pair_index] = current_tile_data[pair_index] + data_function(tile, neighbour_of_neighour) * secondary_neighbour_weight
+							table.insert(tile.friends[pair_index], neighbour_of_neighour)
+							current_tile_data[pair_index] = current_tile_data[pair_index] * 0.25
+						end
+						::continue::
+					end
+				end
+
+				if corner_flag then
+					corners = corners + 1
+					local pair_index = get_pair_index(corner_pair)
+					current_tile_data[pair_index] = data_function(tile, tile)
+					table.insert(tile.friends[pair_index], tile)
+					for _, cached_neigbour in pairs(neighbours) do
+						if corner_pair[_] == 1 then
+							current_tile_data[pair_index] = current_tile_data[pair_index] + data_function(tile, cached_neigbour) * direct_neigbours_weight
+							table.insert(tile.friends[pair_index], cached_neigbour)
+						end
+					end
+					current_tile_data[pair_index] = current_tile_data[pair_index] / 3
+				end
+			end
+
+			::save_data_to_texture_data::
+
+			pointer[pixel_index * 4 + 0] = 255 * current_tile_data[1]
+			pointer[pixel_index * 4 + 1] = 255 * current_tile_data[2]
+			pointer[pixel_index * 4 + 2] = 255 * current_tile_data[3]
+			pointer[pixel_index * 4 + 3] = 255 * current_tile_data[4]
+		end
+
+	end
+
+
+	gam.DATA_TEXTURES_CACHE[data_id] =
+		love.graphics.newImage(data, {
+			mipmaps = false,
+			linear = true
+		})
+
+	gam.DATA_TEXTURES_CACHE[data_id]:setFilter("nearest", "nearest")
+end
+
 function gam.recalculate_realm_map(update_all)
-	gam.REALMS_NEIGBOURS_TEST_CACHE = {}
+	if update_all then
+		gam.recalculate_smooth_data_map(same_realm_test, "tile_corner_neighbor_realm", nil, 0, 1)
+	else
+		gam.recalculate_smooth_data_map(same_realm_test, "tile_corner_neighbor_realm", WORLD.provinces_to_update_on_map, 0, 1)
+	end
 
 	-- sanity check:
 	if tabb.size(gam.BORDER_TILES_CACHE) == 0 then
@@ -1828,12 +2016,26 @@ function gam.recalculate_realm_map(update_all)
 	---@type number[]
 	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
 
+	local provinces_to_update = WORLD.provinces
 	if update_all then
 		print("UPDATING ALL REALM BORDERS")
-		WORLD.provinces_to_update_on_map = WORLD.provinces
+	else
+		print("UPDATING REALM BORDERS")
+		provinces_to_update = WORLD.provinces_to_update_on_map
 	end
 
-	for _, province in pairs(WORLD.provinces_to_update_on_map) do
+	-- clear cached values
+	for _, province in pairs(provinces_to_update) do
+		for _, tile in pairs(province.tiles) do
+			if gam.BORDER_TILES_CACHE[tile] == nil then
+				goto continue
+			end
+			gam.REALMS_NEIGBOURS_TEST_CACHE[tile.tile_id] = nil
+			::continue::
+		end
+	end
+
+	for _, province in pairs(provinces_to_update) do
 		for _, tile in pairs(province.tiles) do
 			if gam.BORDER_TILES_CACHE[tile] == nil then
 				goto continue
@@ -1861,6 +2063,7 @@ function gam.recalculate_realm_map(update_all)
 		linear = true
 	})
 	gam.tile_neighbor_realm_texture:setFilter("nearest", "nearest")
+
 
 	WORLD.realms_changed = false
 	WORLD.provinces_to_update_on_map = {}

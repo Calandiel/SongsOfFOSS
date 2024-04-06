@@ -344,7 +344,7 @@ function tile.Tile:get_neighbor(neighbor_index)
 end
 
 ---Returns an iterator over all neighbors
----@return function
+---@return fun():Tile
 function tile.Tile:iter_neighbors()
 	local neigh = 0
 	return function()
