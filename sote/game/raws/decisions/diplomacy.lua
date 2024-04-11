@@ -647,8 +647,10 @@ local function load()
 				end
 				return a
 			end)
-			--- don't let traders settle down since leaders refuse to move
-			if not ot.decides_foreign_policy(root, root.realm) and root.traits[TRAIT.TRADER] then
+			--- don't let children or traders settle down since leaders refuse to move
+			if not ot.decides_foreign_policy(root, root.realm)
+				and (root.traits[TRAIT.TRADER] or root.age > root.race.teen_age)
+			then
 				return 0
 			end
 			-- will only try to colonize if it can get all 6 families

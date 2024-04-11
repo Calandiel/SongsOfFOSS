@@ -247,11 +247,6 @@ function load()
 				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
 			end
 
-			-- move character
-			associated_data.origin_province:transfer_character(
-				expedition_leader,
-				associated_data.target_province
-			)
 
 			-- set new home of character
 			associated_data.origin_province:transfer_home(
@@ -263,6 +258,11 @@ function load()
 				pop_payment = pop_payment * 0.5
 				economic_effects.add_pop_savings(expedition_leader, pop_payment, economic_effects.reasons.Donation)
 			end
+			-- move character to new home
+			associated_data.origin_province:transfer_character(
+				expedition_leader,
+				associated_data.target_province
+			)
 
 			-- move technology
 			for _, technology in pairs(migration_pool_technology) do
