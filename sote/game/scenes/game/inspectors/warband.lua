@@ -41,7 +41,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_health (rect, k, v)
-	local base, stat = v.base_health, v:get_health(k)
+	local base, stat = v.base_health, k:get_health(v)
 	local size = k.race.male_body_size
 	local female, her = "male", "his"
 	if k.female then
@@ -63,7 +63,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_attack (rect, k, v)
-	local base, stat = v.base_attack, v:get_attack(k)
+	local base, stat = v.base_attack, k:get_attack(v)
 	local job = k.race.male_efficiency[job_types.WARRIOR]
 	local female, her = "male", "his"
 	if k.female then
@@ -85,7 +85,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_armor (rect, k, v)
-	local base, stat = v.base_armor, v:get_armor(k)
+	local base, stat = v.base_armor, k:get_armor(v)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
@@ -104,7 +104,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_speed (rect, k, v)
-	local base, stat = v.speed, v:get_speed(k)
+	local base, stat = v.speed, k:get_speed(v)
 	ut.generic_number_field(
 		"fast-forward-button.png",
 		stat,
@@ -119,7 +119,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_spotting (rect, k, v)
-	local base, stat = v.spotting, v:get_spotting(k)
+	local base, stat = v.spotting, k:get_spotting(v)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
@@ -140,7 +140,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_visibility (rect, k, v)
-	local base, stat = v.visibility, v:get_visibility(k)
+	local base, stat = v.visibility, k:get_visibility(v)
 	local female, her = "male", "his"
 	local size = k.race.male_body_size
 	if k.female then
@@ -162,7 +162,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_supply_use (rect, k, v)
-	local base, stat = v.supply_useds / 30, v:get_supply_use(k)
+	local base, stat = v.supply_useds / 30, k:get_supply_use(v)
 	local food_need = k.race.male_needs[NEED.FOOD]['calories']
 	local female, her = "male", "his"
 	if k.female then
@@ -184,7 +184,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_hauling (rect, k, v)
-	local base, stat = v.supply_capacity / 4, v:get_supply_capacity(k)
+	local base, stat = v.supply_capacity / 4, k:get_supply_capacity(v)
 	local job = k.race.male_efficiency[job_types.HAULING]
 	local female, her = "male", "his"
 	if k.female then
@@ -905,7 +905,7 @@ function window.draw(gamescene)
 			status = "\n - While the warband is on patrol, this bonus is multiplied by 10."
 		end
 		local unit_spotting = tabb.accumulate(warband.units, 0, function (a, k, v)
-			return a + v:get_spotting(k)
+			return a + k:get_spotting(v)
 		end)
 		if warband.recruiter and warband.recruiter ~= warband.commander then
 			unit_spotting = unit_spotting + warband.recruiter.race.spotting
@@ -1346,7 +1346,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_health(k)
+						return k:get_health(v)
 					end
 				},
 				{
@@ -1356,7 +1356,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_attack(k)
+						return k:get_attack(v)
 					end
 				},
 				{
@@ -1366,7 +1366,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_armor(k)
+						return k:get_armor(v)
 					end
 				},
 				{
@@ -1376,7 +1376,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_speed(k)
+						return k:get_speed(v)
 					end
 				},
 				{
@@ -1386,7 +1386,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_spotting(k)
+						return k:get_spotting(v)
 					end
 				},
 				{
@@ -1396,7 +1396,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_visibility(k)
+						return k:get_visibility(v)
 					end
 				},
 				{
@@ -1406,7 +1406,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_supply_use(k) / 30
+						return k:get_supply_use(v) / 30
 					end
 				},
 				{
@@ -1416,7 +1416,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return  v:get_supply_capacity(k)
+						return  k:get_supply_capacity(v)
 					end
 				},
 				{

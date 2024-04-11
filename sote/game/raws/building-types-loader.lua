@@ -28,6 +28,7 @@ function d.load()
 		needed_infrastructure = 3,
 		ai_weight = 2,
 	}
+]]
 	BuildingType:new {
 		name = "witch-doctor-garden",
 		description = "witch-doctor's garden",
@@ -70,6 +71,7 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
+--[[
 	BuildingType:new {
 		name = "hunting-grounds-1",
 		description = "hunting grounds",
@@ -98,7 +100,7 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
+]]
 	BuildingType:new {
 		name = "gathering-grounds-0",
 		description = "primitive gathering grounds",
@@ -113,7 +115,7 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
+--[[
 	BuildingType:new {
 		name = "gathering-grounds-1",
 		description = "gathering grounds",
@@ -143,7 +145,7 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
+]]
 	BuildingType:new {
 		name = "flint-extraction",
 		description = "flint extraction",
@@ -188,6 +190,7 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 20,
 	}
+--[[
 	BuildingType:new {
 		name = "stone-extraction",
 		description = "stone extraction",
@@ -457,7 +460,8 @@ function d.load()
 		ai_weight = 150,
 		construction_cost = COST_FARM,
 		building_group = BUILDING_GROUP.FARM
-	}]]
+	}
+]]
 end
 
 return d

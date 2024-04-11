@@ -3,7 +3,7 @@ local utils = require "game.raws.raws-utils"
 local TRAIT = require "game.raws.traits.generic"
 
 local function load()
-
+--[[
 	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'take-up-command-warband',
@@ -55,7 +55,7 @@ local function load()
 			WORLD:emit_immediate_event("pick-commander-unit", root, warband)
 		end
 	}
-
+]]
 	---@type DecisionCharacter
 	Decision.Character:new {
 		name = 'give-up-command-warband',

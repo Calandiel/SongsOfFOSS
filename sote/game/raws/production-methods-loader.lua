@@ -39,8 +39,8 @@ function d.load()
 		r = 0,
 		g = 1,
 		b = 1,
-		inputs = { ["calories"] = 0.5 },
-		outputs = { ["healthcare"] = 2 },
+		inputs = { ["water"] = 2 },
+		outputs = { ["healthcare"] = 1 },
 		jobs = { [job("shamans")] = 1 },
 		job_type = JOBTYPE.CLERK,
 		self_sourcing_fraction = 0.5

@@ -45,9 +45,9 @@ local function load()
 
             for _, unit in pairs(unit_types) do
                 local TRAIT = require "game.raws.traits.generic"
-
-                local health, attack, armor, speed = unit:get_health(root), unit:get_attack(root), unit:get_armor(root), unit:get_speed(root)
-                local spotting, visibility, supply, capacity = unit:get_spotting(root), unit:get_visibility(root), unit:get_supply_use(root), unit:get_supply_capacity(root)
+                print(  "FOUND " .. unit.name)
+                local health, attack, armor, speed = root:get_strength(unit)
+                local spotting, visibility, supply, capacity = root:get_spotting(unit), root:get_visibility(unit), root:get_supply_use(unit), root:get_supply_capacity(unit)
 
                 ---@type EventOption
                 local option = {
@@ -59,6 +59,7 @@ local function load()
                         .. " Travel cost: " .. uit.to_fixed_point2(supply) .. " Hauling capacity: " .. uit.to_fixed_point2(capacity),
                     viable = function() return true end,
                     outcome = function()
+                        print("    PICKED " .. unit.name)
                         associated_data:set_commander(root, unit)
                     end,
                     ai_preference = function()

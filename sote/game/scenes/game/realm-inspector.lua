@@ -183,9 +183,28 @@ function re.draw(gam)
 					end
 					a.y = a.y + uit.BASE_HEIGHT
 
-					local inspect = nil
 					local function render_name(rect, k, v)
-						ib.text_button_to_character(gam, k, rect, k.name)
+						local children = tabb.size(v.children)
+						local name = v.name
+						local tooltip = v.name
+						if v.parent then
+							name = name .. " [" .. v.parent.name .. "]"
+							tooltip = tooltip .. "'s parent is " .. v.parent.name
+							if children > 0 then
+								tooltip = tooltip .. "and"
+							else
+								tooltip = tooltip .. "."
+							end
+						end
+						if children > 0 then
+							name = name .. " (" .. children .. ")"
+							tooltip = tooltip .. " has" .. children .. " children: "
+							tooltip = tooltip .. tabb.accumulate(v.children, "", function (tt, _, c)
+								return tt .. ", " .. c.name
+							end)
+							tooltip = tooltip .. "."
+						end
+						ib.text_button_to_character(gam, k, rect, name)
 					end
 					local function render_province(rect, k, v)
 						ib.text_button_to_province(gam,k.province, rect, k.province.name)
