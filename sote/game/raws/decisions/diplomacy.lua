@@ -472,7 +472,7 @@ local function load()
 		tooltip = function(root, primary_target)
 			-- need at least so many family units to migrate
 			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age then
+				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
 					return a + 1
 				end
 				return a
@@ -549,7 +549,7 @@ local function load()
 		pretrigger = function(root)
 			-- need at least so many family units to migrate
 			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent then
+				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
 					return a + 1
 				end
 				return a
@@ -567,7 +567,7 @@ local function load()
 		clickable = function(root, primary_target)
 			-- need at least so many family units to migrate
 			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent then
+				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
 					return a + 1
 				end
 				return a
@@ -589,7 +589,7 @@ local function load()
 		available = function(root, primary_target)
 			-- need at least so many family units to migrate
 			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent then
+				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
 					return a + 1
 				end
 				return a
@@ -642,7 +642,7 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			-- need at least so many family units to migrate
 			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent then
+				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
 					return a + 1
 				end
 				return a
@@ -688,7 +688,7 @@ local function load()
 
 			-- need at least so many family units to migrate
 			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and not v.parent then
+				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
 					return a + 1
 				end
 				return a

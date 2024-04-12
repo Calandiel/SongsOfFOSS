@@ -360,14 +360,15 @@ end
 ---@return Character?
 function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
 	local pop = tabb.random_select_from_set(tabb.filter(province.home_to, function (a)
-		return not a:is_character()
+		return not a:is_character() and a.province == province
 	end))
 
-	if pop then
+	if pop and pop.province == province then
 		PoliticalEffects.grant_nobility(pop, province, reason)
+		return pop
 	end
 
-	return pop
+	return nil
 end
 
 ---comment

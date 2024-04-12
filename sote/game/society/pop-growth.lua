@@ -89,7 +89,7 @@ function pg.growth(province)
 		-- chance of having a new child is dependent on current number of children and excess food and water satsifation (over starving)
 		local starvation_check = starvation_check / pp:get_age_multiplier()
 		local dependents = tabb.size(pp.children)
-		local excess_need_per_child = (1 - starvation_check) / pp.race.fecundity
+		local excess_need_per_child = (1 - starvation_check) / (1 + pp.race.fecundity)
 
 		-- Calculate the fraction symbolizing the amount of "overproduction" of food
 		local food_satisfaction = tabb.accumulate(pp.need_satisfaction[NEED.FOOD], 1, function (b, k, v)
@@ -134,28 +134,42 @@ function pg.growth(province)
 	local food_price = economical.get_local_price_of_use(province,'calories')
 	for _, pp in pairs(to_add) do
 		local character = pp:is_character()
-		local newborn = POP:new(
-			pp.race,
-			pp.faith,
-			pp.culture,
-			love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
-			0,
-			pp.home_province, province,
-			character
-		)
-		newborn.parent = pp
-		pp.children[newborn] = newborn
-		local needs = newborn.race.male_needs
-		if newborn.female then
-			needs = newborn.race.female_needs
-		end
-		local amount = needs[NEED.FOOD]['calories']
-		local donation = math.max(math.min(pp.savings / 12, food_price * amount), 0)
-		economic_effects.add_pop_savings(pp, -donation, economic_effects.reasons.Donation)
-		economic_effects.add_pop_savings(newborn, donation, economic_effects.reasons.Donation)
-		if character then
-			newborn.rank = character_ranks.NOBLE
-			WORLD:emit_immediate_event('character-child-birth-notification', pp, newborn)
+		-- TODO figure out beter way to keep character count lower
+		-- spawn orphan pop instead of character child if too many nobles to home pop
+		if character and pp.province:home_characters()/pp.province:home_population() > 0.3 then -- if twice more than ideal noble percentage
+			POP:new(
+				pp.race,
+				pp.faith,
+				pp.culture,
+				love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
+				0,
+				pp.home_province, province,
+				false
+			)
+		else
+			local newborn = POP:new(
+				pp.race,
+				pp.faith,
+				pp.culture,
+				love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
+				0,
+				pp.home_province, province,
+				character
+			)
+			newborn.parent = pp
+			pp.children[newborn] = newborn
+			local needs = newborn.race.male_needs
+			if newborn.female then
+				needs = newborn.race.female_needs
+			end
+			local amount = needs[NEED.FOOD]['calories']
+			local donation = math.max(math.min(pp.savings / 12, food_price * amount), 0)
+			economic_effects.add_pop_savings(pp, -donation, economic_effects.reasons.Donation)
+			economic_effects.add_pop_savings(newborn, donation, economic_effects.reasons.Donation)
+			if character then
+				newborn.rank = character_ranks.NOBLE
+				WORLD:emit_immediate_event('character-child-birth-notification', pp, newborn)
+			end
 		end
 	end
 

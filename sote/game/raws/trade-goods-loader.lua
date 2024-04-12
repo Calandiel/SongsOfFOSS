@@ -207,7 +207,7 @@ function d.load()
 		b = 0.22,
 		base_price = 5,
 	}
-	add_use_case("timber", "containers", 0.25)
+	add_use_case("timber", "containers", 0.125)
 	add_use_case("timber", "furniture", 0.125)
 	add_use_case("timber", "tools-like", 0.125)
 	add_use_case("timber", "fuel", 1)

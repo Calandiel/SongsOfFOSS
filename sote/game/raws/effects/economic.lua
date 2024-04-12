@@ -574,11 +574,11 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		province.trade_wealth = province.trade_wealth + costs
 		character.inventory[values.good] = (character.inventory[values.good] or 0) + amount
 
-		EconomicEffects.change_local_stockpile(province, values.good, -amount)
+		EconomicEffects.change_local_stockpile(province, values.good, -consumed_amount)
 
 		local trade_volume = (province.local_consumption[values.good] or 0) +
-			(province.local_production[values.good] or 0) + amount
-		local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * values.price
+			(province.local_production[values.good] or 0) + consumed_amount
+		local price_change = consumed_amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * values.price
 
 		EconomicEffects.change_local_price(province, values.good, price_change)
 	end

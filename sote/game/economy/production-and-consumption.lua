@@ -118,16 +118,13 @@ function pro.run(province)
 		local consumption = province.local_consumption[good] or 0
 		local production = province.local_production[good] or 0
 		local storage = province.local_storage[good] or 0
-		market_data[i - 1].available = - consumption + production + storage
-		if market_data[i - 1].available < 0 then
-			market_data[i - 1].available = 0
-		end
+		market_data[i - 1].available = storage
 
 		-- prices:
 		local price = ev.get_local_price(province, good)
 		market_data[i - 1].price = price
 		old_prices[good] = price
-		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + market_data[i - 1].available))
+		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + math.max(0, production - consumption + market_data[i - 1].available)))
 		market_data[i - 1].consumption = 0
 		market_data[i - 1].supply = 0
 		market_data[i - 1].demand = 0
@@ -161,8 +158,8 @@ function pro.run(province)
 				"INVALID RECORD OF CONSUMPTION"
 				.. "\n amount = "
 				.. tostring(amount)
-				.. "\n amount = "
-				.. tostring(amount)
+				.. "\n  market_data[good_index - 1].available = "
+				.. tostring( market_data[good_index - 1].available)
 			)
 		end
 
@@ -186,7 +183,7 @@ function pro.run(province)
 		end
 
 		market_data[good_index - 1].supply = market_data[good_index - 1].supply + amount
-		market_data[good_index - 1].available = math.max(0, market_data[good_index - 1].available + amount)
+		market_data[good_index - 1].available = market_data[good_index - 1].available + amount
 
 		return market_data[good_index - 1].price * amount
 	end
@@ -566,8 +563,8 @@ function pro.run(province)
 
 			-- use time fraction to satisfy remaning need
 			if time_fraction > 0 then
-				local demanded = math.max(0, need_satisfaction[need_index][case] * target - total_bought[need_index][case])
-				local need_amount = math.max(0, demanded * 0.5 - total_bought[need_index][case])
+				local demanded = math.max(0, (need_satisfaction[need_index][case] or 0) * target - (total_bought[need_index][case] or 0))
+				local need_amount = math.max(0, demanded * 0.5 - (total_bought[need_index][case] or 0))
 				if need_amount > 0 then
 					local cottage_time = math.min(time_fraction, need_amount * cottage_time_per_unit)
 					if need.job_to_satisfy == JOBTYPE.FORAGER then
@@ -912,9 +909,9 @@ function pro.run(province)
 			end
 			return min
 		end)
-		if min_life_satisfaction < 0.5 then
+		if min_life_satisfaction < 0.4 then
 			pop_table.forage_time_preference = math.max(0.8, pop_table.forage_time_preference * 1.25)
-		elseif min_life_satisfaction > 1 then
+		elseif min_life_satisfaction > 0.8 then
 			pop_table.forage_time_preference = math.min(0.1, pop_table.forage_time_preference * 0.9)
 		end
 	end
@@ -1083,6 +1080,7 @@ function pro.run(province)
 					-- buildings operate off off last month's foraging use, otherwise race conditions on output
 					foragers_count = foragers_count + work_time * pop_view[zero].foraging_efficiency
 					local_foraging_efficiency = last_foraging_efficiency
+					-- TODO MODIFY OUTPUTS BASED ON PROVINCE RESOURCES AMOUNTS
 				end
 				local yield = prod:get_efficiency(province)
 
@@ -1091,14 +1089,6 @@ function pro.run(province)
 									* efficiency_from_infrastructure
 									* work_time
 
-				if prod.foraging then
-					local timber_produced = pop_job_efficiency[JOBTYPE.HAULING] * yield * timber_production * 0.25
-					local timber_income = record_production(timber_index, timber_produced)
-					income = income + timber_income
-
-					building.amount_of_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_produced
-					building.earn_from_outputs['timber'] = (building.amount_of_outputs['timber'] or 0) + timber_income
-				end
 				-- expected input satisfaction
 				local input_satisfaction = 1
 
@@ -1178,7 +1168,7 @@ function pro.run(province)
 					end
 				end
 
-				income = income
+				--TODO add foraging resource weights to output
 				for output, amount in pairs(building.type.production_method.outputs) do
 					local output_index = RAWS_MANAGER.trade_good_to_index[output]
 
@@ -1192,8 +1182,6 @@ function pro.run(province)
 
 					record_production(output_index, amount * efficiency * output_boost * throughput_boost)
 				end
-
-				income = income
 
 				local owner = pop.employer.owner
 				if owner then
@@ -1216,9 +1204,6 @@ function pro.run(province)
 				end
 
 				pop.employer.last_income = pop.employer.last_income + income
-
-				---@type number
-				income = income
 
 				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
 
@@ -1266,7 +1251,7 @@ function pro.run(province)
 
 				if province.trade_wealth < income then
 					-- generate some wealth if selling more goods than market can afford
-					income = math.min(province.trade_wealth, income) + 0.1 * (income - province.trade_wealth)
+					income = math.min(province.trade_wealth, income) + 0.5 * (income - province.trade_wealth)
 				end
 				building.worker_income[pop] = (building.worker_income[pop] or 0) + income
 				economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
