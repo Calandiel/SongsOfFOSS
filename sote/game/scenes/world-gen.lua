@@ -142,7 +142,7 @@ function wg.handle_camera_controls()
 		wg.camera_position = wg.camera_position:rotate(-rotation_up, rot)
 	end
 
-	camera_speed = camera_speed * 1
+	camera_speed = camera_speed * 10
 
 	if ui.is_key_held('a') then
 		wg.camera_position = wg.camera_position:rotate(-camera_speed, up)
@@ -185,11 +185,22 @@ function wg.handle_camera_controls()
 	end
 end
 
+local is_jan_rain = true
+local is_jan_temp = true
+
 function wg.handle_keyboard_input()
-	if ui.is_key_pressed('r') then
+	if ui.is_key_pressed('s') then
 		wg.update_map_mode("rocks")
 	elseif ui.is_key_pressed('e') then
 		wg.update_map_mode("elevation")
+	elseif ui.is_key_pressed('r') then
+		wg.update_map_mode(is_jan_rain and "jan_rain" or "jul_rain")
+		is_jan_rain = not is_jan_rain
+	elseif ui.is_key_pressed('t') then
+		wg.update_map_mode(is_jan_temp and "jan_temp" or "jul_temp")
+		is_jan_temp = not is_jan_temp
+	elseif ui.is_key_pressed('k') then
+		wg.update_map_mode("koppen")
 	end
 end
 

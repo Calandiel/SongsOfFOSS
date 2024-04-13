@@ -53,7 +53,7 @@ end
 ---@param ws number
 ---@return number, number, number
 function hu.latlon_to_hex_coords(lat, lon, ws)
-	local colatitude = require("game.latlon").lat_to_colat(lat)
+	local colatitude = require("game.latlon").lat_to_colat(-lat) -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 
 	local spherical_coordinates_double = vec3(
 		math.sin(colatitude) * math.cos(lon),

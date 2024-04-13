@@ -1,8 +1,6 @@
 local plate_gen = {}
 
 function plate_gen.run()
-	
-		
 	print("Spawning plates!")
 --	local tiles_to_convert = WORLD:tile_count()
 	---------------------------
@@ -23,23 +21,23 @@ function plate_gen.run()
 
 	local num_small_plates = 6
 	local num_small_ocean_plates = 3
-	
+
 	local num_large_land_plates = 2
 	local num_large_ocean_plates = 2
-	
+
 	local non_cluster_plates = num_micro_plates + num_micro_ocean_plates + num_small_plates + num_small_ocean_plates + num_large_land_plates + num_large_ocean_plates
 	local total_plates = non_cluster_plates
 
 	local speed_floor = 2
 	local speed_ceiling = 12
-		
+
 	local perlin_seed = love.math.random(500000)
-	
+
 	local envelopment_threshold = 0.7 --- Determines what percentage of a plate's boundary can be with 1 other plate
 	--------------------------------------------
 	--- Prep world tiles for plate expansion ---
 	--------------------------------------------
-	
+
 	for _, tile in pairs(WORLD.tiles) do
 		local perlin_variable = (2000 * tile:perlin(20, perlin_seed) ^ 2.5) + 100 -- value of 40 seems best so far
 		tile.elevation = perlin_variable
@@ -50,11 +48,11 @@ function plate_gen.run()
 		tile.times_added = 0
 		tile.stop_expansion = false
 	end
-	
+
 	---------------------------------------------------------------------
 	--- Set Random plate starts, check distance, rebuild if too close ---
 	---------------------------------------------------------------------
-	
+
 	local sufficiently_distanced = 0
 	local random_tile_table = {}
 	local attempts = 0
@@ -62,7 +60,7 @@ function plate_gen.run()
 	local start = love.timer.getTime()
 
 	local start = love.timer.getTime()
-	
+
 	--------------------------------------------------
 	--- Assign Micro Plate Cluster Start Locations ---
 	--------------------------------------------------
@@ -93,19 +91,18 @@ function plate_gen.run()
 		until (acceptable_plate_location == true)
 		table.insert(micro_cluster_starts, random_tile)
 	end
-	
+
 	for _, micro_start_tile in pairs(micro_cluster_starts) do
 		micro_start_tile:set_debug_color(0.9, 0.0, 0.0)
 		print("Count me!")
 	end
-	
+
 	for i = 1, (num_micro_clusters) do  --- Now we set characteristics for the cluster and set members.
-		
 		local plates_in_cluster = love.math.random(4, 8)
 		local minimum_distance_from_conspecifics = 100 -- how much distance must be maintained between plate start locations
 		local maximum_distance_from_center = 1500 --- the maximum allowed distance a micro-plate can have from its center 
 		local random_tile = WORLD:random_tile()
-		
+
 		--- Check each candidate against its cluster center
 		for i2 = 1, (plates_in_cluster) do	--- Now we need to iterate through all potential plates in the cluster and assign location
 			local terminal_variable = 500
@@ -148,11 +145,10 @@ function plate_gen.run()
 			until acceptable_distance_from_center == true and acceptable_distance_from_others == true
 			if abandon_plate_placement == false then
 				table.insert(random_tile_table, random_tile)
-		
 			end
 		end
 	end
-	
+
 	for _, micro_plate_location in pairs(random_tile_table) do
 		micro_plate_location:set_debug_color(0.0, 0.9, 0.0)
 	--	print("Count me!")
@@ -201,13 +197,12 @@ function plate_gen.run()
 	print("Time to rebuild start locations: " .. love.timer.getTime() - start)
 	print("Number of Placement attempts: " .. tostring(attempts))
 --	print("New Minimum Distance: " .. tostring(minimum_distance))
-	
+
 	-----------------------------------------------------
 	--- Assign plate qualities specific to plate size ---
 	-----------------------------------------------------
 
 	if disable_plate_gen == true then
-		
 		for i = 1, (num_micro_plates + num_micro_ocean_plates) do 
 			local plate = WORLD:new_plate()
 			local expanion_rate = love.math.random(2, 3)
@@ -298,8 +293,7 @@ function plate_gen.run()
 								end -- end of neighbor iteration
 								plate_tile.expansion_potential = 0
 						--	else plate_tile.stop_expansion = true 
-							
-							end	
+							end
 						end -- end of tile iteration
 						-- Hm... but now we need to iterate through all of the new tiles that receieved goodies.
 						for _, plate_tile in pairs(plate.tiles_to_check) do -- Now we do the expansion calculation and determine which tiles are added
@@ -494,7 +488,7 @@ function plate_gen.run()
 		until (recalculate_due_to_envelopment == false)
 		print("Plates removed due to envelopment: " .. tostring(plates_removed))
 	end
-		
+
 	--- We want to first check to see if envelopment is a problem at all, because there is no need to run the rejigger 
 	--- if there is no problem!
 	--- So first we check for problem plates.  If plate is a problem, immediately transfer all tiles to enveloping plate.

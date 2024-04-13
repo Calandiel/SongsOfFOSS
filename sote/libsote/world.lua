@@ -131,7 +131,7 @@ end
 
 local llu = require("game.latlon")
 function world:get_latlon_by_index(index)
-	return llu.colat_to_lat(self.colatitude[index - 1]), self.minus_longitude[index - 1]
+	return -llu.colat_to_lat(self.colatitude[index - 1]), -self.minus_longitude[index - 1] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
 function world:get_elevation(q, r, face)
@@ -168,6 +168,12 @@ end
 
 function world:get_rocks(q, r, face)
 	return self.rocks[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_climate_data(q, r, face)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	-- print("debug get_climate_data", q, r, face, index, llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index])
+	return require "game.climate.utils".get_climate_data(llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
 end
 
 function world:_investigate_tile(q, r, face)

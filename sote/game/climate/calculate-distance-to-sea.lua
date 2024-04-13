@@ -45,7 +45,7 @@ function cd.run()
 		end
 	end
 
-	-- After that, loop until thw queue is empty
+	-- After that, loop until the queue is empty
 	-- (flood fill)
 	while position_queue:length() > 0 do
 		---@type ClimateCell
