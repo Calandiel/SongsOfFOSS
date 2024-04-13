@@ -110,6 +110,7 @@ function pol.atlas_tiles()
 	for _, tile in ipairs(WORLD.tiles) do
 		local h, s, v = csu.rgb_to_hsv(tile.real_r, tile.real_g, tile.real_b)
 		s = s / 2
+		v = math.sqrt(v + 0.2) - math.sqrt(1.2) + 1
 		local r, g, b = csu.hsv_to_rgb(h, s, v)
 		tile.real_r = r
 		tile.real_g = g

@@ -4,6 +4,7 @@ function pla.get_shader()
 	local vs = [[
 		attribute float Face;
 		varying float FaceValue;
+		varying vec4 Position;
 
 		uniform mat4 model;
 		uniform mat4 view;
@@ -12,6 +13,7 @@ function pla.get_shader()
 		vec4 position(mat4 _, vec4 vertex_position)
 		{
 			FaceValue = Face;
+			Position = vertex_position;
 			return projection * view * model * vertex_position;
 		}
 	]]
@@ -24,6 +26,7 @@ function pla.get_shader()
 
 		uniform sampler2D tile_provinces;
 		uniform sampler2D tile_neighbor_province;
+		uniform sampler2D tile_corner_neighbor_realm;
 		uniform sampler2D tile_neighbor_realm;
 		uniform sampler2D fog_of_war;
 
@@ -32,6 +35,7 @@ function pla.get_shader()
 		uniform float camera_distance_from_sphere;
 		uniform float time;
 		varying float FaceValue;
+		varying vec4 Position;
 
 		vec2 get_face_offset(float face_value) {
 			// 0 1 2
@@ -68,8 +72,116 @@ function pla.get_shader()
 			return a * (1 - alpha) + b * alpha;
 		}
 
+		float rand_2_1(vec2 v) {
+			return fract(sin(
+				dot(
+					v,
+					vec2(0.9898,78.233))
+				) * 43758.5453123
+			);
+		}
+
+		float rand_3_1(vec3 v) {
+			return fract(sin(
+				dot(
+					v,
+					vec3(0.9898, 78.233, 34.153546))
+				) * 443758.5553123
+			);
+		}
+
+		float smooth_noise(vec3 v) {
+			vec3 integer_part = floor(v);
+			vec3 fractional_part = fract(v);
+
+			vec3 smooth_step = fractional_part
+				* fractional_part
+				* (3.0 - 2.0 * fractional_part);
+
+			float local_value = rand_3_1(integer_part);
+
+			float r_0_0_0 = rand_3_1(integer_part + vec3(0, 0, 0));
+			float r_0_0_1 = rand_3_1(integer_part + vec3(0, 0, 1));
+			float r_0_1_0 = rand_3_1(integer_part + vec3(0, 1, 0));
+			float r_0_1_1 = rand_3_1(integer_part + vec3(0, 1, 1));
+			float r_1_0_0 = rand_3_1(integer_part + vec3(1, 0, 0));
+			float r_1_0_1 = rand_3_1(integer_part + vec3(1, 0, 1));
+			float r_1_1_0 = rand_3_1(integer_part + vec3(1, 1, 0));
+			float r_1_1_1 = rand_3_1(integer_part + vec3(1, 1, 1));
+
+			return
+				  r_0_0_0 * (1 - smooth_step.x) * (1 - smooth_step.y) * (1 - smooth_step.z)
+				+ r_0_0_1 * (1 - smooth_step.x) * (1 - smooth_step.y) * (smooth_step.z)
+				+ r_0_1_0 * (1 - smooth_step.x) * (smooth_step.y) * (1 - smooth_step.z)
+				+ r_0_1_1 * (1 - smooth_step.x) * (smooth_step.y) * (smooth_step.z)
+				+ r_1_0_0 * (smooth_step.x) * (1 - smooth_step.y) * (1 - smooth_step.z)
+				+ r_1_0_1 * (smooth_step.x) * (1 - smooth_step.y) * (smooth_step.z)
+				+ r_1_1_0 * (smooth_step.x) * (smooth_step.y) * (1 - smooth_step.z)
+				+ r_1_1_1 * (smooth_step.x) * (smooth_step.y) * (smooth_step.z);
+		}
+
+		float smoothstep(float x) {
+			return x * x * (3 - 2 * x);
+		}
+
+		// classic interpolation
+		float simple_function(float x, float y) {
+			return (1 - x) * (1 - y);
+		}
+
+		float fancy_function(float x, float y) {
+			return -(x * x + y * y - x * y - 1) * (1 - x) * (1 - y);
+		}
+
+		// to prevent tile-central values from being large
+		float cirle_function(float x, float y) {
+			return ((x - 0.5) * (x - 0.5) + (y - 0.5) * (y - 0.5));
+		}
+
+		float soft_box(float x, float y) {
+			return ((x - 0.5) * (x - 0.5) * (x - 0.5) * (x - 0.5) + (y - 0.5) * (y - 0.5) * (y - 0.5) * (y - 0.5));
+		}
+
+		float pretty_function(float x, float y) {
+			return simple_function(x, y) * soft_box(x, y);
+		}
+
+		float sample_value_from_sphere(sampler2D target_tile_texture, vec2 face_offset, vec2 tile_uv) {
+			vec4 data = Texel(target_tile_texture, face_offset);
+
+			float d_top 	= smoothstep(tile_uv.y);
+			float d_bottom 	= smoothstep(1 - tile_uv.y);
+			float d_right 	= smoothstep(1 - tile_uv.x);
+			float d_left 	= smoothstep(tile_uv.x);
+
+			//return data.b * d_right    * d_bottom
+			//	+ data.a  * d_right     * d_top
+			//	+ data.r  * d_left      * d_top
+			//	+ data.g  * d_left      * d_bottom;
+
+			return
+				data.b * pretty_function(d_left, d_top)
+				+ data.a  * pretty_function(d_left, d_bottom)
+				+ data.r  * pretty_function(d_right, d_bottom)
+				+ data.g  * pretty_function(d_right, d_top);
+
+		}
+
+		// quite nice looking set of values, leaving them there for future experiments
+		// vec3 albedo_forest = vec3(67.0 / 255.0, 89.0 / 255.0, 52.0 / 255.0) * (noise_1000 * 0.01 + 0.99);
+		// vec3 albedo_grass = vec3(112.0 / 255.0, 141.0 / 255.0, 75.0 / 255.0) * (noise_100 * 0.01 + 0.99);
+		// vec3 albedo_sand = vec3(223.0 / 255.0, 220.0 / 255.0, 207.0 / 255.0);
+		// vec3 albedo_wasteland = vec3(135.0 / 255.0, 118.0 / 255.0, 98.0 / 255.0);
+		// vec3 sea_albedo = vec3(0.75, 0.86, 0.98);
+		// vec4(sea_albedo / (1 + 0.2 * log(1 + floor(sea / 250.0))), 1);
+
 		vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord)
 		{
+			float noise_100  = smooth_noise((vec3(1, 1, 1) + Position.xyz) * 100.0);
+			//float noise_250  = smooth_noise(-Position.xyz * 250.0);
+			//float noise_500  = smooth_noise(Position.xyz * 500.0);
+			//float noise_1000 = smooth_noise(Position.xyz * 1000.0);
+
 			float y = floor(texcoord.y * world_size);
 			float x = floor(texcoord.x * world_size);
 			float tile_id = x + y * world_size + FaceValue * world_size * world_size;
@@ -137,16 +249,37 @@ function pla.get_shader()
 				float province_border_thickness = 0.05;
 				vec4 province_border_color = vec4(0.45, 0.45, 0.45, 1);
 				float realm_border_thickness = 0.2;
-				vec4 realm_border_color = vec4(0.35, 0.35, 0.35, 1);
+				vec4 realm_border_color = vec4(0.35, 0.4, 0.5, 1);
 				float threshold = 0.8;
 
 				// We need to handle realm borders before province borders.
 				// We're gonna do it here.
 
+				//float same_realm_value = sample_value_from_sphere(tile_neighbor_realm, face_offset, tile_uv);
+				//if ((same_realm_value > 0.022) && (same_realm_value < 1)) {
+				//	return realm_border_color;
+				//}
+
 				float realm_up_b = (realm_border_thickness - tile_uv.y);
 				float realm_down_b = (tile_uv.y - (1 - realm_border_thickness));
 				float realm_left_b = (tile_uv.x - (1 - realm_border_thickness));
 				float realm_right_b = (realm_border_thickness - tile_uv.x);
+				vec4 realm_corner_neighbor_data = Texel(tile_corner_neighbor_realm, face_offset);
+				float realm_threshold = 0.1;
+
+				if (realm_corner_neighbor_data.g  > realm_threshold && realm_up_b > 0 && realm_left_b > 0) {
+					return realm_border_color;
+				}
+				if (realm_corner_neighbor_data.a > realm_threshold && realm_down_b > 0 && realm_right_b > 0) {
+					return realm_border_color;
+				}
+				if (realm_corner_neighbor_data.r > realm_threshold && realm_left_b > 0 && realm_down_b > 0 ) {
+					return realm_border_color;
+				}
+				if (realm_corner_neighbor_data.b > realm_threshold && realm_right_b > 0 && realm_up_b > 0) {
+					return realm_border_color;
+				}
+
 				vec4 realm_neighbor_data = Texel(tile_neighbor_realm, face_offset);
 
 				if (realm_neighbor_data.g > threshold && realm_up_b > 0) {
