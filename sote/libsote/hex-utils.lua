@@ -48,6 +48,8 @@ local function triangle_coords_to_hex_coords(triangle_coords, world_size)
 	return vec2(hex_y - hex_x, hex_y_adjusted - math.floor((tri_x + tri_y_adjusted2) / 3))
 end
 
+local ico_defines = require("libsote.icosa-defines")
+
 ---@param lat number
 ---@param lon number
 ---@param ws number
@@ -61,7 +63,6 @@ function hu.latlon_to_hex_coords(lat, lon, ws)
 		math.sin(colatitude) * math.sin(lon)
 	)
 
-	local ico_defines = require("libsote.icosa-defines")
 	local faces = ico_defines.face_vertices
 	local vertices = ico_defines.vertices
 
@@ -92,6 +93,14 @@ function hu.latlon_to_hex_coords(lat, lon, ws)
 	local hexagonal_coordinates = triangle_coords_to_hex_coords(get_triangle_coords(v, u, ws), ws)
 
 	return hexagonal_coordinates.x, hexagonal_coordinates.y, face
+end
+
+---@param q number
+---@param r number
+---@param ws number
+---@return number, number
+function hu.hex_coords_to_latlon(q, r, face, ws)
+	return 0, 0
 end
 
 return hu

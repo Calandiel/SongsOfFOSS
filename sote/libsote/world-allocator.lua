@@ -79,12 +79,12 @@ end
 
 ---@param q number
 ---@param r number
----@param face_index number
+---@param face number
 ---@param icosa table
 ---@param index number
 ---@return number, number
-local function resolve_index_for_penta(q, r, face_index, icosa, index)
-	local vi = icosa.faces[face_index].vertices[icosa_vertex_index(q, r, icosa.size)]
+local function resolve_index_for_penta(q, r, face, icosa, index)
+	local vi = icosa.faces[face].vertices[icosa_vertex_index(q, r, icosa.size)]
 
 	if icosa.vertices[vi] ~= -1 then
 		return icosa.vertices[vi], index
@@ -97,13 +97,13 @@ end
 
 ---@param q number
 ---@param r number
----@param face_index number
+---@param face number
 ---@param icosa table
 ---@param index number
 ---@return number, number
-local function resolve_index_for_edge(q, r, face_index, icosa, index)
+local function resolve_index_for_edge(q, r, face, icosa, index)
 	local ei = icosa_edge_index(q, r, icosa.size)
-	local edge = icosa.faces[face_index].edges[ei]
+	local edge = icosa.faces[face].edges[ei]
 	local nei = edge.neighbor_edge
 
 	local ti = 0
@@ -142,6 +142,8 @@ local function resolve_index_for_edge(q, r, face_index, icosa, index)
 	return edge.tiles[ti], index + 1
 end
 
+local hexu = require "libsote.hex-utils"
+
 ---@param size number
 ---@param seed number
 function wa.allocate(size, seed)
@@ -162,29 +164,34 @@ function wa.allocate(size, seed)
 	end
 
 	local index = 0
+	local next_index = 0
 
-	for fi = 1, 20 do
-		for q = -size, size do
-			for r = -size, size do
-				if not world:is_valid(q, r) then goto continue end
+	for q = -size, size do
+		for r = -size, size do
+			if not world:is_valid(q, r) then goto continue end
+
+			for face = 1, 20 do
+				local resolved_index = index
 
 				if world:is_edge(q, r) then
-					local resolved_index = -1
-
 					if world:is_penta(q, r) then
-						resolved_index, index = resolve_index_for_penta(q, r, fi, icosa_obj, index)
+						resolved_index, next_index = resolve_index_for_penta(q, r, face, icosa_obj, index)
 					else
-						resolved_index, index = resolve_index_for_edge(q, r, fi, icosa_obj, index)
+						resolved_index, next_index = resolve_index_for_edge(q, r, face, icosa_obj, index)
 					end
-
-					world:_set_index(q, r, fi, resolved_index)
 				else
-					world:_set_index(q, r, fi, index)
-					index = index + 1
+					next_index = index + 1
 				end
 
-				::continue::
+				world:_set_index(q, r, face, resolved_index)
+
+				local lat, lon = hexu.hex_coords_to_latlon(q, r, face, size)
+				world:_set_latlon(resolved_index, lat, lon)
+
+				index = next_index
 			end
+
+			::continue::
 		end
 	end
 

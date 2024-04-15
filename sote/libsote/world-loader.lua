@@ -2,16 +2,16 @@ local wl = {}
 
 local function elev_to_gray(elev, is_land)
 	local base_color_value = 94
-	local land_color_factor = 161
-	local water_color_factor = 93
+	local land_delta = 161
+	local sea_delta = 93
 
 	local final_color_value = 0
 	if is_land then
 		local land_color_ratio = math.min(elev / 13000, 1)
-		final_color_value = base_color_value + land_color_ratio * land_color_factor
+		final_color_value = base_color_value + land_color_ratio * land_delta
 	else
 		local water_color_ratio = math.max(math.min(elev, 0) / 13000, -1)
-		final_color_value = base_color_value + water_color_ratio * water_color_factor - 1
+		final_color_value = base_color_value + water_color_ratio * sea_delta - 1
 	end
 
 	final_color_value = math.floor(final_color_value + 0.5)
@@ -41,6 +41,14 @@ function wl.load_maps_from(world)
 		tile.elevation = elev
 		tile.is_land = is_land
 
+		if tile.is_land then
+			tile.elevation = math.max(1, tile.elevation)
+			tile.waterlevel = 0
+		else
+			tile.elevation = math.min(-1, tile.elevation)
+			tile.waterlevel = 0
+		end
+
 		-------------------------------------------------
 
 		local rocks = world:get_rocks(q, r, face)
@@ -57,7 +65,7 @@ function wl.load_maps_from(world)
 	print("[worldgen profiling] loaded maps: " .. tostring(duration * 1000) .. "ms")
 end
 
--- local hex = require "libsote.hex-utils"
+-- local hexu = require "libsote.hex-utils"
 -- local cu = require "game.climate.utils"
 
 -- -- local data_loader = require("libsote.debug_data_loader")
@@ -85,11 +93,23 @@ end
 
 -- 	local col = require "cpml".color
 
--- 	for x = 0, width-1 do
--- 		for y = 0, height-1 do
+-- 	-- for x = 1, width do
+-- 	-- 	for y = 1, height do
+-- 	for x = 0, width - 1 do
+-- 		for y = 0, height - 1 do
 -- 			local lon = x / width * 2.0 * math.pi
 -- 			local lat = (y / height - 0.5) * math.pi
--- 			local q, r, face = hex.latlon_to_hex_coords(lat, lon, world.size)
+-- 			-- local lon = ((x - 0.5) / width * 2 - 1) * math.pi
+-- 			-- local lat = ((y - 0.5) / height - 0.5) * math.pi
+-- 			local q, r, face = hexu.latlon_to_hex_coords(lat, lon, world.size)
+-- 			-- if x == 1 and y == 1 then
+-- 			-- -- if x == 0 and y == 0 then
+-- 			-- 	print("lon", lon, "lat", lat, "minuslon", world:get_minus_longitude(q, r, face), "colat", world:get_colatitude(q, r, face))
+-- 			-- end
+-- 			-- if x == width and y == height then
+-- 			-- -- if x == width - 1 and y == height - 1 then
+-- 			-- 	print("lon", lon, "lat", lat, "minuslon", world:get_minus_longitude(q, r, face), "colat", world:get_colatitude(q, r, face))
+-- 			-- end
 -- 			local generated_elev = world:get_elevation(q, r, face)
 -- 			-- local imported_vals = data_loader.getValuesForCoordinates(x, y)
 -- 			local is_land = world:get_is_land(q, r, face)
@@ -101,6 +121,7 @@ end
 -- 			local col_b = elev_as_grey / 255
 
 -- 			image_elevation_data:setPixel(x, y, col_r, col_g, col_b, 1)
+-- 			-- image_elevation_data:setPixel(x - 1, y - 1, col_r, col_g, col_b, 1)
 
 -- 			------------------------------------------------------------------
 
@@ -117,6 +138,7 @@ end
 -- 			end
 
 -- 			image_rocks_data:setPixel(x, y, col_r, col_g, col_b, 1)
+-- 			-- image_rocks_data:setPixel(x - 1, y - 1, col_r, col_g, col_b, 1)
 
 -- 			------------------------------------------------------------------
 
@@ -145,6 +167,7 @@ end
 -- 			end
 
 -- 			image_jan_rainfall_data:setPixel(x, y, col_r, col_g, col_b, 1)
+-- 			-- image_jan_rainfall_data:setPixel(x - 1, y - 1, col_r, col_g, col_b, 1)
 -- 		end
 -- 	end
 

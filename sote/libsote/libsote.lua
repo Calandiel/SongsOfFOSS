@@ -272,13 +272,13 @@ end
 local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
 	local tile_data = {}
 
-	desc[2] = sote_vals.latitude
-	get_val(desc, err_msg, float_val)
-	tile_data.latitude = float_val[0]
+	-- desc[2] = sote_vals.latitude
+	-- get_val(desc, err_msg, float_val)
+	-- tile_data.latitude = float_val[0]
 
-	desc[2] = sote_vals.longitude
-	get_val(desc, err_msg, float_val)
-	tile_data.longitude = float_val[0]
+	-- desc[2] = sote_vals.longitude
+	-- get_val(desc, err_msg, float_val)
+	-- tile_data.longitude = float_val[0]
 
 	desc[2] = sote_vals.elevation
 	get_val(desc, err_msg, float_val)
@@ -306,15 +306,11 @@ local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
 end
 
 ---
-function libsote.generate_world()
+function libsote.generate_world(seed)
 	if not lib_sote_instance then
 		log_and_set_msg("libSOTE not initialized")
 		return nil
 	end
-
-	math.randomseed(os.time())
-	local seed = math.random(1, 100000)
-	-- local seed = 51804
 
 	set_sote_params(seed)
 	init_world()

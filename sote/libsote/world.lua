@@ -99,11 +99,16 @@ function world:_set_empty(q, r, face)
 	self:_set_index(q, r, face, -1)
 end
 
+function world:_set_latlon(index, colatitude, minus_longitude)
+	self.colatitude[index] = colatitude
+	self.minus_longitude[index] = minus_longitude
+end
+
 function world:set_tile_data(q, r, face, data)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 
-	self.colatitude[index] = data.latitude
-	self.minus_longitude[index] = data.longitude
+	-- self.colatitude[index] = data.latitude
+	-- self.minus_longitude[index] = data.longitude
 	self.elevation[index] = data.elevation
 	self.hilliness[index] = data.rugosity
 	self.rock_type[index] = data.rock_type

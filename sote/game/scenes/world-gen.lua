@@ -47,7 +47,11 @@ function wg.init()
 		return
 	end
 
-	wg.world = libsote.generate_world()
+	math.randomseed(os.time())
+	-- local seed = math.random(1, 100000)
+	local seed = 58738
+
+	wg.world = libsote.generate_world(seed)
 	wg.message = libsote.message
 	if not wg.world then
 		wg.state = STATES.error
@@ -57,7 +61,7 @@ function wg.init()
 
 	wg.state = STATES.phase_01
 
-	require "game.raws.raws" ()
+	require "game.raws.raws"()
 	require "game.entities.world".empty()
 
 	gen_phase_02(wg.world)
