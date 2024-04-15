@@ -61,7 +61,7 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("grain", "calories", 1.5)
+	add_use_case("grain", "calories", 1)
 	add_use_case("grain", "grain", 1)
 
 	TradeGood:new {

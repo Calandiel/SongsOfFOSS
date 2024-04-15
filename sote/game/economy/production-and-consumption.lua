@@ -44,6 +44,7 @@ ffi.cdef[[
 
 local C = ffi.C
 
+local EPSILON = 0.001
 
 local amount_of_goods = tabb.size(RAWS_MANAGER.trade_goods_by_name)
 local amount_of_job_types = tabb.size(JOBTYPE)
@@ -117,14 +118,25 @@ function pro.run(province)
 		-- available resources calculation:
 		local consumption = province.local_consumption[good] or 0
 		local production = province.local_production[good] or 0
-		local storage = province.local_storage[good] or 0
-		market_data[i - 1].available = storage
-
+		local storage = province.local_storage[good] or math.max(0, - consumption + production) -- retain last months service surplus for use
+		market_data[i - 1].available =  storage
+		if market_data[i - 1].available < 0 then
+			error("INVALID START TO PRODUCTION-AND-CONSUMPTION TICK"
+			.. "\n market_data[" .. i - 1 .. "].available = "
+			.. tostring(market_data[i - 1].available)
+			.. "\n  consumption = "
+			.. tostring(consumption)
+			.. "\n  production = "
+			.. tostring(production)
+			.. "\n  storage = "
+			.. tostring(storage)
+			)
+		end
 		-- prices:
 		local price = ev.get_local_price(province, good)
 		market_data[i - 1].price = price
 		old_prices[good] = price
-		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + math.max(0, production - consumption + market_data[i - 1].available)))
+		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + market_data[i - 1].available))
 		market_data[i - 1].consumption = 0
 		market_data[i - 1].supply = 0
 		market_data[i - 1].demand = 0
@@ -151,22 +163,35 @@ function pro.run(province)
 	---@param amount number
 	local function record_consumption(good_index, amount)
 
-		if market_data[good_index - 1].available + 0.01 < amount
-			or amount < 0
+		if amount < 0
+			or market_data[good_index - 1].available < 0
+			or market_data[good_index - 1].available < amount
 		then
 			error(
-				"INVALID RECORD OF CONSUMPTION"
+				"INVALID ATTEMPT AT RECORDING OF CONSUMPTION"
 				.. "\n amount = "
 				.. tostring(amount)
 				.. "\n  market_data[good_index - 1].available = "
-				.. tostring( market_data[good_index - 1].available)
+				.. tostring(market_data[good_index - 1].available)
+			)
+		end
+		-- to prevent consumption from ever reaching over available
+		local consumed_amount = math.min(market_data[good_index - 1].available, amount)
+
+		if market_data[good_index - 1].available < consumed_amount then
+			error(
+				"INVALID RECORD OF GOODS CONSUMPTION"
+				.. "\n  market_data[good_index - 1].available = "
+				.. tostring(market_data[good_index - 1].available)
+				.. "\n  consumed_amount = "
+				.. tostring(consumed_amount)
 			)
 		end
 
-		market_data[good_index - 1].consumption = market_data[good_index - 1].consumption + amount
-		market_data[good_index - 1].available = math.max(0, market_data[good_index - 1].available - amount)
+		market_data[good_index - 1].consumption = market_data[good_index - 1].consumption + consumed_amount
+		market_data[good_index - 1].available = market_data[good_index - 1].available - consumed_amount
 
-		return market_data[good_index - 1].price * amount
+		return market_data[good_index - 1].price * consumed_amount
 	end
 
 	---Record local production!
@@ -722,7 +747,7 @@ function pro.run(province)
 				tabb.accumulate(cases, nil, function (_, case, amount)
 					local weight = use_case(case).goods[good]
 					if weight then
-						local consumed_amount = foraged_amount * amount / weight / foraged_distribution[good] * 0.9 -- sell some to market to prevent price explosion
+						local consumed_amount = foraged_amount * amount / weight / foraged_distribution[good] * 0.9 -- keep some to sell some to market to prevent price explosion
 						if foraged_goods[good] + 0.01 < consumed_amount then
 							error("ATTEMPTING TO CONSUME MORE GOODS THAN GATHERED"
 								.. "\n foraged_goods: " .. tostring(foraged_goods[good])
@@ -781,7 +806,7 @@ function pro.run(province)
 			local free_time_for_need, expense, consumed = satisfy_need(
 				pop_view, pop_table, family_unit_needs, index, need,
 				time_fraction,
-				savings_fraction, 0.5)
+				savings_fraction, 1)
 
 			total_expense = total_expense + expense
 
@@ -1357,6 +1382,27 @@ function pro.run(province)
 	-- At last, record all data
 
 	for good, index in pairs(RAWS_MANAGER.trade_good_to_index) do
+		-- check that we didn't go over the stockpile or possible remaining services from last tick
+		if (province.local_storage[good] or math.max(0, (province.local_production[good] or 0) - (province.local_consumption[good] or 0)))
+			+ market_data[index - 1].supply - market_data[index - 1].consumption < -EPSILON
+		then
+			error(
+				"INVALID MARKET DATA AFTER PRODUCTION-AND-CONSUPTION TICK"
+				.. "\n market_data[".. good .."].available = "
+				.. tostring(market_data[index - 1].available)
+				.. "\n province.local_storage[".. good .."] = "
+				.. tostring(province.local_storage[good])
+				.. "\n market_data[".. good .."].local_production = "
+				.. tostring(province.local_production[good])
+				.. "\n market_data[".. good .."].local_consumption = "
+				.. tostring(province.local_consumption[good])
+				.. "\n market_data[".. good .."].supply = "
+				.. tostring(market_data[index - 1].supply)
+				.. "\n market_data[".. good .."].consumption = "
+				.. tostring(market_data[index - 1].consumption)
+			)
+		end
+
 		province.local_consumption[good] = market_data[index - 1].consumption
 		province.local_demand[good] = market_data[index - 1].demand
 		province.local_production[good] = market_data[index - 1].supply

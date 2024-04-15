@@ -337,11 +337,21 @@ end
 ---@param good TradeGoodReference
 ---@param x number
 function EconomicEffects.change_local_stockpile(province, good, x)
+	if x < 0 and province.local_storage[good] + 0.01 < -x then
+		error(
+			"INVALID LOCAL STOCKPILE CHANGE"
+			.. "\n change = "
+			.. tostring(x)
+			.. "\n province.local_storage[ ['" .. good .. "'] = "
+			.. tostring(province.local_storage[good])
+		)
+	end
+
 	province.local_storage[good] = math.max(0, (province.local_storage[good] or 0) + x)
 
 	if province.local_storage[good] ~= province.local_storage[good] then
 		error(
-			"INVALID LOCAL STOCKPILE CHANGE"
+			"NAN IN LOCAL STOCKPILE CHANGE"
 			.. "\n change = "
 			.. tostring(x)
 		)

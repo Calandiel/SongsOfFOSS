@@ -204,7 +204,7 @@ function re.draw(gam)
 							end)
 							tooltip = tooltip .. "."
 						end
-						ib.text_button_to_character(gam, k, rect, name)
+						ib.text_button_to_character(gam, k, rect, name, tooltip)
 					end
 					local function render_province(rect, k, v)
 						ib.text_button_to_province(gam,k.province, rect, k.province.name)
@@ -215,7 +215,7 @@ function re.draw(gam)
 						return f
 					end
 					local noble_list = a:copy()
-					noble_list.width = ui_panel.width - ui_panel.x
+					noble_list.width = ui_panel.width
 					noble_list.height = ui_panel.height - ui_panel.y
 					character_list_state = list_widget(
 						noble_list,
