@@ -6,7 +6,8 @@ local JOBTYPE = {
     ARTISAN = 3,
     CLERK = 4,
     WARRIOR = 5,
-    HAULING = 6
+    HAULING = 6,
+    HUNTING = 7,
 }
 
 return JOBTYPE

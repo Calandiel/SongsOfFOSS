@@ -392,16 +392,12 @@ function world.World:tick()
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
-			local tc, fs = 0, {conifer = 0, broadleaf = 0, shrub = 0, grass = 0}
 			for _, tile in pairs(settled_province.tiles) do
 				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
 				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
 				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
 				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
-				fs = {conifer = fs.conifer + tile.conifer, broadleaf = fs.broadleaf + tile.broadleaf, shrub = fs.shrub + tile.shrub, grass = fs.grass + tile.grass}
-				tc = tc + 1
 			end
-			settled_province.flora_spread = {conifer = fs.conifer / tc, broadleaf = fs.broadleaf / tc, shrub = fs.shrub / tc, grass = fs.grass / tc}
 		end
 
 		PROFILER:end_timer("vegetation")
@@ -642,10 +638,14 @@ function world.World:tick()
 					-- yearly tick
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
+					local dbm = require "game.economy.diet-breadth-model"
 					for _, settled_province in pairs(WORLD.provinces) do
 						pop_aging.age(settled_province)
 						if settled_province.realm then
 							settled_province.realm.tax_collected_this_year = 0
+							-- TODO DO THESE EVERY DECADE OR SO
+							dbm.foragable_goods(settled_province)
+							dbm.cultural_foraging_update(settled_province.realm)
 						end
 					end
 				end

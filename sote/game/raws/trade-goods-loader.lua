@@ -41,9 +41,9 @@ function d.load()
 		name = "berries",
 		description = "berries",
 		icon = "berries-bowl.png",
-		r = 222 / 256,
-		g = 11 / 256,
-		b = 93 / 256,
+		r = 222 / 255,
+		g = 11 / 255,
+		b = 93 / 255,
 		category = "good",
 		base_price = 2,
 	}
@@ -55,14 +55,28 @@ function d.load()
 		name = "grain",
 		description = "grain",
 		icon = "wheat.png",
-		r = 245 / 256,
-		g = 222 / 256,
-		b = 179 / 256,
+		r = 245 / 255,
+		g = 222 / 255,
+		b = 179 / 255,
 		category = "good",
 		base_price = 2,
 	}
 	add_use_case("grain", "calories", 1)
 	add_use_case("grain", "grain", 1)
+
+	TradeGood:new {
+		name = "mushroom",
+		description = "mushroom",
+		icon = "chanterelle.png",
+		r = 1,
+		g = 0.86,
+		b = 0.5,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("mushroom", "calories", 1)
+	add_use_case("mushroom", "fruit", 1)
+	add_use_case("mushroom", "meat", 1)
 
 	TradeGood:new {
 		name = "honey",
@@ -197,6 +211,30 @@ function d.load()
 	}
 	add_use_case("meat", "calories", 2)
 	add_use_case("meat", "meat", 1)
+
+	TradeGood:new {
+		name = "fish",
+		description = "fish",
+		icon = "salmon.png",
+		r = 0.67,
+		g = 0.73,
+		b = 0.8,
+		base_price = 6,
+	}
+	add_use_case("fish", "calories", 2)
+	add_use_case("fish", "meat", 1)
+
+	TradeGood:new {
+		name = "shellfish",
+		description = "shellfish",
+		icon = "oyster.png",
+		r = 0.62,
+		g = 0.56,
+		b = 0.48,
+		base_price = 6,
+	}
+	add_use_case("shellfish", "calories", 2)
+	add_use_case("shellfish", "meat", 1)
 
 	TradeGood:new {
 		name = "timber",

@@ -292,6 +292,7 @@ function re.draw(gam)
 									header = "culture",
 									render_closure = function (rect, k, v)
 										ui.centered_text(v.culture.name, rect)
+										ui.tooltip(v.name .. " follows the customs of " .. v.culture.name .. "." .. v.culture:text_tooltip(v), rect)
 									end,
 									width = 3,
 									value = function(k, v)

@@ -257,68 +257,6 @@ function pro.run(province)
 		foragers_count = foragers_count + effective_time -- Record a new forager!
 		return effective_time * last_foraging_efficiency
 	end
-	-- determine amount of foragable goods
-	local timber_production = (province.flora_spread.broadleaf + province.flora_spread.conifer) * 0.1
-		+ province.flora_spread.shrub * 0.05 + province.flora_spread.grass * 0.01
-	local berries_spread = province.flora_spread.shrub + province.flora_spread.broadleaf
-	local seeds_spread = province.flora_spread.shrub + province.flora_spread.broadleaf
-	-- TODO USE CLIMATE TO FIGURE OUT BETTER WEIGHTS FOR FORAGING RESOURCE AMOUNTS
-	local small_game_amount = (berries_spread + seeds_spread) * last_foraging_efficiency -- critter foraging off of beriies and seeds
-	local large_game_amount = seeds_spread / 8 * last_foraging_efficiency + small_game_amount / 4 * last_foraging_efficiency -- grazers and carnivores
-	---@type table<string, {output: table<TradeGoodReference, number>, amount: number, price: number, time: JOBTYPE, cost: JOBTYPE}>
-	local available_goods = {
-		berries = {
-			output = { ['berries'] = 1.0},
-			amount = berries_spread,
-			price = berries_price,
-			time = JOBTYPE.FORAGER,
-			cost = JOBTYPE.HAULING -- bringing back to camp
-		},
-		seeds = {
-			output = { ['grain'] = 1.0},
-			amount = seeds_spread,
-			price = grain_price,
-			time = JOBTYPE.FORAGER,
-			cost = JOBTYPE.LABOURER -- grinding and/or removing husks
-		},
-		trapping = {
-			output = { ['meat'] = 0.5, ['hide'] = 0.125},
-			amount = small_game_amount,
-			price = meat_price + hide_price / 8,
-			time = JOBTYPE.FORAGER, -- finding location to set traps
-			cost = JOBTYPE.HAULING -- checking and retrieving from trap
-		},
-		-- TODO add JOBTYPE.HUNTING
-		hunting = {
-			output = { ['meat'] = 2.0, ['hide'] = 0.25},
-			amount = large_game_amount,
-			price = meat_price + hide_price / 4, -- larger game is more efficient to hunt for food
-			time = JOBTYPE.FORAGER, -- finding tracks and following them -- TODO chnage JOBTYPE to HUNTING
-			cost = JOBTYPE.HAULING -- bring large carcasses back to camp
-		},
-		-- TODO add add seafood production
-	--	shellfish = {
-	--		output = { ['timber'] = 1.0},
-	--		amount = shellfish_production,
-	--		price = shellfish_price,
-	--		time = 1JOBTYPE.FORAGER, -- finding where fish would be
-	--		cost = JOBTYPE.LABORING -- opening the shell
-	--	},
-	--	fishing = {
-	--		output = { ['timber'] = 1.0},
-	--		amount = fish_production,
-	--		price = fish_price,
-	--		time = JOBTYPE.HUNTING, -- finding where fish would be
-	--		cost = JOBTYPE.LABORING -- catching the fish
-	--	},
-		timber = {
-			output = { ['timber'] = 1.0},
-			amount = timber_production,
-			price = timber_price,
-			time = JOBTYPE.LABOURER, -- either picking it up off ground or pulling it off living trees
-			cost = JOBTYPE.HAULING -- bringing wood back to camp
-		},
-	}
 
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = province:local_population()
@@ -331,6 +269,7 @@ function pro.run(province)
 
 	DISPLAY_INCOME_OWNER_RATIO = (1 - INCOME_TO_LOCAL_WEALTH_MULTIPLIER) * fraction_of_income_given_to_owner
 
+	-- TODO USE DIET-BREADTHE MODEL
 	---Pop forages for food and gives it to warband  \
 	-- Not very efficient
 	---@param pop_view POPView[]
@@ -341,13 +280,13 @@ function pro.run(province)
 		local warband = pop_table.unit_of_warband
 		local income = 0
 		if warband and warband.leader then
-			warband.leader.inventory['berries'] = (warband.leader.inventory['berries'] or 0) + food_produced * berries_spread
-			warband.leader.inventory['grain'] = (warband.leader.inventory['grain'] or 0) + food_produced * seeds_spread
-			warband.leader.inventory['meat'] = (warband.leader.inventory['meat'] or 0) + food_produced * small_game_amount
+			warband.leader.inventory['berries'] = (warband.leader.inventory['berries'] or 0) + food_produced
+			warband.leader.inventory['grain'] = (warband.leader.inventory['grain'] or 0) + food_produced
+			warband.leader.inventory['meat'] = (warband.leader.inventory['meat'] or 0) + food_produced * 0.5
 		else
-			income = income + income + record_production(berries_index, food_produced * berries_spread)
-			income = income + income + record_production(grain_index, food_produced * seeds_spread)
-			income = income + income + record_production(meat_index, food_produced * small_game_amount * 0.5)
+			income = income + income + record_production(berries_index, food_produced)
+			income = income + income + record_production(grain_index, food_produced)
+			income = income + income + record_production(meat_index, food_produced * 0.5)
 		end
 		if warband then
 			income = income * 0.5
@@ -365,27 +304,17 @@ function pro.run(province)
 	---@return table<TradeGoodReference, number> products
 	local function forage(pop_view, pop_table, time)
 		local food_produced = get_foraging_production(pop_view, time)
-
-		-- use Diet-Breadth Model to pick and weight products
-		-- find average return rate of all products to deterime optimal foraging targets
-		local total_goods_cost, total_goods_return = 0, 0
-		local potentials = tabb.accumulate(available_goods, {}, function (potentials, product, values)
-			total_goods_cost = total_goods_cost + values.amount / pop_job_efficiency[values.cost]
-			total_goods_return = total_goods_return + values.amount * values.price
-			potentials[product] = {output = values.output, amount = values.amount, cost = pop_job_efficiency[values.cost], time = pop_job_efficiency[values.time],
-				return_per_cost = (values.amount * values.price) / (values.amount * pop_job_efficiency[values.cost])}
-	--			print("  return_per_cost: " .. tostring(products[product].return_per_cost))
-			return potentials
-		end)
-		-- only harvest products with a value better than average
-		local average_return_per_cost = total_goods_return / total_goods_cost
-	--	print("  average_return_per_cost: " .. tostring(average_return_per_cost))
-		-- determine actual foraged production from what to collect
-		local total_encountered = 0
-		local production = tabb.accumulate(potentials, {}, function (production, resource_type, values)
-			if values.return_per_cost >= average_return_per_cost then
-				total_encountered = total_encountered + values.amount -- to determine amount encountered
-				production[resource_type] = {output = values.output, amount = values.amount, cost = values.time + values.cost} -- to determine time spent
+		local foragable_goods = province.foragable_goods
+    -- determine actual foraged production from what to collect
+    	local total_encountered, cultural_average_return, cultural_perfered_targets = 0, pop_table.culture.traditional_foraging_returns, pop_table.culture.traditional_foraging_targets
+		local production = tabb.accumulate(cultural_perfered_targets, {}, function (production, resource_type, return_per_cost)
+			if return_per_cost >= cultural_average_return then
+				local amount = foragable_goods[resource_type].amount
+				total_encountered = total_encountered + amount -- to determine amount encountered
+				production[resource_type] = {
+					output = province.foragable_goods[resource_type].output,
+					amount = province.foragable_goods[resource_type].amount,
+					cost = pop_job_efficiency[province.foragable_goods[resource_type].time] + pop_job_efficiency[province.foragable_goods[resource_type].cost]} -- to determine time spent
 	--			print("  resource: " .. tostring(resource_type) .. " return_per_cost: " .. tostring(values.return_per_cost))
 			end
 			return production

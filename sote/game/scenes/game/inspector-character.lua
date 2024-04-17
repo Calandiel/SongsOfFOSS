@@ -182,7 +182,7 @@ function window.draw(game)
     ui.left_text("Warband: ", warband_panel)
 
 
-    ut.data_entry("", character.culture.name, culture_panel, "This character follows the customs of " .. character.culture.name .. ".")
+    ut.data_entry("", character.culture.name, culture_panel, "This character follows the customs of " .. character.culture.name .. "." .. character.culture:text_tooltip(character))
 
     local faith_panel = culture_panel:subrect(0, unit * 2, culture_panel.width, culture_panel.height, "left", "up")
     ut.data_entry("", character.faith.name, faith_panel, "This character is a practitioner of " .. character.faith.name .. ".")

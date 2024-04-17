@@ -91,7 +91,8 @@ function Race:new(o)
 		[JOBTYPE.LABOURER] = 1,
 		[JOBTYPE.WARRIOR] = 1,
 		[JOBTYPE.HAULING] = 1,
-		[JOBTYPE.FORAGER] = 1
+		[JOBTYPE.FORAGER] = 1,
+		[JOBTYPE.HUNTING] = 1
 	}
 
 	r.female_needs = {
@@ -130,7 +131,8 @@ function Race:new(o)
 		[JOBTYPE.LABOURER] = 1,
 		[JOBTYPE.WARRIOR] = 1,
 		[JOBTYPE.HAULING] = 1,
-		[JOBTYPE.FORAGER] = 1
+		[JOBTYPE.FORAGER] = 1,
+		[JOBTYPE.HUNTING] = 1
 	}
 
 	r.male_needs = {

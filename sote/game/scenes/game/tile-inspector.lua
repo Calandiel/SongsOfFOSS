@@ -9,6 +9,8 @@ local tabb = require "engine.table"
 local ef = require "game.raws.effects.economic"
 local btb = require "game.scenes.game.widgets.building-type-buttons"
 
+local dbm = require "game.economy.diet-breadth-model"
+
 local military_effects = require "game.raws.effects.military"
 
 re.cached_scrollbar = 0
@@ -407,7 +409,13 @@ local function trade_widget(gam, tile, panel)
 		"Foragers: ",
 		tile.province.foragers,
 		layout:next(unit * 5, unit * 1),
-		"Used carrying capacity"
+		"Foragable goods: (from " .. tabb.size(tile.province.tiles) .." tiles)"
+		.. tabb.accumulate(tile.province.foraging_targets, "", function (a, _, values)
+			return a .. "\n - " .. values.resource .. " (" .. uit.to_fixed_point2(values.amount) ..")"
+				.. tabb.accumulate(values.output, "", function (b, good, amount)
+					return b .. " ¤ " .. RAWS_MANAGER.trade_goods_by_name[good].description .. " (" .. uit.to_fixed_point2(amount) .. ")"
+				end).. "\n    · Search with " .. dbm.JOB_ACTIVITY[values.search] .. " and "..  dbm.JOB_ACTIVITY[values.handle] .. " to process."
+		end)
 	)
 
 	uit.count_entry(

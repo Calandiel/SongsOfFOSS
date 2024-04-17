@@ -34,6 +34,7 @@ function car.calculate()
 			local cc = 5 -- I know it's unrealistic, but let's have a floor of 5 so that we don't have to make checks for livability of tiny provinces everywhere...
 			for _, tile in pairs(province.tiles) do
 				cc = cc + car.get_tile_carrying_capacity(tile)
+				require "game.economy.diet-breadth-model".foragable_targets(province)
 			end
 			cc = math.max(5, cc)
 			province.foragers_limit = cc

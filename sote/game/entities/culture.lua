@@ -19,6 +19,8 @@ local cl = {}
 ---@field culture_group CultureGroup
 ---@field traditional_units table<string, number> -- Defines "traditional" ratios for units recruited from this culture.
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
+---@field traditional_foraging_targets table<string, {return_per_cost: number, cost: number, time: number}> a culture's prefered foraging targets
+---@field traditional_foraging_returns number a culture's cutoff value for foraging targets value
 
 ---@class CultureGroup
 cl.CultureGroup = {}
@@ -57,9 +59,30 @@ function cl.Culture:new(group)
 	o.name = o.language:get_random_culture_name()
 	o.traditional_units = {}
 	o.traditional_militarization = 0.1
+	o.traditional_foraging_targets = {}
+	o.traditional_foraging_returns = 0
 
 	setmetatable(o, cl.Culture)
 	return o
+end
+
+---@param pop POP
+---@return string tooltip
+function cl.Culture:text_tooltip(pop)
+	local ut = require "game.ui-utils"
+	local tabb = require "engine.table"
+	local eff = pop.race.male_efficiency
+	local average_return_per_cost = self.traditional_foraging_returns
+	if pop.female then
+		eff = pop.race.female_efficiency
+	end
+	return "\nTraditional Military: " .. tabb.accumulate(self.traditional_units, "", function (a, k, v)
+			return a .. " " .. ut.to_fixed_point2(v * 100) .. "% " .. k .. ", "
+		end) .. " (" .. ut.to_fixed_point2(self.traditional_militarization * 100) .. "% of population)"
+		.. "\nTraditional Foraging Targets: " .. tabb.accumulate(self.traditional_foraging_targets, "", function (a, k, v)
+		return a .. "\n " .. k .. ": " ..  ut.to_fixed_point2(v) .. " (" .. ut.to_fixed_point2(average_return_per_cost) .. "), "
+			.. "."
+	end)
 end
 
 return cl
