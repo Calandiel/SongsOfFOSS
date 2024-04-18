@@ -65,24 +65,18 @@ function cl.Culture:new(group)
 	return o
 end
 
----@param pop POP
 ---@return string tooltip
-function cl.Culture:text_tooltip(pop)
+function cl.Culture:text_tooltip()
 	local ut = require "game.ui-utils"
 	local tabb = require "engine.table"
-	local eff = pop.race.male_efficiency
 	local average_return_per_cost = self.traditional_foraging_return
-	if pop.female then
-		eff = pop.race.female_efficiency
-	end
-	return "\nTraditional Military: (" .. ut.to_fixed_point2(self.traditional_militarization * 100) .. "% of population)"
+	return "\n · Traditional Military: (" .. ut.to_fixed_point2(self.traditional_militarization * 100) .. "% of population)"
 		.. tabb.accumulate(self.traditional_units, "", function (a, k, v)
-			return a .. "\n · " .. ut.to_fixed_point2(v * 100) .. "% " .. k .. ", "
+			return a .. "\n    · " .. ut.to_fixed_point2(v * 100) .. "% " .. k .. ", "
 		end)
-		.. "\nTraditional Foraging Targets: " .. " (" .. ut.to_fixed_point2(average_return_per_cost) .. "% minimum)"
-		.. tabb.accumulate(self.traditional_foraging_target, "", function (a, k, v)
+		.. "\n · Traditional Foraging Targets: ".. tabb.accumulate(self.traditional_foraging_target, "", function (a, k, v)
 			if v > average_return_per_cost then
-				return a .. "\n  ¤ " .. k .. ": " ..  ut.to_fixed_point2(v) .. "%"
+				return a .. "\n     · " .. k .. " (" .. ut.to_fixed_point2(v / average_return_per_cost * 100) .. "%)"
 			end
 			return a
 		end)

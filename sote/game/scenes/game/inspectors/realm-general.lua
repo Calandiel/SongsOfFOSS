@@ -34,7 +34,8 @@ local function info(rect, realm, gam)
 
 
         -- general info
-        uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect)
+        uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect, realm.name
+            .. " follows the customs of " .. realm.primary_culture.name .. ".\n" .. realm.primary_culture:text_tooltip())
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
         uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT

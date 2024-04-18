@@ -95,26 +95,30 @@ function dbm.foragable_targets(province)
 	local tile_count, fruit_plants, seed_plants, timber, mushrooms, shellfish, fish, blanks = dbm.foraging_potentials(province)
 	---@type {resource: string, output: table<TradeGoodReference, number>, amount: number, search: JOBTYPE, handle: JOBTYPE}[]
 	local products = {}
+	-- TODO better weighting of produce amounts from plants
 	local fruit_production = (fruit_plants[1] + fruit_plants[2]) * 0.5
-	-- BASIC PLANT PRODUCE
+	local seed_production = (seed_plants[1] + seed_plants[2]) * 0.5
+	-- TODO weight game amounts based on plants and climate
+	local small_game = 1
+	local large_game = small_game / 2
+	-- TODO weight fish and and shellfish based on climate
+	-- FORAGER SEARCH
 	if fruit_production > 0 then
 		products['Finding Berries'] = {
 			output = { ['berries'] = 1.5 },
 			amount = fruit_production,
 			search = JOBTYPE.FORAGER,
-			handle = JOBTYPE.HAULING,
+			handle = JOBTYPE.FORAGER,
 		}
 	end
-	local seed_production = (seed_plants[1] + seed_plants[2]) * 0.5
 	if seed_production > 0 then
 		products['Harvesting Seeds'] = {
 			output = { ['grain'] = 1.5 },
 			amount = seed_production,
 			search = JOBTYPE.FORAGER,
-			handle = JOBTYPE.LABOURER,
+			handle = JOBTYPE.FARMER,
 		}
 	end
-	-- FORAGING FOR MEAT USE CASE
 	if mushrooms > 0 then
 		products['Foraging Mushrooms'] = {
 			output = { ['mushrooms'] = 1.0 },
@@ -123,22 +127,28 @@ function dbm.foragable_targets(province)
 			handle = JOBTYPE.CLERK,
 		}
 	end
-	-- TODO weight game amounts
-	local small_game = 1
-	local large_game = small_game / 2
-	if small_game > 0 then
-		products['Trapping Animals'] = {
-			output = { ['meat'] = 0.5  },
-			amount = small_game * 2,
+	if shellfish > 0 then
+		products['Gathering Shellfish'] = {
+			output = { ['shellfish'] = 2.0 },
+			amount = 1,
 			search = JOBTYPE.FORAGER,
-			handle = JOBTYPE.ARTISAN,
+			handle = JOBTYPE.HAULING,
 		}
+	end
+	products['Trapping Animals'] = {
+		output = { ['meat'] = 0.5  },
+		amount = small_game * 2,
+		search = JOBTYPE.FORAGER,
+		handle = JOBTYPE.ARTISAN,
+	}
+	-- HUNTING SEARCH
+	if small_game > 0 then
 	-- HUNTING LAND ANIMALS
 		products['Hunting Critters'] = {
 			output = { ['meat'] = 1.0 },
 			amount = small_game,
 			search = JOBTYPE.HUNTING,
-			handle = JOBTYPE.HAULING,
+			handle = JOBTYPE.HUNTING,
 		}
 	end
 	if large_game > 0 then
@@ -147,15 +157,6 @@ function dbm.foragable_targets(province)
 			amount = large_game,
 			search = JOBTYPE.HUNTING,
 			handle = JOBTYPE.WARRIOR,
-		}
-	end
-	-- MARINE FOOD
-	if shellfish > 0 then
-		products['Gathering Shellfish'] = {
-			output = { ['shellfish'] = 2.0 },
-			amount = 1,
-			search = JOBTYPE.FORAGER,
-			handle = JOBTYPE.LABOURER,
 		}
 	end
 	if fish > 0 then

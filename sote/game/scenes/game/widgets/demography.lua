@@ -48,7 +48,7 @@ local function demography(provinces, ui_panel, collapsed)
         for culture, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = culture.name .. " (" .. count .. ")",
+                tooltip = culture.name .. " (" .. count .. ")\n" .. culture:text_tooltip(),
                 r = culture.r,
                 g = culture.g,
                 b = culture.b,
