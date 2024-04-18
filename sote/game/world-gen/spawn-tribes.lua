@@ -43,7 +43,7 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- Mark the province as settled for processing...
 	WORLD:set_settled_province(capitol)			local tc, fs = 0, {conifer = 0, broadleaf = 0, shrub = 0, grass = 0}
---	require "game.economy.diet-breadth-model".cultural_foraging_update(r)
+	require "game.economy.diet-breadth-model".cultural_foragable_targets(r)
 
 	--calculate average ratial foraging_efficiency from males per 100 females
 	local male_percentage = race.males_per_hundred_females / (100 + race.males_per_hundred_females)

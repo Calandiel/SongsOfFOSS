@@ -303,31 +303,33 @@ function pro.run(province)
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return table<TradeGoodReference, number> products
 	local function forage(pop_view, pop_table, time)
+		-- TODO only scale foraging time when harvesting foraging and hunting types
 		local food_produced = get_foraging_production(pop_view, time)
-		local foragable_goods = province.foragable_goods
-    -- determine actual foraged production from what to collect
-    	local total_encountered, cultural_average_return, cultural_perfered_targets = 0, pop_table.culture.traditional_foraging_returns, pop_table.culture.traditional_foraging_targets
-		local production = tabb.accumulate(cultural_perfered_targets, {}, function (production, resource_type, return_per_cost)
-			if return_per_cost >= cultural_average_return then
-				local amount = foragable_goods[resource_type].amount
-				total_encountered = total_encountered + amount -- to determine amount encountered
-				production[resource_type] = {
-					output = province.foragable_goods[resource_type].output,
-					amount = province.foragable_goods[resource_type].amount,
-					cost = pop_job_efficiency[province.foragable_goods[resource_type].time] + pop_job_efficiency[province.foragable_goods[resource_type].cost]} -- to determine time spent
+		local foraging_targets = province.foraging_targets
+    -- filter foragable_targets using traditional_cultural_target and traditional_cultural_return
+    	local total_encountered, cultural_average_return, cultural_perfered_targets = 0, pop_table.culture.traditional_foraging_return, pop_table.culture.traditional_foraging_target
+		local foraging_goods = tabb.accumulate(foraging_targets, {}, function (foraging_goods, resource_type, values)
+			if pop_table.culture.traditional_foraging_target[resource_type] >= pop_table.culture.traditional_foraging_return then
+				local amount = values.amount
+				local search = pop_job_efficiency[values.search]
+				local encounter_rate = amount / search
+				total_encountered = total_encountered + encounter_rate -- used as divisor in encounter weight
+				foraging_goods[resource_type] = encounter_rate -- used as dividend in encounter weight
 	--			print("  resource: " .. tostring(resource_type) .. " return_per_cost: " .. tostring(values.return_per_cost))
 			end
-			return production
+			return foraging_goods
 		end)
-		-- determine actual outputs based on encounting and search/process times
-		local products = tabb.accumulate(production, {}, function (products, _, values)
-			for good, number in pairs(values.output) do
-				products[good] = (products[good] or 0) + values.amount / total_encountered * time / values.cost * number * food_produced
+		-- weight actual outputs based on encounter rates and handle times
+		local foraging_output = tabb.accumulate(foraging_goods, {}, function (foraging_output, resource, encounter_rate)
+			for good, number in pairs(foraging_targets[resource].output) do
+				local encounter_ratio = encounter_rate / total_encountered
+				local good_output = number / pop_job_efficiency[foraging_targets[resource].handle]
+				foraging_output[good] = (foraging_output[good] or 0) + encounter_ratio * time * good_output
 	--			print("  good: " .. tostring(good) .. " now at " .. tostring(production[good]))
 			end
-			return products
+			return foraging_output
 		end)
-		return products
+		return foraging_output
 	end
 
 

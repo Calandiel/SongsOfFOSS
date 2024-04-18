@@ -410,8 +410,8 @@ local function trade_widget(gam, tile, panel)
 		tile.province.foragers,
 		layout:next(unit * 5, unit * 1),
 		"Foragable goods: (from " .. tabb.size(tile.province.tiles) .." tiles)"
-		.. tabb.accumulate(tile.province.foraging_targets, "", function (a, _, values)
-			return a .. "\n - " .. values.resource .. " (" .. uit.to_fixed_point2(values.amount) ..")"
+		.. tabb.accumulate(tile.province.foraging_targets, "", function (a, resource, values)
+			return a .. "\n - " .. resource .. " (" .. uit.to_fixed_point2(values.amount) ..")"
 				.. tabb.accumulate(values.output, "", function (b, good, amount)
 					return b .. " ¤ " .. RAWS_MANAGER.trade_goods_by_name[good].description .. " (" .. uit.to_fixed_point2(amount) .. ")"
 				end).. "\n    · Search with " .. dbm.JOB_ACTIVITY[values.search] .. " and "..  dbm.JOB_ACTIVITY[values.handle] .. " to process."

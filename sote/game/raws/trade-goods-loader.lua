@@ -65,20 +65,6 @@ function d.load()
 	add_use_case("grain", "grain", 1)
 
 	TradeGood:new {
-		name = "mushroom",
-		description = "mushroom",
-		icon = "chanterelle.png",
-		r = 1,
-		g = 0.86,
-		b = 0.5,
-		category = "good",
-		base_price = 2,
-	}
-	add_use_case("mushroom", "calories", 1)
-	add_use_case("mushroom", "fruit", 1)
-	add_use_case("mushroom", "meat", 1)
-
-	TradeGood:new {
 		name = "honey",
 		description = "honey",
 		icon = "high-grass.png",
@@ -200,6 +186,7 @@ function d.load()
 	add_use_case("leather", "containers", 0.25)
 	add_use_case("leather", "leather", 1)
 
+	-- GOODS THAT SATISFY MEAT USE CASES
 	TradeGood:new {
 		name = "meat",
 		description = "meat",
@@ -207,7 +194,7 @@ function d.load()
 		r = 1,
 		g = 0.1,
 		b = 0.1,
-		base_price = 6,
+		base_price = 4,
 	}
 	add_use_case("meat", "calories", 2)
 	add_use_case("meat", "meat", 1)
@@ -219,9 +206,9 @@ function d.load()
 		r = 0.67,
 		g = 0.73,
 		b = 0.8,
-		base_price = 6,
+		base_price = 4,
 	}
-	add_use_case("fish", "calories", 2)
+	add_use_case("fish", "calories", 1.25)
 	add_use_case("fish", "meat", 1)
 
 	TradeGood:new {
@@ -231,10 +218,25 @@ function d.load()
 		r = 0.62,
 		g = 0.56,
 		b = 0.48,
-		base_price = 6,
+		base_price = 4,
 	}
-	add_use_case("shellfish", "calories", 2)
-	add_use_case("shellfish", "meat", 1)
+	add_use_case("shellfish", "calories", 1)
+	add_use_case("shellfish", "meat", 0.5)
+
+	TradeGood:new {
+		name = "mushrooms",
+		description = "mushrooms",
+		icon = "chanterelles.png",
+		r = 1,
+		g = 0.86,
+		b = 0.5,
+		category = "good",
+		base_price = 2,
+	}
+	add_use_case("mushrooms", "calories", 1.5)
+	add_use_case("mushrooms", "fruit", 1)
+	add_use_case("mushrooms", "grain", 1)
+	add_use_case("mushrooms", "meat", 1)
 
 	TradeGood:new {
 		name = "timber",
@@ -311,7 +313,7 @@ function d.load()
 		r = 0.71,
 		g = 0.25,
 		b = 0.05,
-		base_price = 8,
+		base_price = 10,
 	}
 	add_use_case("tools-cast-copper", "tools-like", 2)
 	add_use_case("tools-cast-copper", "tools", 1.5)
@@ -324,7 +326,7 @@ function d.load()
 		r = 0.71,
 		g = 0.25,
 		b = 0.05,
-		base_price = 15
+		base_price = 14
 	}
 	add_use_case("copper-bars", "copper-bars", 1)
 
@@ -335,7 +337,7 @@ function d.load()
 		r = 0.71,
 		g = 0.25,
 		b = 0.05,
-		base_price = 15
+		base_price = 12
 	}
 	add_use_case("copper-ore", "copper-source", 1)
 
