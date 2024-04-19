@@ -2,12 +2,12 @@ local JOBTYPE = require "game.raws.job_types"
 
 local ll = {}
 
--- temp stock values for body size based needs and hauling efficiencies
+-- temp stock values for body size and related needs and efficiencies
 local smallest_size = 0.25
 local small_size = 0.5
 local dwarf_size = 0.75
 local medium_size = 1
-local large_size = 1.25
+local large_size = 1.5
 local largest_size = 2
 -- temp stock values for healthcare needs and CC weight
 local low_carry_weight = 0.5
@@ -17,6 +17,17 @@ local big_carry_weight = 1.5
 function ll.load()
 	local Race = require "game.raws.race"
 
+	---@type PortraitDescription
+	local null_portrait = {
+		folder = "null_middle",
+		layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
+					"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png", "beard.png"},
+		layers_groups = {
+			hair = {"hair_behind.png", "hair.png"}
+		}
+	}
+
+	-- BASE: HUMAN
 	Race:new {
 		name = "human",
 		r = 0.85,
@@ -25,6 +36,7 @@ function ll.load()
 		icon = 'barbute.png',
 	}
 
+	---@type PortraitDescription
 	local beaver_portrait = {
 		folder = "beaver",
 		layers = {"cloth_behind.png", "base.png", "over_1.png", "over_2.png", "ear.png", "cloth.png"},
@@ -54,15 +66,15 @@ function ll.load()
 			fallback = beaver_portrait
 		},
 		description = 'high beavers',
-		males_per_hundred_females = 108,
+		males_per_hundred_females = 110,
 		child_age = 4,
 		teen_age = 15,
 		adult_age = 20,
 		middle_age = 50,
 		elder_age = 70,
 		max_age = 100,
-		minimum_comfortable_temperature = -5,
-		minimum_absolute_temperature = -25,
+		minimum_comfortable_temperature = -15,
+		minimum_absolute_temperature = -30,
 		fecundity = 0.85,
 		spotting = 0.5,
 		visibility = 1.5,
@@ -105,7 +117,7 @@ function ll.load()
 				['liquors'] = large_size,
 			},
 		},
-		female_infrastructure_needs = 2,
+		female_infrastructure_needs = large_size,
 		male_body_size = largest_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 2,
@@ -145,12 +157,12 @@ function ll.load()
 				['liquors'] = largest_size,
 			},
 		},
-		male_infrastructure_needs = 4,
-
+		male_infrastructure_needs = largest_size,
 		carrying_capacity_weight = big_carry_weight,
 		requires_large_river = true
 	}
 
+	---@type PortraitDescription
 	local gnoll_portrait = {
 		folder = "gnoll",
 		layers = {"base.PNG", "braid.PNG", "spine.PNG", "pattern.PNG", "eye.PNG"},
@@ -177,8 +189,8 @@ function ll.load()
 		middle_age = 20,
 		elder_age = 35,
 		max_age = 40,
-		minimum_comfortable_temperature = 0,
-		minimum_absolute_temperature = -15,
+		minimum_comfortable_temperature = -5,
+		minimum_absolute_temperature = -20,
 		fecundity = 1.5,
 		spotting = 1.5,
 		visibility = 1.25,
@@ -220,7 +232,7 @@ function ll.load()
 				['liquors'] = largest_size,
 			}
 		},
-		female_infrastructure_needs = 3.0,
+		female_infrastructure_needs = large_size,
 		male_body_size = large_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.25,
@@ -259,11 +271,11 @@ function ll.load()
 				['liquors'] = large_size,
 			}
 		},
-		male_infrastructure_needs = 1.5,
-
+		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = big_carry_weight
 	}
 
+	---@type PortraitDescription
 	local orc_portrait = {
 		folder = "orc",
 		layers = {"base.PNG", "chin.PNG", "right_eye.PNG", "nose_mouth.PNG", "left_eye.PNG", "pattern.PNG", "hair.PNG", "cloth.PNG"},
@@ -274,9 +286,9 @@ function ll.load()
 
 	Race:new {
 		name = 'orc',
-		r = 0.1,
-		g = 0.8,
-		b = 0.3,
+		r = 0.2,
+		g = 0.7,
+		b = 0.7,
 		icon = 'orc-head.png',
 		male_portrait = {
 			fallback = orc_portrait
@@ -285,7 +297,7 @@ function ll.load()
 			fallback = orc_portrait
 		},
 		description = 'orc',
-		males_per_hundred_females = 50,
+		males_per_hundred_females = 90,
 		child_age = 3,
 		teen_age = 7,
 		adult_age = 10,
@@ -334,7 +346,7 @@ function ll.load()
 				['liquors'] = large_size,
 			},
 		},
-		female_infrastructure_needs = 1.0,
+		female_infrastructure_needs = medium_size,
 		male_body_size = large_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
@@ -372,46 +384,32 @@ function ll.load()
 				['liquors'] = large_size,
 			},
 		},
-		male_infrastructure_needs = 1.0,
-
-		carrying_capacity_weight = big_carry_weight
+		male_infrastructure_needs = medium_size,
+		carrying_capacity_weight = big_carry_weight,
+		requires_large_forest = true
 	}
 
 	Race:new {
 		name = 'elf',
-		r = 0.1,
-		g = 0.5,
-		b = 0.1,
+		r = 0.25,
+		g = 0.41,
+		b = 0.88,
 		icon = 'woman-elf-face.png',
 		male_portrait = {
-			fallback = {
-				folder = "null_middle",
-				layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
-							"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png", "beard.png"},
-				layers_groups = {
-					hair = {"hair_behind.png", "hair.png"}
-				}
-			}
+			fallback = null_portrait
 		},
 		female_portrait = {
-			fallback = {
-				folder = "null_middle",
-				layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
-							"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png"},
-				layers_groups = {
-					hair = {"hair_behind.png", "hair.png"}
-				}
-			}
+			fallback = null_portrait
 		},
 		description = 'elves',
-		males_per_hundred_females = 100,
+		males_per_hundred_females = 95,
 		child_age = 10,
 		teen_age = 50,
 		adult_age = 100,
 		middle_age = 400,
 		elder_age = 700,
 		max_age = 1000,
-		minimum_comfortable_temperature = -5,
+		minimum_comfortable_temperature = 0,
 		minimum_absolute_temperature = -15,
 		fecundity = 0.5,
 		spotting = 2,
@@ -455,7 +453,7 @@ function ll.load()
 				['liquors'] = medium_size,
 			},
 		},
-		female_infrastructure_needs = 5,
+		female_infrastructure_needs = large_size,
 		male_body_size = medium_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 1,
@@ -495,9 +493,8 @@ function ll.load()
 				['liquors'] = medium_size,
 			},
 		},
-		male_infrastructure_needs = 5,
+		male_infrastructure_needs = large_size,
 		carrying_capacity_weight = med_carry_weight,
-
 		requires_large_forest = true
 	}
 
@@ -521,15 +518,15 @@ function ll.load()
 			fallback = dwarf_portrait
 		},
 		description = 'dwarf',
-		males_per_hundred_females = 102,
+		males_per_hundred_females = 105,
 		child_age = 4,
 		teen_age = 25,
 		adult_age = 50,
 		middle_age = 150,
 		elder_age = 250,
 		max_age = 300,
-		minimum_comfortable_temperature = -10,
-		minimum_absolute_temperature = -25,
+		minimum_comfortable_temperature = -5,
+		minimum_absolute_temperature = -20,
 		minimum_comfortable_elevation = 800,
 		fecundity = 0.75,
 		spotting = 1.0,
@@ -573,7 +570,7 @@ function ll.load()
 				['liquors'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
 			},
 		},
-		female_infrastructure_needs = 3,
+		female_infrastructure_needs = largest_size,
 		male_body_size = dwarf_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 1.5,
@@ -613,39 +610,34 @@ function ll.load()
 				['liquors'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
 			},
 		},
-		male_infrastructure_needs = 3,
+		male_infrastructure_needs = largest_size,
 		carrying_capacity_weight = med_carry_weight,
+	}
 
+	---@type PortraitDescription
+	local goblin_portrait = {
+		folder = "goblin",
+		layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png", "11.png"},
+		layers_groups = {
+			ear = {"04.png", "07.png"},
+			hair = {"055.png", "10.png"}
+		}
 	}
 
 	Race:new {
 		name = 'goblin',
-		r = 0.1,
-		g = 0.7,
-		b = 0.1,
+		r = 0.0,
+		g = 0.9,
+		b = 0.0,
 		icon = 'goblin.png',
 		male_portrait = {
-			fallback = {
-				folder = "goblin",
-				layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png", "11.png"},
-				layers_groups = {
-					ear = {"04.png", "07.png"},
-					hair = {"055.png", "10.png"}
-				}
-			}
+			fallback = goblin_portrait
 		},
 		female_portrait = {
-			fallback = {
-				folder = "goblin",
-				layers = {"04.png", "05.png", "055.png", "06.png", "07.png", "08.png", "09.png", "10.png"},
-				layers_groups = {
-					ear = {"04.png", "07.png"},
-					hair = {"055.png", "10.png"}
-				}
-			}
+			fallback = goblin_portrait
 		},
 		description = 'goblin',
-		males_per_hundred_females = 102,
+		males_per_hundred_females = 110,
 		child_age = 1,
 		teen_age = 5,
 		adult_age = 10,
@@ -696,7 +688,7 @@ function ll.load()
 				['liquors'] = small_size,
 			},
 		},
-		female_infrastructure_needs = 0.25,
+		female_infrastructure_needs = smallest_size,
 		male_body_size = small_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.25,
@@ -736,44 +728,41 @@ function ll.load()
 				['liquors'] = small_size,
 			},
 		},
-		male_infrastructure_needs = 0.25,
+		male_infrastructure_needs = smallest_size,
 		carrying_capacity_weight = low_carry_weight,
+	}
+
+	---@type PortraitDescription
+	local vermen_portrait = {
+		folder = "vermen",
+		layers = {"ear_behind.PNG", "base.PNG", "ear_front.PNG", "eye.PNG", "patterns.PNG", "cloth.PNG", "hat.PNG"},
+		layers_groups = {
+			ear = {"ear_behind.PNG", "ear_front.PNG"}
+		}
 	}
 
 	Race:new {
 		name = 'verman',
-		r = 0.6,
-		g = 0.6,
-		b = 0.6,
+		r = 0.9,
+		g = 0.55,
+		b = 0,
 		icon = 'rat.png',
 		male_portrait = {
-			fallback = {
-				folder = "vermen",
-				layers = {"ear_behind.PNG", "base.PNG", "ear_front.PNG", "eye.PNG", "patterns.PNG", "cloth.PNG", "hat.PNG"},
-				layers_groups = {
-					ear = {"ear_behind.PNG", "ear_front.PNG"}
-				}
-			}
+			fallback = vermen_portrait
 		},
 		female_portrait = {
-			fallback = {
-				folder = "vermen",
-				layers = {"ear_behind.PNG", "base.PNG", "ear_front.PNG", "eye.PNG", "patterns.PNG", "cloth.PNG", "hat.PNG"},
-				layers_groups = {
-					ear = {"ear_behind.PNG", "ear_front.PNG"}
-				}
-			}
+			fallback = vermen_portrait
 		},
 		description = 'vermen',
-		males_per_hundred_females = 110,
+		males_per_hundred_females = 100,
 		child_age = 1,
 		teen_age = 2,
 		adult_age = 4,
 		middle_age = 12,
 		elder_age = 21,
 		max_age = 25,
-		minimum_comfortable_temperature = 15,
-		minimum_absolute_temperature = -10,
+		minimum_comfortable_temperature = -5,
+		minimum_absolute_temperature = -20,
 		fecundity = 4,
 		spotting = 1.5,
 		visibility = 0.75,
@@ -816,7 +805,7 @@ function ll.load()
 				['liquors'] = smallest_size,
 			},
 		},
-		female_infrastructure_needs = 0.1,
+		female_infrastructure_needs = smallest_size,
 		male_body_size = smallest_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.5,
@@ -856,8 +845,212 @@ function ll.load()
 				['liquors'] = smallest_size,
 			},
 		},
-		male_infrastructure_needs = 0.1,
+		male_infrastructure_needs = smallest_size,
 		carrying_capacity_weight = low_carry_weight,
+	}
+
+	Race:new {
+		name = 'harpy',
+		r = 0.54,
+		g = 0.16,
+		b = 0.88,
+		icon = 'harpy.png',
+		description = 'harpies',
+		males_per_hundred_females = 75,
+		child_age = 3,
+		teen_age = 9,
+		adult_age = 15,
+		middle_age = 30,
+		elder_age = 45,
+		max_age = 60,
+		minimum_comfortable_temperature = -15,
+		minimum_absolute_temperature = -30,
+		minimum_comfortable_elevation = 800,
+		fecundity = 1.125,
+		spotting = 2.0,
+		visibility = 1.25,
+		female_body_size = medium_size,
+		female_efficiency = {
+			[JOBTYPE.FARMER] = 0.75,
+			[JOBTYPE.ARTISAN] = 0.5,
+			[JOBTYPE.CLERK] = 1.25,
+			[JOBTYPE.LABOURER] = 1,
+			[JOBTYPE.WARRIOR] = 1.25, -- harpies have sharp claws
+			[JOBTYPE.HAULING] = medium_size * 0.5, -- harpies light for their size
+			[JOBTYPE.FORAGER] = 1.5,
+			[JOBTYPE.HUNTING] = 1.25
+		},
+		female_needs = {
+			[NEED.WATER] = {
+				['water'] = medium_size
+			},
+			[NEED.FOOD] = {
+				['calories'] = 1.5,	-- 1500 kcal
+				['fruit'] = 0.5,	--  500 kcal
+				['meat'] = 0.25,	--  500 kcal
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = medium_size * 0.25 -- harpies have pretty feathers
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = medium_size
+			},
+			[NEED.TOOLS] = {
+				['tools-like'] = medium_size * 0.5, -- harpies have sharp claws
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = med_carry_weight,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = medium_size,
+			},
+			[NEED.LUXURY] = {
+				['liquors'] = medium_size,
+			},
+		},
+		female_infrastructure_needs = dwarf_size,
+		male_body_size = dwarf_size,
+		male_efficiency = {
+			[JOBTYPE.FARMER] = 0.75,
+			[JOBTYPE.ARTISAN] = 0.5,
+			[JOBTYPE.CLERK] = 1.25,
+			[JOBTYPE.LABOURER] = 1,
+			[JOBTYPE.WARRIOR] = 1.25, -- harpies have sharp claws
+			[JOBTYPE.HAULING] = dwarf_size * 0.5, -- harpies light for their size
+			[JOBTYPE.FORAGER] = 1.5,
+			[JOBTYPE.HUNTING] = 1.5
+		},
+		male_needs = {
+			[NEED.WATER] = {
+				['water'] = dwarf_size
+			},
+			[NEED.FOOD] = {
+				['calories'] = 1.5,	-- 1500 kcal
+				['fruit'] = 0.5,	--  500 kcal
+				['meat'] = 0.25,	--  500 kcal
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = dwarf_size * 0.5 -- vermen have nice fur
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = dwarf_size
+			},
+			[NEED.TOOLS] = {
+				['tools-like'] = dwarf_size,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = med_carry_weight,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = dwarf_size,
+			},
+			[NEED.LUXURY] = {
+				['liquors'] = dwarf_size,
+			},
+		},
+		male_infrastructure_needs = small_size,
+		carrying_capacity_weight = med_carry_weight,
+	}
+
+	Race:new {
+		name = 'kappa',
+		r = 0.8,
+		g = 0.9,
+		b = 0.1,
+		icon = 'toad-teeth.png',
+		description = 'kappa',
+		males_per_hundred_females = 125,
+		child_age = 6,
+		teen_age = 15,
+		adult_age = 20,
+		middle_age = 50,
+		elder_age = 80,
+		max_age = 100,
+		minimum_comfortable_temperature = 10,
+		minimum_absolute_temperature = -5,
+		fecundity = 1.5,
+		spotting = 1,
+		visibility = 0.5,
+		female_body_size = small_size,
+		female_efficiency = {
+			[JOBTYPE.FARMER] = 0.25,
+			[JOBTYPE.ARTISAN] = 0.125,
+			[JOBTYPE.CLERK] = 0.75,
+			[JOBTYPE.LABOURER] = 0.5,
+			[JOBTYPE.WARRIOR] = 1, -- kappa are ambush predators
+			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush  predators
+			[JOBTYPE.FORAGER] = 0.25,
+			[JOBTYPE.HUNTING] = 0.75 -- kappa are ambush predators
+		},
+		female_needs = {
+			[NEED.WATER] = {
+				['water'] = small_size * 2 -- kappa like water
+			},
+			[NEED.FOOD] = {
+				['calories'] = 0.75,--  750 kcal
+				['meat'] = 0.75,	-- 1500 kcal
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = small_size
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = small_size
+			},
+			[NEED.TOOLS] = {
+				['tools-like'] = small_size,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = med_carry_weight,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = medium_size,
+			},
+			[NEED.LUXURY] = {
+				['liquors'] = medium_size,
+			},
+		},
+		female_infrastructure_needs = small_size,
+		male_body_size = small_size,
+		male_efficiency = {
+			[JOBTYPE.FARMER] = 0.25,
+			[JOBTYPE.ARTISAN] = 0.125,
+			[JOBTYPE.CLERK] = 0.75,
+			[JOBTYPE.LABOURER] = 0.5,
+			[JOBTYPE.WARRIOR] = 1, -- kappa are ambush predators
+			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush  predators
+			[JOBTYPE.FORAGER] = 0.25,
+			[JOBTYPE.HUNTING] = 0.75 -- kappa are ambush predators
+		},
+		male_needs = {
+			[NEED.WATER] = {
+				['water'] = small_size * 2 -- kappa like water
+			},
+			[NEED.FOOD] = {
+				['calories'] = 0.75,--  750 kcal
+				['meat'] = 0.75,	-- 1500 kcal
+			},
+			[NEED.CLOTHING] = {
+				['clothes'] = small_size
+			},
+			[NEED.FURNITURE] = {
+				['furniture'] = small_size
+			},
+			[NEED.TOOLS] = {
+				['tools-like'] = small_size,
+			},
+			[NEED.HEALTHCARE] = {
+				['healthcare'] = med_carry_weight,
+			},
+			[NEED.STORAGE] = {
+				['containers'] = medium_size,
+			},
+			[NEED.LUXURY] = {
+				['liquors'] = medium_size,
+			},
+		},
+		male_infrastructure_needs = small_size,
+		carrying_capacity_weight = med_carry_weight,
+		requires_large_river = true
 	}
 
 
