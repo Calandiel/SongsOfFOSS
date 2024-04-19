@@ -124,12 +124,12 @@ end
 local function get_tile_lerp_factors(lat, lon)
 	local x_coord = (0.5 * lon / math.pi + 0.5) * WORLD.climate_grid_size
 	local x_cell = math.floor(x_coord)
-	-- x_cell = math.max(0, math.min(WORLD.climate_grid_size - 1, x_cell))
+	x_cell = math.max(0, math.min(WORLD.climate_grid_size - 1, x_cell))
 	local x_delta = x_coord - x_cell
 
 	local y_coord = (lat / math.pi + 0.5) * WORLD.climate_grid_size
 	local y_cell = math.floor(y_coord)
-	-- y_cell = math.max(0, math.min(WORLD.climate_grid_size - 1, y_cell))
+	y_cell = math.max(0, math.min(WORLD.climate_grid_size - 1, y_cell))
 	local y_delta = y_coord - y_cell
 
 	local cell = ut.get_id(x_cell, y_cell)

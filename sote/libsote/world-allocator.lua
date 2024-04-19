@@ -185,8 +185,8 @@ function wa.allocate(size, seed)
 
 				world:_set_index(q, r, face, resolved_index)
 
-				local lat, lon = hexu.hex_coords_to_latlon(q, r, face, size)
-				world:_set_latlon(resolved_index, lat, lon)
+				-- local lat, lon = hexu.hex_coords_to_latlon(q, r, face - 1, size)
+				-- world:_set_latlon(resolved_index, lat, lon)
 
 				index = next_index
 			end

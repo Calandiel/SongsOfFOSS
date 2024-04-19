@@ -272,13 +272,13 @@ end
 local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
 	local tile_data = {}
 
-	-- desc[2] = sote_vals.latitude
-	-- get_val(desc, err_msg, float_val)
-	-- tile_data.latitude = float_val[0]
+	desc[2] = sote_vals.latitude
+	get_val(desc, err_msg, float_val)
+	tile_data.latitude = float_val[0]
 
-	-- desc[2] = sote_vals.longitude
-	-- get_val(desc, err_msg, float_val)
-	-- tile_data.longitude = float_val[0]
+	desc[2] = sote_vals.longitude
+	get_val(desc, err_msg, float_val)
+	tile_data.longitude = float_val[0]
 
 	desc[2] = sote_vals.elevation
 	get_val(desc, err_msg, float_val)

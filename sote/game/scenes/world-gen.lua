@@ -29,7 +29,7 @@ local function cache_tile_coord(world)
 
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
-		local q, r, face = hex.latlon_to_hex_coords(lat, lon, world.size)
+		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
 		world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
 
@@ -48,8 +48,10 @@ function wg.init()
 	end
 
 	math.randomseed(os.time())
-	-- local seed = math.random(1, 100000)
-	local seed = 58738
+	local seed = math.random(1, 100000)
+	-- local seed = 58738 -- climate integration was done on this one
+	-- local seed = 53201 -- banding
+	-- local seed = 20836 -- north pole cells
 
 	wg.world = libsote.generate_world(seed)
 	wg.message = libsote.message
@@ -70,6 +72,7 @@ function wg.init()
 
 	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
+	-- wl.dump_maps_from(wg.world)
 
 
 	wg.world_size = DEFINES.world_size

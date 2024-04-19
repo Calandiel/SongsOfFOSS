@@ -107,8 +107,8 @@ end
 function world:set_tile_data(q, r, face, data)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 
-	-- self.colatitude[index] = data.latitude
-	-- self.minus_longitude[index] = data.longitude
+	self.colatitude[index] = data.latitude
+	self.minus_longitude[index] = data.longitude
 	self.elevation[index] = data.elevation
 	self.hilliness[index] = data.rugosity
 	self.rock_type[index] = data.rock_type
@@ -135,6 +135,12 @@ function world:get_minus_longitude(q, r, face)
 end
 
 local llu = require("game.latlon")
+
+function world:get_latlon(q, r, face)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+end
+
 function world:get_latlon_by_index(index)
 	return -llu.colat_to_lat(self.colatitude[index - 1]), -self.minus_longitude[index - 1] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
@@ -177,8 +183,7 @@ end
 
 function world:get_climate_data(q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
-	-- print("debug get_climate_data", q, r, face, index, llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index])
-	return require "game.climate.utils".get_climate_data(llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
+	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
 end
 
 function world:_investigate_tile(q, r, face)
