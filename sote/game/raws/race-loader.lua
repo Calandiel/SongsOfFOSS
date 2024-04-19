@@ -27,12 +27,12 @@ function ll.load()
 		}
 	}
 
-	-- BASE: HUMAN
+	-- BASE: HUMAN 6 6 6
 	Race:new {
 		name = "human",
-		r = 0.85,
-		g = 0.85,
-		b = 0.85,
+		r = 0.6,
+		g = 0.6,
+		b = 0.6,
 		icon = 'barbute.png',
 	}
 
@@ -44,10 +44,10 @@ function ll.load()
 			cloth = {"cloth_behind.png", "cloth.png"}
 		}
 	}
-
+	-- 7 5 3
 	Race:new {
 		name = 'high beaver',
-		r = 0.68,
+		r = 0.7,
 		g = 0.4,
 		b = 0.3,
 		icon = 'beaver.png',
@@ -168,7 +168,7 @@ function ll.load()
 		layers = {"base.PNG", "braid.PNG", "spine.PNG", "pattern.PNG", "eye.PNG"},
 		layers_groups = {}
 	}
-
+	-- 8 1 3
 	Race:new {
 		name = 'gnoll',
 		r = 0.8,
@@ -283,12 +283,12 @@ function ll.load()
 			eyes = {"right_eye.PNG", "left_eye.PNG"}
 		}
 	}
-
+	-- 1 3 8
 	Race:new {
 		name = 'orc',
-		r = 0.2,
-		g = 0.7,
-		b = 0.7,
+		r = 0.1,
+		g = 0.8,
+		b = 0.3,
 		icon = 'orc-head.png',
 		male_portrait = {
 			fallback = orc_portrait
@@ -389,11 +389,12 @@ function ll.load()
 		requires_large_forest = true
 	}
 
+	-- 1 1 9
 	Race:new {
 		name = 'elf',
-		r = 0.25,
-		g = 0.41,
-		b = 0.88,
+		r = 0.1,
+		g = 0.1,
+		b = 0.9,
 		icon = 'woman-elf-face.png',
 		male_portrait = {
 			fallback = null_portrait
@@ -504,12 +505,12 @@ function ll.load()
 		layers = {"cloth behind.PNG", "base.PNG", "cloth.PNG", "beard_front.PNG", "hair_front.PNG", "hat.PNG"},
 		layers_groups = {cloth = {"cloth behind.PNG", "cloth.PNG"}}
 	}
-
+	-- 9 1 1
 	Race:new {
 		name = 'dwarf',
-		r = 0.99,
-		g = 0.106,
-		b = 0.133,
+		r = 0.9,
+		g = 0.1,
+		b = 0.1,
 		icon = 'dwarf.png',
 		male_portrait = {
 			fallback = dwarf_portrait
@@ -623,12 +624,12 @@ function ll.load()
 			hair = {"055.png", "10.png"}
 		}
 	}
-
+	-- 1 9 1
 	Race:new {
 		name = 'goblin',
-		r = 0.0,
+		r = 0.1,
 		g = 0.9,
-		b = 0.0,
+		b = 0.1,
 		icon = 'goblin.png',
 		male_portrait = {
 			fallback = goblin_portrait
@@ -740,12 +741,12 @@ function ll.load()
 			ear = {"ear_behind.PNG", "ear_front.PNG"}
 		}
 	}
-
+	-- 8 3 1
 	Race:new {
 		name = 'verman',
-		r = 0.9,
-		g = 0.55,
-		b = 0,
+		r = 0.8,
+		g = 0.3,
+		b = 0.1,
 		icon = 'rat.png',
 		male_portrait = {
 			fallback = vermen_portrait
@@ -849,11 +850,12 @@ function ll.load()
 		carrying_capacity_weight = low_carry_weight,
 	}
 
+	-- 3 1 8
 	Race:new {
 		name = 'harpy',
-		r = 0.54,
-		g = 0.16,
-		b = 0.88,
+		r = 0.3,
+		g = 0.1,
+		b = 0.8,
 		icon = 'harpy.png',
 		description = 'harpies',
 		males_per_hundred_females = 75,
@@ -952,6 +954,7 @@ function ll.load()
 		carrying_capacity_weight = med_carry_weight,
 	}
 
+	-- 5 7 3
 	Race:new {
 		name = 'kappa',
 		r = 0.8,

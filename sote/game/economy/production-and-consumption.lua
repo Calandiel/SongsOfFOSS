@@ -305,8 +305,14 @@ function pro.run(province)
 	local function forage(pop_view, pop_table, time)
 		-- TODO only scale foraging time when harvesting foraging and hunting types
 		local food_produced = get_foraging_production(pop_view, time)
-		local foraging_targets = province.foraging_targets
-    -- filter foragable_targets using traditional_cultural_target and traditional_cultural_return
+		-- filter foragable targets using culture.traditional_foraging_target and cutlure.traditional_foraging_return
+		local foraging_targets = tabb.accumulate(province.foraging_targets, {}, function (a, k, v)
+			if pop_table.culture.traditional_foraging_target[k] >= pop_table.culture.traditional_foraging_return then
+				a[k] = v
+			end
+			return a
+		end)
+    	-- weight amount found by searching efficiencies and normalise the values for total search time of 1
     	local total_encountered, cultural_average_return, cultural_perfered_targets = 0, pop_table.culture.traditional_foraging_return, pop_table.culture.traditional_foraging_target
 		local foraging_goods = tabb.accumulate(foraging_targets, {}, function (foraging_goods, resource_type, values)
 			if pop_table.culture.traditional_foraging_target[resource_type] >= pop_table.culture.traditional_foraging_return then
@@ -315,17 +321,19 @@ function pro.run(province)
 				local encounter_rate = amount / search
 				total_encountered = total_encountered + encounter_rate -- used as divisor in encounter weight
 				foraging_goods[resource_type] = encounter_rate -- used as dividend in encounter weight
-	--			print("  resource: " .. tostring(resource_type) .. " return_per_cost: " .. tostring(values.return_per_cost))
 			end
 			return foraging_goods
 		end)
-		-- weight actual outputs based on encounter rates and handle times
+		-- normalize values to sum of one
+		tabb.accumulate(foraging_goods, nil, function (_, k, v)
+			foraging_goods[k] = foraging_goods[k] / total_encountered
+		end)
+		-- weight actual outputs based handle times
 		local foraging_output = tabb.accumulate(foraging_goods, {}, function (foraging_output, resource, encounter_rate)
 			for good, number in pairs(foraging_targets[resource].output) do
 				local encounter_ratio = encounter_rate / total_encountered
 				local good_output = number / pop_job_efficiency[foraging_targets[resource].handle]
 				foraging_output[good] = (foraging_output[good] or 0) + encounter_ratio * time * good_output
-	--			print("  good: " .. tostring(good) .. " now at " .. tostring(production[good]))
 			end
 			return foraging_output
 		end)
