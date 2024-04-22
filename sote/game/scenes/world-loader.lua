@@ -55,8 +55,8 @@ function wl.draw()
 
 	if coroutine.status(wl.coroutine) == "dead" then
 		-- Well, if the coroutine is dead it means that loading finished...
-		print(output[2])
-		print(debug.traceback(wl.coroutine))
+		-- print(output[2])
+		-- print(debug.traceback(wl.coroutine))
 		if loader_error ~= nil then
 			error(loader_error)
 			return

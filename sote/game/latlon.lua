@@ -34,10 +34,18 @@ function ll.lat_lon_to_cart(lat, lon)
 		math.sin(azimuth) * math.sin(inclination)
 end
 
+local half_pi = math.pi / 2
+
 ---@param lat number Latitude, between [-pi / 2, pi / 2]
 ---@return number
 function ll.lat_to_colat(lat)
-	return math.pi / 2 - lat
+	return half_pi - lat
+end
+
+---@param colat number Colatitude, between [0, pi]
+---@return number
+function ll.colat_to_lat(colat)
+	return half_pi - colat
 end
 
 return ll

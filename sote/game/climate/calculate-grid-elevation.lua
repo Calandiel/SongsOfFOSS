@@ -1,7 +1,20 @@
 local cl = {}
 
+local function update_climate_cells()
+	for _, cell in pairs(WORLD.climate_cells) do
+		local tt = cell.land_tiles + cell.water_tiles
+		if tt > 0 then
+			cell.elevation = cell.elevation / tt
+			cell.water_fraction = cell.water_tiles / tt
+		else
+			cell.elevation = 0
+			cell.water_tiles = 1
+			cell.water_fraction = 1
+		end
+	end
+end
+
 function cl.run()
-	--print("A")
 	for _, tile in pairs(WORLD.tiles) do
 		local cell = tile.climate_cell
 
@@ -13,24 +26,25 @@ function cl.run()
 			cell.water_tiles = cell.water_tiles + 1
 		end
 	end
-	--print("B")
-	for _, cell in pairs(WORLD.climate_cells) do
-		--print("1")
-		local tt = cell.land_tiles + cell.water_tiles
-		--print("2")
-		if tt > 0 then
-			--print("2a")
-			cell.elevation = cell.elevation / tt
-			cell.water_fraction = cell.water_tiles / tt
-			--print("3a")
+
+	update_climate_cells()
+end
+
+function cl.run_hex(world)
+	for i = 1, world.tile_count do
+		local cell = world.climate_cells[i]
+
+		cell.elevation = world:get_elevation_by_index(i)
+
+		local is_land = world:get_is_land_by_index(i)
+		if is_land then
+			cell.land_tiles = cell.land_tiles + 1
 		else
-			--print("2b")
-			cell.elevation = 0
-			cell.water_tiles = 1
-			cell.water_fraction = 1
-			--print("3b")
+			cell.water_tiles = cell.water_tiles + 1
 		end
 	end
+
+	update_climate_cells()
 end
 
 return cl

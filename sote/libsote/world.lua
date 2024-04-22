@@ -5,6 +5,7 @@ local world = {
 	tile_count = 0,
 	coord = nil,
 	coord_by_tile_id = nil,
+	climate_cells = nil,
 
 	colatitude = nil,
 	minus_longitude = nil,
@@ -43,6 +44,7 @@ function world:new(world_size, seed)
 	obj.tile_count = obj.size * obj.size * 30 + 2
 	obj.coord = {}
 	obj.coord_by_tile_id = {}
+	obj.climate_cells = {}
 
 	obj.colatitude        = ffi.new("float["   .. obj.tile_count .. "]")
 	obj.minus_longitude   = ffi.new("float["   .. obj.tile_count .. "]")
@@ -97,6 +99,11 @@ function world:_set_empty(q, r, face)
 	self:_set_index(q, r, face, -1)
 end
 
+function world:_set_latlon(index, colatitude, minus_longitude)
+	self.colatitude[index] = colatitude
+	self.minus_longitude[index] = minus_longitude
+end
+
 function world:set_tile_data(q, r, face, data)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 
@@ -127,8 +134,23 @@ function world:get_minus_longitude(q, r, face)
 	return self.minus_longitude[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+local llu = require("game.latlon")
+
+function world:get_latlon(q, r, face)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+end
+
+function world:get_latlon_by_index(index)
+	return -llu.colat_to_lat(self.colatitude[index - 1]), -self.minus_longitude[index - 1] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+end
+
 function world:get_elevation(q, r, face)
 	return self.elevation[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_elevation_by_index(index)
+	return self.elevation[index - 1]
 end
 
 function world:get_hilliness(q, r, face)
@@ -147,12 +169,21 @@ function world:get_is_land(q, r, face)
 	return self.is_land[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+function world:get_is_land_by_index(index)
+	return self.is_land[index - 1]
+end
+
 function world:get_plate(q, r, face)
 	return self.plate[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
 function world:get_rocks(q, r, face)
 	return self.rocks[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_climate_data(q, r, face)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
 end
 
 function world:_investigate_tile(q, r, face)

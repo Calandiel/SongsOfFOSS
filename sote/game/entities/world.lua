@@ -59,7 +59,7 @@ function world.World:new()
 	local w = {}
 
 	-- require the tile file to make sure that the tile was declared...
-	local tile = require "game.entities.tile"
+	local tile_t = require "game.entities.tile"
 	local cells = require "game.entities.climate-cell"
 
 	-- Register classes and stuff...
@@ -99,7 +99,7 @@ function world.World:new()
 	w.provinces_to_update_on_map = {}
 
 	for tile_id = 1, 6 * ws * ws do
-		table.insert(w.tiles, tile.Tile:new(tile_id))
+		table.insert(w.tiles, tile_t.Tile:new(tile_id))
 	end
 	for cell = 1, w.climate_grid_size * w.climate_grid_size do
 		table.insert(w.climate_cells, cells.ClimateCell:new(cell))
@@ -108,7 +108,7 @@ function world.World:new()
 	---@type World|nil
 	WORLD = w
 	for _, tile in pairs(w.tiles) do
-		ut.set_climate_cell(tile)
+		tile.climate_cell = ut.get_climate_cell(tile:latlon())
 	end
 	setmetatable(w, self)
 	return w

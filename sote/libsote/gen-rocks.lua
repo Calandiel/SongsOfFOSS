@@ -1,7 +1,15 @@
 local gr = {}
 
-local rock_layers = require("libsote.rock-layers")
-local rand = require("libsote.randomness")
+local rock_types = require "libsote.rock".types
+
+local function fix_rock_type(index, world)
+	if world.rock_type[index] == rock_types.no_type and world.is_land[index] then
+		world.rock_type[index] = rock_types.acid_volcanics
+	end
+end
+
+local rock_layers = require "libsote.rock-layers"
+local rand = require "libsote.randomness"
 
 local function assign_rock_layer_to_tile(index, world)
 	local tile_rock_type = world.rock_type[index]
@@ -17,6 +25,7 @@ local function assign_rock_layer_to_tile(index, world)
 end
 
 local function run(index, world)
+	fix_rock_type(index, world)
 	assign_rock_layer_to_tile(index, world)
 
 	-- resources, but skip for now
