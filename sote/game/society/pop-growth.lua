@@ -55,8 +55,8 @@ function pg.growth(province)
 			to_remove[#to_remove + 1] = pp
 		-- TODO REPLACE WITH ACTUAL DISEASE ROLL
 		-- next check for capacity, simulated disease culling on pops
-		elseif not pp:is_character() and cc_used > cc and love.math.random() < healthcare_satisfaction / (0.5 + healthcare_satisfaction * 0.5) * death_rate then
-			to_remove[#to_remove + 1] = pp
+	--	elseif not pp:is_character() and cc_used > cc and love.math.random() < healthcare_satisfaction / (0.5 + healthcare_satisfaction * 0.5) * death_rate then
+	--		to_remove[#to_remove + 1] = pp
 		-- next remove elders for old age check
 		elseif pp.age >= pp.race.elder_age then
 			if love.math.random() < (pp.race.max_age - pp.age) / (pp.race.max_age - pp.race.elder_age) * death_rate then

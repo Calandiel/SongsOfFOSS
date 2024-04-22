@@ -208,7 +208,7 @@ function d.load()
 		b = 0.8,
 		base_price = 4,
 	}
-	add_use_case("fish", "calories", 1.25)
+	add_use_case("fish", "calories", 2)
 	add_use_case("fish", "meat", 1)
 
 	TradeGood:new {
@@ -233,7 +233,7 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("mushrooms", "calories", 1.5)
+	add_use_case("mushrooms", "calories", 1)
 	add_use_case("mushrooms", "fruit", 1)
 	add_use_case("mushrooms", "grain", 1)
 	add_use_case("mushrooms", "meat", 1)

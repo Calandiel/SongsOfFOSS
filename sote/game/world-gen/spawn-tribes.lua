@@ -53,7 +53,7 @@ local function make_new_realm(capitol, race, culture, faith)
 	(1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5,
+	local pop_to_spawn = math.min(5,
 		capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)

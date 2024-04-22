@@ -398,18 +398,19 @@ local function trade_widget(gam, tile, panel)
 		:grid(3)
 		:build()
 
+	local tile_count = tabb.size(tile.province.tiles)
 	uit.count_entry(
 		"Car. cap.: ",
 		tile.province.foragers_limit,
 		layout:next(unit * 5, unit * 1),
-		"Carrying capacity"
+		"Carrying capacity from " .. tile_count .." tiles"
 	)
 
 	uit.count_entry(
 		"Foragers: ",
 		tile.province.foragers,
 		layout:next(unit * 5, unit * 1),
-		"Foragable goods: (from " .. tabb.size(tile.province.tiles) .." tiles)"
+		"Foragable goods: (from " .. tile_count .." tiles)"
 		.. tabb.accumulate(tile.province.foraging_targets, "", function (a, resource, values)
 			return a .. "\n - " .. resource .. " (" .. uit.to_fixed_point2(values.amount) ..")"
 				.. tabb.accumulate(values.output, "", function (b, good, amount)

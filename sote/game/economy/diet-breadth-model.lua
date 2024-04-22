@@ -23,169 +23,207 @@ function dbm.mean_race_job_efficiency(race, jobtype)
     return male_to_female_ratio * race.male_efficiency[jobtype] + (1 - male_to_female_ratio) * race.female_efficiency[jobtype]
 end
 
--- TODO USE CLIMATE TO FIGURE OUT BETTER WEIGHTS FOR FORAGING RESOURCE AMOUNTS
+---calculate the net primary production (NPP) of a tile 
+---@param tile Tile
+---@return number net_primary_production
+---@return number timber
+---@return number shellfish_production
+---@return number fish_production
+---@return number animal_production
+---@return number mushroom_production
+---@return number effective_temperature
+function dbm.net_primary_production(tile)
+	local  _, warmest, _, coldest = tile:get_climate_data()
+	if coldest > warmest then
+		warmest, coldest = coldest, warmest
+	end
+	local effective_temperature = (18 * warmest - 10 * coldest) / (warmest - coldest + 8)
+	local temperture_weighting =  1 / (1 + math.exp(-0.2 * (effective_temperature - 10)))
+--	local mean_annual_temperature = (warmest + coldest) * 0.5
+--	local temperture_weighting = 3 / (1 + math.exp(-(mean_annual_temperature * 0.5 - 6) / 3))
+--	local annual_percipitation = (jan_rain + jul_rain) * 6
+--	local percipitation_weighting = 4 * annual_percipitation / ( annual_percipitation + 1) - 0.5
+	local gross_primary_production = temperture_weighting
+	-- weight net production by 'biomass' assimilation efficiency
+	local net_primary_production = gross_primary_production * (0.6 * tile.grass + 0.5 * tile.shrub + 0.4 * tile.broadleaf + 0.3 * tile.conifer)
+	-- some remove primary production from growing structural material and foliage
+	local timber_production = net_primary_production * (tile.conifer * 0.25 + tile.broadleaf * 0.125 + tile.shrub * 0.0625 + tile.grass * 0.03125)
+	net_primary_production = net_primary_production - timber_production
+	-- check for marine resources
+	local fish_production, shellfish_production = 0, 0
+	if tile.has_marsh then
+		fish_production = fish_production + 0.0625
+		shellfish_production = shellfish_production + 0.125
+	end
+	if tile.has_river then
+		fish_production = fish_production + 0.125
+		shellfish_production = shellfish_production + 0.0625
+	end
+	for i = 1, 4 do
+		if not tile:get_neighbor(i).is_land then
+			fish_production = fish_production + 0.125
+			shellfish_production = shellfish_production + 0.125
+		end
+	end
+	local marine_temperature_weight = 1 + effective_temperature / (effective_temperature - 70 )
+	fish_production = fish_production * marine_temperature_weight
+	shellfish_production = shellfish_production * marine_temperature_weight
+	-- marine life is an inverted pyramid by 'standing crop' biomass
+	fish_production = fish_production + shellfish_production * 0.2
+	shellfish_production = shellfish_production * 0.8
+	-- determine herbavore energy from eating folliage and reduce from net_primary_production
+	local herbivores = 0.2 * (net_primary_production + timber_production)
+	net_primary_production = net_primary_production * 0.8
+	timber_production = timber_production * 0.8
+	-- deterine carinvore energy from eating herbavores and marine life and reduce amounts
+	local carinvores = 0.1 * (herbivores + fish_production + shellfish_production)
+	herbivores = herbivores * 0.9
+	fish_production = fish_production * 0.9
+	shellfish_production = shellfish_production * 0.9
+	local animal_production = herbivores + carinvores
+	-- determine decomposer energy from available biomass
+	local mushroom_production = (net_primary_production + animal_production + timber_production) * 0.1
+	timber_production = timber_production * 0.9
+	return net_primary_production, timber_production, shellfish_production, fish_production, animal_production, mushroom_production, effective_temperature
+end
 
 --- Returns total potential amount of foragable good amounts from tile data
 ---@param province Province
----@return number tile_count number of tiles in province
----@return number[] fruit_plants from 0 to 1 for broadleaf and shrub flora per tile
----@return number[] seed_plants from 0 to 1 for conifer and grass per tile
----@return number timber from 0 to 1 per tile
----@return number mushrooms from 0 to 1 per tile
----@return number shellfish from 0 to 2 per tile
----@return number fish from 0 to 2 per tile
----@return number blanks from 0 to 1 per tile
+---@return number net_pp
+---@return number fruit_production
+---@return number seed_production
+---@return number timber
+---@return number shellfish_amount
+---@return number fish_amount
+---@return number small_game
+---@return number large_game
+---@return number mushrooms
 function dbm.foraging_potentials(province)
-	-- TODO weight foragable_targets by climate data
-	return 1, { 1, 1 }, { 1, 1 }, 1, 1, 1, 1, 1
-end
---[[
-	local tile_count, fruit_plants, seed_plants, timber, mushrooms, shellfish, fish = 0, { 0, 0 }, { 0, 0 }, 0, 0, 0, 0
-	local blanks = tabb.accumulate(province.tiles, 0, function (a, _, v)
-		tile_count = tile_count + 1
-		if v.has_river then -- rivers give more fish
-			shellfish = shellfish + 0.25
-			fish = fish + 0.75
+	local net_pp, fruit_production, seed_production, timber_amount, shellfish_amount, fish_amount, small_game, large_game, mushroom_amount
+		= 0, 0, 0, 0, 0, 0, 0, 0, 0
+	tabb.accumulate(province.tiles, nil, function (_, _, v)
+		local tile_pp, timber, shellfish, fish, game, mushroom, effective_temperature = dbm.net_primary_production(v)
+		-- set net_pp first so province cc mapmode lines up with tile cc mapmode
+		net_pp = net_pp + tile_pp + shellfish + fish + game + mushroom
+		-- determine spread of plant food based on tile flora
+		local fruit_plants = v.shrub + v.broadleaf
+		local seed_plants = v.conifer + v.grass
+		-- if there is plants on the tile add its potential
+		local flora_total = 3 * (fruit_plants + seed_plants)
+		if flora_total > 0 then
+			-- weighting such that food production isn't too skewed towards one resource
+			local fruit = tile_pp * (2 * fruit_plants + seed_plants) / (flora_total)
+			local seeds = tile_pp * (2 * seed_plants + fruit_plants) / (flora_total)
+			fruit_production = fruit_production + fruit
+			seed_production = seed_production + seeds
+			--- add tile timber amount
+			timber_amount = timber_amount + timber
 		end
-		if v.has_marsh then -- marshes have more shellfish
-			shellfish = shellfish + 0.75
-			fish = fish + 0.25
-		end
-		for i = 1, 4 do -- coastal tiles have extra seafood poduction
-			-- completely surrounding a single water tile will give an extra + 1 to fish and shellfish
-			-- effectively allow you to harvest entire tile's seafood output
-			if not v:get_neighbor(i).is_land then
-				shellfish = shellfish + 0.25
-				fish = fish + 0.25
-			end
-		end
-		timber = timber + v.conifer * 0.25 + v.broadleaf * 0.0625 + v.shrub * 0.015625
-		fruit_plants = { fruit_plants[1] + v.broadleaf, fruit_plants[2] + v.shrub }
-		seed_plants =  { seed_plants[1] + v.conifer, seed_plants[2] + v.grass }
-		mushrooms = mushrooms + v.soil_organics * 0.5 + (v.broadleaf + v.conifer + v.shrub + v.grass) * 0.125 -- mix of soil organics and flora to decompose
-		local bedrock = v.bedrock
-		if v.resource == RAWS_MANAGER.resources_by_name["flint"] then
-			return a + 1
-		elseif bedrock == RAWS_MANAGER.bedrocks_by_name["quartzite"]
-			or bedrock ==  RAWS_MANAGER.bedrocks_by_name["chert"]
-		then
-			return a + 0.5
-		elseif v.resource == RAWS_MANAGER.resources_by_name["quality-clay"] and (bedrock == RAWS_MANAGER.bedrocks_by_name["shale"]
-			or bedrock == RAWS_MANAGER.bedrocks_by_name["siltstone"] or bedrock == RAWS_MANAGER.bedrocks_by_name["mudstone"]
-			or bedrock == RAWS_MANAGER.bedrocks_by_name["sandstone"] or bedrock == RAWS_MANAGER.bedrocks_by_name["limestone"])
-		then
-			return a + 0.25
-		elseif bedrock == RAWS_MANAGER.bedrocks_by_name["andesite"]
-			or bedrock == RAWS_MANAGER.bedrocks_by_name["basalt"]
-			or bedrock == RAWS_MANAGER.bedrocks_by_name["dacite"]
-			or bedrock == RAWS_MANAGER.bedrocks_by_name["rhyolite"]
-		then
-			return a + 0.125
-		else
-			return a
-		end
+		-- calculate aquatic food sources
+		shellfish_amount = shellfish_amount + shellfish
+		fish_amount = fish_amount + fish
+		-- calculate game size ratios using effective_temperature and fauna spread
+		local flora_cover = (v.broadleaf + v.conifer) / 1
+		local terrestrial_flora_weight = 0.25 + flora_cover / (flora_cover + 1)
+		local terrestrial_temperature_weight = 1 - 1 / (1 + math.exp(-0.1 * effective_temperature)) -- cold weights towards larger animals
+		local small_animals = game * (1 - terrestrial_temperature_weight) * terrestrial_flora_weight
+		local large_animals = game * terrestrial_temperature_weight * (1 - terrestrial_flora_weight)
+		small_game = small_game + small_animals
+		large_game = large_game + large_animals
+		-- calculate mushroom energy by total biomass
+		mushroom_amount = mushroom_amount + mushroom
 	end)
-	return tile_count, fruit_plants, seed_plants, timber, mushrooms, shellfish, fish, blanks
+	return net_pp, fruit_production, seed_production, timber_amount, shellfish_amount, fish_amount, small_game, large_game, mushroom_amount
 end
-]]
+
 ---@param province Province
 function dbm.foragable_targets(province)
 	local JOBTYPE = require "game.raws.job_types"
 	-- determine amount of foragable goods
-	local tile_count, fruit_plants, seed_plants, timber, mushrooms, shellfish, fish, blanks = dbm.foraging_potentials(province)
+	local net_pp, fruit_production, seed_production, timber_amount, shellfish_amount,
+		fish_amount, small_game, large_game, mushroom_amount = dbm.foraging_potentials(province)
 	---@type {resource: string, output: table<TradeGoodReference, number>, amount: number, search: JOBTYPE, handle: JOBTYPE}[]
 	local products = {}
-	-- TODO better weighting of produce amounts from plants
-	local fruit_production = (fruit_plants[1] + fruit_plants[2]) * 0.5
-	local seed_production = (seed_plants[1] + seed_plants[2]) * 0.5
-	-- TODO weight game amounts based on plants and climate
-	local small_game = 1
-	local large_game = small_game / 2
-	-- TODO weight fish and and shellfish based on climate
 	-- FORAGER SEARCH
 	if fruit_production > 0 then
 		products['Finding Berries'] = {
-			output = { ['berries'] = 1.5 },
+			output = { ['berries'] = 2 },
 			amount = fruit_production,
 			search = JOBTYPE.FORAGER,
 			handle = JOBTYPE.FORAGER,
 		}
 	end
 	if seed_production > 0 then
-		products['Harvesting Seeds'] = {
-			output = { ['grain'] = 1.5 },
+		products['Collecting Seeds'] = {
+			output = { ['grain'] = 2 },
 			amount = seed_production,
 			search = JOBTYPE.FORAGER,
 			handle = JOBTYPE.FARMER,
 		}
 	end
-	if mushrooms > 0 then
+	if mushroom_amount > 0 then
 		products['Foraging Mushrooms'] = {
-			output = { ['mushrooms'] = 1.0 },
-			amount = mushrooms,
+			output = { ['mushrooms'] = 2 },
+			amount = mushroom_amount,
 			search = JOBTYPE.FORAGER,
 			handle = JOBTYPE.CLERK,
 		}
 	end
-	if shellfish > 0 then
+	if shellfish_amount > 0 then
 		products['Gathering Shellfish'] = {
-			output = { ['shellfish'] = 2.0 },
-			amount = 1,
+			output = { ['shellfish'] = 2 },
+			amount = shellfish_amount,
 			search = JOBTYPE.FORAGER,
 			handle = JOBTYPE.HAULING,
 		}
 	end
-	products['Trapping Animals'] = {
-		output = { ['meat'] = 0.5  },
-		amount = small_game * 2,
-		search = JOBTYPE.FORAGER,
-		handle = JOBTYPE.ARTISAN,
-	}
+--	if trappable > 0 then
+--		products['Trapping Animals'] = {
+--			output = { ['meat'] = 0.5 },
+--			amount = math.max(0, small_game * 0.5) + math.max(0, large_game * 0.25),
+--			search = JOBTYPE.FORAGER,
+--			handle = JOBTYPE.ARTISAN,
+--		}
+--	end
 	-- HUNTING SEARCH
-	if small_game > 0 then
 	-- HUNTING LAND ANIMALS
+	if small_game > 0 then
 		products['Hunting Critters'] = {
-			output = { ['meat'] = 1.0 },
-			amount = small_game,
+			output = { ['meat'] = 1 },
+			amount = small_game, --*0.5
 			search = JOBTYPE.HUNTING,
 			handle = JOBTYPE.HUNTING,
 		}
 	end
 	if large_game > 0 then
 		products['Stalking Game'] = {
-			output = { ['meat'] = 2.0 },
-			amount = large_game,
+			output = { ['meat'] = 1 },
+			amount = large_game, --*0.75
 			search = JOBTYPE.HUNTING,
 			handle = JOBTYPE.WARRIOR,
 		}
 	end
-	if fish > 0 then
+	if fish_amount > 0 then
 		products['Catching Fish'] = {
-			output = { ['fish'] = 1.5 },
-			amount = fish,
+			output = { ['fish'] = 1 },
+			amount = fish_amount,
 			search = JOBTYPE.HUNTING,
 			handle = JOBTYPE.LABOURER,
 		}
 	end
-	-- NONCALORIC TARGETS
-	if timber > 0 then
-		products['Collecting Timber'] = {
-			output = { ['timber'] = 1.0 },
-			amount = timber,
+	-- NONCALORIC TARGET
+	if timber_amount > 0 then
+		products['Harvesting Timber'] = {
+			output = { ['timber'] = 0.5 },
+			amount = timber_amount,
 			search = JOBTYPE.CLERK,
 			handle = JOBTYPE.LABOURER,
 		}
 	end
-	if blanks > 0 then
-		products['Knapping blanks'] = {
-			output = { ['blanks-flint'] = 1.0 },
-			amount = blanks,
-			search = JOBTYPE.CLERK,
-			handle = JOBTYPE.ARTISAN,
-		}
-	end
+	province.foragers_limit = net_pp
 	province.foraging_targets = products
 end
+
 -- TODO change to target a culture and find mean value across all pops based on race and culture needs
 ---@param race Race
 ---@return number total_life_needs
