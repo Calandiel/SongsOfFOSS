@@ -48,7 +48,7 @@ local function demography(provinces, ui_panel, collapsed)
         for culture, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = culture.name .. " (" .. count .. ")\n" .. culture:text_tooltip(),
+                tooltip = culture.name .. " (" .. count .. ")\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(culture),
                 r = culture.r,
                 g = culture.g,
                 b = culture.b,

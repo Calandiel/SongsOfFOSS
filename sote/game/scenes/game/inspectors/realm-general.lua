@@ -35,7 +35,7 @@ local function info(rect, realm, gam)
 
         -- general info
         uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect, realm.name
-            .. " follows the customs of " .. realm.primary_culture.name .. ".\n" .. realm.primary_culture:text_tooltip())
+            .. " follows the customs of " .. realm.primary_culture.name .. ".\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(realm.primary_culture))
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
         uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT

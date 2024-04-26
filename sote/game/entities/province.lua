@@ -44,7 +44,7 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
----@field foraging_targets table<string, {output: table<TradeGoodReference, number>, amount: number, search: JOBTYPE, handle: JOBTYPE}>
+---@field foragers_targets table<ForageResource, {icon: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}>
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
 ---@field mood number how local population thinks about the state
@@ -110,7 +110,7 @@ function prov.Province:new(fake_flag)
 	o.local_income = 0
 	o.local_building_upkeep = 0
 	o.foragers = 0
-	o.foraging_targets = {}
+	o.foragers_targets = {}
 	o.infrastructure_needed = 0
 	o.infrastructure = 0
 	o.infrastructure_investment = 0

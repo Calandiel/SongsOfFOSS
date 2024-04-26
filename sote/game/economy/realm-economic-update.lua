@@ -108,26 +108,26 @@ function rea.run(realm)
 				-- share some goods and wealth with neighbours
 				-- actual goal is to smooth out economy in space a bit
 				-- until addition of properly working "trade routes"
-				local neighbor_count = tabb.size(tabb.filter(province.neighbors, function (a)
-					return a.realm ~= nil
-				end))
-				if neighbor_count > 0 then
-					local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
-					economic_effects.change_local_stockpile(province, resource_reference, -sharing)
-					-- make sure province knows some production goes to faux trading with neighbors
-					province.local_consumption[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
-					local neighbor_share = sharing / neighbor_count
-					for _, neighbor in pairs(province.neighbors) do
-						if neighbor.realm then
-							economic_effects.change_local_stockpile(neighbor, resource_reference, neighbor_share)
-						end
-					end
-				end
+--				local neighbor_count = tabb.size(tabb.filter(province.neighbors, function (a)
+--					return a.realm ~= nil
+--				end))
+--				if neighbor_count > 0 then
+--					local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
+--					economic_effects.change_local_stockpile(province, resource_reference, -sharing)
+--					-- make sure province knows some production goes to faux trading with neighbors
+--					province.local_consumption[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
+--					local neighbor_share = sharing / neighbor_count
+--					for _, neighbor in pairs(province.neighbors) do
+--						if neighbor.realm then
+--							economic_effects.change_local_stockpile(neighbor, resource_reference, neighbor_share)
+--						end
+--					end
+--				end
 
-				local old = amount or 0
-				local siphon = (realm.resources[resource_reference] or 0)
-				                * REALM_TO_PROVINCE_STOCKPILE
-								/ amount_of_provinces
+--				local old = amount or 0
+--				local siphon = (realm.resources[resource_reference] or 0)
+--				                * REALM_TO_PROVINCE_STOCKPILE
+--								/ amount_of_provinces
 
 				-- decay local stockpiles
 				economic_effects.decay_local_stockpile(province, resource_reference)

@@ -421,22 +421,22 @@ function world.World:tick()
 
 		-- "Province" update
 		local employ = require "game.economy.employment"
-		local building_update = require "game.economy.buildings-updates"
+--		local building_update = require "game.economy.buildings-updates"
 		local production = require "game.economy.production-and-consumption"
 		local wealth_decay = require "game.economy.wealth-decay"
 		local upkeep = require "game.economy.upkeep"
 		local infrastructure = require "game.economy.province-infrastructure"
-		local research = require "game.society.research"
-		local recruit = require "game.society.recruitment"
+--		local research = require "game.society.research"
+--		local recruit = require "game.society.recruitment"
 		for _, settled_province in pairs(ta) do
 			--print("employ")
 			PROFILER:start_timer("employ")
 			employ.run(settled_province)
 			PROFILER:end_timer("employ")
 
-			PROFILER:start_timer("buildings")
-			building_update.run(settled_province)
-			PROFILER:end_timer("buildings")
+--			PROFILER:start_timer("buildings")
+--			building_update.run(settled_province)
+--			PROFILER:end_timer("buildings")
 
 			PROFILER:start_timer("production")
 			production.run(settled_province)
@@ -446,8 +446,8 @@ function world.World:tick()
 			upkeep.run(settled_province)
 			wealth_decay.run(settled_province)
 			infrastructure.run(settled_province)
-			research.run(settled_province)
-			recruit.run(settled_province)
+--			research.run(settled_province)
+--			recruit.run(settled_province)
 			PROFILER:end_timer("province")
 
 			PROFILER:start_timer("growth")
@@ -644,8 +644,8 @@ function world.World:tick()
 						if settled_province.realm then
 							settled_province.realm.tax_collected_this_year = 0
 							-- TODO DO THESE EVERY DECADE OR SO
-							dbm.foragable_goods(settled_province)
-							dbm.cultural_foraging_update(settled_province.realm)
+--							dbm.foragable_targets(settled_province)
+--							dbm.cultural_foraging_update(settled_province.realm)
 						end
 					end
 				end

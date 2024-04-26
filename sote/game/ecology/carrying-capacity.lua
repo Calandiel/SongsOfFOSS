@@ -11,6 +11,7 @@ function car.get_tile_carrying_capacity(tile)
 end
 
 function car.calculate()
+--[[
 	local tabb = require "engine.table"
 	local min_et, max_et = 100, -100
 	local min_pt, max_pt = 100, -100
@@ -19,6 +20,7 @@ function car.calculate()
 	local min_tf, max_tf = 100, -100
 	local min_pp, min_cc, max_pp, max_cc  = 100, 100, -100, -100
 	local mean_et, mean_pt, mean_mt, mean_tw, mean_tf, mean_pp, mean_cc, count = 0, 0, 0, 0, 0, 0, 0, 0
+]]
 	for _, province in pairs(WORLD.provinces) do
 		if province.center.is_land then
 --[[
@@ -81,11 +83,12 @@ function car.calculate()
 				return a + effective_temperature
 			end)
 ]]
-			require "game.economy.diet-breadth-model".foragable_targets(province)
+			require "game.economy.diet-breadth-model".foragers_targets(province)
 		else
 			province.foragers_limit = 0
 		end
 	end
+--[[
 	mean_cc = mean_cc / tabb.size(tabb.filter(WORLD.provinces, function (a)
 		return a.center.is_land
 	end))
@@ -102,6 +105,7 @@ function car.calculate()
 	print("MAX MT: " .. max_mt .. " MIN MT: " .. min_mt .. " MEAN MT: " .. mean_mt)
 	print("MAX TW: " .. max_tw .. " MIN TW: " .. min_tw .. " MEAN TW: " .. mean_tw)
 	print("MAX TF: " .. max_tf .. " MIN TF: " .. min_tf .. " MEAN TF: " .. mean_tf)
+]]
 end
 
 return car

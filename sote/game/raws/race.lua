@@ -100,9 +100,9 @@ function Race:new(o)
 			['water'] = 1,
 		},
 		[NEED.FOOD] = {
-			['calories'] = 1,	-- ~1000 kcal
-			['fruit'] = 0.5,	-- ~500 kcal
-			['meat'] = 0.25,	-- ~500 kcal
+			['calories'] = 1,		-- 		1000 kcal
+			['fruit'] = 0.25,		-- 250 - 375 kcal
+			['meat'] = 0.25,		-- 250 - 500 kcal
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -140,9 +140,9 @@ function Race:new(o)
 			['water'] = 1,
 		},
 		[NEED.FOOD] = {
-			['calories'] = 1,	-- ~1000 kcal
-			['fruit'] = 0.5,	-- ~500 kcal
-			['meat'] = 0.25,	-- ~500 kcal
+			['calories'] = 1,		-- 		1000 kcal
+			['fruit'] = 0.25,		-- 250 - 375 kcal
+			['meat'] = 0.25,		-- 250 - 500 kcal
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,

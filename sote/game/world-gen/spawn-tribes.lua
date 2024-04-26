@@ -42,19 +42,19 @@ local function make_new_realm(capitol, race, culture, faith)
 	--
 
 	-- Mark the province as settled for processing...
-	WORLD:set_settled_province(capitol)			local tc, fs = 0, {conifer = 0, broadleaf = 0, shrub = 0, grass = 0}
+	WORLD:set_settled_province(capitol)
 	require "game.economy.diet-breadth-model".cultural_foragable_targets(r)
 
 	--calculate average ratial foraging_efficiency from males per 100 females
 	local male_percentage = race.males_per_hundred_females / (100 + race.males_per_hundred_females)
-	local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] +
-	(1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
-	local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] +
-	(1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
+	--local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] +
+	--	(1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
+	--local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] +
+	--	(1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
+	local infra_needs = male_percentage * race.male_infrastructure_needs + (1 - male_percentage) * race.female_infrastructure_needs
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.min(5,
-		capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * race.fecundity * 0.75)
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
 		pop.POP:new(
@@ -138,6 +138,7 @@ end
 ---@param province Province
 function ProvinceCheck(race, province)
 	if not province.center.is_land then return false end
+	if province.foragers_limit < 5 * race.carrying_capacity_weight then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
 	if (not province.on_a_forest) and race.requires_large_forest then return false end
@@ -180,10 +181,10 @@ function st.run()
 		table.insert(order, r)
 	end
 
-	local civs = 500 / tabb.size(order) -- one per race...
+	local civs = 50 / tabb.size(order) -- one per race...
 
 
-	for _ = 1, 1 do --civs do
+	for _ = 1, civs do
 		for _, r in ipairs(order) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile().province

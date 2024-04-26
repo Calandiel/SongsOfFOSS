@@ -7,8 +7,8 @@ local smallest_size = 0.25
 local small_size = 0.5
 local dwarf_size = 0.75
 local medium_size = 1
-local large_size = 1.5
-local largest_size = 2
+local large_size = 1.25
+local largest_size = 1.5
 -- temp stock values for healthcare needs and CC weight
 local low_carry_weight = 0.5
 local med_carry_weight = 1
@@ -27,15 +27,15 @@ function ll.load()
 		}
 	}
 
-	-- BASE: HUMAN 6 6 6
+	-- BASE: HUMAN 8 8 8
 	Race:new {
 		name = "human",
-		r = 0.6,
-		g = 0.6,
-		b = 0.6,
+		r = 0.8,
+		g = 0.8,
+		b = 0.8,
 		icon = 'barbute.png',
 	}
-
+--[[
 	---@type PortraitDescription
 	local beaver_portrait = {
 		folder = "beaver",
@@ -283,12 +283,12 @@ function ll.load()
 			eyes = {"right_eye.PNG", "left_eye.PNG"}
 		}
 	}
-	-- 1 3 8
+	-- 1 7 7
 	Race:new {
 		name = 'orc',
 		r = 0.1,
-		g = 0.8,
-		b = 0.3,
+		g = 0.7,
+		b = 0.7,
 		icon = 'orc-head.png',
 		male_portrait = {
 			fallback = orc_portrait
@@ -741,12 +741,12 @@ function ll.load()
 			ear = {"ear_behind.PNG", "ear_front.PNG"}
 		}
 	}
-	-- 8 3 1
+	-- 4 4 4
 	Race:new {
 		name = 'verman',
-		r = 0.8,
-		g = 0.3,
-		b = 0.1,
+		r = 0.4,
+		g = 0.4,
+		b = 0.4,
 		icon = 'rat.png',
 		male_portrait = {
 			fallback = vermen_portrait
@@ -1055,8 +1055,7 @@ function ll.load()
 		carrying_capacity_weight = med_carry_weight,
 		requires_large_river = true
 	}
-
-
+]]
 	-- for testing purpose
 	-- Race:new {
 	-- 	name = 'WeakGoblin',

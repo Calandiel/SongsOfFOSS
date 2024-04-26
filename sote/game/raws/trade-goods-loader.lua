@@ -23,18 +23,6 @@ function d.load()
 	end
 
 
-	-- CAPACITIES
-	TradeGood:new {
-		name = "administration",
-		description = "administration",
-		icon = "bookmarklet.png",
-		r = 0.32,
-		g = 0.42,
-		b = 0.92,
-		base_price = 1,
-		category = "capacity",
-	}
-	add_use_case("administration", "administration", 1)
 
 	-- BASE GOODS
 	TradeGood:new {
@@ -63,6 +51,75 @@ function d.load()
 	}
 	add_use_case("grain", "calories", 1)
 	add_use_case("grain", "grain", 1)
+
+	TradeGood:new {
+		name = "mushrooms",
+		description = "mushrooms",
+		icon = "chanterelles.png",
+		r = 1,
+		g = 0.86,
+		b = 0.5,
+		category = "good",
+		base_price = 4,
+	}
+	add_use_case("mushrooms", "calories", 1)
+	add_use_case("mushrooms", "fruit", 0.5)
+	add_use_case("mushrooms", "meat", 0.5)
+
+	TradeGood:new {
+		name = "shellfish",
+		description = "shellfish",
+		icon = "oyster.png",
+		r = 0.62,
+		g = 0.56,
+		b = 0.48,
+		base_price = 4,
+	}
+	add_use_case("shellfish", "calories", 1)
+	add_use_case("shellfish", "meat", 0.5)
+
+	TradeGood:new {
+		name = "fish",
+		description = "fish",
+		icon = "salmon.png",
+		r = 0.67,
+		g = 0.73,
+		b = 0.8,
+		base_price = 4,
+	}
+	add_use_case("fish", "calories", 2)
+	add_use_case("fish", "meat", 1)
+
+	TradeGood:new {
+		name = "meat",
+		description = "meat",
+		icon = "meat.png",
+		r = 1,
+		g = 0.1,
+		b = 0.1,
+		base_price = 4,
+	}
+	add_use_case("meat", "calories", 2)
+	add_use_case("meat", "meat", 1)
+
+	TradeGood:new {
+		name = "timber",
+		description = "timber",
+		icon = "wood-pile.png",
+		r = 0.72,
+		g = 0.41,
+		b = 0.22,
+		base_price = 5,
+	}
+	add_use_case("timber", "containers", 0.125)
+	add_use_case("timber", "furniture", 0.125)
+	add_use_case("timber", "tools-like", 0.125)
+	add_use_case("timber", "fuel", 1)
+	add_use_case("timber", "structural-material", 1)
+	add_use_case("timber", "tannin", 1)
+	add_use_case("timber", "timber", 1)
+
+
 
 	TradeGood:new {
 		name = "honey",
@@ -113,6 +170,19 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("amenities", "amenities", 1)
+
+	-- CAPACITIES
+	TradeGood:new {
+		name = "administration",
+		description = "administration",
+		icon = "bookmarklet.png",
+		r = 0.32,
+		g = 0.42,
+		b = 0.92,
+		base_price = 1,
+		category = "capacity",
+	}
+	add_use_case("administration", "administration", 1)
 
 	-- POP NEEDS
 	TradeGood:new {
@@ -185,75 +255,6 @@ function d.load()
 	add_use_case("leather", "clothes", 0.25)
 	add_use_case("leather", "containers", 0.25)
 	add_use_case("leather", "leather", 1)
-
-	-- GOODS THAT SATISFY MEAT USE CASES
-	TradeGood:new {
-		name = "meat",
-		description = "meat",
-		icon = "meat.png",
-		r = 1,
-		g = 0.1,
-		b = 0.1,
-		base_price = 4,
-	}
-	add_use_case("meat", "calories", 2)
-	add_use_case("meat", "meat", 1)
-
-	TradeGood:new {
-		name = "fish",
-		description = "fish",
-		icon = "salmon.png",
-		r = 0.67,
-		g = 0.73,
-		b = 0.8,
-		base_price = 4,
-	}
-	add_use_case("fish", "calories", 2)
-	add_use_case("fish", "meat", 1)
-
-	TradeGood:new {
-		name = "shellfish",
-		description = "shellfish",
-		icon = "oyster.png",
-		r = 0.62,
-		g = 0.56,
-		b = 0.48,
-		base_price = 4,
-	}
-	add_use_case("shellfish", "calories", 1)
-	add_use_case("shellfish", "meat", 0.5)
-
-	TradeGood:new {
-		name = "mushrooms",
-		description = "mushrooms",
-		icon = "chanterelles.png",
-		r = 1,
-		g = 0.86,
-		b = 0.5,
-		category = "good",
-		base_price = 2,
-	}
-	add_use_case("mushrooms", "calories", 1)
-	add_use_case("mushrooms", "fruit", 1)
-	add_use_case("mushrooms", "grain", 1)
-	add_use_case("mushrooms", "meat", 1)
-
-	TradeGood:new {
-		name = "timber",
-		description = "timber",
-		icon = "wood-pile.png",
-		r = 0.72,
-		g = 0.41,
-		b = 0.22,
-		base_price = 5,
-	}
-	add_use_case("timber", "containers", 0.125)
-	add_use_case("timber", "furniture", 0.125)
-	add_use_case("timber", "tools-like", 0.125)
-	add_use_case("timber", "fuel", 1)
-	add_use_case("timber", "structural-material", 1)
-	add_use_case("timber", "tannin", 1)
-	add_use_case("timber", "timber", 1)
 
 	TradeGood:new {
 		name = "blanks-flint",
