@@ -362,6 +362,42 @@ local function resolve_neighbors_for_subedge(q, r, f, size)
 	return neighbors
 end
 
+---@param vi number vertex index
+---@param q number
+---@param r number
+---@param f number face
+---@param size number
+---@return table
+local function resolve_neighbors_for_subpenta(vi, q, r, f, size)
+	local neighbors = {}
+
+	for i = 1, 6 do
+		neighbors[i] = {}
+	end
+
+	local helpers = helpers_for_subpenta(vi)
+
+	for i = 1, 4 do
+		neighbors[i].f = f
+		neighbors[i].q, neighbors[i].r = helpers[i](q, r)
+	end
+
+	local function resolve_subpenta_neighbour(ei)
+		local nf, nei = icosa_defines.neighbor_face_edge_at(f, ei)
+		local _, nti = resolve_tile_indices_for_edge(ei, q, r, nei, size - 1) -- sub edge
+		local nq, nr = hex_for_edge_tile(nei, nti, size - 1) -- sub edge
+		return nf, nq, nr
+	end
+
+	local ei1, ei2 = icosa_edges_for_subpenta(vi)
+
+	neighbors[5].f, neighbors[5].q, neighbors[5].r = resolve_subpenta_neighbour(ei1)
+
+	neighbors[6].f, neighbors[6].q, neighbors[6].r = resolve_subpenta_neighbour(ei2)
+
+	return neighbors
+end
+
 local function init_world(world)
 	for q = -world.size, world.size do
 		for r = -world.size, world.size do
@@ -421,30 +457,7 @@ local function build_neighbors(world)
 			penta_neighbours[fi].f = face
 			penta_neighbours[fi].q, penta_neighbours[fi].r = q, r
 
-			local subpenta_neighbours = {}
-			local helpers = helpers_for_subpenta(vi)
-
-			for i = 1, 4 do
-				subpenta_neighbours[i] = {}
-				subpenta_neighbours[i].f = face
-				subpenta_neighbours[i].q, subpenta_neighbours[i].r = helpers[i](q, r)
-			end
-
-			local function resolve_subpenta_neighbour(ei)
-				local nf, nei = icosa_defines.neighbor_face_edge_at(face, ei)
-				local _, nti = resolve_tile_indices_for_edge(ei, q, r, nei, world.size - 1) -- sub edge
-				local nq, nr = hex_for_edge_tile(nei, nti, world.size - 1) -- sub edge
-				return nf, nq, nr
-			end
-
-			local ei1, ei2 = icosa_edges_for_subpenta(vi)
-
-			subpenta_neighbours[5] = {}
-			subpenta_neighbours[5].f, subpenta_neighbours[5].q, subpenta_neighbours[5].r = resolve_subpenta_neighbour(ei1)
-
-			subpenta_neighbours[6] = {}
-			subpenta_neighbours[6].f, subpenta_neighbours[6].q, subpenta_neighbours[6].r = resolve_subpenta_neighbour(ei2)
-
+			local subpenta_neighbours = resolve_neighbors_for_subpenta(vi, q, r, face, world.size)
 			world:_set_neighbors(q, r, face, subpenta_neighbours)
 		end
 
