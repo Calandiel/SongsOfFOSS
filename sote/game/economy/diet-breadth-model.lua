@@ -251,19 +251,17 @@ function dbm.cultural_food_needs(race)
 end
 
 --- use Diet-Breadth Model to pick and weight products for culture
----@param realm Realm
-function dbm.cultural_foragable_targets(realm)
-    local race = realm.primary_race
-    local culture = realm.primary_culture
+---@param province Province
+function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
 	-- get average life needs from realm primary race
-	local food_needs_by_case = dbm.cultural_food_needs(race)
+	local food_needs_by_case = dbm.cultural_food_needs(province.realm.primary_race)
 --	print("  FINDING FOOD USE TARGETS...")
 	---@param targets_by_use table<TradeGoodUseCaseReference, {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, number>}>
 	---@type table<TradeGoodUseCaseReference, {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, number>}>
 	local targets_by_use = tabb.accumulate(food_needs_by_case, {}, function (targets_by_use, use, needed)
 --		print("    USE: " .. use .. ", NEEDED: " .. needed)
-		targets_by_use[use] = tabb.accumulate(realm.capitol.foragers_targets, {need = needed, total_search = 0, total_output = 0, total_handle = 0, targets = {}},
+		targets_by_use[use] = tabb.accumulate(province.foragers_targets, {need = needed, total_search = 0, total_output = 0, total_handle = 0, targets = {}},
 			function (target_use, resource, values)
 --			print("     CHECKING: " .. dbm.ForageResourceName[resource])
 			if values.amount > 0 then
@@ -277,11 +275,11 @@ function dbm.cultural_foragable_targets(realm)
 					return total_value
 				end)
 				if targets > 0 then
-					local search_time = values.amount / realm.capitol.foragers_limit
+					local search_time = values.amount / province.foragers_limit
 					target_use.targets[resource] = targets
 					target_use.total_search = target_use.total_search + search_time
 					target_use.total_output = target_use.total_output + targets * values.amount * search_time
-					target_use.total_handle = target_use.total_handle + values.amount / dbm.mean_race_job_efficiency(race, values.handle) * search_time
+					target_use.total_handle = target_use.total_handle + values.amount / dbm.mean_race_job_efficiency(province.realm.primary_race, values.handle) * search_time
 				end
 			end
 			return target_use
@@ -296,9 +294,9 @@ function dbm.cultural_foragable_targets(realm)
 --		print("    TOTAL OUTPUT: " .. values.total_output .. " TOTAL HANDLE: " .. values.total_handle)
 --		print("    AVERAGE RETURN: " .. average_return_per_use[use] .. " TOTAL SEARCH: " .. targets_by_use[use].total_search)
 		weighted_targets_by_use[use] = tabb.accumulate(values.targets, {}, function (weighted_targets, resource, energy)
-			local amount = (realm.capitol.foragers_targets[resource].amount or 0)
-			local search_time = amount / realm.capitol.foragers_limit
-        	local handle = dbm.mean_race_job_efficiency(race, realm.capitol.foragers_targets[resource].handle)
+			local amount = (province.foragers_targets[resource].amount or 0)
+			local search_time = amount / province.foragers_limit
+        	local handle = dbm.mean_race_job_efficiency(province.realm.primary_race, province.foragers_targets[resource].handle)
 			local handle_cost = 1 / handle
 			local dividend = amount * energy * search_time
 			local divisor = search_time + amount * handle_cost * search_time
@@ -333,8 +331,8 @@ function dbm.cultural_foragable_targets(realm)
 		local total_use_return, total_use_time = 0, 0
 		-- collect average expected time to satisfy use case
 		traditional_foraging_target[use] = {search = 0, targets = tabb.accumulate(targets, {}, function (prefered_target, resource, value)
-			local amount = (realm.capitol.foragers_targets[resource].amount or 0)
-			local search_time = amount / realm.capitol.foragers_limit
+			local amount = (province.foragers_targets[resource].amount or 0)
+			local search_time = amount / province.foragers_limit
 			local resource_return = weighted_targets_by_use[use][resource] * search_time
 			total_use_return = total_use_return + resource_return
 			total_use_time = total_use_time + search_time
@@ -351,10 +349,25 @@ function dbm.cultural_foragable_targets(realm)
 	for _, values in pairs(traditional_forager_targets) do
 		values.search = values.search / total_search
 	end
-	if culture.traditional_forager_targets then
-		-- TODO FIGURE OUT HOW TO SHIFT
+	if province.realm.primary_culture.traditional_forager_targets then
+		-- reduce old targets
+		for _, targets in pairs(province.realm.primary_culture.traditional_forager_targets) do
+			targets.search = targets.search * 0.99
+			for _, value in pairs(targets.targets) do
+				value = value * 0.99
+			end
+		end
+		-- add new targets
+		for use, targets in pairs(traditional_forager_targets) do
+			province.realm.primary_culture.traditional_forager_targets[use].search =
+				(province.realm.primary_culture.traditional_forager_targets[use].search or 0) + targets.search * 0.01
+			for resource, value in pairs(targets.targets) do
+				local old_value = province.realm.primary_culture.traditional_forager_targets[use][resource] or 0
+				province.realm.primary_culture.traditional_forager_targets[use][resource] = old_value + value * 0.01
+			end
+		end
 	else -- initial setting to first spawn of culture since traditional_foraging_target starts undeclared
-		culture.traditional_forager_targets = traditional_forager_targets
+		province.realm.primary_culture.traditional_forager_targets = traditional_forager_targets
     end
 
 --	print("  TRADITIONAL FORAGER TARGETS:")

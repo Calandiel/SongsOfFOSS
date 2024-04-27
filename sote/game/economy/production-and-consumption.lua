@@ -119,8 +119,8 @@ function pro.run(province)
 		-- available resources calculation:
 		local consumption = province.local_consumption[good] or 0
 		local production = province.local_production[good] or 0
-		local storage = province.local_storage[good] or math.max(0, - consumption + production) -- retain last months service surplus for use
-		market_data[i - 1].available =  storage
+		local storage = province.local_storage[good] or 0
+		market_data[i - 1].available = storage
 		if market_data[i - 1].available < 0 then
 			error("INVALID START TO PRODUCTION-AND-CONSUMPTION TICK"
 			.. "\n market_data[" .. i - 1 .. "].available = "
@@ -242,7 +242,6 @@ function pro.run(province)
 	local last_foraging_efficiency = dbm.foraging_efficiency(province.foragers_limit, province.foragers)
 	local foragers_count = 0
 	local foragers_efficiency = 1
-	--local foragers_efficiency = last_foraging_efficiency / tabb.size(province.tiles)
 
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = province:local_population()
@@ -640,20 +639,8 @@ function pro.run(province)
 					family_unit_needs[NEED.FOOD][use_case].consumed = family_unit_needs[NEED.FOOD][use_case].consumed + consumption
 --					print("    GOOD: " .. good .. " FORAGED: " .. foraged_goods[good] .. " CONSUMED: " .. consumption .. " -> " .. family_unit_needs[NEED.FOOD][use_case].consumed)
 				end
+				-- add any remaing to list of goods to sell
 				if amount > 0 then
-					-- use any excess to satisfy calorie needs before selling to market
-	--				local calories_weight = RAWS_MANAGER.trade_goods_use_cases_by_name['calories'].goods[good]
-	--				if calories_weight then
-	--					local calories_consumed = family_unit_needs[NEED.FOOD]['calories'].consumed
-	--					local calories_demand = family_unit_needs[NEED.FOOD]['calories'].demanded
-	--					local calories_remaining = math.max(0, calories_demand - calories_consumed)
-	--					if calories_remaining > 0 then
-	--						local goods_consumed = math.min(calories_remaining, amount)
-	--						amount = amount - goods_consumed
-	--						local calories_consumed = goods_consumed * calories_weight
-	--						family_unit_needs[NEED.FOOD]['calories'].consumed = family_unit_needs[NEED.FOOD]['calories'].consumed + calories_consumed
-	--					end
-	--				end
 					a[good] =( a[good] or 0) + amount
 				end
 			end
@@ -832,6 +819,7 @@ function pro.run(province)
 	economic_effects.change_local_wealth(province, -wealth_cycle, economic_effects.reasons.Donation)
 	economic_effects.change_local_wealth(province, -donations_for_childen, economic_effects.reasons.Welfare)
 
+	-- pre-update: information gathering / setting variable
 	local additional_family_time = {}
 	-- sort pops by wealth:
 	---@type POP[]
@@ -840,15 +828,13 @@ function pro.run(province)
 		{},function (a, _, pop)
 			-- cycle local wealth to home pop and characters
 			economic_effects.add_pop_savings(pop, wealth_cycle_fraction, economic_effects.reasons.Donation)
-			-- donation to help parents care for children
+			-- donation to help parents care for children only if in same province
 			if pop.home_province == province then
 				if donations_for_child > 0 then
 				local dependents = tabb.size(tabb.filter(pop.children, function (child)
 					if child.age < child.race.teen_age then
-						if not pop:is_character() then
 							additional_family_time[pop] = (additional_family_time[pop] or 0) + child.age / child.race.teen_age
-								* child:get_age_multiplier() 
-						end
+								* child:get_age_multiplier()
 						return true
 					end
 					return false
@@ -865,40 +851,42 @@ function pro.run(province)
 				total_realm_donations = total_realm_donations + pop_donation_total * 0.4
 				total_local_donations = total_local_donations + pop_donation_total * 0.4
 				total_trade_donations = total_trade_donations + pop_donation_total * 0.2
-				economic_effects.add_pop_savings(pop, -pop_donation_total, economic_effects.reasons.Donation)
-				-- add to pop satisfy needs list only if no parent in same province
-				if not pop.parent or pop.parent.province ~= pop.province then
-					-- record foraging time of 'family unit' for efficiency
-					foragers_count = foragers_count + pop.forage_time_preference
-						* (pop.employer and (1 - pop.employer.work_ratio) or 1)
-						+ (additional_family_time[pop] or 0)
-					-- add 'family unit' to production and consumption cycle
-					table.insert(a, pop)
-				end
 			else
 				local popularity = pv.popularity(pop, province.realm)
 				if popularity > 0 then
 					total_popularity = total_popularity + popularity
 				end
-				-- add to pop satisfy needs list only if no parent in same province
-				if pop.age > pop.race.teen_age or (not pop.parent or pop.parent.province ~= pop.province) then
-					-- record foraging time of 'family unit' for efficiency
-					foragers_count = foragers_count + pop.forage_time_preference
-						* (pop.employer and (1 - pop.employer.work_ratio) or 1)
-						+ (additional_family_time[pop] or 0)
-					-- add 'family unit' to production and consumption cycle
-					table.insert(a, pop)
+			end
+			-- update 'family units', add to pop satisfy needs list only if an 'adult' or an absant parent, either away or none at all
+			if (pop.age >= pop.race.teen_age) or (not pop.parent or pop.parent.province ~= pop.province) then
+				-- record foraging time of 'family unit' for efficiency
+				local foragers_increase = 1
+				-- if in warband and foraging, half of free time goes to foraging for warband
+				if pop.unit_of_warband and pop.unit_of_warband.status == "idle" and pop.unit_of_warband.idle_stance == "forage" then
+					local weight = pop.unit_of_warband.current_free_time_ratio * 0.5
+					foragers_count = foragers_count + weight
+					foragers_increase = weight
 				end
+				-- reduce potential foraging time from working
+				if pop.employer then
+					foragers_increase = foragers_increase * (1 - pop.employer.work_ratio)
+				end
+				-- add children's times and weight by desired foraging percentage
+				foragers_increase = pop.forage_time_preference * (foragers_increase + (additional_family_time[pop] or 0))
+				-- add 'family unit' to production and consumption cycle
+				table.insert(a, pop)
+				foragers_count = foragers_count + foragers_increase
 			end
 			-- recalculate pop needs
 			local needs_satisfaction = pop.race.male_needs
 			if pop.female then needs_satisfaction = pop.race.female_needs end
 			-- TODO replace with warband supplies?
 			-- block off starvation, if the pop is not able to call staisfy_need
-			local consumption_percentage = 0.0
+			local consumption_percentage = 0
 			if pop.unit_of_warband ~= nil and pop.unit_of_warband.status ~= "idle" then
 				consumption_percentage = 1
 			end
+			-- reset consumption and update demands of need satisfaction
 			tabb.accumulate(needs_satisfaction, nil, function (_, need, values)
 				tabb.accumulate(values, nil, function (_, k, v)
 					pop.need_satisfaction[need][k].consumed = pop.need_satisfaction[need][k].consumed * consumption_percentage
@@ -1265,7 +1253,7 @@ function pro.run(province)
 
 	for good, index in pairs(RAWS_MANAGER.trade_good_to_index) do
 		-- check that we didn't go over the stockpile or possible remaining services from last tick
-		if (province.local_storage[good] or math.max(0, (province.local_production[good] or 0) - (province.local_consumption[good] or 0)))
+		if (province.local_storage[good] or ((province.local_production[good] or 0) - (province.local_consumption[good] or 0)))
 			+ market_data[index - 1].supply - market_data[index - 1].consumption < -EPSILON
 		then
 			error(

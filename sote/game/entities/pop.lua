@@ -100,10 +100,10 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 			end)
 			return a
 		end)
-	r.forage_time_preference = 0.5
+	r.forage_time_preference = 1
 
-	r.basic_needs_satisfaction = 0.25
-	r.life_needs_satisfaction = 0.25
+	r.basic_needs_satisfaction = 1
+	r.life_needs_satisfaction = 1
 
 	r.has_trade_permits_in     = {}
 	r.has_building_permits_in  = {}

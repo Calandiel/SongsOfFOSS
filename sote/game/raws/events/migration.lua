@@ -205,19 +205,25 @@ function load()
 					return
 				end
 			end
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and not v.parent then
-					return a + 1
-				end
-				return a
-			end)
+
+			-- populate temporary tables with not drafted pops	---collect colonization information
+			---@param province any
+			---@return table<POP, POP> valid_family_units
+			---@return integer  valid_family_count
+			---@return integer expedition_size
+			local function valid_home_family_units(province)
+				local family_units = tabb.filter(province.all_pops, function (a)
+					return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age
+				end)
+				local family_count = tabb.size(family_units)
+				return family_units, family_count, math.min(6, math.floor(family_count * 0.5))
+			end
 			-- move up to 6 but no more than half the home family units
-			local expedition_size = associated_data.expedition_size
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
 			local candidates = 0
 
-			-- populate temporary tables with not drafted pops
-			for _, pop in pairs(associated_data.origin_province.all_pops) do
-				if not pop.unit_of_warband and pop.home_province == associated_data.origin_province and not pop.parent then
+			for _, pop in pairs(valid_family_units) do
+				if (not pop.unit_of_warband) or (pop.unit_of_warband == expedition_leader.leading_warband) then
 					table.insert(migration_pool_pops, pop)
 					candidates = candidates + 1
 				end

@@ -466,18 +466,25 @@ local function load()
 
 	local colonisation_cost = 10 -- base 10 per family unit transfered
 
+	---collect colonization information
+	---@param province any
+	---@return table<POP, POP> valid_family_units
+	---@return integer  valid_family_count
+	---@return integer expedition_size
+	local function valid_home_family_units(province)
+		local family_units = tabb.filter(province.all_pops, function (a)
+			return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age
+		end)
+		local family_count = tabb.size(family_units)
+		return family_units, family_count, math.min(6, math.floor(family_count * 0.5))
+	end
+
 	Decision.CharacterProvince:new {
 		name = 'colonize-province',
 		ui_name = "Colonize targeted province",
 		tooltip = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
-					return a + 1
-				end
-				return a
-			end)
-			local expedition_size = math.min(6, math.floor(home_family_units / 2))
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
 			-- colonizing cost calories for travel
 			local travel_time = path.pathfind(
 				root.province,
@@ -493,7 +500,6 @@ local function load()
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
 			local can_buy_calories, buy_reasons = et.can_buy_use(root.realm.capitol, root.savings, 'calories', remaining_calories_needed + 0.01)
 
-
 			-- convincing people to move takes money but amount d epends on pops willingness to move, base payment the price of upto 10 units of food per family
 			local pop_payment =  colonisation_cost * expedition_size * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
 			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, 'calories')
@@ -506,8 +512,8 @@ local function load()
 			if root.province ~= root.realm.capitol then
 				return "You has to be in your home province to organize colonisation."
 			end
-			if home_family_units < 11 then
-				return "Your population is too low, you need at least " .. 6 .. " families while you only have " .. home_family_units .. "."
+			if valid_family_count < 11 then
+				return "Your population is too low, you need at least " .. 6 .. " families while you only have " .. valid_family_count .. "."
 			end
 			if character_calories_in_inventory < calorie_cost and not can_buy_calories then
 				return "You need " .. ut.to_fixed_point2(calorie_cost) .. " calories to move enough people to a new province and only has "
@@ -548,34 +554,26 @@ local function load()
 		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
 			-- need at least so many family units to migrate
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
-					return a + 1
-				end
-				return a
-			end)
-			local expedition_size = math.min(6, math.floor(home_family_units / 2))
-
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			-- makes sure characters wanting to lead an expepedition are 'adults'
+			if (not ot.decides_foreign_policy(root, root.realm)) or root.age < root.race.teen_age then
+				return false
+			end
 			if root.province ~= root.realm.capitol then
 				return false
 			end
-			if home_family_units < expedition_size then
+			if valid_family_count < expedition_size then
 				return false
 			end
 			return true
 		end,
 		clickable = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
-					return a + 1
-				end
-				return a
-			end)
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
 			if not primary_target.center.is_land then
 				return false
 			end
-			if home_family_units < 11 then
+			if valid_family_count < 11 then
 				return false
 			end
 			if primary_target.realm ~= nil then
@@ -588,13 +586,7 @@ local function load()
 		end,
 		available = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
-					return a + 1
-				end
-				return a
-			end)
-			local expedition_size = math.min(6, math.floor(home_family_units / 2))
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
 			-- colonizing cost calories for travel
 			local travel_time = path.pathfind(
 				root.province,
@@ -622,7 +614,7 @@ local function load()
 			if root.province ~= root.realm.capitol then
 				return false
 			end
-			if home_family_units < 11 then
+			if valid_family_count < 11 then
 				return false
 			end
 			if character_calories_in_inventory < calorie_cost and not can_buy_calories then
@@ -641,28 +633,31 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			-- need at least so many family units to migrate
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
-					return a + 1
-				end
-				return a
-			end)
-			--- don't let children or traders settle down since leaders refuse to move
-			if not ot.decides_foreign_policy(root, root.realm)
-				and (root.traits[TRAIT.TRADER] or root.age > root.race.teen_age)
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			--- don't let children start new realms unless leader
+			if (not ot.decides_foreign_policy(root, root.realm))
+				and root.age < root.race.teen_age
 			then
 				return 0
 			end
 			-- will only try to colonize if it can get all 6 families
-			if home_family_units < 11 then
+			if valid_family_count < 11 then
 				return 0
 			end
-			local base = 0.125
+			local base = 0.0625
 			if root.realm.capitol:home_population() > 20 and primary_target.realm == nil then
 				base = base * 2
 			end
-			-- more inclination to colonize when over foraging more than CC allows
+			-- more inclined to colonize when over foraging more than CC allows
 			if root.realm.capitol.foragers_limit < root.realm.capitol.foragers then
+				base = base * 2
+			-- less likely to spread if well uncer CC allows
+			elseif root.realm.capitol.foragers_limit > root.realm.capitol.foragers * 2 then
+				base = base * 0.5
+			end
+			-- more inclined to colonize when over pop weight is higher than CC
+			local pop_weight = root.realm.capitol:population_weight()
+			if root.realm.capitol.foragers_limit < pop_weight then
 				base = base * 2
 			-- less likely to spread if well uncer CC allows
 			elseif root.realm.capitol.foragers_limit > root.realm.capitol.foragers * 2 then
@@ -687,13 +682,7 @@ local function load()
 			root.busy = true
 
 			-- need at least so many family units to migrate
-			local home_family_units = tabb.accumulate(root.realm.capitol.home_to, 0, function (a, k, v)
-				if not v:is_character() and v.age >= v.race.teen_age and not v.parent and v.province == v.home_province then
-					return a + 1
-				end
-				return a
-			end)
-			local expedition_size = math.min(6, math.floor(home_family_units / 2))
+			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
 			-- colonizing cost calories for travel
 			local travel_time = path.pathfind(
 				root.province,

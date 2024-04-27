@@ -11,8 +11,8 @@ local economic_effects = require "game.raws.effects.economic"
 function pg.growth(province)
 	-- First, get the carrying capacity...
 	local cc = province.foragers_limit
-	local cc_used = province.foragers
-	local starvation_check = 0.2
+	local cc_used = province:population_weight()
+	local min_life_need = 0.125
 	local death_rate = 1 / 12 / 4
 	local birth_rate = 1 / 12 / 7
 
@@ -28,19 +28,16 @@ function pg.growth(province)
 		end
 	end
 
+	local starvation_check = min_life_need * 2
 	local eligible = tabb.accumulate(tabb.join(tabb.copy(province.all_pops), province.characters), {}, function (a, _, pp)
-	--	local healthcare_satisfaction_total = tabb.accumulate(pp.need_satisfaction[NEED.HEALTHCARE],{consumed = 0, demanded = 0}, function(b, case, values)
-	--		return {consumed = b.consumed + values.consumed , demanded = b.demanded + values.demanded}
-	--	end)
-	--	local healthcare_satisfaction = healthcare_satisfaction_total.consumed / healthcare_satisfaction_total.demanded
 		local min_life_satisfaction = tabb.accumulate(pp.need_satisfaction, 1, function(b, need, cases)
 			if NEEDS[need].life_need then
-				tabb.accumulate(cases, b, function (c, _, v)
+				b = tabb.accumulate(cases, b, function (c, _, v)
 					local ratio = v.consumed / v.demanded
 					if ratio < c then
 						return ratio
 					end
-					return b
+					return c
 				end)
 			end
 			return b
@@ -49,11 +46,15 @@ function pg.growth(province)
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
 		-- next check for starvation
-		elseif min_life_satisfaction < starvation_check
-		then
-			if love.math.random() * min_life_satisfaction < death_rate then
+		elseif min_life_satisfaction < starvation_check then -- prevent births if not at least 25% food and water
+			-- automatically cull anyone less than 12.5% food and water and roll for the rest based on 
+			if (min_life_satisfaction < min_life_need) or (love.math.random() < (starvation_check - min_life_satisfaction) / starvation_check * death_rate) then
 				to_remove[#to_remove + 1] = pp
 			end
+		-- TODO replace with better culling mechanism
+		-- increase death rate when total pop weight is over CC
+	--	elseif (not pp:is_character()) and cc_used > cc and love.math.random() < (1 - cc / cc_used) * death_rate then
+	--			to_remove[#to_remove + 1] = pp
 		elseif pp.age >= pp.race.elder_age then
 			if love.math.random() < (pp.race.max_age - pp.age) / (pp.race.max_age - pp.race.elder_age) * death_rate then
 				to_remove[#to_remove + 1] = pp
@@ -75,36 +76,35 @@ function pg.growth(province)
 
 		-- teens and older adults have reduced chance to conceive
 		local base = 1
-		if pp.age < pp.race.adult_age then
-			base = base * (pp.age - pp.race.teen_age) / (pp.race.adult_age - pp.race.teen_age)
-		elseif pp.age >= pp.race.middle_age then
-			base = base * (1 - (pp.age - pp.race.middle_age) / (pp.race.elder_age - pp.race.middle_age))
-		end
+	--	if pp.age < pp.race.adult_age then
+	--		base = base * (pp.age - pp.race.teen_age) / (pp.race.adult_age - pp.race.teen_age)
+	--	elseif pp.age >= pp.race.middle_age then
+	--		base = base * (1 - (pp.age - pp.race.middle_age) / (pp.race.elder_age - pp.race.middle_age))
+	--	end
 
 		-- SINCE CHARACTERS DONT FORGET CHILDREN AT TEEN AGE THIS SERVES AS A HARDCAP FOR NOW
 		-- chance of having a new child is dependent on current number of children and excess food and water satsifation (over starving)
-	--	local starvation_check = starvation_check / pp:get_age_multiplier()
-	--	local dependents = tabb.size(pp.children)
-	--	local excess_need_per_child = (1 - starvation_check) / (1 + pp.race.fecundity)
+		local dependents = tabb.size(pp.children) + 1
+		local excess_need_per_child = (1 - starvation_check) / (1 + pp.race.fecundity)
 
-		-- Calculate the fraction symbolizing the amount of "overproduction" of food
-	--	local food_satisfaction = tabb.accumulate(pp.need_satisfaction[NEED.FOOD], 1, function (b, k, v)
-	--		local n = v.consumed / v.demanded
-	--		if n < b then
-	--			b = n
-	--		end
-	--		return b
-	--	end)
-	--	food_satisfaction = math.max(0, food_satisfaction - (starvation_check + dependents * excess_need_per_child))
-	--	base = base * food_satisfaction
+		-- Calculate the pop food statisfaction 
+		local food_satisfaction = tabb.accumulate(pp.need_satisfaction[NEED.FOOD], 1, function (b, k, v)
+			local n = v.consumed / v.demanded
+			if n < b then
+				b = n
+			end
+			return b
+		end)
+		food_satisfaction = math.max(0, food_satisfaction - dependents * excess_need_per_child)
+		base = base * food_satisfaction
 
 		-- Calculate mortaility from lack of healthcare, stand in
-		local healthcare_satisfaction_total = tabb.accumulate(pp.need_satisfaction[NEED.HEALTHCARE],{consumed = 0, demanded = 0}, function(b, case, values)
-			return {consumed = b.consumed + values.consumed , demanded = b.demanded + values.demanded}
-		end)
-		local healthcare_satisfaction = healthcare_satisfaction_total.consumed / healthcare_satisfaction_total.demanded -- from 0 to 3
-		local healthcare_weight = healthcare_satisfaction / (0.5 + healthcare_satisfaction * 0.5) + 0.5 -- from 0.5 to 2
-		base = base * healthcare_weight
+	--	local healthcare_satisfaction_total = tabb.accumulate(pp.need_satisfaction[NEED.HEALTHCARE],{consumed = 0, demanded = 0}, function(b, case, values)
+	--		return {consumed = b.consumed + values.consumed , demanded = b.demanded + values.demanded}
+	--	end)
+	--	local healthcare_satisfaction = healthcare_satisfaction_total.consumed / healthcare_satisfaction_total.demanded -- from 0 to 3
+	--	local healthcare_weight = healthcare_satisfaction / (0.5 + healthcare_satisfaction * 0.5) + 0.5 -- from 0.5 to 2
+	--	base = base * healthcare_weight
 
 		if love.math.random() < base * birth_rate * pp.race.fecundity then
 			-- yay! spawn a new pop!
@@ -133,7 +133,7 @@ function pg.growth(province)
 				pp.faith,
 				pp.culture,
 				love.math.random() > pp.race.males_per_hundred_females / (100 + pp.race.males_per_hundred_females),
-				0,
+				pp.race.teen_age, -- otherwise fails at foraging and instantly dies without market surplus
 				pp.home_province, province,
 				false
 			)
@@ -161,6 +161,7 @@ function pg.growth(province)
 				end)
 				return need_satisfaction
 			end)
+			newborn:get_need_satisfaction()
 			-- donate a small amount of funs should it suddenly be left without a parent
 			local amount = needs[NEED.FOOD]['calories']
 			local donation = math.max(math.min(pp.savings / 12, food_price * amount), 0)
