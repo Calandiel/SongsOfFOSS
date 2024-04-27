@@ -23,6 +23,10 @@ function logger:new(logname, path)
 	return new_logger
 end
 
+function logger:close()
+	self.file:close()
+end
+
 function logger:log(message, do_flush)
 	-- self.file:write(os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
 	self.file:write(message .. "\n")
@@ -35,13 +39,22 @@ end
 local loggers = {}
 
 local latlon_logger = nil
+local neighbors_logger = nil
 
-function loggers.get_latlon_logger(path)
-	if latlon_logger == nil then
-		latlon_logger = logger:new("latlon", path)
+local function get_logger(logger_instance, logname, path)
+	if logger_instance == nil then
+		logger_instance = logger:new(logname, path)
 	end
 
-	return latlon_logger
+	return logger_instance
+end
+
+function loggers.get_latlon_logger(path)
+	return get_logger(latlon_logger, "latlon", path)
+end
+
+function loggers.get_neighbors_logger(path)
+	return get_logger(neighbors_logger, "neighbours", path)
 end
 
 return loggers

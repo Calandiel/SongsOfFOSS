@@ -93,4 +93,29 @@ function icosa_defines.neighbor_face_edge_at(face, edge)
 	return icosa_defines.face_neighbors[face][edge][1], icosa_defines.face_neighbors[face][edge][2]
 end
 
+--- vertex 1..12
+---    face 1..5
+---        face_index 1..20, vertex_index 1..3
+icosa_defines.vertex_faces = {
+	{{  1,  1 }, { 13,  2 }, { 19,  2 }, {  8,  1 }, {  9,  1 }}, ---  1
+	{{  1,  2 }, {  2,  1 }, { 20,  2 }, { 14,  2 }, { 13,  1 }}, ---  2
+	{{  5,  1 }, {  7,  3 }, { 10,  2 }, { 12,  3 }, {  6,  2 }}, ---  3
+	{{  4,  3 }, { 15,  1 }, { 17,  1 }, {  5,  2 }, {  6,  1 }}, ---  4
+	{{  1,  3 }, {  2,  3 }, {  3,  1 }, { 11,  2 }, {  9,  2 }}, ---  5
+	{{  3,  3 }, { 11,  3 }, { 12,  2 }, {  6,  3 }, {  4,  1 }}, ---  6
+	{{ 13,  3 }, { 14,  3 }, { 18,  2 }, { 16,  1 }, { 19,  1 }}, ---  7
+	{{ 16,  3 }, { 18,  3 }, { 17,  3 }, {  5,  3 }, {  7,  1 }}, ---  8
+	{{  8,  2 }, { 10,  1 }, { 12,  1 }, { 11,  1 }, {  9,  3 }}, ---  9
+	{{  4,  2 }, {  3,  2 }, {  2,  2 }, { 20,  1 }, { 15,  2 }}, --- 10
+	{{ 19,  3 }, { 16,  2 }, {  7,  2 }, { 10,  3 }, {  8,  3 }}, --- 11
+	{{ 15,  3 }, { 20,  3 }, { 14,  1 }, { 18,  1 }, { 17,  2 }}, --- 12
+}
+
+---@param vertex number 1..12
+---@param face number 1..5
+---@return number, number
+function icosa_defines.face_vertex_at(vertex, face)
+	return icosa_defines.vertex_faces[vertex][face][1], icosa_defines.vertex_faces[vertex][face][2]
+end
+
 return icosa_defines

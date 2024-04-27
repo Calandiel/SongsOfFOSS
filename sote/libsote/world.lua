@@ -7,6 +7,8 @@ local world = {
 	coord_by_tile_id = nil,
 	climate_cells = nil,
 
+	neighbors = nil,
+
 	colatitude = nil,
 	minus_longitude = nil,
 	elevation = nil,
@@ -46,6 +48,8 @@ function world:new(world_size, seed)
 	obj.coord_by_tile_id = {}
 	obj.climate_cells = {}
 
+	obj.neighbors         = ffi.new("int32_t[" .. obj.tile_count * 6 .. "]")
+
 	obj.colatitude        = ffi.new("float["   .. obj.tile_count .. "]")
 	obj.minus_longitude   = ffi.new("float["   .. obj.tile_count .. "]")
 	obj.elevation         = ffi.new("float["   .. obj.tile_count .. "]")
@@ -60,11 +64,8 @@ function world:new(world_size, seed)
 	return obj
 end
 
-function world:is_valid(q, r, log)
+function world:is_valid(q, r)
 	local s = -(q + r)
-	-- if log then
-	--     print("q", q, "r", r, "s", s, "q - s", q - s, "r - q", r - q, "s - r", s - r)
-	-- end
 	return q - s <= self.size and r - q <= self.size and s - r <= self.size
 end
 
@@ -73,12 +74,19 @@ function world:is_edge(q, r)
 	return q - s == self.size or r - q == self.size or s - r == self.size
 end
 
+function world:is_subedge(q, r)
+	local s = -(q + r)
+	return q - s == self.size - 1 or r - q == self.size - 1 or s - r == self.size - 1
+end
+
 function world:is_penta(q, r)
 	local s = -(q + r)
-	return
-		q - s == self.size and s - r == self.size or
-		r - q == self.size and s - r == self.size or
-		q - s == self.size and r - q == self.size
+	return q == self.size or r == self.size or s == self.size;
+end
+
+function world:is_subpenta(q, r)
+	local s = -(q + r)
+	return q == self.size - 1 or r == self.size - 1 or s == self.size - 1;
 end
 
 local bit = require("bit")
@@ -97,6 +105,19 @@ end
 
 function world:_set_empty(q, r, face)
 	self:_set_index(q, r, face, -1)
+
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	for i = 1, 6 do
+		self.neighbors[index + i - 1] = -1
+	end
+end
+
+function world:_set_neighbors(q, r, face, neighbors)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+
+	for i = 1, #neighbors do
+		self.neighbors[index + i - 1] = self.coord[self:_key_from_coord(neighbors[i].q, neighbors[i].r, neighbors[i].f)]
+	end
 end
 
 function world:_set_latlon(index, colatitude, minus_longitude)
