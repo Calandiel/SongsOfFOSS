@@ -743,10 +743,10 @@ function pro.run(province)
 		--		print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
 				local satisfaction_ratio = value.consumed  / value.demanded
 				if NEEDS[need].life_need then
-					if satisfaction_ratio < 0.75 then
+					if satisfaction_ratio < 0.7 then
 						low_life_need = true
 						high_life_need = false
-					elseif satisfaction_ratio < 1 then
+					elseif satisfaction_ratio < 0.8 then
 						high_life_need = false
 					end
 				end
@@ -785,7 +785,7 @@ function pro.run(province)
 		if low_life_need == true then -- any single need low
 			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 1.2)
 			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
-		elseif high_life_need == false then -- all needs are high
+		elseif high_life_need == true then -- all needs are high
 			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 0.9)
 			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
 		end

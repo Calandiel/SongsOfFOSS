@@ -14,11 +14,12 @@ return function(rect, character)
         -- gold color rgba
         ui.style.panel_outline = {r = 255 / 255, g = 215 / 255, b = 0 / 255, a = 1}
     end
-
+    -- square portrait image
+    local subrect = rect:centered_square()
     -- TODO: maybe we should draw background images related to current position
     local old_inside = ui.style["panel_inside"]
     ui.style["panel_inside"] = {r = 0 / 255, g = 20 / 255, b = 10 / 255, a = 0.3}
-    ui.panel(rect, 2, false)
+    ui.panel(subrect, 2, false)
     ui.style["panel_inside"] = old_inside
 
     love.graphics.setLineWidth( 4 )
@@ -81,16 +82,16 @@ return function(rect, character)
         for i, layer in ipairs(portrait.layers) do
             assert(ASSETS.portraits[portrait.folder][layer] ~= nil, layer .. " WAS NOT LOADED")
             assert(dna_per_layer[i] ~= nil, i)
-            ui.image_ith(ASSETS.portraits[portrait.folder][layer], dna_per_layer[i], rect)
+            ui.image_ith(ASSETS.portraits[portrait.folder][layer], dna_per_layer[i], subrect)
         end
     else
-        ui.image(ASSETS.icons[character.race.icon], rect)
+        ui.image(ASSETS.icons[character.race.icon], subrect)
     end
 
     -- relation to player character
     if WORLD.player_character then
-        local player_realtion_icon_size = math.min(20, (rect.width - 2) / 3)
-        local player_relation_icon_rect = rect:subrect(2, -2, player_realtion_icon_size, player_realtion_icon_size, "left", "down")
+        local player_realtion_icon_size = math.min(20, (subrect.width - 2) / 3)
+        local player_relation_icon_rect = subrect:subrect(2, -2, player_realtion_icon_size, player_realtion_icon_size, "left", "down")
         if WORLD.player_character == character then
             ut.render_icon(player_relation_icon_rect, "self-love.png", 1, 1, 1, 1)
             player_relation_icon_rect:shrink(-1)
@@ -101,7 +102,7 @@ return function(rect, character)
             ut.render_icon(player_relation_icon_rect, "ages.png", 0.72, 0.13, 0.27, 1.0)
         end
     end
-    ui.panel(rect, 2, true, false)
+    ui.panel(subrect, 2, true, false)
     love.graphics.setLineWidth( 1 )
     ui.style.panel_outline = style
 end
