@@ -265,12 +265,13 @@ function pro.run(province)
 		local forage_production = foragers_efficiency * time
 	--	print("  " .. pop_table.race.name .. " " .. pop_table.age ..  (pop_table.female and " f" or " m") .. " FORAGED: " .. forage_production .. " IN ".. time )
     	-- weight amount found by searching efficiencies and cultual search times
+		local province_size = tabb.size(province.tiles)
 		local forage_goods = tabb.accumulate(province.foragers_targets, {}, function (forage_goods, province_resource, province_values)
 			local cultural_resource = pop_table.culture.traditional_forager_targets[use_case].targets[province_resource]
 			if cultural_resource and province_values.amount > 0 then
 	--			print("    RESOURCE: " .. dbm.ForageResourceName[province_resource] .. " FOR ".. cultural_resource * time )
 				local amount = province_values.amount
-				local search = province_values.amount / province.foragers_limit * cultural_resource * time
+				local search = amount / province_size * cultural_resource * time
 				local handle = pop_job_efficiency[province_values.handle]
 				local dividend = amount * search
 				local divisor = search + amount * search / handle
@@ -734,7 +735,7 @@ function pro.run(province)
 			end
 		end
 
-		local low_life_need, high_life_need
+		local low_life_need, high_life_need = false, true
 		-- DISTRIBUTE CONSUMPTION TO PARENT AND CHILDREN
 		for need, cases in pairs(family_unit_needs) do
 		--	print("    " .. NEED_NAME[need] .. ": ")
@@ -742,10 +743,11 @@ function pro.run(province)
 		--		print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
 				local satisfaction_ratio = value.consumed  / value.demanded
 				if NEEDS[need].life_need then
-					if satisfaction_ratio < 0.4 then
+					if satisfaction_ratio < 0.75 then
 						low_life_need = true
-					elseif satisfaction_ratio > 0.8 then
-						high_life_need = true
+						high_life_need = false
+					elseif satisfaction_ratio < 1 then
+						high_life_need = false
 					end
 				end
 				pop_table.need_satisfaction[need][case].consumed = satisfaction_ratio * pop_table.need_satisfaction[need][case].demanded
@@ -780,12 +782,12 @@ function pro.run(province)
 		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.BasicNeeds)
 
 		-- for next month determine if it should forage more or less
-		if low_life_need then
-			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio + pop_table.work_ratio * 0.2)
-			pop_table.work_ratio = math.max(0.01, pop_table.work_ratio * 0.8)
-		elseif high_life_need then
-			pop_table.forage_ratio = math.max(0.01, pop_table.forage_ratio * 0.9)
-			pop_table.work_ratio = math.max(0.99, pop_table.work_ratio + pop_table.forage_ratio * 0.1)
+		if low_life_need == true then -- any single need low
+			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 1.2)
+			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
+		elseif high_life_need == false then -- all needs are high
+			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 0.9)
+			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
 		end
 	end
 
@@ -1102,8 +1104,8 @@ function pro.run(province)
 						income = income - contrib
 					end
 					-- increase working hours if possible to increase income
-					pop.work_ratio = math.min(0.01, pop.forage_ratio * 0.9)
-					pop.forage_ratio = math.max(0.99, pop.work_ratio + pop.forage_ratio * 0.1)
+					pop.forage_ratio = math.min(0.99, pop.forage_ratio * 1.1)
+					pop.work_ratio = math.max(0.01, 1 - pop.forage_ratio)
 				end
 
 				if province.trade_wealth < income then
@@ -1133,7 +1135,7 @@ function pro.run(province)
 				savings_fraction = OPTIONS['needs-savings'] * pop.savings
 			end
 			PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, math.max(free_time_of_pop + (additional_family_time[pop] or 0), 0), math.max(0, savings_fraction))
+			satisfy_needs(pop_view, pop, math.max(math.min(free_time_of_pop, pop.forage_ratio) + pop.forage_ratio * (additional_family_time[pop] or 0), 0), math.max(0, savings_fraction))
 			PROFILER:end_timer("production-satisfy-needs")
 		end
 

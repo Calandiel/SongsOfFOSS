@@ -940,7 +940,7 @@ end
 ---@param rect Rect
 ---@param pop POP
 function ut.render_pop_satsifaction(rect, pop)
-	local needs_tooltip = ""
+	local needs_tooltip = "Forage Ratio: " .. ut.to_fixed_point2(pop.forage_ratio) .. "%, Work Ratio: " .. ut.to_fixed_point2(pop.work_ratio) .. "%"
 	for need, values in pairs(pop.need_satisfaction) do
 		local tooltip = ""
 		for case, value in pairs(values) do
