@@ -4,7 +4,11 @@ local wg = {}
 local STATES = {
 	init = 0,
 	error = 1,
-	generated = 2
+	phase_01 = 2,
+	cleanup = 3,
+	phase_02 = 4,
+	load_maps = 5,
+	completed = 100
 }
 
 local libsote = require("libsote.libsote")
@@ -35,40 +39,6 @@ function wg.init()
 	wg.state = STATES.init
 	wg.message = nil
 
-	if not libsote.init() then
-		wg.state = STATES.error
-		wg.message = libsote.message
-		return
-	end
-
-	math.randomseed(os.time())
-	local seed = math.random(1, 100000)
-	-- local seed = 58738 -- climate integration was done on this one
-	-- local seed = 53201 -- banding
-	-- local seed = 20836 -- north pole cells
-
-	wg.world = libsote.generate_world(seed)
-	wg.message = libsote.message
-	if not wg.world then
-		wg.state = STATES.error
-		return
-	end
-	libsote.shutdown()
-
-	wg.state = STATES.phase_01
-
-	require "game.raws.raws"()
-	require "game.entities.world".empty()
-
-	run_with_profiling(function() cache_tile_coord(wg.world) end, "cache_tile_coord")
-
-	gen_phase_02(wg.world)
-
-	local wl = require "libsote.world-loader"
-	wl.load_maps_from(wg.world)
-	-- wl.dump_maps_from(wg.world)
-
-
 	wg.world_size = DEFINES.world_size
 	local dim = wg.world_size * 3
 
@@ -86,13 +56,84 @@ function wg.init()
 	wg.planet_shader = require "libsote.planet-shader".get_shader()
 	wg.game_canvas = love.graphics.newCanvas()
 
+	wg.coroutine = coroutine.create(wg.generate_coro)
+	coroutine.resume(wg.coroutine)
+end
+
+function wg.generate_coro()
+	local init_world_coroutine = libsote.init()
+	if not init_world_coroutine then
+		wg.state = STATES.error
+		wg.message = libsote.message
+		return
+	end
+
+	wg.state = STATES.phase_01
+
+	math.randomseed(os.time())
+	local seed = math.random(1, 100000)
+	-- seed = 58738 -- climate integration was done on this one
+	-- seed = 53201 -- banding
+	-- seed = 20836 -- north pole cells
+
+	while coroutine.status(init_world_coroutine) ~= "dead" do
+		coroutine.resume(init_world_coroutine, seed)
+		coroutine.yield()
+	end
+
+	wg.message = libsote.message
+	coroutine.yield()
+
+	wg.world = libsote.generate_world(seed)
+	wg.message = libsote.message
+	if not wg.world then
+		wg.state = STATES.error
+		return
+	end
+
+	wg.state = STATES.cleanup
+
+	local cleanup_coroutine = coroutine.create(libsote.clean_up_coro)
+	while coroutine.status(cleanup_coroutine) ~= "dead" do
+		coroutine.resume(cleanup_coroutine)
+		coroutine.yield()
+	end
+
+	wg.message = libsote.message
+	coroutine.yield()
+
+	wg.state = STATES.phase_02
+
+	require "game.raws.raws"()
+	require "game.entities.world".empty()
+
+	wg.message = "Caching tile coordinates"
+	coroutine.yield()
+	run_with_profiling(function() cache_tile_coord(wg.world) end, "cache_tile_coord")
+
+	gen_phase_02(wg.world)
+
+	wg.state = STATES.load_maps
+	local wl = require "libsote.world-loader"
+	wl.load_maps_from(wg.world)
+	-- wl.dump_maps_from(wg.world)
+
 	local default_map_mode = "elevation"
 	wg.map_mode = default_map_mode
-
 	wg.refresh_map_mode()
+
+	wg.state = STATES.completed
 end
 
 function wg.update(dt)
+	if wg.coroutine == nil then
+		return
+	end
+
+	coroutine.resume(wg.coroutine)
+	if coroutine.status(wg.coroutine) == "dead" then
+		wg.coroutine = nil
+	end
 end
 
 local up_direction = cpml.vec3.new(0, 1, 0)
@@ -239,7 +280,7 @@ function wg.draw()
 		) then
 			love.event.quit()
 		end
-	elseif wg.state == STATES.phase_01 then
+	elseif wg.state == STATES.completed then
 		-- ui.text_panel(wg.message, ui.fullscreen():subrect(0, 0, 300, 60, "center", "down"))
 
 		wg.handle_camera_controls()
