@@ -24,7 +24,7 @@ function d.load()
 		unlocked_by = {},
 		research_cost = 0.2,
 	}
---[[	Technology:new {
+	Technology:new {
 		name = "vegetable-tanning",
 		icon = "animal-hide.png",
 		description = "vegetable tanning",
@@ -87,7 +87,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "early-metal-working",
-		icon = "asteroid.png",
+		icon = "gold-nuggets.png",
 		description = "cold working of native metals",
 		r = 1,
 		g = 1,
@@ -98,7 +98,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "agriculture",
-		icon = "pitchfork.png",
+		icon = "wheat.png",
 		description = "agriculture",
 		r = 0,
 		g = 0.65,
@@ -122,7 +122,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "selective-plant-breeding",
-		icon = "pitchfork.png",
+		icon = "plant-roots.png",
 		description = "creation of better plant cultivars",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -152,7 +152,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "beekeeping",
-		icon = "pitchfork.png",
+		icon = "high-grass.png",
 		description = "beekeeping",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -187,7 +187,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "mead",
-		icon = "pitchfork.png",
+		icon = "beer-stein.png",
 		description = "mead",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -197,7 +197,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "resin-glue",
-		icon = "pitchfork.png",
+		icon = "pine-tree.png",
 		description = "glue",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -208,7 +208,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "animal-glue",
-		icon = "pitchfork.png",
+		icon = "meat.png",
 		description = "glue",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -230,7 +230,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "metal-casting",
-		icon = "war-pick.png",
+		icon = "anvil.png",
 		description = "casting metals",
 		r = 0.3,
 		g = 0.01,
@@ -241,7 +241,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "bloomeries",
-		icon = "war-pick.png",
+		icon = "anvil.png",
 		description = "hammering bloom into metals",
 		r = 0.3,
 		g = 0.01,
@@ -263,7 +263,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "gem-cutting",
-		icon = "ice-cube.png",
+		icon = "gems.png",
 		description = "cutting exotic gemstones to please the eye",
 		r = 0.72,
 		g = 0.94,
@@ -274,7 +274,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "jewelry",
-		icon = "war-pick.png",
+		icon = "tribal-pendant.png",
 		description = "making proper jewelry from precious metals",
 		r = 0.3,
 		g = 0.01,
@@ -298,7 +298,7 @@ function d.load()
 
 	Technology:new {
 		name = "pottery-wheel",
-		icon = "powder.png",
+		icon = "amphora.png",
 		description = "pottery-wheel",
 		r = 0.23,
 		g = 0.23,
@@ -310,7 +310,7 @@ function d.load()
 
 	Technology:new {
 		name = "advanced-metal-working",
-		icon = "asteroid.png",
+		icon = "anvil.png",
 		description = "working metals with high skill",
 		r = 1,
 		g = 1,
@@ -321,7 +321,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "alloys",
-		icon = "asteroid.png",
+		icon = "metal-bar.png",
 		description = "mixing metals into new subtances",
 		r = 1,
 		g = 1,
@@ -332,7 +332,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "electrum",
-		icon = "asteroid.png",
+		icon = "gold-nuggets.png",
 		description = "mixing gold and silver",
 		r = 1,
 		g = 1,
@@ -343,7 +343,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "arsenical-bronze",
-		icon = "asteroid.png",
+		icon = "metal-bar.png",
 		description = "mixing arsenic and copper",
 		r = 1,
 		g = 1,
@@ -354,7 +354,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "tin-bronze",
-		icon = "asteroid.png",
+		icon = "metal-bar.png",
 		description = "mixing tin and copper",
 		r = 1,
 		g = 1,
@@ -365,7 +365,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "brass",
-		icon = "asteroid.png",
+		icon = "metal-bar.png",
 		description = "mixing zinc and copper",
 		r = 1,
 		g = 1,
@@ -376,7 +376,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "coinage",
-		icon = "asteroid.png",
+		icon = "two-coins.png",
 		description = "standardized currency",
 		r = 1,
 		g = 1,
@@ -398,7 +398,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "brickmaking",
-		icon = "asteroid.png",
+		icon = "cubes.png",
 		description = "simple sun-fired bricks",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -408,7 +408,7 @@ function d.load()
 	}
 	Technology:new {
 		name = "kiln",
-		icon = "asteroid.png",
+		icon = "painted-pottery.png",
 		description = "kilns for mass firing of pottery and bricks",
 		r = love.math.random(),
 		g = love.math.random(),
@@ -418,14 +418,14 @@ function d.load()
 	}
 	Technology:new {
 		name = "fire-setting-mining",
-		icon = "asteroid.png",
+		icon = "campfire.png",
 		description = "more efficieng mining",
 		r = love.math.random(),
 		g = love.math.random(),
 		b = love.math.random(),
 		unlocked_by = { tec("surface-mining"), },
 		research_cost = 1,
-	}]]
+	}
 end
 
 return d

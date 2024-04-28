@@ -5,7 +5,7 @@ function d.load()
 
 	Job:new {
 		name = 'water-carriers',
-		icon = 'droplets.png',
+		icon = 'full-wood-bucket.png',
 		description = 'water carriers',
 		r = 0.2,
 		g = 0.2,
@@ -13,7 +13,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'gatherers',
-		icon = 'fruit-bowl.png',
+		icon = 'basket.png',
 		description = 'gatherers',
 		r = 0.3,
 		g = 1,

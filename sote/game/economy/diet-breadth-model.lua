@@ -256,7 +256,7 @@ function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
 	-- get average life needs from realm primary race
 	local food_needs_by_case = dbm.cultural_food_needs(province.realm.primary_race)
-	local province_size = tabb.size(province.tiles)
+	local province_size = province.size
 --	print("  FINDING FOOD USE TARGETS...")
 	---@param targets_by_use table<TradeGoodUseCaseReference, {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, {search: number, handle: number, output: number, energy: number}>}>
 	---@type table<TradeGoodUseCaseReference, {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, {search: number, handle: number, output: number, energy: number}>}>

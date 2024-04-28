@@ -149,22 +149,22 @@ function re.draw(gam)
 		-- ROW #1
 		-- tile efficiency
 		local building_efficiency = building.type.production_method:get_efficiency(building.province)
-		local tooltip = "The building's production efficiency is " .. ut.to_fixed_point2(building_efficiency * 100) .. "% production efficiency."
+		local tooltip = "The building's production efficiency is " .. ut.to_fixed_point2(building_efficiency * 100) .. "%."
 		if building.type.production_method.foraging then
-			tooltip = tooltip .. "Workers forages natural resources and increase province foragers by total working time."
+			tooltip = tooltip .. " Workers forages natural resources, increasing province foragers by total working time while local foraging competition modify efficiency by " .. ut.to_fixed_point2(forage_efficiency * 100) .. "%."
 		end
 		local nature_yield_dependence = building.type.production_method.nature_yield_dependence
 		if nature_yield_dependence > 0 then
-			local nature_yield = nature_yield_dependence * math.max(1, building.province.foragers_limit / require "engine.table".size(building.province.tiles)) * nature_yield_dependence
-			tooltip = tooltip .. "\nThe production is depenedent on harvesting natrual resources, as such local foraging competition modify efficiency by " .. ut.to_fixed_point2(nature_yield * 100) .. "%."
+			local nature_yield = nature_yield_dependence * building.province.foragers_limit / building.province.size
+			tooltip = tooltip .. " Production is depenedent on harvesting natrual resources, as such the local resource density modify efficiency by " .. ut.to_fixed_point2(nature_yield * 100) .. "%."
 		end
 		local forest_dependence = building.type.production_method.forest_dependence
 		if forest_dependence > 0 then
-			local nature_yield = (building.province.foragers_targets[dbm.ForageResource.Wood]) * forest_dependence
-			tooltip = tooltip .. "\nOutput is harvested from available forest resources, as such local sources modify efficiency by " .. ut.to_fixed_point2(nature_yield * 100) .. "%."
+			local nature_yield = (building.province.foragers_targets[dbm.ForageResource.Wood].amount / building.province.size) * forest_dependence
+			tooltip = tooltip .. " Output is harvested from available forest resources, as such the local foliage density modify efficiency by " .. ut.to_fixed_point2(nature_yield * 100) .. "% and deforests tiles."
 		end
 		ui.centered_text("Building efficiency", left_text_rect)
-		ut.color_coded_percentage(building_efficiency * forage_efficiency, left_value_rect, true, tooltip)
+		ut.color_coded_percentage(building_efficiency, left_value_rect, true, tooltip)
 		-- infra efficiency
 		local inf = building.province:get_infrastructure_efficiency()
 		local efficiency_from_infrastructure = math.min(1.5, 0.5 + 0.5 * math.sqrt(2 * inf))
@@ -221,9 +221,13 @@ function re.draw(gam)
 		local output_total = tabb.accumulate(building.earn_from_outputs, 0, function (a, _, v)
 			return a + v
 		end)
-		ui.centered_text("Output profits", middle_text_rect)
+		ui.centered_text("Output revenue", middle_text_rect)
 		ut.money_entry_icon(output_total, middle_value_rect,ut.to_fixed_point2(output_total)
 			..  MONEY_SYMBOL .. " earned from outputs last month.")
+		-- average revinue per worker
+		ui.centered_text("Total profits", right_text_rect)
+		ut.money_entry_icon(output_total, right_value_rect,ut.to_fixed_point2((output_total - input_total))
+			..  MONEY_SYMBOL .. " earned after paying for inputs.")
 
 		-- INPUT OUTPUT AND WORKER TABLES
 
@@ -586,7 +590,7 @@ function re.draw(gam)
 				render_closure = function (rect, k, v)
 				ut.generic_number_field(
 					"chart.png",
-					v.work_ratio * 100,
+					v.work_ratio,
 					rect,
 					"Percentage of time workers spent toiling.",
 					ut.NUMBER_MODE.PERCENTAGE,
@@ -612,12 +616,9 @@ function re.draw(gam)
 					local tile_efficiency = 1
 						tile_efficiency = building.type.production_method:get_efficiency(building.province)
 						tooltip = tooltip .. " This is further changed by ".. ut.to_fixed_point2(tile_efficiency * 100) .. "% based on the building's province."
-					if building.type.production_method.foraging then
-						tooltip = tooltip .. " This is additionally weighted by ".. ut.to_fixed_point2(forage_efficiency * 100) .. "% from last months used carrying capacity."
-					end
 					ut.generic_number_field(
 						"",
-						job_efficiency * tile_efficiency * efficiency_from_infrastructure * forage_efficiency,
+						job_efficiency * efficiency_from_infrastructure * forage_efficiency,
 						rect,
 						tooltip,
 						ut.NUMBER_MODE.PERCENTAGE,

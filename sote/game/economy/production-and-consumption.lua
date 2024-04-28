@@ -265,7 +265,7 @@ function pro.run(province)
 		local forage_production = foragers_efficiency * time
 	--	print("  " .. pop_table.race.name .. " " .. pop_table.age ..  (pop_table.female and " f" or " m") .. " FORAGED: " .. forage_production .. " IN ".. time )
     	-- weight amount found by searching efficiencies and cultual search times
-		local province_size = tabb.size(province.tiles)
+		local province_size = province.size
 		local forage_goods = tabb.accumulate(province.foragers_targets, {}, function (forage_goods, province_resource, province_values)
 			local cultural_resource = pop_table.culture.traditional_forager_targets[use_case].targets[province_resource]
 			if cultural_resource and province_values.amount > 0 then

@@ -106,9 +106,7 @@ function ProductionMethod:get_efficiency(province)
 	end
 
 	local total_efficiency = 0
-	local tile_count = 0
 	for _, tile in pairs(province.tiles) do
-		tile_count = tile_count + 1
 		local crop_yield = 1
 		if self.crop then
 			local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
@@ -156,13 +154,16 @@ function ProductionMethod:get_efficiency(province)
 		total_efficiency = total_efficiency + crop_yield * soil_efficiency
 	end
 	local nature_yield = 1
+	if self.foraging then
+		nature_yield = nature_yield * dbm.foraging_efficiency(province.foragers_limit, province.foragers)
+	end
 	if self.forest_dependence > 0 then
-		nature_yield = (province.foragers_targets[dbm.ForageResource.Wood]) * self.forest_dependence
+		nature_yield = nature_yield * (province.foragers_targets[dbm.ForageResource.Wood].amount / province.size) * self.forest_dependence
 	end
 	if self.nature_yield_dependence > 0 then
-		nature_yield = math.max(1, province.foragers_limit / require "engine.table".size(province.tiles)) * self.nature_yield_dependence
+		nature_yield = nature_yield * math.max(0, province.foragers_limit / province.size) * self.nature_yield_dependence
 	end
-	return total_efficiency * nature_yield / tile_count
+	return total_efficiency * nature_yield / province.size
 end
 
 return ProductionMethod

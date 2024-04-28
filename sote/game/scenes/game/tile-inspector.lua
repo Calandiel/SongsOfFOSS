@@ -407,13 +407,12 @@ local function trade_widget(gam, tile, panel)
 		uit.NAME_MODE.ICON
 	)
 
-	local tile_count = tabb.size(tile.province.tiles)
 	uit.generic_number_field(
 		"basket.png",
 		tile.province.foragers_limit,
 		layout:next(unit * 5, unit * 1),
 		"This province has a carrying capacity of about " .. uit.to_fixed_point2(tile.province.foragers_limit)
-			.." humans from " .. tile_count .." tiles",
+			.." humans from " .. tile.province.size .." tiles",
 		uit.NUMBER_MODE.BALANCE,
 		uit.NAME_MODE.ICON
 	)
