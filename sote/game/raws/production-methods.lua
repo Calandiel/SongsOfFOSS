@@ -114,7 +114,7 @@ function ProductionMethod:get_efficiency(province)
 			nature_yield = (tile.broadleaf * 0.2 + tile.conifer * 0.3 + tile.shrub * 0.1) * self.forest_dependence
 		end
 		if self.nature_yield_dependence > 0 then
-			nature_yield = (tile.broadleaf * 0.2 + tile.conifer * 0.3 + tile.shrub * 0.4 + tile.grass * 0.5) * self.nature_yield_dependence
+			nature_yield = math.max(1, province.foragers_limit / require "engine.table".size(province.tiles)) * self.nature_yield_dependence
 		end
 		if self.crop then
 			nature_yield = tile.grass * 1.3

@@ -362,7 +362,7 @@ end
 ---@param province Province
 ---@param good TradeGoodReference
 function EconomicEffects.decay_local_stockpile(province, good)
-	province.local_storage[good] = (province.local_storage[good] or 0) * 0.9
+	province.local_storage[good] = (province.local_storage[good] or 0) * 0.85
 end
 
 ---comment

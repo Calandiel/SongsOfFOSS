@@ -452,12 +452,12 @@ function pro.run(province)
 			local need_amount = value.demanded
 			-- induced demand:
 			local price_expectation = math.max(0.0001, use_case_price_expectation[case])
-	--		local induced_demand = math.min(2, math.max(0, 1 / math.max(price_expectation, 0.001) - 1))
+			local induced_demand = math.min(2, math.max(0, 1 / math.max(price_expectation, 0.001) - 1))
 	--		print("    " .. " case: " .. case .." need: " .. need_amount .. " induced_demand: " .. need_amount * (1 + induced_demand))
-	--		need_amount = need_amount * (1 + induced_demand)
-	--		need_amount = need_amount * target
+			need_amount = need_amount * (1 + induced_demand)
+			need_amount = need_amount * target
 			if need_amount < 0 then
-	--			error("Demanded need is lower than zero!")
+				error("Demanded need is lower than zero!")
 			end
 			-- estimate cost in money and time to satisfy each use_case
 			local remaining_need_amount = math.max(0, need_amount - value.consumed)
@@ -961,7 +961,7 @@ function pro.run(province)
 				if prod.foraging then
 					-- buildings operate off off last month's foraging use, otherwise race conditions on output
 					foragers_count = foragers_count + work_time * pop.race.carrying_capacity_weight
-					local_foraging_efficiency = last_foraging_efficiency
+					local_foraging_efficiency = math.min(foragers_efficiency, last_foraging_efficiency)
 				end
 				local yield = prod:get_efficiency(province)
 

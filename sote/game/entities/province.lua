@@ -418,7 +418,6 @@ function prov.Province:fire_pop(pop)
 	if pop.employer then
 		pop.employer.workers[pop] = nil
 		if tabb.size(pop.employer.workers) == 0 then
-			pop.employer.work_ratio = 1
 			pop.employer.last_income = 0
 			pop.employer.last_donation_to_owner = 0
 			pop.employer.subsidy_last = 0

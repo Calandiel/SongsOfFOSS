@@ -95,12 +95,12 @@ function dbm.net_primary_production(tile)
 	-- check for marine resources
 	local fish_production, shellfish_production = 0, 0
 	if tile.has_marsh then
-		shellfish_production = shellfish_production + 0.375
-		fish_production = fish_production + 0.125
+		shellfish_production = shellfish_production + 0.75
+		fish_production = fish_production + 0.25
 	end
 	if tile.has_river then
-		shellfish_production = shellfish_production + 0.125
-		fish_production = fish_production + 0.375
+		shellfish_production = shellfish_production + 0.25
+		fish_production = fish_production + 0.75
 	end
 	for i = 1, 4 do
 		if not tile:get_neighbor(i).is_land then
@@ -119,7 +119,7 @@ function dbm.net_primary_production(tile)
 	shellfish_production = shellfish_production * 0.75
 	local animal_production = herbivores + carinvores
 	-- determine energy gain from decomposers
-	local mushroom_production = (net_primary_production + timber_production + shellfish_production + fish_production + animal_production) * 0.125
+	local mushroom_production = (net_primary_production + timber_production + animal_production) * 0.125
 	return net_primary_production, timber_production, shellfish_production, fish_production, animal_production, mushroom_production, effective_temperature
 end
 
