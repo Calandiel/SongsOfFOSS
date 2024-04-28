@@ -13,7 +13,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'gatherers',
-		icon = 'high-grass.png',
+		icon = 'fruit-bowl.png',
 		description = 'gatherers',
 		r = 0.3,
 		g = 1,
@@ -29,7 +29,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'knappers',
-		icon = 'stone-spear.png',
+		icon = 'rock.png',
 		description = 'knappers',
 		r = 0.3,
 		g = 0.3,
@@ -45,7 +45,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'warriors',
-		icon = 'stone-axe.png',
+		icon = 'guards.png',
 		description = 'warriors',
 		r = 0.67,
 		g = 0.45,
@@ -69,7 +69,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'smelters',
-		icon = 'silver.png',
+		icon = 'metal-bar.png',
 		description = 'refining ore into usable products',
 		r = 0.71,
 		g = 0.25,
@@ -109,7 +109,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'blacksmiths',
-		icon = 'crafting.png',
+		icon = 'anvil.png',
 		description = 'blacksmiths',
 		r = 0.1,
 		g = 0.1,
@@ -117,7 +117,7 @@ function d.load()
 	}
 	Job:new {
 		name = 'quarrymen',
-		icon = 'stone-block.png',
+		icon = 'stone-crafting.png',
 		description = 'quarrymen',
 		r = 0.8,
 		g = 0.8,

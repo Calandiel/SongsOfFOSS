@@ -111,10 +111,10 @@ function ProductionMethod:get_efficiency(province)
 		local nature_yield = 1
 		local crop_yield = 1
 		if self.forest_dependence > 0 then
-			nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9
+			nature_yield = (tile.broadleaf * 0.2 + tile.conifer * 0.3 + tile.shrub * 0.1) * self.forest_dependence
 		end
 		if self.nature_yield_dependence > 0 then
-			nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9 + tile.grass * 1
+			nature_yield = (tile.broadleaf * 0.2 + tile.conifer * 0.3 + tile.shrub * 0.4 + tile.grass * 0.5) * self.nature_yield_dependence
 		end
 		if self.crop then
 			nature_yield = tile.grass * 1.3

@@ -206,7 +206,7 @@ function dbm.foragers_targets(province)
 		handle = JOBTYPE.HUNTING,
 	}
 	products[dbm.ForageResource.Large] = {
-		icon = "deer.png",
+		icon = "bison.png",
 		output = { ['meat'] = 1, ['hide'] = 0.25 },
 		amount = large_game,
 		handle = JOBTYPE.WARRIOR,

@@ -25,7 +25,8 @@ local job_types = require "game.raws.job_types"
 ---@field inventory table <TradeGoodReference, number?>
 ---@field price_memory table<TradeGoodReference, number?>
 ---@field need_satisfaction table<NEED, table<TradeGoodUseCaseReference,{consumed:number, demanded:number}>>
----@field forage_time_preference number from 0 to 1
+---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
+---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 ---@field leading_warband Warband?
 ---@field recruiter_for_warband Warband?
 ---@field unit_of_warband Warband?
@@ -100,7 +101,8 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 			end)
 			return a
 		end)
-	r.forage_time_preference = 1
+	r.forage_ratio = 0.75
+	r.work_ratio = 0.75
 
 	r.basic_needs_satisfaction = 1
 	r.life_needs_satisfaction = 1

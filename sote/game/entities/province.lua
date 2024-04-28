@@ -652,7 +652,7 @@ end
 function prov.Province:get_infrastructure_efficiency()
 	local inf = 0
 	if self.infrastructure_needed > 0 then
-		inf = self.infrastructure / self.infrastructure_needed
+		inf = 2 * self.infrastructure / (self.infrastructure + self.infrastructure_needed)
 	end
 	return inf
 end

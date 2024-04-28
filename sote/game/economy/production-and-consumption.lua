@@ -235,8 +235,7 @@ function pro.run(province)
 	-- These resources come
 	record_production(water_index, province.hydration)
 
-	local inf = province:get_infrastructure_efficiency()
-	local efficiency_from_infrastructure = math.min(1.5, 0.5 + 0.5 * math.sqrt(2 * inf))
+	local efficiency_from_infrastructure = province:get_infrastructure_efficiency()
 	-- Record local production...
 	-- TODO MAKE NEW EFFICIENCY FUNCTION FOR FULL PRODUCTION AT 0 FORAGERS AND 0-ISH AT FORAGERS LIMIT
 	local last_foraging_efficiency = dbm.foraging_efficiency(province.foragers_limit, province.foragers)
@@ -619,7 +618,7 @@ function pro.run(province)
 --		end
 
 		-- let player forage for more time if they want
-		local forage_time = pop_table.forage_time_preference * free_time
+		local forage_time = math.max(pop_table.forage_ratio, free_time)
 		if WORLD.player_character and WORLD.player_character == pop_table then
 			forage_time = math.min(OPTIONS["needs-hunt"], forage_time)
 		end
@@ -735,12 +734,20 @@ function pro.run(province)
 			end
 		end
 
+		local low_life_need, high_life_need
 		-- DISTRIBUTE CONSUMPTION TO PARENT AND CHILDREN
 		for need, cases in pairs(family_unit_needs) do
 		--	print("    " .. NEED_NAME[need] .. ": ")
 			for case, value in pairs(cases) do
 		--		print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
 				local satisfaction_ratio = value.consumed  / value.demanded
+				if NEEDS[need].life_need then
+					if satisfaction_ratio < 0.4 then
+						low_life_need = true
+					elseif satisfaction_ratio > 0.8 then
+						high_life_need = true
+					end
+				end
 				pop_table.need_satisfaction[need][case].consumed = satisfaction_ratio * pop_table.need_satisfaction[need][case].demanded
 				pop_table:get_need_satisfaction()
 				for _, child in pairs(pop_table.children) do
@@ -773,28 +780,12 @@ function pro.run(province)
 		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.BasicNeeds)
 
 		-- for next month determine if it should forage more or less
-		local min_life_satisfaction = tabb.accumulate(pop_table.need_satisfaction, 1, function (min_case, need, cases)
-			if NEEDS[need].life_need then
-				return tabb.accumulate(cases, 1, function (min_value, _, values)
-					local ratio = values.consumed / values.demanded
---					print("   SATISFACTION: " .. ratio)
-					if ratio < min_value then
---						print("      NEW MIN: " .. ratio)
-						return ratio
-					end
---					print("      OLD MIN: " .. min_value)
-					return min_value
-				end)
-			end
-			return min_case
-		end)
---		print("MIN LIFE NEED CASE: " .. min_life_satisfaction)
-		if min_life_satisfaction < 0.75 then
-			pop_table.forage_time_preference = math.min(1, pop_table.forage_time_preference * 1.25)
---			print("  MIN LIFE NEED CASE TOO LOW -> " .. pop_table.forage_time_preference)
-		elseif min_life_satisfaction >= 1 then
-			pop_table.forage_time_preference = math.max(0.01, pop_table.forage_time_preference * 0.9)
---			print("  MIN LIFE NEED CASE TO HIGH -> " .. pop_table.forage_time_preference)
+		if low_life_need then
+			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio + pop_table.work_ratio * 0.2)
+			pop_table.work_ratio = math.max(0.01, pop_table.work_ratio * 0.8)
+		elseif high_life_need then
+			pop_table.forage_ratio = math.max(0.01, pop_table.forage_ratio * 0.9)
+			pop_table.work_ratio = math.max(0.99, pop_table.work_ratio + pop_table.forage_ratio * 0.1)
 		end
 	end
 
@@ -867,12 +858,8 @@ function pro.run(province)
 					foragers_count = foragers_count + weight
 					foragers_increase = weight
 				end
-				-- reduce potential foraging time from working
-				if pop.employer then
-					foragers_increase = foragers_increase * (1 - pop.employer.work_ratio)
-				end
 				-- add children's times and weight by desired foraging percentage
-				foragers_increase = pop.forage_time_preference * (foragers_increase + (additional_family_time[pop] or 0))
+				foragers_increase = pop.forage_ratio * (foragers_increase + (additional_family_time[pop] or 0))
 				-- add 'family unit' to production and consumption cycle
 				table.insert(a, pop)
 				foragers_count = foragers_count + foragers_increase
@@ -969,13 +956,12 @@ function pro.run(province)
 				local prod = building.type.production_method
 
 				local income = 0
-				local work_time = math.min(building.work_ratio, free_time_of_pop)
+				local work_time = pop.work_ratio * free_time_of_pop
 				local local_foraging_efficiency = 1
 				if prod.foraging then
 					-- buildings operate off off last month's foraging use, otherwise race conditions on output
-					foragers_count = foragers_count + work_time
+					foragers_count = foragers_count + work_time * pop.race.carrying_capacity_weight
 					local_foraging_efficiency = last_foraging_efficiency
-					-- TODO MODIFY OUTPUTS BASED ON PROVINCE RESOURCES AMOUNTS
 				end
 				local yield = prod:get_efficiency(province)
 
@@ -1021,7 +1007,7 @@ function pro.run(province)
 						.. "\n efficiency = "
 						.. tostring(efficiency)
 						.. "\n pop.employer.work_ratio = "
-						.. tostring(pop.employer.work_ratio)
+						.. tostring(pop.work_ratio)
 						.. "\n efficiency_from_infrastructure = "
 						.. tostring(efficiency_from_infrastructure)
 						.. "\n local_foraging_efficiency = "
@@ -1100,7 +1086,7 @@ function pro.run(province)
 
 				pop.employer.last_income = pop.employer.last_income + income
 
-				free_time_of_pop = free_time_of_pop - math.min(pop.employer.work_ratio, free_time_of_pop) * input_satisfaction * input_satisfaction_2
+				free_time_of_pop = free_time_of_pop - (1 - pop.work_ratio) * free_time_of_pop * input_satisfaction * input_satisfaction_2
 
 				if income > 0 then
 					---@type number
@@ -1116,32 +1102,8 @@ function pro.run(province)
 						income = income - contrib
 					end
 					-- increase working hours if possible to increase income
-					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
-				else
-					-- reduce working hours to negate losses or satisfy life needs
-					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
-				end
-
-				-- reduce working time if not enough life needs satisfied
-				local min_life_satisfaction = tabb.accumulate(pop.need_satisfaction, 1, function (a, need, values)
-					if NEEDS[need].life_need then
-						local min_need = tabb.accumulate(values, 1, function (b, k, v)
-							local ratio = v.consumed / v.demanded
-							if ratio < b then
-								b = ratio
-							end
-							return b
-						end)
-						if min_need < a then
-							a = min_need
-						end
-					end
-					return a
-				end)
-				if min_life_satisfaction < 1/8 then
-					pop.employer.work_ratio =  math.max(0.01, pop.employer.work_ratio * 0.8)
-				elseif income > 0 then
-					pop.employer.work_ratio = math.min(1.0, pop.employer.work_ratio * 1.1)
+					pop.work_ratio = math.min(0.01, pop.forage_ratio * 0.9)
+					pop.forage_ratio = math.max(0.99, pop.work_ratio + pop.forage_ratio * 0.1)
 				end
 
 				if province.trade_wealth < income then

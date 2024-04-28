@@ -8,12 +8,9 @@ local economy_values = require "game.raws.values.economical"
 function emp.run(province)
 	-- Sample random pop and try to employ it
 	---@type table<POP, POP>
-	local eligible_pops = {}
-	for _, pop in pairs(province.all_pops) do
-		if pop.age > pop.race.teen_age then
-			eligible_pops[pop] = pop
-		end
-	end
+	local eligible_pops = tabb.filter(province.all_pops, function (pop)
+		return (pop.age > pop.race.teen_age) and (pop.forage_ratio < 1)
+	end)
 
 	local pop = tabb.random_select_from_set(eligible_pops)
 

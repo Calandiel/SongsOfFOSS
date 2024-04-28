@@ -21,6 +21,7 @@ local tabb             = require "engine.table"
 ---@field player_province Province?
 ---@field sub_hourly_tick number
 ---@field current_tick_in_month number
+---@field current_tick_in_decade number
 ---@field hour number
 ---@field day number
 ---@field month number
@@ -52,6 +53,7 @@ local tabb             = require "engine.table"
 world.World            = {}
 world.World.__index    = world.World
 
+
 ---Returns a new World object
 ---@return World
 function world.World:new()
@@ -72,7 +74,7 @@ function world.World:new()
 	w.settled_provinces = {}
 	w.province_count = 0
 	w.settled_provinces_by_identifier = {}
-	for i = 1, 30 * 24 * world.ticks_per_hour do
+	for i = 1, world.ticks_per_month do
 		w.settled_provinces_by_identifier[i] = {}
 	end
 	w.realms = {}
@@ -86,6 +88,7 @@ function world.World:new()
 	w.month = 0
 	w.year = 0
 	w.current_tick_in_month = 0
+	w.current_tick_in_decade = 0
 	w.pending_player_event_reaction = false
 	w.notification_queue = require "engine.queue":new()
 	w.events_queue = require "engine.queue":new()
@@ -381,8 +384,10 @@ function world.World:tick()
 
 	WORLD.sub_hourly_tick = WORLD.sub_hourly_tick + 1
 	WORLD.current_tick_in_month = WORLD.current_tick_in_month + 1
+	WORLD.current_tick_in_decade = WORLD.current_tick_in_decade + 1
 
 	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month] ~= nil then
+
 		-- Monthly tick per realm
 		local ta = WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month]
 
@@ -551,6 +556,7 @@ function world.World:tick()
 		end
 
 		PROFILER:end_timer("decisions")
+
 	end
 
 	-- print('simulation update')
@@ -640,19 +646,15 @@ function world.World:tick()
 					WORLD.month = 0
 					WORLD.year = WORLD.year + 1
 					-- yearly tick
+					if WORLD.year % 10 == 0 then
+						WORLD.current_tick_in_decade = 0
+					end
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
 					for _, settled_province in pairs(WORLD.provinces) do
 						pop_aging.age(settled_province)
 						if settled_province.realm then
 							settled_province.realm.tax_collected_this_year = 0
-							-- TODO DO THESE EVERY DECADE OR SO
-							-- update province resources based on climate changes here until climate is actually updated
-							if WORLD.year % 10 == 1 then
-								local dbm = require "game.economy.diet-breadth-model"
-								dbm.foragers_targets(settled_province)
-								dbm.cultural_foragable_targets(settled_province)
-							end
 						end
 					end
 				end
@@ -665,6 +667,18 @@ function world.World:tick()
 			end
 		end
 		--print("tick end")
+	end
+
+	-- updates cultural targets once a decade
+	-- TODO spread cultural update over decade instead of first 6 days
+	local cultural_update_province = WORLD.provinces[WORLD.current_tick_in_decade]
+	if cultural_update_province ~= nil then
+		local dbm = require "game.economy.diet-breadth-model"
+		-- TODO move province resources update to after climate update
+		dbm.foragers_targets(cultural_update_province)
+		if cultural_update_province.realm then
+			dbm.cultural_foragable_targets(cultural_update_province)
+		end
 	end
 
 	PROFILER:end_timer("tick")
@@ -752,5 +766,7 @@ function world.World:does_player_see_province_news(province)
 end
 
 world.ticks_per_hour = 120
+world.ticks_per_month = 30 * 24 * world.ticks_per_hour
+world.ticks_per_decade = 10 * 12 * world.ticks_per_month
 
 return world
