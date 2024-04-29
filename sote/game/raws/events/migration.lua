@@ -26,7 +26,6 @@ function load()
 	---@class (exact) MigrationData
 	---@field organizer Character?
 	---@field leader Character?
-	---@field expedition_size number?
 	---@field travel_cost number?
 	---@field pop_payment number?
 	---@field target_province Province
@@ -210,24 +209,23 @@ function load()
 			---@param province any
 			---@return table<POP, POP> valid_family_units
 			---@return integer  valid_family_count
-			---@return integer expedition_size
 			local function valid_home_family_units(province)
 				local family_units = tabb.filter(province.all_pops, function (a)
 					return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age
 				end)
 				local family_count = tabb.size(family_units)
-				return family_units, family_count, math.min(6, math.floor(family_count * 0.5))
+				return family_units, family_count
 			end
 			-- move up to 6 but no more than half the home family units
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			local valid_family_units, _ = valid_home_family_units(root.realm.capitol)
 			local candidates = 0
 
 			for _, pop in pairs(valid_family_units) do
-				if (not pop.unit_of_warband) or (pop.unit_of_warband == expedition_leader.leading_warband) then
+				if (not pop.unit_of_warband) then
 					table.insert(migration_pool_pops, pop)
 					candidates = candidates + 1
 				end
-				if candidates >= expedition_size then
+				if candidates >= 6 then
 					break
 				end
 			end
@@ -245,7 +243,7 @@ function load()
 				-- give half payment to migrating pop, keep other half for leader and realm
 				if pop_payment then
 					pop_payment = pop_payment * 0.5
-					local family_payment = pop_payment / expedition_size
+					local family_payment = pop_payment / 6
 					economic_effects.add_pop_savings(pop, family_payment, economic_effects.reasons.Donation)
 				end
 				-- need to set new home province first before transfering so children are pulled along
@@ -253,6 +251,10 @@ function load()
 				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
 			end
 
+			--disolve warband to return warriors to home province before transfering character
+			if expedition_leader.leading_warband then
+				require "game.raws.effects.military".dissolve_warband(root)
+			end
 
 			-- set new home of character
 			associated_data.origin_province:transfer_home(

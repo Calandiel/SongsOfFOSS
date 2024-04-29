@@ -6,8 +6,8 @@ local car = {}
 ---@param tile Tile
 ---@return number
 function car.get_tile_carrying_capacity(tile)
-	local plant_production, _, shellfish_production, fish_production, animal_production, mushroom_production = dbm.net_primary_production(tile)
-	return plant_production + shellfish_production + fish_production + animal_production + mushroom_production
+	local plant_production, _, marine_production, animal_production, mushroom_production = dbm.net_primary_production(tile)
+	return plant_production + marine_production + animal_production + mushroom_production
 end
 
 function car.calculate()

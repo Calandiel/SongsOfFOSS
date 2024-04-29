@@ -467,16 +467,15 @@ local function load()
 	local colonisation_cost = 10 -- base 10 per family unit transfered
 
 	---collect colonization information
-	---@param province any
+	---@param province Province
 	---@return table<POP, POP> valid_family_units
 	---@return integer  valid_family_count
-	---@return integer expedition_size
 	local function valid_home_family_units(province)
 		local family_units = tabb.filter(province.all_pops, function (a)
-			return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age
+			return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age and (not a.unit_of_warband)
 		end)
 		local family_count = tabb.size(family_units)
-		return family_units, family_count, math.min(6, math.floor(family_count * 0.5))
+		return family_units, family_count
 	end
 
 	Decision.CharacterProvince:new {
@@ -484,7 +483,7 @@ local function load()
 		ui_name = "Colonize targeted province",
 		tooltip = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			local valid_family_units, valid_family_count = valid_home_family_units(root.realm.capitol)
 			-- colonizing cost calories for travel
 			local travel_time = path.pathfind(
 				root.province,
@@ -495,13 +494,13 @@ local function load()
 			travel_time = path.hours_to_travel_days(travel_time)
 			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD]['calories'])
 				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD]['calories'])
-				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time * expedition_size / 30
+				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time / 5
 			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, 'calories')
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
 			local can_buy_calories, buy_reasons = et.can_buy_use(root.realm.capitol, root.savings, 'calories', remaining_calories_needed + 0.01)
 
 			-- convincing people to move takes money but amount d epends on pops willingness to move, base payment the price of upto 10 units of food per family
-			local pop_payment =  colonisation_cost * expedition_size * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
+			local pop_payment =  colonisation_cost * 6 * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
 			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, 'calories')
 
 			local expected_calorie_cost = math.max(0, calorie_cost - character_calories_in_inventory) * calorie_price_expectation
@@ -513,7 +512,7 @@ local function load()
 				return "You has to be in your home province to organize colonisation."
 			end
 			if valid_family_count < 11 then
-				return "Your population is too low, you need at least " .. 6 .. " families while you only have " .. valid_family_count .. "."
+				return "Your population is too low, there need to be at least " .. 11 .. " families that are not part of a warband while there are only " .. valid_family_count .. "."
 			end
 			if character_calories_in_inventory < calorie_cost and not can_buy_calories then
 				return "You need " .. ut.to_fixed_point2(calorie_cost) .. " calories to move enough people to a new province and only has "
@@ -533,12 +532,12 @@ local function load()
 				return "Request permision to colonize " .. primary_target.name .." from " .. root.realm.leader.name
 				.. ". If approved, we will form a new tribe which will pay tribute to " .. root.realm.leader.name
 				.. ". It will cost " .. ut.to_fixed_point2(pop_payment) .. MONEY_SYMBOL
-				.. " to convince " .. expedition_size .. " families to move and " .. ut.to_fixed_point2(calorie_cost) .. " calories for their journey."
+				.. " to convince " .. 6 .. " families to move and " .. ut.to_fixed_point2(calorie_cost) .. " calories for their journey."
 			end
 
 			return "Colonize " .. primary_target.name
 				.. ". Our realm will organise a new tribe which will pay tribute to us. It will cost " .. ut.to_fixed_point2(pop_payment) .. MONEY_SYMBOL
-				.. " to convince " .. expedition_size .. " families to move and " .. ut.to_fixed_point2(calorie_cost) .. " calories for their journey."
+				.. " to convince " .. 6 .. " families to move and " .. ut.to_fixed_point2(calorie_cost) .. " calories for their journey."
 		end,
 		path = function(root, primary_target)
 			return path.pathfind(
@@ -554,7 +553,7 @@ local function load()
 		base_probability = 0.9, -- Almost every month
 		pretrigger = function(root)
 			-- need at least so many family units to migrate
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			local valid_family_units, valid_family_count = valid_home_family_units(root.realm.capitol)
 			-- makes sure characters wanting to lead an expepedition are 'adults'
 			if (not ot.decides_foreign_policy(root, root.realm)) or root.age < root.race.teen_age then
 				return false
@@ -562,14 +561,14 @@ local function load()
 			if root.province ~= root.realm.capitol then
 				return false
 			end
-			if valid_family_count < expedition_size then
+			if valid_family_count < 11 then
 				return false
 			end
 			return true
 		end,
 		clickable = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			local _, valid_family_count, _ = valid_home_family_units(root.realm.capitol)
 			if not primary_target.center.is_land then
 				return false
 			end
@@ -586,7 +585,7 @@ local function load()
 		end,
 		available = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			local _, valid_family_count = valid_home_family_units(root.realm.capitol)
 			-- colonizing cost calories for travel
 			local travel_time = path.pathfind(
 				root.province,
@@ -597,13 +596,13 @@ local function load()
 			travel_time = path.hours_to_travel_days(travel_time)
 			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD]['calories'])
 				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD]['calories'])
-				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time * expedition_size / 30
+				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time / 5
 			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, 'calories')
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
 			local can_buy_calories, _ = et.can_buy_use(root.realm.capitol, root.savings, 'calories', remaining_calories_needed + 0.01)
 
 			-- convincing people to move takes money but amount d epends on pops willingness to move, base payment the price of upto 10 units of food per family
-			local pop_payment =  colonisation_cost * expedition_size * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
+			local pop_payment =  6 * colonisation_cost * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
 			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, 'calories')
 
 			local expected_calorie_cost = math.max(0, calorie_cost - character_calories_in_inventory) * calorie_price_expectation
@@ -633,7 +632,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			-- need at least so many family units to migrate
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
+			local _, valid_family_count = valid_home_family_units(root.realm.capitol)
 			--- don't let children start new realms unless leader
 			if (not ot.decides_foreign_policy(root, root.realm))
 				and root.age < root.race.teen_age
@@ -681,8 +680,6 @@ local function load()
 		effect = function(root, primary_target, secondary_target)
 			root.busy = true
 
-			-- need at least so many family units to migrate
-			local valid_family_units, valid_family_count, expedition_size = valid_home_family_units(root.realm.capitol)
 			-- colonizing cost calories for travel
 			local travel_time = path.pathfind(
 				root.province,
@@ -693,12 +690,12 @@ local function load()
 			travel_time = path.hours_to_travel_days(travel_time)
 			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD]['calories'])
 				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD]['calories'])
-				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time * expedition_size / 30
+				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time / 5
 			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, 'calories')
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
 
 			-- convincing people to move takes money but amount depends on pops willingness to move, base payment of upto 2 units of food per family
-			local pop_payment =  colonisation_cost * expedition_size * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
+			local pop_payment =  6 * colonisation_cost * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
 
 			local leader = nil
 			local organizer = root
@@ -712,7 +709,6 @@ local function load()
 				invasion = false,
 				organizer = organizer,
 				leader = leader,
-				expedition_size = expedition_size,
 				travel_cost = calorie_cost,
 				pop_payment = pop_payment,
 				origin_province = root.province,

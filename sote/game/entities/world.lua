@@ -674,9 +674,9 @@ function world.World:tick()
 	local cultural_update_province = WORLD.provinces[WORLD.current_tick_in_decade]
 	if cultural_update_province ~= nil then
 		local dbm = require "game.economy.diet-breadth-model"
-		-- TODO move province resources update to after climate update
-		dbm.foragers_targets(cultural_update_province)
 		if cultural_update_province.realm then
+			-- TODO move province resources update to after climate update
+			dbm.foragers_targets(cultural_update_province)
 			dbm.cultural_foragable_targets(cultural_update_province)
 		end
 	end

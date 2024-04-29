@@ -71,12 +71,11 @@ function dbm.foraging_efficiency(carrying_capacity, foragers)
 	end
 end
 
----calculate the net primary production (NPP) of a tile 
+---calculate the net primary production (NPP) of a tile, sums to CC
 ---@param tile Tile
 ---@return number net_primary_production
 ---@return number timber
----@return number shellfish_production
----@return number fish_production
+---@return number marine_production
 ---@return number animal_production
 ---@return number mushroom_production
 ---@return number effective_temperature
@@ -93,37 +92,34 @@ function dbm.net_primary_production(tile)
 	-- some of assimilation efficiency goes towards structural material: timber
 	local timber_production = gross_primary_production * (tile.conifer * 0.3 + tile.broadleaf * 0.2 + tile.shrub * 0.1)
 	-- check for marine resources
-	local fish_production, shellfish_production = 0, 0
+	local marine_production = 0
 	if tile.has_marsh then
-		shellfish_production = shellfish_production + 0.75
-		fish_production = fish_production + 0.25
+		marine_production = marine_production + 0.25
 	end
 	if tile.has_river then
-		shellfish_production = shellfish_production + 0.25
-		fish_production = fish_production + 0.75
+		marine_production = marine_production + 0.75
 	end
 	for i = 1, 4 do
 		if not tile:get_neighbor(i).is_land then
-			fish_production = fish_production + 0.25
-			shellfish_production = shellfish_production + 0.25
+			marine_production = marine_production + 0.25
 		end
 	end
 	-- determine herbavore energy from eating folliage and reduce from net_primary_production
 	local herbivores = 0.25 * (net_primary_production + timber_production)
 	net_primary_production = net_primary_production * 0.75
-	timber_production = timber_production * 0.5
+	timber_production = timber_production * 0.75
 	-- deterine carinvore energy from eating herbavores and marine life and reduce amounts
-	local carinvores = 0.25 * (herbivores + fish_production + shellfish_production)
-	herbivores = herbivores * 0.75
-	fish_production = fish_production * 0.75
-	shellfish_production = shellfish_production * 0.75
+	local carinvores = 0.25 * (marine_production)
+	marine_production = marine_production * 0.75
 	local animal_production = herbivores + carinvores
 	-- determine energy gain from decomposers
-	local mushroom_production = (net_primary_production + timber_production + animal_production) * 0.125
-	return net_primary_production, timber_production, shellfish_production, fish_production, animal_production, mushroom_production, effective_temperature
+	local mushroom_production = (net_primary_production + timber_production + animal_production) * 0.1
+	return net_primary_production, timber_production, marine_production, animal_production, mushroom_production, effective_temperature
 end
 
---- Returns total potential amount of foragable good amounts from tile data
+--- Returns individual potential amount of foragable good targets
+--- from each tile's net primary production (NPP), effective temperature,
+--- and flora spread
 ---@param province Province
 ---@return number net_pp
 ---@return number fruit_production
@@ -138,33 +134,37 @@ function dbm.foraging_potentials(province)
 	local net_pp, fruit_production, seed_production, timber_amount, shellfish_amount, fish_amount, small_game, large_game, mushroom_amount
 		= 0, 0, 0, 0, 0, 0, 0, 0, 0
 	tabb.accumulate(province.tiles, nil, function (_, _, v)
-		local tile_pp, timber, shellfish, fish, game, mushroom, effective_temperature = dbm.net_primary_production(v)
+		local tile_pp, timber, marine, game, mushroom, effective_temperature = dbm.net_primary_production(v)
 		-- set net_pp first so province cc mapmode lines up with tile cc mapmode
-		net_pp = net_pp + tile_pp + shellfish + fish + game + mushroom
+		net_pp = net_pp + tile_pp + marine + game + mushroom
 		-- determine spread of plant food based on tile flora
 		local fruit_plants = v.shrub + v.broadleaf
 		local seed_plants = v.conifer + v.grass
 		-- if there is plants on the tile add its potential
 		local flora_total = fruit_plants + seed_plants
+		local fruit_percentage = fruit_plants / flora_total
 		if flora_total > 0 then
 			-- weighting such that food production isn't too skewed towards one resource
-			local fruit = tile_pp * 0.5 --fruit_plants / flora_total
-			local seeds = tile_pp * 0.5 --seed_plants / flora_total
+			local fruit = tile_pp * fruit_percentage
+			local seeds = tile_pp * (1 - fruit_percentage)
 			fruit_production = fruit_production + fruit
 			seed_production = seed_production + seeds
 			--- add tile timber amount
 			timber_amount = timber_amount + timber
 		end
-		-- calculate aquatic food sources
-		shellfish_amount = shellfish_amount + shellfish
-		fish_amount = fish_amount + fish
 		-- calculate game size ratios using effective_temperature and fauna spread
-		local flora_cover = 0.1 + v.conifer * 0.5 + v.broadleaf * 0.4 + v.shrub * 0.3 + v.grass * 0.2
-		local terrestrial_temperature_weight = 1 - 1 / (1 + math.exp(-0.1 * effective_temperature)) -- cold weights towards larger animals
-		local small_animals = 0.5 * game --* flora_cover * (1 - terrestrial_temperature_weight)
-		local large_animals = 0.5 * game --* (1 - flora_cover) * terrestrial_temperature_weight
+		local flora_cover = v.conifer * 0.9 + v.broadleaf * 0.8 + v.shrub * 0.6 + v.grass * 0.2
+		local temperature_weight = 1 / (1 + math.exp(-0.125*(effective_temperature - 16)))
+		local terrestrial_temperature_weight = 0.9 - (0.8 * temperature_weight)
+		local small_animals = game * (1 - terrestrial_temperature_weight) * flora_cover
+		local large_animals = game * terrestrial_temperature_weight * (1 - flora_cover)
+
 		small_game = small_game + small_animals
 		large_game = large_game + large_animals
+		-- calculate aquatic food sources, half of animal shift from temp since water is an insolator
+		local marine_temperature_weight = (0.5 * temperature_weight)
+		shellfish_amount = shellfish_amount + marine * (0.75 - temperature_weight * 0.25)
+		fish_amount = fish_amount + marine * (0.75 + marine_temperature_weight * 0.25)
 		-- calculate mushroom energy by total biomass
 		mushroom_amount = mushroom_amount + mushroom
 	end)
@@ -172,6 +172,7 @@ function dbm.foraging_potentials(province)
 end
 
 ---@param province Province
+---Calculate and set a province's forager limit (CC) and foraging targets
 function dbm.foragers_targets(province)
 	local JOBTYPE = require "game.raws.job_types"
 	-- determine amount of foragable goods
@@ -201,7 +202,7 @@ function dbm.foragers_targets(province)
 	-- ANIMAL PRODUCTION
 	products[dbm.ForageResource.Small] = {
 		icon = "squirrel.png",
-		output = { ['meat'] = 1, ['hide'] = 0.125 },
+		output = { ['meat'] = 1, ['hide'] = 0.25 },
 		amount = small_game,
 		handle = JOBTYPE.HUNTING,
 	}
@@ -214,7 +215,7 @@ function dbm.foragers_targets(province)
 	-- DECOMPOSER PRODUCTION
 	products[dbm.ForageResource.Fungi] = {
 		icon = "chanterelles.png",
-		output = { ['mushrooms'] = 2 },
+		output = { ['mushrooms'] = 1.6 },
 		amount = mushroom_amount,
 		handle = JOBTYPE.CLERK,
 	}
@@ -250,7 +251,8 @@ function dbm.cultural_food_needs(race)
 	return food_needs_by_use
 end
 
---- use Diet-Breadth Model to pick and weight products for culture
+---Use Diet-Breadth Model to weight, pick and normalize targets
+--- and search times for foraging
 ---@param province Province
 function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
