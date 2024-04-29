@@ -81,26 +81,28 @@ function rea.run(realm)
 	local amount_of_provinces = tabb.size(realm.provinces)
 	for _, province in pairs(realm.provinces) do
 		-- diffuse wealth
-		local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING
-		local sharing_local_wealth = province.local_wealth * NEIGHBOURS_WEALTH_SHARING
-		for _, neighbor in pairs(province.neighbors) do
-			if neighbor.realm then
-				economic_effects.change_local_wealth(
-					province,
-					-sharing_local_wealth,
-					economic_effects.reasons.NeighborSiphon
-				)
-				economic_effects.change_local_wealth(
-					neighbor,
-					sharing_local_wealth,
-					economic_effects.reasons.NeighborSiphon
-				)
+		local neighbor_count = tabb.size(province.neighbors)
+		if neighbor_count > 0 then
+			local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING / neighbor_count
+			local sharing_local_wealth = province.local_wealth * NEIGHBOURS_WEALTH_SHARING / neighbor_count
+			for _, neighbor in pairs(province.neighbors) do
+				if neighbor.realm then
+					economic_effects.change_local_wealth(
+						province,
+						-sharing_local_wealth,
+						economic_effects.reasons.NeighborSiphon
+					)
+					economic_effects.change_local_wealth(
+						neighbor,
+						sharing_local_wealth,
+						economic_effects.reasons.NeighborSiphon
+					)
 
-				province.trade_wealth = province.trade_wealth - sharing_trade_wealth
-				neighbor.trade_wealth = neighbor.trade_wealth + sharing_trade_wealth
+					province.trade_wealth = province.trade_wealth - sharing_trade_wealth
+					neighbor.trade_wealth = neighbor.trade_wealth + sharing_trade_wealth
+				end
 			end
 		end
-
 		for resource_reference, amount in pairs(province.local_storage) do
 			local resource = good(resource_reference)
 			if resource.category == 'good' then

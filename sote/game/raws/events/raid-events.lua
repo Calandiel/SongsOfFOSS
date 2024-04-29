@@ -81,16 +81,27 @@ local function load()
 				w.status = 'idle'
 				total_patrol_size = total_patrol_size + w:size()
 			end
+			if total_patrol_size > 0 then
+				local reward = 0
+				if root.realm.quests_patrol[associated_data.target] then
+					reward = math.min(root.realm.quests_patrol[associated_data.target] or 0, total_patrol_size)
+				end
+				root.realm.quests_patrol[associated_data.target] = (root.realm.quests_patrol[associated_data.target] or 0) -
+				reward
 
-			local reward = 0
-			if root.realm.quests_patrol[associated_data.target] then
-				reward = math.min(root.realm.quests_patrol[associated_data.target] or 0, total_patrol_size)
-			end
-			root.realm.quests_patrol[associated_data.target] = (root.realm.quests_patrol[associated_data.target] or 0) -
-			reward
-
-			for _, w in pairs(associated_data.patrol) do
-				w.treasury = w.treasury + reward * w:size() / total_patrol_size
+				for _, w in pairs(associated_data.patrol) do
+					w.treasury = w.treasury + reward * w:size() / total_patrol_size
+					if w.treasury ~= w.treasury then
+						error("NAN TREASURY FROM PATROL SUCCESS"
+							.. "\n reward: "
+							.. tostring(reward)
+							.. "\n size: "
+							.. tostring(w:size())
+							.. "\n total_patrol_size: "
+							.. tostring(total_patrol_size)
+						)
+					end
+				end
 			end
 		end
 	}
@@ -452,6 +463,17 @@ local function load()
 					real_loot = real_loot + extra
 				end
 
+				if real_loot ~= real_loot then
+					error("NAN LOOT FROM RAID"
+						.. "\n max_loot: "
+						.. tostring(max_loot)
+						.. "\n real_loot: "
+						.. tostring(real_loot)
+						.. "\n province.local_wealt: "
+						.. tostring(province.local_wealth)
+					)
+				end
+
 				local mood_swing = real_loot / (province:local_population() + 1)
 				province.mood = province.mood - mood_swing
 				if realm then
@@ -522,6 +544,21 @@ local function load()
 			local losses = associated_data.losses
 			local army = associated_data.army
 
+			if loot ~= loot then
+				error("NAN TREASURY FROM RAID SUCCESS"
+				.. "\n realm: "
+				.. tostring(realm.name)
+				.. "\n loot: "
+				.. tostring(loot)
+				.. "\n target: "
+				.. tostring(target.name)
+				.. "\n losses: "
+				.. tostring(losses)
+				.. "\n army: "
+				.. tostring(tabb.size(army.warbands))
+			)
+			end
+
 			local warbands = realm:disband_army(army)
 
 			local mood_swing = loot / (realm.capitol:local_population() + 1) / 2
@@ -554,9 +591,17 @@ local function load()
 
 			-- half of loot goes to warbands
 			for _, w in pairs(warbands) do
-				w.treasury = w.treasury + loot / 2 / num_of_warbands
+				w.treasury = w.treasury + loot * 0.5 / num_of_warbands
+				if w.treasury ~= w.treasury then
+					error("NAN TREASURY FROM RAID SUCCESS"
+					.. "\n loot: "
+					.. tostring(loot)
+					.. "\n num_of_warbands: "
+					.. tostring(num_of_warbands)
+				)
+				end
 			end
-			loot = loot - loot / 2
+			loot = loot - loot * 0.5
 
 			-- pay the remaining half of loot to local population
 			economic_effects.change_local_wealth(realm.capitol, loot, economic_effects.reasons.Raid)

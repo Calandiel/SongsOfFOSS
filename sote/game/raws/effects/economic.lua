@@ -181,6 +181,22 @@ end
 ---@param x number
 ---@param reason EconomicReason
 function EconomicEffects.change_local_wealth(province, x, reason)
+
+	if province.local_wealth ~= province.local_wealth
+		or x ~= x
+	then
+		error("NAN LOCAL WEALTH CHANGE"
+			.. "\n province.name: "
+			.. tostring(province.name)
+			.. "\n x: "
+			.. tostring(x)
+			.. "\n reason: "
+			.. tostring(reason)
+			.. "\n province.local_wealth: "
+			.. tostring(province.local_wealth)
+		)
+	end
+
 	province.local_wealth = province.local_wealth + x
 
 	-- if WORLD.player_character then

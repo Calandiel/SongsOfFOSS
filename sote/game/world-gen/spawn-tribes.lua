@@ -47,14 +47,9 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	--calculate average ratial foraging_efficiency from males per 100 females
 	local male_percentage = race.males_per_hundred_females / (100 + race.males_per_hundred_females)
-	--local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] +
-	--	(1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
-	--local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] +
-	--	(1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
-	local infra_needs = male_percentage * race.male_infrastructure_needs + (1 - male_percentage) * race.female_infrastructure_needs
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * race.fecundity * 0.75)
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * race.fecundity * 0.5)
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
 		pop.POP:new(
@@ -137,10 +132,14 @@ end
 ---@param race Race
 ---@param province Province
 function ProvinceCheck(race, province)
+	local dbm = require "game.economy.diet-breadth-model"
 	if not province.center.is_land then return false end
-	if province.foragers_limit < 5 * race.carrying_capacity_weight then return false end
+	if province.foragers_limit < (5 * race.carrying_capacity_weight) then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
+	-- check that there is available timber for beavers
+	-- TODO write something more dynamic based on food cases
+	if race.name == 'high beaver' and province.foragers_targets[dbm.ForageResource.Wood].amount == 0  then return false end
 	if (not province.on_a_forest) and race.requires_large_forest then return false end
 	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
 	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
@@ -181,7 +180,7 @@ function st.run()
 		table.insert(order, r)
 	end
 
-	local civs = 50 / tabb.size(order) -- one per race...
+	local civs = 500 / tabb.size(order) -- one per race...
 
 
 	for _ = 1, civs do

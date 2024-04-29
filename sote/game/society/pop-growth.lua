@@ -49,7 +49,7 @@ function pg.growth(province)
 		elseif min_life_satisfaction < starvation_check then -- prevent births if not at least 25% food and water
 			-- children are more likely to die of starvation 
 			local age_adjusted_starvation_check = starvation_check / pp:get_age_multiplier()
-			if min_life_satisfaction == 0 or (love.math.random() < (age_adjusted_starvation_check - min_life_satisfaction) / age_adjusted_starvation_check * death_rate) then
+			if love.math.random() < (age_adjusted_starvation_check - min_life_satisfaction) / age_adjusted_starvation_check  * death_rate then
 				to_remove[#to_remove + 1] = pp
 			end
 		elseif pp.age >= pp.race.elder_age then

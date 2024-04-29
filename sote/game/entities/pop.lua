@@ -101,8 +101,8 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 			end)
 			return a
 		end)
-	r.forage_ratio = 0.5
-	r.work_ratio = 0.5
+	r.forage_ratio = 0.9
+	r.work_ratio = 0.1
 
 	r.basic_needs_satisfaction = 1
 	r.life_needs_satisfaction = 1
