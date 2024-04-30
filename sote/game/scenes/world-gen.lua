@@ -4,10 +4,14 @@ local wg = {}
 local STATES = {
 	init = 0,
 	error = 1,
-	phase_01 = 2,
-	cleanup = 3,
-	phase_02 = 4,
-	load_maps = 5,
+	constraints_failed = 2,
+
+	phase_01 = 10,
+	cleanup = 11,
+	post_tectonic = 12,
+	phase_02 = 13,
+	load_maps = 14,
+
 	completed = 100
 }
 
@@ -22,22 +26,32 @@ local function run_with_profiling(func, log_text)
 	print("[worldgen profiling] " .. log_text .. ": " .. tostring(duration * 1000) .. "ms")
 end
 
-local function gen_phase_02(world)
-	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen-rocks")
-	run_with_profiling(function() require "libsote.gen-climate".run(world) end, "gen-climate")
+local function check_constraints()
+	return true
 end
 
-local function cache_tile_coord(world)
+local function gen_phase_02()
+	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
+	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
+end
+
+local function cache_tile_coord()
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
-		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
-		world:cache_tile_coord(tile.tile_id, q, r, face)
+		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
+		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
 end
 
 function wg.init()
 	wg.state = STATES.init
 	wg.message = nil
+
+	if not libsote.init() then
+		wg.state = STATES.error
+		wg.message = libsote.message
+		return
+	end
 
 	wg.world_size = DEFINES.world_size
 	local dim = wg.world_size * 3
@@ -61,23 +75,19 @@ function wg.init()
 end
 
 function wg.generate_coro()
-	local init_world_coroutine = libsote.init()
-	if not init_world_coroutine then
-		wg.state = STATES.error
-		wg.message = libsote.message
-		return
-	end
-
 	wg.state = STATES.phase_01
+
+	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
 
 	math.randomseed(os.time())
 	local seed = math.random(1, 100000)
 	-- seed = 58738 -- climate integration was done on this one
 	-- seed = 53201 -- banding
 	-- seed = 20836 -- north pole cells
+	-- seed = 6618 -- tiny islands?
 
-	while coroutine.status(init_world_coroutine) ~= "dead" do
-		coroutine.resume(init_world_coroutine, seed)
+	while coroutine.status(phase01_coro) ~= "dead" do
+		coroutine.resume(phase01_coro, seed)
 		coroutine.yield()
 	end
 
@@ -93,14 +103,23 @@ function wg.generate_coro()
 
 	wg.state = STATES.cleanup
 
-	local cleanup_coroutine = coroutine.create(libsote.clean_up_coro)
-	while coroutine.status(cleanup_coroutine) ~= "dead" do
-		coroutine.resume(cleanup_coroutine)
+	local cleanup_coro = coroutine.create(libsote.clean_up_coro)
+	while coroutine.status(cleanup_coro) ~= "dead" do
+		coroutine.resume(cleanup_coro)
 		coroutine.yield()
 	end
 
 	wg.message = libsote.message
 	coroutine.yield()
+
+	wg.state = STATES.post_tectonic
+
+	local constraints_met = check_constraints()
+	if not constraints_met then
+		wg.state = STATES.constraints_failed
+		wg.message = "Constraints not met"
+		return
+	end
 
 	wg.state = STATES.phase_02
 
@@ -109,9 +128,9 @@ function wg.generate_coro()
 
 	wg.message = "Caching tile coordinates"
 	coroutine.yield()
-	run_with_profiling(function() cache_tile_coord(wg.world) end, "cache_tile_coord")
+	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord")
 
-	gen_phase_02(wg.world)
+	gen_phase_02()
 
 	wg.state = STATES.load_maps
 	local wl = require "libsote.world-loader"
@@ -250,7 +269,7 @@ function wg.draw()
 	local ui = require "engine.ui"
 	local fs = ui.fullscreen()
 
-	if wg.state == STATES.error then
+	if wg.state == STATES.error or wg.state == STATES.constraints_failed then
 		ui.text_panel(wg.message, ui.fullscreen():subrect(0, 0, 300, 60, "center", "down"))
 
 		local menu_button_width = 380
@@ -268,12 +287,15 @@ function wg.draw()
 
 		local ut = require "game.ui-utils"
 
---    if ut.text_button(
---      "Retry",
---      layout:next(menu_button_width, menu_button_height)
---    ) then
---      print "retry"
---    end
+		if wg.state == STATES.constraints_failed then
+			if ut.text_button(
+				"Retry",
+				layout:next(menu_button_width, menu_button_height)
+			) then
+				wg.coroutine = coroutine.create(wg.generate_coro)
+				coroutine.resume(wg.coroutine)
+			end
+		end
 		if ut.text_button(
 			"Quit",
 			layout:next(menu_button_width, menu_button_height)

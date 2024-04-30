@@ -136,7 +136,7 @@ local lib_sote_instance = nil
 function libsote.init()
 	if ffi.os ~= "Windows" then
 		log_and_set_msg("libSOTE only supported on Windows for now")
-		return nil
+		return false
 	end
 
 	if not init_mem_reserve() then return false end
@@ -145,7 +145,7 @@ function libsote.init()
 	lib_sote_instance = ffi.load(bins_dir .. "libSOTE.dll")
 	if not lib_sote_instance then
 		log_and_set_msg("Failed to load libSOTE.dll")
-		return nil
+		return false
 	end
 
 	local err_msg = ffi.new("char[256]")
@@ -156,12 +156,12 @@ function libsote.init()
 		log_sote(err_msg)
 		log_and_set_msg("Failed to init libSOTE")
 		libsote.message = libsote.message .. ": " .. ffi.string(err_msg)
-		return nil
+		return false
 	end
 
 	log_info("initialized libSOTE")
 
-	return coroutine.create(libsote.worldgen_phase01_coro)
+	return true
 end
 
 local function int_to_uint(n)
