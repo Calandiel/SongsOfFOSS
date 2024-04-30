@@ -154,6 +154,7 @@ function ll.load()
 		},
 		male_infrastructure_needs = largest_size,
 		carrying_capacity_weight = largest_size,
+		requires_large_forest = true,
 		requires_large_river = true
 	}
 
@@ -163,12 +164,11 @@ function ll.load()
 		layers = {"base.PNG", "braid.PNG", "spine.PNG", "pattern.PNG", "eye.PNG"},
 		layers_groups = {}
 	}
-	-- 8 1 3
 	Race:new {
 		name = 'gnoll',
-		r = 0.8,
+		r = 0.7,
 		g = 0.1,
-		b = 0.3,
+		b = 0.4,
 		icon = 'hound.png',
 		male_portrait = {
 			fallback = gnoll_portrait
@@ -278,7 +278,6 @@ function ll.load()
 			eyes = {"right_eye.PNG", "left_eye.PNG"}
 		}
 	}
-	-- 1 7 7
 	Race:new {
 		name = 'orc',
 		r = 0.1,
@@ -381,10 +380,8 @@ function ll.load()
 		},
 		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = large_size,
-		requires_large_forest = true
 	}
 
-	-- 1 1 9
 	Race:new {
 		name = 'elf',
 		r = 0.1,
@@ -500,7 +497,6 @@ function ll.load()
 		layers = {"cloth behind.PNG", "base.PNG", "cloth.PNG", "beard_front.PNG", "hair_front.PNG", "hat.PNG"},
 		layers_groups = {cloth = {"cloth behind.PNG", "cloth.PNG"}}
 	}
-	-- 9 1 1
 	Race:new {
 		name = 'dwarf',
 		r = 0.9,
@@ -619,7 +615,6 @@ function ll.load()
 			hair = {"055.png", "10.png"}
 		}
 	}
-	-- 1 9 1
 	Race:new {
 		name = 'goblin',
 		r = 0.1,
@@ -694,7 +689,7 @@ function ll.load()
 			[JOBTYPE.WARRIOR] = 0.75,
 			[JOBTYPE.HAULING] = small_size,
 			[JOBTYPE.FORAGER] = 0.75,
-			[JOBTYPE.HUNTING] = 1
+			[JOBTYPE.HUNTING] = 0.75
 		},
 		male_needs = {
 			[NEED.WATER] = {
@@ -736,7 +731,6 @@ function ll.load()
 			ear = {"ear_behind.PNG", "ear_front.PNG"}
 		}
 	}
-	-- 4 4 4
 	Race:new {
 		name = 'verman',
 		r = 0.4,
@@ -764,13 +758,13 @@ function ll.load()
 		visibility = 0.75,
 		female_body_size = small_size,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 1.25,
+			[JOBTYPE.FARMER] = 1,
 			[JOBTYPE.ARTISAN] = 0.75,
 			[JOBTYPE.CLERK] = 0.5,
 			[JOBTYPE.LABOURER] = small_size * 2, -- vermen are energetic and persistant
 			[JOBTYPE.WARRIOR] = 0.5,
 			[JOBTYPE.HAULING] = small_size * 2, -- vermen are energetic and persistant
-			[JOBTYPE.FORAGER] = 1.25,
+			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 0.5
 		},
 		female_needs = {
@@ -804,13 +798,13 @@ function ll.load()
 		female_infrastructure_needs = small_size,
 		male_body_size = small_size,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 1.25,
+			[JOBTYPE.FARMER] = 1,
 			[JOBTYPE.ARTISAN] = 0.75,
 			[JOBTYPE.CLERK] = 0.5,
 			[JOBTYPE.LABOURER] = small_size * 2, -- vermen are energetic and persistant
 			[JOBTYPE.WARRIOR] = 0.5,
 			[JOBTYPE.HAULING] = small_size * 2, -- vermen are energetic and persistant
-			[JOBTYPE.FORAGER] = 1.25,
+			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 0.5
 		},
 		male_needs = {
@@ -845,12 +839,11 @@ function ll.load()
 		carrying_capacity_weight = small_size,
 	}
 
-	-- 3 1 8
 	Race:new {
 		name = 'harpy',
 		r = 0.3,
-		g = 0.1,
-		b = 0.8,
+		g = 0.2,
+		b = 0.7,
 		icon = 'harpy.png',
 		description = 'harpies',
 		males_per_hundred_females = 75,
@@ -911,7 +904,7 @@ function ll.load()
 			[JOBTYPE.FARMER] = 0.75,
 			[JOBTYPE.ARTISAN] = 0.5,
 			[JOBTYPE.CLERK] = 1.5,
-			[JOBTYPE.LABOURER] = 1,
+			[JOBTYPE.LABOURER] = dwarf_size * 0.5, -- harpies light for their size
 			[JOBTYPE.WARRIOR] = 1.25, -- harpies have sharp claws
 			[JOBTYPE.HAULING] = dwarf_size * 0.5, -- harpies light for their size
 			[JOBTYPE.FORAGER] = 1.5,
@@ -949,7 +942,6 @@ function ll.load()
 		carrying_capacity_weight = medium_size,
 	}
 
-	-- 5 7 3
 	Race:new {
 		name = 'kappa',
 		r = 0.8,
@@ -978,14 +970,14 @@ function ll.load()
 			[JOBTYPE.WARRIOR] = 1, -- kappa are ambush predators
 			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush  predators
 			[JOBTYPE.FORAGER] = 0.75,
-			[JOBTYPE.HUNTING] = 1.5 -- kappa are ambush predators
+			[JOBTYPE.HUNTING] = 1.25 -- kappa are ambush predators
 		},
 		female_needs = {
 			[NEED.WATER] = {
 				['water'] = small_size
 			},
 			[NEED.FOOD] = {
-				['calories'] = small_size,		--  500 kcal
+				['calories'] = medium_size,		-- 1000 kcal
 				['meat'] = 0.5,					-- 1000 kcal
 			},
 			[NEED.CLOTHING] = {
@@ -1017,14 +1009,14 @@ function ll.load()
 			[JOBTYPE.WARRIOR] = 1, -- kappa are ambush predators
 			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush  predators
 			[JOBTYPE.FORAGER] = 0.75,
-			[JOBTYPE.HUNTING] = 1.5 -- kappa are ambush predators
+			[JOBTYPE.HUNTING] = 1.25 -- kappa are ambush predators
 		},
 		male_needs = {
 			[NEED.WATER] = {
 				['water'] = small_size
 			},
 			[NEED.FOOD] = {
-				['calories'] = small_size,		--  500 kcal
+				['calories'] = medium_size,		-- 1000 kcal
 				['meat'] = 0.5,					-- 1000 kcal
 			},
 			[NEED.CLOTHING] = {
@@ -1047,7 +1039,7 @@ function ll.load()
 			},
 		},
 		male_infrastructure_needs = small_size,
-		carrying_capacity_weight = dwarf_size,
+		carrying_capacity_weight = medium_size,
 		requires_large_river = true
 	}
 

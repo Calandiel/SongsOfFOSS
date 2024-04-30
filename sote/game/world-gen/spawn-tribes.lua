@@ -137,9 +137,6 @@ function ProvinceCheck(race, province)
 	if province.foragers_limit < (5 * race.carrying_capacity_weight) then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
-	-- check that there is available timber for beavers
-	-- TODO write something more dynamic based on food cases
-	if race.name == 'high beaver' and province.foragers_targets[dbm.ForageResource.Wood].amount == 0  then return false end
 	if (not province.on_a_forest) and race.requires_large_forest then return false end
 	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
 	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
@@ -160,24 +157,25 @@ function st.run()
 	-- river specialists races first
 	-- forest specialists races second
 	-- rest races at the end
-	-- duplicate specialists to give them more chances to spawn
 
 	---@type Race[]
 	local order = {}
---[[	for _, r in pairs(RAWS_MANAGER.races_by_name) do
+	for _, r in pairs(RAWS_MANAGER.races_by_name) do
 		if r.requires_large_river then
 			table.insert(order, r)
 		end
 	end
 
 	for _, r in pairs(RAWS_MANAGER.races_by_name) do
-		if r.requires_large_forest then
+		if r.requires_large_forest and not r.requires_large_river then
 			table.insert(order, r)
 		end
 	end
-]]
+
 	for _, r in pairs(RAWS_MANAGER.races_by_name) do
-		table.insert(order, r)
+		if (not r.requires_large_forest) and (not r.requires_large_river) then
+			table.insert(order, r)
+		end
 	end
 
 	local civs = 500 / tabb.size(order) -- one per race...
@@ -229,7 +227,7 @@ function st.run()
 		end
 	end
 	-- Loop through all entries in the queue and flood fill out
---[[	while queue:length() > 0 do
+	while queue:length() > 0 do
 		---@type Province
 		local prov = queue:dequeue()
 		-- First, check for rng based on movement cost.
@@ -260,7 +258,6 @@ function st.run()
 			-- queue:enqueue(prov)
 		end
 	end
-]]
 
 	-- At the end, print the amount of spawned tribes
 	print("Spawned tribes:", tabb.size(WORLD.realms))

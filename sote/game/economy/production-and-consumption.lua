@@ -455,9 +455,9 @@ function pro.run(province)
 			local need_amount = value.demanded
 			-- induced demand:
 			local price_expectation = math.max(0.0001, use_case_price_expectation[case])
-			local induced_demand = math.min(2, math.max(0, 1 / math.max(price_expectation, 0.001) - 1))
+	--		local induced_demand = math.min(2, math.max(0, 1 / math.max(price_expectation, 0.001) - 1))
 	--		print("    " .. " case: " .. case .." need: " .. need_amount .. " induced_demand: " .. need_amount * (1 + induced_demand))
-			need_amount = need_amount * (1 + induced_demand)
+	--		need_amount = need_amount * (1 + induced_demand)
 			need_amount = need_amount * target
 			if need_amount < 0 then
 				error("Demanded need is lower than zero!")

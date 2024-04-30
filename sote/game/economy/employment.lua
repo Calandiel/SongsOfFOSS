@@ -9,7 +9,7 @@ function emp.run(province)
 	-- Sample random pop and try to employ it
 	---@type table<POP, POP>
 	local eligible_pops = tabb.filter(province.all_pops, function (pop)
-		return (pop.age > pop.race.teen_age) and (pop.forage_ratio < 1)
+		return (pop.age > pop.race.teen_age) and (pop.work_ratio > 0.02)
 	end)
 
 	local pop = tabb.random_select_from_set(eligible_pops)
