@@ -87,6 +87,20 @@ return function(rect, character)
         ui.image(ASSETS.icons[character.race.icon], rect)
     end
 
+    -- relation to player character
+    if WORLD.player_character then
+        local player_realtion_icon_size = math.min(20, (rect.width - 2) / 3)
+        local player_relation_icon_rect = rect:subrect(2, -2, player_realtion_icon_size, player_realtion_icon_size, "left", "down")
+        if WORLD.player_character == character then
+            ut.render_icon(player_relation_icon_rect, "self-love.png", 1, 1, 1, 1)
+            player_relation_icon_rect:shrink(-1)
+            ut.render_icon(player_relation_icon_rect, "self-love.png", 0.72, 0.13, 0.27, 1.0)
+        elseif WORLD.player_character.parent == character or WORLD.player_character.children[character] then
+            ut.render_icon(player_relation_icon_rect, "ages.png", 1, 1, 1, 1)
+            player_relation_icon_rect:shrink(-1)
+            ut.render_icon(player_relation_icon_rect, "ages.png", 0.72, 0.13, 0.27, 1.0)
+        end
+    end
     ui.panel(rect, 2, true, false)
     love.graphics.setLineWidth( 1 )
     ui.style.panel_outline = style

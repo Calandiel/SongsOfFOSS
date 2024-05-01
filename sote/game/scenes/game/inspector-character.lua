@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
+local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
 local pv = require "game.raws.values.political"
 
@@ -24,6 +25,7 @@ local decision_target_secondary = nil
 local traits_slider = 0
 local inventory_slider = 0
 local character_list_tab = "Local"
+local warrior_list_state = nil
 
 ---@return Rect
 function window.rect()
@@ -105,9 +107,9 @@ function window.draw(game)
     local location_panel = ui_panel:subrect(0, unit * 18/3, unit * 8, unit * 1, "left", "up"):shrink(3)
     local culture_panel = ui_panel:subrect(unit * 8, unit * 18/3, unit * 8, unit * 1, "left", "up"):shrink(3)
 
-    local layout = ui.layout_builder():position(ui_panel.x, ui_panel.y + unit * 7):vertical():build()
+    local layout = ui.layout_builder():position(ui_panel.x, ui_panel.y + unit * 10):vertical():build()
 
-    local description_block = layout:next(unit * 16, unit * 10)
+    local description_block = layout:next(unit * 16, unit * 8)
 
     ui.panel(description_block)
     local half_width = unit * 8
@@ -117,10 +119,10 @@ function window.draw(game)
     local traits_panel =                    description_block:subrect(half_width, 0,  half_width, description_block_height, "left", "up"):shrink(3)
 
     local decisions_label_panel =           layout:next(unit * 16, unit * 1)
-    local decisions_panel =                 layout:next(unit * 16, unit * 7)
+    local decisions_panel =                 layout:next(unit * 16, unit * 6)
     local decisions_confirmation_panel =    layout:next(unit * 16, unit * 1)
     local character_tab =                 layout:next(unit * 16, unit * 1)
-    local characters_list =                 layout:next(unit * 16, unit * 8)
+    local characters_list =                 layout:next(unit * 16, unit * 6)
 
     character_name_widget(name_panel, character)
 
@@ -158,12 +160,38 @@ function window.draw(game)
         province_visible = false
     end
 
+    local warband_panel = location_panel:subrect(0, unit * 2, location_panel.width, location_panel.height, "left", "up")
+    local warband = nil
+    if character.leading_warband then
+        warband = character.leading_warband
+    elseif character.recruiter_for_warband then
+        warband = character.recruiter_for_warband
+    elseif character.unit_of_warband then
+        warband = character.unit_of_warband
+    end
+    if warband then
+        ib.text_button_to_warband(game, warband, warband_panel, warband.name, "This character is part of " .. warband.name .. ".")
+    else
+        ut.text_button("None", warband_panel, "This character is not part of a warband", false)
+    end
+
     location_panel.y = location_panel.y - unit
     ui.left_text("Location: ", location_panel)
 
-    ut.data_entry("", character.culture.name, culture_panel, character.culture.name)
+    warband_panel.y = warband_panel.y - unit
+    ui.left_text("Warband: ", warband_panel)
+
+
+    ut.data_entry("", character.culture.name, culture_panel, "This character follows the customs of " .. character.culture.name .. ".")
+
+    local faith_panel = culture_panel:subrect(0, unit * 2, culture_panel.width, culture_panel.height, "left", "up")
+    ut.data_entry("", character.faith.name, faith_panel, "This character is a practitioner of " .. character.faith.name .. ".")
+
     culture_panel.y = culture_panel.y - unit
-    ut.data_entry("", character.faith.name, culture_panel, "Faith")
+    ui.left_text("Culture: ", culture_panel)
+
+    faith_panel.y = faith_panel.y - unit
+    ui.left_text("Faith: ", faith_panel)
 
     ui.panel(traits_panel)
 
@@ -262,88 +290,6 @@ function window.draw(game)
             end
         end
     }
-    if character.leading_warband then
-        local function pop_sex(pop)
-            local f = "m"
-            if pop.female then f = "f" end
-            return f
-        end
-        local function render_name(rect, k, v)
-            if ut.text_button(v.name, rect) then
-                return v
-            end
-        end
-        tabs[3] = {
-            text = "Warriors",
-            tooltip = "Warriors in the character's warband.",
-            closure = function()
-                local response = custom_characters_list_widget(characters_list, character.leading_warband.pops, {
-                    {
-                        header = ".",
-                        render_closure = function(rect, k, v)
-                            require "game.scenes.game.widgets.portrait" (rect, v)
-                        end,
-                        width = UI_STYLE.scrollable_list_small_item_height,
-                        value = function(k, v)
-                            ---@type POP
-                            v = v
-                            return v.race.name
-                        end
-                    },
-                    {
-                        header = "race",
-                        render_closure = function (rect, k, v)
-                            ui.right_text(v.race.name, rect)
-                        end,
-                        width = ut.BASE_HEIGHT * 4,
-                        value = function(k, v)
-                            return v.race.name
-                        end
-                    },
-                    {
-                        header = "culture",
-                        render_closure = function (rect, k, v)
-                            ui.right_text(v.culture.name, rect)
-                        end,
-                        width = ut.BASE_HEIGHT * 4,
-                        value = function(k, v)
-                            return v.culture.name
-                        end
-                    },
-                    {
-                        header = "faith",
-                        render_closure = function (rect, k, v)
-                            ui.right_text(v.faith.name, rect)
-                        end,
-                        width = ut.BASE_HEIGHT * 3,
-                        value = function(k, v)
-                            return v.faith.name
-                        end
-                    },
-                    {
-                        header = "age",
-                        render_closure = function (rect, k, v)
-                            ui.right_text(tostring(v.age), rect)
-                        end,
-                        width = ut.BASE_HEIGHT * 2,
-                        value = function(k, v)
-                            return v.age
-                        end
-                    },
-                    {
-                        header = "sex",
-                        render_closure = function (rect, k, v)
-                            ui.centered_text(pop_sex(v), rect)
-                        end,
-                        width = ut.BASE_HEIGHT * 1,
-                        value = function(k, v)
-                            return pop_sex(v)
-                        end
-                    }
-                }, nil, true)()
-            end
-        }
-    end
     local tab_layout = ui.layout_builder():position(character_tab.x, character_tab.y):horizontal():build()
     character_list_tab = ut.tabs(character_list_tab, tab_layout, tabs, 1, ut.BASE_HEIGHT * 4)
 

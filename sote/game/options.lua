@@ -21,21 +21,21 @@ function opt.init()
 	return {
 		["version"] = VERSION_STRING,
 		["volume"] = 0,
-		["screen_resolution"] = {width = 1280, height = 720},
+		["screen_resolution"] = { width = 1280, height = 720 },
 		["fullscreen"] = "normal",
 		["fitscreen"] = true,
-		["rotation"] = false,
-		["update_map"] = false,
+		["rotation"] = true,
+		["update_map"] = true,
 		["treasury_ledger"] = 120,
 		["debug_mode"] = false,
-		["zoom_sensitivity"] = 1,
-		["camera_sensitivity"] = 1,
+		["zoom_sensitivity"] = 0.2,
+		["camera_sensitivity"] = 0.2,
 		["exploration"] = 0,
 		["travel-start"] = 0,
 		["travel-end"] = 0,
 		["needs-inventory"] = false,
-		["needs-savings"] = 1/12,
-		["needs-hunt"] = 1/4,
+		["needs-savings"] = 1 / 12,
+		["needs-hunt"] = 1 / 4,
 	}
 end
 
@@ -57,7 +57,7 @@ function opt.verify()
 		OPTIONS = default
 		return
 	end
-	
+
 	for i, j in pairs(default) do
 		if OPTIONS[i] == nil then
 			OPTIONS[i] = j
@@ -82,16 +82,18 @@ function opt.updateFullscreen(fullscreen)
 		if fullscreen == "desktop" then
 			ui.set_reference_screen_dimensions(dim_x, dim_y)
 		else
-			ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width/dim_y,OPTIONS.screen_resolution.height/dim_x)
+			ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width / dim_y,
+				OPTIONS.screen_resolution.height / dim_x)
 		end
 	else
-		ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+		ui.set_reference_screen_dimensions(OPTIONS.screen_resolution.width, OPTIONS.screen_resolution.height)
 	end
 	if GAME_STATE.scene[1] == "game" then
 		if fullscreen == "desktop" or (fullscreen == "exclusive" and OPTIONS.fitscreen) then
-			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x,dim_y)
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(dim_x, dim_y)
 		else
-			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(OPTIONS.screen_resolution.width,OPTIONS.screen_resolution.height)
+			GAME_STATE.scene[2].game_canvas = love.graphics.newCanvas(OPTIONS.screen_resolution.width,
+				OPTIONS.screen_resolution.height)
 		end
 	end
 	require "game.ui-utils".reload_font()

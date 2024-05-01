@@ -90,10 +90,11 @@ function ut.in_bounds(y)
 	return not (y < 0 or y >= WORLD.climate_grid_size)
 end
 
----Sets the tile reference on a tile
----@param tile Tile
-function ut.set_climate_cell(tile)
-	local lat, lon = tile:latlon()
+---Returns the climate cell at a given latitude and longitude
+---@param lat number
+---@param lon number
+---@return ClimateCell
+function ut.get_climate_cell(lat, lon)
 	local climate_cell_x = 0.5 + 0.5 * lon / math.pi
 	climate_cell_x = climate_cell_x * WORLD.climate_grid_size
 	climate_cell_x = math.floor(climate_cell_x)
@@ -106,11 +107,12 @@ function ut.set_climate_cell(tile)
 	local cell_id = climate_cell_x + climate_cell_y * WORLD.climate_grid_size
 	local lua_cell_id = cell_id + 1
 
-	tile.climate_cell = WORLD.climate_cells[lua_cell_id]
+	return WORLD.climate_cells[lua_cell_id]
 end
 
 ---Returns lerp factors for climate data
----@param tile Tile
+---@param lat number
+---@param lon number
 ---@return number cell
 ---@return number cell_lerp_factor
 ---@return number right_cell
@@ -119,15 +121,15 @@ end
 ---@return number up_cell_lerp_factor
 ---@return number up_right_cell
 ---@return number up_right_cell_lerp_factor
-function ut.get_tile_lerp_factors(tile)
-	local lat, lon = tile:latlon()
-
+local function get_tile_lerp_factors(lat, lon)
 	local x_coord = (0.5 * lon / math.pi + 0.5) * WORLD.climate_grid_size
 	local x_cell = math.floor(x_coord)
+	x_cell = math.max(0, math.min(WORLD.climate_grid_size - 1, x_cell))
 	local x_delta = x_coord - x_cell
 
 	local y_coord = (lat / math.pi + 0.5) * WORLD.climate_grid_size
 	local y_cell = math.floor(y_coord)
+	y_cell = math.max(0, math.min(WORLD.climate_grid_size - 1, y_cell))
 	local y_delta = y_coord - y_cell
 
 	local cell = ut.get_id(x_cell, y_cell)
@@ -139,6 +141,35 @@ function ut.get_tile_lerp_factors(tile)
 		right_cell, x_delta * (1 - y_delta),
 		up_cell, (1 - x_delta) * y_delta,
 		up_right_cell, x_delta * y_delta
+end
+
+---Returns climate data
+---@param lat number
+---@param lon number
+---@param elevation number
+---@return number january_rainfall
+---@return number january_temperature
+---@return number july_rainfall
+---@return number july_temperature
+function ut.get_climate_data(lat, lon, elevation)
+	local ac, acf, bc, bcf, cc, ccf, dc, dcf = get_tile_lerp_factors(lat, lon)
+
+	local a = WORLD.climate_cells[ac]
+	local b = WORLD.climate_cells[bc]
+	local c = WORLD.climate_cells[cc]
+	local d = WORLD.climate_cells[dc]
+
+	local r_ja, t_ja, r_ju, t_ju = a.january_rainfall * acf + b.january_rainfall * bcf + c.january_rainfall * ccf +
+		d.january_rainfall * dcf,
+		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf +
+		d.january_temperature * dcf,
+		a.july_rainfall * acf + b.july_rainfall * bcf + c.july_rainfall * ccf + d.july_rainfall * dcf,
+		a.july_temperature * acf + b.july_temperature * bcf + c.july_temperature * ccf + d.july_temperature * dcf
+
+	local TEMP_DELTA_PER_KM = 4.3 --  0.0; --  4.3; --  temperatures decrease as you go up -- this controls how much
+	local dd = elevation / 1000
+
+	return r_ja, t_ja - TEMP_DELTA_PER_KM * dd, r_ju, t_ju - TEMP_DELTA_PER_KM * dd
 end
 
 return ut

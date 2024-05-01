@@ -19,7 +19,8 @@ local function run_with_profiling(func, log_text)
 end
 
 local function gen_phase_02(world)
-	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen_rocks")
+	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen-rocks")
+	run_with_profiling(function() require "libsote.gen-climate".run(world) end, "gen-climate")
 end
 
 local function cache_tile_coord(world)
@@ -28,7 +29,7 @@ local function cache_tile_coord(world)
 
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
-		local q, r, face = hex.latlon_to_hex_coords(lat, lon, world.size)
+		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
 		world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
 
@@ -46,7 +47,13 @@ function wg.init()
 		return
 	end
 
-	wg.world = libsote.generate_world()
+	math.randomseed(os.time())
+	local seed = math.random(1, 100000)
+	-- local seed = 58738 -- climate integration was done on this one
+	-- local seed = 53201 -- banding
+	-- local seed = 20836 -- north pole cells
+
+	wg.world = libsote.generate_world(seed)
 	wg.message = libsote.message
 	if not wg.world then
 		wg.state = STATES.error
@@ -56,16 +63,16 @@ function wg.init()
 
 	wg.state = STATES.phase_01
 
-	require "game.raws.raws" ()
+	require "game.raws.raws"()
+	require "game.entities.world".empty()
 
 	gen_phase_02(wg.world)
-
-	require "game.entities.world".empty()
 
 	cache_tile_coord(wg.world)
 
 	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
+	-- wl.dump_maps_from(wg.world)
 
 
 	wg.world_size = DEFINES.world_size
@@ -142,7 +149,7 @@ function wg.handle_camera_controls()
 		wg.camera_position = wg.camera_position:rotate(-rotation_up, rot)
 	end
 
-	camera_speed = camera_speed * 1
+	camera_speed = camera_speed * 10
 
 	if ui.is_key_held('a') then
 		wg.camera_position = wg.camera_position:rotate(-camera_speed, up)
@@ -185,11 +192,22 @@ function wg.handle_camera_controls()
 	end
 end
 
+local is_jan_rain = true
+local is_jan_temp = true
+
 function wg.handle_keyboard_input()
-	if ui.is_key_pressed('r') then
+	if ui.is_key_pressed('s') then
 		wg.update_map_mode("rocks")
 	elseif ui.is_key_pressed('e') then
 		wg.update_map_mode("elevation")
+	elseif ui.is_key_pressed('r') then
+		wg.update_map_mode(is_jan_rain and "jan_rain" or "jul_rain")
+		is_jan_rain = not is_jan_rain
+	elseif ui.is_key_pressed('t') then
+		wg.update_map_mode(is_jan_temp and "jan_temp" or "jul_temp")
+		is_jan_temp = not is_jan_temp
+	elseif ui.is_key_pressed('k') then
+		wg.update_map_mode("koppen")
 	end
 end
 

@@ -81,6 +81,7 @@ function dem.selected_technology()
 	local tt = CACHED_TECH
 	if tt == nil then
 		print("Nil tech")
+		error("Tried to recalculate the selected technology map mode but cached tech is nil!")
 	else
 		print(tt.name)
 	end
@@ -88,10 +89,16 @@ function dem.selected_technology()
 	ut.clear_color_provinces()
 	if tt then
 		for _, prov in pairs(WORLD.provinces) do
-			if prov.technologies_present[tt] then
-				prov.center:set_real_color(0, 0, 1)
-			elseif prov.technologies_researchable[tt] then
-				prov.center:set_real_color(0, 1, 1)
+			if prov.is_land and prov.realm then
+				if prov.technologies_present[tt] then
+					prov.center:set_real_color(0, 0, 1)
+				elseif prov.technologies_researchable[tt] then
+					prov.center:set_real_color(0, 1, 1)
+				else
+					prov.center:set_real_color(1, 0, 0)
+				end
+			else
+				ut.set_default_color(prov.center)
 			end
 		end
 	end

@@ -66,17 +66,19 @@ end
 ---@param include_sea boolean?
 function ut.simple_hue_map_mode(get_val_closure, include_sea)
 	--print("hue")
+
 	local prev = -1
 	for i, tile in ipairs(WORLD.tiles) do
-		if i < 150 then
-			--print("Check: ", prev == i)
-		end
+		-- if i < 150 then
+		-- 	print("Check: ", prev == i)
+		-- end
 		if i == prev then
 			print("Repeated ID: " .. tostring(i))
 			error("Repeated ID: " .. tostring(i))
 			love.event.quit()
 			break
 		end
+
 		if include_sea then
 			-- nothing to do, we include sea!
 		else
@@ -84,17 +86,17 @@ function ut.simple_hue_map_mode(get_val_closure, include_sea)
 			--if tile.is_land then print(i, 'vs', prev) end
 			local vval = get_val_closure(tile)
 			if i < 150 then
-				if tile.is_land then print(vval, tile.tile_id) end
+				if tile.is_land then print("simple_hue_map_mode", vval, tile.tile_id) end
 			end
 			ut.hue_from_value(tile, vval)
 		end
-		if i < 150 then
-			--print(prev, 'vs', i)
-		end
+		-- if i < 150 then
+		-- 	print(prev, 'vs', i)
+		-- end
 		prev = i
-		if i < 150 then
-			--print(prev, 'vs', i)
-		end
+		-- if i < 150 then
+		-- 	print(prev, 'vs', i)
+		-- end
 	end
 end
 
