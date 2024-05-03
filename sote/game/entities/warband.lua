@@ -133,10 +133,7 @@ function warband:get_loot_capacity()
 	end
 	for _, pop in pairs(self:get_officers()) do
 		if not self.units[pop] then
-			local c = pop.race.male_efficiency[JOBTYPE.HAULING]
-			if pop.female then
-				c = pop.race.female_efficiency[JOBTYPE.HAULING]
-			end
+			local c = pop:job_efficiency(JOBTYPE.HAULING)
 			cap = cap + c
 		end
 	end
@@ -320,16 +317,20 @@ end
 
 function warband:set_character_as_unit(character, unit)
 	self.units[character] = unit
+	self.units_current[unit] = (self.units_current[unit] or 0) + 1
 	self.total_upkeep = self.total_upkeep + unit.upkeep
 	character.unit_of_warband = self
 end
 
+---Handles pop firing logic on warband's side
+---@param character POP
 function warband:unset_character_as_unit(character)
 	local unit = self.units[character]
+	character.unit_of_warband = nil
 	if unit then
-		character.unit_of_warband = nil
-		self.total_upkeep = self.total_upkeep or - (self.units[unit].upkeep or 0)
-		self.units[unit] = nil
+		self.units[character] = nil
+		self.units_current[unit] = (self.units_current[unit] or 0) - 1
+		self.total_upkeep = self.total_upkeep - unit.upkeep
 	end
 end
 
@@ -394,12 +395,7 @@ function warband:daily_supply_consumption()
 
 	for _, pop in pairs(self:get_officers()) do
 		if not self.units[pop] then
-			local supplies = pop.race.male_needs[NEED.FOOD]['calories']
-			if pop.female then
-				supplies = pop.race.female_needs[NEED.FOOD]['calories']
-			end
-			---@type number
-			total = total + supplies
+			total = total + pop:get_supply_use(nil)
 		end
 	end
 

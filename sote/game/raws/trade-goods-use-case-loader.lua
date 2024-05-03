@@ -27,9 +27,10 @@ function d.load()
 	make_use_case("water", "water", "droplets.png", 0.12, 1, 1)
 	-- NEED.FOOD
 	make_use_case("calories", "calories", "potato.png", 0.71, 0.57, 0.44)
+	make_use_case("cellulose", "cellulose", "plant-roots.png", 0.17, 0.72, 0.23)
 	make_use_case("meat", "meat", "meat.png", 1, 0.1, 0.1)
 	make_use_case("fruit", "fruit", "fruit-bowl.png", 0.82, 0.88, 19)
-	make_use_case("grain", "grains and vegetables", "wheat.png", 0.91, 0, 0.7)
+	make_use_case("grain", "grains", "wheat.png", 0.91, 0, 0.7)
 	-- NEED.CLOTHING
 	make_use_case("clothes", "clothes", "kimono.png", 1, 0.6, 0.7)
 	make_use_case("hide", "hide", "animal-hide.png", 1, 0.3, 0.3)

@@ -6,25 +6,25 @@ local dbm = {}
 
 ---@enum ForageResource
 dbm.ForageResource = {
-	Fruit = 0,
-	Grain = 1,
-	Wood = 2,
-	Small = 3,
-	Large = 4,
-	Fungi = 5,
-	Shell = 6,
-	Fish = 7,
+	Water = 0,
+	Fruit = 1,
+	Grain = 2,
+	Wood = 3,
+	Shell = 4,
+	Fish = 5,
+	Game = 6,
+	Fungi = 7,
 }
 
 dbm.ForageResourceName = {
+	[dbm.ForageResource.Water] = 'water',
 	[dbm.ForageResource.Fruit] = 'berries',
 	[dbm.ForageResource.Grain] = 'seeds',
 	[dbm.ForageResource.Wood] = 'timber',
-	[dbm.ForageResource.Small] = 'small game',
-	[dbm.ForageResource.Large] = 'large game',
-	[dbm.ForageResource.Fungi] = 'mushrooms',
 	[dbm.ForageResource.Shell] = 'shellfish',
 	[dbm.ForageResource.Fish] = 'fish',
+	[dbm.ForageResource.Game] = 'game',
+	[dbm.ForageResource.Fungi] = 'mushrooms',
 }
 
 dbm.ForageActionWord = {
@@ -71,15 +71,7 @@ function dbm.foraging_efficiency(carrying_capacity, foragers)
 	end
 end
 
----calculate the net primary production (NPP) of a tile, sums to CC
----@param tile Tile
----@return number net_primary_production
----@return number timber
----@return number marine_production
----@return number animal_production
----@return number mushroom_production
----@return number effective_temperature
-function dbm.net_primary_production(tile)
+function dbm.total_production(tile)
 	local  _, warmest, _, coldest = tile:get_climate_data()
 	if coldest > warmest then
 		warmest, coldest = coldest, warmest
@@ -88,151 +80,155 @@ function dbm.net_primary_production(tile)
 	local temperture_weighting =  1 / (1 + math.exp(-0.2 * (effective_temperature - 10)))
 	local gross_primary_production = temperture_weighting
 	-- weight net production by 'biomass' assimilation efficiency
-	local net_primary_production = gross_primary_production * (0.5 * tile.grass + 0.4 * tile.shrub + 0.3 * tile.broadleaf + 0.2 * tile.conifer)
+	local primary_production = gross_primary_production * (0.5 * tile.grass + 0.4 * tile.shrub + 0.3 * tile.broadleaf + 0.2 * tile.conifer)
 	-- some of assimilation efficiency goes towards structural material: timber
-	local timber_production = gross_primary_production * (tile.conifer * 0.3 + tile.broadleaf * 0.2 + tile.shrub * 0.1)
+	local wood_production = gross_primary_production * (tile.conifer * 0.3 + tile.broadleaf * 0.2 + tile.shrub * 0.1)
 	-- check for marine resources
 	local marine_production = 0
 	if tile.has_marsh then
 		marine_production = marine_production + 0.25
 	end
 	if tile.has_river then
-		marine_production = marine_production + 0.75
+		marine_production = marine_production + 0.5
 	end
 	for i = 1, 4 do
 		if not tile:get_neighbor(i).is_land then
 			marine_production = marine_production + 0.25
 		end
 	end
+	return primary_production, marine_production, wood_production, effective_temperature
+end
+
+---calculate the net primary production (NPP) of a tile, sums to CC
+---@param tile Tile
+---@return number net_production
+---@return number fruit
+---@return number seeds
+---@return number wood
+---@return number shell
+---@return number fish
+---@return number game
+---@return number fungi
+function dbm.net_foraging_production(tile)
+	local primary_production, marine, wood, effective_temperature =
+		dbm.total_production(tile)
 	-- determine herbavore energy from eating folliage and reduce from net_primary_production
-	local herbivores = 0.25 * (net_primary_production + timber_production)
-	net_primary_production = net_primary_production * 0.75
-	timber_production = timber_production * 0.75
-	-- deterine carinvore energy from eating herbavores and marine life and reduce amounts
-	local carinvores = 0.25 * (marine_production)
-	marine_production = marine_production * 0.75
-	local animal_production = herbivores + carinvores
+	local herbivores = 0.25 * (primary_production + wood)
+	primary_production = primary_production * 0.75
+	wood = wood * 0.75
+	-- determine plant food from remaining pp
+	local fruit, seeds, shell, fish = 0, 0, 0, 0
+	local fruit_plants = tile.shrub + tile.broadleaf
+	local seed_plants = tile.conifer + tile.grass
+	local flora_total = fruit_plants + seed_plants
+	if flora_total > 0 then
+		local fruit_percentage = fruit_plants / flora_total * 0.9
+		fruit = primary_production * 0.1 + fruit_percentage
+		seeds = primary_production * (0.9 - fruit_percentage)
+	end
+	-- determine carinvore energy from eating herbavores and marine life and reduce amounts
+	local carinvores = 0.25 * (marine)
+	marine = marine * 0.75
+	local game = herbivores + carinvores
+	-- determine marine food spread from climate
+	if marine > 0 then
+		local temperature_weight = 0.75 / (1 + math.exp(-0.125*(effective_temperature - 16)))
+		shell = marine * (0.25 + temperature_weight * 0.25)
+		fish = marine * (0.75 - temperature_weight * 0.25)
+	end
 	-- determine energy gain from decomposers
-	local mushroom_production = (net_primary_production + timber_production + animal_production) * 0.1
-	return net_primary_production, timber_production, marine_production, animal_production, mushroom_production, effective_temperature
+	local net_production = fruit + seeds + wood + shell + fish + game
+	local fungi = net_production * 0.125
+	return net_production, fruit, seeds, wood, shell, fish, game, fungi
+end
+
+---comment
+---@param a {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
+---@param _ any
+---@param v Tile
+---@return {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
+function dbm.accumulate_foraging_production(a, _, v)
+	local net_production, fruit, seeds, wood, shell, fish, game, fungi = dbm.net_foraging_production(v)
+	-- get climate weighted resources from production
+	return {
+		net_pp = a.net_pp + net_production,
+		fruit = a.fruit + fruit,
+		seeds = a.seeds + seeds,
+		wood = a.wood + wood,
+		shell = a.shell + shell,
+		fish = a.fish + fish,
+		game = a.game + game,
+		fungi = a.fungi + fungi
+	}
 end
 
 --- Returns individual potential amount of foragable good targets
 --- from each tile's net primary production (NPP), effective temperature,
 --- and flora spread
 ---@param province Province
----@return number net_pp
----@return number fruit_production
----@return number seed_production
----@return number timber
----@return number shellfish_amount
----@return number fish_amount
----@return number small_game
----@return number large_game
----@return number mushrooms
-function dbm.foraging_potentials(province)
-	local net_pp, fruit_production, seed_production, timber_amount, shellfish_amount, fish_amount, small_game, large_game, mushroom_amount
-		= 0, 0, 0, 0, 0, 0, 0, 0, 0
-	tabb.accumulate(province.tiles, nil, function (_, _, v)
-		local tile_pp, timber, marine, game, mushroom, effective_temperature = dbm.net_primary_production(v)
-		-- set net_pp first so province cc mapmode lines up with tile cc mapmode
-		net_pp = net_pp + tile_pp + marine + game + mushroom
-		-- determine spread of plant food based on tile flora
-		local fruit_plants = v.shrub + v.broadleaf
-		local seed_plants = v.conifer + v.grass
-		-- if there is plants on the tile add its potential
-		local flora_total = fruit_plants + seed_plants
-		local fruit_percentage = fruit_plants / flora_total
-		if flora_total > 0 then
-			-- weighting such that food production isn't too skewed towards one resource
-			local fruit = tile_pp * fruit_percentage
-			local seeds = tile_pp * (1 - fruit_percentage)
-			fruit_production = fruit_production + fruit
-			seed_production = seed_production + seeds
-			--- add tile timber amount
-			timber_amount = timber_amount + timber
-		end
-		-- calculate game size ratios using effective_temperature and fauna spread
-		local flora_cover = v.conifer * 0.9 + v.broadleaf * 0.8 + v.shrub * 0.6 + v.grass * 0.2
-		local temperature_weight = 1 / (1 + math.exp(-0.125*(effective_temperature - 16)))
-		local terrestrial_temperature_weight = 0.9 - (0.8 * temperature_weight)
-		local small_animals = game * (1 - terrestrial_temperature_weight) * flora_cover
-		local large_animals = game * terrestrial_temperature_weight * (1 - flora_cover)
-
-		small_game = small_game + small_animals
-		large_game = large_game + large_animals
-		-- calculate aquatic food sources, half of animal shift from temp since water is an insolator
-		local marine_temperature_weight = (0.5 * temperature_weight)
-		shellfish_amount = shellfish_amount + marine * (0.75 - temperature_weight * 0.25)
-		fish_amount = fish_amount + marine * (0.75 + marine_temperature_weight * 0.25)
-		-- calculate mushroom energy by total biomass
-		mushroom_amount = mushroom_amount + mushroom
-	end)
-	return net_pp, fruit_production, seed_production, timber_amount, shellfish_amount, fish_amount, small_game, large_game, mushroom_amount
+---@return {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
+function dbm.total_foraging_amounts(province)
+	local accumulate = {net_pp=0 ,fruit=0, seeds=0, wood=0, shell=0, fish=0, game=0, fungi=0}
+	accumulate = tabb.accumulate(province.tiles, accumulate, dbm.accumulate_foraging_production)
+	return accumulate
 end
 
 ---@param province Province
+---@param amounts {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 ---Calculate and set a province's forager limit (CC) and foraging targets
-function dbm.foragers_targets(province)
+function dbm.set_foraging_targets(province, amounts)
 	local JOBTYPE = require "game.raws.job_types"
-	-- determine amount of foragable goods
-	local net_pp, fruit_production, seed_production, timber_amount, shellfish_amount,
-		fish_amount, small_game, large_game, mushroom_amount = dbm.foraging_potentials(province)
 	---@type {resource: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}[]
 	local products = {}
-	-- PLANT PRODUCTION
+	products[dbm.ForageResource.Water] = {
+		icon = "droplets.png",
+		output = { ['water'] = 1 },
+		amount = province.hydration,
+		handle = JOBTYPE.HAULING,
+	}
 	products[dbm.ForageResource.Fruit] = {
 		icon = "berries-bowl.png",
-		output = { ['berries'] = 2 },
-		amount = fruit_production,
+		output = { ['berries'] = 1.6 },
+		amount = amounts.fruit,
 		handle = JOBTYPE.FORAGER,
 	}
 	products[dbm.ForageResource.Grain] = {
 		icon = "wheat.png",
 		output = { ['grain'] = 2 },
-		amount = seed_production,
+		amount = amounts.seeds,
 		handle = JOBTYPE.FARMER,
 	}
 	products[dbm.ForageResource.Wood] = {
 		icon = "pine-tree.png",
 		output = { ['timber'] = 1 },
-		amount = timber_amount,
-		handle = JOBTYPE.ARTISAN,
+		amount = amounts.wood,
+		handle = JOBTYPE.LABOURER,
 	}
-	-- ANIMAL PRODUCTION
-	products[dbm.ForageResource.Small] = {
-		icon = "squirrel.png",
-		output = { ['meat'] = 1, ['hide'] = 0.25 },
-		amount = small_game,
-		handle = JOBTYPE.HUNTING,
-	}
-	products[dbm.ForageResource.Large] = {
+	products[dbm.ForageResource.Game] = {
 		icon = "bison.png",
 		output = { ['meat'] = 1, ['hide'] = 0.25 },
-		amount = large_game,
-		handle = JOBTYPE.WARRIOR,
+		amount = amounts.game,
+		handle = JOBTYPE.HUNTING,
 	}
-	-- DECOMPOSER PRODUCTION
 	products[dbm.ForageResource.Fungi] = {
 		icon = "chanterelles.png",
 		output = { ['mushrooms'] = 1.6 },
-		amount = mushroom_amount,
+		amount = amounts.fungi,
 		handle = JOBTYPE.CLERK,
 	}
-	-- MARINE PRODUCTION
 	products[dbm.ForageResource.Shell] = {
 		icon = "oyster.png",
-		output = { ['shellfish'] = 2 },
-		amount = shellfish_amount,
+		output = { ['shellfish'] = 1, ['seaweed'] = 1 },
+		amount = amounts.shell,
 		handle = JOBTYPE.HAULING,
 	}
 	products[dbm.ForageResource.Fish] = {
 		icon = "salmon.png",
-		output = { ['fish'] = 1 },
-		amount = fish_amount,
-		handle = JOBTYPE.LABOURER,
+		output = { ['fish'] = 1.25 },
+		amount = amounts.fish,
+		handle = JOBTYPE.ARTISAN,
 	}
-	province.foragers_limit = net_pp
+	province.foragers_limit = amounts.net_pp
 	province.foragers_targets = products
 end
 
@@ -352,19 +348,27 @@ function dbm.cultural_foragable_targets(province)
 	if province.realm.primary_culture.traditional_forager_targets then
 		-- reduce old targets
 		for _, targets in pairs(province.realm.primary_culture.traditional_forager_targets) do
-			targets.search = targets.search * 0.99
+			targets.search = targets.search * 0.95
 			for _, value in pairs(targets.targets) do
-				value = value * 0.99
+				value = value * 0.95
 			end
 		end
 		-- add new targets
+		local total_search = 0
 		for use, targets in pairs(traditional_forager_targets) do
-			province.realm.primary_culture.traditional_forager_targets[use].search =
-				(province.realm.primary_culture.traditional_forager_targets[use].search or 0) + targets.search * 0.01
+			local old_search = (province.realm.primary_culture.traditional_forager_targets[use].search or 0)
+			local new_search = old_search + targets.search * 0.05
+			province.realm.primary_culture.traditional_forager_targets[use].search = new_search
+			total_search = total_search + new_search
 			for resource, value in pairs(targets.targets) do
 				local old_value = province.realm.primary_culture.traditional_forager_targets[use][resource] or 0
-				province.realm.primary_culture.traditional_forager_targets[use][resource] = old_value + value * 0.01
+				local new_value = old_value + value * 0.05
+				province.realm.primary_culture.traditional_forager_targets[use][resource] = new_value
 			end
+		end
+		-- normalize use case search times to equally satisfy each use case
+		for _, values in pairs(province.realm.primary_culture.traditional_forager_targets) do
+			values.search = values.search / total_search
 		end
 	else -- initial setting to first spawn of culture since traditional_foraging_target starts undeclared
 		province.realm.primary_culture.traditional_forager_targets = traditional_forager_targets

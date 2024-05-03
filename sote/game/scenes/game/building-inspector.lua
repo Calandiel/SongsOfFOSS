@@ -607,10 +607,7 @@ function re.draw(gam)
 				---@param k POP
 				render_closure = function (rect, k, v)
 					local tooltip = "Base productivity of this character."
-					local job_efficiency = k.race.male_efficiency[building.type.production_method.job_type]
-					if k.female then
-						job_efficiency = k.race.female_efficiency[building.type.production_method.job_type]
-					end
+					local job_efficiency = k:job_efficiency(building.type.production_method.job_type)
 					tooltip = tooltip .. " The character's base job efficiency is ".. ut.to_fixed_point2(job_efficiency * 100) .. "%."
 						.. " Province infrastructure modifies this by ".. ut.to_fixed_point2(efficiency_from_infrastructure * 100) .. "%."
 					local tile_efficiency = 1
@@ -628,10 +625,7 @@ function re.draw(gam)
 				width = 2,
 				---@param k POP
 				value = function(k, v)
-					local job_efficiency = k.race.male_efficiency[building.type.production_method.job_type]
-					if k.female then
-						job_efficiency = k.race.female_efficiency[building.type.production_method.job_type]
-					end
+					local job_efficiency = k:job_efficiency(building.type.production_method.job_type)
 					job_efficiency = job_efficiency * building.type.production_method:get_efficiency(building.province)
 					if building.type.production_method.foraging then
 						job_efficiency = job_efficiency * forage_efficiency

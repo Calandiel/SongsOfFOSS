@@ -35,7 +35,8 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("berries", "calories", 1)
+	add_use_case("berries", "calories", 1.25)
+	add_use_case("berries", "cellulose", 0.5)
 	add_use_case("berries", "fruit", 1)
 	add_use_case("berries", "tannin", 0.5)
 
@@ -50,6 +51,7 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("grain", "calories", 1)
+	add_use_case("grain", "cellulose", 1)
 	add_use_case("grain", "grain", 1)
 
 	TradeGood:new {
@@ -60,11 +62,10 @@ function d.load()
 		g = 0.86,
 		b = 0.5,
 		category = "good",
-		base_price = 4,
+		base_price = 3,
 	}
 	add_use_case("mushrooms", "calories", 1.25)
 	add_use_case("mushrooms", "fruit", 0.5)
-	add_use_case("mushrooms", "grain", 0.5)
 	add_use_case("mushrooms", "meat", 0.5)
 
 	TradeGood:new {
@@ -74,10 +75,22 @@ function d.load()
 		r = 0.62,
 		g = 0.56,
 		b = 0.48,
-		base_price = 4,
+		base_price = 3,
 	}
-	add_use_case("shellfish", "calories", 1)
+	add_use_case("shellfish", "calories", 1.5)
 	add_use_case("shellfish", "meat", 0.5)
+
+	TradeGood:new {
+		name = "seaweed",
+		description = "kelp",
+		icon = "algae.png",
+		r = 0.28,
+		g = 0.30,
+		b = 0.19,
+		base_price = 2,
+	}
+	add_use_case("seaweed", "calories", 0.5)
+	add_use_case("seaweed", "cellulose", 0.5)
 
 	TradeGood:new {
 		name = "fish",
@@ -88,8 +101,8 @@ function d.load()
 		b = 0.8,
 		base_price = 4,
 	}
-	add_use_case("fish", "calories", 2)
-	add_use_case("fish", "meat", 1)
+	add_use_case("fish", "calories", 1.6)
+	add_use_case("fish", "meat", 0.6)
 
 	TradeGood:new {
 		name = "meat",
@@ -112,6 +125,7 @@ function d.load()
 		b = 0.22,
 		base_price = 5,
 	}
+	add_use_case("timber", "cellulose", 2)
 	add_use_case("timber", "containers", 0.125)
 	add_use_case("timber", "furniture", 0.125)
 	add_use_case("timber", "tools-like", 0.125)
@@ -144,7 +158,7 @@ function d.load()
 		g = 1,
 		b = 1,
 		category = "service",
-		base_price = 0.01,
+		base_price = 1,
 	}
 	add_use_case("water", "water", 1)
 

@@ -90,8 +90,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = large_size,		-- 1250 kcal
-				['timber'] = 0.25,				--  500 kcal
-				['grain'] = 0.25,				--  250 kcal
+				['cellulose'] = 0.5,			--  500 kcal
+				['fruit'] = 0.25,				--  250 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = large_size * 0.25 -- beavers have really nice fur
@@ -130,8 +130,8 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = largest_size,	-- 1500 kcal
-				['timber'] = 0.25,				--  500 kcal
-				['grain'] = 0.5,				--  250 kcal
+				['cellulose'] = 0.5,			--  500 kcal
+				['fruit'] = 0.5,				--  250 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = largest_size * 0.25 -- beavers have really nice fur
@@ -154,7 +154,6 @@ function ll.load()
 		},
 		male_infrastructure_needs = largest_size,
 		carrying_capacity_weight = largest_size,
-		requires_large_forest = true,
 		requires_large_river = true
 	}
 
@@ -380,6 +379,7 @@ function ll.load()
 		},
 		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = large_size,
+		requires_large_forest = true,
 	}
 
 	Race:new {
@@ -539,7 +539,7 @@ function ll.load()
 				['water'] = dwarf_size
 			},
 			[NEED.FOOD] = {
-				['calories'] = dwarf_size,	--  750 kcal
+				['calories'] = medium_size,	-- 1000 kcal
 				['fruit'] = 0.5,			--  500 kcal
 				['meat'] = 0.5,				-- 1000 kcal
 			},
@@ -579,7 +579,7 @@ function ll.load()
 				['water'] = dwarf_size
 			},
 			[NEED.FOOD] = {
-				['calories'] = dwarf_size,	--  750 kcal
+				['calories'] = medium_size,	-- 1000 kcal
 				['fruit'] = 0.5,			--  500 kcal
 				['meat'] = 0.5,				-- 1000 kcal
 			},
@@ -773,8 +773,7 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = dwarf_size,		--  750 kcal
-				['fruit'] = 0.25,				--  250 kcal
-				['grain'] = 0.25,				--  250 kcal
+				['fruit'] = 0.5,				--  500 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size * 0.5 -- vermen have nice fur
@@ -812,9 +811,8 @@ function ll.load()
 				['water'] = small_size
 			},
 			[NEED.FOOD] = {
-				['calories'] = small_size,		--  500 kcal
-				['fruit'] = 0.25,				--  250 kcal
-				['grain'] = 0.25,				--  250 kcal
+				['calories'] = dwarf_size,		--  750 kcal
+				['fruit'] = 0.5,				--  500 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size * 0.5 -- vermen have nice fur
@@ -876,7 +874,7 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = medium_size,	-- 1000 kcal
-				['grain'] = 0.25,			--  250 kcal
+				['fruit'] = 0.25,			--  250 kcal
 				['meat'] = 0.25,			--  500 kcal
 			},
 			[NEED.CLOTHING] = {
@@ -916,7 +914,7 @@ function ll.load()
 			},
 			[NEED.FOOD] = {
 				['calories'] = dwarf_size,	--  750 kcal
-				['grain'] = 0.25,			--  250 kcal
+				['fruit'] = 0.25,			--  250 kcal
 				['meat'] = 0.25,			--  500 kcal
 			},
 			[NEED.CLOTHING] = {

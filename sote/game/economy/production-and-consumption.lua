@@ -879,36 +879,20 @@ function pro.run(province)
 	for _, pop in ipairs(pops_by_wealth) do
 
 		-- populate pop_view
-		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
-		if pop.female then
-			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
-		end
-		pop_view[zero].foraging_efficiency = foraging_multiplier
 		pop_view[zero].age_multiplier = pop:get_age_multiplier()
-
-		local pop_needs = pop.race.male_needs
-		local pop_efficiency = pop.race.male_efficiency
-		if pop.female then
-			pop_needs = pop.race.female_needs
-			pop_efficiency = pop.race.female_efficiency
-		end
 
 		-- populate job efficiency
 		for tag, value in pairs(JOBTYPE) do
-			pop_job_efficiency[value] = pop_efficiency[value] * pop_view[zero].age_multiplier -- children are not good at working
+			pop_job_efficiency[value] = pop:job_efficiency(value)
 		end
-		for tag, value in pairs(pop_needs) do
+		pop_view[zero].foraging_efficiency = pop_job_efficiency[JOBTYPE.FORAGER]
+		for tag, value in pairs(pop.need_satisfaction) do
 			pop_need_amount[tag] = tabb.accumulate(value, 0, function (a, k, v)
-				a = a + v
+				a = a + pop:need_use_case_satisfaction(tag, k)
 				return a
 			end)
-			-- can easily add a pop's cultural or religous needs here
-			local need = NEEDS[tag]
-			if not need.age_independent then
-				pop_need_amount[tag] = pop_need_amount[tag] * pop_view[zero].age_multiplier
-			end
+			-- can easily add a pop's cultural, religous, and/or warmth needs here
 		end
-
 
 		-- base income: all adult pops forage and help each other which translates into a bit of wealth
 		-- real reason: wealth sources to fuel the economy

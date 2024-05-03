@@ -12,10 +12,7 @@ function character_values.travel_speed(character)
 		total_weight = total_weight + amount / 10
 	end
 
-	local total_hauling = character.race.male_efficiency[JOBTYPE.HAULING]
-	if character.female then
-		total_hauling = character.race.female_efficiency[JOBTYPE.HAULING]
-	end
+	local total_hauling = character:job_efficiency(JOBTYPE.HAULING)
 
 	local party = character.leading_warband
 
