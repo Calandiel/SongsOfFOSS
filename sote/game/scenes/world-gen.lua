@@ -35,12 +35,29 @@ local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 end
 
+local function post_tectonic()
+	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
+end
+
 local function cache_tile_coord()
+	print("Caching tile coordinates...")
+
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
 		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
 		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
+
+	print("Done caching tile coordinates")
+end
+
+_coroutine_resume = coroutine.resume
+function coroutine.resume(...)
+	local state,result = _coroutine_resume(...)
+	if not state then
+		error(tostring(result), 2)
+	end
+	return
 end
 
 function wg.init()
@@ -77,8 +94,6 @@ end
 function wg.generate_coro()
 	wg.state = STATES.phase_01
 
-	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
-
 	math.randomseed(os.time())
 	local seed = math.random(1, 100000)
 	-- seed = 58738 -- climate integration was done on this one
@@ -86,6 +101,7 @@ function wg.generate_coro()
 	-- seed = 20836 -- north pole cells
 	-- seed = 6618 -- tiny islands?
 
+	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
 	while coroutine.status(phase01_coro) ~= "dead" do
 		coroutine.resume(phase01_coro, seed)
 		coroutine.yield()
@@ -114,6 +130,8 @@ function wg.generate_coro()
 
 	wg.state = STATES.post_tectonic
 
+	post_tectonic();
+
 	local constraints_met = check_constraints()
 	if not constraints_met then
 		wg.state = STATES.constraints_failed
@@ -123,7 +141,7 @@ function wg.generate_coro()
 
 	wg.state = STATES.phase_02
 
-	require "game.raws.raws"()
+	require "game.raws.raws"(false) -- no logging
 	require "game.entities.world".empty()
 
 	wg.message = "Caching tile coordinates"

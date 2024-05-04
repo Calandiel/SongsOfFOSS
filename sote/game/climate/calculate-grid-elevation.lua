@@ -31,8 +31,8 @@ function cl.run()
 end
 
 function cl.run_hex(world)
-	for i = 1, world.tile_count do
-		local cell = world.climate_cells[i]
+	for i = 0, world.tile_count - 1 do
+		local cell = world.climate_cells[i + 1]
 
 		cell.elevation = world:get_elevation_by_index(i)
 

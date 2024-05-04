@@ -104,19 +104,31 @@ function world:_set_index(q, r, face, index)
 end
 
 function world:_set_empty(q, r, face)
-	self:_set_index(q, r, face, -1)
+	self.coord[self:_key_from_coord(q, r, face)] = -1
+end
 
-	local index = self.coord[self:_key_from_coord(q, r, face)]
-	for i = 1, 6 do
-		self.neighbors[index + i - 1] = -1
+function world:_init_neighbours()
+	for i = 0, self.tile_count * 6 - 1 do
+		self.neighbors[i] = -1
 	end
 end
 
 function world:_set_neighbors(q, r, face, neighbors)
-	local index = self.coord[self:_key_from_coord(q, r, face)]
+	local index = self.coord[self:_key_from_coord(q, r, face)] * 6
 
 	for i = 1, #neighbors do
 		self.neighbors[index + i - 1] = self.coord[self:_key_from_coord(neighbors[i].q, neighbors[i].r, neighbors[i].f)]
+	end
+end
+
+---@param index number 0-based index
+---@param callback fun(neighbor_index:number)
+function world:for_each_neighbor(index, callback)
+	index = index * 6
+	local neighbor_count = self.neighbors[index + 5] == -1 and 5 or 6
+
+	for i = 0, neighbor_count - 1 do
+		callback(self.neighbors[index + i])
 	end
 end
 
@@ -162,16 +174,24 @@ function world:get_latlon(q, r, face)
 	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
+---@param index number 0-based index
 function world:get_latlon_by_index(index)
-	return -llu.colat_to_lat(self.colatitude[index - 1]), -self.minus_longitude[index - 1] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
 function world:get_elevation(q, r, face)
 	return self.elevation[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+---@param index number 0-based index
 function world:get_elevation_by_index(index)
-	return self.elevation[index - 1]
+	return self.elevation[index]
+end
+
+---@param index number 0-based index
+---@param elevation number
+function world:set_elevation_by_index(index, elevation)
+	self.elevation[index] = elevation
 end
 
 function world:get_hilliness(q, r, face)
@@ -190,8 +210,9 @@ function world:get_is_land(q, r, face)
 	return self.is_land[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+---@param index number 0-based index
 function world:get_is_land_by_index(index)
-	return self.is_land[index - 1]
+	return self.is_land[index]
 end
 
 function world:get_plate(q, r, face)
