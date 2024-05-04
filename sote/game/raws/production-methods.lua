@@ -16,7 +16,8 @@ local dbm = require "game.economy.diet-breadth-model"
 ---@field inputs table<TradeGoodUseCaseReference, number>
 ---@field outputs table<TradeGoodReference, number>
 ---@field new fun(self:ProductionMethod, o:ProductionMethod):ProductionMethod
----@field foraging boolean If true, counts towards the forager limit
+---@field foraging boolean If true, worktime counts towards the foragers count
+---@field hydration boolean If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number Set to 1 if building consumes local forests
 ---@field crop boolean If true, the building will periodically change its yield for a season.
@@ -158,6 +159,9 @@ function ProductionMethod:get_efficiency(province)
 	local nature_yield = 1
 	if self.foraging then
 		nature_yield = nature_yield * dbm.foraging_efficiency(province.foragers_limit, province.foragers)
+	end
+	if self.hydration then
+		nature_yield = nature_yield * dbm.foraging_efficiency(province.hydration, province.foragers_water)
 	end
 	if self.forest_dependence > 0 then
 		nature_yield = nature_yield * (province.foragers_targets[dbm.ForageResource.Wood].amount / province.size) * self.forest_dependence

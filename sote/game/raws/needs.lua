@@ -8,18 +8,16 @@ local JOBTYPE = require "game.raws.job_types"
 
 ---@enum NEED
 NEED = {
-	WATER = 0,
-	FOOD = 1,
-	CLOTHING = 2,
-	TOOLS = 3,
-	FURNITURE = 4,
-	HEALTHCARE = 5,
-	STORAGE = 6,
-	LUXURY = 7
+	FOOD = 0,
+	CLOTHING = 1,
+	TOOLS = 2,
+	FURNITURE = 3,
+	HEALTHCARE = 4,
+	STORAGE = 5,
+	LUXURY = 6,
 }
 
 NEED_NAME = {
-	[NEED.WATER] = "water",
 	[NEED.FOOD] = 'food',
 	[NEED.CLOTHING] = 'clothing',
 	[NEED.TOOLS] = 'tools',
@@ -31,11 +29,6 @@ NEED_NAME = {
 
 ---@type table<NEED, Need>
 NEEDS = {
-	[NEED.WATER] = {
-		life_need = true,
-		job_to_satisfy = JOBTYPE.FORAGER,
-		time_to_satisfy = 0.05,
-	},
 	[NEED.FOOD] = {
 		-- age_independent = true,
 		life_need = true,

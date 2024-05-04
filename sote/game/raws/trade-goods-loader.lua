@@ -64,7 +64,7 @@ function d.load()
 		category = "good",
 		base_price = 3,
 	}
-	add_use_case("mushrooms", "calories", 1.25)
+	add_use_case("mushrooms", "calories", 1)
 	add_use_case("mushrooms", "fruit", 0.5)
 	add_use_case("mushrooms", "meat", 0.5)
 
@@ -90,7 +90,7 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("seaweed", "calories", 0.5)
-	add_use_case("seaweed", "cellulose", 0.5)
+	add_use_case("seaweed", "cellulose", 0.25)
 
 	TradeGood:new {
 		name = "fish",

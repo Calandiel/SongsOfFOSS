@@ -9,22 +9,22 @@ dbm.ForageResource = {
 	Water = 0,
 	Fruit = 1,
 	Grain = 2,
-	Wood = 3,
-	Shell = 4,
-	Fish = 5,
-	Game = 6,
-	Fungi = 7,
+	Game = 3,
+	Fungi = 4,
+	Shell = 5,
+	Fish = 6,
+	Wood = 7,
 }
 
 dbm.ForageResourceName = {
 	[dbm.ForageResource.Water] = 'water',
 	[dbm.ForageResource.Fruit] = 'berries',
 	[dbm.ForageResource.Grain] = 'seeds',
-	[dbm.ForageResource.Wood] = 'timber',
-	[dbm.ForageResource.Shell] = 'shellfish',
-	[dbm.ForageResource.Fish] = 'fish',
 	[dbm.ForageResource.Game] = 'game',
 	[dbm.ForageResource.Fungi] = 'mushrooms',
+	[dbm.ForageResource.Shell] = 'shellfish',
+	[dbm.ForageResource.Fish] = 'fish',
+	[dbm.ForageResource.Wood] = 'timber',
 }
 
 dbm.ForageActionWord = {
@@ -71,6 +71,11 @@ function dbm.foraging_efficiency(carrying_capacity, foragers)
 	end
 end
 
+---@param tile Tile
+---@return number primary_production
+---@return number marine_production
+---@return number wood_production
+---@return number effective_temperature
 function dbm.total_production(tile)
 	local  _, warmest, _, coldest = tile:get_climate_data()
 	if coldest > warmest then
@@ -78,15 +83,14 @@ function dbm.total_production(tile)
 	end
 	local effective_temperature = (18 * warmest - 10 * coldest) / (warmest - coldest + 8)
 	local temperture_weighting =  1 / (1 + math.exp(-0.2 * (effective_temperature - 10)))
-	local gross_primary_production = temperture_weighting
 	-- weight net production by 'biomass' assimilation efficiency
-	local primary_production = gross_primary_production * (0.5 * tile.grass + 0.4 * tile.shrub + 0.3 * tile.broadleaf + 0.2 * tile.conifer)
+	local primary_production = temperture_weighting * (0.5 * tile.grass + 0.4 * tile.shrub + 0.3 * tile.broadleaf + 0.2 * tile.conifer)
 	-- some of assimilation efficiency goes towards structural material: timber
-	local wood_production = gross_primary_production * (tile.conifer * 0.3 + tile.broadleaf * 0.2 + tile.shrub * 0.1)
+	local wood_production = temperture_weighting * (0.3 * tile.conifer + 0.2 * tile.broadleaf + 0.1 * tile.shrub)
 	-- check for marine resources
 	local marine_production = 0
 	if tile.has_marsh then
-		marine_production = marine_production + 0.25
+		marine_production = marine_production + 0.5
 	end
 	if tile.has_river then
 		marine_production = marine_production + 0.5
@@ -110,34 +114,35 @@ end
 ---@return number game
 ---@return number fungi
 function dbm.net_foraging_production(tile)
-	local primary_production, marine, wood, effective_temperature =
+	local primary_production, marine_production, wood, effective_temperature =
 		dbm.total_production(tile)
-	-- determine herbavore energy from eating folliage and reduce from net_primary_production
-	local herbivores = 0.25 * (primary_production + wood)
-	primary_production = primary_production * 0.75
-	wood = wood * 0.75
-	-- determine plant food from remaining pp
-	local fruit, seeds, shell, fish = 0, 0, 0, 0
-	local fruit_plants = tile.shrub + tile.broadleaf
-	local seed_plants = tile.conifer + tile.grass
-	local flora_total = fruit_plants + seed_plants
-	if flora_total > 0 then
-		local fruit_percentage = fruit_plants / flora_total * 0.9
-		fruit = primary_production * 0.1 + fruit_percentage
-		seeds = primary_production * (0.9 - fruit_percentage)
+	local fruit, seeds, shell, fish, game = 0, 0, 0, 0, 0
+	if primary_production > 0 then
+		-- determine animal energy from eating folliage and reduce from plant output
+		game = 0.3 * (primary_production + wood)
+		primary_production = primary_production * 0.7
+		wood = wood * 0.7
+		-- determine plant food from remaining pp
+		local fruit_plants = tile.shrub + tile.broadleaf
+		local seed_plants = tile.conifer + tile.grass
+		local flora_total = fruit_plants + seed_plants
+		if flora_total > 0 then
+			local fruit_percentage = fruit_plants / flora_total * 0.8
+			fruit = primary_production * (0.2 + fruit_percentage)
+			seeds = primary_production * (0.8 - fruit_percentage)
+		end
 	end
-	-- determine carinvore energy from eating herbavores and marine life and reduce amounts
-	local carinvores = 0.25 * (marine)
-	marine = marine * 0.75
-	local game = herbivores + carinvores
-	-- determine marine food spread from climate
-	if marine > 0 then
+	if marine_production > 0 then
+		-- determine animal energy from marine output
+		game = game + 0.15 * (marine_production)
+		marine_production = marine_production * 0.85
+		-- determine marine food spread from climate
 		local temperature_weight = 0.75 / (1 + math.exp(-0.125*(effective_temperature - 16)))
-		shell = marine * (0.25 + temperature_weight * 0.25)
-		fish = marine * (0.75 - temperature_weight * 0.25)
+		shell = marine_production * (0.25 + temperature_weight * 0.25)
+		fish = marine_production * (0.75 - temperature_weight * 0.25)
 	end
-	-- determine energy gain from decomposers
-	local net_production = fruit + seeds + wood + shell + fish + game
+	local net_production = fruit + seeds + shell + fish + game
+	-- determine energy available in decomposers
 	local fungi = net_production * 0.125
 	return net_production, fruit, seeds, wood, shell, fish, game, fungi
 end
@@ -212,7 +217,7 @@ function dbm.set_foraging_targets(province, amounts)
 	}
 	products[dbm.ForageResource.Fungi] = {
 		icon = "chanterelles.png",
-		output = { ['mushrooms'] = 1.6 },
+		output = { ['mushrooms'] = 1 },
 		amount = amounts.fungi,
 		handle = JOBTYPE.CLERK,
 	}

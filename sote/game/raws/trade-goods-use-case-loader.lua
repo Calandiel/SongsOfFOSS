@@ -23,9 +23,8 @@ function d.load()
 
 	make_use_case("administration", "administration", "bookmarklet.png", 0.32, 0.42, 0.92)
 	make_use_case("amenities", "amenities", "star-swirl.png", 0.32, 0.838, 0.38)
-	-- NEED.WATER
-	make_use_case("water", "water", "droplets.png", 0.12, 1, 1)
 	-- NEED.FOOD
+	make_use_case("water", "water", "droplets.png", 0.12, 1, 1)
 	make_use_case("calories", "calories", "potato.png", 0.71, 0.57, 0.44)
 	make_use_case("cellulose", "cellulose", "plant-roots.png", 0.17, 0.72, 0.23)
 	make_use_case("meat", "meat", "meat.png", 1, 0.1, 0.1)
@@ -55,7 +54,7 @@ function d.load()
 	make_use_case("mead-substrate", "ingredients in mead production", "high-grass.png", 0.32, 0.42, 0.92)
 
 	-- stone materials
-	make_use_case("blanks-core", "flint blanks", "rock.png", 0.162, 0.141, 0.422)
+	make_use_case("blanks-core", "knapping blanks", "rock.png", 0.162, 0.141, 0.422)
 	make_use_case("stone", "stone", "stone-block.png", 0.262, 0.241, 0.222)
 
 	-- copper chain materials

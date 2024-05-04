@@ -96,10 +96,8 @@ function Race:new(o)
 	}
 
 	r.female_needs = {
-		[NEED.WATER] = {
-			['water'] = 1,
-		},
 		[NEED.FOOD] = {
+			['water'] = 1,
 			['calories'] = 1,		-- 1000 kcal
 			['fruit'] = 0.25,		-- 250 - 375 kcal
 			['meat'] = 0.25,		-- 250 - 500 kcal
@@ -136,10 +134,8 @@ function Race:new(o)
 	}
 
 	r.male_needs = {
-		[NEED.WATER] = {
-			['water'] = 1,
-		},
 		[NEED.FOOD] = {
+			['water'] = 1,
 			['calories'] = 1,		-- 1000 kcal
 			['fruit'] = 0.25,		-- 250 - 375 kcal
 			['meat'] = 0.25,		-- 250 - 500 kcal

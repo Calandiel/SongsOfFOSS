@@ -399,16 +399,6 @@ local function trade_widget(gam, tile, panel)
 		:build()
 
 	uit.generic_number_field(
-		"ages.png",
-		tile.province:population_weight(),
-		layout:next(unit * 3.5, unit * 1),
-		"This province is currently carrying the equivalent of " .. uit.to_fixed_point2(tile.province.foragers)
-			.. " humans.",
-		uit.NUMBER_MODE.NUMBER,
-		uit.NAME_MODE.ICON
-	)
-
-	uit.generic_number_field(
 		"fruit-bowl.png",
 		tile.province.foragers_limit,
 		layout:next(unit * 3.5, unit * 1),
@@ -418,32 +408,41 @@ local function trade_widget(gam, tile, panel)
 		uit.NAME_MODE.ICON
 	)
 
-	local foraging_efficiency = dbm.foraging_efficiency(tile.province.foragers_limit, tile.province.foragers)
+	local pop_weight = tile.province:population_weight()
 	uit.generic_number_field(
-		"basket.png",
-		tile.province.foragers,
+		"ages.png",
+		pop_weight,
 		layout:next(unit * 3.5, unit * 1),
-		"There are currently the equivalent of " .. uit.to_fixed_point2(tile.province.foragers)
-			.. " full-time foragers collecting resources, reducing the foraging efficiency to "
-			.. uit.to_fixed_point2(foraging_efficiency * 100).. "%.",
-		uit.NUMBER_MODE.BALANCE,
+		"This province is currently carrying the equivalent of " .. uit.to_fixed_point2(pop_weight)
+			.. " humans.",
+		uit.NUMBER_MODE.NUMBER,
 		uit.NAME_MODE.ICON
 	)
 
-	local resource_string = "n/a"
-	local resource_tooltip = "There is no special resource on this tile."
-	local resource_icon = "uncertainty.png"
-	if tile.resource then
-		resource_string = tile.resource.name
-		resource_tooltip = "This tile has a source of " .. tile.resource.name .. "."
-		resource_icon = tile.resource.icon
-	end
-	uit.generic_string_field(
-		resource_icon,
-		resource_string,
+	local foraging_efficiency = dbm.foraging_efficiency(tile.province.foragers_limit, tile.province.foragers)
+	uit.generic_number_field(
+		"basket.png",
+		tile.province.foragers / (tile.province.foragers_limit > 0 and tile.province.foragers_limit or 1),
 		layout:next(unit * 3.5, unit * 1),
-		resource_tooltip,
-		uit.NAME_MODE.ICON
+		"There are currently the equivalent of " .. uit.to_fixed_point2(tile.province.foragers)
+			.. " human foragers collecting food full-time, reducing the foraging efficiency to "
+			.. uit.to_fixed_point2(foraging_efficiency * 100).. "%.",
+		uit.NUMBER_MODE.PERCENTAGE,
+		uit.NAME_MODE.ICON,
+		true
+	)
+
+	local hydration_efficiency = dbm.foraging_efficiency(tile.province.hydration, tile.province.foragers_water)
+	uit.generic_number_field(
+		"full-wood-bucket.png",
+		tile.province.foragers_water / tile.province.hydration,
+		layout:next(unit * 3.5, unit * 1),
+		"There are currently the equivalent of " .. uit.to_fixed_point2(tile.province.foragers_water)
+			.. " human foragers collecting water full-time, reducing the gathering efficiency to "
+			.. uit.to_fixed_point2(hydration_efficiency * 100).. "%.",
+		uit.NUMBER_MODE.PERCENTAGE,
+		uit.NAME_MODE.ICON,
+		true
 	)
 
 	tabb.accumulate(tile.province.foragers_targets, nil, function (_, resource, values)
@@ -451,15 +450,34 @@ local function trade_widget(gam, tile, panel)
 			values.icon,
 			values.amount,
 			layout:next(unit * 3.5, unit * 1),
-			"The average human can expect to excounter up to " .. uit.to_fixed_point2(values.amount / tile.province.size) .. " units searching while foraging."
-				.. "\nGathering this resource returns:\n" .. tabb.accumulate(values.output, "", function (a, good, amount)
+			"The average human can expect to excounter up to " .. uit.to_fixed_point2(values.amount / tile.province.size)
+				.. " units searching while foraging over the province's " .. tile.province.size .. " tiles."
+				.. "\n · Gathering one unit of " .. dbm.ForageResourceName[resource] .. " returns:\n   " .. tabb.accumulate(values.output, "", function (a, good, amount)
 					return a .." · " .. good .. " (" .. uit.to_fixed_point2(amount) .. ")"
-				end) .. ".\nThe outputs of " .. dbm.ForageActionWord[values.handle] .. " " .. dbm.ForageResourceName[resource]
+				end) .. "\n · The outputs of " .. dbm.ForageActionWord[values.handle] .. " " .. dbm.ForageResourceName[resource]
 				.. " is further modified by race and age modifiers.",
 			uit.NUMBER_MODE.BALANCE,
 			uit.NAME_MODE.ICON
 		)
 	end)
+
+	local resource_string = "n/a"
+	local resource_tooltip = "There is no special resource on this tile."
+	local resource_icon = "uncertainty.png"
+	if tabb.size(tile.province.local_resources) > 0 then
+		resource_string = tabb.accumulate(tile.province.local_resources, "", function (a, k, v)
+			return a .. v.name .. ", "
+		end)
+		resource_string = resource_string:sub(1, -3)
+		resource_tooltip = "This tile has sources of " .. resource_string .. "."
+	end
+	uit.generic_string_field(
+		"Res.",
+		resource_string,
+		layout:next(unit * 3.5 * 4 + 15, unit * 1),
+		resource_tooltip,
+		uit.NAME_MODE.NAME
+	)
 end
 
 ---comment
@@ -509,7 +527,7 @@ local function bottom_panel(gam, tile, panel)
 
 	separate_inspectors(gam, tile, layout:next(panel.width, unit * 2))
 	military_widget(gam, tile, layout:next(panel.width, unit * 3))
-	trade_widget(gam, tile, layout:next(panel.width, unit * 5))
+	trade_widget(gam, tile, layout:next(panel.width, unit * 6))
 end
 
 ---comment
@@ -526,8 +544,8 @@ local function general_tab(gam, tile, panel)
 		:build()
 
 	header_panel(gam, tile, layout:next(panel.width, unit * 4))
-	main_panel(gam, tile, layout:next(panel.width, unit * 9))
-	bottom_panel(gam, tile, layout:next(panel.width, unit * 11))
+	main_panel(gam, tile, layout:next(panel.width, unit * 8))
+	bottom_panel(gam, tile, layout:next(panel.width, unit * 12))
 end
 
 ---comment

@@ -58,6 +58,7 @@ function d.load()
 		outputs = { ["water"] = 10 },
 		jobs = { [job("water-carriers")] = 1 },
 		job_type = JOBTYPE.HAULING,
+		hydration = true,
 		self_sourcing_fraction = 0,
 	}
 	ProductionMethod:new {
