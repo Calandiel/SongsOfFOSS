@@ -1,9 +1,11 @@
 local d = {}
 
 function d.load()
-	print()
-	print("=== LOADING TECHS ===")
-	print()
+	if RAWS_MANAGER.do_logging then
+		print()
+		print("=== LOADING TECHS ===")
+		print()
+	end
 	local Technology = require "game.raws.technologies"
 	local met = require "game.raws.raws-utils".production_method
 	local cat = require "game.raws.raws-utils".trade_category
