@@ -24,16 +24,16 @@ local function assign_rock_layer_to_tile(index, world)
 	-- store rgb_id as well? or just id instead of rgb?
 end
 
-local function run(index, world)
-	fix_rock_type(index, world)
-	assign_rock_layer_to_tile(index, world)
+local function process(tile_index, world)
+	fix_rock_type(tile_index, world)
+	assign_rock_layer_to_tile(tile_index, world)
 
 	-- resources, but skip for now
 end
 
 function gr.run(world)
-	for index = 0, world.tile_count - 1 do
-		run(index, world)
+	for i = 0, world.tile_count - 1 do
+		process(i, world)
 	end
 end
 
