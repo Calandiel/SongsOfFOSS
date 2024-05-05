@@ -6,6 +6,8 @@ local world = {
 	coord = nil,
 	coord_by_tile_id = nil,
 	climate_cells = nil,
+	waterbodies = nil,
+	waterbodies_by_tile_id = nil,
 
 	neighbors = nil,
 
@@ -47,6 +49,7 @@ function world:new(world_size, seed)
 	obj.coord = {}
 	obj.coord_by_tile_id = {}
 	obj.climate_cells = {}
+	obj.waterbodies = {}
 
 	obj.neighbors         = ffi.new("int32_t[" .. obj.tile_count * 6 .. "]")
 
@@ -60,6 +63,7 @@ function world:new(world_size, seed)
 	obj.plate             = ffi.new("uint8_t[" .. obj.tile_count .. "]")
 
 	obj.rocks             = ffi.new("material_template_t[" .. obj.tile_count .. "]")
+	obj.waterbody_by_tile = ffi.new("uint32_t["            .. obj.tile_count .. "]")
 
 	return obj
 end
@@ -226,6 +230,20 @@ end
 function world:get_climate_data(q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
+end
+
+local wb = require("libsote.hydrology.waterbody")
+
+---@return number new waterbody id
+function world:create_new_waterbody()
+	local id = #self.waterbodies + 1
+	self.waterbodies[id] = wb:new()
+	return id
+end
+
+---@param index number 0-based index
+function world:is_waterbody_valid(index)
+	return self.waterbody_by_tile[index] ~= 0
 end
 
 function world:_investigate_tile(q, r, face)
