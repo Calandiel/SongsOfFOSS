@@ -84,6 +84,13 @@ function Queue:length()
 	return self.len
 end
 
+---Returns whether the queue is empty
+---@generic T
+---@return T
+function Queue:is_empty()
+	return self.len == 0
+end
+
 ---Clears the queue
 function Queue:clear()
 	self.first = 0
