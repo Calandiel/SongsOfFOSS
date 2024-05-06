@@ -108,14 +108,8 @@ function Race:new(o)
 		[NEED.FURNITURE] = {
 			['furniture'] = 1,
 		},
-		[NEED.TOOLS] = {
-			['tools-like'] = 1,
-		},
 		[NEED.HEALTHCARE] = {
 			['healthcare'] = 1,
-		},
-		[NEED.STORAGE] = {
-			['containers'] = 1,
 		},
 		[NEED.LUXURY] = {
 			['liquors'] = 1,
@@ -146,14 +140,8 @@ function Race:new(o)
 		[NEED.FURNITURE] = {
 			['furniture'] = 1,
 		},
-		[NEED.TOOLS] = {
-			['tools-like'] = 1,
-		},
 		[NEED.HEALTHCARE] = {
 			['healthcare'] = 1,
-		},
-		[NEED.STORAGE] = {
-			['containers'] = 1,
 		},
 		[NEED.LUXURY] = {
 			['liquors'] = 1,

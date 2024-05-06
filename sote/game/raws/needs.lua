@@ -9,21 +9,21 @@ local JOBTYPE = require "game.raws.job_types"
 ---@enum NEED
 NEED = {
 	FOOD = 0,
-	CLOTHING = 1,
-	TOOLS = 2,
-	FURNITURE = 3,
-	HEALTHCARE = 4,
-	STORAGE = 5,
+	TOOLS = 1,
+	STORAGE = 2,
+	CLOTHING = 3,
+	FURNITURE = 4,
+	HEALTHCARE = 5,
 	LUXURY = 6,
 }
 
 NEED_NAME = {
 	[NEED.FOOD] = 'food',
-	[NEED.CLOTHING] = 'clothing',
 	[NEED.TOOLS] = 'tools',
+	[NEED.STORAGE] = 'storage',
+	[NEED.CLOTHING] = 'clothing',
 	[NEED.FURNITURE] = 'furniture',
 	[NEED.HEALTHCARE] = 'healthcare',
-	[NEED.STORAGE] = 'storage',
 	[NEED.LUXURY] = 'luxury'
 }
 
@@ -35,13 +35,17 @@ NEEDS = {
 		job_to_satisfy = JOBTYPE.FORAGER,
 		time_to_satisfy = 1.5,
 	},
-	[NEED.CLOTHING] = {
-		job_to_satisfy = JOBTYPE.LABOURER,
-		time_to_satisfy = 0.5
-	},
 	[NEED.TOOLS] = {
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 1.0
+	},
+	[NEED.STORAGE] = {
+		job_to_satisfy = JOBTYPE.LABOURER,
+		time_to_satisfy = 1.0
+	},
+	[NEED.CLOTHING] = {
+		job_to_satisfy = JOBTYPE.LABOURER,
+		time_to_satisfy = 0.5
 	},
 	[NEED.FURNITURE] = {
 		job_to_satisfy = JOBTYPE.LABOURER,
@@ -49,10 +53,6 @@ NEEDS = {
 	},
 	[NEED.HEALTHCARE] = {
 		job_to_satisfy = JOBTYPE.CLERK,
-		time_to_satisfy = 1.0
-	},
-	[NEED.STORAGE] = {
-		job_to_satisfy = JOBTYPE.LABOURER,
 		time_to_satisfy = 1.0
 	},
 	[NEED.LUXURY] = {

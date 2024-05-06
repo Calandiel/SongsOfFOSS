@@ -67,7 +67,7 @@ function dbm.foraging_efficiency(carrying_capacity, foragers)
 	if foragers > carrying_capacity then
 		return carrying_capacity / foragers
 	else -- give a boost from being under CC to represent increasing in standing crop/stock
-		return 2 - math.exp(-0.25*(carrying_capacity - foragers)/carrying_capacity)
+		return 2 - math.exp(-0.7*(carrying_capacity - foragers)/carrying_capacity)
 	end
 end
 
@@ -119,23 +119,23 @@ function dbm.net_foraging_production(tile)
 	local fruit, seeds, shell, fish, game = 0, 0, 0, 0, 0
 	if primary_production > 0 then
 		-- determine animal energy from eating folliage and reduce from plant output
-		game = 0.3 * (primary_production + wood)
-		primary_production = primary_production * 0.7
-		wood = wood * 0.7
+		game = 0.125 * (primary_production + wood)
+		primary_production = primary_production * 0.875
+		wood = wood * 0.875
 		-- determine plant food from remaining pp
 		local fruit_plants = tile.shrub + tile.broadleaf
 		local seed_plants = tile.conifer + tile.grass
 		local flora_total = fruit_plants + seed_plants
 		if flora_total > 0 then
-			local fruit_percentage = fruit_plants / flora_total * 0.8
-			fruit = primary_production * (0.2 + fruit_percentage)
-			seeds = primary_production * (0.8 - fruit_percentage)
+			local fruit_percentage = 0.5 / (1 + math.exp(-10 * (fruit_plants / flora_total - 0.5)))
+			fruit = primary_production * (0.25 + fruit_percentage)
+			seeds = primary_production * (0.75 - fruit_percentage)
 		end
 	end
 	if marine_production > 0 then
 		-- determine animal energy from marine output
-		game = game + 0.15 * (marine_production)
-		marine_production = marine_production * 0.85
+		game = game + 0.125 * (marine_production)
+		marine_production = marine_production * 0.875
 		-- determine marine food spread from climate
 		local temperature_weight = 0.75 / (1 + math.exp(-0.125*(effective_temperature - 16)))
 		shell = marine_production * (0.25 + temperature_weight * 0.25)
@@ -187,25 +187,25 @@ function dbm.set_foraging_targets(province, amounts)
 	local products = {}
 	products[dbm.ForageResource.Water] = {
 		icon = "droplets.png",
-		output = { ['water'] = 1 },
-		amount = province.hydration,
-		handle = JOBTYPE.HAULING,
+		output = { ['water'] = 2.5 },
+		amount = province.hydration * 0.4,
+		handle = JOBTYPE.FORAGER,
 	}
 	products[dbm.ForageResource.Fruit] = {
 		icon = "berries-bowl.png",
-		output = { ['berries'] = 1.6 },
+		output = { ['berries'] = 1.6, ['timber'] = 0.125 },
 		amount = amounts.fruit,
 		handle = JOBTYPE.FORAGER,
 	}
 	products[dbm.ForageResource.Grain] = {
 		icon = "wheat.png",
-		output = { ['grain'] = 2 },
+		output = { ['grain'] = 2, ['timber'] = 0.25 },
 		amount = amounts.seeds,
 		handle = JOBTYPE.FARMER,
 	}
 	products[dbm.ForageResource.Wood] = {
 		icon = "pine-tree.png",
-		output = { ['timber'] = 1 },
+		output = { ['timber'] = 0.5, ['bark'] = 0.5 },
 		amount = amounts.wood,
 		handle = JOBTYPE.LABOURER,
 	}
@@ -252,8 +252,11 @@ function dbm.cultural_food_needs(race)
 	return food_needs_by_use
 end
 
+---@alias TargetResourceTable {search: number, handle: number, output: number, energy: number}
+---@alias TargetNeedsTable {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, TargetResourceTable>}
+
 ---Use Diet-Breadth Model to weight, pick and normalize targets
---- and search times for foraging
+--- and search times for when foraging for food and water
 ---@param province Province
 function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
@@ -261,8 +264,8 @@ function dbm.cultural_foragable_targets(province)
 	local food_needs_by_case = dbm.cultural_food_needs(province.realm.primary_race)
 	local province_size = province.size
 --	print("  FINDING FOOD USE TARGETS...")
-	---@param targets_by_use table<TradeGoodUseCaseReference, {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, {search: number, handle: number, output: number, energy: number}>}>
-	---@type table<TradeGoodUseCaseReference, {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, {search: number, handle: number, output: number, energy: number}>}>
+	---@param targets_by_use table<TradeGoodUseCaseReference, TargetNeedsTable>
+	---@type table<TradeGoodUseCaseReference, TargetNeedsTable>
 	local targets_by_use = tabb.accumulate(food_needs_by_case, {}, function (targets_by_use, use, needed)
 --		print("    USE: " .. use .. ", NEEDED: " .. needed)
 		targets_by_use[use] = tabb.accumulate(province.foragers_targets, {need = needed, total_search = 0, total_output = 0, total_handle = 0, targets = {}},

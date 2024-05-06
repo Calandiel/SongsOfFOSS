@@ -89,23 +89,34 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	if female then
 		need_satisfaction = race.female_needs
 	end
-	r.need_satisfaction = tabb.accumulate(need_satisfaction, {}, function (a, need, values)
-			local age_dependant = not NEEDS[need].age_independent
-			a[need] = tabb.accumulate(values, {}, function (b, use_case, value)
-				local demand = value
-				if age_dependant then
-					demand = demand * rtab.POP.get_age_multiplier(r)
-				end
-				b[use_case] = {consumed = demand, demanded = demand}
-				return b
-			end)
+	local total_consumed, total_demanded = 0, 0
+	r.need_satisfaction = tabb.accumulate(NEEDS, {}, function (a, need_index, need)
+			local age_dependant = not need.age_independent
+			local life_need = need.life_need
+			if need_satisfaction[need_index] then
+				a[need_index] = tabb.accumulate(need_satisfaction[need_index], {}, function (b, use_case, value)
+					local demanded = value
+					if age_dependant then
+						demanded = demanded * rtab.POP.get_age_multiplier(r)
+					end
+					if life_need then
+						local consumed = demanded * 0.5
+						b[use_case] = {consumed = consumed, demanded = demanded}
+						total_consumed = total_consumed + consumed
+					else
+						b[use_case] = {consumed = 0, demanded = demanded}
+					end
+					total_demanded = total_demanded + demanded
+					return b
+				end)
+			end
 			return a
 		end)
-	r.forage_ratio = 0.9
-	r.work_ratio = 0.1
+	r.forage_ratio = 0.75
+	r.work_ratio = 0.25
 
-	r.basic_needs_satisfaction = 1
-	r.life_needs_satisfaction = 1
+	r.basic_needs_satisfaction = total_consumed / total_demanded
+	r.life_needs_satisfaction = 0.5
 
 	r.has_trade_permits_in     = {}
 	r.has_building_permits_in  = {}
@@ -209,7 +220,7 @@ end
 ---@param need NEED
 ---@param use_case TradeGoodUseCaseReference
 ---@return number
-function rtab.POP:need_use_case_satisfaction(need, use_case)
+function rtab.POP:calculate_need_use_case_satisfaction(need, use_case)
 	if self.female then
 		return self.race.female_needs[need][use_case] * self:get_age_multiplier()
 	end
@@ -272,8 +283,8 @@ end
 ---@param unit UnitType?
 ---@return number pop_adjusted food need modified by pop race and sex
 function rtab.POP:get_supply_use(unit)
-	local food = self:need_use_case_satisfaction(NEED.FOOD,'calories')
-	return ((unit and unit.supply_useds or 0) + self:need_use_case_satisfaction(NEED.FOOD,'calories')) / 30
+	local pop_food = self:calculate_need_use_case_satisfaction(NEED.FOOD,'calories')
+	return ((unit and unit.supply_useds or 0) + pop_food) / 30
 end
 
 ---Returns the adjusted hauling capacity value for the provided pop.

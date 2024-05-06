@@ -455,7 +455,7 @@ function world.World:tick()
 		for _, settled_province in pairs(ta) do
 			--print("employ")
 			PROFILER:start_timer("employ")
-			employ.run(settled_province)
+--			employ.run(settled_province)
 			PROFILER:end_timer("employ")
 
 			PROFILER:start_timer("buildings")
@@ -471,14 +471,14 @@ function world.World:tick()
 			wealth_decay.run(settled_province)
 			infrastructure.run(settled_province)
 			research.run(settled_province)
-			recruit.run(settled_province)
+--			recruit.run(settled_province)
 			PROFILER:end_timer("province")
 
 			PROFILER:start_timer("growth")
 			-- "POP" update
 			local pop_growth = require "game.society.pop-growth"
 			--print("Pop growth")
-			pop_growth.growth(settled_province)
+			--pop_growth.growth(settled_province)
 			PROFILER:end_timer("growth")
 
 			--print("done")
@@ -524,7 +524,7 @@ function world.World:tick()
 				end
 				--print("Construct")
 				PROFILER:start_timer("realm-construct-update")
-				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+--				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 				PROFILER:end_timer("realm-construct-update")
 
 				--print("Court")
@@ -668,7 +668,7 @@ function world.World:tick()
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
 					for _, settled_province in pairs(WORLD.provinces) do
-						pop_aging.age(settled_province)
+					--	pop_aging.age(settled_province)
 						if settled_province.realm then
 							settled_province.realm.tax_collected_this_year = 0
 						end

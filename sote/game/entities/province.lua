@@ -248,7 +248,8 @@ end
 function prov.Province:population_weight()
 	local total = 0
 	for _, pop in pairs(self.all_pops) do
-		total = total + pop.race.carrying_capacity_weight
+		 -- weight is dependent on food needs, which are age dependent
+		total = total + pop.race.carrying_capacity_weight * pop:get_age_multiplier()
 	end
 	return total
 end

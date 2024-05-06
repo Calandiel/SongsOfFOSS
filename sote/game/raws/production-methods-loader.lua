@@ -47,6 +47,11 @@ function d.load()
 		self_sourcing_fraction = 0.05,
 		nature_yield_dependence = 1,
 	}
+
+	-- FORAGING SPECIALIZATION
+	-- using tools and tools-like to increase foraging output?
+
+	-- 1.5x effciciency as foraging water
 	ProductionMethod:new {
 		name = "water-carrier",
 		description = "water carrier",
@@ -54,13 +59,14 @@ function d.load()
 		r = 0.1,
 		g = 0.1,
 		b = 1,
-		inputs = { ["containers"] = 0.25 },
-		outputs = { ["water"] = 10 },
+		inputs = { ["containers"] = 0.125 },
+		outputs = { ["water"] = 3 },
 		jobs = { [job("water-carriers")] = 1 },
 		job_type = JOBTYPE.HAULING,
 		hydration = true,
-		self_sourcing_fraction = 0,
+		self_sourcing_fraction = 0.05,
 	}
+	-- same effciciency as foraging berries, grain and timber at 2:2:1 ratios
 	ProductionMethod:new {
 		name = "gathering-0",
 		description = "gathering",
@@ -68,13 +74,14 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		outputs = { ["berries"] = 0.5, ["grain"] = 0.5, ["timber"] = 0.125 },
+		outputs = { ["berries"] = 0.6, ["grain"] = 0.75, ["timber"] = 0.25 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
+	-- 1.5x effciciency of foraging berries, grain and timber at 2:2:1 ratios
 	ProductionMethod:new {
 		name = "gathering-1",
 		description = "gathering",
@@ -83,13 +90,14 @@ function d.load()
 		g = 1,
 		b = 0.1,
 		inputs = { ["tools-like"] = 0.125 },
-		outputs = { ["berries"] = 0.75, ["grain"] = 0.75, ["timber"] = 0.25 },
+		outputs = { ["berries"] = 0.9, ["grain"] = 1.125, ["timber"] = 0.375 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
+	-- 2x effciciency of foraging berries, grain and timber at 2:2:1 ratios
 	ProductionMethod:new {
 		name = "gathering-2",
 		description = "gathering",
@@ -98,13 +106,14 @@ function d.load()
 		g = 1,
 		b = 0.1,
 		inputs = { ["tools"] = 0.125 },
-		outputs = { ["berries"] = 1, ["grain"] = 1, ["timber"] = 0.5 },
+		outputs = { ["berries"] = 1.2, ["grain"] = 1.5, ["timber"] = 0.5 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
+	-- same effciciency as foraging game
 	ProductionMethod:new {
 		name = "hunting-0",
 		description = "hunting",
@@ -120,6 +129,7 @@ function d.load()
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
+	-- 1.5x effciciency of foraging game
 	ProductionMethod:new {
 		name = "hunting-1",
 		description = "hunting",
@@ -128,13 +138,14 @@ function d.load()
 		g = 0.2,
 		b = 0.3,
 		inputs = { ["tools-like"] = 0.125 },
-		outputs = { ["meat"] = 1.5, ["hide"] = 0.5 },
+		outputs = { ["meat"] = 1.5, ["hide"] = 0.375 },
 		jobs = { [job("hunters")] = 1 },
 		job_type = JOBTYPE.HUNTING,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
+	-- 2x effciciency of foraging game
 	ProductionMethod:new {
 		name = "hunting-2",
 		description = "hunting",
@@ -143,13 +154,14 @@ function d.load()
 		g = 0.2,
 		b = 0.3,
 		inputs = { ["tools"] = 0.125 },
-		outputs = { ["meat"] = 2, ["hide"] = 1 },
+		outputs = { ["meat"] = 2, ["hide"] = 0.5 },
 		jobs = { [job("hunters")] = 1 },
 		job_type = JOBTYPE.HUNTING,
 		self_sourcing_fraction = 0.05,
 		foraging = true,
 		nature_yield_dependence = 1,
 	}
+
 	ProductionMethod:new {
 		name = "flint-extraction",
 		description = "flint extraction",
@@ -189,6 +201,7 @@ function d.load()
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0,
 	}
+
 	ProductionMethod:new {
 		name = "brewing-grain",
 		description = "ale, beer made with hops or rarer ingredients",
@@ -215,6 +228,9 @@ function d.load()
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.2,
 	}
+
+	-- COPPER PRODUCTION CHAIN
+
 	ProductionMethod:new {
 		name = "native-copper-gathering",
 		description = "mining native ore close to the surface",
@@ -307,6 +323,7 @@ function d.load()
 		clay_ideal_min = 0.65,
 		clay_extreme_min = 0.4,
 	}
+
 	ProductionMethod:new {
 		name = "pottery",
 		description = "pottery",
@@ -320,6 +337,7 @@ function d.load()
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.5,
 	}
+
 	ProductionMethod:new {
 		name = "woodcutting",
 		description = "woodcutting",
@@ -334,6 +352,7 @@ function d.load()
 		self_sourcing_fraction = 0.5,
 		forest_dependence = 1,
 	}
+
 	ProductionMethod:new {
 		name = "stone-extraction",
 		description = "stone-extraction",
@@ -347,6 +366,7 @@ function d.load()
 		job_type = JOBTYPE.LABOURER,
 		self_sourcing_fraction = 0.5,
 	}
+
 	ProductionMethod:new {
 		name = "tanning",
 		description = "tanning",
@@ -360,6 +380,7 @@ function d.load()
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.7,
 	}
+
 	ProductionMethod:new {
 		name = "leather-clothing",
 		description = "leather clothing",
@@ -373,6 +394,7 @@ function d.load()
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.75,
 	}
+
 	ProductionMethod:new {
 		name = "furniture",
 		description = "furniture",
@@ -386,6 +408,7 @@ function d.load()
 		job_type = JOBTYPE.ARTISAN,
 		self_sourcing_fraction = 0.85,
 	}
+
 	ProductionMethod:new {
 		name = "rye-farming",
 		description = "Rye",
@@ -408,6 +431,7 @@ function d.load()
 		rainfall_extreme_min = 5,
 		rainfall_extreme_max = 200,
 	}
+
 	ProductionMethod:new {
 		name = "beekeeping",
 		description = "Beekeeping",
