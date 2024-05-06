@@ -34,6 +34,7 @@ local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
+	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
 end
 
 local function post_tectonic()
