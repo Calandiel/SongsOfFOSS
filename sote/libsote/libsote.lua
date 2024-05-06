@@ -316,7 +316,7 @@ function libsote.generate_world(seed)
 	init_world()
 
 	local world_size = sote_params[2].value
-	-- local world_size = 2
+	-- local world_size = 4
 
 	local start = love.timer.getTime()
 	local world = require("libsote.world-allocator").allocate(world_size, seed)
@@ -335,8 +335,6 @@ function libsote.generate_world(seed)
 
 	local get_desc = ffi.new("unsigned int[3]", { 0, 0, 0 })
 
-	-- local file = love.filesystem.newFile("lua_sote.txt", "w")
-
 	for q = -world_size, world_size do
 		for r = -world_size, world_size do
 			if not world:is_valid(q, r) then goto continue end
@@ -344,15 +342,12 @@ function libsote.generate_world(seed)
 			for face = 1, 20 do
 				get_desc[1] = hex_coord_to_hex_number(face - 1, q, r)
 				local tile_data = get_tile_data(get_desc, err_msg, float_val, short_val, uint_val)
-				-- file:write(q .. " " .. r .. " " .. face .. " " .. get_desc[1] .. " " .. tile_data.elevation .. "\n")
 				world:set_tile_data(-r, -q, face, tile_data)
 			end
 
 			::continue::
 		end
 	end
-
-	-- file:close();
 
 	log_and_set_msg("World data loaded")
 

@@ -76,8 +76,8 @@ local hexu = require "libsote.hex-utils"
 -- data_loader.loadDataFromFile("D:/temp/sote_output.txt")
 
 function wl.dump_maps_from(world)
-	print(love.filesystem.getSaveDirectory())
-	-- local file = love.filesystem.newFile("latlon.txt", "w")
+	-- print(love.filesystem.getSaveDirectory())
+	-- local latlon_logger = require "libsote.debug-loggers".get_latlon_logger("d:/temp")
 
 	local width = 1600
 	local height = 800
@@ -92,7 +92,7 @@ function wl.dump_maps_from(world)
 			local lon = ((x + 0.5) / width * 2 - 1) * math.pi -- -1 to align with ich.io sote, no -1 otherwise
 			local lat = ((y + 0.5) / height - 0.5) * math.pi
 			local q, r, face = hexu.latlon_to_hex_coords(lat, lon, world.size)
-			-- file:write(x .. " " .. y .. " " .. lat .. " " .. lon .. " " .. world:get_minus_longitude(q, r, face) .. "\n")
+			-- latlon_logger:log(x .. " " .. y .. " " .. lat .. " " .. lon .. " " .. world:get_minus_longitude(q, r, face))
 
 			-- elevation -----------------------------------------------------
 
@@ -152,8 +152,6 @@ function wl.dump_maps_from(world)
 	love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
 	love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
 	love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
-
-	-- file:close()
 end
 
 return wl

@@ -24,17 +24,11 @@ local function gen_phase_02(world)
 end
 
 local function cache_tile_coord(world)
-	print("Caching tile coordinates...")
-	local start = love.timer.getTime()
-
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
 		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
 		world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
-
-	local duration = love.timer.getTime() - start
-	print("cache_tile_coord: " .. tostring(duration * 1000) .. "ms")
 end
 
 function wg.init()
@@ -66,9 +60,9 @@ function wg.init()
 	require "game.raws.raws"()
 	require "game.entities.world".empty()
 
-	gen_phase_02(wg.world)
+	run_with_profiling(function() cache_tile_coord(wg.world) end, "cache_tile_coord")
 
-	cache_tile_coord(wg.world)
+	gen_phase_02(wg.world)
 
 	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
@@ -196,7 +190,7 @@ local is_jan_rain = true
 local is_jan_temp = true
 
 function wg.handle_keyboard_input()
-	if ui.is_key_pressed('s') then
+	if (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_pressed('r') then
 		wg.update_map_mode("rocks")
 	elseif ui.is_key_pressed('e') then
 		wg.update_map_mode("elevation")
