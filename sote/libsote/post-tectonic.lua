@@ -6,14 +6,14 @@ local function fix_elevation(world)
 	local fixed_elevation = false
 
 	for i = 0, world.tile_count - 1 do
-		local elevation = world:get_elevation_by_index(i)
+		local elevation = world.elevation[i]
 
 		world:for_each_neighbor(i, function(ni)
-			local neighbor_elevation = world:get_elevation_by_index(ni)
+			local neighbor_elevation = world.elevation[ni]
 
 			if neighbor_elevation == elevation then
 				elevation = elevation + world.rng:random() * 0.001
-				world:set_elevation_by_index(i, elevation)
+				world.elevation[i] = elevation
 
 				fixed_elevation = true
 				elevations_fixed = elevations_fixed + 1

@@ -1,24 +1,4 @@
 local world = {
-	size = nil,
-	seed = nil,
-	rng = nil,
-	tile_count = 0,
-	coord = nil,
-	coord_by_tile_id = nil,
-	climate_cells = nil,
-	waterbodies = nil,
-	waterbodies_by_tile_id = nil,
-
-	neighbors = nil,
-
-	colatitude = nil,
-	minus_longitude = nil,
-	elevation = nil,
-	hilliness = nil,
-	rock_type = nil,
-	volcanic_activity = nil,
-	is_land = nil,
-	plate = nil,
 }
 
 -- local transform = {
@@ -51,19 +31,20 @@ function world:new(world_size, seed)
 	obj.climate_cells = {}
 	obj.waterbodies = {}
 
-	obj.neighbors         = ffi.new("int32_t[" .. obj.tile_count * 6 .. "]")
+	obj.neighbors         = ffi.new("int32_t["  .. obj.tile_count * 6 .. "]")
+	obj.waterbody_by_tile = ffi.new("uint32_t[" .. obj.tile_count .. "]")
 
-	obj.colatitude        = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.minus_longitude   = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.elevation         = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.hilliness         = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.rock_type         = ffi.new("uint8_t[" .. obj.tile_count .. "]")
-	obj.volcanic_activity = ffi.new("int16_t[" .. obj.tile_count .. "]")
-	obj.is_land           = ffi.new("bool["    .. obj.tile_count .. "]")
-	obj.plate             = ffi.new("uint8_t[" .. obj.tile_count .. "]")
+	obj.colatitude        = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.minus_longitude   = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.elevation         = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.hilliness         = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.rock_type         = ffi.new("uint8_t["  .. obj.tile_count .. "]")
+	obj.volcanic_activity = ffi.new("int16_t["  .. obj.tile_count .. "]")
+	obj.is_land           = ffi.new("bool["     .. obj.tile_count .. "]")
+	obj.plate             = ffi.new("uint8_t["  .. obj.tile_count .. "]")
 
 	obj.rocks             = ffi.new("material_template_t[" .. obj.tile_count .. "]")
-	obj.waterbody_by_tile = ffi.new("uint32_t["            .. obj.tile_count .. "]")
+	obj.ice               = ffi.new("uint16_t["            .. obj.tile_count .. "]")
 
 	return obj
 end
@@ -178,24 +159,13 @@ function world:get_latlon(q, r, face)
 	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
----@param index number 0-based index
-function world:get_latlon_by_index(index)
-	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+---@param ti number 0-based tile index
+function world:get_latlon_by_tile(ti)
+	return -llu.colat_to_lat(self.colatitude[ti]), -self.minus_longitude[ti] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
 function world:get_elevation(q, r, face)
 	return self.elevation[self.coord[self:_key_from_coord(q, r, face)]]
-end
-
----@param index number 0-based index
-function world:get_elevation_by_index(index)
-	return self.elevation[index]
-end
-
----@param index number 0-based index
----@param elevation number
-function world:set_elevation_by_index(index, elevation)
-	self.elevation[index] = elevation
 end
 
 function world:get_hilliness(q, r, face)
@@ -212,11 +182,6 @@ end
 
 function world:get_is_land(q, r, face)
 	return self.is_land[self.coord[self:_key_from_coord(q, r, face)]]
-end
-
----@param index number 0-based index
-function world:get_is_land_by_index(index)
-	return self.is_land[index]
 end
 
 function world:get_plate(q, r, face)
@@ -244,6 +209,13 @@ end
 ---@param index number 0-based index
 function world:is_waterbody_valid(index)
 	return self.waterbody_by_tile[index] ~= 0
+end
+
+---@param callback fun(waterbody:table)
+function world:for_each_waterbody(callback)
+	for i = 1, #self.waterbodies do
+		callback(self.waterbodies[i])
+	end
 end
 
 function world:_investigate_tile(q, r, face)

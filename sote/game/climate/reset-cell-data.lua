@@ -21,7 +21,7 @@ function r.run_hex(world)
 	reset_climate_cells()
 
 	for i = 0, world.tile_count - 1 do
-		local lat, lon = world:get_latlon_by_index(i)
+		local lat, lon = world:get_latlon_by_tile(i)
 		world.climate_cells[i + 1] = ut.get_climate_cell(lat, lon)
 	end
 end

@@ -34,9 +34,9 @@ function cl.run_hex(world)
 	for i = 0, world.tile_count - 1 do
 		local cell = world.climate_cells[i + 1]
 
-		cell.elevation = world:get_elevation_by_index(i)
+		cell.elevation = world.elevation[i]
 
-		local is_land = world:get_is_land_by_index(i)
+		local is_land = world.is_land[i]
 		if is_land then
 			cell.land_tiles = cell.land_tiles + 1
 		else
