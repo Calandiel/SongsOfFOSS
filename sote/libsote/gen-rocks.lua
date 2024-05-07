@@ -32,9 +32,7 @@ local function process(tile_index, world)
 end
 
 function gr.run(world)
-	for i = 0, world.tile_count - 1 do
-		process(i, world)
-	end
+	world:for_each_tile(process)
 end
 
 return gr

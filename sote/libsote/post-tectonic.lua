@@ -5,7 +5,7 @@ local elevations_fixed = 0
 local function fix_elevation(world)
 	local fixed_elevation = false
 
-	for i = 0, world.tile_count - 1 do
+	world:for_each_tile(function(i, _)
 		local elevation = world.elevation[i]
 
 		world:for_each_neighbor(i, function(ni)
@@ -19,7 +19,7 @@ local function fix_elevation(world)
 				elevations_fixed = elevations_fixed + 1
 			end
 		end)
-	end
+	end)
 
 	return fixed_elevation
 end

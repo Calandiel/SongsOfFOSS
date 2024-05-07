@@ -92,6 +92,13 @@ function world:_set_empty(q, r, face)
 	self.coord[self:_key_from_coord(q, r, face)] = -1
 end
 
+---@param callback fun(ti:number, world:table)
+function world:for_each_tile(callback)
+	for ti = 0, self.tile_count - 1 do
+		callback(ti, self)
+	end
+end
+
 function world:_init_neighbours()
 	for i = 0, self.tile_count * 6 - 1 do
 		self.neighbors[i] = -1
