@@ -92,7 +92,7 @@ function world:_set_empty(q, r, face)
 	self.coord[self:_key_from_coord(q, r, face)] = -1
 end
 
----@param callback fun(ti:number, world:table)
+---@param callback fun(tile_index:number, world:table)
 function world:for_each_tile(callback)
 	for ti = 0, self.tile_count - 1 do
 		callback(ti, self)
@@ -114,7 +114,7 @@ function world:_set_neighbors(q, r, face, neighbors)
 end
 
 ---@param index number 0-based index
----@param callback fun(neighbor_index:number)
+---@param callback fun(neighbor_tile_index:number)
 function world:for_each_neighbor(index, callback)
 	index = index * 6
 	local neighbor_count = self.neighbors[index + 5] == -1 and 5 or 6
@@ -202,6 +202,16 @@ end
 function world:get_climate_data(q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
+end
+
+--- Adjusted elevation for waterflow. Includes ice height.
+---@param ti number 0-based tile index
+function world:true_elevation_for_waterflow(ti)
+	if self.elevation[ti] > 0 then
+		return self.elevation[ti] + self.ice[ti]
+	else
+		return self.ice[ti] + self.elevation[ti] * 0.001 -- Subtract some of the ocean depth in order to give variation between some uniform ice tiles sitting on the ocean
+	end
 end
 
 local wb = require("libsote.hydrology.waterbody")
