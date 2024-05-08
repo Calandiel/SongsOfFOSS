@@ -13,7 +13,7 @@ function r.run()
 	reset_climate_cells()
 
 	for _, tile in pairs(WORLD.tiles) do
-		tile.climate_cell = ut.get_climate_cell(tile:latlon())
+		WORLD.tile_to_climate_cell[tile] = ut.get_climate_cell(tile:latlon())
 	end
 end
 

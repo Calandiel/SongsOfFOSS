@@ -67,7 +67,7 @@ function plate_gen.run()
 	random_tile_table = {} --- Reserved for final plate locations
 	local micro_cluster_starts = {} --- Reserved for micro plate starts
 	local attempts = 0
-	for i = 1, (num_micro_clusters) do 
+	for i = 1, (num_micro_clusters) do
 		print("On Cluster: " .. tostring(i))
 		local acceptable_plate_location = true
 		local minimum_distance = 2000 -- how much distance must be maintained between plate start locations
@@ -77,14 +77,14 @@ function plate_gen.run()
 			random_tile = WORLD:random_tile() -- Assign random location for start of plate
 			acceptable_plate_location = true
 			if #micro_cluster_starts > 0 then
-				for _, other_tile in pairs(micro_cluster_starts) do 
+				for _, other_tile in pairs(micro_cluster_starts) do
 					local distance = random_tile:distance_to(other_tile)
 					if distance >= minimum_distance or distance <= 1 then
 					--	print("Acceptable Location")
 					else
 						acceptable_plate_location = false
 						attempts = attempts + 1
-					end	
+					end
 				end
 			end
 			minimum_distance = minimum_distance - 1
@@ -100,7 +100,7 @@ function plate_gen.run()
 	for i = 1, (num_micro_clusters) do  --- Now we set characteristics for the cluster and set members.
 		local plates_in_cluster = love.math.random(4, 8)
 		local minimum_distance_from_conspecifics = 100 -- how much distance must be maintained between plate start locations
-		local maximum_distance_from_center = 1500 --- the maximum allowed distance a micro-plate can have from its center 
+		local maximum_distance_from_center = 1500 --- the maximum allowed distance a micro-plate can have from its center
 		local random_tile = WORLD:random_tile()
 
 		--- Check each candidate against its cluster center
@@ -109,7 +109,7 @@ function plate_gen.run()
 			local acceptable_distance_from_others = true
 			local acceptable_distance_from_center = true
 			local abandon_plate_placement = false
-			repeat	
+			repeat
 				repeat --- Make sure start location for plate is sufficiently close to plate center
 					acceptable_distance_from_center = true
 					random_tile = WORLD:random_tile()
@@ -120,27 +120,27 @@ function plate_gen.run()
 					else
 						acceptable_distance_from_center = false
 						attempts = attempts + 1
-					end	
-				until acceptable_distance_from_center == true		
+					end
+				until acceptable_distance_from_center == true
 
 				--- Now check this candidate against ALL other plate starts in the world so far
 				repeat -- Getting stuck here
 					if #random_tile_table > 0 then
 						acceptable_distance_from_others = true
-						for _, other_tile in pairs(random_tile_table) do 
+						for _, other_tile in pairs(random_tile_table) do
 							local distance = random_tile:distance_to(other_tile)
 							if distance >= minimum_distance_from_conspecifics then --and distance >= 1 then
 							--	print("Acceptable Location")
 							else
 								acceptable_distance_from_others = false
 								attempts = attempts + 1
-							end	
+							end
 						end
 						terminal_variable = terminal_variable - 1
 						if terminal_variable == 0 then
 							print("Uh oh, abandon plate placement")
 						end
-					end	
+					end
 				until acceptable_distance_from_others == true or terminal_variable <= 0
 			until acceptable_distance_from_center == true and acceptable_distance_from_others == true
 			if abandon_plate_placement == false then
@@ -169,7 +169,7 @@ function plate_gen.run()
 	----------------------------------
 
 	local attempts = 0
-	for i = 1, (non_cluster_plates) do 
+	for i = 1, (non_cluster_plates) do
 		print("On Plate: " .. tostring(i))
 		local acceptable_plate_location = true
 		local minimum_distance = 3000 -- how much distance must be maintained between plate start locations
@@ -179,14 +179,14 @@ function plate_gen.run()
 			random_tile = WORLD:random_tile() -- Assign random location for start of plate
 			acceptable_plate_location = true
 			if #random_tile_table > 0 then
-				for _, other_tile in pairs(random_tile_table) do 
+				for _, other_tile in pairs(random_tile_table) do
 					local distance = random_tile:distance_to(other_tile)
 					if distance >= minimum_distance or distance <= 1 then
 					--	print("Acceptable Location")
 					else
 						acceptable_plate_location = false
 						attempts = attempts + 1
-					end	
+					end
 				end
 			end
 			minimum_distance = minimum_distance - 1
@@ -203,19 +203,19 @@ function plate_gen.run()
 	-----------------------------------------------------
 
 	if disable_plate_gen == true then
-		for i = 1, (num_micro_plates + num_micro_ocean_plates) do 
+		for i = 1, (num_micro_plates + num_micro_ocean_plates) do
 			local plate = WORLD:new_plate()
 			local expanion_rate = love.math.random(2, 3)
 			plate.expansion_rate = expanion_rate
 		end
 
-		for i = 1, (num_small_plates + num_small_ocean_plates) do 
+		for i = 1, (num_small_plates + num_small_ocean_plates) do
 			local plate = WORLD:new_plate()
 			local expanion_rate = love.math.random(3, 5)
 			plate.expansion_rate = expanion_rate
 		end
 
-		for i = 1, (num_large_land_plates + num_large_ocean_plates) do 
+		for i = 1, (num_large_land_plates + num_large_ocean_plates) do
 			local plate = WORLD:new_plate()
 			local expanion_rate = love.math.random(6, 8)
 			plate.expansion_rate = expanion_rate
@@ -253,7 +253,7 @@ function plate_gen.run()
 		local terminal_variable = 200 -- May want to replace this with a "tiles left" check in the future, but not really necessary
 
 		---------------------------------------------------------------
-		--- Expand plates until there are no more tiles to allocate ---		
+		--- Expand plates until there are no more tiles to allocate ---
 		---------------------------------------------------------------
 
 		repeat
@@ -268,21 +268,21 @@ function plate_gen.run()
 				--	print("Number Reserve Tiles: " .. tostring(#plate.reserve_for_next_phase))
 					plate.reserve_for_next_phase = {}
 					local phase = 1
-					repeat	
+					repeat
 						phase = phase + 1
 						for _, plate_tile in pairs(plate.current_tiles) do -- Now we access each of the tiles and divide the left over values up among neighbors
 							local num_valid_neighbors = 0
 							for n in plate_tile:iter_neighbors() do -- Check valid neighbors first to determine how much we need to divide expansion value
-								if n.plate == nil then
+								if n:plate() == nil then
 									num_valid_neighbors = num_valid_neighbors + 1
 								end
 							end -- end of neighbor iteration
-							if num_valid_neighbors > 0 then --- If no valid neighbors, time to call it quits!	
+							if num_valid_neighbors > 0 then --- If no valid neighbors, time to call it quits!
 							--	plate_tile.expansion_potential = plate_tile.expansion_potential + 5
 								local each_tile_value = plate_tile.expansion_potential / num_valid_neighbors
 								--- now we want to give these values to neighbors?
 								for n in plate_tile:iter_neighbors() do -- check neighbors.  If nil, we want to add them next.
-									if n.plate == nil then
+									if n:plate() == nil then
 										n.expansion_potential = n.expansion_potential + each_tile_value
 										if n.already_added == false then
 											table.insert(plate.tiles_to_check, n)
@@ -292,7 +292,7 @@ function plate_gen.run()
 									end
 								end -- end of neighbor iteration
 								plate_tile.expansion_potential = 0
-						--	else plate_tile.stop_expansion = true 
+						--	else plate_tile.stop_expansion = true
 							end
 						end -- end of tile iteration
 						-- Hm... but now we need to iterate through all of the new tiles that receieved goodies.
@@ -311,8 +311,8 @@ function plate_gen.run()
 						plate.tiles_to_check = {}
 						for _, tile in pairs(plate.current_tiles) do -- If previous current tile has no neighbors, then don't add back in to queue
 							local num_valid_neighbors = 0
-							for n in tile:iter_neighbors() do 
-								if n.plate == nil then
+							for n in tile:iter_neighbors() do
+								if n:plate() == nil then
 									num_valid_neighbors = num_valid_neighbors + 1
 								end
 							end -- end of neighbor iteration
@@ -339,7 +339,7 @@ function plate_gen.run()
 				for _, plate_tile in pairs(plate.reserve_for_next_phase) do --- Check for nil neighbors
 					local num_valid_neighbors = 0
 					for n in plate_tile:iter_neighbors() do -- Check valid neighbors first to determine how much we need to divide expansion value
-						if n.plate == nil then
+						if n:plate() == nil then
 							num_valid_neighbors = num_valid_neighbors + 1
 						end
 					end -- end of neighbor iteration
@@ -375,26 +375,26 @@ function plate_gen.run()
 				for _, tile in pairs(plate.tiles) do
 					local has_foreign_neighbor = false
 					for n in tile:iter_neighbors() do -- Check valid neighbors first to determine how much we need to divide expansion value
-						if n.plate ~= tile.plate then
+						if n:plate() ~= tile:plate() then
 							has_foreign_neighbor = true
 							local plate_already_in_list = false
 							if #plate.plate_neighbors == 0 then
-								table.insert(plate.plate_neighbors, n.plate)
+								table.insert(plate.plate_neighbors, n:plate())
 							else
 								for _, neigh_plate in pairs(plate.plate_neighbors) do
-									if neigh_plate == n.plate then
+									if neigh_plate == n:plate() then
 										plate_already_in_list = true
 									end
 								end
-								if plate_already_in_list == false then	
-									table.insert(plate.plate_neighbors, n.plate)
+								if plate_already_in_list == false then
+									table.insert(plate.plate_neighbors, n:plate())
 								end
 							end
 
 							--- Now go ahead and add that neighbor plate into the list.
 
 						end
-					end 
+					end
 					if has_foreign_neighbor == true then
 						table.insert( plate.plate_edge, tile)
 					end
@@ -413,8 +413,8 @@ function plate_gen.run()
 						--- For each plate perimeter, check all neighbors
 						local should_be_added = false
 						for n in plate_tile:iter_neighbors() do -- Check valid neighbors and insure that we only add a specific tile to boundaries just once
-							if n.plate == neighbor_plate then
-								should_be_added = true		
+							if n:plate() == neighbor_plate then
+								should_be_added = true
 							end
 						end -- end of neighbor iteration
 						if should_be_added == true then
@@ -433,7 +433,7 @@ function plate_gen.run()
 		--	for _, plate in pairs(WORLD.plates) do
 		--	--	print("Number of boundaries : " .. tostring(#plate.plate_boundaries))
 		--		for _, boundary in pairs(plate.plate_boundaries) do
-		--			local red = love.math.random(1, 100) / 100 
+		--			local red = love.math.random(1, 100) / 100
 		--			local green = love.math.random(1, 100) / 100
 		--			local blue = love.math.random(1, 100) / 100
 		--			for _, boundary_tile in pairs(boundary.tiles) do
@@ -454,7 +454,7 @@ function plate_gen.run()
 				print("Perimeter Size: " .. tostring(perimeter_number))
 				local plate_already_dead = false
 				for _, boundary in pairs(plate.plate_boundaries) do
-					if plate_already_dead == false then 
+					if plate_already_dead == false then
 						local boundary_size = #boundary.tiles
 						print("Boundary Size: " .. tostring(boundary_size))
 						if perimeter_number * envelopment_threshold <= boundary_size then
@@ -462,7 +462,7 @@ function plate_gen.run()
 							recalculate_due_to_envelopment = true
 							plate_already_dead = true
 							table.insert(plates_to_remove, plate)
-							local red = love.math.random(1, 100) / 100 
+							local red = love.math.random(1, 100) / 100
 							local green = love.math.random(1, 100) / 100
 							local blue = love.math.random(1, 100) / 100
 
@@ -489,7 +489,7 @@ function plate_gen.run()
 		print("Plates removed due to envelopment: " .. tostring(plates_removed))
 	end
 
-	--- We want to first check to see if envelopment is a problem at all, because there is no need to run the rejigger 
+	--- We want to first check to see if envelopment is a problem at all, because there is no need to run the rejigger
 	--- if there is no problem!
 	--- So first we check for problem plates.  If plate is a problem, immediately transfer all tiles to enveloping plate.
 	--- Then kill plate?  However, we do need to keep a ticker or boolean values that records that a plate is dehd.
@@ -508,7 +508,7 @@ function plate_gen.run()
 	--- Iterate through plates
 		--- Count all tiles in boundary.  Divide number by total perimeter of plate.
 		--- if values is above X, remove plate... Take all tile members of plate we want to delete, and add to plate that is
-		--- the swallower.  But then, we need to iterate through all neighbor plates, remove 
+		--- the swallower.  But then, we need to iterate through all neighbor plates, remove
 
 
 
@@ -568,7 +568,7 @@ return plate_gen
 	--	sufficiently_distanced = 0
 	--	attempts = attempts + 1
 	--	minimum_distance = minimum_distance - 0.5 -- Each attempt, reduce minimum distance so we don't get stuck in eternal loop
-	--	for i = 1, (total_plates) do 
+	--	for i = 1, (total_plates) do
 	--		local random_tile = WORLD:random_tile()
 	--		table.insert(random_tile_table, random_tile)
 	--	end
@@ -577,7 +577,7 @@ return plate_gen
 	--			local distance = tile:distance_to(other_tile)
 	--			if distance >= minimum_distance or distance <= 1 then
 	--				sufficiently_distanced = sufficiently_distanced + 1
-	--			end	
+	--			end
 	--		end
 	--	end
 	--	print("Total successful checks " .. tostring(sufficiently_distanced))

@@ -173,8 +173,8 @@ function st.run()
 	for _ = 1, civs do
 		for _, r in ipairs(order) do
 			-- First, find a land province that isn't owned by any realm...
-			local prov = WORLD:random_tile().province
-			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile().province end
+			local prov = WORLD:random_tile():province()
+			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile():province() end
 
 			-- An unowned province -- it means we can spawn a new realm here!
 			local cg = cult.CultureGroup:new()

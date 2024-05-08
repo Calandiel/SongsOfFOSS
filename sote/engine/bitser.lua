@@ -195,18 +195,32 @@ local function write_boolean(value, _)
 	Buffer_write_byte(value and 249 or 248)
 end
 
+
+---commenting
+---@param value table
+---@return string
+local function get_classname(value)
+	return (class_name_registry[value.class] -- MiddleClass
+		or class_name_registry[value.__baseclass]    -- SECL
+		or class_name_registry[getmetatable(value)]  -- hump.class
+		or class_name_registry[value.__class__]      -- Slither
+		or class_name_registry[value.__class])       -- Moonscript class
+end
+
 local function write_table(value, seen, tiles_counter)
 	-- print("write_table")
 	---@type Queue<BitserCallback>
 	local callback_queue = require "engine.queue":new()
 
 	local classkey
-	local classname = (class_name_registry[value.class] -- MiddleClass
-		or class_name_registry[value.__baseclass]    -- SECL
-		or class_name_registry[getmetatable(value)]  -- hump.class
-		or class_name_registry[value.__class__]      -- Slither
-		or class_name_registry[value.__class])       -- Moonscript class
+	local classname = get_classname(value)
+
 	if classname then
+
+		-- if classname ~= "Tile" then
+		-- 	print(classname)
+		-- end
+
 		classkey = classkey_registry[classname]
 		if tiles_counter ~= nil then
 			if classname == 'Tile' then
@@ -389,6 +403,7 @@ local function serialize_async(value)
 	local first = serialize_value(value, seen)
 	callback_stack:enqueue_front(first)
 	-- print(first:length())
+	-- print(callback_stack:length())
 
 
 	local tiles_counter = {
@@ -397,10 +412,12 @@ local function serialize_async(value)
 	}
 
 	while callback_stack:length() > 0 do
+		-- print("???")
 		---@type Queue<BitserCallback>
 		local callback_queue = callback_stack:peek()
 		if (callback_queue == nil) or (callback_queue:length() == 0) then
 			-- print('callback queue is empty')
+			-- print(callback_queue)
 			callback_stack:dequeue()
 		else
 			local callback = callback_queue:dequeue()
@@ -414,6 +431,7 @@ local function serialize_async(value)
 
 		if (not tiles_counter.yielded) and (tiles_counter.counter % 1000 == 0) then
 			coroutine.yield(tiles_counter.counter)
+			print("callback stack length: " .. callback_stack:length())
 			tiles_counter.yielded = true
 		end
 	end

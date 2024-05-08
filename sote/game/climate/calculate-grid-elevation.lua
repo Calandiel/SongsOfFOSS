@@ -15,9 +15,7 @@ local function update_climate_cells()
 end
 
 function cl.run()
-	for _, tile in pairs(WORLD.tiles) do
-		local cell = tile.climate_cell
-
+	for tile, cell in pairs(WORLD.tile_to_climate_cell) do
 		cell.elevation = tile.elevation
 
 		if tile.is_land then

@@ -15,7 +15,7 @@ return function(gam, tile, rect, x, y, size)
 	local height_unit = size / 2
 	local length_of_line = 50 - height_unit
 
-	if tile.province.realm == nil then
+	if tile:province().realm == nil then
 		return
 	end
 
@@ -23,13 +23,13 @@ return function(gam, tile, rect, x, y, size)
 	rect.y = y - length_of_line - height_unit * 2
 	rect.width = width_unit
 	rect.height = height_unit
-	ut.data_entry("", tile.province.name, rect)
+	ut.data_entry("", tile:province().name, rect)
 
 	rect.y = rect.y - height_unit
-	local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile.province.realm, rect, "callback")
+	local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile:province().realm, rect, "callback")
 
 	rect.y = y - length_of_line - height_unit
-	local population = tile.province:local_population()
+	local population = tile:province():local_population()
 	ut.data_entry("", tostring(population), rect)
 
 	local line_rect = ui.rect(x - 1, y - length_of_line, 2, 50 - height_unit)

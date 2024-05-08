@@ -20,7 +20,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 	if player_character == nil then
 		return
 	end
-	if player_character.province ~= tile.province then
+	if player_character.province ~= tile:province() then
 		return
 	end
 	---@type BuildingType
@@ -35,13 +35,13 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 		local overseer = player_character
 
 		if gam.macrobuilder_public_mode then
-			overseer = pv.overseer(tile.province.realm)
+			overseer = pv.overseer(tile:province().realm)
 			public_flag = true
 			funds = player_character.realm.budget.treasury
 			owner = nil
 		end
 
-		if not tile.province:can_build(9999, building_type, overseer, public_flag) then
+		if not tile:province():can_build(9999, building_type, overseer, public_flag) then
 			return
 		end
 
@@ -50,7 +50,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 
 		local amount = 0
 
-		for _, building in pairs(tile.province.buildings) do
+		for _, building in pairs(tile:province().buildings) do
 			if building.type == building_type then
 				amount = amount + 1
 			end
@@ -80,7 +80,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 			return function()
 				ee.construct_building_with_payment(
 					building_type,
-					tile.province,
+					tile:province(),
 					owner,
 					overseer,
 					public_flag

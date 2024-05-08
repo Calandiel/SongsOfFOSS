@@ -8,7 +8,6 @@ local ll_utils = require "game.latlon"
 ---@field tile_id number
 ---@field is_land boolean
 ---@field is_fresh boolean
----@field plate ?Plate
 ---@field elevation number
 ---@field grass number
 ---@field shrub number
@@ -32,8 +31,6 @@ local ll_utils = require "game.latlon"
 ---@field ice_age_ice number
 ---@field bedrock Bedrock?
 ---@field biome Biome?
----@field climate_cell ClimateCell
----@field province Province
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
@@ -53,7 +50,6 @@ function tile.Tile:new(tile_id)
 	tt.tile_id = tile_id
 	tt.is_land = false
 	tt.is_fresh = false
-	tt.plate = nil
 	tt.elevation = 0
 	tt.grass = 0
 	tt.shrub = 0
@@ -86,6 +82,22 @@ function tile.Tile:new(tile_id)
 
 	setmetatable(tt, self)
 	return tt
+end
+
+function tile.Tile:province()
+	return WORLD.tile_to_province[self]
+end
+
+function tile.Tile:set_province(province)
+	WORLD.tile_to_province[self] = province
+end
+
+function tile.Tile:plate()
+	return WORLD.tile_to_plate[self]
+end
+
+function tile.Tile:set_plate(plate)
+	WORLD.tile_to_plate[self] = plate
 end
 
 ---Sets this tile's debug color
