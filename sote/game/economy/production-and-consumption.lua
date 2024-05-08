@@ -236,7 +236,7 @@ function pro.run(province)
 	-- Record local production...
 	-- TODO MAKE NEW EFFICIENCY FUNCTION FOR FULL PRODUCTION AT 0 FORAGERS AND 0-ISH AT FORAGERS LIMIT
 	local last_foraging_efficiency = dbm.foraging_efficiency(province.foragers_limit, province.foragers)
-	local last_hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.4, province.foragers_water)
+	local last_hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.5, province.foragers_water)
 	local foragers_count = 0
 	local foragers_water = 0
 	local foragers_efficiency = 1
@@ -788,11 +788,11 @@ function pro.run(province)
 		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.BasicNeeds)
 
 		-- for next month determine if it should forage more or less
-		if low_life_need == true then -- any single need low
-			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 1.15)
+		if low_life_need == true then -- any single life need use cases below 50%
+			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 1.05)
 			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
-		elseif high_life_need == true then -- all needs are high
-			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 0.9)
+		elseif high_life_need == true then -- all life need use cases are over 60%
+			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 0.98)
 			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
 		end
 	end
@@ -869,13 +869,15 @@ function pro.run(province)
 					if need_index == NEED.TOOLS then
 						if pop.need_satisfaction[NEED.TOOLS] then
 							-- weight foraging_efficiency by tools satisfaction
-							tools_satisfaction[pop] = tabb.accumulate(pop.need_satisfaction[NEED.TOOLS], 3, function (satisfaction, _, values)
+							local satisfaction = tabb.accumulate(pop.need_satisfaction[NEED.TOOLS], 3, function (satisfaction, _, values)
 								local ratio = values.consumed / values.demanded
 								if ratio < satisfaction then
 									return ratio
 								end
 								return satisfaction
-							end) * 0.25 -- between 0 and 0.75 with induced demand
+							end)
+							-- between 0 and 0.5 with induced demand
+							tools_satisfaction[pop] = satisfaction / (satisfaction + 3)
 						else
 							tools_satisfaction[pop] = 0
 						end
@@ -883,13 +885,15 @@ function pro.run(province)
 					elseif need_index == NEED.STORAGE then
 						-- weight hydration_efficiency by storage satisfaction
 						if pop.need_satisfaction[NEED.STORAGE] then
-							storage_satisfaction[pop] = tabb.accumulate(pop.need_satisfaction[NEED.STORAGE], 3, function (satisfaction, _, values)
+							local satisfaction = tabb.accumulate(pop.need_satisfaction[NEED.STORAGE], 3, function (satisfaction, _, values)
 								local ratio = values.consumed / values.demanded
 								if ratio < satisfaction then
 									return ratio
 								end
 								return satisfaction
-							end) * 0.25 -- between 0 and 0.75 with induced demand
+							end)
+							-- between 0 and 0.5 with induced demand
+							storage_satisfaction[pop] = satisfaction / (satisfaction + 3)
 						else
 							storage_satisfaction[pop] = 0
 						end
@@ -927,7 +931,7 @@ function pro.run(province)
 
 	-- calculate foragers efficiency base on planned foraging
 	foragers_efficiency = dbm.foraging_efficiency(province.foragers_limit, foragers_count)
-	hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.4, foragers_water)
+	hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.5, foragers_water)
 
 	PROFILER:start_timer("production-pops-loop")
 	for _, pop in ipairs(pops_by_wealth) do

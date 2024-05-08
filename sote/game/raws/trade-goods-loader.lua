@@ -35,9 +35,9 @@ function d.load()
 		base_price = 1.25,
 	}
 	add_use_case("berries", "calories", 1.25)
-	add_use_case("berries", "fruit", 1)
 	add_use_case("berries", "cambium", 0.25)
-	add_use_case("berries", "tannin", 0.25)
+	add_use_case("berries", "fruit", 1)
+	add_use_case("berries", "tannin", 0.5)
 
 	TradeGood:new {
 		name = "grain",
@@ -50,6 +50,7 @@ function d.load()
 		base_price = 1,
 	}
 	add_use_case("grain", "calories", 1)
+	add_use_case("grain", "cambium", 0.5)
 	add_use_case("grain", "grain", 1)
 
 	TradeGood:new {
@@ -62,9 +63,9 @@ function d.load()
 		category = "good",
 		base_price = 2,
 	}
-	add_use_case("mushrooms", "calories", 2)
-	add_use_case("mushrooms", "fruit", 0.5)
-	add_use_case("mushrooms", "meat", 0.5)
+	add_use_case("mushrooms", "calories", 1.6)
+	add_use_case("mushrooms", "fruit", 0.4)
+	add_use_case("mushrooms", "meat", 0.4)
 
 	TradeGood:new {
 		name = "shellfish",
@@ -76,7 +77,7 @@ function d.load()
 		base_price = 1.5,
 	}
 	add_use_case("shellfish", "calories", 1.5)
-	add_use_case("shellfish", "meat", 0.5)
+	add_use_case("shellfish", "meat", 0.75)
 
 	TradeGood:new {
 		name = "seaweed",
@@ -88,7 +89,7 @@ function d.load()
 		base_price = 0.5,
 	}
 	add_use_case("seaweed", "calories", 0.5)
-	add_use_case("seaweed", "cambium", 0.5)
+	add_use_case("seaweed", "cambium", 1)
 
 	TradeGood:new {
 		name = "fish",
@@ -124,7 +125,7 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("hide", "clothes", 0.125)
-	add_use_case("hide", "containers", 0.125)
+	add_use_case("hide", "containers", 0.25)
 	add_use_case("hide", "hide", 1)
 
 	TradeGood:new {
@@ -136,11 +137,9 @@ function d.load()
 		b = 0.22,
 		base_price = 2,
 	}
-	add_use_case("timber", "furniture", 0.125)
-	add_use_case("timber", "tools-like", 0.125)
-	add_use_case("timber", "tannin", 1)
-	add_use_case("timber", "structural-material", 1)
+	add_use_case("timber", "tools-like", 0.25)
 	add_use_case("timber", "timber", 1)
+	add_use_case("timber", "tannin", 1)
 	add_use_case("timber", "fuel", 1)
 
 	TradeGood:new {
@@ -305,7 +304,7 @@ function d.load()
 		base_price = 2,
 	}
 	add_use_case("stone", "tools-like", 0.125)
-	add_use_case("stone", "furniture", 0.125)
+	add_use_case("stone", "furniture", 0.25)
 	add_use_case("stone", "stone", 1)
 	add_use_case("stone", "structural-material", 1)
 

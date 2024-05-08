@@ -187,27 +187,27 @@ function dbm.set_foraging_targets(province, amounts)
 	local products = {}
 	products[dbm.ForageResource.Water] = {
 		icon = "droplets.png",
-		output = { ['water'] = 2.5 },
-		amount = province.hydration * 0.4,
-		handle = JOBTYPE.FORAGER,
+		output = { ['water'] = 2 },
+		amount = province.hydration,
+		handle = JOBTYPE.HAULING,
 	}
 	products[dbm.ForageResource.Fruit] = {
 		icon = "berries-bowl.png",
-		output = { ['berries'] = 1.6, ['timber'] = 0.125 },
+		output = { ['berries'] = 1.6, ['timber'] = 0.4 },
 		amount = amounts.fruit,
 		handle = JOBTYPE.FORAGER,
 	}
 	products[dbm.ForageResource.Grain] = {
 		icon = "wheat.png",
-		output = { ['grain'] = 2, ['timber'] = 0.25 },
+		output = { ['grain'] = 2, ['timber'] = 0.5 },
 		amount = amounts.seeds,
 		handle = JOBTYPE.FARMER,
 	}
 	products[dbm.ForageResource.Wood] = {
 		icon = "pine-tree.png",
-		output = { ['timber'] = 0.5, ['bark'] = 0.5 },
+		output = { ['timber'] = 1, ['bark'] = 0.5 },
 		amount = amounts.wood,
-		handle = JOBTYPE.LABOURER,
+		handle = JOBTYPE.ARTISAN,
 	}
 	products[dbm.ForageResource.Game] = {
 		icon = "bison.png",
@@ -217,7 +217,7 @@ function dbm.set_foraging_targets(province, amounts)
 	}
 	products[dbm.ForageResource.Fungi] = {
 		icon = "chanterelles.png",
-		output = { ['mushrooms'] = 1 },
+		output = { ['mushrooms'] = 1.25 },
 		amount = amounts.fungi,
 		handle = JOBTYPE.CLERK,
 	}
@@ -231,7 +231,7 @@ function dbm.set_foraging_targets(province, amounts)
 		icon = "salmon.png",
 		output = { ['fish'] = 1.25 },
 		amount = amounts.fish,
-		handle = JOBTYPE.ARTISAN,
+		handle = JOBTYPE.LABOURER,
 	}
 	province.foragers_limit = amounts.net_pp
 	province.foragers_targets = products
