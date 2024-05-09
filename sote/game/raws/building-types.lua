@@ -42,7 +42,9 @@ BuildingType.__index = BuildingType
 ---@param o BuildingType
 ---@return BuildingType
 function BuildingType:new(o)
-	print("BuildingType: " .. o.name)
+	if RAWS_MANAGER.do_logging then
+		print("BuildingType: " .. o.name)
+	end
 	---@type BuildingType
 	local r = {}
 

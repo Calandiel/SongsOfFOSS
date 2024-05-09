@@ -1,8 +1,12 @@
 print("Loading raws...")
 
 ---A special function that sets up "raws" on the world
-return function()
+-- @param do_logging boolean|nil
+return function(do_logging)
 	RAWS_MANAGER = require "game.entities.raws_manager":new()
+	if do_logging ~= nil then
+		RAWS_MANAGER.do_logging = do_logging
+	end
 
 	local Realm = require "game.raws.biogeographic-realms"
 	local tabb = require "engine.table"
@@ -23,7 +27,9 @@ return function()
 
 	require 'game.raws.resource-loader'.load()
 
-	print('production methods')
+	if do_logging then
+		print('production methods')
+	end
 	require "game.raws.production-methods-loader".load()
 
 	require "game.raws.technology-loader".load()
@@ -33,22 +39,30 @@ return function()
 		end
 	end
 
-	print('building types')
+	if do_logging then
+		print('building types')
+	end
 	require "game.raws.building-types-loader".load()
 	for _, b in pairs(RAWS_MANAGER.building_types_by_name) do
 		b.unlocked_by.unlocked_buildings[#b.unlocked_by.unlocked_buildings + 1] = b
 	end
 
-	print('unit-types')
+	if do_logging then
+		print('unit-types')
+	end
 	require "game.raws.unit-types-loader".load()
 	for _, u in pairs(RAWS_MANAGER.unit_types_by_name) do
 		u.unlocked_by.unlocked_unit_types[#u.unlocked_by.unlocked_unit_types + 1] = u
 	end
 
-	print('decisions')
+	if do_logging then
+		print('decisions')
+	end
 	require "game.raws.decisions-loader".load()
 
-	print('events')
+	if do_logging then
+		print('events')
+	end
 	require "game.raws.events-loader".load()
 
 	print('raws done')

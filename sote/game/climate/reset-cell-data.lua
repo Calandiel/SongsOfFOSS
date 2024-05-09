@@ -20,10 +20,10 @@ end
 function r.run_hex(world)
 	reset_climate_cells()
 
-	for i = 1, world.tile_count do
-		local lat, lon = world:get_latlon_by_index(i)
-		world.climate_cells[i] = ut.get_climate_cell(lat, lon)
-	end
+	world:for_each_tile(function(i, _)
+		local lat, lon = world:get_latlon_by_tile(i)
+		world.climate_cells[i + 1] = ut.get_climate_cell(lat, lon)
+	end)
 end
 
 return r

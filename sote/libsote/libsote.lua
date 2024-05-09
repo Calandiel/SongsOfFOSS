@@ -18,8 +18,8 @@ local sote_params = {
 	{ name = "WorldSize",                        index = 1,  ctype = "unsigned short", value = 183                 },
 	{ name = "SuperOceans",                      index = 2,  ctype = "short",          value = 2                   },
 	{ name = "SuperContinents",                  index = 3,  ctype = "short",          value = 1                   },
-	{ name = "MajorPlates",                      index = 4,  ctype = "short",          value = 6                   },
-	{ name = "MinorPlates",                      index = 5,  ctype = "short",          value = 13                  },
+	{ name = "MajorPlates",                      index = 4,  ctype = "short",          value = 4                   },
+	{ name = "MinorPlates",                      index = 5,  ctype = "short",          value = 11                  },
 	{ name = "MajorHotspots",                    index = 6,  ctype = "short",          value = 4                   },
 	{ name = "ModerateHotspots",                 index = 7,  ctype = "short",          value = 6                   },
 	{ name = "MinorHotspots",                    index = 8,  ctype = "short",          value = 15                  },
@@ -230,8 +230,16 @@ local function set_sote_params(seed)
 	end
 end
 
----
-local function init_world()
+local function is_running()
+	if not lib_sote_instance then
+		log_and_set_msg("libSOTE not initialized")
+		return false
+	end
+
+	return lib_sote_instance.LIBSOTE_IsRunning() == 1
+end
+
+local function start_worldgen_task()
 	if not lib_sote_instance then
 		log_and_set_msg("libSOTE not initialized")
 		return
@@ -245,28 +253,8 @@ local function init_world()
 		log_sote(err_msg)
 		error("failed to start init_world task")
 	end
+
 	log_info("started task init_world")
-
-	local current_msg = ""
-	while lib_sote_instance.LIBSOTE_IsRunning() == 1 do
-		local msg = ffi.new("char[256]")
-		-- ffi.fill(msg, ffi.sizeof(msg))
-		_ = lib_sote_instance.LIBSOTE_GetLoadMessage(err_msg, msg)
-
-		local new_msg = ffi.string(msg)
-		if new_msg ~= current_msg then
-			current_msg = new_msg
-			log_sote(current_msg)
-		end
-	end
-
-	ret_code = lib_sote_instance.LIBSOTE_WaitEndTask(err_msg);
-	if ret_code ~= 0 then
-		log_sote(err_msg)
-		error("failed to wait init_world task")
-	end
-
-	log_and_set_msg("World generation finished")
 end
 
 local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
@@ -305,16 +293,41 @@ local function get_tile_data(desc, err_msg, float_val, short_val, uint_val)
 	return tile_data
 end
 
----
-function libsote.generate_world(seed)
-	if not lib_sote_instance then
-		log_and_set_msg("libSOTE not initialized")
-		return nil
+local current_msg = ""
+
+function libsote.worldgen_phase01_coro(seed)
+	set_sote_params(seed)
+
+	start_worldgen_task()
+
+	coroutine.yield()
+
+	local err_msg = ffi.new("char[256]")
+	local msg = ffi.new("char[256]")
+
+	current_msg = ""
+	while is_running() do
+		_ = lib_sote_instance.LIBSOTE_GetLoadMessage(err_msg, msg)
+
+		local new_msg = ffi.string(msg)
+		if new_msg ~= current_msg then
+			current_msg = new_msg
+			log_sote(current_msg)
+		end
+
+		coroutine.yield()
 	end
 
-	set_sote_params(seed)
-	init_world()
+	local ret_code = lib_sote_instance.LIBSOTE_WaitEndTask(err_msg);
+	if ret_code ~= 0 then
+		log_sote(err_msg)
+		error("failed to wait init_world task")
+	end
 
+	log_and_set_msg("World generation finished")
+end
+
+function libsote.generate_world(seed)
 	local world_size = sote_params[2].value
 	-- local world_size = 4
 
@@ -354,13 +367,7 @@ function libsote.generate_world(seed)
 	return world
 end
 
----
-function libsote.shutdown()
-	if not lib_sote_instance then
-		log_and_set_msg("libSOTE not initialized")
-		return false
-	end
-
+function libsote.clean_up_coro()
 	local err_msg = ffi.new("char[256]")
 	local ret_code = 0
 
@@ -370,7 +377,8 @@ function libsote.shutdown()
 		error("failed to start clean_up task")
 	end
 
-	while lib_sote_instance.LIBSOTE_IsRunning() == 1 do
+	while is_running() do
+		coroutine.yield()
 	end
 
 	ret_code = lib_sote_instance.LIBSOTE_WaitEndTask(err_msg);
@@ -378,7 +386,8 @@ function libsote.shutdown()
 		log_sote(err_msg)
 		error("failed to wait clean_up task")
 	end
-	log_info("Finished task clean_up")
+
+	log_and_set_msg("Finished task clean_up")
 end
 
 return libsote
