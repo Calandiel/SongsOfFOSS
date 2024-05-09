@@ -23,7 +23,9 @@ Event.__index = Event
 ---@param e Event
 ---@return Event
 function Event:new(e)
-	print("Event: " .. tostring(e.name))
+	if RAWS_MANAGER.do_logging then
+		print("Event: " .. tostring(e.name))
+	end
 	---@type Event
 	local o = {}
 

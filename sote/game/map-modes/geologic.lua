@@ -15,8 +15,10 @@ end
 
 function geo.plates()
 	for _, tile in pairs(WORLD.tiles) do
-		if tile.plate then
-			local r, g, b = tile.plate.r, tile.plate.g, tile.plate.b
+		local local_plate = tile:plate()
+
+		if local_plate then
+			local r, g, b = local_plate.r, local_plate.g, local_plate.b
 			tile:set_real_color(r, g, b)
 		else
 			tile:set_real_color(0.1, 0.1, 0.1)

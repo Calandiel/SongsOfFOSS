@@ -30,7 +30,9 @@ UnitType.__index = UnitType
 ---@param o UnitType
 ---@return UnitType
 function UnitType:new(o)
-	print("Unit Type: " .. tostring(o.name))
+	if RAWS_MANAGER.do_logging then
+		print("Unit Type: " .. tostring(o.name))
+	end
 	---@type UnitType
 	local r = {}
 

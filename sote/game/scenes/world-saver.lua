@@ -21,7 +21,10 @@ function ws.draw()
         WORLD_PROGRESS.total = 0
         WORLD_PROGRESS.max = 6 * DEFINES.world_size * DEFINES.world_size
         WORLD_PROGRESS.is_loading = true
-		ws.coroutine = coroutine.create(function () require "engine.bitser".dumpLoveFile_async(DEFINES.world_to_load, WORLD) end)
+		ws.coroutine = coroutine.create(function ()
+			require "engine.bitser".dumpLoveFile_async(DEFINES.world_to_load, WORLD)
+			require "engine.bitser".clearBuffer()
+		end)
 	end
 
 	local status, data = coroutine.resume(ws.coroutine)

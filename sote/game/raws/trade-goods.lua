@@ -21,7 +21,9 @@ TradeGood.__index = TradeGood
 ---@param o TradeGood
 ---@return TradeGood
 function TradeGood:new(o)
-	print("Trade Good: " .. tostring(o.name))
+	if RAWS_MANAGER.do_logging then
+		print("Trade Good: " .. tostring(o.name))
+	end
 	---@type TradeGood
 	local r = {}
 

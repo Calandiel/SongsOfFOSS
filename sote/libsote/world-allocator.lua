@@ -410,6 +410,8 @@ local function init_world(world)
 			::continue::
 		end
 	end
+
+	world:_init_neighbours()
 end
 
 local function build_neighbors(world)

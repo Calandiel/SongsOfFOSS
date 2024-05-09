@@ -30,7 +30,9 @@ Technology.__index = Technology
 ---@param o Technology
 ---@return Technology
 function Technology:new(o)
-	print("Technology: " .. o.name)
+	if RAWS_MANAGER.do_logging then
+		print("Technology: " .. tostring(o.name))
+	end
 	---@type Technology
 	local r = {}
 

@@ -15,7 +15,7 @@ local function macrodecision(gam, tile, rect)
 	if player == nil then
 		return
 	end
-	local province = tile.province
+	local province = tile:province()
 
 	if not decision.clickable(player, province) then
 		return

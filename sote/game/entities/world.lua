@@ -36,6 +36,9 @@ local tabb             = require "engine.table"
 ---@field settled_provinces_by_identifier table<number, table<Province, Province>>
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
+---@field tile_to_climate_cell table<Tile, ClimateCell>
+---@field tile_to_province table<Tile, Province>
+---@field tile_to_plate table<Tile, Plate>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
 ---@field entity_counter number -- a global counter for entities...
 ---@field notification_queue Queue<Notification>
@@ -79,6 +82,11 @@ function world.World:new()
 	end
 	w.realms = {}
 	w.climate_cells = {}
+
+	w.tile_to_climate_cell = {}
+	w.tile_to_province = {}
+	w.tile_to_plate = {}
+
 	w.entity_counter = 2
 	w.world_size = ws
 	w.climate_grid_size = 256
@@ -111,7 +119,7 @@ function world.World:new()
 	---@type World|nil
 	WORLD = w
 	for _, tile in pairs(w.tiles) do
-		tile.climate_cell = ut.get_climate_cell(tile:latlon())
+		w.tile_to_climate_cell[tile] = ut.get_climate_cell(tile:latlon())
 	end
 	setmetatable(w, self)
 	return w

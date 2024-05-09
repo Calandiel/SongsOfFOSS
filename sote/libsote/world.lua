@@ -1,22 +1,4 @@
 local world = {
-	size = nil,
-	seed = nil,
-	rng = nil,
-	tile_count = 0,
-	coord = nil,
-	coord_by_tile_id = nil,
-	climate_cells = nil,
-
-	neighbors = nil,
-
-	colatitude = nil,
-	minus_longitude = nil,
-	elevation = nil,
-	hilliness = nil,
-	rock_type = nil,
-	volcanic_activity = nil,
-	is_land = nil,
-	plate = nil,
 }
 
 -- local transform = {
@@ -47,19 +29,22 @@ function world:new(world_size, seed)
 	obj.coord = {}
 	obj.coord_by_tile_id = {}
 	obj.climate_cells = {}
+	obj.waterbodies = {}
 
-	obj.neighbors         = ffi.new("int32_t[" .. obj.tile_count * 6 .. "]")
+	obj.neighbors         = ffi.new("int32_t["  .. obj.tile_count * 6 .. "]")
+	obj.waterbody_by_tile = ffi.new("uint32_t[" .. obj.tile_count .. "]")
 
-	obj.colatitude        = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.minus_longitude   = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.elevation         = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.hilliness         = ffi.new("float["   .. obj.tile_count .. "]")
-	obj.rock_type         = ffi.new("uint8_t[" .. obj.tile_count .. "]")
-	obj.volcanic_activity = ffi.new("int16_t[" .. obj.tile_count .. "]")
-	obj.is_land           = ffi.new("bool["    .. obj.tile_count .. "]")
-	obj.plate             = ffi.new("uint8_t[" .. obj.tile_count .. "]")
+	obj.colatitude        = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.minus_longitude   = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.elevation         = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.hilliness         = ffi.new("float["    .. obj.tile_count .. "]")
+	obj.rock_type         = ffi.new("uint8_t["  .. obj.tile_count .. "]")
+	obj.volcanic_activity = ffi.new("int16_t["  .. obj.tile_count .. "]")
+	obj.is_land           = ffi.new("bool["     .. obj.tile_count .. "]")
+	obj.plate             = ffi.new("uint8_t["  .. obj.tile_count .. "]")
 
 	obj.rocks             = ffi.new("material_template_t[" .. obj.tile_count .. "]")
+	obj.ice               = ffi.new("uint16_t["            .. obj.tile_count .. "]")
 
 	return obj
 end
@@ -104,19 +89,38 @@ function world:_set_index(q, r, face, index)
 end
 
 function world:_set_empty(q, r, face)
-	self:_set_index(q, r, face, -1)
+	self.coord[self:_key_from_coord(q, r, face)] = -1
+end
 
-	local index = self.coord[self:_key_from_coord(q, r, face)]
-	for i = 1, 6 do
-		self.neighbors[index + i - 1] = -1
+---@param callback fun(tile_index:number, world:table)
+function world:for_each_tile(callback)
+	for ti = 0, self.tile_count - 1 do
+		callback(ti, self)
+	end
+end
+
+function world:_init_neighbours()
+	for i = 0, self.tile_count * 6 - 1 do
+		self.neighbors[i] = -1
 	end
 end
 
 function world:_set_neighbors(q, r, face, neighbors)
-	local index = self.coord[self:_key_from_coord(q, r, face)]
+	local index = self.coord[self:_key_from_coord(q, r, face)] * 6
 
 	for i = 1, #neighbors do
 		self.neighbors[index + i - 1] = self.coord[self:_key_from_coord(neighbors[i].q, neighbors[i].r, neighbors[i].f)]
+	end
+end
+
+---@param index number 0-based index
+---@param callback fun(neighbor_tile_index:number)
+function world:for_each_neighbor(index, callback)
+	index = index * 6
+	local neighbor_count = self.neighbors[index + 5] == -1 and 5 or 6
+
+	for i = 0, neighbor_count - 1 do
+		callback(self.neighbors[index + i])
 	end
 end
 
@@ -162,16 +166,13 @@ function world:get_latlon(q, r, face)
 	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
-function world:get_latlon_by_index(index)
-	return -llu.colat_to_lat(self.colatitude[index - 1]), -self.minus_longitude[index - 1] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+---@param ti number 0-based tile index
+function world:get_latlon_by_tile(ti)
+	return -llu.colat_to_lat(self.colatitude[ti]), -self.minus_longitude[ti] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
 function world:get_elevation(q, r, face)
 	return self.elevation[self.coord[self:_key_from_coord(q, r, face)]]
-end
-
-function world:get_elevation_by_index(index)
-	return self.elevation[index - 1]
 end
 
 function world:get_hilliness(q, r, face)
@@ -190,10 +191,6 @@ function world:get_is_land(q, r, face)
 	return self.is_land[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
-function world:get_is_land_by_index(index)
-	return self.is_land[index - 1]
-end
-
 function world:get_plate(q, r, face)
 	return self.plate[self.coord[self:_key_from_coord(q, r, face)]]
 end
@@ -205,6 +202,37 @@ end
 function world:get_climate_data(q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
+end
+
+--- Adjusted elevation for waterflow. Includes ice height.
+---@param ti number 0-based tile index
+function world:true_elevation_for_waterflow(ti)
+	if self.elevation[ti] > 0 then
+		return self.elevation[ti] + self.ice[ti]
+	else
+		return self.ice[ti] + self.elevation[ti] * 0.001 -- Subtract some of the ocean depth in order to give variation between some uniform ice tiles sitting on the ocean
+	end
+end
+
+local wb = require("libsote.hydrology.waterbody")
+
+---@return number new waterbody id
+function world:create_new_waterbody()
+	local id = #self.waterbodies + 1
+	self.waterbodies[id] = wb:new()
+	return id
+end
+
+---@param index number 0-based index
+function world:is_waterbody_valid(index)
+	return self.waterbody_by_tile[index] ~= 0
+end
+
+---@param callback fun(waterbody:table)
+function world:for_each_waterbody(callback)
+	for i = 1, #self.waterbodies do
+		callback(self.waterbodies[i])
+	end
 end
 
 function world:_investigate_tile(q, r, face)

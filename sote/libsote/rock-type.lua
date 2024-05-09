@@ -1,6 +1,6 @@
 local rock = {}
 
----@enum types
+---@enum rock_type
 rock.types = {
 	no_type         = 0,
 	acid_plutonics  = 3,

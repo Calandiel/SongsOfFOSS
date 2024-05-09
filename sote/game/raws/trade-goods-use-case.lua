@@ -19,7 +19,10 @@ TradeGoodUseCase.__index = TradeGoodUseCase
 ---@param o TradeGoodUseCase
 ---@return TradeGoodUseCase
 function TradeGoodUseCase:new(o)
-	print("Trade Good Use Case: " .. tostring(o.name))
+	if RAWS_MANAGER.do_logging then
+		print("Trade Good Use Case: " .. tostring(o.name))
+	end
+
 	---@type TradeGoodUseCase
 	local r = {}
 

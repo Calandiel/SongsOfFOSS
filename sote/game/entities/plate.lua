@@ -50,7 +50,7 @@ function plate.Plate:add_tile(tile)
 	-- First, remove the tile from the previous plate...
 
 	-- ID of the plate that the tile is currently assigned to
-	local old_plate = tile.plate
+	local old_plate = tile:plate()
 	if old_plate ~= nil then
 		-- remove the tile from the plate...
 		old_plate.tiles[tile] = nil
@@ -59,7 +59,7 @@ function plate.Plate:add_tile(tile)
 	end
 
 	-- Set the reference on the tile...
-	tile.plate = self
+	tile:set_plate(self)
 
 	-- Set the reference on yourself
 	self.tiles[tile] = tile

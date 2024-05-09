@@ -25,10 +25,10 @@ local function calculate_province_neighbors(province, deep_logs)
 		end
 		for n in tile:iter_neighbors() do
 			if deep_logs then
-				print("Neigh: " .. tostring(n.province) .. ", us: " .. tostring(province))
+				print("Neigh: " .. tostring(n:province()) .. ", us: " .. tostring(province))
 			end
-			if n.province ~= province then
-				province.neighbors[n.province] = n.province
+			if n:province() ~= province then
+				province.neighbors[n:province()] = n:province()
 			end
 		end
 		if deep_logs then
@@ -57,8 +57,8 @@ local function calculate_province_neighbors(province, deep_logs)
 	if deep_logs then
 		for _, tile in pairs(province.tiles) do
 			for n in tile:iter_neighbors() do
-				if n.province ~= province then
-					if province.neighbors[n.province] == nil then
+				if n:province() ~= province then
+					if province.neighbors[n:province()] == nil then
 						print("Failed province neighbor verification! :c")
 						love.event.quit()
 					end
@@ -81,7 +81,7 @@ function pro.run()
 		---@type Tile
 		local t = tile
 		for n in t:iter_neighbors() do
-			if n.province ~= nil then
+			if n:province() ~= nil then
 				return false
 			end
 		end
@@ -105,7 +105,7 @@ function pro.run()
 			---@type Tile
 			local tile = queue:dequeue()
 			if tile:average_waterflow() > water_thre then
-				tile.province.on_a_river = true
+				tile:province().on_a_river = true
 			end
 
 			--[[
@@ -120,24 +120,24 @@ function pro.run()
 
 			-- PROVINCE SIZE LIMIT
 			local expected_size = expected_water_province_size
-			if tile.province.center.is_land then
+			if tile:province().center.is_land then
 				expected_size = expected_land_province_size
 			end
 
 			-- NO PROVINCE SIZE LIMIT
 			-- expected_size = math.huge
 			-- expected_size = 300
-			if tabb.size(tile.province.tiles) < expected_size * 1.1 then
+			if tabb.size(tile:province().tiles) < expected_size * 1.1 then
 				if tile.is_land then
 					local growth_probability = 0.5
-					if tile.province.on_a_river then
+					if tile:province().on_a_river then
 						growth_probability = 0.3
 					end
 					if love.math.random() < growth_probability then
 						for n in tile:iter_neighbors() do
-							if n.province == nil and n.is_land == tile.is_land then
+							if n:province() == nil and n.is_land == tile.is_land then
 								if (not strict_flag) or (math.abs(tile.elevation - n.elevation) < 350) then
-									tile.province:add_tile(n)
+									tile:province():add_tile(n)
 									queue:enqueue(n)
 								end
 							end
@@ -149,9 +149,9 @@ function pro.run()
 					local growth_probability = 0.6
 					if love.math.random() < growth_probability then
 						for n in tile:iter_neighbors() do
-							if n.province == nil and n.is_land == tile.is_land then
+							if n:province() == nil and n.is_land == tile.is_land then
 								if (not strict_flag) or (math.abs(tile.elevation - n.elevation) < 700) then
-									tile.province:add_tile(n)
+									tile:province():add_tile(n)
 									queue:enqueue(n)
 								end
 							end
@@ -174,7 +174,7 @@ function pro.run()
 		if depth == 0 then return end
 		if (not tile:is_coast()) and (depth > 1) then return end
 		-- if (not check_neighs(tile)) then return end
-		if (tile.province ~= nil) then return end
+		if (tile:province() ~= nil) then return end
 
 		province:add_tile(tile)
 		if tile:average_waterflow() > water_thre then
@@ -224,10 +224,10 @@ function pro.run()
 			return river_search(tile, 4, {})
 		end
 
-		-- print(tile:average_waterflow(), low_waterflow_counter, tile.province ~= nil)
+		-- print(tile:average_waterflow(), low_waterflow_counter, tile:province() ~= nil)
 		if (tile:average_waterflow() < water_thre) and (low_waterflow_counter == 0) then return end
 		-- if (not check_neighs(tile)) then return end
-		if (tile.province ~= nil) then return end
+		if (tile:province() ~= nil) then return end
 
 		province:add_tile(tile)
 		-- queue:enqueue(tile)
@@ -277,7 +277,7 @@ function pro.run()
 		-- Get a random soil rich tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0
-		while not tile.is_land or (tile:average_waterflow() < water_thre) or tile.province ~= nil or not check_neighs(tile) do
+		while not tile.is_land or (tile:average_waterflow() < water_thre) or tile:province() ~= nil or not check_neighs(tile) do
 			tile = WORLD:random_tile()
 			failsafe = failsafe + 1
 			if failsafe > WORLD:tile_count() / 2 then break end
@@ -295,7 +295,7 @@ function pro.run()
 		-- Get a random coastal tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0
-		while not tile.is_land or not tile:is_coast() or tile.province ~= nil or not check_neighs(tile) do
+		while not tile.is_land or not tile:is_coast() or tile:province() ~= nil or not check_neighs(tile) do
 			tile = WORLD:random_tile()
 			failsafe = failsafe + 1
 			if failsafe > WORLD:tile_count() / 2 then break end
@@ -320,7 +320,7 @@ function pro.run()
 		-- Get a random land tile with no province assigned to it
 		local tile = WORLD:random_tile()
 		local failsafe = 0
-		while not tile.is_land or tile.province ~= nil or not check_neighs(tile) do
+		while not tile.is_land or tile:province() ~= nil or not check_neighs(tile) do
 			tile = WORLD:random_tile()
 			failsafe = failsafe + 1
 			if failsafe > WORLD:tile_count() / 2 then break end
@@ -343,7 +343,7 @@ function pro.run()
 	for _ = 1, prov_count do
 		-- Get a random sea tile with no province assigned to it
 		local tile = WORLD:random_tile()
-		while tile.is_land or tile.province ~= nil do tile = WORLD:random_tile() end
+		while tile.is_land or tile:province() ~= nil do tile = WORLD:random_tile() end
 		local new_province = pp.Province:new()
 		new_province.center = tile
 		new_province:add_tile(tile)
@@ -353,7 +353,7 @@ function pro.run()
 
 	-- at the end, fill in the gaps!
 	for _, tile in pairs(WORLD.tiles) do
-		if tile.province == nil then
+		if tile:province() == nil then
 			local new_province = pp.Province:new()
 			new_province.center = tile
 			new_province:add_tile(tile)
@@ -428,13 +428,13 @@ function pro.run()
 			-- Find the smallest/best merge target...
 			for _, tile in pairs(province.tiles) do
 				for n in tile:iter_neighbors() do
-					if n.province ~= nil and n.province ~= province then
-						local neigh = n.province
+					if n:province() ~= nil and n:province() ~= province then
+						local neigh = n:province()
 						if neigh.center.is_land == province.center.is_land then
 							-- Merge only if we're not too large but also merge tiny provinces unconditionally!
 							-- Merge if center of result is not far awaya from original center
 							local small_lat, small_lon = province.center:latlon()
-							local big_lat, big_lon = n.province.center:latlon()
+							local big_lat, big_lon = n:province().center:latlon()
 
 							local small_x = math.cos(small_lon) * math.cos(small_lat)
 							local small_z = math.sin(small_lon) * math.cos(small_lat)
@@ -508,7 +508,7 @@ function pro.run()
 	end
 	print("Verifying that every tile has a province assigned to it")
 	for _, tile in pairs(WORLD.tiles) do
-		if tile.province then
+		if tile:province() then
 			-- yay!
 		else
 			print("A TILE HAS NO PROVINCE!")
@@ -533,8 +533,8 @@ function pro.run()
 				for _, tt in pairs(province.tiles) do
 					print("Tile: " .. tostring(tt.tile_id) .. ' with province: ' .. tostring(province.province_id))
 					for n in tt:iter_neighbors() do
-						print("---neigh: " .. tostring(n.tile_id) .. " with province: " .. tostring(n.province.province_id))
-						if n.province.province_id ~= province.province_id then
+						print("---neigh: " .. tostring(n.tile_id) .. " with province: " .. tostring(n:province().province_id))
+						if n:province().province_id ~= province.province_id then
 							print("EXCUSE ME ARE WE OKAY??? THIS CLEARLY SHOULD HAVE WORKED")
 						end
 					end

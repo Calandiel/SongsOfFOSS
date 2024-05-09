@@ -146,13 +146,14 @@ function prov.Province:add_tile(tile)
 		self.is_land = true
 	end
 
-	if tile.province ~= nil then
-		tile.province.size = tile.province.size - 1
-		tile.province.tiles[tile] = nil
+	if tile:province() ~= nil then
+		tile:province().size = tile:province().size - 1
+		tile:province().tiles[tile] = nil
 	end
+
 	self.tiles[tile] = tile
 	self.size = self.size + 1
-	tile.province = self
+	tile:set_province(self)
 end
 
 ---Returns the total military size of the province.

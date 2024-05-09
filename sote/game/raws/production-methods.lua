@@ -41,7 +41,9 @@ ProductionMethod.__index = ProductionMethod
 ---@param o ProductionMethod
 ---@return ProductionMethod
 function ProductionMethod:new(o)
-	print("ProductionMethod: " .. o.name)
+	if RAWS_MANAGER.do_logging then
+		print("ProductionMethod: " .. o.name)
+	end
 	---@type ProductionMethod
 	local r = {}
 

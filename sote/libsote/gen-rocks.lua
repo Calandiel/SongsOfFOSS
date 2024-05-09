@@ -1,6 +1,6 @@
 local gr = {}
 
-local rock_types = require "libsote.rock".types
+local rock_types = require "libsote.rock-type".types
 
 local function fix_rock_type(index, world)
 	if world.rock_type[index] == rock_types.no_type and world.is_land[index] then
@@ -24,17 +24,15 @@ local function assign_rock_layer_to_tile(index, world)
 	-- store rgb_id as well? or just id instead of rgb?
 end
 
-local function run(index, world)
-	fix_rock_type(index, world)
-	assign_rock_layer_to_tile(index, world)
+local function process(tile_index, world)
+	fix_rock_type(tile_index, world)
+	assign_rock_layer_to_tile(tile_index, world)
 
 	-- resources, but skip for now
 end
 
 function gr.run(world)
-	for index = 0, world.tile_count - 1 do
-		run(index, world)
-	end
+	world:for_each_tile(process)
 end
 
 return gr

@@ -175,12 +175,16 @@ function Decision.Realm:new(i)
 	return o
 end
 
-print('load decisions')
+if RAWS_MANAGER.do_logging then
+	print('load decisions')
+end
 
 ---@param i DecisionCharacterData
 ---@return DecisionCharacter
 function Decision.Character:new(i)
-	print("decision " .. i.name)
+	if RAWS_MANAGER.do_logging then
+		print("decision " .. i.name)
+	end
 	---@type DecisionCharacter
 	local o = init_decision(i)
 
@@ -196,7 +200,9 @@ function Decision.Character:new(i)
 	return o
 end
 
-print('load generic character decision class')
+if RAWS_MANAGER.do_logging then
+	print('load generic character decision class')
+end
 
 ---@param i DecisionCharacterProvinceData
 ---@return DecisionCharacterProvince
@@ -207,7 +213,9 @@ function Decision.CharacterProvince:new(i)
 	return Decision.Character:new(i)
 end
 
-print('load province character decision class')
+if RAWS_MANAGER.do_logging then
+	print('load province character decision class')
+end
 
 Decision.CharacterCharacter = {}
 

@@ -64,7 +64,7 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
 		funds = owner.savings
 	end
 
-	local success, reason = tile.province:can_build(
+	local success, reason = tile:province():can_build(
 		funds,
 		building_type,
 		overseer,
@@ -88,7 +88,7 @@ local function construction_button(gam, rect, building_type, tile, owner, overse
 				"Build " .. tooltip .. " (" .. tostring(construction_cost) .. MONEY_SYMBOL .. ")") then
 			economic_effects.construct_building_with_payment(
 				building_type,
-				tile.province,
+				tile:province(),
 				owner,
 				overseer,
 				public_flag
@@ -132,14 +132,14 @@ function btb.building_type_buttons(gam, rect, building_type, tile)
 
 	r.x = r.x + rect.height
 	r.width = rect.height
-	if (WORLD.player_character) and WORLD.player_character.province == tile.province then
+	if (WORLD.player_character) and WORLD.player_character.province == tile:province() then
 		construction_button(gam, r, building_type, tile, WORLD.player_character, WORLD.player_character, false)
 	end
 
 	r.x = r.x + rect.height
 	r.width = rect.height
-	if WORLD:does_player_control_realm(tile.province.realm) then
-		construction_button(gam, r, building_type, tile, nil, pv.overseer(tile.province.realm), true)
+	if WORLD:does_player_control_realm(tile:province().realm) then
+		construction_button(gam, r, building_type, tile, nil, pv.overseer(tile:province().realm), true)
 	end
 end
 

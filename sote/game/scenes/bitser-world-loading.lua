@@ -3,7 +3,10 @@ return function ()
 	WORLD_PROGRESS.max = 6 * DEFINES.world_size * DEFINES.world_size
 	WORLD_PROGRESS.is_loading = true
 	local bs = require "engine.bitser"
-	local loading_coroutine = coroutine.create(function() bs.loadLoveFile_async(DEFINES.world_to_load, WORLD_PROGRESS) end)
+	local loading_coroutine = coroutine.create(function()
+		bs.loadLoveFile_async(DEFINES.world_to_load, WORLD_PROGRESS)
+		bs.clearBuffer()
+	end)
 	local result = nil
     local success = true
     local data = nil
