@@ -125,7 +125,10 @@ function pg.growth(province)
 			-- set newborn to parents satisfaction
 			newborn.need_satisfaction = tabb.accumulate(pp.need_satisfaction, newborn.need_satisfaction, function (need_satisfaction, need, cases)
 				need_satisfaction[need] = tabb.accumulate(cases, need_satisfaction[need], function (case_satisfaction, case, values)
-					case_satisfaction[case].consumed = values.consumed / values.demanded * needs[need][case] * newborn:get_age_multiplier()
+					local demanded = (needs[need] and needs[need][case] or 0) * newborn:get_age_multiplier()
+					if demanded > 0 then
+						case_satisfaction[case] = { consumed = values.consumed / values.demanded * demanded, demanded = demanded}
+					end
 					return case_satisfaction
 				end)
 				return need_satisfaction

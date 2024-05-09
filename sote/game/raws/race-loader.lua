@@ -282,7 +282,7 @@ function ll.load()
 			[JOBTYPE.WARRIOR] = 1.25, -- orks have tusks
 			[JOBTYPE.HAULING] = large_size,
 			[JOBTYPE.FORAGER] = 1.5,
-			[JOBTYPE.HUNTING] = 1
+			[JOBTYPE.HUNTING] = 1.25
 		},
 		female_needs = {
 			[NEED.FOOD] = {
@@ -312,11 +312,11 @@ function ll.load()
 			[JOBTYPE.WARRIOR] = 1.25, -- orks have tusks
 			[JOBTYPE.HAULING] = large_size,
 			[JOBTYPE.FORAGER] = 1.5,
-			[JOBTYPE.HUNTING] = 1
+			[JOBTYPE.HUNTING] = 1.25
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = large_size,
+				['water'] = largest_size,
 				['calories'] = 2.5,		-- 2500 kcal
 			},
 			[NEED.CLOTHING] = {
@@ -369,16 +369,16 @@ function ll.load()
 			[JOBTYPE.CLERK] = 1.5,
 			[JOBTYPE.LABOURER] = medium_size * 0.75,
 			[JOBTYPE.WARRIOR] = 1.5,
-			[JOBTYPE.HAULING] = medium_size,
-			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HAULING] = medium_size * 0.75,
+			[JOBTYPE.FORAGER] = 1.125,
 			[JOBTYPE.HUNTING] = 1
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = medium_size,
-				['calories'] = medium_size,		-- 1000 kcal
-				['fruit'] = 0.5,				--  500 kcal
-				['meat'] = 0.25,				--  500 kcal
+				['water'] = medium_size * 0.75,
+				['calories'] = dwarf_size,		--  750 kcal
+				['fruit'] = 0.45,				--  450 kcal
+				['meat'] = 0.4,					--  800 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = medium_size
@@ -401,16 +401,16 @@ function ll.load()
 			[JOBTYPE.CLERK] = 1.5,
 			[JOBTYPE.LABOURER] = medium_size * 0.75,
 			[JOBTYPE.WARRIOR] = 1.5,
-			[JOBTYPE.HAULING] = medium_size,
-			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HAULING] = medium_size * 0.75,
+			[JOBTYPE.FORAGER] = 1.125,
 			[JOBTYPE.HUNTING] = 1
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = medium_size,
-				['calories'] = medium_size,		-- 1000 kcal
-				['fruit'] = 0.5,				--  500 kcal
-				['meat'] = 0.25,				--  500 kcal
+				['water'] = medium_size * 0.75,
+				['calories'] = dwarf_size,		--  750 kcal
+				['fruit'] = 0.45,				--  450 kcal
+				['meat'] = 0.4,					--  800 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = medium_size
@@ -570,7 +570,7 @@ function ll.load()
 			[JOBTYPE.CLERK] = 1.125,
 			[JOBTYPE.LABOURER] = small_size,
 			[JOBTYPE.WARRIOR] = small_size * 1.5, -- goblins find raiding profitable
-			[JOBTYPE.HAULING] = small_size * 2, -- goblins find raiding profitable
+			[JOBTYPE.HAULING] = small_size * 1.5, -- goblins find raiding profitable
 			[JOBTYPE.FORAGER] = 0.875,
 			[JOBTYPE.HUNTING] = 1
 		},
@@ -578,8 +578,8 @@ function ll.load()
 			[NEED.FOOD] = {
 				['water'] = small_size,
 				['calories'] = small_size,	-- 500 kcal
-				['meat'] = 0.2,				-- 400 kcal
-				['fruit'] = 0.1,			-- 100 kcal
+				['meat'] = 0.125,			-- 250 kcal
+				['fruit'] = 0.125,			-- 125 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size
@@ -602,7 +602,7 @@ function ll.load()
 			[JOBTYPE.CLERK] = 1.125,
 			[JOBTYPE.LABOURER] = small_size,
 			[JOBTYPE.WARRIOR] = small_size * 1.5, -- goblins find raiding profitable
-			[JOBTYPE.HAULING] = small_size * 2, -- goblins find raiding profitable
+			[JOBTYPE.HAULING] = small_size * 1.5, -- goblins find raiding profitable
 			[JOBTYPE.FORAGER] = 0.875,
 			[JOBTYPE.HUNTING] = 1
 		},
@@ -610,8 +610,8 @@ function ll.load()
 			[NEED.FOOD] = {
 				['water'] = small_size,
 				['calories'] = small_size,	-- 500 kcal
-				['meat'] = 0.2,				-- 400 kcal
-				['fruit'] = 0.1,			-- 100 kcal
+				['meat'] = 0.125,			-- 250 kcal
+				['fruit'] = 0.125,			-- 125 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size

@@ -478,7 +478,7 @@ function world.World:tick()
 			-- "POP" update
 			local pop_growth = require "game.society.pop-growth"
 			--print("Pop growth")
-			--pop_growth.growth(settled_province)
+			pop_growth.growth(settled_province)
 			PROFILER:end_timer("growth")
 
 			--print("done")
@@ -668,7 +668,7 @@ function world.World:tick()
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
 					for _, settled_province in pairs(WORLD.provinces) do
-					--	pop_aging.age(settled_province)
+						pop_aging.age(settled_province)
 						if settled_province.realm then
 							settled_province.realm.tax_collected_this_year = 0
 						end

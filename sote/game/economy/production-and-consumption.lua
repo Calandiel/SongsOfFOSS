@@ -759,8 +759,9 @@ function pro.run(province)
 				pop_table.need_satisfaction[need][case].consumed = satisfaction_ratio * pop_table.need_satisfaction[need][case].demanded
 				pop_table:get_need_satisfaction()
 				for _, child in pairs(pop_table.children) do
-					child.need_satisfaction[need][case].consumed = satisfaction_ratio * child.need_satisfaction[need][case].demanded
-					child:get_need_satisfaction()
+					if child.need_satisfaction[need] and child.need_satisfaction[need][case] then
+						child.need_satisfaction[need][case].consumed = satisfaction_ratio * child.need_satisfaction[need][case].demanded
+					end
 				end
 			end
 		end
