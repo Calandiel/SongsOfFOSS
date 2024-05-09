@@ -43,17 +43,13 @@ local function make_new_realm(capitol, race, culture, faith)
 
 	-- Mark the province as settled for processing...
 	WORLD:set_settled_province(capitol)
+	require "game.economy.diet-breadth-model".cultural_foragable_targets(r.capitol)
 
 	--calculate average ratial foraging_efficiency from males per 100 females
 	local male_percentage = race.males_per_hundred_females / (100 + race.males_per_hundred_females)
-	local foraging_efficiency = male_percentage * race.male_efficiency[job_types.FORAGER] +
-	(1 - male_percentage) * race.female_efficiency[job_types.FORAGER]
-	local race_calorie_needs = male_percentage * race.male_needs[NEED.FOOD]['calories'] +
-	(1 - male_percentage) * race.female_needs[NEED.FOOD]['calories']
 
 	-- We also need to spawn in some population...
-	local pop_to_spawn = math.max(5,
-		capitol.foragers_limit / race_calorie_needs * foraging_efficiency * (1 + 0.5 * race.fecundity))
+	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * race.fecundity * 0.5)
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
 		pop.POP:new(
@@ -107,6 +103,18 @@ local function make_new_realm(capitol, race, culture, faith)
 		end
 	end
 
+	-- match children pop to some possible parent
+	for _, child in pairs(tabb.filter(capitol.all_pops, function (a)
+		return a.age < a.race.teen_age
+	end)) do
+		local parent = tabb.random_select_from_set(tabb.filter(capitol.all_pops, function (a)
+			return a.age > child.age + child.race.adult_age and a.age < child.age + child.race.elder_age
+		end))
+		if parent then
+			child.parent = parent
+			parent.children[child] = child
+		end
+	end
 	-- capitol:validate_population()
 
 	-- print("test battle")
@@ -124,7 +132,9 @@ end
 ---@param race Race
 ---@param province Province
 function ProvinceCheck(race, province)
+	local dbm = require "game.economy.diet-breadth-model"
 	if not province.center.is_land then return false end
+	if province.foragers_limit < (5 * race.carrying_capacity_weight) then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
 	if (not province.on_a_forest) and race.requires_large_forest then return false end
@@ -147,7 +157,6 @@ function st.run()
 	-- river specialists races first
 	-- forest specialists races second
 	-- rest races at the end
-	-- duplicate specialists to give them more chances to spawn
 
 	---@type Race[]
 	local order = {}
@@ -158,13 +167,15 @@ function st.run()
 	end
 
 	for _, r in pairs(RAWS_MANAGER.races_by_name) do
-		if r.requires_large_forest then
+		if r.requires_large_forest and not r.requires_large_river then
 			table.insert(order, r)
 		end
 	end
 
 	for _, r in pairs(RAWS_MANAGER.races_by_name) do
-		table.insert(order, r)
+		if (not r.requires_large_forest) and (not r.requires_large_river) then
+			table.insert(order, r)
+		end
 	end
 
 	local civs = 500 / tabb.size(order) -- one per race...

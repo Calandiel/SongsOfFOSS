@@ -101,6 +101,8 @@ return function(rect, base_unit, province)
                 header = "culture",
                 render_closure = function (rect, k, v)
                     ui.centered_text(v.culture.name, rect)
+                    ui.tooltip("This character follows the customs of " .. v.culture.name .. "."
+                        .. require "game.economy.diet-breadth-model".culture_target_tooltip(v.culture), rect)
                 end,
                 width = 4,
                 value = function(k, v)

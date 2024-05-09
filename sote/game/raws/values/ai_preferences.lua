@@ -158,7 +158,7 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 		end
 
 		if flags.power_abuse then
-			base_value = base_value - 10
+			base_value = base_value - 25
 		end
 
 		return base_value

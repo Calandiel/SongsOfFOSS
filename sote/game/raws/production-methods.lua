@@ -1,4 +1,5 @@
 local JOBTYPE = require "game.raws.job_types"
+local dbm = require "game.economy.diet-breadth-model"
 
 ---@class (exact) ProductionMethod
 ---@field __index ProductionMethod
@@ -107,19 +108,9 @@ function ProductionMethod:get_efficiency(province)
 	end
 
 	local total_efficiency = 0
-	local tile_count = 0
 	for _, tile in pairs(province.tiles) do
-		tile_count = tile_count + 1
-		local nature_yield = 1
 		local crop_yield = 1
-		if self.forest_dependence > 0 then
-			nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9
-		end
-		if self.nature_yield_dependence > 0 then
-			nature_yield = tile.broadleaf * 1.5 + tile.conifer * 1.2 + tile.shrub * 0.9 + tile.grass * 1
-		end
 		if self.crop then
-			nature_yield = tile.grass * 1.3
 			local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
 			local t = (jan_temp + jul_temp) / 2
 			local r = (jan_rain + jul_rain) / 2
@@ -162,9 +153,19 @@ function ProductionMethod:get_efficiency(province)
 				soil_efficiency = soil_efficiency * math.max(0, d)
 			end
 		end
-		total_efficiency = total_efficiency + nature_yield * crop_yield * soil_efficiency
+		total_efficiency = total_efficiency + crop_yield * soil_efficiency
 	end
-	return total_efficiency / tile_count
+	local nature_yield = 1
+	if self.foraging then
+		nature_yield = nature_yield * dbm.foraging_efficiency(province.foragers_limit, province.foragers)
+	end
+	if self.forest_dependence > 0 then
+		nature_yield = nature_yield * (province.foragers_targets[dbm.ForageResource.Wood].amount / province.size) * self.forest_dependence
+	end
+	if self.nature_yield_dependence > 0 then
+		nature_yield = nature_yield * math.max(0, province.foragers_limit / province.size) * self.nature_yield_dependence
+	end
+	return total_efficiency * nature_yield / province.size
 end
 
 return ProductionMethod

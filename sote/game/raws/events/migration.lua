@@ -24,6 +24,10 @@ local messages          = require "game.raws.effects.messages"
 
 function load()
 	---@class (exact) MigrationData
+	---@field organizer Character?
+	---@field leader Character?
+	---@field travel_cost number?
+	---@field pop_payment number?
 	---@field target_province Province
 	---@field origin_province Province
 	---@field invasion boolean
@@ -190,24 +194,38 @@ function load()
 			---@type Technology[]
 			local migration_pool_technology = {}
 
-
-			local expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province,
-				political_effects.reasons.ExpeditionLeader)
-
+			local expedition_leader = associated_data.leader
+			-- make new noble no leader character provided
 			if expedition_leader == nil then
-				return
+				expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province,
+					political_effects.reasons.ExpeditionLeader)
+				if expedition_leader == nil then
+					error("FAILED TO PICK EXPEDITION LEADER IN MIGRATION-COLONIZE")
+					return
+				end
 			end
 
-			local expedition_size = 6
+			-- populate temporary tables with not drafted pops	---collect colonization information
+			---@param province any
+			---@return table<POP, POP> valid_family_units
+			---@return integer  valid_family_count
+			local function valid_home_family_units(province)
+				local family_units = tabb.filter(province.all_pops, function (a)
+					return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age
+				end)
+				local family_count = tabb.size(family_units)
+				return family_units, family_count
+			end
+			-- move up to 6 but no more than half the home family units
+			local valid_family_units, _ = valid_home_family_units(root.realm.capitol)
 			local candidates = 0
 
-			-- populate temporary tables with not drafted pops
-			for _, pop in pairs(associated_data.origin_province.all_pops) do
-				if not pop.unit_of_warband and pop.home_province == associated_data.origin_province then
+			for _, pop in pairs(valid_family_units) do
+				if (not pop.unit_of_warband) then
 					table.insert(migration_pool_pops, pop)
 					candidates = candidates + 1
 				end
-				if candidates >= expedition_size then
+				if candidates >= 6 then
 					break
 				end
 			end
@@ -216,23 +234,40 @@ function load()
 				table.insert(migration_pool_technology, technology)
 			end
 
+			local pop_payment = associated_data.pop_payment
 			-- move pops from origin province
 			for _, pop in pairs(migration_pool_pops) do
 				if not pop.employer or not pop.employer.type.movable then
 					associated_data.origin_province:fire_pop(pop)
 				end
-				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
+				-- give half payment to migrating pop, keep other half for leader and realm
+				if pop_payment then
+					pop_payment = pop_payment * 0.5
+					local family_payment = pop_payment / 6
+					economic_effects.add_pop_savings(pop, family_payment, economic_effects.reasons.Donation)
+				end
+				-- need to set new home province first before transfering so children are pulled along
 				associated_data.origin_province:transfer_home(pop, associated_data.target_province)
+				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
 			end
 
-			-- move character
-			associated_data.origin_province:transfer_character(
-				expedition_leader,
-				associated_data.target_province
-			)
+			--disolve warband to return warriors to home province before transfering character
+			if expedition_leader.leading_warband then
+				require "game.raws.effects.military".dissolve_warband(root)
+			end
 
 			-- set new home of character
 			associated_data.origin_province:transfer_home(
+				expedition_leader,
+				associated_data.target_province
+			)
+			-- give half remaining payment to leader, rest to new realm
+			if pop_payment then
+				pop_payment = pop_payment * 0.5
+				economic_effects.add_pop_savings(expedition_leader, pop_payment, economic_effects.reasons.Donation)
+			end
+			-- move character to new home
+			associated_data.origin_province:transfer_character(
 				expedition_leader,
 				associated_data.target_province
 			)
@@ -255,6 +290,11 @@ function load()
 			new_realm.primary_race = colonizer_realm.primary_race
 			new_realm.primary_culture = colonizer_realm.primary_culture
 			new_realm.primary_faith = colonizer_realm.primary_faith
+
+			-- give remaining payment to the new realm
+			if pop_payment then
+				economic_effects.change_treasury(new_realm, pop_payment, economic_effects.reasons.Donation)
+			end
 
 			-- Initialize realm colors
 			new_realm.r = math.max(0, math.min(1, (colonizer_realm.primary_culture.r + (love.math.random() * 0.4 - 0.2))))
@@ -287,9 +327,9 @@ function load()
 				WORLD:set_settled_province(associated_data.target_province)
 			end
 
-			if associated_data.target_province.name == "<uninhabited>" then
-				associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name()
-			end
+			--if associated_data.target_province.name == "<uninhabited>" then
+			associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name() -- manifest destiny!
+			--end
 
 			political_effects.transfer_power(new_realm, expedition_leader, political_effects.reasons.ExpeditionLeader)
 
@@ -311,18 +351,21 @@ function load()
 
 			---@type MigrationData
 			local migration_data_1 = {
+				organizer = root,
 				target_province = temp_target,
 				origin_province = associated_data.origin_province,
 				invasion = false
 			}
 			---@type MigrationData
 			local migration_data_2 = {
+				organizer = root,
 				target_province = associated_data.origin_province,
 				origin_province = associated_data.target_province,
 				invasion = false
 			}
 			---@type MigrationData
 			local migration_data_3 = {
+				organizer = root,
 				target_province = associated_data.target_province,
 				origin_province = temp_target,
 				invasion = false
@@ -391,6 +434,7 @@ function load()
 
 						---@type MigrationData
 						local migration_data = {
+							organizer = associated_data,
 							origin_province = associated_data.realm.capitol,
 							target_province = character.realm.capitol,
 							invasion = false
@@ -483,6 +527,7 @@ function load()
 					outcome = function()
 						---@type MigrationData
 						local migration_data = {
+							organizer = associated_data,
 							origin_province = associated_data.realm.capitol,
 							target_province = character.realm.capitol,
 							invasion = false
@@ -758,6 +803,7 @@ function load()
 
 			---@type MigrationData
 			local migration_data = {
+				organizer = root,
 				target_province = target,
 				origin_province = root.realm.capitol,
 				invasion = true

@@ -148,7 +148,7 @@ function tb.draw(gam)
 			"My personal savings")
 
 
-		local amount = economic_effects.available_use_case_from_inventory(character, 'calories')
+		local amount = economic_effects.available_use_case_from_inventory(character.inventory, 'calories')
 		uit.sqrt_number_entry_icon(
 			"sliced-bread.png",
 			amount,

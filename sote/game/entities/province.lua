@@ -22,7 +22,6 @@ local prov = {}
 ---@field neighbors table<Province, Province>
 ---@field movement_cost number
 ---@field center Tile The tile which contains this province's settlement, if there is any.
----@field flora_spread {conifer: number, broadleaf: number, shrub: number, grass: number} average confier, broadleaf, shrub grass percentage of province
 ---@field infrastructure_needed number
 ---@field infrastructure number
 ---@field infrastructure_investment number
@@ -45,6 +44,7 @@ local prov = {}
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_limit number
+---@field foragers_targets table<ForageResource, {icon: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}>
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
 ---@field mood number how local population thinks about the state
@@ -110,6 +110,7 @@ function prov.Province:new(fake_flag)
 	o.local_income = 0
 	o.local_building_upkeep = 0
 	o.foragers = 0
+	o.foragers_targets = {}
 	o.infrastructure_needed = 0
 	o.infrastructure = 0
 	o.infrastructure_investment = 0
@@ -330,8 +331,13 @@ function prov.Province:transfer_home(pop, target)
 	end
 
 	self:set_home_pop_nil_wrapper(pop)
-
 	target:set_home(pop)
+	local children = tabb.filter(pop.children, function(c)
+		return self.all_pops[c] and not c.unit_of_warband and not c.employer
+	end)
+	for _, c in pairs(children) do
+		self:transfer_home(c, target)
+	end
 end
 
 --- Removes a character from the province
@@ -413,7 +419,6 @@ function prov.Province:fire_pop(pop)
 	if pop.employer then
 		pop.employer.workers[pop] = nil
 		if tabb.size(pop.employer.workers) == 0 then
-			pop.employer.work_ratio = 1
 			pop.employer.last_income = 0
 			pop.employer.last_donation_to_owner = 0
 			pop.employer.subsidy_last = 0
@@ -647,7 +652,7 @@ end
 function prov.Province:get_infrastructure_efficiency()
 	local inf = 0
 	if self.infrastructure_needed > 0 then
-		inf = self.infrastructure / self.infrastructure_needed
+		inf = 2 * self.infrastructure / (self.infrastructure + self.infrastructure_needed)
 	end
 	return inf
 end

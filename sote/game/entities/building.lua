@@ -15,7 +15,6 @@
 ---@field earn_from_outputs table<TradeGoodReference, number>
 ---@field amount_of_inputs table<TradeGoodReference, number>
 ---@field amount_of_outputs table<TradeGoodReference, number>
----@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 ---@field last_donation_to_owner number
 ---@field unused number
 ------@field employ fun(self:Building, pop:POP, province:Province)

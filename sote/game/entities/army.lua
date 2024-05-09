@@ -30,7 +30,7 @@ end
 
 ---@return number
 function army:get_loot_capacity()
-	local cap = 0.01
+	local cap = 0
 	for _, warband in pairs(self.warbands) do
 		cap = cap + warband:get_loot_capacity()
 	end

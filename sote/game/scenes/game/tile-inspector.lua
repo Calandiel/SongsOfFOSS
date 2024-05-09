@@ -9,6 +9,8 @@ local tabb = require "engine.table"
 local ef = require "game.raws.effects.economic"
 local btb = require "game.scenes.game.widgets.building-type-buttons"
 
+local dbm = require "game.economy.diet-breadth-model"
+
 local military_effects = require "game.raws.effects.military"
 
 re.cached_scrollbar = 0
@@ -396,36 +398,65 @@ local function trade_widget(gam, tile, panel)
 		:grid(3)
 		:build()
 
-	uit.count_entry(
-		"Car. cap.: ",
-		tile:province().foragers_limit,
+	uit.generic_number_field(
+		"droplets.png",
+		tile.province.hydration,
 		layout:next(unit * 5, unit * 1),
-		"Carrying capacity"
+		"Number of humans that can survive of off natural water resources.",
+		uit.NUMBER_MODE.BALANCE,
+		uit.NAME_MODE.ICON
 	)
 
-	uit.count_entry(
-		"Foragers: ",
-		tile:province().foragers,
+	uit.generic_number_field(
+		"basket.png",
+		tile.province.foragers_limit,
 		layout:next(unit * 5, unit * 1),
-		"Used carrying capacity"
+		"This province has a carrying capacity of about " .. uit.to_fixed_point2(tile.province.foragers_limit)
+			.." humans from " .. tile.province.size .." tiles",
+		uit.NUMBER_MODE.BALANCE,
+		uit.NAME_MODE.ICON
+	)
+	local foraging_efficiency = dbm.foraging_efficiency(tile.province.foragers_limit, tile.province.foragers)
+	uit.generic_number_field(
+		"ages.png",
+		tile.province.foragers,
+		layout:next(unit * 5, unit * 1),
+		"There are currently the equivalent of " .. uit.to_fixed_point2(tile.province.foragers)
+			.. " full-time foragers collecting resources, reducing the foraging efficiency to "
+			.. uit.to_fixed_point2(foraging_efficiency * 100).. "%.",
+		uit.NUMBER_MODE.BALANCE,
+		uit.NAME_MODE.ICON
 	)
 
-	uit.count_entry(
-		"Hydr.:",
-		tile:province().hydration,
-		layout:next(unit * 5, unit * 1),
-		"Number of humans that can survive of off natural water resources."
-	)
+
+	tabb.accumulate(tile.province.foragers_targets, nil, function (_, resource, values)
+		uit.generic_number_field(
+			values.icon,
+			values.amount,
+			layout:next(unit * 5, unit * 1),
+			"This province has " .. uit.to_fixed_point2(values.amount) .. " units of " .. dbm.ForageResourceName[resource]
+				.. ".\n Gathering this resource returns:" .. tabb.accumulate(values.output, "", function (a, good, amount)
+					return a .." " .. good .. " (" .. uit.to_fixed_point2(amount) .. ")"
+				end) .. ".\nThe outputs of " .. dbm.ForageActionWord[values.handle] .. " " .. dbm.ForageResourceName[resource] .. " is further modified by racial efficiencies.",
+			uit.NUMBER_MODE.BALANCE,
+			uit.NAME_MODE.ICON
+		)
+	end)
 
 	local resource_string = "n/a"
+	local resource_tooltip = "There is no special resource on this tile."
+	local resource_icon = "uncertainty.png"
 	if tile.resource then
 		resource_string = tile.resource.name
+		resource_tooltip = "This tile has a source of " .. tile.resource.name .. "."
+		resource_icon = tile.resource.icon
 	end
-	uit.data_entry(
-		"Res.:",
+	uit.generic_string_field(
+		resource_icon,
 		resource_string,
 		layout:next(unit * 5, unit * 1),
-		"Local resources."
+		resource_tooltip,
+		uit.NAME_MODE.ICON
 	)
 end
 

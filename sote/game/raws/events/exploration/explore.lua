@@ -279,11 +279,11 @@ return function()
 					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
 					tooltip = "Buy supplies from locals",
 					viable = function()
-						local result, _ = economic_triggers.can_buy_use(character, 'calories', 1)
+						local result, _ = economic_triggers.can_buy_use(character.province, character.savings, 'calories', 1)
 						return result
 					end,
 					outcome = function()
-						economic_effects.buy_use(character, 'calories', 1)
+						economic_effects.character_buy_use(character, 'calories', 1)
 						WORLD:emit_immediate_event("exploration-progress", character, associated_data)
 					end,
 					ai_preference = function()
