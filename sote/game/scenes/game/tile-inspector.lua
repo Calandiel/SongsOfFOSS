@@ -400,7 +400,7 @@ local function trade_widget(gam, tile, panel)
 
 	uit.generic_number_field(
 		"droplets.png",
-		tile.province.hydration,
+		tile:province().hydration,
 		layout:next(unit * 5, unit * 1),
 		"Number of humans that can survive of off natural water resources.",
 		uit.NUMBER_MODE.BALANCE,
@@ -409,19 +409,19 @@ local function trade_widget(gam, tile, panel)
 
 	uit.generic_number_field(
 		"basket.png",
-		tile.province.foragers_limit,
+		tile:province().foragers_limit,
 		layout:next(unit * 5, unit * 1),
-		"This province has a carrying capacity of about " .. uit.to_fixed_point2(tile.province.foragers_limit)
-			.." humans from " .. tile.province.size .." tiles",
+		"This province has a carrying capacity of about " .. uit.to_fixed_point2(tile:province().foragers_limit)
+			.." humans from " .. tile:province().size .." tiles",
 		uit.NUMBER_MODE.BALANCE,
 		uit.NAME_MODE.ICON
 	)
-	local foraging_efficiency = dbm.foraging_efficiency(tile.province.foragers_limit, tile.province.foragers)
+	local foraging_efficiency = dbm.foraging_efficiency(tile:province().foragers_limit, tile:province().foragers)
 	uit.generic_number_field(
 		"ages.png",
-		tile.province.foragers,
+		tile:province().foragers,
 		layout:next(unit * 5, unit * 1),
-		"There are currently the equivalent of " .. uit.to_fixed_point2(tile.province.foragers)
+		"There are currently the equivalent of " .. uit.to_fixed_point2(tile:province().foragers)
 			.. " full-time foragers collecting resources, reducing the foraging efficiency to "
 			.. uit.to_fixed_point2(foraging_efficiency * 100).. "%.",
 		uit.NUMBER_MODE.BALANCE,
@@ -429,7 +429,7 @@ local function trade_widget(gam, tile, panel)
 	)
 
 
-	tabb.accumulate(tile.province.foragers_targets, nil, function (_, resource, values)
+	tabb.accumulate(tile:province().foragers_targets, nil, function (_, resource, values)
 		uit.generic_number_field(
 			values.icon,
 			values.amount,
