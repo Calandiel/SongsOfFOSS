@@ -218,13 +218,15 @@ function gam.on_tile_click()
 		if tab.contains(ARGS, "--dev") then
 			print("Tile", tile_id)
 			tab.print(tile)
+
+			local climate_cell = WORLD.tile_to_climate_cell[tile]
 			print("Climate Cell")
-			tab.print(tile.climate_cell)
+			tab.print(climate_cell)
 
 			local la, lo = tile:latlon()
 			print(la, lo)
 			local utt = require "game.climate.utils"
-			local x, y = utt.get_x_y(tile.climate_cell.cell_id)
+			local x, y = utt.get_x_y(climate_cell.cell_id)
 			local cla, clo = utt.latitude(y), utt.longitude(x)
 			print(cla, clo)
 
@@ -234,8 +236,8 @@ function gam.on_tile_click()
 				print("Biome:", nil)
 			end
 
-			if tile.province then
-				print("Foragers limit: ", tile.province.foragers_limit)
+			if tile:province() then
+				print("Foragers limit: ", tile:province().foragers_limit)
 			end
 		end
 
@@ -626,7 +628,7 @@ function gam.click_tile(tile_id)
 	gam.clicked_tile = WORLD.tiles[tile_id]
 
 	if gam.clicked_tile then
-		gam.selected.province = gam.clicked_tile.province
+		gam.selected.province = gam.clicked_tile:province()
 	end
 
 	gam.reset_decision_selection()
@@ -909,7 +911,7 @@ function gam.draw()
 			local character = WORLD.player_character
 			if character and character.realm then
 				province_visible = false
-				if character.realm.known_provinces[tile.province] then
+				if character.realm.known_provinces[tile:province()] then
 					province_visible = true
 				end
 			end
@@ -931,8 +933,8 @@ function gam.draw()
 		local to_draw = flood_fill
 		local center_tile = WORLD.tiles
 			[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
-		visited[center_tile.province] = center_tile.province
-		qq:enqueue(center_tile.province)
+		visited[center_tile:province()] = center_tile:province()
+		qq:enqueue(center_tile:province())
 		while qq:length() > 0 and to_draw > 0 do
 			to_draw = to_draw - 1
 			local td = qq:dequeue()
@@ -1069,8 +1071,8 @@ function gam.draw()
 			local to_draw = flood_fill
 			local center_tile = WORLD.tiles
 				[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
-			visited[center_tile.province] = center_tile.province
-			qq:enqueue(center_tile.province)
+			visited[center_tile:province()] = center_tile:province()
+			qq:enqueue(center_tile:province())
 			while qq:length() > 0 and to_draw > 0 do
 				to_draw = to_draw - 1
 				local td = qq:dequeue()
@@ -1359,7 +1361,7 @@ function gam.draw()
 		if WORLD.player_character ~= nil then
 			local realm = WORLD.player_character.realm
 			local current_pro = WORLD.player_character.province
-			local pro = WORLD.tiles[gam.clicked_tile_id].province
+			local pro = WORLD.tiles[gam.clicked_tile_id]:province()
 			if realm then
 				if (realm.known_provinces[pro] == nil) and (pro ~= current_pro) then
 					tile_data_viewable = false
@@ -1402,10 +1404,10 @@ function gam.draw()
 				skip_frame = true
 			end
 
-			local realm = WORLD.tiles[new_clicked_tile].province.realm
+			local realm = WORLD.tiles[new_clicked_tile]:province().realm
 
 			if gam.inspector == "character" and realm then
-				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
+				if WORLD.tiles[new_clicked_tile]:province().realm ~= nil then
 					if gam.selected.character == realm.leader then
 						gam.inspector = "tile"
 					else
@@ -1413,21 +1415,21 @@ function gam.draw()
 					end
 				end
 			elseif gam.inspector == "realm" then
-				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
-					if gam.selected.realm == WORLD.tiles[new_clicked_tile].province.realm then
+				if WORLD.tiles[new_clicked_tile]:province().realm ~= nil then
+					if gam.selected.realm == WORLD.tiles[new_clicked_tile]:province().realm then
 						-- If we double click a realm, change the inspector to tile
 						gam.inspector = "tile"
 					else
-						gam.selected.realm = WORLD.tiles[new_clicked_tile].province.realm
+						gam.selected.realm = WORLD.tiles[new_clicked_tile]:province().realm
 					end
 				end
 			elseif gam.inspector == "army" then
-				if WORLD.tiles[new_clicked_tile].province.realm ~= nil then
-					if gam.selected.realm == WORLD.tiles[new_clicked_tile].province.realm then
+				if WORLD.tiles[new_clicked_tile]:province().realm ~= nil then
+					if gam.selected.realm == WORLD.tiles[new_clicked_tile]:province().realm then
 						-- If we double click a realm, change the inspector to tile
 						gam.inspector = "tile"
 					else
-						gam.selected.province = WORLD.tiles[new_clicked_tile].province
+						gam.selected.province = WORLD.tiles[new_clicked_tile]:province()
 					end
 				end
 			elseif tile_inspectors[gam.inspector] then
@@ -1644,16 +1646,16 @@ local function neighbor_data(tile)
 	local g = 0
 	local b = 0
 	local a = 0
-	if up_neigh.province ~= tile.province then
+	if up_neigh:province() ~= tile:province() then
 		r = 1
 	end
-	if down_neigh.province ~= tile.province then
+	if down_neigh:province() ~= tile:province() then
 		g = 1
 	end
-	if right_neigh.province ~= tile.province then
+	if right_neigh:province() ~= tile:province() then
 		b = 1
 	end
-	if left_neigh.province ~= tile.province then
+	if left_neigh:province() ~= tile:province() then
 		a = 1
 	end
 	return r, g, b, a
@@ -1689,8 +1691,8 @@ end
 ---@param tile2 Tile
 ---@return integer
 local function same_realm_test(tile1, tile2)
-	local realm_1 = tile1.province.realm
-	local realm_2 = tile2.province.realm
+	local realm_1 = tile1:province().realm
+	local realm_2 = tile2:province().realm
 
 	if realm_1 == nil then
 		if realm_2 == nil then
@@ -1802,10 +1804,10 @@ function gam.recalculate_province_map()
 		local x, y = gam.tile_id_to_color_coords(tile)
 		local pixel_index = x + y * dim
 
-		if tile.province then
-			pointer[pixel_index * 4 + 0] = 255 * tile.province.r
-			pointer[pixel_index * 4 + 1] = 255 * tile.province.g
-			pointer[pixel_index * 4 + 2] = 255 * tile.province.b
+		if tile:province() then
+			pointer[pixel_index * 4 + 0] = 255 * tile:province().r
+			pointer[pixel_index * 4 + 1] = 255 * tile:province().g
+			pointer[pixel_index * 4 + 2] = 255 * tile:province().b
 			pointer[pixel_index * 4 + 3] = 255 * 1
 		end
 
@@ -1887,23 +1889,27 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 
 	local corners = 0
 
+	if TILE_FRIENDS == nil then
+		TILE_FRIENDS = {}
+	end
+
 	for _, province in pairs(provinces_to_update) do
 		for _, tile in pairs(province.tiles) do
 			local current_tile_data = {0, 0, 0, 0}
 			local x, y = gam.tile_id_to_color_coords(tile)
 			local pixel_index = x + y * dim
 
-			if tile.friends ~= nil then
+			if TILE_FRIENDS[tile] ~= nil then
 				for i = 1, 4 do
 					local csum = 0
 					local count = 3
 
 					csum = csum + data_function(tile, tile)
-					csum = csum + data_function(tile, tile.friends[i][2]) * direct_neigbours_weight
-					csum = csum + data_function(tile, tile.friends[i][3]) * direct_neigbours_weight
+					csum = csum + data_function(tile, TILE_FRIENDS[tile][i][2]) * direct_neigbours_weight
+					csum = csum + data_function(tile, TILE_FRIENDS[tile][i][3]) * direct_neigbours_weight
 
-					if tile.friends[i][4] ~= nil then
-						csum = csum + data_function(tile, tile.friends[i][4]) * secondary_neighbour_weight
+					if TILE_FRIENDS[tile][i][4] ~= nil then
+						csum = csum + data_function(tile, TILE_FRIENDS[tile][i][4]) * secondary_neighbour_weight
 						count = count + 1
 					end
 
@@ -1916,7 +1922,7 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 			do
 				local neighbours = {tile:get_neighbor(1), tile:get_neighbor(2), tile:get_neighbor(3), tile:get_neighbor(4)}
 
-				tile.friends = {{}, {}, {}, {}}
+				TILE_FRIENDS[tile] = {{}, {}, {}, {}}
 
 				local corner_flag = false
 				local corner_pair = {0, 0, 0, 0}
@@ -1947,15 +1953,15 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 						if counter == 2 then
 							local pair_index = get_pair_index(visiter_neigbours)
 							current_tile_data[pair_index] = data_function(tile, tile)
-							table.insert(tile.friends[pair_index], tile)
+							table.insert(TILE_FRIENDS[tile][pair_index], tile)
 							for _, cached_neigbour in ipairs(neighbours) do
 								if visiter_neigbours[_] == 1 then
 									current_tile_data[pair_index] = current_tile_data[pair_index] + data_function(tile, cached_neigbour) * direct_neigbours_weight
-									table.insert(tile.friends[pair_index], cached_neigbour)
+									table.insert(TILE_FRIENDS[tile][pair_index], cached_neigbour)
 								end
 							end
 							current_tile_data[pair_index] = current_tile_data[pair_index] + data_function(tile, neighbour_of_neighour) * secondary_neighbour_weight
-							table.insert(tile.friends[pair_index], neighbour_of_neighour)
+							table.insert(TILE_FRIENDS[tile][pair_index], neighbour_of_neighour)
 							current_tile_data[pair_index] = current_tile_data[pair_index] * 0.25
 						end
 						::continue::
@@ -1966,11 +1972,11 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 					corners = corners + 1
 					local pair_index = get_pair_index(corner_pair)
 					current_tile_data[pair_index] = data_function(tile, tile)
-					table.insert(tile.friends[pair_index], tile)
+					table.insert(TILE_FRIENDS[tile][pair_index], tile)
 					for _, cached_neigbour in pairs(neighbours) do
 						if corner_pair[_] == 1 then
 							current_tile_data[pair_index] = current_tile_data[pair_index] + data_function(tile, cached_neigbour) * direct_neigbours_weight
-							table.insert(tile.friends[pair_index], cached_neigbour)
+							table.insert(TILE_FRIENDS[tile][pair_index], cached_neigbour)
 						end
 					end
 					current_tile_data[pair_index] = current_tile_data[pair_index] / 3

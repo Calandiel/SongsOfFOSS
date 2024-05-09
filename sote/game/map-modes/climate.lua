@@ -4,11 +4,11 @@ local ut = require "game.map-modes.utils"
 local kopp = require "game.climate.koppen"
 
 function cli.itcz()
-	for _, tile in pairs(WORLD.tiles) do
+	for tile, cell in pairs(WORLD.tile_to_climate_cell) do
 		tile:set_real_color(
-			tile.climate_cell.itcz_july,
+			cell.itcz_july,
 			0,
-			tile.climate_cell.itcz_january
+			cell.itcz_january
 		)
 	end
 end

@@ -47,7 +47,7 @@ function mm.make_minimap_image_data(game, width, height, province)
 
 			if character then
 				visible = false
-				if character.realm.known_provinces[tt.province] then
+				if character.realm.known_provinces[tt:province()] then
 					visible = true
 				end
 			end
