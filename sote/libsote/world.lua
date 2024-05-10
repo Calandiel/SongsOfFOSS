@@ -17,6 +17,11 @@ typedef struct {
 } material_template_t
 ]]
 
+local function allocate_array(name, size, type)
+	print("[world allocation] " .. name .. " size: " .. string.format("%.2f", size * ffi.sizeof(type) / 1024 / 1024) .. " MB")
+	return ffi.new(type .. "[" .. size .. "]")
+end
+
 function world:new(world_size, seed)
 	local obj = {}
 	setmetatable(obj, self)
@@ -26,25 +31,29 @@ function world:new(world_size, seed)
 	obj.seed = seed
 	obj.rng = require("libsote.randomness"):new(seed)
 	obj.tile_count = obj.size * obj.size * 30 + 2
+	print("[world allocation] tile count: " .. obj.tile_count)
 	obj.coord = {}
 	obj.coord_by_tile_id = {}
 	obj.climate_cells = {}
 	obj.waterbodies = {}
 
-	obj.neighbors         = ffi.new("int32_t["  .. obj.tile_count * 6 .. "]")
-	obj.waterbody_by_tile = ffi.new("uint32_t[" .. obj.tile_count .. "]")
+	obj.neighbors         = allocate_array("neighbors",         obj.tile_count * 6, "int32_t")
+	obj.waterbody_by_tile = allocate_array("waterbody_by_tile", obj.tile_count,     "uint32_t")
 
-	obj.colatitude        = ffi.new("float["    .. obj.tile_count .. "]")
-	obj.minus_longitude   = ffi.new("float["    .. obj.tile_count .. "]")
-	obj.elevation         = ffi.new("float["    .. obj.tile_count .. "]")
-	obj.hilliness         = ffi.new("float["    .. obj.tile_count .. "]")
-	obj.rock_type         = ffi.new("uint8_t["  .. obj.tile_count .. "]")
-	obj.volcanic_activity = ffi.new("int16_t["  .. obj.tile_count .. "]")
-	obj.is_land           = ffi.new("bool["     .. obj.tile_count .. "]")
-	obj.plate             = ffi.new("uint8_t["  .. obj.tile_count .. "]")
+	obj.colatitude        = allocate_array("colatitude",        obj.tile_count, "float")
+	obj.minus_longitude   = allocate_array("minus_longitude",   obj.tile_count, "float")
+	obj.elevation         = allocate_array("elevation",         obj.tile_count, "float")
+	obj.hilliness         = allocate_array("hilliness",         obj.tile_count, "float")
+	obj.rock_type         = allocate_array("rock_type",         obj.tile_count, "uint8_t")
+	obj.volcanic_activity = allocate_array("volcanic_activity", obj.tile_count, "int16_t")
+	obj.is_land           = allocate_array("is_land",           obj.tile_count, "bool")
+	obj.plate             = allocate_array("plate",             obj.tile_count, "uint8_t")
 
-	obj.rocks             = ffi.new("material_template_t[" .. obj.tile_count .. "]")
-	obj.ice               = ffi.new("uint16_t["            .. obj.tile_count .. "]")
+	obj.rocks             = allocate_array("rocks", obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like a index to a material table?
+	obj.ice               = allocate_array("ice",   obj.tile_count, "uint16_t")
+	obj.sand              = allocate_array("sand",  obj.tile_count, "uint16_t")
+	obj.silt              = allocate_array("silt",  obj.tile_count, "uint16_t")
+	obj.clay              = allocate_array("clay",  obj.tile_count, "uint16_t")
 
 	return obj
 end
@@ -306,6 +315,13 @@ function world:_check_valid_indices()
 	end
 
 	return true
+end
+
+-- Careful here, not all arrays are of tile_count size
+function world:fill_ffi_array(array, val)
+	for i = 0, self.tile_count - 1 do
+		array[i] = val
+	end
 end
 
 return world

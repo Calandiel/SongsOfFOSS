@@ -30,11 +30,22 @@ local function check_constraints()
 	return true
 end
 
+local function fill_ffi_array(array, value)
+	wg.world:fill_ffi_array(array, value)
+end
+
+local function intial_soil_texture()
+	fill_ffi_array(wg.world.sand, 333)
+	fill_ffi_array(wg.world.silt, 334)
+	fill_ffi_array(wg.world.clay, 333)
+end
+
 local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
 	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
+	run_with_profiling(intial_soil_texture, "intial_soil_texture")
 end
 
 local function post_tectonic()
@@ -59,7 +70,6 @@ function coroutine.resume(...)
 	if not state then
 		error(tostring(result), 2)
 	end
-	return
 end
 
 function wg.init()
