@@ -43,7 +43,7 @@ function waterbody:set_lowest_shore_tile(world)
 
 	local lowest_elev = 100000;
 	for ti, _ in pairs(self.perimeter) do
-		local true_elev_for_waterflow = world:true_elevation_for_waterflow(ti)
+		local true_elev_for_waterflow = world:true_elevation(ti) -- perimeter tiles are always land tiles
 
 		if true_elev_for_waterflow < lowest_elev then
 			self.lowest_shore_tile = ti

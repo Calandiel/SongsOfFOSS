@@ -19,7 +19,7 @@ typedef struct {
 
 local function allocate_array(name, size, type)
 	print("[world allocation] " .. name .. " size: " .. string.format("%.2f", size * ffi.sizeof(type) / 1024 / 1024) .. " MB")
-	return ffi.new(type .. "[" .. size .. "]")
+	return ffi.new(type .. "[?]", size)
 end
 
 function world:new(world_size, seed)
@@ -37,8 +37,9 @@ function world:new(world_size, seed)
 	obj.climate_cells = {}
 	obj.waterbodies = {}
 
-	obj.neighbors         = allocate_array("neighbors",         obj.tile_count * 6, "int32_t")
-	obj.waterbody_by_tile = allocate_array("waterbody_by_tile", obj.tile_count,     "uint32_t")
+	obj.neighbors          = allocate_array("neighbors",          obj.tile_count * 6, "int32_t")
+	obj.waterbody_by_tile  = allocate_array("waterbody_by_tile",  obj.tile_count,     "uint32_t")
+	obj.tiles_by_elevation = allocate_array("tiles_by_elevation", obj.tile_count,     "uint32_t")
 
 	obj.colatitude        = allocate_array("colatitude",        obj.tile_count, "float")
 	obj.minus_longitude   = allocate_array("minus_longitude",   obj.tile_count, "float")
@@ -49,7 +50,7 @@ function world:new(world_size, seed)
 	obj.is_land           = allocate_array("is_land",           obj.tile_count, "bool")
 	obj.plate             = allocate_array("plate",             obj.tile_count, "uint8_t")
 
-	obj.rocks             = allocate_array("rocks", obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like a index to a material table?
+	obj.rocks             = allocate_array("rocks", obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
 	obj.ice               = allocate_array("ice",   obj.tile_count, "uint16_t")
 	obj.sand              = allocate_array("sand",  obj.tile_count, "uint16_t")
 	obj.silt              = allocate_array("silt",  obj.tile_count, "uint16_t")
@@ -213,14 +214,28 @@ function world:get_climate_data(q, r, face)
 	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
 end
 
---- Adjusted elevation for waterflow. Includes ice height.
+-- We want to determine whether we are measuring waterlevel or elevation. Then we add ice on top of that if there is ice.
 ---@param ti number 0-based tile index
-function world:true_elevation_for_waterflow(ti)
-	if self.elevation[ti] > 0 then
-		return self.elevation[ti] + self.ice[ti]
-	else
-		return self.ice[ti] + self.elevation[ti] * 0.001 -- Subtract some of the ocean depth in order to give variation between some uniform ice tiles sitting on the ocean
+function world:true_elevation(ti)
+	if self.is_land[ti] then -- If land, consider elevation and ice
+		if self.elevation[ti] > 0 then
+			return self.elevation[ti] + self.ice[ti]
+		else
+			return self.elevation[ti] * 0.001 + self.ice[ti] -- Subtract some of the ocean depth in order to give variation between some uniform ice tiles sitting on the ocean
+		end
 	end
+
+	-- If lake or ocean, consider water level of the lake + ice
+
+	if self:is_waterbody_valid(ti) then
+		return self.waterbodies[self.waterbody_by_tile[ti]].waterlevel + self.ice[ti] + 0.0001
+	else
+		return 0
+	end
+end
+
+function world:create_elevation_list()
+	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(function(i) return self:true_elevation(i) end, self.tile_count)
 end
 
 local wb = require("libsote.hydrology.waterbody")

@@ -46,6 +46,7 @@ local function gen_phase_02()
 	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
 	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
 	run_with_profiling(intial_soil_texture, "intial_soil_texture")
+	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
 end
 
 local function post_tectonic()
@@ -158,7 +159,7 @@ function wg.generate_coro()
 
 	wg.message = "Caching tile coordinates"
 	coroutine.yield()
-	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord")
+	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord") -- this sometimes takes over a minute instead of the usual 5-6 seconds; this started happening after the convertion to coroutine; why?
 
 	gen_phase_02()
 
