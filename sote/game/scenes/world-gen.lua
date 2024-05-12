@@ -40,13 +40,16 @@ local function intial_soil_texture()
 	fill_ffi_array(wg.world.clay, 333)
 end
 
+local waterflow = require "libsote.hydrology.calculate-waterflow"
+
 local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
-	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
+	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate") -- not really a generation, it's using the existing implementation
 	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
 	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
 	run_with_profiling(intial_soil_texture, "intial_soil_texture")
 	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
+	run_with_profiling(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow")
 end
 
 local function post_tectonic()

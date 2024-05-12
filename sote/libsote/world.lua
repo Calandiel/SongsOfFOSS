@@ -50,11 +50,15 @@ function world:new(world_size, seed)
 	obj.is_land           = allocate_array("is_land",           obj.tile_count, "bool")
 	obj.plate             = allocate_array("plate",             obj.tile_count, "uint8_t")
 
-	obj.rocks             = allocate_array("rocks", obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
-	obj.ice               = allocate_array("ice",   obj.tile_count, "uint16_t")
-	obj.sand              = allocate_array("sand",  obj.tile_count, "uint16_t")
-	obj.silt              = allocate_array("silt",  obj.tile_count, "uint16_t")
-	obj.clay              = allocate_array("clay",  obj.tile_count, "uint16_t")
+	obj.rocks             = allocate_array("rocks",           obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
+	obj.jan_rainfall      = allocate_array("jan_rainfall",    obj.tile_count, "float")
+	obj.jan_temperature   = allocate_array("jan_temperature", obj.tile_count, "float")
+	obj.jul_rainfall      = allocate_array("jul_rainfall",    obj.tile_count, "float")
+	obj.jul_temperature   = allocate_array("jul_temperature", obj.tile_count, "float")
+	obj.ice               = allocate_array("ice",             obj.tile_count, "uint16_t")
+	obj.sand              = allocate_array("sand",            obj.tile_count, "uint16_t")
+	obj.silt              = allocate_array("silt",            obj.tile_count, "uint16_t")
+	obj.clay              = allocate_array("clay",            obj.tile_count, "uint16_t")
 
 	return obj
 end
@@ -209,10 +213,39 @@ function world:get_rocks(q, r, face)
 	return self.rocks[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+---------------------------------------------------------------------------------------------------
+
+local cu = require "game.climate.utils"
+
+function world:_get_climate_data_by_tile(ti)
+	return cu.get_climate_data(-llu.colat_to_lat(self.colatitude[ti]), -self.minus_longitude[ti], self.elevation[ti])
+end
+
+function world:cache_climate_data()
+	for ti = 0, self.tile_count - 1 do
+		local r_jan, t_jan, r_jul, t_jul = self:_get_climate_data_by_tile(ti)
+
+		self.jan_rainfall[ti]    = r_jan
+		self.jan_temperature[ti] = t_jan
+		self.jul_rainfall[ti]    = r_jul
+		self.jul_temperature[ti] = t_jul
+	end
+end
+
 function world:get_climate_data(q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
-	return require "game.climate.utils".get_climate_data(-llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index], self.elevation[index])
+	return self.jan_rainfall[index], self.jan_temperature[index], self.jul_rainfall[index], self.jul_temperature[index]
 end
+
+local math_utils = require "game.math-utils"
+
+---@param ti number 0-based tile index
+---@param month number 0-based month
+function world:get_temperature(ti, month)
+	return math_utils.lerp(self.jan_temperature[ti], self.jul_temperature[ti], 1 - math.abs(month - 6) / 6);
+end
+
+---------------------------------------------------------------------------------------------------
 
 -- We want to determine whether we are measuring waterlevel or elevation. Then we add ice on top of that if there is ice.
 ---@param ti number 0-based tile index
@@ -238,6 +271,15 @@ function world:create_elevation_list()
 	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(function(i) return self:true_elevation(i) end, self.tile_count)
 end
 
+---@param callback fun(tile_index:number, world:table)
+function world:for_each_tile_by_elevation(callback)
+	for ti = 0, self.tile_count - 1 do
+		callback(self.tiles_by_elevation[ti], self)
+	end
+end
+
+---------------------------------------------------------------------------------------------------
+
 local wb = require("libsote.hydrology.waterbody")
 
 ---@return number new waterbody id
@@ -258,6 +300,8 @@ function world:for_each_waterbody(callback)
 		callback(self.waterbodies[i])
 	end
 end
+
+---------------------------------------------------------------------------------------------------
 
 function world:_investigate_tile(q, r, face)
 	local investigate_index = self.coord[self:_key_from_coord(q, r, face)]
