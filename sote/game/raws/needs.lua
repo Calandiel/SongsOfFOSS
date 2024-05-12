@@ -10,21 +10,19 @@ local JOBTYPE = require "game.raws.job_types"
 NEED = {
 	FOOD = 0,
 	TOOLS = 1,
-	STORAGE = 2,
-	CLOTHING = 3,
-	FURNITURE = 4,
-	HEALTHCARE = 5,
-	LUXURY = 6,
+	CLOTHING = 2,
+	FURNITURE = 3,
+	HEALTHCARE = 4,
+	LUXURY = 5,
 }
 
 NEED_NAME = {
 	[NEED.FOOD] = 'food',
 	[NEED.TOOLS] = 'tools',
-	[NEED.STORAGE] = 'storage',
 	[NEED.CLOTHING] = 'clothing',
 	[NEED.FURNITURE] = 'furniture',
 	[NEED.HEALTHCARE] = 'healthcare',
-	[NEED.LUXURY] = 'luxury'
+	[NEED.LUXURY] = 'luxury',
 }
 
 ---@type table<NEED, Need>
@@ -37,10 +35,6 @@ NEEDS = {
 	},
 	[NEED.TOOLS] = {
 		job_to_satisfy = JOBTYPE.ARTISAN,
-		time_to_satisfy = 1.0
-	},
-	[NEED.STORAGE] = {
-		job_to_satisfy = JOBTYPE.LABOURER,
 		time_to_satisfy = 1.0
 	},
 	[NEED.CLOTHING] = {
@@ -58,5 +52,5 @@ NEEDS = {
 	[NEED.LUXURY] = {
 		job_to_satisfy = JOBTYPE.ARTISAN,
 		time_to_satisfy = 3.0
-	}
+	},
 }

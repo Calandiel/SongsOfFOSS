@@ -193,19 +193,19 @@ function dbm.set_foraging_targets(province, amounts)
 	}
 	products[dbm.ForageResource.Fruit] = {
 		icon = "berries-bowl.png",
-		output = { ['berries'] = 1.6, ['timber'] = 0.4 },
+		output = { ['berries'] = 1.6 },
 		amount = amounts.fruit,
 		handle = JOBTYPE.FORAGER,
 	}
 	products[dbm.ForageResource.Grain] = {
 		icon = "wheat.png",
-		output = { ['grain'] = 2, ['timber'] = 0.5 },
+		output = { ['grain'] = 2 },
 		amount = amounts.seeds,
 		handle = JOBTYPE.FARMER,
 	}
 	products[dbm.ForageResource.Wood] = {
 		icon = "pine-tree.png",
-		output = { ['timber'] = 1, ['bark'] = 0.5 },
+		output = { ['bark'] = 1.25, ['timber'] = 0.25 },
 		amount = amounts.wood,
 		handle = JOBTYPE.ARTISAN,
 	}
@@ -223,7 +223,7 @@ function dbm.set_foraging_targets(province, amounts)
 	}
 	products[dbm.ForageResource.Shell] = {
 		icon = "oyster.png",
-		output = { ['shellfish'] = 1, ['seaweed'] = 1 },
+		output = { ['shellfish'] = 1, ['seaweed'] = 2 },
 		amount = amounts.shell,
 		handle = JOBTYPE.HAULING,
 	}

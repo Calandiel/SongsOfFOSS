@@ -455,7 +455,7 @@ function world.World:tick()
 		for _, settled_province in pairs(ta) do
 			--print("employ")
 			PROFILER:start_timer("employ")
---			employ.run(settled_province)
+			employ.run(settled_province)
 			PROFILER:end_timer("employ")
 
 			PROFILER:start_timer("buildings")
@@ -471,7 +471,7 @@ function world.World:tick()
 			wealth_decay.run(settled_province)
 			infrastructure.run(settled_province)
 			research.run(settled_province)
---			recruit.run(settled_province)
+			recruit.run(settled_province)
 			PROFILER:end_timer("province")
 
 			PROFILER:start_timer("growth")
@@ -524,7 +524,7 @@ function world.World:tick()
 				end
 				--print("Construct")
 				PROFILER:start_timer("realm-construct-update")
---				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
+				construct.run(realm) -- This does an internal check for "AI" control to construct buildings for the realm but we keep it here so that we can have prettier code for POPs constructing buildings instead!
 				PROFILER:end_timer("realm-construct-update")
 
 				--print("Court")

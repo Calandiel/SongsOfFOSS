@@ -87,7 +87,7 @@ function ll.load()
 			[NEED.FOOD] = {
 				['water'] = large_size,
 				['calories'] = large_size,		-- 1250 kcal
-				['cambium'] = 1,				-- 1000 kcal
+				['cambium'] = 0.5,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = large_size * 0.5 -- beavers have really nice fur
@@ -118,7 +118,7 @@ function ll.load()
 			[NEED.FOOD] = {
 				['water'] = largest_size,
 				['calories'] = largest_size,	-- 1500 kcal
-				['cambium'] = 1,				-- 1000 kcal
+				['cambium'] = 0.5,				-- 1000 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = largest_size * 0.5 -- beavers have really nice fur
@@ -126,14 +126,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = largest_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = 0.25 * largest_size * 0.25, -- beavers have sharp teeth
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = largest_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = 0.25 * largest_size
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = largest_size,
@@ -183,7 +177,7 @@ function ll.load()
 			[JOBTYPE.LABOURER] = largest_size,
 			[JOBTYPE.WARRIOR] = 1.5, -- gnolls have sharp teeth
 			[JOBTYPE.HAULING] = largest_size,
-			[JOBTYPE.FORAGER] = 1.25,
+			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 1.5
 		},
 		female_needs = {
@@ -214,14 +208,14 @@ function ll.load()
 			[JOBTYPE.LABOURER] = large_size,
 			[JOBTYPE.WARRIOR] = 1.25, -- gnolls have sharp teeth
 			[JOBTYPE.HAULING] = large_size,
-			[JOBTYPE.FORAGER] = 1.125,
-			[JOBTYPE.HUNTING] = 1.25
+			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HUNTING] = 1.5
 		},
 		male_needs = {
 			[NEED.FOOD] = {
 				['water'] = large_size,
 				['calories'] = large_size,		-- 1250 kcal
-				['meat'] = 0.375,				--  750 kcal
+				['meat'] = 0.5,					--  750 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = large_size * 0.5, -- gnolls have nice fur

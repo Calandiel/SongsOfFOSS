@@ -35,9 +35,8 @@ function d.load()
 		base_price = 1.25,
 	}
 	add_use_case("berries", "calories", 1.25)
-	add_use_case("berries", "cambium", 0.25)
 	add_use_case("berries", "fruit", 1)
-	add_use_case("berries", "tannin", 0.5)
+	add_use_case("berries", "tannin", 0.25)
 
 	TradeGood:new {
 		name = "grain",
@@ -76,8 +75,8 @@ function d.load()
 		b = 0.48,
 		base_price = 1.5,
 	}
-	add_use_case("shellfish", "calories", 1.5)
-	add_use_case("shellfish", "meat", 0.75)
+	add_use_case("shellfish", "calories", 1)
+	add_use_case("shellfish", "meat", 0.5)
 
 	TradeGood:new {
 		name = "seaweed",
@@ -145,7 +144,7 @@ function d.load()
 	TradeGood:new {
 		name = "bark",
 		description = "bark",
-		icon = "birth-trees.png",
+		icon = "birch-trees.png",
 		r = 0.22,
 		g = 0.19,
 		b = 0.13,

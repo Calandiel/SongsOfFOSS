@@ -11,7 +11,7 @@ function d.load()
 	local tec = require "game.raws.raws-utils".technology
 	local good = require "game.raws.raws-utils".trade_good
 	local res = require "game.raws.raws-utils".resource
---[[
+
 	BuildingType:new {
 		name = "communal-fire",
 		description = "communal fire",
@@ -37,7 +37,7 @@ function d.load()
 		b = 1,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('witch-doctor'),
-		construction_cost = COST_AREA,
+		construction_cost = COST_AREA * 1.5,
 		building_group = BUILDING_GROUP.GROUNDS,
 		needed_infrastructure = 1,
 		ai_weight = 1
@@ -126,7 +126,6 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
 	BuildingType:new {
 		name = "gathering-grounds-2",
 		description = "gathering grounds (tools)",
@@ -322,8 +321,6 @@ function d.load()
 		construction_cost = COST_WORKSHOP,
 		ai_weight = 10
 	}
-
-
 	BuildingType:new {
 		name = 'watchtower',
 		description = 'watchtower',
@@ -454,7 +451,7 @@ function d.load()
 		ai_weight = 150,
 		construction_cost = COST_FARM,
 		building_group = BUILDING_GROUP.FARM
-	}]]
+	}
 end
 
 return d

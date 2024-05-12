@@ -36,13 +36,12 @@ function d.load()
 	make_use_case("leather", "leather", "animal-hide.png", 1, 0.65, 0.65)
 	make_use_case("tannin", "tannins", "powder.png", 0.72, 0.41, 0.22)
 	-- NEED.TOOLS
+	make_use_case("containers", "containers", "amphora.png", 0.34, 0.212, 1)
 	make_use_case("tools-like", "tools", "stone-axe.png", 0.162, 0.141, 0.422)
 	make_use_case("tools", "tools", "stone-axe.png", 0.162, 0.141, 0.422)
 	make_use_case("tools-advanced", "tools", "stone-axe.png", 0.162, 0.141, 0.422)
 	-- NEED.FURNITURE
 	make_use_case("furniture", "furniture", "wooden-chair.png", 0.5, 0.4, 0.1)
-	-- NEED.STORAGE
-	make_use_case("containers", "containers", "amphora.png", 0.34, 0.212, 1)
 	-- NEED.HEALTHCARE
 	make_use_case("healthcare", "healthcare", "health-normal.png", 0.683, 0.128, 0.974)
 
