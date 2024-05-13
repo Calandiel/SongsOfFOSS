@@ -17,7 +17,10 @@ typedef struct {
 } material_template_t
 ]]
 
+local ffi_mem_tally = 0
+
 local function allocate_array(name, size, type)
+	ffi_mem_tally = ffi_mem_tally + size * ffi.sizeof(type) / 1024 / 1024
 	print("[world allocation] " .. name .. " size: " .. string.format("%.2f", size * ffi.sizeof(type) / 1024 / 1024) .. " MB")
 	return ffi.new(type .. "[?]", size)
 end
@@ -37,9 +40,9 @@ function world:new(world_size, seed)
 	obj.climate_cells = {}
 	obj.waterbodies = {}
 
-	obj.neighbors          = allocate_array("neighbors",          obj.tile_count * 6, "int32_t")
-	obj.waterbody_by_tile  = allocate_array("waterbody_by_tile",  obj.tile_count,     "uint32_t")
-	obj.tiles_by_elevation = allocate_array("tiles_by_elevation", obj.tile_count,     "uint32_t")
+	obj.neighbors             = allocate_array("neighbors",             obj.tile_count * 6, "int32_t")
+	obj.waterbody_id_by_tile  = allocate_array("waterbody_id_by_tile",  obj.tile_count,     "uint32_t")
+	obj.tiles_by_elevation    = allocate_array("tiles_by_elevation",    obj.tile_count,     "uint32_t")
 
 	obj.colatitude        = allocate_array("colatitude",        obj.tile_count, "float")
 	obj.minus_longitude   = allocate_array("minus_longitude",   obj.tile_count, "float")
@@ -59,6 +62,13 @@ function world:new(world_size, seed)
 	obj.sand              = allocate_array("sand",            obj.tile_count, "uint16_t")
 	obj.silt              = allocate_array("silt",            obj.tile_count, "uint16_t")
 	obj.clay              = allocate_array("clay",            obj.tile_count, "uint16_t")
+
+	obj.tmp_float_1       = allocate_array("tmp_float_1", obj.tile_count, "float")
+	obj.tmp_float_2       = allocate_array("tmp_float_2", obj.tile_count, "float")
+	obj.tmp_float_3       = allocate_array("tmp_float_3", obj.tile_count, "float")
+	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
+
+	print("[world allocation] ffi mem total: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
 	return obj
 end
@@ -245,6 +255,13 @@ function world:get_temperature(ti, month)
 	return math_utils.lerp(self.jan_temperature[ti], self.jul_temperature[ti], 1 - math.abs(month - 6) / 6);
 end
 
+---@param ti number 0-based tile index
+---@param month number 0-based month
+function world:get_rainfall(ti, month)
+	local base_val = math_utils.lerp(self.jan_rainfall[ti], self.jul_rainfall[ti], 1 - math.abs(month - 6) / 6);
+	return math.max(0, base_val)
+end
+
 ---------------------------------------------------------------------------------------------------
 
 -- We want to determine whether we are measuring waterlevel or elevation. Then we add ice on top of that if there is ice.
@@ -260,8 +277,8 @@ function world:true_elevation(ti)
 
 	-- If lake or ocean, consider water level of the lake + ice
 
-	if self:is_waterbody_valid(ti) then
-		return self.waterbodies[self.waterbody_by_tile[ti]].waterlevel + self.ice[ti] + 0.0001
+	if self:is_tile_waterbody_valid(ti) then
+		return self.waterbodies[self.waterbody_id_by_tile[ti]].waterlevel + self.ice[ti] + 0.0001
 	else
 		return 0
 	end
@@ -290,8 +307,9 @@ function world:create_new_waterbody()
 end
 
 ---@param index number 0-based index
-function world:is_waterbody_valid(index)
-	return self.waterbody_by_tile[index] ~= 0
+function world:is_tile_waterbody_valid(index)
+	if self.waterbody_id_by_tile[index] == 0 then return false end
+	return self.waterbodies[self.waterbody_id_by_tile[index]]:is_valid()
 end
 
 ---@param callback fun(waterbody:table)
@@ -376,7 +394,7 @@ function world:_check_valid_indices()
 	return true
 end
 
--- Careful here, not all arrays are of tile_count size
+-- Careful here, not all arrays are of tile_count size (e.g. neighbors)
 function world:fill_ffi_array(array, val)
 	for i = 0, self.tile_count - 1 do
 		array[i] = val
