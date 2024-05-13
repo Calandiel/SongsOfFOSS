@@ -92,7 +92,7 @@ function wl.dump_maps_from(world)
 			local lon = ((x + 0.5) / width * 2 - 1) * math.pi -- -1 to align with ich.io sote, no -1 otherwise
 			local lat = ((y + 0.5) / height - 0.5) * math.pi
 			local q, r, face = hexu.latlon_to_hex_coords(lat, lon, world.size)
-			-- latlon_logger:log(x .. " " .. y .. " " .. lat .. " " .. lon .. " " .. world:get_minus_longitude(q, r, face))
+			-- latlon_logger:log(x .. " " .. y .. " " .. lat .. " " .. lon .. " " .. world:get_raw_minus_longitude(q, r, face))
 
 			-- elevation -----------------------------------------------------
 

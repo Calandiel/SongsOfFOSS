@@ -59,6 +59,7 @@ function world:new(world_size, seed)
 	obj.jul_rainfall      = allocate_array("jul_rainfall",    obj.tile_count, "float")
 	obj.jul_temperature   = allocate_array("jul_temperature", obj.tile_count, "float")
 	obj.ice               = allocate_array("ice",             obj.tile_count, "uint16_t")
+	obj.snow              = allocate_array("snow",            obj.tile_count, "float")
 	obj.sand              = allocate_array("sand",            obj.tile_count, "uint16_t")
 	obj.silt              = allocate_array("silt",            obj.tile_count, "uint16_t")
 	obj.clay              = allocate_array("clay",            obj.tile_count, "uint16_t")
@@ -175,11 +176,11 @@ function world:get_tile_coord(tile_id)
 	return coord[1], coord[2], coord[3]
 end
 
-function world:get_colatitude(q, r, face)
+function world:get_raw_colatitude(q, r, face)
 	return self.colatitude[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
-function world:get_minus_longitude(q, r, face)
+function world:get_raw_minus_longitude(q, r, face)
 	return self.minus_longitude[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
@@ -193,6 +194,16 @@ end
 ---@param ti number 0-based tile index
 function world:get_latlon_by_tile(ti)
 	return -llu.colat_to_lat(self.colatitude[ti]), -self.minus_longitude[ti] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+end
+
+---@param ti number 0-based tile index
+function world:is_in_northern_hemisphere(ti)
+	return -llu.colat_to_lat(self.colatitude[ti]) >= 0
+end
+
+---@param ti number 0-based tile index
+function world:is_in_southern_hemisphere(ti)
+	return -llu.colat_to_lat(self.colatitude[ti]) < 0
 end
 
 function world:get_elevation(q, r, face)
@@ -251,13 +262,13 @@ local math_utils = require "game.math-utils"
 
 ---@param ti number 0-based tile index
 ---@param month number 0-based month
-function world:get_temperature(ti, month)
+function world:get_temperature_for(ti, month)
 	return math_utils.lerp(self.jan_temperature[ti], self.jul_temperature[ti], 1 - math.abs(month - 6) / 6);
 end
 
 ---@param ti number 0-based tile index
 ---@param month number 0-based month
-function world:get_rainfall(ti, month)
+function world:get_rainfall_for(ti, month)
 	local base_val = math_utils.lerp(self.jan_rainfall[ti], self.jul_rainfall[ti], 1 - math.abs(month - 6) / 6);
 	return math.max(0, base_val)
 end
