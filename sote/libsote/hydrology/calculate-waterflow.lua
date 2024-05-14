@@ -41,6 +41,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	local jul_temperature = world.jul_temperature[ti]
 	local month_rainfall = world:get_rainfall_for(ti, month)
 	local month_temperature = world:get_temperature_for(ti, month)
+	local month_humidity = 0.3 -- hardcoded for now
 
 	local sand = world.sand[ti]
 	local silt = world.silt[ti]
@@ -117,7 +118,59 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	end
 
 	if not is_land then -- if water tile, check to see if it's a lake. If it is, shunt water to outlet tile
+		local body = world:get_waterbody_by_tile(ti)
+
+		if body.lake_open then -- If it is a non-endhoric waterbody, then pass the water on.
+			local body_outlet_ti = body.lowest_shore_tile
+
+			world.tmp_float_1[body_outlet_ti] = world.tmp_float_1[body_outlet_ti] + world.tmp_float_1[ti] + world.tmp_float_2[ti]
+			body.tmp_float_1 = body.tmp_float_1 + world.tmp_float_1[ti] + world.tmp_float_2[ti] -- Body temp float represents how much water moved through this body.
+
+		elseif body.type == body.types.saltwater_lake or body.type == body.types.freshwater_lake then
+			body.tmp_float_1 = body.tmp_float_1 + world.tmp_float_1[ti] + world.tmp_float_2[ti]
+		end
+
 	else -- otherwise... the tile is land and we pass the water to all neighboring tiles which are lower in elevation based on elevation differences
+		-- Apply Water Infiltration
+		-- We only want water infiltration to the soil and evaporation if the tile is not covered in ice
+
+		if world.ice[ti] <= 0 then
+
+		else -- If ice, just add rain without any infiltration into the soil
+			world.tmp_float_1[ti] = world.tmp_float_1[ti] + world.tmp_float_2[ti]
+		end
+		world.tmp_float_1[ti] = math.max(0, world.tmp_float_1[ti])
+
+		-- Apply Evaporation
+		local evaporation_volume = 0
+		if world.tmp_float_1[ti] > 0 then
+			if world.tmp_float_1[ti] < 6000 then -- Don't evaporate big rivers -- we don't want to kill our Niles!
+				if month_temperature > 0 then -- Don't evaporate in winters, we already have barely any water movement left during those seasons!
+					evaporation_volume = math.sqrt(world.tmp_float_1[ti]) / month_humidity
+				end
+			end
+		end
+		if evaporation_volume > world.tmp_float_1[ti] then
+			world.tmp_float_1[ti] = 0
+		else
+			world.tmp_float_1[ti] = world.tmp_float_1[ti] - evaporation_volume
+		end
+
+		local total_elevation_difference = 0
+		world:for_each_neighbor(ti, function(nti)
+			if world.tmp_bool_1[nti] then
+				local elev_diff = world:true_elevation(ti) - world:true_elevation(nti)
+				total_elevation_difference = total_elevation_difference + elev_diff
+			end
+		end)
+		world:for_each_neighbor(ti, function(nti)
+			if world.tmp_bool_1[nti] then
+				if total_elevation_difference == 0 then error("Total elevation difference is 0!") end
+
+				local elev_diff = world:true_elevation(ti) - world:true_elevation(nti)
+				world.tmp_float_1[nti] = world.tmp_float_1[nti] + (elev_diff / total_elevation_difference) * world.tmp_float_1[ti]
+			end
+		end)
 	end
 end
 
@@ -127,6 +180,23 @@ end
 local function process_waterflow(world, flow_type, month, year)
 	world:for_each_tile_by_elevation(function(ti, _)
 		process_tile_waterflow(ti, world, flow_type, month, year)
+	end)
+end
+
+---@param flow_type flow_type
+local function apply_waterflow(world, flow_type)
+	world:for_each_tile(function(ti)
+		if world.tmp_bool_1[ti] then return end
+
+		if flow_type == cwf.types.january then
+			world.jan_water_movement[ti] = world.tmp_float_1[ti]
+
+		elseif flow_type == cwf.types.july then
+			world.jul_water_movement[ti] = world.tmp_float_1[ti]
+
+		else
+			world.water_movement[ti] = world.tmp_float_1[ti]
+		end
 	end)
 end
 
@@ -141,6 +211,14 @@ function cwf.run(world, flow_type, month, year)
 	clear_current_elevation_on_lakes(world)
 
 	process_waterflow(world, flow_type, month, year)
+
+	apply_waterflow(world, flow_type)
+
+	-- Run soil moisture calculations iff flowType is current.
+	-- Otherwise, we'd run it an odd number of times, because world gen calls this function for july and january.
+	if flow_type == cwf.types.current then
+		-- TODO: Port soil moisture calculations here
+	end
 end
 
 return cwf

@@ -53,16 +53,19 @@ function world:new(world_size, seed)
 	obj.is_land           = allocate_array("is_land",           obj.tile_count, "bool")
 	obj.plate             = allocate_array("plate",             obj.tile_count, "uint8_t")
 
-	obj.rocks             = allocate_array("rocks",           obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
-	obj.jan_rainfall      = allocate_array("jan_rainfall",    obj.tile_count, "float")
-	obj.jan_temperature   = allocate_array("jan_temperature", obj.tile_count, "float")
-	obj.jul_rainfall      = allocate_array("jul_rainfall",    obj.tile_count, "float")
-	obj.jul_temperature   = allocate_array("jul_temperature", obj.tile_count, "float")
-	obj.ice               = allocate_array("ice",             obj.tile_count, "uint16_t")
-	obj.snow              = allocate_array("snow",            obj.tile_count, "float")
-	obj.sand              = allocate_array("sand",            obj.tile_count, "uint16_t")
-	obj.silt              = allocate_array("silt",            obj.tile_count, "uint16_t")
-	obj.clay              = allocate_array("clay",            obj.tile_count, "uint16_t")
+	obj.rocks              = allocate_array("rocks",              obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
+	obj.jan_rainfall       = allocate_array("jan_rainfall",       obj.tile_count, "float")
+	obj.jan_temperature    = allocate_array("jan_temperature",    obj.tile_count, "float")
+	obj.jan_water_movement = allocate_array("jan_water_movement", obj.tile_count, "float")
+	obj.jul_rainfall       = allocate_array("jul_rainfall",       obj.tile_count, "float")
+	obj.jul_temperature    = allocate_array("jul_temperature",    obj.tile_count, "float")
+	obj.jul_water_movement = allocate_array("jul_water_movement", obj.tile_count, "float")
+	obj.water_movement     = allocate_array("water_movement",     obj.tile_count, "float")
+	obj.ice                = allocate_array("ice",                obj.tile_count, "uint16_t")
+	obj.snow               = allocate_array("snow",               obj.tile_count, "float")
+	obj.sand               = allocate_array("sand",               obj.tile_count, "uint16_t")
+	obj.silt               = allocate_array("silt",               obj.tile_count, "uint16_t")
+	obj.clay               = allocate_array("clay",               obj.tile_count, "uint16_t")
 
 	obj.tmp_float_1       = allocate_array("tmp_float_1", obj.tile_count, "float")
 	obj.tmp_float_2       = allocate_array("tmp_float_2", obj.tile_count, "float")
@@ -317,10 +320,15 @@ function world:create_new_waterbody()
 	return id
 end
 
----@param index number 0-based index
-function world:is_tile_waterbody_valid(index)
-	if self.waterbody_id_by_tile[index] == 0 then return false end
-	return self.waterbodies[self.waterbody_id_by_tile[index]]:is_valid()
+---@param ti number 0-based index
+function world:get_waterbody_by_tile(ti)
+	return self.waterbodies[self.waterbody_id_by_tile[ti]]
+end
+
+---@param ti number 0-based index
+function world:is_tile_waterbody_valid(ti)
+	if self.waterbody_id_by_tile[ti] == 0 then return false end
+	return self.waterbodies[self.waterbody_id_by_tile[ti]]:is_valid()
 end
 
 ---@param callback fun(waterbody:table)

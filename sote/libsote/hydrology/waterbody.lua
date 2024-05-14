@@ -22,6 +22,7 @@ function waterbody:new()
 	obj.waterlevel = 0
 	obj.perimeter = {}
 	obj.lowest_shore_tile = nil
+	obj.lake_open = false
 	obj.tmp_float_1 = 0
 
 	return obj
