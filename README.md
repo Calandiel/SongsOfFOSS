@@ -163,19 +163,21 @@ Version 0.3 (Midgard)
 
 - "Renaissance" technologies
 - Detailed internal politics
+- A more accurate battle solver
 
 ## Version 0.9 (Asgard)
 
 - "Enlightement" technologies
-- A more accurate battle solver
-
-## Alpha
-
-- Tectonics code update
 - Naval warfare
 - Naval battle solver
+- Tectonics code update
+
+## Alpha
+- UI/UX polish based on player feedback
+- General bugfixing
 
 ## Beta
+- More UI/UX polish based on player feedback
 
 ## Version 1.0 (Yggdrasil)
 
