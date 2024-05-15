@@ -138,6 +138,7 @@ Version 0.3 (Midgard)
 - Families
 - **"Antiquity" technologies**
 - **Warbands**
+- **Map exploration**
 
 ## Version 0.5 (Alfheim)
 
