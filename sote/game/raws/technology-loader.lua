@@ -428,6 +428,16 @@ function d.load()
 		unlocked_by = { tec("surface-mining"), },
 		research_cost = 1,
 	}
+	Technology:new {
+		name = "transformation-magic",
+		icon = "e-tablet.png",
+		description = "Druids across the world have endeavored to take power over their bodies. We have mastered their ways. No longer will we be bound to our original forms!",
+		r = 1,
+		g = 0,
+		b = 1,
+		-- unlocked_decisions = { dec("gender-bender"), },
+		research_cost = 1,
+	}
 end
 
 return d
