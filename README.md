@@ -109,7 +109,7 @@ Some of the previously implemented features that show up on the roadmap below ha
 - **Checksums and compatibility tests in multiplayer**
 - **Province and realm borders**
 
-Version 0.3 (Midgard)
+## Version 0.3 (Midgard)
 
 - **Watertables**
 - **Character portraits**
