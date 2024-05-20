@@ -10,6 +10,9 @@ local political_values = require "game.raws.values.political"
 
 local tabb             = require "engine.table"
 
+
+local dbm              = require "game.economy.diet-breadth-model"
+
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
@@ -392,7 +395,6 @@ function world.World:tick()
 
 	WORLD.sub_hourly_tick = WORLD.sub_hourly_tick + 1
 	WORLD.current_tick_in_month = WORLD.current_tick_in_month + 1
-	WORLD.current_tick_in_decade = WORLD.current_tick_in_decade + 1
 
 	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month] ~= nil then
 
@@ -405,11 +407,20 @@ function world.World:tick()
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
+			local accumulate = {net_pp = 0, fruit = 0, seeds = 0, wood = 0, shell = 0, fish = 0, game = 0, fungi = 0}
 			for _, tile in pairs(settled_province.tiles) do
 				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
 				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
 				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
 				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+				-- collecting tile foraging production
+				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile)
+			end
+			-- update targets from accumulated foraging data
+			dbm.set_foraging_targets(settled_province, accumulate)
+			local weight = WORLD.current_tick_in_month % 10
+			if (weight == WORLD.month and weight == (WORLD.year % 12)) then
+				dbm.cultural_foragable_targets(settled_province)
 			end
 		end
 
@@ -654,9 +665,6 @@ function world.World:tick()
 					WORLD.month = 0
 					WORLD.year = WORLD.year + 1
 					-- yearly tick
-					if WORLD.year % 10 == 0 then
-						WORLD.current_tick_in_decade = 0
-					end
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
 					for _, settled_province in pairs(WORLD.provinces) do
@@ -675,18 +683,6 @@ function world.World:tick()
 			end
 		end
 		--print("tick end")
-	end
-
-	-- updates cultural targets once a decade
-	-- TODO spread cultural update over decade instead of first 6 days
-	local cultural_update_province = WORLD.provinces[WORLD.current_tick_in_decade]
-	if cultural_update_province ~= nil then
-		local dbm = require "game.economy.diet-breadth-model"
-		if cultural_update_province.realm then
-			-- TODO move province resources update to after climate update
-			dbm.foragers_targets(cultural_update_province)
-			dbm.cultural_foragable_targets(cultural_update_province)
-		end
 	end
 
 	PROFILER:end_timer("tick")
@@ -775,6 +771,5 @@ end
 
 world.ticks_per_hour = 120
 world.ticks_per_month = 30 * 24 * world.ticks_per_hour
-world.ticks_per_decade = 10 * 12 * world.ticks_per_month
 
 return world

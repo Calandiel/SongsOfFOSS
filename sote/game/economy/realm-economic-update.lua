@@ -117,11 +117,12 @@ function rea.run(realm)
 					local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
 					economic_effects.change_local_stockpile(province, resource_reference, -sharing)
 					-- make sure province knows some production goes to faux trading with neighbors
-					province.local_consumption[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
+					--province.local_consumption[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
 					local neighbor_share = sharing / neighbor_count
 					for _, neighbor in pairs(province.neighbors) do
 						if neighbor.realm then
 							economic_effects.change_local_stockpile(neighbor, resource_reference, neighbor_share)
+							--neighbor.local_production[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
 						end
 					end
 				end

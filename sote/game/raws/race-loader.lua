@@ -22,7 +22,7 @@ function ll.load()
 		}
 	}
 
-	-- BASE: HUMAN 8 8 8
+	-- BASE: HUMAN
 	Race:new {
 		name = "human",
 		r = 0.8,
@@ -39,7 +39,6 @@ function ll.load()
 			cloth = {"cloth_behind.png", "cloth.png"}
 		}
 	}
-	-- 7 5 3
 	Race:new {
 		name = 'high beaver',
 		r = 0.7,
@@ -75,8 +74,8 @@ function ll.load()
 		visibility = 1,
 		female_body_size = large_size,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 1.5, -- beavers are herbavores
-			[JOBTYPE.ARTISAN] = 1.25, -- beavers are natural builders
+			[JOBTYPE.FARMER] = 1,
+			[JOBTYPE.ARTISAN] = 1.5, -- beavers are natural builders
 			[JOBTYPE.CLERK] = 1,
 			[JOBTYPE.LABOURER] = large_size,
 			[JOBTYPE.WARRIOR] = 1.125, -- beavers have sharp teeth
@@ -85,28 +84,19 @@ function ll.load()
 			[JOBTYPE.HUNTING] = 0.5 -- beavers are herbavores
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = large_size
-			},
 			[NEED.FOOD] = {
+				['water'] = large_size,
 				['calories'] = large_size,		-- 1250 kcal
-				['timber'] = 0.25,				--  500 kcal
-				['grain'] = 0.25,				--  250 kcal
+				['cambium'] = 0.5,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = large_size * 0.25 -- beavers have really nice fur
+				['clothes'] = large_size * 0.5 -- beavers have really nice fur
 			},
 			[NEED.FURNITURE] = {
 				['furniture'] = large_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = large_size * 0.25, -- beavers have sharp teeth
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = large_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = large_size
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = large_size,
@@ -115,38 +105,29 @@ function ll.load()
 		female_infrastructure_needs = large_size,
 		male_body_size = largest_size,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 1.5, -- beavers are herbavores
-			[JOBTYPE.ARTISAN] = 1.25, -- beavers are natural builders
+			[JOBTYPE.FARMER] = 1,
+			[JOBTYPE.ARTISAN] = 1.5, -- beavers are natural builders
 			[JOBTYPE.CLERK] = 1,
 			[JOBTYPE.LABOURER] = largest_size,
-			[JOBTYPE.WARRIOR] = 1.125, -- beavers have sharp teeth
+			[JOBTYPE.WARRIOR] = 1.25, -- beavers have sharp teeth
 			[JOBTYPE.HAULING] = largest_size,
 			[JOBTYPE.FORAGER] = 1.25, -- beavers are herbavores
 			[JOBTYPE.HUNTING] = 0.5 -- beavers are herbavores
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = largest_size
-			},
 			[NEED.FOOD] = {
+				['water'] = largest_size,
 				['calories'] = largest_size,	-- 1500 kcal
-				['timber'] = 0.25,				--  500 kcal
-				['grain'] = 0.5,				--  250 kcal
+				['cambium'] = 0.5,				-- 1000 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = largest_size * 0.25 -- beavers have really nice fur
+				['clothes'] = largest_size * 0.5 -- beavers have really nice fur
 			},
 			[NEED.FURNITURE] = {
 				['furniture'] = largest_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = largest_size * 0.25, -- beavers have sharp teeth
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = largest_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = largest_size
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = largest_size,
@@ -154,7 +135,6 @@ function ll.load()
 		},
 		male_infrastructure_needs = largest_size,
 		carrying_capacity_weight = largest_size,
-		requires_large_forest = true,
 		requires_large_river = true
 	}
 
@@ -192,19 +172,17 @@ function ll.load()
 		female_body_size = largest_size,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.ARTISAN] = 0.5,
 			[JOBTYPE.CLERK] = 0.5,
 			[JOBTYPE.LABOURER] = largest_size,
 			[JOBTYPE.WARRIOR] = 1.5, -- gnolls have sharp teeth
 			[JOBTYPE.HAULING] = largest_size,
-			[JOBTYPE.FORAGER] = 1.25,
+			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 1.5
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = largest_size
-			},
 			[NEED.FOOD] = {
+				['water'] = largest_size,
 				['calories'] = largest_size,	-- 1500 kcal
 				['meat'] = 0.5,					-- 1000 kcal
 			},
@@ -214,14 +192,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = largest_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = largest_size * 0.25, -- gnolls have sharp teeth
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = largest_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = largest_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = largest_size,
@@ -231,21 +203,19 @@ function ll.load()
 		male_body_size = large_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.ARTISAN] = 0.5,
 			[JOBTYPE.CLERK] = 0.5,
 			[JOBTYPE.LABOURER] = large_size,
-			[JOBTYPE.WARRIOR] = 1.5, -- gnolls have sharp teeth
+			[JOBTYPE.WARRIOR] = 1.25, -- gnolls have sharp teeth
 			[JOBTYPE.HAULING] = large_size,
-			[JOBTYPE.FORAGER] = 1.25,
+			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 1.5
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = large_size
-			},
 			[NEED.FOOD] = {
+				['water'] = large_size,
 				['calories'] = large_size,		-- 1250 kcal
-				['meat'] = 0.5,					-- 1000 kcal
+				['meat'] = 0.5,					--  750 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = large_size * 0.5, -- gnolls have nice fur
@@ -253,14 +223,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = large_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = large_size * 0.25, -- gnolls have sharp teeth
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = large_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = large_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = large_size,
@@ -305,8 +269,8 @@ function ll.load()
 		visibility = 1.25,
 		female_body_size = large_size,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.FARMER] = 	0.75,
+			[JOBTYPE.ARTISAN] = 0.5,
 			[JOBTYPE.CLERK] = 0.75,
 			[JOBTYPE.LABOURER] = large_size,
 			[JOBTYPE.WARRIOR] = 1.25, -- orks have tusks
@@ -315,10 +279,8 @@ function ll.load()
 			[JOBTYPE.HUNTING] = 1.25
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = large_size
-			},
 			[NEED.FOOD] = {
+				['water'] = largest_size,
 				['calories'] = 2.5,		-- 2500 kcal
 			},
 			[NEED.CLOTHING] = {
@@ -327,14 +289,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = large_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = large_size * 0.25 , -- orks have tusks
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = large_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = large_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = large_size,
@@ -343,8 +299,8 @@ function ll.load()
 		female_infrastructure_needs = medium_size,
 		male_body_size = large_size,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.FARMER] = 	0.75,
+			[JOBTYPE.ARTISAN] = 0.5,
 			[JOBTYPE.CLERK] = 0.75,
 			[JOBTYPE.LABOURER] = large_size,
 			[JOBTYPE.WARRIOR] = 1.25, -- orks have tusks
@@ -353,10 +309,8 @@ function ll.load()
 			[JOBTYPE.HUNTING] = 1.25
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = large_size
-			},
 			[NEED.FOOD] = {
+				['water'] = largest_size,
 				['calories'] = 2.5,		-- 2500 kcal
 			},
 			[NEED.CLOTHING] = {
@@ -365,14 +319,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = large_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = large_size * 0.25 , -- orks have tusks
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = large_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = large_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = large_size,
@@ -380,6 +328,7 @@ function ll.load()
 		},
 		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = large_size,
+		requires_large_forest = true,
 	}
 
 	Race:new {
@@ -397,11 +346,11 @@ function ll.load()
 		description = 'elves',
 		males_per_hundred_females = 95,
 		child_age = 10,
-		teen_age = 50,
-		adult_age = 100,
-		middle_age = 400,
-		elder_age = 700,
-		max_age = 1000,
+		teen_age = 40,
+		adult_age = 60,
+		middle_age = 140,
+		elder_age = 195,
+		max_age = 250,
 		minimum_comfortable_temperature = 0,
 		minimum_absolute_temperature = -15,
 		fecundity = 0.5,
@@ -409,23 +358,21 @@ function ll.load()
 		visibility = 0.5,
 		female_body_size = medium_size,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 1,
-			[JOBTYPE.ARTISAN] = 1.25,
+			[JOBTYPE.FARMER] = 1.25,
+			[JOBTYPE.ARTISAN] = 1.5,
 			[JOBTYPE.CLERK] = 1.5,
-			[JOBTYPE.LABOURER] = medium_size,
+			[JOBTYPE.LABOURER] = medium_size * 0.75,
 			[JOBTYPE.WARRIOR] = 1.5,
-			[JOBTYPE.HAULING] = medium_size,
-			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HAULING] = medium_size * 0.75,
+			[JOBTYPE.FORAGER] = 1.125,
 			[JOBTYPE.HUNTING] = 1
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = medium_size
-			},
 			[NEED.FOOD] = {
-				['calories'] = medium_size,		-- 1000 kcal
-				['fruit'] = 0.25,				--  250 kcal
-				['meat'] = 0.25,				--  500 kcal
+				['water'] = medium_size * 0.75,
+				['calories'] = dwarf_size,		--  750 kcal
+				['fruit'] = 0.45,				--  450 kcal
+				['meat'] = 0.4,					--  800 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = medium_size
@@ -433,14 +380,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = medium_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = medium_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = medium_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = medium_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = medium_size,
@@ -449,23 +390,21 @@ function ll.load()
 		female_infrastructure_needs = large_size,
 		male_body_size = medium_size,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 1,
-			[JOBTYPE.ARTISAN] = 1.25,
+			[JOBTYPE.FARMER] = 1.25,
+			[JOBTYPE.ARTISAN] = 1.5,
 			[JOBTYPE.CLERK] = 1.5,
-			[JOBTYPE.LABOURER] = medium_size,
+			[JOBTYPE.LABOURER] = medium_size * 0.75,
 			[JOBTYPE.WARRIOR] = 1.5,
-			[JOBTYPE.HAULING] = medium_size,
-			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HAULING] = medium_size * 0.75,
+			[JOBTYPE.FORAGER] = 1.125,
 			[JOBTYPE.HUNTING] = 1
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = medium_size
-			},
 			[NEED.FOOD] = {
-				['calories'] = medium_size,		-- 1000 kcal
-				['fruit'] = 0.25,				--  250 kcal
-				['meat'] = 0.25,				--  500 kcal
+				['water'] = medium_size * 0.75,
+				['calories'] = dwarf_size,		--  750 kcal
+				['fruit'] = 0.45,				--  450 kcal
+				['meat'] = 0.4,					--  800 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = medium_size
@@ -473,21 +412,15 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = medium_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = medium_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = medium_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = medium_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = medium_size,
 			},
 		},
 		male_infrastructure_needs = large_size,
-		carrying_capacity_weight = large_size,
+		carrying_capacity_weight = medium_size,
 		requires_large_forest = true
 	}
 
@@ -512,11 +445,11 @@ function ll.load()
 		description = 'dwarf',
 		males_per_hundred_females = 105,
 		child_age = 4,
-		teen_age = 25,
-		adult_age = 50,
-		middle_age = 150,
-		elder_age = 250,
-		max_age = 300,
+		teen_age = 20,
+		adult_age = 30,
+		middle_age = 75,
+		elder_age = 110,
+		max_age = 150,
 		minimum_comfortable_temperature = -5,
 		minimum_absolute_temperature = -20,
 		minimum_comfortable_elevation = 800,
@@ -528,20 +461,18 @@ function ll.load()
 			[JOBTYPE.FARMER] = 1.25,
 			[JOBTYPE.ARTISAN] = 1.5,
 			[JOBTYPE.CLERK] = 1.25,
-			[JOBTYPE.LABOURER] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
+			[JOBTYPE.LABOURER] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry
 			[JOBTYPE.WARRIOR] = 1,
-			[JOBTYPE.HAULING] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
+			[JOBTYPE.HAULING] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry
 			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 1
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = dwarf_size
-			},
 			[NEED.FOOD] = {
-				['calories'] = dwarf_size,	--  750 kcal
-				['fruit'] = 0.5,			--  500 kcal
-				['meat'] = 0.5,				-- 1000 kcal
+				['water'] = dwarf_size,
+				['calories'] = medium_size,	-- 1000 kcal
+				['fruit'] = 0.375,			--  375 kcal
+				['meat'] = 0.375,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = dwarf_size
@@ -549,17 +480,11 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = dwarf_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = dwarf_size,
 			},
-			[NEED.STORAGE] = {
-				['containers'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
-			},
 			[NEED.LUXURY] = {
-				['liquors'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
+				['liquors'] = large_size, -- a short, sturdy creature fond of drink and industry
 			},
 		},
 		female_infrastructure_needs = large_size,
@@ -568,20 +493,18 @@ function ll.load()
 			[JOBTYPE.FARMER] = 1.25,
 			[JOBTYPE.ARTISAN] = 1.5,
 			[JOBTYPE.CLERK] = 1.25,
-			[JOBTYPE.LABOURER] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
+			[JOBTYPE.LABOURER] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry
 			[JOBTYPE.WARRIOR] = 1,
-			[JOBTYPE.HAULING] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
+			[JOBTYPE.HAULING] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry
 			[JOBTYPE.FORAGER] = 1,
 			[JOBTYPE.HUNTING] = 1
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = dwarf_size
-			},
 			[NEED.FOOD] = {
-				['calories'] = dwarf_size,	--  750 kcal
-				['fruit'] = 0.5,			--  500 kcal
-				['meat'] = 0.5,				-- 1000 kcal
+				['water'] = dwarf_size,
+				['calories'] = medium_size,	-- 1000 kcal
+				['fruit'] = 0.375,			--  375 kcal
+				['meat'] = 0.375,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = dwarf_size
@@ -589,17 +512,11 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = dwarf_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = dwarf_size,
 			},
-			[NEED.STORAGE] = {
-				['containers'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
-			},
 			[NEED.LUXURY] = {
-				['liquors'] = dwarf_size * 2, -- a short, sturdy creature fond of drink and industry 
+				['liquors'] = large_size, -- a short, sturdy creature fond of drink and industry
 			},
 		},
 		male_infrastructure_needs = large_size,
@@ -630,11 +547,11 @@ function ll.load()
 		description = 'goblin',
 		males_per_hundred_females = 110,
 		child_age = 1,
-		teen_age = 5,
-		adult_age = 10,
-		middle_age = 20,
-		elder_age = 40,
-		max_age = 50,
+		teen_age = 4,
+		adult_age = 6,
+		middle_age = 15,
+		elder_age = 32,
+		max_age = 47,
 		minimum_comfortable_temperature = 5,
 		minimum_absolute_temperature = -10,
 		fecundity = 1.25,
@@ -643,22 +560,20 @@ function ll.load()
 		female_body_size = small_size,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 1,
-			[JOBTYPE.CLERK] = 1,
+			[JOBTYPE.ARTISAN] = 0.75,
+			[JOBTYPE.CLERK] = 1.125,
 			[JOBTYPE.LABOURER] = small_size,
-			[JOBTYPE.WARRIOR] = 0.75,
-			[JOBTYPE.HAULING] = small_size,
-			[JOBTYPE.FORAGER] = 0.75,
+			[JOBTYPE.WARRIOR] = small_size * 1.5, -- goblins find raiding profitable
+			[JOBTYPE.HAULING] = small_size * 1.5, -- goblins find raiding profitable
+			[JOBTYPE.FORAGER] = 0.875,
 			[JOBTYPE.HUNTING] = 1
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = small_size
-			},
 			[NEED.FOOD] = {
+				['water'] = small_size,
 				['calories'] = small_size,	-- 500 kcal
-				['meat'] = 0.25,			-- 500 kcal
-				['fruit'] = 0.25,			-- 250 kcal
+				['meat'] = 0.125,			-- 250 kcal
+				['fruit'] = 0.125,			-- 125 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size
@@ -666,14 +581,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = small_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = small_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = small_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = small_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = small_size,
@@ -683,22 +592,20 @@ function ll.load()
 		male_body_size = small_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 1,
-			[JOBTYPE.CLERK] = 1,
+			[JOBTYPE.ARTISAN] = 0.75,
+			[JOBTYPE.CLERK] = 1.125,
 			[JOBTYPE.LABOURER] = small_size,
-			[JOBTYPE.WARRIOR] = 0.75,
-			[JOBTYPE.HAULING] = small_size,
-			[JOBTYPE.FORAGER] = 0.75,
-			[JOBTYPE.HUNTING] = 0.75
+			[JOBTYPE.WARRIOR] = small_size * 1.5, -- goblins find raiding profitable
+			[JOBTYPE.HAULING] = small_size * 1.5, -- goblins find raiding profitable
+			[JOBTYPE.FORAGER] = 0.875,
+			[JOBTYPE.HUNTING] = 1
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = small_size
-			},
 			[NEED.FOOD] = {
+				['water'] = small_size,
 				['calories'] = small_size,	-- 500 kcal
-				['meat'] = 0.25,			-- 500 kcal
-				['fruit'] = 0.25,			-- 250 kcal
+				['meat'] = 0.125,			-- 250 kcal
+				['fruit'] = 0.125,			-- 125 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size
@@ -706,14 +613,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = small_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = small_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = small_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = small_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = small_size,
@@ -746,11 +647,11 @@ function ll.load()
 		description = 'vermen',
 		males_per_hundred_females = 100,
 		child_age = 1,
-		teen_age = 2,
+		teen_age = 3,
 		adult_age = 4,
-		middle_age = 12,
-		elder_age = 21,
-		max_age = 25,
+		middle_age = 1,
+		elder_age = 15,
+		max_age = 21,
 		minimum_comfortable_temperature = -5,
 		minimum_absolute_temperature = -20,
 		fecundity = 1.5,
@@ -758,23 +659,20 @@ function ll.load()
 		visibility = 0.75,
 		female_body_size = small_size,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 1,
+			[JOBTYPE.FARMER] = 1.125,
 			[JOBTYPE.ARTISAN] = 0.75,
 			[JOBTYPE.CLERK] = 0.5,
 			[JOBTYPE.LABOURER] = small_size * 2, -- vermen are energetic and persistant
 			[JOBTYPE.WARRIOR] = 0.5,
 			[JOBTYPE.HAULING] = small_size * 2, -- vermen are energetic and persistant
-			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.FORAGER] = 1.25,
 			[JOBTYPE.HUNTING] = 0.5
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = small_size
-			},
 			[NEED.FOOD] = {
-				['calories'] = dwarf_size,		--  750 kcal
-				['fruit'] = 0.25,				--  250 kcal
-				['grain'] = 0.25,				--  250 kcal
+				['water'] = small_size,
+				['calories'] = dwarf_size,	--  750 kcal
+				['fruit'] = 0.25,			--  250 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size * 0.5 -- vermen have nice fur
@@ -782,14 +680,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = small_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = small_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = small_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = small_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = small_size,
@@ -798,23 +690,20 @@ function ll.load()
 		female_infrastructure_needs = small_size,
 		male_body_size = small_size,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 1,
+			[JOBTYPE.FARMER] = 1.125,
 			[JOBTYPE.ARTISAN] = 0.75,
 			[JOBTYPE.CLERK] = 0.5,
 			[JOBTYPE.LABOURER] = small_size * 2, -- vermen are energetic and persistant
 			[JOBTYPE.WARRIOR] = 0.5,
 			[JOBTYPE.HAULING] = small_size * 2, -- vermen are energetic and persistant
-			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.FORAGER] = 1.25,
 			[JOBTYPE.HUNTING] = 0.5
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = small_size
-			},
 			[NEED.FOOD] = {
-				['calories'] = small_size,		--  500 kcal
-				['fruit'] = 0.25,				--  250 kcal
-				['grain'] = 0.25,				--  250 kcal
+				['water'] = small_size,
+				['calories'] = dwarf_size,	--  750 kcal
+				['fruit'] = 0.25,			--  250 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size * 0.5 -- vermen have nice fur
@@ -822,14 +711,8 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = small_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = small_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = small_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = small_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = small_size,
@@ -847,10 +730,10 @@ function ll.load()
 		icon = 'harpy.png',
 		description = 'harpies',
 		males_per_hundred_females = 75,
-		child_age = 3,
+		child_age = 2,
 		teen_age = 9,
 		adult_age = 15,
-		middle_age = 30,
+		middle_age = 37,
 		elder_age = 45,
 		max_age = 60,
 		minimum_comfortable_temperature = -10,
@@ -862,37 +745,29 @@ function ll.load()
 		female_body_size = medium_size,
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 0.75,
-			[JOBTYPE.CLERK] = 1.5,
+			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.CLERK] = 1.25,
 			[JOBTYPE.LABOURER] = medium_size * 0.5, -- harpies light for their size
 			[JOBTYPE.WARRIOR] = 1.25, -- harpies have sharp claws
-			[JOBTYPE.HAULING] = medium_size * 0.5, -- harpies light for their size
+			[JOBTYPE.HAULING] = medium_size * 0.75, -- harpies light for their size
 			[JOBTYPE.FORAGER] = 1.25,
 			[JOBTYPE.HUNTING] = 1.25
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = medium_size
-			},
-			[NEED.FOOD] = {
-				['calories'] = medium_size,	-- 1000 kcal
-				['grain'] = 0.25,			--  250 kcal
-				['meat'] = 0.25,			--  500 kcal
+			[NEED.FOOD] = {					-- ~1500 kcal
+				['water'] =  medium_size * 0.5,
+				['calories'] = medium_size,	--  1000 kcal
+				['fruit'] = 0.15,			--   150 kcal
+				['meat'] = 0.175,			--   350 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = medium_size * 0.25 -- harpies have pretty feathers
+				['clothes'] = medium_size * 0.5 -- harpies have pretty feathers
 			},
 			[NEED.FURNITURE] = {
 				['furniture'] = medium_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = medium_size * 0.25, -- harpies have sharp claws
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = medium_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = medium_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = medium_size,
@@ -902,44 +777,36 @@ function ll.load()
 		male_body_size = dwarf_size,
 		male_efficiency = {
 			[JOBTYPE.FARMER] = 0.75,
-			[JOBTYPE.ARTISAN] = 0.5,
-			[JOBTYPE.CLERK] = 1.5,
+			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.CLERK] = 1.25,
 			[JOBTYPE.LABOURER] = dwarf_size * 0.5, -- harpies light for their size
-			[JOBTYPE.WARRIOR] = 1.25, -- harpies have sharp claws
-			[JOBTYPE.HAULING] = dwarf_size * 0.5, -- harpies light for their size
-			[JOBTYPE.FORAGER] = 1.5,
-			[JOBTYPE.HUNTING] = 1.5
+			[JOBTYPE.WARRIOR] = 1.125, -- harpies have sharp claws
+			[JOBTYPE.HAULING] = dwarf_size * 0.75, -- harpies light for their size
+			[JOBTYPE.FORAGER] = 1.125,
+			[JOBTYPE.HUNTING] = 1.125
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = dwarf_size
-			},
-			[NEED.FOOD] = {
-				['calories'] = dwarf_size,	--  750 kcal
-				['grain'] = 0.25,			--  250 kcal
-				['meat'] = 0.25,			--  500 kcal
+			[NEED.FOOD] = {					-- ~1250 kcal
+				['water'] = dwarf_size * 0.5,
+				['calories'] = dwarf_size,	--   750 kcal
+				['fruit'] = 0.15,			--   150 kcal
+				['meat'] = 0.175,			--   350 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = dwarf_size * 0.25 -- harpies have nice feathers
+				['clothes'] = dwarf_size * 0.5 -- harpies have nice feathers
 			},
 			[NEED.FURNITURE] = {
 				['furniture'] = dwarf_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = dwarf_size * 0.25, -- harpies have sharp claws
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = dwarf_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = dwarf_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = dwarf_size,
 			},
 		},
 		male_infrastructure_needs = medium_size,
-		carrying_capacity_weight = medium_size,
+		carrying_capacity_weight = dwarf_size,
 	}
 
 	Race:new {
@@ -950,12 +817,12 @@ function ll.load()
 		icon = 'toad-teeth.png',
 		description = 'kappa',
 		males_per_hundred_females = 125,
-		child_age = 6,
+		child_age = 5,
 		teen_age = 15,
 		adult_age = 20,
 		middle_age = 50,
 		elder_age = 80,
-		max_age = 100,
+		max_age = 110,
 		minimum_comfortable_temperature = 10,
 		minimum_absolute_temperature = -5,
 		fecundity = 1,
@@ -963,22 +830,20 @@ function ll.load()
 		visibility = 0.5,
 		female_body_size = small_size,
 		female_efficiency = {
-			[JOBTYPE.FARMER] = 0.5,
-			[JOBTYPE.ARTISAN] = 0.5,
-			[JOBTYPE.CLERK] = 0.75,
-			[JOBTYPE.LABOURER] = small_size,
-			[JOBTYPE.WARRIOR] = 1, -- kappa are ambush predators
-			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush  predators
-			[JOBTYPE.FORAGER] = 0.75,
-			[JOBTYPE.HUNTING] = 1.25 -- kappa are ambush predators
+			[JOBTYPE.FARMER] = 0.75,
+			[JOBTYPE.ARTISAN] = 0.75,
+			[JOBTYPE.CLERK] = 0.5,
+			[JOBTYPE.LABOURER] = small_size * 2,
+			[JOBTYPE.WARRIOR] = 1.25, -- kappa are ambush predators
+			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush predators
+			[JOBTYPE.FORAGER] = 1.25,
+			[JOBTYPE.HUNTING] = 1.375 -- kappa are ambush predators
 		},
 		female_needs = {
-			[NEED.WATER] = {
-				['water'] = small_size
-			},
-			[NEED.FOOD] = {
-				['calories'] = medium_size,		-- 1000 kcal
-				['meat'] = 0.5,					-- 1000 kcal
+			[NEED.FOOD] = {					-- ~1250 kcal
+				['water'] = medium_size,
+				['calories'] = dwarf_size,	--   750 kcal
+				['meat'] = 0.25,			--   500 kcal
 			},
 			[NEED.CLOTHING] = {
 				['clothes'] = small_size
@@ -986,60 +851,46 @@ function ll.load()
 			[NEED.FURNITURE] = {
 				['furniture'] = small_size
 			},
-			[NEED.TOOLS] = {
-				['tools-like'] = small_size,
-			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = small_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = small_size,
 			},
 			[NEED.LUXURY] = {
 				['liquors'] = small_size,
 			},
 		},
 		female_infrastructure_needs = small_size,
-		male_body_size = small_size,
+		male_body_size = dwarf_size,
 		male_efficiency = {
-			[JOBTYPE.FARMER] = 0.5,
-			[JOBTYPE.ARTISAN] = 0.5,
-			[JOBTYPE.CLERK] = 0.75,
-			[JOBTYPE.LABOURER] = small_size,
-			[JOBTYPE.WARRIOR] = 1, -- kappa are ambush predators
-			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush  predators
-			[JOBTYPE.FORAGER] = 0.75,
-			[JOBTYPE.HUNTING] = 1.25 -- kappa are ambush predators
+			[JOBTYPE.FARMER] = 0.75,
+			[JOBTYPE.ARTISAN] = 0.75,
+			[JOBTYPE.CLERK] = 0.5,
+			[JOBTYPE.LABOURER] = dwarf_size,
+			[JOBTYPE.WARRIOR] = 1.5, -- kappa are ambush predators
+			[JOBTYPE.HAULING] = dwarf_size * 2, -- kappa are ambush predators
+			[JOBTYPE.FORAGER] = 1.375,
+			[JOBTYPE.HUNTING] = 1.5 -- kappa are ambush predators
 		},
 		male_needs = {
-			[NEED.WATER] = {
-				['water'] = small_size
-			},
-			[NEED.FOOD] = {
-				['calories'] = medium_size,		-- 1000 kcal
-				['meat'] = 0.5,					-- 1000 kcal
+			[NEED.FOOD] = {					-- ~1500 kcal
+				['water'] = medium_size,
+				['calories'] = dwarf_size,	--   750 kcal
+				['meat'] = 0.375,			--   750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = small_size
+				['clothes'] = dwarf_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = small_size
-			},
-			[NEED.TOOLS] = {
-				['tools-like'] = small_size,
+				['furniture'] = dwarf_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = small_size,
-			},
-			[NEED.STORAGE] = {
-				['containers'] = small_size,
+				['healthcare'] = dwarf_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = small_size,
+				['liquors'] = dwarf_size,
 			},
 		},
-		male_infrastructure_needs = small_size,
-		carrying_capacity_weight = medium_size,
+		male_infrastructure_needs = dwarf_size,
+		carrying_capacity_weight = dwarf_size,
 		requires_large_river = true
 	}
 

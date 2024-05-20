@@ -96,13 +96,11 @@ function Race:new(o)
 	}
 
 	r.female_needs = {
-		[NEED.WATER] = {
+		[NEED.FOOD] = {				-- ~2000 kcal
 			['water'] = 1,
-		},
-		[NEED.FOOD] = {
 			['calories'] = 1,		-- 1000 kcal
-			['fruit'] = 0.25,		-- 250 - 375 kcal
-			['meat'] = 0.25,		-- 250 - 500 kcal
+			['fruit'] = 0.5,		--  500 kcal
+			['meat'] = 0.25,		--  500 kcal
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -110,14 +108,8 @@ function Race:new(o)
 		[NEED.FURNITURE] = {
 			['furniture'] = 1,
 		},
-		[NEED.TOOLS] = {
-			['tools-like'] = 1,
-		},
 		[NEED.HEALTHCARE] = {
 			['healthcare'] = 1,
-		},
-		[NEED.STORAGE] = {
-			['containers'] = 1,
 		},
 		[NEED.LUXURY] = {
 			['liquors'] = 1,
@@ -136,13 +128,11 @@ function Race:new(o)
 	}
 
 	r.male_needs = {
-		[NEED.WATER] = {
+		[NEED.FOOD] = {				-- ~2000 kcal
 			['water'] = 1,
-		},
-		[NEED.FOOD] = {
 			['calories'] = 1,		-- 1000 kcal
-			['fruit'] = 0.25,		-- 250 - 375 kcal
-			['meat'] = 0.25,		-- 250 - 500 kcal
+			['fruit'] = 0.5,		--  500 kcal
+			['meat'] = 0.25,		--  500 kcal
 		},
 		[NEED.CLOTHING] = {
 			['clothes'] = 1,
@@ -150,14 +140,8 @@ function Race:new(o)
 		[NEED.FURNITURE] = {
 			['furniture'] = 1,
 		},
-		[NEED.TOOLS] = {
-			['tools-like'] = 1,
-		},
 		[NEED.HEALTHCARE] = {
 			['healthcare'] = 1,
-		},
-		[NEED.STORAGE] = {
-			['containers'] = 1,
 		},
 		[NEED.LUXURY] = {
 			['liquors'] = 1,

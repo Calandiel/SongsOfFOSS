@@ -30,6 +30,7 @@ function pg.growth(province)
 
 	local starvation_check = min_life_need * 2
 	local eligible = tabb.accumulate(tabb.join(tabb.copy(province.all_pops), province.characters), {}, function (a, _, pp)
+		local age_adjusted_starvation_check = starvation_check / pp:get_age_multiplier()
 		local min_life_satisfaction = tabb.accumulate(pp.need_satisfaction, 3, function(b, need, cases)
 			if NEEDS[need].life_need then
 				b = tabb.accumulate(cases, b, function (c, _, v)
@@ -46,10 +47,9 @@ function pg.growth(province)
 		if pp.age > pp.race.max_age then
 			to_remove[#to_remove + 1] = pp
 		-- next check for starvation
-		elseif min_life_satisfaction < starvation_check then -- prevent births if not at least 25% food and water
+		elseif min_life_satisfaction < age_adjusted_starvation_check then -- prevent births if not at least 25% food and water
 			-- children are more likely to die of starvation 
-			local age_adjusted_starvation_check = starvation_check / pp:get_age_multiplier()
-			if love.math.random() < (age_adjusted_starvation_check - min_life_satisfaction) / age_adjusted_starvation_check  * death_rate then
+			if (age_adjusted_starvation_check - min_life_satisfaction) / age_adjusted_starvation_check * love.math.random() < death_rate then
 				to_remove[#to_remove + 1] = pp
 			end
 		elseif pp.age >= pp.race.elder_age then
@@ -125,7 +125,10 @@ function pg.growth(province)
 			-- set newborn to parents satisfaction
 			newborn.need_satisfaction = tabb.accumulate(pp.need_satisfaction, newborn.need_satisfaction, function (need_satisfaction, need, cases)
 				need_satisfaction[need] = tabb.accumulate(cases, need_satisfaction[need], function (case_satisfaction, case, values)
-					case_satisfaction[case].consumed = values.consumed / values.demanded * needs[need][case] * newborn:get_age_multiplier()
+					local demanded = (needs[need] and needs[need][case] or 0) * newborn:get_age_multiplier()
+					if demanded > 0 then
+						case_satisfaction[case] = { consumed = values.consumed / values.demanded * demanded, demanded = demanded}
+					end
 					return case_satisfaction
 				end)
 				return need_satisfaction
