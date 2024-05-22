@@ -26,6 +26,7 @@ local function clear_current_elevation_on_lakes(world)
 end
 
 local month_of_first_melt = 3
+local soil_moisture_multiplier = 4 -- We'll use this to moderate the extent to which soil moisture = water on the surface 
 
 -- We want to make a check, to see if water is allowed to move at all through ice tiles.
 -- If it is ice and is the warm season, move the water. If it is ice and is the cold season, move water for BOTH seasons.
@@ -39,13 +40,17 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	local jan_temperature = world.jan_temperature[ti]
 	local jul_rainfall = world.jul_rainfall[ti]
 	local jul_temperature = world.jul_temperature[ti]
-	local month_rainfall = world:get_rainfall_for(ti, month)
-	local month_temperature = world:get_temperature_for(ti, month)
-	local month_humidity = 0.3 -- hardcoded for now
+	local seasonal_rainfall = world:get_rainfall_for(ti, month)
+	local seasonal_temperature = world:get_temperature_for(ti, month)
+	local seasonal_humidity = 0.3 -- hardcoded for now
 
 	local sand = world.sand[ti]
 	local silt = world.silt[ti]
 	local clay = world.clay[ti]
+	local total_soil = sand + silt + clay
+	local sand_percent = sand / total_soil
+	local silt_percent = silt / total_soil
+	local clay_percent = clay / total_soil
 
 	-- For the case of snow, we can simply check the seasonal temperature to determine whether snow accumulation or melt occurs.
 	-- However, once snow starts occurring, we also need to shut off plant growth as well.
@@ -70,12 +75,12 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			end
 		end
 
-	elseif month_temperature <= 0 then
+	elseif seasonal_temperature <= 0 then
 		if is_land then
-			local temp_mult = month_temperature / -10
+			local temp_mult = seasonal_temperature / -10
 			if temp_mult > 1 then temp_mult = 1 end
-			local water_to_snow = month_rainfall * temp_mult
-			local water_to_flow = month_rainfall - water_to_snow
+			local water_to_snow = seasonal_rainfall * temp_mult
+			local water_to_flow = seasonal_rainfall - water_to_snow
 			world.snow[ti] = water_to_snow
 			world.tmp_float_2[ti] = water_to_flow
 
@@ -94,21 +99,16 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			world.tmp_float_2[ti] = (jan_rainfall + jul_rainfall) / 2
 
 		else
-			world.tmp_float_2[ti] = month_rainfall
+			world.tmp_float_2[ti] = seasonal_rainfall
 
 			if world.snow[ti] > 0 then -- if there is snow but temperatures are not freezing, start melting snow
-				local total_soil = sand + silt + clay
-				local sand_percent = sand / total_soil
-				local silt_percent = silt / total_soil
-				local clay_percent = clay / total_soil
-
 				local soil_depth_factor = total_soil
 				if total_soil < 1000 then
 					soil_depth_factor = 0.75 * (soil_depth_factor / 1000) + 0.25
 				end
 
 				local melt_mult = (sand_percent * 0.65 + silt_percent * 0.85 + clay_percent * 1) / 3;
-				local melt_qty = (month_temperature * 15 + month_temperature * 1 * world.snow[ti] * melt_mult) * soil_depth_factor;
+				local melt_qty = (seasonal_temperature * 15 + seasonal_temperature * 1 * world.snow[ti] * melt_mult) * soil_depth_factor;
 
 				if melt_qty >= world.snow[ti] then melt_qty = world.snow[ti] end
 				world.snow[ti] = world.snow[ti] - melt_qty
@@ -135,6 +135,55 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 		-- We only want water infiltration to the soil and evaporation if the tile is not covered in ice
 
 		if world.ice[ti] <= 0 then
+			local capacity = 1
+			local soil_depth_factor = world:soil_depth_raw(ti) -- Less soil depth should mean faster penetration of water into aquifer and out of soil.
+			soil_depth_factor = math.min(soil_depth_factor, 1000)
+			soil_depth_factor = soil_depth_factor / 1000
+			capacity = ((sand_percent * 0.25) + (silt_percent * 0.75) + (clay_percent * 1)) * soil_depth_factor -- Long term, we want to revise so that too much clay = compaction
+			capacity = capacity * 5000
+			world.tmp_float_3[ti] = capacity
+
+			local organic_factor = math.pow((world.soil_organics[ti] / 1000), 0.5) + 1 -- Test factor so far to see the effects of organics on water retention.
+
+			-- Do we just want to look at temperature at the specific time of month and prevent water loss at that time?
+			-- Or do we want to consider the total range of temperature throughout the year?
+			local winter_depression_factor_result = require("libsote.world-gen-utils").winter_depression_factor(jan_temperature, jul_temperature)
+			local permafrost_factor = 1
+			if seasonal_temperature - winter_depression_factor_result < -10 then -- Less than 0 implies net temperature of tile over year being less than 0, hence presence of some permafrost
+				permafrost_factor = seasonal_temperature - winter_depression_factor_result + 10;
+				if permafrost_factor < 0 then
+					permafrost_factor = math.max(permafrost_factor, -10)
+					permafrost_factor = 1 - (permafrost_factor / -10)
+				else
+					permafrost_factor = 1
+				end
+			end
+
+			local sand_factor = sand_percent * (1 - (1 - 0.15) / (organic_factor * 12));
+			local silt_factor = silt_percent * (1 - (1 - 0.75) / (organic_factor * 6));
+			local clay_factor = clay_percent * (1 - (1 - 0.90) / (organic_factor * 6));
+			local water_loss = world.soil_moisture[ti] * (1 - (soil_depth_factor * ((sand_factor + silt_factor + clay_factor))));
+			water_loss = water_loss * permafrost_factor
+			water_loss = math.min(water_loss, world.soil_moisture[ti])
+			world.soil_moisture[ti] = world.soil_moisture[ti] - water_loss;
+
+			local current_saturation = world.soil_moisture[ti] / capacity
+			current_saturation = 0 -- :(
+			local infiltration = (sand_percent * 0.9 + silt_percent * 0.75 + clay_percent * 0.1) * (1 - current_saturation) -- Base infiltration multiplier
+			local rain_in = (world.tmp_float_2[ti] * infiltration) * soil_moisture_multiplier
+			local moving_water_in = 0
+			if world.tmp_float_1[ti] > 0 then
+				moving_water_in = (math.pow(world.tmp_float_1[ti], 0.6) / 4) * infiltration * soil_moisture_multiplier;
+			end
+			local total_water_added = rain_in + moving_water_in;
+
+			if total_water_added + world.soil_moisture[ti] < capacity then  -- If capacity not met, fill 'er on up
+				world.soil_moisture[ti] = world.soil_moisture[ti] + (rain_in + moving_water_in) -- Soil moisture is effectively increased by soilMoistureMultiplier
+				world.tmp_float_1[ti] = world.tmp_float_1[ti] + world.tmp_float_2[ti] - (rain_in + moving_water_in) / soil_moisture_multiplier;
+			else -- If capacity not met, fill to capacity and then send remaining water on its way
+				world.soil_moisture[ti] = capacity
+				world.tmp_float_1[ti] = world.tmp_float_1[ti] + world.tmp_float_2[ti] + (total_water_added - (capacity - world.soil_moisture[ti])) / soil_moisture_multiplier;
+			end
 
 		else -- If ice, just add rain without any infiltration into the soil
 			world.tmp_float_1[ti] = world.tmp_float_1[ti] + world.tmp_float_2[ti]
@@ -145,8 +194,8 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 		local evaporation_volume = 0
 		if world.tmp_float_1[ti] > 0 then
 			if world.tmp_float_1[ti] < 6000 then -- Don't evaporate big rivers -- we don't want to kill our Niles!
-				if month_temperature > 0 then -- Don't evaporate in winters, we already have barely any water movement left during those seasons!
-					evaporation_volume = math.sqrt(world.tmp_float_1[ti]) / month_humidity
+				if seasonal_temperature > 0 then -- Don't evaporate in winters, we already have barely any water movement left during those seasons!
+					evaporation_volume = math.sqrt(world.tmp_float_1[ti]) / seasonal_humidity
 				end
 			end
 		end

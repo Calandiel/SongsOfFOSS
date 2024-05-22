@@ -66,6 +66,8 @@ function world:new(world_size, seed)
 	obj.sand               = allocate_array("sand",               obj.tile_count, "uint16_t")
 	obj.silt               = allocate_array("silt",               obj.tile_count, "uint16_t")
 	obj.clay               = allocate_array("clay",               obj.tile_count, "uint16_t")
+	obj.soil_organics      = allocate_array("soil_organics",      obj.tile_count, "uint16_t")
+	obj.soil_moisture      = allocate_array("soil_moisture",      obj.tile_count, "float")
 
 	obj.tmp_float_1       = allocate_array("tmp_float_1", obj.tile_count, "float")
 	obj.tmp_float_2       = allocate_array("tmp_float_2", obj.tile_count, "float")
@@ -235,6 +237,11 @@ end
 
 function world:get_rocks(q, r, face)
 	return self.rocks[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+---@param ti number 0-based tile index
+function world:soil_depth_raw(ti)
+	return self.sand[ti] + self.silt[ti] + self.clay[ti]
 end
 
 ---------------------------------------------------------------------------------------------------
