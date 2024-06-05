@@ -116,6 +116,7 @@ function wg.generate_coro()
 	-- seed = 53201 -- banding
 	-- seed = 20836 -- north pole cells
 	-- seed = 6618 -- tiny islands?
+	-- seed = 12177 -- waterflow calculations work
 
 	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
 	while coroutine.status(phase01_coro) ~= "dead" do
@@ -245,7 +246,7 @@ function wg.handle_camera_controls()
 	if ui.is_key_held('d') then
 		wg.camera_position = wg.camera_position:rotate(camera_speed, up)
 	end
-	if ui.is_key_held('w') then
+	if not (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_held('w') then
 		local rot = wg.camera_position:cross(up)
 		wg.camera_position = wg.camera_position:rotate(-camera_speed, rot)
 	end
@@ -282,6 +283,7 @@ end
 
 local is_jan_rain = true
 local is_jan_temp = true
+local is_jan_water = true
 
 function wg.handle_keyboard_input()
 	if (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_pressed('r') then
@@ -296,6 +298,9 @@ function wg.handle_keyboard_input()
 		is_jan_temp = not is_jan_temp
 	elseif ui.is_key_pressed('k') then
 		wg.update_map_mode("koppen")
+	elseif (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_pressed('w') then
+		wg.update_map_mode(is_jan_water and "jan_flow" or "jul_flow")
+		is_jan_water = not is_jan_water
 	end
 end
 

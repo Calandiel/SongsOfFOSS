@@ -129,6 +129,22 @@ function world:for_each_tile(callback)
 	end
 end
 
+---@param callback fun(tile_index:number, q:number, r:number, face:number, world:table)
+function world:for_each_hex(callback)
+	for q = -self.size, self.size do
+		for r = -self.size, self.size do
+			if not self:is_valid(q, r) then goto continue end
+
+			for fi = 1, 20 do
+				local index = self.coord[self:_key_from_coord(q, r, fi)]
+				callback(index, q, r, fi, self)
+			end
+
+			::continue::
+		end
+	end
+end
+
 function world:_init_neighbours()
 	for i = 0, self.tile_count * 6 - 1 do
 		self.neighbors[i] = -1
@@ -239,6 +255,18 @@ function world:get_rocks(q, r, face)
 	return self.rocks[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
+function world:get_water_movement(q, r, face)
+	return self.water_movement[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_jan_water_movement(q, r, face)
+	return self.jan_water_movement[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
+function world:get_jul_water_movement(q, r, face)
+	return self.jul_water_movement[self.coord[self:_key_from_coord(q, r, face)]]
+end
+
 ---@param ti number 0-based tile index
 function world:soil_depth_raw(ti)
 	return self.sand[ti] + self.silt[ti] + self.clay[ti]
@@ -306,7 +334,7 @@ function world:true_elevation(ti)
 end
 
 function world:create_elevation_list()
-	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(function(i) return self:true_elevation(i) end, self.tile_count)
+	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(function(i) return self:true_elevation(i) end, self.tile_count, true)
 end
 
 ---@param callback fun(tile_index:number, world:table)
