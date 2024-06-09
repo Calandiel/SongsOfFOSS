@@ -56,13 +56,18 @@ local function post_tectonic()
 	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
 end
 
+local fu = require "game.file-utils"
+
 local function cache_tile_coord()
 	print("Caching tile coordinates...")
 
-	for _, tile in pairs(WORLD.tiles) do
-		local lat, lon = tile:latlon()
-		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
-		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
+	for row in fu.csv_rows("sote\\libsote\\hex_mapping.csv") do
+		local tile_id = tonumber(row[1])
+		local q = tonumber(row[2])
+		local r = tonumber(row[3])
+		local face = tonumber(row[4])
+
+		wg.world:cache_tile_coord(tile_id, q, r, face)
 	end
 
 	print("Done caching tile coordinates")
