@@ -8,12 +8,9 @@ local economy_values = require "game.raws.values.economical"
 function emp.run(province)
 	-- Sample random pop and try to employ it
 	---@type table<POP, POP>
-	local eligible_pops = {}
-	for _, pop in pairs(province.all_pops) do
-		if pop.age > pop.race.teen_age then
-			eligible_pops[pop] = pop
-		end
-	end
+	local eligible_pops = tabb.filter(province.all_pops, function (pop)
+		return (pop.age > pop.race.teen_age) and (pop.work_ratio > 0.02)
+	end)
 
 	local pop = tabb.random_select_from_set(eligible_pops)
 
@@ -51,7 +48,7 @@ function emp.run(province)
 				profit = building.income_mean + building.subsidy_last
 
 				-- if profit is almost negative, eventually fire a worker
-				if profit < 0.05 and love.math.random() < 0.9 then
+				if profit < 0.01 and love.math.random() < 0.25 then
 					local pop = tabb.random_select_from_set(building.workers)
 					if pop then
 						province:fire_pop(pop)

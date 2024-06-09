@@ -25,7 +25,9 @@ Resource.__index = Resource
 ---@param o Resource
 ---@return Resource
 function Resource:new(o)
-	print("Resource: " .. tostring(o.name))
+	if RAWS_MANAGER.do_logging then
+		print("Resource: " .. tostring(o.name))
+	end
 	---@type Resource
 	local r = {}
 

@@ -29,18 +29,18 @@ function cl.run()
 end
 
 function cl.run_hex(world)
-	for i = 1, world.tile_count do
-		local cell = world.climate_cells[i]
+	world:for_each_tile(function(i, _)
+		local cell = world.climate_cells[i + 1]
 
-		cell.elevation = world:get_elevation_by_index(i)
+		cell.elevation = world.elevation[i]
 
-		local is_land = world:get_is_land_by_index(i)
+		local is_land = world.is_land[i]
 		if is_land then
 			cell.land_tiles = cell.land_tiles + 1
 		else
 			cell.water_tiles = cell.water_tiles + 1
 		end
-	end
+	end)
 
 	update_climate_cells()
 end

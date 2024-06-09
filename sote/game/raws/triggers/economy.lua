@@ -114,11 +114,12 @@ function triggers.can_buy(character, good, amount)
 end
 
 ---performs a check if character can buy amount of goods locally
----@param character Character
+---@param province Province
+---@param savings number
 ---@param use TradeGoodReference
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
-function triggers.can_buy_use(character, use, amount)
+function triggers.can_buy_use(province, savings, use, amount)
     local response = true;
     local reasons = {}
 
@@ -127,7 +128,6 @@ function triggers.can_buy_use(character, use, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_AMOUNT)
     end
 
-    local province = character.province
     if province == nil then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
@@ -142,7 +142,7 @@ function triggers.can_buy_use(character, use, amount)
         local price = ev.get_local_price_of_use(province, use)
         local cost = price * amount
 
-        if character.savings < cost then
+        if savings < cost then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.CHARACTER_WEALTH_IS_TO_LOW)
         end

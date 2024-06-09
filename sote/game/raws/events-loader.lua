@@ -1,6 +1,12 @@
 local tabb = require "engine.table"
 local ll = {}
 
+local function log_stage(msg)
+	if RAWS_MANAGER.do_logging then
+		print(msg)
+	end
+end
+
 function ll.load()
 	local Event = require "game.raws.events"
 
@@ -14,43 +20,43 @@ function ll.load()
 	-- 2. If it doesn't, get the option with the highest ai score
 	-- 3. Apply
 
-	print("lack needs events")
+	log_stage("lack needs events")
 	require "game.raws.events.lack-events" ()
 
-	print("war events")
+	log_stage("war events")
 	require "game.raws.events.war-events" ()
 
-	print("outlaw events")
+	log_stage("outlaw events")
 	require "game.raws.events.outlaw-events" ()
 
-	print("raid events")
+	log_stage("raid events")
 	require "game.raws.events.raid-events" ()
 
-	print("misc. events")
+	log_stage("misc. events")
 	require "game.raws.events.coup" ()
 
-	print("interpersonal events")
+	log_stage("interpersonal events")
 	require "game.raws.events.interpersonal"()
 
-	print("administration events")
+	log_stage("administration events")
 	require "game.raws.events.administration"()
 
-	print("migration events")
+	log_stage("migration events")
 	require "game.raws.events.migration"()
 
-	print("health events")
+	log_stage("health events")
 	require "game.raws.events.health"()
 
-	print("succession events")
+	log_stage("succession events")
 	require "game.raws.events.succession"()
 
-	print("travel events")
+	log_stage("travel events")
 	require "game.raws.events.travel"()
 
-	print("events")
+	log_stage("events")
 	require "game.raws.events._loader"()
 
-	print("auxilary events")
+	log_stage("auxilary events")
 	require "game.raws.events.helpers"()
 end
 

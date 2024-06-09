@@ -37,15 +37,15 @@ function d.load()
 		b = 1,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('witch-doctor'),
-		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP,
+		construction_cost = COST_AREA * 1.5,
+		building_group = BUILDING_GROUP.GROUNDS,
 		needed_infrastructure = 1,
 		ai_weight = 1
 	}
 	BuildingType:new {
 		name = "water-carrier",
 		description = "water carrier",
-		icon = 'droplets.png',
+		icon = 'full-wood-bucket.png',
 		r = 0.1,
 		g = 0.1,
 		b = 1,
@@ -59,7 +59,7 @@ function d.load()
 	BuildingType:new {
 		name = "hunting-grounds-0",
 		description = "primitive hunting grounds",
-		icon = 'bow-arrow.png',
+		icon = 'meat.png',
 		r = 1.0,
 		g = 0.2,
 		b = 0.3,
@@ -73,7 +73,7 @@ function d.load()
 	BuildingType:new {
 		name = "hunting-grounds-1",
 		description = "hunting grounds",
-		icon = 'bow-arrow.png',
+		icon = 'stone-spear.png',
 		r = 1.0,
 		g = 0.2,
 		b = 0.3,
@@ -98,11 +98,10 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
 	BuildingType:new {
 		name = "gathering-grounds-0",
 		description = "primitive gathering grounds",
-		icon = 'fruit-bowl.png',
+		icon = 'berries-bowl.png',
 		r = 0.2,
 		g = 1.0,
 		b = 0.3,
@@ -113,7 +112,6 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
 	BuildingType:new {
 		name = "gathering-grounds-1",
 		description = "gathering grounds",
@@ -128,11 +126,10 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
 	BuildingType:new {
 		name = "gathering-grounds-2",
 		description = "gathering grounds (tools)",
-		icon = 'fruit-bowl.png',
+		icon = 'basket.png',
 		r = 0.2,
 		g = 1.0,
 		b = 0.3,
@@ -143,7 +140,6 @@ function d.load()
 		needed_infrastructure = 1,
 		ai_weight = 1,
 	}
-
 	BuildingType:new {
 		name = "flint-extraction",
 		description = "flint extraction",
@@ -162,7 +158,7 @@ function d.load()
 	BuildingType:new {
 		name = "blanks-knapping",
 		description = "tool knapping",
-		icon = 'stone-stack.png',
+		icon = 'rock.png',
 		r = 0.3,
 		g = 1.0,
 		b = 0.5,
@@ -240,7 +236,7 @@ function d.load()
 	BuildingType:new {
 		name = 'native-copper-gathering',
 		description = 'native copper gathering',
-		icon = 'ore.png',
+		icon = 'gold-nuggets.png',
 		r = 0.56,
 		g = 0.33,
 		b = 0.02,
@@ -287,7 +283,7 @@ function d.load()
 	BuildingType:new {
 		name = 'copper-smelting',
 		description = 'copper smelting',
-		icon = 'ore.png',
+		icon = 'metal-bar.png',
 		r = 0.56,
 		g = 0.33,
 		b = 0.02,
@@ -302,7 +298,7 @@ function d.load()
 	BuildingType:new {
 		name = 'smith-tools-native-copper',
 		description = 'native copper smiths',
-		icon = 'ore.png',
+		icon = 'anvil.png',
 		r = 0.56,
 		g = 0.33,
 		b = 0.02,
@@ -315,7 +311,7 @@ function d.load()
 	BuildingType:new {
 		name = 'copper-smith-tools',
 		description = 'copper tools smiths',
-		icon = 'ore.png',
+		icon = 'anvil.png',
 		r = 0.56,
 		g = 0.33,
 		b = 0.02,
@@ -325,8 +321,6 @@ function d.load()
 		construction_cost = COST_WORKSHOP,
 		ai_weight = 10
 	}
-
-
 	BuildingType:new {
 		name = 'watchtower',
 		description = 'watchtower',
@@ -361,7 +355,7 @@ function d.load()
 	BuildingType:new {
 		name = 'potterer',
 		description = 'potterer',
-		icon = 'painted-pottery.png',
+		icon = 'amphora.png',
 		r = 0.56,
 		g = 0.23,
 		b = 0.22,
@@ -389,7 +383,7 @@ function d.load()
 	BuildingType:new {
 		name = 'furniture-crafters',
 		description = 'furniture crafters',
-		icon = 'stone-axe.png',
+		icon = 'wooden-chair.png',
 		r = 0.26,
 		g = 0.73,
 		b = 0.62,
@@ -446,7 +440,7 @@ function d.load()
 	BuildingType:new {
 		name = 'beehive',
 		description = 'beehive',
-		icon = 'wheat.png',
+		icon = 'high-grass.png',
 		r = 0.86,
 		g = 0.83,
 		b = 0.02,

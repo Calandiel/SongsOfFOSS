@@ -12,8 +12,13 @@ function rand:new(seed)
 	return new
 end
 
+---@return number [0 .. 1)
+function rand:random()
+	return self.rng:random()
+end
+
 ---@param max number
----@return number
+---@return number [1 .. max]
 function rand:random_max(max)
 	return self.rng:random(max)
 end

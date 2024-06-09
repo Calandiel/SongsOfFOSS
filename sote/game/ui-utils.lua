@@ -201,9 +201,10 @@ end
 ---@param a number
 function ut.render_icon(rect, icon_name, r, g, b, a)
 	local _r, _g, _b, _a = love.graphics.getColor()
-
+	local subrect = rect:centered_square()
+	
 	love.graphics.setColor(r, g, b, a)
-	ui.image(ASSETS.icons[icon_name], rect)
+	ui.image(ASSETS.icons[icon_name], subrect)
 
 	love.graphics.setColor(_r, _g, _b, _a)
 end
@@ -940,7 +941,7 @@ end
 ---@param rect Rect
 ---@param pop POP
 function ut.render_pop_satsifaction(rect, pop)
-	local needs_tooltip = ""
+	local needs_tooltip = "Forage Ratio: " .. ut.to_fixed_point2(pop.forage_ratio) .. "%, Work Ratio: " .. ut.to_fixed_point2(pop.work_ratio) .. "%"
 	for need, values in pairs(pop.need_satisfaction) do
 		local tooltip = ""
 		for case, value in pairs(values) do
@@ -963,17 +964,6 @@ function ut.render_pop_satsifaction(rect, pop)
 		ut.NUMBER_MODE.PERCENTAGE,
 		ut.NAME_MODE.ICON
 	)
-end
-
--- returns a square Rect centered in the provided rect
----comment
----@param rect Rect
----@return Rect square
-function ut.centered_square(rect)
-	local square
-	local side = math.min(rect.height, rect.width)
-	square = rect:subrect(0, 0, side, side, "center", "center")
-	return square
 end
 
 return ut

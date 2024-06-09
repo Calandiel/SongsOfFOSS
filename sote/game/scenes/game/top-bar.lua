@@ -148,7 +148,7 @@ function tb.draw(gam)
 			"My personal savings")
 
 
-		local amount = economic_effects.available_use_case_from_inventory(character, 'calories')
+		local amount = economic_effects.available_use_case_from_inventory(character.inventory, 'calories')
 		uit.sqrt_number_entry_icon(
 			"sliced-bread.png",
 			amount,
@@ -266,22 +266,7 @@ function tb.draw(gam)
 			})
 		end
 
-		local min_water_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
-			local ratio = v.consumed / v.demanded
-			if ratio < a then
-				return ratio
-			end
-			return a
-		end)
-		if min_water_satsfaction < 0.2 then
-			table.insert(alerts, {
-				["icon"] = "droplets.png",
-				["tooltip"] = "You have not consumed enough food last month and survived a death roll of " .. math.max(1 /12 /7, (0.2 - min_water_satsfaction) / 0.2)
-					.."%. Unless you consume at least 20% of each water need, you will make a death roll every month.",
-			})
-		end
-
-		local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.WATER], 1, function (a, k, v)
+		local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.FOOD], 1, function (a, k, v)
 			local ratio = v.consumed / v.demanded
 			if ratio < a then
 				return ratio

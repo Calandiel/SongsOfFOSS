@@ -24,10 +24,10 @@ function rea.run(realm)
 
 	realm.expected_food_consumption = 0
 
-	local PROVINCE_TO_REALM_STOCKPILE = 0.1
+	local PROVINCE_TO_REALM_STOCKPILE = 0.05
 	local REALM_TO_PROVINCE_STOCKPILE = 0.05
-	local NEIGHBOURS_GOODS_SHARING = 0.075
-	local NEIGHBOURS_WEALTH_SHARING = 0.075 / 4
+	local NEIGHBOURS_GOODS_SHARING = 0.05
+	local NEIGHBOURS_WEALTH_SHARING = 0.05
 
 	local INTEGRATION_STEP = 1
 
@@ -43,11 +43,11 @@ function rea.run(realm)
 			if resource.category == 'good' then
 				economic_effects.change_local_stockpile(province, prod, amount)
 
-				local to_realm_stockpile = amount * PROVINCE_TO_REALM_STOCKPILE
-				economic_effects.change_local_stockpile(province, prod, -to_realm_stockpile)
+	--			local to_realm_stockpile = amount * PROVINCE_TO_REALM_STOCKPILE
+	--			economic_effects.change_local_stockpile(province, prod, -to_realm_stockpile)
 
-				province.realm.resources[prod] = province.realm.resources[prod] or 0
-				province.realm.resources[prod] = province.realm.resources[prod] + to_realm_stockpile
+	--			province.realm.resources[prod] = province.realm.resources[prod] or 0
+	--			province.realm.resources[prod] = province.realm.resources[prod] + to_realm_stockpile
 			end
 		end
 		for prod, amount in pairs(province.local_consumption) do
@@ -81,39 +81,49 @@ function rea.run(realm)
 	local amount_of_provinces = tabb.size(realm.provinces)
 	for _, province in pairs(realm.provinces) do
 		-- diffuse wealth
-		local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING
-		local sharing_local_wealth = province.local_wealth * NEIGHBOURS_WEALTH_SHARING
-		for _, neigbour in pairs(province.neighbors) do
-			if neigbour.realm then
-				economic_effects.change_local_wealth(
-					province,
-					-sharing_local_wealth,
-					economic_effects.reasons.NeighborSiphon
-				)
-				economic_effects.change_local_wealth(
-					neigbour,
-					sharing_local_wealth,
-					economic_effects.reasons.NeighborSiphon
-				)
+		local neighbor_count = tabb.size(province.neighbors)
+		if neighbor_count > 0 then
+			local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING / neighbor_count
+			local sharing_local_wealth = province.local_wealth * NEIGHBOURS_WEALTH_SHARING / neighbor_count
+			for _, neighbor in pairs(province.neighbors) do
+				if neighbor.realm then
+					economic_effects.change_local_wealth(
+						province,
+						-sharing_local_wealth,
+						economic_effects.reasons.NeighborSiphon
+					)
+					economic_effects.change_local_wealth(
+						neighbor,
+						sharing_local_wealth,
+						economic_effects.reasons.NeighborSiphon
+					)
 
-				province.trade_wealth = province.trade_wealth - sharing_trade_wealth
-				neigbour.trade_wealth = neigbour.trade_wealth + sharing_trade_wealth
+					province.trade_wealth = province.trade_wealth - sharing_trade_wealth
+					neighbor.trade_wealth = neighbor.trade_wealth + sharing_trade_wealth
+				end
 			end
 		end
-
 		for resource_reference, amount in pairs(province.local_storage) do
 			local resource = good(resource_reference)
 			if resource.category == 'good' then
 
-				-- share some goods and wealth with neigbours
+				-- share some goods and wealth with neighbours
 				-- actual goal is to smooth out economy in space a bit
 				-- until addition of properly working "trade routes"
-				local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
-
-				for _, neigbour in pairs(province.neighbors) do
-					if neigbour.realm then
-						economic_effects.change_local_stockpile(province, resource_reference, -sharing)
-						economic_effects.change_local_stockpile(neigbour, resource_reference, sharing)
+				local neighbor_count = tabb.size(tabb.filter(province.neighbors, function (a)
+					return a.realm ~= nil
+				end))
+				if neighbor_count > 0 then
+					local sharing = province.local_storage[resource_reference] * NEIGHBOURS_GOODS_SHARING
+					economic_effects.change_local_stockpile(province, resource_reference, -sharing)
+					-- make sure province knows some production goes to faux trading with neighbors
+					--province.local_consumption[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
+					local neighbor_share = sharing / neighbor_count
+					for _, neighbor in pairs(province.neighbors) do
+						if neighbor.realm then
+							economic_effects.change_local_stockpile(neighbor, resource_reference, neighbor_share)
+							--neighbor.local_production[resource_reference] = (province.local_consumption[resource_reference] or 0) + sharing
+						end
 					end
 				end
 
@@ -126,8 +136,8 @@ function rea.run(realm)
 				economic_effects.decay_local_stockpile(province, resource_reference)
 
 				-- siphon some goods from realm stockpile
-				economic_effects.change_local_stockpile(province, resource_reference, siphon)
-				realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
+		--		economic_effects.change_local_stockpile(province, resource_reference, siphon)
+		--		realm.resources[resource_reference] = (realm.resources[resource_reference] or 0) - siphon
 			end
 		end
 	end
@@ -160,10 +170,10 @@ function rea.run(realm)
 
 				local average_price_neighbours = 0
 				local neighbours = 0
-				for _, neigbour in pairs(province.neighbors) do
-					if neigbour.realm then
+				for _, neighbor in pairs(province.neighbors) do
+					if neighbor.realm then
 						neighbours = neighbours + 1
-						average_price_neighbours = average_price_neighbours + economic_values.get_local_price(neigbour, good_reference)
+						average_price_neighbours = average_price_neighbours + economic_values.get_local_price(neighbor, good_reference)
 					end
 				end
 				if neighbours > 0 then

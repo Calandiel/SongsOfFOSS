@@ -4,7 +4,15 @@ local wg = {}
 local STATES = {
 	init = 0,
 	error = 1,
-	generated = 2
+	constraints_failed = 2,
+
+	phase_01 = 10,
+	cleanup = 11,
+	post_tectonic = 12,
+	phase_02 = 13,
+	load_maps = 14,
+
+	completed = 100
 }
 
 local libsote = require("libsote.libsote")
@@ -18,17 +26,40 @@ local function run_with_profiling(func, log_text)
 	print("[worldgen profiling] " .. log_text .. ": " .. tostring(duration * 1000) .. "ms")
 end
 
-local function gen_phase_02(world)
-	run_with_profiling(function() require "libsote.gen-rocks".run(world) end, "gen-rocks")
-	run_with_profiling(function() require "libsote.gen-climate".run(world) end, "gen-climate")
+local function check_constraints()
+	return true
 end
 
-local function cache_tile_coord(world)
+local function gen_phase_02()
+	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
+	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
+	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
+	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
+end
+
+local function post_tectonic()
+	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
+end
+
+local function cache_tile_coord()
+	print("Caching tile coordinates...")
+
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
-		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
-		world:cache_tile_coord(tile.tile_id, q, r, face)
+		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
+		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
+
+	print("Done caching tile coordinates")
+end
+
+_coroutine_resume = coroutine.resume
+function coroutine.resume(...)
+	local state,result = _coroutine_resume(...)
+	if not state then
+		error(tostring(result), 2)
+	end
+	return
 end
 
 function wg.init()
@@ -40,34 +71,6 @@ function wg.init()
 		wg.message = libsote.message
 		return
 	end
-
-	math.randomseed(os.time())
-	local seed = math.random(1, 100000)
-	-- local seed = 58738 -- climate integration was done on this one
-	-- local seed = 53201 -- banding
-	-- local seed = 20836 -- north pole cells
-
-	wg.world = libsote.generate_world(seed)
-	wg.message = libsote.message
-	if not wg.world then
-		wg.state = STATES.error
-		return
-	end
-	libsote.shutdown()
-
-	wg.state = STATES.phase_01
-
-	require "game.raws.raws"()
-	require "game.entities.world".empty()
-
-	run_with_profiling(function() cache_tile_coord(wg.world) end, "cache_tile_coord")
-
-	gen_phase_02(wg.world)
-
-	local wl = require "libsote.world-loader"
-	wl.load_maps_from(wg.world)
-	-- wl.dump_maps_from(wg.world)
-
 
 	wg.world_size = DEFINES.world_size
 	local dim = wg.world_size * 3
@@ -86,13 +89,90 @@ function wg.init()
 	wg.planet_shader = require "libsote.planet-shader".get_shader()
 	wg.game_canvas = love.graphics.newCanvas()
 
+	wg.coroutine = coroutine.create(wg.generate_coro)
+	coroutine.resume(wg.coroutine)
+end
+
+function wg.generate_coro()
+	wg.state = STATES.phase_01
+
+	math.randomseed(os.time())
+	local seed = math.random(1, 100000)
+	-- seed = 58738 -- climate integration was done on this one
+	-- seed = 53201 -- banding
+	-- seed = 20836 -- north pole cells
+	-- seed = 6618 -- tiny islands?
+
+	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
+	while coroutine.status(phase01_coro) ~= "dead" do
+		coroutine.resume(phase01_coro, seed)
+		coroutine.yield()
+	end
+
+	wg.message = libsote.message
+	coroutine.yield()
+
+	wg.world = libsote.generate_world(seed)
+	wg.message = libsote.message
+	if not wg.world then
+		wg.state = STATES.error
+		return
+	end
+
+	wg.state = STATES.cleanup
+
+	local cleanup_coro = coroutine.create(libsote.clean_up_coro)
+	while coroutine.status(cleanup_coro) ~= "dead" do
+		coroutine.resume(cleanup_coro)
+		coroutine.yield()
+	end
+
+	wg.message = libsote.message
+	coroutine.yield()
+
+	wg.state = STATES.post_tectonic
+
+	post_tectonic();
+
+	local constraints_met = check_constraints()
+	if not constraints_met then
+		wg.state = STATES.constraints_failed
+		wg.message = "Constraints not met"
+		return
+	end
+
+	wg.state = STATES.phase_02
+
+	require "game.raws.raws"(false) -- no logging
+	require "game.entities.world".empty()
+
+	wg.message = "Caching tile coordinates"
+	coroutine.yield()
+	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord")
+
+	gen_phase_02()
+
+	wg.state = STATES.load_maps
+	local wl = require "libsote.world-loader"
+	wl.load_maps_from(wg.world)
+	-- wl.dump_maps_from(wg.world)
+
 	local default_map_mode = "elevation"
 	wg.map_mode = default_map_mode
-
 	wg.refresh_map_mode()
+
+	wg.state = STATES.completed
 end
 
 function wg.update(dt)
+	if wg.coroutine == nil then
+		return
+	end
+
+	coroutine.resume(wg.coroutine)
+	if coroutine.status(wg.coroutine) == "dead" then
+		wg.coroutine = nil
+	end
 end
 
 local up_direction = cpml.vec3.new(0, 1, 0)
@@ -209,7 +289,7 @@ function wg.draw()
 	local ui = require "engine.ui"
 	local fs = ui.fullscreen()
 
-	if wg.state == STATES.error then
+	if wg.state == STATES.error or wg.state == STATES.constraints_failed then
 		ui.text_panel(wg.message, ui.fullscreen():subrect(0, 0, 300, 60, "center", "down"))
 
 		local menu_button_width = 380
@@ -227,19 +307,22 @@ function wg.draw()
 
 		local ut = require "game.ui-utils"
 
---    if ut.text_button(
---      "Retry",
---      layout:next(menu_button_width, menu_button_height)
---    ) then
---      print "retry"
---    end
+		if wg.state == STATES.constraints_failed then
+			if ut.text_button(
+				"Retry",
+				layout:next(menu_button_width, menu_button_height)
+			) then
+				wg.coroutine = coroutine.create(wg.generate_coro)
+				coroutine.resume(wg.coroutine)
+			end
+		end
 		if ut.text_button(
 			"Quit",
 			layout:next(menu_button_width, menu_button_height)
 		) then
 			love.event.quit()
 		end
-	elseif wg.state == STATES.phase_01 then
+	elseif wg.state == STATES.completed then
 		-- ui.text_panel(wg.message, ui.fullscreen():subrect(0, 0, 300, 60, "center", "down"))
 
 		wg.handle_camera_controls()

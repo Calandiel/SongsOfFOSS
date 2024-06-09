@@ -10,6 +10,9 @@ local political_values = require "game.raws.values.political"
 
 local tabb             = require "engine.table"
 
+
+local dbm              = require "game.economy.diet-breadth-model"
+
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
@@ -21,6 +24,7 @@ local tabb             = require "engine.table"
 ---@field player_province Province?
 ---@field sub_hourly_tick number
 ---@field current_tick_in_month number
+---@field current_tick_in_decade number
 ---@field hour number
 ---@field day number
 ---@field month number
@@ -55,6 +59,7 @@ local tabb             = require "engine.table"
 world.World            = {}
 world.World.__index    = world.World
 
+
 ---Returns a new World object
 ---@return World
 function world.World:new()
@@ -75,7 +80,7 @@ function world.World:new()
 	w.settled_provinces = {}
 	w.province_count = 0
 	w.settled_provinces_by_identifier = {}
-	for i = 1, 30 * 24 * world.ticks_per_hour do
+	for i = 1, world.ticks_per_month do
 		w.settled_provinces_by_identifier[i] = {}
 	end
 	w.realms = {}
@@ -94,6 +99,7 @@ function world.World:new()
 	w.month = 0
 	w.year = 0
 	w.current_tick_in_month = 0
+	w.current_tick_in_decade = 0
 	w.pending_player_event_reaction = false
 	w.notification_queue = require "engine.queue":new()
 	w.events_queue = require "engine.queue":new()
@@ -391,6 +397,7 @@ function world.World:tick()
 	WORLD.current_tick_in_month = WORLD.current_tick_in_month + 1
 
 	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month] ~= nil then
+
 		-- Monthly tick per realm
 		local ta = WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month]
 
@@ -400,16 +407,21 @@ function world.World:tick()
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
-			local tc, fs = 0, {conifer = 0, broadleaf = 0, shrub = 0, grass = 0}
+			local accumulate = {net_pp = 0, fruit = 0, seeds = 0, wood = 0, shell = 0, fish = 0, game = 0, fungi = 0}
 			for _, tile in pairs(settled_province.tiles) do
 				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
 				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
 				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
 				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
-				fs = {conifer = fs.conifer + tile.conifer, broadleaf = fs.broadleaf + tile.broadleaf, shrub = fs.shrub + tile.shrub, grass = fs.grass + tile.grass}
-				tc = tc + 1
+				-- collecting tile foraging production
+				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile)
 			end
-			settled_province.flora_spread = {conifer = fs.conifer / tc, broadleaf = fs.broadleaf / tc, shrub = fs.shrub / tc, grass = fs.grass / tc}
+			-- update targets from accumulated foraging data
+			dbm.set_foraging_targets(settled_province, accumulate)
+			local weight = WORLD.current_tick_in_month % 10
+			if (weight == WORLD.month and weight == (WORLD.year % 12)) then
+				dbm.cultural_foragable_targets(settled_province)
+			end
 		end
 
 		PROFILER:end_timer("vegetation")
@@ -487,7 +499,11 @@ function world.World:tick()
 					error(realm.name)
 				end
 				if overseer.province == nil then
-					error(overseer.name .. " " .. realm.name)
+					error(overseer.name .. " " .. realm.name
+						.. tabb.accumulate(overseer, nil, function (_, k, v)
+							print("\n " .. tostring(k) .. tostring(v))
+						end)
+					)
 				end
 			end
 
@@ -559,6 +575,7 @@ function world.World:tick()
 		end
 
 		PROFILER:end_timer("decisions")
+
 	end
 
 	-- print('simulation update')
@@ -753,5 +770,6 @@ function world.World:does_player_see_province_news(province)
 end
 
 world.ticks_per_hour = 120
+world.ticks_per_month = 30 * 24 * world.ticks_per_hour
 
 return world

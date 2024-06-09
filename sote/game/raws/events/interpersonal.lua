@@ -170,4 +170,85 @@ return function ()
 			}
 		end
 	}
+
+    Event:new {
+		name = "request-migration-colonize",
+		---@param associated_data MigrationData
+		event_text = function(self, character, associated_data)
+			local name = associated_data.leader.name
+			local temp = 'He'
+			if associated_data.leader.female then
+				temp = 'She'
+			end
+			return name .. " requested to split off from out tribe and colonize " .. associated_data.target_province.name "." .. temp .. " promises to pay tribute to us. What should I do?"
+		end,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
+		base_probability = 0,
+		trigger = function(self, character)
+			return false
+		end,
+		---@param associated_data MigrationData
+		on_trigger = function(self, character, associated_data)
+			if WORLD.player_character == character then
+				WORLD:emit_notification("I was asked for permission to colonize " .. associated_data.target_province.name
+					.. " by " .. associated_data.leader.name .. ".")
+			end
+		end,
+		---@param associated_data MigrationData
+		options = function(self, character, associated_data)
+			if associated_data.organizer.dead then
+				return {
+					text = "...",
+					tooltip = "No loyalty to dead people.",
+					viable = function() return true end,
+					outcome = function()
+					end,
+					ai_preference = function ()
+						return 1
+					end
+				}
+			end
+
+			return {
+				{
+					text = "Accept",
+					tooltip = "Allow " .. associated_data.leader.name .. "to colonize " .. associated_data.target_province.name .. ".",
+					viable = function() return true end,
+					outcome = function()
+						local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(associated_data.leader.inventory, 'calories')
+						local remaining_calories_needed = math.max(0, associated_data.travel_cost - character_calories_in_inventory)
+						-- buy remaining calories from market
+						economic_effects.character_buy_use(associated_data.leader, 'calories', remaining_calories_needed)
+						-- consume food from character inventory
+						economic_effects.consume_use_case_from_inventory(associated_data.leader.inventory, 'calories', associated_data.travel_cost)
+						-- give out payment to expedition
+						economic_effects.add_pop_savings(associated_data.leader, -associated_data.pop_payment, economic_effects.reasons.Colonisation)
+						WORLD:emit_immediate_action('migration-colonize', associated_data.leader, associated_data)
+					end,
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data.leader, 0, {
+						ambition = true,
+						work = true,
+						help = true
+					})
+				},
+				{
+					text = "Refuse",
+					tooltip = "Refuse " .. associated_data.leader.name .. "'s request to colonize " .. associated_data.target_province.name .. ".",
+					viable = function() return true end,
+					outcome = function()
+						if associated_data == WORLD.player_character then
+							WORLD:emit_notification(character.name .. " refused to allow me to colonize " .. associated_data.target_province.name .. ".")
+						end
+						if character == WORLD.player_character then
+							WORLD:emit_notification("I refused to allow " .. associated_data.leader.name " to start a tributary tribe.")
+						end
+                    end,
+					ai_preference = AI_VALUE.generic_event_option(character, associated_data.leader, 0, {
+						help = false,
+					})
+				}
+			}
+		end
+	}
 end

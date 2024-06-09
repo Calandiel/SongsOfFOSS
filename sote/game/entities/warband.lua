@@ -129,14 +129,11 @@ end
 function warband:get_loot_capacity()
 	local cap = 0.01
 	for pop, unit in pairs(self.units) do
-		cap = cap + unit:get_supply_capacity(pop)
+		cap = cap + pop:get_supply_capacity(unit)
 	end
 	for _, pop in pairs(self:get_officers()) do
 		if not self.units[pop] then
-			local c = pop.race.male_efficiency[JOBTYPE.HAULING]
-			if pop.female then
-				c = pop.race.female_efficiency[JOBTYPE.HAULING]
-			end
+			local c = pop:job_efficiency(JOBTYPE.HAULING)
 			cap = cap + c
 		end
 	end
@@ -154,7 +151,7 @@ function warband:spotting()
 	local result = 0
 	for p, ut in pairs(self.units) do
 		---@type number
-		result = result + ut:get_spotting(p)
+		result = result + p:get_spotting(ut)
 	end
 
 	for _, pop in pairs(self:get_officers()) do
@@ -181,7 +178,7 @@ function warband:visibility()
 	local result = 0
 	for p, ut in pairs(self.units) do
 		---@type number
-		result = result + ut:get_visibility(p)
+		result = result + p:get_visibility(ut)
 	end
 
 	for _, pop in pairs(self:get_officers()) do
@@ -202,7 +199,7 @@ end
 function warband:get_total_strength()
 	local total_health, total_attack, total_armor,total_speed, total_count = 0, 0, 0, 0 ,0
 	for pop, unit in pairs(self.units) do
-		local health, attack, armor, speed = unit:get_strength(pop)
+		local health, attack, armor, speed = pop:get_strength(unit)
 		total_health = total_health + health
 		total_attack = total_attack + attack
 		total_armor = total_armor + armor
@@ -218,7 +215,7 @@ end
 function warband:speed()
 	local tabb = require "engine.table"
 	local total_speed = tabb.accumulate(self.units, 0, function (a, k, v)
-		return a + v:get_speed(k)
+		return a + k:get_speed(v)
 	end)
 	total_speed = total_speed + tabb.accumulate(self:get_officers(), 0, function (a, k, v)
 		if self.units[k] == nil then
@@ -320,16 +317,20 @@ end
 
 function warband:set_character_as_unit(character, unit)
 	self.units[character] = unit
+	self.units_current[unit] = (self.units_current[unit] or 0) + 1
 	self.total_upkeep = self.total_upkeep + unit.upkeep
 	character.unit_of_warband = self
 end
 
+---Handles pop firing logic on warband's side
+---@param character POP
 function warband:unset_character_as_unit(character)
 	local unit = self.units[character]
+	character.unit_of_warband = nil
 	if unit then
-		character.unit_of_warband = nil
-		self.total_upkeep = self.total_upkeep or - (self.units[unit].upkeep or 0)
-		self.units[unit] = nil
+		self.units[character] = nil
+		self.units_current[unit] = (self.units_current[unit] or 0) - 1
+		self.total_upkeep = self.total_upkeep - unit.upkeep
 	end
 end
 
@@ -389,17 +390,12 @@ end
 function warband:daily_supply_consumption()
 	local total = 0
 	for pop, unit in pairs(self.units) do
-		total = total + unit:get_supply_use(pop)
+		total = total + pop:get_supply_use(unit)
 	end
 
 	for _, pop in pairs(self:get_officers()) do
 		if not self.units[pop] then
-			local supplies = pop.race.male_needs[NEED.FOOD]['calories']
-			if pop.female then
-				supplies = pop.race.female_needs[NEED.FOOD]['calories']
-			end
-			---@type number
-			total = total + supplies
+			total = total + pop:get_supply_use(nil)
 		end
 	end
 
@@ -416,7 +412,7 @@ end
 function warband:consume_supplies(days)
 	local daily_consumption = self:daily_supply_consumption()
 	local consumption = days * daily_consumption
-	local consumed = economic_effects.consume_use_case_from_inventory(self.leader, 'calories', consumption)
+	local consumed = economic_effects.consume_use_case_from_inventory(self.leader.inventory, 'calories', consumption)
 
 	-- give some wiggle room for floats
 	if consumed > consumption + 0.01
@@ -437,7 +433,7 @@ end
 ---Returns total food supply from warband
 ---@return number
 function warband:get_supply_available()
-	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader, 'calories')) or 0
+	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader.inventory, 'calories')) or 0
 end
 
 ---Returns amount of days warband can travel depending on collected supplies

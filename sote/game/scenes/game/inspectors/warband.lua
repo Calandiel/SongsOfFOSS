@@ -24,29 +24,30 @@ local unit_list_state = nil
 ---@param a number
 local function render_icon_panel(rect, icon, r , g, b , a)
 	ui.panel(rect)
-	rect:shrink(2)
-	ut.render_icon(rect, icon, r, g, b, 1)
-	rect:shrink(-1)
+	ut.render_icon(rect, icon, 1, 1, 1, 1)
+	rect:shrink(1)
 	ut.render_icon(rect, icon, r, g, b, 1)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v UnitType?
 local function render_unit_icon (rect, k, v)
-	render_icon_panel(rect, v.icon, v.r, v.g, v.b, 1)
+	if v then
+		render_icon_panel(rect, v.icon, v.r, v.g, v.b, 1)
+	else
+		render_icon_panel(rect, k.race.icon, k.race.r, k.race.g, k.race.b, 1)
+	end
 end
 
 ---@param rect Rect
 ---@param k POP
 ---@param v UnitType
 local function render_unit_health (rect, k, v)
-	local base, stat = v.base_health, v:get_health(k)
-	local size = k.race.male_body_size
+	local base, stat = v.base_health, k:get_health(v)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
-		size = k.race.female_body_size
 	end
 	ut.generic_number_field(
 		"plus.png",
@@ -54,7 +55,7 @@ local function render_unit_health (rect, k, v)
 		rect,
 		k.name .. " has " .. ut.to_fixed_point2(stat) .. " health."
 			.. "\n - As a "  ..  v.name .. ", " .. k.name .. " has a base health of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." size of " .. ut.to_fixed_point2(size) .. ".",
+			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." size of " .. ut.to_fixed_point2(k:size()) .. ".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
@@ -63,12 +64,11 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_attack (rect, k, v)
-	local base, stat = v.base_attack, v:get_attack(k)
-	local job = k.race.male_efficiency[job_types.WARRIOR]
+	local base, stat = v.base_attack, k:get_attack(v)
+	local job = k:job_efficiency(job_types.WARRIOR)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
-		job = k.race.female_efficiency[job_types.WARRIOR]
 	end
 	ut.generic_number_field(
 		"stone-axe.png",
@@ -85,7 +85,7 @@ end
 ---@param k POP
 ---@param v UnitType
 local function render_unit_armor (rect, k, v)
-	local base, stat = v.base_armor, v:get_armor(k)
+	local base, stat = v.base_armor, k:get_armor(v)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
@@ -102,24 +102,24 @@ end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v UnitType?
 local function render_unit_speed (rect, k, v)
-	local base, stat = v.speed, v:get_speed(k)
+	local base, stat = (v and v.speed or 1), k:get_speed(v)
 	ut.generic_number_field(
 		"fast-forward-button.png",
 		stat,
 		rect,
 		k.name .. " has a speed of " .. ut.to_fixed_point2(stat) .. "."
-		.. "\n - As a " ..  v.name .. ", " .. k.name .. " has a base speed of " .. ut.to_fixed_point2(base) .. ".",
+		.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base speed of " .. ut.to_fixed_point2(base) .. ".",
 		ut.NUMBER_MODE.PERCENTAGE,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v UnitType?
 local function render_unit_spotting (rect, k, v)
-	local base, stat = v.spotting, v:get_spotting(k)
+	local base, stat = (v and v.spotting or 1), k:get_spotting(v)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
@@ -129,7 +129,7 @@ local function render_unit_spotting (rect, k, v)
 		stat,
 		rect,
 		k.name .. " has a spotting bonus of " .. ut.to_fixed_point2(stat) .. "."
-			.. "\n - As a " .. v.name .. ", " .. k.name .. " has a base spotting bonus of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - As a " .. (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base spotting bonus of " .. ut.to_fixed_point2(base) .. "."
 			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." racial spotting of " .. ut.to_fixed_point2(k.race.spotting * 100)
 			.. "%.",
 		ut.NUMBER_MODE.NUMBER,
@@ -138,31 +138,30 @@ end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v UnitType?
 local function render_unit_visibility (rect, k, v)
-	local base, stat = v.visibility, v:get_visibility(k)
+	local base, stat = (v and v.visibility or 1), k:get_visibility(v)
 	local female, her = "male", "his"
-	local size = k.race.male_body_size
 	if k.female then
 		female, her = "female", "her"
-		size = k.race.female_body_size
 	end
 	ut.generic_number_field(
 		"high-grass.png",
 		stat,
 		rect,
 		k.name .. " has a visibility of " .. ut.to_fixed_point2(stat) .. "."
-			.. "\n - As a " ..  v.name .. ", " .. k.name .. " has a base visibility of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." racial visibility of " .. ut.to_fixed_point2(k.race.visibility * 100) .. "% and a size of " .. ut.to_fixed_point2(size) ..".",
+			.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base visibility of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." racial visibility of " .. ut.to_fixed_point2(k.race.visibility * 100)
+			.. "% and a size of " .. ut.to_fixed_point2(k:size()) ..".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v UnitType?
 local function render_unit_supply_use (rect, k, v)
-	local base, stat = v.supply_useds / 30, v:get_supply_use(k)
+	local base, stat = (v and v.supply_useds or 0) / 30, k:get_supply_use(v)
 	local food_need = k.race.male_needs[NEED.FOOD]['calories']
 	local female, her = "male", "his"
 	if k.female then
@@ -174,29 +173,29 @@ local function render_unit_supply_use (rect, k, v)
 		stat,
 		rect,
 		k.name .. " uses " .. ut.to_fixed_point2(stat) .. " units of food per day of traveling."
-			.. "\n - As a " ..  v.name .. ", " .. k.name .. " has a base daily supply use of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " adds " .. her .. " daily racial food consumption of " .. ut.to_fixed_point2(food_need / 30) .. " units per day.",
+			.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base daily supply use of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. k.race.name .. " adds " .. her .. " daily racial food consumption of "
+			.. ut.to_fixed_point2(food_need / 30).. " units per day.",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v UnitType?
 local function render_unit_hauling (rect, k, v)
-	local base, stat = v.supply_capacity / 4, v:get_supply_capacity(k)
-	local job = k.race.male_efficiency[job_types.HAULING]
+	local base, stat = (v and v.supply_capacity or 0) / 4, k:get_supply_capacity(v)
+	local job = k:job_efficiency(job_types.HAULING)
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
-		job = k.race.female_efficiency[job_types.HAULING]
 	end
 	ut.generic_number_field(
 		"cardboard-box.png",
 		stat,
 		rect,
 		k.name .. " has a hauling capacity of " .. ut.to_fixed_point2(stat) .. "."
-			.. "\n - As a " ..  v.name .. ", " .. k.name .. " has a base of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base of " .. ut.to_fixed_point2(base) .. "."
 			.. "\n - Being a " .. female.. " " .. k.race.name .. " adds " .. her .." racial hauling job efficiency of " .. ut.to_fixed_point2(job) .. ".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
@@ -330,12 +329,12 @@ function window.draw(gamescene)
 			local unit_name = "officer"
 			local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
 			local text_rect = rect:subrect(0, 0, rect.width - rect.height, rect.height, "right", "center")
-			if character and warband.units[character] then
-				local unit_type = warband.units[character]
+			local unit_type = warband.units[character]
+			if unit_type then
 				unit_name = unit_type.name
 				render_unit_icon(icon_rect, character, unit_type)
 			else
-				render_icon_panel(icon_rect, "inner-self.png", 1, 1, 1, 1)
+				render_icon_panel(icon_rect, character.race.icon, character.race.r, character.race.g, character.race.b, 1)
 			end
 			ui.text_panel(unit_name, text_rect)
 		else
@@ -353,73 +352,13 @@ function window.draw(gamescene)
 				:position(rect.x, rect.y)
 				:build()
 			-- draw using functions if a unit
-			if warband.commander and character == warband.commander then
-				local unit = warband.units[character]
-				render_unit_speed(layout:next(width_fraction, rect.height), character, unit)
-				render_unit_spotting(layout:next(width_fraction, rect.height), character, unit)
-				render_unit_visibility(layout:next(width_fraction, rect.height), character, unit)
-				render_unit_supply_use(layout:next(width_fraction, rect.height), character, unit)
-				render_unit_hauling(layout:next(width_fraction, rect.height), character, unit)
-			else -- create pho-unit for rendering similar tooltips
-				-- definition of noncombatant stats
-				local unit_name = "noncombatant"
-				-- declare variables and intialize as a male noncombatant character
-				local race_spot, race_vis, race_size = character.race.spotting, character.race.visibility, character.race.male_body_size
-				local race_food, race_carry = character.race.male_needs[NEED.FOOD]['calories'] / 30, character.race.male_efficiency[job_types.HAULING]
-				local female, her = "male", "his"
-				-- check if female match gender and racial modifiers
-				if character.female then
-					female, her = "female", "her"
-					race_food = character.race.female_needs[NEED.FOOD]['calories'] / 30
-					race_size = character.race.female_body_size
-					race_carry = character.race.female_efficiency[job_types.HAULING]
-				end
-				ut.generic_number_field(
-					"fast-forward-button.png",
-					1,
-					layout:next(width_fraction, rect.height),
-					character.name .. " has a speed of " .. ut.to_fixed_point2(100) .. "."
-					.. "\n - As a " ..  unit_name .. ", " .. character.name .. " has a base speed of " .. ut.to_fixed_point2(1) .. ".",
-					ut.NUMBER_MODE.PERCENTAGE,
-					ut.NAME_MODE.ICON)
-				ut.generic_number_field(
-					"magnifying-glass.png",
-					race_spot,
-					layout:next(width_fraction, rect.height),
-					character.name .. " has a spotting bonus of " .. ut.to_fixed_point2(race_spot) .. "."
-						.. "\n - As a " .. unit_name .. ", " .. character.name .. " has a base spotting bonus of " .. ut.to_fixed_point2(1) .. "."
-						.. "\n - Being a " .. female.. " " .. character.race.name .. " modifies this by " .. her .." racial spotting of " .. ut.to_fixed_point2(character.race.spotting * 100)
-						.. "%.",
-					ut.NUMBER_MODE.NUMBER,
-					ut.NAME_MODE.ICON)
-				ut.generic_number_field(
-					"high-grass.png",
-					race_vis,
-					layout:next(width_fraction, rect.height),
-					character.name .. " has a visibility of " .. ut.to_fixed_point2(race_vis) .. "."
-						.. "\n - As a " ..  unit_name .. ", " .. character.name .. " has a base visibility of " .. ut.to_fixed_point2(1) .. "."
-						.. "\n - Being a " .. female.. " " .. character.race.name .. " modifies this by " .. her .." racial visibility of " .. ut.to_fixed_point2(race_vis * 100) .. "% and a size of " .. ut.to_fixed_point2(race_size) ..".",
-					ut.NUMBER_MODE.NUMBER,
-					ut.NAME_MODE.ICON)
-				ut.generic_number_field(
-					"sliced-bread.png",
-					race_food,
-					layout:next(width_fraction, rect.height),
-					character.name .. " uses " .. ut.to_fixed_point2(race_food) .. " units of food per day of traveling."
-						.. "\n - As a " ..  unit_name .. ", " .. character.name .. " has a base daily supply use of " .. ut.to_fixed_point2(0) .. "."
-						.. "\n - Being a " .. female.. " " .. character.race.name .. " adds " .. her .. " daily racial food consumption of " .. ut.to_fixed_point2(race_food) .. " units per day.",
-					ut.NUMBER_MODE.NUMBER,
-					ut.NAME_MODE.ICON)
-				ut.generic_number_field(
-					"cardboard-box.png",
-					race_carry,
-					layout:next(width_fraction, rect.height),
-					character.name .. " has a hauling capacity of " .. ut.to_fixed_point2(race_carry) .. "."
-						.. "\n - As a " ..  unit_name .. ", " .. character.name .. " has a base of " .. ut.to_fixed_point2(0) .. "."
-						.. "\n - Being a " .. female.. " " .. character.race.name .. " adds " .. her .." racial hauling job efficiency of " .. ut.to_fixed_point2(race_carry) .. ".",
-					ut.NUMBER_MODE.NUMBER,
-					ut.NAME_MODE.ICON)
-			end
+			local unit = warband.units[character]
+			-- declare variables and intialize as a male noncombatant character
+			render_unit_speed(layout:next(width_fraction, rect.height), character, unit)
+			render_unit_spotting(layout:next(width_fraction, rect.height), character, unit)
+			render_unit_visibility(layout:next(width_fraction, rect.height), character, unit)
+			render_unit_supply_use(layout:next(width_fraction, rect.height), character, unit)
+			render_unit_hauling(layout:next(width_fraction, rect.height), character, unit)
 			-- actually draw stats in rect
 		else
 			ui.panel(rect)
@@ -905,7 +844,7 @@ function window.draw(gamescene)
 			status = "\n - While the warband is on patrol, this bonus is multiplied by 10."
 		end
 		local unit_spotting = tabb.accumulate(warband.units, 0, function (a, k, v)
-			return a + v:get_spotting(k)
+			return a + k:get_spotting(v)
 		end)
 		if warband.recruiter and warband.recruiter ~= warband.commander then
 			unit_spotting = unit_spotting + warband.recruiter.race.spotting
@@ -1346,7 +1285,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_health(k)
+						return k:get_health(v)
 					end
 				},
 				{
@@ -1356,7 +1295,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_attack(k)
+						return k:get_attack(v)
 					end
 				},
 				{
@@ -1366,7 +1305,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_armor(k)
+						return k:get_armor(v)
 					end
 				},
 				{
@@ -1376,7 +1315,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_speed(k)
+						return k:get_speed(v)
 					end
 				},
 				{
@@ -1386,7 +1325,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_spotting(k)
+						return k:get_spotting(v)
 					end
 				},
 				{
@@ -1396,7 +1335,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_visibility(k)
+						return k:get_visibility(v)
 					end
 				},
 				{
@@ -1406,7 +1345,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return v:get_supply_use(k) / 30
+						return k:get_supply_use(v) / 30
 					end
 				},
 				{
@@ -1416,7 +1355,7 @@ function window.draw(gamescene)
 					---@param k POP
 					---@param v UnitType
 					value = function (k, v)
-						return  v:get_supply_capacity(k)
+						return  k:get_supply_capacity(v)
 					end
 				},
 				{
