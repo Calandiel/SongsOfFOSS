@@ -43,7 +43,8 @@ local prov = {}
 ---@field local_income number
 ---@field local_building_upkeep number
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
----@field foragers_limit number
+---@field foragers_water number amount foraged by pops and characters
+---@field foragers_limit number amount of calories foraged by pops and characters
 ---@field foragers_targets table<ForageResource, {icon: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}>
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
 ---@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
@@ -110,6 +111,7 @@ function prov.Province:new(fake_flag)
 	o.local_income = 0
 	o.local_building_upkeep = 0
 	o.foragers = 0
+	o.foragers_water = 0
 	o.foragers_targets = {}
 	o.infrastructure_needed = 0
 	o.infrastructure = 0
@@ -246,7 +248,8 @@ end
 function prov.Province:population_weight()
 	local total = 0
 	for _, pop in pairs(self.all_pops) do
-		total = total + pop.race.carrying_capacity_weight
+		 -- weight is dependent on food needs, which are age dependent
+		total = total + pop.race.carrying_capacity_weight * pop:get_age_multiplier()
 	end
 	return total
 end

@@ -89,23 +89,34 @@ function rtab.POP:new(race, faith, culture, female, age, home, location, charact
 	if female then
 		need_satisfaction = race.female_needs
 	end
-	r.need_satisfaction = tabb.accumulate(need_satisfaction, {}, function (a, need, values)
-			local age_dependant = not NEEDS[need].age_independent
-			a[need] = tabb.accumulate(values, {}, function (b, use_case, value)
-				local demand = value
-				if age_dependant then
-					demand = demand * rtab.POP.get_age_multiplier(r)
-				end
-				b[use_case] = {consumed = demand, demanded = demand}
-				return b
-			end)
+	local total_consumed, total_demanded = 0, 0
+	r.need_satisfaction = tabb.accumulate(NEEDS, {}, function (a, need_index, need)
+			local age_dependant = not need.age_independent
+			local life_need = need.life_need
+			if need_satisfaction[need_index] then
+				a[need_index] = tabb.accumulate(need_satisfaction[need_index], {}, function (b, use_case, value)
+					local demanded = value
+					if age_dependant then
+						demanded = demanded * rtab.POP.get_age_multiplier(r)
+					end
+					if life_need then
+						local consumed = demanded * 0.5
+						b[use_case] = {consumed = consumed, demanded = demanded}
+						total_consumed = total_consumed + consumed
+					else
+						b[use_case] = {consumed = 0, demanded = demanded}
+					end
+					total_demanded = total_demanded + demanded
+					return b
+				end)
+			end
 			return a
 		end)
-	r.forage_ratio = 0.9
-	r.work_ratio = 0.1
+	r.forage_ratio = 0.75
+	r.work_ratio = 0.25
 
-	r.basic_needs_satisfaction = 1
-	r.life_needs_satisfaction = 1
+	r.basic_needs_satisfaction = total_consumed / total_demanded
+	r.life_needs_satisfaction = 0.5
 
 	r.has_trade_permits_in     = {}
 	r.has_building_permits_in  = {}
@@ -186,27 +197,48 @@ function rtab.POP:get_need_satisfaction()
 	return self.life_needs_satisfaction, self.basic_needs_satisfaction
 end
 
+---Returns age adjusted size of pop
+---@return number size
+function rtab.POP:size()
+	if self.female then
+		return self.race.female_body_size * self:get_age_multiplier()
+	end
+	return self.race.male_body_size * self:get_age_multiplier()
+end
+
+---Returns age adjust racial efficiency
+---@param jobtype JOBTYPE
+---@return number
+function rtab.POP:job_efficiency(jobtype)
+	if self.female then
+		return self.race.female_efficiency[jobtype] * self:get_age_multiplier()
+	end
+	return self.race.male_efficiency[jobtype] * self:get_age_multiplier()
+end
+
+---Returns age adjust racial efficiency
+---@param need NEED
+---@param use_case TradeGoodUseCaseReference
+---@return number
+function rtab.POP:calculate_need_use_case_satisfaction(need, use_case)
+	if self.female then
+		return self.race.female_needs[need][use_case] * self:get_age_multiplier()
+	end
+	return self.race.male_needs[need][use_case] * self:get_age_multiplier()
+end
 
 ---Returns the adjusted health value for the provided pop.
 ---@param unit UnitType
 ---@return number attack health modified by pop race and sex
 function rtab.POP:get_health(unit)
-	local size = self.race.male_body_size
-	if self.female then
-		size = self.race.female_body_size
-	end
-	return unit.base_health * size
+	return unit.base_health * self:size()
 end
 
 ---Returns the adjusted attack value for the provided pop.
 ---@param unit UnitType
 ---@return number pop_adjusted attack modified by pop race and sex
 function rtab.POP:get_attack(unit)
-	local job = self.race.male_efficiency[job_types.WARRIOR]
-	if self.female then
-		job = self.race.female_efficiency[job_types.WARRIOR]
-	end
-	return unit.base_attack * job
+	return unit.base_attack * self:job_efficiency(job_types.WARRIOR)
 end
 
 ---Returns the adjusted armor value for the provided pop.
@@ -217,10 +249,10 @@ function rtab.POP:get_armor(unit)
 end
 
 ---Returns the adjusted speed value for the provided pop.
----@param unit UnitType
+---@param unit UnitType?
 ---@return number pop_adjusted speed modified by pop race and sex
 function rtab.POP:get_speed(unit)
-	return unit.speed
+	return (unit and unit.speed or 1)
 end
 
 ---Returns the adjusted combat strength values for the provided pop.
@@ -234,43 +266,36 @@ function rtab.POP:get_strength(unit)
 end
 
 ---Returns the adjusted spotting value for the provided pop.
----@param unit UnitType
+---@param unit UnitType?
 ---@return number pop_adjusted spotting modified by pop race and sex
 function rtab.POP:get_spotting(unit)
-	return unit.spotting * self.race.spotting
+	return (unit and unit.spotting or 1) * self.race.spotting
 end
 
 ---Returns the adjusted visibility value for the provided pop.
----@param unit UnitType
+---@param unit UnitType?
 ---@return number pop_adjusted visibility modified by pop race and sex
 function rtab.POP:get_visibility(unit)
-	local size = self.race.male_body_size
-	if self.female then
-		size = self.race.female_body_size
-	end
-	return unit.visibility * self.race.visibility * size
+	return (unit and unit.visibility or 1) * self.race.visibility * self:size()
 end
 
 ---Returns the adjusted travel day cost value for the provided pop.
----@param unit UnitType
+---@param unit UnitType?
 ---@return number pop_adjusted food need modified by pop race and sex
 function rtab.POP:get_supply_use(unit)
-	local food = self.race.male_needs[NEED.FOOD]['calories']
-	if self.female then
-		food = self.race.female_needs[NEED.FOOD]['calories']
-	end
-	return (unit.supply_useds + food) / 30
+	local pop_food = self:calculate_need_use_case_satisfaction(NEED.FOOD,'calories')
+	return ((unit and unit.supply_useds or 0) + pop_food) / 30
 end
 
 ---Returns the adjusted hauling capacity value for the provided pop.
----@param unit UnitType
+---@param unit UnitType?
 ---@return number pop_adjusted hauling modified by pop race and sex
 function rtab.POP:get_supply_capacity(unit)
 	local job = self.race.male_efficiency[job_types.HAULING]
 	if self.female then
 		job = self.race.female_efficiency[job_types.HAULING]
 	end
-	return unit.supply_capacity / 4 + job
+	return (unit and unit.supply_capacity * 0.25 or 0) + job
 end
 
 return rtab

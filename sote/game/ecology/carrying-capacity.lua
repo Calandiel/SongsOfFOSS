@@ -1,19 +1,21 @@
-local dbm = require "game.economy.diet-breadth-model"
-
 local car = {}
+
+local dbm = require "game.economy.diet-breadth-model"
 
 ---Returns carrying capacity for humans, for a tile
 ---@param tile Tile
 ---@return number
 function car.get_tile_carrying_capacity(tile)
-	local plant_production, _, marine_production, animal_production, mushroom_production = dbm.net_primary_production(tile)
-	return plant_production + marine_production + animal_production + mushroom_production
+	local primary_production, marine_production, _, _ = require "game.economy.diet-breadth-model".total_production(tile)
+	local cc = primary_production + marine_production
+	return cc
 end
 
 function car.calculate()
 	for _, province in pairs(WORLD.provinces) do
 		if province.center.is_land then
-			require "game.economy.diet-breadth-model".foragers_targets(province)
+			local amounts = dbm.total_foraging_amounts(province)
+			dbm.set_foraging_targets(province, amounts)
 		else
 			province.foragers_limit = 0
 		end

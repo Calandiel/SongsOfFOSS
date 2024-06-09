@@ -22,6 +22,7 @@ local ffi = require "ffi"
 
 ---@class POPView
 ---@field foraging_efficiency number
+---@field hydration_efficiency number
 ---@field age_multiplier number
 
 ffi.cdef[[
@@ -36,6 +37,7 @@ ffi.cdef[[
 
 	typedef struct {
 		float foraging_efficiency;
+		float hydration_efficiency;
 		float age_multiplier;
 	} pop_view;
 
@@ -49,7 +51,6 @@ local EPSILON = 0.001
 
 local amount_of_goods = tabb.size(RAWS_MANAGER.trade_goods_by_name)
 local amount_of_job_types = tabb.size(JOBTYPE)
-local amount_of_need_types = tabb.size(NEED)
 
 ---@type MarketData[]
 local market_data = ffi.new("good_data[?]", amount_of_goods)
@@ -59,9 +60,6 @@ local pop_view = ffi.new("pop_view[1]")
 
 ---@type number[]
 local pop_job_efficiency = ffi.new("float[?]", amount_of_job_types)
-
----@type number[]
-local pop_need_amount = ffi.new("float[?]", amount_of_need_types)
 
 -- TODO: rewrite to ffi
 
@@ -92,7 +90,7 @@ local function get_price_expectation_weighted(set_of_goods)
 	local price_expectation = 0
 	for good, weight in pairs(set_of_goods) do
 		local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
-		price_expectation = price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp / weight
+		price_expectation = math.max(0.0001, price_expectation + market_data[c_index].price * market_data[c_index].feature / total_exp / weight)
 	end
 
 	return total_exp, price_expectation
@@ -137,7 +135,7 @@ function pro.run(province)
 		local price = ev.get_local_price(province, good)
 		market_data[i - 1].price = price
 		old_prices[good] = price
-		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + storage + production - consumption))
+		market_data[i - 1].feature = C.expf(-C.sqrtf(market_data[i - 1].price) / (1 + math.max(storage + production - consumption, 0)))
 		market_data[i - 1].consumption = 0
 		market_data[i - 1].supply = 0
 		market_data[i - 1].demand = 0
@@ -148,7 +146,7 @@ function pro.run(province)
 	end
 
 	-- Clear building stats
-	for key, value in pairs(province.buildings) do
+	for _, value in pairs(province.buildings) do
 		tabb.clear(value.amount_of_outputs)
 		tabb.clear(value.earn_from_outputs)
 		tabb.clear(value.amount_of_inputs)
@@ -229,18 +227,20 @@ function pro.run(province)
 		return a.life_need
 	end))
 
-	local water_index = RAWS_MANAGER.trade_good_to_index["water"]
-
 	-- Record "innate" production of goods and services.
 	-- These resources come
-	record_production(water_index, province.hydration)
+	--local water_index = RAWS_MANAGER.trade_good_to_index["water"]
+	--record_production(water_index, province.hydration)
 
 	local efficiency_from_infrastructure = province:get_infrastructure_efficiency()
 	-- Record local production...
 	-- TODO MAKE NEW EFFICIENCY FUNCTION FOR FULL PRODUCTION AT 0 FORAGERS AND 0-ISH AT FORAGERS LIMIT
 	local last_foraging_efficiency = dbm.foraging_efficiency(province.foragers_limit, province.foragers)
+	local last_hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.5, province.foragers_water)
 	local foragers_count = 0
+	local foragers_water = 0
 	local foragers_efficiency = 1
+	local hydration_efficiency = 1
 
 	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
 	local population = province:local_population()
@@ -262,20 +262,25 @@ function pro.run(province)
 	---@param time number ratio of daily active time pop can spend on foraging
 	---@return table<TradeGoodReference, number> products
 	local function forage(pop_view, pop_table, use_case, time)
-		local forage_production = foragers_efficiency * time * pop_table.race.carrying_capacity_weight -- ties production amount to foragers
-	--	print("  " .. pop_table.race.name .. " " .. pop_table.age ..  (pop_table.female and " f" or " m") .. " FORAGED: " .. forage_production .. " IN ".. time )
+		local forage_efficiency, handle_efficiency
+		if use_case == 'water' then
+			forage_efficiency, handle_efficiency = hydration_efficiency, pop_view[zero].hydration_efficiency -- pulling from water pool
+		else
+			forage_efficiency, handle_efficiency = foragers_efficiency, pop_view[zero].foraging_efficiency -- pulling from calories pool
+		end
+	--	print("  " .. pop_table.race.name .. " " .. pop_table.age ..  (pop_table.female and " f" or " m") .. " FORAGING: " .. forage_efficiency .. " FOR ".. time )
     	-- weight amount found by searching efficiencies and cultual search times
-		local province_size = province.size
 		local forage_goods = tabb.accumulate(province.foragers_targets, {}, function (forage_goods, province_resource, province_values)
 			local cultural_resource = pop_table.culture.traditional_forager_targets[use_case].targets[province_resource]
 			if cultural_resource and province_values.amount > 0 then
 	--			print("    RESOURCE: " .. dbm.ForageResourceName[province_resource] .. " FOR ".. cultural_resource * time )
 				local amount = province_values.amount
-				local search = amount / province_size * cultural_resource * time
-				local handle = pop_job_efficiency[province_values.handle]
+				-- foraging efficiency reduces search times from overabundance and reduces when competing for limited CC
+				local search = amount / province.size / forage_efficiency
+				local handle = pop_job_efficiency[province_values.handle] * handle_efficiency
 				local dividend = amount * search
-				local divisor = search + amount * search / handle
-				local output = (forage_production * cultural_resource) * dividend / divisor
+				local divisor = search + amount / handle * search
+				local output =  dividend / divisor * cultural_resource * time
 				tabb.accumulate(province_values.output, nil, function (_, good, amount)
 	--				print("      GOOD: " .. good .. " COLLECTED: ".. amount * output )
 					forage_goods[good] = (forage_goods[good] or 0) + amount * output
@@ -284,9 +289,9 @@ function pro.run(province)
 			return forage_goods
 		end)
 	--	print("   Total Resources")
-	--	for good, value in pairs(forage_goods) do
+		for good, value in pairs(forage_goods) do
 	--		print("   -: " .. good .. " " .. value)
-	--	end
+		end
 		return forage_goods
 	end
 
@@ -346,7 +351,7 @@ function pro.run(province)
 
 		local total_exp = use_case_total_exp[use_reference]
 		local price_expectation = use_case_price_expectation[use_reference]
-		local demanded_use = math.min(amount, savings / math.max(price_expectation, 0.01))
+		local demanded_use = math.min(amount, savings / price_expectation)
 
 		local available = available_goods_for_use(use_reference)
 		local potential_amount = math.min(available, demanded_use)
@@ -358,8 +363,8 @@ function pro.run(province)
 			local c_index = RAWS_MANAGER.trade_good_to_index[good] - 1
 			local goods_price = math.max(market_data[c_index].price, 0.0001)
 			local goods_available = market_data[c_index].available
-			local goods_available_weight = math.max(market_data[c_index].available / weight / available, 0)
-			local goods_feature_weight = math.max(market_data[c_index].feature / total_exp, 0)
+			local goods_available_weight = available > 0 and (market_data[c_index].available / weight / available) or 0
+			local goods_feature_weight = total_exp > 0 and (market_data[c_index].feature / total_exp) or 0
 			local demanded_amount = demanded_use / weight * goods_feature_weight
 			local consumed_amount = math.max(0, math.min(goods_available, demanded_amount,
 				potential_amount / weight * goods_available_weight,
@@ -433,11 +438,10 @@ function pro.run(province)
 	---@param need Need
 	---@param free_time number
 	---@param savings number
-	---@param target number
 	---@return number free_time_used
 	---@return number expenses
 	---@return table<TradeGoodUseCase, number> consumed
-	local function satisfy_need(pop_view, pop_table, need_satisfaction, need_index, need, free_time, savings, target)
+	local function satisfy_need(pop_view, pop_table, need_satisfaction, need_index, need, free_time, savings)
 		local income, expenses, total_need_time, total_need_cost = 0, 0, 0.001, 0.001
 		local total_bought = {[need_index] = {}}
 	--	print("  ".. NEED_NAME[need_index] .. " free_time: " .. free_time .. " saving: " .. savings ..  " saving: " .. target)
@@ -452,25 +456,26 @@ function pro.run(province)
 		---@type table<string,{need_amount: number, need_cost: number, need_time: number}>
 		local need_cases = {}
 		for case, value in pairs(need_satisfaction[need_index]) do
-			local need_amount = value.demanded
-			-- induced demand:
-			local price_expectation = math.max(0.0001, use_case_price_expectation[case])
-	--		local induced_demand = math.min(2, math.max(0, 1 / math.max(price_expectation, 0.001) - 1))
-	--		print("    " .. " case: " .. case .." need: " .. need_amount .. " induced_demand: " .. need_amount * (1 + induced_demand))
-	--		need_amount = need_amount * (1 + induced_demand)
-			need_amount = need_amount * target
-			if need_amount < 0 then
-				error("Demanded need is lower than zero!")
+			if use_case_total_exp[case] > 0 then
+				local need_amount = value.demanded
+				-- induced demand:
+				local price_expectation = math.max(use_case_price_expectation[case] or 0, 0.0001)
+				local induced_demand = math.min(2, math.max(0, 1 / price_expectation - 1))
+		--		print("    " .. " case: " .. case .." need: " .. need_amount .. " induced_demand: " .. need_amount * (1 + induced_demand))
+				need_amount = need_amount * (1 + induced_demand)
+				need_amount = need_amount
+				if need_amount < 0 then
+					error("Demanded need is lower than zero!")
+				end
+				-- estimate cost in money and time to satisfy each use_case
+				local remaining_need_amount = math.max(0, need_amount - value.consumed)
+				local need_cost = price_expectation * remaining_need_amount * POP_BUY_PRICE_MULTIPLIER
+				local need_time = remaining_need_amount * cottage_time_per_unit
+				need_cases[case] = {need_amount = remaining_need_amount, need_cost = need_cost , need_time = need_time}
+				-- count totals for weighting
+				total_need_cost = total_need_cost + need_cost
+				total_need_time = total_need_time + need_time
 			end
-			-- estimate cost in money and time to satisfy each use_case
-			local remaining_need_amount = math.max(0, need_amount - value.consumed)
-			local need_cost = price_expectation * remaining_need_amount * POP_BUY_PRICE_MULTIPLIER
-			local need_time = remaining_need_amount * cottage_time_per_unit
-			need_cases[case] = {need_amount = remaining_need_amount, need_cost = need_cost , need_time = need_time}
-			-- count totals for weighting
-			total_need_cost = total_need_cost + need_cost
-			total_need_time = total_need_time + need_time
-
 		end
 		local total_time_used = 0
 		for case, values in pairs(need_cases) do
@@ -583,7 +588,7 @@ function pro.run(province)
 	local function satisfy_needs(pop_view, pop_table, free_time, savings)
 
 		-- BUILD TOTAL FAMILY NEEDS
---		print("FAMILY UNIT: " .. pop_table.name .. " (" .. 1 + tabb.size(pop_table.children) .. ")")
+	--	print("FAMILY UNIT: " .. pop_table.name .. " (" .. 1 + tabb.size(pop_table.children) .. ")")
 		-- start with family head (parent) as base
 		---@type table<NEED, table<TradeGoodReference, {consumed: number, demanded: number}>>
 		local family_unit_needs = tabb.accumulate(pop_table.need_satisfaction, {}, function (family_head_needs, need, use_cases) ---@param family_head_needs table<NEED, table<TradeGoodUseCaseReference, {consumed: number, demanded: number}>>
@@ -593,43 +598,42 @@ function pro.run(province)
 			end)
 			return family_head_needs
 		end)
---		print("  FAMILY HEAD NEADS:")
---		for need, need_use_case in pairs(family_unit_needs) do
---			print("    " .. NEED_NAME[need] .. ": ")
---			for case, value in pairs(need_use_case) do
---				print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
---			end
---		end
+
+	--	print("  FAMILY HEAD NEADS:")
+	--	for need, need_use_case in pairs(family_unit_needs) do
+	--		print("    " .. NEED_NAME[need] .. ": ")
+	--		for case, value in pairs(need_use_case) do
+	--			print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
+	--		end
+	--	end
+
 		-- collect children's needs
 		tabb.accumulate(pop_table.children, nil, function (_, _, v)
---			print("  CHILD NEEDS: " .. v.name)
+	--		print("  CHILD NEEDS: " .. v.name)
 			tabb.accumulate(v.need_satisfaction, nil, function (_, need, use_cases)
---				print("    " .. NEED_NAME[need] .. ": ")
+	--			print("    " .. NEED_NAME[need] .. ": ")
 				tabb.accumulate(use_cases, nil, function (_, case, case_values)
---					print("      " .. case .. ": " .. case_values.consumed .. " / " .. case_values.demanded)
+	--				print("      " .. case .. ": " .. case_values.consumed .. " / " .. case_values.demanded)
 					family_unit_needs[need][case] = {consumed = 0, demanded = (family_unit_needs[need][case].demanded or 0) + case_values.demanded}
 				end)
 			end)
 		end)
 
---		print("  TOTAL FAMILY UNIT NEEDS:")
---		for need, cases in pairs(family_unit_needs) do
---			print("    " .. NEED_NAME[need] .. ": ")
---			for case, value in pairs(cases) do
---				print("      " .. case .. ": " .. value.demanded)
---			end
---		end
-
-		-- let player forage for more time if they want
-		local forage_time = math.max(pop_table.forage_ratio, free_time)
-		if WORLD.player_character and WORLD.player_character == pop_table then
-			forage_time = math.min(OPTIONS["needs-hunt"], forage_time)
-		end
+	--	print("  TOTAL FAMILY UNIT NEEDS:")
+	--	for need, cases in pairs(family_unit_needs) do
+	--		print("    " .. NEED_NAME[need] .. ": ")
+	--		for case, value in pairs(cases) do
+	--			print("      " .. case .. ": " .. value.demanded)
+	--		end
+	--	end
 
 		-- go through each food use case and forage to satisfy that case
+		local total_forage_time = 0
 		local foraged_goods = tabb.accumulate(pop_table.culture.traditional_forager_targets, {}, function (a, use_case, values)
-			local foraged_goods = forage(pop_view, pop_table, use_case, forage_time * values.search)
---			print("  USE CASE: " .. use_case .. " SATISFACTION: " .. family_unit_needs[NEED.FOOD][use_case].consumed .. " / " .. family_unit_needs[NEED.FOOD][use_case].demanded)
+			local forage_time = free_time * values.search
+			total_forage_time = total_forage_time + forage_time
+			local foraged_goods = forage(pop_view, pop_table, use_case, forage_time)
+	--		print("  USE CASE: " .. use_case .. " SATISFACTION: " .. family_unit_needs[NEED.FOOD][use_case].consumed .. " / " .. family_unit_needs[NEED.FOOD][use_case].demanded)
 			-- consume for use case only
 			for good, amount in pairs(foraged_goods) do
 				local weight = RAWS_MANAGER.trade_goods_use_cases_by_name[use_case].goods[good]
@@ -639,7 +643,7 @@ function pro.run(province)
 					local consumption = math.min(weighted_amount, difference)
 					amount = math.max(0, amount - consumption / weight)
 					family_unit_needs[NEED.FOOD][use_case].consumed = family_unit_needs[NEED.FOOD][use_case].consumed + consumption
---					print("    GOOD: " .. good .. " FORAGED: " .. foraged_goods[good] .. " CONSUMED: " .. consumption .. " -> " .. family_unit_needs[NEED.FOOD][use_case].consumed)
+	--				print("    GOOD: " .. good .. " FORAGED: " .. foraged_goods[good] .. " CONSUMED: " .. consumption .. " -> " .. family_unit_needs[NEED.FOOD][use_case].consumed)
 				end
 				-- add any remaing to list of goods to sell
 				if amount > 0 then
@@ -648,67 +652,67 @@ function pro.run(province)
 			end
 			return a
 		end)
-		local time_after_foraging = math.max(0, free_time - forage_time)
+		local time_after_foraging = math.max(0, free_time - total_forage_time)
 
---		print("  SATISFIED FAMILY UNIT NEEDS: (after forage call)")
---		for need, cases in pairs(family_unit_needs) do
---			print("    " .. NEED_NAME[need] .. ": ")
---			for case, value in pairs(cases) do
---				print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
---			end
---		end
+	--	print("  SATISFIED FAMILY UNIT NEEDS: (after forage call)")
+	--	for need, cases in pairs(family_unit_needs) do
+	--		print("    " .. NEED_NAME[need] .. ": ")
+	--		for case, value in pairs(cases) do
+	--			print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
+	--		end
+	--	end
 
---		print("  FORAGED GOODS:")
---		for good, amount in pairs(foraged_goods) do
---			print("    " ..good .. ": " .. amount)
---		end
+	--	print("  FORAGED GOODS:")
+	--	for good, amount in pairs(foraged_goods) do
+	--		print("    " ..good .. ": " .. amount)
+	--	end
 
 		--  SELL EXCESS TO MARKET
 		local income = 0
---		print("  GOODS SOLD TO MARKET:")
+	--	print("  GOODS SOLD TO MARKET:")
 		for good, amount in pairs(foraged_goods) do
 			if amount > 0 then
 				local good_index = RAWS_MANAGER.trade_good_to_index[good]
 				local production = record_production(good_index, amount)
---				print("    SOLD :" .. amount .. " OF " .. good .. " FOR " .. production)
+	--			print("    SOLD :" .. amount .. " OF " .. good .. " FOR " .. production)
 				income = income + production
 			end
 		end
 
 		-- BUYING NEEDS
-		local time_after_needs = math.max(0, time_after_foraging)
+		local cottaging_time, need_buy_cost, time_after_needs = {}, {}, math.max(0, time_after_foraging)
 		local total_needs_cottage_time = tabb.accumulate(NEEDS, 0, function (total_needs_cottage_time, index, need)
-			local life_need_weight = 1
-			if need.life_need then
-				life_need_weight = 5
-			end
 			local cummulative_use_totals = tabb.accumulate(family_unit_needs[index], 0, function (a, case, value)
 				return a + math.max(0, value.demanded - value.consumed)
 			end)
-			return total_needs_cottage_time + life_need_weight * cummulative_use_totals * need.time_to_satisfy / pop_job_efficiency[need.job_to_satisfy]
+			cottaging_time[index] = cummulative_use_totals * need.time_to_satisfy / pop_job_efficiency[need.job_to_satisfy]
+			return total_needs_cottage_time + cottaging_time[index]
+		end)
+
+		local total_need_cost = tabb.accumulate(NEEDS, 0, function (total_needs_cost, index, need)
+			local cummulative_use_totals = tabb.accumulate(family_unit_needs[index], 0, function (a, case, value)
+				return a + math.max(0, value.demanded - value.consumed) * use_case_price_expectation[case]
+			end)
+			need_buy_cost[index] = cummulative_use_totals
+			return total_needs_cost + cummulative_use_totals
 		end)
 		local need_weight = life_need_count + total_need_count
 		local savings_temp = savings + income
 		local total_expense = 0
 		for index, need in pairs(NEEDS) do
-			local need_savings, need_time = 1, 1
-			local life_need_weight = need.time_to_satisfy / pop_job_efficiency[need.job_to_satisfy] / total_needs_cottage_time
-			if need.life_need then
-				need_savings, need_time = 2, 5
-			end
-			local time_fraction = need_time * time_after_foraging * life_need_weight
-			local savings_fraction = savings_temp * need_savings / need_weight
+			local time_fraction = time_after_foraging * cottaging_time[index] / total_needs_cottage_time
+			local savings_fraction = savings_temp * need_buy_cost[index] / total_need_cost * 0.99 -- to counter potential float errors
 			local free_time_for_need, expense, consumed = satisfy_need(
 				pop_view, pop_table, family_unit_needs, index, need,
 				time_fraction,
-				savings_fraction, 1)
+				savings_fraction)
 
 			total_expense = total_expense + expense
 
 			time_after_needs = time_after_needs - free_time_for_need
 
 			tabb.accumulate(consumed[index], nil, function (_, k, v)
---				print("  " .. NEED_NAME[index] .. " BOUGHT: " .. " " .. k .. " " .. v)
+	--			print("  " .. NEED_NAME[index] .. " BOUGHT: " .. " " .. k .. " " .. v)
 				family_unit_needs[index][k].consumed = family_unit_needs[index][k].consumed + v
 			end)
 
@@ -740,27 +744,32 @@ function pro.run(province)
 		local low_life_need, high_life_need = false, true
 		-- DISTRIBUTE CONSUMPTION TO PARENT AND CHILDREN
 		for need, cases in pairs(family_unit_needs) do
-		--	print("    " .. NEED_NAME[need] .. ": ")
+	--		print("    " .. NEED_NAME[need] .. ": ")
 			for case, value in pairs(cases) do
-		--		print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
+	--			print("      " .. case .. ": " .. value.consumed .. " / " .. value.demanded)
 				local satisfaction_ratio = value.consumed  / value.demanded
 				if NEEDS[need].life_need then
-					if satisfaction_ratio < 0.5 then
+					if satisfaction_ratio < 0.6 then
 						low_life_need = true
 						high_life_need = false
-					elseif satisfaction_ratio < 0.75 then
+					elseif satisfaction_ratio < 0.8 then
 						high_life_need = false
 					end
 				end
 				pop_table.need_satisfaction[need][case].consumed = satisfaction_ratio * pop_table.need_satisfaction[need][case].demanded
 				pop_table:get_need_satisfaction()
 				for _, child in pairs(pop_table.children) do
-					child.need_satisfaction[need][case].consumed = satisfaction_ratio * child.need_satisfaction[need][case].demanded
-					child:get_need_satisfaction()
+					if child.need_satisfaction[need] and child.need_satisfaction[need][case] then
+						child.need_satisfaction[need][case].consumed = satisfaction_ratio * child.need_satisfaction[need][case].demanded
+					end
 				end
 			end
 		end
 
+		--update children statisfaction rations
+		for _, child in pairs(pop_table.children) do
+			child:get_need_satisfaction()
+		end
 		if savings + income + 0.01 < total_expense
 			or income ~= income
 			or total_expense ~= total_expense
@@ -784,11 +793,11 @@ function pro.run(province)
 		economic_effects.add_pop_savings(pop_table, -total_expense, economic_effects.reasons.BasicNeeds)
 
 		-- for next month determine if it should forage more or less
-		if low_life_need == true then -- any single need low
-			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 1.2)
+		if low_life_need == true then -- any single life need use cases below 50%
+			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 1.15)
 			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
-		elseif high_life_need == true then -- all needs are high
-			pop_table.forage_ratio = math.min(0.99, pop_table.forage_ratio * 0.9)
+		elseif high_life_need == true then -- all life need use cases are over 60%
+			pop_table.forage_ratio = math.max(0.01, pop_table.forage_ratio * 0.9)
 			pop_table.work_ratio = math.max(0.01, 1 - pop_table.forage_ratio)
 		end
 	end
@@ -797,23 +806,20 @@ function pro.run(province)
 	local total_popularity = 0
 	---@type table<POP, number>
 	local donations_to_owners = {}
-	local children = tabb.size(tabb.filter(province.home_to, function (a)
-		return a.age < a.race.teen_age and a.province == province
-	end))
 
 	-- pre-update: information gathering / setting variable
 	local additional_family_time = {}
+	local tools_satisfaction, storage_satisfaction = {}, {}
 	-- sort pops by wealth:
 	---@type POP[]
 	local pops_by_wealth = tabb.accumulate(
 		tabb.join(tabb.copy(province.all_pops), province.characters),
 		{},function (a, _, pop)
-			-- donation to help parents care for children only if in same province
+			-- record total time for family dependents only if in same province
 			if pop.home_province == province then
 				tabb.size(tabb.filter(pop.children, function (child)
 					if child.age < child.race.teen_age then
-							additional_family_time[pop] = (additional_family_time[pop] or 0) + child.age / child.race.teen_age
-								* child:get_age_multiplier()
+							additional_family_time[pop] = (additional_family_time[pop] or 0) + child.age / child.race.teen_age * pop:get_age_multiplier()
 						return true
 					end
 					return false
@@ -834,37 +840,74 @@ function pro.run(province)
 			-- update 'family units', add to pop satisfy needs list only if an 'adult' or an absant parent, either away or none at all
 			if (pop.age >= pop.race.teen_age) or (not pop.parent or pop.parent.province ~= pop.province) then
 				-- record foraging time of 'family unit' for efficiency
-				local foragers_increase = 1
+				local water_search = pop.culture.traditional_forager_targets['water'].search
+				local foragers_increase = pop.race.carrying_capacity_weight * pop:get_age_multiplier()
 				-- if in warband and foraging, half of free time goes to foraging for warband
-				if pop.unit_of_warband and pop.unit_of_warband.status == "idle" and pop.unit_of_warband.idle_stance == "forage" then
-					local weight = pop.unit_of_warband.current_free_time_ratio * 0.5
-					foragers_count = foragers_count + weight * pop.race.carrying_capacity_weight
-					foragers_increase = weight
+				if pop.age < pop.race.teen_age then
+					foragers_increase = foragers_increase * pop.age / pop.race.teen_age
+				elseif pop.unit_of_warband and pop.unit_of_warband.status == "idle" and pop.unit_of_warband.idle_stance == "forage" then
+					local weight = foragers_increase * pop.unit_of_warband.current_free_time_ratio * 0.25
+					foragers_count = foragers_count + weight
+					foragers_increase = weight * 3
 				end
 				-- add children's times and weight by desired foraging percentage
 				foragers_increase = pop.forage_ratio * (foragers_increase + (additional_family_time[pop] or 0))
 				-- add 'family unit' to production and consumption cycle
 				table.insert(a, pop)
-				foragers_count = foragers_count + foragers_increase * pop.race.carrying_capacity_weight
+				foragers_count = foragers_count + foragers_increase * (1 - water_search)
+				foragers_water = foragers_water + foragers_increase * water_search
+				
 			end
 			-- recalculate pop needs
-			local needs_satisfaction = pop.race.male_needs
-			if pop.female then needs_satisfaction = pop.race.female_needs end
-			-- TODO replace with warband supplies?
-			-- block off starvation, if the pop is not able to call staisfy_need
+			-- TOTO solve starvation from travling/raiding/patroling instead of reducing consumption, replace with warband supplies? 
 			local consumption_percentage = 0
 			if pop.unit_of_warband ~= nil and pop.unit_of_warband.status ~= "idle" then
-				consumption_percentage = 1
+				consumption_percentage = 0.9
 			end
 			-- reset consumption and update demands of need satisfaction
-			tabb.accumulate(needs_satisfaction, nil, function (_, need, values)
-				tabb.accumulate(values, nil, function (_, k, v)
-					pop.need_satisfaction[need][k].consumed = pop.need_satisfaction[need][k].consumed * consumption_percentage
-						pop.need_satisfaction[need][k].demanded = needs_satisfaction[need][k]
-					if not NEEDS[need].age_independent then
-						pop.need_satisfaction[need][k].demanded = pop.need_satisfaction[need][k].demanded * pop:get_age_multiplier()
+			local forage_time = pop.forage_ratio
+			local water_search = pop.culture.traditional_forager_targets['water'].search
+			tabb.accumulate(NEEDS, nil, function (_, need_index, _)
+				-- get foraging efficiencies from satisfactions and add needs from pop's foraging plans
+				if forage_time > 0.01 then
+					-- get food foraging efficiency from tools satisfaction
+					if need_index == NEED.TOOLS then
+						if pop.need_satisfaction[NEED.TOOLS] then
+							-- weight foraging_efficiency by tools satisfaction
+							local tools_like_need = pop.need_satisfaction[NEED.TOOLS]['tools-like']
+							local tools_like_satisfaction = tools_like_need.consumed / tools_like_need.demanded
+							local containers_need = pop.need_satisfaction[NEED.TOOLS]['containers']
+							local containers_satisfaction = containers_need.consumed / containers_need.demanded
+							-- between 0 and 0.5 with induced demand
+							tools_satisfaction[pop] = tools_like_satisfaction / (tools_like_satisfaction + 3)
+							storage_satisfaction[pop] = containers_satisfaction / (containers_satisfaction + 3)
+						else
+							tools_satisfaction[pop] = 0
+							storage_satisfaction[pop] = 0
+						end
+					-- get water foraging efficiency from storage satisfaction
 					end
-				end)
+					-- add tools and storage based on foraging increase
+					if not pop.need_satisfaction[NEED.TOOLS] then
+						pop.need_satisfaction[NEED.TOOLS] = {
+							['tools-like'] = {consumed = 0, demanded = 0},
+							['containers'] = {consumed = 0, demanded = 0}
+						}
+					end
+					pop.need_satisfaction[NEED.TOOLS]['tools-like'].demanded = pop.race.carrying_capacity_weight * pop.forage_ratio * (1 - water_search) * pop:get_age_multiplier()
+					pop.need_satisfaction[NEED.TOOLS]['containers'].demanded = pop.race.carrying_capacity_weight * pop.forage_ratio * water_search * pop:get_age_multiplier()
+				else
+					-- remove tools and storage need from pop table since not really foraging
+					pop.need_satisfaction[NEED.TOOLS]['tools-like'] = nil
+					pop.need_satisfaction[NEED.TOOLS]['containers'] = nil
+					if pop.need_satisfaction[NEED.TOOLS] and tabb.size(pop.need_satisfaction[NEED.TOOLS]) == 0 then pop.need_satisfaction[NEED.TOOLS] = nil end
+				end
+				-- reset any other need
+				if pop.need_satisfaction[need_index] then
+					tabb.accumulate(pop.need_satisfaction[need_index], nil, function (_, k, values)
+						pop.need_satisfaction[need_index][k].consumed = pop.need_satisfaction[need_index][k].consumed * consumption_percentage
+					end)
+				end
 			end)
 			return a
 		end)
@@ -874,48 +917,27 @@ function pro.run(province)
 
 	-- calculate foragers efficiency base on planned foraging
 	foragers_efficiency = dbm.foraging_efficiency(province.foragers_limit, foragers_count)
+	hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.5, foragers_water)
 
 	PROFILER:start_timer("production-pops-loop")
 	for _, pop in ipairs(pops_by_wealth) do
 
 		-- populate pop_view
-		local foraging_multiplier = pop.race.male_efficiency[JOBTYPE.FORAGER]
-		if pop.female then
-			foraging_multiplier = pop.race.female_efficiency[JOBTYPE.FORAGER]
-		end
-		pop_view[zero].foraging_efficiency = foraging_multiplier
 		pop_view[zero].age_multiplier = pop:get_age_multiplier()
-
-		local pop_needs = pop.race.male_needs
-		local pop_efficiency = pop.race.male_efficiency
-		if pop.female then
-			pop_needs = pop.race.female_needs
-			pop_efficiency = pop.race.female_efficiency
-		end
 
 		-- populate job efficiency
 		for tag, value in pairs(JOBTYPE) do
-			pop_job_efficiency[value] = pop_efficiency[value] * pop_view[zero].age_multiplier -- children are not good at working
+			pop_job_efficiency[value] = pop:job_efficiency(value)
 		end
-		for tag, value in pairs(pop_needs) do
-			pop_need_amount[tag] = tabb.accumulate(value, 0, function (a, k, v)
-				a = a + v
-				return a
-			end)
-			-- can easily add a pop's cultural or religous needs here
-			local need = NEEDS[tag]
-			if not need.age_independent then
-				pop_need_amount[tag] = pop_need_amount[tag] * pop_view[zero].age_multiplier
-			end
-		end
-
+		pop_view[zero].foraging_efficiency = pop.race.carrying_capacity_weight * (1 + tools_satisfaction[pop])
+		pop_view[zero].hydration_efficiency = pop.race.carrying_capacity_weight * (1 + storage_satisfaction[pop])
 
 		-- base income: all adult pops forage and help each other which translates into a bit of wealth
 		-- real reason: wealth sources to fuel the economy
 		-- buidings are essentially wealth sinks currently
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
-		local base_income = 1 * pop.age / pop.race.max_age;
+		local base_income = pop.race.carrying_capacity_weight * pop.age / pop.race.max_age;
 		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
 
 		local free_time_of_pop = 1;
@@ -925,8 +947,8 @@ function pro.run(province)
 			if pop.unit_of_warband then
 				if pop.unit_of_warband.idle_stance == "forage" then
 					-- spend some time on foraging for warband:
-					forage_warband(pop_view, pop, pop.unit_of_warband.current_free_time_ratio * 0.5)
-					free_time_of_pop = pop.unit_of_warband.current_free_time_ratio * 0.5
+					forage_warband(pop_view, pop, pop.unit_of_warband.current_free_time_ratio * 0.25)
+					free_time_of_pop = pop.unit_of_warband.current_free_time_ratio * 0.75
 				else
 					-- or spend all the time working like other pops
 					free_time_of_pop = pop.unit_of_warband.current_free_time_ratio
@@ -943,8 +965,13 @@ function pro.run(province)
 				local local_foraging_efficiency = 1
 				if prod.foraging then
 					-- buildings operate off off last month's foraging use, otherwise race conditions on output
-					foragers_count = foragers_count + work_time * pop.race.carrying_capacity_weight
-					local_foraging_efficiency = math.min(foragers_efficiency, last_foraging_efficiency)
+					foragers_count = foragers_count + work_time * pop_view[zero].foraging_efficiency
+					local_foraging_efficiency = local_foraging_efficiency * math.min(foragers_efficiency, last_foraging_efficiency)
+				end
+				if prod.hydration then
+					-- buildings operate off off last month's foraging use, otherwise race conditions on output
+					foragers_water = foragers_count + work_time * pop_view[zero].foraging_efficiency
+					local_foraging_efficiency = local_foraging_efficiency * math.min(hydration_efficiency, last_hydration_efficiency)
 				end
 				local yield = prod:get_efficiency(province)
 
@@ -1068,7 +1095,7 @@ function pro.run(province)
 
 				pop.employer.last_income = pop.employer.last_income + income
 
-				free_time_of_pop = free_time_of_pop - (1 - pop.work_ratio) * free_time_of_pop * input_satisfaction * input_satisfaction_2
+				--free_time_of_pop = free_time_of_pop - pop.work_ratio * free_time_of_pop * input_satisfaction * input_satisfaction_2
 
 				if income > 0 then
 					---@type number
@@ -1104,12 +1131,12 @@ function pro.run(province)
 			end
 
 			-- every pop spends some time or wealth on fullfilling the need of their children and themselves
-			local savings_fraction = pop.savings / 12
+			local savings_fraction = pop.savings / 10
 			if WORLD.player_character and WORLD.player_character == pop then
 				savings_fraction = OPTIONS['needs-savings'] * pop.savings
 			end
 			PROFILER:start_timer("production-satisfy-needs")
-			satisfy_needs(pop_view, pop, math.max(math.min(free_time_of_pop, pop.forage_ratio) + pop.forage_ratio * (additional_family_time[pop] or 0), 0), math.max(0, savings_fraction))
+			satisfy_needs(pop_view, pop, pop.forage_ratio * (free_time_of_pop + (additional_family_time[pop] or 0)), math.max(0, savings_fraction))
 			PROFILER:end_timer("production-satisfy-needs")
 		end
 
@@ -1159,6 +1186,7 @@ function pro.run(province)
 	province.local_income = province.local_wealth - old_wealth
 
 	province.foragers = foragers_count -- Record the new number of foragers
+	province.foragers_water = foragers_water
 
 	for _, bld in pairs(province.buildings) do
 		local prod = bld.type.production_method
