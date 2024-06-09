@@ -365,6 +365,25 @@ function ll.load()
 		carrying_capacity_weight = 1.5
 	}
 
+	---@type PortraitDescription
+	local elf_portrait = {
+		folder = "elf",
+		layers = {"hair_back.PNG", "ear_right.PNG", "base.PNG", "ear_left.PNG", "cloth.PNG", "brow.PNG", "eyelash.PNG", "hair_front.PNG", "flowers.PNG"},
+		layers_groups = {
+			hair = {"hair_back.PNG", "hair_front.PNG"},
+			ears = {"ear_right.PNG", "ear_left.PNG"}
+		}
+	}
+
+	---@type PortraitDescription
+	local elf_bald_portrait = {
+		folder = "elf",
+		layers = {"ear_right.PNG", "base.PNG", "ear_left.PNG", "cloth.PNG", "brow.PNG", "eyelash.PNG"},
+		layers_groups = {
+			ears = {"ear_right.PNG", "ear_left.PNG"}
+		}
+	}
+
 	Race:new {
 		name = 'elf',
 		r = 0.1,
@@ -372,24 +391,10 @@ function ll.load()
 		b = 0.1,
 		icon = 'woman-elf-face.png',
 		male_portrait = {
-			fallback = {
-				folder = "null_middle",
-				layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
-							"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png", "beard.png"},
-				layers_groups = {
-					hair = {"hair_behind.png", "hair.png"}
-				}
-			}
+			fallback = elf_bald_portrait
 		},
 		female_portrait = {
-			fallback = {
-				folder = "null_middle",
-				layers = {"hair_behind.png", "base.png", "neck.png", "cheeks.png",
-							"chin.png", "ear.png", "eyes.png", "nose.png", "mouth.png", "hair.png", "clothes.png"},
-				layers_groups = {
-					hair = {"hair_behind.png", "hair.png"}
-				}
-			}
+			fallback = elf_portrait
 		},
 		description = 'elves',
 		males_per_hundred_females = 100,
@@ -546,7 +551,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 1.25, -- a short, sturdy creature fond of drink and industry 
+				['tools-like'] = 1.25, -- a short, sturdy creature fond of drink and industry
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 1,
@@ -555,7 +560,7 @@ function ll.load()
 				['containers'] = 1,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = 1.5, -- a short, sturdy creature fond of drink and industry 
+				['liquors'] = 1.5, -- a short, sturdy creature fond of drink and industry
 			},
 		},
 		female_infrastructure_needs = 3,
@@ -585,7 +590,7 @@ function ll.load()
 				['furniture'] = 1
 			},
 			[NEED.TOOLS] = {
-				['tools-like'] = 1.25, -- a short, sturdy creature fond of drink and industry 
+				['tools-like'] = 1.25, -- a short, sturdy creature fond of drink and industry
 			},
 			[NEED.HEALTHCARE] = {
 				['healthcare'] = 1,
@@ -594,7 +599,7 @@ function ll.load()
 				['containers'] = 1,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = 1.5, -- a short, sturdy creature fond of drink and industry 
+				['liquors'] = 1.5, -- a short, sturdy creature fond of drink and industry
 			},
 		},
 		male_infrastructure_needs = 3,
