@@ -1,9 +1,9 @@
 local oi = {}
 
 -- not part of the lua implementation of climate simulation
--- Calandiel said it was meant to be phased out, so just use a hardcoded value for now
-function oi.seasonal_humidity()
-	return 0.3
+function oi.seasonal_humidity(world, ti, month)
+	-- return 0.3 -- Calandiel said it was meant to be phased out, so just use a hardcoded value for now
+	return world:get_humidity_for(ti, month) -- using port of current humidity implementation
 end
 
 -- not implemented in SotE

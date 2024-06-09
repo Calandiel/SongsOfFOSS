@@ -5,8 +5,10 @@
 ---@field water_fraction number
 ---@field january_temperature number
 ---@field january_rainfall number
+---@field january_humidity number
 ---@field july_temperature number
 ---@field july_rainfall number
+---@field july_humidity number
 ---@field hadley_influence number
 ---@field med_influence number
 ---@field itcz_january number
@@ -41,8 +43,10 @@ function ClimateCell:new(cell_id)
 
 	new.january_temperature = 0
 	new.january_rainfall = 0
+	new.january_humidity = 0
 	new.july_temperature = 0
 	new.july_rainfall = 0
+	new.july_humidity = 0
 
 	new.hadley_influence = 0
 	new.med_influence = 0

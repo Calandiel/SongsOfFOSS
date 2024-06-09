@@ -56,9 +56,11 @@ function world:new(world_size, seed)
 	obj.rocks              = allocate_array("rocks",              obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
 	obj.jan_rainfall       = allocate_array("jan_rainfall",       obj.tile_count, "float")
 	obj.jan_temperature    = allocate_array("jan_temperature",    obj.tile_count, "float")
+	obj.jan_humidity	   = allocate_array("jan_humidity",       obj.tile_count, "float")
 	obj.jan_water_movement = allocate_array("jan_water_movement", obj.tile_count, "float")
 	obj.jul_rainfall       = allocate_array("jul_rainfall",       obj.tile_count, "float")
 	obj.jul_temperature    = allocate_array("jul_temperature",    obj.tile_count, "float")
+	obj.jul_humidity	   = allocate_array("jul_humidity",       obj.tile_count, "float")
 	obj.jul_water_movement = allocate_array("jul_water_movement", obj.tile_count, "float")
 	obj.water_movement     = allocate_array("water_movement",     obj.tile_count, "float")
 	obj.ice                = allocate_array("ice",                obj.tile_count, "uint16_t")
@@ -277,17 +279,23 @@ end
 local cu = require "game.climate.utils"
 
 function world:_get_climate_data_by_tile(ti)
-	return cu.get_climate_data(-llu.colat_to_lat(self.colatitude[ti]), -self.minus_longitude[ti], self.elevation[ti])
+	local lat = -llu.colat_to_lat(self.colatitude[ti])
+	local lon = -self.minus_longitude[ti]
+	local r_jan, t_jan, r_jul, t_jul = cu.get_climate_data(lat, lon, self.elevation[ti])
+	local h_jan, h_jul = cu.get_humidity(lat, lon)
+	return r_jan, t_jan, r_jul, t_jul, h_jan, h_jul
 end
 
 function world:cache_climate_data()
 	for ti = 0, self.tile_count - 1 do
-		local r_jan, t_jan, r_jul, t_jul = self:_get_climate_data_by_tile(ti)
+		local r_jan, t_jan, r_jul, t_jul, h_jan, h_jul = self:_get_climate_data_by_tile(ti)
 
 		self.jan_rainfall[ti]    = r_jan
 		self.jan_temperature[ti] = t_jan
 		self.jul_rainfall[ti]    = r_jul
 		self.jul_temperature[ti] = t_jul
+		self.jan_humidity[ti]    = h_jan
+		self.jul_humidity[ti]    = h_jul
 	end
 end
 
@@ -309,6 +317,16 @@ end
 function world:get_rainfall_for(ti, month)
 	local base_val = math_utils.lerp(self.jan_rainfall[ti], self.jul_rainfall[ti], 1 - math.abs(month - 6) / 6);
 	return math.max(0, base_val)
+end
+
+function world:get_humidity_for(ti, month)
+	local base_val = math_utils.lerp(self.jan_humidity[ti], self.jul_humidity[ti], 1 - math.abs(month - 6) / 6);
+	return math.max(0, base_val)
+end
+
+---@param ti number 0-based tile index
+function world:get_climate_cell_by_tile(ti)
+	return self.climate_cells[ti + 1]
 end
 
 ---------------------------------------------------------------------------------------------------
