@@ -98,7 +98,7 @@ local function color_from_rank(rank)
 	end
 end
 
-local color_utils = require "game.color"
+local rock_layers = require "libsote.rock-layers"
 
 function wl.load_maps_from(world)
 	local start = love.timer.getTime()
@@ -135,11 +135,12 @@ function wl.load_maps_from(world)
 
 		------------------------------------------------------------------
 
-		local rocks = world:get_rocks(q, r, face)
-		local id = color_utils.rgb_to_id(rocks.r, rocks.g, rocks.b)
+		local rock_type = world:get_rock_type(q, r, face)
+		local rock_layer_index = world:get_rock_layer(q, r, face)
+		local rock_layer = rock_layers[rock_type][rock_layer_index]
 
-		if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
-			tile.bedrock = RAWS_MANAGER.bedrocks_by_color[id]
+		if rock_layer ~= nil then
+			tile.bedrock = rock_layer
 		else
 			tile.bedrock = RAWS_MANAGER.bedrocks_by_name['limestone']
 		end
@@ -226,12 +227,14 @@ function wl.dump_maps_from(world)
 
 			-- rocks ---------------------------------------------------------
 
-			local rocks = world:get_rocks(q, r, face)
-			local id = color_utils.rgb_to_id(rocks.r, rocks.g, rocks.b)
-			if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
-				col_r = rocks.r
-				col_g = rocks.g
-				col_b = rocks.b
+			local rock_type = world:get_rock_type(q, r, face)
+			local rock_layer_index = world:get_rock_layer(q, r, face)
+			local rock_layer = rock_layers[rock_type][rock_layer_index]
+
+			if rock_layer ~= nil then
+				col_r = rock_layer.r
+				col_g = rock_layer.g
+				col_b = rock_layer.b
 			else
 				col_r = RAWS_MANAGER.bedrocks_by_name['limestone'].r
 				col_g = RAWS_MANAGER.bedrocks_by_name['limestone'].g

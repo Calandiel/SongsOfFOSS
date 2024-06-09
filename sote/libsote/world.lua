@@ -9,14 +9,6 @@ local world = {
 -- }
 
 local ffi = require("ffi")
-
-ffi.cdef[[
-typedef struct {
-	char name[256];
-	double r, g, b;
-} material_template_t
-]]
-
 local ffi_mem_tally = 0
 
 local function allocate_array(name, size, type)
@@ -53,7 +45,7 @@ function world:new(world_size, seed)
 	obj.is_land           = allocate_array("is_land",           obj.tile_count, "bool")
 	obj.plate             = allocate_array("plate",             obj.tile_count, "uint8_t")
 
-	obj.rocks              = allocate_array("rocks",              obj.tile_count, "material_template_t") -- this is too big, can it be compressed? like an index into a material table
+	obj.rock_layer         = allocate_array("rock_layer",         obj.tile_count, "uint16_t")
 	obj.jan_rainfall       = allocate_array("jan_rainfall",       obj.tile_count, "float")
 	obj.jan_temperature    = allocate_array("jan_temperature",    obj.tile_count, "float")
 	obj.jan_humidity	   = allocate_array("jan_humidity",       obj.tile_count, "float")
@@ -253,8 +245,8 @@ function world:get_plate(q, r, face)
 	return self.plate[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
-function world:get_rocks(q, r, face)
-	return self.rocks[self.coord[self:_key_from_coord(q, r, face)]]
+function world:get_rock_layer(q, r, face)
+	return self.rock_layer[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
 function world:get_water_movement(q, r, face)
