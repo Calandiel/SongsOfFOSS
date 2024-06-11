@@ -331,6 +331,25 @@ function ll.load()
 		requires_large_forest = true,
 	}
 
+	---@type PortraitDescription
+	local elf_portrait = {
+		folder = "elf",
+		layers = {"hair_back.PNG", "ear_right.PNG", "base.PNG", "ear_left.PNG", "cloth.PNG", "brow.PNG", "eyelash.PNG", "hair_front.PNG", "flowers.PNG"},
+		layers_groups = {
+			hair = {"hair_back.PNG", "hair_front.PNG"},
+			ears = {"ear_right.PNG", "ear_left.PNG"}
+		}
+	}
+
+	---@type PortraitDescription
+	local elf_bald_portrait = {
+		folder = "elf",
+		layers = {"ear_right.PNG", "base.PNG", "ear_left.PNG", "cloth.PNG", "brow.PNG", "eyelash.PNG"},
+		layers_groups = {
+			ears = {"ear_right.PNG", "ear_left.PNG"}
+		}
+	}
+
 	Race:new {
 		name = 'elf',
 		r = 0.1,
@@ -338,10 +357,10 @@ function ll.load()
 		b = 0.9,
 		icon = 'woman-elf-face.png',
 		male_portrait = {
-			fallback = null_portrait
+			fallback = elf_bald_portrait
 		},
 		female_portrait = {
-			fallback = null_portrait
+			fallback = elf_portrait
 		},
 		description = 'elves',
 		males_per_hundred_females = 95,
