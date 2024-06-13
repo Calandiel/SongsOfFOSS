@@ -5,11 +5,31 @@ local ll = {}
 function ll.load()
 	local Race = require "game.raws.race"
 
+	local human_male_portrait = {
+		folder = "human",
+		layers = {"base.PNG", "eye.PNG", "nose.PNG", "cloth.PNG", "beard.PNG", "brow.PNG", "hair_male.PNG", "headgear.PNG"},
+		layers_groups = {
+		}
+	}
+
+	local human_female_portrait = {
+		folder = "human",
+		layers = {"base.PNG", "eye.PNG", "nose.PNG", "cloth.PNG", "brow.PNG", "hair_female.PNG", "headgear.PNG"},
+		layers_groups = {
+		}
+	}
+
 	Race:new {
 		name = "human",
 		r = 0.85,
 		g = 0.85,
 		b = 0.85,
+		male_portrait = {
+			fallback = human_male_portrait
+		},
+		female_portrait = {
+			fallback = human_female_portrait
+		},
 		icon = 'barbute.png',
 	}
 
