@@ -243,6 +243,13 @@ function Rect:subrect(x, y, width, height, horizontal_align, vertical_align)
 	return ll
 end
 
+---Returns a centered square from the given rect
+---@return Rect centered_square
+function Rect:centered_square()
+	local side = math.min(self.height, self.width)
+	return self:subrect(0, 0, side, side, "center", "center")
+end
+
 ---Returns x/y position, width and height for rect rendering for a given rect
 ---@return number x
 ---@return number y

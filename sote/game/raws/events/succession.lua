@@ -127,7 +127,11 @@ local function load()
 							end
 							--failing all else, grab random pop and make noble
 							if not successor then
-								successor = pe.grant_nobility_to_random_pop(capitol, pe.reasons.InitialNoble)
+								successor = tabb.random_select_from_set(capitol.all_pops)
+						
+								if successor then
+									pe.grant_nobility(successor, capitol, pe.reasons.InitialNoble)
+								end
 							end
 							-- use new leader to finish setting up the new realm
 							if successor then

@@ -9,6 +9,7 @@ local portrait_widget = require "game.scenes.game.widgets.portrait"
 local list_widget = require "game.scenes.game.widgets.list-widget"
 local economical = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
+local dbm = require "game.economy.diet-breadth-model"
 
 local BUILDING_SUBSIDY_AMOUNT = 0.125
 
@@ -141,32 +142,42 @@ function re.draw(gam)
 			end
 		end
 
-		local forage_efficiency = 1
-		if building.type.production_method.foraging then
-			forage_efficiency = math.min(1.15, (building.province.foragers_limit / math.max(1, building.province.foragers)))
-			forage_efficiency = forage_efficiency * forage_efficiency
-		end
+		local forage_efficiency = dbm.foraging_efficiency(building.province.foragers_limit, building.province.foragers)
 
 		-- WORK TIME, INPUT COST, OUTPUT REVENUE
 
 		-- ROW #1
 		-- tile efficiency
 		local building_efficiency = building.type.production_method:get_efficiency(building.province)
-		local tooltip = "The building's tile provides a base of " .. ut.to_fixed_point2(building_efficiency * 100) .. "% production efficiency."
+		local tooltip = "The building's production efficiency is " .. ut.to_fixed_point2(building_efficiency * 100) .. "%."
 		if building.type.production_method.foraging then
-			tooltip = tooltip .. " This is modified further by ".. ut.to_fixed_point2(forage_efficiency * 100) .. "% from last months used carrying capacity."
+			tooltip = tooltip .. " Workers forages natural resources, increasing province foragers by total working time while local foraging competition modify efficiency by " .. ut.to_fixed_point2(forage_efficiency * 100) .. "%."
+		end
+		local nature_yield_dependence = building.type.production_method.nature_yield_dependence
+		if nature_yield_dependence > 0 then
+			local nature_yield = nature_yield_dependence * building.province.foragers_limit / building.province.size
+			tooltip = tooltip .. " Production is depenedent on harvesting natrual resources, as such the local resource density modify efficiency by " .. ut.to_fixed_point2(nature_yield * 100) .. "%."
+		end
+		local forest_dependence = building.type.production_method.forest_dependence
+		if forest_dependence > 0 then
+			local nature_yield = (building.province.foragers_targets[dbm.ForageResource.Wood].amount / building.province.size) * forest_dependence
+			tooltip = tooltip .. " Output is harvested from available forest resources, as such the local foliage density modify efficiency by " .. ut.to_fixed_point2(nature_yield * 100) .. "% and deforests tiles."
 		end
 		ui.centered_text("Building efficiency", left_text_rect)
-		ut.color_coded_percentage(building_efficiency * forage_efficiency, left_value_rect, true, tooltip)
+		ut.color_coded_percentage(building_efficiency, left_value_rect, true, tooltip)
 		-- infra efficiency
 		local inf = building.province:get_infrastructure_efficiency()
 		local efficiency_from_infrastructure = math.min(1.5, 0.5 + 0.5 * math.sqrt(2 * inf))
 		ui.centered_text("Infra efficiency", middle_text_rect)
 		ut.color_coded_percentage(efficiency_from_infrastructure, middle_value_rect, true, "Production efficiency from province infrastructure.")
-		-- mean income
-		ui.centered_text("Mean income", right_text_rect)
-		ut.money_entry_icon(building.income_mean, right_value_rect, ut.to_fixed_point2(building.income_mean)
-			.. MONEY_SYMBOL .. " average income over building lifetime.")
+		-- worker count out of max
+		local worker_cur = tabb.size(building.workers)
+		local worker_max = building.type.production_method:total_jobs()
+		local worker_count = worker_cur .. " / " .. worker_max
+		ui.centered_text("Worker count", right_text_rect)
+		ut.generic_string_field("", worker_count, right_value_rect, "Curently employing "
+			.. worker_cur .. " workers out of a maximum of " .. worker_max .. ".",
+			ut.NAME_MODE.NAME)
 
 		-- shift rect locations down
 		left_text_rect.y = left_text_rect.y + ut.BASE_HEIGHT * 2  + 10
@@ -185,13 +196,10 @@ function re.draw(gam)
 		ui.centered_text("Last donation", middle_text_rect)
 		ut.money_entry_icon(building.last_donation_to_owner, middle_value_rect, ut.to_fixed_point2(building.last_donation_to_owner)
 			.. MONEY_SYMBOL .. " paid to the owner last month.")
-		-- income_mean
-		local output_total = tabb.accumulate(building.earn_from_outputs, 0, function (a, _, v)
-			return a + v
-		end)
-		ui.centered_text("Output profits", right_text_rect)
-		ut.money_entry_icon(output_total, right_value_rect,ut.to_fixed_point2(output_total)
-			..  MONEY_SYMBOL .. " earned from outputs last month.")
+		-- mean income
+		ui.centered_text("Mean income", right_text_rect)
+		ut.money_entry_icon(building.income_mean, right_value_rect, ut.to_fixed_point2(building.income_mean)
+			.. MONEY_SYMBOL .. " average income over building lifetime.")
 
 		-- shift rect locations down
 		left_text_rect.y = left_text_rect.y + ut.BASE_HEIGHT * 2  + 10
@@ -202,30 +210,24 @@ function re.draw(gam)
 		right_value_rect.y = left_value_rect.y
 
 		-- ROW #3
-		-- worker count out of max
-		local worker_cur = tabb.size(building.workers)
-		local worker_max = building.type.production_method:total_jobs()
-		local worker_count = worker_cur .. " / " .. worker_max
-		ui.centered_text("Worker count", left_text_rect)
-		ut.generic_string_field("", worker_count, left_value_rect, "Curently employing "
-			.. worker_cur .. " workers out of a maximum of " .. worker_max .. ".",
-			ut.NAME_MODE.NAME)
-		-- work ratio
-		ui.centered_text("Work ratio", middle_text_rect)
-		ut.generic_number_field(
-			"chart.png",
-			building.work_ratio,
-			middle_value_rect,
-			"Percentage of time workers spent toiling.",
-			ut.NUMBER_MODE.PERCENTAGE,
-			ut.NAME_MODE.ICON)
 		-- spent_on_inputs
 		local input_total = tabb.accumulate(building.spent_on_inputs, 0, function (a, _, v)
 			return a + v
 		end)
-		ui.centered_text("Input costs", right_text_rect)
-		ut.money_entry_icon(input_total, right_value_rect, ut.to_fixed_point2(input_total)
+		ui.centered_text("Input costs", left_text_rect)
+		ut.money_entry_icon(input_total, left_value_rect, ut.to_fixed_point2(input_total)
 			.. MONEY_SYMBOL  .. " spent on inputs last month.", true)
+		-- output profits
+		local output_total = tabb.accumulate(building.earn_from_outputs, 0, function (a, _, v)
+			return a + v
+		end)
+		ui.centered_text("Output revenue", middle_text_rect)
+		ut.money_entry_icon(output_total, middle_value_rect,ut.to_fixed_point2(output_total)
+			..  MONEY_SYMBOL .. " earned from outputs last month.")
+		-- average revinue per worker
+		ui.centered_text("Total profits", right_text_rect)
+		ut.money_entry_icon(output_total, right_value_rect,ut.to_fixed_point2((output_total - input_total))
+			..  MONEY_SYMBOL .. " earned after paying for inputs.")
 
 		-- INPUT OUTPUT AND WORKER TABLES
 
@@ -233,9 +235,8 @@ function re.draw(gam)
 		---@param v number
 		local function render_good_icon(rect, k , v)
 			local good = trade_good(k)
-				local centered_rect = ut.centered_square(rect)
-                ut.render_icon(centered_rect:copy():shrink(-1), good.icon, 1, 1, 1, 1)
-                ut.render_icon(centered_rect, good.icon, good.r, good.g, good.b, 1)
+                ut.render_icon(rect:copy():shrink(-1), good.icon, 1, 1, 1, 1)
+                ut.render_icon(rect, good.icon, good.r, good.g, good.b, 1)
 		end
 		---@param k string
 		---@param v number
@@ -514,6 +515,38 @@ function re.draw(gam)
 				end
 			},
 			{
+				header = "age",
+				---@param k POP
+				render_closure = function (rect, k, v)
+					ui.centered_text(tostring(k.age), rect)
+				end,
+				width = 2,
+				---@param k POP
+				value = function(k, v)
+					return k.age
+				end
+			},
+			{
+				header = "sex",
+				---@param k POP
+				render_closure = function (rect, k, v)
+					local f = "m"
+					if k.female then
+						f = "f"
+					end
+					ui.centered_text(f, rect)
+				end,
+				width = 1,
+				---@param k POP
+				value = function(k, v)
+					local f = "m"
+					if k.female then
+						f = "f"
+					end
+					return f
+				end
+			},
+			{
 				header = "satisfac.",
 				render_closure = ut.render_pop_satsifaction,
 				width = 2,
@@ -553,35 +586,20 @@ function re.draw(gam)
 				end
 			},
 			{
-				header = "age",
-				---@param k POP
+				header = "work ratio.",
 				render_closure = function (rect, k, v)
-					ui.centered_text(tostring(k.age), rect)
+				ut.generic_number_field(
+					"chart.png",
+					v.work_ratio,
+					rect,
+					"Percentage of time workers spent toiling.",
+					ut.NUMBER_MODE.PERCENTAGE,
+					ut.NAME_MODE.ICON)
 				end,
 				width = 2,
 				---@param k POP
 				value = function(k, v)
-					return k.age
-				end
-			},
-			{
-				header = "sex",
-				---@param k POP
-				render_closure = function (rect, k, v)
-					local f = "m"
-					if k.female then
-						f = "f"
-					end
-					ui.centered_text(f, rect)
-				end,
-				width = 1,
-				---@param k POP
-				value = function(k, v)
-					local f = "m"
-					if k.female then
-						f = "f"
-					end
-					return f
+					return k.basic_needs_satisfaction
 				end
 			},
 			{
@@ -589,21 +607,15 @@ function re.draw(gam)
 				---@param k POP
 				render_closure = function (rect, k, v)
 					local tooltip = "Base productivity of this character."
-					local job_efficiency = k.race.male_efficiency[building.type.production_method.job_type]
-					if k.female then
-						job_efficiency = k.race.female_efficiency[building.type.production_method.job_type]
-					end
+					local job_efficiency = k:job_efficiency(building.type.production_method.job_type)
 					tooltip = tooltip .. " The character's base job efficiency is ".. ut.to_fixed_point2(job_efficiency * 100) .. "%."
 						.. " Province infrastructure modifies this by ".. ut.to_fixed_point2(efficiency_from_infrastructure * 100) .. "%."
 					local tile_efficiency = 1
 						tile_efficiency = building.type.production_method:get_efficiency(building.province)
 						tooltip = tooltip .. " This is further changed by ".. ut.to_fixed_point2(tile_efficiency * 100) .. "% based on the building's province."
-					if building.type.production_method.foraging then
-						tooltip = tooltip .. " This is additionally weighted by ".. ut.to_fixed_point2(forage_efficiency * 100) .. "% from last months used carrying capacity."
-					end
 					ut.generic_number_field(
 						"",
-						job_efficiency * tile_efficiency * efficiency_from_infrastructure * forage_efficiency,
+						job_efficiency * efficiency_from_infrastructure * forage_efficiency,
 						rect,
 						tooltip,
 						ut.NUMBER_MODE.PERCENTAGE,
@@ -613,10 +625,7 @@ function re.draw(gam)
 				width = 2,
 				---@param k POP
 				value = function(k, v)
-					local job_efficiency = k.race.male_efficiency[building.type.production_method.job_type]
-					if k.female then
-						job_efficiency = k.race.female_efficiency[building.type.production_method.job_type]
-					end
+					local job_efficiency = k:job_efficiency(building.type.production_method.job_type)
 					job_efficiency = job_efficiency * building.type.production_method:get_efficiency(building.province)
 					if building.type.production_method.foraging then
 						job_efficiency = job_efficiency * forage_efficiency
