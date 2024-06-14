@@ -848,12 +848,25 @@ function ll.load()
 		carrying_capacity_weight = dwarf_size,
 	}
 
+	---@type PortraitDescription
+	local kappa_portrait = {
+		folder = "kappa",
+		layers = {"base.PNG", "eye.PNG", "beak.PNG", "pattern.PNG", "hair.PNG"},
+		layers_groups = {}
+	}
+
 	Race:new {
 		name = 'kappa',
 		r = 0.8,
 		g = 0.9,
 		b = 0.1,
 		icon = 'toad-teeth.png',
+		male_portrait = {
+			fallback = kappa_portrait
+		},
+		female_portrait = {
+			fallback = kappa_portrait
+		},
 		description = 'kappa',
 		males_per_hundred_females = 125,
 		child_age = 5,
