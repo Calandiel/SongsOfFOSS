@@ -8,7 +8,7 @@ cwf.types = {
 	world_gen = 4
 }
 
-local open_issues = require("libsote.hydrology.open-issues")
+local open_issues = require "libsote.hydrology.open-issues"
 
 local function clear_temporary_data(world)
 	world:fill_ffi_array(world.tmp_float_1, 0)
@@ -57,7 +57,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	local jul_temperature = world.jul_temperature[ti]
 	local seasonal_rainfall = world:get_rainfall_for(ti, month)
 	local seasonal_temperature = world:get_temperature_for(ti, month)
-	local seasonal_humidity = open_issues.seasonal_humidity()
+	local seasonal_humidity = open_issues.seasonal_humidity(world, ti, month)
 
 	local sand = world.sand[ti]
 	local silt = world.silt[ti]
@@ -72,6 +72,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	-- log_str = log_str .. "te: " .. world:true_elevation(ti) .. "\n"
 	-- log_str = log_str .. "\tjanr: " .. world.jan_rainfall[ti] .. ", julr: " .. world.jul_rainfall[ti] .. ", m: " .. month .. " --> sr: " .. seasonal_rainfall .. "\n"
 	-- log_str = log_str .. "\tjant: " .. world.jan_temperature[ti] .. ", jult: " .. world.jul_temperature[ti] .. ", m: " .. month .. " --> st: " .. seasonal_temperature .. "\n"
+	-- log_str = log_str .. "\th: " .. seasonal_humidity .. "\n"
 
 	-- local is_p1_p1 = false
 	-- local is_p1_p2 = false
@@ -363,16 +364,6 @@ function cwf.run(world, flow_type, month, year)
 
 	apply_waterflow(world, flow_type)
 
--- 	world:for_each_tile_by_elevation(function(ti, _)
--- 		--local log_str = tostring(ti) .. "; (" .. q .. ", " .. r .. ", " .. f - 1 .. "): "
--- 		local log_str =  ""
--- 		log_str = log_str .. world.colatitude[ti] .. ", " .. world.minus_longitude[ti] .. "; "
--- 		log_str = log_str .. "te: " .. world:true_elevation(ti) .. ", "
--- 		log_str = log_str .. "f2: " .. world.tmp_float_2[ti]
--- --		log_str = log_str .. (world.tmp_bool_1[ti] and "true" or "false") .. ", " .. world.water_movement[ti]
--- 		logger:log(log_str)
--- 	end)
-
 	-- print("p1_p1: " .. p1_p1)
 	-- print("p1_p2: " .. p1_p2)
 	-- print("p1_p3: " .. p1_p3)
@@ -383,7 +374,7 @@ function cwf.run(world, flow_type, month, year)
 	-- print("p2_p4: " .. p2_p4)
 	-- print("p2_p5: " .. p2_p5)
 
-	-- Run soil moisture calculations iff flowType is current.
+	-- Run soil moisture calculations if flowType is current.
 	-- Otherwise, we'd run it an odd number of times, because world gen calls this function for july and january.
 	if flow_type == cwf.types.current then
 		-- TODO: Port soil moisture calculations here

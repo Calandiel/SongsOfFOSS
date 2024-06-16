@@ -119,12 +119,12 @@ local function test_c9(flow_type)
 end
 
 function tw.test_worldgen_waterflow()
-	-- test_c1(waterflow_calc.types.world_gen)
+	-- test_c1(waterflow_calc.types.world_gen) -- not yet reachable
 	test_c2(waterflow_calc.types.world_gen)
-	-- test_c3(waterflow_calc.types.world_gen)
+	-- test_c3(waterflow_calc.types.world_gen) -- not yet reachable
 	-- c4 seems to depend on neighboring tiles; it is also fairly trivial
 	-- c5 is a dead end path
-	-- test_c6(waterflow_calc.types.world_gen)
+	-- test_c6(waterflow_calc.types.world_gen) -- not yet reachable
 	-- c7 seems to depend on neighboring tiles; it is also fairly trivial
 	-- c8 is a dead end path
 	-- test_c9(waterflow_calc.types.world_gen)

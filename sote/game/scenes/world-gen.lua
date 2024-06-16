@@ -40,15 +40,36 @@ local function intial_soil_texture()
 	fill_ffi_array(wg.world.clay, 333)
 end
 
+local fu = require "game.file-utils"
+
+local function override_climate_data()
+	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
+
+	wg.world:for_each_tile_by_elevation(function(ti, _)
+		local row = climate_generator()
+		if row == nil then
+			error("Not enough rows in climate data")
+		end
+
+		wg.world.jan_temperature[ti] = tonumber(row[2])
+		wg.world.jul_temperature[ti] = tonumber(row[3])
+		wg.world.jan_rainfall[ti] = tonumber(row[4])
+		wg.world.jul_rainfall[ti] = tonumber(row[5])
+		wg.world.jan_humidity[ti] = tonumber(row[6])
+		wg.world.jul_humidity[ti] = tonumber(row[7])
+	end)
+end
+
 local waterflow = require "libsote.hydrology.calculate-waterflow"
 
 local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
-	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate") -- not really a generation, it's using the existing implementation
+	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
 	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
 	run_with_profiling(intial_soil_texture, "intial_soil_texture")
 	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
+	-- run_with_profiling(override_climate_data, "override_climate_data")
 	run_with_profiling(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow")
 end
 
@@ -56,12 +77,11 @@ local function post_tectonic()
 	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
 end
 
-local fu = require "game.file-utils"
-
 local function cache_tile_coord()
 	print("Caching tile coordinates...")
 
-	for row in fu.csv_rows("sote\\libsote\\hex_mapping.csv") do
+	-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
+	for row in fu.csv_rows("sote\\libsote\\data\\hex_mapping.csv") do
 		local tile_id = tonumber(row[1])
 		local q = tonumber(row[2])
 		local r = tonumber(row[3])
@@ -160,6 +180,8 @@ function wg.generate_coro()
 		wg.message = "Constraints not met"
 		return
 	end
+
+	-- libsote.dll/phase01 done ------------------------------------------
 
 	wg.state = STATES.phase_02
 

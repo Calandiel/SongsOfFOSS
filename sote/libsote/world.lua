@@ -68,7 +68,7 @@ function world:new(world_size, seed)
 	obj.tmp_float_3       = allocate_array("tmp_float_3", obj.tile_count, "float")
 	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
 
-	print("[world allocation] ffi mem total: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
+	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
 	return obj
 end
@@ -371,6 +371,10 @@ function world:create_new_waterbody()
 	local id = #self.waterbodies + 1
 	self.waterbodies[id] = wb:new()
 	return id
+end
+
+function world:get_waterbody(q, r, face)
+	return self.waterbodies[self.waterbody_id_by_tile[self.coord[self:_key_from_coord(q, r, face)]]]
 end
 
 ---@param ti number 0-based index

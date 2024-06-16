@@ -39,41 +39,41 @@ local function gen_water_movement_rank(val)
 	end
 end
 
-local rank_0_count = 0
-local rank_1_count = 0
-local rank_2_count = 0
-local rank_3_count = 0
-local rank_4_count = 0
-local rank_5_count = 0
-local rank_6_count = 0
-local rank_7_count = 0
+-- local rank_0_count = 0
+-- local rank_1_count = 0
+-- local rank_2_count = 0
+-- local rank_3_count = 0
+-- local rank_4_count = 0
+-- local rank_5_count = 0
+-- local rank_6_count = 0
+-- local rank_7_count = 0
 
 local hydro_open_issues = require "libsote.hydrology.open-issues"
 
 local function process_rank(rank)
 	if rank == 0 then
-		rank_0_count = rank_0_count + 1
+		-- rank_0_count = rank_0_count + 1
 		return 0
 	elseif rank == 1 then
-		rank_1_count = rank_1_count + 1
+		-- rank_1_count = rank_1_count + 1
 		return 800
 	elseif rank == 2 then
-		rank_2_count = rank_2_count + 1
+		-- rank_2_count = rank_2_count + 1
 		return 2000
 	elseif rank == 3 then
-		rank_3_count = rank_3_count + 1
+		-- rank_3_count = rank_3_count + 1
 		return 5259
 	elseif rank == 4 then
-		rank_4_count = rank_4_count + 1
+		-- rank_4_count = rank_4_count + 1
 		return 11250
 	elseif rank == 5 then
-		rank_5_count = rank_5_count + 1
+		-- rank_5_count = rank_5_count + 1
 		return 20000
 	elseif rank == 6 then
-		rank_6_count = rank_6_count + 1
+		-- rank_6_count = rank_6_count + 1
 		return 30000
 	elseif rank == 7 then
-		rank_7_count = rank_7_count + 1
+		-- rank_7_count = rank_7_count + 1
 		return hydro_open_issues.waterflow_for_rank_7()
 	end
 end
@@ -175,14 +175,14 @@ function wl.load_maps_from(world)
 	local duration = love.timer.getTime() - start
 	print("[worldgen profiling] loaded maps: " .. tostring(duration * 1000) .. "ms")
 
-	print("Rank 0: " .. rank_0_count)
-	print("Rank 1: " .. rank_1_count)
-	print("Rank 2: " .. rank_2_count)
-	print("Rank 3: " .. rank_3_count)
-	print("Rank 4: " .. rank_4_count)
-	print("Rank 5: " .. rank_5_count)
-	print("Rank 6: " .. rank_6_count)
-	print("Rank 7: " .. rank_7_count)
+	-- print("Rank 0: " .. rank_0_count)
+	-- print("Rank 1: " .. rank_1_count)
+	-- print("Rank 2: " .. rank_2_count)
+	-- print("Rank 3: " .. rank_3_count)
+	-- print("Rank 4: " .. rank_4_count)
+	-- print("Rank 5: " .. rank_5_count)
+	-- print("Rank 6: " .. rank_6_count)
+	-- print("Rank 7: " .. rank_7_count)
 end
 
 local hexu = require "libsote.hex-utils"
@@ -264,16 +264,17 @@ function wl.dump_maps_from(world)
 
 			col_r, col_g, col_b = 2, 8, 209
 			if is_land then
-				--col_r, col_g, col_b = 129, 9, 9
 				local water_movement = world:get_water_movement(q, r, face)
 				local rank = gen_water_movement_rank(water_movement)
 				col_r, col_g, col_b = color_from_rank(rank)
+			else
+				local waterbody = world:get_waterbody(q, r, face)
+				if waterbody.type == waterbody.types.freshwater_lake then
+					col_r, col_g, col_b = 15, 239, 255
+				elseif waterbody.type == waterbody.types.saltwater_lake then
+					col_r, col_g, col_b = 30, 125, 255
+				end
 			end
-			-- local water_movement = world:get_water_movement(q, r, face)
-			-- local val = math.pow(water_movement, 0.5) / math.pow(30000.0, 0.5)
-			-- local hue = math.min(1, math.max(0, val)) * 0.7
-			-- local rgb = col.from_hsv(hue, 1, 0.75 + val / 4)
-			-- col_r, col_g, col_b = rgb:unpack()
 
 			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 		end
