@@ -761,6 +761,13 @@ function ll.load()
 		carrying_capacity_weight = small_size,
 	}
 
+	---@type PortraitDescription
+	local harpy_portrait = {
+		folder = "harpy",
+		layers = {"base.PNG", "base_patterns.PNG", "fluff.PNG", "head.PNG", "fluff_overlay.PNG", "hair.PNG"},
+		layers_groups = {}
+	}
+
 	Race:new {
 		name = 'harpy',
 		r = 0.3,
@@ -768,6 +775,14 @@ function ll.load()
 		b = 0.7,
 		icon = 'harpy.png',
 		description = 'harpies',
+
+		male_portrait = {
+			fallback = harpy_portrait
+		},
+		female_portrait = {
+			fallback = harpy_portrait
+		},
+
 		males_per_hundred_females = 75,
 		child_age = 2,
 		teen_age = 9,
