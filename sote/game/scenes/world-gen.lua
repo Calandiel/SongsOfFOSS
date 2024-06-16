@@ -30,16 +30,6 @@ local function check_constraints()
 	return true
 end
 
-local function fill_ffi_array(array, value)
-	wg.world:fill_ffi_array(array, value)
-end
-
-local function intial_soil_texture()
-	fill_ffi_array(wg.world.sand, 333)
-	fill_ffi_array(wg.world.silt, 334)
-	fill_ffi_array(wg.world.clay, 333)
-end
-
 local fu = require "game.file-utils"
 
 local function override_climate_data()
@@ -60,17 +50,38 @@ local function override_climate_data()
 	end)
 end
 
+local function fill_ffi_array(array, value)
+	wg.world:fill_ffi_array(array, value)
+end
+
+local function set_soils_texture(sand, silt, clay)
+	fill_ffi_array(wg.world.sand, sand)
+	fill_ffi_array(wg.world.silt, silt)
+	fill_ffi_array(wg.world.clay, clay)
+end
+
+local function initial_waterbodies()
+	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
+	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
+end
+
 local waterflow = require "libsote.hydrology.calculate-waterflow"
+
+local function initial_waterflow()
+	run_with_profiling(function () set_soils_texture(333, 334, 333) end, "intial_soils_texture")
+	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
+
+	run_with_profiling(override_climate_data, "override_climate_data")
+
+	run_with_profiling(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow")
+	run_with_profiling(function () set_soils_texture(0, 0, 0) end, "clear_soils")
+end
 
 local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
-	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
-	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
-	run_with_profiling(intial_soil_texture, "intial_soil_texture")
-	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
-	-- run_with_profiling(override_climate_data, "override_climate_data")
-	run_with_profiling(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow")
+	initial_waterbodies()
+	initial_waterflow()
 end
 
 local function post_tectonic()
