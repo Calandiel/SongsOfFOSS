@@ -19,11 +19,43 @@ local libsote = require("libsote.libsote")
 local cpml = require "cpml"
 local hex = require("libsote.hex-utils")
 
-local function run_with_profiling(func, log_text)
+local function profile(func)
 	local start = love.timer.getTime()
 	func()
 	local duration = love.timer.getTime() - start
-	print("[worldgen profiling] " .. log_text .. ": " .. tostring(duration * 1000) .. "ms")
+
+	return duration
+end
+
+local function profiling_log(depth, log_text, duration)
+	depth = depth or 0
+	local prefix = ""
+	for _ = 1, depth do
+		prefix = prefix .. "\t"
+	end
+
+	return "[worldgen profiling] " .. prefix .. log_text .. ": " .. tostring(duration * 1000) .. "ms"
+end
+
+local function log_profiling_data(prof_data, log_text)
+	local total_duration = 0
+	for _, v in ipairs(prof_data) do
+		total_duration = total_duration + v[1]
+	end
+	print(profiling_log(0, log_text .. " TOTAL", total_duration))
+	for _, v in ipairs(prof_data) do
+		print(v[2])
+	end
+end
+
+local function profile_and_get(func, log_text, depth)
+	local duration = profile(func)
+	return duration, profiling_log(depth, log_text, duration)
+end
+
+local function run_with_profiling(func, log_text, depth)
+	local _, log = profile_and_get(func, log_text, depth)
+	print(log)
 end
 
 local function check_constraints()
@@ -61,20 +93,31 @@ local function set_soils_texture(sand, silt, clay)
 end
 
 local function initial_waterbodies()
-	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
-	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
+	local prof_output = {}
+
+	table.insert(prof_output, { profile_and_get(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies", 1) })
+	table.insert(prof_output, { profile_and_get(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies", 1) })
+
+	log_profiling_data(prof_output, "initial_waterbodies")
 end
 
 local waterflow = require "libsote.hydrology.calculate-waterflow"
 
 local function initial_waterflow()
-	run_with_profiling(function () set_soils_texture(333, 334, 333) end, "intial_soils_texture")
-	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
+	local prof_output = {}
 
-	run_with_profiling(override_climate_data, "override_climate_data")
+	table.insert(prof_output, { profile_and_get(function () set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
+	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
 
-	run_with_profiling(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow")
-	run_with_profiling(function () set_soils_texture(0, 0, 0) end, "clear_soils")
+	table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
+
+	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow", 1) })
+	table.insert(prof_output, { profile_and_get(function () set_soils_texture(0, 0, 0) end, "clear_soils", 1) })
+
+	log_profiling_data(prof_output, "initial_waterflow")
+end
+
+local function glaciers()
 end
 
 local function gen_phase_02()
@@ -82,6 +125,7 @@ local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	initial_waterbodies()
 	initial_waterflow()
+	glaciers()
 end
 
 local function post_tectonic()
@@ -152,7 +196,7 @@ function wg.generate_coro()
 	-- seed = 53201 -- banding
 	-- seed = 20836 -- north pole cells
 	-- seed = 6618 -- tiny islands?
-	-- seed = 12177 -- waterflow calculations work
+	seed = 12177 -- waterflow calculations work
 
 	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
 	while coroutine.status(phase01_coro) ~= "dead" do
@@ -208,7 +252,7 @@ function wg.generate_coro()
 	wg.state = STATES.load_maps
 	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
-	-- wl.dump_maps_from(wg.world)
+	wl.dump_maps_from(wg.world)
 
 	local default_map_mode = "elevation"
 	wg.map_mode = default_map_mode

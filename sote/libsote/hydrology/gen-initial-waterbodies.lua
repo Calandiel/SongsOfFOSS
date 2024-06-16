@@ -39,7 +39,7 @@ end
 
 function giw.run(world)
 	world:for_each_tile(process)
-	print("Waterbodies created: " .. waterbodies_created)
+	-- print("Waterbodies created: " .. waterbodies_created)
 end
 
 return giw
