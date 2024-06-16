@@ -764,6 +764,14 @@ function ll.load()
 	---@type PortraitDescription
 	local harpy_portrait = {
 		folder = "harpy",
+		layers = {"base.PNG", "base_patterns.PNG", "male_beard.PNG", "fluff.PNG", "head.PNG", "fluff_overlay.PNG", "hair.PNG"},
+		layers_groups = {
+			fluff = {"male_beard.PNG", "fluff.PNG"}
+		}
+	}
+
+	local harpy_fem_portrait = {
+		folder = "harpy",
 		layers = {"base.PNG", "base_patterns.PNG", "fluff.PNG", "head.PNG", "fluff_overlay.PNG", "hair.PNG"},
 		layers_groups = {}
 	}
@@ -780,7 +788,7 @@ function ll.load()
 			fallback = harpy_portrait
 		},
 		female_portrait = {
-			fallback = harpy_portrait
+			fallback = harpy_fem_portrait
 		},
 
 		males_per_hundred_females = 75,
