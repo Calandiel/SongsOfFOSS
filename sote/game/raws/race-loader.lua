@@ -12,6 +12,20 @@ local largest_size = 1.5
 function ll.load()
 	local Race = require "game.raws.race"
 
+	local human_male_portrait = {
+		folder = "human",
+		layers = {"base.PNG", "eye.PNG", "nose.PNG", "cloth.PNG", "beard.PNG", "brow.PNG", "hair_male.PNG", "headgear.PNG"},
+		layers_groups = {
+		}
+	}
+
+	local human_female_portrait = {
+		folder = "human",
+		layers = {"base.PNG", "eye.PNG", "nose.PNG", "cloth.PNG", "brow.PNG", "hair_female.PNG", "headgear.PNG"},
+		layers_groups = {
+		}
+	}
+
 	---@type PortraitDescription
 	local null_portrait = {
 		folder = "null_middle",
@@ -28,6 +42,12 @@ function ll.load()
 		r = 0.8,
 		g = 0.8,
 		b = 0.8,
+		male_portrait = {
+			fallback = human_male_portrait
+		},
+		female_portrait = {
+			fallback = human_female_portrait
+		},
 		icon = 'barbute.png',
 	}
 
@@ -741,6 +761,21 @@ function ll.load()
 		carrying_capacity_weight = small_size,
 	}
 
+	---@type PortraitDescription
+	local harpy_portrait = {
+		folder = "harpy",
+		layers = {"base.PNG", "base_patterns.PNG", "male_beard.PNG", "fluff.PNG", "head.PNG", "fluff_overlay.PNG", "hair.PNG"},
+		layers_groups = {
+			fluff = {"male_beard.PNG", "fluff.PNG"}
+		}
+	}
+
+	local harpy_fem_portrait = {
+		folder = "harpy",
+		layers = {"base.PNG", "base_patterns.PNG", "fluff.PNG", "head.PNG", "fluff_overlay.PNG", "hair.PNG"},
+		layers_groups = {}
+	}
+
 	Race:new {
 		name = 'harpy',
 		r = 0.3,
@@ -748,6 +783,14 @@ function ll.load()
 		b = 0.7,
 		icon = 'harpy.png',
 		description = 'harpies',
+
+		male_portrait = {
+			fallback = harpy_portrait
+		},
+		female_portrait = {
+			fallback = harpy_fem_portrait
+		},
+
 		males_per_hundred_females = 75,
 		child_age = 2,
 		teen_age = 9,
@@ -828,12 +871,25 @@ function ll.load()
 		carrying_capacity_weight = dwarf_size,
 	}
 
+	---@type PortraitDescription
+	local kappa_portrait = {
+		folder = "kappa",
+		layers = {"base.PNG", "eye.PNG", "beak.PNG", "pattern.PNG", "hair.PNG"},
+		layers_groups = {}
+	}
+
 	Race:new {
 		name = 'kappa',
 		r = 0.8,
 		g = 0.9,
 		b = 0.1,
 		icon = 'toad-teeth.png',
+		male_portrait = {
+			fallback = kappa_portrait
+		},
+		female_portrait = {
+			fallback = kappa_portrait
+		},
 		description = 'kappa',
 		males_per_hundred_females = 125,
 		child_age = 5,
