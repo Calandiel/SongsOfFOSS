@@ -173,7 +173,7 @@ function wl.load_maps_from(world)
 	end
 
 	local duration = love.timer.getTime() - start
-	print("[worldgen profiling] loaded maps: " .. tostring(duration * 1000) .. "ms")
+	print("[world-loader] loaded maps: " .. tostring(duration * 1000) .. "ms")
 
 	-- print("Rank 0: " .. rank_0_count)
 	-- print("Rank 1: " .. rank_1_count)

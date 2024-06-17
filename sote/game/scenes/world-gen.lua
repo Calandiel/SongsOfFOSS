@@ -2,141 +2,24 @@ local wg = {}
 
 ---@enum states
 local STATES = {
-	init = 0,
-	error = 1,
-	constraints_failed = 2,
+	init      = 0,
+	error     = 1,
+	retry     = 2,
 
-	phase_01 = 10,
-	cleanup = 11,
-	post_tectonic = 12,
-	phase_02 = 13,
-	load_maps = 14,
+	world_init = 10,
+	load_maps  = 11,
 
-	completed = 100
+	completed  = 1000
 }
 
-local libsote = require("libsote.libsote")
 local cpml = require "cpml"
-local hex = require("libsote.hex-utils")
-
-local function profile(func)
-	local start = love.timer.getTime()
-	func()
-	local duration = love.timer.getTime() - start
-
-	return duration
-end
-
-local function profiling_log(depth, log_text, duration)
-	depth = depth or 0
-	local prefix = ""
-	for _ = 1, depth do
-		prefix = prefix .. "\t"
-	end
-
-	return "[worldgen profiling] " .. prefix .. log_text .. ": " .. tostring(duration * 1000) .. "ms"
-end
-
-local function log_profiling_data(prof_data, log_text)
-	local total_duration = 0
-	for _, v in ipairs(prof_data) do
-		total_duration = total_duration + v[1]
-	end
-	print(profiling_log(0, log_text .. " TOTAL", total_duration))
-	for _, v in ipairs(prof_data) do
-		print(v[2])
-	end
-end
-
-local function profile_and_get(func, log_text, depth)
-	local duration = profile(func)
-	return duration, profiling_log(depth, log_text, duration)
-end
-
-local function run_with_profiling(func, log_text, depth)
-	local _, log = profile_and_get(func, log_text, depth)
-	print(log)
-end
-
-local function check_constraints()
-	return true
-end
-
-local fu = require "game.file-utils"
-
-local function override_climate_data()
-	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
-
-	wg.world:for_each_tile_by_elevation(function(ti, _)
-		local row = climate_generator()
-		if row == nil then
-			error("Not enough rows in climate data")
-		end
-
-		wg.world.jan_temperature[ti] = tonumber(row[2])
-		wg.world.jul_temperature[ti] = tonumber(row[3])
-		wg.world.jan_rainfall[ti] = tonumber(row[4])
-		wg.world.jul_rainfall[ti] = tonumber(row[5])
-		wg.world.jan_humidity[ti] = tonumber(row[6])
-		wg.world.jul_humidity[ti] = tonumber(row[7])
-	end)
-end
-
-local function fill_ffi_array(array, value)
-	wg.world:fill_ffi_array(array, value)
-end
-
-local function set_soils_texture(sand, silt, clay)
-	fill_ffi_array(wg.world.sand, sand)
-	fill_ffi_array(wg.world.silt, silt)
-	fill_ffi_array(wg.world.clay, clay)
-end
-
-local function initial_waterbodies()
-	local prof_output = {}
-
-	table.insert(prof_output, { profile_and_get(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies", 1) })
-	table.insert(prof_output, { profile_and_get(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies", 1) })
-
-	log_profiling_data(prof_output, "initial_waterbodies")
-end
-
-local waterflow = require "libsote.hydrology.calculate-waterflow"
-
-local function initial_waterflow()
-	local prof_output = {}
-
-	table.insert(prof_output, { profile_and_get(function () set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
-	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
-
-	table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
-
-	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow", 1) })
-	table.insert(prof_output, { profile_and_get(function () set_soils_texture(0, 0, 0) end, "clear_soils", 1) })
-
-	log_profiling_data(prof_output, "initial_waterflow")
-end
-
-local function glaciers()
-end
-
-local function gen_phase_02()
-	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
-	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
-	initial_waterbodies()
-	initial_waterflow()
-	glaciers()
-end
-
-local function post_tectonic()
-	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
-end
+local world_generator = require "libsote.world-generator"
 
 local function cache_tile_coord()
 	print("Caching tile coordinates...")
 
 	-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
-	for row in fu.csv_rows("sote\\libsote\\data\\hex_mapping.csv") do
+	for row in require("game.file-utils").csv_rows("sote\\libsote\\data\\hex_mapping.csv") do
 		local tile_id = tonumber(row[1])
 		local q = tonumber(row[2])
 		local r = tonumber(row[3])
@@ -150,7 +33,7 @@ end
 
 _coroutine_resume = coroutine.resume
 function coroutine.resume(...)
-	local state,result = _coroutine_resume(...)
+	local state, result = _coroutine_resume(...)
 	if not state then
 		error(tostring(result), 2)
 	end
@@ -160,9 +43,9 @@ function wg.init()
 	wg.state = STATES.init
 	wg.message = nil
 
-	if not libsote.init() then
+	if not world_generator.init() then
 		wg.state = STATES.error
-		wg.message = libsote.message
+		wg.message = world_generator.message
 		return
 	end
 
@@ -187,9 +70,9 @@ function wg.init()
 	coroutine.resume(wg.coroutine)
 end
 
-function wg.generate_coro()
-	wg.state = STATES.phase_01
+local prof = require "libsote.profiling-helper"
 
+function wg.generate_coro()
 	math.randomseed(os.time())
 	local seed = math.random(1, 100000)
 	-- seed = 58738 -- climate integration was done on this one
@@ -198,61 +81,38 @@ function wg.generate_coro()
 	-- seed = 6618 -- tiny islands?
 	seed = 12177 -- waterflow calculations work
 
-	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
-	while coroutine.status(phase01_coro) ~= "dead" do
-		coroutine.resume(phase01_coro, seed)
+	local worldgen_coro = coroutine.create(world_generator.get_gen_coro)
+	while coroutine.status(worldgen_coro) ~= "dead" do
+		coroutine.resume(worldgen_coro, seed)
+
+		wg.message = world_generator.message
+
+		if world_generator.state == world_generator.states.constraints_failed then
+			wg.state = STATES.retry
+			return
+		elseif world_generator.state == world_generator.states.phase_02 and wg.state ~= STATES.world_init then
+			wg.state = STATES.world_init
+
+			wg.world = world_generator.world
+
+			require "game.raws.raws"(false) -- no logging
+			require "game.entities.world".empty()
+			coroutine.yield()
+
+			wg.message = "Caching tile coordinates"
+			prof.run_with_profiling(function() cache_tile_coord() end, "[scenes.world-gen]", "cache_tile_coord")
+			coroutine.yield()
+		end
+
 		coroutine.yield()
 	end
-
-	wg.message = libsote.message
-	coroutine.yield()
-
-	wg.world = libsote.generate_world(seed)
-	wg.message = libsote.message
-	if not wg.world then
-		wg.state = STATES.error
-		return
-	end
-
-	wg.state = STATES.cleanup
-
-	local cleanup_coro = coroutine.create(libsote.clean_up_coro)
-	while coroutine.status(cleanup_coro) ~= "dead" do
-		coroutine.resume(cleanup_coro)
-		coroutine.yield()
-	end
-
-	wg.message = libsote.message
-	coroutine.yield()
-
-	wg.state = STATES.post_tectonic
-
-	post_tectonic();
-
-	local constraints_met = check_constraints()
-	if not constraints_met then
-		wg.state = STATES.constraints_failed
-		wg.message = "Constraints not met"
-		return
-	end
-
-	-- libsote.dll/phase01 done ------------------------------------------
-
-	wg.state = STATES.phase_02
-
-	require "game.raws.raws"(false) -- no logging
-	require "game.entities.world".empty()
-
-	wg.message = "Caching tile coordinates"
-	coroutine.yield()
-	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord") -- this sometimes takes over a minute instead of the usual 5-6 seconds; this started happening after the convertion to coroutine; why?
-
-	gen_phase_02()
 
 	wg.state = STATES.load_maps
 	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
+	coroutine.yield()
 	wl.dump_maps_from(wg.world)
+	coroutine.yield()
 
 	local default_map_mode = "elevation"
 	wg.map_mode = default_map_mode
@@ -390,7 +250,7 @@ function wg.draw()
 	local ui = require "engine.ui"
 	local fs = ui.fullscreen()
 
-	if wg.state == STATES.error or wg.state == STATES.constraints_failed then
+	if wg.state == STATES.error or wg.state == STATES.retry then
 		ui.text_panel(wg.message, ui.fullscreen():subrect(0, 0, 300, 60, "center", "down"))
 
 		local menu_button_width = 380
@@ -408,11 +268,12 @@ function wg.draw()
 
 		local ut = require "game.ui-utils"
 
-		if wg.state == STATES.constraints_failed then
+		if wg.state == STATES.retry then
 			if ut.text_button(
 				"Retry",
 				layout:next(menu_button_width, menu_button_height)
 			) then
+				wg.state = STATES.init
 				wg.coroutine = coroutine.create(wg.generate_coro)
 				coroutine.resume(wg.coroutine)
 			end
