@@ -17,7 +17,6 @@ local STATES = {
 
 local libsote = require("libsote.libsote")
 local cpml = require "cpml"
-local hex = require("libsote.hex-utils")
 
 local function run_with_profiling(func, log_text)
 	local start = love.timer.getTime()
@@ -77,18 +76,33 @@ local function post_tectonic()
 	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
 end
 
+local hex = require "libsote.hex-utils"
+local function map_tiles_to_hex()
+	for _, tile in pairs(WORLD.tiles) do
+		local lat, lon = tile:latlon()
+		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
+
+		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
+	end
+end
+
+-- local function load_mapping_from_file(file)
+-- 	for row in require("game.file-utils").csv_rows(file) do
+-- 		local tile_id = tonumber(row[1])
+-- 		local q = tonumber(row[2])
+-- 		local r = tonumber(row[3])
+-- 		local face = tonumber(row[4])
+
+-- 		wg.world:cache_tile_coord(tile_id, q, r, face)
+-- 	end
+-- end
+
 local function cache_tile_coord()
 	print("Caching tile coordinates...")
 
+	map_tiles_to_hex()
 	-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
-	for row in fu.csv_rows("sote\\libsote\\data\\hex_mapping.csv") do
-		local tile_id = tonumber(row[1])
-		local q = tonumber(row[2])
-		local r = tonumber(row[3])
-		local face = tonumber(row[4])
-
-		wg.world:cache_tile_coord(tile_id, q, r, face)
-	end
+	-- load_mapping_from_file("d:\\temp\\hex_mapping.csv")
 
 	print("Done caching tile coordinates")
 end
