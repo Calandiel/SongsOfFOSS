@@ -18,9 +18,23 @@ function rand:random()
 end
 
 ---@param max number
----@return number [1 .. max]
-function rand:random_max(max)
-	return self.rng:random(max)
+---@return number [0 .. max)
+function rand:random_int_max(max)
+	return math.floor(self.rng:random() * max)
+end
+
+---@param min number
+---@param max number
+---@return number [min .. max)
+function rand:random_int_min_max(min, max)
+	return math.floor(self.rng:random() * (max - min) + min)
+end
+
+---@param min number
+---@param max number
+---@return number [min .. max)
+function rand:random_float_min_max(min, max)
+	return self.rng:random() * (max - min) + min
 end
 
 local ffi = require("ffi")

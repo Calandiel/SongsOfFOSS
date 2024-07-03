@@ -101,7 +101,7 @@ end
 local function glaciers()
 	local prof_output = {}
 
-	table.insert(prof_output, { profile_and_get(function() require "libsote.soils.gen-bias-matrix".run() end, "gen-bias-matrix", 1) })
+	table.insert(prof_output, { profile_and_get(function() require "libsote.soils.gen-bias-matrix".run(wg.world) end, "gen-bias-matrix", 1) })
 
 	log_profiling_data(prof_output, "glaciers")
 end
