@@ -1,5 +1,6 @@
 local gbm = {}
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Generate soil texture from bedrock * our bias matrix. So, first order of business is to create unmodified standards for each rock type, as far as its contribution of 
 -- silt, clay, sand and mineral nutrients.
 
@@ -15,8 +16,57 @@ local gbm = {}
 -- along river banks. Some locations will be a mix.
 
 -- We then either create 3 byte sized variables for a tile's soil texture (silt, sand and clay) or we simply create an enumeration for the 16 or so soil texture categories.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- NOTE 2024.07.03: The above comments are "as they were" in the original SotE version. They are here for reference only and may not be accurate or relevant to the current state.
 
-function gbm.run()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- local cuts = { 150, 50, 10, 0 } -- Big cut, Medium cut, Small cut, No cut
+-- local probs = { 0.1, 1, 5 } -- Probabilities for the cuts, in %
+
+-- function gbm.run(world)
+-- 	local rng = world.rng
+-- 	local sampler = require("libsote.distribution").create_discrete_distribution(probs, rng)
+
+-- 	-- Sand = 3, Clay = 2, Silt = 1
+-- 	local contributing_factor = 3
+
+-- 	-- We want to loop this process 3 times, once for each of the soil texture contributing factors
+-- 	while contributing_factor > 0 do
+-- 		world:for_each_tile(function(ti)
+-- 			local move_base = cuts[sampler()]
+-- 			if move_base == 0 then return end
+
+-- 			local move_distance = math.floor(move_base * rng:random_float_min_max(0.5, 2))
+
+-- 			-- Here we will start our formal cut algorithm and set criteria for bias
+
+-- 			local moves_left = move_distance
+
+-- 			local num_of_expansions = 0
+-- 			if move_distance > 15 then
+-- 				num_of_expansions = math.max(move_distance / 50, 1)
+-- 			end
+
+-- 			while moves_left > 0 do
+-- 				moves_left = moves_left - 1
+-- 			end
+-- 		end)
+
+-- 		world:for_each_tile(function(ti)
+-- 		end)
+
+-- 		contributing_factor = contributing_factor - 1
+-- 	end
+-- end
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Whatever the original purpose of GenBiasMatrix was, it was not finalized, so a port does not make sense for now. The function below is a placeholder that will simply set the
+-- corresponding outputs (sandSlider as TmpFloat_2 and siltMultiplier as TmpFloat_3) to a neutral 1, for the next stage in the pipeline.
+
+function gbm.run(world)
+	world:fill_ffi_array(world.tmp_float_2, 1)
+	world:fill_ffi_array(world.tmp_float_3, 1)
 end
 
 return gbm
