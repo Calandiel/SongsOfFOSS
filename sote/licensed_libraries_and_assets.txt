@@ -112,6 +112,16 @@ This distribution contains code from the following projects (full license text b
 		 Copyright 1998 Fabrice Bellard
 		 Copyright 1997 Mikko Tommila
 
+ - lovetest
+	Website: https://github.com/hawkthorne/lovetest
+	License: MIT
+	Copyright (c) 2013 Journey to the Center of Hawkthorne
+
+ - lunatest
+	Website: https://github.com/silentbicycle/lunatest
+	License: MIT
+	Copyright (c) 2009-12 Scott Vokes <vokes.s@gmail.com>
+
  - OpenAL Soft
 	Website: https://openal-soft.org/
 	Source download: https://openal-soft.org/#download

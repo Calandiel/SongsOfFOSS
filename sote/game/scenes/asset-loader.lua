@@ -41,7 +41,7 @@ function asl.load_assets()
 	coroutine.yield()
 
 	asl.message = "Loading icons..."
-	print(asl.message)
+	if not SILENT_ASSET_LOADING then print(asl.message) end
 	---@type table<string, love.Image>
 	ASSETS.icons = {}
 	local fs = love.filesystem.getDirectoryItems("icons")
@@ -66,7 +66,7 @@ function asl.load_assets()
 	coroutine.yield()
 
 	asl.message = "Loading music..."
-	print(asl.message)
+	if not SILENT_ASSET_LOADING then print(asl.message) end
 	ASSETS.music = {}
 	local ms = love.filesystem.getDirectoryItems("music")
 	for _, m in pairs(ms) do
@@ -82,7 +82,7 @@ function asl.load_assets()
 	coroutine.yield()
 
 	asl.message = "Loading sfx..."
-	print(asl.message)
+	if not SILENT_ASSET_LOADING then print(asl.message) end
 	---@type table<string, love.Source>
 	ASSETS.sfx = {}
 	local ms = love.filesystem.getDirectoryItems("sfx")
@@ -98,7 +98,7 @@ function asl.load_assets()
 	coroutine.yield()
 
 	asl.message = "Loading emblems..."
-	print(asl.message)
+	if not SILENT_ASSET_LOADING then print(asl.message) end
 	ASSETS.emblems = {}
 	local fs = love.filesystem.getDirectoryItems("emblems")
 	for _, f in pairs(fs) do
@@ -114,7 +114,7 @@ function asl.load_assets()
 	coroutine.yield()
 
 	asl.message = "Loading coa..."
-	print(asl.message)
+	if not SILENT_ASSET_LOADING then print(asl.message) end
 	ASSETS.coas = {}
 	local fs = love.filesystem.getDirectoryItems("coa")
 	for _, f in pairs(fs) do
@@ -130,19 +130,19 @@ function asl.load_assets()
 	coroutine.yield()
 
 	asl.message = "Loading portraits..."
-	print(asl.message)
+	if not SILENT_ASSET_LOADING then print(asl.message) end
 
 	---@type table<string, love.Image>
 	ASSETS.portraits = {}
 	local fs = love.filesystem.getDirectoryItems("portraits")
 	for _, folder in pairs(fs) do
-		print(folder)
+		if not SILENT_ASSET_LOADING then print(folder) end
 		ASSETS.portraits[folder] = {}
 		local folder_content = love.filesystem.getDirectoryItems("portraits/" .. folder)
 		for _, image_name in pairs(folder_content) do
 			local c = love.graphics.newImage("portraits/" .. folder .. "/" .. image_name)
 			ASSETS.portraits[folder][image_name] = c
-			print("portraits/" .. folder .. "/" .. image_name)
+			if not SILENT_ASSET_LOADING then print("portraits/" .. folder .. "/" .. image_name) end
 			-- Make sure to yield every now and then so that we don't hang the core!
 			yield_counter = yield_counter + 1
 			if yield_counter == 25 then

@@ -17,6 +17,11 @@ local AXIAL_TILT_WINTER_RAINFALL_DIVISOR = 40.0
 local MEDITERRANEAN_SUBTRACTION_CONSTANT = 0.05
 local MEDITERRANEAN_COAST_IMPACT_MULTIPLIER = 1.0
 
+local HUMIDITY_DISTANCE_TO_SEA_DIVISOR = 25.0
+local HUMIDITY_DISTANCE_TO_SEA_FACTOR = 0.25
+local HUMIDITY_RAINFALL_DIVISOR = 350.0
+local HUMIDITY_TEMPERATURE_DIVISOR = 50.0
+
 local function simulate_climate()
 	--print("A")
 	local ut = require "game.climate.utils"
@@ -221,6 +226,12 @@ local function simulate_climate()
 		cell.january_temperature = jan_temp_base
 		cell.july_temperature = jul_temp_base
 		--print("G")
+
+		local dist_factor = 1.0 - math.min(cell.distance_to_sea / HUMIDITY_DISTANCE_TO_SEA_DIVISOR, 1.0)
+		local fff = HUMIDITY_DISTANCE_TO_SEA_FACTOR
+
+		cell.january_humidity = fff * dist_factor + (1.0 - fff) * math.max(cell.january_rainfall / HUMIDITY_RAINFALL_DIVISOR, math.min(1.0, 1.0 - cell.january_temperature / HUMIDITY_TEMPERATURE_DIVISOR))
+		cell.july_humidity = fff * dist_factor + (1.0 - fff) * math.max(cell.july_rainfall / HUMIDITY_RAINFALL_DIVISOR, math.min(1.0, 1.0 - cell.july_temperature / HUMIDITY_TEMPERATURE_DIVISOR))
 	end
 end
 

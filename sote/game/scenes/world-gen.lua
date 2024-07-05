@@ -17,7 +17,6 @@ local STATES = {
 
 local libsote = require("libsote.libsote")
 local cpml = require "cpml"
-local hex = require("libsote.hex-utils")
 
 local function run_with_profiling(func, log_text)
 	local start = love.timer.getTime()
@@ -30,25 +29,80 @@ local function check_constraints()
 	return true
 end
 
+local function fill_ffi_array(array, value)
+	wg.world:fill_ffi_array(array, value)
+end
+
+local function intial_soil_texture()
+	fill_ffi_array(wg.world.sand, 333)
+	fill_ffi_array(wg.world.silt, 334)
+	fill_ffi_array(wg.world.clay, 333)
+end
+
+local fu = require "game.file-utils"
+
+local function override_climate_data()
+	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
+
+	wg.world:for_each_tile_by_elevation(function(ti, _)
+		local row = climate_generator()
+		if row == nil then
+			error("Not enough rows in climate data")
+		end
+
+		wg.world.jan_temperature[ti] = tonumber(row[2])
+		wg.world.jul_temperature[ti] = tonumber(row[3])
+		wg.world.jan_rainfall[ti] = tonumber(row[4])
+		wg.world.jul_rainfall[ti] = tonumber(row[5])
+		wg.world.jan_humidity[ti] = tonumber(row[6])
+		wg.world.jul_humidity[ti] = tonumber(row[7])
+	end)
+end
+
+local waterflow = require "libsote.hydrology.calculate-waterflow"
+
 local function gen_phase_02()
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	run_with_profiling(function() require "libsote.hydrology.gen-initial-waterbodies".run(wg.world) end, "gen-initial-waterbodies")
 	run_with_profiling(function() require "libsote.hydrology.def-prelim-waterbodies".run(wg.world) end, "def-prelim-waterbodies")
+	run_with_profiling(intial_soil_texture, "intial_soil_texture")
+	run_with_profiling(function() wg.world:create_elevation_list() end, "create_elevation_list")
+	-- run_with_profiling(override_climate_data, "override_climate_data")
+	run_with_profiling(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow")
 end
 
 local function post_tectonic()
 	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
 end
 
-local function cache_tile_coord()
-	print("Caching tile coordinates...")
-
+local hex = require "libsote.hex-utils"
+local function map_tiles_to_hex()
 	for _, tile in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
 		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
+
 		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
 	end
+end
+
+-- local function load_mapping_from_file(file)
+-- 	for row in require("game.file-utils").csv_rows(file) do
+-- 		local tile_id = tonumber(row[1])
+-- 		local q = tonumber(row[2])
+-- 		local r = tonumber(row[3])
+-- 		local face = tonumber(row[4])
+
+-- 		wg.world:cache_tile_coord(tile_id, q, r, face)
+-- 	end
+-- end
+
+local function cache_tile_coord()
+	print("Caching tile coordinates...")
+
+	map_tiles_to_hex()
+	-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
+	-- load_mapping_from_file("d:\\temp\\hex_mapping.csv")
 
 	print("Done caching tile coordinates")
 end
@@ -59,7 +113,6 @@ function coroutine.resume(...)
 	if not state then
 		error(tostring(result), 2)
 	end
-	return
 end
 
 function wg.init()
@@ -102,6 +155,7 @@ function wg.generate_coro()
 	-- seed = 53201 -- banding
 	-- seed = 20836 -- north pole cells
 	-- seed = 6618 -- tiny islands?
+	-- seed = 12177 -- waterflow calculations work
 
 	local phase01_coro = coroutine.create(libsote.worldgen_phase01_coro)
 	while coroutine.status(phase01_coro) ~= "dead" do
@@ -141,6 +195,8 @@ function wg.generate_coro()
 		return
 	end
 
+	-- libsote.dll/phase01 done ------------------------------------------
+
 	wg.state = STATES.phase_02
 
 	require "game.raws.raws"(false) -- no logging
@@ -148,7 +204,7 @@ function wg.generate_coro()
 
 	wg.message = "Caching tile coordinates"
 	coroutine.yield()
-	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord")
+	run_with_profiling(function() cache_tile_coord() end, "cache_tile_coord") -- this sometimes takes over a minute instead of the usual 5-6 seconds; this started happening after the convertion to coroutine; why?
 
 	gen_phase_02()
 
@@ -231,7 +287,7 @@ function wg.handle_camera_controls()
 	if ui.is_key_held('d') then
 		wg.camera_position = wg.camera_position:rotate(camera_speed, up)
 	end
-	if ui.is_key_held('w') then
+	if not (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_held('w') then
 		local rot = wg.camera_position:cross(up)
 		wg.camera_position = wg.camera_position:rotate(-camera_speed, rot)
 	end
@@ -268,6 +324,7 @@ end
 
 local is_jan_rain = true
 local is_jan_temp = true
+local is_jan_water = true
 
 function wg.handle_keyboard_input()
 	if (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_pressed('r') then
@@ -282,6 +339,9 @@ function wg.handle_keyboard_input()
 		is_jan_temp = not is_jan_temp
 	elseif ui.is_key_pressed('k') then
 		wg.update_map_mode("koppen")
+	elseif (ui.is_key_held('lshift') or ui.is_key_held('rshift')) and ui.is_key_pressed('w') then
+		wg.update_map_mode(is_jan_water and "jan_flow" or "jul_flow")
+		is_jan_water = not is_jan_water
 	end
 end
 

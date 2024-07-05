@@ -59,4 +59,12 @@ function ma.vec3_to_string(v, fmt)
 	return "(" .. string.format(fmt or default_fmt, v.x) .. ", " .. string.format(fmt or default_fmt, v.y) .. ", " .. string.format(fmt or default_fmt, v.z) .. ")"
 end
 
+-- @param x number
+-- @param y number
+-- @param s number
+-- @return number
+function ma.lerp(x, y, s)
+	return x + s * (y - x)
+end
+
 return ma
