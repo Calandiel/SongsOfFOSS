@@ -62,11 +62,16 @@ function world:new(world_size, seed)
 	obj.clay               = allocate_array("clay",               obj.tile_count, "uint16_t")
 	obj.soil_organics      = allocate_array("soil_organics",      obj.tile_count, "uint16_t")
 	obj.soil_moisture      = allocate_array("soil_moisture",      obj.tile_count, "float")
+	obj.mineral_richness   = allocate_array("mineral_richness",   obj.tile_count, "uint16_t")
 
 	obj.tmp_float_1       = allocate_array("tmp_float_1", obj.tile_count, "float")
 	obj.tmp_float_2       = allocate_array("tmp_float_2", obj.tile_count, "float")
 	obj.tmp_float_3       = allocate_array("tmp_float_3", obj.tile_count, "float")
+	-- obj.tmp_float_4       = allocate_array("tmp_float_4", obj.tile_count, "float")
+	-- obj.tmp_float_5       = allocate_array("tmp_float_5", obj.tile_count, "float")
+	-- obj.tmp_float_6       = allocate_array("tmp_float_6", obj.tile_count, "float")
 	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
+	-- obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
 
 	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
