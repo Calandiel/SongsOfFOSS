@@ -44,9 +44,9 @@ local function calculate_slope_weathering(ti, world)
 	return math.max(math.pow((max_elevation_drop / 100), 0.5), 0.75)
 end
 
-local function calculate_disposed(current_percentage, bias, other1_percentage, other2_percentage)
+local function apply_bias(current_percentage, bias, other1_percentage, other2_percentage)
 	local potential_increase = math.min(100 - current_percentage, 20)
-	local current_disposed = current_percentage + (potential_increase - (potential_increase / math.abs(bias)))
+	local current_disposed = current_percentage + (potential_increase - (potential_increase / bias))
 	local amount_to_redistribute = current_disposed - current_percentage
 
 	local total_other_percentage = other1_percentage + other2_percentage
@@ -74,27 +74,27 @@ local function process_tile(ti, world)
 	local weathering_multiplier = base_weathering + ice_wedging_weathering + waterflow_weathering + biological_weathering --* The intensity of the weathering process
 	local base_weathered_rock = weathering_multiplier * weathered_volume_tuner
 
-	local sand_percentage, silt_percentage, clay_percentage, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(rock_type)
+	local sand_disposed, silt_disposed, clay_disposed, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(rock_type)
 	if not is_volcanic_rock then mineral_richness = mineral_richness * slope_weathering end
 
 	local final_weathered_rock = base_weathered_rock * rock_mass_conversion * rock_weathering_rate
 
 	--* Apply bias
-	local sand_clay_bias = world.tmp_float_2[ti]
+	local sand_clay_bias = open_issues.sand_clay_bias(world, ti)
 	local silt_multiplier = world.tmp_float_3[ti]
 
-	local sand_disposed, silt_disposed, clay_disposed = 0, 0, 0
 	if sand_clay_bias > 0 then --* If greater than 0 it means we are sand disposed
-		sand_disposed, silt_disposed, clay_disposed = calculate_disposed(sand_percentage, sand_clay_bias, silt_percentage, clay_percentage)
+		sand_disposed, silt_disposed, clay_disposed = apply_bias(sand_disposed, sand_clay_bias, silt_disposed, clay_disposed)
 	else --* Otherwise it is clay disposed. If clay disposed we need to set the value to positive temporarily and multiply into our result
-		sand_disposed, silt_disposed, clay_disposed = calculate_disposed(clay_percentage, -sand_clay_bias, silt_percentage, sand_percentage)
+		clay_disposed, silt_disposed, sand_disposed = apply_bias(clay_disposed, -sand_clay_bias, silt_disposed, sand_disposed)
 	end
-	sand_disposed, silt_disposed, clay_disposed = calculate_disposed(silt_percentage, silt_multiplier, sand_percentage, clay_percentage)
+	silt_disposed, clay_disposed, sand_disposed = apply_bias(silt_disposed, silt_multiplier, clay_disposed, sand_disposed)
 
-	local sand_qty, silt_qty, clay_qty, mineral_qty = world.sand[ti], world.silt[ti], world.clay[ti], world.mineral_richness[ti]
-	sand_qty = sand_qty + ((sand_disposed / 100) * final_weathered_rock)
-	silt_qty = silt_qty + ((silt_disposed / 100) * final_weathered_rock)
-	clay_qty = clay_qty + ((clay_disposed / 100) * final_weathered_rock)
+	local tile_sand, tile_silt, tile_clay, mineral_qty = world.sand[ti], world.silt[ti], world.clay[ti], world.mineral_richness[ti]
+
+	tile_sand = tile_sand + ((sand_disposed / 100) * final_weathered_rock)
+	tile_silt = tile_silt + ((silt_disposed / 100) * final_weathered_rock)
+	tile_clay = tile_clay + ((clay_disposed / 100) * final_weathered_rock)
 	mineral_qty = mineral_qty + math.floor((mineral_richness * final_weathered_rock) / 100)
 
 	--* We need to have a soil depth factor multiplied into the equation for mineral nutrients.
