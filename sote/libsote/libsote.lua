@@ -69,20 +69,20 @@ local sote_params = {
 ---@enum sote_tasks
 local sote_tasks = {
 	init_world = 1,
-	clean_up = 6
+	clean_up   = 6
 }
 
 ---@enum sote_vals
 local sote_vals = {
-	latitude = 40,      -- Colatitude
-	longitude = 41,     -- MinusLongitude
-	elevation = 1,      -- Elevation
-	-- water_movement = 20, -- skipped?
-	rugosity = 43,      -- Hilliness
-	rock_type = 35,     -- RockType (needs some translation)
-	volcanic_activity = 5, -- VolcanicActivity
+	latitude          = 40, -- Colatitude
+	longitude         = 41, -- MinusLongitude
+	elevation         =  1, -- Elevation
+	-- water_movement    = 20, -- skipped?
+	rugosity          = 43, -- Hilliness
+	rock_type         = 35, -- RockType (needs some translation)
+	volcanic_activity =  5, -- VolcanicActivity
 	-- IsLand: computed from elevation
-	plate = 15,
+	plate             = 15,
 }
 
 local function log_info(msg)

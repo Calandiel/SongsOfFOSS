@@ -21,7 +21,7 @@ function rock_characteristics:new(t)
 	return obj
 end
 
-local rock_types = require "libsote.rock-type".types
+local rock_types = require "libsote.rock-type".TYPES
 
 local rock_characteristics_by_rock_type = {}
 

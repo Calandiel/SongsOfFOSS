@@ -92,7 +92,7 @@ local function initial_waterflow()
 
 	table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
 
-	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.types.world_gen) end, "calculate-waterflow", 1) })
+	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.world_gen) end, "calculate-waterflow", 1) })
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(0, 0, 0) end, "clear_soils", 1) })
 
 	log_profiling_data(prof_output, "initial_waterflow")

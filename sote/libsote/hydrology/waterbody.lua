@@ -1,7 +1,7 @@
 local waterbody = {}
 
 ---@enum waterbody_type
-waterbody.types = {
+waterbody.TYPES = {
 	ocean           = 0,
 	sea             = 1,
 	saltwater_lake  = 2,
@@ -18,7 +18,7 @@ function waterbody:new()
 
 	obj.id = nil
 	obj.tiles = {}
-	obj.type = waterbody.types.invalid
+	obj.type = waterbody.TYPES.invalid
 	obj.waterlevel = 0
 	obj.perimeter = {}
 	obj.lowest_shore_tile = nil

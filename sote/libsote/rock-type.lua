@@ -1,7 +1,7 @@
 local rock = {}
 
 ---@enum rock_type
-rock.types = {
+rock.TYPES = {
 	no_type         = 0,
 	acid_plutonics  = 3,
 	sandstone       = 4,

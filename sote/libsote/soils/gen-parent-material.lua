@@ -4,7 +4,7 @@ local gpm = {}
 -- Any existing humor belongs to the original author :-) (probably Demian?)
 -- In order to distinguish between the original comments and the new ones, the original ones are marked with "--*"
 
-local rock_types = require "libsote.rock-type".types
+local rock_types = require "libsote.rock-type".TYPES
 local rock_qualities = require "libsote.rock-qualities"
 local open_issues = require "libsote.soils.open-issues"
 

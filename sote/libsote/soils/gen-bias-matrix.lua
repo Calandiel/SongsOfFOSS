@@ -45,6 +45,7 @@ local gbm = {}
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Whatever the original purpose of GenBiasMatrix was, it was not finalized, so a port does not make sense for now. The function below is a placeholder that will simply set the
 -- corresponding outputs (sandSlider as TmpFloat_2 and siltMultiplier as TmpFloat_3) to a neutral 1, for the next stage in the pipeline.
+-- In its current form, the original implementation produces the same output.
 
 function gbm.run(world)
 	world:fill_ffi_array(world.tmp_float_2, 1)

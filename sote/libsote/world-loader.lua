@@ -269,9 +269,9 @@ function wl.dump_maps_from(world)
 				col_r, col_g, col_b = color_from_rank(rank)
 			else
 				local waterbody = world:get_waterbody(q, r, face)
-				if waterbody.type == waterbody.types.freshwater_lake then
+				if waterbody.type == waterbody.TYPES.freshwater_lake then
 					col_r, col_g, col_b = 15, 239, 255
-				elseif waterbody.type == waterbody.types.saltwater_lake then
+				elseif waterbody.type == waterbody.TYPES.saltwater_lake then
 					col_r, col_g, col_b = 30, 125, 255
 				end
 			end
