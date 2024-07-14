@@ -46,6 +46,8 @@
 ---@field outliner_slider number
 ---@field minimap love.Image
 ---
+---@field texture_atlas love.Image
+---
 ---@field recalculate_realm_map fun(update_all?: boolean)
 ---@field tile_neighbor_realm_data love.ImageData
 ---@field tile_neighbor_realm_texture love.Texture
@@ -857,52 +859,53 @@ function gam.draw()
 		gam.planet_shader:send("face_id_cubemap", gam.DATA_TEXTURES_CACHE["face_id_cubemap"])
 	end
 
-	if gam.planet_shader:hasUniform("face_uv_cubemap") then
-		if gam.DATA_TEXTURES_CACHE["face_uv_cubemap"] == nil then
-			local function uv_gradient(image, o_u, o_v, s_uv)
-				for i = 0, WORLD.world_size - 1 do
-					for j = 0, WORLD.world_size - 1 do
-						local u = i / WORLD.world_size
-						local v = j / WORLD.world_size
-						if s_uv < 0 then
-							u, v = v, u
-						end
-						if o_u < 0 then
-							u = 1 - u
-						end
-						if o_v < 0 then
-							v = 1 - v
-						end
-						image:setPixel(i, j, u, v, 0, 0)
-					end
-				end
-			end
+	--- could be useful if someone would like to map our cubemaps to love2d cube maps
+	-- if gam.planet_shader:hasUniform("face_uv_cubemap") then
+	-- 	if gam.DATA_TEXTURES_CACHE["face_uv_cubemap"] == nil then
+	-- 		local function uv_gradient(image, o_u, o_v, s_uv)
+	-- 			for i = 0, WORLD.world_size - 1 do
+	-- 				for j = 0, WORLD.world_size - 1 do
+	-- 					local u = i / WORLD.world_size
+	-- 					local v = j / WORLD.world_size
+	-- 					if s_uv < 0 then
+	-- 						u, v = v, u
+	-- 					end
+	-- 					if o_u < 0 then
+	-- 						u = 1 - u
+	-- 					end
+	-- 					if o_v < 0 then
+	-- 						v = 1 - v
+	-- 					end
+	-- 					image:setPixel(i, j, u, v, 0, 0)
+	-- 				end
+	-- 			end
+	-- 		end
 
-			local x_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
-			local x_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local x_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local x_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
 
-			uv_gradient(x_plus, 1, -1, 1)
-			uv_gradient(x_minus, 1, -1, 1)
+	-- 		uv_gradient(x_plus, 1, -1, 1)
+	-- 		uv_gradient(x_minus, 1, -1, 1)
 
-			local y_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
-			local y_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local y_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local y_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
 
-			uv_gradient(y_plus, 1, 1, -1)
-			uv_gradient(y_minus, 1, 1, -1)
+	-- 		uv_gradient(y_plus, 1, 1, -1)
+	-- 		uv_gradient(y_minus, 1, 1, -1)
 
-			local z_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
-			local z_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local z_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local z_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
 
-			uv_gradient(z_plus, 1, -1, 1)
-			uv_gradient(z_minus, 1, -1, 1)
+	-- 		uv_gradient(z_plus, 1, -1, 1)
+	-- 		uv_gradient(z_minus, 1, -1, 1)
 
-			local FACE_UV_CUBEMAP = {x_plus, x_minus, y_plus, y_minus, z_plus, z_minus}
-			local cubemap = love.graphics.newCubeImage( FACE_UV_CUBEMAP, {linear = false} )
-			cubemap:setFilter("nearest", "nearest")
-			gam.DATA_TEXTURES_CACHE["face_uv_cubemap"] = cubemap
-		end
-		gam.planet_shader:send("face_uv_cubemap", gam.DATA_TEXTURES_CACHE["face_uv_cubemap"])
-	end
+	-- 		local FACE_UV_CUBEMAP = {x_plus, x_minus, y_plus, y_minus, z_plus, z_minus}
+	-- 		local cubemap = love.graphics.newCubeImage( FACE_UV_CUBEMAP, {linear = false} )
+	-- 		cubemap:setFilter("nearest", "nearest")
+	-- 		gam.DATA_TEXTURES_CACHE["face_uv_cubemap"] = cubemap
+	-- 	end
+	-- 	gam.planet_shader:send("face_uv_cubemap", gam.DATA_TEXTURES_CACHE["face_uv_cubemap"])
+	-- end
 
 	if gam.planet_shader:hasUniform("texture_atlas") then
 		if gam.texture_atlas == nil then

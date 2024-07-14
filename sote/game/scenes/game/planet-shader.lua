@@ -23,7 +23,6 @@ function pla.get_shader()
 		uniform float world_size;
 		uniform sampler2D tile_colors;
 		uniform samplerCube face_id_cubemap;
-		uniform samplerCube face_uv_cubemap;
 		uniform sampler2D texture_index_cubemap;
 		uniform sampler2D texture_atlas;
 
