@@ -1,4 +1,4 @@
----@alias MapModeEntry { [1]: string, [2]: string, [3]: string, [4]: fun(clicked_tile_id: number), [5]: MAP_MODE_GRANULARITY, [6]: MAP_MODE_UPDATES_TYPE, [7]: fun()|nil }
+---@alias MapModeEntry { [1]: string, [2]: string, [3]: string, [4]: fun(clicked_tile_id: number), [5]: MAP_MODE_GRANULARITY, [6]: MAP_MODE_UPDATES_TYPE, [7]: MAP_MODE_TERRAIN_TEXTURE_INTERACTION, [8]: fun()|nil }
 
 ---@class (exact) GameScene
 ---@field macrobuilder_public_mode boolean
@@ -912,6 +912,42 @@ function gam.draw()
 		gam.planet_shader:send('texture_atlas', gam.texture_atlas)
 	end
 
+
+	if gam.planet_shader:hasUniform("texture_sprawl_frequency") then
+		if gam.DATA_TEXTURES_CACHE["texture_sprawl_frequency"] == nil then
+			local frequency_image_data = love.image.newImageData(256, 256, "rgba8")
+			local pointer_province_color = require("ffi").cast("uint8_t*", frequency_image_data:getFFIPointer())
+			local id = 0
+
+			for _, province in ipairs(WORLD.ordered_provinces_list) do
+
+				pointer_province_color[id * 4 + 0] = 255 * math.min(1, province:local_population() / 200)
+				pointer_province_color[id * 4 + 1] = 255 * 0
+				pointer_province_color[id * 4 + 2] = 255 * 0
+				pointer_province_color[id * 4 + 3] = 255 * 0
+
+				id = id + 1
+			end
+
+			local frequency_image = love.graphics.newImage(frequency_image_data)
+			frequency_image:setFilter("nearest", "nearest")
+
+			gam.DATA_TEXTURES_CACHE["texture_sprawl_frequency"] = frequency_image
+		end
+
+		gam.planet_shader:send('texture_sprawl_frequency', gam.DATA_TEXTURES_CACHE["texture_sprawl_frequency"])
+	end
+
+	if gam.planet_shader:hasUniform("show_terrain") then
+		if gam.map_mode_data[gam.map_mode][7] == nil then
+			gam.planet_shader:send("show_terrain", 0)
+		elseif gam.map_mode_data[gam.map_mode][7] == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.SHOW_TERRAIN then
+			gam.planet_shader:send("show_terrain", 1)
+		elseif gam.map_mode_data[gam.map_mode][7] == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.HIDE_TERRAIN then
+			gam.planet_shader:send("show_terrain", 0)
+		end
+	end
+
 	if gam.planet_shader:hasUniform("texture_index_cubemap") then
 		if gam.DATA_TEXTURES_CACHE["texture_index_cubemap"] == nil then
 
@@ -919,6 +955,15 @@ function gam.draw()
 
 			for _, current_tile in pairs(WORLD.tiles) do
 				local temp_i, temp_j = gam.tile_id_to_color_coords(current_tile)
+
+				local sprawl_heat = 0
+				local local_province = current_tile:province()
+
+				if local_province ~= nil then
+					local center = local_province.center
+					local distance = current_tile:distance_to(center)
+					sprawl_heat = math.min(1, 1 / distance)
+				end
 
 
 				if (current_tile.biome ~= nil) then
@@ -937,73 +982,79 @@ function gam.draw()
 
 					local image_index_scaler = 1 / 64
 
+					local texture_index = 0
+
+					local is_sea = 0
+
 					if current_tile.biome.name == "tundra" then
-						image:setPixel(temp_i, temp_j, 29 * image_index_scaler, 0, 0, 0)
+						texture_index = 29
 					elseif current_tile.biome.name == "glacier" or
 						current_tile.biome.name == "glaciated-sea" then
-						image:setPixel(temp_i, temp_j, 28 * image_index_scaler, 0, 0, 0)
+						texture_index = 28
 					elseif current_tile.biome.name == "bog" or
 							current_tile.biome.name == "marsh" or
 							current_tile.biome.name == "swamp" then
-						image:setPixel(temp_i, temp_j, 27 * image_index_scaler, 0, 0, 0)
+						texture_index = 27
 					elseif current_tile.biome.name == "badlands" then
-						image:setPixel(temp_i, temp_j, 21 * image_index_scaler, 0, 0, 0)
+						texture_index = 21
 					elseif current_tile.biome.name == "xeric-shrubland" then
-						image:setPixel(temp_i, temp_j, 22 * image_index_scaler, 0, 0, 0)
+						texture_index = 22
 					elseif current_tile.biome.name == "xeric-desert" then
-						image:setPixel(temp_i, temp_j, 23 * image_index_scaler, 0, 0, 0)
+						texture_index = 23
 					elseif current_tile.biome.name == "mixed-scrubland" then
-						image:setPixel(temp_i, temp_j, 20 * image_index_scaler, 0, 0, 0)
+						texture_index = 20
 					elseif current_tile.biome.name == "grassy-scrubland" then
-						image:setPixel(temp_i, temp_j, 19 * image_index_scaler, 0, 0, 0)
+						texture_index = 19
 					elseif current_tile.biome.name == "woody-scrubland" then
-						image:setPixel(temp_i, temp_j, 18 * image_index_scaler, 0, 0, 0)
+						texture_index = 18
 					elseif current_tile.biome.name == "shrubland" then
-						image:setPixel(temp_i, temp_j, 17 * image_index_scaler, 0, 0, 0)
+						texture_index = 17
 					elseif current_tile.biome.name == "savanna" then
-						image:setPixel(temp_i, temp_j, 16 * image_index_scaler, 0, 0, 0)
+						texture_index = 16
 					elseif current_tile.biome.name == "rocky-wasteland" then
-						image:setPixel(temp_i, temp_j, 13 * image_index_scaler, 0, 0, 0)
+						texture_index = 13
 					elseif current_tile.biome.name == "abyssal-plains" or
 							current_tile.biome.name == "trench" then
-						image:setPixel(temp_i, temp_j, 15 * image_index_scaler, 0, 0, 0)
+						texture_index = 15
+						is_sea = 1
 					elseif current_tile.biome.name == "continental-shelf" then
-						image:setPixel(temp_i, temp_j, 14 * image_index_scaler, 0, 0, 0)
+						texture_index = 14
+						is_sea = 1
 					elseif current_tile.biome.name == "mixed-forest" then
-						image:setPixel(temp_i, temp_j, 10 * image_index_scaler, 0, 0, 0)
+						texture_index = 10
 					elseif current_tile.biome.name == "broadleaf-forest" then
-						image:setPixel(temp_i, temp_j, 9 * image_index_scaler, 0, 0, 0)
+						texture_index = 9
 					elseif current_tile.biome.name == "wet-jungle" then
-						image:setPixel(temp_i, temp_j, 25 * image_index_scaler, 0, 0, 0)
+						texture_index = 25
 					elseif current_tile.biome.name == "dry-jungle" then
-						image:setPixel(temp_i, temp_j, 26 * image_index_scaler, 0, 0, 0)
+						texture_index = 26
 					elseif current_tile.biome.name == "coniferous-forest" or
 							current_tile.biome.name == "taiga" then
-						image:setPixel(temp_i, temp_j, 8 * image_index_scaler, 0, 0, 0)
+						texture_index = 8
 					elseif current_tile.biome.name == "mixed-woodland" then
-						image:setPixel(temp_i, temp_j, 12 * image_index_scaler, 0, 0, 0)
+						texture_index = 12
 					elseif current_tile.biome.name == "broadleaf-woodland" then
-						image:setPixel(temp_i, temp_j, 11 * image_index_scaler, 0, 0, 0)
+						texture_index = 11
 					elseif current_tile.biome.name == "coniferous-woodland" or
 							current_tile.biome.name == "woodland-taiga" then
-						image:setPixel(temp_i, temp_j, 1 * image_index_scaler, 0, 0, 0)
+						texture_index = 1
 					elseif current_tile.biome.name == "grassland" then
-						image:setPixel(temp_i, temp_j, 2 * image_index_scaler, 0, 0, 0)
+						texture_index = 2
 					elseif is_peak then
-						image:setPixel(temp_i, temp_j, 7 * image_index_scaler, 0, 0, 0)
+						texture_index = 7
 					elseif current_tile.biome.name == "barren-mountainside" then
-						image:setPixel(temp_i, temp_j, 3 * image_index_scaler, 0, 0, 0)
+						texture_index = 3
 					elseif current_tile.biome.name == "mountainside-scrub" then
-						image:setPixel(temp_i, temp_j, 4 * image_index_scaler, 0, 0, 0)
+						texture_index = 4
 					elseif current_tile.biome.name == "rugged-mountainside" then
-						image:setPixel(temp_i, temp_j, 24 * image_index_scaler, 0, 0, 0)
+						texture_index = 24
 					elseif current_tile.biome.name == "barren-desert" then
-						image:setPixel(temp_i, temp_j, 5 * image_index_scaler, 0, 0, 0)
+						texture_index = 5
 					elseif current_tile.biome.name == "sand-dunes" then
-						image:setPixel(temp_i, temp_j, 6 * image_index_scaler, 0, 0, 0)
-					else
-						image:setPixel(temp_i, temp_j, 0, 0, 0, 0)
+						texture_index = 6
 					end
+
+					image:setPixel(temp_i, temp_j, texture_index * image_index_scaler, sprawl_heat, is_sea, 0)
 				end
 			end
 
@@ -1438,6 +1489,11 @@ function gam.draw()
 			ASSETS.icons[gam.map_mode_data['biomes'][2]],
 			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['biomes'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "biomes")
+	end
+	if ut.icon_button(
+			ASSETS.icons[gam.map_mode_data['terrain'][2]],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['terrain'][3]) then
+		gam.click_callback = callback.update_map_mode(gam, "terrain")
 	end
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['koppen'][2]],
@@ -2406,7 +2462,7 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 		print("calculate province colors")
 		local func = dat[4]
 		if use_secondary then
-			func = dat[7]
+			func = dat[8]
 		end
 		assert(func ~= nil, "Map mode " .. gam.map_mode .. " lacks requested update function")
 		func(gam.clicked_tile_id) -- set "real color" on central tiles

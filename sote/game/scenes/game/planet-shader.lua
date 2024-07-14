@@ -28,6 +28,7 @@ function pla.get_shader()
 		uniform sampler2D texture_atlas;
 
 		uniform sampler2D province_colors; // stores colors assigned to provinces
+		uniform sampler2D texture_sprawl_frequency;
 		uniform sampler2D province_index; // sample to retrieve indices for province colors - it's technically a "tile" texture
 
 		uniform sampler2D tile_provinces;
@@ -40,6 +41,8 @@ function pla.get_shader()
 		uniform float player_tile;
 		uniform float camera_distance_from_sphere;
 		uniform float time;
+		uniform float show_terrain;
+
 		varying float FaceValue;
 		varying vec4 Position;
 
@@ -266,6 +269,20 @@ function pla.get_shader()
 			return uv / 3 + offset;
 		}
 
+
+		vec4 sample_texture_atlas_by_image_index(float texture_index, float u, float v) {
+			float padding = 18.0 / 2048.0;
+			float shift_per_image = 256.0 / 2048.0;
+			float row = floor(texture_index / 7.0);
+			float column = floor(texture_index - row * 7.0 + 0.5);
+			float x_start = (shift_per_image + padding * 2) * row + padding;
+			float y_start = (shift_per_image + padding * 2) * column + padding;
+			float local_x = u * shift_per_image;
+			float local_y = v * shift_per_image;
+			vec2 texture_uv = vec2(y_start + local_y, x_start + local_x);
+			return Texel(texture_atlas, texture_uv);
+		}
+
 		float corner_border_check(vec2 tile_uv, vec2 anchor, float radius, float thickness, float margin) {
 			float distance_from_corner_anchor = distance(tile_uv, anchor);
 			if (distance_from_corner_anchor > radius) {
@@ -290,8 +307,29 @@ function pla.get_shader()
 			//float noise_500  = smooth_noise(Position.xyz * 500.0);
 			float high_frequency_noise = smooth_noise(Position.xyz * 10000.0);
 
+
+			//float sea_ratio = 0.0;
+			//float total_counter = 0.0;
+			//int M = 10;
+
+			//for (int i = -M; i <= M; i++) {
+			//	for (int j = -M; j <= M; j++) {
+			//		for (int k = -M; j <= M; j++) {
+			//			vec3 new_position = Position.xyz + vec3(i, j, k) * 0.0005;
+			//			float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
+			//			vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+			//			vec2 new_uv = cartesian_to_uv(new_position, new_face) + pixel_center_shift;
+			//			vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
+			//			sea_ratio += Texel(texture_index_cubemap, new_texcoord).b;
+			//			total_counter += 1.0;
+			//		}
+			//	}
+			//}
+			//sea_ratio /= total_counter;
+			//float noise_amplitude_multiplier = abs(sea_ratio - 0.5) * 2.0;
+
 			vec3 original_position = Position.xyz;
-			vec3 shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.005;
+			vec3 shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.005; //* noise_amplitude_multiplier;
 			vec3 slightly_shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.001;
 
 			float phi = asin(original_position.y); // sqrt(sqrt(1 - original_position.y * original_position.y));
@@ -368,51 +406,88 @@ function pla.get_shader()
 				return fog_of_war_rgba;
 			}
 			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, province_index_uv);
+			float sprawl_frequency = Texel(texture_sprawl_frequency, province_index_uv).r;
 
-			vec4 average_texture = texcolor;
-			float counter = 1.0;
-			float padding = 18.0 / 2048.0;
-			int N = 2;
-			for (int i = -N; i <= N; i++) {
-				for (int j = -N; j <= N; j++) {
-					for (int k = -N; j <= N; j++) {
-						vec3 new_position = shifted_position + vec3(i, j, k) * 0.0005;
-						float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
-						vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-						vec2 new_uv = cartesian_to_uv(new_position, new_face) + pixel_center_shift;
-						vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
-						if (Texel(texture_index_cubemap, new_texcoord).r > 0) {
-							float index_scaler = 1.0 / 64.0;
-							float shift_per_image = 256.0 / 2048.0;
+			//return vec4(sprawl_heat, sprawl_heat, sprawl_heat, 1);
+			if (show_terrain > 0.5) {
+				vec4 average_texture = texcolor;
+				float index_scaler = 1.0 / 64.0;
+				float counter = 1.0;
+				int N = 2;
+				float shift_unit = 0.0005;
+				//float shift_unit = 0.0015;
 
-							float texture_index = Texel(texture_index_cubemap, new_texcoord).r / index_scaler - 1.0;
+				//vec2 origin_pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+				vec2 origin_new_uv = shifted_texcoord; //+ origin_pixel_center_shift;
+				vec2 origin_texcoord = uvface_to_texcoord(origin_new_uv, shifted_face);
+				float origin_is_sea = Texel(texture_index_cubemap, origin_texcoord).b;
 
-							float row = floor(texture_index / 7.0);
-							float column = floor(texture_index - row * 7.0 + 0.5);
+				float is_coast = 0.f;
 
-							float x_start = (shift_per_image + padding * 2) * row + padding;
-							float y_start = (shift_per_image + padding * 2) * column + padding;
+				//detecting coast:
+				for (int i = -N; i <= N; i++) {
+					for (int j = -N; j <= N; j++) {
+						for (int k = -N; j <= N; j++) {
+							vec3 new_position = shifted_position + vec3(i, j, k) * shift_unit;
+							float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
+							//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+							vec2 new_uv = cartesian_to_uv(new_position, new_face); //+ pixel_center_shift;
+							vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
 
-							float local_x = fract(phi * 200) * shift_per_image;
-							float local_y = fract(psi * 200) * shift_per_image;
-							vec2 texture_uv = vec2(y_start + local_y, x_start + local_x);
+							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
 
-							average_texture += Texel(texture_atlas, texture_uv);
-
-							counter += 1;
+							if (target_is_sea != origin_is_sea) {
+								is_coast = 1.0;
+							}
 						}
 					}
 				}
+
+				for (int i = -N; i <= N; i++) {
+					for (int j = -N; j <= N; j++) {
+						for (int k = -N; j <= N; j++) {
+							vec3 new_position = shifted_position + vec3(i, j, k) * shift_unit;
+							float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
+							//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+							vec2 new_uv = cartesian_to_uv(new_position, new_face);// + pixel_center_shift;
+							vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
+
+							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
+
+							float sprawl_heat = Texel(texture_index_cubemap, new_texcoord).g;
+							if (!((target_is_sea == 1.0) && (is_coast == 1.0))) {
+								if ((Texel(texture_index_cubemap, new_texcoord).r > 0)) {
+									float texture_index = Texel(texture_index_cubemap, new_texcoord).r / index_scaler - 1.0;
+									average_texture += sample_texture_atlas_by_image_index(texture_index, fract(phi * 200), fract(psi * 200));
+
+									vec4 sprawl_texture = sample_texture_atlas_by_image_index(29.0, fract(phi * 200), fract(psi * 200));
+									float sprawl_weight = sprawl_heat * sprawl_heat * sprawl_frequency * 10.0;
+									average_texture += sprawl_texture * sprawl_weight;
+
+									counter += 1 + sprawl_heat * sprawl_weight;
+								}
+							}
+
+							if (target_is_sea != origin_is_sea) {
+								average_texture += sample_texture_atlas_by_image_index(4.0, fract(phi * 200), fract(psi * 200)) * 2.0;
+								counter += 2.0;
+							}
+						}
+					}
+				}
+
+				//if (is_coast == 1.0) {
+				//	average_texture = sample_texture_atlas_by_image_index(4.0, fract(phi * 200), fract(psi * 200));
+				//	counter = 1.0;
+				//}
+
+				average_texture /= counter;
+				float terrain_alpha = (1 / camera_distance_from_sphere) * 0.3;
+				if (terrain_alpha > 1) {
+					terrain_alpha = 1;
+				}
+				texcolor = mix(texcolor, average_texture, terrain_alpha);
 			}
-
-			average_texture /= counter;
-			float terrain_alpha = (1 / camera_distance_from_sphere) * 0.3;
-			if (terrain_alpha > 1) {
-				terrain_alpha = 1;
-			}
-			texcolor = mix(texcolor, average_texture, terrain_alpha);
-
-
 
 			float distance_for_improvments_and_clicked_tiles = 0.15; // controls the distance threshold from the sphere at which details on tiles are rendered.
 			if (camera_distance_from_sphere < distance_for_improvments_and_clicked_tiles) {
