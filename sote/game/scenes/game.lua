@@ -1,4 +1,4 @@
----@alias MapModeEntry { [1]: string, [2]: string, [3]: string, [4]: fun(clicked_tile_id: number), [5]: MAP_MODE_GRANULARITY, [6]: MAP_MODE_UPDATES_TYPE, [7]: fun()|nil }
+---@alias MapModeEntry { [1]: string, [2]: string, [3]: string, [4]: fun(clicked_tile_id: number), [5]: MAP_MODE_GRANULARITY, [6]: MAP_MODE_UPDATES_TYPE, [7]: MAP_MODE_TERRAIN_TEXTURE_INTERACTION, [8]: fun()|nil }
 
 ---@class (exact) GameScene
 ---@field macrobuilder_public_mode boolean
@@ -45,6 +45,8 @@
 ---@field notification_slider number
 ---@field outliner_slider number
 ---@field minimap love.Image
+---
+---@field texture_atlas love.Image
 ---
 ---@field recalculate_realm_map fun(update_all?: boolean)
 ---@field tile_neighbor_realm_data love.ImageData
@@ -812,16 +814,262 @@ function gam.draw()
 		end
 		gam.planet_shader:send('tile_neighbor_realm', gam.tile_neighbor_realm_texture)
 	end
-
 	--- example of usage of recalculate_smooth_data_map
-	--[[
-	if gam.planet_shader:hasUniform("tile_sea") then
-		if gam.DATA_TEXTURES_CACHE["sea"] == nil then
-			gam.recalculate_smooth_data_map(sea, "sea")
-		end
-		gam.planet_shader:send("tile_sea", gam.DATA_TEXTURES_CACHE["sea"])
+
+	---commenting
+	---@param a Tile
+	---@param b Tile
+	local function sample_face(a, b)
+		local _, _, f = tile.index_to_coords(a.tile_id)
+		return f / 6
 	end
-	--]]
+
+	-- if gam.planet_shader:hasUniform("face_id") then
+	-- 	if gam.DATA_TEXTURES_CACHE["face_id"] == nil then
+	-- 		gam.recalculate_smooth_data_map(sample_face, "face_id", nil, 0, 0)
+	-- 	end
+	-- 	gam.planet_shader:send("face_id", gam.DATA_TEXTURES_CACHE["face_id"])
+	-- end
+
+	if gam.planet_shader:hasUniform("face_id_cubemap") then
+		if gam.DATA_TEXTURES_CACHE["face_id_cubemap"] == nil then
+			local x_plus = love.image.newImageData(1, 1, "rgba8")
+			local x_minus = love.image.newImageData(1, 1, "rgba8")
+
+			x_plus:setPixel(0, 0, 3 / 6, 0, 0, 0)
+			x_minus:setPixel(0, 0, 1 / 6, 0, 0, 0)
+
+			local y_plus = love.image.newImageData(1, 1, "rgba8")
+			local y_minus = love.image.newImageData(1, 1, "rgba8")
+
+			y_plus:setPixel(0, 0, 4 / 6, 0, 0, 0)
+			y_minus:setPixel(0, 0, 5 / 6, 0, 0, 0)
+
+			local z_plus = love.image.newImageData(1, 1, "rgba8")
+			local z_minus = love.image.newImageData(1, 1, "rgba8")
+
+			z_plus:setPixel(0, 0, 0 / 6, 0, 0, 0)
+			z_minus:setPixel(0, 0, 2 / 6, 0, 0, 0)
+
+			FACE_ID_CUBEMAP = {x_plus, x_minus, y_plus, y_minus, z_plus, z_minus}
+			local cubemap = love.graphics.newCubeImage( FACE_ID_CUBEMAP, {linear = false} )
+			cubemap:setFilter("nearest", "nearest")
+			gam.DATA_TEXTURES_CACHE["face_id_cubemap"] = cubemap
+		end
+		gam.planet_shader:send("face_id_cubemap", gam.DATA_TEXTURES_CACHE["face_id_cubemap"])
+	end
+
+	--- could be useful if someone would like to map our cubemaps to love2d cube maps
+	-- if gam.planet_shader:hasUniform("face_uv_cubemap") then
+	-- 	if gam.DATA_TEXTURES_CACHE["face_uv_cubemap"] == nil then
+	-- 		local function uv_gradient(image, o_u, o_v, s_uv)
+	-- 			for i = 0, WORLD.world_size - 1 do
+	-- 				for j = 0, WORLD.world_size - 1 do
+	-- 					local u = i / WORLD.world_size
+	-- 					local v = j / WORLD.world_size
+	-- 					if s_uv < 0 then
+	-- 						u, v = v, u
+	-- 					end
+	-- 					if o_u < 0 then
+	-- 						u = 1 - u
+	-- 					end
+	-- 					if o_v < 0 then
+	-- 						v = 1 - v
+	-- 					end
+	-- 					image:setPixel(i, j, u, v, 0, 0)
+	-- 				end
+	-- 			end
+	-- 		end
+
+	-- 		local x_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local x_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+
+	-- 		uv_gradient(x_plus, 1, -1, 1)
+	-- 		uv_gradient(x_minus, 1, -1, 1)
+
+	-- 		local y_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local y_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+
+	-- 		uv_gradient(y_plus, 1, 1, -1)
+	-- 		uv_gradient(y_minus, 1, 1, -1)
+
+	-- 		local z_plus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+	-- 		local z_minus = love.image.newImageData(WORLD.world_size, WORLD.world_size, "rg16")
+
+	-- 		uv_gradient(z_plus, 1, -1, 1)
+	-- 		uv_gradient(z_minus, 1, -1, 1)
+
+	-- 		local FACE_UV_CUBEMAP = {x_plus, x_minus, y_plus, y_minus, z_plus, z_minus}
+	-- 		local cubemap = love.graphics.newCubeImage( FACE_UV_CUBEMAP, {linear = false} )
+	-- 		cubemap:setFilter("nearest", "nearest")
+	-- 		gam.DATA_TEXTURES_CACHE["face_uv_cubemap"] = cubemap
+	-- 	end
+	-- 	gam.planet_shader:send("face_uv_cubemap", gam.DATA_TEXTURES_CACHE["face_uv_cubemap"])
+	-- end
+
+	if gam.planet_shader:hasUniform("texture_atlas") then
+		if gam.texture_atlas == nil then
+			gam.texture_atlas = love.graphics.newImage("textures/atlas.png")
+			gam.texture_atlas:setFilter("nearest", "nearest")
+		end
+		gam.planet_shader:send('texture_atlas', gam.texture_atlas)
+	end
+
+
+	if gam.planet_shader:hasUniform("texture_sprawl_frequency") then
+		if gam.DATA_TEXTURES_CACHE["texture_sprawl_frequency"] == nil then
+			local frequency_image_data = love.image.newImageData(256, 256, "rgba8")
+			local pointer_province_color = require("ffi").cast("uint8_t*", frequency_image_data:getFFIPointer())
+			local id = 0
+
+			for _, province in ipairs(WORLD.ordered_provinces_list) do
+
+				pointer_province_color[id * 4 + 0] = 255 * math.min(1, province:local_population() / 200)
+				pointer_province_color[id * 4 + 1] = 255 * 0
+				pointer_province_color[id * 4 + 2] = 255 * 0
+				pointer_province_color[id * 4 + 3] = 255 * 0
+
+				id = id + 1
+			end
+
+			local frequency_image = love.graphics.newImage(frequency_image_data)
+			frequency_image:setFilter("nearest", "nearest")
+
+			gam.DATA_TEXTURES_CACHE["texture_sprawl_frequency"] = frequency_image
+		end
+
+		gam.planet_shader:send('texture_sprawl_frequency', gam.DATA_TEXTURES_CACHE["texture_sprawl_frequency"])
+	end
+
+	if gam.planet_shader:hasUniform("show_terrain") then
+		if gam.map_mode_data[gam.map_mode][7] == nil then
+			gam.planet_shader:send("show_terrain", 0)
+		elseif gam.map_mode_data[gam.map_mode][7] == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.SHOW_TERRAIN then
+			gam.planet_shader:send("show_terrain", 1)
+		elseif gam.map_mode_data[gam.map_mode][7] == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.HIDE_TERRAIN then
+			gam.planet_shader:send("show_terrain", 0)
+		end
+	end
+
+	if gam.planet_shader:hasUniform("texture_index_cubemap") then
+		if gam.DATA_TEXTURES_CACHE["texture_index_cubemap"] == nil then
+
+			local image = love.image.newImageData(WORLD.world_size * 3, WORLD.world_size * 3, "rgba8")
+
+			for _, current_tile in pairs(WORLD.tiles) do
+				local temp_i, temp_j = gam.tile_id_to_color_coords(current_tile)
+
+				local sprawl_heat = 0
+				local local_province = current_tile:province()
+
+				if local_province ~= nil then
+					local center = local_province.center
+					local distance = current_tile:distance_to(center)
+					sprawl_heat = math.min(1, 1 / distance)
+				end
+
+
+				if (current_tile.biome ~= nil) then
+
+					local is_peak = false
+					if current_tile.biome.name == "barren-mountainside" or
+						current_tile.biome.name == "rugged-mountainside" or
+						current_tile.biome.name == "mountainside-scrub" then
+						is_peak = true
+						for neigh in current_tile:iter_neighbors() do
+							if current_tile.elevation < neigh.elevation then
+								is_peak = false
+							end
+						end
+					end
+
+					local image_index_scaler = 1 / 64
+
+					local texture_index = 0
+
+					local is_sea = 0
+
+					if current_tile.biome.name == "tundra" then
+						texture_index = 29
+					elseif current_tile.biome.name == "glacier" or
+						current_tile.biome.name == "glaciated-sea" then
+						texture_index = 28
+					elseif current_tile.biome.name == "bog" or
+							current_tile.biome.name == "marsh" or
+							current_tile.biome.name == "swamp" then
+						texture_index = 27
+					elseif current_tile.biome.name == "badlands" then
+						texture_index = 21
+					elseif current_tile.biome.name == "xeric-shrubland" then
+						texture_index = 22
+					elseif current_tile.biome.name == "xeric-desert" then
+						texture_index = 23
+					elseif current_tile.biome.name == "mixed-scrubland" then
+						texture_index = 20
+					elseif current_tile.biome.name == "grassy-scrubland" then
+						texture_index = 19
+					elseif current_tile.biome.name == "woody-scrubland" then
+						texture_index = 18
+					elseif current_tile.biome.name == "shrubland" then
+						texture_index = 17
+					elseif current_tile.biome.name == "savanna" then
+						texture_index = 16
+					elseif current_tile.biome.name == "rocky-wasteland" then
+						texture_index = 13
+					elseif current_tile.biome.name == "abyssal-plains" or
+							current_tile.biome.name == "trench" then
+						texture_index = 15
+						is_sea = 1
+					elseif current_tile.biome.name == "continental-shelf" then
+						texture_index = 14
+						is_sea = 1
+					elseif current_tile.biome.name == "mixed-forest" then
+						texture_index = 10
+					elseif current_tile.biome.name == "broadleaf-forest" then
+						texture_index = 9
+					elseif current_tile.biome.name == "wet-jungle" then
+						texture_index = 25
+					elseif current_tile.biome.name == "dry-jungle" then
+						texture_index = 26
+					elseif current_tile.biome.name == "coniferous-forest" or
+							current_tile.biome.name == "taiga" then
+						texture_index = 8
+					elseif current_tile.biome.name == "mixed-woodland" then
+						texture_index = 12
+					elseif current_tile.biome.name == "broadleaf-woodland" then
+						texture_index = 11
+					elseif current_tile.biome.name == "coniferous-woodland" or
+							current_tile.biome.name == "woodland-taiga" then
+						texture_index = 1
+					elseif current_tile.biome.name == "grassland" then
+						texture_index = 2
+					elseif is_peak then
+						texture_index = 7
+					elseif current_tile.biome.name == "barren-mountainside" then
+						texture_index = 3
+					elseif current_tile.biome.name == "mountainside-scrub" then
+						texture_index = 4
+					elseif current_tile.biome.name == "rugged-mountainside" then
+						texture_index = 24
+					elseif current_tile.biome.name == "barren-desert" then
+						texture_index = 5
+					elseif current_tile.biome.name == "sand-dunes" then
+						texture_index = 6
+					end
+
+					image:setPixel(temp_i, temp_j, texture_index * image_index_scaler, sprawl_heat, is_sea, 0)
+				end
+			end
+
+			local cubemap = love.graphics.newImage(image)
+			cubemap:setFilter("nearest", "nearest")
+			gam.DATA_TEXTURES_CACHE["texture_index_cubemap"] = cubemap
+		end
+
+		if gam.DATA_TEXTURES_CACHE["texture_index_cubemap"] ~= nil then
+			gam.planet_shader:send("texture_index_cubemap", gam.DATA_TEXTURES_CACHE["texture_index_cubemap"])
+		end
+	end
 
 	love.graphics.setDepthMode("lequal", true)
 	love.graphics.clear()
@@ -1244,6 +1492,11 @@ function gam.draw()
 			ASSETS.icons[gam.map_mode_data['biomes'][2]],
 			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['biomes'][3]) then
 		gam.click_callback = callback.update_map_mode(gam, "biomes")
+	end
+	if ut.icon_button(
+			ASSETS.icons[gam.map_mode_data['terrain'][2]],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['terrain'][3]) then
+		gam.click_callback = callback.update_map_mode(gam, "terrain")
 	end
 	if ut.icon_button(
 			ASSETS.icons[gam.map_mode_data['koppen'][2]],
@@ -2212,7 +2465,7 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 		print("calculate province colors")
 		local func = dat[4]
 		if use_secondary then
-			func = dat[7]
+			func = dat[8]
 		end
 		assert(func ~= nil, "Map mode " .. gam.map_mode .. " lacks requested update function")
 		func(gam.clicked_tile_id) -- set "real color" on central tiles

@@ -348,8 +348,18 @@ function mm.set_up_map_modes(game_thingy)
 			political_map_modes.atlas_tiles,
 			mmut.MAP_MODE_GRANULARITY.MIXED,
 			mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE,
+			nil,
 			political_map_modes.atlas_provinces
 		},
+		terrain = {
+			"Terrain",
+			"high-grass.png",
+			"Shows terrain texture",
+			political_map_modes.realms,
+			mmut.MAP_MODE_GRANULARITY.PROVINCE,
+			mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC,
+			mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.SHOW_TERRAIN
+		}
 	}
 
 	local function compare_map_modes(a, b)
