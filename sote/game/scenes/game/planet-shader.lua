@@ -482,7 +482,7 @@ function pla.get_shader()
 				//}
 
 				average_texture /= counter;
-				float terrain_alpha = (1 / camera_distance_from_sphere) * 0.3;
+				float terrain_alpha = (1 / camera_distance_from_sphere) * 1.3;
 				if (terrain_alpha > 1) {
 					terrain_alpha = 1;
 				}
