@@ -32,9 +32,11 @@ function world:new(world_size, seed)
 	obj.climate_cells = {}
 	obj.waterbodies = {}
 
-	obj.neighbors             = allocate_array("neighbors",             obj.tile_count * 6, "int32_t")
-	obj.waterbody_id_by_tile  = allocate_array("waterbody_id_by_tile",  obj.tile_count,     "uint32_t")
-	obj.tiles_by_elevation    = allocate_array("tiles_by_elevation",    obj.tile_count,     "uint32_t")
+	obj.neighbors               = allocate_array("neighbors",               obj.tile_count * 6, "int32_t")
+	obj.waterbody_id_by_tile    = allocate_array("waterbody_id_by_tile",    obj.tile_count,     "uint32_t")
+	obj.tiles_by_elevation      = allocate_array("tiles_by_elevation",      obj.tile_count,     "uint32_t")
+	-- obj.tiles_by_latlon       = allocate_array("tiles_by_latlon",       obj.tile_count,     "uint32_t")
+	obj.tiles_by_elevation_for_waterflow = allocate_array("tiles_by_elevation_for_waterflow", obj.tile_count, "uint32_t")
 
 	obj.colatitude        = allocate_array("colatitude",        obj.tile_count, "float")
 	obj.minus_longitude   = allocate_array("minus_longitude",   obj.tile_count, "float")
@@ -71,7 +73,7 @@ function world:new(world_size, seed)
 	-- obj.tmp_float_5       = allocate_array("tmp_float_5", obj.tile_count, "float")
 	-- obj.tmp_float_6       = allocate_array("tmp_float_6", obj.tile_count, "float")
 	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
-	-- obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
+	obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
 
 	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
@@ -169,16 +171,16 @@ function world:for_each_neighbor(index, callback)
 	end
 end
 
-function world:_set_latlon(index, colatitude, minus_longitude)
-	self.colatitude[index] = colatitude
-	self.minus_longitude[index] = minus_longitude
-end
+-- function world:_set_latlon(index, colatitude, minus_longitude)
+-- 	self.colatitude[index] = colatitude
+-- 	self.minus_longitude[index] = minus_longitude
+-- end
 
 function world:set_tile_data(q, r, face, data)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
 
 	self.colatitude[index] = data.latitude
-	self.minus_longitude[index] = data.longitude
+	self.minus_longitude[index] = -data.longitude
 	self.elevation[index] = data.elevation
 	self.hilliness[index] = data.rugosity
 	self.rock_type[index] = data.rock_type
@@ -200,20 +202,16 @@ function world:get_raw_colatitude(q, r, face)
 	return self.colatitude[self.coord[self:_key_from_coord(q, r, face)]]
 end
 
-function world:get_raw_minus_longitude(q, r, face)
-	return self.minus_longitude[self.coord[self:_key_from_coord(q, r, face)]]
-end
-
 local llu = require("game.latlon")
 
 function world:get_latlon(q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
-	return -llu.colat_to_lat(self.colatitude[index]), -self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+	return -llu.colat_to_lat(self.colatitude[index]), self.minus_longitude[index] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
 ---@param ti number 0-based tile index
 function world:get_latlon_by_tile(ti)
-	return -llu.colat_to_lat(self.colatitude[ti]), -self.minus_longitude[ti] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
+	return -llu.colat_to_lat(self.colatitude[ti]), self.minus_longitude[ti] -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 end
 
 ---@param ti number 0-based tile index
@@ -336,20 +334,21 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+---@param ti number 0-based tile index
+function world:true_elevation_for_waterflow(ti)
+	if self.elevation[ti] > 0 then
+		return self.elevation[ti] + self.ice[ti]
+	else
+		return self.elevation[ti] * 0.001 + self.ice[ti] -- Subtract some of the ocean depth in order to give variation between some uniform ice tiles sitting on the ocean
+	end
+end
+
 -- We want to determine whether we are measuring waterlevel or elevation. Then we add ice on top of that if there is ice.
 ---@param ti number 0-based tile index
 function world:true_elevation(ti)
 	if self.is_land[ti] then -- If land, consider elevation and ice
-		if self.elevation[ti] > 0 then
-			return self.elevation[ti] + self.ice[ti]
-		else
-			return self.elevation[ti] * 0.001 + self.ice[ti] -- Subtract some of the ocean depth in order to give variation between some uniform ice tiles sitting on the ocean
-		end
-	end
-
-	-- If lake or ocean, consider water level of the lake + ice
-
-	if self:is_tile_waterbody_valid(ti) then
+		return self:true_elevation_for_waterflow(ti)
+	elseif self:is_tile_waterbody_valid(ti) then -- If lake or ocean, consider water level of the lake + ice
 		return self.waterbodies[self.waterbody_id_by_tile[ti]].waterlevel + self.ice[ti] + 0.0001
 	else
 		return 0
@@ -474,6 +473,52 @@ function world:_check_valid_indices()
 
 	return true
 end
+
+---------------------------------------------------------------------------------------------------
+
+-- function world:sort_by_lat_lon()
+-- 	local tiles = {}
+-- 	for id = 1, self.tile_count do
+-- 		tiles[id] = id - 1
+-- 	end
+
+-- 	table.sort(tiles, function(a, b)
+-- 		local a_colat = self.colatitude[a]
+-- 		local b_colat = self.colatitude[b]
+-- 		local a_minus_long = self.minus_longitude[a]
+-- 		local b_minus_long = self.minus_longitude[b]
+
+-- 		if a_colat == b_colat then
+-- 			return a_minus_long < b_minus_long
+-- 		else
+-- 			return a_colat < b_colat
+-- 		end
+-- 	end)
+
+-- 	for i, id in ipairs(tiles) do
+-- 		self.tiles_by_latlon[i - 1] = id
+-- 	end
+-- end
+
+-- ---@param callback fun(tile_index:number, world:table)
+-- function world:for_each_tile_by_latlon(callback)
+-- 	for ti = 0, self.tile_count - 1 do
+-- 		callback(self.tiles_by_latlon[ti], self)
+-- 	end
+-- end
+
+function world:sort_by_elevation_for_waterflow()
+	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(function(i) return self:true_elevation_for_waterflow(i) end, self.tile_count, true)
+end
+
+---@param callback fun(tile_index:number, world:table)
+function world:for_each_tile_by_elevation_for_waterflow(callback)
+	for ti = 0, self.tile_count - 1 do
+		callback(self.tiles_by_elevation_for_waterflow[ti], self)
+	end
+end
+
+---------------------------------------------------------------------------------------------------
 
 -- Careful here, not all arrays are of tile_count size (e.g. neighbors)
 function world:fill_ffi_array(array, val)
