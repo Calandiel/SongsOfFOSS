@@ -38,20 +38,24 @@ end
 local fu = require "game.file-utils"
 
 local function override_climate_data()
-	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
+	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data_by_elev.csv")
+	-- local logger = require("libsote.debug-loggers").get_climate_logger("d:/temp")
 
-	wg.world:for_each_tile_by_elevation(function(ti, _)
+	wg.world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
 		local row = climate_generator()
 		if row == nil then
 			error("Not enough rows in climate data")
 		end
 
-		wg.world.jan_temperature[ti] = tonumber(row[2])
-		wg.world.jul_temperature[ti] = tonumber(row[3])
-		wg.world.jan_rainfall[ti] = tonumber(row[4])
-		wg.world.jul_rainfall[ti] = tonumber(row[5])
-		wg.world.jan_humidity[ti] = tonumber(row[6])
-		wg.world.jul_humidity[ti] = tonumber(row[7])
+		wg.world.jan_temperature[ti] = tonumber(row[3])
+		wg.world.jul_temperature[ti] = tonumber(row[4])
+		wg.world.jan_rainfall[ti] = tonumber(row[5])
+		wg.world.jul_rainfall[ti] = tonumber(row[6])
+		wg.world.jan_humidity[ti] = tonumber(row[7])
+		wg.world.jul_humidity[ti] = tonumber(row[8])
+
+		-- local log_str = row[1] .. "," .. row[2] .. " --- " .. wg.world.colatitude[ti] .. "," .. wg.world.minus_longitude[ti] .. " --- " .. wg.world:true_elevation_for_waterflow(ti) .. " <-> " .. tonumber(row[11])
+		-- logger:log(log_str)
 	end)
 end
 
@@ -103,11 +107,14 @@ local function glaciers()
 
 	table.insert(prof_output, { profile_and_get(function() require "libsote.soils.gen-bias-matrix".run(wg.world) end, "gen-bias-matrix", 1) })
 	table.insert(prof_output, { profile_and_get(function() require "libsote.soils.gen-parent-material".run(wg.world) end, "gen-parent-material", 1) })
+	table.insert(prof_output, { profile_and_get(function() require "libsote.glacial-formation".run(wg.world) end, "glacial-formation", 1) })
 
 	log_profiling_data(prof_output, "glaciers")
 end
 
 local function gen_phase_02()
+	run_with_profiling(function() wg.world:sort_by_elevation_for_waterflow() end, "sort_by_elevation_for_waterflow")
+
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	initial_waterbodies()
