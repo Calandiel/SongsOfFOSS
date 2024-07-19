@@ -68,8 +68,12 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	local clay_percent = clay / total_soil
 
 	-- local log_str =  ""
-	-- log_str = log_str .. world.colatitude[ti] .. ", " .. world.minus_longitude[ti] .. "; "
-	-- log_str = log_str .. "te: " .. world:true_elevation(ti) .. "\n"
+	-- log_str = log_str .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; te: " .. world:true_elevation(ti) .. "; "
+	-- if is_land then
+	-- 	log_str = log_str .. "land\n"
+	-- else
+	-- 	log_str = log_str .. "water\n"
+	-- end
 	-- log_str = log_str .. "\tjanr: " .. world.jan_rainfall[ti] .. ", julr: " .. world.jul_rainfall[ti] .. ", m: " .. month .. " --> sr: " .. seasonal_rainfall .. "\n"
 	-- log_str = log_str .. "\tjant: " .. world.jan_temperature[ti] .. ", jult: " .. world.jul_temperature[ti] .. ", m: " .. month .. " --> st: " .. seasonal_temperature .. "\n"
 	-- log_str = log_str .. "\th: " .. seasonal_humidity .. "\n"
