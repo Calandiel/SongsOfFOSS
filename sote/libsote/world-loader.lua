@@ -201,6 +201,7 @@ function wl.dump_maps_from(world)
 	local image_rocks_data = love.image.newImageData(width, height)
 	local image_jan_rainfall_data = love.image.newImageData(width, height)
 	local image_jan_waterflow_data = love.image.newImageData(width, height)
+	local image_debug_data = love.image.newImageData(width, height)
 
 	local col = require "cpml".color
 
@@ -277,6 +278,10 @@ function wl.dump_maps_from(world)
 			end
 
 			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+
+			-- debug ---------------------------------------------------------
+			col_r, col_g, col_b = world:get_debug_color(q, r, face)
+			image_debug_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 		end
 	end
 
@@ -285,12 +290,14 @@ function wl.dump_maps_from(world)
 	local rocks_file_data = image_rocks_data:encode('png')
 	local jan_rainfall_file_data = image_jan_rainfall_data:encode('png')
 	local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
+	local jan_debug_file_data = image_debug_data:encode('png')
 
 	-- Write the FileData to a file
 	love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
 	love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
 	love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
 	love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
+	love.filesystem.write(world.seed .. '_debug.png', jan_debug_file_data)
 end
 
 return wl

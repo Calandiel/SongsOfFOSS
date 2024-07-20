@@ -10,4 +10,10 @@ function oi.rainfall_contrib_to_ice_depth(jan_rainfall, jul_rainfall)
 	return jan_rainfall + (jul_rainfall / 80)
 end
 
+-- the concept of "true elevation" seems to have various definitions throughout the original code
+-- for example, for water tiles, it might look at waterbody's waterlevel and ice, while the version used in glacial formation simply returns 0
+function oi.true_elevation(world, ti)
+	return world.is_land[ti] and world.elevation[ti] or 0
+end
+
 return oi

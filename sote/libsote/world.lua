@@ -74,6 +74,11 @@ function world:new(world_size, seed)
 	-- obj.tmp_float_6       = allocate_array("tmp_float_6", obj.tile_count, "float")
 	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
 	obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
+	obj.tmp_int_2         = allocate_array("tmp_int_2",   obj.tile_count, "int")
+
+	obj.debug_r = allocate_array("debug_r", obj.tile_count, "uint8_t")
+	obj.debug_g = allocate_array("debug_g", obj.tile_count, "uint8_t")
+	obj.debug_b = allocate_array("debug_b", obj.tile_count, "uint8_t")
 
 	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
@@ -404,6 +409,11 @@ function world:for_each_waterbody(callback)
 end
 
 ---------------------------------------------------------------------------------------------------
+
+function world:get_debug_color(q, r, face)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	return self.debug_r[index], self.debug_g[index], self.debug_b[index]
+end
 
 function world:_investigate_tile(q, r, face)
 	local investigate_index = self.coord[self:_key_from_coord(q, r, face)]
