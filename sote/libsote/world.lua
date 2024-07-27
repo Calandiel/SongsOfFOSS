@@ -57,6 +57,7 @@ function world:new(world_size, seed)
 	obj.jul_water_movement = allocate_array("jul_water_movement", obj.tile_count, "float")
 	obj.water_movement     = allocate_array("water_movement",     obj.tile_count, "float")
 	obj.ice                = allocate_array("ice",                obj.tile_count, "uint16_t")
+	obj.ice_age_ice        = allocate_array("ice_age_ice",        obj.tile_count, "uint8_t")
 	obj.snow               = allocate_array("snow",               obj.tile_count, "float")
 	obj.sand               = allocate_array("sand",               obj.tile_count, "uint16_t")
 	obj.silt               = allocate_array("silt",               obj.tile_count, "uint16_t")
@@ -298,6 +299,11 @@ end
 ---@param ti number 0-based tile index
 function world:soil_depth_raw(ti)
 	return self.sand[ti] + self.silt[ti] + self.clay[ti]
+end
+
+function world:get_ice(q, r, face)
+	local index = self.coord[self:_key_from_coord(q, r, face)]
+	return self.ice[index], self.ice_age_ice[index]
 end
 
 ---------------------------------------------------------------------------------------------------

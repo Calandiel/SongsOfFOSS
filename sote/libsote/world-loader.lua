@@ -98,6 +98,20 @@ local function color_from_rank(rank)
 	end
 end
 
+local function map_ice(ice)
+	if ice <= 0 then return 0 end
+
+	if ice > 3000 then
+		return 55
+	elseif ice > 1500 then
+		return 40
+	elseif ice > 750 then
+		return 25
+	else
+		return 10
+	end
+end
+
 local rock_layers = require "libsote.rock-layers"
 
 function wl.load_maps_from(world)
@@ -170,6 +184,11 @@ function wl.load_maps_from(world)
 		-- if waterflow > 2500.0 then
 		-- 	tile.has_river = true
 		-- end
+
+		-- ice ------------------------------------------------
+		local ice, ice_age_ice = world:get_ice(q, r, face)
+		tile.ice = map_ice(ice)
+		tile.ice_age_ice = map_ice(ice_age_ice)
 	end
 
 	local duration = love.timer.getTime() - start

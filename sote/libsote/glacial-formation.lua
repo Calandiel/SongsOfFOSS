@@ -24,7 +24,8 @@ local new_layer = {}
 local glacial_seeds_table = {}
 local sorted_glacial_seeds = {}
 local max_distance = 0
-local max_ice_flow = 0
+local max_ice = 0
+local max_ice_moved = 0
 
 local function length(t)
 	local count = 0
@@ -234,7 +235,7 @@ end
 local function calculate_initial_ice_depth()
 	local start = love.timer.getTime()
 
-	-- local max_ice_flow = 0
+	-- local max_ice = 0
 	world:for_each_tile(function(ti)
 	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
 		if glacial_seeds_table[ti] == nil then return end
@@ -246,7 +247,7 @@ local function calculate_initial_ice_depth()
 
 		-- log_str = log_str .. " ---> " .. ice_flow[ti]
 		-- logger:log(log_str)
-		-- max_ice_flow = math.max(max_ice_flow, ice_flow[ti])
+		-- max_ice = math.max(max_ice, ice_flow[ti])
 	end)
 
 	local duration = love.timer.getTime() - start
@@ -255,7 +256,7 @@ local function calculate_initial_ice_depth()
 	-- world:for_each_tile(function(ti)
 	-- 	set_debug(world, ti, 0, 0, 0)
 	-- 	if ice_flow[ti] == 0 then return end
-	-- 	local fraction = ice_flow[ti] / max_ice_flow
+	-- 	local fraction = ice_flow[ti] / max_ice
 	-- 	local red = fraction * 255
 	-- 	local blue = (1 - fraction) * 255
 	-- 	set_debug(world, ti, red, 0, blue)
@@ -300,7 +301,7 @@ local function process_ice_expansion(ice_ti, boost_ice)
 		ice_flow[ice_ti] = ice_flow[ice_ti] - ice_to_give
 		ice_moved[nti] = ice_moved[nti] + ice_to_give
 
-		max_ice_flow = math.max(max_ice_flow, ice_flow[nti])
+		-- max_ice = math.max(max_ice, ice_flow[nti])
 
 		if glacial_seeds_table[nti] ~= nil then return end
 
@@ -323,7 +324,7 @@ local function ice_expansion_loops(is_ice_age)
 
 	local start = love.timer.getTime()
 
-	max_ice_flow = 0
+	-- max_ice = 0
 
 	local num_interations = is_ice_age and 10 or 25 --* Ice ages have fewer iterations, since they take longer and need less precision
 	local boost_iterations = num_interations / 10
@@ -340,19 +341,39 @@ local function ice_expansion_loops(is_ice_age)
 	local duration = love.timer.getTime() - start
 	print("[glacial-formation] ice_expansion_loops: " .. tostring(duration * 1000) .. "ms")
 
-	world:for_each_tile(function(ti)
-		set_debug(world, ti, 0, 0, 0)
-		if ice_flow[ti] == 0 then return end
-		local fraction = ice_flow[ti] / max_ice_flow
-		local red = fraction * 255
-		local blue = (1 - fraction) * 255
-		set_debug(world, ti, red, 0, blue)
-	end)
+	-- world:for_each_tile(function(ti)
+	-- 	set_debug(world, ti, 0, 0, 0)
+	-- 	if ice_flow[ti] == 0 then return end
+	-- 	local fraction = ice_flow[ti] / max_ice
+	-- 	local red = fraction * 255
+	-- 	local blue = (1 - fraction) * 255
+	-- 	set_debug(world, ti, red, 0, blue)
+	-- end)
 
 	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
 	-- 	local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. " ---> " .. ice_flow[ti] .. ", " .. distance_from_edge[ti]
 	-- 	logger:log(log_str)
 	-- end)
+end
+
+local function set_permanent_ice_variables(is_ice_age)
+	local start = love.timer.getTime()
+
+	for ti, _ in pairs(glacial_seeds_table) do
+		max_ice = math.max(max_ice, ice_flow[ti])
+		max_ice_moved = math.max(max_ice_moved, ice_moved[ti])
+
+		if is_ice_age then
+			local converted_Ice_height = ice_flow[ti] / 100
+			converted_Ice_height = math.min(math.max(converted_Ice_height, 1), 250)
+			world.ice_age_ice[ti] = converted_Ice_height
+		else
+			world.ice[ti] = ice_flow[ti]
+		end
+	end
+
+	local duration = love.timer.getTime() - start
+	print("[glacial-formation] set_permanent_ice_variables: " .. tostring(duration * 1000) .. "ms")
 end
 
 local function reset_variables()
@@ -379,6 +400,7 @@ local function process_age(age_type)
 	calculate_initial_ice_depth()
 	sort_glacial_seeds()
 	ice_expansion_loops(is_ice_age)
+	set_permanent_ice_variables(is_ice_age)
 
 	reset_variables()
 end
@@ -405,7 +427,7 @@ function gm.run(world_obj)
 	world:fill_ffi_array(invasion_ticker, 0)
 
 	process_age(AGE_TYPES.ice_age)
-	-- process_age(AGE_TYPES.game_age)
+	process_age(AGE_TYPES.game_age)
 end
 
 return gm
