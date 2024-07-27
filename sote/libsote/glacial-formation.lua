@@ -12,7 +12,8 @@ local AGE_TYPES = {
 -- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local open_issues = require "libsote.glacial-open-issues"
 
-local glacial_seed
+local world
+-- local glacial_seed
 local ice_flow
 local ice_moved
 local distance_from_edge
@@ -20,7 +21,10 @@ local invasion_ticker
 
 local old_layer = {}
 local new_layer = {}
-local glacial_seed_table = {}
+local glacial_seeds_table = {}
+local sorted_glacial_seeds = {}
+local max_distance = 0
+local max_ice_flow = 0
 
 local function length(t)
 	local count = 0
@@ -28,13 +32,13 @@ local function length(t)
 	return count
 end
 
-local function set_debug(world, ti, r, g, b)
-	world.debug_r[ti] = r
-	world.debug_g[ti] = g
-	world.debug_b[ti] = b
+local function set_debug(world_obj, ti, r, g, b)
+	world_obj.debug_r[ti] = r
+	world_obj.debug_g[ti] = g
+	world_obj.debug_b[ti] = b
 end
 
-local function create_glacial_start_locations(world, is_ice_age)
+local function create_glacial_start_locations(is_ice_age)
 	local ice_age_factor = 5
 	if is_ice_age then ice_age_factor = -10 end --* Makes world colder for ice age
 
@@ -65,15 +69,16 @@ local function create_glacial_start_locations(world, is_ice_age)
 
 		local ice_depth = average_temp * -0.25 * open_issues.rainfall_contrib_to_ice_depth(jan_rainfall, jul_rainfall)
 		if ice_depth > 0 then
-			-- log_str = log_str .. "\tis seeded"
+			-- log_str = log_str .. "\tis seeded\n"
 			-- glacial_seed[ti] = true
-			glacial_seed_table[ti] = true
+			glacial_seeds_table[ti] = true
 			ice_flow[ti] = ice_depth
+			-- log_str = log_str .. "\t" .. average_temp .. ", " .. jan_rainfall .. ", " .. jul_rainfall .. " ---> " .. ice_depth
 
-			set_debug(world, ti, 0, 0, 255)
+			-- set_debug(world, ti, 0, 0, 255)
 		-- else
-			-- log_str = log_str .. "\tnot seeded, no ice"
-			-- glacial_seed[ti] = false
+		-- 	log_str = log_str .. "\tnot seeded, no ice"
+		-- 	glacial_seed[ti] = false
 		end
 		-- logger:log(log_str)
 	end)
@@ -87,10 +92,10 @@ local function create_glacial_start_locations(world, is_ice_age)
 	-- 		count = count + 1
 	-- 	end
 	-- end)
-	print("Glacial Seeds: " .. length(glacial_seed_table))
+	print("Glacial Seeds: " .. length(glacial_seeds_table))
 end
 
-local function find_glacial_perimeter(world)
+local function find_glacial_perimeter()
 	old_layer = {}
 
 	local start = love.timer.getTime()
@@ -109,13 +114,14 @@ local function find_glacial_perimeter(world)
 	-- 		distance_from_edge[ti] = 1
 	-- 	end
 	-- end)
-	for ti, _ in pairs(glacial_seed_table) do
+	for ti, _ in pairs(glacial_seeds_table) do
 		world:for_each_neighbor(ti, function(nti)
-			if glacial_seed_table[nti] ~= nil then return end
+			if glacial_seeds_table[nti] ~= nil then return end
+
 			old_layer[nti] = true
 			distance_from_edge[nti] = 1
 
-			set_debug(world, nti, 255, 0, 0)
+			-- set_debug(world, nti, 255, 0, 0)
 		end)
 	end
 	-- world:for_each_tile(function(ti)
@@ -140,7 +146,7 @@ local function find_glacial_perimeter(world)
 	print("Old Layer: " .. length(old_layer))
 end
 
-local function find_distance_of_each_glacier_tile_from_edge(world)
+local function find_distance_of_each_glacier_tile_from_edge()
 	local elevation_factor = 500
 	local base_expansion = 100
 	local expansion_threshold = 300
@@ -153,6 +159,7 @@ local function find_distance_of_each_glacier_tile_from_edge(world)
 	local num_tiles = length(old_layer)
 
 	while num_tiles > 0 do
+		-- is it ok to increment this here? or should it be at the end of the loop?
 		expansion_ticker = expansion_ticker + 1
 
 		--* Expanding layer
@@ -163,7 +170,7 @@ local function find_distance_of_each_glacier_tile_from_edge(world)
 			local attacked_neighbor = false
 
 			world:for_each_neighbor(oti, function(nti)
-				if glacial_seed_table[nti] == nil or distance_from_edge[nti] > 0 then return end
+				if glacial_seeds_table[nti] == nil or distance_from_edge[nti] > 0 then return end
 
 				attacked_neighbor = true
 
@@ -195,45 +202,188 @@ local function find_distance_of_each_glacier_tile_from_edge(world)
 		num_tiles = length(old_layer)
 	end
 
+	max_distance = expansion_ticker
+
 	local duration = love.timer.getTime() - start
 	print("[glacial-formation] find_distance_of_each_glacier_tile_from_edge: " .. tostring(duration * 1000) .. "ms")
 	print("Expansion Ticker: " .. expansion_ticker)
+	-- world:for_each_tile(function(ti)
+	-- 	if distance_from_edge[ti] == 0 then return end
+	-- 	local fraction = distance_from_edge[ti] / max_distance
+	-- 	local red = fraction * 255
+	-- 	local blue = (1 - fraction) * 255
+	-- 	set_debug(world, ti, red, 0, blue)
+	-- end)
+end
+
+local function sort_glacial_seeds()
+	local start = love.timer.getTime()
+
+	for ti, _ in pairs(glacial_seeds_table) do
+		table.insert(sorted_glacial_seeds, ti)
+	end
+
+	table.sort(sorted_glacial_seeds, function(a, b)
+		return distance_from_edge[a] > distance_from_edge[b]
+	end)
+
+	local duration = love.timer.getTime() - start
+	print("[glacial-formation] sort_glacial_seeds: " .. tostring(duration * 1000) .. "ms")
+end
+
+local function calculate_initial_ice_depth()
+	local start = love.timer.getTime()
+
+	-- local max_ice_flow = 0
+	world:for_each_tile(function(ti)
+	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
+		if glacial_seeds_table[ti] == nil then return end
+
+		-- local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. "\n"
+		-- log_str = log_str .. "\tice_flow: " .. ice_flow[ti] .. "; distance_from_edge: " .. distance_from_edge[ti]
+
+		open_issues.calculate_initial_ice_depth(world, ti)
+
+		-- log_str = log_str .. " ---> " .. ice_flow[ti]
+		-- logger:log(log_str)
+		-- max_ice_flow = math.max(max_ice_flow, ice_flow[ti])
+	end)
+
+	local duration = love.timer.getTime() - start
+	print("[glacial-formation] calculate_initial_ice_depth: " .. tostring(duration * 1000) .. "ms")
+
+	-- world:for_each_tile(function(ti)
+	-- 	set_debug(world, ti, 0, 0, 0)
+	-- 	if ice_flow[ti] == 0 then return end
+	-- 	local fraction = ice_flow[ti] / max_ice_flow
+	-- 	local red = fraction * 255
+	-- 	local blue = (1 - fraction) * 255
+	-- 	set_debug(world, ti, red, 0, blue)
+	-- end)
+end
+
+local function process_ice_expansion(ice_ti, boost_ice)
+	-- local log_str = "" .. world.colatitude[ice_ti] .. "," .. world.minus_longitude[ice_ti] .. "; " --.. world:true_elevation_for_waterflow(ice_ti)
+	-- log_str = log_str .. "(" .. world.elevation[ice_ti] .. ", " .. world.ice[ice_ti] .. "); " .. ice_ti .. " ---> " .. ice_flow[ice_ti] .. ", " .. distance_from_edge[ice_ti] .. "\n"
+
+	local can_flow_to_neighbors =
+		ice_flow[ice_ti] >= 25 and world.is_land[ice_ti] or
+		not world.is_land[ice_ti] and ice_flow[ice_ti] > -world.elevation[ice_ti]
+
+	-- log_str = log_str .. "\t" .. tostring(can_flow_to_neighbors) .. "\n"
+	-- if not can_flow_to_neighbors then logger:log(log_str) end
+
+	if not can_flow_to_neighbors then return end
+
+	local ultimate_elevation = open_issues.true_elevation(world, ice_ti) + ice_flow[ice_ti]
+	-- log_str = log_str .. "\t" .. ultimate_elevation .. "\n"
+
+	world:for_each_neighbor_random_start(ice_ti, function(nti)
+	-- world:for_each_neighbor(ice_ti, function(nti)
+		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
+		if ultimate_elevation <= neigh_ultimate_elev then return end
+
+		local elevation_diff = ultimate_elevation - neigh_ultimate_elev
+		local ice_available = ice_flow[ice_ti] / 3
+		local max_to_give = elevation_diff / 2
+		local ice_to_give = math.min(max_to_give, ice_available)
+
+		if distance_from_edge[ice_ti] > distance_from_edge[nti] then
+			if (boost_ice) then
+				ice_to_give = ice_to_give + ice_flow[ice_ti] / 40
+			end
+		else
+			ice_to_give = ice_to_give / 3
+		end
+
+		ice_flow[nti] = ice_flow[nti] + ice_to_give
+		ice_flow[ice_ti] = ice_flow[ice_ti] - ice_to_give
+		ice_moved[nti] = ice_moved[nti] + ice_to_give
+
+		max_ice_flow = math.max(max_ice_flow, ice_flow[nti])
+
+		if glacial_seeds_table[nti] ~= nil then return end
+
+		glacial_seeds_table[nti] = true
+
+		-- this is a bit odd, because:
+		--   1. we are adding to the table we are iterating over (is it safe or not?)
+		--   2. the table is sorted by distance, so we are changing the order of the table
+		table.insert(sorted_glacial_seeds, nti) -- is it safe or not?!
+	end)
+
+	-- logger:log(log_str)
+end
+
+local function ice_expansion_loops(is_ice_age)
+	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
+	-- 	local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. " ---> " .. ice_flow[ti] .. ", " .. distance_from_edge[ti]
+	-- 	logger:log(log_str)
+	-- end)
+
+	local start = love.timer.getTime()
+
+	max_ice_flow = 0
+
+	local num_interations = is_ice_age and 10 or 25 --* Ice ages have fewer iterations, since they take longer and need less precision
+	local boost_iterations = num_interations / 10
+
+	while num_interations > 0 do
+		num_interations = num_interations - 1
+		boost_iterations = boost_iterations - 1
+
+		for _, ice_ti in ipairs(sorted_glacial_seeds) do
+			process_ice_expansion(ice_ti, boost_iterations > 0)
+		end
+	end
+
+	local duration = love.timer.getTime() - start
+	print("[glacial-formation] ice_expansion_loops: " .. tostring(duration * 1000) .. "ms")
 
 	world:for_each_tile(function(ti)
-		if distance_from_edge[ti] == 0 then return end
-		local fraction = distance_from_edge[ti] / expansion_ticker
+		set_debug(world, ti, 0, 0, 0)
+		if ice_flow[ti] == 0 then return end
+		local fraction = ice_flow[ti] / max_ice_flow
 		local red = fraction * 255
 		local blue = (1 - fraction) * 255
 		set_debug(world, ti, red, 0, blue)
 	end)
+
+	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
+	-- 	local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. " ---> " .. ice_flow[ti] .. ", " .. distance_from_edge[ti]
+	-- 	logger:log(log_str)
+	-- end)
 end
 
-local function reset_variables(world)
-	world:fill_ffi_array(glacial_seed, false)
-	glacial_seed_table = {}
+local function reset_variables()
+	-- world:fill_ffi_array(glacial_seed, false)
+	glacial_seeds_table = {}
+	sorted_glacial_seeds = {}
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
 	world:fill_ffi_array(distance_from_edge, 0)
 	world:fill_ffi_array(invasion_ticker, 0)
 end
 
----@param world World
 ---@param age_type age_types
-local function process_age(world, age_type)
+local function process_age(age_type)
 	world:fill_ffi_array(world.debug_r, 0)
 	world:fill_ffi_array(world.debug_g, 0)
 	world:fill_ffi_array(world.debug_b, 0)
 
 	local is_ice_age = age_type == AGE_TYPES.ice_age
 
-	create_glacial_start_locations(world, is_ice_age)
-	find_glacial_perimeter(world)
-	find_distance_of_each_glacier_tile_from_edge(world)
+	create_glacial_start_locations(is_ice_age)
+	find_glacial_perimeter()
+	find_distance_of_each_glacier_tile_from_edge()
+	calculate_initial_ice_depth()
+	sort_glacial_seeds()
+	ice_expansion_loops(is_ice_age)
 
-	reset_variables(world)
+	reset_variables()
 end
 
-function gm.run(world)
+function gm.run(world_obj)
 	--* Before we even set seeds, we need to construct temp waterbodies to determine which ones are large, and which ones are small. Ocean waterbodies 
 	--* of a sufficient volume will have heat exchanging capacity and act as hard barriers for glacial expansion. Smaller waterbodies can simply 
 	--* be elligible to be seeds but have "stricter threshold."
@@ -241,20 +391,21 @@ function gm.run(world)
 
 	-- 2024.07.07: Above comment might not be relevant. Waterbodies are already defined by gen-initial-waterbodies and we will attempt to use them here instead of re-generating them.
 
-	glacial_seed = world.tmp_bool_1
+	world = world_obj
+	-- glacial_seed = world.tmp_bool_1
 	ice_flow = world.tmp_float_2
 	ice_moved = world.tmp_float_3
 	distance_from_edge = world.tmp_int_1
 	invasion_ticker = world.tmp_int_2
 
-	world:fill_ffi_array(glacial_seed, false)
+	-- world:fill_ffi_array(glacial_seed, false)
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
 	world:fill_ffi_array(distance_from_edge, 0)
 	world:fill_ffi_array(invasion_ticker, 0)
 
-	process_age(world, AGE_TYPES.ice_age)
-	process_age(world, AGE_TYPES.game_age)
+	process_age(AGE_TYPES.ice_age)
+	-- process_age(AGE_TYPES.game_age)
 end
 
 return gm

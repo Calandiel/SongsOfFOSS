@@ -1,5 +1,4 @@
-local world = {
-}
+local world = {}
 
 -- local transform = {
 --     -0.86615, 0,       -0.49979, 0,
@@ -13,7 +12,7 @@ local ffi_mem_tally = 0
 
 local function allocate_array(name, size, type)
 	ffi_mem_tally = ffi_mem_tally + size * ffi.sizeof(type) / 1024 / 1024
-	print("[world allocation] " .. name .. " size: " .. string.format("%.2f", size * ffi.sizeof(type) / 1024 / 1024) .. " MB")
+	-- print("[world allocation] " .. name .. " size: " .. string.format("%.2f", size * ffi.sizeof(type) / 1024 / 1024) .. " MB")
 	return ffi.new(type .. "[?]", size)
 end
 
@@ -166,13 +165,32 @@ function world:_set_neighbors(q, r, face, neighbors)
 end
 
 ---@param index number 0-based index
+function world:neighbors_count(index)
+	return self.neighbors[index * 6 + 5] == -1 and 5 or 6
+end
+
+---@param index number 0-based index
 ---@param callback fun(neighbor_tile_index:number)
 function world:for_each_neighbor(index, callback)
+	local neighbor_count = self:neighbors_count(index)
 	index = index * 6
-	local neighbor_count = self.neighbors[index + 5] == -1 and 5 or 6
 
 	for i = 0, neighbor_count - 1 do
 		callback(self.neighbors[index + i])
+	end
+end
+
+---@param index number 0-based index
+---@param callback fun(neighbor_tile_index:number)
+function world:for_each_neighbor_random_start(index, callback)
+	local neighbor_count = self:neighbors_count(index)
+	index = index * 6
+
+	local start = self.rng:random_int_max(neighbor_count)
+
+	for i = 0, neighbor_count - 1 do
+		local j = (start + i) % neighbor_count
+		callback(self.neighbors[index + j])
 	end
 end
 

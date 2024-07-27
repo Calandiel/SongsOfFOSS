@@ -24,7 +24,7 @@ local function heapify_iterative(get_primary, get_secondary, indices, n, i, desc
 			local l_primary = get_primary(l_index)
 			local i_primary = get_primary(i_index)
 
-			if (l_primary == i_primary) then
+			if (get_secondary and l_primary == i_primary) then
 				local l_secondary = get_secondary(l_index)
 				local i_secondary = get_secondary(i_index)
 				if (desc_secondary and l_secondary < i_secondary) or (not desc_secondary and l_secondary > i_secondary) then
@@ -41,7 +41,7 @@ local function heapify_iterative(get_primary, get_secondary, indices, n, i, desc
 			local r_primary = get_primary(r_index)
 			local l_primary = get_primary(l_index)
 
-			if (r_primary == l_primary) then
+			if (get_secondary and r_primary == l_primary) then
 				local r_secondary = get_secondary(r_index)
 				local l_secondary = get_secondary(l_index)
 				if (desc_secondary and r_secondary < l_secondary) or (not desc_secondary and r_secondary > l_secondary) then
