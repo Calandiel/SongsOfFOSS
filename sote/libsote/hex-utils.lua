@@ -28,8 +28,6 @@ end
 ---@param ws number
 ---@return number, number
 local function triangle_coords_to_hex_coords(tri_x, tri_y, tri_up, ws)
-	-- local hex_y = math.floor((tri_y + 1) / 3)
-
 	-- if pointing up
 	if (tri_up == 0) then
 		local offset_main_x = 0 + math.floor((tri_y + 1) / 3) -- Starting index
@@ -39,12 +37,6 @@ local function triangle_coords_to_hex_coords(tri_x, tri_y, tri_up, ws)
 		local offset_loop_y = mu.pos_mod(-tri_y + 2, 3) -- Offset of the sequence
 
 		return offset_main_x - math.floor((tri_x + offset_loop_x) / 3), offset_main_y - math.floor((tri_x + offset_loop_y) / 3)
-		-- local hex_y_adjusted = ws - math.floor((tri_y + 2) / 3) - hex_y
-		-- local tri_y_adjusted1 = mu.pos_mod(-tri_y + 1, 3)
-		-- local tri_y_adjusted2 = mu.pos_mod(-tri_y + 2, 3)
-		-- local hex_x = math.floor((tri_x + tri_y_adjusted1) / 3)
-
-		-- return hex_y - hex_x, hex_y_adjusted - math.floor((tri_x + tri_y_adjusted2) / 3)
 	end
 
 	-- if pointing down
@@ -55,68 +47,12 @@ local function triangle_coords_to_hex_coords(tri_x, tri_y, tri_up, ws)
 	local offset_loop_y = mu.pos_mod(-tri_y, 3)
 
 	return offset_main_x - math.floor((tri_x + offset_loop_x) / 3), offset_main_y - math.floor((tri_x + offset_loop_y) / 3)
-
-	-- local hex_y_adjusted = ws - 1 - hex_y - math.floor(tri_y / 3)
-	-- local tri_y_adjusted1 = mu.pos_mod(-tri_y + 1, 3)
-	-- local tri_y_adjusted2 = mu.pos_mod(-tri_y, 3)
-	-- local hex_x = math.floor((tri_x + tri_y_adjusted1) / 3)
-
-	-- return hex_y - hex_x, hex_y_adjusted - math.floor((tri_x + tri_y_adjusted2) / 3)
 end
 
 local latlon = require "game.latlon"
 local ico_defines = require "libsote.icosa-defines"
 
----@param lat number
----@param lon number longitudes are in the range [-pi, pi]
----@param ws number
----@return number, number, number
 function hu.latlon_to_hex_coords(lat, lon, ws)
-	local colatitude = latlon.lat_to_colat(-lat) -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
-
-	lon = lon + math.pi -- move from [-pi, pi] to [0, 2pi]
-
-	local spherical_coordinates_double = vec3(
-		math.sin(colatitude) * math.cos(lon),
-		math.cos(colatitude),
-		math.sin(colatitude) * math.sin(lon)
-	)
-
-	local faces = ico_defines.face_vertices
-	local vertices = ico_defines.vertices
-
-	local closest_distance = 1E+19
-	local closest_face_index = -1
-
-	for face_index = 1, 20 do
-		local vertex1 = vertices[faces[face_index][1]]
-		local vertex2 = vertices[faces[face_index][2]]
-		local vertex3 = vertices[faces[face_index][3]]
-
-		local distance_to_face_sq = (vertex1 + vertex2 + vertex3 - spherical_coordinates_double * 3):len2()
-
-		if distance_to_face_sq - eps < closest_distance then
-			closest_distance = distance_to_face_sq
-			closest_face_index = face_index
-		end
-	end
-
-	local face = closest_face_index
-	local face_vertex1 = vertices[faces[face][1]]
-	local face_vertex2 = vertices[faces[face][3]]
-	local face_vertex3 = vertices[faces[face][2]]
-
-	local face_normal = vec3.cross(face_vertex1 - face_vertex3, face_vertex2 - face_vertex3)
-	local point_on_face = spherical_coordinates_double * vec3.dot(face_normal, face_vertex3) / vec3.dot(face_normal, spherical_coordinates_double)
-	local u, v, _ = mu.barycentric_coordinates(point_on_face, face_vertex1, face_vertex2, face_vertex3)
-
-	local tri_x, tri_y, tri_up = get_triangle_coords(v, u, ws)
-	local q, r = triangle_coords_to_hex_coords(tri_x, tri_y, tri_up, ws)
-
-	return q, r, face
-end
-
-function hu.latlon_to_hex_coords_v2(lat, lon, ws, latlon_logger)
 	local colat = latlon.lat_to_colat(-lat) -- using -lat to flip the world vertically, so it matches the love2d y axis orientation
 	colat = math.pi - colat
 
@@ -127,7 +63,6 @@ function hu.latlon_to_hex_coords_v2(lat, lon, ws, latlon_logger)
 		math.cos(colat),
 		math.sin(colat) * math.sin(lon)
 	)
-	-- latlon_logger:log("\tcart: " .. mu.vec3_to_string(cart))
 
 	local min_dist = 10000000000000000000.0
 	local id = -1
@@ -145,7 +80,6 @@ function hu.latlon_to_hex_coords_v2(lat, lon, ws, latlon_logger)
 	end
 
 	local face = id
-	-- latlon_logger:log("\tface: " .. face)
 
 	local p1 = verts[faces[face][1]]
 	local v1 = vec2(0, 0)
@@ -159,20 +93,15 @@ function hu.latlon_to_hex_coords_v2(lat, lon, ws, latlon_logger)
 	local pp1 = p1 - p3
 	local pp2 = p2 - p3
 	local norm = vec3.cross(pp1, pp2)
-	-- latlon_logger:log("\tnorm: " .. mu.vec3_to_string(norm))
 
 	cart = cart * vec3.dot(norm, p3) / vec3.dot(norm, cart)
-	-- latlon_logger:log("\tcart: " .. mu.vec3_to_string(cart))
 
 	local weight1, weight2, weight3 = mu.barycentric_coordinates(cart, p1, p2, p3)
-	-- latlon_logger:log("\tweights: " .. mu.num_to_string(weight1) .. ", " .. mu.num_to_string(weight2) .. ", " .. mu.num_to_string(weight3))
 	local result = v1 * weight1 + v2 * weight2 + v3 * weight3
 	result.y = 1 - result.x - result.y
-	-- latlon_logger:log("\tresult: " .. mu.vec2_to_string(result))
 
 	local tri_x, tri_y, tri_up = get_triangle_coords(result.x, result.y, ws)
 	local q, r = triangle_coords_to_hex_coords(tri_x, tri_y, tri_up, ws)
-	-- latlon_logger:log("\tq: " .. q .. ", r: " .. r)
 
 	return q, r, face
 end

@@ -39,44 +39,27 @@ local function gen_water_movement_rank(val)
 	end
 end
 
--- local rank_0_count = 0
--- local rank_1_count = 0
--- local rank_2_count = 0
--- local rank_3_count = 0
--- local rank_4_count = 0
--- local rank_5_count = 0
--- local rank_6_count = 0
--- local rank_7_count = 0
+-- local hydro_open_issues = require "libsote.hydrology.open-issues"
 
-local hydro_open_issues = require "libsote.hydrology.open-issues"
-
-local function process_rank(rank)
-	if rank == 0 then
-		-- rank_0_count = rank_0_count + 1
-		return 0
-	elseif rank == 1 then
-		-- rank_1_count = rank_1_count + 1
-		return 800
-	elseif rank == 2 then
-		-- rank_2_count = rank_2_count + 1
-		return 2000
-	elseif rank == 3 then
-		-- rank_3_count = rank_3_count + 1
-		return 5259
-	elseif rank == 4 then
-		-- rank_4_count = rank_4_count + 1
-		return 11250
-	elseif rank == 5 then
-		-- rank_5_count = rank_5_count + 1
-		return 20000
-	elseif rank == 6 then
-		-- rank_6_count = rank_6_count + 1
-		return 30000
-	elseif rank == 7 then
-		-- rank_7_count = rank_7_count + 1
-		return hydro_open_issues.waterflow_for_rank_7()
-	end
-end
+-- local function process_rank(rank)
+-- 	if rank == 0 then
+-- 		return 0
+-- 	elseif rank == 1 then
+-- 		return 800
+-- 	elseif rank == 2 then
+-- 		return 2000
+-- 	elseif rank == 3 then
+-- 		return 5259
+-- 	elseif rank == 4 then
+-- 		return 11250
+-- 	elseif rank == 5 then
+-- 		return 20000
+-- 	elseif rank == 6 then
+-- 		return 30000
+-- 	elseif rank == 7 then
+-- 		return hydro_open_issues.waterflow_for_rank_7()
+-- 	end
+-- end
 
 local function color_from_rank(rank)
 	if rank == 0 then
@@ -98,19 +81,19 @@ local function color_from_rank(rank)
 	end
 end
 
-local function map_ice(ice)
-	if ice <= 0 then return 0 end
+-- local function map_ice(ice)
+-- 	if ice <= 0 then return 0 end
 
-	if ice > 3000 then
-		return 55
-	elseif ice > 1500 then
-		return 40
-	elseif ice > 750 then
-		return 25
-	else
-		return 10
-	end
-end
+-- 	if ice > 3000 then
+-- 		return 55
+-- 	elseif ice > 1500 then
+-- 		return 40
+-- 	elseif ice > 750 then
+-- 		return 25
+-- 	else
+-- 		return 10
+-- 	end
+-- end
 
 local rock_layers = require "libsote.rock-layers"
 
@@ -120,26 +103,12 @@ function wl.load_maps_from(world)
 	for _, tile in pairs(WORLD.tiles) do
 		local q, r, face = world:get_tile_coord(tile.tile_id)
 
-		-- local sqlat, sqlon = tile:latlon()
-		-- local hexlat, hexlon = world:get_latlon(q, r, face)
-		-- print("sq latlon", sqlat, sqlon, "hex latlon", hexlat, hexlon)
-
-		local generated_elev = world:get_elevation(q, r, face)
 		local is_land = world:get_is_land(q, r, face)
-		local elev_as_grey = elev_to_gray(generated_elev, is_land)
 
-		local sea_level = 94
-		local elev = elev_as_grey - sea_level
-		if elev < 0 then
-			elev = elev / sea_level * 8000
-		else
-			elev = elev / (255 - sea_level) * 8000
-		end
-
-		tile.elevation = elev
+		tile.elevation = world:get_elevation(q, r, face)
 		tile.is_land = is_land
 
-		if tile.is_land then
+		if is_land then
 			tile.elevation = math.max(1, tile.elevation)
 			tile.waterlevel = 0
 		else
@@ -170,9 +139,7 @@ function wl.load_maps_from(world)
 
 		local waterflow = 0
 		if is_land then
-			local water_movement = world:get_water_movement(q, r, face)
-			local rank = gen_water_movement_rank(water_movement)
-			waterflow = process_rank(rank)
+			waterflow = world:get_water_movement(q, r, face)
 		end
 
 		--tile.is_land = jan_is_land or jul_is_land
@@ -186,36 +153,19 @@ function wl.load_maps_from(world)
 		-- end
 
 		-- ice ------------------------------------------------
-		local ice, ice_age_ice = world:get_ice(q, r, face)
-		tile.ice = map_ice(ice)
-		tile.ice_age_ice = map_ice(ice_age_ice)
+		tile.ice, tile.ice_age_ice = world:get_ice(q, r, face)
 	end
 
 	local duration = love.timer.getTime() - start
 	print("[world-loader] loaded maps: " .. tostring(duration * 1000) .. "ms")
-
-	-- print("Rank 0: " .. rank_0_count)
-	-- print("Rank 1: " .. rank_1_count)
-	-- print("Rank 2: " .. rank_2_count)
-	-- print("Rank 3: " .. rank_3_count)
-	-- print("Rank 4: " .. rank_4_count)
-	-- print("Rank 5: " .. rank_5_count)
-	-- print("Rank 6: " .. rank_6_count)
-	-- print("Rank 7: " .. rank_7_count)
 end
 
 local hexu = require "libsote.hex-utils"
 -- local cu = require "game.climate.utils"
 
--- local data_loader = require("libsote.debug_data_loader")
--- data_loader.loadDataFromFile("D:/temp/sote_output.txt")
-
 function wl.dump_maps_from(world)
-	-- print(love.filesystem.getSaveDirectory())
-	-- local latlon_logger = require "libsote.debug-loggers".get_latlon_logger("d:/temp")
-
-	local width = 1600
-	local height = 800
+	local width = 2000
+	local height = 1000
 	local image_elevation_data = love.image.newImageData(width, height)
 	local image_rocks_data = love.image.newImageData(width, height)
 	local image_jan_rainfall_data = love.image.newImageData(width, height)
@@ -226,17 +176,13 @@ function wl.dump_maps_from(world)
 
 	for x = 0, width - 1 do
 		for y = 0, height - 1 do
-			local lon = ((x + 0.5) / width * 2) * math.pi -- (x + 0.5) / width * 2 - 1 to align with ich.io sote, no -1 otherwise
+			local lon = ((x + 0.5) / width * 2 - 1) * math.pi -- (x + 0.5) / width * 2 - 1 to align with ich.io sote, no -1 otherwise
 			local lat = ((y + 0.5) / height - 0.5) * math.pi
 			local q, r, face = hexu.latlon_to_hex_coords(lat, lon, world.size)
-			-- latlon_logger:log(x .. " " .. y .. " " .. lat .. " " .. lon)
 
 			-- elevation -----------------------------------------------------
-
 			local generated_elev = world:get_elevation(q, r, face)
-			-- local imported_vals = data_loader.getValuesForCoordinates(x, y)
 			local is_land = world:get_is_land(q, r, face)
-			-- local is_land = imported_vals[5]
 			local elev_as_grey = elev_to_gray(generated_elev, is_land)
 
 			local col_r = elev_as_grey / 255
@@ -246,7 +192,6 @@ function wl.dump_maps_from(world)
 			image_elevation_data:setPixel(x, y, col_r, col_g, col_b, 1)
 
 			-- rocks ---------------------------------------------------------
-
 			local rock_type = world:get_rock_type(q, r, face)
 			local rock_layer_index = world:get_rock_layer(q, r, face)
 			local rock_layer = rock_layers[rock_type][rock_layer_index]
@@ -264,7 +209,6 @@ function wl.dump_maps_from(world)
 			image_rocks_data:setPixel(x, y, col_r, col_g, col_b, 1)
 
 			-- climate -------------------------------------------------------
-
 			if is_land then
 				local r_ja, t_ja, r_ju, t_ju = world:get_climate_data(q, r, face, true)
 				-- local r_ja, t_ja, r_ju, t_ju = cu.get_climate_data(lat, lon, generated_elev)
@@ -281,7 +225,6 @@ function wl.dump_maps_from(world)
 			image_jan_rainfall_data:setPixel(x, y, col_r, col_g, col_b, 1)
 
 			-- water movement ------------------------------------------------
-
 			col_r, col_g, col_b = 2, 8, 209
 			if is_land then
 				local water_movement = world:get_water_movement(q, r, face)

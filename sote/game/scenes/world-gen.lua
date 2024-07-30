@@ -83,45 +83,6 @@ function wg.init()
 
 	wg.coroutine = coroutine.create(wg.generate_coro)
 	coroutine.resume(wg.coroutine)
-
-	-- local latlon_logger = require "libsote.debug-loggers".get_latlon_logger("d:/temp")
-	-- local hexu = require "libsote.hex-utils"
-	-- -- local ico_defines = require "libsote.icosa-defines"
-	-- -- for fi = 1, 20 do
-	-- -- 	latlon_logger:log("Face " .. fi)
-	-- -- 	local vi1, vi2, vi3 = ico_defines.face_vertices[fi][1], ico_defines.face_vertices[fi][2], ico_defines.face_vertices[fi][3]
-	-- -- 	local v1, v2, v3 = ico_defines.vertices[vi1], ico_defines.vertices[vi2], ico_defines.vertices[vi3]
-	-- -- 	latlon_logger:log("\t" .. v1.x .. ", " .. v1.y .. ", " .. v1.z)
-	-- -- 	latlon_logger:log("\t" .. v2.x .. ", " .. v2.y .. ", " .. v2.z)
-	-- -- 	latlon_logger:log("\t" .. v3.x .. ", " .. v3.y .. ", " .. v3.z)
-	-- -- 	local c = ico_defines.centers[fi]
-	-- -- 	latlon_logger:log("\t" .. c.x .. ", " .. c.y .. ", " .. c.z)
-	-- -- end
-	-- local pi = 3.1415927410125732
-	-- local width = 2000
-	-- local height = 1000
-	-- local index = 0
-	-- for i = 0, width - 1 do
-	-- 	for j = 0, height - 1 do
-	-- 		local y = math.floor(index / width)
-	-- 		local x = index - y * width
-
-	-- 		local lon = ((x + 0.5) / width * 2 - 1) * pi -- (x + 0.5) / width * 2 - 1 to align with ich.io sote, no -1 otherwise
-	-- 		local lat = ((y + 0.5) / height - 0.5) * pi
-	-- 		-- latlon_logger:log(x .. " " .. y .. " " .. string.format("%.17f", lon) .. " " .. string.format("%.17f", lat))
-	-- 		local q, r, face = hexu.latlon_to_hex_coords_v2(lat, lon, 183, latlon_logger)
-	-- 		local s = -(q + r)
-	-- 		local is_valid = q - s <= 183 and r - q and 183 and s - r <= 183
-	-- 		if not is_valid then
-	-- 			-- latlon_logger:log("\tInvalid: " .. x .. " " .. y .. " " .. q .. " " .. r .. " " .. face)
-	-- 			latlon_logger:log(x .. " " .. y .. " " .. q .. " " .. r .. " " .. face)
-	-- 		end
-	-- 		-- latlon_logger:log(x .. " " .. y .. " " .. string.format("%.17f", lon) .. " " .. string.format("%.17f", lat) .. " " .. q .. " " .. r .. " " .. face)
-	-- 		index = index + 1
-	-- 	end
-	-- end
-	-- latlon_logger:close()
-	-- print("Done logging latlon")
 end
 
 local prof = require "libsote.profiling-helper"
