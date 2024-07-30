@@ -100,6 +100,10 @@ local function process_tile(ti, world)
 	--* We need to have a soil depth factor multiplied into the equation for mineral nutrients.
 end
 
+--* Okay so... Mineral need to have a quantity relative to the total mass of the soil. So theoretically it should be represented as a percentage. Initially
+--* when we first weather away the parent material it can be expressed as 0 - 100 percent. Basalts will be super high where as quartz will be super low...
+--* Then the mineral nutrient value get transported with the sediment load... Let's see if we can get this first part done correctly first!
+
 function gpm.run(world)
 	world:for_each_tile(function(ti)
 		process_tile(ti, world)

@@ -10,7 +10,7 @@ local AGE_TYPES = {
 }
 
 -- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
-local open_issues = require "libsote.glacial-open-issues"
+local open_issues = require "libsote.glaciation.open-issues"
 
 local world
 -- local glacial_seed
