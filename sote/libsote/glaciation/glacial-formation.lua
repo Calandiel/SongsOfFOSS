@@ -11,11 +11,14 @@ local AGE_TYPES = {
 
 -- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local open_issues = require "libsote.glaciation.open-issues"
+local rock_qualities = require "libsote.rock-qualities"
 
 local world
 -- local glacial_seed
 local ice_flow
 local ice_moved
+local texture_material
+local material_richness
 local distance_from_edge
 local invasion_ticker
 
@@ -376,6 +379,37 @@ local function set_permanent_ice_variables(is_ice_age)
 	print("[glacial-formation] set_permanent_ice_variables: " .. tostring(duration * 1000) .. "ms")
 end
 
+local function creating_material_from_glacial_action()
+	local start = love.timer.getTime()
+
+	for ti, _ in pairs(glacial_seeds_table) do
+		--* Calculate material that is generated from ice movement
+		local _, _, _, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(world.rock_type[ti], 0, 0, 0, 0, 0, 0) --* mineral_richness acts as multiplier based on bedrock
+
+		texture_material[ti] = ice_moved[ti] * rock_mass_conversion * rock_weathering_rate / 100
+		material_richness[ti] = texture_material[ti] * mineral_richness / 100 / 2 --* Reducing mineral richness of glacial silt by / 2
+	end
+
+	local duration = love.timer.getTime() - start
+	print("[glacial-formation] creating_material_from_glacial_action: " .. tostring(duration * 1000) .. "ms")
+end
+
+local function push_material_to_the_melt_zones()
+	local start = love.timer.getTime()
+
+	local iterate_down = max_distance
+	while iterate_down > 0 do
+		for ti, _ in pairs(glacial_seeds_table) do
+			if distance_from_edge[ti] ~= iterate_down or distance_from_edge[ti] <= 0 then return end
+		end
+
+		iterate_down = iterate_down - 1
+	end
+
+	local duration = love.timer.getTime() - start
+	print("[glacial-formation] push_material_to_the_melt_zones: " .. tostring(duration * 1000) .. "ms")
+end
+
 local function reset_variables()
 	-- world:fill_ffi_array(glacial_seed, false)
 	glacial_seeds_table = {}
@@ -401,6 +435,8 @@ local function process_age(age_type)
 	sort_glacial_seeds()
 	ice_expansion_loops(is_ice_age)
 	set_permanent_ice_variables(is_ice_age)
+	creating_material_from_glacial_action()
+	push_material_to_the_melt_zones()
 
 	reset_variables()
 end
@@ -417,6 +453,8 @@ function gm.run(world_obj)
 	-- glacial_seed = world.tmp_bool_1
 	ice_flow = world.tmp_float_2
 	ice_moved = world.tmp_float_3
+	texture_material = world.tmp_float_4
+	material_richness = world.tmp_float_5
 	distance_from_edge = world.tmp_int_1
 	invasion_ticker = world.tmp_int_2
 

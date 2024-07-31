@@ -74,7 +74,7 @@ local function process_tile(ti, world)
 	local weathering_multiplier = base_weathering + ice_wedging_weathering + waterflow_weathering + biological_weathering --* The intensity of the weathering process
 	local base_weathered_rock = weathering_multiplier * weathered_volume_tuner
 
-	local sand_disposed, silt_disposed, clay_disposed, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(rock_type)
+	local sand_disposed, silt_disposed, clay_disposed, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(rock_type, 34, 33, 33, 0, 1, 1)
 	if not is_volcanic_rock then mineral_richness = mineral_richness * slope_weathering end
 
 	local final_weathered_rock = base_weathered_rock * rock_mass_conversion * rock_weathering_rate

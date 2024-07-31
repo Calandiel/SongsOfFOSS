@@ -133,10 +133,10 @@ rock_characteristics_by_rock_type[rock_types.basic_volcanics] = rock_characteris
 	mineral_nutrients = 150
 }
 
-function rq.get_characteristics_for_rock(rock_type)
+function rq.get_characteristics_for_rock(rock_type, def_sand, def_silt, def_clay, def_mineral_nutrients, def_mass_conversion, def_weathering_rate)
 	local characteristics = rock_characteristics_by_rock_type[rock_type]
 	if characteristics == nil then
-		return 34, 33, 33, 0, 1, 1
+		return def_sand, def_silt, def_clay, def_mineral_nutrients, def_mass_conversion, def_weathering_rate
 	end
 
 	return characteristics.sand, characteristics.silt, characteristics.clay, characteristics.mineral_nutrients, characteristics.mass_conversion, characteristics.weathering_rate
