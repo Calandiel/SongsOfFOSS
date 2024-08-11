@@ -299,7 +299,7 @@ function pla.get_shader()
 
 		vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord)
 		{
-			float noise_100  = smooth_noise(Position.xyz * 1000.0);
+			float noise_100  = smooth_noise(Position.xyz * 1000.0); // DO NOT FORGET TO PUT BACK 1000.0
 			float noise_100_2  = smooth_noise_2(Position.xyz * 1000.0);
 			float noise_100_3 = noise_100 - noise_100_2;
 			//float noise_250  = smooth_noise(-Position.xyz * 250.0);
@@ -328,7 +328,7 @@ function pla.get_shader()
 			//float noise_amplitude_multiplier = abs(sea_ratio - 0.5) * 2.0;
 
 			vec3 original_position = Position.xyz;
-			vec3 shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.005; //* noise_amplitude_multiplier;
+			vec3 shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.0015; //* 0.005; //* noise_amplitude_multiplier;
 			vec3 slightly_shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.001;
 
 			float phi = asin(original_position.y); // sqrt(sqrt(1 - original_position.y * original_position.y));
@@ -409,12 +409,15 @@ function pla.get_shader()
 
 			//return vec4(sprawl_heat, sprawl_heat, sprawl_heat, 1);
 			if (show_terrain > 0.5) {
-				vec4 average_texture = texcolor;
 				float index_scaler = 1.0 / 64.0;
-				float counter = 1.0;
+
+
+
+
+				float counter = 0.0;
 				int N = 2;
-				float shift_unit = 0.0005;
-				//float shift_unit = 0.0015;
+				//float shift_unit = 0.0005;
+				float shift_unit = 0.0010;
 
 				//vec2 origin_pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
 				vec2 origin_new_uv = shifted_texcoord; //+ origin_pixel_center_shift;
@@ -422,6 +425,9 @@ function pla.get_shader()
 				float origin_is_sea = Texel(texture_index_cubemap, origin_texcoord).b;
 
 				float is_coast = 0.f;
+
+				float counter_land = 0.f;
+				float counter_sea = 0.f;
 
 				//detecting coast:
 				for (int i = -N; i <= N; i++) {
@@ -435,41 +441,71 @@ function pla.get_shader()
 
 							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
 
-							if (target_is_sea != origin_is_sea) {
-								is_coast = 1.0;
+							if (target_is_sea > 0.5f) {
+								counter_sea += 1.0;
+							} else {
+								counter_land += 1.0;
 							}
 						}
 					}
 				}
 
-				for (int i = -N; i <= N; i++) {
-					for (int j = -N; j <= N; j++) {
-						for (int k = -N; j <= N; j++) {
-							vec3 new_position = shifted_position + vec3(i, j, k) * shift_unit;
-							float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
-							//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-							vec2 new_uv = cartesian_to_uv(new_position, new_face);// + pixel_center_shift;
-							vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
+				vec4 average_texture;
 
-							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
+				if (counter_land > counter_sea) {
+					if (counter_sea > 0.f) {
+						is_coast = 1.f;
+					}
+				}
 
-							float sprawl_heat = Texel(texture_index_cubemap, new_texcoord).g;
-							if (!((target_is_sea == 1.0) && (is_coast == 1.0))) {
-								if ((Texel(texture_index_cubemap, new_texcoord).r > 0)) {
-									float texture_index = Texel(texture_index_cubemap, new_texcoord).r / index_scaler - 1.0;
-									average_texture += sample_texture_atlas_by_image_index(texture_index, fract(phi * 200), fract(psi * 200));
 
-									vec4 sprawl_texture = sample_texture_atlas_by_image_index(29.0, fract(phi * 200), fract(psi * 200));
-									float sprawl_weight = sprawl_heat * sprawl_heat * sprawl_frequency * 10.0;
-									average_texture += sprawl_texture * sprawl_weight;
+				if (counter_land == 0.f || counter_sea == 0.f) {
+					// float texture_index = Texel(texture_index_cubemap, origin_texcoord).r / index_scaler - 1.0;
+					// average_texture += sample_texture_atlas_by_image_index(texture_index, fract(phi * 200), fract(psi * 200));
+					// counter += 1.f;
 
-									counter += 1 + sprawl_heat * sprawl_weight;
+					if (counter_sea > 0.f) {
+						average_texture += sample_texture_atlas_by_image_index(13.f, fract(phi * 200), fract(psi * 200));
+						counter += 1.f;
+					}
+				} else {
+					float total_score = counter_land + counter_sea;
+
+					float dist_sea = counter_sea / total_score;
+					float dist_land = counter_land / total_score;
+
+					average_texture += sample_texture_atlas_by_image_index(13.f, fract(phi * 200), fract(psi * 200)) * dist_sea;
+					average_texture += sample_texture_atlas_by_image_index(4.0, fract(phi * 200), fract(psi * 200)) * dist_land;
+
+					counter += 1.f;
+				}
+
+
+				if (counter_land > counter_sea) {
+					for (int i = -N; i <= N; i++) {
+						for (int j = -N; j <= N; j++) {
+							for (int k = -N; j <= N; j++) {
+								vec3 new_position = shifted_position + vec3(i, j, k) * shift_unit;
+								float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
+								//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+								vec2 new_uv = cartesian_to_uv(new_position, new_face);// + pixel_center_shift;
+								vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
+
+								float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
+
+								float sprawl_heat = Texel(texture_index_cubemap, new_texcoord).g;
+								if (!((target_is_sea == 1.0) && (is_coast == 1.0))) {
+									if ((Texel(texture_index_cubemap, new_texcoord).r > 0)) {
+										float texture_index = Texel(texture_index_cubemap, new_texcoord).r / index_scaler - 1.0;
+										average_texture += sample_texture_atlas_by_image_index(texture_index, fract(phi * 200), fract(psi * 200));
+
+										vec4 sprawl_texture = sample_texture_atlas_by_image_index(29.0, fract(phi * 200), fract(psi * 200));
+										float sprawl_weight = sprawl_heat * sprawl_heat * sprawl_frequency * 10.0;
+										average_texture += sprawl_texture * sprawl_weight;
+
+										counter += 1 + sprawl_heat * sprawl_weight;
+									}
 								}
-							}
-
-							if (target_is_sea != origin_is_sea) {
-								average_texture += sample_texture_atlas_by_image_index(4.0, fract(phi * 200), fract(psi * 200)) * 2.0;
-								counter += 2.0;
 							}
 						}
 					}
