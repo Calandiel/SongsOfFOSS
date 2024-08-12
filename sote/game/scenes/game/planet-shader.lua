@@ -89,14 +89,14 @@ function pla.get_shader()
 			);
 		}
 
-		float rand_3_1(vec3 v) {
-			return fract(sin(
-				dot(
-					v,
-					vec3(0.9898, 78.233, 34.153546))
-				) * 443758.5553123
-			);
-		}
+		//float rand_3_1(vec3 v) {
+		//	return fract(sin(
+		//		dot(
+		//			v,
+		//			vec3(0.9898, 78.233, 34.153546))
+		//		) * 443758.5553123
+		//	);
+		//}
 
 		float rand_3_1_2(vec3 v) {
 			return fract(sin(
@@ -107,37 +107,11 @@ function pla.get_shader()
 			);
 		}
 
-		float smooth_noise(vec3 v) {
-			vec3 integer_part = floor(v);
-			vec3 fractional_part = fract(v);
-
-			vec3 smooth_step = fractional_part
-				* fractional_part
-				* (3.0 - 2.0 * fractional_part);
-
-			float local_value = rand_3_1(integer_part);
-
-			float r_0_0_0 = rand_3_1(integer_part + vec3(0, 0, 0));
-			float r_0_0_1 = rand_3_1(integer_part + vec3(0, 0, 1));
-			float r_0_1_0 = rand_3_1(integer_part + vec3(0, 1, 0));
-			float r_0_1_1 = rand_3_1(integer_part + vec3(0, 1, 1));
-			float r_1_0_0 = rand_3_1(integer_part + vec3(1, 0, 0));
-			float r_1_0_1 = rand_3_1(integer_part + vec3(1, 0, 1));
-			float r_1_1_0 = rand_3_1(integer_part + vec3(1, 1, 0));
-			float r_1_1_1 = rand_3_1(integer_part + vec3(1, 1, 1));
-
-			return
-				  r_0_0_0 * (1 - smooth_step.x) * (1 - smooth_step.y) * (1 - smooth_step.z)
-				+ r_0_0_1 * (1 - smooth_step.x) * (1 - smooth_step.y) * (smooth_step.z)
-				+ r_0_1_0 * (1 - smooth_step.x) * (smooth_step.y) * (1 - smooth_step.z)
-				+ r_0_1_1 * (1 - smooth_step.x) * (smooth_step.y) * (smooth_step.z)
-				+ r_1_0_0 * (smooth_step.x) * (1 - smooth_step.y) * (1 - smooth_step.z)
-				+ r_1_0_1 * (smooth_step.x) * (1 - smooth_step.y) * (smooth_step.z)
-				+ r_1_1_0 * (smooth_step.x) * (smooth_step.y) * (1 - smooth_step.z)
-				+ r_1_1_1 * (smooth_step.x) * (smooth_step.y) * (smooth_step.z);
+		float rand_3_1(vec3 v, vec3 dot_with, float mult) {
+			return fract(sin(dot(v, dot_with)) * mult);
 		}
 
-		float smooth_noise_2(vec3 v) {
+		float smooth_noise(vec3 v, vec3 dot_with, float mult) {
 			vec3 integer_part = floor(v);
 			vec3 fractional_part = fract(v);
 
@@ -145,16 +119,16 @@ function pla.get_shader()
 				* fractional_part
 				* (3.0 - 2.0 * fractional_part);
 
-			float local_value = rand_3_1(integer_part);
+			float local_value = rand_3_1(integer_part, dot_with, mult);
 
-			float r_0_0_0 = rand_3_1_2(integer_part + vec3(0, 0, 0));
-			float r_0_0_1 = rand_3_1_2(integer_part + vec3(0, 0, 1));
-			float r_0_1_0 = rand_3_1_2(integer_part + vec3(0, 1, 0));
-			float r_0_1_1 = rand_3_1_2(integer_part + vec3(0, 1, 1));
-			float r_1_0_0 = rand_3_1_2(integer_part + vec3(1, 0, 0));
-			float r_1_0_1 = rand_3_1_2(integer_part + vec3(1, 0, 1));
-			float r_1_1_0 = rand_3_1_2(integer_part + vec3(1, 1, 0));
-			float r_1_1_1 = rand_3_1_2(integer_part + vec3(1, 1, 1));
+			float r_0_0_0 = rand_3_1(integer_part + vec3(0, 0, 0), dot_with, mult);
+			float r_0_0_1 = rand_3_1(integer_part + vec3(0, 0, 1), dot_with, mult);
+			float r_0_1_0 = rand_3_1(integer_part + vec3(0, 1, 0), dot_with, mult);
+			float r_0_1_1 = rand_3_1(integer_part + vec3(0, 1, 1), dot_with, mult);
+			float r_1_0_0 = rand_3_1(integer_part + vec3(1, 0, 0), dot_with, mult);
+			float r_1_0_1 = rand_3_1(integer_part + vec3(1, 0, 1), dot_with, mult);
+			float r_1_1_0 = rand_3_1(integer_part + vec3(1, 1, 0), dot_with, mult);
+			float r_1_1_1 = rand_3_1(integer_part + vec3(1, 1, 1), dot_with, mult);
 
 			return
 				  r_0_0_0 * (1 - smooth_step.x) * (1 - smooth_step.y) * (1 - smooth_step.z)
@@ -299,12 +273,13 @@ function pla.get_shader()
 
 		vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord)
 		{
-			float noise_100  = smooth_noise(Position.xyz * 1000.0); // DO NOT FORGET TO PUT BACK 1000.0
-			float noise_100_2  = smooth_noise_2(Position.xyz * 1000.0);
-			float noise_100_3 = noise_100 - noise_100_2;
-			//float noise_250  = smooth_noise(-Position.xyz * 250.0);
-			//float noise_500  = smooth_noise(Position.xyz * 500.0);
-			float high_frequency_noise = smooth_noise(Position.xyz * 10000.0);
+			float noise_100  = smooth_noise(Position.xyz * 1000.0, vec3(0.9898, 78.233, 34.153546), 443758.5553123);
+			float noise_100_2  = smooth_noise(Position.xyz * 1000.0, vec3(86.9898, 1.233, 50.153546), 443758.5553123);
+			float noise_100_3 = smooth_noise(Position.xyz * 1000.0, vec3(53.9898, 15.233, 10.153546), 443758.5553123);
+
+			float high_frequency_noise = smooth_noise(Position.xyz * 10000.0, vec3(53.9898, 15.233, 10.153546), 443758.5553123);
+
+			//return vec4(noise_100, noise_100_2, noise_100_3, 1);
 
 
 			//float sea_ratio = 0.0;
@@ -328,8 +303,9 @@ function pla.get_shader()
 			//float noise_amplitude_multiplier = abs(sea_ratio - 0.5) * 2.0;
 
 			vec3 original_position = Position.xyz;
-			vec3 shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.0015; //* 0.005; //* noise_amplitude_multiplier;
-			vec3 slightly_shifted_position = Position.xyz + vec3(noise_100, noise_100_2, noise_100_3) * 0.001;
+			vec3 shift = (vec3(noise_100, noise_100_2, noise_100_3) - 0.5f);
+			vec3 shifted_position = original_position + shift * 0.0015;
+			vec3 slightly_shifted_position = original_position + shift * 0.001;
 
 			float phi = asin(original_position.y); // sqrt(sqrt(1 - original_position.y * original_position.y));
 			float psi = asin(original_position.z / length(original_position.xz));
@@ -442,7 +418,7 @@ function pla.get_shader()
 							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
 
 							if (target_is_sea > 0.5f) {
-								counter_sea += 1.0;
+								counter_sea += 2.0;
 							} else {
 								counter_land += 1.0;
 							}
