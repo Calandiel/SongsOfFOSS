@@ -244,10 +244,11 @@ function pla.get_shader()
 
 
 		vec4 sample_texture_atlas_by_image_index(float texture_index, float u, float v) {
+			texture_index = texture_index + 0.5;
 			float padding = 18.0 / 2048.0;
 			float shift_per_image = 256.0 / 2048.0;
 			float row = floor(texture_index / 7.0);
-			float column = floor(texture_index - row * 7.0 + 0.5);
+			float column = floor(texture_index - row * 7.0);
 			float x_start = (shift_per_image + padding * 2) * row + padding;
 			float y_start = (shift_per_image + padding * 2) * column + padding;
 			float local_x = u * shift_per_image;
@@ -383,12 +384,13 @@ function pla.get_shader()
 			vec4 texcolor = Texel(tile_colors, face_offset) * Texel(province_colors, province_index_uv);
 			float sprawl_frequency = Texel(texture_sprawl_frequency, province_index_uv).r;
 
+			vec3 radius = shifted_position;
+			radius.y = 0.f;
+			vec3 tangent = vec3(radius.z, 0, -radius.x);
+
 			//return vec4(sprawl_heat, sprawl_heat, sprawl_heat, 1);
 			if (show_terrain > 0.5) {
 				float index_scaler = 1.0 / 64.0;
-
-
-
 
 				float counter = 0.0;
 				int N = 2;
@@ -408,20 +410,18 @@ function pla.get_shader()
 				//detecting coast:
 				for (int i = -N; i <= N; i++) {
 					for (int j = -N; j <= N; j++) {
-						for (int k = -N; j <= N; j++) {
-							vec3 new_position = shifted_position + vec3(i, j, k) * shift_unit;
-							float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
-							//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-							vec2 new_uv = cartesian_to_uv(new_position, new_face); //+ pixel_center_shift;
-							vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
+						vec3 new_position = shifted_position + vec3(0, j, 0) * shift_unit + tangent * i * shift_unit;
+						float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
+						//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+						vec2 new_uv = cartesian_to_uv(new_position, new_face); //+ pixel_center_shift;
+						vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
 
-							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
+						float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
 
-							if (target_is_sea > 0.5f) {
-								counter_sea += 2.0;
-							} else {
-								counter_land += 1.0;
-							}
+						if (target_is_sea > 0.5f) {
+							counter_sea += 2.0;
+						} else {
+							counter_land += 1.0;
 						}
 					}
 				}
@@ -456,31 +456,28 @@ function pla.get_shader()
 					counter += 1.f;
 				}
 
-
 				if (counter_land > counter_sea) {
 					for (int i = -N; i <= N; i++) {
 						for (int j = -N; j <= N; j++) {
-							for (int k = -N; j <= N; j++) {
-								vec3 new_position = shifted_position + vec3(i, j, k) * shift_unit;
-								float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
-								//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-								vec2 new_uv = cartesian_to_uv(new_position, new_face);// + pixel_center_shift;
-								vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
+							vec3 new_position = shifted_position + vec3(0, j, 0) * shift_unit + tangent * i * shift_unit;
+							float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
+							//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
+							vec2 new_uv = cartesian_to_uv(new_position, new_face);// + pixel_center_shift;
+							vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
 
-								float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
+							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
 
-								float sprawl_heat = Texel(texture_index_cubemap, new_texcoord).g;
-								if (!((target_is_sea == 1.0) && (is_coast == 1.0))) {
-									if ((Texel(texture_index_cubemap, new_texcoord).r > 0)) {
-										float texture_index = Texel(texture_index_cubemap, new_texcoord).r / index_scaler - 1.0;
-										average_texture += sample_texture_atlas_by_image_index(texture_index, fract(phi * 200), fract(psi * 200));
+							float sprawl_heat = Texel(texture_index_cubemap, new_texcoord).g;
+							if (!((target_is_sea == 1.0) && (is_coast == 1.0))) {
+								if ((Texel(texture_index_cubemap, new_texcoord).r > 0)) {
+									float texture_index = Texel(texture_index_cubemap, new_texcoord).r / index_scaler - 1.0;
+									average_texture += sample_texture_atlas_by_image_index(texture_index, fract(phi * 200), fract(psi * 200));
 
-										vec4 sprawl_texture = sample_texture_atlas_by_image_index(29.0, fract(phi * 200), fract(psi * 200));
-										float sprawl_weight = sprawl_heat * sprawl_heat * sprawl_frequency * 10.0;
-										average_texture += sprawl_texture * sprawl_weight;
+									vec4 sprawl_texture = sample_texture_atlas_by_image_index(29.0, fract(phi * 200), fract(psi * 200));
+									float sprawl_weight = sprawl_heat * sprawl_heat * sprawl_frequency * 10.0;
+									average_texture += sprawl_texture * sprawl_weight;
 
-										counter += 1 + sprawl_heat * sprawl_weight;
-									}
+									counter += 1 + sprawl_heat * sprawl_weight;
 								}
 							}
 						}

@@ -1031,6 +1031,8 @@ function gam.draw()
 						texture_index = 25
 					elseif current_tile.biome.name == "dry-jungle" then
 						texture_index = 26
+					elseif current_tile.biome.name == "jungle" then
+						texture_index = 31
 					elseif current_tile.biome.name == "coniferous-forest" or
 							current_tile.biome.name == "taiga" then
 						texture_index = 8
@@ -1038,6 +1040,12 @@ function gam.draw()
 						texture_index = 12
 					elseif current_tile.biome.name == "broadleaf-woodland" then
 						texture_index = 11
+					elseif current_tile.biome.name == "warm-dry-broadleaf-forest" then
+						texture_index = 32
+					elseif current_tile.biome.name == "warm-wet-broadleaf-woodland" then
+						texture_index = 33
+					elseif current_tile.biome.name == "warm-dry-broadleaf-woodland" then
+						texture_index = 34
 					elseif current_tile.biome.name == "coniferous-woodland" or
 							current_tile.biome.name == "woodland-taiga" then
 						texture_index = 1
@@ -1046,10 +1054,18 @@ function gam.draw()
 					elseif is_peak then
 						texture_index = 7
 					elseif current_tile.biome.name == "barren-mountainside" then
-						texture_index = 3
+						texture_index = 35
+					elseif current_tile.biome.name == "barren-mountainside-low-altitude" then
+						texture_index = 36
+					elseif current_tile.biome.name == "barren-mountainside-high-altitude" then
+						texture_index = 7
 					elseif current_tile.biome.name == "mountainside-scrub" then
 						texture_index = 4
+					elseif current_tile.biome.name == "mountainside-scrub-low-altitude" then
+						texture_index = 37
 					elseif current_tile.biome.name == "rugged-mountainside" then
+						texture_index = 3
+					elseif current_tile.biome.name == "rugged-mountainside-low-altitude" then
 						texture_index = 24
 					elseif current_tile.biome.name == "barren-desert" then
 						texture_index = 5
