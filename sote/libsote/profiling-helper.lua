@@ -16,7 +16,7 @@ local function profiling_log(depth, prefix, log_text, duration)
 		prefix = prefix .. "\t"
 	end
 
-	return prefix .. log_text .. ": " .. tostring(duration * 1000) .. "ms"
+	return prefix .. log_text .. ": " .. string.format("%.2f", duration * 1000) .. "ms"
 end
 
 function ph.log_profiling_data(prof_data, prefix, log_text)
