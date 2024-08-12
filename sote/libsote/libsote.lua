@@ -298,6 +298,8 @@ local current_msg = ""
 function libsote.worldgen_phase01_coro(seed)
 	set_sote_params(seed)
 
+	local start = love.timer.getTime()
+
 	start_worldgen_task()
 
 	coroutine.yield()
@@ -323,6 +325,9 @@ function libsote.worldgen_phase01_coro(seed)
 		log_sote(err_msg)
 		error("failed to wait init_world task")
 	end
+
+	local duration = love.timer.getTime() - start
+	print("[worldgen_task]: " .. tostring(duration * 1000) .. "ms")
 
 	log_and_set_msg("World generation finished")
 end
