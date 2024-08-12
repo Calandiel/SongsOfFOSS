@@ -419,6 +419,12 @@ function world:get_waterbody_by_tile(ti)
 	return self.waterbodies[self.waterbody_id_by_tile[ti]]
 end
 
+---@param
+function world:get_waterbody_size(ti)
+	local wb = self:get_waterbody_by_tile(ti)
+	return (wb == nil) and 0 or #wb.tiles
+end
+
 ---@param ti number 0-based index
 function world:is_tile_waterbody_valid(ti)
 	if self.waterbody_id_by_tile[ti] == 0 then return false end

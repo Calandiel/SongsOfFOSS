@@ -13,6 +13,13 @@ local AGE_TYPES = {
 local open_issues = require "libsote.glaciation.open-issues"
 local rock_qualities = require "libsote.rock-qualities"
 
+local prof = require "libsote.profiling-helper"
+local prof_prefix = "[glacial-formation]"
+
+local function run_with_profiling(func, log_txt)
+	prof.run_with_profiling(func, prof_prefix, log_txt)
+end
+
 local world
 -- local glacial_seed
 local ice_flow
@@ -24,8 +31,14 @@ local invasion_ticker
 
 local old_layer = {}
 local new_layer = {}
+
 local glacial_seeds_table = {}
 local sorted_glacial_seeds = {}
+
+local already_added = {}
+local melt_tiles = {}
+local tiles_influenced = {}
+
 local max_distance = 0
 local max_ice = 0
 local max_ice_moved = 0
@@ -42,6 +55,12 @@ local function set_debug(world_obj, ti, r, g, b)
 	world_obj.debug_b[ti] = b
 end
 
+local function for_each_glacial_seed(callback)
+	for ti in pairs(glacial_seeds_table) do
+		callback(ti)
+	end
+end
+
 local function create_glacial_start_locations(is_ice_age)
 	local ice_age_factor = 5
 	if is_ice_age then ice_age_factor = -10 end --* Makes world colder for ice age
@@ -49,14 +68,11 @@ local function create_glacial_start_locations(is_ice_age)
 	local seed_threshold = -15 --* -15 for non-Ice Age
 	if is_ice_age then seed_threshold = 0 end
 
-	local start = love.timer.getTime()
-
 	world:for_each_tile(function(ti)
 	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
 		-- local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. "\n"
 
-		local wb = world:get_waterbody_by_tile(ti)
-		local waterbody_size = (wb == nil) and 0 or #wb.tiles
+		local waterbody_size = world:get_waterbody_size(ti)
 
 		local jan_rainfall = world.jan_rainfall[ti]
 		local jan_temperature = world.jan_temperature[ti]
@@ -87,22 +103,17 @@ local function create_glacial_start_locations(is_ice_age)
 		-- logger:log(log_str)
 	end)
 
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] create_glacial_start_locations: " .. tostring(duration * 1000) .. "ms")
-
 	-- local count = 0
 	-- world:for_each_tile(function(ti)
 	-- 	if glacial_seed[ti] then
 	-- 		count = count + 1
 	-- 	end
 	-- end)
-	print("Glacial Seeds: " .. length(glacial_seeds_table))
+	-- print("Glacial Seeds: " .. length(glacial_seeds_table))
 end
 
 local function find_glacial_perimeter()
 	old_layer = {}
-
-	local start = love.timer.getTime()
 
 	-- world:for_each_tile(function(ti)
 	-- 	if not glacial_seed[ti] then return end
@@ -118,9 +129,9 @@ local function find_glacial_perimeter()
 	-- 		distance_from_edge[ti] = 1
 	-- 	end
 	-- end)
-	for ti, _ in pairs(glacial_seeds_table) do
+	for ti in pairs(glacial_seeds_table) do
 		world:for_each_neighbor(ti, function(nti)
-			if glacial_seeds_table[nti] ~= nil then return end
+			if glacial_seeds_table[nti] then return end
 
 			old_layer[nti] = true
 			distance_from_edge[nti] = 1
@@ -129,7 +140,7 @@ local function find_glacial_perimeter()
 		end)
 	end
 	-- world:for_each_tile(function(ti)
-	-- 	if glacial_seed_table[ti] ~= nil then return end
+	-- 	if glacial_seed_table[ti] then return end
 
 	-- 	local has_seed_neighbour = false
 	-- 	world:for_each_neighbor(ti, function(nti)
@@ -143,19 +154,12 @@ local function find_glacial_perimeter()
 	-- 		set_debug(world, ti, 255, 0, 0)
 	-- 	end
 	-- end)
-
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] find_glacial_perimeter: " .. tostring(duration * 1000) .. "ms")
-
-	print("Old Layer: " .. length(old_layer))
 end
 
 local function find_distance_of_each_glacier_tile_from_edge()
 	local elevation_factor = 500
 	local base_expansion = 100
 	local expansion_threshold = 300
-
-	local start = love.timer.getTime()
 
 	new_layer = {}
 
@@ -198,7 +202,7 @@ local function find_distance_of_each_glacier_tile_from_edge()
 
 		--* The tiles we added this round get checked next round in the "old layer". The new becomes the old
 		old_layer = {}
-		for key, _ in pairs(new_layer) do
+		for key in pairs(new_layer) do
 			old_layer[key] = true
 		end
 		new_layer = {}
@@ -208,9 +212,7 @@ local function find_distance_of_each_glacier_tile_from_edge()
 
 	max_distance = expansion_ticker
 
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] find_distance_of_each_glacier_tile_from_edge: " .. tostring(duration * 1000) .. "ms")
-	print("Expansion Ticker: " .. expansion_ticker)
+	-- print("Expansion Ticker: " .. expansion_ticker)
 	-- world:for_each_tile(function(ti)
 	-- 	if distance_from_edge[ti] == 0 then return end
 	-- 	local fraction = distance_from_edge[ti] / max_distance
@@ -220,24 +222,7 @@ local function find_distance_of_each_glacier_tile_from_edge()
 	-- end)
 end
 
-local function sort_glacial_seeds()
-	local start = love.timer.getTime()
-
-	for ti, _ in pairs(glacial_seeds_table) do
-		table.insert(sorted_glacial_seeds, ti)
-	end
-
-	table.sort(sorted_glacial_seeds, function(a, b)
-		return distance_from_edge[a] > distance_from_edge[b]
-	end)
-
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] sort_glacial_seeds: " .. tostring(duration * 1000) .. "ms")
-end
-
 local function calculate_initial_ice_depth()
-	local start = love.timer.getTime()
-
 	-- local max_ice = 0
 	world:for_each_tile(function(ti)
 	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
@@ -253,9 +238,6 @@ local function calculate_initial_ice_depth()
 		-- max_ice = math.max(max_ice, ice_flow[ti])
 	end)
 
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] calculate_initial_ice_depth: " .. tostring(duration * 1000) .. "ms")
-
 	-- world:for_each_tile(function(ti)
 	-- 	set_debug(world, ti, 0, 0, 0)
 	-- 	if ice_flow[ti] == 0 then return end
@@ -264,6 +246,16 @@ local function calculate_initial_ice_depth()
 	-- 	local blue = (1 - fraction) * 255
 	-- 	set_debug(world, ti, red, 0, blue)
 	-- end)
+end
+
+local function sort_glacial_seeds()
+	for ti in pairs(glacial_seeds_table) do
+		table.insert(sorted_glacial_seeds, ti)
+	end
+
+	table.sort(sorted_glacial_seeds, function(a, b)
+		return distance_from_edge[a] > distance_from_edge[b]
+	end)
 end
 
 local function process_ice_expansion(ice_ti, boost_ice)
@@ -306,7 +298,7 @@ local function process_ice_expansion(ice_ti, boost_ice)
 
 		-- max_ice = math.max(max_ice, ice_flow[nti])
 
-		if glacial_seeds_table[nti] ~= nil then return end
+		if glacial_seeds_table[nti] then return end
 
 		glacial_seeds_table[nti] = true
 
@@ -325,8 +317,6 @@ local function ice_expansion_loops(is_ice_age)
 	-- 	logger:log(log_str)
 	-- end)
 
-	local start = love.timer.getTime()
-
 	-- max_ice = 0
 
 	local num_interations = is_ice_age and 10 or 25 --* Ice ages have fewer iterations, since they take longer and need less precision
@@ -340,9 +330,6 @@ local function ice_expansion_loops(is_ice_age)
 			process_ice_expansion(ice_ti, boost_iterations > 0)
 		end
 	end
-
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] ice_expansion_loops: " .. tostring(duration * 1000) .. "ms")
 
 	-- world:for_each_tile(function(ti)
 	-- 	set_debug(world, ti, 0, 0, 0)
@@ -360,9 +347,7 @@ local function ice_expansion_loops(is_ice_age)
 end
 
 local function set_permanent_ice_variables(is_ice_age)
-	local start = love.timer.getTime()
-
-	for ti, _ in pairs(glacial_seeds_table) do
+	for ti in pairs(glacial_seeds_table) do
 		max_ice = math.max(max_ice, ice_flow[ti])
 		max_ice_moved = math.max(max_ice_moved, ice_moved[ti])
 
@@ -374,46 +359,174 @@ local function set_permanent_ice_variables(is_ice_age)
 			world.ice[ti] = ice_flow[ti]
 		end
 	end
-
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] set_permanent_ice_variables: " .. tostring(duration * 1000) .. "ms")
 end
 
 local function creating_material_from_glacial_action()
-	local start = love.timer.getTime()
-
-	for ti, _ in pairs(glacial_seeds_table) do
+	for ti in pairs(glacial_seeds_table) do
 		--* Calculate material that is generated from ice movement
 		local _, _, _, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(world.rock_type[ti], 0, 0, 0, 0, 0, 0) --* mineral_richness acts as multiplier based on bedrock
 
 		texture_material[ti] = ice_moved[ti] * rock_mass_conversion * rock_weathering_rate / 100
 		material_richness[ti] = texture_material[ti] * mineral_richness / 100 / 2 --* Reducing mineral richness of glacial silt by / 2
 	end
-
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] creating_material_from_glacial_action: " .. tostring(duration * 1000) .. "ms")
 end
 
 local function push_material_to_the_melt_zones()
-	local start = love.timer.getTime()
-
 	local iterate_down = max_distance
 	while iterate_down > 0 do
-		for ti, _ in pairs(glacial_seeds_table) do
-			if distance_from_edge[ti] ~= iterate_down or distance_from_edge[ti] <= 0 then return end
+		for ti in pairs(glacial_seeds_table) do
+			if distance_from_edge[ti] ~= iterate_down then goto continue1 end -- "or distance_from_edge[ti] <= 0" seems to be redundant, since iterate_down is always > 0
+
+			open_issues.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added)
+
+			::continue1::
 		end
 
 		iterate_down = iterate_down - 1
 	end
+end
 
-	local duration = love.timer.getTime() - start
-	print("[glacial-formation] push_material_to_the_melt_zones: " .. tostring(duration * 1000) .. "ms")
+local function remove_ineligible_ocean_ice_tiles(is_ice_age)
+	 --* Purge all tiles that discharge into the ocean. Only using periglacial melt tiles
+	world:for_each_tile(function(ti)
+		if glacial_seeds_table[ti] == nil then return end
+		set_debug(world, ti, 173, 216, 230)
+
+		local wbs = world:get_waterbody_size(ti)
+
+		local is_eligible_melt_tile =
+			texture_material[ti] > 0 and
+			wbs < 20000 and
+			((not is_ice_age and world.ice[ti] > 0) or (is_ice_age and world.ice_age_ice[ti] > 0))
+
+		if is_eligible_melt_tile then
+			melt_tiles[ti] = true
+		else
+			glacial_seeds_table[ti] = nil
+			texture_material[ti] = 0
+			material_richness[ti] = 0
+		end
+
+		-- On a second thought, since 'already_added' primary usage is in the code that builds melt provinces, I'd rather leave the table empty
+		-- open_issues.remove_already_added(ti, already_added, is_eligible_melt_tile)
+	end)
+end
+
+local function create_melt_province(ti)
+	if already_added[ti] then return nil end
+
+	already_added[ti] = true
+
+	--* If not already a part of a melt province, then we make one out of it, and the surrounding tiles
+	local melt_province = {}
+
+	old_layer = {}
+	new_layer = {}
+
+	old_layer[ti] = true
+	melt_province[ti] = true --* Used to store province tiles
+	set_debug(world, ti, 255, 165, 0)
+
+	local default_province_size = 50
+	local tiles_up = length(old_layer)
+
+	--* Here we expand out the province until we either have no tiles to add or we run out of "turns"
+	while default_province_size > 0 and tiles_up > 0 do
+		for expand_ti in pairs(old_layer) do
+			world:for_each_neighbor(expand_ti, function(nti)
+				if already_added[nti] or glacial_seeds_table[nti] == nil then return end
+
+				--* If not already aprovince, then add
+
+				new_layer[nti] = true
+				already_added[nti] = true
+			end)
+		end
+
+		default_province_size = default_province_size - 1
+
+		old_layer = {}
+		for new_ti in pairs(new_layer) do
+			old_layer[new_ti] = true
+			melt_province[new_ti] = true
+			set_debug(world, new_ti, 255, 165, 0)
+		end
+		new_layer = {}
+		tiles_up = length(old_layer)
+	end
+
+	return melt_province
+end
+
+local function identify_edge_tiles_and_update_province_status(melt_province, is_ice_age)
+	local perimeter_size = 0
+	local kill_province = true
+
+	for ti in pairs(melt_province) do
+		local on_edge = false
+
+		world:for_each_neighbor(ti, function(nti)
+			local is_ice_free = is_ice_age and world.ice_age_ice[nti] == 0 or not is_ice_age and world.ice[nti] == 0
+			if is_ice_free then
+				kill_province = false
+				old_layer[nti] = true
+				tiles_influenced[nti] = true
+			end
+
+			if glacial_seeds_table[nti] == nil then
+				on_edge = true
+			end
+		end)
+
+		if on_edge then
+			perimeter_size = perimeter_size + 1
+		end
+	end
+
+	return perimeter_size, kill_province
+end
+
+local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
+	--* Iterate through all melt tiles. Construct glacial melt provinces as we go
+	for ti in pairs(melt_tiles) do
+		local melt_province = create_melt_province(ti)
+		if melt_province == nil then goto continue2 end
+
+		local perimeter_size, kill_province = identify_edge_tiles_and_update_province_status(melt_province, is_ice_age)
+
+		if kill_province then goto continue2 end
+
+		local total_material = 0
+		local total_richness = 0
+		for ti in pairs(melt_province) do
+			total_material = total_material + texture_material[ti]
+			total_richness = total_richness + material_richness[ti]
+		end
+
+		total_material = open_issues.adjust_material_for_province_size_before(total_material, is_ice_age, perimeter_size)
+
+		local base_expansion = 5
+		local sample_expansion = math.floor(math.pow(total_material, 0.25)) + base_expansion
+		if sample_expansion > 75 then
+			sample_expansion = 75 + math.floor(math.sqrt(sample_expansion - 75))
+		end
+
+		total_material = open_issues.adjust_material_for_province_size_after(total_material, is_ice_age, perimeter_size)
+
+		while sample_expansion > 0 do
+			sample_expansion = sample_expansion - 1
+		end
+
+		::continue2::
+	end
 end
 
 local function reset_variables()
-	-- world:fill_ffi_array(glacial_seed, false)
 	glacial_seeds_table = {}
 	sorted_glacial_seeds = {}
+	already_added = {}
+	melt_tiles = {}
+	tiles_influenced = {}
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
 	world:fill_ffi_array(distance_from_edge, 0)
@@ -428,15 +541,19 @@ local function process_age(age_type)
 
 	local is_ice_age = age_type == AGE_TYPES.ice_age
 
-	create_glacial_start_locations(is_ice_age)
-	find_glacial_perimeter()
-	find_distance_of_each_glacier_tile_from_edge()
-	calculate_initial_ice_depth()
-	sort_glacial_seeds()
-	ice_expansion_loops(is_ice_age)
-	set_permanent_ice_variables(is_ice_age)
-	creating_material_from_glacial_action()
-	push_material_to_the_melt_zones()
+	run_with_profiling(function() create_glacial_start_locations(is_ice_age) end, "create_glacial_start_locations")                                         -- #1
+	run_with_profiling(function() find_glacial_perimeter() end, "find_glacial_perimeter")                                                                   -- #2
+	run_with_profiling(function() find_distance_of_each_glacier_tile_from_edge() end, "find_distance_of_each_glacier_tile_from_edge")                       -- #3
+	run_with_profiling(function() calculate_initial_ice_depth() end, "calculate_initial_ice_depth")                                                         -- #4
+	run_with_profiling(function() sort_glacial_seeds() end, "sort_glacial_seeds")                                                                           -- #5
+	run_with_profiling(function() ice_expansion_loops(is_ice_age) end, "ice_expansion_loops")                                                               -- #6
+	run_with_profiling(function() set_permanent_ice_variables(is_ice_age) end, "set_permanent_ice_variables")                                               -- #7
+	--* DIAGNOSTIC: EXPRESS ICE DEPTH                                                                                                                       -- #8
+	--* Clear Variables for Next Phase                                                                                                                      -- #9
+	run_with_profiling(function() creating_material_from_glacial_action() end, "creating_material_from_glacial_action")                                     -- #10
+	run_with_profiling(function() push_material_to_the_melt_zones() end, "push_material_to_the_melt_zones")                                                 -- #11
+	run_with_profiling(function() remove_ineligible_ocean_ice_tiles(is_ice_age) end, "remove_ineligible_ocean_ice_tiles")                                   -- #12
+	run_with_profiling(function() construct_glacial_melt_provinces_and_disperse_silt(is_ice_age) end, "construct_glacial_melt_provinces_and_disperse_silt") -- #13
 
 	reset_variables()
 end
