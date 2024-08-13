@@ -49,10 +49,8 @@ local function length(t)
 	return count
 end
 
-local function set_debug(world_obj, ti, r, g, b)
-	world_obj.debug_r[ti] = r
-	world_obj.debug_g[ti] = g
-	world_obj.debug_b[ti] = b
+local function set_debug(channel, ti, r, g, b, a)
+	world:set_debug_rgba(channel, ti, r, g, b, a or 255)
 end
 
 local function for_each_glacial_seed(callback)
@@ -390,7 +388,7 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 	 --* Purge all tiles that discharge into the ocean. Only using periglacial melt tiles
 	world:for_each_tile(function(ti)
 		if glacial_seeds_table[ti] == nil then return end
-		set_debug(world, ti, 173, 216, 230)
+		set_debug(1, ti, 224, 247, 250, 255)
 
 		local wbs = world:get_waterbody_size(ti)
 
@@ -425,7 +423,7 @@ local function create_melt_province(ti)
 
 	old_layer[ti] = true
 	melt_province[ti] = true --* Used to store province tiles
-	set_debug(world, ti, 255, 165, 0)
+	set_debug(2, ti, 178, 235, 242, 180)
 
 	local default_province_size = 50
 	local tiles_up = length(old_layer)
@@ -449,7 +447,7 @@ local function create_melt_province(ti)
 		for new_ti in pairs(new_layer) do
 			old_layer[new_ti] = true
 			melt_province[new_ti] = true
-			set_debug(world, new_ti, 255, 165, 0)
+			set_debug(2, new_ti, 178, 235, 242, 180)
 		end
 		new_layer = {}
 		tiles_up = length(old_layer)
@@ -461,6 +459,7 @@ end
 local function identify_edge_tiles_and_update_province_status(melt_province, is_ice_age)
 	local perimeter_size = 0
 	local kill_province = true
+	old_layer = {}
 
 	for ti in pairs(melt_province) do
 		local on_edge = false
@@ -471,6 +470,7 @@ local function identify_edge_tiles_and_update_province_status(melt_province, is_
 				kill_province = false
 				old_layer[nti] = true
 				tiles_influenced[nti] = true
+				set_debug(3, nti, 128, 203, 196, 120)
 			end
 
 			if glacial_seeds_table[nti] == nil then
@@ -486,7 +486,38 @@ local function identify_edge_tiles_and_update_province_status(melt_province, is_
 	return perimeter_size, kill_province
 end
 
+local function expand_melt_province(is_ice_age, expansion_tick)
+	new_layer = {}
+
+	for ti in pairs(old_layer) do
+		world:for_each_neighbor(ti, function(nti)
+			-- original code has some dead code that seems to want to use the ice to decide whether to skip or not
+			if already_added[nti] then return end
+
+			local rn = world.rng:random_int_max(100)
+			local neighbor_contributes = (is_ice_age and world.ice_age_ice[nti] > 0) and rn < 20 or rn < 50
+
+			if neighbor_contributes then
+				already_added[nti] = true
+				new_layer[nti] = true
+				invasion_ticker[nti] = expansion_tick
+				set_debug(4, nti, 255, 204, 128, 100)
+			else
+				new_layer[ti] = true
+			end
+		end)
+	end
+
+	old_layer = {}
+	for new_ti in pairs(new_layer) do
+		old_layer[new_ti] = true
+		tiles_influenced[new_ti] = true
+	end
+end
+
 local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
+	world:fill_ffi_array(invasion_ticker, 0)
+
 	--* Iterate through all melt tiles. Construct glacial melt provinces as we go
 	for ti in pairs(melt_tiles) do
 		local melt_province = create_melt_province(ti)
@@ -498,9 +529,9 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 
 		local total_material = 0
 		local total_richness = 0
-		for ti in pairs(melt_province) do
-			total_material = total_material + texture_material[ti]
-			total_richness = total_richness + material_richness[ti]
+		for mp_ti in pairs(melt_province) do
+			total_material = total_material + texture_material[mp_ti]
+			total_richness = total_richness + material_richness[mp_ti]
 		end
 
 		total_material = open_issues.adjust_material_for_province_size_before(total_material, is_ice_age, perimeter_size)
@@ -514,6 +545,10 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 		total_material = open_issues.adjust_material_for_province_size_after(total_material, is_ice_age, perimeter_size)
 
 		while sample_expansion > 0 do
+			expand_melt_province(is_ice_age, sample_expansion)
+
+			-- in the original code, the 'sample_expansion' is decremented at the begging of the loop, but its value is then used by the loop logic
+			-- so, I have decided to move the decrement to the end of the loop
 			sample_expansion = sample_expansion - 1
 		end
 
@@ -535,10 +570,6 @@ end
 
 ---@param age_type age_types
 local function process_age(age_type)
-	world:fill_ffi_array(world.debug_r, 0)
-	world:fill_ffi_array(world.debug_g, 0)
-	world:fill_ffi_array(world.debug_b, 0)
-
 	local is_ice_age = age_type == AGE_TYPES.ice_age
 
 	run_with_profiling(function() create_glacial_start_locations(is_ice_age) end, "create_glacial_start_locations")                                         -- #1
@@ -567,7 +598,6 @@ function gm.run(world_obj)
 	-- 2024.07.07: Above comment might not be relevant. Waterbodies are already defined by gen-initial-waterbodies and we will attempt to use them here instead of re-generating them.
 
 	world = world_obj
-	-- glacial_seed = world.tmp_bool_1
 	ice_flow = world.tmp_float_2
 	ice_moved = world.tmp_float_3
 	texture_material = world.tmp_float_4
@@ -575,13 +605,15 @@ function gm.run(world_obj)
 	distance_from_edge = world.tmp_int_1
 	invasion_ticker = world.tmp_int_2
 
-	-- world:fill_ffi_array(glacial_seed, false)
+	world:adjust_debug_channels(4)
+
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
 	world:fill_ffi_array(distance_from_edge, 0)
 	world:fill_ffi_array(invasion_ticker, 0)
 
 	process_age(AGE_TYPES.ice_age)
+	world:reset_debug_all()
 	process_age(AGE_TYPES.game_age)
 end
 

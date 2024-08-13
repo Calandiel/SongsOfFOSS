@@ -1,11 +1,5 @@
 local oi = {}
 
-local function set_debug(world, ti, r, g, b)
-	world.debug_r[ti] = r
-	world.debug_g[ti] = g
-	world.debug_b[ti] = b
-end
-
 -- strange way to average
 function oi.avg_temp(temp_jan, temp_jul)
 	return temp_jan + temp_jul

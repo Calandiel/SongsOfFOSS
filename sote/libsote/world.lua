@@ -16,6 +16,32 @@ local function allocate_array(name, size, type)
 	return ffi.new(type .. "[?]", size)
 end
 
+function world:adjust_debug_channels(desired_channels)
+	if not self.debug_channels then
+		self.debug_channels = {}
+		self.num_debug_channels = 0
+	end
+
+	if desired_channels > self.num_debug_channels then
+		-- Allocate new channels
+		for i = self.num_debug_channels + 1, desired_channels do
+			self.debug_channels[i] = {
+				r = allocate_array("debug_r_" .. i, self.tile_count, "uint8_t"),
+				g = allocate_array("debug_g_" .. i, self.tile_count, "uint8_t"),
+				b = allocate_array("debug_b_" .. i, self.tile_count, "uint8_t"),
+				a = allocate_array("debug_a_" .. i, self.tile_count, "uint8_t")
+			}
+		end
+	elseif desired_channels < self.num_debug_channels then
+		-- Deallocate channels
+		for i = self.num_debug_channels, desired_channels + 1, -1 do
+			self.debug_channels[i] = nil  -- This will allow garbage collection to free the memory
+		end
+	end
+
+	self.num_debug_channels = desired_channels
+end
+
 function world:new(world_size, seed)
 	local obj = {}
 	setmetatable(obj, self)
@@ -75,10 +101,6 @@ function world:new(world_size, seed)
 	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
 	obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
 	obj.tmp_int_2         = allocate_array("tmp_int_2",   obj.tile_count, "int")
-
-	obj.debug_r = allocate_array("debug_r", obj.tile_count, "uint8_t")
-	obj.debug_g = allocate_array("debug_g", obj.tile_count, "uint8_t")
-	obj.debug_b = allocate_array("debug_b", obj.tile_count, "uint8_t")
 
 	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
@@ -440,9 +462,44 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function world:get_debug_color(q, r, face)
+function world:get_debug_rgba(channel, q, r, face)
 	local index = self.coord[self:_key_from_coord(q, r, face)]
-	return self.debug_r[index], self.debug_g[index], self.debug_b[index]
+	if self.debug_channels and self.debug_channels[channel] then
+		local channel_data = self.debug_channels[channel]
+		return channel_data.r[index], channel_data.g[index], channel_data.b[index], channel_data.a[index]
+	else
+		error("Debug channel " .. channel .. " does not exist.")
+	end
+end
+
+function world:set_debug_rgba(channel, ti, r, g, b, a)
+	if self.debug_channels and self.debug_channels[channel] then
+		local channel_data = self.debug_channels[channel]
+		channel_data.r[ti] = r
+		channel_data.g[ti] = g
+		channel_data.b[ti] = b
+		channel_data.a[ti] = a
+	else
+		error("Debug channel " .. channel .. " does not exist.")
+	end
+end
+
+function world:reset_debug(channel)
+	if self.debug_channels and self.debug_channels[channel] then
+		local channel_data = self.debug_channels[channel]
+		self:fill_ffi_array(channel_data.r, 0)
+		self:fill_ffi_array(channel_data.g, 0)
+		self:fill_ffi_array(channel_data.b, 0)
+		self:fill_ffi_array(channel_data.a, 0)
+	else
+		error("Debug channel " .. channel .. " does not exist.")
+	end
+end
+
+function world:reset_debug_all()
+	for i = 1, self.num_debug_channels do
+		self:reset_debug(i)
+	end
 end
 
 function world:_investigate_tile(q, r, face)

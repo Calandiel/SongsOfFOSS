@@ -327,7 +327,7 @@ function libsote.worldgen_phase01_coro(seed)
 	end
 
 	local duration = love.timer.getTime() - start
-	print("[worldgen_task]: " .. tostring(duration * 1000) .. "ms")
+	print("[worldgen_task]: " .. tostring(duration * 1000) .. "ms --------------------------------------")
 
 	log_and_set_msg("World generation finished")
 end

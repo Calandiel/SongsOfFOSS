@@ -163,6 +163,29 @@ end
 local hexu = require "libsote.hex-utils"
 -- local cu = require "game.climate.utils"
 
+local function alpha_blend(r1, g1, b1, a1, r2, g2, b2, a2)
+	if a1 == 0 then
+		-- Top layer is fully transparent
+		return r2, g2, b2, a2
+	elseif a2 == 0 then
+		-- Base layer is fully transparent
+		return r1, g1, b1, a1
+	else
+		-- Normal blending
+		local a1_normalized = a1 / 255
+		local a2_normalized = a2 / 255
+		local inv_a1_normalized = 1 - a1_normalized
+		local a_out = a1 + a2 * inv_a1_normalized
+		local a_out_normalized = a_out / 255
+
+		local r_out = (r1 * a1_normalized + r2 * a2_normalized * inv_a1_normalized) / a_out_normalized
+		local g_out = (g1 * a1_normalized + g2 * a2_normalized * inv_a1_normalized) / a_out_normalized
+		local b_out = (b1 * a1_normalized + b2 * a2_normalized * inv_a1_normalized) / a_out_normalized
+
+		return math.floor(r_out + 0.5), math.floor(g_out + 0.5), math.floor(b_out + 0.5), math.floor(a_out + 0.5)
+	end
+end
+
 function wl.dump_maps_from(world)
 	local width = 2000
 	local height = 1000
@@ -242,8 +265,14 @@ function wl.dump_maps_from(world)
 			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
 			-- debug ---------------------------------------------------------
-			col_r, col_g, col_b = world:get_debug_color(q, r, face)
-			image_debug_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			-- col_r, col_g, col_b, _ = world:get_debug_color(4, q, r, face)
+			-- image_debug_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
+			for channel = world.num_debug_channels - 1, 1, -1 do
+				local cr, cg, cb, ca = world:get_debug_rgba(channel, q, r, face)
+				r_blend, g_blend, b_blend, a_blend = alpha_blend(r_blend, g_blend, b_blend, a_blend, cr, cg, cb, ca)
+			end
+			image_debug_data:setPixel(x, y, r_blend / 255, g_blend / 255, b_blend / 255, a_blend)
 		end
 	end
 
