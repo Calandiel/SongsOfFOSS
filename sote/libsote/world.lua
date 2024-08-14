@@ -101,6 +101,8 @@ function world:new(world_size, seed)
 	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
 	obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
 	obj.tmp_int_2         = allocate_array("tmp_int_2",   obj.tile_count, "int")
+	obj.tmp_int_3         = allocate_array("tmp_int_3",   obj.tile_count, "int")
+	obj.tmp_int_4         = allocate_array("tmp_int_4",   obj.tile_count, "int")
 
 	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 

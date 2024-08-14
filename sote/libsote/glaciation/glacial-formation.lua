@@ -28,6 +28,8 @@ local texture_material
 local material_richness
 local distance_from_edge
 local invasion_ticker
+local silt_storage
+local mineral_storage
 
 local old_layer = {}
 local new_layer = {}
@@ -405,7 +407,8 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 			material_richness[ti] = 0
 		end
 
-		-- On a second thought, since 'already_added' primary usage is in the code that builds melt provinces, I'd rather leave the table empty
+		-- On a second thought, since 'already_added' primary usage is in the code that builds melt provinces,
+		-- I'd rather leave the table empty (and it should be empty at this point)
 		-- open_issues.remove_already_added(ti, already_added, is_eligible_melt_tile)
 	end)
 end
@@ -552,6 +555,22 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 			sample_expansion = sample_expansion - 1
 		end
 
+		local total_points = 0
+		for i_ti in pairs(tiles_influenced) do
+			total_points = total_points + invasion_ticker[i_ti]
+		end
+
+		for i_ti in pairs(tiles_influenced) do
+			local share_of_silt = total_material * invasion_ticker[i_ti] / total_points
+			local share_of_mineral = total_richness * invasion_ticker[i_ti] / total_points
+
+			silt_storage[i_ti] = silt_storage[i_ti] + math.floor(share_of_silt)
+			mineral_storage[i_ti] = mineral_storage[i_ti] + math.floor(share_of_mineral)
+
+			invasion_ticker[i_ti] = 0
+			already_added[i_ti] = nil
+		end
+
 		::continue2::
 	end
 end
@@ -564,6 +583,8 @@ local function reset_variables()
 	tiles_influenced = {}
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
+	world:fill_ffi_array(texture_material, 0)
+	world:fill_ffi_array(material_richness, 0)
 	world:fill_ffi_array(distance_from_edge, 0)
 	world:fill_ffi_array(invasion_ticker, 0)
 end
@@ -586,7 +607,7 @@ local function process_age(age_type)
 	run_with_profiling(function() remove_ineligible_ocean_ice_tiles(is_ice_age) end, "remove_ineligible_ocean_ice_tiles")                                   -- #12
 	run_with_profiling(function() construct_glacial_melt_provinces_and_disperse_silt(is_ice_age) end, "construct_glacial_melt_provinces_and_disperse_silt") -- #13
 
-	reset_variables()
+	reset_variables()                                                                                                                                       -- #14
 end
 
 function gm.run(world_obj)
@@ -604,13 +625,19 @@ function gm.run(world_obj)
 	material_richness = world.tmp_float_5
 	distance_from_edge = world.tmp_int_1
 	invasion_ticker = world.tmp_int_2
+	silt_storage = world.tmp_int_3
+	mineral_storage = world.tmp_int_4
 
 	world:adjust_debug_channels(4)
 
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
+	world:fill_ffi_array(texture_material, 0)
+	world:fill_ffi_array(material_richness, 0)
 	world:fill_ffi_array(distance_from_edge, 0)
 	world:fill_ffi_array(invasion_ticker, 0)
+	world:fill_ffi_array(silt_storage, 0)
+	world:fill_ffi_array(mineral_storage, 0)
 
 	process_age(AGE_TYPES.ice_age)
 	world:reset_debug_all()
