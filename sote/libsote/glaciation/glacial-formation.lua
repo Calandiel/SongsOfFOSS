@@ -414,10 +414,6 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 end
 
 local function create_melt_province(ti)
-	if already_added[ti] then return nil end
-
-	already_added[ti] = true
-
 	--* If not already a part of a melt province, then we make one out of it, and the surrounding tiles
 	local melt_province = {}
 
@@ -523,8 +519,13 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 
 	--* Iterate through all melt tiles. Construct glacial melt provinces as we go
 	for ti in pairs(melt_tiles) do
+		if already_added[ti] then goto continue2 end
+		already_added[ti] = true
+
 		local melt_province = create_melt_province(ti)
 		if melt_province == nil then goto continue2 end
+
+		tiles_influenced = {}
 
 		local perimeter_size, kill_province = identify_edge_tiles_and_update_province_status(melt_province, is_ice_age)
 
