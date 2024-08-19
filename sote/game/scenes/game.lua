@@ -131,6 +131,8 @@ local mmut = require "game.map-modes.utils"
 
 local plate_gen = require "game.world-gen.plate-gen"
 
+local TERRAIN_ATLAS_INDEX = require "textures.description"
+
 
 local inspectors_table = {
 	["characters"] = require "game.scenes.game.inspector-province-characters",
@@ -814,22 +816,6 @@ function gam.draw()
 		end
 		gam.planet_shader:send('tile_neighbor_realm', gam.tile_neighbor_realm_texture)
 	end
-	--- example of usage of recalculate_smooth_data_map
-
-	---commenting
-	---@param a Tile
-	---@param b Tile
-	local function sample_face(a, b)
-		local _, _, f = tile.index_to_coords(a.tile_id)
-		return f / 6
-	end
-
-	-- if gam.planet_shader:hasUniform("face_id") then
-	-- 	if gam.DATA_TEXTURES_CACHE["face_id"] == nil then
-	-- 		gam.recalculate_smooth_data_map(sample_face, "face_id", nil, 0, 0)
-	-- 	end
-	-- 	gam.planet_shader:send("face_id", gam.DATA_TEXTURES_CACHE["face_id"])
-	-- end
 
 	if gam.planet_shader:hasUniform("face_id_cubemap") then
 		if gam.DATA_TEXTURES_CACHE["face_id_cubemap"] == nil then
@@ -985,92 +971,93 @@ function gam.draw()
 
 					local image_index_scaler = 1 / 64
 
-					local texture_index = 0
+					---@type TERRAIN_ATLAS_INDEX
+					local texture_index = TERRAIN_ATLAS_INDEX.INVALID
 
 					local is_sea = 0
 
 					if current_tile.biome.name == "tundra" then
-						texture_index = 29
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_TUNDRA
 					elseif current_tile.biome.name == "glacier" or
 						current_tile.biome.name == "glaciated-sea" then
-						texture_index = 28
+						texture_index = TERRAIN_ATLAS_INDEX.GLACIER_BROKEN
 					elseif current_tile.biome.name == "bog" or
 							current_tile.biome.name == "marsh" or
 							current_tile.biome.name == "swamp" then
-						texture_index = 27
+						texture_index = TERRAIN_ATLAS_INDEX.BOG
 					elseif current_tile.biome.name == "badlands" then
-						texture_index = 21
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_WASTELAND
 					elseif current_tile.biome.name == "xeric-shrubland" then
-						texture_index = 22
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_XERIC_SHRUBS
 					elseif current_tile.biome.name == "xeric-desert" then
-						texture_index = 23
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_XERIC_DESERT
 					elseif current_tile.biome.name == "mixed-scrubland" then
-						texture_index = 20
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_GRASS_SHRUBS_TREES
 					elseif current_tile.biome.name == "grassy-scrubland" then
-						texture_index = 19
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_GRASS_SHRUBS
 					elseif current_tile.biome.name == "woody-scrubland" then
-						texture_index = 18
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_SHRUBS_TREES
 					elseif current_tile.biome.name == "shrubland" then
-						texture_index = 17
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_SHRUBS
 					elseif current_tile.biome.name == "savanna" then
-						texture_index = 16
+						texture_index = TERRAIN_ATLAS_INDEX.SAVANNA
 					elseif current_tile.biome.name == "rocky-wasteland" then
-						texture_index = 13
+						texture_index = TERRAIN_ATLAS_INDEX.ROCKS_WASTELAND
 					elseif current_tile.biome.name == "abyssal-plains" or
 							current_tile.biome.name == "trench" then
-						texture_index = 15
+						texture_index = TERRAIN_ATLAS_INDEX.SEA
 						is_sea = 1
 					elseif current_tile.biome.name == "continental-shelf" then
-						texture_index = 14
+						texture_index = TERRAIN_ATLAS_INDEX.SHELF
 						is_sea = 1
 					elseif current_tile.biome.name == "mixed-forest" then
-						texture_index = 10
+						texture_index = TERRAIN_ATLAS_INDEX.FOREST_MIXED
 					elseif current_tile.biome.name == "broadleaf-forest" then
-						texture_index = 9
+						texture_index = TERRAIN_ATLAS_INDEX.FOREST_BROADLEAF
 					elseif current_tile.biome.name == "wet-jungle" then
-						texture_index = 25
+						texture_index = TERRAIN_ATLAS_INDEX.JUNGLE_WET
 					elseif current_tile.biome.name == "dry-jungle" then
-						texture_index = 26
+						texture_index = TERRAIN_ATLAS_INDEX.JUNGLE_DRY
 					elseif current_tile.biome.name == "jungle" then
-						texture_index = 31
+						texture_index = TERRAIN_ATLAS_INDEX.JUNGLE
 					elseif current_tile.biome.name == "coniferous-forest" or
 							current_tile.biome.name == "taiga" then
-						texture_index = 8
+						texture_index = TERRAIN_ATLAS_INDEX.FOREST_CONIFER
 					elseif current_tile.biome.name == "mixed-woodland" then
-						texture_index = 12
+						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_MIXED
 					elseif current_tile.biome.name == "broadleaf-woodland" then
-						texture_index = 11
+						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_BROADLEAF
 					elseif current_tile.biome.name == "warm-dry-broadleaf-forest" then
-						texture_index = 32
+						texture_index = TERRAIN_ATLAS_INDEX.FOREST_BROADLEAF_DRY_WARM
 					elseif current_tile.biome.name == "warm-wet-broadleaf-woodland" then
-						texture_index = 33
+						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_BROADLEAF_WET_WARM
 					elseif current_tile.biome.name == "warm-dry-broadleaf-woodland" then
-						texture_index = 34
+						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_BROADLEAF_DRY_WARM
 					elseif current_tile.biome.name == "coniferous-woodland" or
 							current_tile.biome.name == "woodland-taiga" then
-						texture_index = 1
+						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_CONIFER
 					elseif current_tile.biome.name == "grassland" then
-						texture_index = 2
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_GRASS
 					elseif is_peak then
-						texture_index = 7
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_PEAK
 					elseif current_tile.biome.name == "barren-mountainside" then
-						texture_index = 35
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN
 					elseif current_tile.biome.name == "barren-mountainside-low-altitude" then
-						texture_index = 36
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_LOW
 					elseif current_tile.biome.name == "barren-mountainside-high-altitude" then
-						texture_index = 7
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_PEAK
 					elseif current_tile.biome.name == "mountainside-scrub" then
-						texture_index = 4
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_SCRUB
 					elseif current_tile.biome.name == "mountainside-scrub-low-altitude" then
-						texture_index = 37
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_SCRUB_LOW
 					elseif current_tile.biome.name == "rugged-mountainside" then
-						texture_index = 3
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_GRASS
 					elseif current_tile.biome.name == "rugged-mountainside-low-altitude" then
-						texture_index = 24
+						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_GRASS_LOW
 					elseif current_tile.biome.name == "barren-desert" then
-						texture_index = 5
+						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_DESERT
 					elseif current_tile.biome.name == "sand-dunes" then
-						texture_index = 6
+						texture_index = TERRAIN_ATLAS_INDEX.HILLS_DESERT
 					end
 
 					image:setPixel(temp_i, temp_j, texture_index * image_index_scaler, sprawl_heat, is_sea, 0)
