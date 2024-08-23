@@ -1,5 +1,3 @@
----@alias MapModeEntry { [1]: string, [2]: string, [3]: string, [4]: fun(clicked_tile_id: number), [5]: MAP_MODE_GRANULARITY, [6]: MAP_MODE_UPDATES_TYPE, [7]: MAP_MODE_TERRAIN_TEXTURE_INTERACTION, [8]: fun()|nil }
-
 ---@class (exact) GameScene
 ---@field macrobuilder_public_mode boolean
 ---@field tile_inspector_tab TileInspectorTabs | nil
@@ -399,7 +397,7 @@ function gam.init()
 	gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, false)
 
 	for map_mode, _ in pairs(gam.map_mode_data) do
-		if _[6] ~= mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC then
+		if _.updates_type ~= mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC then
 			gam.update_map_mode(map_mode, false)
 		end
 	end
@@ -928,11 +926,11 @@ function gam.draw()
 	end
 
 	if gam.planet_shader:hasUniform("show_terrain") then
-		if gam.map_mode_data[gam.map_mode][7] == nil then
+		if gam.map_mode_data[gam.map_mode].texture_interaction == nil then
 			gam.planet_shader:send("show_terrain", 0)
-		elseif gam.map_mode_data[gam.map_mode][7] == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.SHOW_TERRAIN then
+		elseif gam.map_mode_data[gam.map_mode].texture_interaction == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.SHOW_TERRAIN then
 			gam.planet_shader:send("show_terrain", 1)
-		elseif gam.map_mode_data[gam.map_mode][7] == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.HIDE_TERRAIN then
+		elseif gam.map_mode_data[gam.map_mode].texture_interaction == mmut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION.HIDE_TERRAIN then
 			gam.planet_shader:send("show_terrain", 0)
 		end
 	end
@@ -1477,33 +1475,33 @@ function gam.draw()
 	end
 
 	if ut.icon_button(
-			ASSETS.icons[gam.map_mode_data['atlas'][2]],
-			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['atlas'][3]) then
+			ASSETS.icons[gam.map_mode_data['atlas'].icon_name],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['atlas'].description) then
 		gam.click_callback = callback.update_map_mode(gam, "atlas")
 	end
 	if ut.icon_button(
-			ASSETS.icons[gam.map_mode_data['diplomacy'][2]],
-			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['diplomacy'][3]) then
+			ASSETS.icons[gam.map_mode_data['diplomacy'].icon_name],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['diplomacy'].description) then
 		gam.click_callback = callback.update_map_mode(gam, "diplomacy")
 	end
 	if ut.icon_button(
-			ASSETS.icons[gam.map_mode_data['elevation'][2]],
-			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['elevation'][3]) then
+			ASSETS.icons[gam.map_mode_data['elevation'].icon_name],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['elevation'].description) then
 		gam.click_callback = callback.update_map_mode(gam, "elevation")
 	end
 	if ut.icon_button(
-			ASSETS.icons[gam.map_mode_data['biomes'][2]],
-			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['biomes'][3]) then
+			ASSETS.icons[gam.map_mode_data['biomes'].icon_name],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['biomes'].description) then
 		gam.click_callback = callback.update_map_mode(gam, "biomes")
 	end
 	if ut.icon_button(
-			ASSETS.icons[gam.map_mode_data['terrain'][2]],
-			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['terrain'][3]) then
+			ASSETS.icons[gam.map_mode_data['terrain'].icon_name],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['terrain'].description) then
 		gam.click_callback = callback.update_map_mode(gam, "terrain")
 	end
 	if ut.icon_button(
-			ASSETS.icons[gam.map_mode_data['koppen'][2]],
-			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['koppen'][3]) then
+			ASSETS.icons[gam.map_mode_data['koppen'].icon_name],
+			map_mode_bar_layout:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large), gam.map_mode_data['koppen'].description) then
 		gam.click_callback = callback.update_map_mode(gam, "koppen")
 	end
 
@@ -1579,16 +1577,16 @@ function gam.draw()
 					local button_rect = rect:copy()
 					button_rect.width = button_rect.height
 					if ut.icon_button(ASSETS.icons[
-							mm_data[2]
+							mm_data.icon_name
 							], button_rect,
-							mm_data[3]
+							mm_data.description
 						) then
 						gam.click_callback = callback.update_map_mode(gam, mm_key)
 						gam.update_map_mode(mm_key)
 					end
 					rect.x = rect.x + rect.height
 					rect.width = rect.width - rect.height
-					ui.left_text(mm_data[1], rect)
+					ui.left_text(mm_data.name, rect)
 				else
 				end
 			end,
@@ -1788,9 +1786,9 @@ function gam.draw()
 		local loading_rect = ui.fullscreen():subrect(0, 100, 300, 50, "center", "up")
 		ui.panel(loading_rect)
 		local progress = 0
-		if gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.TILE then
+		if gam.map_mode_data[gam.map_mode].granularity == mmut.MAP_MODE_GRANULARITY.TILE then
 			progress = gam.map_update_progress / WORLD:tile_count() * 300
-		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE then
+		elseif gam.map_mode_data[gam.map_mode].granularity == mmut.MAP_MODE_GRANULARITY.PROVINCE then
 			progress = gam.map_update_progress / WORLD.province_count * 300
 		else
 			progress = gam.map_update_progress / (WORLD.province_count + WORLD:tile_count()) * 300
@@ -2346,7 +2344,7 @@ function gam.refresh_map_mode(async_flag)
 			return
 		end
 
-		if gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.TILE then
+		if gam.map_mode_data[gam.map_mode].granularity == mmut.MAP_MODE_GRANULARITY.TILE then
 			print("tile map mode")
 			gam.map_update_progress = 0
 
@@ -2356,7 +2354,7 @@ function gam.refresh_map_mode(async_flag)
 				gam._refresh_map_mode(async_flag)
 				gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, false)
 			end
-		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE then
+		elseif gam.map_mode_data[gam.map_mode].granularity == mmut.MAP_MODE_GRANULARITY.PROVINCE then
 			print("province map mode")
 			gam.map_update_progress = 0
 
@@ -2367,7 +2365,7 @@ function gam.refresh_map_mode(async_flag)
 				gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, true)
 			end
 
-		elseif gam.map_mode_data[gam.map_mode][5] == mmut.MAP_MODE_GRANULARITY.MIXED then
+		elseif gam.map_mode_data[gam.map_mode].granularity == mmut.MAP_MODE_GRANULARITY.MIXED then
 			print("mixed map mode")
 			gam.map_update_progress = 0
 
@@ -2445,7 +2443,7 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 	print(gam.map_mode)
 	local dat = gam.map_mode_data[gam.map_mode]
 
-	if dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
+	if dat.updates_type == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
 		if gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode] == nil then
 			print("static map mode but not found in cache: recalculating province colors...")
 			gam.PROVINCE_MAP_MODE_DATA_CACHE[gam.map_mode] = love.image.newImageData(256, 256, "rgba8")
@@ -2466,9 +2464,9 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 
 	do
 		print("calculate province colors")
-		local func = dat[4]
+		local func = dat.recalculation
 		if use_secondary then
-			func = dat[8]
+			func = dat.secondary_recalculation
 		end
 		assert(func ~= nil, "Map mode " .. gam.map_mode .. " lacks requested update function")
 		func(gam.clicked_tile_id) -- set "real color" on central tiles
@@ -2493,7 +2491,7 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 
 			local current_tile = province.center
 
-			if can_set or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
+			if can_set or gam.map_mode_data[gam.map_mode].updates_type == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
 				pointer_province_color[id * 4 + 0] = 255 * current_tile.real_r
 				pointer_province_color[id * 4 + 1] = 255 * current_tile.real_g
 				pointer_province_color[id * 4 + 2] = 255 * current_tile.real_b
@@ -2513,7 +2511,7 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 		gam.province_color_texture:setFilter("nearest", "nearest")
 
 		if
-			dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+			dat.updates_type == mmut.MAP_MODE_UPDATES_TYPE.STATIC
 		then
 			print("map mode was cached!")
 			gam.PROVINCE_MAP_MODE_CACHE[gam.map_mode] = gam.province_color_texture
@@ -2553,8 +2551,8 @@ function gam._refresh_map_mode(async_flag)
 	local dat = gam.map_mode_data[gam.map_mode]
 
 	if
-		dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
-		or dat[6] == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
+		dat.updates_type == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+		or dat.updates_type == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
 	then
 		if gam.TILE_MAP_MODE_CACHE[gam.map_mode] == nil then
 			print("static map mode but not found in cache: recalculating tile colors...")
@@ -2576,7 +2574,7 @@ function gam._refresh_map_mode(async_flag)
 	end
 
 	do
-		local func = dat[4]
+		local func = dat.recalculation
 		func(gam.clicked_tile_id) -- set "real color" on tiles
 
 		-- Apply the color
@@ -2602,8 +2600,8 @@ function gam._refresh_map_mode(async_flag)
 				local pixel_index = x + y * dim
 
 				if can_set
-					or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
-					or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
+					or gam.map_mode_data[gam.map_mode].updates_type == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+					or gam.map_mode_data[gam.map_mode].updates_type == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
 				then
 					local r = tile.real_r
 					local g = tile.real_g
@@ -2626,8 +2624,8 @@ function gam._refresh_map_mode(async_flag)
 		gam.tile_color_texture:setFilter("nearest", "nearest")
 
 		if
-			dat[6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC
-			or dat[6] == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
+			dat.updates_type == mmut.MAP_MODE_UPDATES_TYPE.STATIC
+			or dat.updates_type == mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC_PROVINCE_STATIC_TILE
 		then
 			gam.TILE_MAP_MODE_CACHE[gam.map_mode] = gam.tile_color_texture
 		end
