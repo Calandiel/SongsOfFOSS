@@ -30,6 +30,8 @@ ASSETS = {}
 -- A version string, kinda irrelevant now since multiplayer isn't a thing, lol
 VERSION_STRING = "v0.3.0 (Midgard)"
 
+SILENT_ASSET_LOADING = false
+
 --if WORLD == nil then
 ---@type World|nil
 WORLD = nil
@@ -131,6 +133,8 @@ bs.registerClass("World", require "game.entities.world".World)
 bs.registerClass("Warband", require "game.entities.warband")
 bs.registerClass('Army', require "game.entities.army")
 
+local lovetest = require "test/lovetest"
+
 function love.load(args)
 	tab.print(args)
 	ARGS = tab.copy(args)
@@ -146,15 +150,27 @@ Possible command line arguments:
 -h/-help/--h/--help -- displays this message
 --dev -- dev mode, uses the default world and ignores options, even if they exist
 --nopreload -- disables preloading of map modes
+--simpletests -- runs a few sanity tests
 --windowed -- starts in windowed mode, regardless of settings
 ]])
 		love.event.quit()
 		return
 	end
 
-	if (tab.contains(ARGS, "--tests")) then
+	-- Check for the testing command line flags
+	if lovetest.detect(arg) then
+		SILENT_ASSET_LOADING = true
+		print("\n")
+
+		-- Run the tests
+		lovetest.run()
+
+		print("\n")
+	end
+
+	if (tab.contains(ARGS, "--simpletests")) then
 		print("RUNNING TESTS")
-		require "tests.main"()
+		require "simple-tests.main"()
 		love.event.quit()
 		return
 	end

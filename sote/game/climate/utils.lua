@@ -159,10 +159,9 @@ function ut.get_climate_data(lat, lon, elevation)
 	local c = WORLD.climate_cells[cc]
 	local d = WORLD.climate_cells[dc]
 
-	local r_ja, t_ja, r_ju, t_ju = a.january_rainfall * acf + b.january_rainfall * bcf + c.january_rainfall * ccf +
-		d.january_rainfall * dcf,
-		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf +
-		d.january_temperature * dcf,
+	local r_ja, t_ja, r_ju, t_ju =
+		a.january_rainfall * acf + b.january_rainfall * bcf + c.january_rainfall * ccf + d.january_rainfall * dcf,
+		a.january_temperature * acf + b.january_temperature * bcf + c.january_temperature * ccf + d.january_temperature * dcf,
 		a.july_rainfall * acf + b.july_rainfall * bcf + c.july_rainfall * ccf + d.july_rainfall * dcf,
 		a.july_temperature * acf + b.july_temperature * bcf + c.july_temperature * ccf + d.july_temperature * dcf
 
@@ -170,6 +169,23 @@ function ut.get_climate_data(lat, lon, elevation)
 	local dd = elevation / 1000
 
 	return r_ja, t_ja - TEMP_DELTA_PER_KM * dd, r_ju, t_ju - TEMP_DELTA_PER_KM * dd
+end
+
+---Returns humidity data
+---@param lat number
+---@param lon number
+---@return number january_humidity
+---@return number july_humidity
+function ut.get_humidity(lat, lon)
+	local ac, acf, bc, bcf, cc, ccf, dc, dcf = get_tile_lerp_factors(lat, lon)
+
+	local a = WORLD.climate_cells[ac]
+	local b = WORLD.climate_cells[bc]
+	local c = WORLD.climate_cells[cc]
+	local d = WORLD.climate_cells[dc]
+
+	return a.january_humidity * acf + b.january_humidity * bcf + c.january_humidity * ccf + d.january_humidity * dcf,
+		a.july_humidity * acf + b.july_humidity * bcf + c.july_humidity * ccf + d.july_humidity * dcf
 end
 
 return ut

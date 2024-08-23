@@ -5,10 +5,18 @@ end
 
 local logger = {}
 
-function logger:new(logname, path)
+function logger:new(logname, path, unique)
 	local new_logger = {}
 
-	new_logger.file = assert(io.open((path or love.filesystem.getSaveDirectory()) .. "/" .. generate_unique_filename(logname), "w"))
+	unique = unique or false
+	local log_filename = path or love.filesystem.getSaveDirectory()
+	if unique then
+		log_filename = log_filename .. "/" .. generate_unique_filename(logname)
+	else
+		log_filename = log_filename .. "/" .. logname .. ".txt"
+	end
+
+	new_logger.file = assert(io.open(log_filename, "w"))
 
 	local sentinel = newproxy(true) -- need this hack since we're on lua 5.1, but it can be removed if we upgrade to 5.2 or beyond
 	local mt = getmetatable(sentinel)
@@ -40,10 +48,11 @@ local loggers = {}
 
 local latlon_logger = nil
 local neighbors_logger = nil
+local waterflow_logger = nil
 
-local function get_logger(logger_instance, logname, path)
+local function get_logger(logger_instance, logname, path, unique)
 	if logger_instance == nil then
-		logger_instance = logger:new(logname, path)
+		logger_instance = logger:new(logname, path, unique)
 	end
 
 	return logger_instance
@@ -55,6 +64,10 @@ end
 
 function loggers.get_neighbors_logger(path)
 	return get_logger(neighbors_logger, "neighbours", path)
+end
+
+function loggers.get_waterflow_logger(path)
+	return get_logger(waterflow_logger, "waterflow", path)
 end
 
 return loggers
