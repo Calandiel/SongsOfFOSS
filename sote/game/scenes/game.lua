@@ -394,9 +394,11 @@ function gam.init()
 
 	gam.minimap = require "game.minimap".make_minimap(gam, nil, nil, false)
 
-	for map_mode, _ in pairs(gam.map_mode_data) do
-		if _[6] ~= mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC then
-			gam.update_map_mode(map_mode, false)
+	if PRELOAD_FLAG then
+		for map_mode, _ in pairs(gam.map_mode_data) do
+			if _[6] ~= mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC then
+				gam.update_map_mode(map_mode, false)
+			end
 		end
 	end
 

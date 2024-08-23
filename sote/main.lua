@@ -145,8 +145,16 @@ Songs of the Eons, version ]] .. VERSION_STRING .. [[
 Possible command line arguments:
 -h/-help/--h/--help -- displays this message
 --dev -- dev mode, uses the default world and ignores options, even if they exist
+--nopreload -- disables preloading of map modes
 --windowed -- starts in windowed mode, regardless of settings
 ]])
+		love.event.quit()
+		return
+	end
+
+	if (tab.contains(ARGS, "--tests")) then
+		print("RUNNING TESTS")
+		require "tests.main"()
 		love.event.quit()
 		return
 	end
@@ -154,6 +162,13 @@ Possible command line arguments:
 	if tab.contains(ARGS, "--profile") then
 		print("Profiling enabled")
 		PROFILE_FLAG = true
+	end
+
+	if tab.contains(ARGS, "--nopreload") then
+		print("Profiling enabled")
+		PRELOAD_FLAG = false
+	else
+		PRELOAD_FLAG = true
 	end
 
 	-- Update the load path for "require"!
