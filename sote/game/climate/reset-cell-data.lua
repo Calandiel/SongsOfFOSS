@@ -1,5 +1,7 @@
 local r = {}
 
+local tile= require "game.entities.tile"
+
 local function reset_climate_cells()
 	local cc = require "game.entities.climate-cell"
 	for id, _ in pairs(WORLD.climate_cells) do
@@ -12,8 +14,8 @@ local ut = require "game.climate.utils"
 function r.run()
 	reset_climate_cells()
 
-	for _, tile in pairs(WORLD.tiles) do
-		WORLD.tile_to_climate_cell[tile] = ut.get_climate_cell(tile:latlon())
+	for _, tile_id in pairs(WORLD.tiles) do
+		WORLD.tile_to_climate_cell[tile_id] = ut.get_climate_cell(tile.latlon(tile_id))
 	end
 end
 

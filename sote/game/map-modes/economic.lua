@@ -6,7 +6,7 @@ function eco.local_income()
 	local avg = 0
 	local count = 0
 	for _, prov in pairs(WORLD.provinces) do
-		if prov.center.is_land then
+		if DATA.tile_get_is_land(prov.center) then
 			max_income = math.max(max_income, prov.local_income)
 			avg = avg + prov.local_income
 			count = count + 1

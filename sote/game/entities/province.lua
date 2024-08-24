@@ -1,5 +1,6 @@
 local tabb = require "engine.table"
 local wb = require "game.entities.warband"
+local tile = require "game.entities.tile"
 
 local EconomicValues = require "game.raws.values.economical"
 local economic_triggers = require "game.raws.triggers.economy"
@@ -17,11 +18,11 @@ local prov = {}
 ---@field is_land boolean
 ---@field province_id number
 ---@field size number
----@field tiles table<Tile, Tile>
+---@field tiles table<tile_id, tile_id>
 ---@field hydration number Number of humans that can live of off this provinces innate water
 ---@field neighbors table<Province, Province>
 ---@field movement_cost number
----@field center Tile The tile which contains this province's settlement, if there is any.
+---@field center tile_id The tile which contains this province's settlement, if there is any.
 ---@field infrastructure_needed number
 ---@field infrastructure number
 ---@field infrastructure_investment number
@@ -47,7 +48,7 @@ local prov = {}
 ---@field foragers_limit number amount of calories foraged by pops and characters
 ---@field foragers_targets table<ForageResource, {icon: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}>
 ---@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
----@field local_resources_location {[1]: Tile, [2]: Resource}[] An array of local resources and their positions
+---@field local_resources_location {[1]: tile_id, [2]: Resource}[] An array of local resources and their positions
 ---@field mood number how local population thinks about the state
 ---@field outlaws table<POP, POP>
 ---@field unit_types table<UnitType, UnitType>
@@ -141,21 +142,23 @@ function prov.Province:get_random_neighbor()
 end
 
 ---Adds a tile to the province. Handles removal from the previous province, if necessary.
----@param tile Tile
-function prov.Province:add_tile(tile)
+---@param tile_id tile_id
+function prov.Province:add_tile(tile_id)
 	--- easiest way to handle it, i guess
-	if tile.is_land then
+	if DATA.tile_get_is_land(tile_id) then
 		self.is_land = true
 	end
 
-	if tile:province() ~= nil then
-		tile:province().size = tile:province().size - 1
-		tile:province().tiles[tile] = nil
+	local prev_prov = tile.province(tile_id)
+
+	if prev_prov ~= nil then
+		prev_prov.size = prev_prov.size - 1
+		prev_prov.tiles[tile_id] = nil
 	end
 
-	self.tiles[tile] = tile
+	self.tiles[tile_id] = tile_id
 	self.size = self.size + 1
-	tile:set_province(self)
+	tile.set_province(tile_id, self)
 end
 
 ---Returns the total military size of the province.
@@ -508,7 +511,7 @@ function prov.Province:research(technology)
 			if #t.required_biome > 0 then
 				local new_ok = false
 				for _, biome in pairs(t.required_biome) do
-					if biome == self.center.biome then
+					if biome == DATA.tile_get_biome(self.center) then
 						new_ok = true
 						break
 					end
@@ -542,7 +545,7 @@ function prov.Province:research(technology)
 		if #b.required_biome > 0 then
 			ok = false
 			for _, biome in b.required_biome do
-				if biome == self.center.biome then
+				if biome == DATA.tile_get_biome(self.center) then
 					ok = true
 					break
 				end
@@ -621,10 +624,10 @@ function prov.Province:can_build(funds, building, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then
 		resource_check_passed = false
-		for _, tile in pairs(self.tiles) do
-			if tile.resource then
+		for _, tile_id in pairs(self.tiles) do
+			if DATA.tile_get_resource(tile_id) then
 				for _, res in pairs(building.required_resource) do
-					if tile.resource == res then
+					if DATA.tile_get_resource(tile_id) == res then
 						resource_check_passed = true
 						goto RESOURCE_CHECK_ENDED
 					end
@@ -788,7 +791,11 @@ end
 function prov.Province:get_hiding()
 	local hide = 1
 	for t, _ in pairs(self.tiles) do
-		hide = hide + 1 + t.grass + t.shrub * 2 + t.conifer * 3 + t.broadleaf * 5
+		local grass = DATA.tile_get_grass(t)
+		local shrub = DATA.tile_get_shrub(t)
+		local conifer = DATA.tile_get_conifer(t)
+		local broadleaf = DATA.tile_get_broadleaf(t)
+		hide = hide + 1 + grass + shrub * 2 + conifer * 3 + broadleaf * 5
 	end
 	return hide
 end

@@ -15,10 +15,10 @@ local function update_climate_cells()
 end
 
 function cl.run()
-	for tile, cell in pairs(WORLD.tile_to_climate_cell) do
-		cell.elevation = tile.elevation
+	for tile_id, cell in pairs(WORLD.tile_to_climate_cell) do
+		cell.elevation = DATA.tile_get_elevation(tile_id)
 
-		if tile.is_land then
+		if DATA.tile_get_is_land(tile_id) then
 			cell.land_tiles = cell.land_tiles + 1
 		else
 			cell.water_tiles = cell.water_tiles + 1

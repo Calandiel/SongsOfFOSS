@@ -1,6 +1,3 @@
-local pv = require "game.raws.values.political"
-
-
 ---@class (exact) BudgetCategory
 ---@field ratio number
 ---@field budget number
@@ -287,7 +284,7 @@ function realm.Realm:get_explore_cost(province)
 	-- We don't want movement cost to ACTUALLY cost nigh infinite amounts on land
 	-- So we'll reduce it by this amount instead.
 	local mulp = 0.1
-	if province.center.is_land then
+	if DATA.tile_get_is_land(province.center) then
 		local path = require "game.ai.pathfinding"
 		local cost, r = path.pathfind(self.capitol, province, nil, self.known_provinces)
 		if r then

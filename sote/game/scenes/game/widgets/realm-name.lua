@@ -19,9 +19,8 @@ local function realm_name(gam, realm,  rect, mode)
     local function press()
         gam.inspector = "realm"
         gam.selected.realm = realm
-        ---@type Tile
-        local captile = realm.capitol.center
-        gam.click_tile(captile.tile_id)
+        local capitol = realm.capitol.center
+        gam.click_tile(capitol)
     end
 
     if ut.coa(realm, COA_rect) then

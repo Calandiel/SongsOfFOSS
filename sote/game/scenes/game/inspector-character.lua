@@ -153,7 +153,7 @@ function window.draw(game)
             game.inspector = "tile"
             game.selected.province = character.province
             game.selected.tile = character.province.center
-            game.clicked_tile_id = character.province.center.tile_id
+            game.clicked_tile_id = character.province.center
         end
     else
         ut.text_button("Unknown", location_panel, "Current location of character", false)

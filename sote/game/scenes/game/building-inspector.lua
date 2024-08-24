@@ -136,7 +136,7 @@ function re.draw(gam)
 				destory_button, "Destory this building? WARNING; It can't be taken back!"
 			) then
 				economic_effects.destroy_building(building)
-				gam.click_tile(-1)
+				gam.click_tile(0)
 				gam.selected.building = nil
 				gam.inspector = nil
 			end
@@ -668,7 +668,7 @@ function re.draw(gam)
 				width = 1,
 				---@param k POP
 				value = function(k, v)
-					
+
 					return building.worker_income[k] or 0
 				end
 			}

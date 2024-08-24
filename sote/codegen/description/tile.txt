@@ -1,0 +1,33 @@
+is_land bool
+is_fresh bool
+elevation float
+grass float
+shrub float
+conifer float
+broadleaf float
+ideal_grass float
+ideal_shrub float
+ideal_conifer float
+ideal_broadleaf float
+silt float
+clay float
+sand float
+soil_minerals float
+soil_organics float
+january_waterflow float
+july_waterflow float
+waterlevel float
+has_river bool
+has_marsh bool
+ice float
+ice_age_ice float
+bedrock Bedrock
+biome Biome
+debug_r float between 0 and 1, as per Love2Ds convention...
+debug_g float between 0 and 1, as per Love2Ds convention...
+debug_b float between 0 and 1, as per Love2Ds convention...
+real_r float between 0 and 1, as per Love2Ds convention...
+real_g float between 0 and 1, as per Love2Ds convention...
+real_b float between 0 and 1, as per Love2Ds convention...
+pathfinding_index uint32_t
+resource Resource?

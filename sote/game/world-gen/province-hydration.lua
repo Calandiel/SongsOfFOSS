@@ -1,3 +1,4 @@
+local tile = require "game.entities.tile"
 local hydr = {}
 
 function hydr.run()
@@ -6,9 +7,9 @@ function hydr.run()
 		---@type Province
 		local pro = pr
 		local support = 5
-		if pro.center.is_land then
-			for _, tile in pairs(pro.tiles) do
-				local jan_rain, _, jul_rain, _ = tile:get_climate_data()
+		if DATA.tile_get_is_land(pro.center) then
+			for _, tile_id in pairs(pro.tiles) do
+				local jan_rain, _, jul_rain, _ = tile.get_climate_data(tile_id)
 				support = support + (jan_rain + jul_rain) * 0.5 / 2 / 30
 			end
 		end

@@ -1,4 +1,5 @@
 local tabb = require "engine.table"
+local tile = require "game.entities.tile"
 
 local JOBTYPE = require "game.raws.job_types"
 
@@ -71,32 +72,39 @@ function dbm.foraging_efficiency(carrying_capacity, foragers)
 	end
 end
 
----@param tile Tile
+---@param tile_id tile_id
 ---@return number primary_production
 ---@return number marine_production
 ---@return number wood_production
 ---@return number effective_temperature
-function dbm.total_production(tile)
-	local  _, warmest, _, coldest = tile:get_climate_data()
+function dbm.total_production(tile_id)
+	local  _, warmest, _, coldest = tile.get_climate_data(tile_id)
 	if coldest > warmest then
 		warmest, coldest = coldest, warmest
 	end
+
+	local grass = DATA.tile_get_grass(tile_id)
+	local shrub = DATA.tile_get_shrub(tile_id)
+	local broadleaf = DATA.tile_get_broadleaf(tile_id)
+	local conifer = DATA.tile_get_conifer(tile_id)
+
+
 	local effective_temperature = (18 * warmest - 10 * coldest) / (warmest - coldest + 8)
 	local temperture_weighting =  1 / (1 + math.exp(-0.2 * (effective_temperature - 10)))
 	-- weight net production by 'biomass' assimilation efficiency
-	local primary_production = temperture_weighting * (0.5 * tile.grass + 0.4 * tile.shrub + 0.3 * tile.broadleaf + 0.2 * tile.conifer)
+	local primary_production = temperture_weighting * (0.5 * grass + 0.4 * shrub + 0.3 * broadleaf + 0.2 * conifer)
 	-- some of assimilation efficiency goes towards structural material: timber
-	local wood_production = temperture_weighting * (0.3 * tile.conifer + 0.2 * tile.broadleaf + 0.1 * tile.shrub)
+	local wood_production = temperture_weighting * (0.3 * conifer + 0.2 * broadleaf + 0.1 * shrub)
 	-- check for marine resources
 	local marine_production = 0
-	if tile.has_marsh then
+	if DATA.tile_get_has_marsh(tile_id) then
 		marine_production = marine_production + 0.5
 	end
-	if tile.has_river then
+	if DATA.tile_get_has_river(tile_id) then
 		marine_production = marine_production + 0.5
 	end
 	for i = 1, 4 do
-		if not tile:get_neighbor(i).is_land then
+		if not DATA.tile_get_is_land(tile.get_neighbor(tile_id, i)) then
 			marine_production = marine_production + 0.25
 		end
 	end
@@ -104,7 +112,7 @@ function dbm.total_production(tile)
 end
 
 ---calculate the net primary production (NPP) of a tile, sums to CC
----@param tile Tile
+---@param tile tile_id
 ---@return number net_production
 ---@return number fruit
 ---@return number seeds
@@ -113,18 +121,24 @@ end
 ---@return number fish
 ---@return number game
 ---@return number fungi
-function dbm.net_foraging_production(tile)
+function dbm.net_foraging_production(tile_id)
 	local primary_production, marine_production, wood, effective_temperature =
-		dbm.total_production(tile)
+		dbm.total_production(tile_id)
 	local fruit, seeds, shell, fish, game = 0, 0, 0, 0, 0
 	if primary_production > 0 then
 		-- determine animal energy from eating folliage and reduce from plant output
 		game = 0.125 * (primary_production + wood)
 		primary_production = primary_production * 0.875
 		wood = wood * 0.875
+
+		local grass = DATA.tile_get_grass(tile_id)
+		local shrub = DATA.tile_get_shrub(tile_id)
+		local broadleaf = DATA.tile_get_broadleaf(tile_id)
+		local conifer = DATA.tile_get_conifer(tile_id)
+
 		-- determine plant food from remaining pp
-		local fruit_plants = tile.shrub + tile.broadleaf
-		local seed_plants = tile.conifer + tile.grass
+		local fruit_plants = shrub + broadleaf
+		local seed_plants = conifer + grass
 		local flora_total = fruit_plants + seed_plants
 		if flora_total > 0 then
 			local fruit_percentage = 0.5 / (1 + math.exp(-10 * (fruit_plants / flora_total - 0.5)))
@@ -150,7 +164,7 @@ end
 ---comment
 ---@param a {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 ---@param _ any
----@param v Tile
+---@param v tile_id
 ---@return {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 function dbm.accumulate_foraging_production(a, _, v)
 	local net_production, fruit, seeds, wood, shell, fish, game, fungi = dbm.net_foraging_production(v)

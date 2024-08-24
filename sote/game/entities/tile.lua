@@ -3,51 +3,12 @@ local tile = {}
 local cube = require "game.cube"
 local ll_utils = require "game.latlon"
 
----@class (exact) Tile
----@field __index Tile
----@field tile_id number
----@field is_land boolean
----@field is_fresh boolean
----@field elevation number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field july_waterflow number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
----@field bedrock Bedrock?
----@field biome Biome?
----@field debug_r number between 0 and 1, as per Love2Ds convention...
----@field debug_g number between 0 and 1, as per Love2Ds convention...
----@field debug_b number between 0 and 1, as per Love2Ds convention...
----@field real_r number between 0 and 1, as per Love2Ds convention...
----@field real_g number between 0 and 1, as per Love2Ds convention...
----@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource Resource?
-
----@class Tile
+---@class fat_tile_id
 tile.Tile = {}
 tile.Tile.__index = tile.Tile
 function tile.Tile:new(tile_id)
-	---@type Tile
-	local tt = {}
+	local tt = DATA.fatten_tile(tile_id)
 
-	tt.tile_id = tile_id
 	tt.is_land = false
 	tt.is_fresh = false
 	tt.elevation = 0
@@ -80,61 +41,78 @@ function tile.Tile:new(tile_id)
 	tt.real_b = 0.1
 	tt.pathfinding_index = 0
 
-	setmetatable(tt, self)
 	return tt
 end
 
-function tile.Tile:province()
-	return WORLD.tile_to_province[self]
+---@param id tile_id
+function tile.province(id)
+	return WORLD.tile_to_province[id]
 end
 
-function tile.Tile:set_province(province)
-	WORLD.tile_to_province[self] = province
+---@param id tile_id?
+---@return Realm?
+function tile.realm(id)
+	if id < 1 then
+		return nil
+	end
+	return WORLD.tile_to_province[id].realm
 end
 
-function tile.Tile:plate()
-	return WORLD.tile_to_plate[self]
+---@param id tile_id
+---@param province Province
+function tile.set_province(id, province)
+	WORLD.tile_to_province[id] = province
 end
 
-function tile.Tile:set_plate(plate)
-	WORLD.tile_to_plate[self] = plate
+---@param id tile_id
+function tile.plate(id)
+	return WORLD.tile_to_plate[id]
+end
+
+---@param id tile_id
+---@param plate Plate
+function tile.set_plate(id, plate)
+	WORLD.tile_to_plate[id] = plate
 end
 
 ---Sets this tile's debug color
+---@param tile_id tile_id
 ---@param r number between 0 and 1
 ---@param g number between 0 and 1
 ---@param b number between 0 and 1
-function tile.Tile:set_debug_color(r, g, b)
-	self.debug_r = r
-	self.debug_g = g
-	self.debug_b = b
+function tile.set_debug_color(tile_id, r, g, b)
+	DATA.tile_set_debug_r(tile_id, r);
+	DATA.tile_set_debug_g(tile_id, g);
+	DATA.tile_set_debug_b(tile_id, b);
 end
 
 ---Sets this tile's real color
+---@param tile_id tile_id
 ---@param r number between 0 and 1
 ---@param g number between 0 and 1
 ---@param b number between 0 and 1
-function tile.Tile:set_real_color(r, g, b)
-	self.real_r = r
-	self.real_g = g
-	self.real_b = b
+function tile.set_real_color(tile_id, r, g, b)
+	DATA.tile_set_real_r(tile_id, r);
+	DATA.tile_set_real_g(tile_id, g);
+	DATA.tile_set_real_b(tile_id, b);
 end
 
 ---Returns latitude [-pi/2, pi/2] and longitude [-pi, pi]
+---@param tile_id tile_id
 ---@return number, number
-function tile.Tile:latlon()
-	local tile_id = self.tile_id
+function tile.latlon(tile_id)
 	local lat, lon = tile.get_lat_lon(tile_id)
 	return lat, lon
 end
 
 ---Returns a perlin noise value
+---@param tile_id tile_id
 ---@param frequency number
 ---@param seed number
 ---@return number perlin_noise_value between 0 and 1
-function tile.Tile:perlin(frequency, seed)
+function tile.perlin(tile_id, frequency, seed)
 	-- Get cartesian coordinates on a sphere in a cube [0, 1]^3
-	local x, y, z = tile.get_cartesian(self.tile_id)
+	local x, y, z = tile.get_cartesian(tile_id)
 	x = (x + 1) / 2
 	y = (y + 1) / 2
 	z = (z + 1) / 2
@@ -151,19 +129,21 @@ function tile.Tile:perlin(frequency, seed)
 end
 
 ---Returns average waterflow
+---@param tile_id tile_id
 ---@return number average_yearly_waterflow
-function tile.Tile:average_waterflow()
-	return (self.january_waterflow + self.july_waterflow) / 2
+function tile.average_waterflow(tile_id)
+	return (DATA.tile_get_january_waterflow(tile_id) + DATA.tile_get_july_waterflow(tile_id)) / 2
 end
 
 ---Returns climate data
+---@param tile_id tile_id
 ---@return number january_rainfall
 ---@return number january_temperature
 ---@return number july_rainfall
 ---@return number july_temperature
-function tile.Tile:get_climate_data()
-	local lat, lon = self:latlon()
-	return require "game.climate.utils".get_climate_data(lat, lon, self.elevation)
+function tile.get_climate_data(tile_id)
+	local lat, lon = tile.latlon(tile_id)
+	return require "game.climate.utils".get_climate_data(lat, lon, DATA.tile_get_elevation(tile_id))
 end
 
 ---@alias neighbourID
@@ -178,12 +158,11 @@ local NEIGH_BOTTOM = 2
 local NEIGH_RIGHT = 3
 local NEIGH_LEFT = 4
 ---Returns a neighbor tile (as a reference!)
----@param self Tile
+---@param tile_id tile_id
 ---@param neighbor_index neighbourID Ranges from 1 to 4 (both inclusive)
----@return Tile neigbhbor
-function tile.Tile:get_neighbor(neighbor_index)
-	local id = self.tile_id
-	local x, y, f = tile.index_to_coords(id)
+---@return tile_id neigbhbor
+function tile.get_neighbor(tile_id, neighbor_index)
+	local x, y, f = tile.index_to_coords(tile_id)
 	local wsmo = WORLD.world_size - 1
 
 	-- Return coordinates
@@ -334,33 +313,33 @@ function tile.Tile:get_neighbor(neighbor_index)
 	end
 
 	local ret_id = tile.coords_to_index(rx, ry, rf)
-	return WORLD.tiles[ret_id]
+	return ret_id
 end
 
 ---Returns an iterator over all neighbors
----@return fun():Tile
-function tile.Tile:iter_neighbors()
+---@param tile_id tile_id
+---@return fun():(tile_id|nil)
+function tile.iter_neighbors(tile_id)
 	local neigh = 0
 	return function()
 		neigh = neigh + 1
 		if neigh > 4 then
 			return nil
 		else
-			return self:get_neighbor(neigh)
+			return tile.get_neighbor(tile_id, neigh)
 		end
 	end
 end
 
 ---Given a neighbor index, returns a new direction that can be iterated again and the neighbor
----@param self Tile
+---@param tile_id tile_id
 ---@param neighbor_index number
----@return Tile
----@return number
-function tile.Tile:move_across_face(neighbor_index)
-	local nn = self:get_neighbor(neighbor_index)
+---@return tile_id, number
+function tile.move_across_face(tile_id, neighbor_index)
+	local nn = tile.get_neighbor(tile_id, neighbor_index)
 
-	local _, _, old_face = tile.index_to_coords(self.tile_id)
-	local _, _, new_face = tile.index_to_coords(nn.tile_id)
+	local _, _, old_face = tile.index_to_coords(tile_id)
+	local _, _, new_face = tile.index_to_coords(nn)
 	local new_dir = neighbor_index
 
 	if old_face == cube.LEFT then
@@ -409,42 +388,48 @@ function tile.Tile:move_across_face(neighbor_index)
 end
 
 ---Iterates a line of a given length
----@param self Tile
+---@param tile_id tile_id
 ---@param direction number neighbor index
 ---@param length number
-function tile.Tile:line_iterator(direction, length)
+function tile.line_iterator(tile_id, direction, length)
 	local curr = 0
-	local tt = self
+	local tt = tile_id
 	local dir = direction
 	return function()
 		curr = curr + 1
 		if curr == length then
 			return nil
 		else
-			tt, dir = tt:move_across_face(dir)
+			tt, dir = tile.move_across_face(tile_id, dir)
 			return tt
 		end
 	end
 end
 
 ---Returns the soil depth, in meters
+---@param tile_id tile_id
 ---@return number
-function tile.Tile:soil_depth()
-	return self.sand + self.silt + self.clay
+function tile.soil_depth(tile_id)
+	return DATA.tile_get_sand(tile_id) + DATA.tile_get_silt(tile_id) + DATA.tile_get_clay(tile_id)
 end
 
 ---Returns soil permeability, as an abstract D-value (Demian value)
-function tile.Tile:soil_permeability()
+---@param tile_id tile_id
+function tile.soil_permeability(tile_id)
 	local tile_perm = 2.5
 
-	if self.sand > 0.15 then
-		tile_perm = tile_perm - 2 * (self.sand - 0.15) / (1.0 - 0.15)
+	local sand = DATA.tile_get_sand(tile_id)
+	local silt = DATA.tile_get_silt(tile_id)
+	local clay = DATA.tile_get_clay(tile_id)
+
+	if sand > 0.15 then
+		tile_perm = tile_perm - 2 * (sand - 0.15) / (1.0 - 0.15)
 	end
-	if self.silt > 0.85 then
-		tile_perm = tile_perm - 0.25 * (self.silt - 0.85) / (1.0 - 0.85)
+	if silt > 0.85 then
+		tile_perm = tile_perm - 0.25 * (silt - 0.85) / (1.0 - 0.85)
 	end
-	if self.clay > 0.2 then
-		tile_perm = tile_perm - 1.25 * (self.clay - 0.2) / (1.0 - 0.2)
+	if clay > 0.2 then
+		tile_perm = tile_perm - 1.25 * (clay - 0.2) / (1.0 - 0.2)
 	end
 
 	return tile_perm / 2.5
@@ -535,11 +520,12 @@ function tile.get_cartesian(tile_id)
 end
 
 ---Returns great circle distance to a tile.
----@param other Tile
+---@param origin tile_id
+---@param target tile_id
 ---@return number
-function tile.Tile:distance_to(other)
-	local slat, slon = self:latlon()
-	local olat, olon = other:latlon()
+function tile.distance_to(origin, target)
+	local slat, slon = tile.latlon(origin)
+	local olat, olon = tile.latlon(target)
 	--[[ Spherical law of cosines
 	local angle = math.acos(math.sin(slat) * math.sin(olat) +
 		math.cos(slat) * math.cos(olat) * math.cos(math.abs(slon - olon)))
@@ -566,17 +552,18 @@ function tile.Tile:distance_to(other)
 	return angle * 6371
 end
 
+---@param tile_id tile_id
 ---@return boolean
-function tile.Tile:is_coast()
-	if self.is_land then
-		for n in self:iter_neighbors() do
-			if not n.is_land then
+function tile.is_coast(tile_id)
+	if DATA.tile_get_is_land(tile_id) then
+		for n in tile.iter_neighbors(tile_id) do
+			if not DATA.tile_get_is_land(n) then
 				return true
 			end
 		end
 	else
-		for n in self:iter_neighbors() do
-			if n.is_land then
+		for n in tile.iter_neighbors(tile_id) do
+			if DATA.tile_get_is_land(n) then
 				return true
 			end
 		end

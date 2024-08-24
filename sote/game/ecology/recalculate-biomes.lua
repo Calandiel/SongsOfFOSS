@@ -1,41 +1,59 @@
+local tile = require "game.entities.tile"
 local re = {}
 
 function re.run()
 
 	for _, t in pairs(WORLD.tiles) do
+		local elevation = DATA.tile_get_elevation(t)
+
 		local slopeiness = 0
-		for n in t:iter_neighbors() do
-			slopeiness = slopeiness + math.abs(n.elevation - t.elevation)
+		for n in tile.iter_neighbors(t) do
+			local n_elevation = DATA.tile_get_elevation(n)
+			slopeiness = slopeiness + math.abs(n_elevation - elevation)
 		end
 		slopeiness = slopeiness / 4
+
+		local is_land = DATA.tile_get_is_land(t)
+		local has_marsh = DATA.tile_get_has_marsh(t)
+		local ice = DATA.tile_get_ice(t)
+
+		local sand = DATA.tile_get_sand(t)
+		local clay = DATA.tile_get_clay(t)
+		local silt = DATA.tile_get_silt(t)
+
+		local grass = DATA.tile_get_grass(t)
+		local shrub = DATA.tile_get_shrub(t)
+		local broadleaf = DATA.tile_get_broadleaf(t)
+		local conifer = DATA.tile_get_conifer(t)
 
 		for _, b in pairs(RAWS_MANAGER.biomes_load_order) do
 			if slopeiness < b.minimum_slope or slopeiness > b.maximum_slope then
 				goto continue
 			end
 
-			if b.aquatic ~= not t.is_land then
+
+			if b.aquatic ~= not is_land then
 				goto continue
 			end
-			if b.marsh ~= t.has_marsh then
+			if b.marsh ~= has_marsh then
 				goto continue
 			end
-			if b.icy ~= (t.ice > 0.001) then
+			if b.icy ~= (ice > 0.001) then
 				goto continue
 			end
-			if t.elevation < b.minimum_elevation or t.elevation > b.maximum_elevation then
+			if elevation < b.minimum_elevation or elevation > b.maximum_elevation then
 				goto continue
 			end
 
 			-- climate checks
-			local r_ja, t_ja, r_ju, t_ju = t:get_climate_data()
+			local r_ja, t_ja, r_ju, t_ju = tile.get_climate_data(t)
 			local rain = (r_ja + r_ju) / 2
 			if rain < b.minimum_rain or rain > b.maximum_rain then
 				goto continue
 			end
 
 			--local tile_perm =
-			local tile_perm = t:soil_permeability()
+			local tile_perm = tile.soil_permeability(t)
 			local available_water = rain * 2 * tile_perm
 			if available_water < b.minimum_available_water or available_water > b.maximum_available_water then
 				goto continue
@@ -56,35 +74,35 @@ function re.run()
 			end
 
 			-- soil checks
-			local soil_depth = t:soil_depth()
+			local soil_depth = tile.soil_depth(t)
 			if soil_depth < b.minimum_soil_depth or soil_depth > b.maximum_soil_depth then
 				goto continue
 			end
-			local richness = t.soil_minerals
+			local richness = DATA.tile_get_soil_minerals(t)
 			if richness < b.minimum_soil_richness or richness > b.maximum_soil_richness then
 				goto continue
 			end
-			if t.sand < b.minimum_sand or t.sand > b.maximum_sand then
+			if sand < b.minimum_sand or sand > b.maximum_sand then
 				goto continue
 			end
-			if t.clay < b.minimum_clay or t.clay > b.maximum_clay then
+			if clay < b.minimum_clay or clay > b.maximum_clay then
 				goto continue
 			end
-			if t.silt < b.minimum_silt or t.silt > b.maximum_silt then
+			if silt < b.minimum_silt or silt > b.maximum_silt then
 				goto continue
 			end
 
 			-- vegetation based checks
-			local trees = t.broadleaf + t.conifer
-			local dead_land = 1 - t.broadleaf - t.conifer - t.shrub - t.grass
+			local trees = broadleaf + conifer
+			local dead_land = 1 - broadleaf - conifer - shrub - grass
 			local conifer_frac = 0.5
 			if trees > 0 then
-				conifer_frac = t.conifer / trees
+				conifer_frac = conifer / trees
 			end
-			if t.shrub < b.minimum_shrubs or t.shrub > b.maximum_shrubs then
+			if shrub < b.minimum_shrubs or shrub > b.maximum_shrubs then
 				goto continue
 			end
-			if t.grass < b.minimum_grass or t.grass > b.maximum_grass then
+			if grass < b.minimum_grass or grass > b.maximum_grass then
 				goto continue
 			end
 			if trees < b.minimum_trees or trees > b.maximum_trees then
@@ -97,7 +115,7 @@ function re.run()
 				goto continue
 			end
 
-			t.biome = b
+			DATA.tile_set_biome(t, b)
 
 			::continue::
 		end

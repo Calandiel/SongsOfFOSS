@@ -1,5 +1,6 @@
 local JOBTYPE = require "game.raws.job_types"
 local dbm = require "game.economy.diet-breadth-model"
+local tile_utils = require "game.entities.tile"
 
 ---@class (exact) ProductionMethod
 ---@field __index ProductionMethod
@@ -104,15 +105,16 @@ end
 ---@return number
 function ProductionMethod:get_efficiency(province)
 	-- Return 0 efficiency for water provinces
-	if not province.center.is_land then
+
+	if not DATA.tile_get_is_land(province.center) then
 		return 0
 	end
 
 	local total_efficiency = 0
-	for _, tile in pairs(province.tiles) do
+	for _, tile_id in pairs(province.tiles) do
 		local crop_yield = 1
 		if self.crop then
-			local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
+			local jan_rain, jan_temp, jul_rain, jul_temp = tile_utils.get_climate_data(tile_id)
 			local t = (jan_temp + jul_temp) / 2
 			local r = (jan_rain + jul_rain) / 2
 			if r > self.rainfall_ideal_min and r < self.rainfall_ideal_max then
@@ -141,7 +143,7 @@ function ProductionMethod:get_efficiency(province)
 		end
 		local soil_efficiency = 1
 		if self.clay_ideal_min > 0 or self.clay_ideal_max < 1 then
-			local clay = tile.clay
+			local clay = DATA.tile_get_clay(tile_id)
 			if clay > self.clay_ideal_min and clay < self.clay_ideal_max then
 				-- Ideal conditions!
 			elseif clay < self.clay_ideal_min then

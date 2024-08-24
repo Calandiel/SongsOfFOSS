@@ -1,21 +1,30 @@
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local tile_utils = require "game.entities.tile"
+
 local callback = require "game.scenes.callbacks"
 
 ---@param gam GameScene
----@param tile Tile
+---@param tile_id tile_id
 ---@param rect Rect rectangle of the according tile
 ---@param x number
 ---@param y number
 ---@param size number
-return function(gam, tile, rect, x, y, size)
+return function(gam, tile_id, rect, x, y, size)
 	-- unit sizes
 	local width_unit = size * 4
 	local height_unit = size / 2
 	local length_of_line = 50 - height_unit
 
-	if tile:province().realm == nil then
+	local province = tile_utils.province(tile_id)
+	if province == nil then
+		return
+	end
+
+	local realm = province.realm
+
+	if realm == nil then
 		return
 	end
 
@@ -23,13 +32,13 @@ return function(gam, tile, rect, x, y, size)
 	rect.y = y - length_of_line - height_unit * 2
 	rect.width = width_unit
 	rect.height = height_unit
-	ut.data_entry("", tile:province().name, rect)
+	ut.data_entry("", province.name, rect)
 
 	rect.y = rect.y - height_unit
-	local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, tile:province().realm, rect, "callback")
+	local callback_coa = require "game.scenes.game.widgets.realm-name"(gam, realm, rect, "callback")
 
 	rect.y = y - length_of_line - height_unit
-	local population = tile:province():local_population()
+	local population = province:local_population()
 	ut.data_entry("", tostring(population), rect)
 
 	local line_rect = ui.rect(x - 1, y - length_of_line, 2, 50 - height_unit)

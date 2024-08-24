@@ -1,6 +1,7 @@
 local world            = {}
 
 local decide           = require "game.ai.decide"
+local tile             = require "game.entities.tile"
 
 local plate_utils      = require "game.entities.plate"
 local utils            = require "game.ui-utils"
@@ -30,7 +31,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field month number
 ---@field year number
 ---@field world_size number
----@field tiles table<number, Tile>
+---@field tiles tile_id[]
 ---@field plates table<number, Plate>
 ---@field provinces table<number, Province>
 ---@field ordered_provinces_list Province[]
@@ -39,9 +40,9 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field settled_provinces_by_identifier table<number, table<Province, Province>>
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
----@field tile_to_climate_cell table<Tile, ClimateCell>
----@field tile_to_province table<Tile, Province>
----@field tile_to_plate table<Tile, Plate>
+---@field tile_to_climate_cell table<tile_id, ClimateCell>
+---@field tile_to_province table<tile_id, Province>
+---@field tile_to_plate table<tile_id, Plate>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
 ---@field entity_counter number -- a global counter for entities...
 ---@field notification_queue Queue<Notification>
@@ -111,9 +112,9 @@ function world.World:new()
 
 	w.realms_changed = false
 	w.provinces_to_update_on_map = {}
-
 	for tile_id = 1, 6 * ws * ws do
-		table.insert(w.tiles, tile_t.Tile:new(tile_id))
+		tile_t.Tile:new(tile_id)
+		table.insert(w.tiles, tile_id)
 	end
 	for cell = 1, w.climate_grid_size * w.climate_grid_size do
 		table.insert(w.climate_cells, cells.ClimateCell:new(cell))
@@ -121,13 +122,14 @@ function world.World:new()
 	local ut = require "game.climate.utils"
 	---@type World|nil
 	WORLD = w
-	for _, tile in pairs(w.tiles) do
-		w.tile_to_climate_cell[tile] = ut.get_climate_cell(tile:latlon())
+	for _, tile_id in pairs(w.tiles) do
+		w.tile_to_climate_cell[tile_id] = ut.get_climate_cell(tile.latlon(tile_id))
 	end
 	setmetatable(w, self)
 	return w
 end
 
+---@return number
 function world.World:base_visibility(size)
 	return RAWS_MANAGER.races_by_name['human'].visibility * RAWS_MANAGER.unit_types_by_name["raiders"].visibility * size
 end
@@ -136,7 +138,7 @@ end
 ---@param province Province
 function world.World:set_settled_province(province)
 	self.settled_provinces[province] = province
-	local _, lon = province.center:latlon()
+	local _, lon = tile.latlon(province.center)
 	lon = lon + math.pi
 	lon = lon / math.pi
 	lon = lon / 2
@@ -149,7 +151,7 @@ end
 ---@param province Province
 function world.World:unset_settled_province(province)
 	self.settled_provinces[province] = nil
-	local _, lon = province.center:latlon()
+	local _, lon = tile.latlon(province.center)
 	lon = lon + math.pi
 	lon = lon / math.pi
 	lon = lon / 2
@@ -165,7 +167,7 @@ function world.World:tile_count()
 end
 
 ---Returns a randomly selected tile
----@return Tile
+---@return tile_id
 function world.World:random_tile()
 	local tc = self:tile_count()
 	return self.tiles[love.math.random(tc)]
@@ -408,13 +410,30 @@ function world.World:tick()
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
 			local accumulate = {net_pp = 0, fruit = 0, seeds = 0, wood = 0, shell = 0, fish = 0, game = 0, fungi = 0}
-			for _, tile in pairs(settled_province.tiles) do
-				tile.conifer   = tile.conifer * (1 - VEGETATION_GROWTH) + tile.ideal_conifer * VEGETATION_GROWTH
-				tile.broadleaf = tile.broadleaf * (1 - VEGETATION_GROWTH) + tile.ideal_broadleaf * VEGETATION_GROWTH
-				tile.shrub     = tile.shrub * (1 - VEGETATION_GROWTH) + tile.ideal_shrub * VEGETATION_GROWTH
-				tile.grass     = tile.grass * (1 - VEGETATION_GROWTH) + tile.ideal_grass * VEGETATION_GROWTH
+
+			for _, tile_id in pairs(settled_province.tiles) do
+				local conifer = DATA.tile_get_conifer(tile_id)
+				local broadleaf = DATA.tile_get_broadleaf(tile_id)
+				local shrub = DATA.tile_get_shrub(tile_id)
+				local grass = DATA.tile_get_grass(tile_id)
+
+				local ideal_conifer = DATA.tile_get_ideal_conifer(tile_id)
+				local ideal_broadleaf = DATA.tile_get_ideal_broadleaf(tile_id)
+				local ideal_shrub = DATA.tile_get_ideal_shrub(tile_id)
+				local ideal_grass = DATA.tile_get_ideal_grass(tile_id)
+
+				conifer   = conifer * (1 - VEGETATION_GROWTH) + ideal_conifer * VEGETATION_GROWTH
+				broadleaf = broadleaf * (1 - VEGETATION_GROWTH) + ideal_broadleaf * VEGETATION_GROWTH
+				shrub     = shrub * (1 - VEGETATION_GROWTH) + ideal_shrub * VEGETATION_GROWTH
+				grass     = grass * (1 - VEGETATION_GROWTH) + ideal_grass * VEGETATION_GROWTH
+
+				DATA.tile_set_conifer(tile_id, conifer)
+				DATA.tile_set_broadleaf(tile_id, broadleaf)
+				DATA.tile_set_shrub(tile_id, shrub)
+				DATA.tile_set_grass(tile_id, grass)
+
 				-- collecting tile foraging production
-				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile)
+				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile_id)
 			end
 			-- update targets from accumulated foraging data
 			dbm.set_foraging_targets(settled_province, accumulate)

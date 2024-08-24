@@ -32,6 +32,8 @@ VERSION_STRING = "v0.3.0 (Midgard)"
 
 SILENT_ASSET_LOADING = false
 
+DATA = require "codegen.output.generated"
+
 --if WORLD == nil then
 ---@type World|nil
 WORLD = nil
@@ -128,7 +130,6 @@ bs.registerClass("Province", require "game.entities.province".Province)
 bs.registerClass("Realm", require "game.entities.realm".Realm)
 bs.registerClass("Religion", require "game.entities.religion".Religion)
 bs.registerClass("Faith", require "game.entities.religion".Faith)
-bs.registerClass("Tile", require "game.entities.tile".Tile)
 bs.registerClass("World", require "game.entities.world".World)
 bs.registerClass("Warband", require "game.entities.warband")
 bs.registerClass('Army', require "game.entities.army")

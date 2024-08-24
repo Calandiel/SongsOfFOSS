@@ -326,7 +326,7 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if not primary_target.center.is_land then
+			if not DATA.tile_get_is_land(primary_target.center) then
 				return false
 			end
 			if root.realm.capitol.neighbors[primary_target] then
@@ -569,7 +569,7 @@ local function load()
 		clickable = function(root, primary_target)
 			-- need at least so many family units to migrate
 			local _, valid_family_count, _ = valid_home_family_units(root.realm.capitol)
-			if not primary_target.center.is_land then
+			if not DATA.tile_get_is_land(primary_target.center) then
 				return false
 			end
 			if valid_family_count < 11 then

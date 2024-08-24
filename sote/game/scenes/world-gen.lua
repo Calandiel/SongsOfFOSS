@@ -78,11 +78,11 @@ end
 
 local hex = require "libsote.hex-utils"
 local function map_tiles_to_hex()
-	for _, tile in pairs(WORLD.tiles) do
+	for _, tile_id in pairs(WORLD.tiles) do
 		local lat, lon = tile:latlon()
 		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
 
-		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
+		wg.world:cache_tile_coord(tile_id, q, r, face)
 	end
 end
 
@@ -444,8 +444,8 @@ function wg.refresh_map_mode()
 
 	local dim = wg.world_size * 3
 
-	for _, tile in pairs(WORLD.tiles) do
-		local x, y = wg.tile_id_to_color_coords(tile)
+	for _, tile_id in pairs(WORLD.tiles) do
+		local x, y = wg.tile_id_to_color_coords(tile_id)
 		local pixel_index = x + y * dim
 
 		local r = tile.real_r
@@ -454,18 +454,18 @@ function wg.refresh_map_mode()
 
 		local result_pixel = { r, g, b, 1 }
 
-		pointer_tile_color[pixel_index * 4 + 0] = 255 * result_pixel[1]
-		pointer_tile_color[pixel_index * 4 + 1] = 255 * result_pixel[2]
-		pointer_tile_color[pixel_index * 4 + 2] = 255 * result_pixel[3]
-		pointer_tile_color[pixel_index * 4 + 3] = 255 * result_pixel[4]
+		pointer_tile_color[pixel_index * 4 + 0] = 255 * DATA.tile_get_real_r(tile_id)
+		pointer_tile_color[pixel_index * 4 + 1] = 255 * DATA.tile_get_real_g(tile_id)
+		pointer_tile_color[pixel_index * 4 + 2] = 255 * DATA.tile_get_real_b(tile_id)
+		pointer_tile_color[pixel_index * 4 + 3] = 255 * 1
 	end
 
 	wg.tile_color_texture = love.graphics.newImage(wg.tile_color_image_data)
 	wg.tile_color_texture:setFilter("nearest", "nearest")
 end
 
-function wg.tile_id_to_color_coords(tile)
-	local tile_id = tile.tile_id
+---@param tile_id tile_id
+function wg.tile_id_to_color_coords(tile_id)
 	local tile_utils = require "game.entities.tile"
 	local x, y, f = tile_utils.index_to_coords(tile_id)
 	local fx = 0

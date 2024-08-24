@@ -38,7 +38,7 @@ function pa.pathfind(origin, target, speed_modifier, allowed_provinces)
 	end
 
 
-	if origin.center.pathfinding_index ~= target.center.pathfinding_index then
+	if DATA.tile_get_pathfinding_index(origin.center) ~= DATA.tile_get_pathfinding_index(target.center) then
 		return math.huge, nil
 	end
 
@@ -73,7 +73,7 @@ function pa.pathfind(origin, target, speed_modifier, allowed_provinces)
 		end
 
 		for _, n in pairs(prov.neighbors) do
-			if n.center.is_land == prov.center.is_land and allowed_provinces[n] then
+			if DATA.tile_get_is_land(n.center) == DATA.tile_get_is_land(prov.center) and allowed_provinces[n] then
 				if visited[n] ~= true then
 					local speed_n = speed_modifier(n)
 					local speed_prov =  speed_modifier(prov)

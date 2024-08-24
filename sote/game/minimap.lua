@@ -32,7 +32,7 @@ function mm.make_minimap_image_data(game, width, height, province)
 		for y = 1, h do
 			local lon = ((x - 0.5) / w * 2 - 1) * math.pi
 			local lat = ((y - 0.5) / h - 0.5) * math.pi
-			local tt = WORLD.tiles[tile.lat_lont_to_index(lat, lon)]
+			local tt = tile.lat_lont_to_index(lat, lon)
 
 			local tile_x, tile_y = game.tile_id_to_color_coords(tt)
 			local pixel_index = tile_x + tile_y * dim
@@ -47,7 +47,7 @@ function mm.make_minimap_image_data(game, width, height, province)
 
 			if character then
 				visible = false
-				if character.realm.known_provinces[tt:province()] then
+				if character.realm.known_provinces[tile.province(tt)] then
 					visible = true
 				end
 			end

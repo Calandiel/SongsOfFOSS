@@ -1,10 +1,11 @@
 local ut = require "game.ui-utils"
+local tile_utils = require "game.entities.tile"
 
 ---comment
 ---@param gam GameScene
----@param tile Tile
+---@param tile_id tile_id
 ---@param rect Rect
-local function macrodecision(gam, tile, rect)
+local function macrodecision(gam, tile_id, rect)
 	---@type DecisionCharacterProvince
 	local decision = gam.selected.macrodecision
 	if decision  == nil then
@@ -15,7 +16,7 @@ local function macrodecision(gam, tile, rect)
 	if player == nil then
 		return
 	end
-	local province = tile:province()
+	local province = tile_utils.province(tile_id)
 
 	if not decision.clickable(player, province) then
 		return

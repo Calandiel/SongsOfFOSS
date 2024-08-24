@@ -1,6 +1,7 @@
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local tile_utils = require "game.entities.tile"
 
 local ev = require "game.raws.values.economical"
 local ee = require "game.raws.effects.economic"
@@ -9,18 +10,19 @@ local pv = require "game.raws.values.political"
 
 ---comment
 ---@param gam GameScene
----@param tile Tile
+---@param tile_id tile_id
 ---@param rect Rect
 ---@param x number
 ---@param y number
 ---@param size number
 ---@return function|nil
-local function macrobuilder(gam, tile, rect, x, y, size)
+local function macrobuilder(gam, tile_id, rect, x, y, size)
 	local player_character = WORLD.player_character
 	if player_character == nil then
 		return
 	end
-	if player_character.province ~= tile:province() then
+	local province = tile_utils.province(tile_id)
+	if player_character.province ~= province then
 		return
 	end
 	---@type BuildingType
@@ -35,13 +37,13 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 		local overseer = player_character
 
 		if gam.macrobuilder_public_mode then
-			overseer = pv.overseer(tile:province().realm)
+			overseer = pv.overseer(province.realm)
 			public_flag = true
 			funds = player_character.realm.budget.treasury
 			owner = nil
 		end
 
-		if not tile:province():can_build(9999, building_type, overseer, public_flag) then
+		if not province:can_build(9999, building_type, overseer, public_flag) then
 			return
 		end
 
@@ -50,7 +52,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 
 		local amount = 0
 
-		for _, building in pairs(tile:province().buildings) do
+		for _, building in pairs(province.buildings) do
 			if building.type == building_type then
 				amount = amount + 1
 			end
@@ -80,7 +82,7 @@ local function macrobuilder(gam, tile, rect, x, y, size)
 			return function()
 				ee.construct_building_with_payment(
 					building_type,
-					tile:province(),
+					province,
 					owner,
 					overseer,
 					public_flag

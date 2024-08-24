@@ -4,6 +4,7 @@ local rel = require "game.entities.religion"
 local pop = require "game.entities.pop"
 local tabb = require "engine.table"
 local job_types = require "game.raws.job_types"
+local tile      = require "game.entities.tile"
 
 local TRAIT = require "game.raws.traits.generic"
 local ranks = require "game.raws.ranks.character_ranks"
@@ -133,17 +134,17 @@ end
 ---@param province Province
 function ProvinceCheck(race, province)
 	local dbm = require "game.economy.diet-breadth-model"
-	if not province.center.is_land then return false end
+	local center = DATA.fatten_tile(province.center)
+	if not center.is_land then return false end
 	if province.foragers_limit < (5 * race.carrying_capacity_weight) then return false end
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
 	if (not province.on_a_forest) and race.requires_large_forest then return false end
-	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
+	local ja_r, ja_t, ju_r, ju_t = tile.get_climate_data(center.id)
 	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
 	if race.minimum_absolute_temperature > ja_r then return false end
-	local elev = province.center.elevation
+	local elev = center.elevation
 	if race.minimum_comfortable_elevation > elev then return false end
-
 	return true
 end
 
@@ -180,12 +181,19 @@ function st.run()
 
 	local civs = 500 / tabb.size(order) -- one per race...
 
-
+	print(civs)
 	for _ = 1, civs do
+		print(_)
 		for _, r in ipairs(order) do
+			print(_)
 			-- First, find a land province that isn't owned by any realm...
-			local prov = WORLD:random_tile():province()
-			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile():province() end
+			local sampled_tile = WORLD:random_tile()
+			local prov = tile.province(sampled_tile)
+
+			while not ProvinceCheck(r, prov) do
+				sampled_tile = WORLD:random_tile()
+				prov = tile.province(sampled_tile)
+			end
 
 			-- An unowned province -- it means we can spawn a new realm here!
 			local cg = cult.CultureGroup:new()
@@ -246,7 +254,10 @@ function st.run()
 					end
 				end
 				if (love.math.random() > 0.001 + neigh.movement_cost / 1000.0 * river_bonus) then
-					if neigh.center.is_land == prov.center.is_land and neigh.realm == nil and neigh.foragers_limit > 8 then -- formerly 5.5
+					if DATA.tile_get_is_land(neigh.center) == DATA.tile_get_is_land(prov.center)
+						and neigh.realm == nil
+						and neigh.foragers_limit > 8
+					then -- formerly 5.5
 						-- We can spawn a new realm in this province! It's unused!
 						make_new_realm(neigh, prov.realm.primary_race, prov.realm.primary_culture,
 							prov.realm.primary_faith)

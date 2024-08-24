@@ -3,6 +3,7 @@ local tabb = require "engine.table"
 local csu = require "game.map-modes._color-space-utils"
 
 local ev = require "game.raws.values.economical"
+local tile = require "game.entities.tile"
 
 local dem = {}
 
@@ -11,7 +12,7 @@ function dem.culture()
 		ut.set_default_color(p.center)
 		local e = p:get_dominant_culture()
 		if e ~= nil then
-			p.center:set_real_color(e.r, e.g, e.b)
+			tile.set_real_color(p.center, e.r, e.g, e.b)
 		end
 	end
 end
@@ -21,7 +22,7 @@ function dem.faith()
 		ut.set_default_color(p.center)
 		local e = p:get_dominant_faith()
 		if e ~= nil then
-			p.center:set_real_color(e.r, e.g, e.b)
+			tile.set_real_color(p.center, e.r, e.g, e.b)
 		end
 	end
 end
@@ -31,7 +32,7 @@ function dem.race()
 		ut.set_default_color(p.center)
 		local e = p:get_dominant_race()
 		if e ~= nil then
-			p.center:set_real_color(e.r, e.g, e.b)
+			tile.set_real_color(p.center, e.r, e.g, e.b)
 		end
 	end
 end
@@ -91,11 +92,11 @@ function dem.selected_technology()
 		for _, prov in pairs(WORLD.provinces) do
 			if prov.is_land and prov.realm then
 				if prov.technologies_present[tt] then
-					prov.center:set_real_color(0, 0, 1)
+					tile.set_real_color(prov.center, 0, 0, 1)
 				elseif prov.technologies_researchable[tt] then
-					prov.center:set_real_color(0, 1, 1)
+					tile.set_real_color(prov.center, 0, 1, 1)
 				else
-					prov.center:set_real_color(1, 0, 0)
+					tile.set_real_color(prov.center, 1, 0, 0)
 				end
 			else
 				ut.set_default_color(prov.center)
@@ -120,7 +121,7 @@ function dem.selected_building_efficiency()
 		for _, province in pairs(WORLD.provinces) do
 			local eff = CACHED_BUILDING_TYPE.production_method:get_efficiency(province)
 			local r, g, b = csu.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-			province.center:set_real_color(r, g, b)
+			tile.set_real_color(province.center, r, g, b)
 		end
 	end
 end
@@ -163,7 +164,7 @@ function dem.prices()
 
 		for _, province in pairs(WORLD.provinces) do
 			ut.set_default_color(province.center)
-			if province.center.is_land then
+			if DATA.tile_get_is_land(province.center) then
 				if province.realm ~= nil then
 					local price = ev.get_local_price(province, c)
 					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)

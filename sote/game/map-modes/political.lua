@@ -1,4 +1,5 @@
 local tabb = require "engine.table"
+local tile = require "game.entities.tile"
 
 local ut = require "game.map-modes.utils"
 local csu = require "game.map-modes._color-space-utils"
@@ -8,50 +9,40 @@ local pol = {}
 function pol.diplomacy(clicked_tile_id)
 	ut.clear_color_provinces()
 
-	local clicked_tile = WORLD.tiles[clicked_tile_id]
+	local clicked_tile = clicked_tile_id
+	local clicked_realm = tile.realm(clicked_tile)
 
-	if clicked_tile then
-		local clicked_province = clicked_tile:province()
-		if clicked_province then
-			local clicked_realm = clicked_province.realm
-			if clicked_realm then
-				local rr = clicked_realm
-
-				for _, province in pairs(WORLD.provinces) do
-					local checked_realm = province.realm
-
-					ut.set_default_color(province.center)
-					local tile = province.center
-					if checked_realm ~= nil then
-						if rr then
-							if checked_realm == rr then
-								tile:set_real_color(051 / 255, 117 / 255, 056 / 255)
-							elseif checked_realm.tributaries[rr] ~= nil then
-								tile:set_real_color(150 / 255, 60 / 255, 100 / 255) -- color overlords
-							elseif checked_realm.paying_tribute_to[rr] ~= nil then
-								tile:set_real_color(220 / 255, 205 / 255, 125 / 255) -- color tributaries
-							elseif checked_realm:is_realm_in_hierarchy(rr) then
-								tile:set_real_color(120 / 255, 105 / 255, 55 / 255) -- color indirect tributaries
-							elseif checked_realm:at_war_with(rr) then
-								tile:set_real_color(126 / 255, 041 / 255, 084 / 255) -- color wars
-							end
-						end
+	if clicked_realm then
+		for _, province in pairs(WORLD.provinces) do
+			local checked_realm = province.realm
+			ut.set_default_color(province.center)
+			local tile_id = province.center
+			if checked_realm ~= nil then
+				if checked_realm then
+					if checked_realm == clicked_realm then
+						tile.set_real_color(tile_id, 051 / 255, 117 / 255, 056 / 255)
+					elseif checked_realm.tributaries[clicked_realm] ~= nil then
+						tile.set_real_color(tile_id, 150 / 255, 60 / 255, 100 / 255) -- color overlords
+					elseif checked_realm.paying_tribute_to[clicked_realm] ~= nil then
+						tile.set_real_color(tile_id, 220 / 255, 205 / 255, 125 / 255) -- color tributaries
+					elseif checked_realm:is_realm_in_hierarchy(clicked_realm) then
+						tile.set_real_color(tile_id, 120 / 255, 105 / 255, 55 / 255) -- color indirect tributaries
+					elseif checked_realm:at_war_with(clicked_realm) then
+						tile.set_real_color(tile_id, 126 / 255, 041 / 255, 084 / 255) -- color wars
 					end
 				end
-
-				return
 			end
 		end
 	end
 
 	for _, province in pairs(WORLD.provinces) do
-		province.center:set_real_color(0.1, 0.1, 0.1)
+		tile.set_real_color(province.center, 0.1, 0.1, 0.1)
 		local realm = province.realm
 		if realm and ((tabb.size(realm.paying_tribute_to) >= 1) or (tabb.size(realm.tributaries) >= 1)) then
 			local top_realms = realm:get_top_realm()
 			if tabb.size(top_realms) == 1 then
 				for _, top in pairs(top_realms) do
-					province.center:set_real_color(top.r, top.g, top.b)
+					tile.set_real_color(province.center, top.r, top.g, top.b)
 				end
 			end
 		end
@@ -60,17 +51,15 @@ end
 
 function pol.realms()
 	for _, province in pairs(WORLD.provinces) do
-		local tile = province.center
-
-		ut.set_default_color(tile)
-
-		local local_province = tile:province()
+		local tile_id = province.center
+		ut.set_default_color(tile_id)
+		local local_province = tile.province(tile_id)
 
 		if local_province ~= nil then
 			local local_realm = local_province.realm
 
 			if local_realm ~= nil then
-				tile:set_real_color(
+				tile.set_real_color(tile_id,
 					local_realm.r,
 					local_realm.g,
 					local_realm.b
@@ -82,17 +71,15 @@ end
 
 function pol.province()
 	for _, province in pairs(WORLD.provinces) do
-		local tile = province.center
-
-		ut.set_default_color(tile)
-
-		local local_province = tile:province()
+		local tile_id = province.center
+		ut.set_default_color(tile_id)
+		local local_province = tile.province(tile_id)
 
 		if local_province ~= nil then
-			if tile.is_land then
-				tile:set_real_color(local_province.r, local_province.g, local_province.b)
+			if DATA.tile_get_is_land(tile_id) then
+				tile.set_real_color(tile_id,local_province.r, local_province.g, local_province.b)
 			else
-				tile:set_real_color(0.25 * local_province.r, 0.25 * local_province.g, 0.25 * local_province.b)
+				tile.set_real_color(tile_id,0.25 * local_province.r, 0.25 * local_province.g, 0.25 * local_province.b)
 			end
 		end
 	end
@@ -110,23 +97,28 @@ end
 
 function pol.atlas_tiles()
 	ut.simple_map_mode(
-		function(tile)
-			if tile.is_land then
-				return math.max(0, tile.elevation)
+		function(tile_id)
+			local elevation = DATA.tile_get_elevation(tile_id)
+			if DATA.tile_get_is_land(tile_id) then
+				return math.max(0, tile_id)
 			else
-				return math.min(0, tile.elevation)
+				return math.min(0, tile_id)
 			end
 		end, ut.elevation_threshold
 	)
 
-	for _, tile in ipairs(WORLD.tiles) do
-		local h, s, v = csu.rgb_to_hsv(tile.real_r, tile.real_g, tile.real_b)
+	for _, tile_id in ipairs(WORLD.tiles) do
+		local h, s, v = csu.rgb_to_hsv(
+			DATA.tile_get_real_r(tile_id),
+			DATA.tile_get_real_g(tile_id),
+			DATA.tile_get_real_b(tile_id)
+		)
 		s = s / 2
 		v = math.sqrt(v + 0.2) - math.sqrt(1.2) + 1
 		local r, g, b = csu.hsv_to_rgb(h, s, v)
-		tile.real_r = r
-		tile.real_g = g
-		tile.real_b = b
+		DATA.tile_set_real_r(tile_id, r)
+		DATA.tile_set_real_g(tile_id, g)
+		DATA.tile_set_real_b(tile_id, b)
 	end
 end
 
@@ -157,11 +149,13 @@ function pol.atlas_provinces()
 				result_h, result_s / 2, math.sqrt(result_v + 0.5) + 1 - math.sqrt(1.5)
 			)
 
-			province.center:set_real_color(
+			tile.set_real_color(
+				province.center,
 				r, g, b
 			)
 		else
-			province.center:set_real_color(
+			tile.set_real_color(
+				province.center,
 				1, 1, 1
 			)
 		end

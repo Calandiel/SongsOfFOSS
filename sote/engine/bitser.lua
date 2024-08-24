@@ -39,10 +39,6 @@ local SEEN_LEN = {}
 ---@field value any
 ---@field seen boolean
 
----@type Queue<Queue<BitserCallback>>
-local callback_stack = require "engine.queue":new()
-
-
 local function Buffer_prereserve(min_size)
 	if buf_size < min_size then
 		buf_size = min_size
@@ -217,17 +213,7 @@ local function write_table(value, seen, tiles_counter)
 
 	if classname then
 
-		-- if classname ~= "Tile" then
-		-- 	print(classname)
-		-- end
-
 		classkey = classkey_registry[classname]
-		if tiles_counter ~= nil then
-			if classname == 'Tile' then
-				tiles_counter.counter = tiles_counter.counter + 1
-				tiles_counter.yielded = false
-			end
-		end
 		Buffer_write_byte(242)
 		serialize_value(classname, seen)
 	else
@@ -368,7 +354,8 @@ serialize_value = function(value, seen, tiles_counter)
 end
 
 local function serialize(value)
-	callback_stack:clear()
+	---@type Queue<Queue<BitserCallback>>
+	local callback_stack = require "engine.queue":new()
 
 	Buffer_makeBuffer(65536 * 64) --4096)
 	local seen = { [SEEN_LEN] = 0 }
@@ -394,7 +381,8 @@ local function serialize(value)
 end
 
 local function serialize_async(value)
-	callback_stack:clear()
+	---@type Queue<Queue<BitserCallback>>
+	local callback_stack = require "engine.queue":new()
 
 	Buffer_makeBuffer(65536 * 64) --4096)
 	local seen = { [SEEN_LEN] = 0 }
@@ -631,11 +619,6 @@ local function deserialize(seen)
 				local classname = read_string(seen)
 				-- print(classname)
 
-				if classname == 'Tile' then
-					tiles_counter = tiles_counter + 1
-					tiles_yielded = false
-				end
-
 				tables_queue:enqueue_front({
 					data = instance,
 					current_array_index = 0,
@@ -792,9 +775,6 @@ local function deserialize_value(seen)
 		len = deserialize_value(seen)
 		for _ = 1, len do
 			local key = deserialize_value(seen)
-			-- if (classname ~= 'Tile' and classname ~= 'POP' and classname ~= 'ClimateCell') then
-			-- 	print(key)
-			-- end
 			instance[key] = deserialize_value(seen)
 		end
 		if classkey then
