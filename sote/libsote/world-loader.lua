@@ -265,14 +265,14 @@ function wl.dump_maps_from(world)
 			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
 			-- debug ---------------------------------------------------------
-			-- col_r, col_g, col_b, _ = world:get_debug_color(4, q, r, face)
-			-- image_debug_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
-			local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
-			for channel = world.num_debug_channels - 1, 1, -1 do
-				local cr, cg, cb, ca = world:get_debug_rgba(channel, q, r, face)
-				r_blend, g_blend, b_blend, a_blend = alpha_blend(r_blend, g_blend, b_blend, a_blend, cr, cg, cb, ca)
-			end
-			image_debug_data:setPixel(x, y, r_blend / 255, g_blend / 255, b_blend / 255, a_blend)
+			col_r, col_g, col_b, _ = world:get_debug_rgba(6, q, r, face)
+			image_debug_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			-- local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
+			-- for channel = world.num_debug_channels - 1, 1, -1 do
+			-- 	local cr, cg, cb, ca = world:get_debug_rgba(channel, q, r, face)
+			-- 	r_blend, g_blend, b_blend, a_blend = alpha_blend(r_blend, g_blend, b_blend, a_blend, cr, cg, cb, ca)
+			-- end
+			-- image_debug_data:setPixel(x, y, r_blend / 255, g_blend / 255, b_blend / 255, a_blend)
 		end
 	end
 

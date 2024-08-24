@@ -53,7 +53,8 @@ function world:new(world_size, seed)
 	obj.tile_count = obj.size * obj.size * 30 + 2
 	print("[world allocation] tile count: " .. obj.tile_count)
 	obj.coord = {}
-	obj.coord_by_tile_id = {}
+	obj.coord_by_tile_id = {} -- tile_id -> { q, r, face }, this is using cube world tile IDs
+	obj.coord_by_ti = {}      -- tile index -> { q, r, face }, this is using hex world 0-based tile indices
 	obj.climate_cells = {}
 	obj.waterbodies = {}
 
@@ -235,6 +236,17 @@ function world:set_tile_data(q, r, face, data)
 	self.volcanic_activity[index] = data.volcanic_activity
 	self.is_land[index] = data.is_land
 	self.plate[index] = data.plate
+end
+
+function world:map_hex_coords()
+	self:for_each_hex(function(ti, q, r, face, _)
+		self.coord_by_ti[ti] = { q, r, face }
+	end)
+end
+
+function world:get_hex_coords(ti)
+	local coord = self.coord_by_ti[ti]
+	return coord[1], coord[2], coord[3]
 end
 
 function world:cache_tile_coord(tile_id, q, r, face)

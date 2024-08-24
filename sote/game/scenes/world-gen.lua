@@ -42,6 +42,7 @@ local function cache_tile_coord()
 	-- map_tiles_to_hex()
 	-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
 	load_mapping_from_file("d:\\temp\\hex_mapping.csv")
+	wg.world:map_hex_coords()
 
 	print("Done caching tile coordinates")
 end
