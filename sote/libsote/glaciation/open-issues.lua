@@ -86,9 +86,9 @@ end
 -- I will alter the original, by removing it only for the seeds that are not eligible for melting
 function oi.remove_already_added(ti, already_added, is_eligible_melt_tile, use_original)
 	if use_original then
-		already_added[ti] = nil
+		already_added[ti] = false
 	elseif not is_eligible_melt_tile then
-		already_added[ti] = nil
+		already_added[ti] = false
 	end
 end
 

@@ -23,7 +23,8 @@ end
 local use_original = true
 
 local world
--- local glacial_seed
+local glacial_seed
+local already_added
 local ice_flow
 local ice_moved
 local texture_material
@@ -36,10 +37,8 @@ local mineral_storage
 local old_layer = {}
 local new_layer = {}
 
-local glacial_seeds_table = {}
 local sorted_glacial_seeds = {}
 
-local already_added = {}
 local melt_tiles = {}
 local tiles_influenced = {}
 
@@ -74,9 +73,6 @@ local function create_glacial_start_locations(is_ice_age)
 	if is_ice_age then seed_threshold = 0 end
 
 	world:for_each_tile(function(ti)
-	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
-		-- local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. "\n"
-
 		local waterbody_size = world:get_waterbody_size(ti)
 
 		local jan_rainfall = world.jan_rainfall[ti]
@@ -85,83 +81,55 @@ local function create_glacial_start_locations(is_ice_age)
 		local jul_temperature = world.jul_temperature[ti]
 
 		local average_temp = open_issues.avg_temp(jan_temperature, jul_temperature) + ice_age_factor
-		-- log_str = log_str .. "\tavgt: " .. average_temp .. ", wbs: " .. waterbody_size .. "\n"
-		if average_temp >= seed_threshold or waterbody_size >= 20000 then
-			-- log_str = log_str .. "\tnot seeded"
-			-- logger:log(log_str)
-			return
-		end
+		if average_temp >= seed_threshold or waterbody_size >= 20000 then return end
 
 		local ice_depth = average_temp * -0.25 * open_issues.rainfall_contrib_to_ice_depth(jan_rainfall, jul_rainfall)
 		if ice_depth > 0 then
-			-- log_str = log_str .. "\tis seeded\n"
-			-- glacial_seed[ti] = true
-			glacial_seeds_table[ti] = true
+			glacial_seed[ti] = true
 			ice_flow[ti] = ice_depth
-			-- log_str = log_str .. "\t" .. average_temp .. ", " .. jan_rainfall .. ", " .. jul_rainfall .. " ---> " .. ice_depth
-
-			-- set_debug(world, ti, 0, 0, 255)
-		-- else
-		-- 	log_str = log_str .. "\tnot seeded, no ice"
-		-- 	glacial_seed[ti] = false
 		end
-		-- logger:log(log_str)
 	end)
 
-	-- local count = 0
 	-- world:for_each_tile(function(ti)
-	-- 	if glacial_seed[ti] then
-	-- 		count = count + 1
-	-- 	end
+	-- 	if not glacial_seed[ti] then return end
+	-- 	logger:log(ti)
 	-- end)
-	-- print("Glacial Seeds: " .. length(glacial_seeds_table))
 end
 
 local function find_glacial_perimeter()
 	old_layer = {}
 
-	-- world:for_each_tile(function(ti)
-	-- 	if not glacial_seed[ti] then return end
+	world:for_each_tile(function(ti)
+		if glacial_seed[ti] then return end
 
-	-- 	local has_seed_neighbour = false
-	-- 	world:for_each_neighbor(ti, function(nti)
-	-- 		if glacial_seed[nti] then return end
-	-- 		has_seed_neighbour = true
-	-- 	end)
-
-	-- 	if has_seed_neighbour then
-	-- 		old_layer[ti] = true
-	-- 		distance_from_edge[ti] = 1
-	-- 	end
-	-- end)
-	for ti in pairs(glacial_seeds_table) do
+		local has_seed_neighbour = false
 		world:for_each_neighbor(ti, function(nti)
-			if glacial_seeds_table[nti] then return end
-
-			old_layer[nti] = true
-			distance_from_edge[nti] = 1
-
-			-- set_debug(world, nti, 255, 0, 0)
+			if not glacial_seed[nti] then return end
+			has_seed_neighbour = true
 		end)
-	end
-	-- world:for_each_tile(function(ti)
-	-- 	if glacial_seed_table[ti] then return end
 
-	-- 	local has_seed_neighbour = false
+		if has_seed_neighbour then
+			table.insert(old_layer, ti)
+			distance_from_edge[ti] = 1
+		end
+	end)
+	-- for ti in pairs(glacial_seeds_table) do
 	-- 	world:for_each_neighbor(ti, function(nti)
-	-- 		if glacial_seed_table[nti] == nil then return end
-	-- 		has_seed_neighbour = true
-	-- 	end)
+	-- 		if glacial_seeds_table[nti] then return end
 
-	-- 	if has_seed_neighbour then
-	-- 		old_layer[ti] = true
-	-- 		distance_from_edge[ti] = 1
-	-- 		set_debug(world, ti, 255, 0, 0)
-	-- 	end
-	-- end)
+	-- 		old_layer[nti] = true
+	-- 		distance_from_edge[nti] = 1
+
+	-- 		-- set_debug(world, nti, 255, 0, 0)
+	-- 	end)
+	-- end
+
+	-- for _, ti in ipairs(old_layer) do
+	-- 	logger:log(ti)
+	-- end
 end
 
-local function find_distance_of_each_glacier_tile_from_edge(is_ice_age)
+local function find_distance_of_each_glacier_tile_from_edge()
 	local elevation_factor = 500
 	local base_expansion = 100
 	local expansion_threshold = 300
@@ -169,24 +137,17 @@ local function find_distance_of_each_glacier_tile_from_edge(is_ice_age)
 	new_layer = {}
 
 	local expansion_ticker = 1 --* Keeps track of how many loops we've done.
-	local num_tiles = length(old_layer)
+	local num_tiles = #old_layer
 
 	while num_tiles > 0 do
 		expansion_ticker = expansion_ticker + 1 -- probably ok to increment here; expansion_ticker is used to calculate distance_from_edge, which the tiles on the glacier perimeter have it already initialized with 1
 
 		--* Expanding layer
-		for ti in pairs(old_layer) do
-			--* We want each tile in oldLayer to "attack" unoccupied tiles, and add some base value * depression factor which = elevation
-			--* Once threshold is met we add the tile to newLayer
-
-			-- local log_str = expansion_ticker .. "; " .. num_tiles .. "; "
-			-- local q, r, face = world:get_hex_coords(ti)
-			-- log_str = log_str .. face - 1 .. ", " .. q .. ", " .. r .. "\n"
-
+		for _, ti in ipairs(old_layer) do
 			local attacked_neighbor = false
 
 			world:for_each_neighbor(ti, function(nti)
-				if glacial_seeds_table[nti] == nil or distance_from_edge[nti] > 0 then return end
+				if not glacial_seed[nti] or distance_from_edge[nti] > 0 then return end
 
 				attacked_neighbor = true
 
@@ -196,34 +157,32 @@ local function find_distance_of_each_glacier_tile_from_edge(is_ice_age)
 
 				invasion_ticker[nti] = invasion_ticker[nti] + math.floor(base_expansion / invasion_modifier)
 				if invasion_ticker[nti] > expansion_threshold then
-					new_layer[nti] = true
+					table.insert(new_layer, nti)
 					distance_from_edge[nti] = expansion_ticker
-					-- set_debug(world, nti, 255, 255, 0)
 				end
-				-- local qn, rn, facen = world:get_hex_coords(nti)
-				-- log_str = log_str .. "\t" .. facen - 1 .. ", " .. qn .. ", " .. rn .. "; " .. invasion_ticker[nti] .. ", " .. distance_from_edge[nti] .. "\n"
 			end)
 
 			if attacked_neighbor then
-				new_layer[ti] = true
-				-- set_debug(world, oti, 255, 255, 0)
+				table.insert(new_layer, ti)
 			end
-			-- if not is_ice_age then
-			-- 	logger:log(log_str)
-			-- end
 		end
 
 		--* The tiles we added this round get checked next round in the "old layer". The new becomes the old
 		old_layer = {}
-		for key in pairs(new_layer) do
-			old_layer[key] = true
+		for _, ti in ipairs(new_layer) do
+			table.insert(old_layer, ti)
 		end
 		new_layer = {}
 
-		num_tiles = length(old_layer)
+		num_tiles = #old_layer
 	end
 
 	max_distance = expansion_ticker
+
+	-- world:for_each_tile(function(ti)
+	-- 	if not glacial_seed[ti] then return end
+	-- 	logger:log(ti .. ": " .. distance_from_edge[ti])
+	-- end)
 
 	-- print("Expansion Ticker: " .. expansion_ticker)
 	-- world:for_each_tile(function(ti)
@@ -236,19 +195,12 @@ local function find_distance_of_each_glacier_tile_from_edge(is_ice_age)
 end
 
 local function calculate_initial_ice_depth()
-	-- local max_ice = 0
 	world:for_each_tile(function(ti)
-	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
-		if glacial_seeds_table[ti] == nil then return end
-
-		-- local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. "\n"
-		-- log_str = log_str .. "\tice_flow: " .. ice_flow[ti] .. "; distance_from_edge: " .. distance_from_edge[ti]
+		if not glacial_seed[ti] then return end
 
 		open_issues.calculate_initial_ice_depth(ti, ice_flow, distance_from_edge)
 
-		-- log_str = log_str .. " ---> " .. ice_flow[ti]
-		-- logger:log(log_str)
-		-- max_ice = math.max(max_ice, ice_flow[ti])
+		-- logger:log(ti .. ": " .. ice_flow[ti])
 	end)
 
 	-- world:for_each_tile(function(ti)
@@ -262,95 +214,92 @@ local function calculate_initial_ice_depth()
 end
 
 local function sort_glacial_seeds()
-	for ti in pairs(glacial_seeds_table) do
-		table.insert(sorted_glacial_seeds, ti)
+	-- world:for_each_tile(function(ti)
+	-- 	if not glacial_seed[ti] then return end
+	-- 	table.insert(sorted_glacial_seeds, ti)
+	-- end)
+
+	-- table.sort(sorted_glacial_seeds, function(a, b)
+	-- 	return distance_from_edge[a] > distance_from_edge[b]
+	-- end)
+	local glacial_seeds_table = {}
+	world:for_each_tile(function(ti)
+		if not glacial_seed[ti] then return end
+		table.insert(glacial_seeds_table, ti)
+	end)
+	local expansion_ticker = max_distance
+	while expansion_ticker > 0 do
+		for _, ti in ipairs(glacial_seeds_table) do
+			if distance_from_edge[ti] == expansion_ticker then
+				table.insert(sorted_glacial_seeds, ti)
+			end
+		end
+		expansion_ticker = expansion_ticker - 1
 	end
 
-	table.sort(sorted_glacial_seeds, function(a, b)
-		return distance_from_edge[a] > distance_from_edge[b]
-	end)
+	-- for _, ti in ipairs(sorted_glacial_seeds) do
+	-- 	logger:log(ti .. ": " .. distance_from_edge[ti])
+	-- end
 end
 
-local function process_ice_expansion(ice_ti, boost_ice, is_ice_age)
+local function process_ice_expansion(ti, boost_ice, iter)
 	local can_flow_to_neighbors =
-		ice_flow[ice_ti] >= 25 and world.is_land[ice_ti] or
-		not world.is_land[ice_ti] and ice_flow[ice_ti] > -world.elevation[ice_ti]
-
-	-- local log_str = "\t" .. tostring(can_flow_to_neighbors) .. ", "
-	--  if not can_flow_to_neighbors and not is_ice_age then logger:log(log_str) end
+		ice_flow[ti] >= 25 and world.is_land[ti] or
+		not world.is_land[ti] and ice_flow[ti] > -world.elevation[ti]
 
 	if not can_flow_to_neighbors then return end
 
-	local ultimate_elevation = open_issues.true_elevation(world, ice_ti) + ice_flow[ice_ti]
-	-- log_str = log_str .. ultimate_elevation
-	-- if not is_ice_age then logger:log(log_str) end
+	local ultimate_elevation = open_issues.true_elevation(world, ti) + ice_flow[ti]
 
-	world:for_each_neighbor_random_start(ice_ti, function(nti)
-	-- world:for_each_neighbor(ice_ti, function(nti)
+	-- world:for_each_neighbor_random_start(ice_ti, function(nti)
+	world:for_each_neighbor(ti, function(nti)
 		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
 		if ultimate_elevation <= neigh_ultimate_elev then return end
 
 		local elevation_diff = ultimate_elevation - neigh_ultimate_elev
-		local ice_available = ice_flow[ice_ti] / 3
+		local ice_available = ice_flow[ti] / 3
 		local max_to_give = elevation_diff / 2
 		local ice_to_give = math.min(max_to_give, ice_available)
 
-		if distance_from_edge[ice_ti] > distance_from_edge[nti] then
+		if distance_from_edge[ti] > distance_from_edge[nti] then
 			if (boost_ice) then
-				ice_to_give = ice_to_give + ice_flow[ice_ti] / 40
+				ice_to_give = ice_to_give + ice_flow[ti] / 40
 			end
 		else
 			ice_to_give = ice_to_give / 3
 		end
 
 		ice_flow[nti] = ice_flow[nti] + ice_to_give
-		ice_flow[ice_ti] = ice_flow[ice_ti] - ice_to_give
+		ice_flow[ti] = ice_flow[ti] - ice_to_give
 		ice_moved[nti] = ice_moved[nti] + ice_to_give
 
 		-- max_ice = math.max(max_ice, ice_flow[nti])
 
-		if glacial_seeds_table[nti] then return end
+		if glacial_seed[nti] then return end
 
-		glacial_seeds_table[nti] = true
+		glacial_seed[nti] = true
 
 		-- this is a bit odd, because:
 		--   1. we are adding to the table we are iterating over (is it safe or not?)
 		--   2. the table is sorted by distance, so we are changing the order of the table
 		table.insert(sorted_glacial_seeds, nti) -- is it safe or not? seems fine, I have verified that the added elements are processed
 	end)
-
-	-- logger:log(log_str)
 end
 
 local function ice_expansion_loops(is_ice_age)
-	-- world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
-	-- 	local log_str = "gs: " .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ti .. " ---> " .. ice_flow[ti] .. ", " .. distance_from_edge[ti]
-	-- 	logger:log(log_str)
-	-- end)
-
 	-- max_ice = 0
 
 	local num_interations = is_ice_age and 10 or 25 --* Ice ages have fewer iterations, since they take longer and need less precision
-	local boost_iterations = num_interations / 10
+	local boost_iterations = math.floor(num_interations / 10)
+	-- logger:log("num_interations: " .. num_interations .. ", boost_iterations: " .. boost_iterations)
 
 	while num_interations > 0 do
 		num_interations = num_interations - 1
 		boost_iterations = boost_iterations - 1
 
-		-- local log_str = "sorted_glacial_seeds before: " .. #sorted_glacial_seeds
-		-- local processed = 0
-		for _, ice_ti in ipairs(sorted_glacial_seeds) do
-			-- processed = processed + 1
-			-- if not is_ice_age then
-			-- 	local q, r, face = world:get_hex_coords(ice_ti)
-			-- 	local log_str = num_interations .. ", " .. #sorted_glacial_seeds .. ": " .. face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ice_ti) .. "; " .. distance_from_edge[ice_ti] .. "; " .. ice_flow[ice_ti]
-			-- 	logger:log(log_str)
-			-- end
-
-			process_ice_expansion(ice_ti, boost_iterations > 0, is_ice_age)
+		for _, ti in ipairs(sorted_glacial_seeds) do
+			process_ice_expansion(ti, boost_iterations > 0, num_interations)
 		end
-		-- log_str = log_str .. ", after: " .. #sorted_glacial_seeds .. ", processed: " .. processed
-		-- logger:log(log_str)
 	end
 
 	-- world:for_each_tile(function(ti)
@@ -362,17 +311,19 @@ local function ice_expansion_loops(is_ice_age)
 	-- 	set_debug(world, ti, red, 0, blue)
 	-- end)
 
-	-- if not is_ice_age then
-	-- 	world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
-	-- 		local q, r, face = world:get_hex_coords(ti)
-	-- 		local log_str = face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. distance_from_edge[ti] .. " ---> " .. ice_flow[ti]
-	-- 		logger:log(log_str)
-	-- 	end)
-	-- end
+	-- world:for_each_tile(function(ti)
+	-- 	if not glacial_seed[ti] then return end
+	-- 	logger:log(ti .. ": " .. ice_flow[ti] .. ", " .. ice_moved[ti])
+	-- end)
 end
 
 local function set_permanent_ice_variables(is_ice_age)
-	for ti in pairs(glacial_seeds_table) do
+	max_ice = 0
+	max_ice_moved = 0
+
+	world:for_each_tile(function(ti)
+		if not glacial_seed[ti] then return end
+
 		max_ice = math.max(max_ice, ice_flow[ti])
 		max_ice_moved = math.max(max_ice_moved, ice_moved[ti])
 
@@ -383,7 +334,9 @@ local function set_permanent_ice_variables(is_ice_age)
 		else
 			world.ice[ti] = ice_flow[ti]
 		end
-	end
+
+		-- logger:log(ti .. ": " .. world.ice[ti])
+	end)
 end
 
 local function creating_material_from_glacial_action(is_ice_age)
@@ -407,33 +360,6 @@ local function push_material_to_the_melt_zones(is_ice_age)
 			if distance_from_edge[ti] ~= iterate_down then goto continue1 end -- "or distance_from_edge[ti] <= 0" seems to be redundant, since iterate_down is always > 0
 
 			open_issues.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
-			-- local total_ice_movement = 1
-
-			-- world:for_each_neighbor(ti, function(nti)
-			-- 	local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
-			-- 	if not is_closer_to_edge then return end
-			-- 	total_ice_movement = total_ice_movement + ice_moved[nti]
-			-- end)
-
-			-- if not is_ice_age then
-			-- 	local q, r, face = world:get_hex_coords(ti)
-			-- 	logger:log(face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. distance_from_edge[ti] .. "; texture_material: " .. texture_material[ti] .. ", material_richness: " .. material_richness[ti] .. "; total_ice_movement: " .. total_ice_movement)
-			-- end
-
-			-- world:for_each_neighbor(ti, function(nti)
-			-- 	local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
-			-- 	if not is_closer_to_edge then return end
-
-			-- 	texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
-			-- 	material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
-
-			-- 	already_added[nti] = true
-			-- end)
-
-			-- if total_ice_movement > 0 then
-			-- 	texture_material[ti] = 0
-			-- 	material_richness[ti] = 0
-			-- end
 
 			::continue1::
 		end
@@ -575,14 +501,13 @@ end
 local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 	world:fill_ffi_array(invasion_ticker, 0)
 
-	if not is_ice_age then
-		logger:log("already_added: " .. length(already_added))
-		logger:log("melt_tiles: " .. length(melt_tiles))
-	end
+	-- if not is_ice_age then
+	-- 	logger:log("melt_tiles: " .. length(melt_tiles))
+	-- end
 
 	--* Iterate through all melt tiles. Construct glacial melt provinces as we go
 	for ti in pairs(melt_tiles) do
-		local log_str = ""
+		-- local log_str = ""
 
 		if already_added[ti] then goto continue2 end
 		already_added[ti] = true
@@ -596,11 +521,11 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 
 		if kill_province then goto continue2 end
 
-		if not is_ice_age then
-			local q, r, face = world:get_hex_coords(ti)
-			log_str = log_str .. face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. length(melt_province) .. "; " .. perimeter_size
-			logger:log(log_str)
-		end
+		-- if not is_ice_age then
+		-- 	local q, r, face = world:get_hex_coords(ti)
+		-- 	log_str = log_str .. face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. length(melt_province) .. "; " .. perimeter_size
+		-- 	logger:log(log_str)
+		-- end
 
 		local total_material = 0
 		local total_richness = 0
@@ -658,7 +583,7 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 			mineral_storage[i_ti] = mineral_storage[i_ti] + math.floor(share_of_mineral)
 
 			invasion_ticker[i_ti] = 0
-			already_added[i_ti] = nil
+			already_added[i_ti] = false
 
 			local log_silt = math.log(silt_storage[i_ti] + 1)
 			max_silt_storage = math.max(max_silt_storage, log_silt)
@@ -687,11 +612,12 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 end
 
 local function reset_variables()
-	glacial_seeds_table = {}
+	-- glacial_seeds_table = {}
 	sorted_glacial_seeds = {}
-	already_added = {}
 	melt_tiles = {}
 	tiles_influenced = {}
+	world:fill_ffi_array(glacial_seed, false)
+	world:fill_ffi_array(already_added, false)
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
 	world:fill_ffi_array(texture_material, 0)
@@ -706,7 +632,7 @@ local function process_age(age_type)
 
 	run_with_profiling(function() create_glacial_start_locations(is_ice_age) end, "create_glacial_start_locations")                                         -- #1
 	run_with_profiling(function() find_glacial_perimeter() end, "find_glacial_perimeter")                                                                   -- #2
-	run_with_profiling(function() find_distance_of_each_glacier_tile_from_edge(is_ice_age) end, "find_distance_of_each_glacier_tile_from_edge")                       -- #3
+	run_with_profiling(function() find_distance_of_each_glacier_tile_from_edge() end, "find_distance_of_each_glacier_tile_from_edge")                       -- #3
 	run_with_profiling(function() calculate_initial_ice_depth() end, "calculate_initial_ice_depth")                                                         -- #4
 	run_with_profiling(function() sort_glacial_seeds() end, "sort_glacial_seeds")                                                                           -- #5
 	run_with_profiling(function() ice_expansion_loops(is_ice_age) end, "ice_expansion_loops")                                                               -- #6
@@ -730,6 +656,8 @@ function gm.run(world_obj)
 	-- 2024.07.07: Above comment might not be relevant. Waterbodies are already defined by gen-initial-waterbodies and we will attempt to use them here instead of re-generating them.
 
 	world = world_obj
+	glacial_seed = world.tmp_bool_1
+	already_added = world.tmp_bool_2
 	ice_flow = world.tmp_float_2
 	ice_moved = world.tmp_float_3
 	texture_material = world.tmp_float_4
@@ -741,6 +669,8 @@ function gm.run(world_obj)
 
 	world:adjust_debug_channels(7)
 
+	world:fill_ffi_array(glacial_seed, false)
+	world:fill_ffi_array(already_added, false)
 	world:fill_ffi_array(ice_flow, 0)
 	world:fill_ffi_array(ice_moved, 0)
 	world:fill_ffi_array(texture_material, 0)
@@ -750,8 +680,8 @@ function gm.run(world_obj)
 	world:fill_ffi_array(silt_storage, 0)
 	world:fill_ffi_array(mineral_storage, 0)
 
-	process_age(AGE_TYPES.ice_age)
-	world:reset_debug_all()
+	-- process_age(AGE_TYPES.ice_age)
+	-- world:reset_debug_all()
 	process_age(AGE_TYPES.game_age)
 end
 
