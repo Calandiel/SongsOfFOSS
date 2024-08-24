@@ -19,7 +19,7 @@ local world_generator = require "libsote.world-generator"
 -- local function map_tiles_to_hex()
 -- 	for _, tile in pairs(WORLD.tiles) do
 -- 		local lat, lon = tile:latlon()
--- 		local q, r, face = hex.latlon_to_hex_coords(lat, lon - math.pi, wg.world.size) -- latlon_to_hex_coords expects lon in range [-pi, pi]
+-- 		local q, r, face = hex.latlon_to_hex_coords(lat, lon, wg.world.size)
 
 -- 		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
 -- 	end

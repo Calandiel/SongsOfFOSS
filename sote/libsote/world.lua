@@ -153,6 +153,17 @@ function world:_set_empty(q, r, face)
 	self.coord[self:_key_from_coord(q, r, face)] = -1
 end
 
+function world:_remap_tile(q, r, face, ti)
+	self.coord[self:_key_from_coord(q, r, face)] = ti
+end
+
+function world:_remap_neighbors(ti, neighbors)
+	ti = ti * 6
+	for i, nti in ipairs(neighbors) do
+		self.neighbors[ti + i - 1] = nti
+	end
+end
+
 ---@param callback fun(tile_index:number, world:table)
 function world:for_each_tile(callback)
 	for ti = 0, self.tile_count - 1 do
