@@ -59,12 +59,6 @@ local function set_debug(channel, ti, r, g, b, a)
 	world:set_debug_rgba(channel, ti, r, g, b, a or 255)
 end
 
-local function for_each_glacial_seed(callback)
-	for ti in pairs(glacial_seeds_table) do
-		callback(ti)
-	end
-end
-
 local function create_glacial_start_locations(is_ice_age)
 	local ice_age_factor = 5
 	if is_ice_age then ice_age_factor = -10 end --* Makes world colder for ice age
@@ -199,8 +193,6 @@ local function calculate_initial_ice_depth()
 		if not glacial_seed[ti] then return end
 
 		open_issues.calculate_initial_ice_depth(ti, ice_flow, distance_from_edge)
-
-		-- logger:log(ti .. ": " .. ice_flow[ti])
 	end)
 
 	-- world:for_each_tile(function(ti)
@@ -291,7 +283,6 @@ local function ice_expansion_loops(is_ice_age)
 
 	local num_interations = is_ice_age and 10 or 25 --* Ice ages have fewer iterations, since they take longer and need less precision
 	local boost_iterations = math.floor(num_interations / 10)
-	-- logger:log("num_interations: " .. num_interations .. ", boost_iterations: " .. boost_iterations)
 
 	while num_interations > 0 do
 		num_interations = num_interations - 1
@@ -334,45 +325,45 @@ local function set_permanent_ice_variables(is_ice_age)
 		else
 			world.ice[ti] = ice_flow[ti]
 		end
-
-		-- logger:log(ti .. ": " .. world.ice[ti])
 	end)
 end
 
-local function creating_material_from_glacial_action(is_ice_age)
-	for ti in pairs(glacial_seeds_table) do
+local function creating_material_from_glacial_action()
+	world:for_each_tile(function(ti)
+		if not glacial_seed[ti] then return end
+
 		--* Calculate material that is generated from ice movement
 		local _, _, _, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(world.rock_type[ti], 0, 0, 0, 0, 0, 0) --* mineral_richness acts as multiplier based on bedrock
 
 		texture_material[ti] = ice_moved[ti] * rock_mass_conversion * rock_weathering_rate / 100
 		material_richness[ti] = texture_material[ti] * mineral_richness / 100 / 2 --* Reducing mineral richness of glacial silt by / 2
-
-		-- local q, r, face = world:get_hex_coords(ti)
-		-- local log_str = face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. ice_moved[ti] .. "; " .. rock_mass_conversion .. "; " .. rock_weathering_rate .. "; " .. mineral_richness .. "; " .. texture_material[ti] .. "; " .. material_richness[ti]
-		-- if not is_ice_age then logger:log(log_str) end
-	end
+	end)
 end
 
-local function push_material_to_the_melt_zones(is_ice_age)
+local function push_material_to_the_melt_zones()
 	local iterate_down = max_distance
 	while iterate_down > 0 do
-		for ti in pairs(glacial_seeds_table) do
+		world:for_each_tile(function(ti)
 			if distance_from_edge[ti] ~= iterate_down then goto continue1 end -- "or distance_from_edge[ti] <= 0" seems to be redundant, since iterate_down is always > 0
 
 			open_issues.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
 
 			::continue1::
-		end
+		end)
 
 		iterate_down = iterate_down - 1
 	end
+
+	-- world:for_each_tile(function(ti)
+	-- 	if not glacial_seed[ti] then return end
+	-- 	logger:log(ti .. ": " .. texture_material[ti] .. ", " .. material_richness[ti])
+	-- end)
 end
 
 local function remove_ineligible_ocean_ice_tiles(is_ice_age)
-	 --* Purge all tiles that discharge into the ocean. Only using periglacial melt tiles
-	world:for_each_tile(function(ti) -- can't loop glacial_seeds_table, because we may be removing elements from it
-		if glacial_seeds_table[ti] == nil then return end
-		-- set_debug(1, ti, 224, 247, 250, 255)
+	--* Purge all tiles that discharge into the ocean. Only using periglacial melt tiles
+	world:for_each_tile(function(ti)
+		if not glacial_seed[ti] then return end
 
 		local wbs = world:get_waterbody_size(ti)
 
@@ -382,10 +373,9 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 			((not is_ice_age and world.ice[ti] > 0) or (is_ice_age and world.ice_age_ice[ti] > 0))
 
 		if is_eligible_melt_tile then
-			melt_tiles[ti] = true
-			set_debug(1, ti, 224, 247, 250, 255)
+			table.insert(melt_tiles, ti)
 		else
-			glacial_seeds_table[ti] = nil
+			glacial_seed[ti] = true
 			texture_material[ti] = 0
 			material_richness[ti] = 0
 		end
@@ -639,8 +629,8 @@ local function process_age(age_type)
 	run_with_profiling(function() set_permanent_ice_variables(is_ice_age) end, "set_permanent_ice_variables")                                               -- #7
 	--* DIAGNOSTIC: EXPRESS ICE DEPTH                                                                                                                       -- #8
 	--* Clear Variables for Next Phase                                                                                                                      -- #9
-	run_with_profiling(function() creating_material_from_glacial_action(is_ice_age) end, "creating_material_from_glacial_action")                                     -- #10
-	run_with_profiling(function() push_material_to_the_melt_zones(is_ice_age) end, "push_material_to_the_melt_zones")                                                 -- #11
+	run_with_profiling(function() creating_material_from_glacial_action() end, "creating_material_from_glacial_action")                                     -- #10
+	run_with_profiling(function() push_material_to_the_melt_zones() end, "push_material_to_the_melt_zones")                                                 -- #11
 	run_with_profiling(function() remove_ineligible_ocean_ice_tiles(is_ice_age) end, "remove_ineligible_ocean_ice_tiles")                                   -- #12
 	run_with_profiling(function() construct_glacial_melt_provinces_and_disperse_silt(is_ice_age) end, "construct_glacial_melt_provinces_and_disperse_silt") -- #13
 
