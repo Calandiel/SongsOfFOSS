@@ -366,7 +366,7 @@ function libsote.generate_world(seed)
 		return nil
 	end
 
-	remap_coords_from_sote(world)
+	-- remap_coords_from_sote(world)
 
 	local err_msg = ffi.new("char[256]")
 	local float_val = ffi.new("float[1]")

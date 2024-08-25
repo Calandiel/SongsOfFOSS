@@ -49,12 +49,6 @@ local max_ice_moved = 0
 local max_silt_storage = 0
 local max_mineral_storage = 0
 
-local function length(t)
-	local count = 0
-	for _ in pairs(t) do count = count + 1 end
-	return count
-end
-
 local function set_debug(channel, ti, r, g, b, a)
 	world:set_debug_rgba(channel, ti, r, g, b, a or 255)
 end
@@ -243,8 +237,8 @@ local function process_ice_expansion(ti, boost_ice, iter)
 
 	local ultimate_elevation = open_issues.true_elevation(world, ti) + ice_flow[ti]
 
-	-- world:for_each_neighbor_random_start(ice_ti, function(nti)
-	world:for_each_neighbor(ti, function(nti)
+	world:for_each_neighbor_random_start(ti, function(nti)
+	-- world:for_each_neighbor(ti, function(nti)
 		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
 		if ultimate_elevation <= neigh_ultimate_elev then return end
 
@@ -375,7 +369,7 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 		if is_eligible_melt_tile then
 			table.insert(melt_tiles, ti)
 		else
-			glacial_seed[ti] = true
+			glacial_seed[ti] = false
 			texture_material[ti] = 0
 			material_richness[ti] = 0
 		end
@@ -393,22 +387,22 @@ local function create_melt_province(ti)
 	old_layer = {}
 	new_layer = {}
 
-	old_layer[ti] = true
-	melt_province[ti] = true --* Used to store province tiles
+	table.insert(old_layer, ti)
+	table.insert(melt_province, ti) --* Used to store province tiles
 	set_debug(2, ti, 178, 235, 242, 180)
 
 	local default_province_size = 50
-	local tiles_up = length(old_layer)
+	local tiles_up = #old_layer
 
 	--* Here we expand out the province until we either have no tiles to add or we run out of "turns"
 	while default_province_size > 0 and tiles_up > 0 do
-		for expand_ti in pairs(old_layer) do
+		for _, expand_ti in ipairs(old_layer) do
 			world:for_each_neighbor(expand_ti, function(nti)
-				if already_added[nti] or glacial_seeds_table[nti] == nil then return end
+				if already_added[nti] or not glacial_seed[nti] then return end
 
 				--* If not already a province, then add
 
-				new_layer[nti] = true
+				table.insert(new_layer, nti)
 				already_added[nti] = true
 			end)
 		end
@@ -416,13 +410,13 @@ local function create_melt_province(ti)
 		default_province_size = default_province_size - 1
 
 		old_layer = {}
-		for new_ti in pairs(new_layer) do
-			old_layer[new_ti] = true
-			melt_province[new_ti] = true
+		for _, new_ti in ipairs(new_layer) do
+			table.insert(old_layer, new_ti)
+			table.insert(melt_province, new_ti)
 			set_debug(2, new_ti, 178, 235, 242, 180)
 		end
 		new_layer = {}
-		tiles_up = length(old_layer)
+		tiles_up = #old_layer
 	end
 
 	return melt_province
@@ -433,19 +427,19 @@ local function identify_edge_tiles_and_update_province_status(melt_province, is_
 	local kill_province = true
 	old_layer = {}
 
-	for ti in pairs(melt_province) do
+	for _, ti in ipairs(melt_province) do
 		local on_edge = false
 
 		world:for_each_neighbor(ti, function(nti)
 			local is_ice_free = is_ice_age and world.ice_age_ice[nti] == 0 or not is_ice_age and world.ice[nti] == 0
 			if is_ice_free then
 				kill_province = false
-				old_layer[nti] = true
-				tiles_influenced[nti] = true
+				table.insert(old_layer, nti)
+				table.insert(tiles_influenced, nti)
 				set_debug(3, nti, 128, 203, 196, 120)
 			end
 
-			if glacial_seeds_table[nti] == nil then
+			if not glacial_seed[nti] then
 				on_edge = true
 			end
 		end)
@@ -461,44 +455,37 @@ end
 local function expand_melt_province(is_ice_age, expansion_tick)
 	new_layer = {}
 
-	for ti in pairs(old_layer) do
+	for _, ti in ipairs(old_layer) do
 		world:for_each_neighbor(ti, function(nti)
 			-- original code has some dead code that seems to want to use the ice to decide whether to skip or not
 			if already_added[nti] then return end
 
 			local rn = world.rng:random_int_max(100)
 			local neighbor_contributes = (is_ice_age and world.ice_age_ice[nti] > 0) and rn < 20 or rn < 50
-			-- local neighbor_contributes = true
 
 			if neighbor_contributes then
 				already_added[nti] = true
-				new_layer[nti] = true
+				table.insert(new_layer, nti)
 				invasion_ticker[nti] = expansion_tick
 				set_debug(4, nti, 255, 204, 128, 100)
 			else
-				new_layer[ti] = true
+				table.insert(new_layer, ti)
 			end
 		end)
 	end
 
 	old_layer = {}
-	for new_ti in pairs(new_layer) do
-		old_layer[new_ti] = true
-		tiles_influenced[new_ti] = true
+	for _, new_ti in ipairs(new_layer) do
+		table.insert(old_layer, new_ti)
+		table.insert(tiles_influenced, new_ti)
 	end
 end
 
 local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 	world:fill_ffi_array(invasion_ticker, 0)
 
-	-- if not is_ice_age then
-	-- 	logger:log("melt_tiles: " .. length(melt_tiles))
-	-- end
-
 	--* Iterate through all melt tiles. Construct glacial melt provinces as we go
-	for ti in pairs(melt_tiles) do
-		-- local log_str = ""
-
+	for _, ti in ipairs(melt_tiles) do
 		if already_added[ti] then goto continue2 end
 		already_added[ti] = true
 
@@ -511,31 +498,18 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 
 		if kill_province then goto continue2 end
 
-		-- if not is_ice_age then
-		-- 	local q, r, face = world:get_hex_coords(ti)
-		-- 	log_str = log_str .. face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. length(melt_province) .. "; " .. perimeter_size
-		-- 	logger:log(log_str)
-		-- end
-
 		local total_material = 0
 		local total_richness = 0
 		local max_material = 0
 		local max_richness = 0
-		for mp_ti in pairs(melt_province) do
+		for _, mp_ti in ipairs(melt_province) do
 			total_material = total_material + texture_material[mp_ti]
 			total_richness = total_richness + material_richness[mp_ti]
 			max_material = math.max(max_material, texture_material[mp_ti])
 			max_richness = math.max(max_richness, material_richness[mp_ti])
 		end
 
-		for mp_ti in pairs(melt_province) do
-			local fraction = texture_material[mp_ti] / max_material
-			local red = fraction * 255
-			local blue = (1 - fraction) * 255
-			set_debug(5, mp_ti, red, 0, blue, 255)
-		end
-
-		total_material = open_issues.adjust_material_for_province_size_before(total_material, is_ice_age, perimeter_size, use_original)
+		total_material = open_issues.adjust_material_for_province_size_before(total_material, is_ice_age, #melt_province, use_original)
 
 		local base_expansion = 5
 		local sample_expansion = math.floor(math.pow(total_material, 0.25)) + base_expansion
@@ -543,13 +517,7 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 			sample_expansion = 75 + math.floor(math.sqrt(sample_expansion - 75))
 		end
 
-		total_material = open_issues.adjust_material_for_province_size_after(total_material, is_ice_age, perimeter_size, use_original)
-
-		-- if not is_ice_age then
-		-- 	local q, r, face = world:get_hex_coords(ti)
-		-- 	log_str = log_str .. face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. total_material .. "; " .. total_richness .. "; " .. sample_expansion
-		-- 	logger:log(log_str)
-		-- end
+		total_material = open_issues.adjust_material_for_province_size_after(total_material, is_ice_age, #melt_province, use_original)
 
 		while sample_expansion > 0 do
 			if use_original then sample_expansion = sample_expansion - 1 end
@@ -561,11 +529,11 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 		end
 
 		local total_points = 0
-		for i_ti in pairs(tiles_influenced) do
+		for _, i_ti in ipairs(tiles_influenced) do
 			total_points = total_points + invasion_ticker[i_ti]
 		end
 
-		for i_ti in pairs(tiles_influenced) do
+		for _, i_ti in ipairs(tiles_influenced) do
 			local share_of_silt = total_material * invasion_ticker[i_ti] / total_points
 			local share_of_mineral = total_richness * invasion_ticker[i_ti] / total_points
 
@@ -583,13 +551,10 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 		::continue2::
 	end
 
-	-- if not is_ice_age then
-	-- 	world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
-	-- 		local q, r, face = world:get_hex_coords(ti)
-	-- 		local log_str = face - 1 .. ", " .. q .. ", " .. r .. "; " .. world:true_elevation_for_waterflow(ti) .. "; " .. silt_storage[ti] .. "; " .. mineral_storage[ti]
-	-- 		logger:log(log_str)
-	-- 	end)
-	-- end
+	-- world:for_each_tile(function(ti)
+	-- 	if silt_storage[ti] == 0 and mineral_storage[ti] == 0 then return end
+	-- 	logger:log(ti .. ": " .. silt_storage[ti] .. ", " .. mineral_storage[ti])
+	-- end)
 
 	world:for_each_tile(function(ti)
 		local fraction = math.log(silt_storage[ti] + 1) / max_silt_storage
