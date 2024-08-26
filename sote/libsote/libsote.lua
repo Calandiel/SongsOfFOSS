@@ -85,6 +85,8 @@ local sote_vals = {
 	plate             = 15,
 }
 
+local remap_coords = false
+
 local function log_info(msg)
 	print("[libsote] " .. msg)
 end
@@ -366,7 +368,7 @@ function libsote.generate_world(seed)
 		return nil
 	end
 
-	-- remap_coords_from_sote(world)
+	if remap_coords then remap_coords_from_sote(world) end
 
 	local err_msg = ffi.new("char[256]")
 	local float_val = ffi.new("float[1]")

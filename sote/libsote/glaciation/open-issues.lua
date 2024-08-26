@@ -28,48 +28,48 @@ end
 
 -- odd stuff in the original impl, port below is commented out: total_ice_movement is initialized to 1, meaning that even if there is no ice movement
 -- in the neighbors, the material will still be pushed to the melt zones, by the same amount as the ice moved, for each neighbor that qualifies
----@param gti integer glacial seed tile index
-function oi.move_material(world, gti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
+---@param ti integer glacial seed tile index
+function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
 	if use_original then
 		local total_ice_movement = 1
 
-		world:for_each_neighbor(gti, function(nti)
-			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[gti]
+		world:for_each_neighbor(ti, function(nti)
+			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
 			if not is_closer_to_edge then return end
 			total_ice_movement = total_ice_movement + ice_moved[nti]
 		end)
 
-		world:for_each_neighbor(gti, function(nti)
-			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[gti]
+		world:for_each_neighbor(ti, function(nti)
+			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
 			if not is_closer_to_edge then return end
 
-			texture_material[nti] = texture_material[nti] + texture_material[gti] * (ice_moved[gti] / total_ice_movement)
-			material_richness[nti] = material_richness[nti] + material_richness[gti] * (ice_moved[gti] / total_ice_movement)
+			texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
+			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
 
 			already_added[nti] = true
 		end)
 
 		if total_ice_movement > 0 then
-			texture_material[gti] = 0
-			material_richness[gti] = 0
+			texture_material[ti] = 0
+			material_richness[ti] = 0
 		end
 	else
 		local total_ice_movement = 0
 
-		world:for_each_neighbor(gti, function(nti)
-			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[gti]
+		world:for_each_neighbor(ti, function(nti)
+			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
 			if not is_closer_to_edge then return end
 			total_ice_movement = total_ice_movement + ice_moved[nti]
 		end)
 
 		if total_ice_movement == 0 then return end
 
-		world:for_each_neighbor(gti, function(nti)
-			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[gti]
+		world:for_each_neighbor(ti, function(nti)
+			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
 			if not is_closer_to_edge then return end
 
-			texture_material[nti] = texture_material[nti] + texture_material[gti] * (ice_moved[gti] / total_ice_movement)
-			material_richness[nti] = material_richness[nti] + material_richness[gti] * (ice_moved[gti] / total_ice_movement)
+			texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
+			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
 
 			-- the whole logic around 'already_added' seems to be a bit off, since its primary usage is in the code that builds melt provinces
 			-- and there is a lot of logic around adding a new tile to a melt province; so, I would rather skip the assignment below
@@ -77,8 +77,8 @@ function oi.move_material(world, gti, distance_from_edge, ice_moved, texture_mat
 			-- already_added[nti] = true
 		end)
 
-		texture_material[gti] = 0
-		material_richness[gti] = 0
+		texture_material[ti] = 0
+		material_richness[ti] = 0
 	end
 end
 

@@ -228,7 +228,7 @@ local function sort_glacial_seeds()
 	-- end
 end
 
-local function process_ice_expansion(ti, boost_ice, iter)
+local function process_ice_expansion(ti, boost_ice)
 	local can_flow_to_neighbors =
 		ice_flow[ti] >= 25 and world.is_land[ti] or
 		not world.is_land[ti] and ice_flow[ti] > -world.elevation[ti]
@@ -283,7 +283,7 @@ local function ice_expansion_loops(is_ice_age)
 		boost_iterations = boost_iterations - 1
 
 		for _, ti in ipairs(sorted_glacial_seeds) do
-			process_ice_expansion(ti, boost_iterations > 0, num_interations)
+			process_ice_expansion(ti, boost_iterations > 0)
 		end
 	end
 
@@ -320,11 +320,20 @@ local function set_permanent_ice_variables(is_ice_age)
 			world.ice[ti] = ice_flow[ti]
 		end
 	end)
+
+	-- world:for_each_tile(function(ti)
+	-- 	if not glacial_seed[ti] then return end
+	-- 	logger:log(ti .. ": " .. world.ice_age_ice[ti] .. ", " .. world.ice[ti])
+	-- end)
 end
 
 local function creating_material_from_glacial_action()
+	old_layer = {}
+
 	world:for_each_tile(function(ti)
 		if not glacial_seed[ti] then return end
+
+		table.insert(old_layer, ti)
 
 		--* Calculate material that is generated from ice movement
 		local _, _, _, mineral_richness, rock_mass_conversion, rock_weathering_rate = rock_qualities.get_characteristics_for_rock(world.rock_type[ti], 0, 0, 0, 0, 0, 0) --* mineral_richness acts as multiplier based on bedrock
@@ -336,14 +345,15 @@ end
 
 local function push_material_to_the_melt_zones()
 	local iterate_down = max_distance
+
 	while iterate_down > 0 do
-		world:for_each_tile(function(ti)
+		for _, ti in ipairs(old_layer) do
 			if distance_from_edge[ti] ~= iterate_down then goto continue1 end -- "or distance_from_edge[ti] <= 0" seems to be redundant, since iterate_down is always > 0
 
 			open_issues.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
 
 			::continue1::
-		end)
+		end
 
 		iterate_down = iterate_down - 1
 	end
@@ -567,7 +577,6 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 end
 
 local function reset_variables()
-	-- glacial_seeds_table = {}
 	sorted_glacial_seeds = {}
 	melt_tiles = {}
 	tiles_influenced = {}
@@ -635,8 +644,8 @@ function gm.run(world_obj)
 	world:fill_ffi_array(silt_storage, 0)
 	world:fill_ffi_array(mineral_storage, 0)
 
-	-- process_age(AGE_TYPES.ice_age)
-	-- world:reset_debug_all()
+	process_age(AGE_TYPES.ice_age)
+	world:reset_debug_all()
 	process_age(AGE_TYPES.game_age)
 end
 
