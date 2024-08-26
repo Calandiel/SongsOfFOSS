@@ -1,5 +1,9 @@
 local oi = {}
 
+-- local function set_debug(channel, world, ti, r, g, b, a)
+-- 	world:set_debug_rgba(channel, ti, r, g, b, a or 255)
+-- end
+
 -- strange way to average
 function oi.avg_temp(temp_jan, temp_jul)
 	return temp_jan + temp_jul
@@ -26,9 +30,10 @@ function oi.calculate_initial_ice_depth(ti, ice_flow, distance_from_edge)
 	ice_flow[ti] = ice_flow[ti] * distance_from_edge[ti] / 4
 end
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
 -- odd stuff in the original impl, port below is commented out: total_ice_movement is initialized to 1, meaning that even if there is no ice movement
 -- in the neighbors, the material will still be pushed to the melt zones, by the same amount as the ice moved, for each neighbor that qualifies
----@param ti integer glacial seed tile index
 function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
 	if use_original then
 		local total_ice_movement = 1
@@ -47,6 +52,7 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
 
 			already_added[nti] = true
+			-- set_debug(1, world, ti, 224, 247, 250, 255)
 		end)
 
 		if total_ice_movement > 0 then
@@ -71,10 +77,8 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 			texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
 			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
 
-			-- the whole logic around 'already_added' seems to be a bit off, since its primary usage is in the code that builds melt provinces
-			-- and there is a lot of logic around adding a new tile to a melt province; so, I would rather skip the assignment below
-			-- even though the original code starts building the melt provinces with quite a bit of tiles "already added"
-			-- already_added[nti] = true
+			already_added[nti] = true
+			-- set_debug(1, world, ti, 224, 247, 250, 255)
 		end)
 
 		texture_material[ti] = 0
@@ -83,7 +87,7 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 end
 
 -- original code removes the already_added flag for all glacial seeds without discrimination, which seems odd
--- I will alter the original, by removing it only for the seeds that are not eligible for melting
+-- I would alter the original, by removing it only for the seeds that are not eligible for melting
 function oi.remove_already_added(ti, already_added, is_eligible_melt_tile, use_original)
 	if use_original then
 		already_added[ti] = false
@@ -91,6 +95,10 @@ function oi.remove_already_added(ti, already_added, is_eligible_melt_tile, use_o
 		already_added[ti] = false
 	end
 end
+
+-- using the alternative version of these 2 open issues, already_added retains a bit more tiles than the original (countours as opposed to a few tiles here and there)
+-- which seems to have a significant impact on silt storage
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- the original code computes the number of expansions based on total material,
 -- then proceeds to change the total material based on whether it's processing an ice age or not

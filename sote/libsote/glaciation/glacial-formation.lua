@@ -101,16 +101,6 @@ local function find_glacial_perimeter()
 			distance_from_edge[ti] = 1
 		end
 	end)
-	-- for ti in pairs(glacial_seeds_table) do
-	-- 	world:for_each_neighbor(ti, function(nti)
-	-- 		if glacial_seeds_table[nti] then return end
-
-	-- 		old_layer[nti] = true
-	-- 		distance_from_edge[nti] = 1
-
-	-- 		-- set_debug(world, nti, 255, 0, 0)
-	-- 	end)
-	-- end
 
 	-- for _, ti in ipairs(old_layer) do
 	-- 	logger:log(ti)
@@ -208,11 +198,14 @@ local function sort_glacial_seeds()
 	-- table.sort(sorted_glacial_seeds, function(a, b)
 	-- 	return distance_from_edge[a] > distance_from_edge[b]
 	-- end)
+
 	local glacial_seeds_table = {}
+
 	world:for_each_tile(function(ti)
 		if not glacial_seed[ti] then return end
 		table.insert(glacial_seeds_table, ti)
 	end)
+
 	local expansion_ticker = max_distance
 	while expansion_ticker > 0 do
 		for _, ti in ipairs(glacial_seeds_table) do
@@ -327,6 +320,8 @@ local function set_permanent_ice_variables(is_ice_age)
 	-- end)
 end
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
 local function creating_material_from_glacial_action()
 	old_layer = {}
 
@@ -384,10 +379,13 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 			material_richness[ti] = 0
 		end
 
-		-- On a second thought, since 'already_added' primary usage is in the code that builds melt provinces,
-		-- I'd rather leave the table empty (and it should be empty at this point)
 		open_issues.remove_already_added(ti, already_added, is_eligible_melt_tile, use_original)
 	end)
+
+	-- world:for_each_tile(function(ti)
+	-- 	if not already_added[ti] then return end
+	-- 	set_debug(2, ti, 178, 235, 242, 180)
+	-- end)
 end
 
 local function create_melt_province(ti)
@@ -399,7 +397,6 @@ local function create_melt_province(ti)
 
 	table.insert(old_layer, ti)
 	table.insert(melt_province, ti) --* Used to store province tiles
-	set_debug(2, ti, 178, 235, 242, 180)
 
 	local default_province_size = 50
 	local tiles_up = #old_layer
@@ -423,7 +420,6 @@ local function create_melt_province(ti)
 		for _, new_ti in ipairs(new_layer) do
 			table.insert(old_layer, new_ti)
 			table.insert(melt_province, new_ti)
-			set_debug(2, new_ti, 178, 235, 242, 180)
 		end
 		new_layer = {}
 		tiles_up = #old_layer
