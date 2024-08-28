@@ -27,7 +27,7 @@ GROUP_TO_BUILDING_TYPES = {
 ---@field construction_cost number
 ---@field upkeep number
 ---@field unlocked_by Technology
----@field required_biome table<number, Biome>
+---@field required_biome table<number, biome_id>
 ---@field required_resource table<number, Resource>
 ---@field unique boolean only one per province!
 ---@field movable boolean is it possible to migrate with this building?

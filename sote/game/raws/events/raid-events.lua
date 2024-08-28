@@ -64,7 +64,9 @@ local messages = require "game.raws.effects.messages"
 local function load()
 	Event:new {
 		name = "patrol-province",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type PatrolData
 			associated_data = associated_data
@@ -261,7 +263,9 @@ local function load()
 
 	Event:new {
 		name = "request-tribute-attack",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type AttackData
 			associated_data = associated_data
@@ -305,7 +309,9 @@ local function load()
 
 	Event:new {
 		name = "request-tribute-army-returns-success",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			local realm = root.realm
 
@@ -345,7 +351,9 @@ local function load()
 
 	Event:new {
 		name = "request-tribute-army-returns-fail",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			local realm = root.realm
 
@@ -385,7 +393,9 @@ local function load()
 
 	Event:new {
 		name = "covert-raid",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidData
 			associated_data = associated_data
@@ -511,7 +521,9 @@ local function load()
 	}
 	Event:new {
 		name = "covert-raid-fail",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidResultFail
 			associated_data = associated_data
@@ -532,6 +544,7 @@ local function load()
 	}
 	Event:new {
 		name = "covert-raid-success",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
 		trigger = function(self, root) return false end,
@@ -618,7 +631,9 @@ local function load()
 
 	Event:new {
 		name = "covert-raid-retreat",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidResultRetreat
 			associated_data = associated_data

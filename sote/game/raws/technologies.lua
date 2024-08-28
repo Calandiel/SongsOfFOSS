@@ -8,7 +8,7 @@ local tabb = require "engine.table"
 ---@field r number
 ---@field g number
 ---@field b number
----@field required_biome table<number, Biome>
+---@field required_biome table<number, biome_id>
 ---@field required_race table<number, Race>
 ---@field required_resource table<number, Resource>
 ---@field unlocked_by table<number, Technology>
@@ -85,7 +85,8 @@ function Technology:get_tooltip()
 	if tabb.size(self.required_biome) > 0 then
 		s = s .. "\nRequired biome: "
 		for _, b in pairs(self.required_biome) do
-			s = s .. b.name .. ", "
+			local biome_name = DATA.biome_get_name(b)
+			s = s .. biome_name .. ", "
 		end
 		s = s .. "\n"
 	end
@@ -146,10 +147,6 @@ function Technology:get_tooltip()
 		end
 		s = s .. "\n"
 	end
-
-
-
-
 
 	return s
 end

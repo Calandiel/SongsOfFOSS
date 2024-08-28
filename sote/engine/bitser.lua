@@ -366,11 +366,14 @@ local function serialize(value)
 	-- print(first:length())
 
 	while callback_stack:length() > 0 do
+		-- print(callback_stack:length())
 		---@type Queue<BitserCallback>
 		local callback_queue = callback_stack:peek()
 		if (callback_queue == nil) or (callback_queue:length() == 0) then
+			-- print("queue is empty")
 			callback_stack:dequeue()
 		else
+			-- print("queue is not empty, continue")
 			local callback = callback_queue:dequeue()
 			local queue = callback.callback(callback.value, callback.seen)
 			callback_stack:enqueue_front(queue)
@@ -390,17 +393,16 @@ local function serialize_async(value)
 	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
 	local first = serialize_value(value, seen)
 	callback_stack:enqueue_front(first)
-	-- print(first:length())
-	-- print(callback_stack:length())
+	print(first:length())
+	print(callback_stack:length())
 
 
-	local tiles_counter = {
+	local objects_counter = {
 		counter = 0,
 		yielded = false
 	}
 
 	while callback_stack:length() > 0 do
-		-- print("???")
 		---@type Queue<BitserCallback>
 		local callback_queue = callback_stack:peek()
 		if (callback_queue == nil) or (callback_queue:length() == 0) then
@@ -411,16 +413,16 @@ local function serialize_async(value)
 			local callback = callback_queue:dequeue()
 			-- print(callback.value)
 			-- print("stack before callback: " .. callback_stack:length())
-			local queue = callback.callback(callback.value, callback.seen, tiles_counter)
+			local queue = callback.callback(callback.value, callback.seen, objects_counter)
 			-- print("extracted queue length: " .. queue:length())
 			callback_stack:enqueue_front(queue)
 			-- print("stack after callback: " .. callback_stack:length())
 		end
 
-		if (not tiles_counter.yielded) and (tiles_counter.counter % 1000 == 0) then
-			coroutine.yield(tiles_counter.counter)
-			print("callback stack length: " .. callback_stack:length())
-			tiles_counter.yielded = true
+		if (not objects_counter.yielded) and (objects_counter.counter % 1000 == 0) then
+			coroutine.yield(objects_counter.counter)
+			-- print("callback stack length: " .. callback_stack:length())
+			objects_counter.yielded = true
 		end
 	end
 

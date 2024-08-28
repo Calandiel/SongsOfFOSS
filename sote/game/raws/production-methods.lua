@@ -1,4 +1,4 @@
-local JOBTYPE = require "game.raws.job_types"
+
 local dbm = require "game.economy.diet-breadth-model"
 local tile_utils = require "game.entities.tile"
 
@@ -14,8 +14,8 @@ local tile_utils = require "game.entities.tile"
 ---@field job_weight number
 ---@field job_type JOBTYPE
 ---@field total_jobs fun(self:ProductionMethod):number
----@field inputs table<TradeGoodUseCaseReference, number>
----@field outputs table<TradeGoodReference, number>
+---@field inputs table<use_case_id, number>
+---@field outputs table<trade_good_id, number>
 ---@field new fun(self:ProductionMethod, o:ProductionMethod):ProductionMethod
 ---@field foraging boolean If true, worktime counts towards the foragers count
 ---@field hydration boolean If true, worktime counts towards the foragers_water count

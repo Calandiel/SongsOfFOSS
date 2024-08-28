@@ -8,6 +8,8 @@ local ee = require "game.raws.effects.economic"
 local ev = require "game.raws.values.economical"
 local et = require "game.raws.triggers.economy"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
 local function load()
     Event:new {
         name = "travel-start-action",
@@ -18,8 +20,8 @@ local function load()
         on_trigger = function (self, root, associated_data)
             ---@type TravelData
             associated_data = associated_data
-
             local party = root.leading_warband
+            assert(party ~= nil)
             party.status = "travelling"
             party:consume_supplies(associated_data.travel_time)
             WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
@@ -62,6 +64,7 @@ local function load()
                 end,
                 outcome = function ()
                     local party = root.leading_warband
+                    assert(party ~= nil)
                     party.status = "travelling"
                     party:consume_supplies(associated_data.travel_time)
                     WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
@@ -81,6 +84,8 @@ local function load()
     Event:new {
 		name = "travel",
 		automatic = false,
+        base_probability = 0,
+        event_background_path = "data/gfx/backgrounds/background.png",
 		on_trigger = function(self, root, associated_data)
 			---@type Province
 			associated_data = associated_data
@@ -149,10 +154,9 @@ local function load()
                 }
             end
 
-            for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-
-                local price = ev.get_local_price(province, name)
-                local known_price = root.price_memory[name] or price
+            function generate_option(trade_good)
+                local price = ev.get_local_price(province, trade_good)
+                local known_price = root.price_memory[trade_good] or price
 
                 local bought_amount = math.max(
                     1,
@@ -163,16 +167,16 @@ local function load()
                     ))
                 )
 
-                local can_buy, _ = et.can_buy(root, name, bought_amount)
+                local can_buy, _ = et.can_buy(root, trade_good, bought_amount)
                 if can_buy then
                     ---@type EventOption
                     local option = {
-                        text = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
+                        text = "Buy " .. DATA.trade_good_get_name(trade_good) .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
                         -- tooltip = "Buy " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
                         tooltip = "Ai_pref " .. (known_price - price - 0.05) / (known_price + 0.05),
                         viable = function() return true end,
                         outcome = function()
-                            ee.buy(root, name, bought_amount)
+                            ee.buy(root, trade_good, bought_amount)
                         end,
                         ai_preference = function()
                             return (known_price - price - 0.05) / (known_price + 0.05)
@@ -181,6 +185,8 @@ local function load()
                     table.insert(options_list, option)
                 end
             end
+
+            DATA.for_each_trade_good(generate_option)
 
             local nothing_option = {
                 text = "Nothing",
@@ -222,13 +228,13 @@ local function load()
                 }
             end
 
-            for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-                local price = ev.get_pessimistic_local_price(province, name, 1, true)
-                local known_price = root.price_memory[name] or price
+            local function generate_option(trade_good)
+                local price = ev.get_pessimistic_local_price(province, trade_good, 1, true)
+                local known_price = root.price_memory[trade_good] or price
 
-                local current_amount = root.inventory[name] or 0
+                local current_amount = root.inventory[trade_good] or 0
                 local sold_amount = current_amount
-                local can_sell, _ = et.can_sell(root, name, sold_amount)
+                local can_sell, _ = et.can_sell(root, trade_good, sold_amount)
 
                 while
                     not can_sell
@@ -236,29 +242,30 @@ local function load()
                     and sold_amount > 1
                 do
                     sold_amount = math.floor(sold_amount / 2)
-                    can_sell, _ = et.can_sell(root, name, sold_amount)
+                    can_sell, _ = et.can_sell(root, trade_good, sold_amount)
                 end
 
                 local good_reserve = 0
 
-                if root.leading_warband and name == "calories" then
-                    good_reserve = root.leading_warband:daily_supply_consumption() * 60
+                local weight = DATA.get_use_weight(trade_good, CALORIES_USE_CASE)
+                if root.leading_warband and weight then
+                    good_reserve = root.leading_warband:daily_supply_consumption() * 60 / DATA.use_weight_get_weight(weight)
                 end
 
                 sold_amount = math.max(0, math.min(math.max(1, sold_amount), current_amount - good_reserve))
 
-                can_sell, _ = et.can_sell(root, name, sold_amount)
-                local desire_to_get_rid_of_goods = math.max(1, (root.inventory[name] or 0) / 10)
+                can_sell, _ = et.can_sell(root, trade_good, sold_amount)
+                local desire_to_get_rid_of_goods = math.max(1, (root.inventory[trade_good] or 0) / 10)
 
                 if can_sell and sold_amount > 0 then
                     ---@type EventOption
                     local option = {
-                        text = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
+                        text = "Sell " .. DATA.trade_good_get_name(trade_good) .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
                         -- tooltip = "Sell " .. name .. " for " .. ut.to_fixed_point2(price) .. MONEY_SYMBOL,
                         tooltip = "AI_pref: " .. (price - known_price) / (known_price + 0.05) * desire_to_get_rid_of_goods - 0.02,
                         viable = function() return true end,
                         outcome = function()
-                            ee.sell(root, name, sold_amount)
+                            ee.sell(root, trade_good, sold_amount)
                         end,
                         ai_preference = function()
                             return (price - known_price) / (known_price + 0.05) * desire_to_get_rid_of_goods - 0.05
@@ -267,6 +274,8 @@ local function load()
                     table.insert(options_list, option)
                 end
             end
+
+            DATA.for_each_trade_good(generate_option)
 
             local nothing_option = {
                 text = "Nothing",

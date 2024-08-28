@@ -84,30 +84,30 @@ function re.draw(gam)
 				text = "STO",
 				tooltip = "Stockpiles",
 				closure = function()
+					---@type table<trade_good_id, number>
 					local goods = {}
 					for good, amount in pairs(realm.resources) do
-						local resource = trade_good(good)
-						if resource.category == "good" then
+						local category = DATA.trade_good_get_category(good)
+						if category == "good" then
 							goods[good] = amount
 						end
 					end
 					gam.realm_stockpile_scrollbar = gam.realm_stockpile_scrollbar or 0
 					gam.realm_stockpile_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGoodReference
+							---@type trade_good_id, number
 							local good, amount = tabb.nth(goods, entry)
 							local delta = realm.production[good] or 0
-							local resource = trade_good(good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(resource.icon), rect)
+							ui.image(ASSETS.get_icon(DATA.trade_good_get_icon(good)), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
 							uit.sqrt_number_entry(
-								good,
+								DATA.trade_good_get_description(good),
 								amount or 0,
 								rect
 							)
@@ -119,28 +119,27 @@ function re.draw(gam)
 				text = "ADM",
 				tooltip = "Administration",
 				closure = function()
+					---@type table<trade_good_id, number>
 					local goods = {}
 					for good, amount in pairs(realm.production) do
-						local resource = trade_good(good)
-						if resource.category == "capacity" then
+						if DATA.trade_good_get_category(good) == "capacity" then
 							goods[good] = amount
 						end
 					end
 					gam.realm_capacities_scrollbar = gam.realm_capacities_scrollbar or 0
 					gam.realm_capacities_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGoodReference
+							---@type trade_good_id, number
 							local good, amount = tabb.nth(goods, entry)
-							local resource = trade_good(good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(resource.icon), rect)
+							ui.image(ASSETS.get_icon(DATA.trade_good_get_icon(good)), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							ui.left_text(good, rect)
+							ui.left_text(DATA.trade_good_get_description(good), rect)
 							ui.right_text(tostring(math.floor(100 * amount) / 100), rect)
 						end
 					end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_capacities_scrollbar)
@@ -363,37 +362,6 @@ function re.draw(gam)
 						character_list_state)()
 				end
 			},
-			-- {
-			-- 	text = "MAR",
-			-- 	tooltip = "Market",
-			-- 	closure = function()
-			-- 		---@type table<TradeGoodReference, number>
-			-- 		local goods = {}
-			-- 		for good, _ in pairs(realm.bought) do
-			-- 			goods[good] = ev.get_realm_price(realm, good)
-			-- 		end
-			-- 		for good, _ in pairs(realm.sold) do
-			-- 			goods[good] = ev.get_realm_price(realm, good)
-			-- 		end
-			-- 		gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
-			-- 		gam.realm_market_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
-			-- 			if entry > 0 then
-			-- 				---@type TradeGoodReference
-			-- 				local good, price = tabb.nth(goods, entry)
-			-- 				local resource = trade_good(good)
-
-			-- 				local w = rect.width
-			-- 				rect.width = rect.height
-			-- 				ui.image(ASSETS.get_icon(resource.icon), rect)
-
-			-- 				rect.width = w
-			-- 				rect.x = rect.x + rect.height
-			-- 				rect.width = rect.width - rect.height
-			-- 				uit.money_entry(good, price, rect, "price")
-			-- 			end
-			-- 		end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_market_scrollbar)
-			-- 	end
-			-- },
 			{
 				text = "EDU",
 				tooltip = "Education and research",

@@ -1,56 +1,15 @@
----@class (exact) Biome
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
----@field minimum_slope number m
----@field maximum_slope number m
----@field minimum_elevation number m
----@field maximum_elevation number m
----@field minimum_temperature number C
----@field maximum_temperature number C
----@field minimum_summer_temperature number C
----@field maximum_summer_temperature number C
----@field minimum_winter_temperature number C
----@field maximum_winter_temperature number C
----@field maximum_rain number mm
----@field minimum_rain number mm
----@field minimum_available_water number abstract, adjusted for permeability
----@field maximum_available_water number abstract, adjusted for permeability
----@field minimum_trees number %
----@field maximum_trees number %
----@field minimum_grass number %
----@field maximum_grass number %
----@field minimum_shrubs number %
----@field maximum_shrubs number %
----@field minimum_conifer_fraction number %
----@field maximum_conifer_fraction number %
----@field minimum_dead_land number %
----@field maximum_dead_land number %
----@field minimum_soil_depth number m
----@field maximum_soil_depth number m
----@field minimum_soil_richness number %
----@field maximum_soil_richness number %
----@field minimum_sand number %
----@field maximum_sand number %
----@field minimum_clay number %
----@field maximum_clay number %
----@field minimum_silt number %
----@field maximum_silt number %
-
 local col = require "game.color"
+
+local biome_index = 1
 
 local Biome = {}
 Biome.__index = Biome
----@param o table
----@return Biome
+---@param o biome_id_data_blob
+---@return biome_id
 function Biome:new(o)
 	local MIN = -99999999
 	local MAX = -MIN
-	local r = {}
+	local r = DATA.fatten_biome(biome_index)
 	r.name = "biome"
 	r.r = 0
 	r.g = 0
@@ -96,15 +55,16 @@ function Biome:new(o)
 	for k, v in pairs(o) do
 		r[k] = v
 	end
-	setmetatable(r, Biome)
 
 	if RAWS_MANAGER.biomes_by_name[r.name] ~= nil then
 		local msg = "Failed to load a biome (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	RAWS_MANAGER.biomes_by_name[r.name] = r
 
+	RAWS_MANAGER.biomes_by_name[r.name] = r.id
+
+	biome_index = biome_index + 1
 	return r
 end
 

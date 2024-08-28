@@ -31,8 +31,8 @@ function tile.Tile:new(tile_id)
 	tt.has_marsh = false
 	tt.ice = 0
 	tt.ice_age_ice = 0
-	tt.bedrock = nil
-	tt.biome = nil
+	tt.bedrock = 0
+	tt.biome = 0
 	tt.debug_r = 0.1
 	tt.debug_g = 0.1
 	tt.debug_b = 0.1
@@ -56,12 +56,6 @@ function tile.realm(id)
 		return nil
 	end
 	return WORLD.tile_to_province[id].realm
-end
-
----@param id tile_id
----@param province Province
-function tile.set_province(id, province)
-	WORLD.tile_to_province[id] = province
 end
 
 ---@param id tile_id

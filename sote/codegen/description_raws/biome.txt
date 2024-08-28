@@ -1,0 +1,41 @@
+name string
+r float
+g float
+b float
+aquatic bool
+marsh bool
+icy bool
+minimum_slope float m
+maximum_slope float m
+minimum_elevation float m
+maximum_elevation float m
+minimum_temperature float C
+maximum_temperature float C
+minimum_summer_temperature float C
+maximum_summer_temperature float C
+minimum_winter_temperature float C
+maximum_winter_temperature float C
+maximum_rain float mm
+minimum_rain float mm
+minimum_available_water float abstract, adjusted for permeability
+maximum_available_water float abstract, adjusted for permeability
+minimum_trees float %
+maximum_trees float %
+minimum_grass float %
+maximum_grass float %
+minimum_shrubs float %
+maximum_shrubs float %
+minimum_conifer_fraction float %
+maximum_conifer_fraction float %
+minimum_dead_land float %
+maximum_dead_land float %
+minimum_soil_depth float m
+maximum_soil_depth float m
+minimum_soil_richness float %
+maximum_soil_richness float %
+minimum_sand float %
+maximum_sand float %
+minimum_clay float %
+maximum_clay float %
+minimum_silt float %
+maximum_silt float %

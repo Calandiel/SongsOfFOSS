@@ -305,7 +305,7 @@ function PoliticalEffects.huge_popularity_decrease(character, realm)
 end
 
 ---comment
----@param pop POP
+---@param pop pop_id
 ---@param province Province
 ---@param reason POLITICAL_REASON
 function PoliticalEffects.grant_nobility(pop, province, reason)
@@ -360,10 +360,10 @@ end
 ---@return Character?
 function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
 	local pop = tabb.random_select_from_set(tabb.filter(province.home_to, function (a)
-		return not a:is_character() and a.province == province
+		return not IS_CHARACTER(a) and DATA.pop_get_province(a) == province
 	end))
 
-	if pop and pop.province == province then
+	if pop and DATA.pop_get_province(pop) == province then
 		PoliticalEffects.grant_nobility(pop, province, reason)
 		return pop
 	end

@@ -1,0 +1,34 @@
+race race_id
+faith Faith
+culture Culture
+female bool
+age uint32_t
+name string
+job Job
+savings float
+parent pop_id
+loyalty pop_id
+life_needs_satisfaction float from 0 to 1
+basic_needs_satisfaction float from 0 to 1
+need_satisfaction need_satisfaction[20]
+traits TRAIT[10]
+employer Building
+successor pop_id
+owned_buildings table <Building,Building>
+has_trade_permits_in table<Realm,Realm>
+has_building_permits_in table<Realm,Realm>
+inventory float[trade_good]
+price_memory float[trade_good]
+forage_ratio float a number in (0, 1) interval representing a ratio of time pop spends to forage
+work_ratio float a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
+leading_warband Warband
+recruiter_for_warband Warband
+unit_of_warband Warband
+busy boolean
+dead boolean
+realm Realm Represents the home realm of the character
+leader_of table<Realm,Realm>
+current_negotiations table<pop_id,pop_id>
+rank CHARACTER_RANK
+former_pop boolean
+dna float[20]

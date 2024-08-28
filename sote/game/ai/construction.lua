@@ -10,8 +10,8 @@ local co = {}
 ---@param province Province
 ---@param funds number
 ---@param excess number
----@param owner POP?
----@param overseer POP?
+---@param owner pop_id?
+---@param overseer pop_id?
 ---@return number
 local function construction_in_province(province, funds, excess, owner, overseer)
 	if funds < 50 then
@@ -50,8 +50,8 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		local predicted_profit = eco_values.projected_income_building_type(
 			province,
 			building_type,
-			random_pop.race,
-			random_pop.female
+			DATA.pop_get_race(random_pop),
+			DATA.pop_get_female(random_pop)
 		)
 
 		-- sanity scaling + clamping
@@ -86,7 +86,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 
 		local feature = nil
 		-- do not consider buildings with ROI over half of your life...
-		if random_pop.race.max_age / 2 * 12 > ROI then
+		if DATA.pop_get_race(random_pop).max_age / 2 * 12 > ROI then
 			feature = -ROI + min_ROI
 		end
 

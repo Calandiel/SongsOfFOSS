@@ -587,7 +587,7 @@ local function geography_tab(gam, tile_id, panel)
 						uit.data_entry("Size: ", tostring(tabb.size(tile_utils.province(tile_id).tiles)), rect, "In tiles")
 					end,
 					function(rect)
-						uit.data_entry("Bedrock:", DATA.tile_get_bedrock(tile_id).name, rect)
+						uit.data_entry("Bedrock:", DATA.bedrock_get_name(tile.bedrock), rect)
 					end,
 					function(rect)
 						ui.centered_text("Soil texture", rect)
@@ -683,7 +683,7 @@ local function geography_tab(gam, tile_id, panel)
 							}, rect)
 						end,
 						function(rect)
-							uit.data_entry("", tile.biome.name, rect, "Biome")
+							uit.data_entry("", DATA.biome_get_name(tile.biome), rect, "Biome")
 						end,
 						function(rect)
 							uit.count_entry(

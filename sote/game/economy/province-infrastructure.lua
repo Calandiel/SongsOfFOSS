@@ -1,3 +1,5 @@
+local pop_utils = require "game.entities.pop".POP
+
 local r = {}
 
 ---
@@ -7,14 +9,18 @@ function r.run(province)
 	local inf = 0
 	-- From pops
 	for _, pop in pairs(province.all_pops) do
-		local n = pop.race.male_infrastructure_needs
-		if pop.female then
-			n = pop.race.female_infrastructure_needs
+		local race = DATA.pop_get_race(pop)
+		local female = DATA.pop_get_female(pop)
+
+		local n = race.male_infrastructure_needs
+		if female then
+			n = race.female_infrastructure_needs
 		end
-		inf = inf + n * pop:get_age_multiplier()
+		inf = inf + n * pop_utils.get_age_multiplier(pop)
 	end
 	-- From buildings
 	for _, building in pairs(province.buildings) do
+		---@type number
 		inf = inf + building.type.needed_infrastructure
 	end
 	-- Write the needs

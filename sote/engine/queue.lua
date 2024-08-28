@@ -63,10 +63,15 @@ end
 ---@generic T
 ---@return T
 function Queue:dequeue()
+	-- print("dequeue")
 	self.first = fix(self.first + 1, queue_capacity)
+	-- print("???")
 	self.len = self.len - 1
+	-- print("???")
 	local ret = self.data[self.first]
+	-- print("???")
 	self.data[self.first] = nil
+	-- print('ok')
 	return ret
 end
 

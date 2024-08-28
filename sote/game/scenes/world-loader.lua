@@ -310,8 +310,8 @@ function wl.load_default()
 	for _, tile_id in pairs(WORLD.tiles) do
 		local r, g, b = read_pixel(tile_id, rocks)
 		local id = color_utils.rgb_to_id(r, g, b)
-		if RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
-			DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_color[id])
+		if RAWS_MANAGER.bedrocks_by_color_id[id] ~= nil then
+			DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_color_id[id])
 		else
 			DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_name['limestone'])
 		end
@@ -492,6 +492,7 @@ function wl.load_save()
 	print("Loading: " .. tostring(DEFINES.world_to_load))
 	loader_error = "World file: " .. tostring(DEFINES.world_to_load) .. " does not exist!"
 
+	DATA.load_state()
 	require "game.scenes.bitser-world-loading"()
 
 	if WORLD == nil then

@@ -2,6 +2,9 @@ local tabb = require "engine.table"
 local path = require "game.ai.pathfinding"
 local economical = require "game.raws.values.economical"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+local retrieve_trade_good = require "game.raws.raws-utils".trade_good
+
 local Decision = require "game.raws.decisions"
 local dt = require "game.raws.triggers.diplomacy"
 local et = require "game.raws.triggers.economy"
@@ -151,7 +154,7 @@ local function load()
 	-- negotiation rough blueprint
 
 	---@class (exact) NegotiationTradeData
-	---@field goods_transfer_from_initiator_to_target table<TradeGoodReference, number?>
+	---@field goods_transfer_from_initiator_to_target table<trade_good_id, number?>
 	---@field wealth_transfer_from_initiator_to_target number
 
 	---@class (exact) NegotiationRealmToRealm
@@ -492,16 +495,16 @@ local function load()
 				root.realm.known_provinces
 			)
 			travel_time = path.hours_to_travel_days(travel_time)
-			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD]['calories'])
-				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD]['calories'])
+			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD][CALORIES_USE_CASE])
+				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD][CALORIES_USE_CASE])
 				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time / 5
-			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, 'calories')
+			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, CALORIES_USE_CASE)
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
-			local can_buy_calories, buy_reasons = et.can_buy_use(root.realm.capitol, root.savings, 'calories', remaining_calories_needed + 0.01)
+			local can_buy_calories, buy_reasons = et.can_buy_use(root.realm.capitol, root.savings, CALORIES_USE_CASE, remaining_calories_needed + 0.01)
 
 			-- convincing people to move takes money but amount d epends on pops willingness to move, base payment the price of upto 10 units of food per family
-			local pop_payment =  colonisation_cost * 6 * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
-			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, 'calories')
+			local pop_payment =  colonisation_cost * 6 * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, CALORIES_USE_CASE)
+			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, CALORIES_USE_CASE)
 
 			local expected_calorie_cost = math.max(0, calorie_cost - character_calories_in_inventory) * calorie_price_expectation
 
@@ -594,16 +597,16 @@ local function load()
 				root.realm.known_provinces
 			)
 			travel_time = path.hours_to_travel_days(travel_time)
-			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD]['calories'])
-				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD]['calories'])
+			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD][CALORIES_USE_CASE])
+				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD][CALORIES_USE_CASE])
 				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time / 5
-			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, 'calories')
+			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, CALORIES_USE_CASE)
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
-			local can_buy_calories, _ = et.can_buy_use(root.realm.capitol, root.savings, 'calories', remaining_calories_needed + 0.01)
+			local can_buy_calories, _ = et.can_buy_use(root.realm.capitol, root.savings, CALORIES_USE_CASE, remaining_calories_needed + 0.01)
 
 			-- convincing people to move takes money but amount d epends on pops willingness to move, base payment the price of upto 10 units of food per family
-			local pop_payment =  6 * colonisation_cost * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
-			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, 'calories')
+			local pop_payment =  6 * colonisation_cost * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, CALORIES_USE_CASE)
+			local calorie_price_expectation = economical.get_local_price_of_use(root.realm.capitol, CALORIES_USE_CASE)
 
 			local expected_calorie_cost = math.max(0, calorie_cost - character_calories_in_inventory) * calorie_price_expectation
 
@@ -688,14 +691,14 @@ local function load()
 				root.realm.known_provinces
 			)
 			travel_time = path.hours_to_travel_days(travel_time)
-			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD]['calories'])
-				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD]['calories'])
+			local calorie_cost = ((100 * root.realm.primary_race.female_needs[NEED.FOOD][CALORIES_USE_CASE])
+				+ root.realm.primary_race.males_per_hundred_females * root.realm.primary_race.male_needs[NEED.FOOD][CALORIES_USE_CASE])
 				/ (100 + root.realm.primary_race.males_per_hundred_females) * travel_time / 5
-			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, 'calories')
+			local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(root.inventory, CALORIES_USE_CASE)
 			local remaining_calories_needed = math.max(0, calorie_cost - character_calories_in_inventory)
 
 			-- convincing people to move takes money but amount depends on pops willingness to move, base payment of upto 2 units of food per family
-			local pop_payment =  6 * colonisation_cost * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, 'calories')
+			local pop_payment =  6 * colonisation_cost * root.realm:get_average_needs_satisfaction() * economical.get_local_price_of_use(root.realm.capitol, CALORIES_USE_CASE)
 
 			local leader = nil
 			local organizer = root
@@ -716,9 +719,9 @@ local function load()
 			}
 			if ot.decides_foreign_policy(root, root.realm) then
 				-- buy remaining calories from market
-				economic_effects.character_buy_use(root, 'calories', remaining_calories_needed)
+				economic_effects.character_buy_use(root, CALORIES_USE_CASE, remaining_calories_needed)
 				-- consume food from character inventory
-				economic_effects.consume_use_case_from_inventory(root.inventory, 'calories', calorie_cost)
+				economic_effects.consume_use_case_from_inventory(root.inventory, CALORIES_USE_CASE, calorie_cost)
 				-- give out payment to expedition
 				economic_effects.change_treasury(root.realm, -pop_payment, economic_effects.reasons.Colonisation)
 				WORLD:emit_immediate_action('migration-colonize', root, migration_data)

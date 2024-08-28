@@ -27,9 +27,17 @@ function tr.run(realm)
 
 
 	-- if ruler is gready, he doubles the tax
-	if realm.leader.traits[TRAIT.GREEDY] then
-		realm.tax_target = realm.tax_target * 2
-		realm.budget.treasury_target = 400
+	for i = 0, MAX_TRAIT_INDEX do
+		local trait = DATA.pop_get_traits(realm.leader, i)
+
+		if trait == 0 then
+			break
+		end
+
+		if trait == TRAIT.GREEDY then
+			realm.tax_target = realm.tax_target * 2
+			realm.budget.treasury_target = 400
+		end
 	end
 end
 

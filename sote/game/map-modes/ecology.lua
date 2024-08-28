@@ -19,7 +19,12 @@ end
 function ec.plants()
 	for _, tile_id in pairs(WORLD.tiles) do
 		if DATA.tile_get_is_land(tile_id) then
-			tile.set_real_color(tile_id, tile.shrub, tile.grass, tile.conifer + tile.broadleaf)
+			tile.set_real_color(
+				tile_id,
+				DATA.tile_get_shrub(tile_id),
+				DATA.tile_get_grass(tile_id),
+				DATA.tile_get_conifer(tile_id) + DATA.tile_get_broadleaf(tile_id)
+			)
 		else
 			ut.set_default_color(tile_id)
 		end
@@ -29,8 +34,8 @@ end
 function ec.biomes()
 	for _, tile_id in pairs(WORLD.tiles) do
 		local biome = DATA.tile_get_biome(tile_id)
-		if biome ~= nil then
-			tile.set_real_color(tile_id, biome.r, biome.g, biome.b)
+		if biome then
+			tile.set_real_color(tile_id, DATA.biome[biome].r, DATA.biome[biome].g, DATA.biome[biome].b)
 		else
 			ut.set_default_color(tile_id)
 		end

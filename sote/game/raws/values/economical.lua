@@ -61,64 +61,25 @@ function eco_values.building_cost(building_type, overseer, public)
 end
 
 ---comment
----@param realm Realm
----@param trade_good TradeGoodReference
----@return number price
-function eco_values.get_realm_price(realm, trade_good)
-	local bought = realm.bought[trade_good] or 0
-	local sold = realm.sold[trade_good] or 0
-	local data = good(trade_good)
-	return data.base_price * bought / (sold + 0.25) -- the "plus" is there to prevent division by 0
-end
-
----Calculates a "pessimistic" prise (that is, the price that we'd get if we tried to sell more goods after selling the goods given)
----@param realm Realm
----@param trade_good TradeGoodReference
----@param amount number
----@return number price
-function eco_values.get_pessimistic_realm_price(realm, trade_good, amount)
-	local bought = realm.bought[trade_good] or 0
-	bought = bought + amount
-	local sold = realm.sold[trade_good] or 0
-	local data = good(trade_good)
-
-    -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
-    local pessimistic_price = data.base_price * (bought + 1) / (sold + 1)
-    local optimistic_price = eco_values.get_realm_price(realm, trade_good)
-
-    -- We need to take an average because otherwise selling by one will be far
-    -- more profitable. Which rewards boring micromanagement.
-	return (optimistic_price + pessimistic_price) / 2
-end
-
----comment
 ---@param province Province
----@param trade_good TradeGoodReference
+---@param trade_good trade_good_id
 ---@return number price
 function eco_values.get_local_price(province, trade_good)
-    -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
-    -- local bought = province.local_consumption[trade_good] or 0
-    local data = good(trade_good)
-
-    -- the "plus" is there to prevent division by 0 and smooth prices when supply or demand is far too low
-    -- local price =  data.base_price * (bought + 1) / (sold + 1)
-
     if province.local_prices[trade_good] == nil then
         province.local_prices[trade_good] = 0.0001
     end
     return province.local_prices[trade_good]
 end
 
-
 ---commenting
 ---@param province Province
----@param use TradeGoodUseCase
+---@param use use_case_id
 ---@return number sum_of_exponents
 ---@return number min_price
 local function soft_max_data_for_use(province, use)
     local min_price = nil
-
-    for trade_good, weight in pairs(use.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = eco_values.get_local_price(province, trade_good)
         if min_price == nil then
             min_price = price
@@ -128,7 +89,8 @@ local function soft_max_data_for_use(province, use)
     end
 
     local sum = 0
-    for trade_good, weight in pairs(use.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = eco_values.get_local_price(province, trade_good)
         sum = sum + math.exp(-price + min_price)
     end
@@ -138,18 +100,19 @@ end
 
 ---calculates price estimation of unit of use
 ---@param province Province
----@param use TradeGoodUseCaseReference
+---@param use use_case_id
 ---@return number price
 function eco_values.get_local_price_of_use(province, use)
     -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
     -- local bought = province.local_consumption[trade_good] or 0
-    local data = use_case(use)
 
-    local sum_of_exponents, min_price = soft_max_data_for_use(province, data)
+    local sum_of_exponents, min_price = soft_max_data_for_use(province, use)
 
     -- calculate cost
     local total_cost = 0
-    for trade_good, weight in pairs(data.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
+        local weight = DATA.use_weight_get_weight(weight_id)
         local price = eco_values.get_local_price(province, trade_good)
         local prob_density = math.exp(-price + min_price) / sum_of_exponents
         local bought = 1 / weight * prob_density
@@ -161,25 +124,30 @@ end
 
 ---calculates price estimation of unit of use given a price table
 ---@param province Province
----@param use TradeGoodUseCaseReference
----@param prices table<TradeGoodReference, number>
+---@param use use_case_id
+---@param prices table<trade_good_id, number>
 ---@return number price
 function eco_values.get_local_price_of_use_with_prices(province, use, prices)
-    -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
-    -- local bought = province.local_consumption[trade_good] or 0
-    local data = use_case(use)
-
     -- calculate min of prices:
-    local min_price = prices[tabb.nth(data.goods, 1)]
-    for trade_good, weight in pairs(data.goods) do
-        min_price = math.min(prices[trade_good], min_price)
+    local min_price = nil
+
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
+        local price = prices[trade_good]
+        if min_price == nil then
+            min_price = price
+        else
+            min_price = math.min(prices[trade_good], min_price)
+        end
     end
 
     -- calculate sum of exponents
     local sum_of_exponents = 0
-    for trade_good, weight in pairs(data.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
+        local price = prices[trade_good]
         sum_of_exponents = sum_of_exponents + math.exp(
-            -prices[trade_good] + min_price
+            -price + min_price
         )
     end
 
@@ -187,8 +155,10 @@ function eco_values.get_local_price_of_use_with_prices(province, use, prices)
 
     -- calculate cost
     local total_cost = 0
-    for trade_good, weight in pairs(data.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = prices[trade_good]
+        local weight = DATA.use_weight_get_weight(weight_id)
         local prob_density = math.exp(-price + min_price) / sum_of_exponents
         local bought = 1 / weight * prob_density
         total_cost = total_cost + bought * price
@@ -199,7 +169,7 @@ end
 
 ---comment
 ---@param province Province
----@param trade_good TradeGoodReference
+---@param trade_good trade_good_id
 ---@param amount number
 ---@param stockpile boolean
 ---@return number price
@@ -298,7 +268,7 @@ end
 ---@param building Building
 ---@param race Race
 ---@param female boolean
----@param prices table<TradeGoodReference, number>
+---@param prices table<trade_good_id, number>
 ---@param efficiency number
 ---@return number income, number input_boost, number output_boost, number throughput_boost
 function eco_values.projected_income(building, race, female, prices, efficiency)
@@ -335,17 +305,19 @@ end
 
 ---commenting
 ---@param province Province
----@param use TradeGoodUseCaseReference
+---@param use use_case_id
+---@return number
 function eco_values.available_use(province, use)
-    local data = use_case(use)
-
     -- calculate min of prices:
-    local sum_of_exponents, min_price = soft_max_data_for_use(province, data)
+    local sum_of_exponents, min_price = soft_max_data_for_use(province, use)
 
     -- calculate total amount available for this distribution
     local available_use = 0
     -- use is divided between
-    for trade_good, weight in pairs(data.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
+        local weight = DATA.use_weight_get_weight(weight_id)
+
         local price = eco_values.get_local_price(province, trade_good)
         local ratio_of_good = math.exp(-price + min_price) / sum_of_exponents
         local available = (province.local_production[trade_good] or 0)
@@ -363,14 +335,13 @@ end
 
 ---returns total amount of unit of use in local stockpile
 ---@param province Province
----@param use TradeGoodUseCaseReference
+---@param use use_case_id
 ---@return number total_amount
 function eco_values.get_local_amount_of_use(province, use)
-
-    local data = use_case(use)
-
     local total_amount = 0
-    for trade_good, weight in pairs(data.goods) do
+    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+        local trade_good = DATA.use_weight_get_trade_good(weight_id)
+        local weight = DATA.use_weight_get_weight(weight_id)
         total_amount = total_amount + (province.local_storage[trade_good] or 0) * weight
     end
 

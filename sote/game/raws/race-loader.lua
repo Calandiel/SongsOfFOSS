@@ -1,4 +1,5 @@
-local JOBTYPE = require "game.raws.job_types"
+
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local ll = {}
 
@@ -47,6 +48,26 @@ function ll.load()
 		},
 		female_portrait = {
 			fallback = human_female_portrait
+		},
+		female_needs = {
+			{need = NEED.FOOD, use_case = WATER_USE_CASE, required = 1},
+			{need = NEED.FOOD, use_case = CALORIES_USE_CASE, required = 1}, -- 1000
+			{need = NEED.FOOD, use_case = retrieve_use_case('fruit'), required = 0.5}, --- 500
+			{need = NEED.FOOD, use_case = retrieve_use_case('meat'), required = 0.25}, --- 500
+			{need = NEED.CLOTHING, use_case = retrieve_use_case('clothes'), required = 1},
+			{need = NEED.FURNITURE, use_case = retrieve_use_case('furniture'), required = 1},
+			{need = NEED.HEALTHCARE, use_case = retrieve_use_case('healthcare'), required = 1},
+			{need = NEED.LUXURY, use_case = retrieve_use_case('liquors'), required = 1}
+		},
+		male_needs = {
+			{need = NEED.FOOD, use_case = WATER_USE_CASE, required = 1},
+			{need = NEED.FOOD, use_case = CALORIES_USE_CASE, required = 1}, -- 1000
+			{need = NEED.FOOD, use_case = retrieve_use_case('fruit'), required = 0.5}, --- 500
+			{need = NEED.FOOD, use_case = retrieve_use_case('meat'), required = 0.25}, --- 500
+			{need = NEED.CLOTHING, use_case = retrieve_use_case('clothes'), required = 1},
+			{need = NEED.FURNITURE, use_case = retrieve_use_case('furniture'), required = 1},
+			{need = NEED.HEALTHCARE, use_case = retrieve_use_case('healthcare'), required = 1},
+			{need = NEED.LUXURY, use_case = retrieve_use_case('liquors'), required = 1}
 		},
 		icon = 'barbute.png',
 	}
@@ -105,22 +126,22 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = large_size,
-				['calories'] = large_size,		-- 1250 kcal
-				['cambium'] = 0.5,			--  750 kcal
+				[WATER_USE_CASE] = large_size,
+				[CALORIES_USE_CASE] = large_size,		-- 1250 kcal
+				[retrieve_use_case('cambium')] = 0.5,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = large_size * 0.5 -- beavers have really nice fur
+				[retrieve_use_case('clothes')] = large_size * 0.5 -- beavers have really nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = large_size
+				[retrieve_use_case('furniture')] = large_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = large_size,
+				[retrieve_use_case('healthcare')] = large_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = large_size,
-			},
+				[retrieve_use_case('liquors')] = large_size,
+			}
 		},
 		female_infrastructure_needs = large_size,
 		male_body_size = largest_size,
@@ -136,22 +157,22 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = largest_size,
-				['calories'] = largest_size,	-- 1500 kcal
-				['cambium'] = 0.5,				-- 1000 kcal
+				[WATER_USE_CASE] = largest_size,
+				[CALORIES_USE_CASE] = largest_size,	-- 1500 kcal
+				[retrieve_use_case('cambium')] = 0.5,				-- 1000 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = largest_size * 0.5 -- beavers have really nice fur
+				[retrieve_use_case('clothes')] = largest_size * 0.5 -- beavers have really nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = largest_size
+				[retrieve_use_case('furniture')] = largest_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = largest_size,
+				[retrieve_use_case('healthcare')] = largest_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = largest_size,
-			},
+				[retrieve_use_case('liquors')] = largest_size,
+			}
 		},
 		male_infrastructure_needs = largest_size,
 		carrying_capacity_weight = largest_size,
@@ -202,22 +223,23 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = largest_size,
-				['calories'] = largest_size,	-- 1500 kcal
-				['meat'] = 0.5,					-- 1000 kcal
+				[WATER_USE_CASE] = largest_size,
+				[CALORIES_USE_CASE] = largest_size,	-- 1500 kcal
+				[retrieve_use_case('meat')] = 0.5,					-- 1000 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = largest_size * 0.5, -- gnolls have nice fur
+				[retrieve_use_case('clothes')] = largest_size * 0.5, -- gnolls have nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = largest_size
+				[retrieve_use_case('furniture')] = largest_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = largest_size,
+				[retrieve_use_case('healthcare')] = largest_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = largest_size,
-			}
+				[retrieve_use_case('liquors')] = largest_size,
+			},
+
 		},
 		female_infrastructure_needs = large_size,
 		male_body_size = large_size,
@@ -233,22 +255,23 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = large_size,
-				['calories'] = large_size,		-- 1250 kcal
-				['meat'] = 0.5,					--  750 kcal
+				[WATER_USE_CASE] = large_size,
+				[CALORIES_USE_CASE] = large_size,		-- 1250 kcal
+				[retrieve_use_case('meat')] = 0.5,					--  750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = large_size * 0.5, -- gnolls have nice fur
+				[retrieve_use_case('clothes')] = large_size * 0.5, -- gnolls have nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = large_size
+				[retrieve_use_case('furniture')] = large_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = large_size,
+				[retrieve_use_case('healthcare')] = large_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = large_size,
-			}
+				[retrieve_use_case('liquors')] = large_size,
+			},
+
 		},
 		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = largest_size
@@ -300,21 +323,22 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = largest_size,
-				['calories'] = 2.5,		-- 2500 kcal
+				[WATER_USE_CASE] = largest_size,
+				[CALORIES_USE_CASE] = 2.5,		-- 2500 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = large_size
+				[retrieve_use_case('clothes')] = large_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = large_size
+				[retrieve_use_case('furniture')] = large_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = large_size,
+				[retrieve_use_case('healthcare')] = large_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = large_size,
+				[retrieve_use_case('liquors')] = large_size,
 			},
+
 		},
 		female_infrastructure_needs = medium_size,
 		male_body_size = large_size,
@@ -330,21 +354,22 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = largest_size,
-				['calories'] = 2.5,		-- 2500 kcal
+				[WATER_USE_CASE] = largest_size,
+				[CALORIES_USE_CASE] = 2.5,		-- 2500 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = large_size
+				[retrieve_use_case('clothes')] = large_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = large_size
+				[retrieve_use_case('furniture')] = large_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = large_size,
+				[retrieve_use_case('healthcare')] = large_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = large_size,
+				[retrieve_use_case('liquors')] = large_size,
 			},
+
 		},
 		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = large_size,
@@ -408,23 +433,24 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = medium_size * 0.75,
-				['calories'] = dwarf_size,		--  750 kcal
-				['fruit'] = 0.45,				--  450 kcal
-				['meat'] = 0.4,					--  800 kcal
+				[WATER_USE_CASE] = medium_size * 0.75,
+				[CALORIES_USE_CASE] = dwarf_size,		--  750 kcal
+				[retrieve_use_case('fruit')] = 0.45,				--  450 kcal
+				[retrieve_use_case('meat')] = 0.4,					--  800 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = medium_size
+				[retrieve_use_case('clothes')] = medium_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = medium_size
+				[retrieve_use_case('furniture')] = medium_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = medium_size,
+				[retrieve_use_case('healthcare')] = medium_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = medium_size,
+				[retrieve_use_case('liquors')] = medium_size,
 			},
+
 		},
 		female_infrastructure_needs = large_size,
 		male_body_size = medium_size,
@@ -440,23 +466,24 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = medium_size * 0.75,
-				['calories'] = dwarf_size,		--  750 kcal
-				['fruit'] = 0.45,				--  450 kcal
-				['meat'] = 0.4,					--  800 kcal
+				[WATER_USE_CASE] = medium_size * 0.75,
+				[CALORIES_USE_CASE] = dwarf_size,		--  750 kcal
+				[retrieve_use_case('fruit')] = 0.45,				--  450 kcal
+				[retrieve_use_case('meat')] = 0.4,					--  800 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = medium_size
+				[retrieve_use_case('clothes')] = medium_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = medium_size
+				[retrieve_use_case('furniture')] = medium_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = medium_size,
+				[retrieve_use_case('healthcare')] = medium_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = medium_size,
+				[retrieve_use_case('liquors')] = medium_size,
 			},
+
 		},
 		male_infrastructure_needs = large_size,
 		carrying_capacity_weight = medium_size,
@@ -508,23 +535,24 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = dwarf_size,
-				['calories'] = medium_size,	-- 1000 kcal
-				['fruit'] = 0.375,			--  375 kcal
-				['meat'] = 0.375,			--  750 kcal
+				[WATER_USE_CASE] = dwarf_size,
+				[CALORIES_USE_CASE] = medium_size,	-- 1000 kcal
+				[retrieve_use_case('fruit')] = 0.375,			--  375 kcal
+				[retrieve_use_case('meat')] = 0.375,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = dwarf_size
+				[retrieve_use_case('clothes')] = dwarf_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = dwarf_size
+				[retrieve_use_case('furniture')] = dwarf_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = dwarf_size,
+				[retrieve_use_case('healthcare')] = dwarf_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = large_size, -- a short, sturdy creature fond of drink and industry
+				[retrieve_use_case('liquors')] = large_size, -- a short, sturdy creature fond of drink and industry
 			},
+
 		},
 		female_infrastructure_needs = large_size,
 		male_body_size = dwarf_size,
@@ -540,23 +568,24 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = dwarf_size,
-				['calories'] = medium_size,	-- 1000 kcal
-				['fruit'] = 0.375,			--  375 kcal
-				['meat'] = 0.375,			--  750 kcal
+				[WATER_USE_CASE] = dwarf_size,
+				[CALORIES_USE_CASE] = medium_size,	-- 1000 kcal
+				[retrieve_use_case('fruit')] = 0.375,			--  375 kcal
+				[retrieve_use_case('meat')] = 0.375,			--  750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = dwarf_size
+				[retrieve_use_case('clothes')] = dwarf_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = dwarf_size
+				[retrieve_use_case('furniture')] = dwarf_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = dwarf_size,
+				[retrieve_use_case('healthcare')] = dwarf_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = large_size, -- a short, sturdy creature fond of drink and industry
+				[retrieve_use_case('liquors')] = large_size, -- a short, sturdy creature fond of drink and industry
 			},
+
 		},
 		male_infrastructure_needs = large_size,
 		carrying_capacity_weight = large_size,
@@ -609,23 +638,24 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = small_size,
-				['calories'] = small_size,	-- 500 kcal
-				['meat'] = 0.125,			-- 250 kcal
-				['fruit'] = 0.125,			-- 125 kcal
+				[WATER_USE_CASE] = small_size,
+				[CALORIES_USE_CASE] = small_size,	-- 500 kcal
+				[retrieve_use_case('meat')] = 0.125,			-- 250 kcal
+				[retrieve_use_case('fruit')] = 0.125,			-- 125 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = small_size
+				[retrieve_use_case('clothes')] = small_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = small_size
+				[retrieve_use_case('furniture')] = small_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = small_size,
+				[retrieve_use_case('healthcare')] = small_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = small_size,
+				[retrieve_use_case('liquors')] = small_size,
 			},
+
 		},
 		female_infrastructure_needs = small_size,
 		male_body_size = small_size,
@@ -641,23 +671,24 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = small_size,
-				['calories'] = small_size,	-- 500 kcal
-				['meat'] = 0.125,			-- 250 kcal
-				['fruit'] = 0.125,			-- 125 kcal
+				[WATER_USE_CASE] = small_size,
+				[CALORIES_USE_CASE] = small_size,	-- 500 kcal
+				[retrieve_use_case('meat')] = 0.125,			-- 250 kcal
+				[retrieve_use_case('fruit')] = 0.125,			-- 125 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = small_size
+				[retrieve_use_case('clothes')] = small_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = small_size
+				[retrieve_use_case('furniture')] = small_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = small_size,
+				[retrieve_use_case('healthcare')] = small_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = small_size,
+				[retrieve_use_case('liquors')] = small_size,
 			},
+
 		},
 		male_infrastructure_needs = small_size,
 		carrying_capacity_weight = small_size,
@@ -709,22 +740,23 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {
-				['water'] = small_size,
-				['calories'] = dwarf_size,	--  750 kcal
-				['fruit'] = 0.25,			--  250 kcal
+				[WATER_USE_CASE] = small_size,
+				[CALORIES_USE_CASE] = dwarf_size,	--  750 kcal
+				[retrieve_use_case('fruit')] = 0.25,			--  250 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = small_size * 0.5 -- vermen have nice fur
+				[retrieve_use_case('clothes')] = small_size * 0.5 -- vermen have nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = small_size
+				[retrieve_use_case('furniture')] = small_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = small_size,
+				[retrieve_use_case('healthcare')] = small_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = small_size,
+				[retrieve_use_case('liquors')] = small_size,
 			},
+
 		},
 		female_infrastructure_needs = small_size,
 		male_body_size = small_size,
@@ -740,22 +772,23 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {
-				['water'] = small_size,
-				['calories'] = dwarf_size,	--  750 kcal
-				['fruit'] = 0.25,			--  250 kcal
+				[WATER_USE_CASE] = small_size,
+				[CALORIES_USE_CASE] = dwarf_size,	--  750 kcal
+				[retrieve_use_case('fruit')] = 0.25,			--  250 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = small_size * 0.5 -- vermen have nice fur
+				[retrieve_use_case('clothes')] = small_size * 0.5 -- vermen have nice fur
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = small_size
+				[retrieve_use_case('furniture')] = small_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = small_size,
+				[retrieve_use_case('healthcare')] = small_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = small_size,
+				[retrieve_use_case('liquors')] = small_size,
 			},
+
 		},
 		male_infrastructure_needs = small_size,
 		carrying_capacity_weight = small_size,
@@ -817,23 +850,24 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {					-- ~1500 kcal
-				['water'] =  medium_size * 0.5,
-				['calories'] = medium_size,	--  1000 kcal
-				['fruit'] = 0.15,			--   150 kcal
-				['meat'] = 0.175,			--   350 kcal
+				[WATER_USE_CASE] =  medium_size * 0.5,
+				[CALORIES_USE_CASE] = medium_size,	--  1000 kcal
+				[retrieve_use_case('fruit')] = 0.15,			--   150 kcal
+				[retrieve_use_case('meat')] = 0.175,			--   350 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = medium_size * 0.5 -- harpies have pretty feathers
+				[retrieve_use_case('clothes')] = medium_size * 0.5 -- harpies have pretty feathers
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = medium_size
+				[retrieve_use_case('furniture')] = medium_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = medium_size,
+				[retrieve_use_case('healthcare')] = medium_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = medium_size,
+				[retrieve_use_case('liquors')] = medium_size,
 			},
+
 		},
 		female_infrastructure_needs = large_size,
 		male_body_size = dwarf_size,
@@ -849,23 +883,24 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {					-- ~1250 kcal
-				['water'] = dwarf_size * 0.5,
-				['calories'] = dwarf_size,	--   750 kcal
-				['fruit'] = 0.15,			--   150 kcal
-				['meat'] = 0.175,			--   350 kcal
+				[WATER_USE_CASE] = dwarf_size * 0.5,
+				[CALORIES_USE_CASE] = dwarf_size,	--   750 kcal
+				[retrieve_use_case('fruit')] = 0.15,			--   150 kcal
+				[retrieve_use_case('meat')] = 0.175,			--   350 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = dwarf_size * 0.5 -- harpies have nice feathers
+				[retrieve_use_case('clothes')] = dwarf_size * 0.5 -- harpies have nice feathers
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = dwarf_size
+				[retrieve_use_case('furniture')] = dwarf_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = dwarf_size,
+				[retrieve_use_case('healthcare')] = dwarf_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = dwarf_size,
+				[retrieve_use_case('liquors')] = dwarf_size,
 			},
+
 		},
 		male_infrastructure_needs = medium_size,
 		carrying_capacity_weight = dwarf_size,
@@ -916,22 +951,23 @@ function ll.load()
 		},
 		female_needs = {
 			[NEED.FOOD] = {					-- ~1250 kcal
-				['water'] = medium_size,
-				['calories'] = dwarf_size,	--   750 kcal
-				['meat'] = 0.25,			--   500 kcal
+				[WATER_USE_CASE] = medium_size,
+				[CALORIES_USE_CASE] = dwarf_size,	--   750 kcal
+				[retrieve_use_case('meat')] = 0.25,			--   500 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = small_size
+				[retrieve_use_case('clothes')] = small_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = small_size
+				[retrieve_use_case('furniture')] = small_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = small_size,
+				[retrieve_use_case('healthcare')] = small_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = small_size,
+				[retrieve_use_case('liquors')] = small_size,
 			},
+
 		},
 		female_infrastructure_needs = small_size,
 		male_body_size = dwarf_size,
@@ -947,22 +983,23 @@ function ll.load()
 		},
 		male_needs = {
 			[NEED.FOOD] = {					-- ~1500 kcal
-				['water'] = medium_size,
-				['calories'] = dwarf_size,	--   750 kcal
-				['meat'] = 0.375,			--   750 kcal
+				[WATER_USE_CASE] = medium_size,
+				[CALORIES_USE_CASE] = dwarf_size,	--   750 kcal
+				[retrieve_use_case('meat')] = 0.375,			--   750 kcal
 			},
 			[NEED.CLOTHING] = {
-				['clothes'] = dwarf_size
+				[retrieve_use_case('clothes')] = dwarf_size
 			},
 			[NEED.FURNITURE] = {
-				['furniture'] = dwarf_size
+				[retrieve_use_case('furniture')] = dwarf_size
 			},
 			[NEED.HEALTHCARE] = {
-				['healthcare'] = dwarf_size,
+				[retrieve_use_case('healthcare')] = dwarf_size,
 			},
 			[NEED.LUXURY] = {
-				['liquors'] = dwarf_size,
+				[retrieve_use_case('liquors')] = dwarf_size,
 			},
+
 		},
 		male_infrastructure_needs = dwarf_size,
 		carrying_capacity_weight = dwarf_size,
@@ -1031,7 +1068,6 @@ function ll.load()
 	-- 		-- [NEED.MEAT] = 0.25,
 	-- 		[NEED.CLOTHING] = 0.25,
 	-- 		[NEED.FURNITURE] = 0.25,
-	-- 		[NEED.TOOLS] = 0.125 * 0.5,
 	-- 		[NEED.HEALTHCARE] = 0.125,
 	-- 		[NEED.STORAGE] = 0.125,
 	-- 		[NEED.LUXURY] = 1

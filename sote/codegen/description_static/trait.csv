@@ -1,0 +1,11 @@
+name;short_description;full_description;icon
+AMBITIOUS;ambitious;TODO;mountaintop.png
+CONTENT;content;This person has no ambitions: it would be hard to persuade them to change occupation;inner-self.png
+LOYAL;loyal;This person rarely betrays people;check-mark.png
+GREEDY;greedy;Desire for money drives this person's actions;receive-money.png
+WARLIKE;warlike;TODO;barbute.png
+BAD_ORGANISER;bad organiser;TODO;shrug.png
+GOOD_ORGANISER;good organiser;TODO;pitchfork.png
+LAZY;lazy;This person prefers to do nothing;parmecia.png
+HARDWORKER;hard worker;TODO;miner.png
+TRADER;trader;TODO;scales.png

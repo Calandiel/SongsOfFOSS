@@ -91,16 +91,17 @@ return function ()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			for name, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-				local price = economic_values.get_local_price(root.province, name)
-				if root.price_memory[name] == nil then
-					root.price_memory[name] = price
+			local function update_belief(trade_good)
+				local price = economic_values.get_local_price(root.province, trade_good)
+				if root.price_memory[trade_good] == nil then
+					root.price_memory[trade_good] = price
 				else
 					if WORLD.player_character ~= root then
-						root.price_memory[name] = root.price_memory[name] * (3 / 4) + price * (1 / 4)
+						root.price_memory[trade_good] = root.price_memory[trade_good] * (3 / 4) + price * (1 / 4)
 					end
 				end
 			end
+			DATA.for_each_trade_good(update_belief)
 		end
 	}
 

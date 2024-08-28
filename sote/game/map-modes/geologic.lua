@@ -32,7 +32,9 @@ function geo.rocks()
 	for _, tile_id in pairs(WORLD.tiles) do
 		local local_bedrock = DATA.tile_get_bedrock(tile_id)
 		if local_bedrock then
-			local r, g, b = local_bedrock.r, local_bedrock.g, local_bedrock.b
+			local r = DATA.bedrock[local_bedrock].r
+			local g = DATA.bedrock[local_bedrock].g
+			local b = DATA.bedrock[local_bedrock].b
 			tile.set_real_color(tile_id, r, g, b)
 		else
 			tile.set_real_color(tile_id, 0.1, 0.1, 0.1)

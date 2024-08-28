@@ -159,6 +159,34 @@ function tab.filter(items, filter)
 	return r
 end
 
+---Given a array and a function with parameter of table value type that resolves to a boolean,
+---return a new table with all values that resolve to true
+---@generic V
+---@param items V[]
+---@param filter fun(a: V):boolean
+---@return V[]
+function tab.filter_array(items, filter)
+	local r = {}
+	for k, v in pairs(items) do
+		if filter(v) then
+			table.insert(r, v)
+		end
+	end
+	return r
+end
+
+---@generic V, K
+---@param items V[]
+---@param mapping fun(a: V):K
+---@return K[]
+function tab.map_array(items, mapping)
+	local r = {}
+	for k, v in pairs(items) do
+		table.insert(r, mapping(v))
+	end
+	return r
+end
+
 ---Given a table; an accumulable of any type; and an accumulator function with parameter the accumulable type,
 ---and the table's key and value types and returns an accumulable type, apply the function on each key value pair
 ---and return the accumulable.

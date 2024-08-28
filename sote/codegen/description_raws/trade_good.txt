@@ -1,0 +1,8 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+category TradeGoodCategory
+base_price float

@@ -6,6 +6,7 @@ local Decision = require "game.raws.decisions"
 local TRAIT = require "game.raws.traits.generic"
 local RANK = require "game.raws.ranks.character_ranks"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local character_values = require "game.raws.values.character"
 local military_values = require "game.raws.values.military"
@@ -372,7 +373,7 @@ local function load()
 				end
 			end
 
-			if not economy_triggers.can_buy_use(root.province, root.savings, 'calories', 1) then
+			if not economy_triggers.can_buy_use(root.province, root.savings, CALORIES_USE_CASE, 1) then
 				return false
 			end
 
@@ -399,7 +400,7 @@ local function load()
 			return 1
 		end,
 		effect = function(root, primary_target, secondary_target)
-			economy_effects.character_buy_use(root, 'calories', 1)
+			economy_effects.character_buy_use(root, CALORIES_USE_CASE, 1)
 			root.leading_warband.idle_stance = "forage"
 		end
 	}

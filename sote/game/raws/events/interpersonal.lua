@@ -5,6 +5,8 @@ local TRAIT = require "game.raws.traits.generic"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 local uit = require "game.ui-utils"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
 
 return function ()
     Event:new {
@@ -216,12 +218,12 @@ return function ()
 					tooltip = "Allow " .. associated_data.leader.name .. "to colonize " .. associated_data.target_province.name .. ".",
 					viable = function() return true end,
 					outcome = function()
-						local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(associated_data.leader.inventory, 'calories')
+						local character_calories_in_inventory = economic_effects.available_use_case_from_inventory(associated_data.leader.inventory, CALORIES_USE_CASE)
 						local remaining_calories_needed = math.max(0, associated_data.travel_cost - character_calories_in_inventory)
 						-- buy remaining calories from market
-						economic_effects.character_buy_use(associated_data.leader, 'calories', remaining_calories_needed)
+						economic_effects.character_buy_use(associated_data.leader, CALORIES_USE_CASE, remaining_calories_needed)
 						-- consume food from character inventory
-						economic_effects.consume_use_case_from_inventory(associated_data.leader.inventory, 'calories', associated_data.travel_cost)
+						economic_effects.consume_use_case_from_inventory(associated_data.leader.inventory, CALORIES_USE_CASE, associated_data.travel_cost)
 						-- give out payment to expedition
 						economic_effects.add_pop_savings(associated_data.leader, -associated_data.pop_payment, economic_effects.reasons.Colonisation)
 						WORLD:emit_immediate_action('migration-colonize', associated_data.leader, associated_data)

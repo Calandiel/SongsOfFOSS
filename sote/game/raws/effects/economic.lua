@@ -98,13 +98,14 @@ function EconomicEffects.register_spendings(realm, x, reason)
 end
 
 ---Change pop savings and display effects to player
----@param pop POP
+---@param pop pop_id
 ---@param x number
 ---@param reason EconomicReason
 function EconomicEffects.add_pop_savings(pop, x, reason)
-	pop.savings = pop.savings + x
+	local savings = DATA.pop_get_savings(pop)
+	DATA.pop_set_savings(pop, savings + x)
 
-	if pop.savings ~= pop.savings then
+	if DATA.pop_get_savings(pop) ~= DATA.pop_get_savings(pop) then
 		error("BAD POP SAVINGS INCREASE: " .. tostring(x) .. " " .. reason)
 	end
 
@@ -334,7 +335,7 @@ end
 
 ---comment
 ---@param province Province
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param x number
 function EconomicEffects.change_local_price(province, good, x)
 	province.local_prices[good] = math.max(0.001, (province.local_prices[good] or 0) + x)
@@ -350,7 +351,7 @@ end
 
 ---comment
 ---@param province Province
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param x number
 function EconomicEffects.change_local_stockpile(province, good, x)
 	if x < 0 and province.local_storage[good] + 0.01 < -x then
@@ -376,14 +377,14 @@ end
 
 ---comment
 ---@param province Province
----@param good TradeGoodReference
+---@param good trade_good_id
 function EconomicEffects.decay_local_stockpile(province, good)
 	province.local_storage[good] = (province.local_storage[good] or 0) * 0.85
 end
 
 ---comment
 ---@param character Character
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param amount number
 function EconomicEffects.buy(character, good, amount)
 	local can_buy, _ = et.can_buy(character, good, amount)
@@ -436,12 +437,13 @@ function EconomicEffects.buy(character, good, amount)
 end
 
 ---Returns available units for satisfying a use case from pop inventory or realm resources
----@param inventory table<TradeGoodReference, number?>
----@param use_case TradeGoodUseCaseReference
+---@param inventory table<trade_good_id, number?>
+---@param use_case use_case_id
 ---@return number
 function EconomicEffects.available_use_case_from_inventory(inventory, use_case)
-	local use = trade_good_use_case(use_case)
-	local supply = tabb.accumulate(use.goods, 0, function(a, good, weight)
+	local supply = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
+		local good = DATA.use_weight_get_trade_good(weight_id)
+		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_in_inventory = inventory[good] or 0
 		if good_in_inventory > 0 then
 			a = a + good_in_inventory * weight
@@ -453,12 +455,11 @@ end
 
 --- Consumes up to amount of use case from inventory in equal parts to available.
 --- Returns total amount able to be satisfied.
----@param inventory table<TradeGoodReference, number?>
----@param use_case TradeGoodUseCaseReference
+---@param inventory table<trade_good_id, number?>
+---@param use_case use_case_id
 ---@param amount number
 ---@return number consumed
 function EconomicEffects.consume_use_case_from_inventory(inventory, use_case, amount)
-	local use = trade_good_use_case(use_case)
 	local supply = EconomicEffects.available_use_case_from_inventory(inventory, use_case)
 	if supply < amount then
 		error("NOT ENOUGH IN INVENTORY: "
@@ -467,7 +468,9 @@ function EconomicEffects.consume_use_case_from_inventory(inventory, use_case, am
 			.. "\n amount = "
 			.. tostring(amount))
 	end
-	local consumed = tabb.accumulate(use.goods, 0, function(a, good, weight)
+	local consumed = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
+		local good = DATA.use_weight_get_trade_good(weight_id)
+		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_in_inventory = inventory[good] or 0
 		if good_in_inventory > 0 then
 			local available = good_in_inventory * weight
@@ -512,15 +515,13 @@ end
 
 ---comment
 ---@param character Character
----@param use TradeGoodReference
+---@param use use_case_id
 ---@param amount number
 function EconomicEffects.character_buy_use(character, use, amount)
 	local can_buy, _ = et.can_buy_use(character.province, character.savings, use, amount)
 	if not can_buy then
 		return false
 	end
-
-	local use_case = require "game.raws.raws-utils".trade_good_use_case(use)
 
 	-- can_buy validates province
 	---@type Province
@@ -545,8 +546,11 @@ function EconomicEffects.character_buy_use(character, use, amount)
 	local total_bought = 0
 	local spendings = 0
 
+	---@type {good: trade_good_id, weight: number, price: number, available: number}[]
 	local goods = {}
-	for good, weight in pairs(use_case.goods) do
+	for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+		local good = DATA.use_weight_get_trade_good(weight_id)
+		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_price = ev.get_local_price(province, good)
 		if character.price_memory[good] == nil then
 			character.price_memory[good] = good_price
@@ -638,7 +642,7 @@ end
 
 ---comment
 ---@param realm Realm
----@param use TradeGoodReference
+---@param use trade_good_id
 ---@param amount number
 function EconomicEffects.realm_buy_use(realm, use, amount)
 	local can_buy, _ = et.can_buy_use(realm.capitol, realm.budget.treasury, use, amount)
@@ -671,8 +675,11 @@ function EconomicEffects.realm_buy_use(realm, use, amount)
 	local total_bought = 0
 	local spendings = 0
 
+	---@type {good: trade_good_id, weight: number, price: number, available: number}[]
 	local goods = {}
-	for good, weight in pairs(use_case.goods) do
+	for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+		local good = DATA.use_weight_get_trade_good(weight_id)
+		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_price = ev.get_local_price(province, good)
 		local goods_available = province.local_storage[good] or 0
 		if goods_available > 0 then
@@ -757,7 +764,7 @@ end
 
 ---comment
 ---@param character Character
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param amount number
 function EconomicEffects.sell(character, good, amount)
 	local can_sell, _ = et.can_sell(character, good, amount)

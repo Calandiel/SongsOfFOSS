@@ -72,7 +72,7 @@ end
 
 ---performs a check if character can buy amount of goods locally
 ---@param character Character
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
 function triggers.can_buy(character, good, amount)
@@ -116,7 +116,7 @@ end
 ---performs a check if character can buy amount of goods locally
 ---@param province Province
 ---@param savings number
----@param use TradeGoodReference
+---@param use use_case_id
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
 function triggers.can_buy_use(province, savings, use, amount)
@@ -153,7 +153,7 @@ end
 
 ---performs a check if character can sell amount of goods locally
 ---@param character Character
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
 function triggers.can_sell(character, good, amount)

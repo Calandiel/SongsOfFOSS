@@ -229,8 +229,8 @@ function gam.on_tile_click()
 			local cla, clo = utt.latitude(y), utt.longitude(x)
 			print(cla, clo)
 
-			if clicked_tile.biome ~= nil then
-				print("Biome:", clicked_tile.biome.name)
+			if clicked_tile.biome then
+				print("Biome:", DATA.biome_get_name(clicked_tile.biome))
 			else
 				print("Biome:", nil)
 			end

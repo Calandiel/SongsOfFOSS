@@ -17,8 +17,9 @@ local offices_triggers = require "game.raws.triggers.offices"
 local function load()
 	Event:new {
 		name = "succession-death",
-		automatic = false,
 		hidden = true,
+		event_background_path = "data/gfx/backgrounds/background.png",
+		automatic = false,
 		base_probability = 0,
 		on_trigger = function(self, character, associated_data)
 			local successor = character.successor
@@ -128,7 +129,7 @@ local function load()
 							--failing all else, grab random pop and make noble
 							if not successor then
 								successor = tabb.random_select_from_set(capitol.all_pops)
-						
+
 								if successor then
 									pe.grant_nobility(successor, capitol, pe.reasons.InitialNoble)
 								end

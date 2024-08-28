@@ -6,7 +6,7 @@ local economic_effects = require "game.raws.effects.economic"
 ---@field target Realm
 ---@field travel_time number
 ---@field tribute number
----@field trade_goods_tribute table<TradeGoodReference, number?>
+---@field trade_goods_tribute table<trade_good_id, number?>
 
 return function()
 	Event:new {

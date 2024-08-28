@@ -6,8 +6,8 @@
 ---@field r number
 ---@field g number
 ---@field b number
----@field required_biome table<number, Biome>
----@field required_bedrock table<number, Bedrock>
+---@field required_biome table<number, biome_id>
+---@field required_bedrock table<number, bedrock_id>
 ---@field base_frequency number number of tiles per which this resource is spawned
 ---@field coastal boolean
 ---@field land boolean

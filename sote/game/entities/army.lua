@@ -1,3 +1,9 @@
+local pop_utils = require "game.entities.pop".POP
+
+---@class (exact) ArmyData
+---@field destination Province|nil
+---@field warbands table<Warband, Warband>
+
 ---@class (exact) Army
 ---@field __index Army
 ---@field destination Province|nil
@@ -12,9 +18,12 @@ army.__index = army
 
 ---@return Army
 function army:new()
-	local o = {}
-	o.destination = nil
-	o.warbands = {}
+	---@type ArmyData
+	local o = {
+		destination = nil,
+		warbands = {}
+	}
+
 	setmetatable(o, army)
 	return o
 end
@@ -23,7 +32,7 @@ end
 function army:get_visibility()
 	local vis = 0
 	for pop, unit in pairs(self:units()) do
-		vis = vis + pop.race.visibility * unit.visibility
+		vis = vis + pop_utils.pop_get_visibility(pop, unit)
 	end
 	return vis
 end
@@ -45,8 +54,9 @@ function army:decimate()
 end
 
 ---Returns the units in the army
----@return table<POP, UnitType>
+---@return table<pop_id, UnitType>
 function army:units()
+	---@type table<pop_id, UnitType>
 	local res = {}
 	for _, warband in pairs(self.warbands) do
 		for pop, unit in pairs(warband.units) do
@@ -58,13 +68,13 @@ function army:units()
 end
 
 ---Returns pops in the army
----@return table<POP, Province>
+---@return table<pop_id, Province>
 function army:pops()
-	---@type table<POP, Province>
+	---@type table<pop_id, Province>
 	local res = {}
 	for _, warband in pairs(self.warbands) do
 		for _, pop in pairs(warband.pops) do
-			res[pop] = pop.home_province
+			res[pop] = DATA.pop_get_home_province(pop)
 		end
 	end
 	return res

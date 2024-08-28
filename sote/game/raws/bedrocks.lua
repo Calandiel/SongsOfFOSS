@@ -1,23 +1,13 @@
----@class (exact) Bedrock
----@field name string
----@field r number
----@field g number
----@field b number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
-
 local col = require "game.color"
+
+local bedrock_index = 1
 
 local Bedrock = {}
 Bedrock.__index = Bedrock
----@param o Bedrock
----@return Bedrock
+---@param o bedrock_id_data_blob
+---@return bedrock_id
 function Bedrock:new(o)
-	local r = {}
+	local r = DATA.fatten_bedrock(bedrock_index)
 	r.name = "bedrock"
 	r.r = 0
 	r.g = 0
@@ -40,21 +30,27 @@ function Bedrock:new(o)
 	r.oceanic = false
 	r.sedimentary_ocean_deep = false
 	r.sedimentary_ocean_shallow = false
+
 	for k, v in pairs(o) do
 		r[k] = v
 	end
-	setmetatable(r, Bedrock)
 
-	local id = col.rgb_to_id(r.r, r.g, r.b)
-	if RAWS_MANAGER.bedrocks_by_name[r.name] ~= nil or RAWS_MANAGER.bedrocks_by_color[id] ~= nil then
+	-- print(r.g, r.g, r.b)
+	r.color_id = col.rgb_to_id(r.r, r.g, r.b)
+	print(r.name, r.color_id)
+	-- print(r.color_id)
+
+	if RAWS_MANAGER.bedrocks_by_name[r.name] ~= nil or RAWS_MANAGER.bedrocks_by_color_id[r.color_id] ~= nil then
 		local msg = "Failed to load a bedrock (" .. tostring(r.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	RAWS_MANAGER.bedrocks_by_name[r.name] = r
-	RAWS_MANAGER.bedrocks_by_color[id] = r
+	RAWS_MANAGER.bedrocks_by_name[r.name] = r.id
+	RAWS_MANAGER.bedrocks_by_color_id[r.color_id] = r.id
 
-	return r
+	bedrock_index = bedrock_index + 1
+
+	return r.id
 end
 
 return Bedrock

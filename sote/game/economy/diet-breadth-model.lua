@@ -1,7 +1,7 @@
 local tabb = require "engine.table"
 local tile = require "game.entities.tile"
 
-local JOBTYPE = require "game.raws.job_types"
+local retrieve_good = require "game.raws.raws-utils".trade_good
 
 local dbm = {}
 
@@ -53,7 +53,7 @@ function dbm.culture_target_tooltip(culture)
 		end)
 end
 
----@param race Race
+---@param race race_id
 ---@param jobtype JOBTYPE
 ---@return number efficiency scalar multiplier
 function dbm.mean_race_job_efficiency(race, jobtype)
@@ -80,6 +80,7 @@ end
 function dbm.total_production(tile_id)
 	local  _, warmest, _, coldest = tile.get_climate_data(tile_id)
 	if coldest > warmest then
+		---@type number, number
 		warmest, coldest = coldest, warmest
 	end
 
@@ -112,7 +113,7 @@ function dbm.total_production(tile_id)
 end
 
 ---calculate the net primary production (NPP) of a tile, sums to CC
----@param tile tile_id
+---@param tile_id tile_id
 ---@return number net_production
 ---@return number fruit
 ---@return number seeds
@@ -128,6 +129,7 @@ function dbm.net_foraging_production(tile_id)
 	if primary_production > 0 then
 		-- determine animal energy from eating folliage and reduce from plant output
 		game = 0.125 * (primary_production + wood)
+		---@type number
 		primary_production = primary_production * 0.875
 		wood = wood * 0.875
 
@@ -184,7 +186,7 @@ end
 --- Returns individual potential amount of foragable good targets
 --- from each tile's net primary production (NPP), effective temperature,
 --- and flora spread
----@param province Province
+---@param province province_id
 ---@return {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 function dbm.total_foraging_amounts(province)
 	local accumulate = {net_pp=0 ,fruit=0, seeds=0, wood=0, shell=0, fish=0, game=0, fungi=0}
@@ -192,58 +194,57 @@ function dbm.total_foraging_amounts(province)
 	return accumulate
 end
 
----@param province Province
+---@param province province_id
 ---@param amounts {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 ---Calculate and set a province's forager limit (CC) and foraging targets
 function dbm.set_foraging_targets(province, amounts)
-	local JOBTYPE = require "game.raws.job_types"
-	---@type {resource: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}[]
+	---@type {resource: string, output: table<trade_good_id, number>, amount: number, handle: JOBTYPE}[]
 	local products = {}
 	products[dbm.ForageResource.Water] = {
 		icon = "droplets.png",
-		output = { ['water'] = 2 },
+		output = { [retrieve_good('water')] = 2 },
 		amount = province.hydration,
 		handle = JOBTYPE.HAULING,
 	}
 	products[dbm.ForageResource.Fruit] = {
 		icon = "berries-bowl.png",
-		output = { ['berries'] = 1.6 },
+		output = { [retrieve_good('berries')] = 1.6 },
 		amount = amounts.fruit,
 		handle = JOBTYPE.FORAGER,
 	}
 	products[dbm.ForageResource.Grain] = {
 		icon = "wheat.png",
-		output = { ['grain'] = 2 },
+		output = { [retrieve_good('grain')] = 2 },
 		amount = amounts.seeds,
 		handle = JOBTYPE.FARMER,
 	}
 	products[dbm.ForageResource.Wood] = {
 		icon = "pine-tree.png",
-		output = { ['bark'] = 1.25, ['timber'] = 0.25 },
+		output = { [retrieve_good('bark')] = 1.25, [retrieve_good('timber')] = 0.25 },
 		amount = amounts.wood,
 		handle = JOBTYPE.ARTISAN,
 	}
 	products[dbm.ForageResource.Game] = {
 		icon = "bison.png",
-		output = { ['meat'] = 1, ['hide'] = 0.25 },
+		output = { [retrieve_good('meat')] = 1, [retrieve_good('hide')] = 0.25 },
 		amount = amounts.game,
 		handle = JOBTYPE.HUNTING,
 	}
 	products[dbm.ForageResource.Fungi] = {
 		icon = "chanterelles.png",
-		output = { ['mushrooms'] = 1.25 },
+		output = { [retrieve_good('mushrooms')] = 1.25 },
 		amount = amounts.fungi,
 		handle = JOBTYPE.CLERK,
 	}
 	products[dbm.ForageResource.Shell] = {
 		icon = "oyster.png",
-		output = { ['shellfish'] = 1, ['seaweed'] = 2 },
+		output = { [retrieve_good('shellfish')] = 1, [retrieve_good('seaweed')] = 2 },
 		amount = amounts.shell,
 		handle = JOBTYPE.HAULING,
 	}
 	products[dbm.ForageResource.Fish] = {
 		icon = "salmon.png",
-		output = { ['fish'] = 1.25 },
+		output = { [retrieve_good('fish')] = 1.25 },
 		amount = amounts.fish,
 		handle = JOBTYPE.LABOURER,
 	}
@@ -252,13 +253,15 @@ function dbm.set_foraging_targets(province, amounts)
 end
 
 -- TODO change to target a culture and find mean value across all pops based on race and culture needs
----@param race Race
----@return table<TradeGoodUseCaseReference, number> food_needs_by_use
+---@param race race_id
+---@return table<use_case_id, number> food_needs_by_use
 function dbm.cultural_food_needs(race)
-	local  males_per_hundred_females = race.males_per_hundred_females
+	local males_per_hundred_females = race.males_per_hundred_females
 	local male_to_female_ratio = males_per_hundred_females / (100 + males_per_hundred_females)
-	local food_needs_by_use = tabb.accumulate(race.male_needs[NEED.FOOD], {}, function (accumulated_food_needs, use_case, value)
---		print("  FOOD NEED: " .. use_case)
+	---@type table<use_case_id, number>
+	local accumulable = {}
+	local food_needs_by_use = tabb.accumulate(race.male_needs[NEED.FOOD], accumulable, function (accumulated_food_needs, use_case, value)
+		-- print("  FOOD NEED: " .. use_case)
 		local average_gendered_use_case_need = value * male_to_female_ratio + (1 - male_to_female_ratio) * race.female_needs[NEED.FOOD][use_case]
 		accumulated_food_needs[use_case] = (accumulated_food_needs[use_case] and accumulated_food_needs[use_case].amount or 0) + average_gendered_use_case_need
 		return accumulated_food_needs
@@ -271,24 +274,28 @@ end
 
 ---Use Diet-Breadth Model to weight, pick and normalize targets
 --- and search times for when foraging for food and water
----@param province Province
+---@param province province_id
 function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
 	-- get average life needs from realm primary race
 	local food_needs_by_case = dbm.cultural_food_needs(province.realm.primary_race)
 	local province_size = province.size
 --	print("  FINDING FOOD USE TARGETS...")
-	---@param targets_by_use table<TradeGoodUseCaseReference, TargetNeedsTable>
-	---@type table<TradeGoodUseCaseReference, TargetNeedsTable>
+	---@param targets_by_use table<use_case_id, TargetNeedsTable>
+	---@type table<use_case_id, TargetNeedsTable>
 	local targets_by_use = tabb.accumulate(food_needs_by_case, {}, function (targets_by_use, use, needed)
 --		print("    USE: " .. use .. ", NEEDED: " .. needed)
-		targets_by_use[use] = tabb.accumulate(province.foragers_targets, {need = needed, total_search = 0, total_output = 0, total_handle = 0, targets = {}},
+
+		---@type TargetNeedsTable
+		local accumulable = {need = needed, total_search = 0, total_output = 0, total_handle = 0, targets = {}}
+		targets_by_use[use] = tabb.accumulate(province.foragers_targets, accumulable,
 			function (target_use, resource, values)
 --			print("     CHECKING: " .. dbm.ForageResourceName[resource])
 			if values.amount > 0 then
 				local energy = tabb.accumulate(values.output, 0, function (total_value, good, output)
-					local weight = RAWS_MANAGER.trade_goods_use_cases_by_name[use].goods[good]
-					if weight then
+					local weight_id = DATA.get_use_weight(good, use)
+					if weight_id then
+						local weight = DATA.use_weight_get_weight(weight_id)
 						local weighted_output = weight * output
 --						print("       VALID GOOD: " .. good .. ", AMOUNT: " .. values.amount .. ", OUTPUT: " .. weighted_output .. ", ENERGY: " .. weighted_output * values.amount)
 						total_value = total_value + weighted_output
@@ -310,13 +317,19 @@ function dbm.cultural_foragable_targets(province)
 		return targets_by_use
 	end)
 	-- find average return for each use target and filter by greater than or equal to average
+	---@type table<use_case_id, number>, table<use_case_id, number>
 	local total_targets_by_use, average_return_per_use = {}, {}
 --	print("  CHOOSING TARGETS:")
-	local weighted_targets_by_use = tabb.accumulate(targets_by_use, {}, function (weighted_targets_by_use, use, values)
+
+	---@type table<use_case_id, table<ForageResource, number>>
+	local accumulable = {}
+	local weighted_targets_by_use = tabb.accumulate(targets_by_use, accumulable, function (weighted_targets_by_use, use, values)
 		average_return_per_use[use] = values.total_output / (values.total_search + values.total_handle)
 --		print("    TOTAL OUTPUT: " .. values.total_output .. " TOTAL HANDLE: " .. values.total_handle)
 --		print("    AVERAGE RETURN: " .. average_return_per_use[use] .. " TOTAL SEARCH: " .. targets_by_use[use].total_search)
-		weighted_targets_by_use[use] = tabb.accumulate(values.targets, {}, function (weighted_targets, resource, results)
+		---@type table<ForageResource, number>
+		local accumulable_weighted_targets = {}
+		weighted_targets_by_use[use] = tabb.accumulate(values.targets, accumulable_weighted_targets, function (weighted_targets, resource, results)
 			local dividend = results.output
 			local divisor = results.search + results.handle
 			local return_for_resource = dividend / divisor
@@ -344,7 +357,7 @@ function dbm.cultural_foragable_targets(province)
 	end)
 	-- use new prefered targets to set or shift culture's traditional targets
 	local total_search = 0
-	---@param traditional_foraging_target table<TradeGoodUseCaseReference, {search: number, targets: table<ForageResource, number>}>
+	---@param traditional_foraging_target table<use_case_id, {search: number, targets: table<ForageResource, number>}>
 	local traditional_forager_targets = tabb.accumulate(prefered_targets_by_use, {}, function (traditional_foraging_target, use, targets)
 		local need = targets_by_use[use].need
 		local total_use_return, total_use_time = 0, 0

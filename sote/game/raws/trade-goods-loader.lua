@@ -2,24 +2,20 @@ local d = {}
 
 function d.load()
 	local TradeGood = require "game.raws.trade-goods"
-	local good = require "game.raws.raws-utils".trade_good
-	local use_case = require "game.raws.raws-utils".trade_good_use_case
+	local retrieve_good = require "game.raws.raws-utils".trade_good
+	local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 	---Adds a trade good to a use case
-	---@param trade_good TradeGoodReference
-	---@param trade_good_use_case string
+	---@param trade_good string
+	---@param use_case string
 	---@param weight number
-	local function add_use_case(trade_good, trade_good_use_case, weight)
-		local retrieved_use_case = use_case(trade_good_use_case)
-		local retrieved_trade_good = good(trade_good)
+	local function add_use_case(trade_good, use_case, weight)
 
-		assert(
-			retrieved_use_case.goods[trade_good] == nil,
-			trade_good .. " is already registered in use case " .. trade_good_use_case
-		)
+		local retrieved_use_case = retrieve_use_case(use_case)
+		local retrieved_trade_good = retrieve_good(trade_good)
 
-		retrieved_use_case.goods[trade_good] = weight
-		retrieved_trade_good.use_cases[trade_good_use_case] = weight
+		local trade_good_use_case = DATA.set_use_weight(retrieved_trade_good, retrieved_use_case)
+		DATA.use_weight_set_weight(trade_good_use_case, weight)
 	end
 
 

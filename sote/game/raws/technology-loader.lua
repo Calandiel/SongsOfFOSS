@@ -8,7 +8,6 @@ function d.load()
 	end
 	local Technology = require "game.raws.technologies"
 	local met = require "game.raws.raws-utils".production_method
-	local cat = require "game.raws.raws-utils".trade_category
 	local tec = require "game.raws.raws-utils".technology
 	local res = require "game.raws.raws-utils".resource
 	local bio = require "game.raws.raws-utils".biome

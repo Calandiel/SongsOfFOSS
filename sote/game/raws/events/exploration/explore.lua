@@ -10,6 +10,8 @@ local economic_triggers = require "game.raws.triggers.economy"
 local political_effects = require "game.raws.effects.political"
 local political_values = require "game.raws.values.political"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
 return function()
@@ -197,7 +199,7 @@ return function()
 				}
 			end
 
-			local food_price = economic_values.get_local_price_of_use(associated_data.explored_province, 'calories')
+			local food_price = economic_values.get_local_price_of_use(associated_data.explored_province, CALORIES_USE_CASE)
 
 			return {
 				{
@@ -279,11 +281,11 @@ return function()
 					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
 					tooltip = "Buy supplies from locals",
 					viable = function()
-						local result, _ = economic_triggers.can_buy_use(character.province, character.savings, 'calories', 1)
+						local result, _ = economic_triggers.can_buy_use(character.province, character.savings, CALORIES_USE_CASE, 1)
 						return result
 					end,
 					outcome = function()
-						economic_effects.character_buy_use(character, 'calories', 1)
+						economic_effects.character_buy_use(character, CALORIES_USE_CASE, 1)
 						WORLD:emit_immediate_event("exploration-progress", character, associated_data)
 					end,
 					ai_preference = function()

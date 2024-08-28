@@ -26,7 +26,9 @@ function re.run()
 		local broadleaf = DATA.tile_get_broadleaf(t)
 		local conifer = DATA.tile_get_conifer(t)
 
-		for _, b in pairs(RAWS_MANAGER.biomes_load_order) do
+		for _, b_id in pairs(RAWS_MANAGER.biomes_load_order) do
+			local b = DATA.biome[b_id]
+
 			if slopeiness < b.minimum_slope or slopeiness > b.maximum_slope then
 				goto continue
 			end
@@ -115,7 +117,7 @@ function re.run()
 				goto continue
 			end
 
-			DATA.tile_set_biome(t, b)
+			DATA.tile_set_biome(t, b_id)
 
 			::continue::
 		end

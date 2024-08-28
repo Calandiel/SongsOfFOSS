@@ -19,7 +19,7 @@ local cl = {}
 ---@field culture_group CultureGroup
 ---@field traditional_units table<string, number> -- Defines "traditional" ratios for units recruited from this culture.
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
----@field traditional_forager_targets table<TradeGoodUseCaseReference, {search: number, targets: table<ForageResource, number>}> a culture's prefered foraging targets
+---@field traditional_forager_targets table<use_case_id, {search: number, targets: table<ForageResource, number>}> a culture's prefered foraging targets
 
 ---@class CultureGroup
 cl.CultureGroup = {}

@@ -3,20 +3,21 @@
 ---@field type BuildingType
 ---@field x number?
 ---@field y number?
----@field workers table<POP, POP>
----@field worker_income table<POP, number>
----@field owner POP?
+---@field workers table<pop_id, pop_id>
+---@field worker_income table<pop_id, number>
+---@field owner pop_id?
 ---@field province Province
 ---@field subsidy number
 ---@field subsidy_last number
 ---@field income_mean number
 ---@field last_income number
----@field spent_on_inputs table<TradeGoodReference, number>
----@field earn_from_outputs table<TradeGoodReference, number>
----@field amount_of_inputs table<TradeGoodReference, number>
----@field amount_of_outputs table<TradeGoodReference, number>
+---@field spent_on_inputs table<trade_good_id, number>
+---@field earn_from_outputs table<trade_good_id, number>
+---@field amount_of_inputs table<trade_good_id, number>
+---@field amount_of_outputs table<trade_good_id, number>
 ---@field last_donation_to_owner number
 ---@field unused number
+---@field work_ratio number
 ------@field employ fun(self:Building, pop:POP, province:Province)
 
 local bld = {}

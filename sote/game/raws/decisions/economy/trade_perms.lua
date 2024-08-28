@@ -98,7 +98,8 @@ return function ()
 					goto continue
 				end
 
-				for _, good in ipairs(RAWS_MANAGER.trade_goods_list) do
+				---@param good trade_good_id
+				local function update_potential_profits(good)
 					--- checking if we can sell with profit
 					local target_sell_price = economic_values.get_pessimistic_local_price(target, good, 5, true) / 5
 					local target_buy_price = economic_values.get_local_price(target, good)
@@ -118,6 +119,8 @@ return function ()
 						trade_profits = trade_profits + known_price - target_buy_price
 					end
 				end
+
+				DATA.for_each_trade_good(update_potential_profits)
 
 				if trade_profits > best_trade_profits then
 					best_target = target

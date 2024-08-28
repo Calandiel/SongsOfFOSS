@@ -6,6 +6,8 @@ local character_ranks = require "game.raws.ranks.character_ranks"
 local economical = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
 ---Runs natural growth and decay on a single province.
 ---@param province Province
 function pg.growth(province)
@@ -48,7 +50,7 @@ function pg.growth(province)
 			to_remove[#to_remove + 1] = pp
 		-- next check for starvation
 		elseif min_life_satisfaction < age_adjusted_starvation_check then -- prevent births if not at least 25% food and water
-			-- children are more likely to die of starvation 
+			-- children are more likely to die of starvation
 			if (age_adjusted_starvation_check - min_life_satisfaction) / age_adjusted_starvation_check * love.math.random() < death_rate then
 				to_remove[#to_remove + 1] = pp
 			end
@@ -91,7 +93,7 @@ function pg.growth(province)
 		end
 	end
 	-- Add new pops...
-	local food_price = economical.get_local_price_of_use(province,'calories')
+	local food_price = economical.get_local_price_of_use(province, CALORIES_USE_CASE)
 	for _, pp in pairs(to_add) do
 		local character = pp:is_character()
 		-- TODO figure out beter way to keep character count lower
@@ -135,7 +137,7 @@ function pg.growth(province)
 			end)
 			newborn:get_need_satisfaction()
 			-- donate a small amount of funs should it suddenly be left without a parent
-			local amount = needs[NEED.FOOD]['calories']
+			local amount = needs[NEED.FOOD][CALORIES_USE_CASE]
 			local donation = math.max(math.min(pp.savings / 12, food_price * amount), 0)
 			economic_effects.add_pop_savings(pp, -donation, economic_effects.reasons.Donation)
 			economic_effects.add_pop_savings(newborn, donation, economic_effects.reasons.Donation)

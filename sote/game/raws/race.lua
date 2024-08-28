@@ -1,4 +1,5 @@
-local JOBTYPE = require "game.raws.job_types"
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
 
 ---@class (exact) PortraitSet
 ---@field fallback PortraitDescription
@@ -13,50 +14,17 @@ local JOBTYPE = require "game.raws.job_types"
 ---@field layers string[]
 ---@field layers_groups string[][]
 
----@class (exact) Race
----@field __index Race
----@field name string
----@field icon string
----@field female_portrait nil|PortraitSet
----@field male_portrait nil|PortraitSet
----@field description string
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
----@field spotting number How good is this unit at scouting
----@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field female_efficiency table<JOBTYPE, number>
----@field female_needs table<NEED, table<TradeGoodUseCaseReference, number>>
----@field female_infrastructure_needs number
----@field male_body_size number
----@field male_efficiency table<JOBTYPE, number>
----@field male_needs table<NEED, table<TradeGoodUseCaseReference, number>>
----@field male_infrastructure_needs number
----@field requires_large_river boolean
----@field requires_large_forest boolean
 
----@class Race
+
 local Race = {}
 Race.__index = Race
----@param o Race
----@return Race
+
+
 function Race:new(o)
 	---@type Race
 	local r = {}
 
+	--- default values
 	r.name = "<race>"
 	r.icon = "uncertainty.png"
 	r.description = "<race description>"
@@ -95,25 +63,15 @@ function Race:new(o)
 		[JOBTYPE.HUNTING] = 1
 	}
 
-	r.female_needs = {
-		[NEED.FOOD] = {				-- ~2000 kcal
-			['water'] = 1,
-			['calories'] = 1,		-- 1000 kcal
-			['fruit'] = 0.5,		--  500 kcal
-			['meat'] = 0.25,		--  500 kcal
-		},
-		[NEED.CLOTHING] = {
-			['clothes'] = 1,
-		},
-		[NEED.FURNITURE] = {
-			['furniture'] = 1,
-		},
-		[NEED.HEALTHCARE] = {
-			['healthcare'] = 1,
-		},
-		[NEED.LUXURY] = {
-			['liquors'] = 1,
-		},
+	local female_needs = {
+		{need = NEED.FOOD, use_case = WATER_USE_CASE, required = 1},
+		{need = NEED.FOOD, use_case = CALORIES_USE_CASE, required = 1}, -- 1000
+		{need = NEED.FOOD, use_case = retrieve_use_case('fruit'), required = 0.5}, --- 500
+		{need = NEED.FOOD, use_case = retrieve_use_case('meat'), required = 0.25}, --- 500
+		{need = NEED.CLOTHING, use_case = retrieve_use_case('clothes'), required = 1},
+		{need = NEED.FURNITURE, use_case = retrieve_use_case('furniture'), required = 1},
+		{need = NEED.HEALTHCARE, use_case = retrieve_use_case('healthcare'), required = 1},
+		{need = NEED.LUXURY, use_case = retrieve_use_case('liquors'), required = 1}
 	}
 
 	r.male_efficiency = {
@@ -127,33 +85,13 @@ function Race:new(o)
 		[JOBTYPE.HUNTING] = 1
 	}
 
-	r.male_needs = {
-		[NEED.FOOD] = {				-- ~2000 kcal
-			['water'] = 1,
-			['calories'] = 1,		-- 1000 kcal
-			['fruit'] = 0.5,		--  500 kcal
-			['meat'] = 0.25,		--  500 kcal
-		},
-		[NEED.CLOTHING] = {
-			['clothes'] = 1,
-		},
-		[NEED.FURNITURE] = {
-			['furniture'] = 1,
-		},
-		[NEED.HEALTHCARE] = {
-			['healthcare'] = 1,
-		},
-		[NEED.LUXURY] = {
-			['liquors'] = 1,
-		},
-	}
-
 	r.requires_large_river = false
 	r.requires_large_forest = false
 
 	for k, v in pairs(o) do
 		r[k] = v
 	end
+
 	setmetatable(r, Race)
 	if RAWS_MANAGER.races_by_name[r.name] ~= nil then
 		local msg = "Failed to load a race (" .. tostring(r.name) .. ")"
@@ -162,19 +100,23 @@ function Race:new(o)
 	end
 
 	-- assert that needs are valid
-	for need_name, demand in pairs(r.male_needs) do
-		local need = NEEDS[need_name]
-		if need == nil then
-			error(r.name .. "WRONG MALE NEED NAME: " .. need_name)
-		end
-	end
-	for need_name, demand in pairs(r.female_needs) do
-		local need = NEEDS[need_name]
-		if need == nil then
-			error(r.name .. " WRONG FEMALE NEED NAME: " .. need_name)
+	local amount = 0
+	for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		assert(r.male_needs[i].need == r.female_needs[i].need)
+		assert(r.male_needs[i].use_case == r.female_needs[i].use_case)
+		if r.male_needs[i].need then
+			amount = amount + 1
 		end
 	end
 
+	--- shift index by one to make consistent with
+	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		assert(r.male_needs[i].need == r.female_needs[i].need)
+		assert(r.male_needs[i].use_case == r.female_needs[i].use_case)
+		if r.male_needs[i].need then
+			amount = amount + 1
+		end
+	end
 
 	RAWS_MANAGER.races_by_name[r.name] = r
 	return r

@@ -7,6 +7,8 @@ local ut = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 local list_widget = require "game.scenes.game.widgets.list-widget"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
 local economic_effects = require "game.raws.effects.economic"
 
 local window = {}
@@ -162,11 +164,11 @@ end
 ---@param v UnitType?
 local function render_unit_supply_use (rect, k, v)
 	local base, stat = (v and v.supply_useds or 0) / 30, k:get_supply_use(v)
-	local food_need = k.race.male_needs[NEED.FOOD]['calories']
+	local food_need = k.race.male_needs[NEED.FOOD][CALORIES_USE_CASE]
 	local female, her = "male", "his"
 	if k.female then
 		female, her = "female", "her"
-		food_need = k.race.female_needs[NEED.FOOD]['calories']
+		food_need = k.race.female_needs[NEED.FOOD][CALORIES_USE_CASE]
 	end
 	ut.generic_number_field(
 		"sliced-bread.png",

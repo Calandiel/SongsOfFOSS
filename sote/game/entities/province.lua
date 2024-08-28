@@ -1,76 +1,20 @@
 local tabb = require "engine.table"
 local wb = require "game.entities.warband"
-local tile = require "game.entities.tile"
+local pop_utils = require "game.entities.pop".POP
 
 local EconomicValues = require "game.raws.values.economical"
 local economic_triggers = require "game.raws.triggers.economy"
 
----@alias Character POP
-
 local prov = {}
-
----@class (exact) Province
----@field __index Province
----@field name string
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
----@field tiles table<tile_id, tile_id>
----@field hydration number Number of humans that can live of off this provinces innate water
----@field neighbors table<Province, Province>
----@field movement_cost number
----@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field realm Realm?
----@field buildings table<Building, Building>
----@field all_pops table<POP, POP> -- all pops
----@field characters table<Character, Character>
----@field home_to table<POP, POP> Set of characters and pops which think of this province as their home
----@field technologies_present table<Technology, Technology>
----@field technologies_researchable table<Technology, Technology>
----@field buildable_buildings table<BuildingType, BuildingType>
----@field local_production table<TradeGoodReference, number>
----@field local_consumption table<TradeGoodReference, number>
----@field local_demand table<TradeGoodReference, number>
----@field local_storage table<TradeGoodReference, number>
----@field local_prices table<TradeGoodReference, number|nil>
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
----@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
----@field foragers_water number amount foraged by pops and characters
----@field foragers_limit number amount of calories foraged by pops and characters
----@field foragers_targets table<ForageResource, {icon: string, output: table<TradeGoodReference, number>, amount: number, handle: JOBTYPE}>
----@field local_resources table<Resource, Resource> A hashset containing all resources present on tiles of this province
----@field local_resources_location {[1]: tile_id, [2]: Resource}[] An array of local resources and their positions
----@field mood number how local population thinks about the state
----@field outlaws table<POP, POP>
----@field unit_types table<UnitType, UnitType>
----@field warbands table<Warband, Warband>
----@field throughput_boosts table<ProductionMethod, number>
----@field input_efficiency_boosts table<ProductionMethod, number>
----@field output_efficiency_boosts table<ProductionMethod, number>
----@field on_a_river boolean
----@field on_a_forest boolean
-
 local col = require "game.color"
 
----@class Province
 prov.Province = {}
 prov.Province.__index = prov.Province
 
 ---Returns a new province. Remember to assign "center" tile!
 ---@param fake_flag boolean? do not register province if true
----@return Province
-function prov.Province:new(fake_flag)
-	---@type Province
-	local o = {}
+function prov.Province.new(fake_flag)
+	local o = DATA.fatten_province(DATA.create_province())
 
 	o.name = "<uninhabited>"
 
@@ -83,30 +27,18 @@ function prov.Province:new(fake_flag)
 	o.g = g
 	o.b = b
 
-	o.outlaws = {}
 	o.mood = 0
-	o.province_id = WORLD.entity_counter
-	o.tiles = {}
 	o.size = 0
-	o.neighbors = {}
 	o.movement_cost = 1
 	o.foragers_limit = 0
 	o.is_land = false
 	o.buildings = {}
-	o.all_pops = {}
-	o.characters = {}
-	o.home_to = {}
 	o.technologies_present = {}
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
 	o.hydration = 5
 	o.local_resources = {}
 	o.local_resources_location = {}
-	o.local_production = {}
-	o.local_consumption = {}
-	o.local_demand = {}
-	o.local_storage = {}
-	o.local_prices = {}
 	o.local_wealth = 0
 	o.trade_wealth = 0
 	o.local_income = 0
@@ -126,56 +58,66 @@ function prov.Province:new(fake_flag)
 	o.warbands = {}
 
 	if not fake_flag then
-		WORLD.entity_counter = WORLD.entity_counter + 1
-		WORLD.provinces[o.province_id] = o
-		table.insert(WORLD.ordered_provinces_list, o)
 		WORLD.province_count = WORLD.province_count + 1
 	end
 
-	setmetatable(o, prov.Province)
 	return o
 end
 
-function prov.Province:get_random_neighbor()
-	local s = tabb.size(self.neighbors)
-	return tabb.nth(self.neighbors, love.math.random(s))
+---comment
+---@param province province_id
+---@return province_id
+function prov.Province.get_random_neighbor(province)
+	local neighbors = DATA.get_province_neighborhood_from_origin(province)
+	local s = tabb.size(neighbors)
+	local neighbor = DATA.province_neighborhood_get_target(tabb.nth(neighbors, love.math.random(s)))
+	return neighbor
 end
 
 ---Adds a tile to the province. Handles removal from the previous province, if necessary.
----@param tile_id tile_id
-function prov.Province:add_tile(tile_id)
+---@param province province_id
+---@param tile tile_id
+function prov.Province.add_tile(province, tile)
 	--- easiest way to handle it, i guess
-	if DATA.tile_get_is_land(tile_id) then
-		self.is_land = true
+	if DATA.tile_get_is_land(tile) then
+		DATA.province_set_is_land(province, true)
 	end
 
-	local prev_prov = tile.province(tile_id)
+	local membership = DATA.tile_province_membership_from_tile[tile]
 
-	if prev_prov ~= nil then
-		prev_prov.size = prev_prov.size - 1
-		prev_prov.tiles[tile_id] = nil
+	if membership then
+		DATA.tile_province_membership_set_province(membership, province)
+	else
+		local new_membership = DATA.create_tile_province_membership()
+		DATA.tile_province_membership_set_province(new_membership, province)
+		DATA.tile_province_membership_set_tile(new_membership, tile)
 	end
+end
 
-	self.tiles[tile_id] = tile_id
-	self.size = self.size + 1
-	tile.set_province(tile_id, self)
+---@param province province_id
+function prov.Province.update_size(province)
+	DATA.province_set_size(province, tabb.size(DATA.get_tile_province_membership_from_province(province)))
 end
 
 ---Returns the total military size of the province.
+---@param province province_id
 ---@return number
-function prov.Province:military()
+function prov.Province.military(province)
 	local total = 0
-	for _, party in pairs(self.warbands) do
+	local warbands = DATA.province_get_warbands(province)
+	for _, party in pairs(warbands) do
 		total = total + party:size()
 	end
 	return total
 end
 
 ---Returns the total target military size of the province.
+---@param province province_id
 ---@return number
-function prov.Province:military_target()
+function prov.Province.military_target(province)
 	local sum = 0
-	for _, warband in pairs(self.warbands) do
+	local warbands = DATA.province_get_warbands(province)
+	for _, warband in pairs(warbands) do
 		for _, u in pairs(warband.units_target) do
 			sum = sum + u
 		end
@@ -187,214 +129,265 @@ end
 
 ---Returns the total population of the province, not including characters.
 ---Doesn't include outlaws and active armies.
+---@param province province_id
 ---@return number
-function prov.Province:local_population()
-	return tabb.size(self.all_pops)
+function prov.Province.local_population(province)
+	return tabb.size(DATA.get_pop_location_from_location(province))
 end
 
 ---Returns the total count of all pops who consider this province home, not including characters.
 ---Doesn't include outlaws and active armies.
+---@param province province_id
 ---@return number
-function prov.Province:home_population()
-	return tabb.size(tabb.filter(self.home_to, function (a)
-		return not a:is_character()
+function prov.Province.home_population(province)
+	return tabb.size(tabb.filter_array(DATA.get_home_from_home(province), function (a)
+		return not IS_CHARACTER(DATA.home_get_pop(a))
 	end))
 end
 
 ---Returns the total count of all pops who consider this province home, not including characters.
 ---Doesn't include outlaws and active armies.
+---@param province province_id
 ---@return number
-function prov.Province:home_characters()
-	return tabb.size(tabb.filter(self.home_to, function (a)
-		return a:is_character()
+function prov.Province.home_characters(province)
+	return tabb.size(tabb.filter_array(DATA.get_home_from_home(province), function (a)
+		return IS_CHARACTER(DATA.home_get_pop(a))
 	end))
 end
 
 ---Returns the total count of all pops who consider this province home, including characters.
 ---Doesn't include outlaws and active armies.
+---@param province province_id
 ---@return number
-function prov.Province:total_home_population()
-	return tabb.size(self.home_to)
+function prov.Province.total_home_population(province)
+	return tabb.size(DATA.get_home_from_home(province))
 end
 
-function prov.Province:validate_population()
-	for _, pop in pairs(self.all_pops) do
-		if pop.province == nil then
-			error("POP " .. pop.name .. " DOESN'T HAVE PROVINCE")
+---@param province province_id
+function prov.Province.validate_population(province)
+	for _, pop in pairs(DATA.get_pop_location_from_location(province)) do
+		local check_province = DATA.pop_location_get_pop(pop)
+		if check_province == nil then
+			error("pop_id " .. DATA.pop_get_name(pop) .. " DOESN'T HAVE PROVINCE")
 		end
-		if pop.province ~= self then
-			error("POP " .. pop.name .. " HAS WRONG PROVINCE SET")
-		end
-	end
-
-	for _, pop in pairs(self.home_to) do
-		if pop.home_province == nil then
-			error("POP " .. pop.name .. " DOESN'T HAVE HOME PROVINCE")
-		end
-		if pop.home_province ~= self then
-			error("POP " .. pop.name .. " HAS WRONG HOME PROVINCE SET")
+		if province ~= check_province then
+			error("pop_id " .. DATA.pop_get_name(pop) .. " HAS WRONG PROVINCE SET")
 		end
 	end
 
-	for _, pop in pairs(self.characters) do
-		if pop.province == nil then
-			error("Character " .. pop.name .. " DOESN'T HAVE PROVINCE")
+	for _, pop in pairs(DATA.get_home_from_home(province)) do
+		local home_province = DATA.home_get_home(pop)
+		if home_province == nil then
+			error("pop_id " .. DATA.pop_get_name(pop) .. " DOESN'T HAVE HOME PROVINCE")
 		end
-		if pop.province ~= self then
-			error("Character " .. pop.name .. " HAS WRONG PROVINCE SET")
+		if home_province ~= province then
+			error("pop_id " .. DATA.pop_get_name(pop) .. " HAS WRONG HOME PROVINCE SET")
+		end
+	end
+
+	for _, pop in pairs(DATA.get_character_location_from_location(province)) do
+		local check_province = DATA.character_location_get_location(pop)
+		if province == nil then
+			error("Character " .. DATA.pop_get_name(pop) .. " DOESN'T HAVE PROVINCE")
+		end
+		if province ~= check_province then
+			error("Character " .. DATA.pop_get_name(pop) .. " HAS WRONG PROVINCE SET")
 		end
 	end
 end
 
----Returns the total population of the province.
+---Returns the total population weight of the province.
+---@param province province_id
 ---@return number
-function prov.Province:population_weight()
+function prov.Province.population_weight(province)
 	local total = 0
-	for _, pop in pairs(self.all_pops) do
-		 -- weight is dependent on food needs, which are age dependent
-		total = total + pop.race.carrying_capacity_weight * pop:get_age_multiplier()
+	for _, pop in pairs(DATA.get_pop_location_from_location(province)) do
+		-- weight is dependent on food needs, which are age dependent
+		local race = DATA.pop_get_race(pop)
+		local age_multiplier = pop_utils.get_age_multiplier(pop)
+
+		total = total + DATA.race_get_carrying_capacity_weight(race) * age_multiplier
 	end
 	return total
 end
 
 ---Adds a pop to the province. Sets province as a home. Does not handle cleaning of old data
----@param pop POP
-function prov.Province:add_pop(pop)
-	self:add_guest_pop(pop)
-	self:set_home(pop)
+---@param province province_id
+---@param pop pop_id
+function prov.Province.add_pop(province, pop)
+	prov.Province.add_guest_pop(province, pop)
+	prov.Province.set_home(province, pop)
 end
 
 ---Adds pop as a guest of this province. Preserves old home of a pop.
----@param pop POP
-function prov.Province:add_guest_pop(pop)
-	self.all_pops[pop] = pop
-	pop.province = self
+---@param province province_id
+---@param pop pop_id
+function prov.Province.add_guest_pop(province, pop)
+	local location = DATA.get_pop_location_from_pop(pop)
+	if location then
+		DATA.pop_location_set_location(location, province)
+	else
+		local new_location = DATA.create_pop_location()
+		DATA.pop_location_set_location(new_location, province)
+		DATA.pop_location_set_pop(new_location, pop)
+	end
 end
 
 ---Adds a character to the province
+---@param province province_id
 ---@param character Character
-function prov.Province:add_character(character)
-	-- print(character.name, "-->", self.name)
-
-	self.characters[character] = character
-	character.province = self
+function prov.Province.add_character(province, character)
+	local location = DATA.get_character_location_from_character(character)
+	if location then
+		DATA.character_location_set_location(location, province)
+	else
+		local new_location = DATA.create_pop_location()
+		DATA.character_location_set_location(new_location, province)
+		DATA.character_location_set_character(new_location, character)
+	end
 end
 
 ---Sets province as pop's home
----@param pop POP
-function prov.Province:set_home(pop)
+---@param province province_id
+---@param pop pop_id
+function prov.Province.set_home(province, pop)
 	-- print('SET HOME', pop.name)
+	local home = DATA.get_home_from_pop(pop)
+	if home then
+		DATA.home_set_home(home, province)
+	else
+		local new_home = DATA.create_home()
+		DATA.home_set_home(new_home, province)
+		DATA.home_set_pop(new_home, pop)
+	end
 
-	self.home_to[pop] = pop
-	pop.home_province = self
-	pop.realm = self.realm
+	-- as this province is your home, you belong to local realm now
+	local realm = DATA.province_get_realm(province)
+	if realm then
+		DATA.pop_set_realm(pop, realm)
+	end
 end
 
 --- Transfers a character to the target province
+---@param origin province_id
 ---@param character Character
----@param target Province
-function prov.Province:transfer_character(character, target)
+---@param target province_id
+function prov.Province.transfer_character(origin, character, target)
 	-- print(character.name, "CHARACTER", self.name, "-->", target.name)
-	if character.province ~= self then
-		error("CHARACTER DOES NOT HAS ACCORDING PROVINCE ")
-	end
+	-- validate that origin is really an origin
 
-	self.characters[character] = nil
-	target.characters[character] = character
-
-	character.province = target
+	local current_location = DATA.get_character_location_from_character(character)
+	assert(DATA.character_location_get_location(current_location) == origin, "CHARACTER ATTEMPTS TO TRAVEL NOT FROM HIS LOCATION")
+	DATA.character_location_set_location(current_location, target)
 end
 
 --- Transfers a pop to the target province
----@param pop POP
----@param target Province
-function prov.Province:transfer_pop(pop, target)
-	-- print(pop.name, "POP", self.name, "-->", target.name)
-	if pop.province ~= self then
-		error("POP DOES NOT HAS ACCORDING PROVINCE ")
-	end
+---@param origin province_id
+---@param pop pop_id
+---@param target province_id
+function prov.Province.transfer_pop(origin, pop, target)
+	-- print(pop.name, "pop_id", self.name, "-->", target.name)
+	local current_location = DATA.get_pop_location_from_pop(pop)
+	assert(DATA.character_location_get_location(current_location) == origin, "POP ATTEMPTS TO TRAVEL NOT FROM HIS LOCATION")
+	DATA.character_location_set_location(current_location, target)
 
-	self.all_pops[pop] = nil
-	target.all_pops[pop] = pop
+	local relevant_children =
+		tabb.filter_array(
+			tabb.map_array(
+				DATA.get_parent_child_relation_from_parent(pop),
+				DATA.parent_child_relation_get_child
+			),
+			function(child)
+				local child_location = DATA.pop_location_get_location(DATA.get_pop_location_from_pop(child))
+				if child_location ~= origin then
+					return false
+				end
 
-	pop.province = target
+				local home_location = DATA.get_home_from_pop(DATA.get_home_from_pop(child))
+				if home_location ~= origin then
+					return false
+				end
 
-	local children = tabb.filter(pop.children, function(c)
-		return self.all_pops[c] and c.home_province ~= self
-			and not c.unit_of_warband and not c.employer
-	end)
-	for _, c in pairs(children) do
-		self:transfer_pop(c, target)
+				local unit_of = DATA.pop_get_unit_of_warband(child)
+				if unit_of ~= nil then
+					return false
+				end
+
+				local employer = DATA.pop_get_employer(child)
+				if employer ~= nil then
+					return false
+				end
+
+				return true;
+			end
+		)
+
+	for _, c in ipairs(relevant_children) do
+		prov.Province.transfer_pop(origin, c, target)
 	end
 end
 
 --- Changes home province of a pop/character to the target province
+---@param origin province_id
 ---@param pop Character
----@param target Province
-function prov.Province:transfer_home(pop, target)
-	if pop.home_province ~= self then
-		error("POP DOES NOT HAS ACCORDING HOME PROVINCE ")
+---@param target province_id
+function prov.Province.transfer_home(origin, pop, target)
+	local current_home = DATA.get_home_from_pop(pop)
+	assert(DATA.home_get_home(current_home) == origin, "INVALID HOME OF POP")
+	DATA.home_set_home(current_home, target)
+
+	local relevant_children =
+		tabb.filter_array(
+			tabb.map_array(
+				DATA.get_parent_child_relation_from_parent(pop),
+				DATA.parent_child_relation_get_child
+			),
+			function(child)
+				local child_location = DATA.pop_location_get_location(DATA.get_pop_location_from_pop(child))
+				if child_location ~= origin then
+					return false
+				end
+
+				local home_location = DATA.get_home_from_pop(DATA.get_home_from_pop(child))
+				if home_location ~= origin then
+					return false
+				end
+
+				local unit_of = DATA.pop_get_unit_of_warband(child)
+				if unit_of ~= nil then
+					return false
+				end
+
+				local employer = DATA.pop_get_employer(child)
+				if employer ~= nil then
+					return false
+				end
+
+				return true;
+			end
+		)
+
+	for _, c in ipairs(relevant_children) do
+		prov.Province.transfer_home(origin, c, target)
 	end
-
-	self:set_home_pop_nil_wrapper(pop)
-	target:set_home(pop)
-	local children = tabb.filter(pop.children, function(c)
-		return self.all_pops[c] and not c.unit_of_warband and not c.employer
-	end)
-	for _, c in pairs(children) do
-		self:transfer_home(c, target)
-	end
-end
-
---- Removes a character from the province
----@param character Character
-function prov.Province:remove_character(character)
-	-- print(character.name, "R", self.name, character.province.name)
-	self.characters[character] = nil
-	character.province = nil
-end
-
----Wrapper for setting table value to nil for easier logging
----@param pop any
-function prov.Province:set_home_pop_nil_wrapper(pop)
-	-- print('UNSET HOME', pop.name, self.name)
-	self.home_to[pop] = nil
-end
-
---- Pop stops thinking of this province as a home
----@param pop POP
-function prov.Province:unset_home(pop)
-	self:set_home_pop_nil_wrapper(pop)
-	pop.home_province = nil
 end
 
 ---Kills a single pop and removes it from all relevant references.
----@param pop POP
-function prov.Province:kill_pop(pop)
+---@param province province_id
+---@param pop pop_id
+function prov.Province.kill_pop(province, pop)
 	-- print("kill " .. pop.name)
 
-	self:fire_pop(pop)
-	pop:unregister_military()
-	self.all_pops[pop] = nil
-	self:set_home_pop_nil_wrapper(pop)
+	prov.Province.fire_pop(province, pop)
+	pop_utils.unregister_military(pop)
 
-	self.outlaws[pop] = nil
-	pop.province = nil
-
-	if pop.home_province then
-		pop.home_province:unset_home(pop)
-	end
-
-	if pop.parent then pop.parent.children[pop] = nil end
-	for _, c in pairs(pop.children) do
-		c.parent = nil
-		pop.children[c] = nil
-	end
+	DATA.delete_pop(pop)
 end
 
-function prov.Province:local_army_size()
+---@param province province_id
+function prov.Province.local_army_size(province)
 	local total = 0
-	for _, w in pairs(self.warbands) do
+	for _, w in pairs(DATA.province_get_warbands(province)) do
 		if w.status == "idle" or w.status == "patrol" then
 			total = total + w:size()
 		end
@@ -404,64 +397,69 @@ end
 
 ---Removes the pop from the province without killing it  \
 ---Does not change home province of pop
----@param pop POP
----@return POP
-function prov.Province:take_away_pop(pop)
-	-- print("take away", pop.name)
-	self.all_pops[pop] = nil
-	return pop
+---@param province province_id
+---@param pop pop_id
+function prov.Province.take_away_pop(province, pop)
+	local location = DATA.get_pop_location_from_pop(pop)
+	assert(DATA.pop_location_get_location(location) == province, "INVALID STATE")
+	DATA.delete_pop_location(location)
 end
 
-function prov.Province:return_pop_from_army(pop, unit_type)
-	-- print("return", pop.name)
-	self.all_pops[pop] = pop
-	return pop
+---@param province province_id
+function prov.Province.return_pop_from_army(province, pop, unit_type)
+	prov.Province.add_guest_pop(province, pop)
 end
 
 ---Fires an employed pop and adds it to the unemployed pops list.
 ---It leaves the "job" set so that inference of social class can be performed.
----@param pop POP
-function prov.Province:fire_pop(pop)
-	if pop.employer then
-		pop.employer.workers[pop] = nil
-		if tabb.size(pop.employer.workers) == 0 then
-			pop.employer.last_income = 0
-			pop.employer.last_donation_to_owner = 0
-			pop.employer.subsidy_last = 0
+---@param province province_id
+---@param pop pop_id
+function prov.Province.fire_pop(province, pop)
+	local employer = DATA.pop_get_employer(pop)
+	if employer then
+		employer.workers[pop] = nil
+		if tabb.size(employer.workers) == 0 then
+			employer.last_income = 0
+			employer.last_donation_to_owner = 0
+			employer.subsidy_last = 0
 		end
-		pop.employer = nil
-		pop.job = nil -- clear the job!
+		DATA.pop_set_employer(pop, nil)
+		DATA.pop_set_job(pop, nil)
 	end
 end
 
 ---Employs a pop and handles its removal from relevant data structures...
----@param pop POP
+---@param province province_id
+---@param pop pop_id
 ---@param building Building
-function prov.Province:employ_pop(pop, building)
-	if pop.employer ~= building then
-		local potential_job = self:potential_job(building)
+function prov.Province.employ_pop(province, pop, building)
+	local employer = DATA.pop_get_employer(pop)
+	if employer ~= building then
+		local potential_job = prov.Province.potential_job(province, building)
 		if potential_job then
 			-- Now that we know that the job is needed, employ the pop!
 			-- ... but fire them first to update the previous building
-			if pop.employer ~= nil then
-				self:fire_pop(pop)
+			if employer ~= nil then
+				prov.Province.fire_pop(province, pop)
 			end
 			building.workers[pop] = pop
-			pop.employer = building
-			pop.job = potential_job
+			DATA.pop_set_employer(pop, building)
+			DATA.pop_set_job(pop, potential_job)
 		end
 	end
 end
 
 ---Returns a potential job, if a pop was to be employed by this building.
+---@param province province_id
 ---@param building Building
 ---@return Job?
-function prov.Province:potential_job(building)
+function prov.Province.potential_job(province, building)
 	for job, amount in pairs(building.type.production_method.jobs) do
 		-- Make sure that the building doesn't have this job filled out...
 		local actually_employed = 0
 		for _, worker in pairs(building.workers) do
-			if worker.job == job then
+			local worker_job = DATA.pop_get_job(worker)
+			if worker_job == job then
 				actually_employed = actually_employed + 1
 			end
 		end
@@ -472,8 +470,9 @@ function prov.Province:potential_job(building)
 	return nil
 end
 
+---@param province province_id
 ---@param technology Technology
-function prov.Province:research(technology)
+function prov.Province.research(province, technology)
 	self.technologies_present[technology] = technology
 	self.technologies_researchable[technology] = nil
 
@@ -544,7 +543,7 @@ function prov.Province:research(technology)
 		local ok = true
 		if #b.required_biome > 0 then
 			ok = false
-			for _, biome in b.required_biome do
+			for _, biome in pairs(b.required_biome) do
 				if biome == DATA.tile_get_biome(self.center) then
 					ok = true
 					break
@@ -577,8 +576,9 @@ function prov.Province:research(technology)
 end
 
 ---Forget technology
+---@param province province_id
 ---@param technology Technology
-function prov.Province:forget(technology)
+function prov.Province.forget(province, technology)
 	self.technologies_present[technology] = nil
 	self.technologies_researchable[technology] = technology
 
@@ -596,14 +596,15 @@ function prov.Province:forget(technology)
 	-- for all techs anyway
 	-- because there are no assumptions for a graph of technologies
 	for _, old_technology in pairs(self.technologies_present) do
-		self:research(old_technology)
+		prov.Province.research(old_technology)
 	end
 end
 
+---@param province province_id
 ---@param building_type BuildingType
 ---@return boolean
-function prov.Province:building_type_present(building_type)
-	for bld in pairs(self.buildings) do
+function prov.Province.building_type_present(province, building_type)
+	for bld in pairs(DATA.province_get_buildings(province)) do
 		if bld.type == building_type then
 			return true
 		end
@@ -614,13 +615,14 @@ end
 ---@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "missing_local_resources" | "no_permission"
 
 ---comment
+---@param province province_id
 ---@param funds number
 ---@param building BuildingType
----@param overseer POP?
+---@param overseer pop_id?
 ---@param public boolean
 ---@return boolean
 ---@return BuildingAttemptFailureReason
-function prov.Province:can_build(funds, building, overseer, public)
+function prov.Province.can_build(province, funds, building, overseer, public)
 	local resource_check_passed = true
 	if #building.required_resource > 0 then
 		resource_check_passed = false
@@ -643,7 +645,7 @@ function prov.Province:can_build(funds, building, overseer, public)
 		return false, "no_permission"
 	end
 
-	if building.unique and self:building_type_present(building) then
+	if building.unique and prov.Province.building_type_present(building) then
 		return false, "unique_duplicate"
 	elseif not resource_check_passed then
 		return false, "missing_local_resources"
@@ -654,47 +656,56 @@ function prov.Province:can_build(funds, building, overseer, public)
 	end
 end
 
+---@param province province_id
 ---@return number
-function prov.Province:get_infrastructure_efficiency()
+function prov.Province.get_infrastructure_efficiency(province)
 	local inf = 0
-	if self.infrastructure_needed > 0 then
-		inf = 2 * self.infrastructure / (self.infrastructure + self.infrastructure_needed)
+	local needed = DATA.province_get_infrastructure_needed(province)
+	local provided = DATA.province_get_infrastructure(province)
+	if needed > 0 then
+		inf = 2 * provided / (provided + needed)
 	end
 	return inf
 end
 
----@param pop POP
-function prov.Province:outlaw_pop(pop)
-	self:fire_pop(pop)
+---@param province province_id
+---@param pop pop_id
+function prov.Province.outlaw_pop(province, pop)
+	prov.Province.fire_pop(pop)
 	pop:unregister_military()
 	self.all_pops[pop] = nil
 	self.outlaws[pop] = pop
 end
 
 ---Marks a pop as a soldier of a given type in a given warband.
----@param pop POP
+---@param province province_id
+---@param pop pop_id
 ---@param unit_type UnitType
 ---@param warband Warband
-function prov.Province:recruit(pop, unit_type, warband)
+function prov.Province.recruit(province, pop, unit_type, warband)
 	-- if pop is already drafted, do nothing
 	if pop.unit_of_warband then
 		return
 	end
 
 	-- clean pop and set his unit type
-	self:fire_pop(pop)
+	prov.Province.fire_pop(pop)
 	pop:unregister_military()
 
 	-- set warband
 	warband:hire_unit(self, pop, unit_type)
 end
 
+---@param province province_id
 ---@return Culture|nil
-function prov.Province:get_dominant_culture()
+function prov.Province.get_dominant_culture(province)
+	---@type table<Culture, number>
 	local e = {}
-	for _, p in pairs(self.all_pops) do
-		local old = e[p.culture] or 0
-		e[p.culture] = old + 1
+	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop_id = DATA.pop_location_get_pop(p)
+		local culture = DATA.pop_get_culture(p)
+		local old = e[culture] or 0
+		e[culture] = old + 1
 	end
 	local best = nil
 	local max = 0
@@ -707,12 +718,16 @@ function prov.Province:get_dominant_culture()
 	return best
 end
 
+---@param province province_id
 ---@return Faith|nil
-function prov.Province:get_dominant_faith()
+function prov.Province.get_dominant_faith(province)
+	---@type table<Faith, number>
 	local e = {}
-	for _, p in pairs(self.all_pops) do
-		local old = e[p.faith] or 0
-		e[p.faith] = old + 1
+	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop_id = DATA.pop_location_get_pop(p)
+		local faith = DATA.pop_get_faith(pop_id)
+		local old = e[faith] or 0
+		e[faith] = old + 1
 	end
 	local best = nil
 	local max = 0
@@ -725,12 +740,17 @@ function prov.Province:get_dominant_faith()
 	return best
 end
 
----@return Race|nil
-function prov.Province:get_dominant_race()
+---@param province province_id
+---@return race_id|nil
+function prov.Province.get_dominant_race(province)
+	---@type table<race_id, number>
 	local e = {}
-	for _, p in pairs(self.all_pops) do
-		local old = e[p.race] or 0
-		e[p.race] = old + 1
+	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop_id = DATA.pop_location_get_pop(p)
+		local race = DATA.pop_get_race(pop_id)
+
+		local old = e[race] or 0
+		e[race] = old + 1
 	end
 	local best = nil
 	local max = 0
@@ -744,11 +764,14 @@ function prov.Province:get_dominant_race()
 end
 
 ---Returns whether or not a province borders a given realm
+---@param province province_id
 ---@param realm Realm
 ---@return boolean
-function prov.Province:neighbors_realm(realm)
-	for _, n in pairs(self.neighbors) do
-		if n.realm == realm then
+function prov.Province.neighbors_realm(province, realm)
+	for _, n in pairs(DATA.get_province_neighborhood_from_origin(province)) do
+		local neighbor = DATA.province_neighborhood_get_target(n)
+		local neighbor_realm = DATA.province_get_realm(neighbor)
+		if neighbor_realm == realm then
 			return true
 		end
 	end
@@ -756,24 +779,32 @@ function prov.Province:neighbors_realm(realm)
 end
 
 ---Returns whether or not a province borders a given realm
+---@param province province_id
 ---@param realm Realm
 ---@return boolean
-function prov.Province:neighbors_realm_tributary(realm)
-	for _, n in pairs(self.neighbors) do
-		if n.realm and n.realm:is_realm_in_hierarchy(realm) then
+function prov.Province.neighbors_realm_tributary(province, realm)
+	for _, n in pairs(DATA.get_province_neighborhood_from_origin(province)) do
+		local neighbor = DATA.province_neighborhood_get_target(n)
+		local neighbor_realm = DATA.province_get_realm(neighbor)
+
+		if neighbor_realm and neighbor_realm:is_realm_in_hierarchy(realm) then
 			return true
 		end
 	end
 	return false
 end
 
+---@param province province_id
 ---@return number
-function prov.Province:get_spotting()
+function prov.Province.get_spotting(province)
 	local s = 0
 
-	for p, _ in pairs(self.all_pops) do
-		s = s + p.race.spotting
+	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop_id = DATA.pop_location_get_pop(p)
+		local race = DATA.pop_get_race(pop_id)
+		s = s + DATA.race_get_spotting(race)
 	end
+
 	for b, _ in pairs(self.buildings) do
 		s = s + b.type.spotting
 	end
@@ -787,22 +818,26 @@ function prov.Province:get_spotting()
 	return s
 end
 
+---@param province province_id
 ---@return number
-function prov.Province:get_hiding()
+function prov.Province.get_hiding(province)
 	local hide = 1
-	for t, _ in pairs(self.tiles) do
-		local grass = DATA.tile_get_grass(t)
-		local shrub = DATA.tile_get_shrub(t)
-		local conifer = DATA.tile_get_conifer(t)
-		local broadleaf = DATA.tile_get_broadleaf(t)
+	for t, _ in pairs(DATA.get_tile_province_membership_from_province(province)) do
+		local tile_id = DATA.tile_province_membership_get_tile(t)
+		local grass = DATA.tile_get_grass(tile_id)
+		local shrub = DATA.tile_get_shrub(tile_id)
+		local conifer = DATA.tile_get_conifer(tile_id)
+		local broadleaf = DATA.tile_get_broadleaf(tile_id)
 		hide = hide + 1 + grass + shrub * 2 + conifer * 3 + broadleaf * 5
 	end
 	return hide
 end
 
-function prov.Province:spot_chance(visibility)
-	local spot = self:get_spotting()
-	local hiding = self:get_hiding()
+---@param province province_id
+---@param visibility number
+function prov.Province.spot_chance(province, visibility)
+	local spot = prov.Province.get_spotting(province)
+	local hiding = prov.Province.get_hiding(province)
 	local actual_hiding = hiding - visibility
 	local size = spot + visibility + hiding
 	-- If spot == hide, we should get 50:50 odds.
@@ -819,10 +854,11 @@ function prov.Province:spot_chance(visibility)
 	return odds
 end
 
+---@param province province_id
 ---@param army Army Attacking army
 ---@param stealth_penalty number? Multiplicative penalty, multiplies army visibility score.
 ---@return boolean True if the army was spotted.
-function prov.Province:army_spot_test(army, stealth_penalty)
+function prov.Province.army_spot_test(province, army, stealth_penalty)
 	-- To resolve this event we need to perform some checks.
 	-- First, we should have a "scouting" check.
 	-- Them, a potential battle ought to take place.`
@@ -831,7 +867,7 @@ function prov.Province:army_spot_test(army, stealth_penalty)
 	end
 
 	local visib = (army:get_visibility() + love.math.random(20)) * stealth_penalty
-	local odds = self:spot_chance(visib)
+	local odds = prov.Province.spot_chance(province, visib)
 	if love.math.random() < odds then
 		-- Spot!
 		return true
@@ -841,17 +877,25 @@ function prov.Province:army_spot_test(army, stealth_penalty)
 	end
 end
 
-function prov.Province:get_job_ratios()
+---@param province province_id
+---@return table<Job, number>
+function prov.Province.get_job_ratios(province)
+	---@type table<Job, number>
 	local r = {}
 
 	local pop = 0
-	for p, _ in pairs(self.all_pops) do
-		if p.job then
-			local old = r[p.job] or 0
-			r[p.job] = old + 1
+
+	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop_id = DATA.pop_location_get_pop(p)
+
+		local job = DATA.pop_get_job(pop_id)
+		if job then
+			local old = r[job] or 0
+			r[job] = old + 1
 		end
 		pop = pop + 1
 	end
+
 	for job, am in pairs(r) do
 		r[job] = am / pop
 	end
@@ -860,12 +904,21 @@ function prov.Province:get_job_ratios()
 end
 
 ---Returns the number of unemployed people in the province.
+---@param province province_id
 ---@return integer
-function prov.Province:get_unemployment()
+function prov.Province.get_unemployment(province)
 	local u = 0
 
-	for _, p in pairs(self.all_pops) do
-		if not p.unit_of_warband and p.job == nil then
+	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop_id = DATA.pop_location_get_pop(p)
+
+		local unit_of = DATA.pop_get_unit_of_warband(pop_id)
+		local job = DATA.pop_get_job(pop_id)
+		if job then
+
+		elseif unit_of then
+
+		else
 			u = u + 1
 		end
 	end
@@ -873,17 +926,20 @@ function prov.Province:get_unemployment()
 	return u
 end
 
-function prov.Province:new_warband()
+---@param province province_id
+function prov.Province.new_warband(province)
 	local warband = wb:new()
 	self.warbands[warband] = warband
 	return warband
 end
 
-function prov.Province:num_of_warbands()
+---@param province province_id
+function prov.Province.num_of_warbands(province)
 	return tabb.size(self.warbands)
 end
 
-function prov.Province:vacant_warbands()
+---@param province province_id
+function prov.Province.vacant_warbands(province)
 	local res = {}
 
 	for k, v in pairs(self.warbands) do
@@ -895,8 +951,9 @@ function prov.Province:vacant_warbands()
 	return res
 end
 
-function prov.Province:exploration_days()
-	return self.movement_cost / 5
+---@param province province_id
+function prov.Province.exploration_days(province)
+	return DATA.province_get_movement_cost(province) / 5
 end
 
 return prov

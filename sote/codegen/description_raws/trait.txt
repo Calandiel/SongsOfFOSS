@@ -1,0 +1,4 @@
+name string
+short_description string
+full_description string
+icon string

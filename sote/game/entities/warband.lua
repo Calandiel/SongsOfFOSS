@@ -1,5 +1,6 @@
-local JOBTYPE = require "game.raws.job_types"
+
 local economic_effects = require "game.raws.effects.economic"
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 ---@alias WarbandStatus "idle" | "raiding" | "preparing_raid" | "preparing_patrol" | "patrol" | "attacking" | "travelling" | "off_duty"
 ---@alias WarbandIdleStance "work"|"forage"
@@ -12,8 +13,8 @@ local economic_effects = require "game.raws.effects.economic"
 ---@field leader Character?
 ---@field recruiter Character?
 ---@field commander Character?
----@field pops table<POP, POP> A set of pops
----@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
+---@field pops table<pop_id, pop_id> A set of pops
+---@field units table<pop_id, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
 ---@field units_current table<UnitType, number> Units currently in the warband
 ---@field units_target table<UnitType, number> Units to recruit
 ---@field status WarbandStatus
@@ -28,8 +29,8 @@ local warband = {
 	name = "Warband", ---@type string
 	treasury = 0, ---@type number
 	leader = nil, ---@type Character?
-	pops = {}, ---@type table<POP, Province> A table mapping pops to their home provinces.
-	units = {}, ---@type table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
+	pops = {}, ---@type table<pop_id, Province> A table mapping pops to their home provinces.
+	units = {}, ---@type table<pop_id, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
 	units_current = {},
 	units_target = {},
 	status = "idle", ---@type WarbandStatus
@@ -284,7 +285,7 @@ function warband:hire_unit(province, pop, unit)
 end
 
 ---Handles pop firing logic on warband's side
----@param pop POP
+---@param pop pop_id
 function warband:fire_unit(pop)
 	-- print(pop.name, "leaves warband")
 
@@ -354,7 +355,7 @@ function warband:kill_off(ratio)
 	local pops_to_kill = {}
 
 	for pop, _ in pairs(self.units) do
-		if not pop:is_character() and love.math.random() < ratio then
+		if not IS_CHARACTER(pop) and love.math.random() < ratio then
 			table.insert(pops_to_kill, pop)
 			losses = losses + 1
 		end
@@ -412,7 +413,7 @@ end
 function warband:consume_supplies(days)
 	local daily_consumption = self:daily_supply_consumption()
 	local consumption = days * daily_consumption
-	local consumed = economic_effects.consume_use_case_from_inventory(self.leader.inventory, 'calories', consumption)
+	local consumed = economic_effects.consume_use_case_from_inventory(self.leader.inventory, CALORIES_USE_CASE, consumption)
 
 	-- give some wiggle room for floats
 	if consumed > consumption + 0.01
@@ -433,7 +434,7 @@ end
 ---Returns total food supply from warband
 ---@return number
 function warband:get_supply_available()
-	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader.inventory, 'calories')) or 0
+	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader.inventory, CALORIES_USE_CASE)) or 0
 end
 
 ---Returns amount of days warband can travel depending on collected supplies

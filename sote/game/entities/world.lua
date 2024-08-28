@@ -22,7 +22,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@class (exact) World
 ---@field __index World
 ---@field player_character Character?
----@field player_province Province?
+---@field player_province province_id?
 ---@field sub_hourly_tick number
 ---@field current_tick_in_month number
 ---@field current_tick_in_decade number
@@ -33,15 +33,12 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field world_size number
 ---@field tiles tile_id[]
 ---@field plates table<number, Plate>
----@field provinces table<number, Province>
----@field ordered_provinces_list Province[]
 ---@field province_count number
----@field settled_provinces table<Province, Province>
----@field settled_provinces_by_identifier table<number, table<Province, Province>>
+---@field settled_provinces table<province_id, province_id>
+---@field settled_provinces_by_identifier table<number, table<province_id, province_id>>
 ---@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
 ---@field tile_to_climate_cell table<tile_id, ClimateCell>
----@field tile_to_province table<tile_id, Province>
 ---@field tile_to_plate table<tile_id, Plate>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
 ---@field entity_counter number -- a global counter for entities...
@@ -54,7 +51,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
 ---@field realms_changed boolean
----@field provinces_to_update_on_map table<Province, Province>
+---@field provinces_to_update_on_map table<province_id, province_id>
 
 ---@class World
 world.World            = {}
@@ -76,8 +73,6 @@ function world.World:new()
 
 	w.tiles = {}
 	w.plates = {}
-	w.provinces = {}
-	w.ordered_provinces_list = {}
 	w.settled_provinces = {}
 	w.province_count = 0
 	w.settled_provinces_by_identifier = {}
@@ -88,7 +83,6 @@ function world.World:new()
 	w.climate_cells = {}
 
 	w.tile_to_climate_cell = {}
-	w.tile_to_province = {}
 	w.tile_to_plate = {}
 
 	w.entity_counter = 2
@@ -131,14 +125,17 @@ end
 
 ---@return number
 function world.World:base_visibility(size)
+	local humans_id = RAWS_MANAGER.races_by_name['human']
+	local raiders = RAWS_MANAGER.unit_types_by_name["raiders"]
+
 	return RAWS_MANAGER.races_by_name['human'].visibility * RAWS_MANAGER.unit_types_by_name["raiders"].visibility * size
 end
 
 --- Set province as settled: it enables updates of this province.
----@param province Province
+---@param province province_id
 function world.World:set_settled_province(province)
 	self.settled_provinces[province] = province
-	local _, lon = tile.latlon(province.center)
+	local _, lon = tile.latlon(DATA.province_get_center(province))
 	lon = lon + math.pi
 	lon = lon / math.pi
 	lon = lon / 2
@@ -148,10 +145,10 @@ function world.World:set_settled_province(province)
 end
 
 --- Unset province as settled: it disables updates of this province.
----@param province Province
+---@param province province_id
 function world.World:unset_settled_province(province)
 	self.settled_provinces[province] = nil
-	local _, lon = tile.latlon(province.center)
+	local _, lon = tile.latlon(DATA.province_get_center(province))
 	lon = lon + math.pi
 	lon = lon / math.pi
 	lon = lon / 2
@@ -292,7 +289,7 @@ function world.World:emit_action(event, root, associated_data, delay, hidden)
 	}
 	-- print('add new action:' .. event)
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD:does_player_see_realm_news(root.realm) and not hidden then
+	if WORLD:does_player_see_realm_news(DATA.pop_get_realm(root)) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end
 end
@@ -359,8 +356,9 @@ function world.World:event_tick(eve, root, dat)
 	else
 		WORLD.events_queue:dequeue()
 		handle_event(eve, root, dat)
-		if (not root.dead) then
-			assert(root.province ~= nil, "character is alive but province is nil after event " .. eve)
+		local dead = DATA.pop_get_dead(root)
+		if (not dead) then
+			assert(DATA.get_character_location_from_character(root), "character is alive but province is nil after event " .. eve)
 		end
 		return false
 	end
@@ -411,26 +409,23 @@ function world.World:tick()
 		for _, settled_province in pairs(ta) do
 			local accumulate = {net_pp = 0, fruit = 0, seeds = 0, wood = 0, shell = 0, fish = 0, game = 0, fungi = 0}
 
-			for _, tile_id in pairs(settled_province.tiles) do
-				local conifer = DATA.tile_get_conifer(tile_id)
-				local broadleaf = DATA.tile_get_broadleaf(tile_id)
-				local shrub = DATA.tile_get_shrub(tile_id)
-				local grass = DATA.tile_get_grass(tile_id)
+			for _, tile_membership in pairs(DATA.get_tile_province_membership_from_province(settled_province)) do
+				local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
+				DATA.tile[tile_id].conifer =
+					DATA.tile[tile_id].conifer * (1 - VEGETATION_GROWTH)
+					+ DATA.tile[tile_id].ideal_conifer * VEGETATION_GROWTH
 
-				local ideal_conifer = DATA.tile_get_ideal_conifer(tile_id)
-				local ideal_broadleaf = DATA.tile_get_ideal_broadleaf(tile_id)
-				local ideal_shrub = DATA.tile_get_ideal_shrub(tile_id)
-				local ideal_grass = DATA.tile_get_ideal_grass(tile_id)
+				DATA.tile[tile_id].broadleaf =
+					DATA.tile[tile_id].broadleaf * (1 - VEGETATION_GROWTH)
+					+ DATA.tile[tile_id].ideal_broadleaf * VEGETATION_GROWTH
 
-				conifer   = conifer * (1 - VEGETATION_GROWTH) + ideal_conifer * VEGETATION_GROWTH
-				broadleaf = broadleaf * (1 - VEGETATION_GROWTH) + ideal_broadleaf * VEGETATION_GROWTH
-				shrub     = shrub * (1 - VEGETATION_GROWTH) + ideal_shrub * VEGETATION_GROWTH
-				grass     = grass * (1 - VEGETATION_GROWTH) + ideal_grass * VEGETATION_GROWTH
+				DATA.tile[tile_id].shrub =
+					DATA.tile[tile_id].shrub * (1 - VEGETATION_GROWTH)
+					+ DATA.tile[tile_id].ideal_shrub * VEGETATION_GROWTH
 
-				DATA.tile_set_conifer(tile_id, conifer)
-				DATA.tile_set_broadleaf(tile_id, broadleaf)
-				DATA.tile_set_shrub(tile_id, shrub)
-				DATA.tile_set_grass(tile_id, grass)
+				DATA.tile[tile_id].grass =
+					DATA.tile[tile_id].grass * (1 - VEGETATION_GROWTH)
+					+ DATA.tile[tile_id].ideal_grass * VEGETATION_GROWTH
 
 				-- collecting tile foraging production
 				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile_id)

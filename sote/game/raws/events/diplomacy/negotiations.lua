@@ -381,14 +381,14 @@ return function ()
 			local trade_table = associated_data.negotiations_terms_characters.trade
 
 			--- from initiator
-			for name, trade_good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+			local function personal_goods_option(trade_good)
 				table.insert(options_list, {
-					text = "Transfer " .. trade_good.description,
+					text = "Transfer " .. DATA.trade_good_description[trade_good],
 					tooltip = "I will additionally transfer a unit of this good to target",
 					viable = function() return true end,
 					outcome = function()
-						trade_table.goods_transfer_from_initiator_to_target[name] =
-							(trade_table.goods_transfer_from_initiator_to_target[name] or 0) + 1
+						trade_table.goods_transfer_from_initiator_to_target[trade_good] =
+							(trade_table.goods_transfer_from_initiator_to_target[trade_good] or 0) + 1
 						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-goods", character, associated_data)
 					end,
 					ai_preference = function ()
@@ -397,15 +397,17 @@ return function ()
 				})
 			end
 
+			DATA.for_each_trade_good(personal_goods_option)
+
 			--- to initiator
-			for name, trade_good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+			local function trade_good_request_option(trade_good)
 				table.insert(options_list, {
-					text = "Demand " .. trade_good.description,
+					text = "Demand " .. DATA.trade_good_get_description(trade_good),
 					tooltip = "I will additionally require a unit of this good from target",
 					viable = function() return true end,
 					outcome = function()
-						trade_table.goods_transfer_from_initiator_to_target[name] =
-							(trade_table.goods_transfer_from_initiator_to_target[name] or 0) - 1
+						trade_table.goods_transfer_from_initiator_to_target[trade_good] =
+							(trade_table.goods_transfer_from_initiator_to_target[trade_good] or 0) - 1
 						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-goods", character, associated_data)
 					end,
 					ai_preference = function ()
@@ -413,6 +415,7 @@ return function ()
 					end
 				})
 			end
+			DATA.for_each_trade_good(trade_good_request_option)
 
 			return options_list
 		end

@@ -6,7 +6,7 @@ local upk = {}
 function upk.run(province)
 	province.local_building_upkeep = 0
 
-	---@type table<POP, number>
+	---@type table<pop_id, number>
 	local upkeep_owners = {}
 	local government_upkeep = 0
 
@@ -22,7 +22,8 @@ function upk.run(province)
 				end
 			end
 		else
-			if building.owner == nil then
+			local owner = building.owner
+			if owner == nil then
 				economic_effects.change_local_wealth(
 					province,
 					-up,
@@ -38,11 +39,12 @@ function upk.run(province)
 					end
 				end
 			else
-				if upkeep_owners[building.owner] == nil then
-					upkeep_owners[building.owner] = 0
+				if upkeep_owners[owner] == nil then
+					upkeep_owners[owner] = 0
 				end
-				upkeep_owners[building.owner] = upkeep_owners[building.owner] + up
-				if building.owner.savings < upkeep_owners[building.owner] then
+				upkeep_owners[owner] = upkeep_owners[owner] + up
+				local savings = DATA.pop_get_savings(owner)
+				if savings < upkeep_owners[owner] then
 					if love.math.random() < 0.1 then
 						building:remove_from_province()
 					end

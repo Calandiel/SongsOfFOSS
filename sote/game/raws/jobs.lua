@@ -1,4 +1,4 @@
-local JOBTYPE = require "game.raws.job_types"
+
 
 ---@class (exact) Job
 ---@field __index Job

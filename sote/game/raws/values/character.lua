@@ -1,4 +1,4 @@
-local JOBTYPE = require "game.raws.job_types"
+
 
 local character_values = {}
 

@@ -6,6 +6,9 @@ local pv = require "game.raws.values.political"
 local ev = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
 
+local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+
+
 local RANKS = require "game.raws.ranks.character_ranks"
 
 local tb = {}
@@ -148,7 +151,7 @@ function tb.draw(gam)
 			"My personal savings")
 
 
-		local amount = economic_effects.available_use_case_from_inventory(character.inventory, 'calories')
+		local amount = economic_effects.available_use_case_from_inventory(character.inventory, CALORIES_USE_CASE)
 		uit.sqrt_number_entry_icon(
 			"sliced-bread.png",
 			amount,
@@ -209,7 +212,7 @@ function tb.draw(gam)
 		DRAW_EFFECTS(trt)
 
 		-- Food
-		local amount = ev.get_local_amount_of_use(character.province, 'calories')
+		local amount = ev.get_local_amount_of_use(character.province, CALORIES_USE_CASE)
 		uit.sqrt_number_entry_icon(
 			"noodles.png",
 			amount,

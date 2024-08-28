@@ -97,7 +97,9 @@ local function load()
 
 	Event:new {
 		name = "war-declaration",
+		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type Realm
 			local realm = root.province.realm

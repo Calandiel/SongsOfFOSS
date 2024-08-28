@@ -18,6 +18,7 @@ function ws.draw()
 	ui.background(ASSETS.background)
 	if ws.coroutine == nil then
 		ws.message = "Saving the world..."
+		DATA.save_state()
         WORLD_PROGRESS.total = 0
         WORLD_PROGRESS.max = 6 * DEFINES.world_size * DEFINES.world_size
         WORLD_PROGRESS.is_loading = true
@@ -28,6 +29,7 @@ function ws.draw()
 	end
 
 	local status, data = coroutine.resume(ws.coroutine)
+	print("COROUTINE_STATUS:", status)
 	ui.text_panel(ws.message, ui.fullscreen():subrect(
 		0, 0, 300, 60, "center", "down"
 	))

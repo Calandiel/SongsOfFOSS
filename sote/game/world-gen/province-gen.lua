@@ -558,17 +558,18 @@ function pro.run()
 
 		for _, tile_id in pairs(province.tiles) do
 			local biome = DATA.tile_get_biome(tile_id)
+			local biome_name = DATA.biome_get_name(biome)
 
-			if biome.name == "mixed-forest" or
-				biome.name == "coniferous-forest" or
-				biome.name == "taiga" or
-				biome.name == "broadleaf-forest" or
-				biome.name == "wet-jungle" or
-				biome.name == "dry-jungle" or
-				biome.name == "mixed-woodland" or
-				biome.name == "coniferous-woodland" or
-				biome.name == "woodland-taiga" or
-				biome.name == "broadleaf-woodland" then
+			if biome_name == "mixed-forest" or
+				biome_name == "coniferous-forest" or
+				biome_name == "taiga" or
+				biome_name == "broadleaf-forest" or
+				biome_name == "wet-jungle" or
+				biome_name == "dry-jungle" or
+				biome_name == "mixed-woodland" or
+				biome_name == "coniferous-woodland" or
+				biome_name == "woodland-taiga" or
+				biome_name == "broadleaf-woodland" then
 				forestCount = forestCount + 1
 			end
 

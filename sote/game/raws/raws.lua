@@ -11,7 +11,10 @@ return function(do_logging)
 	local Realm = require "game.raws.biogeographic-realms"
 	local tabb = require "engine.table"
 
+	print("Loading bedrocks")
 	require "game.raws.bedrocks-loader".load()
+
+	print("Loading biomes")
 	require "game.raws.biomes-loader".load()
 	Realm:new {
 		name = "palearctic",
@@ -19,17 +22,20 @@ return function(do_logging)
 		g = 89,
 		b = 91,
 	}
+
+	print("Loading needs and goods")
+	require "game.raws.use-case-loader".load()
+	require "game.raws.trade-goods-loader".load()
 	require "game.raws.needs"
+
+	print("Loading races")
 	require "game.raws.race-loader".load()
 	require "game.raws.jobs-loader".load()
-	require "game.raws.trade-goods-use-case-loader".load()
-	require "game.raws.trade-goods-loader".load()
 
+	print("Loading resources")
 	require 'game.raws.resource-loader'.load()
 
-	if do_logging then
-		print('production methods')
-	end
+	print('Loading production methods')
 	require "game.raws.production-methods-loader".load()
 
 	require "game.raws.technology-loader".load()

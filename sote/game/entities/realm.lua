@@ -102,10 +102,10 @@ end
 ---@field coa_background_image number
 ---@field coa_foreground_image number
 ---@field coa_emblem_image number
----@field resources table<TradeGoodReference, number> Currently stockpiled resources
----@field production table<TradeGoodReference, number> A "balance" of resource creation
----@field bought table<TradeGoodReference, number>
----@field sold table<TradeGoodReference, number>
+---@field resources table<trade_good_id, number> Currently stockpiled resources
+---@field production table<trade_good_id, number> A "balance" of resource creation
+---@field bought table<trade_good_id, number>
+---@field sold table<trade_good_id, number>
 ---@field expected_food_consumption number
 ---@field armies table<Army, Army>
 ---@field wars table<War, War> Wars
@@ -428,6 +428,7 @@ function realm.Realm:get_realm_militarization()
 	return self:get_realm_military() / self:get_realm_population()
 end
 
+---@param warband Warband
 function realm.Realm:raise_warband(warband)
 	for _, pop in pairs(warband.pops) do
 		-- print(pop.name, "raised from province")

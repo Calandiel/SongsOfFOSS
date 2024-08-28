@@ -126,7 +126,7 @@ function dem.selected_building_efficiency()
 	end
 end
 
----@type TradeGoodReference?
+---@type trade_good_id?
 HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = nil
 
 function dem.prices()

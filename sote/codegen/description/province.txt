@@ -1,0 +1,41 @@
+name string
+r float
+g float
+b float
+is_land bool
+province_id float
+size float
+hydration float Number of humans that can live of off this provinces innate water
+movement_cost float
+center tile_id The tile which contains this province's settlement, if there is any.
+infrastructure_needed float
+infrastructure float
+infrastructure_investment float
+realm Realm?
+buildings table<Building,Building>
+technologies_present table<Technology,Technology>
+technologies_researchable table<Technology,Technology>
+buildable_buildings table<BuildingType,BuildingType>
+local_production float[trade_good]
+local_consumption float[trade_good]
+local_demand float[trade_good]
+local_storage float[trade_good]
+local_prices float[trade_good]
+local_wealth float
+trade_wealth float
+local_income float
+local_building_upkeep float
+foragers float Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
+foragers_water float amount foraged by pops and characters
+foragers_limit float amount of calories foraged by pops and characters
+foragers_targets table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>
+local_resources table<Resource,Resource> A hashset containing all resources present on tiles of this province
+local_resources_location table<number,{[1]:tile_id,[2]:Resource}> An array of local resources and their positions
+mood float how local population thinks about the state
+unit_types table<UnitType,UnitType>
+warbands table<Warband,Warband>
+throughput_boosts table<ProductionMethod,number>
+input_efficiency_boosts table<ProductionMethod,number>
+output_efficiency_boosts table<ProductionMethod,number>
+on_a_river bool
+on_a_forest bool

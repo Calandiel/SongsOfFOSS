@@ -33,6 +33,7 @@ VERSION_STRING = "v0.3.0 (Midgard)"
 SILENT_ASSET_LOADING = false
 
 DATA = require "codegen.output.generated"
+require "codegen.output.helpers"
 
 --if WORLD == nil then
 ---@type World|nil
@@ -105,34 +106,6 @@ DISPLAY_INCOME_OWNER_RATIO = 0
 local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
--- Raws
-bs.registerClass("Bedrock", require "game.raws.bedrocks")
-bs.registerClass("BiogeographicRealm", require "game.raws.biogeographic-realms")
-bs.registerClass("Biome", require "game.raws.biomes")
-bs.registerClass("BuildingType", require "game.raws.building-types")
-bs.registerClass("Job", require "game.raws.jobs")
-bs.registerClass("ProductionMethod", require "game.raws.production-methods")
-bs.registerClass("Race", require "game.raws.race")
-bs.registerClass("UnitType", require "game.raws.unit-types")
-bs.registerClass("Resource", require "game.raws.resources")
-bs.registerClass("Technology", require "game.raws.technologies")
-bs.registerClass("TradeGood", require "game.raws.trade-goods")
-bs.registerClass("TradeGoodUseCase", require "game.raws.trade-goods-use-case")
--- Entities
-bs.registerClass("Building", require "game.entities.building".Building)
-bs.registerClass("ClimateCell", require "game.entities.climate-cell".ClimateCell)
-bs.registerClass("Culture", require "game.entities.culture".Culture)
-bs.registerClass("CultureGroup", require "game.entities.culture".CultureGroup)
-bs.registerClass("Language", require "game.entities.language".Language)
-bs.registerClass("Plate", require "game.entities.plate".Plate)
-bs.registerClass("POP", require "game.entities.pop".POP)
-bs.registerClass("Province", require "game.entities.province".Province)
-bs.registerClass("Realm", require "game.entities.realm".Realm)
-bs.registerClass("Religion", require "game.entities.religion".Religion)
-bs.registerClass("Faith", require "game.entities.religion".Faith)
-bs.registerClass("World", require "game.entities.world".World)
-bs.registerClass("Warband", require "game.entities.warband")
-bs.registerClass('Army', require "game.entities.army")
 
 local lovetest = require "test/lovetest"
 

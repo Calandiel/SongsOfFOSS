@@ -73,16 +73,18 @@ function window.draw(game)
             if index > 0 then
                 local good = tabb.nth(RAWS_MANAGER.trade_goods_by_name, index)
                 local amount = character.inventory[good] or 0
-                local good_entity = trade_good(good)
+                local trade_good_id = trade_good(good)
+                local name = DATA.trade_good_get_name(trade_good_id)
+                local icon = DATA.trade_good_get_icon(trade_good_id)
 
                 local tooltip = "Amount of "
-                    .. good_entity.name
+                    .. name
                     .. " "
                     .. character.name
                     .. " owns. They think that its price is "
                     .. ut.to_fixed_point2(character.price_memory[good] or 0)
                 ut.sqrt_number_entry_icon(
-                    good_entity.icon,
+                    icon,
                     amount or 0,
                     rect,
                     tooltip

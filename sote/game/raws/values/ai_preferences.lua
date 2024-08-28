@@ -15,10 +15,15 @@ local ev = require "game.raws.values.economical"
 ---@return number
 function AiPreferences.percieved_inflation(character)
 	local use = use_case('calories')
-	local base_price = tabb.accumulate(use.goods, 0, function (a, k, v)
-		return a + trade_good(k).base_price * v
-	end) / math.min(tabb.size(use.goods), 1)
-	local price = ev.get_local_price_of_use(character.province, 'calories')
+	local base_price = tabb.accumulate(
+		DATA.use_weight_from_use_case[use],
+		0,
+		function (a, k, v)
+			return a + DATA.trade_good_get_base_price(k) * v
+		end
+	) / math.min(tabb.size(DATA.use_weight_from_use_case[use]), 1)
+
+	local price = ev.get_local_price_of_use(character.province, use)
 	if price == 0 then
 		price = base_price
 	end

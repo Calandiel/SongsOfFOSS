@@ -6,7 +6,7 @@ local col = {}
 ---@param b number
 ---@return number
 function col.rgb_to_id(r, g, b)
-	return r + 10 * g + 100 * b
+	return math.floor(256 * r  + 256 * 256 * g + 256 * 256 * 256 * b)
 end
 
 ---Transforms the 0-1 color space to the 0-255 color space...

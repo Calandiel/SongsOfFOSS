@@ -362,18 +362,19 @@ return function(province, ui_panel, base_unit, gam)
             TRADE_AMOUNT = 1
         end
 
-        for good_reference, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-            local good_supply = production[good_reference] or 0
-            local good_demand = demand[good_reference] or 0
-            local good_consumption = consumption[good_reference] or 0
+        for good_name, good_id in pairs(RAWS_MANAGER.trade_goods_by_name) do
+            local good_supply = production[good_id] or 0
+            local good_demand = demand[good_id] or 0
+            local good_consumption = consumption[good_id] or 0
             local inventory = 0
             if character then
-                inventory = character.inventory[good_reference] or 0
+                inventory = character.inventory[good_id] or 0
             end
             if inventory > 0 or good_supply > 0 or good_consumption > 0
-                or (province.local_storage[good_reference] or 0) > 0
+                or (province.local_storage[good_id] or 0) > 0
             then
-                data_blob[good_reference] = {
+                local good = DATA.fatten_trade_good(good_id)
+                data_blob[good_name] = {
                     data = good,
                     name = good.description,
                     icon = good.icon,
@@ -385,9 +386,9 @@ return function(province, ui_panel, base_unit, gam)
                     demand = good_demand,
                     consumption = good_consumption,
                     balance = good_supply - good_consumption,
-                    stockpile = province.local_storage[good_reference] or 0,
-                    buy_price = ev.get_local_price(province, good_reference),
-                    sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT, true),
+                    stockpile = province.local_storage[good_id] or 0,
+                    buy_price = ev.get_local_price(province, good_id),
+                    sell_price = ev.get_pessimistic_local_price(province, good_id, TRADE_AMOUNT, true),
                     inventory = inventory
                 }
             end

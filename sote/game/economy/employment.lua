@@ -7,9 +7,9 @@ local economy_values = require "game.raws.values.economical"
 ---@param province Province
 function emp.run(province)
 	-- Sample random pop and try to employ it
-	---@type table<POP, POP>
+	---@type table<pop_id, pop_id>
 	local eligible_pops = tabb.filter(province.all_pops, function (pop)
-		return (pop.age > pop.race.teen_age) and (pop.work_ratio > 0.02)
+		return (DATA.pop_get_age(pop) > DATA.pop_get_race(pop).teen_age) and (DATA.pop_get_work_ratio(pop) > 0.02)
 	end)
 
 	local pop = tabb.random_select_from_set(eligible_pops)
@@ -23,11 +23,13 @@ function emp.run(province)
 	local exp_modifier = math.log(exp_base)
 
 	-- cache prices:
-	---@type table<TradeGoodReference, number>
+	---@type table<trade_good_id, number>
 	local prices = {}
-	for good_name, _ in pairs(RAWS_MANAGER.trade_goods_by_name) do
-		prices[good_name] = economy_values.get_local_price(province, good_name)
+	local function cache_price(trade_good)
+		prices[trade_good] = economy_values.get_local_price(province, trade_good)
 	end
+
+	DATA.for_each_trade_good(cache_price)
 
 	-- raw values
 	---@type table<Building, number>
@@ -62,8 +64,8 @@ function emp.run(province)
 				profit =
 					economy_values.projected_income(
 						building,
-						pop.race,
-						pop.female,
+						DATA.pop_get_race(pop),
+						DATA.pop_get_female(pop),
 						prices,
 						shortage_modifier
 					)
@@ -131,15 +133,16 @@ function emp.run(province)
 	-- 	end
 	-- end
 
-	if pop.age > pop.race.teen_age then
-		if pop.job == nil then
+	if DATA.pop_get_age(pop) > DATA.pop_get_race(pop).teen_age then
+		if DATA.pop_get_job(pop) then
 			-- pop is not employed
 			-- employ him
 			province:employ_pop(pop, hire_building)
 		else
 			-- pop is already employed
 			-- consider changing his job
-			local pop_current_income = pop.employer.last_income / tabb.size(pop.employer.workers)
+			local employer = DATA.pop_get_employer(pop)
+			local pop_current_income = employer.last_income / tabb.size(employer.workers)
 
 			-- TODO: move to cultural value
 			local likelihood_of_changing_job = 0.9

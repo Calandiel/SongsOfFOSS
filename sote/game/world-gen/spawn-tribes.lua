@@ -181,11 +181,11 @@ function st.run()
 
 	local civs = 500 / tabb.size(order) -- one per race...
 
-	print(civs)
+	-- print(civs)
 	for _ = 1, civs do
-		print(_)
+		-- print(_)
 		for _, r in ipairs(order) do
-			print(_)
+			-- print(_)
 			-- First, find a land province that isn't owned by any realm...
 			local sampled_tile = WORLD:random_tile()
 			local prov = tile.province(sampled_tile)
