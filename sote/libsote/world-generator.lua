@@ -20,6 +20,8 @@ wg.state = wg.states.idle
 wg.message = ""
 wg.world = nil
 
+local use_sote_climate_data = true
+
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[worldgen profiling]"
 
@@ -94,7 +96,9 @@ local function initial_waterflow()
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
 	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
 
-	table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
+	if use_sote_climate_data then
+		table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
+	end
 
 	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.world_gen) end, "calculate-waterflow", 1) })
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(0, 0, 0) end, "clear_soils", 1) })

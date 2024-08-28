@@ -85,7 +85,7 @@ local sote_vals = {
 	plate             = 15,
 }
 
-local remap_coords = false
+local remap_coords = true
 
 local function log_info(msg)
 	print("[libsote] " .. msg)
@@ -349,7 +349,7 @@ function libsote.worldgen_phase01_coro(seed)
 	end
 
 	local duration = love.timer.getTime() - start
-	print("[worldgen_task]: " .. tostring(duration * 1000) .. "ms --------------------------------------")
+	print("[worldgen_task]: " .. string.format("%.2f", duration * 1000) .. "ms --------------------------------------")
 
 	log_and_set_msg("World generation finished")
 end
@@ -361,7 +361,7 @@ function libsote.generate_world(seed)
 	local start = love.timer.getTime()
 	local world = require("libsote.world-allocator").allocate(world_size, seed)
 	local duration = love.timer.getTime() - start
-	print("[worldgen profiling] allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
+	print("[worldgen profiling] allocated Goldberg polyhedron world: " .. string.format("%.2f", duration * 1000) .. "ms")
 
 	if not world then
 		log_and_set_msg("World allocation failed")

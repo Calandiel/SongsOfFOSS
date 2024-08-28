@@ -157,7 +157,7 @@ function wl.load_maps_from(world)
 	end
 
 	local duration = love.timer.getTime() - start
-	print("[world-loader] loaded maps: " .. tostring(duration * 1000) .. "ms")
+	print("[world-loader] loaded maps: " .. string.format("%.2f", duration * 1000) .. "ms")
 end
 
 local hexu = require "libsote.hex-utils"

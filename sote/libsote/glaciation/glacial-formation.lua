@@ -21,7 +21,7 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
-local use_debug_rng = false
+local align_rng = true
 
 local world
 local glacial_seed
@@ -531,12 +531,10 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 		total_material = open_issues.adjust_material_for_province_size_after(total_material, is_ice_age, #melt_province, use_original)
 
 		while sample_expansion > 0 do
-			if use_original then sample_expansion = sample_expansion - 1 end
+			-- in the original code, the 'sample_expansion' is decremented at the begging of the loop, but its value is then used by the loop logic
+			sample_expansion = sample_expansion - 1
 
 			expand_melt_province(is_ice_age, sample_expansion)
-
-			-- in the original code, the 'sample_expansion' is decremented at the begging of the loop, but its value is then used by the loop logic
-			if not use_original then sample_expansion = sample_expansion - 1 end
 		end
 
 		local total_points = 0
@@ -634,7 +632,7 @@ function gm.run(world_obj)
 
 	rng = world.rng
 	local preserved_state = nil
-	if use_debug_rng then
+	if align_rng then
 		preserved_state = rng:get_state()
 		rng:set_seed(world.seed + 19832)
 	end
@@ -656,7 +654,7 @@ function gm.run(world_obj)
 	world:reset_debug_all()
 	process_age(AGE_TYPES.game_age)
 
-	if use_debug_rng then
+	if align_rng then
 		rng:set_state(preserved_state)
 	end
 end

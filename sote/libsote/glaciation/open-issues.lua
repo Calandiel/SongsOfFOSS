@@ -34,6 +34,7 @@ end
 
 -- odd stuff in the original impl, port below is commented out: total_ice_movement is initialized to 1, meaning that even if there is no ice movement
 -- in the neighbors, the material will still be pushed to the melt zones, by the same amount as the ice moved, for each neighbor that qualifies
+-- This one does not seem to have a significant impact on silt storage
 function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
 	if use_original then
 		local total_ice_movement = 1
@@ -52,7 +53,6 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
 
 			already_added[nti] = true
-			-- set_debug(1, world, ti, 224, 247, 250, 255)
 		end)
 
 		if total_ice_movement > 0 then
@@ -78,7 +78,6 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
 
 			already_added[nti] = true
-			-- set_debug(1, world, ti, 224, 247, 250, 255)
 		end)
 
 		texture_material[ti] = 0
@@ -87,7 +86,7 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 end
 
 -- original code removes the already_added flag for all glacial seeds without discrimination, which seems odd
--- I would alter the original, by removing it only for the seeds that are not eligible for melting
+-- Removing it for all tiles that are not eligible for melt seems to have a significant impact on silt storage
 function oi.remove_already_added(ti, already_added, is_eligible_melt_tile, use_original)
 	if use_original then
 		already_added[ti] = false
@@ -101,8 +100,9 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- the original code computes the number of expansions based on total material,
--- then proceeds to change the total material based on whether it's processing an ice age or not
+-- then proceeds to boost the total material based on whether it's processing an ice age or not
 -- so, the question is whether the total material should be altered before or after calculating the no of expansions
+-- Has some impact on silt storage for non ice age
 function oi.adjust_material_for_province_size_before(total_material, is_ice_age, province_size, use_original)
 	if use_original then
 		return total_material
