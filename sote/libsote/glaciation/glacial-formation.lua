@@ -21,6 +21,7 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
+local use_debug_rng = false
 
 local world
 local glacial_seed
@@ -34,11 +35,11 @@ local invasion_ticker
 local silt_storage
 local mineral_storage
 
+local rng
+
 local old_layer = {}
 local new_layer = {}
-
 local sorted_glacial_seeds = {}
-
 local melt_tiles = {}
 local tiles_influenced = {}
 
@@ -230,8 +231,9 @@ local function process_ice_expansion(ti, boost_ice)
 
 	local ultimate_elevation = open_issues.true_elevation(world, ti) + ice_flow[ti]
 
+	-- local rn = rng:random_int_max(world:neighbors_count(ti))
+	-- world:for_each_neighbor_starting_at(ti, rn, function(nti)
 	world:for_each_neighbor_random_start(ti, function(nti)
-	-- world:for_each_neighbor(ti, function(nti)
 		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
 		if ultimate_elevation <= neigh_ultimate_elev then return end
 
@@ -466,8 +468,11 @@ local function expand_melt_province(is_ice_age, expansion_tick)
 			-- original code has some dead code that seems to want to use the ice to decide whether to skip or not
 			if already_added[nti] then return end
 
-			local rn = world.rng:random_int_max(100)
-			local neighbor_contributes = (is_ice_age and world.ice_age_ice[nti] > 0) and rn < 20 or rn < 50
+			local rn = rng:random_int_max(100)
+			local neighbor_contributes = false
+			if is_ice_age and world.ice_age_ice[nti] > 0 then
+				if rn < 20 then neighbor_contributes = true end
+			elseif rn < 50 then neighbor_contributes = true end
 
 			if neighbor_contributes then
 				already_added[nti] = true
@@ -627,6 +632,13 @@ function gm.run(world_obj)
 	silt_storage = world.tmp_int_3
 	mineral_storage = world.tmp_int_4
 
+	rng = world.rng
+	local preserved_state = nil
+	if use_debug_rng then
+		preserved_state = rng:get_state()
+		rng:set_seed(world.seed + 19832)
+	end
+
 	world:adjust_debug_channels(7)
 
 	world:fill_ffi_array(glacial_seed, false)
@@ -643,6 +655,10 @@ function gm.run(world_obj)
 	process_age(AGE_TYPES.ice_age)
 	world:reset_debug_all()
 	process_age(AGE_TYPES.game_age)
+
+	if use_debug_rng then
+		rng:set_state(preserved_state)
+	end
 end
 
 return gm
