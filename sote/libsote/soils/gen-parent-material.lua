@@ -8,6 +8,8 @@ local rock_types = require "libsote.rock-type".TYPES
 local rock_qualities = require "libsote.rock-qualities"
 local open_issues = require "libsote.soils.open-issues"
 
+-- local logger = require("libsote.debug-loggers").get_parent_material_logger("d:/temp")
+
 --* Weathering Defines
 local base_weathering              =   1 --* Guaranteed amount of weathering in a tile. Generally quite low
 local base_ice_wedging             =   3 --* The base amount of Ice Wedging that occurs if we meet the 0 degree threshold
@@ -90,12 +92,10 @@ local function process_tile(ti, world)
 	end
 	silt_disposed, clay_disposed, sand_disposed = apply_bias(silt_disposed, silt_multiplier, clay_disposed, sand_disposed)
 
-	local tile_sand, tile_silt, tile_clay, mineral_qty = world.sand[ti], world.silt[ti], world.clay[ti], world.mineral_richness[ti]
-
-	tile_sand = tile_sand + ((sand_disposed / 100) * final_weathered_rock)
-	tile_silt = tile_silt + ((silt_disposed / 100) * final_weathered_rock)
-	tile_clay = tile_clay + ((clay_disposed / 100) * final_weathered_rock)
-	mineral_qty = mineral_qty + math.floor((mineral_richness * final_weathered_rock) / 100)
+	world.sand[ti] = world.sand[ti] + ((sand_disposed / 100) * final_weathered_rock)
+	world.silt[ti] = world.silt[ti] + ((silt_disposed / 100) * final_weathered_rock)
+	world.clay[ti] = world.clay[ti] + ((clay_disposed / 100) * final_weathered_rock)
+	world.mineral_richness[ti] = world.mineral_richness[ti] + math.floor((mineral_richness * final_weathered_rock) / 100)
 
 	--* We need to have a soil depth factor multiplied into the equation for mineral nutrients.
 end
