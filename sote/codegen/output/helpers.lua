@@ -5,9 +5,12 @@ function IS_CHARACTER(pop_id)
 end
 
 --- update these values when you change description in according generator descriptors
+
+
 MAX_TRAIT_INDEX = 19
 MAX_NEED_SATISFACTION_POSITIONS_INDEX = 19
 MAX_RESOURCES_IN_PROVINCE_INDEX = 24
+INVALID_ID = 0
 
 ---@alias Character pop_id
 ---@alias POP pop_id

@@ -10,20 +10,18 @@ function army_utils.get_visibility(army)
 	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
 		local warband = DATA.army_membership_get_member(army_membership)
 
-		for _, warband_membership in pairs(DATA.get_warband_unit_from_warband(warband)) do
-			local unit_type = DATA.warband_unit_get_type(warband_membership)
-			local pop = DATA.warband_unit_get_unit(warband_membership)
-			vis = vis + pop_utils.pop_get_visibility(pop, unit_type)
-		end
+		vis = vis + warband_utils.visibility(warband)
 	end
 	return vis
 end
 ---@param army army_id
 ---@return number
-function army_utils.get_loot_capacity(army)
+function army_utils.loot_capacity(army)
 	local cap = 0
-	for _, warband in pairs(self.warbands) do
-		cap = cap + warband.get_loot_capacity()
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+
+		cap = cap + warband_utils.loot_capacity(warband)
 	end
 	return cap
 end
@@ -31,8 +29,9 @@ end
 ---Kill everyone in the army
 ---@param army army_id
 function army_utils.decimate(army)
-	for _, warband in pairs(self.warbands) do
-		warband.decimate()
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+		warband_utils.decimate(warband)
 	end
 end
 
@@ -90,7 +89,7 @@ function army_utils.attack(attacker, prov, spotted, defender)
 	local atk_hp = 0
 	local atk_stack = 0
 	for _, warband in pairs(self.warbands) do
-		local health, attack, armor, speed, count = warband.get_total_strength()
+		local health, attack, armor, speed, count = warband.total_strength()
 		atk_armor = atk_armor + armor
 		atk_attack = atk_attack + attack
 		atk_speed = atk_speed + speed
@@ -113,7 +112,7 @@ function army_utils.attack(attacker, prov, spotted, defender)
 	local def_hp = 0
 	local def_stack = 0
 	for _, warband in pairs(defender.warbands) do
-		local health, attack, armor, speed, count = warband.get_total_strength()
+		local health, attack, armor, speed, count = warband.total_strength()
 		def_armor = def_armor + armor
 		def_attack = def_attack + attack
 		def_speed = def_speed + speed
@@ -178,4 +177,4 @@ function army_utils.attack(attacker, prov, spotted, defender)
 	return victory, losses, def_losses
 end
 
-return army
+return army_utils

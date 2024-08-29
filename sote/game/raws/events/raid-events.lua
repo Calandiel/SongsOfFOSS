@@ -462,7 +462,7 @@ local function load()
 			if success then
 				-- The army wasn't spotted!
 				-- Therefore, it's a sure success.
-				local max_loot = army:get_loot_capacity()
+				local max_loot = army:loot_capacity()
 				local real_loot = math.min(max_loot, province.local_wealth)
 				economic_effects.change_local_wealth(province, -real_loot, economic_effects.reasons.Raid)
 				if realm and max_loot > real_loot then

@@ -184,6 +184,12 @@ class Field:
         """
         return f"{NAMESPACE}.{self.prefix}_set_{self.name}"
 
+    def increment_name(self):
+        """
+        Returns a name of a incrementer
+        """
+        return f"{NAMESPACE}.{self.prefix}_inc_{self.name}"
+
     def lua_getter(self):
         """
         Returns a string with getter binding
@@ -258,12 +264,27 @@ class Field:
                         f"function {self.setter_name()}_{field.name}({arg}, value)\n" \
                         f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name} = value\n" \
                         f"end\n"
+                        if field.value.lsp_type == "number":
+                            result += \
+                            f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                            f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
+                            f"function {self.increment_name()}_{field.name}({arg}, value)\n" \
+                            f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name} = {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name} + value\n" \
+                            f"end\n"
                     return result
-                return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+
+                result =f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"function {self.setter_name()}({arg}, value)\n" \
                         f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
                         f"end\n"
+                if self.value.lsp_type == "number":
+                    result +=   f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                                f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
+                                f"function {self.increment_name()}({arg}, value)\n" \
+                                f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = {NAMESPACE}.{self.prefix}[{arg}].{self.name} + value\n" \
+                                f"end\n"
+                return result
             else:
                 if self.value.c_type in REGISTERED_STRUCTS:
                     result = ""
@@ -276,13 +297,28 @@ class Field:
                         f"function {self.setter_name()}_{field.name}({arg}, index, value)\n" \
                         f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name} = value\n" \
                         f"end\n"
+                        if field.value.lsp_type == "number":
+                            result += f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                            f"---@param index {self.index.lsp_type} valid index\n" \
+                            f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
+                            f"function {self.increment_name()}_{field.name}({arg}, index, value)\n" \
+                            f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name} = {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name} + value\n" \
+                            f"end\n"
                     return result
-                return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                result =f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@param index {self.index.lsp_type} valid index\n" \
                         f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"function {self.setter_name()}({arg}, index, value)\n" \
                         f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index] = value\n" \
                         f"end\n"
+                if self.value.lsp_type == "number":
+                    result +=f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                        f"---@param index {self.index.lsp_type} valid index\n" \
+                        f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
+                        f"function {self.increment_name()}({arg}, index, value)\n" \
+                        f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index] = {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index] + value\n" \
+                        f"end\n"
+                return result
         else:
             if self.array_size > 1:
                 return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
@@ -900,6 +936,11 @@ class EntityDescription:
                 result += f"            {field.setter_name()}(t.id, v)\n"
                 result +=  "            return\n"
                 result +=  "        end\n"
+        for field in self.links:
+            result += f"        if (k == \"{field.name}\") then\n"
+            result += f"            {field.setter_name()}(t.id, v)\n"
+            result +=  "            return\n"
+            result +=  "        end\n"
         result += "        rawset(t, k, v)\n"
         result += "    end\n"
 

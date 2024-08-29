@@ -237,6 +237,11 @@ function DATA.tile_set_elevation(tile_id, value)
     DATA.tile[tile_id].elevation = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_elevation(tile_id, value)
+    DATA.tile[tile_id].elevation = DATA.tile[tile_id].elevation + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number grass
 function DATA.tile_get_grass(tile_id)
     return DATA.tile[tile_id].grass
@@ -245,6 +250,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_grass(tile_id, value)
     DATA.tile[tile_id].grass = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_grass(tile_id, value)
+    DATA.tile[tile_id].grass = DATA.tile[tile_id].grass + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number shrub
@@ -257,6 +267,11 @@ function DATA.tile_set_shrub(tile_id, value)
     DATA.tile[tile_id].shrub = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_shrub(tile_id, value)
+    DATA.tile[tile_id].shrub = DATA.tile[tile_id].shrub + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number conifer
 function DATA.tile_get_conifer(tile_id)
     return DATA.tile[tile_id].conifer
@@ -265,6 +280,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_conifer(tile_id, value)
     DATA.tile[tile_id].conifer = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_conifer(tile_id, value)
+    DATA.tile[tile_id].conifer = DATA.tile[tile_id].conifer + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number broadleaf
@@ -277,6 +297,11 @@ function DATA.tile_set_broadleaf(tile_id, value)
     DATA.tile[tile_id].broadleaf = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_broadleaf(tile_id, value)
+    DATA.tile[tile_id].broadleaf = DATA.tile[tile_id].broadleaf + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number ideal_grass
 function DATA.tile_get_ideal_grass(tile_id)
     return DATA.tile[tile_id].ideal_grass
@@ -285,6 +310,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_ideal_grass(tile_id, value)
     DATA.tile[tile_id].ideal_grass = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_ideal_grass(tile_id, value)
+    DATA.tile[tile_id].ideal_grass = DATA.tile[tile_id].ideal_grass + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number ideal_shrub
@@ -297,6 +327,11 @@ function DATA.tile_set_ideal_shrub(tile_id, value)
     DATA.tile[tile_id].ideal_shrub = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_ideal_shrub(tile_id, value)
+    DATA.tile[tile_id].ideal_shrub = DATA.tile[tile_id].ideal_shrub + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number ideal_conifer
 function DATA.tile_get_ideal_conifer(tile_id)
     return DATA.tile[tile_id].ideal_conifer
@@ -305,6 +340,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_ideal_conifer(tile_id, value)
     DATA.tile[tile_id].ideal_conifer = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_ideal_conifer(tile_id, value)
+    DATA.tile[tile_id].ideal_conifer = DATA.tile[tile_id].ideal_conifer + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number ideal_broadleaf
@@ -317,6 +357,11 @@ function DATA.tile_set_ideal_broadleaf(tile_id, value)
     DATA.tile[tile_id].ideal_broadleaf = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_ideal_broadleaf(tile_id, value)
+    DATA.tile[tile_id].ideal_broadleaf = DATA.tile[tile_id].ideal_broadleaf + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number silt
 function DATA.tile_get_silt(tile_id)
     return DATA.tile[tile_id].silt
@@ -325,6 +370,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_silt(tile_id, value)
     DATA.tile[tile_id].silt = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_silt(tile_id, value)
+    DATA.tile[tile_id].silt = DATA.tile[tile_id].silt + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number clay
@@ -337,6 +387,11 @@ function DATA.tile_set_clay(tile_id, value)
     DATA.tile[tile_id].clay = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_clay(tile_id, value)
+    DATA.tile[tile_id].clay = DATA.tile[tile_id].clay + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number sand
 function DATA.tile_get_sand(tile_id)
     return DATA.tile[tile_id].sand
@@ -345,6 +400,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_sand(tile_id, value)
     DATA.tile[tile_id].sand = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_sand(tile_id, value)
+    DATA.tile[tile_id].sand = DATA.tile[tile_id].sand + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number soil_minerals
@@ -357,6 +417,11 @@ function DATA.tile_set_soil_minerals(tile_id, value)
     DATA.tile[tile_id].soil_minerals = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_soil_minerals(tile_id, value)
+    DATA.tile[tile_id].soil_minerals = DATA.tile[tile_id].soil_minerals + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number soil_organics
 function DATA.tile_get_soil_organics(tile_id)
     return DATA.tile[tile_id].soil_organics
@@ -365,6 +430,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_soil_organics(tile_id, value)
     DATA.tile[tile_id].soil_organics = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_soil_organics(tile_id, value)
+    DATA.tile[tile_id].soil_organics = DATA.tile[tile_id].soil_organics + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number january_waterflow
@@ -377,6 +447,11 @@ function DATA.tile_set_january_waterflow(tile_id, value)
     DATA.tile[tile_id].january_waterflow = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_january_waterflow(tile_id, value)
+    DATA.tile[tile_id].january_waterflow = DATA.tile[tile_id].january_waterflow + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number july_waterflow
 function DATA.tile_get_july_waterflow(tile_id)
     return DATA.tile[tile_id].july_waterflow
@@ -387,6 +462,11 @@ function DATA.tile_set_july_waterflow(tile_id, value)
     DATA.tile[tile_id].july_waterflow = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_july_waterflow(tile_id, value)
+    DATA.tile[tile_id].july_waterflow = DATA.tile[tile_id].july_waterflow + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number waterlevel
 function DATA.tile_get_waterlevel(tile_id)
     return DATA.tile[tile_id].waterlevel
@@ -395,6 +475,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_waterlevel(tile_id, value)
     DATA.tile[tile_id].waterlevel = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_waterlevel(tile_id, value)
+    DATA.tile[tile_id].waterlevel = DATA.tile[tile_id].waterlevel + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return boolean has_river
@@ -427,6 +512,11 @@ function DATA.tile_set_ice(tile_id, value)
     DATA.tile[tile_id].ice = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_ice(tile_id, value)
+    DATA.tile[tile_id].ice = DATA.tile[tile_id].ice + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number ice_age_ice
 function DATA.tile_get_ice_age_ice(tile_id)
     return DATA.tile[tile_id].ice_age_ice
@@ -435,6 +525,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_ice_age_ice(tile_id, value)
     DATA.tile[tile_id].ice_age_ice = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_ice_age_ice(tile_id, value)
+    DATA.tile[tile_id].ice_age_ice = DATA.tile[tile_id].ice_age_ice + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number debug_r between 0 and 1, as per Love2Ds convention...
@@ -447,6 +542,11 @@ function DATA.tile_set_debug_r(tile_id, value)
     DATA.tile[tile_id].debug_r = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_debug_r(tile_id, value)
+    DATA.tile[tile_id].debug_r = DATA.tile[tile_id].debug_r + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number debug_g between 0 and 1, as per Love2Ds convention...
 function DATA.tile_get_debug_g(tile_id)
     return DATA.tile[tile_id].debug_g
@@ -455,6 +555,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_debug_g(tile_id, value)
     DATA.tile[tile_id].debug_g = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_debug_g(tile_id, value)
+    DATA.tile[tile_id].debug_g = DATA.tile[tile_id].debug_g + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number debug_b between 0 and 1, as per Love2Ds convention...
@@ -467,6 +572,11 @@ function DATA.tile_set_debug_b(tile_id, value)
     DATA.tile[tile_id].debug_b = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_debug_b(tile_id, value)
+    DATA.tile[tile_id].debug_b = DATA.tile[tile_id].debug_b + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number real_r between 0 and 1, as per Love2Ds convention...
 function DATA.tile_get_real_r(tile_id)
     return DATA.tile[tile_id].real_r
@@ -475,6 +585,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_real_r(tile_id, value)
     DATA.tile[tile_id].real_r = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_real_r(tile_id, value)
+    DATA.tile[tile_id].real_r = DATA.tile[tile_id].real_r + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return number real_g between 0 and 1, as per Love2Ds convention...
@@ -487,6 +602,11 @@ function DATA.tile_set_real_g(tile_id, value)
     DATA.tile[tile_id].real_g = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_real_g(tile_id, value)
+    DATA.tile[tile_id].real_g = DATA.tile[tile_id].real_g + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number real_b between 0 and 1, as per Love2Ds convention...
 function DATA.tile_get_real_b(tile_id)
     return DATA.tile[tile_id].real_b
@@ -497,6 +617,11 @@ function DATA.tile_set_real_b(tile_id, value)
     DATA.tile[tile_id].real_b = value
 end
 ---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_real_b(tile_id, value)
+    DATA.tile[tile_id].real_b = DATA.tile[tile_id].real_b + value
+end
+---@param tile_id tile_id valid tile id
 ---@return number pathfinding_index
 function DATA.tile_get_pathfinding_index(tile_id)
     return DATA.tile[tile_id].pathfinding_index
@@ -505,6 +630,11 @@ end
 ---@param value number valid number
 function DATA.tile_set_pathfinding_index(tile_id, value)
     DATA.tile[tile_id].pathfinding_index = value
+end
+---@param tile_id tile_id valid tile id
+---@param value number valid number
+function DATA.tile_inc_pathfinding_index(tile_id, value)
+    DATA.tile[tile_id].pathfinding_index = DATA.tile[tile_id].pathfinding_index + value
 end
 ---@param tile_id tile_id valid tile id
 ---@return resource_id resource
@@ -926,6 +1056,11 @@ function DATA.race_set_r(race_id, value)
     DATA.race[race_id].r = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_r(race_id, value)
+    DATA.race[race_id].r = DATA.race[race_id].r + value
+end
+---@param race_id race_id valid race id
 ---@return number g
 function DATA.race_get_g(race_id)
     return DATA.race[race_id].g
@@ -934,6 +1069,11 @@ end
 ---@param value number valid number
 function DATA.race_set_g(race_id, value)
     DATA.race[race_id].g = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_g(race_id, value)
+    DATA.race[race_id].g = DATA.race[race_id].g + value
 end
 ---@param race_id race_id valid race id
 ---@return number b
@@ -946,6 +1086,11 @@ function DATA.race_set_b(race_id, value)
     DATA.race[race_id].b = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_b(race_id, value)
+    DATA.race[race_id].b = DATA.race[race_id].b + value
+end
+---@param race_id race_id valid race id
 ---@return number carrying_capacity_weight
 function DATA.race_get_carrying_capacity_weight(race_id)
     return DATA.race[race_id].carrying_capacity_weight
@@ -954,6 +1099,11 @@ end
 ---@param value number valid number
 function DATA.race_set_carrying_capacity_weight(race_id, value)
     DATA.race[race_id].carrying_capacity_weight = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_carrying_capacity_weight(race_id, value)
+    DATA.race[race_id].carrying_capacity_weight = DATA.race[race_id].carrying_capacity_weight + value
 end
 ---@param race_id race_id valid race id
 ---@return number fecundity
@@ -966,6 +1116,11 @@ function DATA.race_set_fecundity(race_id, value)
     DATA.race[race_id].fecundity = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_fecundity(race_id, value)
+    DATA.race[race_id].fecundity = DATA.race[race_id].fecundity + value
+end
+---@param race_id race_id valid race id
 ---@return number spotting How good is this unit at scouting
 function DATA.race_get_spotting(race_id)
     return DATA.race[race_id].spotting
@@ -974,6 +1129,11 @@ end
 ---@param value number valid number
 function DATA.race_set_spotting(race_id, value)
     DATA.race[race_id].spotting = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_spotting(race_id, value)
+    DATA.race[race_id].spotting = DATA.race[race_id].spotting + value
 end
 ---@param race_id race_id valid race id
 ---@return number visibility How visible is this unit in battles
@@ -986,6 +1146,11 @@ function DATA.race_set_visibility(race_id, value)
     DATA.race[race_id].visibility = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_visibility(race_id, value)
+    DATA.race[race_id].visibility = DATA.race[race_id].visibility + value
+end
+---@param race_id race_id valid race id
 ---@return number males_per_hundred_females
 function DATA.race_get_males_per_hundred_females(race_id)
     return DATA.race[race_id].males_per_hundred_females
@@ -994,6 +1159,11 @@ end
 ---@param value number valid number
 function DATA.race_set_males_per_hundred_females(race_id, value)
     DATA.race[race_id].males_per_hundred_females = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_males_per_hundred_females(race_id, value)
+    DATA.race[race_id].males_per_hundred_females = DATA.race[race_id].males_per_hundred_females + value
 end
 ---@param race_id race_id valid race id
 ---@return number child_age
@@ -1006,6 +1176,11 @@ function DATA.race_set_child_age(race_id, value)
     DATA.race[race_id].child_age = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_child_age(race_id, value)
+    DATA.race[race_id].child_age = DATA.race[race_id].child_age + value
+end
+---@param race_id race_id valid race id
 ---@return number teen_age
 function DATA.race_get_teen_age(race_id)
     return DATA.race[race_id].teen_age
@@ -1014,6 +1189,11 @@ end
 ---@param value number valid number
 function DATA.race_set_teen_age(race_id, value)
     DATA.race[race_id].teen_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_teen_age(race_id, value)
+    DATA.race[race_id].teen_age = DATA.race[race_id].teen_age + value
 end
 ---@param race_id race_id valid race id
 ---@return number adult_age
@@ -1026,6 +1206,11 @@ function DATA.race_set_adult_age(race_id, value)
     DATA.race[race_id].adult_age = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_adult_age(race_id, value)
+    DATA.race[race_id].adult_age = DATA.race[race_id].adult_age + value
+end
+---@param race_id race_id valid race id
 ---@return number middle_age
 function DATA.race_get_middle_age(race_id)
     return DATA.race[race_id].middle_age
@@ -1034,6 +1219,11 @@ end
 ---@param value number valid number
 function DATA.race_set_middle_age(race_id, value)
     DATA.race[race_id].middle_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_middle_age(race_id, value)
+    DATA.race[race_id].middle_age = DATA.race[race_id].middle_age + value
 end
 ---@param race_id race_id valid race id
 ---@return number elder_age
@@ -1046,6 +1236,11 @@ function DATA.race_set_elder_age(race_id, value)
     DATA.race[race_id].elder_age = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_elder_age(race_id, value)
+    DATA.race[race_id].elder_age = DATA.race[race_id].elder_age + value
+end
+---@param race_id race_id valid race id
 ---@return number max_age
 function DATA.race_get_max_age(race_id)
     return DATA.race[race_id].max_age
@@ -1054,6 +1249,11 @@ end
 ---@param value number valid number
 function DATA.race_set_max_age(race_id, value)
     DATA.race[race_id].max_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_max_age(race_id, value)
+    DATA.race[race_id].max_age = DATA.race[race_id].max_age + value
 end
 ---@param race_id race_id valid race id
 ---@return number minimum_comfortable_temperature
@@ -1066,6 +1266,11 @@ function DATA.race_set_minimum_comfortable_temperature(race_id, value)
     DATA.race[race_id].minimum_comfortable_temperature = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_minimum_comfortable_temperature(race_id, value)
+    DATA.race[race_id].minimum_comfortable_temperature = DATA.race[race_id].minimum_comfortable_temperature + value
+end
+---@param race_id race_id valid race id
 ---@return number minimum_absolute_temperature
 function DATA.race_get_minimum_absolute_temperature(race_id)
     return DATA.race[race_id].minimum_absolute_temperature
@@ -1074,6 +1279,11 @@ end
 ---@param value number valid number
 function DATA.race_set_minimum_absolute_temperature(race_id, value)
     DATA.race[race_id].minimum_absolute_temperature = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_minimum_absolute_temperature(race_id, value)
+    DATA.race[race_id].minimum_absolute_temperature = DATA.race[race_id].minimum_absolute_temperature + value
 end
 ---@param race_id race_id valid race id
 ---@return number minimum_comfortable_elevation
@@ -1086,6 +1296,11 @@ function DATA.race_set_minimum_comfortable_elevation(race_id, value)
     DATA.race[race_id].minimum_comfortable_elevation = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_minimum_comfortable_elevation(race_id, value)
+    DATA.race[race_id].minimum_comfortable_elevation = DATA.race[race_id].minimum_comfortable_elevation + value
+end
+---@param race_id race_id valid race id
 ---@return number female_body_size
 function DATA.race_get_female_body_size(race_id)
     return DATA.race[race_id].female_body_size
@@ -1096,6 +1311,11 @@ function DATA.race_set_female_body_size(race_id, value)
     DATA.race[race_id].female_body_size = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_female_body_size(race_id, value)
+    DATA.race[race_id].female_body_size = DATA.race[race_id].female_body_size + value
+end
+---@param race_id race_id valid race id
 ---@return number male_body_size
 function DATA.race_get_male_body_size(race_id)
     return DATA.race[race_id].male_body_size
@@ -1104,6 +1324,11 @@ end
 ---@param value number valid number
 function DATA.race_set_male_body_size(race_id, value)
     DATA.race[race_id].male_body_size = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_male_body_size(race_id, value)
+    DATA.race[race_id].male_body_size = DATA.race[race_id].male_body_size + value
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
@@ -1118,6 +1343,12 @@ function DATA.race_set_female_efficiency(race_id, index, value)
     DATA.race[race_id].female_efficiency[index] = value
 end
 ---@param race_id race_id valid race id
+---@param index JOBTYPE valid index
+---@param value number valid number
+function DATA.race_inc_female_efficiency(race_id, index, value)
+    DATA.race[race_id].female_efficiency[index] = DATA.race[race_id].female_efficiency[index] + value
+end
+---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
 ---@return number male_efficiency
 function DATA.race_get_male_efficiency(race_id, index)
@@ -1130,6 +1361,12 @@ function DATA.race_set_male_efficiency(race_id, index, value)
     DATA.race[race_id].male_efficiency[index] = value
 end
 ---@param race_id race_id valid race id
+---@param index JOBTYPE valid index
+---@param value number valid number
+function DATA.race_inc_male_efficiency(race_id, index, value)
+    DATA.race[race_id].male_efficiency[index] = DATA.race[race_id].male_efficiency[index] + value
+end
+---@param race_id race_id valid race id
 ---@return number female_infrastructure_needs
 function DATA.race_get_female_infrastructure_needs(race_id)
     return DATA.race[race_id].female_infrastructure_needs
@@ -1140,6 +1377,11 @@ function DATA.race_set_female_infrastructure_needs(race_id, value)
     DATA.race[race_id].female_infrastructure_needs = value
 end
 ---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_female_infrastructure_needs(race_id, value)
+    DATA.race[race_id].female_infrastructure_needs = DATA.race[race_id].female_infrastructure_needs + value
+end
+---@param race_id race_id valid race id
 ---@return number male_infrastructure_needs
 function DATA.race_get_male_infrastructure_needs(race_id)
     return DATA.race[race_id].male_infrastructure_needs
@@ -1148,6 +1390,11 @@ end
 ---@param value number valid number
 function DATA.race_set_male_infrastructure_needs(race_id, value)
     DATA.race[race_id].male_infrastructure_needs = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_male_infrastructure_needs(race_id, value)
+    DATA.race[race_id].male_infrastructure_needs = DATA.race[race_id].male_infrastructure_needs + value
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
@@ -1186,6 +1433,12 @@ function DATA.race_set_female_needs_required(race_id, index, value)
     DATA.race[race_id].female_needs[index].required = value
 end
 ---@param race_id race_id valid race id
+---@param index number valid index
+---@param value number valid number
+function DATA.race_inc_female_needs_required(race_id, index, value)
+    DATA.race[race_id].female_needs[index].required = DATA.race[race_id].female_needs[index].required + value
+end
+---@param race_id race_id valid race id
 ---@param index number valid
 ---@return NEED male_needs
 function DATA.race_get_male_needs_need(race_id, index)
@@ -1220,6 +1473,12 @@ end
 ---@param value number valid number
 function DATA.race_set_male_needs_required(race_id, index, value)
     DATA.race[race_id].male_needs[index].required = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value number valid number
+function DATA.race_inc_male_needs_required(race_id, index, value)
+    DATA.race[race_id].male_needs[index].required = DATA.race[race_id].male_needs[index].required + value
 end
 ---@param race_id race_id valid race id
 ---@return boolean requires_large_river
@@ -1666,6 +1925,11 @@ function DATA.pop_set_age(pop_id, value)
     DATA.pop[pop_id].age = value
 end
 ---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_age(pop_id, value)
+    DATA.pop[pop_id].age = DATA.pop[pop_id].age + value
+end
+---@param pop_id pop_id valid pop id
 ---@return string name
 function DATA.pop_get_name(pop_id)
     return DATA.pop_name[pop_id]
@@ -1694,6 +1958,11 @@ end
 ---@param value number valid number
 function DATA.pop_set_savings(pop_id, value)
     DATA.pop[pop_id].savings = value
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_savings(pop_id, value)
+    DATA.pop[pop_id].savings = DATA.pop[pop_id].savings + value
 end
 ---@param pop_id pop_id valid pop id
 ---@return pop_id parent
@@ -1726,6 +1995,11 @@ function DATA.pop_set_life_needs_satisfaction(pop_id, value)
     DATA.pop[pop_id].life_needs_satisfaction = value
 end
 ---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_life_needs_satisfaction(pop_id, value)
+    DATA.pop[pop_id].life_needs_satisfaction = DATA.pop[pop_id].life_needs_satisfaction + value
+end
+---@param pop_id pop_id valid pop id
 ---@return number basic_needs_satisfaction from 0 to 1
 function DATA.pop_get_basic_needs_satisfaction(pop_id)
     return DATA.pop[pop_id].basic_needs_satisfaction
@@ -1734,6 +2008,11 @@ end
 ---@param value number valid number
 function DATA.pop_set_basic_needs_satisfaction(pop_id, value)
     DATA.pop[pop_id].basic_needs_satisfaction = value
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_basic_needs_satisfaction(pop_id, value)
+    DATA.pop[pop_id].basic_needs_satisfaction = DATA.pop[pop_id].basic_needs_satisfaction + value
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
@@ -1780,8 +2059,20 @@ end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid index
 ---@param value number valid number
+function DATA.pop_inc_need_satisfaction_consumed(pop_id, index, value)
+    DATA.pop[pop_id].need_satisfaction[index].consumed = DATA.pop[pop_id].need_satisfaction[index].consumed + value
+end
+---@param pop_id pop_id valid pop id
+---@param index number valid index
+---@param value number valid number
 function DATA.pop_set_need_satisfaction_demanded(pop_id, index, value)
     DATA.pop[pop_id].need_satisfaction[index].demanded = value
+end
+---@param pop_id pop_id valid pop id
+---@param index number valid index
+---@param value number valid number
+function DATA.pop_inc_need_satisfaction_demanded(pop_id, index, value)
+    DATA.pop[pop_id].need_satisfaction[index].demanded = DATA.pop[pop_id].need_satisfaction[index].demanded + value
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
@@ -1858,6 +2149,12 @@ function DATA.pop_set_inventory(pop_id, index, value)
     DATA.pop[pop_id].inventory[index] = value
 end
 ---@param pop_id pop_id valid pop id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.pop_inc_inventory(pop_id, index, value)
+    DATA.pop[pop_id].inventory[index] = DATA.pop[pop_id].inventory[index] + value
+end
+---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
 ---@return number price_memory
 function DATA.pop_get_price_memory(pop_id, index)
@@ -1870,6 +2167,12 @@ function DATA.pop_set_price_memory(pop_id, index, value)
     DATA.pop[pop_id].price_memory[index] = value
 end
 ---@param pop_id pop_id valid pop id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.pop_inc_price_memory(pop_id, index, value)
+    DATA.pop[pop_id].price_memory[index] = DATA.pop[pop_id].price_memory[index] + value
+end
+---@param pop_id pop_id valid pop id
 ---@return number forage_ratio a number in (0, 1) interval representing a ratio of time pop spends to forage
 function DATA.pop_get_forage_ratio(pop_id)
     return DATA.pop[pop_id].forage_ratio
@@ -1880,6 +2183,11 @@ function DATA.pop_set_forage_ratio(pop_id, value)
     DATA.pop[pop_id].forage_ratio = value
 end
 ---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_forage_ratio(pop_id, value)
+    DATA.pop[pop_id].forage_ratio = DATA.pop[pop_id].forage_ratio + value
+end
+---@param pop_id pop_id valid pop id
 ---@return number work_ratio a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 function DATA.pop_get_work_ratio(pop_id)
     return DATA.pop[pop_id].work_ratio
@@ -1888,6 +2196,11 @@ end
 ---@param value number valid number
 function DATA.pop_set_work_ratio(pop_id, value)
     DATA.pop[pop_id].work_ratio = value
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_work_ratio(pop_id, value)
+    DATA.pop[pop_id].work_ratio = DATA.pop[pop_id].work_ratio + value
 end
 ---@param pop_id pop_id valid pop id
 ---@return boolean busy
@@ -1970,6 +2283,12 @@ end
 ---@param value number valid number
 function DATA.pop_set_dna(pop_id, index, value)
     DATA.pop[pop_id].dna[index] = value
+end
+---@param pop_id pop_id valid pop id
+---@param index number valid index
+---@param value number valid number
+function DATA.pop_inc_dna(pop_id, index, value)
+    DATA.pop[pop_id].dna[index] = DATA.pop[pop_id].dna[index] + value
 end
 
 
@@ -2384,6 +2703,11 @@ function DATA.province_set_r(province_id, value)
     DATA.province[province_id].r = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_r(province_id, value)
+    DATA.province[province_id].r = DATA.province[province_id].r + value
+end
+---@param province_id province_id valid province id
 ---@return number g
 function DATA.province_get_g(province_id)
     return DATA.province[province_id].g
@@ -2394,6 +2718,11 @@ function DATA.province_set_g(province_id, value)
     DATA.province[province_id].g = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_g(province_id, value)
+    DATA.province[province_id].g = DATA.province[province_id].g + value
+end
+---@param province_id province_id valid province id
 ---@return number b
 function DATA.province_get_b(province_id)
     return DATA.province[province_id].b
@@ -2402,6 +2731,11 @@ end
 ---@param value number valid number
 function DATA.province_set_b(province_id, value)
     DATA.province[province_id].b = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_b(province_id, value)
+    DATA.province[province_id].b = DATA.province[province_id].b + value
 end
 ---@param province_id province_id valid province id
 ---@return boolean is_land
@@ -2424,6 +2758,11 @@ function DATA.province_set_province_id(province_id, value)
     DATA.province[province_id].province_id = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_province_id(province_id, value)
+    DATA.province[province_id].province_id = DATA.province[province_id].province_id + value
+end
+---@param province_id province_id valid province id
 ---@return number size
 function DATA.province_get_size(province_id)
     return DATA.province[province_id].size
@@ -2432,6 +2771,11 @@ end
 ---@param value number valid number
 function DATA.province_set_size(province_id, value)
     DATA.province[province_id].size = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_size(province_id, value)
+    DATA.province[province_id].size = DATA.province[province_id].size + value
 end
 ---@param province_id province_id valid province id
 ---@return number hydration Number of humans that can live of off this provinces innate water
@@ -2444,6 +2788,11 @@ function DATA.province_set_hydration(province_id, value)
     DATA.province[province_id].hydration = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_hydration(province_id, value)
+    DATA.province[province_id].hydration = DATA.province[province_id].hydration + value
+end
+---@param province_id province_id valid province id
 ---@return number movement_cost
 function DATA.province_get_movement_cost(province_id)
     return DATA.province[province_id].movement_cost
@@ -2452,6 +2801,11 @@ end
 ---@param value number valid number
 function DATA.province_set_movement_cost(province_id, value)
     DATA.province[province_id].movement_cost = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_movement_cost(province_id, value)
+    DATA.province[province_id].movement_cost = DATA.province[province_id].movement_cost + value
 end
 ---@param province_id province_id valid province id
 ---@return tile_id center The tile which contains this province's settlement, if there is any.
@@ -2474,6 +2828,11 @@ function DATA.province_set_infrastructure_needed(province_id, value)
     DATA.province[province_id].infrastructure_needed = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_infrastructure_needed(province_id, value)
+    DATA.province[province_id].infrastructure_needed = DATA.province[province_id].infrastructure_needed + value
+end
+---@param province_id province_id valid province id
 ---@return number infrastructure
 function DATA.province_get_infrastructure(province_id)
     return DATA.province[province_id].infrastructure
@@ -2484,6 +2843,11 @@ function DATA.province_set_infrastructure(province_id, value)
     DATA.province[province_id].infrastructure = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_infrastructure(province_id, value)
+    DATA.province[province_id].infrastructure = DATA.province[province_id].infrastructure + value
+end
+---@param province_id province_id valid province id
 ---@return number infrastructure_investment
 function DATA.province_get_infrastructure_investment(province_id)
     return DATA.province[province_id].infrastructure_investment
@@ -2492,6 +2856,11 @@ end
 ---@param value number valid number
 function DATA.province_set_infrastructure_investment(province_id, value)
     DATA.province[province_id].infrastructure_investment = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_infrastructure_investment(province_id, value)
+    DATA.province[province_id].infrastructure_investment = DATA.province[province_id].infrastructure_investment + value
 end
 ---@param province_id province_id valid province id
 ---@return Realm? realm
@@ -2556,6 +2925,12 @@ function DATA.province_set_local_production(province_id, index, value)
     DATA.province[province_id].local_production[index] = value
 end
 ---@param province_id province_id valid province id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.province_inc_local_production(province_id, index, value)
+    DATA.province[province_id].local_production[index] = DATA.province[province_id].local_production[index] + value
+end
+---@param province_id province_id valid province id
 ---@param index trade_good_id valid
 ---@return number local_consumption
 function DATA.province_get_local_consumption(province_id, index)
@@ -2566,6 +2941,12 @@ end
 ---@param value number valid number
 function DATA.province_set_local_consumption(province_id, index, value)
     DATA.province[province_id].local_consumption[index] = value
+end
+---@param province_id province_id valid province id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.province_inc_local_consumption(province_id, index, value)
+    DATA.province[province_id].local_consumption[index] = DATA.province[province_id].local_consumption[index] + value
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
@@ -2580,6 +2961,12 @@ function DATA.province_set_local_demand(province_id, index, value)
     DATA.province[province_id].local_demand[index] = value
 end
 ---@param province_id province_id valid province id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.province_inc_local_demand(province_id, index, value)
+    DATA.province[province_id].local_demand[index] = DATA.province[province_id].local_demand[index] + value
+end
+---@param province_id province_id valid province id
 ---@param index trade_good_id valid
 ---@return number local_storage
 function DATA.province_get_local_storage(province_id, index)
@@ -2590,6 +2977,12 @@ end
 ---@param value number valid number
 function DATA.province_set_local_storage(province_id, index, value)
     DATA.province[province_id].local_storage[index] = value
+end
+---@param province_id province_id valid province id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.province_inc_local_storage(province_id, index, value)
+    DATA.province[province_id].local_storage[index] = DATA.province[province_id].local_storage[index] + value
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
@@ -2604,6 +2997,12 @@ function DATA.province_set_local_prices(province_id, index, value)
     DATA.province[province_id].local_prices[index] = value
 end
 ---@param province_id province_id valid province id
+---@param index trade_good_id valid index
+---@param value number valid number
+function DATA.province_inc_local_prices(province_id, index, value)
+    DATA.province[province_id].local_prices[index] = DATA.province[province_id].local_prices[index] + value
+end
+---@param province_id province_id valid province id
 ---@return number local_wealth
 function DATA.province_get_local_wealth(province_id)
     return DATA.province[province_id].local_wealth
@@ -2612,6 +3011,11 @@ end
 ---@param value number valid number
 function DATA.province_set_local_wealth(province_id, value)
     DATA.province[province_id].local_wealth = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_local_wealth(province_id, value)
+    DATA.province[province_id].local_wealth = DATA.province[province_id].local_wealth + value
 end
 ---@param province_id province_id valid province id
 ---@return number trade_wealth
@@ -2624,6 +3028,11 @@ function DATA.province_set_trade_wealth(province_id, value)
     DATA.province[province_id].trade_wealth = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_trade_wealth(province_id, value)
+    DATA.province[province_id].trade_wealth = DATA.province[province_id].trade_wealth + value
+end
+---@param province_id province_id valid province id
 ---@return number local_income
 function DATA.province_get_local_income(province_id)
     return DATA.province[province_id].local_income
@@ -2632,6 +3041,11 @@ end
 ---@param value number valid number
 function DATA.province_set_local_income(province_id, value)
     DATA.province[province_id].local_income = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_local_income(province_id, value)
+    DATA.province[province_id].local_income = DATA.province[province_id].local_income + value
 end
 ---@param province_id province_id valid province id
 ---@return number local_building_upkeep
@@ -2644,6 +3058,11 @@ function DATA.province_set_local_building_upkeep(province_id, value)
     DATA.province[province_id].local_building_upkeep = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_local_building_upkeep(province_id, value)
+    DATA.province[province_id].local_building_upkeep = DATA.province[province_id].local_building_upkeep + value
+end
+---@param province_id province_id valid province id
 ---@return number foragers Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 function DATA.province_get_foragers(province_id)
     return DATA.province[province_id].foragers
@@ -2652,6 +3071,11 @@ end
 ---@param value number valid number
 function DATA.province_set_foragers(province_id, value)
     DATA.province[province_id].foragers = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_foragers(province_id, value)
+    DATA.province[province_id].foragers = DATA.province[province_id].foragers + value
 end
 ---@param province_id province_id valid province id
 ---@return number foragers_water amount foraged by pops and characters
@@ -2664,6 +3088,11 @@ function DATA.province_set_foragers_water(province_id, value)
     DATA.province[province_id].foragers_water = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_foragers_water(province_id, value)
+    DATA.province[province_id].foragers_water = DATA.province[province_id].foragers_water + value
+end
+---@param province_id province_id valid province id
 ---@return number foragers_limit amount of calories foraged by pops and characters
 function DATA.province_get_foragers_limit(province_id)
     return DATA.province[province_id].foragers_limit
@@ -2672,6 +3101,11 @@ end
 ---@param value number valid number
 function DATA.province_set_foragers_limit(province_id, value)
     DATA.province[province_id].foragers_limit = value
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_foragers_limit(province_id, value)
+    DATA.province[province_id].foragers_limit = DATA.province[province_id].foragers_limit + value
 end
 ---@param province_id province_id valid province id
 ---@return table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}> foragers_targets
@@ -2718,6 +3152,11 @@ function DATA.province_set_mood(province_id, value)
     DATA.province[province_id].mood = value
 end
 ---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_mood(province_id, value)
+    DATA.province[province_id].mood = DATA.province[province_id].mood + value
+end
+---@param province_id province_id valid province id
 ---@param index unit_type_id valid
 ---@return number unit_types
 function DATA.province_get_unit_types(province_id, index)
@@ -2728,6 +3167,12 @@ end
 ---@param value number valid number
 function DATA.province_set_unit_types(province_id, index, value)
     DATA.province[province_id].unit_types[index] = value
+end
+---@param province_id province_id valid province id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.province_inc_unit_types(province_id, index, value)
+    DATA.province[province_id].unit_types[index] = DATA.province[province_id].unit_types[index] + value
 end
 ---@param province_id province_id valid province id
 ---@return table<ProductionMethod,number> throughput_boosts
@@ -3219,6 +3664,12 @@ function DATA.warband_set_units_current(warband_id, index, value)
     DATA.warband[warband_id].units_current[index] = value
 end
 ---@param warband_id warband_id valid warband id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.warband_inc_units_current(warband_id, index, value)
+    DATA.warband[warband_id].units_current[index] = DATA.warband[warband_id].units_current[index] + value
+end
+---@param warband_id warband_id valid warband id
 ---@param index unit_type_id valid
 ---@return number units_target Units to recruit
 function DATA.warband_get_units_target(warband_id, index)
@@ -3229,6 +3680,12 @@ end
 ---@param value number valid number
 function DATA.warband_set_units_target(warband_id, index, value)
     DATA.warband[warband_id].units_target[index] = value
+end
+---@param warband_id warband_id valid warband id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.warband_inc_units_target(warband_id, index, value)
+    DATA.warband[warband_id].units_target[index] = DATA.warband[warband_id].units_target[index] + value
 end
 ---@param warband_id warband_id valid warband id
 ---@return WARBAND_STATUS status
@@ -3261,6 +3718,11 @@ function DATA.warband_set_current_free_time_ratio(warband_id, value)
     DATA.warband[warband_id].current_free_time_ratio = value
 end
 ---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_current_free_time_ratio(warband_id, value)
+    DATA.warband[warband_id].current_free_time_ratio = DATA.warband[warband_id].current_free_time_ratio + value
+end
+---@param warband_id warband_id valid warband id
 ---@return number treasury
 function DATA.warband_get_treasury(warband_id)
     return DATA.warband[warband_id].treasury
@@ -3269,6 +3731,11 @@ end
 ---@param value number valid number
 function DATA.warband_set_treasury(warband_id, value)
     DATA.warband[warband_id].treasury = value
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_treasury(warband_id, value)
+    DATA.warband[warband_id].treasury = DATA.warband[warband_id].treasury + value
 end
 ---@param warband_id warband_id valid warband id
 ---@return number total_upkeep
@@ -3281,6 +3748,11 @@ function DATA.warband_set_total_upkeep(warband_id, value)
     DATA.warband[warband_id].total_upkeep = value
 end
 ---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_total_upkeep(warband_id, value)
+    DATA.warband[warband_id].total_upkeep = DATA.warband[warband_id].total_upkeep + value
+end
+---@param warband_id warband_id valid warband id
 ---@return number predicted_upkeep
 function DATA.warband_get_predicted_upkeep(warband_id)
     return DATA.warband[warband_id].predicted_upkeep
@@ -3289,6 +3761,11 @@ end
 ---@param value number valid number
 function DATA.warband_set_predicted_upkeep(warband_id, value)
     DATA.warband[warband_id].predicted_upkeep = value
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_predicted_upkeep(warband_id, value)
+    DATA.warband[warband_id].predicted_upkeep = DATA.warband[warband_id].predicted_upkeep + value
 end
 ---@param warband_id warband_id valid warband id
 ---@return number supplies
@@ -3301,6 +3778,11 @@ function DATA.warband_set_supplies(warband_id, value)
     DATA.warband[warband_id].supplies = value
 end
 ---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_supplies(warband_id, value)
+    DATA.warband[warband_id].supplies = DATA.warband[warband_id].supplies + value
+end
+---@param warband_id warband_id valid warband id
 ---@return number supplies_target_days
 function DATA.warband_get_supplies_target_days(warband_id)
     return DATA.warband[warband_id].supplies_target_days
@@ -3311,6 +3793,11 @@ function DATA.warband_set_supplies_target_days(warband_id, value)
     DATA.warband[warband_id].supplies_target_days = value
 end
 ---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_supplies_target_days(warband_id, value)
+    DATA.warband[warband_id].supplies_target_days = DATA.warband[warband_id].supplies_target_days + value
+end
+---@param warband_id warband_id valid warband id
 ---@return number morale
 function DATA.warband_get_morale(warband_id)
     return DATA.warband[warband_id].morale
@@ -3319,6 +3806,11 @@ end
 ---@param value number valid number
 function DATA.warband_set_morale(warband_id, value)
     DATA.warband[warband_id].morale = value
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_inc_morale(warband_id, value)
+    DATA.warband[warband_id].morale = DATA.warband[warband_id].morale + value
 end
 
 
@@ -3527,6 +4019,14 @@ local fat_army_membership_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "army") then
+            DATA.army_membership_set_army(t.id, v)
+            return
+        end
+        if (k == "member") then
+            DATA.army_membership_set_member(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -3661,6 +4161,14 @@ local fat_warband_leader_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "leader") then
+            DATA.warband_leader_set_leader(t.id, v)
+            return
+        end
+        if (k == "warband") then
+            DATA.warband_leader_set_warband(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -3795,6 +4303,14 @@ local fat_warband_recruiter_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "recruiter") then
+            DATA.warband_recruiter_set_recruiter(t.id, v)
+            return
+        end
+        if (k == "warband") then
+            DATA.warband_recruiter_set_warband(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -3929,6 +4445,14 @@ local fat_warband_commander_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "commander") then
+            DATA.warband_commander_set_commander(t.id, v)
+            return
+        end
+        if (k == "warband") then
+            DATA.warband_commander_set_warband(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4074,6 +4598,14 @@ local fat_warband_location_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "location") then
+            DATA.warband_location_set_location(t.id, v)
+            return
+        end
+        if (k == "warband") then
+            DATA.warband_location_set_warband(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4237,6 +4769,14 @@ local fat_warband_unit_id_metatable = {
             DATA.warband_unit_set_type(t.id, v)
             return
         end
+        if (k == "unit") then
+            DATA.warband_unit_set_unit(t.id, v)
+            return
+        end
+        if (k == "warband") then
+            DATA.warband_unit_set_warband(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4382,6 +4922,14 @@ local fat_character_location_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "location") then
+            DATA.character_location_set_location(t.id, v)
+            return
+        end
+        if (k == "character") then
+            DATA.character_location_set_character(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4527,6 +5075,14 @@ local fat_home_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "home") then
+            DATA.home_set_home(t.id, v)
+            return
+        end
+        if (k == "pop") then
+            DATA.home_set_pop(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4672,6 +5228,14 @@ local fat_pop_location_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "location") then
+            DATA.pop_location_set_location(t.id, v)
+            return
+        end
+        if (k == "pop") then
+            DATA.pop_location_set_pop(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4817,6 +5381,14 @@ local fat_outlaw_location_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "location") then
+            DATA.outlaw_location_set_location(t.id, v)
+            return
+        end
+        if (k == "outlaw") then
+            DATA.outlaw_location_set_outlaw(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -4962,6 +5534,14 @@ local fat_tile_province_membership_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "province") then
+            DATA.tile_province_membership_set_province(t.id, v)
+            return
+        end
+        if (k == "tile") then
+            DATA.tile_province_membership_set_tile(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -5118,6 +5698,14 @@ local fat_province_neighborhood_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "origin") then
+            DATA.province_neighborhood_set_origin(t.id, v)
+            return
+        end
+        if (k == "target") then
+            DATA.province_neighborhood_set_target(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -5263,6 +5851,14 @@ local fat_parent_child_relation_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "parent") then
+            DATA.parent_child_relation_set_parent(t.id, v)
+            return
+        end
+        if (k == "child") then
+            DATA.parent_child_relation_set_child(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -5408,6 +6004,14 @@ local fat_loyalty_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "top") then
+            DATA.loyalty_set_top(t.id, v)
+            return
+        end
+        if (k == "bottom") then
+            DATA.loyalty_set_bottom(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -5553,6 +6157,14 @@ local fat_succession_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "successor_of") then
+            DATA.succession_set_successor_of(t.id, v)
+            return
+        end
+        if (k == "successor") then
+            DATA.succession_set_successor(t.id, v)
+            return
+        end
         rawset(t, k, v)
     end
 }
@@ -5845,6 +6457,11 @@ end
 ---@param value number valid number
 function DATA.need_set_time_to_satisfy(need_id, value)
     DATA.need[need_id].time_to_satisfy = value
+end
+---@param need_id need_id valid need id
+---@param value number valid number
+function DATA.need_inc_time_to_satisfy(need_id, value)
+    DATA.need[need_id].time_to_satisfy = DATA.need[need_id].time_to_satisfy + value
 end
 ---@param need_id need_id valid need id
 ---@return JOBTYPE job_to_satisfy represents a job type required to satisfy the need on your own
@@ -6837,6 +7454,11 @@ function DATA.trade_good_set_r(trade_good_id, value)
     DATA.trade_good[trade_good_id].r = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
+---@param value number valid number
+function DATA.trade_good_inc_r(trade_good_id, value)
+    DATA.trade_good[trade_good_id].r = DATA.trade_good[trade_good_id].r + value
+end
+---@param trade_good_id trade_good_id valid trade_good id
 ---@return number g
 function DATA.trade_good_get_g(trade_good_id)
     return DATA.trade_good[trade_good_id].g
@@ -6847,6 +7469,11 @@ function DATA.trade_good_set_g(trade_good_id, value)
     DATA.trade_good[trade_good_id].g = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
+---@param value number valid number
+function DATA.trade_good_inc_g(trade_good_id, value)
+    DATA.trade_good[trade_good_id].g = DATA.trade_good[trade_good_id].g + value
+end
+---@param trade_good_id trade_good_id valid trade_good id
 ---@return number b
 function DATA.trade_good_get_b(trade_good_id)
     return DATA.trade_good[trade_good_id].b
@@ -6855,6 +7482,11 @@ end
 ---@param value number valid number
 function DATA.trade_good_set_b(trade_good_id, value)
     DATA.trade_good[trade_good_id].b = value
+end
+---@param trade_good_id trade_good_id valid trade_good id
+---@param value number valid number
+function DATA.trade_good_inc_b(trade_good_id, value)
+    DATA.trade_good[trade_good_id].b = DATA.trade_good[trade_good_id].b + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
 ---@return TRADE_GOOD_CATEGORY category
@@ -6875,6 +7507,11 @@ end
 ---@param value number valid number
 function DATA.trade_good_set_base_price(trade_good_id, value)
     DATA.trade_good[trade_good_id].base_price = value
+end
+---@param trade_good_id trade_good_id valid trade_good id
+---@param value number valid number
+function DATA.trade_good_inc_base_price(trade_good_id, value)
+    DATA.trade_good[trade_good_id].base_price = DATA.trade_good[trade_good_id].base_price + value
 end
 
 
@@ -7075,6 +7712,11 @@ function DATA.use_case_set_r(use_case_id, value)
     DATA.use_case[use_case_id].r = value
 end
 ---@param use_case_id use_case_id valid use_case id
+---@param value number valid number
+function DATA.use_case_inc_r(use_case_id, value)
+    DATA.use_case[use_case_id].r = DATA.use_case[use_case_id].r + value
+end
+---@param use_case_id use_case_id valid use_case id
 ---@return number g
 function DATA.use_case_get_g(use_case_id)
     return DATA.use_case[use_case_id].g
@@ -7085,6 +7727,11 @@ function DATA.use_case_set_g(use_case_id, value)
     DATA.use_case[use_case_id].g = value
 end
 ---@param use_case_id use_case_id valid use_case id
+---@param value number valid number
+function DATA.use_case_inc_g(use_case_id, value)
+    DATA.use_case[use_case_id].g = DATA.use_case[use_case_id].g + value
+end
+---@param use_case_id use_case_id valid use_case id
 ---@return number b
 function DATA.use_case_get_b(use_case_id)
     return DATA.use_case[use_case_id].b
@@ -7093,6 +7740,11 @@ end
 ---@param value number valid number
 function DATA.use_case_set_b(use_case_id, value)
     DATA.use_case[use_case_id].b = value
+end
+---@param use_case_id use_case_id valid use_case id
+---@param value number valid number
+function DATA.use_case_inc_b(use_case_id, value)
+    DATA.use_case[use_case_id].b = DATA.use_case[use_case_id].b + value
 end
 
 
@@ -7238,6 +7890,11 @@ function DATA.use_weight_set_weight(use_weight_id, value)
     DATA.use_weight[use_weight_id].weight = value
 end
 ---@param use_weight_id use_weight_id valid use_weight id
+---@param value number valid number
+function DATA.use_weight_inc_weight(use_weight_id, value)
+    DATA.use_weight[use_weight_id].weight = DATA.use_weight[use_weight_id].weight + value
+end
+---@param use_weight_id use_weight_id valid use_weight id
 ---@return trade_good_id trade_good index of trade good
 function DATA.use_weight_get_trade_good(use_weight_id)
     return DATA.use_weight[use_weight_id].trade_good
@@ -7313,6 +7970,14 @@ local fat_use_weight_id_metatable = {
     __newindex = function (t,k,v)
         if (k == "weight") then
             DATA.use_weight_set_weight(t.id, v)
+            return
+        end
+        if (k == "trade_good") then
+            DATA.use_weight_set_trade_good(t.id, v)
+            return
+        end
+        if (k == "use_case") then
+            DATA.use_weight_set_use_case(t.id, v)
             return
         end
         rawset(t, k, v)
@@ -7723,6 +8388,11 @@ function DATA.biome_set_r(biome_id, value)
     DATA.biome[biome_id].r = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_r(biome_id, value)
+    DATA.biome[biome_id].r = DATA.biome[biome_id].r + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number g
 function DATA.biome_get_g(biome_id)
     return DATA.biome[biome_id].g
@@ -7733,6 +8403,11 @@ function DATA.biome_set_g(biome_id, value)
     DATA.biome[biome_id].g = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_g(biome_id, value)
+    DATA.biome[biome_id].g = DATA.biome[biome_id].g + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number b
 function DATA.biome_get_b(biome_id)
     return DATA.biome[biome_id].b
@@ -7741,6 +8416,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_b(biome_id, value)
     DATA.biome[biome_id].b = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_b(biome_id, value)
+    DATA.biome[biome_id].b = DATA.biome[biome_id].b + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return boolean aquatic
@@ -7783,6 +8463,11 @@ function DATA.biome_set_minimum_slope(biome_id, value)
     DATA.biome[biome_id].minimum_slope = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_slope(biome_id, value)
+    DATA.biome[biome_id].minimum_slope = DATA.biome[biome_id].minimum_slope + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_slope m
 function DATA.biome_get_maximum_slope(biome_id)
     return DATA.biome[biome_id].maximum_slope
@@ -7791,6 +8476,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_slope(biome_id, value)
     DATA.biome[biome_id].maximum_slope = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_slope(biome_id, value)
+    DATA.biome[biome_id].maximum_slope = DATA.biome[biome_id].maximum_slope + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_elevation m
@@ -7803,6 +8493,11 @@ function DATA.biome_set_minimum_elevation(biome_id, value)
     DATA.biome[biome_id].minimum_elevation = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_elevation(biome_id, value)
+    DATA.biome[biome_id].minimum_elevation = DATA.biome[biome_id].minimum_elevation + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_elevation m
 function DATA.biome_get_maximum_elevation(biome_id)
     return DATA.biome[biome_id].maximum_elevation
@@ -7811,6 +8506,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_elevation(biome_id, value)
     DATA.biome[biome_id].maximum_elevation = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_elevation(biome_id, value)
+    DATA.biome[biome_id].maximum_elevation = DATA.biome[biome_id].maximum_elevation + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_temperature C
@@ -7823,6 +8523,11 @@ function DATA.biome_set_minimum_temperature(biome_id, value)
     DATA.biome[biome_id].minimum_temperature = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_temperature(biome_id, value)
+    DATA.biome[biome_id].minimum_temperature = DATA.biome[biome_id].minimum_temperature + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_temperature C
 function DATA.biome_get_maximum_temperature(biome_id)
     return DATA.biome[biome_id].maximum_temperature
@@ -7831,6 +8536,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_temperature(biome_id, value)
     DATA.biome[biome_id].maximum_temperature = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_temperature(biome_id, value)
+    DATA.biome[biome_id].maximum_temperature = DATA.biome[biome_id].maximum_temperature + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_summer_temperature C
@@ -7843,6 +8553,11 @@ function DATA.biome_set_minimum_summer_temperature(biome_id, value)
     DATA.biome[biome_id].minimum_summer_temperature = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_summer_temperature(biome_id, value)
+    DATA.biome[biome_id].minimum_summer_temperature = DATA.biome[biome_id].minimum_summer_temperature + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_summer_temperature C
 function DATA.biome_get_maximum_summer_temperature(biome_id)
     return DATA.biome[biome_id].maximum_summer_temperature
@@ -7851,6 +8566,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_summer_temperature(biome_id, value)
     DATA.biome[biome_id].maximum_summer_temperature = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_summer_temperature(biome_id, value)
+    DATA.biome[biome_id].maximum_summer_temperature = DATA.biome[biome_id].maximum_summer_temperature + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_winter_temperature C
@@ -7863,6 +8583,11 @@ function DATA.biome_set_minimum_winter_temperature(biome_id, value)
     DATA.biome[biome_id].minimum_winter_temperature = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_winter_temperature(biome_id, value)
+    DATA.biome[biome_id].minimum_winter_temperature = DATA.biome[biome_id].minimum_winter_temperature + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_winter_temperature C
 function DATA.biome_get_maximum_winter_temperature(biome_id)
     return DATA.biome[biome_id].maximum_winter_temperature
@@ -7871,6 +8596,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_winter_temperature(biome_id, value)
     DATA.biome[biome_id].maximum_winter_temperature = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_winter_temperature(biome_id, value)
+    DATA.biome[biome_id].maximum_winter_temperature = DATA.biome[biome_id].maximum_winter_temperature + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_rain mm
@@ -7883,6 +8613,11 @@ function DATA.biome_set_minimum_rain(biome_id, value)
     DATA.biome[biome_id].minimum_rain = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_rain(biome_id, value)
+    DATA.biome[biome_id].minimum_rain = DATA.biome[biome_id].minimum_rain + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_rain mm
 function DATA.biome_get_maximum_rain(biome_id)
     return DATA.biome[biome_id].maximum_rain
@@ -7891,6 +8626,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_rain(biome_id, value)
     DATA.biome[biome_id].maximum_rain = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_rain(biome_id, value)
+    DATA.biome[biome_id].maximum_rain = DATA.biome[biome_id].maximum_rain + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_available_water abstract, adjusted for permeability
@@ -7903,6 +8643,11 @@ function DATA.biome_set_minimum_available_water(biome_id, value)
     DATA.biome[biome_id].minimum_available_water = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_available_water(biome_id, value)
+    DATA.biome[biome_id].minimum_available_water = DATA.biome[biome_id].minimum_available_water + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_available_water abstract, adjusted for permeability
 function DATA.biome_get_maximum_available_water(biome_id)
     return DATA.biome[biome_id].maximum_available_water
@@ -7911,6 +8656,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_available_water(biome_id, value)
     DATA.biome[biome_id].maximum_available_water = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_available_water(biome_id, value)
+    DATA.biome[biome_id].maximum_available_water = DATA.biome[biome_id].maximum_available_water + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_trees %
@@ -7923,6 +8673,11 @@ function DATA.biome_set_minimum_trees(biome_id, value)
     DATA.biome[biome_id].minimum_trees = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_trees(biome_id, value)
+    DATA.biome[biome_id].minimum_trees = DATA.biome[biome_id].minimum_trees + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_trees %
 function DATA.biome_get_maximum_trees(biome_id)
     return DATA.biome[biome_id].maximum_trees
@@ -7931,6 +8686,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_trees(biome_id, value)
     DATA.biome[biome_id].maximum_trees = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_trees(biome_id, value)
+    DATA.biome[biome_id].maximum_trees = DATA.biome[biome_id].maximum_trees + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_grass %
@@ -7943,6 +8703,11 @@ function DATA.biome_set_minimum_grass(biome_id, value)
     DATA.biome[biome_id].minimum_grass = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_grass(biome_id, value)
+    DATA.biome[biome_id].minimum_grass = DATA.biome[biome_id].minimum_grass + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_grass %
 function DATA.biome_get_maximum_grass(biome_id)
     return DATA.biome[biome_id].maximum_grass
@@ -7951,6 +8716,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_grass(biome_id, value)
     DATA.biome[biome_id].maximum_grass = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_grass(biome_id, value)
+    DATA.biome[biome_id].maximum_grass = DATA.biome[biome_id].maximum_grass + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_shrubs %
@@ -7963,6 +8733,11 @@ function DATA.biome_set_minimum_shrubs(biome_id, value)
     DATA.biome[biome_id].minimum_shrubs = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_shrubs(biome_id, value)
+    DATA.biome[biome_id].minimum_shrubs = DATA.biome[biome_id].minimum_shrubs + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_shrubs %
 function DATA.biome_get_maximum_shrubs(biome_id)
     return DATA.biome[biome_id].maximum_shrubs
@@ -7971,6 +8746,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_shrubs(biome_id, value)
     DATA.biome[biome_id].maximum_shrubs = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_shrubs(biome_id, value)
+    DATA.biome[biome_id].maximum_shrubs = DATA.biome[biome_id].maximum_shrubs + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_conifer_fraction %
@@ -7983,6 +8763,11 @@ function DATA.biome_set_minimum_conifer_fraction(biome_id, value)
     DATA.biome[biome_id].minimum_conifer_fraction = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_conifer_fraction(biome_id, value)
+    DATA.biome[biome_id].minimum_conifer_fraction = DATA.biome[biome_id].minimum_conifer_fraction + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_conifer_fraction %
 function DATA.biome_get_maximum_conifer_fraction(biome_id)
     return DATA.biome[biome_id].maximum_conifer_fraction
@@ -7991,6 +8776,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_conifer_fraction(biome_id, value)
     DATA.biome[biome_id].maximum_conifer_fraction = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_conifer_fraction(biome_id, value)
+    DATA.biome[biome_id].maximum_conifer_fraction = DATA.biome[biome_id].maximum_conifer_fraction + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_dead_land %
@@ -8003,6 +8793,11 @@ function DATA.biome_set_minimum_dead_land(biome_id, value)
     DATA.biome[biome_id].minimum_dead_land = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_dead_land(biome_id, value)
+    DATA.biome[biome_id].minimum_dead_land = DATA.biome[biome_id].minimum_dead_land + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_dead_land %
 function DATA.biome_get_maximum_dead_land(biome_id)
     return DATA.biome[biome_id].maximum_dead_land
@@ -8011,6 +8806,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_dead_land(biome_id, value)
     DATA.biome[biome_id].maximum_dead_land = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_dead_land(biome_id, value)
+    DATA.biome[biome_id].maximum_dead_land = DATA.biome[biome_id].maximum_dead_land + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_soil_depth m
@@ -8023,6 +8823,11 @@ function DATA.biome_set_minimum_soil_depth(biome_id, value)
     DATA.biome[biome_id].minimum_soil_depth = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_soil_depth(biome_id, value)
+    DATA.biome[biome_id].minimum_soil_depth = DATA.biome[biome_id].minimum_soil_depth + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_soil_depth m
 function DATA.biome_get_maximum_soil_depth(biome_id)
     return DATA.biome[biome_id].maximum_soil_depth
@@ -8031,6 +8836,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_soil_depth(biome_id, value)
     DATA.biome[biome_id].maximum_soil_depth = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_soil_depth(biome_id, value)
+    DATA.biome[biome_id].maximum_soil_depth = DATA.biome[biome_id].maximum_soil_depth + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_soil_richness %
@@ -8043,6 +8853,11 @@ function DATA.biome_set_minimum_soil_richness(biome_id, value)
     DATA.biome[biome_id].minimum_soil_richness = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_soil_richness(biome_id, value)
+    DATA.biome[biome_id].minimum_soil_richness = DATA.biome[biome_id].minimum_soil_richness + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_soil_richness %
 function DATA.biome_get_maximum_soil_richness(biome_id)
     return DATA.biome[biome_id].maximum_soil_richness
@@ -8051,6 +8866,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_soil_richness(biome_id, value)
     DATA.biome[biome_id].maximum_soil_richness = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_soil_richness(biome_id, value)
+    DATA.biome[biome_id].maximum_soil_richness = DATA.biome[biome_id].maximum_soil_richness + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_sand %
@@ -8063,6 +8883,11 @@ function DATA.biome_set_minimum_sand(biome_id, value)
     DATA.biome[biome_id].minimum_sand = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_sand(biome_id, value)
+    DATA.biome[biome_id].minimum_sand = DATA.biome[biome_id].minimum_sand + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_sand %
 function DATA.biome_get_maximum_sand(biome_id)
     return DATA.biome[biome_id].maximum_sand
@@ -8071,6 +8896,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_sand(biome_id, value)
     DATA.biome[biome_id].maximum_sand = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_sand(biome_id, value)
+    DATA.biome[biome_id].maximum_sand = DATA.biome[biome_id].maximum_sand + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_clay %
@@ -8083,6 +8913,11 @@ function DATA.biome_set_minimum_clay(biome_id, value)
     DATA.biome[biome_id].minimum_clay = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_clay(biome_id, value)
+    DATA.biome[biome_id].minimum_clay = DATA.biome[biome_id].minimum_clay + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_clay %
 function DATA.biome_get_maximum_clay(biome_id)
     return DATA.biome[biome_id].maximum_clay
@@ -8091,6 +8926,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_clay(biome_id, value)
     DATA.biome[biome_id].maximum_clay = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_clay(biome_id, value)
+    DATA.biome[biome_id].maximum_clay = DATA.biome[biome_id].maximum_clay + value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_silt %
@@ -8103,6 +8943,11 @@ function DATA.biome_set_minimum_silt(biome_id, value)
     DATA.biome[biome_id].minimum_silt = value
 end
 ---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_minimum_silt(biome_id, value)
+    DATA.biome[biome_id].minimum_silt = DATA.biome[biome_id].minimum_silt + value
+end
+---@param biome_id biome_id valid biome id
 ---@return number maximum_silt %
 function DATA.biome_get_maximum_silt(biome_id)
     return DATA.biome[biome_id].maximum_silt
@@ -8111,6 +8956,11 @@ end
 ---@param value number valid number
 function DATA.biome_set_maximum_silt(biome_id, value)
     DATA.biome[biome_id].maximum_silt = value
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_inc_maximum_silt(biome_id, value)
+    DATA.biome[biome_id].maximum_silt = DATA.biome[biome_id].maximum_silt + value
 end
 
 
@@ -8565,6 +9415,11 @@ function DATA.bedrock_set_r(bedrock_id, value)
     DATA.bedrock[bedrock_id].r = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_r(bedrock_id, value)
+    DATA.bedrock[bedrock_id].r = DATA.bedrock[bedrock_id].r + value
+end
+---@param bedrock_id bedrock_id valid bedrock id
 ---@return number g
 function DATA.bedrock_get_g(bedrock_id)
     return DATA.bedrock[bedrock_id].g
@@ -8573,6 +9428,11 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_g(bedrock_id, value)
     DATA.bedrock[bedrock_id].g = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_g(bedrock_id, value)
+    DATA.bedrock[bedrock_id].g = DATA.bedrock[bedrock_id].g + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return number b
@@ -8585,6 +9445,11 @@ function DATA.bedrock_set_b(bedrock_id, value)
     DATA.bedrock[bedrock_id].b = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_b(bedrock_id, value)
+    DATA.bedrock[bedrock_id].b = DATA.bedrock[bedrock_id].b + value
+end
+---@param bedrock_id bedrock_id valid bedrock id
 ---@return number color_id
 function DATA.bedrock_get_color_id(bedrock_id)
     return DATA.bedrock[bedrock_id].color_id
@@ -8593,6 +9458,11 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_color_id(bedrock_id, value)
     DATA.bedrock[bedrock_id].color_id = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_color_id(bedrock_id, value)
+    DATA.bedrock[bedrock_id].color_id = DATA.bedrock[bedrock_id].color_id + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return number sand
@@ -8605,6 +9475,11 @@ function DATA.bedrock_set_sand(bedrock_id, value)
     DATA.bedrock[bedrock_id].sand = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_sand(bedrock_id, value)
+    DATA.bedrock[bedrock_id].sand = DATA.bedrock[bedrock_id].sand + value
+end
+---@param bedrock_id bedrock_id valid bedrock id
 ---@return number silt
 function DATA.bedrock_get_silt(bedrock_id)
     return DATA.bedrock[bedrock_id].silt
@@ -8613,6 +9488,11 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_silt(bedrock_id, value)
     DATA.bedrock[bedrock_id].silt = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_silt(bedrock_id, value)
+    DATA.bedrock[bedrock_id].silt = DATA.bedrock[bedrock_id].silt + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return number clay
@@ -8625,6 +9505,11 @@ function DATA.bedrock_set_clay(bedrock_id, value)
     DATA.bedrock[bedrock_id].clay = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_clay(bedrock_id, value)
+    DATA.bedrock[bedrock_id].clay = DATA.bedrock[bedrock_id].clay + value
+end
+---@param bedrock_id bedrock_id valid bedrock id
 ---@return number organics
 function DATA.bedrock_get_organics(bedrock_id)
     return DATA.bedrock[bedrock_id].organics
@@ -8633,6 +9518,11 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_organics(bedrock_id, value)
     DATA.bedrock[bedrock_id].organics = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_organics(bedrock_id, value)
+    DATA.bedrock[bedrock_id].organics = DATA.bedrock[bedrock_id].organics + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return number minerals
@@ -8645,6 +9535,11 @@ function DATA.bedrock_set_minerals(bedrock_id, value)
     DATA.bedrock[bedrock_id].minerals = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_minerals(bedrock_id, value)
+    DATA.bedrock[bedrock_id].minerals = DATA.bedrock[bedrock_id].minerals + value
+end
+---@param bedrock_id bedrock_id valid bedrock id
 ---@return number weathering
 function DATA.bedrock_get_weathering(bedrock_id)
     return DATA.bedrock[bedrock_id].weathering
@@ -8653,6 +9548,11 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_weathering(bedrock_id, value)
     DATA.bedrock[bedrock_id].weathering = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_weathering(bedrock_id, value)
+    DATA.bedrock[bedrock_id].weathering = DATA.bedrock[bedrock_id].weathering + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return number grain_size
@@ -8665,6 +9565,11 @@ function DATA.bedrock_set_grain_size(bedrock_id, value)
     DATA.bedrock[bedrock_id].grain_size = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_grain_size(bedrock_id, value)
+    DATA.bedrock[bedrock_id].grain_size = DATA.bedrock[bedrock_id].grain_size + value
+end
+---@param bedrock_id bedrock_id valid bedrock id
 ---@return number acidity
 function DATA.bedrock_get_acidity(bedrock_id)
     return DATA.bedrock[bedrock_id].acidity
@@ -8673,6 +9578,11 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_acidity(bedrock_id, value)
     DATA.bedrock[bedrock_id].acidity = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value number valid number
+function DATA.bedrock_inc_acidity(bedrock_id, value)
+    DATA.bedrock[bedrock_id].acidity = DATA.bedrock[bedrock_id].acidity + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return boolean igneous_extrusive
@@ -9122,6 +10032,11 @@ function DATA.resource_set_r(resource_id, value)
     DATA.resource[resource_id].r = value
 end
 ---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_r(resource_id, value)
+    DATA.resource[resource_id].r = DATA.resource[resource_id].r + value
+end
+---@param resource_id resource_id valid resource id
 ---@return number g
 function DATA.resource_get_g(resource_id)
     return DATA.resource[resource_id].g
@@ -9132,6 +10047,11 @@ function DATA.resource_set_g(resource_id, value)
     DATA.resource[resource_id].g = value
 end
 ---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_g(resource_id, value)
+    DATA.resource[resource_id].g = DATA.resource[resource_id].g + value
+end
+---@param resource_id resource_id valid resource id
 ---@return number b
 function DATA.resource_get_b(resource_id)
     return DATA.resource[resource_id].b
@@ -9140,6 +10060,11 @@ end
 ---@param value number valid number
 function DATA.resource_set_b(resource_id, value)
     DATA.resource[resource_id].b = value
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_b(resource_id, value)
+    DATA.resource[resource_id].b = DATA.resource[resource_id].b + value
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
@@ -9174,6 +10099,11 @@ end
 ---@param value number valid number
 function DATA.resource_set_base_frequency(resource_id, value)
     DATA.resource[resource_id].base_frequency = value
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_base_frequency(resource_id, value)
+    DATA.resource[resource_id].base_frequency = DATA.resource[resource_id].base_frequency + value
 end
 ---@param resource_id resource_id valid resource id
 ---@return boolean coastal
@@ -9226,6 +10156,11 @@ function DATA.resource_set_minimum_trees(resource_id, value)
     DATA.resource[resource_id].minimum_trees = value
 end
 ---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_minimum_trees(resource_id, value)
+    DATA.resource[resource_id].minimum_trees = DATA.resource[resource_id].minimum_trees + value
+end
+---@param resource_id resource_id valid resource id
 ---@return number maximum_trees
 function DATA.resource_get_maximum_trees(resource_id)
     return DATA.resource[resource_id].maximum_trees
@@ -9234,6 +10169,11 @@ end
 ---@param value number valid number
 function DATA.resource_set_maximum_trees(resource_id, value)
     DATA.resource[resource_id].maximum_trees = value
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_maximum_trees(resource_id, value)
+    DATA.resource[resource_id].maximum_trees = DATA.resource[resource_id].maximum_trees + value
 end
 ---@param resource_id resource_id valid resource id
 ---@return number minimum_elevation
@@ -9246,6 +10186,11 @@ function DATA.resource_set_minimum_elevation(resource_id, value)
     DATA.resource[resource_id].minimum_elevation = value
 end
 ---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_minimum_elevation(resource_id, value)
+    DATA.resource[resource_id].minimum_elevation = DATA.resource[resource_id].minimum_elevation + value
+end
+---@param resource_id resource_id valid resource id
 ---@return number maximum_elevation
 function DATA.resource_get_maximum_elevation(resource_id)
     return DATA.resource[resource_id].maximum_elevation
@@ -9254,6 +10199,11 @@ end
 ---@param value number valid number
 function DATA.resource_set_maximum_elevation(resource_id, value)
     DATA.resource[resource_id].maximum_elevation = value
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_inc_maximum_elevation(resource_id, value)
+    DATA.resource[resource_id].maximum_elevation = DATA.resource[resource_id].maximum_elevation + value
 end
 
 
@@ -9587,6 +10537,11 @@ function DATA.unit_type_set_r(unit_type_id, value)
     DATA.unit_type[unit_type_id].r = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_r(unit_type_id, value)
+    DATA.unit_type[unit_type_id].r = DATA.unit_type[unit_type_id].r + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number g
 function DATA.unit_type_get_g(unit_type_id)
     return DATA.unit_type[unit_type_id].g
@@ -9595,6 +10550,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_g(unit_type_id, value)
     DATA.unit_type[unit_type_id].g = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_g(unit_type_id, value)
+    DATA.unit_type[unit_type_id].g = DATA.unit_type[unit_type_id].g + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@return number b
@@ -9607,6 +10567,11 @@ function DATA.unit_type_set_b(unit_type_id, value)
     DATA.unit_type[unit_type_id].b = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_b(unit_type_id, value)
+    DATA.unit_type[unit_type_id].b = DATA.unit_type[unit_type_id].b + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number base_price
 function DATA.unit_type_get_base_price(unit_type_id)
     return DATA.unit_type[unit_type_id].base_price
@@ -9615,6 +10580,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_base_price(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_price = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_base_price(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_price = DATA.unit_type[unit_type_id].base_price + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@return number upkeep
@@ -9627,6 +10597,11 @@ function DATA.unit_type_set_upkeep(unit_type_id, value)
     DATA.unit_type[unit_type_id].upkeep = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_upkeep(unit_type_id, value)
+    DATA.unit_type[unit_type_id].upkeep = DATA.unit_type[unit_type_id].upkeep + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number supply_used how much food does this unit consume each month
 function DATA.unit_type_get_supply_used(unit_type_id)
     return DATA.unit_type[unit_type_id].supply_used
@@ -9635,6 +10610,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_supply_used(unit_type_id, value)
     DATA.unit_type[unit_type_id].supply_used = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_supply_used(unit_type_id, value)
+    DATA.unit_type[unit_type_id].supply_used = DATA.unit_type[unit_type_id].supply_used + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
@@ -9661,6 +10641,12 @@ function DATA.unit_type_set_trade_good_requirements_amount(unit_type_id, index, 
     DATA.unit_type[unit_type_id].trade_good_requirements[index].amount = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param index number valid index
+---@param value number valid number
+function DATA.unit_type_inc_trade_good_requirements_amount(unit_type_id, index, value)
+    DATA.unit_type[unit_type_id].trade_good_requirements[index].amount = DATA.unit_type[unit_type_id].trade_good_requirements[index].amount + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number base_health
 function DATA.unit_type_get_base_health(unit_type_id)
     return DATA.unit_type[unit_type_id].base_health
@@ -9669,6 +10655,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_base_health(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_health = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_base_health(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_health = DATA.unit_type[unit_type_id].base_health + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@return number base_attack
@@ -9681,6 +10672,11 @@ function DATA.unit_type_set_base_attack(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_attack = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_base_attack(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_attack = DATA.unit_type[unit_type_id].base_attack + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number base_armor
 function DATA.unit_type_get_base_armor(unit_type_id)
     return DATA.unit_type[unit_type_id].base_armor
@@ -9689,6 +10685,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_base_armor(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_armor = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_base_armor(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_armor = DATA.unit_type[unit_type_id].base_armor + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@return number speed
@@ -9701,6 +10702,11 @@ function DATA.unit_type_set_speed(unit_type_id, value)
     DATA.unit_type[unit_type_id].speed = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_speed(unit_type_id, value)
+    DATA.unit_type[unit_type_id].speed = DATA.unit_type[unit_type_id].speed + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number foraging how much food does this unit forage from the local province?
 function DATA.unit_type_get_foraging(unit_type_id)
     return DATA.unit_type[unit_type_id].foraging
@@ -9709,6 +10715,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_foraging(unit_type_id, value)
     DATA.unit_type[unit_type_id].foraging = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_foraging(unit_type_id, value)
+    DATA.unit_type[unit_type_id].foraging = DATA.unit_type[unit_type_id].foraging + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index unit_type_id valid
@@ -9723,6 +10734,12 @@ function DATA.unit_type_set_bonuses(unit_type_id, index, value)
     DATA.unit_type[unit_type_id].bonuses[index] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.unit_type_inc_bonuses(unit_type_id, index, value)
+    DATA.unit_type[unit_type_id].bonuses[index] = DATA.unit_type[unit_type_id].bonuses[index] + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number supply_capacity how much food can this unit carry
 function DATA.unit_type_get_supply_capacity(unit_type_id)
     return DATA.unit_type[unit_type_id].supply_capacity
@@ -9731,6 +10748,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_supply_capacity(unit_type_id, value)
     DATA.unit_type[unit_type_id].supply_capacity = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_supply_capacity(unit_type_id, value)
+    DATA.unit_type[unit_type_id].supply_capacity = DATA.unit_type[unit_type_id].supply_capacity + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@return Technology? unlocked_by
@@ -9753,6 +10775,11 @@ function DATA.unit_type_set_spotting(unit_type_id, value)
     DATA.unit_type[unit_type_id].spotting = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_spotting(unit_type_id, value)
+    DATA.unit_type[unit_type_id].spotting = DATA.unit_type[unit_type_id].spotting + value
+end
+---@param unit_type_id unit_type_id valid unit_type id
 ---@return number visibility
 function DATA.unit_type_get_visibility(unit_type_id)
     return DATA.unit_type[unit_type_id].visibility
@@ -9761,6 +10788,11 @@ end
 ---@param value number valid number
 function DATA.unit_type_set_visibility(unit_type_id, value)
     DATA.unit_type[unit_type_id].visibility = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_inc_visibility(unit_type_id, value)
+    DATA.unit_type[unit_type_id].visibility = DATA.unit_type[unit_type_id].visibility + value
 end
 
 

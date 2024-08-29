@@ -444,10 +444,10 @@ function EconomicEffects.buy(character, good, amount)
 end
 
 ---Returns available units for satisfying a use case from pop inventory or realm resources
----@param inventory table<trade_good_id, number?>
+---@param pop pop_id
 ---@param use_case use_case_id
 ---@return number
-function EconomicEffects.available_use_case_from_inventory(inventory, use_case)
+function EconomicEffects.available_use_case_from_inventory(pop, use_case)
 	local supply = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
 		local good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
@@ -462,11 +462,11 @@ end
 
 --- Consumes up to amount of use case from inventory in equal parts to available.
 --- Returns total amount able to be satisfied.
----@param inventory table<trade_good_id, number?>
+---@param pop pop_id
 ---@param use_case use_case_id
 ---@param amount number
 ---@return number consumed
-function EconomicEffects.consume_use_case_from_inventory(inventory, use_case, amount)
+function EconomicEffects.consume_use_case_from_inventory(pop, use_case, amount)
 	local supply = EconomicEffects.available_use_case_from_inventory(inventory, use_case)
 	if supply < amount then
 		error("NOT ENOUGH IN INVENTORY: "

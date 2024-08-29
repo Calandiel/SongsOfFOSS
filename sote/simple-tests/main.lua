@@ -12,16 +12,16 @@ return function ()
 	-- fat id performance test
 
 	local tile = DATA.create_province()
-	local fat_tile = DATA.fatten_tile(tile)
 
 	local now = love.timer.getTime()
-	for i = 1, 1000000000 do
+	for i = 1, 100000000 do
 		DATA.tile_set_real_r(tile, math.random())
 	end
 	print(love.timer.getTime() - now)
 
 	now = love.timer.getTime()
-	for i = 1, 1000000000 do
+	for i = 1, 100000000 do
+		local fat_tile = DATA.fatten_tile(tile)
 		fat_tile.real_r = math.random()
 	end
 	print(love.timer.getTime() - now)

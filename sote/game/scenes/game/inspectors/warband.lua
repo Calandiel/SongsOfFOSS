@@ -769,7 +769,7 @@ function window.draw(gamescene)
 	---@param rect Rect
 	local function draw_strength_panel(rect)
 		-- warband count and target and strength calculations
-		local total_health, total_attack, total_armor, _, count = warband:get_total_strength()
+		local total_health, total_attack, total_armor, _, count = warband:total_strength()
 		local plural = "s"
 		if count == 1 then
 			plural = ""
@@ -885,7 +885,7 @@ function window.draw(gamescene)
 			ut.NUMBER_MODE.NUMBER,
 			ut.NAME_MODE.ICON
 		)
-		local loot_capacity = warband:get_loot_capacity()
+		local loot_capacity = warband:loot_capacity()
 		ut.generic_number_field(
 			"cardboard-box.png",
 			loot_capacity,

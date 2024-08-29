@@ -258,7 +258,7 @@ end
 ---@param pop pop_id
 ---@param unit unit_type_id
 ---@return number pop_adjusted visibility modified by pop race and sex
-function rtab.POP.pop_get_visibility(pop, unit)
+function rtab.POP.get_visibility(pop, unit)
 	local race = DATA.pop_get_race(pop)
 	local visibility = DATA.race_get_visibility(race)
 	local mod = visibility * rtab.POP.size(pop)
