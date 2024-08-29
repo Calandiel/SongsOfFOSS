@@ -12,6 +12,7 @@ local AGE_TYPES = {
 local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local open_issues = require "libsote.glaciation.open-issues"
 local rock_qualities = require "libsote.rock-qualities"
+local rock_types = require "libsote.rock-type".TYPES
 
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[glacial-formation]"
@@ -254,7 +255,7 @@ local function process_ice_expansion(ti, boost_ice)
 		ice_flow[ti] = ice_flow[ti] - ice_to_give
 		ice_moved[nti] = ice_moved[nti] + ice_to_give
 
-		-- max_ice = math.max(max_ice, ice_flow[nti])
+		-- max_ice = math.max(ice_flow[nti], max_ice)
 
 		if glacial_seed[nti] then return end
 
@@ -302,17 +303,38 @@ local function set_permanent_ice_variables(is_ice_age)
 	max_ice_moved = 0
 
 	world:for_each_tile(function(ti)
-		if not glacial_seed[ti] then return end
+		if glacial_seed[ti] then
+			max_ice = math.max(ice_flow[ti], max_ice)
+			max_ice_moved = math.max(ice_moved[ti], max_ice_moved)
 
-		max_ice = math.max(max_ice, ice_flow[ti])
-		max_ice_moved = math.max(max_ice_moved, ice_moved[ti])
+			if is_ice_age then
+				local converted_ice_height = ice_flow[ti] / 100
+				converted_ice_height = math.min(math.max(1, converted_ice_height), 250)
+				world.ice_age_ice[ti] = converted_ice_height
+			else
+				world.ice[ti] = ice_flow[ti]
+			end
+		end
 
-		if is_ice_age then
-			local converted_ice_height = ice_flow[ti] / 100
-			converted_ice_height = math.min(math.max(converted_ice_height, 1), 250)
-			world.ice_age_ice[ti] = converted_ice_height
-		else
-			world.ice[ti] = ice_flow[ti]
+		if is_ice_age and world.is_land[ti] and world.ice_age_ice[ti] <= 50 then --* Apply bedrock weathering to all tiles that are not underneath Ice Age Ice
+			--* Scale ice age ice influence on chemical weathering between 1 - 50.  Everything above 50 = 0 influence
+			local chemical_weathering = math.max(1, (world.jan_rainfall[ti] + world.jul_rainfall[ti]) / 40)
+
+			local volcanic_modifier = 1 --* If volcanic, recent eruptions mean material is refreshed and "resistant" to chemical weathering
+			local rock_type = world.rock_type[ti]
+			if rock_type == rock_types.basic_volcanics then
+				volcanic_modifier = 0.3
+			elseif rock_type == rock_types.mixed_volcanics then
+				volcanic_modifier = 0.5
+			elseif rock_type == rock_types.acid_volcanics then
+				volcanic_modifier = 0.65
+			end
+			chemical_weathering = 1 + (chemical_weathering - 1) * volcanic_modifier
+
+			local ice_age_inhibitor = 1 - (world.ice_age_ice[ti] / 50) --* More ice age ice height means ice sheet shielded from chemical weathering for longer
+			local material_removed = world.mineral_richness[ti] * (1 - 1 / chemical_weathering) * ice_age_inhibitor
+
+			world.mineral_richness[ti] = math.floor(world.mineral_richness[ti] - material_removed)
 		end
 	end)
 
@@ -516,8 +538,8 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 		for _, mp_ti in ipairs(melt_province) do
 			total_material = total_material + texture_material[mp_ti]
 			total_richness = total_richness + material_richness[mp_ti]
-			max_material = math.max(max_material, texture_material[mp_ti])
-			max_richness = math.max(max_richness, material_richness[mp_ti])
+			max_material = math.max(texture_material[mp_ti], max_material)
+			max_richness = math.max(material_richness[mp_ti], max_richness)
 		end
 
 		total_material = open_issues.adjust_material_for_province_size_before(total_material, is_ice_age, #melt_province, use_original)
@@ -553,8 +575,8 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 			already_added[i_ti] = false
 
 			local log_silt = math.log(silt_storage[i_ti] + 1)
-			max_silt_storage = math.max(max_silt_storage, log_silt)
-			max_mineral_storage = math.max(max_mineral_storage, mineral_storage[i_ti])
+			max_silt_storage = math.max(log_silt, max_silt_storage)
+			max_mineral_storage = math.max(mineral_storage[i_ti], max_mineral_storage)
 		end
 
 		::continue2::
@@ -572,6 +594,20 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 		fraction = mineral_storage[ti] / max_mineral_storage
 		red = fraction * 255
 		set_debug(7, ti, red, 0, 0, 255)
+	end)
+end
+
+local function cull_back_silt_based_on_moisture_and_slope()
+end
+
+local function assign_ice_biomes_and_set_variables()
+	world:for_each_tile(function(ti)
+		if world.ice[ti] > 0 then
+			-- set biome here
+		else
+			world.silt[ti] = world.silt[ti] + silt_storage[ti]
+			world.mineral_richness[ti] = world.mineral_richness[ti] + mineral_storage[ti]
+		end
 	end)
 end
 
@@ -653,6 +689,10 @@ function gm.run(world_obj)
 	process_age(AGE_TYPES.ice_age)
 	world:reset_debug_all()
 	process_age(AGE_TYPES.game_age)
+
+	run_with_profiling(function() cull_back_silt_based_on_moisture_and_slope() end, "cull_back_silt_based_on_moisture_and_slope")                           -- #15
+	--* Dispose of Lists                                                                                                                                    -- #16
+	run_with_profiling(function() assign_ice_biomes_and_set_variables() end, "assign_ice_biomes_and_set_variables")                                         -- #17
 
 	if align_rng then
 		rng:set_state(preserved_state)
