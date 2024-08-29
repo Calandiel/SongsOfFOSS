@@ -3,13 +3,18 @@ PoliticalValues = {}
 
 ---comment
 ---@param character Character
----@param province Province
+---@param province province_id
 ---@return number
 function PoliticalValues.power_base(character, province)
     local total = 0
-    for k, v in pairs(province.characters) do
-        if (v.loyalty == character) or (v == character) then
-            total = total + PoliticalValues.popularity(v, province.realm)
+    for k, character_location in pairs(DATA.get_character_location_from_location(province)) do
+        local test_character = DATA.character_location_get_character(character_location)
+        local loyal_to = DATA.pop_get_loyalty(test_character)
+        if (loyal_to == character) or (test_character == character) then
+            local realm = DATA.province_get_realm(province)
+            if realm then
+                total = total + PoliticalValues.popularity(test_character, realm)
+            end
         end
     end
 
@@ -42,17 +47,20 @@ function PoliticalValues.military_strength(character)
     if character == nil then
         return 0, 0
     end
-    if character.dead then
+    if DATA.pop_get_dead(character) then
         return 0, 0
     end
 
     local total_warlords = 0
     local total_army = 0
 
-    for k, v in pairs(character.province.characters) do
-        if (v.loyalty == character or v == character) and v.leading_warband then
+    for k, character_location in pairs(DATA.get_character_location_from_location(province)) do
+        local test_character = DATA.character_location_get_character(character_location)
+        local loyal_to = DATA.pop_get_loyalty(test_character)
+        local leading_warband = DATA.pop_get_leading_warband(test_character)
+        if (loyal_to == character or test_character == character) and leading_warband then
             total_warlords = total_warlords + 1
-            total_army = total_army + v.leading_warband:size()
+            total_army = total_army + leading_warband:size()
         end
     end
 
@@ -66,10 +74,13 @@ function PoliticalValues.military_strength_ready(character)
     local total_warlords = 0
     local total_army = 0
 
-    for k, v in pairs(character.province.characters) do
-        if (v.loyalty == character or v == character) and v.leading_warband and v.leading_warband.status == 'idle' then
+    for k, character_location in pairs(DATA.get_character_location_from_location(province)) do
+        local test_character = DATA.character_location_get_character(character_location)
+        local loyal_to = DATA.pop_get_loyalty(test_character)
+        local leading_warband = DATA.pop_get_leading_warband(test_character)
+        if (loyal_to == character or test_character == character) and leading_warband and leading_warband.status == 'idle' then
             total_warlords = total_warlords + 1
-            total_army = total_army + v.leading_warband:size()
+            total_army = total_army + leading_warband:size()
         end
     end
 

@@ -1,0 +1,20 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+base_price float=10
+upkeep float=0.5
+supply_used float=1 how much food does this unit consume each month
+trade_good_requirements trade_good_container[10]
+base_health float=50
+base_attack float=5
+base_armor float=1
+speed float=1
+foraging float=0.1 how much food does this unit forage from the local province?
+bonuses float[unit_type]
+supply_capacity float=5 how much food can this unit carry
+unlocked_by Technology?=nil
+spotting float=1
+visibility float=1

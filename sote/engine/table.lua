@@ -216,4 +216,17 @@ function tab.join(first, second)
 	return first
 end
 
+---Given two arrays of similar value, insert all values from the second array into the first.
+---Returns the first array with all values in both arrays
+---@generic V
+---@param first V[]
+---@param second V[]
+---@return V[]
+function tab.join_arrays(first, second)
+	for k, v in pairs(second) do
+		table.insert(first, v)
+	end
+	return first
+end
+
 return tab

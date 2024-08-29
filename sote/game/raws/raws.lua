@@ -26,7 +26,8 @@ return function(do_logging)
 	print("Loading needs and goods")
 	require "game.raws.use-case-loader".load()
 	require "game.raws.trade-goods-loader".load()
-	require "game.raws.needs"
+
+	RECALCULATE_WEIGHTS_TABLE()
 
 	print("Loading races")
 	require "game.raws.race-loader".load()

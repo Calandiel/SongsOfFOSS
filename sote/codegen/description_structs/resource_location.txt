@@ -1,0 +1,2 @@
+resource resource
+location tile

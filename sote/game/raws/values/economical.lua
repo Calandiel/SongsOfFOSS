@@ -3,8 +3,6 @@ local tabb = require "engine.table"
 local good = require "game.raws.raws-utils".trade_good
 local use_case = require "game.raws.raws-utils".trade_good_use_case
 
-local traits = require "game.raws.traits.generic"
-
 local eco_values = {}
 
 ---comment
@@ -19,8 +17,11 @@ end
 function eco_values.realm_independence_price(realm)
     local total = 0
 
-    for _, pop in pairs(realm.capitol.all_pops) do
-        total = total + pop.savings
+    local capitol = realm.capitol
+
+    for _, pop_location in pairs(DATA.get_pop_location_from_location(capitol)) do
+        local pop = DATA.pop_location_get_pop(pop_location)
+        total = total + DATA.pop_get_savings(pop)
     end
 
     return total * 0.5 + 50
@@ -45,11 +46,18 @@ function eco_values.building_cost(building_type, overseer, public)
     if overseer == nil then
         cost_multiplier = 2
     else
-        if overseer.traits[traits.BAD_ORGANISER] then
-            cost_multiplier = cost_multiplier * 1.5
-        end
-        if overseer.traits[traits.GOOD_ORGANISER] then
-            cost_multiplier = cost_multiplier * 0.5
+        for i = 0, MAX_TRAIT_INDEX do
+            local trait = DATA.pop_get_traits(overseer, i)
+
+            if trait == 0 then
+                break
+            end
+
+            if trait == TRAIT.BAD_ORGANISER then
+                cost_multiplier = cost_multiplier * 1.5
+            elseif trait == TRAIT.GOOD_ORGANISER then
+                cost_multiplier = cost_multiplier * 0.5
+            end
         end
     end
 
@@ -61,18 +69,15 @@ function eco_values.building_cost(building_type, overseer, public)
 end
 
 ---comment
----@param province Province
+---@param province province_id
 ---@param trade_good trade_good_id
 ---@return number price
 function eco_values.get_local_price(province, trade_good)
-    if province.local_prices[trade_good] == nil then
-        province.local_prices[trade_good] = 0.0001
-    end
-    return province.local_prices[trade_good]
+    return DATA.province_get_local_prices(province, trade_good)
 end
 
 ---commenting
----@param province Province
+---@param province province_id
 ---@param use use_case_id
 ---@return number sum_of_exponents
 ---@return number min_price
@@ -99,7 +104,7 @@ local function soft_max_data_for_use(province, use)
 end
 
 ---calculates price estimation of unit of use
----@param province Province
+---@param province province_id
 ---@param use use_case_id
 ---@return number price
 function eco_values.get_local_price_of_use(province, use)
@@ -123,7 +128,7 @@ function eco_values.get_local_price_of_use(province, use)
 end
 
 ---calculates price estimation of unit of use given a price table
----@param province Province
+---@param province province_id
 ---@param use use_case_id
 ---@param prices table<trade_good_id, number>
 ---@return number price
@@ -168,14 +173,14 @@ function eco_values.get_local_price_of_use_with_prices(province, use, prices)
 end
 
 ---comment
----@param province Province
+---@param province province_id
 ---@param trade_good trade_good_id
 ---@param amount number
 ---@param stockpile boolean
 ---@return number price
 function eco_values.get_pessimistic_local_price(province, trade_good, amount, stockpile)
-    local sold = province.local_production[trade_good] or 0
-    local bought = province.local_consumption[trade_good] or 0
+    local sold = DATA.province_get_local_production(province, trade_good)
+    local bought = DATA.province_get_local_consumption(province, trade_good)
     local trade_volume = sold + bought + 0.001 + amount
 
     local sale_price_decrease = PRICE_SIGNAL_PER_STOCKPILED_UNIT * amount / trade_volume
@@ -191,7 +196,7 @@ function eco_values.get_pessimistic_local_price(province, trade_good, amount, st
     return (optimistic_price + pessimistic_price) / 2
 end
 
----@param race Race
+---@param race race_id
 ---@param female boolean
 ---@param building_type BuildingType
 function eco_values.race_throughput_multiplier(race, female, building_type)
@@ -200,13 +205,16 @@ function eco_values.race_throughput_multiplier(race, female, building_type)
         return 1
     end
 
+    local production_method = building_type.production_method
+    local jobtype = production_method.job_type
+
     if female then
-        return race.female_efficiency[building_type.production_method.job_type]
+        return DATA.race_get_female_efficiency(race, jobtype)
     end
-    return race.male_efficiency[building_type.production_method.job_type]
+    return DATA.race_get_male_efficiency(race, jobtype)
 end
 
----@param race Race
+---@param race race_id
 ---@param female boolean
 ---@param building_type BuildingType
 function eco_values.race_output_multiplier(race, female, building_type)
@@ -215,13 +223,16 @@ function eco_values.race_output_multiplier(race, female, building_type)
         return 1
     end
 
+    local production_method = building_type.production_method
+    local jobtype = production_method.job_type
+
     if female then
-        return race.female_efficiency[building_type.production_method.job_type]
+        return DATA.race_get_female_efficiency(race, jobtype)
     end
-    return race.male_efficiency[building_type.production_method.job_type]
+    return DATA.race_get_male_efficiency(race, jobtype)
 end
 
----@param province Province
+---@param province province_id
 ---@param building_type BuildingType
 function eco_values.projected_income_building_type_unknown_pop(province, building_type)
     local shortage_modifier = eco_values.estimate_shortage(province, building_type.production_method)
@@ -241,9 +252,9 @@ function eco_values.projected_income_building_type_unknown_pop(province, buildin
     return income * shortage_modifier
 end
 
----@param province Province
+---@param province province_id
 ---@param building_type BuildingType
----@param race Race
+---@param race race_id
 ---@param female boolean
 function eco_values.projected_income_building_type(province, building_type, race, female)
     local shortage_modifier = eco_values.estimate_shortage(province, building_type.production_method)
@@ -266,7 +277,7 @@ end
 
 ---Does not account for shortages: displays info based only on prices
 ---@param building Building
----@param race Race
+---@param race race_id
 ---@param female boolean
 ---@param prices table<trade_good_id, number>
 ---@param efficiency number
@@ -304,7 +315,7 @@ function eco_values.projected_income(building, race, female, prices, efficiency)
 end
 
 ---commenting
----@param province Province
+---@param province province_id
 ---@param use use_case_id
 ---@return number
 function eco_values.available_use(province, use)
@@ -320,9 +331,9 @@ function eco_values.available_use(province, use)
 
         local price = eco_values.get_local_price(province, trade_good)
         local ratio_of_good = math.exp(-price + min_price) / sum_of_exponents
-        local available = (province.local_production[trade_good] or 0)
-                        - (province.local_consumption[trade_good] or 0)
-                        + (province.local_storage[trade_good] or 0)
+        local available = (DATA.province_get_local_production(province, trade_good))
+                        - (DATA.province_get_local_consumption(province, trade_good))
+                        + (DATA.province_get_local_storage(province, trade_good))
 
         local upped_bound = available * weight / ratio_of_good
 
@@ -334,15 +345,15 @@ function eco_values.available_use(province, use)
 end
 
 ---returns total amount of unit of use in local stockpile
----@param province Province
+---@param province province_id
 ---@param use use_case_id
 ---@return number total_amount
 function eco_values.get_local_amount_of_use(province, use)
     local total_amount = 0
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    for _, weight_id in pairs(DATA.get_use_weight_from_use_case(use)) do
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local weight = DATA.use_weight_get_weight(weight_id)
-        total_amount = total_amount + (province.local_storage[trade_good] or 0) * weight
+        total_amount = total_amount + DATA.province_get_local_storage(province, trade_good) * weight
     end
 
     return total_amount

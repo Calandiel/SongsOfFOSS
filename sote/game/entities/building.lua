@@ -1,3 +1,5 @@
+local province_utils = require "game.entities.province".Province
+
 ---@class (exact) Building
 ---@field __index Building
 ---@field type BuildingType
@@ -6,7 +8,7 @@
 ---@field workers table<pop_id, pop_id>
 ---@field worker_income table<pop_id, number>
 ---@field owner pop_id?
----@field province Province
+---@field province province_id
 ---@field subsidy number
 ---@field subsidy_last number
 ---@field income_mean number
@@ -25,7 +27,7 @@ local bld = {}
 ---@class Building
 bld.Building = {}
 bld.Building.__index = bld.Building
----@param province Province province to build the building in
+---@param province province_id province to build the building in
 ---@param building_type BuildingType
 ---@return Building
 function bld.Building:new(province, building_type)
@@ -64,7 +66,7 @@ function bld.Building:remove_from_province()
 
 	-- Fire current workers
 	for _, pop in pairs(self.workers) do
-		province:fire_pop(pop)
+		province_utils.fire_pop(province, pop)
 	end
 
 	-- Remove yourself from provincial data structures

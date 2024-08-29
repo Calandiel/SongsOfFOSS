@@ -2,6 +2,7 @@
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local pop_utils = require "game.entities.pop".POP
+local province_utils = require "game.entities.province".Province
 
 local use_cases_size = DATA.use_case_size
 
@@ -127,7 +128,7 @@ end
 
 
 ---Runs production on a single province!
----@param province Province
+---@param province province_id
 function pro.run(province)
 	total_realm_donations = 0
 	total_local_donations = 0
@@ -148,9 +149,9 @@ function pro.run(province)
 	---@param good trade_good_id
 	local function reset_good_data(good)
 		-- available resources calculation:
-		local consumption = province.local_consumption[good] or 0
-		local production = province.local_production[good] or 0
-		local storage = province.local_storage[good] or 0
+		local consumption = DATA.province_get_local_consumption(province, good)
+		local production = DATA.province_get_local_production(province, good)
+		local storage = DATA.province_get_local_storage(province, good)
 		market_data[good].available = storage
 		if market_data[good].available < 0 then
 			error("INVALID START TO PRODUCTION-AND-CONSUMPTION TICK"
@@ -266,19 +267,20 @@ function pro.run(province)
 	--local water_index = RAWS_MANAGER.trade_good_to_index["water"]
 	--record_production(water_index, province.hydration)
 
-	local efficiency_from_infrastructure = province:get_infrastructure_efficiency()
+	local efficiency_from_infrastructure = province_utils.get_infrastructure_efficiency(province)
 	-- Record local production...
 	-- TODO MAKE NEW EFFICIENCY FUNCTION FOR FULL PRODUCTION AT 0 FORAGERS AND 0-ISH AT FORAGERS LIMIT
-	local last_foraging_efficiency = dbm.foraging_efficiency(province.foragers_limit, province.foragers)
-	local last_hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.5, province.foragers_water)
+	local last_foraging_efficiency = dbm.foraging_efficiency(DATA.province_get_foragers_limit(province), province.foragers)
+	local last_hydration_efficiency = dbm.foraging_efficiency(DATA.province_get_hydration(province) * 0.5, province.foragers_water)
 	local foragers_count = 0
 	local foragers_water = 0
 	local foragers_efficiency = 1
 	local hydration_efficiency = 1
 
-	local old_wealth = province.local_wealth -- store wealth before this tick, used to calculate income later
-	local population = province:local_population()
-	local min_income_pop = math.max(50, math.min(200, 100 + province.mood * 10))
+	local old_wealth = DATA.province_get_local_wealth(province) -- store wealth before this tick, used to calculate income later
+	local population = province_utils.local_population(province)
+	local mood = DATA.province_get_mood(province)
+	local min_income_pop = math.max(50, math.min(200, 100 + mood * 10))
 
 
 	-- TODO: IMPLEMENT CULTURAL VALUE
@@ -557,12 +559,11 @@ function pro.run(province)
 
 				local demanded = DATA.pop_get_need_satisfaction_demanded(pop_id, index)
 				for good, amount in pairs(foraged_goods) do
-					local weight_id = DATA.get_use_weight(good, use_case)
+					local weight = USE_WEIGHT[good][use_case]
 					local consumed = family_unit_satisfaction_data[index].consumed
 
 					local difference = math.max(0, demanded - consumed)
-					if weight_id and difference > 0 then
-						local weight = DATA.use_weight_get_weight(weight_id)
+					if weight and difference > 0 then
 						local weighted_amount = weight * amount
 						---@type number
 						local consumption = math.min(weighted_amount, difference)
@@ -825,17 +826,24 @@ function pro.run(province)
 	-- sort pops by wealth:
 	---@type pop_id[]
 	local pops_by_wealth = tabb.accumulate(
-		tabb.join(
-			tabb.copy(province.all_pops),
-			province.characters
+		tabb.join_arrays(
+			tabb.map_array(
+				DATA.get_pop_location_from_location(province),
+				DATA.pop_location_get_pop
+			),
+			tabb.map_array(
+				DATA.get_character_location_from_location(province),
+				DATA.character_location_get_character
+			)
 		),
 		{},
 		function (a, _, pop)
 			-- record total time for family dependents only if in same province
-			local home_province = DATA.pop_get_home_province(pop)
+			local home_province = DATA.home_get_home(DATA.get_home_from_pop(pop))
 			local age_multiplier = pop_utils.get_age_multiplier(pop)
 			local age = DATA.pop_get_age(pop)
 			local race = DATA.pop_get_race(pop)
+			local teen_age = DATA.race_get_teen_age(race)
 			local culture = DATA.pop_get_culture(pop)
 			local parent = DATA.pop_get_parent(pop)
 			local unit_of_warband = DATA.pop_get_unit_of_warband(pop)
@@ -843,7 +851,7 @@ function pro.run(province)
 
 			local parent_present = true
 			if parent then
-				local parent_province = DATA.pop_get_province(parent)
+				local parent_province = DATA.pop_location_get_pop(DATA.get_pop_location_from_pop(parent))
 				if parent_province ~= province then
 					parent_present = false
 				end
@@ -852,11 +860,12 @@ function pro.run(province)
 			end
 
 			if home_province == province then
-				tabb.size(tabb.filter(DATA.parent_child_relation_from_parent[pop], function (relation)
+				tabb.size(tabb.filter_array(DATA.get_parent_child_relation_from_parent(parent), function (relation)
 					local child = DATA.parent_child_relation_get_child(relation)
 					local age_child = DATA.pop_get_age(child)
-					if age_child < race.teen_age then
-							additional_family_time[pop] = (additional_family_time[pop] or 0) + age / race.teen_age * age_multiplier
+					local teen_age_child = DATA.race_get_teen_age(race)
+					if age_child < teen_age_child then
+							additional_family_time[pop] = (additional_family_time[pop] or 0) + age / teen_age_child * age_multiplier
 						return true
 					end
 					return false
@@ -871,20 +880,20 @@ function pro.run(province)
 				total_local_donations = total_local_donations + pop_donation_total * 0.4
 				total_trade_donations = total_trade_donations + pop_donation_total * 0.2
 			else
-				local popularity = pv.popularity(pop, province.realm)
+				local popularity = pv.popularity(pop, DATA.province_get_realm(province))
 				if popularity > 0 then
 					total_popularity = total_popularity + popularity
 				end
 			end
 			-- update 'family units', add to pop satisfy needs list only if an 'adult' or an absant parent, either away or none at all
-			if (age >= race.teen_age) or (not parent_present) then
+			if (age >= teen_age) or (not parent_present) then
 				-- record foraging time of 'family unit' for efficiency
 
 				local water_search = culture.traditional_forager_targets[WATER_USE_CASE].search
-				local foragers_increase = race.carrying_capacity_weight * age_multiplier
+				local foragers_increase = DATA.race_get_carrying_capacity_weight(race) * age_multiplier
 				-- if in warband and foraging, half of free time goes to foraging for warband
-				if age < race.teen_age then
-					foragers_increase = foragers_increase * age / race.teen_age
+				if age < teen_age then
+					foragers_increase = foragers_increase * age / teen_age
 				elseif unit_of_warband and unit_of_warband.status == "idle" and unit_of_warband.idle_stance == "forage" then
 					local weight = foragers_increase * unit_of_warband.current_free_time_ratio * 0.25
 					foragers_count = foragers_count + weight
@@ -946,13 +955,14 @@ function pro.run(province)
 	end)
 
 	-- calculate foragers efficiency base on planned foraging
-	foragers_efficiency = dbm.foraging_efficiency(province.foragers_limit, foragers_count)
-	hydration_efficiency = dbm.foraging_efficiency(province.hydration * 0.5, foragers_water)
+	foragers_efficiency = dbm.foraging_efficiency(DATA.province_get_foragers_limit(province), foragers_count)
+	hydration_efficiency = dbm.foraging_efficiency(DATA.province_get_hydration(province) * 0.5, foragers_water)
 
 	PROFILER:start_timer("production-pops-loop")
 	for _, pop in ipairs(pops_by_wealth) do
 		local race = DATA.pop_get_race(pop)
 		local age = DATA.pop_get_age(pop)
+		local teen_age = DATA.race_get_teen_age(race)
 		local female = DATA.pop_get_female(pop)
 		local unit_of_warband = DATA.pop_get_unit_of_warband(pop)
 		local building = DATA.pop_get_employer(pop)
@@ -964,15 +974,16 @@ function pro.run(province)
 		for tag, value in pairs(JOBTYPE) do
 			pop_job_efficiency[value] = pop_utils.job_efficiency(pop, value)
 		end
-		pop_view[zero].foraging_efficiency = race.carrying_capacity_weight * (1 + tools_satisfaction[pop])
-		pop_view[zero].hydration_efficiency = race.carrying_capacity_weight * (1 + containers_satisfaction[pop])
+		local race_weight = DATA.race_get_carrying_capacity_weight(race)
+		pop_view[zero].foraging_efficiency = race_weight * (1 + tools_satisfaction[pop])
+		pop_view[zero].hydration_efficiency = race_weight * (1 + containers_satisfaction[pop])
 
 		-- base income: all adult pops forage and help each other which translates into a bit of wealth
 		-- real reason: wealth sources to fuel the economy
 		-- buidings are essentially wealth sinks currently
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
-		local base_income = race.carrying_capacity_weight * age / race.max_age;
+		local base_income = race_weight * age / DATA.race_get_max_age(race);
 		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
 
 		local free_time_of_pop = 1;
@@ -1151,20 +1162,20 @@ function pro.run(province)
 					DATA.pop_set_work_ratio(pop, new_work_ratio)
 					DATA.pop_set_forage_ratio(pop, 1 - new_work_ratio)
 				end
-
-				if province.trade_wealth < income then
+				local trade_wealth = DATA.province_get_trade_wealth(province)
+				if trade_wealth < income then
 					-- generate some wealth if selling more goods than market can afford
-					income = math.min(province.trade_wealth, income) + 0.5 * (income - province.trade_wealth)
+					income = math.min(trade_wealth, income) + 0.5 * (income - trade_wealth)
 				end
 				building.worker_income[pop] = (building.worker_income[pop] or 0) + income
 				economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
-				province.trade_wealth = math.max(0, province.trade_wealth - income)
+				DATA.province_set_trade_wealth(province,  math.max(0, trade_wealth - income))
 			end
 			PROFILER:end_timer('production-building-update')
 
-			if age < race.teen_age then
+			if age < teen_age then
 				-- children spend time on games and growing up:
-				free_time_of_pop = free_time_of_pop * age / race.teen_age
+				free_time_of_pop = free_time_of_pop * age / teen_age
 			end
 
 			-- every pop spends some time or wealth on fullfilling the need of their children and themselves
@@ -1211,9 +1222,9 @@ function pro.run(province)
 			end
 		end
 	end
-	economic_effects.register_income(province.realm, realm_share, economic_effects.reasons.Donation)
+	economic_effects.register_income(DATA.province_get_realm(province), realm_share, economic_effects.reasons.Donation)
 	economic_effects.change_local_wealth(province, total_local_donations, economic_effects.reasons.Donation)
-	province.trade_wealth = province.trade_wealth + total_trade_donations
+	DATA.province_set_trade_wealth(province, DATA.province_get_trade_wealth(province) + total_trade_donations)
 
 	for character, income in pairs(donations_to_owners) do
 		economic_effects.add_pop_savings(character, income, economic_effects.reasons.BuildingIncome)
@@ -1221,10 +1232,9 @@ function pro.run(province)
 
 	PROFILER:end_timer('donations')
 
-	province.local_income = province.local_wealth - old_wealth
-
-	province.foragers = foragers_count -- Record the new number of foragers
-	province.foragers_water = foragers_water
+	DATA.province_set_local_income(province, DATA.province_get_local_income(province) - old_wealth)
+	DATA.province_set_foragers(province, foragers_count)
+	DATA.province_set_foragers_water(province, foragers_water)
 
 	for _, bld in pairs(province.buildings) do
 		local prod = bld.type.production_method
@@ -1247,27 +1257,27 @@ function pro.run(province)
 	---@param good trade_good_id
 	local function record_data(good)
 		-- check that we didn't go over the stockpile or possible remaining services from last tick
-		if (province.local_storage[good] or 0) + market_data[good].supply - market_data[good].consumption < -EPSILON
+		if DATA.province_get_local_storage(province, good) + market_data[good].supply - market_data[good].consumption < -EPSILON
 		then
 			error(
 				"INVALID MARKET DATA AFTER PRODUCTION-AND-CONSUPTION TICK"
 				.. "\n market_data[".. good .."].available = "
 				.. tostring(market_data[good].available)
 				.. "\n province.local_storage[".. good .."] = "
-				.. tostring(province.local_storage[good])
+				.. tostring(DATA.province_get_local_storage(province, good))
 				.. "\n market_data[".. good .."].local_production = "
-				.. tostring(province.local_production[good])
+				.. tostring(DATA.province_get_local_production(province, good))
 				.. "\n market_data[".. good .."].local_consumption = "
-				.. tostring(province.local_consumption[good])
+				.. tostring(DATA.province_get_local_consumption(province, good))
 				.. "\n market_data[".. good .."].supply = "
 				.. tostring(market_data[good].supply)
 				.. "\n market_data[".. good .."].consumption = "
 				.. tostring(market_data[good].consumption)
 			)
 		end
-		province.local_consumption[good] = market_data[good].consumption
-		province.local_demand[good] = market_data[good].demand
-		province.local_production[good] = market_data[good].supply
+		DATA.province_set_local_consumption(province, good, market_data[good].consumption)
+		DATA.province_set_local_demand(province, good, market_data[good].demand)
+		DATA.province_set_local_supply(province, good, market_data[good].supply)
 	end
 	DATA.for_each_trade_good(record_data)
 end

@@ -3,11 +3,14 @@ local tabb = require "engine.table"
 local geo_effects = {}
 
 ---Deforests tile with given power and returns amount of collected resource
----@param province Province
+---@param province province_id
 ---@param power number
 ---@return number
 function geo_effects.deforest_random_tile(province, power)
-    local deforested_tile = tabb.random_select_from_set(province.tiles)
+    local _, deforested_tile_membership = tabb.random_select_from_set(DATA.get_tile_province_membership_from_province(province))
+    local deforested_tile = DATA.tile_province_membership_get_tile(deforested_tile_membership)
+    local broadleaf = DATA.tile_get_broadleaf(de)
+
     local woods = deforested_tile.broadleaf + deforested_tile.conifer + deforested_tile.shrub
     if woods > 0 then
         local broadleaf_ratio = deforested_tile.broadleaf / woods

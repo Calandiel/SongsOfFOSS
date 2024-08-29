@@ -1,62 +1,10 @@
-
 local economic_effects = require "game.raws.effects.economic"
-local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
----@alias WarbandStatus "idle" | "raiding" | "preparing_raid" | "preparing_patrol" | "patrol" | "attacking" | "travelling" | "off_duty"
----@alias WarbandIdleStance "work"|"forage"
-
----@class (exact) Warband
----@field __index Warband
----@field name string
----@field treasury number
----@field guard_of Realm?
----@field leader Character?
----@field recruiter Character?
----@field commander Character?
----@field pops table<pop_id, pop_id> A set of pops
----@field units table<pop_id, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
----@field units_current table<UnitType, number> Units currently in the warband
----@field units_target table<UnitType, number> Units to recruit
----@field status WarbandStatus
----@field idle_stance WarbandIdleStance
----@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
-local warband = {
-	name = "Warband", ---@type string
-	treasury = 0, ---@type number
-	leader = nil, ---@type Character?
-	pops = {}, ---@type table<pop_id, Province> A table mapping pops to their home provinces.
-	units = {}, ---@type table<pop_id, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
-	units_current = {},
-	units_target = {},
-	status = "idle", ---@type WarbandStatus
-	supplies_target_days = 60,
-	morale = 0.5,
-	current_free_time_ratio = 1.0,
-	total_upkeep = 0,
-	predicted_upkeep = 0,
-	idle_stance = "forage",
-}
-warband.__index = warband
+local warband = {}
 
 ---@return Warband
 function warband:new()
-	local o = {}
-	for k, v in pairs(self) do
-		if type(v) == "table" then
-			o[k] = {}
-		elseif type(v) == "function" then
-			-- nothing to do, we're setting a metatable
-		else
-			o[k] = v
-		end
-	end
-	setmetatable(o, warband)
-	return o
+	local new_id = DATA.create_warband()
 end
 
 ---Returns a list of all officers
@@ -106,7 +54,7 @@ function warband:active_commander()
 end
 
 ---Returns location of province, either the leader's province or the guard realm
----@return Province
+---@return province_id
 function warband:location()
 	if self.leader then
 		return self.leader.province
@@ -269,7 +217,7 @@ function warband:decimate()
 end
 
 ---Handles hiring logic on warband's side
----@param province Province
+---@param province province_id
 ---@param pop POP
 ---@param unit UnitType
 function warband:hire_unit(province, pop, unit)
@@ -285,8 +233,9 @@ function warband:hire_unit(province, pop, unit)
 end
 
 ---Handles pop firing logic on warband's side
+---@param warband warband_id
 ---@param pop pop_id
-function warband:fire_unit(pop)
+function warband.fire_unit(warband, pop)
 	-- print(pop.name, "leaves warband")
 
 	local unit = self.units[pop]

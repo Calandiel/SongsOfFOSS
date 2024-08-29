@@ -442,7 +442,7 @@ function world.World:tick()
 
 		-- "Realm" pre-update
 		local realm_economic_update = require "game.economy.realm-economic-update"
-		---@type Province[]
+		---@type province_id[]
 		local to_remove = {}
 		for _, settled_province in pairs(ta) do
 			if settled_province.realm == nil then
@@ -773,7 +773,7 @@ function world.World:does_player_see_realm_news(realm)
 end
 
 ---comment
----@param province Province
+---@param province province_id
 ---@return boolean
 function world.World:does_player_see_province_news(province)
 	if self.player_character == nil then

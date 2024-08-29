@@ -4,8 +4,6 @@ local ut = require "game.ui-utils"
 
 local ev = require "game.raws.values.economical"
 local et = require "game.raws.triggers.economy"
-local traits = require "game.raws.traits.generic"
-local trade_good_use_case = require "game.raws.raws-utils".trade_good_use_case
 
 local EconomicEffects = {}
 
@@ -170,45 +168,36 @@ end
 
 --- Directly injects money to province infrastructure
 ---@param realm Realm
----@param province Province
+---@param province province_id
 ---@param x number
 function EconomicEffects.direct_investment_infrastructure(realm, province, x)
 	EconomicEffects.change_treasury(realm, -x, EconomicEffects.reasons.Infrastructure)
-	province.infrastructure_investment = province.infrastructure_investment + x
+	local current = DATA.province_get_infrastructure_investment(province)
+	DATA.province_set_infrastructure_investment(province, current + x)
 end
 
 ---commenting
----@param province Province
+---@param province province_id
 ---@param x number
 ---@param reason EconomicReason
 function EconomicEffects.change_local_wealth(province, x, reason)
+	local current = DATA.province_get_local_wealth(province)
 
-	if province.local_wealth ~= province.local_wealth
-		or x ~= x
+	if current ~= current or x ~= x
 	then
 		error("NAN LOCAL WEALTH CHANGE"
 			.. "\n province.name: "
-			.. tostring(province.name)
+			.. tostring(DATA.province_get_name(province))
 			.. "\n x: "
 			.. tostring(x)
 			.. "\n reason: "
 			.. tostring(reason)
 			.. "\n province.local_wealth: "
-			.. tostring(province.local_wealth)
+			.. tostring(current)
 		)
 	end
 
-	province.local_wealth = province.local_wealth + x
-
-	-- if WORLD.player_character then
-	--     if WORLD.player_character.province == province then
-	--         print("province local wealth change")
-	--         print(x)
-	--         print(reason)
-	--         print("current_wealth: ")
-	--         print(province.local_wealth)
-	--     end
-	-- end
+	DATA.province_set_local_wealth(province, current + x)
 end
 
 ---comment
@@ -251,7 +240,7 @@ end
 
 ---comment
 ---@param building_type BuildingType
----@param province Province
+---@param province province_id
 ---@param owner POP?
 ---@return Building
 function EconomicEffects.construct_building(building_type, province, owner)
@@ -274,7 +263,7 @@ end
 
 ---comment
 ---@param building_type BuildingType
----@param province Province
+---@param province province_id
 ---@param owner POP?
 ---@param overseer POP?
 ---@param public boolean
@@ -317,8 +306,12 @@ end
 ---@param tribute number
 function EconomicEffects.return_tribute_home(collector, realm, tribute)
 	local payment_multiplier = 0.1
-	if collector.traits[traits.GREEDY] then
-		payment_multiplier = 0.5
+
+	for i = 0, MAX_TRAIT_INDEX do
+		local trait = DATA.pop_get_traits(collector, i)
+		if trait == TRAIT.GREEDY then
+			payment_multiplier = payment_multiplier * 5
+		end
 	end
 
 	local payment = tribute * payment_multiplier
@@ -334,13 +327,14 @@ function EconomicEffects.return_tribute_home(collector, realm, tribute)
 end
 
 ---comment
----@param province Province
+---@param province province_id
 ---@param good trade_good_id
 ---@param x number
 function EconomicEffects.change_local_price(province, good, x)
-	province.local_prices[good] = math.max(0.001, (province.local_prices[good] or 0) + x)
+	local current_price = DATA.province_get_local_prices(province, good)
+	DATA.province_set_local_prices(province, good, math.max(0.001, current_price + x))
 
-	if province.local_prices[good] ~= province.local_prices[good] or province.local_prices[good] == math.huge then
+	if current_price ~= current_price or current_price == math.huge or x ~= x then
 		error(
 			"INVALID PRICE CHANGE"
 			.. "\n change = "
@@ -350,36 +344,38 @@ function EconomicEffects.change_local_price(province, good, x)
 end
 
 ---comment
----@param province Province
+---@param province province_id
 ---@param good trade_good_id
 ---@param x number
 function EconomicEffects.change_local_stockpile(province, good, x)
-	if x < 0 and province.local_storage[good] + 0.01 < -x then
+	local current_stockpile = DATA.province_get_local_storage(province, good)
+	if x < 0 and current_stockpile + 0.01 < -x then
 		error(
 			"INVALID LOCAL STOCKPILE CHANGE"
 			.. "\n change = "
 			.. tostring(x)
-			.. "\n province.local_storage[ ['" .. good .. "'] = "
-			.. tostring(province.local_storage[good])
+			.. "\n province.local_storage[ ['" .. DATA.trade_good_get_name(good) .. "'] = "
+			.. tostring(current_stockpile)
 		)
 	end
-
-	province.local_storage[good] = math.max(0, (province.local_storage[good] or 0) + x)
-
-	if province.local_storage[good] ~= province.local_storage[good] then
+	if x ~= x or current_stockpile ~= current_stockpile then
 		error(
 			"NAN IN LOCAL STOCKPILE CHANGE"
 			.. "\n change = "
 			.. tostring(x)
 		)
 	end
+
+	DATA.province_set_local_storage(province, good, current_stockpile + x)
+
 end
 
 ---comment
----@param province Province
+---@param province province_id
 ---@param good trade_good_id
 function EconomicEffects.decay_local_stockpile(province, good)
-	province.local_storage[good] = (province.local_storage[good] or 0) * 0.85
+	local current_stockpile = DATA.province_get_local_storage(province, good)
+	DATA.province_set_local_storage(province, good, current_stockpile * 0.85)
 end
 
 ---comment
@@ -393,14 +389,17 @@ function EconomicEffects.buy(character, good, amount)
 	end
 
 	-- can_buy validates province
-	---@type Province
-	local province = character.province
+
+	local province = DATA.character_location_get_location(DATA.get_character_location_from_character(character))
+
 	local price = ev.get_local_price(province, good)
 
-	if character.price_memory[good] == nil then
-		character.price_memory[good] = price
+	local price_memory = DATA.pop_get_price_memory(character, good)
+
+	if price_memory == 0 then
+		DATA.pop_set_price_memory(character, good, price)
 	else
-		character.price_memory[good] = character.price_memory[good] * (3 / 4) + price * (1 / 4)
+		DATA.pop_set_price_memory(character, good, price_memory * (3 / 4) + price * (1 / 4))
 	end
 
 	local cost = price * amount
@@ -416,12 +415,20 @@ function EconomicEffects.buy(character, good, amount)
 	end
 
 	EconomicEffects.add_pop_savings(character, -cost, EconomicEffects.reasons.Trade)
-	province.trade_wealth = province.trade_wealth + cost
-	character.inventory[good] = (character.inventory[good] or 0) + amount
+
+	local trade_wealth = DATA.province_get_trade_wealth(province)
+	DATA.province_set_trade_wealth(province, trade_wealth + cost)
+
+	local inventory = DATA.pop_get_inventory(character, good)
+	DATA.pop_set_inventory(character, good, inventory + amount)
 
 	EconomicEffects.change_local_stockpile(province, good, -amount)
 
-	local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
+	local trade_volume =
+		DATA.province_get_local_consumption(province, good)
+		+ DATA.province_get_local_production(province, good)
+		+ amount
+
 	local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * price
 
 	EconomicEffects.change_local_price(province, good, price_change)
@@ -524,7 +531,7 @@ function EconomicEffects.character_buy_use(character, use, amount)
 	end
 
 	-- can_buy validates province
-	---@type Province
+	---@type province_id
 	local province = character.province
 	local price = ev.get_local_price_of_use(province, use)
 
@@ -653,7 +660,7 @@ function EconomicEffects.realm_buy_use(realm, use, amount)
 	local use_case = require "game.raws.raws-utils".trade_good_use_case(use)
 
 	-- can_buy validates province
-	---@type Province
+	---@type province_id
 	local province = realm.capitol
 	local price = ev.get_local_price_of_use(province, use)
 
@@ -773,7 +780,7 @@ function EconomicEffects.sell(character, good, amount)
 	end
 
 	-- can_sell validates province
-	---@type Province
+	---@type province_id
 	local province = character.province
 	local price = ev.get_pessimistic_local_price(province, good, amount, true)
 

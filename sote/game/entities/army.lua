@@ -1,61 +1,45 @@
 local pop_utils = require "game.entities.pop".POP
+local warband_utils = require "game.entities.warband"
 
----@class (exact) ArmyData
----@field destination Province|nil
----@field warbands table<Warband, Warband>
+local army_utils = {}
 
----@class (exact) Army
----@field __index Army
----@field destination Province|nil
----@field warbands table<Warband, Warband>
-
----@class Army
-local army = {
-	warbands = {}, ---@type Warband[]
-	destination = nil, ---@type Province|nil
-}
-army.__index = army
-
----@return Army
-function army:new()
-	---@type ArmyData
-	local o = {
-		destination = nil,
-		warbands = {}
-	}
-
-	setmetatable(o, army)
-	return o
-end
-
+---@param army army_id
 ---@return number
-function army:get_visibility()
+function army_utils.get_visibility(army)
 	local vis = 0
-	for pop, unit in pairs(self:units()) do
-		vis = vis + pop_utils.pop_get_visibility(pop, unit)
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+
+		for _, warband_membership in pairs(DATA.get_warband_unit_from_warband(warband)) do
+			local unit_type = DATA.warband_unit_get_type(warband_membership)
+			local pop = DATA.warband_unit_get_unit(warband_membership)
+			vis = vis + pop_utils.pop_get_visibility(pop, unit_type)
+		end
 	end
 	return vis
 end
-
+---@param army army_id
 ---@return number
-function army:get_loot_capacity()
+function army_utils.get_loot_capacity(army)
 	local cap = 0
 	for _, warband in pairs(self.warbands) do
-		cap = cap + warband:get_loot_capacity()
+		cap = cap + warband.get_loot_capacity()
 	end
 	return cap
 end
 
 ---Kill everyone in the army
-function army:decimate()
+---@param army army_id
+function army_utils.decimate(army)
 	for _, warband in pairs(self.warbands) do
-		warband:decimate()
+		warband.decimate()
 	end
 end
 
 ---Returns the units in the army
+---@param army army_id
 ---@return table<pop_id, UnitType>
-function army:units()
+function army_utils.units(army)
 	---@type table<pop_id, UnitType>
 	local res = {}
 	for _, warband in pairs(self.warbands) do
@@ -68,9 +52,10 @@ function army:units()
 end
 
 ---Returns pops in the army
----@return table<pop_id, Province>
-function army:pops()
-	---@type table<pop_id, Province>
+---@param army army_id
+---@return table<pop_id, province_id>
+function army_utils.pops(army)
+	---@type table<pop_id, province_id>
 	local res = {}
 	for _, warband in pairs(self.warbands) do
 		for _, pop in pairs(warband.pops) do
@@ -81,29 +66,31 @@ function army:pops()
 end
 
 ---kills of a ratio of army and returns the losses
+---@param army army_id
 ---@param ratio number
 ---@return number
-function army:kill_off(ratio)
+function army_utils.kill_off(army, ratio)
 	local losses = 0
 	for _, warband in pairs(self.warbands) do
-		losses = losses + warband:kill_off(ratio)
+		losses = losses + warband.kill_off(ratio)
 	end
 	return losses
 end
 
 ---Fights a location, returns whether or not the attack was a success.
----@param prov Province
+---@param attacker army_id
+---@param prov province_id
 ---@param spotted boolean Set it to true if the army was spotted before battle, false otherwise.
----@param defender Army The opposing defending army.
+---@param defender Army The opposing defending army_utils.
 ---@return boolean success, number attacker_losses, number defender_losses
-function army:attack(prov, spotted, defender)
+function army_utils.attack(attacker, prov, spotted, defender)
 	local atk_armor = 0
 	local atk_speed = 0
 	local atk_attack = 0
 	local atk_hp = 0
 	local atk_stack = 0
 	for _, warband in pairs(self.warbands) do
-		local health, attack, armor, speed, count = warband:get_total_strength()
+		local health, attack, armor, speed, count = warband.get_total_strength()
 		atk_armor = atk_armor + armor
 		atk_attack = atk_attack + attack
 		atk_speed = atk_speed + speed
@@ -126,7 +113,7 @@ function army:attack(prov, spotted, defender)
 	local def_hp = 0
 	local def_stack = 0
 	for _, warband in pairs(defender.warbands) do
-		local health, attack, armor, speed, count = warband:get_total_strength()
+		local health, attack, armor, speed, count = warband.get_total_strength()
 		def_armor = def_armor + armor
 		def_attack = def_attack + attack
 		def_speed = def_speed + speed
@@ -186,8 +173,8 @@ function army:attack(prov, spotted, defender)
 	local def_frac = defpower / (def_stack / atk_stack)
 
 	--- kill dead ones
-	local losses = self:kill_off(1 - frac)
-	local def_losses = defender:kill_off(1 - def_frac)
+	local losses = self.kill_off(1 - frac)
+	local def_losses = defender.kill_off(1 - def_frac)
 	return victory, losses, def_losses
 end
 

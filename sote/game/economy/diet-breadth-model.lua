@@ -3,6 +3,8 @@ local tile = require "game.entities.tile"
 
 local retrieve_good = require "game.raws.raws-utils".trade_good
 
+local province_utils = require "game.entities.province".Province
+
 local dbm = {}
 
 ---@enum ForageResource
@@ -57,8 +59,11 @@ end
 ---@param jobtype JOBTYPE
 ---@return number efficiency scalar multiplier
 function dbm.mean_race_job_efficiency(race, jobtype)
-    local male_to_female_ratio = race.males_per_hundred_females / (100 + race.males_per_hundred_females)
-    return male_to_female_ratio * race.male_efficiency[jobtype] + (1 - male_to_female_ratio) * race.female_efficiency[jobtype]
+	local males_ratio = DATA.race_get_males_per_hundred_females(race)
+    local male_to_female_ratio = males_ratio / (100 + males_ratio)
+    return
+		male_to_female_ratio * DATA.race_get_male_efficiency(race, jobtype)
+		+ (1 - male_to_female_ratio) * DATA.race_get_female_efficiency(race, jobtype)
 end
 
 ---@param carrying_capacity number
@@ -190,7 +195,14 @@ end
 ---@return {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 function dbm.total_foraging_amounts(province)
 	local accumulate = {net_pp=0 ,fruit=0, seeds=0, wood=0, shell=0, fish=0, game=0, fungi=0}
-	accumulate = tabb.accumulate(province.tiles, accumulate, dbm.accumulate_foraging_production)
+	accumulate = tabb.accumulate(
+		tabb.map_array(
+			DATA.get_tile_province_membership_from_province(province),
+			DATA.tile_province_membership_get_tile
+		),
+		accumulate,
+		dbm.accumulate_foraging_production
+	)
 	return accumulate
 end
 
@@ -203,7 +215,7 @@ function dbm.set_foraging_targets(province, amounts)
 	products[dbm.ForageResource.Water] = {
 		icon = "droplets.png",
 		output = { [retrieve_good('water')] = 2 },
-		amount = province.hydration,
+		amount = DATA.province_get_hydration(province),
 		handle = JOBTYPE.HAULING,
 	}
 	products[dbm.ForageResource.Fruit] = {
@@ -248,24 +260,39 @@ function dbm.set_foraging_targets(province, amounts)
 		amount = amounts.fish,
 		handle = JOBTYPE.LABOURER,
 	}
-	province.foragers_limit = amounts.net_pp
-	province.foragers_targets = products
+
+	DATA.province_set_foragers_limit(province, amounts.net_pp)
+	DATA.province_set_foragers_targets(province, products)
 end
 
 -- TODO change to target a culture and find mean value across all pops based on race and culture needs
 ---@param race race_id
 ---@return table<use_case_id, number> food_needs_by_use
 function dbm.cultural_food_needs(race)
-	local males_per_hundred_females = race.males_per_hundred_females
+	local males_per_hundred_females = DATA.race_get_males_per_hundred_females(race)
 	local male_to_female_ratio = males_per_hundred_females / (100 + males_per_hundred_females)
-	---@type table<use_case_id, number>
 	local accumulable = {}
-	local food_needs_by_use = tabb.accumulate(race.male_needs[NEED.FOOD], accumulable, function (accumulated_food_needs, use_case, value)
-		-- print("  FOOD NEED: " .. use_case)
-		local average_gendered_use_case_need = value * male_to_female_ratio + (1 - male_to_female_ratio) * race.female_needs[NEED.FOOD][use_case]
-		accumulated_food_needs[use_case] = (accumulated_food_needs[use_case] and accumulated_food_needs[use_case].amount or 0) + average_gendered_use_case_need
-		return accumulated_food_needs
-	end)
+	local food_needs = {}
+
+	---@type table<use_case_id, number>
+	local food_needs_by_use = {}
+	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		local need = DATA.race_get_male_needs_need(race, i)
+		local use_case = DATA.race_get_male_needs_use_case(race, i)
+		if (need == NEED.FOOD) then
+			local male_value = DATA.race_get_male_needs_required(race, i)
+			local female_value = DATA.race_get_female_needs_required(race,i)
+			local average_gendered_use_case_need =
+				male_value * male_to_female_ratio
+				+ (1 - male_to_female_ratio) * female_value
+
+			if food_needs_by_use[use_case] == nil then
+				food_needs_by_use[use_case] = 0
+			end
+			food_needs_by_use[use_case] = food_needs_by_use[use_case] + average_gendered_use_case_need
+		end
+	end
+
 	return food_needs_by_use
 end
 
@@ -279,7 +306,7 @@ function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
 	-- get average life needs from realm primary race
 	local food_needs_by_case = dbm.cultural_food_needs(province.realm.primary_race)
-	local province_size = province.size
+	local province_size = DATA.province_get_size(province)
 --	print("  FINDING FOOD USE TARGETS...")
 	---@param targets_by_use table<use_case_id, TargetNeedsTable>
 	---@type table<use_case_id, TargetNeedsTable>

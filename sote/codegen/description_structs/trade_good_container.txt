@@ -1,0 +1,2 @@
+good trade_good
+amount float

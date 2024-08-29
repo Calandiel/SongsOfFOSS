@@ -37,8 +37,6 @@ function prov.Province.new(fake_flag)
 	o.technologies_researchable = {}
 	o.buildable_buildings = {}
 	o.hydration = 5
-	o.local_resources = {}
-	o.local_resources_location = {}
 	o.local_wealth = 0
 	o.trade_wealth = 0
 	o.local_income = 0
@@ -671,10 +669,23 @@ end
 ---@param province province_id
 ---@param pop pop_id
 function prov.Province.outlaw_pop(province, pop)
-	prov.Province.fire_pop(pop)
-	pop:unregister_military()
-	self.all_pops[pop] = nil
-	self.outlaws[pop] = pop
+	-- ignore pops which are already outlawed
+	if DATA.get_outlaw_location_from_outlaw(pop) then
+		return
+	end
+
+	prov.Province.fire_pop(province, pop)
+	pop_utils.unregister_military(pop)
+
+	local id = DATA.create_outlaw_location()
+	DATA.outlaw_location_set_location(id, province)
+	DATA.outlaw_location_set_outlaw(id, pop)
+
+	local pop_location = DATA.get_pop_location_from_pop(pop)
+	if pop_location then
+		return
+	end
+	DATA.delete_pop_location(pop_location)
 end
 
 ---Marks a pop as a soldier of a given type in a given warband.
@@ -684,16 +695,16 @@ end
 ---@param warband Warband
 function prov.Province.recruit(province, pop, unit_type, warband)
 	-- if pop is already drafted, do nothing
-	if pop.unit_of_warband then
+	if DATA.pop_get_unit_of_warband(pop) then
 		return
 	end
 
 	-- clean pop and set his unit type
-	prov.Province.fire_pop(pop)
-	pop:unregister_military()
+	prov.Province.fire_pop(province, pop)
+	pop_utils.unregister_military(pop)
 
 	-- set warband
-	warband:hire_unit(self, pop, unit_type)
+	warband:hire_unit(province, pop, unit_type)
 end
 
 ---@param province province_id

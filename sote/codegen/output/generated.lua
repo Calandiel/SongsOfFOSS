@@ -5,6 +5,24 @@ ffi.cdef[[
 local bitser = require("engine.bitser")
 
 DATA = {}
+---@class struct_trade_good_container
+---@field good trade_good_id
+---@field amount number
+ffi.cdef[[
+    typedef struct {
+        uint32_t good;
+        float amount;
+    } trade_good_container;
+]]
+---@class struct_resource_location
+---@field resource resource_id
+---@field location tile_id
+ffi.cdef[[
+    typedef struct {
+        uint32_t resource;
+        uint32_t location;
+    } resource_location;
+]]
 ---@class struct_need_satisfaction
 ---@field need NEED
 ---@field use_case use_case_id
@@ -69,9 +87,9 @@ ffi.cdef[[
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
 ---@field pathfinding_index number
----@field resource Resource?
----@field bedrock number
----@field biome number
+---@field resource resource_id
+---@field bedrock bedrock_id
+---@field biome biome_id
 
 ---@class struct_tile
 ---@field is_land boolean
@@ -104,8 +122,6 @@ ffi.cdef[[
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
 ---@field pathfinding_index number
----@field bedrock number
----@field biome number
 
 
 ffi.cdef[[
@@ -140,14 +156,16 @@ ffi.cdef[[
         float real_g;
         float real_b;
         uint32_t pathfinding_index;
-        uint32_t bedrock;
-        uint32_t biome;
     } tile;
 ]]
 
 ---tile: FFI arrays---
----@type (Resource?)[]
+---@type (resource_id)[]
 DATA.tile_resource= {}
+---@type (bedrock_id)[]
+DATA.tile_bedrock= {}
+---@type (biome_id)[]
+DATA.tile_biome= {}
 ---@type nil
 DATA.tile_malloc = ffi.C.malloc(ffi.sizeof("tile") * 1500001)
 ---@type table<tile_id, struct_tile>
@@ -489,34 +507,34 @@ function DATA.tile_set_pathfinding_index(tile_id, value)
     DATA.tile[tile_id].pathfinding_index = value
 end
 ---@param tile_id tile_id valid tile id
----@return Resource? resource
+---@return resource_id resource
 function DATA.tile_get_resource(tile_id)
     return DATA.tile_resource[tile_id]
 end
 ---@param tile_id tile_id valid tile id
----@param value Resource? valid Resource?
+---@param value resource_id valid resource_id
 function DATA.tile_set_resource(tile_id, value)
     DATA.tile_resource[tile_id] = value
 end
 ---@param tile_id tile_id valid tile id
----@return number bedrock
+---@return bedrock_id bedrock
 function DATA.tile_get_bedrock(tile_id)
-    return DATA.tile[tile_id].bedrock
+    return DATA.tile_bedrock[tile_id]
 end
 ---@param tile_id tile_id valid tile id
----@param value number valid number
+---@param value bedrock_id valid bedrock_id
 function DATA.tile_set_bedrock(tile_id, value)
-    DATA.tile[tile_id].bedrock = value
+    DATA.tile_bedrock[tile_id] = value
 end
 ---@param tile_id tile_id valid tile id
----@return number biome
+---@return biome_id biome
 function DATA.tile_get_biome(tile_id)
-    return DATA.tile[tile_id].biome
+    return DATA.tile_biome[tile_id]
 end
 ---@param tile_id tile_id valid tile id
----@param value number valid number
+---@param value biome_id valid biome_id
 function DATA.tile_set_biome(tile_id, value)
-    DATA.tile[tile_id].biome = value
+    DATA.tile_biome[tile_id] = value
 end
 
 
@@ -1408,9 +1426,6 @@ end
 ---@field has_building_permits_in table<Realm,Realm>
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field leading_warband Warband
----@field recruiter_for_warband Warband
----@field unit_of_warband Warband
 ---@field busy boolean
 ---@field dead boolean
 ---@field realm Realm Represents the home realm of the character
@@ -1478,12 +1493,6 @@ DATA.pop_owned_buildings= {}
 DATA.pop_has_trade_permits_in= {}
 ---@type (table<Realm,Realm>)[]
 DATA.pop_has_building_permits_in= {}
----@type (Warband)[]
-DATA.pop_leading_warband= {}
----@type (Warband)[]
-DATA.pop_recruiter_for_warband= {}
----@type (Warband)[]
-DATA.pop_unit_of_warband= {}
 ---@type (boolean)[]
 DATA.pop_busy= {}
 ---@type (boolean)[]
@@ -1522,6 +1531,22 @@ function DATA.create_pop()
     error("Run out of space for pop")
 end
 function DATA.delete_pop(i)
+    do
+        local to_delete = DATA.get_warband_leader_from_leader(i)
+        DATA.delete_warband_leader(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_recruiter_from_recruiter(i)
+        DATA.delete_warband_recruiter(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_commander_from_commander(i)
+        DATA.delete_warband_commander(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_unit_from_unit(i)
+        DATA.delete_warband_unit(to_delete)
+    end
     do
         local to_delete = DATA.get_character_location_from_character(i)
         DATA.delete_character_location(to_delete)
@@ -1865,36 +1890,6 @@ function DATA.pop_set_work_ratio(pop_id, value)
     DATA.pop[pop_id].work_ratio = value
 end
 ---@param pop_id pop_id valid pop id
----@return Warband leading_warband
-function DATA.pop_get_leading_warband(pop_id)
-    return DATA.pop_leading_warband[pop_id]
-end
----@param pop_id pop_id valid pop id
----@param value Warband valid Warband
-function DATA.pop_set_leading_warband(pop_id, value)
-    DATA.pop_leading_warband[pop_id] = value
-end
----@param pop_id pop_id valid pop id
----@return Warband recruiter_for_warband
-function DATA.pop_get_recruiter_for_warband(pop_id)
-    return DATA.pop_recruiter_for_warband[pop_id]
-end
----@param pop_id pop_id valid pop id
----@param value Warband valid Warband
-function DATA.pop_set_recruiter_for_warband(pop_id, value)
-    DATA.pop_recruiter_for_warband[pop_id] = value
-end
----@param pop_id pop_id valid pop id
----@return Warband unit_of_warband
-function DATA.pop_get_unit_of_warband(pop_id)
-    return DATA.pop_unit_of_warband[pop_id]
-end
----@param pop_id pop_id valid pop id
----@param value Warband valid Warband
-function DATA.pop_set_unit_of_warband(pop_id, value)
-    DATA.pop_unit_of_warband[pop_id] = value
-end
----@param pop_id pop_id valid pop id
 ---@return boolean busy
 function DATA.pop_get_busy(pop_id)
     return DATA.pop_busy[pop_id]
@@ -1999,9 +1994,6 @@ local fat_pop_id_metatable = {
         if (k == "has_building_permits_in") then return DATA.pop_get_has_building_permits_in(t.id) end
         if (k == "forage_ratio") then return DATA.pop_get_forage_ratio(t.id) end
         if (k == "work_ratio") then return DATA.pop_get_work_ratio(t.id) end
-        if (k == "leading_warband") then return DATA.pop_get_leading_warband(t.id) end
-        if (k == "recruiter_for_warband") then return DATA.pop_get_recruiter_for_warband(t.id) end
-        if (k == "unit_of_warband") then return DATA.pop_get_unit_of_warband(t.id) end
         if (k == "busy") then return DATA.pop_get_busy(t.id) end
         if (k == "dead") then return DATA.pop_get_dead(t.id) end
         if (k == "realm") then return DATA.pop_get_realm(t.id) end
@@ -2088,18 +2080,6 @@ local fat_pop_id_metatable = {
             DATA.pop_set_work_ratio(t.id, v)
             return
         end
-        if (k == "leading_warband") then
-            DATA.pop_set_leading_warband(t.id, v)
-            return
-        end
-        if (k == "recruiter_for_warband") then
-            DATA.pop_set_recruiter_for_warband(t.id, v)
-            return
-        end
-        if (k == "unit_of_warband") then
-            DATA.pop_set_unit_of_warband(t.id, v)
-            return
-        end
         if (k == "busy") then
             DATA.pop_set_busy(t.id, v)
             return
@@ -2173,11 +2153,7 @@ end
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
 ---@field foragers_targets table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>
----@field local_resources table<Resource,Resource> A hashset containing all resources present on tiles of this province
----@field local_resources_location table<number,{[1]:tile_id,[2]:Resource}> An array of local resources and their positions
 ---@field mood number how local population thinks about the state
----@field unit_types table<UnitType,UnitType>
----@field warbands table<Warband,Warband>
 ---@field throughput_boosts table<ProductionMethod,number>
 ---@field input_efficiency_boosts table<ProductionMethod,number>
 ---@field output_efficiency_boosts table<ProductionMethod,number>
@@ -2209,7 +2185,9 @@ end
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
+---@field local_resources table<number, struct_resource_location> An array of local resources and their positions
 ---@field mood number how local population thinks about the state
+---@field unit_types table<unit_type_id, number>
 ---@field on_a_river boolean
 ---@field on_a_forest boolean
 
@@ -2240,7 +2218,9 @@ ffi.cdef[[
         float foragers;
         float foragers_water;
         float foragers_limit;
+        resource_location local_resources[25];
         float mood;
+        uint32_t unit_types[20];
         bool on_a_river;
         bool on_a_forest;
     } province;
@@ -2261,14 +2241,6 @@ DATA.province_technologies_researchable= {}
 DATA.province_buildable_buildings= {}
 ---@type (table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>)[]
 DATA.province_foragers_targets= {}
----@type (table<Resource,Resource>)[]
-DATA.province_local_resources= {}
----@type (table<number,{[1]:tile_id,[2]:Resource}>)[]
-DATA.province_local_resources_location= {}
----@type (table<UnitType,UnitType>)[]
-DATA.province_unit_types= {}
----@type (table<Warband,Warband>)[]
-DATA.province_warbands= {}
 ---@type (table<ProductionMethod,number>)[]
 DATA.province_throughput_boosts= {}
 ---@type (table<ProductionMethod,number>)[]
@@ -2301,6 +2273,16 @@ function DATA.create_province()
     error("Run out of space for province")
 end
 function DATA.delete_province(i)
+    do
+        ---@type warband_location_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_warband_location_from_location(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_warband_location(value)
+        end
+    end
     do
         ---@type character_location_id[]
         local to_delete = {}
@@ -2702,24 +2684,28 @@ function DATA.province_set_foragers_targets(province_id, value)
     DATA.province_foragers_targets[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return table<Resource,Resource> local_resources A hashset containing all resources present on tiles of this province
-function DATA.province_get_local_resources(province_id)
-    return DATA.province_local_resources[province_id]
+---@param index number valid
+---@return resource_id local_resources An array of local resources and their positions
+function DATA.province_get_local_resources_resource(province_id, index)
+    return DATA.province[province_id].local_resources[index].resource
 end
 ---@param province_id province_id valid province id
----@param value table<Resource,Resource> valid table<Resource,Resource>
-function DATA.province_set_local_resources(province_id, value)
-    DATA.province_local_resources[province_id] = value
+---@param index number valid
+---@return tile_id local_resources An array of local resources and their positions
+function DATA.province_get_local_resources_location(province_id, index)
+    return DATA.province[province_id].local_resources[index].location
 end
 ---@param province_id province_id valid province id
----@return table<number,{[1]:tile_id,[2]:Resource}> local_resources_location An array of local resources and their positions
-function DATA.province_get_local_resources_location(province_id)
-    return DATA.province_local_resources_location[province_id]
+---@param index number valid index
+---@param value resource_id valid resource_id
+function DATA.province_set_local_resources_resource(province_id, index, value)
+    DATA.province[province_id].local_resources[index].resource = value
 end
 ---@param province_id province_id valid province id
----@param value table<number,{[1]:tile_id,[2]:Resource}> valid table<number,{[1]:tile_id,[2]:Resource}>
-function DATA.province_set_local_resources_location(province_id, value)
-    DATA.province_local_resources_location[province_id] = value
+---@param index number valid index
+---@param value tile_id valid tile_id
+function DATA.province_set_local_resources_location(province_id, index, value)
+    DATA.province[province_id].local_resources[index].location = value
 end
 ---@param province_id province_id valid province id
 ---@return number mood how local population thinks about the state
@@ -2732,24 +2718,16 @@ function DATA.province_set_mood(province_id, value)
     DATA.province[province_id].mood = value
 end
 ---@param province_id province_id valid province id
----@return table<UnitType,UnitType> unit_types
-function DATA.province_get_unit_types(province_id)
-    return DATA.province_unit_types[province_id]
+---@param index unit_type_id valid
+---@return number unit_types
+function DATA.province_get_unit_types(province_id, index)
+    return DATA.province[province_id].unit_types[index]
 end
 ---@param province_id province_id valid province id
----@param value table<UnitType,UnitType> valid table<UnitType,UnitType>
-function DATA.province_set_unit_types(province_id, value)
-    DATA.province_unit_types[province_id] = value
-end
----@param province_id province_id valid province id
----@return table<Warband,Warband> warbands
-function DATA.province_get_warbands(province_id)
-    return DATA.province_warbands[province_id]
-end
----@param province_id province_id valid province id
----@param value table<Warband,Warband> valid table<Warband,Warband>
-function DATA.province_set_warbands(province_id, value)
-    DATA.province_warbands[province_id] = value
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.province_set_unit_types(province_id, index, value)
+    DATA.province[province_id].unit_types[index] = value
 end
 ---@param province_id province_id valid province id
 ---@return table<ProductionMethod,number> throughput_boosts
@@ -2831,11 +2809,7 @@ local fat_province_id_metatable = {
         if (k == "foragers_water") then return DATA.province_get_foragers_water(t.id) end
         if (k == "foragers_limit") then return DATA.province_get_foragers_limit(t.id) end
         if (k == "foragers_targets") then return DATA.province_get_foragers_targets(t.id) end
-        if (k == "local_resources") then return DATA.province_get_local_resources(t.id) end
-        if (k == "local_resources_location") then return DATA.province_get_local_resources_location(t.id) end
         if (k == "mood") then return DATA.province_get_mood(t.id) end
-        if (k == "unit_types") then return DATA.province_get_unit_types(t.id) end
-        if (k == "warbands") then return DATA.province_get_warbands(t.id) end
         if (k == "throughput_boosts") then return DATA.province_get_throughput_boosts(t.id) end
         if (k == "input_efficiency_boosts") then return DATA.province_get_input_efficiency_boosts(t.id) end
         if (k == "output_efficiency_boosts") then return DATA.province_get_output_efficiency_boosts(t.id) end
@@ -2948,24 +2922,8 @@ local fat_province_id_metatable = {
             DATA.province_set_foragers_targets(t.id, v)
             return
         end
-        if (k == "local_resources") then
-            DATA.province_set_local_resources(t.id, v)
-            return
-        end
-        if (k == "local_resources_location") then
-            DATA.province_set_local_resources_location(t.id, v)
-            return
-        end
         if (k == "mood") then
             DATA.province_set_mood(t.id, v)
-            return
-        end
-        if (k == "unit_types") then
-            DATA.province_set_unit_types(t.id, v)
-            return
-        end
-        if (k == "warbands") then
-            DATA.province_set_warbands(t.id, v)
             return
         end
         if (k == "throughput_boosts") then
@@ -2996,6 +2954,1297 @@ local fat_province_id_metatable = {
 function DATA.fatten_province(id)
     local result = {id = id}
     setmetatable(result, fat_province_id_metatable)    return result
+end
+----------army----------
+
+
+---army: LSP types---
+
+---Unique identificator for army entity
+---@alias army_id number
+
+---@class fat_army_id
+---@field id army_id Unique army id
+---@field destination province_id
+
+---@class struct_army
+---@field destination province_id
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t destination;
+    } army;
+]]
+
+---army: FFI arrays---
+---@type nil
+DATA.army_malloc = ffi.C.malloc(ffi.sizeof("army") * 5001)
+---@type table<army_id, struct_army>
+DATA.army = ffi.cast("army*", DATA.army_malloc)
+
+---army: LUA bindings---
+
+DATA.army_size = 5000
+---@type table<army_id, boolean>
+local army_indices_pool = ffi.new("bool[?]", 5000)
+for i = 1, 4999 do
+    army_indices_pool[i] = true
+end
+---@type table<army_id, army_id>
+DATA.army_indices_set = {}
+function DATA.create_army()
+    for i = 1, 4999 do
+        if army_indices_pool[i] then
+            army_indices_pool[i] = false
+            DATA.army_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for army")
+end
+function DATA.delete_army(i)
+    do
+        ---@type army_membership_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_army_membership_from_army(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_army_membership(value)
+        end
+    end
+    army_indices_pool[i] = true
+    DATA.army_indices_set[i] = nil
+end
+---@param func fun(item: army_id)
+function DATA.for_each_army(func)
+    for _, item in pairs(DATA.army_indices_set) do
+        func(item)
+    end
+end
+
+---@param army_id army_id valid army id
+---@return province_id destination
+function DATA.army_get_destination(army_id)
+    return DATA.army[army_id].destination
+end
+---@param army_id army_id valid army id
+---@param value province_id valid province_id
+function DATA.army_set_destination(army_id, value)
+    DATA.army[army_id].destination = value
+end
+
+
+local fat_army_id_metatable = {
+    __index = function (t,k)
+        if (k == "destination") then return DATA.army_get_destination(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "destination") then
+            DATA.army_set_destination(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id army_id
+---@return fat_army_id fat_id
+function DATA.fatten_army(id)
+    local result = {id = id}
+    setmetatable(result, fat_army_id_metatable)    return result
+end
+----------warband----------
+
+
+---warband: LSP types---
+
+---Unique identificator for warband entity
+---@alias warband_id number
+
+---@class fat_warband_id
+---@field id warband_id Unique warband id
+---@field name string
+---@field guard_of Realm?
+---@field status WARBAND_STATUS
+---@field idle_stance WARBAND_STANCE
+---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
+---@field treasury number
+---@field total_upkeep number
+---@field predicted_upkeep number
+---@field supplies number
+---@field supplies_target_days number
+---@field morale number
+
+---@class struct_warband
+---@field units_current table<unit_type_id, number> Current distribution of units in the warband
+---@field units_target table<unit_type_id, number> Units to recruit
+---@field status WARBAND_STATUS
+---@field idle_stance WARBAND_STANCE
+---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
+---@field treasury number
+---@field total_upkeep number
+---@field predicted_upkeep number
+---@field supplies number
+---@field supplies_target_days number
+---@field morale number
+
+
+ffi.cdef[[
+    typedef struct {
+        float units_current[20];
+        float units_target[20];
+        uint8_t status;
+        uint8_t idle_stance;
+        float current_free_time_ratio;
+        float treasury;
+        float total_upkeep;
+        float predicted_upkeep;
+        float supplies;
+        float supplies_target_days;
+        float morale;
+    } warband;
+]]
+
+---warband: FFI arrays---
+---@type (string)[]
+DATA.warband_name= {}
+---@type (Realm?)[]
+DATA.warband_guard_of= {}
+---@type nil
+DATA.warband_malloc = ffi.C.malloc(ffi.sizeof("warband") * 10001)
+---@type table<warband_id, struct_warband>
+DATA.warband = ffi.cast("warband*", DATA.warband_malloc)
+
+---warband: LUA bindings---
+
+DATA.warband_size = 10000
+---@type table<warband_id, boolean>
+local warband_indices_pool = ffi.new("bool[?]", 10000)
+for i = 1, 9999 do
+    warband_indices_pool[i] = true
+end
+---@type table<warband_id, warband_id>
+DATA.warband_indices_set = {}
+function DATA.create_warband()
+    for i = 1, 9999 do
+        if warband_indices_pool[i] then
+            warband_indices_pool[i] = false
+            DATA.warband_indices_set[i] = i
+            DATA.warband_set_name(i, "Warband")
+            DATA.warband_set_current_free_time_ratio(i, 1.0)
+            DATA.warband_set_treasury(i, 0)
+            DATA.warband_set_total_upkeep(i, 0.0)
+            DATA.warband_set_predicted_upkeep(i, 0.0)
+            DATA.warband_set_supplies(i, 0.0)
+            DATA.warband_set_supplies_target_days(i, 60)
+            DATA.warband_set_morale(i, 0.5)
+            return i
+        end
+    end
+    error("Run out of space for warband")
+end
+function DATA.delete_warband(i)
+    do
+        local to_delete = DATA.get_army_membership_from_member(i)
+        DATA.delete_army_membership(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_leader_from_warband(i)
+        DATA.delete_warband_leader(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_recruiter_from_warband(i)
+        DATA.delete_warband_recruiter(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_commander_from_warband(i)
+        DATA.delete_warband_commander(to_delete)
+    end
+    do
+        local to_delete = DATA.get_warband_location_from_warband(i)
+        DATA.delete_warband_location(to_delete)
+    end
+    do
+        ---@type warband_unit_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_warband_unit_from_warband(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_warband_unit(value)
+        end
+    end
+    warband_indices_pool[i] = true
+    DATA.warband_indices_set[i] = nil
+end
+---@param func fun(item: warband_id)
+function DATA.for_each_warband(func)
+    for _, item in pairs(DATA.warband_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_id warband_id valid warband id
+---@return string name
+function DATA.warband_get_name(warband_id)
+    return DATA.warband_name[warband_id]
+end
+---@param warband_id warband_id valid warband id
+---@param value string valid string
+function DATA.warband_set_name(warband_id, value)
+    DATA.warband_name[warband_id] = value
+end
+---@param warband_id warband_id valid warband id
+---@return Realm? guard_of
+function DATA.warband_get_guard_of(warband_id)
+    return DATA.warband_guard_of[warband_id]
+end
+---@param warband_id warband_id valid warband id
+---@param value Realm? valid Realm?
+function DATA.warband_set_guard_of(warband_id, value)
+    DATA.warband_guard_of[warband_id] = value
+end
+---@param warband_id warband_id valid warband id
+---@param index unit_type_id valid
+---@return number units_current Current distribution of units in the warband
+function DATA.warband_get_units_current(warband_id, index)
+    return DATA.warband[warband_id].units_current[index]
+end
+---@param warband_id warband_id valid warband id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.warband_set_units_current(warband_id, index, value)
+    DATA.warband[warband_id].units_current[index] = value
+end
+---@param warband_id warband_id valid warband id
+---@param index unit_type_id valid
+---@return number units_target Units to recruit
+function DATA.warband_get_units_target(warband_id, index)
+    return DATA.warband[warband_id].units_target[index]
+end
+---@param warband_id warband_id valid warband id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.warband_set_units_target(warband_id, index, value)
+    DATA.warband[warband_id].units_target[index] = value
+end
+---@param warband_id warband_id valid warband id
+---@return WARBAND_STATUS status
+function DATA.warband_get_status(warband_id)
+    return DATA.warband[warband_id].status
+end
+---@param warband_id warband_id valid warband id
+---@param value WARBAND_STATUS valid WARBAND_STATUS
+function DATA.warband_set_status(warband_id, value)
+    DATA.warband[warband_id].status = value
+end
+---@param warband_id warband_id valid warband id
+---@return WARBAND_STANCE idle_stance
+function DATA.warband_get_idle_stance(warband_id)
+    return DATA.warband[warband_id].idle_stance
+end
+---@param warband_id warband_id valid warband id
+---@param value WARBAND_STANCE valid WARBAND_STANCE
+function DATA.warband_set_idle_stance(warband_id, value)
+    DATA.warband[warband_id].idle_stance = value
+end
+---@param warband_id warband_id valid warband id
+---@return number current_free_time_ratio How much of "idle" free time they are actually idle. Set by events.
+function DATA.warband_get_current_free_time_ratio(warband_id)
+    return DATA.warband[warband_id].current_free_time_ratio
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_current_free_time_ratio(warband_id, value)
+    DATA.warband[warband_id].current_free_time_ratio = value
+end
+---@param warband_id warband_id valid warband id
+---@return number treasury
+function DATA.warband_get_treasury(warband_id)
+    return DATA.warband[warband_id].treasury
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_treasury(warband_id, value)
+    DATA.warband[warband_id].treasury = value
+end
+---@param warband_id warband_id valid warband id
+---@return number total_upkeep
+function DATA.warband_get_total_upkeep(warband_id)
+    return DATA.warband[warband_id].total_upkeep
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_total_upkeep(warband_id, value)
+    DATA.warband[warband_id].total_upkeep = value
+end
+---@param warband_id warband_id valid warband id
+---@return number predicted_upkeep
+function DATA.warband_get_predicted_upkeep(warband_id)
+    return DATA.warband[warband_id].predicted_upkeep
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_predicted_upkeep(warband_id, value)
+    DATA.warband[warband_id].predicted_upkeep = value
+end
+---@param warband_id warband_id valid warband id
+---@return number supplies
+function DATA.warband_get_supplies(warband_id)
+    return DATA.warband[warband_id].supplies
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_supplies(warband_id, value)
+    DATA.warband[warband_id].supplies = value
+end
+---@param warband_id warband_id valid warband id
+---@return number supplies_target_days
+function DATA.warband_get_supplies_target_days(warband_id)
+    return DATA.warband[warband_id].supplies_target_days
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_supplies_target_days(warband_id, value)
+    DATA.warband[warband_id].supplies_target_days = value
+end
+---@param warband_id warband_id valid warband id
+---@return number morale
+function DATA.warband_get_morale(warband_id)
+    return DATA.warband[warband_id].morale
+end
+---@param warband_id warband_id valid warband id
+---@param value number valid number
+function DATA.warband_set_morale(warband_id, value)
+    DATA.warband[warband_id].morale = value
+end
+
+
+local fat_warband_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.warband_get_name(t.id) end
+        if (k == "guard_of") then return DATA.warband_get_guard_of(t.id) end
+        if (k == "status") then return DATA.warband_get_status(t.id) end
+        if (k == "idle_stance") then return DATA.warband_get_idle_stance(t.id) end
+        if (k == "current_free_time_ratio") then return DATA.warband_get_current_free_time_ratio(t.id) end
+        if (k == "treasury") then return DATA.warband_get_treasury(t.id) end
+        if (k == "total_upkeep") then return DATA.warband_get_total_upkeep(t.id) end
+        if (k == "predicted_upkeep") then return DATA.warband_get_predicted_upkeep(t.id) end
+        if (k == "supplies") then return DATA.warband_get_supplies(t.id) end
+        if (k == "supplies_target_days") then return DATA.warband_get_supplies_target_days(t.id) end
+        if (k == "morale") then return DATA.warband_get_morale(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.warband_set_name(t.id, v)
+            return
+        end
+        if (k == "guard_of") then
+            DATA.warband_set_guard_of(t.id, v)
+            return
+        end
+        if (k == "status") then
+            DATA.warband_set_status(t.id, v)
+            return
+        end
+        if (k == "idle_stance") then
+            DATA.warband_set_idle_stance(t.id, v)
+            return
+        end
+        if (k == "current_free_time_ratio") then
+            DATA.warband_set_current_free_time_ratio(t.id, v)
+            return
+        end
+        if (k == "treasury") then
+            DATA.warband_set_treasury(t.id, v)
+            return
+        end
+        if (k == "total_upkeep") then
+            DATA.warband_set_total_upkeep(t.id, v)
+            return
+        end
+        if (k == "predicted_upkeep") then
+            DATA.warband_set_predicted_upkeep(t.id, v)
+            return
+        end
+        if (k == "supplies") then
+            DATA.warband_set_supplies(t.id, v)
+            return
+        end
+        if (k == "supplies_target_days") then
+            DATA.warband_set_supplies_target_days(t.id, v)
+            return
+        end
+        if (k == "morale") then
+            DATA.warband_set_morale(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id warband_id
+---@return fat_warband_id fat_id
+function DATA.fatten_warband(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_id_metatable)    return result
+end
+----------army_membership----------
+
+
+---army_membership: LSP types---
+
+---Unique identificator for army_membership entity
+---@alias army_membership_id number
+
+---@class fat_army_membership_id
+---@field id army_membership_id Unique army_membership id
+---@field army army_id
+---@field member warband_id part of army
+
+---@class struct_army_membership
+---@field army army_id
+---@field member warband_id part of army
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t army;
+        uint32_t member;
+    } army_membership;
+]]
+
+---army_membership: FFI arrays---
+---@type nil
+DATA.army_membership_malloc = ffi.C.malloc(ffi.sizeof("army_membership") * 10001)
+---@type table<army_membership_id, struct_army_membership>
+DATA.army_membership = ffi.cast("army_membership*", DATA.army_membership_malloc)
+---@type table<army_id, army_membership_id[]>>
+DATA.army_membership_from_army= {}
+---@type table<warband_id, army_membership_id>
+DATA.army_membership_from_member= {}
+
+---army_membership: LUA bindings---
+
+DATA.army_membership_size = 10000
+---@type table<army_membership_id, boolean>
+local army_membership_indices_pool = ffi.new("bool[?]", 10000)
+for i = 1, 9999 do
+    army_membership_indices_pool[i] = true
+end
+---@type table<army_membership_id, army_membership_id>
+DATA.army_membership_indices_set = {}
+function DATA.create_army_membership()
+    for i = 1, 9999 do
+        if army_membership_indices_pool[i] then
+            army_membership_indices_pool[i] = false
+            DATA.army_membership_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for army_membership")
+end
+function DATA.delete_army_membership(i)
+    do
+        local old_value = DATA.army_membership[i].army
+        __REMOVE_KEY_ARMY_MEMBERSHIP_ARMY(i, old_value)
+    end
+    do
+        local old_value = DATA.army_membership[i].member
+        __REMOVE_KEY_ARMY_MEMBERSHIP_MEMBER(old_value)
+    end
+    army_membership_indices_pool[i] = true
+    DATA.army_membership_indices_set[i] = nil
+end
+---@param func fun(item: army_membership_id)
+function DATA.for_each_army_membership(func)
+    for _, item in pairs(DATA.army_membership_indices_set) do
+        func(item)
+    end
+end
+
+---@param army_membership_id army_membership_id valid army_membership id
+---@return army_id army
+function DATA.army_membership_get_army(army_membership_id)
+    return DATA.army_membership[army_membership_id].army
+end
+---@param army army_id valid army_id
+---@return army_membership_id[] An array of army_membership
+function DATA.get_army_membership_from_army(army)
+    return DATA.army_membership_from_army[army]
+end
+---@param army_membership_id army_membership_id valid army_membership id
+---@param old_value army_id valid army_id
+function __REMOVE_KEY_ARMY_MEMBERSHIP_ARMY(army_membership_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.army_membership_from_army[old_value]) do
+        if value == army_membership_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.army_membership_from_army[old_value], found_key)
+    end
+end
+---@param army_membership_id army_membership_id valid army_membership id
+---@param value army_id valid army_id
+function DATA.army_membership_set_army(army_membership_id, value)
+    local old_value = DATA.army_membership[army_membership_id].army
+    DATA.army_membership[army_membership_id].army = value
+    __REMOVE_KEY_ARMY_MEMBERSHIP_ARMY(army_membership_id, old_value)
+    table.insert(DATA.army_membership_from_army[value], army_membership_id)
+end
+---@param army_membership_id army_membership_id valid army_membership id
+---@return warband_id member part of army
+function DATA.army_membership_get_member(army_membership_id)
+    return DATA.army_membership[army_membership_id].member
+end
+---@param member warband_id valid warband_id
+---@return army_membership_id army_membership
+function DATA.get_army_membership_from_member(member)
+    return DATA.army_membership_from_member[member]
+end
+function __REMOVE_KEY_ARMY_MEMBERSHIP_MEMBER(old_value)
+    DATA.army_membership_from_member[old_value] = nil
+end
+---@param army_membership_id army_membership_id valid army_membership id
+---@param value warband_id valid warband_id
+function DATA.army_membership_set_member(army_membership_id, value)
+    local old_value = DATA.army_membership[army_membership_id].member
+    DATA.army_membership[army_membership_id].member = value
+    __REMOVE_KEY_ARMY_MEMBERSHIP_MEMBER(old_value)
+    DATA.army_membership_from_member[value] = army_membership_id
+end
+
+
+local fat_army_membership_id_metatable = {
+    __index = function (t,k)
+        if (k == "army") then return DATA.army_membership_get_army(t.id) end
+        if (k == "member") then return DATA.army_membership_get_member(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        rawset(t, k, v)
+    end
+}
+---@param id army_membership_id
+---@return fat_army_membership_id fat_id
+function DATA.fatten_army_membership(id)
+    local result = {id = id}
+    setmetatable(result, fat_army_membership_id_metatable)    return result
+end
+----------warband_leader----------
+
+
+---warband_leader: LSP types---
+
+---Unique identificator for warband_leader entity
+---@alias warband_leader_id number
+
+---@class fat_warband_leader_id
+---@field id warband_leader_id Unique warband_leader id
+---@field leader pop_id
+---@field warband warband_id
+
+---@class struct_warband_leader
+---@field leader pop_id
+---@field warband warband_id
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t leader;
+        uint32_t warband;
+    } warband_leader;
+]]
+
+---warband_leader: FFI arrays---
+---@type nil
+DATA.warband_leader_malloc = ffi.C.malloc(ffi.sizeof("warband_leader") * 10001)
+---@type table<warband_leader_id, struct_warband_leader>
+DATA.warband_leader = ffi.cast("warband_leader*", DATA.warband_leader_malloc)
+---@type table<pop_id, warband_leader_id>
+DATA.warband_leader_from_leader= {}
+---@type table<warband_id, warband_leader_id>
+DATA.warband_leader_from_warband= {}
+
+---warband_leader: LUA bindings---
+
+DATA.warband_leader_size = 10000
+---@type table<warband_leader_id, boolean>
+local warband_leader_indices_pool = ffi.new("bool[?]", 10000)
+for i = 1, 9999 do
+    warband_leader_indices_pool[i] = true
+end
+---@type table<warband_leader_id, warband_leader_id>
+DATA.warband_leader_indices_set = {}
+function DATA.create_warband_leader()
+    for i = 1, 9999 do
+        if warband_leader_indices_pool[i] then
+            warband_leader_indices_pool[i] = false
+            DATA.warband_leader_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_leader")
+end
+function DATA.delete_warband_leader(i)
+    do
+        local old_value = DATA.warband_leader[i].leader
+        __REMOVE_KEY_WARBAND_LEADER_LEADER(old_value)
+    end
+    do
+        local old_value = DATA.warband_leader[i].warband
+        __REMOVE_KEY_WARBAND_LEADER_WARBAND(old_value)
+    end
+    warband_leader_indices_pool[i] = true
+    DATA.warband_leader_indices_set[i] = nil
+end
+---@param func fun(item: warband_leader_id)
+function DATA.for_each_warband_leader(func)
+    for _, item in pairs(DATA.warband_leader_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_leader_id warband_leader_id valid warband_leader id
+---@return pop_id leader
+function DATA.warband_leader_get_leader(warband_leader_id)
+    return DATA.warband_leader[warband_leader_id].leader
+end
+---@param leader pop_id valid pop_id
+---@return warband_leader_id warband_leader
+function DATA.get_warband_leader_from_leader(leader)
+    return DATA.warband_leader_from_leader[leader]
+end
+function __REMOVE_KEY_WARBAND_LEADER_LEADER(old_value)
+    DATA.warband_leader_from_leader[old_value] = nil
+end
+---@param warband_leader_id warband_leader_id valid warband_leader id
+---@param value pop_id valid pop_id
+function DATA.warband_leader_set_leader(warband_leader_id, value)
+    local old_value = DATA.warband_leader[warband_leader_id].leader
+    DATA.warband_leader[warband_leader_id].leader = value
+    __REMOVE_KEY_WARBAND_LEADER_LEADER(old_value)
+    DATA.warband_leader_from_leader[value] = warband_leader_id
+end
+---@param warband_leader_id warband_leader_id valid warband_leader id
+---@return warband_id warband
+function DATA.warband_leader_get_warband(warband_leader_id)
+    return DATA.warband_leader[warband_leader_id].warband
+end
+---@param warband warband_id valid warband_id
+---@return warband_leader_id warband_leader
+function DATA.get_warband_leader_from_warband(warband)
+    return DATA.warband_leader_from_warband[warband]
+end
+function __REMOVE_KEY_WARBAND_LEADER_WARBAND(old_value)
+    DATA.warband_leader_from_warband[old_value] = nil
+end
+---@param warband_leader_id warband_leader_id valid warband_leader id
+---@param value warband_id valid warband_id
+function DATA.warband_leader_set_warband(warband_leader_id, value)
+    local old_value = DATA.warband_leader[warband_leader_id].warband
+    DATA.warband_leader[warband_leader_id].warband = value
+    __REMOVE_KEY_WARBAND_LEADER_WARBAND(old_value)
+    DATA.warband_leader_from_warband[value] = warband_leader_id
+end
+
+
+local fat_warband_leader_id_metatable = {
+    __index = function (t,k)
+        if (k == "leader") then return DATA.warband_leader_get_leader(t.id) end
+        if (k == "warband") then return DATA.warband_leader_get_warband(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        rawset(t, k, v)
+    end
+}
+---@param id warband_leader_id
+---@return fat_warband_leader_id fat_id
+function DATA.fatten_warband_leader(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_leader_id_metatable)    return result
+end
+----------warband_recruiter----------
+
+
+---warband_recruiter: LSP types---
+
+---Unique identificator for warband_recruiter entity
+---@alias warband_recruiter_id number
+
+---@class fat_warband_recruiter_id
+---@field id warband_recruiter_id Unique warband_recruiter id
+---@field recruiter pop_id
+---@field warband warband_id
+
+---@class struct_warband_recruiter
+---@field recruiter pop_id
+---@field warband warband_id
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t recruiter;
+        uint32_t warband;
+    } warband_recruiter;
+]]
+
+---warband_recruiter: FFI arrays---
+---@type nil
+DATA.warband_recruiter_malloc = ffi.C.malloc(ffi.sizeof("warband_recruiter") * 10001)
+---@type table<warband_recruiter_id, struct_warband_recruiter>
+DATA.warband_recruiter = ffi.cast("warband_recruiter*", DATA.warband_recruiter_malloc)
+---@type table<pop_id, warband_recruiter_id>
+DATA.warband_recruiter_from_recruiter= {}
+---@type table<warband_id, warband_recruiter_id>
+DATA.warband_recruiter_from_warband= {}
+
+---warband_recruiter: LUA bindings---
+
+DATA.warband_recruiter_size = 10000
+---@type table<warband_recruiter_id, boolean>
+local warband_recruiter_indices_pool = ffi.new("bool[?]", 10000)
+for i = 1, 9999 do
+    warband_recruiter_indices_pool[i] = true
+end
+---@type table<warband_recruiter_id, warband_recruiter_id>
+DATA.warband_recruiter_indices_set = {}
+function DATA.create_warband_recruiter()
+    for i = 1, 9999 do
+        if warband_recruiter_indices_pool[i] then
+            warband_recruiter_indices_pool[i] = false
+            DATA.warband_recruiter_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_recruiter")
+end
+function DATA.delete_warband_recruiter(i)
+    do
+        local old_value = DATA.warband_recruiter[i].recruiter
+        __REMOVE_KEY_WARBAND_RECRUITER_RECRUITER(old_value)
+    end
+    do
+        local old_value = DATA.warband_recruiter[i].warband
+        __REMOVE_KEY_WARBAND_RECRUITER_WARBAND(old_value)
+    end
+    warband_recruiter_indices_pool[i] = true
+    DATA.warband_recruiter_indices_set[i] = nil
+end
+---@param func fun(item: warband_recruiter_id)
+function DATA.for_each_warband_recruiter(func)
+    for _, item in pairs(DATA.warband_recruiter_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
+---@return pop_id recruiter
+function DATA.warband_recruiter_get_recruiter(warband_recruiter_id)
+    return DATA.warband_recruiter[warband_recruiter_id].recruiter
+end
+---@param recruiter pop_id valid pop_id
+---@return warband_recruiter_id warband_recruiter
+function DATA.get_warband_recruiter_from_recruiter(recruiter)
+    return DATA.warband_recruiter_from_recruiter[recruiter]
+end
+function __REMOVE_KEY_WARBAND_RECRUITER_RECRUITER(old_value)
+    DATA.warband_recruiter_from_recruiter[old_value] = nil
+end
+---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
+---@param value pop_id valid pop_id
+function DATA.warband_recruiter_set_recruiter(warband_recruiter_id, value)
+    local old_value = DATA.warband_recruiter[warband_recruiter_id].recruiter
+    DATA.warband_recruiter[warband_recruiter_id].recruiter = value
+    __REMOVE_KEY_WARBAND_RECRUITER_RECRUITER(old_value)
+    DATA.warband_recruiter_from_recruiter[value] = warband_recruiter_id
+end
+---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
+---@return warband_id warband
+function DATA.warband_recruiter_get_warband(warband_recruiter_id)
+    return DATA.warband_recruiter[warband_recruiter_id].warband
+end
+---@param warband warband_id valid warband_id
+---@return warband_recruiter_id warband_recruiter
+function DATA.get_warband_recruiter_from_warband(warband)
+    return DATA.warband_recruiter_from_warband[warband]
+end
+function __REMOVE_KEY_WARBAND_RECRUITER_WARBAND(old_value)
+    DATA.warband_recruiter_from_warband[old_value] = nil
+end
+---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
+---@param value warband_id valid warband_id
+function DATA.warband_recruiter_set_warband(warband_recruiter_id, value)
+    local old_value = DATA.warband_recruiter[warband_recruiter_id].warband
+    DATA.warband_recruiter[warband_recruiter_id].warband = value
+    __REMOVE_KEY_WARBAND_RECRUITER_WARBAND(old_value)
+    DATA.warband_recruiter_from_warband[value] = warband_recruiter_id
+end
+
+
+local fat_warband_recruiter_id_metatable = {
+    __index = function (t,k)
+        if (k == "recruiter") then return DATA.warband_recruiter_get_recruiter(t.id) end
+        if (k == "warband") then return DATA.warband_recruiter_get_warband(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        rawset(t, k, v)
+    end
+}
+---@param id warband_recruiter_id
+---@return fat_warband_recruiter_id fat_id
+function DATA.fatten_warband_recruiter(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_recruiter_id_metatable)    return result
+end
+----------warband_commander----------
+
+
+---warband_commander: LSP types---
+
+---Unique identificator for warband_commander entity
+---@alias warband_commander_id number
+
+---@class fat_warband_commander_id
+---@field id warband_commander_id Unique warband_commander id
+---@field commander pop_id
+---@field warband warband_id
+
+---@class struct_warband_commander
+---@field commander pop_id
+---@field warband warband_id
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t commander;
+        uint32_t warband;
+    } warband_commander;
+]]
+
+---warband_commander: FFI arrays---
+---@type nil
+DATA.warband_commander_malloc = ffi.C.malloc(ffi.sizeof("warband_commander") * 10001)
+---@type table<warband_commander_id, struct_warband_commander>
+DATA.warband_commander = ffi.cast("warband_commander*", DATA.warband_commander_malloc)
+---@type table<pop_id, warband_commander_id>
+DATA.warband_commander_from_commander= {}
+---@type table<warband_id, warband_commander_id>
+DATA.warband_commander_from_warband= {}
+
+---warband_commander: LUA bindings---
+
+DATA.warband_commander_size = 10000
+---@type table<warband_commander_id, boolean>
+local warband_commander_indices_pool = ffi.new("bool[?]", 10000)
+for i = 1, 9999 do
+    warband_commander_indices_pool[i] = true
+end
+---@type table<warband_commander_id, warband_commander_id>
+DATA.warband_commander_indices_set = {}
+function DATA.create_warband_commander()
+    for i = 1, 9999 do
+        if warband_commander_indices_pool[i] then
+            warband_commander_indices_pool[i] = false
+            DATA.warband_commander_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_commander")
+end
+function DATA.delete_warband_commander(i)
+    do
+        local old_value = DATA.warband_commander[i].commander
+        __REMOVE_KEY_WARBAND_COMMANDER_COMMANDER(old_value)
+    end
+    do
+        local old_value = DATA.warband_commander[i].warband
+        __REMOVE_KEY_WARBAND_COMMANDER_WARBAND(old_value)
+    end
+    warband_commander_indices_pool[i] = true
+    DATA.warband_commander_indices_set[i] = nil
+end
+---@param func fun(item: warband_commander_id)
+function DATA.for_each_warband_commander(func)
+    for _, item in pairs(DATA.warband_commander_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_commander_id warband_commander_id valid warband_commander id
+---@return pop_id commander
+function DATA.warband_commander_get_commander(warband_commander_id)
+    return DATA.warband_commander[warband_commander_id].commander
+end
+---@param commander pop_id valid pop_id
+---@return warband_commander_id warband_commander
+function DATA.get_warband_commander_from_commander(commander)
+    return DATA.warband_commander_from_commander[commander]
+end
+function __REMOVE_KEY_WARBAND_COMMANDER_COMMANDER(old_value)
+    DATA.warband_commander_from_commander[old_value] = nil
+end
+---@param warband_commander_id warband_commander_id valid warband_commander id
+---@param value pop_id valid pop_id
+function DATA.warband_commander_set_commander(warband_commander_id, value)
+    local old_value = DATA.warband_commander[warband_commander_id].commander
+    DATA.warband_commander[warband_commander_id].commander = value
+    __REMOVE_KEY_WARBAND_COMMANDER_COMMANDER(old_value)
+    DATA.warband_commander_from_commander[value] = warband_commander_id
+end
+---@param warband_commander_id warband_commander_id valid warband_commander id
+---@return warband_id warband
+function DATA.warband_commander_get_warband(warband_commander_id)
+    return DATA.warband_commander[warband_commander_id].warband
+end
+---@param warband warband_id valid warband_id
+---@return warband_commander_id warband_commander
+function DATA.get_warband_commander_from_warband(warband)
+    return DATA.warband_commander_from_warband[warband]
+end
+function __REMOVE_KEY_WARBAND_COMMANDER_WARBAND(old_value)
+    DATA.warband_commander_from_warband[old_value] = nil
+end
+---@param warband_commander_id warband_commander_id valid warband_commander id
+---@param value warband_id valid warband_id
+function DATA.warband_commander_set_warband(warband_commander_id, value)
+    local old_value = DATA.warband_commander[warband_commander_id].warband
+    DATA.warband_commander[warband_commander_id].warband = value
+    __REMOVE_KEY_WARBAND_COMMANDER_WARBAND(old_value)
+    DATA.warband_commander_from_warband[value] = warband_commander_id
+end
+
+
+local fat_warband_commander_id_metatable = {
+    __index = function (t,k)
+        if (k == "commander") then return DATA.warband_commander_get_commander(t.id) end
+        if (k == "warband") then return DATA.warband_commander_get_warband(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        rawset(t, k, v)
+    end
+}
+---@param id warband_commander_id
+---@return fat_warband_commander_id fat_id
+function DATA.fatten_warband_commander(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_commander_id_metatable)    return result
+end
+----------warband_location----------
+
+
+---warband_location: LSP types---
+
+---Unique identificator for warband_location entity
+---@alias warband_location_id number
+
+---@class fat_warband_location_id
+---@field id warband_location_id Unique warband_location id
+---@field location province_id location of warband
+---@field warband warband_id
+
+---@class struct_warband_location
+---@field location province_id location of warband
+---@field warband warband_id
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t location;
+        uint32_t warband;
+    } warband_location;
+]]
+
+---warband_location: FFI arrays---
+---@type nil
+DATA.warband_location_malloc = ffi.C.malloc(ffi.sizeof("warband_location") * 10001)
+---@type table<warband_location_id, struct_warband_location>
+DATA.warband_location = ffi.cast("warband_location*", DATA.warband_location_malloc)
+---@type table<province_id, warband_location_id[]>>
+DATA.warband_location_from_location= {}
+---@type table<warband_id, warband_location_id>
+DATA.warband_location_from_warband= {}
+
+---warband_location: LUA bindings---
+
+DATA.warband_location_size = 10000
+---@type table<warband_location_id, boolean>
+local warband_location_indices_pool = ffi.new("bool[?]", 10000)
+for i = 1, 9999 do
+    warband_location_indices_pool[i] = true
+end
+---@type table<warband_location_id, warband_location_id>
+DATA.warband_location_indices_set = {}
+function DATA.create_warband_location()
+    for i = 1, 9999 do
+        if warband_location_indices_pool[i] then
+            warband_location_indices_pool[i] = false
+            DATA.warband_location_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_location")
+end
+function DATA.delete_warband_location(i)
+    do
+        local old_value = DATA.warband_location[i].location
+        __REMOVE_KEY_WARBAND_LOCATION_LOCATION(i, old_value)
+    end
+    do
+        local old_value = DATA.warband_location[i].warband
+        __REMOVE_KEY_WARBAND_LOCATION_WARBAND(old_value)
+    end
+    warband_location_indices_pool[i] = true
+    DATA.warband_location_indices_set[i] = nil
+end
+---@param func fun(item: warband_location_id)
+function DATA.for_each_warband_location(func)
+    for _, item in pairs(DATA.warband_location_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_location_id warband_location_id valid warband_location id
+---@return province_id location location of warband
+function DATA.warband_location_get_location(warband_location_id)
+    return DATA.warband_location[warband_location_id].location
+end
+---@param location province_id valid province_id
+---@return warband_location_id[] An array of warband_location
+function DATA.get_warband_location_from_location(location)
+    return DATA.warband_location_from_location[location]
+end
+---@param warband_location_id warband_location_id valid warband_location id
+---@param old_value province_id valid province_id
+function __REMOVE_KEY_WARBAND_LOCATION_LOCATION(warband_location_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.warband_location_from_location[old_value]) do
+        if value == warband_location_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.warband_location_from_location[old_value], found_key)
+    end
+end
+---@param warband_location_id warband_location_id valid warband_location id
+---@param value province_id valid province_id
+function DATA.warband_location_set_location(warband_location_id, value)
+    local old_value = DATA.warband_location[warband_location_id].location
+    DATA.warband_location[warband_location_id].location = value
+    __REMOVE_KEY_WARBAND_LOCATION_LOCATION(warband_location_id, old_value)
+    table.insert(DATA.warband_location_from_location[value], warband_location_id)
+end
+---@param warband_location_id warband_location_id valid warband_location id
+---@return warband_id warband
+function DATA.warband_location_get_warband(warband_location_id)
+    return DATA.warband_location[warband_location_id].warband
+end
+---@param warband warband_id valid warband_id
+---@return warband_location_id warband_location
+function DATA.get_warband_location_from_warband(warband)
+    return DATA.warband_location_from_warband[warband]
+end
+function __REMOVE_KEY_WARBAND_LOCATION_WARBAND(old_value)
+    DATA.warband_location_from_warband[old_value] = nil
+end
+---@param warband_location_id warband_location_id valid warband_location id
+---@param value warband_id valid warband_id
+function DATA.warband_location_set_warband(warband_location_id, value)
+    local old_value = DATA.warband_location[warband_location_id].warband
+    DATA.warband_location[warband_location_id].warband = value
+    __REMOVE_KEY_WARBAND_LOCATION_WARBAND(old_value)
+    DATA.warband_location_from_warband[value] = warband_location_id
+end
+
+
+local fat_warband_location_id_metatable = {
+    __index = function (t,k)
+        if (k == "location") then return DATA.warband_location_get_location(t.id) end
+        if (k == "warband") then return DATA.warband_location_get_warband(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        rawset(t, k, v)
+    end
+}
+---@param id warband_location_id
+---@return fat_warband_location_id fat_id
+function DATA.fatten_warband_location(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_location_id_metatable)    return result
+end
+----------warband_unit----------
+
+
+---warband_unit: LSP types---
+
+---Unique identificator for warband_unit entity
+---@alias warband_unit_id number
+
+---@class fat_warband_unit_id
+---@field id warband_unit_id Unique warband_unit id
+---@field type unit_type_id Current unit type
+---@field unit pop_id
+---@field warband warband_id
+
+---@class struct_warband_unit
+---@field type unit_type_id Current unit type
+---@field unit pop_id
+---@field warband warband_id
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t type;
+        uint32_t unit;
+        uint32_t warband;
+    } warband_unit;
+]]
+
+---warband_unit: FFI arrays---
+---@type nil
+DATA.warband_unit_malloc = ffi.C.malloc(ffi.sizeof("warband_unit") * 50001)
+---@type table<warband_unit_id, struct_warband_unit>
+DATA.warband_unit = ffi.cast("warband_unit*", DATA.warband_unit_malloc)
+---@type table<pop_id, warband_unit_id>
+DATA.warband_unit_from_unit= {}
+---@type table<warband_id, warband_unit_id[]>>
+DATA.warband_unit_from_warband= {}
+
+---warband_unit: LUA bindings---
+
+DATA.warband_unit_size = 50000
+---@type table<warband_unit_id, boolean>
+local warband_unit_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
+    warband_unit_indices_pool[i] = true
+end
+---@type table<warband_unit_id, warband_unit_id>
+DATA.warband_unit_indices_set = {}
+function DATA.create_warband_unit()
+    for i = 1, 49999 do
+        if warband_unit_indices_pool[i] then
+            warband_unit_indices_pool[i] = false
+            DATA.warband_unit_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_unit")
+end
+function DATA.delete_warband_unit(i)
+    do
+        local old_value = DATA.warband_unit[i].unit
+        __REMOVE_KEY_WARBAND_UNIT_UNIT(old_value)
+    end
+    do
+        local old_value = DATA.warband_unit[i].warband
+        __REMOVE_KEY_WARBAND_UNIT_WARBAND(i, old_value)
+    end
+    warband_unit_indices_pool[i] = true
+    DATA.warband_unit_indices_set[i] = nil
+end
+---@param func fun(item: warband_unit_id)
+function DATA.for_each_warband_unit(func)
+    for _, item in pairs(DATA.warband_unit_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@return unit_type_id type Current unit type
+function DATA.warband_unit_get_type(warband_unit_id)
+    return DATA.warband_unit[warband_unit_id].type
+end
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@param value unit_type_id valid unit_type_id
+function DATA.warband_unit_set_type(warband_unit_id, value)
+    DATA.warband_unit[warband_unit_id].type = value
+end
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@return pop_id unit
+function DATA.warband_unit_get_unit(warband_unit_id)
+    return DATA.warband_unit[warband_unit_id].unit
+end
+---@param unit pop_id valid pop_id
+---@return warband_unit_id warband_unit
+function DATA.get_warband_unit_from_unit(unit)
+    return DATA.warband_unit_from_unit[unit]
+end
+function __REMOVE_KEY_WARBAND_UNIT_UNIT(old_value)
+    DATA.warband_unit_from_unit[old_value] = nil
+end
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@param value pop_id valid pop_id
+function DATA.warband_unit_set_unit(warband_unit_id, value)
+    local old_value = DATA.warband_unit[warband_unit_id].unit
+    DATA.warband_unit[warband_unit_id].unit = value
+    __REMOVE_KEY_WARBAND_UNIT_UNIT(old_value)
+    DATA.warband_unit_from_unit[value] = warband_unit_id
+end
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@return warband_id warband
+function DATA.warband_unit_get_warband(warband_unit_id)
+    return DATA.warband_unit[warband_unit_id].warband
+end
+---@param warband warband_id valid warband_id
+---@return warband_unit_id[] An array of warband_unit
+function DATA.get_warband_unit_from_warband(warband)
+    return DATA.warband_unit_from_warband[warband]
+end
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@param old_value warband_id valid warband_id
+function __REMOVE_KEY_WARBAND_UNIT_WARBAND(warband_unit_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.warband_unit_from_warband[old_value]) do
+        if value == warband_unit_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.warband_unit_from_warband[old_value], found_key)
+    end
+end
+---@param warband_unit_id warband_unit_id valid warband_unit id
+---@param value warband_id valid warband_id
+function DATA.warband_unit_set_warband(warband_unit_id, value)
+    local old_value = DATA.warband_unit[warband_unit_id].warband
+    DATA.warband_unit[warband_unit_id].warband = value
+    __REMOVE_KEY_WARBAND_UNIT_WARBAND(warband_unit_id, old_value)
+    table.insert(DATA.warband_unit_from_warband[value], warband_unit_id)
+end
+
+
+local fat_warband_unit_id_metatable = {
+    __index = function (t,k)
+        if (k == "type") then return DATA.warband_unit_get_type(t.id) end
+        if (k == "unit") then return DATA.warband_unit_get_unit(t.id) end
+        if (k == "warband") then return DATA.warband_unit_get_warband(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "type") then
+            DATA.warband_unit_set_type(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id warband_unit_id
+---@return fat_warband_unit_id fat_id
+function DATA.fatten_warband_unit(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_unit_id_metatable)    return result
 end
 ----------character_location----------
 
@@ -3101,6 +4350,7 @@ function DATA.character_location_set_location(character_location_id, value)
     local old_value = DATA.character_location[character_location_id].location
     DATA.character_location[character_location_id].location = value
     __REMOVE_KEY_CHARACTER_LOCATION_LOCATION(character_location_id, old_value)
+    table.insert(DATA.character_location_from_location[value], character_location_id)
 end
 ---@param character_location_id character_location_id valid character_location id
 ---@return pop_id character
@@ -3121,6 +4371,7 @@ function DATA.character_location_set_character(character_location_id, value)
     local old_value = DATA.character_location[character_location_id].character
     DATA.character_location[character_location_id].character = value
     __REMOVE_KEY_CHARACTER_LOCATION_CHARACTER(old_value)
+    DATA.character_location_from_character[value] = character_location_id
 end
 
 
@@ -3244,6 +4495,7 @@ function DATA.home_set_home(home_id, value)
     local old_value = DATA.home[home_id].home
     DATA.home[home_id].home = value
     __REMOVE_KEY_HOME_HOME(home_id, old_value)
+    table.insert(DATA.home_from_home[value], home_id)
 end
 ---@param home_id home_id valid home id
 ---@return pop_id pop characters and pops which think of this province as their home
@@ -3264,6 +4516,7 @@ function DATA.home_set_pop(home_id, value)
     local old_value = DATA.home[home_id].pop
     DATA.home[home_id].pop = value
     __REMOVE_KEY_HOME_POP(old_value)
+    DATA.home_from_pop[value] = home_id
 end
 
 
@@ -3387,6 +4640,7 @@ function DATA.pop_location_set_location(pop_location_id, value)
     local old_value = DATA.pop_location[pop_location_id].location
     DATA.pop_location[pop_location_id].location = value
     __REMOVE_KEY_POP_LOCATION_LOCATION(pop_location_id, old_value)
+    table.insert(DATA.pop_location_from_location[value], pop_location_id)
 end
 ---@param pop_location_id pop_location_id valid pop_location id
 ---@return pop_id pop
@@ -3407,6 +4661,7 @@ function DATA.pop_location_set_pop(pop_location_id, value)
     local old_value = DATA.pop_location[pop_location_id].pop
     DATA.pop_location[pop_location_id].pop = value
     __REMOVE_KEY_POP_LOCATION_POP(old_value)
+    DATA.pop_location_from_pop[value] = pop_location_id
 end
 
 
@@ -3530,6 +4785,7 @@ function DATA.outlaw_location_set_location(outlaw_location_id, value)
     local old_value = DATA.outlaw_location[outlaw_location_id].location
     DATA.outlaw_location[outlaw_location_id].location = value
     __REMOVE_KEY_OUTLAW_LOCATION_LOCATION(outlaw_location_id, old_value)
+    table.insert(DATA.outlaw_location_from_location[value], outlaw_location_id)
 end
 ---@param outlaw_location_id outlaw_location_id valid outlaw_location id
 ---@return pop_id outlaw
@@ -3550,6 +4806,7 @@ function DATA.outlaw_location_set_outlaw(outlaw_location_id, value)
     local old_value = DATA.outlaw_location[outlaw_location_id].outlaw
     DATA.outlaw_location[outlaw_location_id].outlaw = value
     __REMOVE_KEY_OUTLAW_LOCATION_OUTLAW(old_value)
+    DATA.outlaw_location_from_outlaw[value] = outlaw_location_id
 end
 
 
@@ -3673,6 +4930,7 @@ function DATA.tile_province_membership_set_province(tile_province_membership_id,
     local old_value = DATA.tile_province_membership[tile_province_membership_id].province
     DATA.tile_province_membership[tile_province_membership_id].province = value
     __REMOVE_KEY_TILE_PROVINCE_MEMBERSHIP_PROVINCE(tile_province_membership_id, old_value)
+    table.insert(DATA.tile_province_membership_from_province[value], tile_province_membership_id)
 end
 ---@param tile_province_membership_id tile_province_membership_id valid tile_province_membership id
 ---@return tile_id tile
@@ -3693,6 +4951,7 @@ function DATA.tile_province_membership_set_tile(tile_province_membership_id, val
     local old_value = DATA.tile_province_membership[tile_province_membership_id].tile
     DATA.tile_province_membership[tile_province_membership_id].tile = value
     __REMOVE_KEY_TILE_PROVINCE_MEMBERSHIP_TILE(old_value)
+    DATA.tile_province_membership_from_tile[value] = tile_province_membership_id
 end
 
 
@@ -3816,6 +5075,7 @@ function DATA.province_neighborhood_set_origin(province_neighborhood_id, value)
     local old_value = DATA.province_neighborhood[province_neighborhood_id].origin
     DATA.province_neighborhood[province_neighborhood_id].origin = value
     __REMOVE_KEY_PROVINCE_NEIGHBORHOOD_ORIGIN(province_neighborhood_id, old_value)
+    table.insert(DATA.province_neighborhood_from_origin[value], province_neighborhood_id)
 end
 ---@param province_neighborhood_id province_neighborhood_id valid province_neighborhood id
 ---@return province_id target
@@ -3847,6 +5107,7 @@ function DATA.province_neighborhood_set_target(province_neighborhood_id, value)
     local old_value = DATA.province_neighborhood[province_neighborhood_id].target
     DATA.province_neighborhood[province_neighborhood_id].target = value
     __REMOVE_KEY_PROVINCE_NEIGHBORHOOD_TARGET(province_neighborhood_id, old_value)
+    table.insert(DATA.province_neighborhood_from_target[value], province_neighborhood_id)
 end
 
 
@@ -3970,6 +5231,7 @@ function DATA.parent_child_relation_set_parent(parent_child_relation_id, value)
     local old_value = DATA.parent_child_relation[parent_child_relation_id].parent
     DATA.parent_child_relation[parent_child_relation_id].parent = value
     __REMOVE_KEY_PARENT_CHILD_RELATION_PARENT(parent_child_relation_id, old_value)
+    table.insert(DATA.parent_child_relation_from_parent[value], parent_child_relation_id)
 end
 ---@param parent_child_relation_id parent_child_relation_id valid parent_child_relation id
 ---@return pop_id child
@@ -3990,6 +5252,7 @@ function DATA.parent_child_relation_set_child(parent_child_relation_id, value)
     local old_value = DATA.parent_child_relation[parent_child_relation_id].child
     DATA.parent_child_relation[parent_child_relation_id].child = value
     __REMOVE_KEY_PARENT_CHILD_RELATION_CHILD(old_value)
+    DATA.parent_child_relation_from_child[value] = parent_child_relation_id
 end
 
 
@@ -4113,6 +5376,7 @@ function DATA.loyalty_set_top(loyalty_id, value)
     local old_value = DATA.loyalty[loyalty_id].top
     DATA.loyalty[loyalty_id].top = value
     __REMOVE_KEY_LOYALTY_TOP(loyalty_id, old_value)
+    table.insert(DATA.loyalty_from_top[value], loyalty_id)
 end
 ---@param loyalty_id loyalty_id valid loyalty id
 ---@return pop_id bottom
@@ -4133,6 +5397,7 @@ function DATA.loyalty_set_bottom(loyalty_id, value)
     local old_value = DATA.loyalty[loyalty_id].bottom
     DATA.loyalty[loyalty_id].bottom = value
     __REMOVE_KEY_LOYALTY_BOTTOM(old_value)
+    DATA.loyalty_from_bottom[value] = loyalty_id
 end
 
 
@@ -4245,6 +5510,7 @@ function DATA.succession_set_successor_of(succession_id, value)
     local old_value = DATA.succession[succession_id].successor_of
     DATA.succession[succession_id].successor_of = value
     __REMOVE_KEY_SUCCESSION_SUCCESSOR_OF(old_value)
+    DATA.succession_from_successor_of[value] = succession_id
 end
 ---@param succession_id succession_id valid succession id
 ---@return pop_id successor
@@ -4276,6 +5542,7 @@ function DATA.succession_set_successor(succession_id, value)
     local old_value = DATA.succession[succession_id].successor
     DATA.succession[succession_id].successor = value
     __REMOVE_KEY_SUCCESSION_SUCCESSOR(succession_id, old_value)
+    table.insert(DATA.succession_from_successor[value], succession_id)
 end
 
 
@@ -4309,8 +5576,14 @@ end
 
 ---@class struct_jobtype
 
----@class jobtype_id_data_blob
+---@class (exact) jobtype_id_data_blob_definition
 ---@field name string
+---Sets values of jobtype for given id
+---@param id jobtype_id
+---@param data jobtype_id_data_blob_definition
+function DATA.setup_jobtype(id, data)
+    DATA.jobtype_set_name(id, data.name)
+end
 
 ffi.cdef[[
     typedef struct {
@@ -4442,7 +5715,7 @@ DATA.jobtype_set_name(index_jobtype, "HUNTING")
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
----@class need_id_data_blob
+---@class (exact) need_id_data_blob_definition
 ---@field name string
 ---@field age_independent boolean
 ---@field life_need boolean
@@ -4450,6 +5723,18 @@ DATA.jobtype_set_name(index_jobtype, "HUNTING")
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
+---Sets values of need for given id
+---@param id need_id
+---@param data need_id_data_blob_definition
+function DATA.setup_need(id, data)
+    DATA.need_set_name(id, data.name)
+    DATA.need_set_age_independent(id, data.age_independent)
+    DATA.need_set_life_need(id, data.life_need)
+    DATA.need_set_tool(id, data.tool)
+    DATA.need_set_container(id, data.container)
+    DATA.need_set_time_to_satisfy(id, data.time_to_satisfy)
+    DATA.need_set_job_to_satisfy(id, data.job_to_satisfy)
+end
 
 ffi.cdef[[
     typedef struct {
@@ -4705,9 +5990,16 @@ DATA.need_set_job_to_satisfy(index_need, JOBTYPE.ARTISAN)
 
 ---@class struct_character_rank
 
----@class character_rank_id_data_blob
+---@class (exact) character_rank_id_data_blob_definition
 ---@field name string
 ---@field localisation string
+---Sets values of character_rank for given id
+---@param id character_rank_id
+---@param data character_rank_id_data_blob_definition
+function DATA.setup_character_rank(id, data)
+    DATA.character_rank_set_name(id, data.name)
+    DATA.character_rank_set_localisation(id, data.localisation)
+end
 
 ffi.cdef[[
     typedef struct {
@@ -4835,11 +6127,20 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 
 ---@class struct_trait
 
----@class trait_id_data_blob
+---@class (exact) trait_id_data_blob_definition
 ---@field name string
 ---@field short_description string
 ---@field full_description string
 ---@field icon string
+---Sets values of trait for given id
+---@param id trait_id
+---@param data trait_id_data_blob_definition
+function DATA.setup_trait(id, data)
+    DATA.trait_set_name(id, data.name)
+    DATA.trait_set_short_description(id, data.short_description)
+    DATA.trait_set_full_description(id, data.full_description)
+    DATA.trait_set_icon(id, data.icon)
+end
 
 ffi.cdef[[
     typedef struct {
@@ -5032,6 +6333,354 @@ DATA.trait_set_name(index_trait, "TRADER")
 DATA.trait_set_short_description(index_trait, "trader")
 DATA.trait_set_full_description(index_trait, "TODO")
 DATA.trait_set_icon(index_trait, "scales.png")
+----------trade_good_category----------
+
+
+---trade_good_category: LSP types---
+
+---Unique identificator for trade_good_category entity
+---@alias trade_good_category_id number
+
+---@class fat_trade_good_category_id
+---@field id trade_good_category_id Unique trade_good_category id
+---@field name string
+
+---@class struct_trade_good_category
+
+---@class (exact) trade_good_category_id_data_blob_definition
+---@field name string
+---Sets values of trade_good_category for given id
+---@param id trade_good_category_id
+---@param data trade_good_category_id_data_blob_definition
+function DATA.setup_trade_good_category(id, data)
+    DATA.trade_good_category_set_name(id, data.name)
+end
+
+ffi.cdef[[
+    typedef struct {
+    } trade_good_category;
+]]
+
+---trade_good_category: FFI arrays---
+---@type (string)[]
+DATA.trade_good_category_name= {}
+---@type nil
+DATA.trade_good_category_malloc = ffi.C.malloc(ffi.sizeof("trade_good_category") * 6)
+---@type table<trade_good_category_id, struct_trade_good_category>
+DATA.trade_good_category = ffi.cast("trade_good_category*", DATA.trade_good_category_malloc)
+
+---trade_good_category: LUA bindings---
+
+DATA.trade_good_category_size = 5
+---@type table<trade_good_category_id, boolean>
+local trade_good_category_indices_pool = ffi.new("bool[?]", 5)
+for i = 1, 4 do
+    trade_good_category_indices_pool[i] = true
+end
+---@type table<trade_good_category_id, trade_good_category_id>
+DATA.trade_good_category_indices_set = {}
+function DATA.create_trade_good_category()
+    for i = 1, 4 do
+        if trade_good_category_indices_pool[i] then
+            trade_good_category_indices_pool[i] = false
+            DATA.trade_good_category_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for trade_good_category")
+end
+function DATA.delete_trade_good_category(i)
+    trade_good_category_indices_pool[i] = true
+    DATA.trade_good_category_indices_set[i] = nil
+end
+---@param func fun(item: trade_good_category_id)
+function DATA.for_each_trade_good_category(func)
+    for _, item in pairs(DATA.trade_good_category_indices_set) do
+        func(item)
+    end
+end
+
+---@param trade_good_category_id trade_good_category_id valid trade_good_category id
+---@return string name
+function DATA.trade_good_category_get_name(trade_good_category_id)
+    return DATA.trade_good_category_name[trade_good_category_id]
+end
+---@param trade_good_category_id trade_good_category_id valid trade_good_category id
+---@param value string valid string
+function DATA.trade_good_category_set_name(trade_good_category_id, value)
+    DATA.trade_good_category_name[trade_good_category_id] = value
+end
+
+
+local fat_trade_good_category_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.trade_good_category_get_name(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.trade_good_category_set_name(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id trade_good_category_id
+---@return fat_trade_good_category_id fat_id
+function DATA.fatten_trade_good_category(id)
+    local result = {id = id}
+    setmetatable(result, fat_trade_good_category_id_metatable)    return result
+end
+---@enum TRADE_GOOD_CATEGORY
+TRADE_GOOD_CATEGORY = {
+    INVALID = 0,
+    GOOD = 1,
+    SERVICE = 2,
+    CAPACITY = 3,
+}
+local index_trade_good_category
+index_trade_good_category = DATA.create_trade_good_category()
+DATA.trade_good_category_set_name(index_trade_good_category, "good")
+index_trade_good_category = DATA.create_trade_good_category()
+DATA.trade_good_category_set_name(index_trade_good_category, "service")
+index_trade_good_category = DATA.create_trade_good_category()
+DATA.trade_good_category_set_name(index_trade_good_category, "capacity")
+----------warband_status----------
+
+
+---warband_status: LSP types---
+
+---Unique identificator for warband_status entity
+---@alias warband_status_id number
+
+---@class fat_warband_status_id
+---@field id warband_status_id Unique warband_status id
+---@field name string
+
+---@class struct_warband_status
+
+---@class (exact) warband_status_id_data_blob_definition
+---@field name string
+---Sets values of warband_status for given id
+---@param id warband_status_id
+---@param data warband_status_id_data_blob_definition
+function DATA.setup_warband_status(id, data)
+    DATA.warband_status_set_name(id, data.name)
+end
+
+ffi.cdef[[
+    typedef struct {
+    } warband_status;
+]]
+
+---warband_status: FFI arrays---
+---@type (string)[]
+DATA.warband_status_name= {}
+---@type nil
+DATA.warband_status_malloc = ffi.C.malloc(ffi.sizeof("warband_status") * 11)
+---@type table<warband_status_id, struct_warband_status>
+DATA.warband_status = ffi.cast("warband_status*", DATA.warband_status_malloc)
+
+---warband_status: LUA bindings---
+
+DATA.warband_status_size = 10
+---@type table<warband_status_id, boolean>
+local warband_status_indices_pool = ffi.new("bool[?]", 10)
+for i = 1, 9 do
+    warband_status_indices_pool[i] = true
+end
+---@type table<warband_status_id, warband_status_id>
+DATA.warband_status_indices_set = {}
+function DATA.create_warband_status()
+    for i = 1, 9 do
+        if warband_status_indices_pool[i] then
+            warband_status_indices_pool[i] = false
+            DATA.warband_status_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_status")
+end
+function DATA.delete_warband_status(i)
+    warband_status_indices_pool[i] = true
+    DATA.warband_status_indices_set[i] = nil
+end
+---@param func fun(item: warband_status_id)
+function DATA.for_each_warband_status(func)
+    for _, item in pairs(DATA.warband_status_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_status_id warband_status_id valid warband_status id
+---@return string name
+function DATA.warband_status_get_name(warband_status_id)
+    return DATA.warband_status_name[warband_status_id]
+end
+---@param warband_status_id warband_status_id valid warband_status id
+---@param value string valid string
+function DATA.warband_status_set_name(warband_status_id, value)
+    DATA.warband_status_name[warband_status_id] = value
+end
+
+
+local fat_warband_status_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.warband_status_get_name(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.warband_status_set_name(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id warband_status_id
+---@return fat_warband_status_id fat_id
+function DATA.fatten_warband_status(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_status_id_metatable)    return result
+end
+---@enum WARBAND_STATUS
+WARBAND_STATUS = {
+    INVALID = 0,
+    IDLE = 1,
+    RAIDING = 2,
+    PREPARING_RAID = 3,
+    PREPARING_PATROL = 4,
+    PATROL = 5,
+    ATTACKING = 6,
+    TRAVELLING = 7,
+    OFF_DUTY = 8,
+}
+local index_warband_status
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "idle")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "raiding")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "preparing_raid")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "preparing_patrol")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "patrol")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "attacking")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "travelling")
+index_warband_status = DATA.create_warband_status()
+DATA.warband_status_set_name(index_warband_status, "off_duty")
+----------warband_stance----------
+
+
+---warband_stance: LSP types---
+
+---Unique identificator for warband_stance entity
+---@alias warband_stance_id number
+
+---@class fat_warband_stance_id
+---@field id warband_stance_id Unique warband_stance id
+---@field name string
+
+---@class struct_warband_stance
+
+---@class (exact) warband_stance_id_data_blob_definition
+---@field name string
+---Sets values of warband_stance for given id
+---@param id warband_stance_id
+---@param data warband_stance_id_data_blob_definition
+function DATA.setup_warband_stance(id, data)
+    DATA.warband_stance_set_name(id, data.name)
+end
+
+ffi.cdef[[
+    typedef struct {
+    } warband_stance;
+]]
+
+---warband_stance: FFI arrays---
+---@type (string)[]
+DATA.warband_stance_name= {}
+---@type nil
+DATA.warband_stance_malloc = ffi.C.malloc(ffi.sizeof("warband_stance") * 5)
+---@type table<warband_stance_id, struct_warband_stance>
+DATA.warband_stance = ffi.cast("warband_stance*", DATA.warband_stance_malloc)
+
+---warband_stance: LUA bindings---
+
+DATA.warband_stance_size = 4
+---@type table<warband_stance_id, boolean>
+local warband_stance_indices_pool = ffi.new("bool[?]", 4)
+for i = 1, 3 do
+    warband_stance_indices_pool[i] = true
+end
+---@type table<warband_stance_id, warband_stance_id>
+DATA.warband_stance_indices_set = {}
+function DATA.create_warband_stance()
+    for i = 1, 3 do
+        if warband_stance_indices_pool[i] then
+            warband_stance_indices_pool[i] = false
+            DATA.warband_stance_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for warband_stance")
+end
+function DATA.delete_warband_stance(i)
+    warband_stance_indices_pool[i] = true
+    DATA.warband_stance_indices_set[i] = nil
+end
+---@param func fun(item: warband_stance_id)
+function DATA.for_each_warband_stance(func)
+    for _, item in pairs(DATA.warband_stance_indices_set) do
+        func(item)
+    end
+end
+
+---@param warband_stance_id warband_stance_id valid warband_stance id
+---@return string name
+function DATA.warband_stance_get_name(warband_stance_id)
+    return DATA.warband_stance_name[warband_stance_id]
+end
+---@param warband_stance_id warband_stance_id valid warband_stance id
+---@param value string valid string
+function DATA.warband_stance_set_name(warband_stance_id, value)
+    DATA.warband_stance_name[warband_stance_id] = value
+end
+
+
+local fat_warband_stance_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.warband_stance_get_name(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.warband_stance_set_name(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id warband_stance_id
+---@return fat_warband_stance_id fat_id
+function DATA.fatten_warband_stance(id)
+    local result = {id = id}
+    setmetatable(result, fat_warband_stance_id_metatable)    return result
+end
+---@enum WARBAND_STANCE
+WARBAND_STANCE = {
+    INVALID = 0,
+    WORK = 1,
+    FORAGE = 2,
+}
+local index_warband_stance
+index_warband_stance = DATA.create_warband_stance()
+DATA.warband_stance_set_name(index_warband_stance, "work")
+index_warband_stance = DATA.create_warband_stance()
+DATA.warband_stance_set_name(index_warband_stance, "forage")
 ----------trade_good----------
 
 
@@ -5048,30 +6697,47 @@ DATA.trait_set_icon(index_trait, "scales.png")
 ---@field r number
 ---@field g number
 ---@field b number
----@field category TradeGoodCategory
+---@field category TRADE_GOOD_CATEGORY
 ---@field base_price number
 
 ---@class struct_trade_good
 ---@field r number
 ---@field g number
 ---@field b number
+---@field category TRADE_GOOD_CATEGORY
 ---@field base_price number
 
----@class trade_good_id_data_blob
+---@class (exact) trade_good_id_data_blob_definition
 ---@field name string
 ---@field icon string
 ---@field description string
 ---@field r number
 ---@field g number
 ---@field b number
----@field category TradeGoodCategory
+---@field category TRADE_GOOD_CATEGORY?
 ---@field base_price number
+---Sets values of trade_good for given id
+---@param id trade_good_id
+---@param data trade_good_id_data_blob_definition
+function DATA.setup_trade_good(id, data)
+    DATA.trade_good_set_name(id, data.name)
+    DATA.trade_good_set_icon(id, data.icon)
+    DATA.trade_good_set_description(id, data.description)
+    DATA.trade_good_set_r(id, data.r)
+    DATA.trade_good_set_g(id, data.g)
+    DATA.trade_good_set_b(id, data.b)
+    if data.category ~= nil then
+        DATA.trade_good_set_category(id, data.category)
+    end
+    DATA.trade_good_set_base_price(id, data.base_price)
+end
 
 ffi.cdef[[
     typedef struct {
         float r;
         float g;
         float b;
+        uint8_t category;
         float base_price;
     } trade_good;
 ]]
@@ -5083,8 +6749,6 @@ DATA.trade_good_name= {}
 DATA.trade_good_icon= {}
 ---@type (string)[]
 DATA.trade_good_description= {}
----@type (TradeGoodCategory)[]
-DATA.trade_good_category= {}
 ---@type nil
 DATA.trade_good_malloc = ffi.C.malloc(ffi.sizeof("trade_good") * 101)
 ---@type table<trade_good_id, struct_trade_good>
@@ -5105,6 +6769,7 @@ function DATA.create_trade_good()
         if trade_good_indices_pool[i] then
             trade_good_indices_pool[i] = false
             DATA.trade_good_indices_set[i] = i
+            DATA.trade_good_set_category(i, TRADE_GOOD_CATEGORY.GOOD)
             return i
         end
     end
@@ -5192,14 +6857,14 @@ function DATA.trade_good_set_b(trade_good_id, value)
     DATA.trade_good[trade_good_id].b = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return TradeGoodCategory category
+---@return TRADE_GOOD_CATEGORY category
 function DATA.trade_good_get_category(trade_good_id)
-    return DATA.trade_good_category[trade_good_id]
+    return DATA.trade_good[trade_good_id].category
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@param value TradeGoodCategory valid TradeGoodCategory
+---@param value TRADE_GOOD_CATEGORY valid TRADE_GOOD_CATEGORY
 function DATA.trade_good_set_category(trade_good_id, value)
-    DATA.trade_good_category[trade_good_id] = value
+    DATA.trade_good[trade_good_id].category = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
 ---@return number base_price
@@ -5289,13 +6954,24 @@ end
 ---@field g number
 ---@field b number
 
----@class use_case_id_data_blob
+---@class (exact) use_case_id_data_blob_definition
 ---@field name string
 ---@field icon string
 ---@field description string
 ---@field r number
 ---@field g number
 ---@field b number
+---Sets values of use_case for given id
+---@param id use_case_id
+---@param data use_case_id_data_blob_definition
+function DATA.setup_use_case(id, data)
+    DATA.use_case_set_name(id, data.name)
+    DATA.use_case_set_icon(id, data.icon)
+    DATA.use_case_set_description(id, data.description)
+    DATA.use_case_set_r(id, data.r)
+    DATA.use_case_set_g(id, data.g)
+    DATA.use_case_set_b(id, data.b)
+end
 
 ffi.cdef[[
     typedef struct {
@@ -5483,10 +7159,16 @@ end
 ---@field trade_good trade_good_id index of trade good
 ---@field use_case use_case_id index of use case
 
----@class use_weight_id_data_blob
+---@class (exact) use_weight_id_data_blob_definition
 ---@field weight number efficiency of this relation
 ---@field trade_good trade_good_id index of trade good
 ---@field use_case use_case_id index of use case
+---Sets values of use_weight for given id
+---@param id use_weight_id
+---@param data use_weight_id_data_blob_definition
+function DATA.setup_use_weight(id, data)
+    DATA.use_weight_set_weight(id, data.weight)
+end
 
 ffi.cdef[[
     typedef struct {
@@ -5585,6 +7267,7 @@ function DATA.use_weight_set_trade_good(use_weight_id, value)
     local old_value = DATA.use_weight[use_weight_id].trade_good
     DATA.use_weight[use_weight_id].trade_good = value
     __REMOVE_KEY_USE_WEIGHT_TRADE_GOOD(use_weight_id, old_value)
+    table.insert(DATA.use_weight_from_trade_good[value], use_weight_id)
 end
 ---@param use_weight_id use_weight_id valid use_weight id
 ---@return use_case_id use_case index of use case
@@ -5616,6 +7299,7 @@ function DATA.use_weight_set_use_case(use_weight_id, value)
     local old_value = DATA.use_weight[use_weight_id].use_case
     DATA.use_weight[use_weight_id].use_case = value
     __REMOVE_KEY_USE_WEIGHT_USE_CASE(use_weight_id, old_value)
+    table.insert(DATA.use_weight_from_use_case[value], use_weight_id)
 end
 
 
@@ -5667,8 +7351,8 @@ end
 ---@field maximum_summer_temperature number C
 ---@field minimum_winter_temperature number C
 ---@field maximum_winter_temperature number C
----@field maximum_rain number mm
 ---@field minimum_rain number mm
+---@field maximum_rain number mm
 ---@field minimum_available_water number abstract, adjusted for permeability
 ---@field maximum_available_water number abstract, adjusted for permeability
 ---@field minimum_trees number %
@@ -5709,8 +7393,8 @@ end
 ---@field maximum_summer_temperature number C
 ---@field minimum_winter_temperature number C
 ---@field maximum_winter_temperature number C
----@field maximum_rain number mm
 ---@field minimum_rain number mm
+---@field maximum_rain number mm
 ---@field minimum_available_water number abstract, adjusted for permeability
 ---@field maximum_available_water number abstract, adjusted for permeability
 ---@field minimum_trees number %
@@ -5734,48 +7418,168 @@ end
 ---@field minimum_silt number %
 ---@field maximum_silt number %
 
----@class biome_id_data_blob
+---@class (exact) biome_id_data_blob_definition
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
----@field minimum_slope number m
----@field maximum_slope number m
----@field minimum_elevation number m
----@field maximum_elevation number m
----@field minimum_temperature number C
----@field maximum_temperature number C
----@field minimum_summer_temperature number C
----@field maximum_summer_temperature number C
----@field minimum_winter_temperature number C
----@field maximum_winter_temperature number C
----@field maximum_rain number mm
----@field minimum_rain number mm
----@field minimum_available_water number abstract, adjusted for permeability
----@field maximum_available_water number abstract, adjusted for permeability
----@field minimum_trees number %
----@field maximum_trees number %
----@field minimum_grass number %
----@field maximum_grass number %
----@field minimum_shrubs number %
----@field maximum_shrubs number %
----@field minimum_conifer_fraction number %
----@field maximum_conifer_fraction number %
----@field minimum_dead_land number %
----@field maximum_dead_land number %
----@field minimum_soil_depth number m
----@field maximum_soil_depth number m
----@field minimum_soil_richness number %
----@field maximum_soil_richness number %
----@field minimum_sand number %
----@field maximum_sand number %
----@field minimum_clay number %
----@field maximum_clay number %
----@field minimum_silt number %
----@field maximum_silt number %
+---@field aquatic boolean?
+---@field marsh boolean?
+---@field icy boolean?
+---@field minimum_slope number? m
+---@field maximum_slope number? m
+---@field minimum_elevation number? m
+---@field maximum_elevation number? m
+---@field minimum_temperature number? C
+---@field maximum_temperature number? C
+---@field minimum_summer_temperature number? C
+---@field maximum_summer_temperature number? C
+---@field minimum_winter_temperature number? C
+---@field maximum_winter_temperature number? C
+---@field minimum_rain number? mm
+---@field maximum_rain number? mm
+---@field minimum_available_water number? abstract, adjusted for permeability
+---@field maximum_available_water number? abstract, adjusted for permeability
+---@field minimum_trees number? %
+---@field maximum_trees number? %
+---@field minimum_grass number? %
+---@field maximum_grass number? %
+---@field minimum_shrubs number? %
+---@field maximum_shrubs number? %
+---@field minimum_conifer_fraction number? %
+---@field maximum_conifer_fraction number? %
+---@field minimum_dead_land number? %
+---@field maximum_dead_land number? %
+---@field minimum_soil_depth number? m
+---@field maximum_soil_depth number? m
+---@field minimum_soil_richness number? %
+---@field maximum_soil_richness number? %
+---@field minimum_sand number? %
+---@field maximum_sand number? %
+---@field minimum_clay number? %
+---@field maximum_clay number? %
+---@field minimum_silt number? %
+---@field maximum_silt number? %
+---Sets values of biome for given id
+---@param id biome_id
+---@param data biome_id_data_blob_definition
+function DATA.setup_biome(id, data)
+    DATA.biome_set_name(id, data.name)
+    DATA.biome_set_r(id, data.r)
+    DATA.biome_set_g(id, data.g)
+    DATA.biome_set_b(id, data.b)
+    if data.aquatic ~= nil then
+        DATA.biome_set_aquatic(id, data.aquatic)
+    end
+    if data.marsh ~= nil then
+        DATA.biome_set_marsh(id, data.marsh)
+    end
+    if data.icy ~= nil then
+        DATA.biome_set_icy(id, data.icy)
+    end
+    if data.minimum_slope ~= nil then
+        DATA.biome_set_minimum_slope(id, data.minimum_slope)
+    end
+    if data.maximum_slope ~= nil then
+        DATA.biome_set_maximum_slope(id, data.maximum_slope)
+    end
+    if data.minimum_elevation ~= nil then
+        DATA.biome_set_minimum_elevation(id, data.minimum_elevation)
+    end
+    if data.maximum_elevation ~= nil then
+        DATA.biome_set_maximum_elevation(id, data.maximum_elevation)
+    end
+    if data.minimum_temperature ~= nil then
+        DATA.biome_set_minimum_temperature(id, data.minimum_temperature)
+    end
+    if data.maximum_temperature ~= nil then
+        DATA.biome_set_maximum_temperature(id, data.maximum_temperature)
+    end
+    if data.minimum_summer_temperature ~= nil then
+        DATA.biome_set_minimum_summer_temperature(id, data.minimum_summer_temperature)
+    end
+    if data.maximum_summer_temperature ~= nil then
+        DATA.biome_set_maximum_summer_temperature(id, data.maximum_summer_temperature)
+    end
+    if data.minimum_winter_temperature ~= nil then
+        DATA.biome_set_minimum_winter_temperature(id, data.minimum_winter_temperature)
+    end
+    if data.maximum_winter_temperature ~= nil then
+        DATA.biome_set_maximum_winter_temperature(id, data.maximum_winter_temperature)
+    end
+    if data.minimum_rain ~= nil then
+        DATA.biome_set_minimum_rain(id, data.minimum_rain)
+    end
+    if data.maximum_rain ~= nil then
+        DATA.biome_set_maximum_rain(id, data.maximum_rain)
+    end
+    if data.minimum_available_water ~= nil then
+        DATA.biome_set_minimum_available_water(id, data.minimum_available_water)
+    end
+    if data.maximum_available_water ~= nil then
+        DATA.biome_set_maximum_available_water(id, data.maximum_available_water)
+    end
+    if data.minimum_trees ~= nil then
+        DATA.biome_set_minimum_trees(id, data.minimum_trees)
+    end
+    if data.maximum_trees ~= nil then
+        DATA.biome_set_maximum_trees(id, data.maximum_trees)
+    end
+    if data.minimum_grass ~= nil then
+        DATA.biome_set_minimum_grass(id, data.minimum_grass)
+    end
+    if data.maximum_grass ~= nil then
+        DATA.biome_set_maximum_grass(id, data.maximum_grass)
+    end
+    if data.minimum_shrubs ~= nil then
+        DATA.biome_set_minimum_shrubs(id, data.minimum_shrubs)
+    end
+    if data.maximum_shrubs ~= nil then
+        DATA.biome_set_maximum_shrubs(id, data.maximum_shrubs)
+    end
+    if data.minimum_conifer_fraction ~= nil then
+        DATA.biome_set_minimum_conifer_fraction(id, data.minimum_conifer_fraction)
+    end
+    if data.maximum_conifer_fraction ~= nil then
+        DATA.biome_set_maximum_conifer_fraction(id, data.maximum_conifer_fraction)
+    end
+    if data.minimum_dead_land ~= nil then
+        DATA.biome_set_minimum_dead_land(id, data.minimum_dead_land)
+    end
+    if data.maximum_dead_land ~= nil then
+        DATA.biome_set_maximum_dead_land(id, data.maximum_dead_land)
+    end
+    if data.minimum_soil_depth ~= nil then
+        DATA.biome_set_minimum_soil_depth(id, data.minimum_soil_depth)
+    end
+    if data.maximum_soil_depth ~= nil then
+        DATA.biome_set_maximum_soil_depth(id, data.maximum_soil_depth)
+    end
+    if data.minimum_soil_richness ~= nil then
+        DATA.biome_set_minimum_soil_richness(id, data.minimum_soil_richness)
+    end
+    if data.maximum_soil_richness ~= nil then
+        DATA.biome_set_maximum_soil_richness(id, data.maximum_soil_richness)
+    end
+    if data.minimum_sand ~= nil then
+        DATA.biome_set_minimum_sand(id, data.minimum_sand)
+    end
+    if data.maximum_sand ~= nil then
+        DATA.biome_set_maximum_sand(id, data.maximum_sand)
+    end
+    if data.minimum_clay ~= nil then
+        DATA.biome_set_minimum_clay(id, data.minimum_clay)
+    end
+    if data.maximum_clay ~= nil then
+        DATA.biome_set_maximum_clay(id, data.maximum_clay)
+    end
+    if data.minimum_silt ~= nil then
+        DATA.biome_set_minimum_silt(id, data.minimum_silt)
+    end
+    if data.maximum_silt ~= nil then
+        DATA.biome_set_maximum_silt(id, data.maximum_silt)
+    end
+end
 
 ffi.cdef[[
     typedef struct {
@@ -5795,8 +7599,8 @@ ffi.cdef[[
         float maximum_summer_temperature;
         float minimum_winter_temperature;
         float maximum_winter_temperature;
-        float maximum_rain;
         float minimum_rain;
+        float maximum_rain;
         float minimum_available_water;
         float maximum_available_water;
         float minimum_trees;
@@ -5845,6 +7649,43 @@ function DATA.create_biome()
         if biome_indices_pool[i] then
             biome_indices_pool[i] = false
             DATA.biome_indices_set[i] = i
+            DATA.biome_set_aquatic(i, false)
+            DATA.biome_set_marsh(i, false)
+            DATA.biome_set_icy(i, false)
+            DATA.biome_set_minimum_slope(i, -99999999)
+            DATA.biome_set_maximum_slope(i, 99999999)
+            DATA.biome_set_minimum_elevation(i, -99999999)
+            DATA.biome_set_maximum_elevation(i, 99999999)
+            DATA.biome_set_minimum_temperature(i, -99999999)
+            DATA.biome_set_maximum_temperature(i, 99999999)
+            DATA.biome_set_minimum_summer_temperature(i, -99999999)
+            DATA.biome_set_maximum_summer_temperature(i, 99999999)
+            DATA.biome_set_minimum_winter_temperature(i, -99999999)
+            DATA.biome_set_maximum_winter_temperature(i, 99999999)
+            DATA.biome_set_minimum_rain(i, -99999999)
+            DATA.biome_set_maximum_rain(i, 99999999)
+            DATA.biome_set_minimum_available_water(i, -99999999)
+            DATA.biome_set_maximum_available_water(i, 99999999)
+            DATA.biome_set_minimum_trees(i, -99999999)
+            DATA.biome_set_maximum_trees(i, 99999999)
+            DATA.biome_set_minimum_grass(i, -99999999)
+            DATA.biome_set_maximum_grass(i, 99999999)
+            DATA.biome_set_minimum_shrubs(i, -99999999)
+            DATA.biome_set_maximum_shrubs(i, 99999999)
+            DATA.biome_set_minimum_conifer_fraction(i, -99999999)
+            DATA.biome_set_maximum_conifer_fraction(i, 99999999)
+            DATA.biome_set_minimum_dead_land(i, -99999999)
+            DATA.biome_set_maximum_dead_land(i, 99999999)
+            DATA.biome_set_minimum_soil_depth(i, -99999999)
+            DATA.biome_set_maximum_soil_depth(i, 99999999)
+            DATA.biome_set_minimum_soil_richness(i, -99999999)
+            DATA.biome_set_maximum_soil_richness(i, 99999999)
+            DATA.biome_set_minimum_sand(i, -99999999)
+            DATA.biome_set_maximum_sand(i, -99999999)
+            DATA.biome_set_minimum_clay(i, -99999999)
+            DATA.biome_set_maximum_clay(i, 99999999)
+            DATA.biome_set_minimum_silt(i, -99999999)
+            DATA.biome_set_maximum_silt(i, 99999999)
             return i
         end
     end
@@ -6032,16 +7873,6 @@ function DATA.biome_set_maximum_winter_temperature(biome_id, value)
     DATA.biome[biome_id].maximum_winter_temperature = value
 end
 ---@param biome_id biome_id valid biome id
----@return number maximum_rain mm
-function DATA.biome_get_maximum_rain(biome_id)
-    return DATA.biome[biome_id].maximum_rain
-end
----@param biome_id biome_id valid biome id
----@param value number valid number
-function DATA.biome_set_maximum_rain(biome_id, value)
-    DATA.biome[biome_id].maximum_rain = value
-end
----@param biome_id biome_id valid biome id
 ---@return number minimum_rain mm
 function DATA.biome_get_minimum_rain(biome_id)
     return DATA.biome[biome_id].minimum_rain
@@ -6050,6 +7881,16 @@ end
 ---@param value number valid number
 function DATA.biome_set_minimum_rain(biome_id, value)
     DATA.biome[biome_id].minimum_rain = value
+end
+---@param biome_id biome_id valid biome id
+---@return number maximum_rain mm
+function DATA.biome_get_maximum_rain(biome_id)
+    return DATA.biome[biome_id].maximum_rain
+end
+---@param biome_id biome_id valid biome id
+---@param value number valid number
+function DATA.biome_set_maximum_rain(biome_id, value)
+    DATA.biome[biome_id].maximum_rain = value
 end
 ---@param biome_id biome_id valid biome id
 ---@return number minimum_available_water abstract, adjusted for permeability
@@ -6292,8 +8133,8 @@ local fat_biome_id_metatable = {
         if (k == "maximum_summer_temperature") then return DATA.biome_get_maximum_summer_temperature(t.id) end
         if (k == "minimum_winter_temperature") then return DATA.biome_get_minimum_winter_temperature(t.id) end
         if (k == "maximum_winter_temperature") then return DATA.biome_get_maximum_winter_temperature(t.id) end
-        if (k == "maximum_rain") then return DATA.biome_get_maximum_rain(t.id) end
         if (k == "minimum_rain") then return DATA.biome_get_minimum_rain(t.id) end
+        if (k == "maximum_rain") then return DATA.biome_get_maximum_rain(t.id) end
         if (k == "minimum_available_water") then return DATA.biome_get_minimum_available_water(t.id) end
         if (k == "maximum_available_water") then return DATA.biome_get_maximum_available_water(t.id) end
         if (k == "minimum_trees") then return DATA.biome_get_minimum_trees(t.id) end
@@ -6387,12 +8228,12 @@ local fat_biome_id_metatable = {
             DATA.biome_set_maximum_winter_temperature(t.id, v)
             return
         end
-        if (k == "maximum_rain") then
-            DATA.biome_set_maximum_rain(t.id, v)
-            return
-        end
         if (k == "minimum_rain") then
             DATA.biome_set_minimum_rain(t.id, v)
+            return
+        end
+        if (k == "maximum_rain") then
+            DATA.biome_set_maximum_rain(t.id, v)
             return
         end
         if (k == "minimum_available_water") then
@@ -6513,12 +8354,12 @@ end
 ---@field organics number
 ---@field minerals number
 ---@field weathering number
----@field igneous_extrusive boolean
+---@field grain_size number
 ---@field acidity number
+---@field igneous_extrusive boolean
 ---@field igneous_intrusive boolean
 ---@field sedimentary boolean
 ---@field clastic boolean
----@field grain_size number
 ---@field evaporative boolean
 ---@field metamorphic_marble boolean
 ---@field metamorphic_slate boolean
@@ -6537,12 +8378,12 @@ end
 ---@field organics number
 ---@field minerals number
 ---@field weathering number
----@field igneous_extrusive boolean
+---@field grain_size number
 ---@field acidity number
+---@field igneous_extrusive boolean
 ---@field igneous_intrusive boolean
 ---@field sedimentary boolean
 ---@field clastic boolean
----@field grain_size number
 ---@field evaporative boolean
 ---@field metamorphic_marble boolean
 ---@field metamorphic_slate boolean
@@ -6550,30 +8391,80 @@ end
 ---@field sedimentary_ocean_deep boolean
 ---@field sedimentary_ocean_shallow boolean
 
----@class bedrock_id_data_blob
+---@class (exact) bedrock_id_data_blob_definition
 ---@field name string
 ---@field r number
 ---@field g number
 ---@field b number
----@field color_id number
 ---@field sand number
 ---@field silt number
 ---@field clay number
 ---@field organics number
 ---@field minerals number
 ---@field weathering number
----@field igneous_extrusive boolean
----@field acidity number
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field grain_size number
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field grain_size number?
+---@field acidity number?
+---@field igneous_extrusive boolean?
+---@field igneous_intrusive boolean?
+---@field sedimentary boolean?
+---@field clastic boolean?
+---@field evaporative boolean?
+---@field metamorphic_marble boolean?
+---@field metamorphic_slate boolean?
+---@field oceanic boolean?
+---@field sedimentary_ocean_deep boolean?
+---@field sedimentary_ocean_shallow boolean?
+---Sets values of bedrock for given id
+---@param id bedrock_id
+---@param data bedrock_id_data_blob_definition
+function DATA.setup_bedrock(id, data)
+    DATA.bedrock_set_name(id, data.name)
+    DATA.bedrock_set_r(id, data.r)
+    DATA.bedrock_set_g(id, data.g)
+    DATA.bedrock_set_b(id, data.b)
+    DATA.bedrock_set_sand(id, data.sand)
+    DATA.bedrock_set_silt(id, data.silt)
+    DATA.bedrock_set_clay(id, data.clay)
+    DATA.bedrock_set_organics(id, data.organics)
+    DATA.bedrock_set_minerals(id, data.minerals)
+    DATA.bedrock_set_weathering(id, data.weathering)
+    if data.grain_size ~= nil then
+        DATA.bedrock_set_grain_size(id, data.grain_size)
+    end
+    if data.acidity ~= nil then
+        DATA.bedrock_set_acidity(id, data.acidity)
+    end
+    if data.igneous_extrusive ~= nil then
+        DATA.bedrock_set_igneous_extrusive(id, data.igneous_extrusive)
+    end
+    if data.igneous_intrusive ~= nil then
+        DATA.bedrock_set_igneous_intrusive(id, data.igneous_intrusive)
+    end
+    if data.sedimentary ~= nil then
+        DATA.bedrock_set_sedimentary(id, data.sedimentary)
+    end
+    if data.clastic ~= nil then
+        DATA.bedrock_set_clastic(id, data.clastic)
+    end
+    if data.evaporative ~= nil then
+        DATA.bedrock_set_evaporative(id, data.evaporative)
+    end
+    if data.metamorphic_marble ~= nil then
+        DATA.bedrock_set_metamorphic_marble(id, data.metamorphic_marble)
+    end
+    if data.metamorphic_slate ~= nil then
+        DATA.bedrock_set_metamorphic_slate(id, data.metamorphic_slate)
+    end
+    if data.oceanic ~= nil then
+        DATA.bedrock_set_oceanic(id, data.oceanic)
+    end
+    if data.sedimentary_ocean_deep ~= nil then
+        DATA.bedrock_set_sedimentary_ocean_deep(id, data.sedimentary_ocean_deep)
+    end
+    if data.sedimentary_ocean_shallow ~= nil then
+        DATA.bedrock_set_sedimentary_ocean_shallow(id, data.sedimentary_ocean_shallow)
+    end
+end
 
 ffi.cdef[[
     typedef struct {
@@ -6587,12 +8478,12 @@ ffi.cdef[[
         float organics;
         float minerals;
         float weathering;
-        bool igneous_extrusive;
+        float grain_size;
         float acidity;
+        bool igneous_extrusive;
         bool igneous_intrusive;
         bool sedimentary;
         bool clastic;
-        float grain_size;
         bool evaporative;
         bool metamorphic_marble;
         bool metamorphic_slate;
@@ -6625,6 +8516,18 @@ function DATA.create_bedrock()
         if bedrock_indices_pool[i] then
             bedrock_indices_pool[i] = false
             DATA.bedrock_indices_set[i] = i
+            DATA.bedrock_set_grain_size(i, 0.0)
+            DATA.bedrock_set_acidity(i, 0.0)
+            DATA.bedrock_set_igneous_extrusive(i, false)
+            DATA.bedrock_set_igneous_intrusive(i, false)
+            DATA.bedrock_set_sedimentary(i, false)
+            DATA.bedrock_set_clastic(i, false)
+            DATA.bedrock_set_evaporative(i, false)
+            DATA.bedrock_set_metamorphic_marble(i, false)
+            DATA.bedrock_set_metamorphic_slate(i, false)
+            DATA.bedrock_set_oceanic(i, false)
+            DATA.bedrock_set_sedimentary_ocean_deep(i, false)
+            DATA.bedrock_set_sedimentary_ocean_shallow(i, false)
             return i
         end
     end
@@ -6752,14 +8655,14 @@ function DATA.bedrock_set_weathering(bedrock_id, value)
     DATA.bedrock[bedrock_id].weathering = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_extrusive
-function DATA.bedrock_get_igneous_extrusive(bedrock_id)
-    return DATA.bedrock[bedrock_id].igneous_extrusive
+---@return number grain_size
+function DATA.bedrock_get_grain_size(bedrock_id)
+    return DATA.bedrock[bedrock_id].grain_size
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@param value boolean valid boolean
-function DATA.bedrock_set_igneous_extrusive(bedrock_id, value)
-    DATA.bedrock[bedrock_id].igneous_extrusive = value
+---@param value number valid number
+function DATA.bedrock_set_grain_size(bedrock_id, value)
+    DATA.bedrock[bedrock_id].grain_size = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return number acidity
@@ -6770,6 +8673,16 @@ end
 ---@param value number valid number
 function DATA.bedrock_set_acidity(bedrock_id, value)
     DATA.bedrock[bedrock_id].acidity = value
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@return boolean igneous_extrusive
+function DATA.bedrock_get_igneous_extrusive(bedrock_id)
+    return DATA.bedrock[bedrock_id].igneous_extrusive
+end
+---@param bedrock_id bedrock_id valid bedrock id
+---@param value boolean valid boolean
+function DATA.bedrock_set_igneous_extrusive(bedrock_id, value)
+    DATA.bedrock[bedrock_id].igneous_extrusive = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return boolean igneous_intrusive
@@ -6800,16 +8713,6 @@ end
 ---@param value boolean valid boolean
 function DATA.bedrock_set_clastic(bedrock_id, value)
     DATA.bedrock[bedrock_id].clastic = value
-end
----@param bedrock_id bedrock_id valid bedrock id
----@return number grain_size
-function DATA.bedrock_get_grain_size(bedrock_id)
-    return DATA.bedrock[bedrock_id].grain_size
-end
----@param bedrock_id bedrock_id valid bedrock id
----@param value number valid number
-function DATA.bedrock_set_grain_size(bedrock_id, value)
-    DATA.bedrock[bedrock_id].grain_size = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
 ---@return boolean evaporative
@@ -6886,12 +8789,12 @@ local fat_bedrock_id_metatable = {
         if (k == "organics") then return DATA.bedrock_get_organics(t.id) end
         if (k == "minerals") then return DATA.bedrock_get_minerals(t.id) end
         if (k == "weathering") then return DATA.bedrock_get_weathering(t.id) end
-        if (k == "igneous_extrusive") then return DATA.bedrock_get_igneous_extrusive(t.id) end
+        if (k == "grain_size") then return DATA.bedrock_get_grain_size(t.id) end
         if (k == "acidity") then return DATA.bedrock_get_acidity(t.id) end
+        if (k == "igneous_extrusive") then return DATA.bedrock_get_igneous_extrusive(t.id) end
         if (k == "igneous_intrusive") then return DATA.bedrock_get_igneous_intrusive(t.id) end
         if (k == "sedimentary") then return DATA.bedrock_get_sedimentary(t.id) end
         if (k == "clastic") then return DATA.bedrock_get_clastic(t.id) end
-        if (k == "grain_size") then return DATA.bedrock_get_grain_size(t.id) end
         if (k == "evaporative") then return DATA.bedrock_get_evaporative(t.id) end
         if (k == "metamorphic_marble") then return DATA.bedrock_get_metamorphic_marble(t.id) end
         if (k == "metamorphic_slate") then return DATA.bedrock_get_metamorphic_slate(t.id) end
@@ -6945,12 +8848,16 @@ local fat_bedrock_id_metatable = {
             DATA.bedrock_set_weathering(t.id, v)
             return
         end
-        if (k == "igneous_extrusive") then
-            DATA.bedrock_set_igneous_extrusive(t.id, v)
+        if (k == "grain_size") then
+            DATA.bedrock_set_grain_size(t.id, v)
             return
         end
         if (k == "acidity") then
             DATA.bedrock_set_acidity(t.id, v)
+            return
+        end
+        if (k == "igneous_extrusive") then
+            DATA.bedrock_set_igneous_extrusive(t.id, v)
             return
         end
         if (k == "igneous_intrusive") then
@@ -6963,10 +8870,6 @@ local fat_bedrock_id_metatable = {
         end
         if (k == "clastic") then
             DATA.bedrock_set_clastic(t.id, v)
-            return
-        end
-        if (k == "grain_size") then
-            DATA.bedrock_set_grain_size(t.id, v)
             return
         end
         if (k == "evaporative") then
@@ -7002,6 +8905,969 @@ function DATA.fatten_bedrock(id)
     local result = {id = id}
     setmetatable(result, fat_bedrock_id_metatable)    return result
 end
+----------resource----------
+
+
+---resource: LSP types---
+
+---Unique identificator for resource entity
+---@alias resource_id number
+
+---@class fat_resource_id
+---@field id resource_id Unique resource id
+---@field name string
+---@field icon string
+---@field description string
+---@field r number
+---@field g number
+---@field b number
+---@field base_frequency number number of tiles per which this resource is spawned
+---@field coastal boolean
+---@field land boolean
+---@field water boolean
+---@field ice_age boolean requires presence of ice age ice
+---@field minimum_trees number
+---@field maximum_trees number
+---@field minimum_elevation number
+---@field maximum_elevation number
+
+---@class struct_resource
+---@field r number
+---@field g number
+---@field b number
+---@field required_biome table<number, biome_id>
+---@field required_bedrock table<number, bedrock_id>
+---@field base_frequency number number of tiles per which this resource is spawned
+---@field minimum_trees number
+---@field maximum_trees number
+---@field minimum_elevation number
+---@field maximum_elevation number
+
+---@class (exact) resource_id_data_blob_definition
+---@field name string
+---@field icon string
+---@field description string
+---@field r number
+---@field g number
+---@field b number
+---@field required_biome biome_id[]
+---@field required_bedrock bedrock_id[]
+---@field base_frequency number? number of tiles per which this resource is spawned
+---@field coastal boolean?
+---@field land boolean?
+---@field water boolean?
+---@field ice_age boolean? requires presence of ice age ice
+---@field minimum_trees number?
+---@field maximum_trees number?
+---@field minimum_elevation number?
+---@field maximum_elevation number?
+---Sets values of resource for given id
+---@param id resource_id
+---@param data resource_id_data_blob_definition
+function DATA.setup_resource(id, data)
+    DATA.resource_set_name(id, data.name)
+    DATA.resource_set_icon(id, data.icon)
+    DATA.resource_set_description(id, data.description)
+    DATA.resource_set_r(id, data.r)
+    DATA.resource_set_g(id, data.g)
+    DATA.resource_set_b(id, data.b)
+    for i, value in ipairs(data.required_biome) do
+        DATA.resource_set_required_biome(id, value, i - 1)
+    end
+    for i, value in ipairs(data.required_bedrock) do
+        DATA.resource_set_required_bedrock(id, value, i - 1)
+    end
+    if data.base_frequency ~= nil then
+        DATA.resource_set_base_frequency(id, data.base_frequency)
+    end
+    if data.coastal ~= nil then
+        DATA.resource_set_coastal(id, data.coastal)
+    end
+    if data.land ~= nil then
+        DATA.resource_set_land(id, data.land)
+    end
+    if data.water ~= nil then
+        DATA.resource_set_water(id, data.water)
+    end
+    if data.ice_age ~= nil then
+        DATA.resource_set_ice_age(id, data.ice_age)
+    end
+    if data.minimum_trees ~= nil then
+        DATA.resource_set_minimum_trees(id, data.minimum_trees)
+    end
+    if data.maximum_trees ~= nil then
+        DATA.resource_set_maximum_trees(id, data.maximum_trees)
+    end
+    if data.minimum_elevation ~= nil then
+        DATA.resource_set_minimum_elevation(id, data.minimum_elevation)
+    end
+    if data.maximum_elevation ~= nil then
+        DATA.resource_set_maximum_elevation(id, data.maximum_elevation)
+    end
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+        uint32_t required_biome[20];
+        uint32_t required_bedrock[20];
+        float base_frequency;
+        float minimum_trees;
+        float maximum_trees;
+        float minimum_elevation;
+        float maximum_elevation;
+    } resource;
+]]
+
+---resource: FFI arrays---
+---@type (string)[]
+DATA.resource_name= {}
+---@type (string)[]
+DATA.resource_icon= {}
+---@type (string)[]
+DATA.resource_description= {}
+---@type (boolean)[]
+DATA.resource_coastal= {}
+---@type (boolean)[]
+DATA.resource_land= {}
+---@type (boolean)[]
+DATA.resource_water= {}
+---@type (boolean)[]
+DATA.resource_ice_age= {}
+---@type nil
+DATA.resource_malloc = ffi.C.malloc(ffi.sizeof("resource") * 301)
+---@type table<resource_id, struct_resource>
+DATA.resource = ffi.cast("resource*", DATA.resource_malloc)
+
+---resource: LUA bindings---
+
+DATA.resource_size = 300
+---@type table<resource_id, boolean>
+local resource_indices_pool = ffi.new("bool[?]", 300)
+for i = 1, 299 do
+    resource_indices_pool[i] = true
+end
+---@type table<resource_id, resource_id>
+DATA.resource_indices_set = {}
+function DATA.create_resource()
+    for i = 1, 299 do
+        if resource_indices_pool[i] then
+            resource_indices_pool[i] = false
+            DATA.resource_indices_set[i] = i
+            DATA.resource_set_base_frequency(i, 1000)
+            DATA.resource_set_coastal(i, false)
+            DATA.resource_set_land(i, true)
+            DATA.resource_set_water(i, false)
+            DATA.resource_set_ice_age(i, false)
+            DATA.resource_set_minimum_trees(i, 0)
+            DATA.resource_set_maximum_trees(i, 1)
+            DATA.resource_set_minimum_elevation(i, -math.huge)
+            DATA.resource_set_maximum_elevation(i, math.huge)
+            return i
+        end
+    end
+    error("Run out of space for resource")
+end
+function DATA.delete_resource(i)
+    resource_indices_pool[i] = true
+    DATA.resource_indices_set[i] = nil
+end
+---@param func fun(item: resource_id)
+function DATA.for_each_resource(func)
+    for _, item in pairs(DATA.resource_indices_set) do
+        func(item)
+    end
+end
+
+---@param resource_id resource_id valid resource id
+---@return string name
+function DATA.resource_get_name(resource_id)
+    return DATA.resource_name[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value string valid string
+function DATA.resource_set_name(resource_id, value)
+    DATA.resource_name[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return string icon
+function DATA.resource_get_icon(resource_id)
+    return DATA.resource_icon[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value string valid string
+function DATA.resource_set_icon(resource_id, value)
+    DATA.resource_icon[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return string description
+function DATA.resource_get_description(resource_id)
+    return DATA.resource_description[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value string valid string
+function DATA.resource_set_description(resource_id, value)
+    DATA.resource_description[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return number r
+function DATA.resource_get_r(resource_id)
+    return DATA.resource[resource_id].r
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_r(resource_id, value)
+    DATA.resource[resource_id].r = value
+end
+---@param resource_id resource_id valid resource id
+---@return number g
+function DATA.resource_get_g(resource_id)
+    return DATA.resource[resource_id].g
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_g(resource_id, value)
+    DATA.resource[resource_id].g = value
+end
+---@param resource_id resource_id valid resource id
+---@return number b
+function DATA.resource_get_b(resource_id)
+    return DATA.resource[resource_id].b
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_b(resource_id, value)
+    DATA.resource[resource_id].b = value
+end
+---@param resource_id resource_id valid resource id
+---@param index number valid
+---@return biome_id required_biome
+function DATA.resource_get_required_biome(resource_id, index)
+    return DATA.resource[resource_id].required_biome[index]
+end
+---@param resource_id resource_id valid resource id
+---@param index number valid index
+---@param value biome_id valid biome_id
+function DATA.resource_set_required_biome(resource_id, index, value)
+    DATA.resource[resource_id].required_biome[index] = value
+end
+---@param resource_id resource_id valid resource id
+---@param index number valid
+---@return bedrock_id required_bedrock
+function DATA.resource_get_required_bedrock(resource_id, index)
+    return DATA.resource[resource_id].required_bedrock[index]
+end
+---@param resource_id resource_id valid resource id
+---@param index number valid index
+---@param value bedrock_id valid bedrock_id
+function DATA.resource_set_required_bedrock(resource_id, index, value)
+    DATA.resource[resource_id].required_bedrock[index] = value
+end
+---@param resource_id resource_id valid resource id
+---@return number base_frequency number of tiles per which this resource is spawned
+function DATA.resource_get_base_frequency(resource_id)
+    return DATA.resource[resource_id].base_frequency
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_base_frequency(resource_id, value)
+    DATA.resource[resource_id].base_frequency = value
+end
+---@param resource_id resource_id valid resource id
+---@return boolean coastal
+function DATA.resource_get_coastal(resource_id)
+    return DATA.resource_coastal[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value boolean valid boolean
+function DATA.resource_set_coastal(resource_id, value)
+    DATA.resource_coastal[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return boolean land
+function DATA.resource_get_land(resource_id)
+    return DATA.resource_land[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value boolean valid boolean
+function DATA.resource_set_land(resource_id, value)
+    DATA.resource_land[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return boolean water
+function DATA.resource_get_water(resource_id)
+    return DATA.resource_water[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value boolean valid boolean
+function DATA.resource_set_water(resource_id, value)
+    DATA.resource_water[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return boolean ice_age requires presence of ice age ice
+function DATA.resource_get_ice_age(resource_id)
+    return DATA.resource_ice_age[resource_id]
+end
+---@param resource_id resource_id valid resource id
+---@param value boolean valid boolean
+function DATA.resource_set_ice_age(resource_id, value)
+    DATA.resource_ice_age[resource_id] = value
+end
+---@param resource_id resource_id valid resource id
+---@return number minimum_trees
+function DATA.resource_get_minimum_trees(resource_id)
+    return DATA.resource[resource_id].minimum_trees
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_minimum_trees(resource_id, value)
+    DATA.resource[resource_id].minimum_trees = value
+end
+---@param resource_id resource_id valid resource id
+---@return number maximum_trees
+function DATA.resource_get_maximum_trees(resource_id)
+    return DATA.resource[resource_id].maximum_trees
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_maximum_trees(resource_id, value)
+    DATA.resource[resource_id].maximum_trees = value
+end
+---@param resource_id resource_id valid resource id
+---@return number minimum_elevation
+function DATA.resource_get_minimum_elevation(resource_id)
+    return DATA.resource[resource_id].minimum_elevation
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_minimum_elevation(resource_id, value)
+    DATA.resource[resource_id].minimum_elevation = value
+end
+---@param resource_id resource_id valid resource id
+---@return number maximum_elevation
+function DATA.resource_get_maximum_elevation(resource_id)
+    return DATA.resource[resource_id].maximum_elevation
+end
+---@param resource_id resource_id valid resource id
+---@param value number valid number
+function DATA.resource_set_maximum_elevation(resource_id, value)
+    DATA.resource[resource_id].maximum_elevation = value
+end
+
+
+local fat_resource_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.resource_get_name(t.id) end
+        if (k == "icon") then return DATA.resource_get_icon(t.id) end
+        if (k == "description") then return DATA.resource_get_description(t.id) end
+        if (k == "r") then return DATA.resource_get_r(t.id) end
+        if (k == "g") then return DATA.resource_get_g(t.id) end
+        if (k == "b") then return DATA.resource_get_b(t.id) end
+        if (k == "base_frequency") then return DATA.resource_get_base_frequency(t.id) end
+        if (k == "coastal") then return DATA.resource_get_coastal(t.id) end
+        if (k == "land") then return DATA.resource_get_land(t.id) end
+        if (k == "water") then return DATA.resource_get_water(t.id) end
+        if (k == "ice_age") then return DATA.resource_get_ice_age(t.id) end
+        if (k == "minimum_trees") then return DATA.resource_get_minimum_trees(t.id) end
+        if (k == "maximum_trees") then return DATA.resource_get_maximum_trees(t.id) end
+        if (k == "minimum_elevation") then return DATA.resource_get_minimum_elevation(t.id) end
+        if (k == "maximum_elevation") then return DATA.resource_get_maximum_elevation(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.resource_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.resource_set_icon(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.resource_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.resource_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.resource_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.resource_set_b(t.id, v)
+            return
+        end
+        if (k == "base_frequency") then
+            DATA.resource_set_base_frequency(t.id, v)
+            return
+        end
+        if (k == "coastal") then
+            DATA.resource_set_coastal(t.id, v)
+            return
+        end
+        if (k == "land") then
+            DATA.resource_set_land(t.id, v)
+            return
+        end
+        if (k == "water") then
+            DATA.resource_set_water(t.id, v)
+            return
+        end
+        if (k == "ice_age") then
+            DATA.resource_set_ice_age(t.id, v)
+            return
+        end
+        if (k == "minimum_trees") then
+            DATA.resource_set_minimum_trees(t.id, v)
+            return
+        end
+        if (k == "maximum_trees") then
+            DATA.resource_set_maximum_trees(t.id, v)
+            return
+        end
+        if (k == "minimum_elevation") then
+            DATA.resource_set_minimum_elevation(t.id, v)
+            return
+        end
+        if (k == "maximum_elevation") then
+            DATA.resource_set_maximum_elevation(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id resource_id
+---@return fat_resource_id fat_id
+function DATA.fatten_resource(id)
+    local result = {id = id}
+    setmetatable(result, fat_resource_id_metatable)    return result
+end
+----------unit_type----------
+
+
+---unit_type: LSP types---
+
+---Unique identificator for unit_type entity
+---@alias unit_type_id number
+
+---@class fat_unit_type_id
+---@field id unit_type_id Unique unit_type id
+---@field name string
+---@field icon string
+---@field description string
+---@field r number
+---@field g number
+---@field b number
+---@field base_price number
+---@field upkeep number
+---@field supply_used number how much food does this unit consume each month
+---@field base_health number
+---@field base_attack number
+---@field base_armor number
+---@field speed number
+---@field foraging number how much food does this unit forage from the local province?
+---@field supply_capacity number how much food can this unit carry
+---@field unlocked_by Technology?
+---@field spotting number
+---@field visibility number
+
+---@class struct_unit_type
+---@field r number
+---@field g number
+---@field b number
+---@field base_price number
+---@field upkeep number
+---@field supply_used number how much food does this unit consume each month
+---@field trade_good_requirements table<number, struct_trade_good_container>
+---@field base_health number
+---@field base_attack number
+---@field base_armor number
+---@field speed number
+---@field foraging number how much food does this unit forage from the local province?
+---@field bonuses table<unit_type_id, number>
+---@field supply_capacity number how much food can this unit carry
+---@field spotting number
+---@field visibility number
+
+---@class (exact) unit_type_id_data_blob_definition
+---@field name string
+---@field icon string
+---@field description string
+---@field r number
+---@field g number
+---@field b number
+---@field base_price number?
+---@field upkeep number?
+---@field supply_used number? how much food does this unit consume each month
+---@field trade_good_requirements struct_trade_good_container[]
+---@field base_health number?
+---@field base_attack number?
+---@field base_armor number?
+---@field speed number?
+---@field foraging number? how much food does this unit forage from the local province?
+---@field bonuses number[]
+---@field supply_capacity number? how much food can this unit carry
+---@field unlocked_by Technology??
+---@field spotting number?
+---@field visibility number?
+---Sets values of unit_type for given id
+---@param id unit_type_id
+---@param data unit_type_id_data_blob_definition
+function DATA.setup_unit_type(id, data)
+    DATA.unit_type_set_name(id, data.name)
+    DATA.unit_type_set_icon(id, data.icon)
+    DATA.unit_type_set_description(id, data.description)
+    DATA.unit_type_set_r(id, data.r)
+    DATA.unit_type_set_g(id, data.g)
+    DATA.unit_type_set_b(id, data.b)
+    if data.base_price ~= nil then
+        DATA.unit_type_set_base_price(id, data.base_price)
+    end
+    if data.upkeep ~= nil then
+        DATA.unit_type_set_upkeep(id, data.upkeep)
+    end
+    if data.supply_used ~= nil then
+        DATA.unit_type_set_supply_used(id, data.supply_used)
+    end
+    for i, value in ipairs(data.trade_good_requirements) do
+        DATA.unit_type_set_trade_good_requirements(id, value, i - 1)
+    end
+    if data.base_health ~= nil then
+        DATA.unit_type_set_base_health(id, data.base_health)
+    end
+    if data.base_attack ~= nil then
+        DATA.unit_type_set_base_attack(id, data.base_attack)
+    end
+    if data.base_armor ~= nil then
+        DATA.unit_type_set_base_armor(id, data.base_armor)
+    end
+    if data.speed ~= nil then
+        DATA.unit_type_set_speed(id, data.speed)
+    end
+    if data.foraging ~= nil then
+        DATA.unit_type_set_foraging(id, data.foraging)
+    end
+    for i, value in ipairs(data.bonuses) do
+        DATA.unit_type_set_bonuses(id, value, i - 1)
+    end
+    if data.supply_capacity ~= nil then
+        DATA.unit_type_set_supply_capacity(id, data.supply_capacity)
+    end
+    if data.unlocked_by ~= nil then
+        DATA.unit_type_set_unlocked_by(id, data.unlocked_by)
+    end
+    if data.spotting ~= nil then
+        DATA.unit_type_set_spotting(id, data.spotting)
+    end
+    if data.visibility ~= nil then
+        DATA.unit_type_set_visibility(id, data.visibility)
+    end
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+        float base_price;
+        float upkeep;
+        float supply_used;
+        trade_good_container trade_good_requirements[10];
+        float base_health;
+        float base_attack;
+        float base_armor;
+        float speed;
+        float foraging;
+        float bonuses[20];
+        float supply_capacity;
+        float spotting;
+        float visibility;
+    } unit_type;
+]]
+
+---unit_type: FFI arrays---
+---@type (string)[]
+DATA.unit_type_name= {}
+---@type (string)[]
+DATA.unit_type_icon= {}
+---@type (string)[]
+DATA.unit_type_description= {}
+---@type (Technology?)[]
+DATA.unit_type_unlocked_by= {}
+---@type nil
+DATA.unit_type_malloc = ffi.C.malloc(ffi.sizeof("unit_type") * 21)
+---@type table<unit_type_id, struct_unit_type>
+DATA.unit_type = ffi.cast("unit_type*", DATA.unit_type_malloc)
+
+---unit_type: LUA bindings---
+
+DATA.unit_type_size = 20
+---@type table<unit_type_id, boolean>
+local unit_type_indices_pool = ffi.new("bool[?]", 20)
+for i = 1, 19 do
+    unit_type_indices_pool[i] = true
+end
+---@type table<unit_type_id, unit_type_id>
+DATA.unit_type_indices_set = {}
+function DATA.create_unit_type()
+    for i = 1, 19 do
+        if unit_type_indices_pool[i] then
+            unit_type_indices_pool[i] = false
+            DATA.unit_type_indices_set[i] = i
+            DATA.unit_type_set_base_price(i, 10)
+            DATA.unit_type_set_upkeep(i, 0.5)
+            DATA.unit_type_set_supply_used(i, 1)
+            DATA.unit_type_set_base_health(i, 50)
+            DATA.unit_type_set_base_attack(i, 5)
+            DATA.unit_type_set_base_armor(i, 1)
+            DATA.unit_type_set_speed(i, 1)
+            DATA.unit_type_set_foraging(i, 0.1)
+            DATA.unit_type_set_supply_capacity(i, 5)
+            DATA.unit_type_set_unlocked_by(i, nil)
+            DATA.unit_type_set_spotting(i, 1)
+            DATA.unit_type_set_visibility(i, 1)
+            return i
+        end
+    end
+    error("Run out of space for unit_type")
+end
+function DATA.delete_unit_type(i)
+    unit_type_indices_pool[i] = true
+    DATA.unit_type_indices_set[i] = nil
+end
+---@param func fun(item: unit_type_id)
+function DATA.for_each_unit_type(func)
+    for _, item in pairs(DATA.unit_type_indices_set) do
+        func(item)
+    end
+end
+
+---@param unit_type_id unit_type_id valid unit_type id
+---@return string name
+function DATA.unit_type_get_name(unit_type_id)
+    return DATA.unit_type_name[unit_type_id]
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value string valid string
+function DATA.unit_type_set_name(unit_type_id, value)
+    DATA.unit_type_name[unit_type_id] = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return string icon
+function DATA.unit_type_get_icon(unit_type_id)
+    return DATA.unit_type_icon[unit_type_id]
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value string valid string
+function DATA.unit_type_set_icon(unit_type_id, value)
+    DATA.unit_type_icon[unit_type_id] = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return string description
+function DATA.unit_type_get_description(unit_type_id)
+    return DATA.unit_type_description[unit_type_id]
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value string valid string
+function DATA.unit_type_set_description(unit_type_id, value)
+    DATA.unit_type_description[unit_type_id] = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number r
+function DATA.unit_type_get_r(unit_type_id)
+    return DATA.unit_type[unit_type_id].r
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_r(unit_type_id, value)
+    DATA.unit_type[unit_type_id].r = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number g
+function DATA.unit_type_get_g(unit_type_id)
+    return DATA.unit_type[unit_type_id].g
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_g(unit_type_id, value)
+    DATA.unit_type[unit_type_id].g = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number b
+function DATA.unit_type_get_b(unit_type_id)
+    return DATA.unit_type[unit_type_id].b
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_b(unit_type_id, value)
+    DATA.unit_type[unit_type_id].b = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number base_price
+function DATA.unit_type_get_base_price(unit_type_id)
+    return DATA.unit_type[unit_type_id].base_price
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_base_price(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_price = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number upkeep
+function DATA.unit_type_get_upkeep(unit_type_id)
+    return DATA.unit_type[unit_type_id].upkeep
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_upkeep(unit_type_id, value)
+    DATA.unit_type[unit_type_id].upkeep = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number supply_used how much food does this unit consume each month
+function DATA.unit_type_get_supply_used(unit_type_id)
+    return DATA.unit_type[unit_type_id].supply_used
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_supply_used(unit_type_id, value)
+    DATA.unit_type[unit_type_id].supply_used = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param index number valid
+---@return trade_good_id trade_good_requirements
+function DATA.unit_type_get_trade_good_requirements_good(unit_type_id, index)
+    return DATA.unit_type[unit_type_id].trade_good_requirements[index].good
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param index number valid
+---@return number trade_good_requirements
+function DATA.unit_type_get_trade_good_requirements_amount(unit_type_id, index)
+    return DATA.unit_type[unit_type_id].trade_good_requirements[index].amount
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param index number valid index
+---@param value trade_good_id valid trade_good_id
+function DATA.unit_type_set_trade_good_requirements_good(unit_type_id, index, value)
+    DATA.unit_type[unit_type_id].trade_good_requirements[index].good = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param index number valid index
+---@param value number valid number
+function DATA.unit_type_set_trade_good_requirements_amount(unit_type_id, index, value)
+    DATA.unit_type[unit_type_id].trade_good_requirements[index].amount = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number base_health
+function DATA.unit_type_get_base_health(unit_type_id)
+    return DATA.unit_type[unit_type_id].base_health
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_base_health(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_health = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number base_attack
+function DATA.unit_type_get_base_attack(unit_type_id)
+    return DATA.unit_type[unit_type_id].base_attack
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_base_attack(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_attack = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number base_armor
+function DATA.unit_type_get_base_armor(unit_type_id)
+    return DATA.unit_type[unit_type_id].base_armor
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_base_armor(unit_type_id, value)
+    DATA.unit_type[unit_type_id].base_armor = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number speed
+function DATA.unit_type_get_speed(unit_type_id)
+    return DATA.unit_type[unit_type_id].speed
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_speed(unit_type_id, value)
+    DATA.unit_type[unit_type_id].speed = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number foraging how much food does this unit forage from the local province?
+function DATA.unit_type_get_foraging(unit_type_id)
+    return DATA.unit_type[unit_type_id].foraging
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_foraging(unit_type_id, value)
+    DATA.unit_type[unit_type_id].foraging = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param index unit_type_id valid
+---@return number bonuses
+function DATA.unit_type_get_bonuses(unit_type_id, index)
+    return DATA.unit_type[unit_type_id].bonuses[index]
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.unit_type_set_bonuses(unit_type_id, index, value)
+    DATA.unit_type[unit_type_id].bonuses[index] = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number supply_capacity how much food can this unit carry
+function DATA.unit_type_get_supply_capacity(unit_type_id)
+    return DATA.unit_type[unit_type_id].supply_capacity
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_supply_capacity(unit_type_id, value)
+    DATA.unit_type[unit_type_id].supply_capacity = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return Technology? unlocked_by
+function DATA.unit_type_get_unlocked_by(unit_type_id)
+    return DATA.unit_type_unlocked_by[unit_type_id]
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value Technology? valid Technology?
+function DATA.unit_type_set_unlocked_by(unit_type_id, value)
+    DATA.unit_type_unlocked_by[unit_type_id] = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number spotting
+function DATA.unit_type_get_spotting(unit_type_id)
+    return DATA.unit_type[unit_type_id].spotting
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_spotting(unit_type_id, value)
+    DATA.unit_type[unit_type_id].spotting = value
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@return number visibility
+function DATA.unit_type_get_visibility(unit_type_id)
+    return DATA.unit_type[unit_type_id].visibility
+end
+---@param unit_type_id unit_type_id valid unit_type id
+---@param value number valid number
+function DATA.unit_type_set_visibility(unit_type_id, value)
+    DATA.unit_type[unit_type_id].visibility = value
+end
+
+
+local fat_unit_type_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.unit_type_get_name(t.id) end
+        if (k == "icon") then return DATA.unit_type_get_icon(t.id) end
+        if (k == "description") then return DATA.unit_type_get_description(t.id) end
+        if (k == "r") then return DATA.unit_type_get_r(t.id) end
+        if (k == "g") then return DATA.unit_type_get_g(t.id) end
+        if (k == "b") then return DATA.unit_type_get_b(t.id) end
+        if (k == "base_price") then return DATA.unit_type_get_base_price(t.id) end
+        if (k == "upkeep") then return DATA.unit_type_get_upkeep(t.id) end
+        if (k == "supply_used") then return DATA.unit_type_get_supply_used(t.id) end
+        if (k == "base_health") then return DATA.unit_type_get_base_health(t.id) end
+        if (k == "base_attack") then return DATA.unit_type_get_base_attack(t.id) end
+        if (k == "base_armor") then return DATA.unit_type_get_base_armor(t.id) end
+        if (k == "speed") then return DATA.unit_type_get_speed(t.id) end
+        if (k == "foraging") then return DATA.unit_type_get_foraging(t.id) end
+        if (k == "supply_capacity") then return DATA.unit_type_get_supply_capacity(t.id) end
+        if (k == "unlocked_by") then return DATA.unit_type_get_unlocked_by(t.id) end
+        if (k == "spotting") then return DATA.unit_type_get_spotting(t.id) end
+        if (k == "visibility") then return DATA.unit_type_get_visibility(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.unit_type_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.unit_type_set_icon(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.unit_type_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.unit_type_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.unit_type_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.unit_type_set_b(t.id, v)
+            return
+        end
+        if (k == "base_price") then
+            DATA.unit_type_set_base_price(t.id, v)
+            return
+        end
+        if (k == "upkeep") then
+            DATA.unit_type_set_upkeep(t.id, v)
+            return
+        end
+        if (k == "supply_used") then
+            DATA.unit_type_set_supply_used(t.id, v)
+            return
+        end
+        if (k == "base_health") then
+            DATA.unit_type_set_base_health(t.id, v)
+            return
+        end
+        if (k == "base_attack") then
+            DATA.unit_type_set_base_attack(t.id, v)
+            return
+        end
+        if (k == "base_armor") then
+            DATA.unit_type_set_base_armor(t.id, v)
+            return
+        end
+        if (k == "speed") then
+            DATA.unit_type_set_speed(t.id, v)
+            return
+        end
+        if (k == "foraging") then
+            DATA.unit_type_set_foraging(t.id, v)
+            return
+        end
+        if (k == "supply_capacity") then
+            DATA.unit_type_set_supply_capacity(t.id, v)
+            return
+        end
+        if (k == "unlocked_by") then
+            DATA.unit_type_set_unlocked_by(t.id, v)
+            return
+        end
+        if (k == "spotting") then
+            DATA.unit_type_set_spotting(t.id, v)
+            return
+        end
+        if (k == "visibility") then
+            DATA.unit_type_set_visibility(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id unit_type_id
+---@return fat_unit_type_id fat_id
+function DATA.fatten_unit_type(id)
+    local result = {id = id}
+    setmetatable(result, fat_unit_type_id_metatable)    return result
+end
 
 
 function DATA.save_state()
@@ -7012,6 +9878,14 @@ function DATA.save_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("race") * 15
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_unit") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("character_location") * 100000
     total_ffi_size = total_ffi_size + ffi.sizeof("home") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("pop_location") * 300000
@@ -7033,6 +9907,30 @@ function DATA.save_state()
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("province") * 10000
     ffi.copy(current_buffer + current_offset, DATA.province, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("army") * 5000
+    ffi.copy(current_buffer + current_offset, DATA.army, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband") * 10000
+    ffi.copy(current_buffer + current_offset, DATA.warband, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("army_membership") * 10000
+    ffi.copy(current_buffer + current_offset, DATA.army_membership, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_leader") * 10000
+    ffi.copy(current_buffer + current_offset, DATA.warband_leader, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_recruiter") * 10000
+    ffi.copy(current_buffer + current_offset, DATA.warband_recruiter, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_commander") * 10000
+    ffi.copy(current_buffer + current_offset, DATA.warband_commander, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_location") * 10000
+    ffi.copy(current_buffer + current_offset, DATA.warband_location, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_unit") * 50000
+    ffi.copy(current_buffer + current_offset, DATA.warband_unit, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("character_location") * 100000
     ffi.copy(current_buffer + current_offset, DATA.character_location, current_shift)
@@ -7074,6 +9972,14 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("race") * 15
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_unit") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("character_location") * 100000
     total_ffi_size = total_ffi_size + ffi.sizeof("home") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("pop_location") * 300000
@@ -7094,6 +10000,30 @@ function DATA.load_state()
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("province") * 10000
     ffi.copy(DATA.province, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("army") * 5000
+    ffi.copy(DATA.army, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband") * 10000
+    ffi.copy(DATA.warband, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("army_membership") * 10000
+    ffi.copy(DATA.army_membership, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_leader") * 10000
+    ffi.copy(DATA.warband_leader, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_recruiter") * 10000
+    ffi.copy(DATA.warband_recruiter, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_commander") * 10000
+    ffi.copy(DATA.warband_commander, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_location") * 10000
+    ffi.copy(DATA.warband_location, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("warband_unit") * 50000
+    ffi.copy(DATA.warband_unit, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("character_location") * 100000
     ffi.copy(DATA.character_location, data + current_offset, current_shift)
@@ -7214,273 +10144,323 @@ function DATA.test_save_load_0()
     for i = 0, 1500000 do
         DATA.tile[i].pathfinding_index = 10
     end
-    for i = 0, 1500000 do
-        DATA.tile[i].bedrock = 19
-    end
-    for i = 0, 1500000 do
-        DATA.tile[i].biome = 20
+    for i = 0, 15 do
+        DATA.race[i].r = 19
     end
     for i = 0, 15 do
-        DATA.race[i].r = -7
+        DATA.race[i].g = 20
     end
     for i = 0, 15 do
-        DATA.race[i].g = 15
+        DATA.race[i].b = -7
     end
     for i = 0, 15 do
-        DATA.race[i].b = 10
+        DATA.race[i].carrying_capacity_weight = 15
     end
     for i = 0, 15 do
-        DATA.race[i].carrying_capacity_weight = 8
+        DATA.race[i].fecundity = 10
     end
     for i = 0, 15 do
-        DATA.race[i].fecundity = 13
+        DATA.race[i].spotting = 8
     end
     for i = 0, 15 do
-        DATA.race[i].spotting = -4
+        DATA.race[i].visibility = 13
     end
     for i = 0, 15 do
-        DATA.race[i].visibility = -17
+        DATA.race[i].males_per_hundred_females = -4
     end
     for i = 0, 15 do
-        DATA.race[i].males_per_hundred_females = 15
+        DATA.race[i].child_age = -17
     end
     for i = 0, 15 do
-        DATA.race[i].child_age = -20
+        DATA.race[i].teen_age = 15
     end
     for i = 0, 15 do
-        DATA.race[i].teen_age = -15
+        DATA.race[i].adult_age = -20
     end
     for i = 0, 15 do
-        DATA.race[i].adult_age = 5
+        DATA.race[i].middle_age = -15
     end
     for i = 0, 15 do
-        DATA.race[i].middle_age = 20
+        DATA.race[i].elder_age = 5
     end
     for i = 0, 15 do
-        DATA.race[i].elder_age = -20
+        DATA.race[i].max_age = 20
     end
     for i = 0, 15 do
-        DATA.race[i].max_age = 19
+        DATA.race[i].minimum_comfortable_temperature = -20
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_temperature = 11
+        DATA.race[i].minimum_absolute_temperature = 19
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_absolute_temperature = 1
+        DATA.race[i].minimum_comfortable_elevation = 11
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_elevation = -5
+        DATA.race[i].female_body_size = 1
     end
     for i = 0, 15 do
-        DATA.race[i].female_body_size = 0
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_body_size = -16
+        DATA.race[i].male_body_size = -5
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        DATA.race[i].female_efficiency[j] = -8
+        DATA.race[i].female_efficiency[j] = 0
     end
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        DATA.race[i].male_efficiency[j] = 16
+        DATA.race[i].male_efficiency[j] = -16
     end
     end
     for i = 0, 15 do
-        DATA.race[i].female_infrastructure_needs = -6
+        DATA.race[i].female_infrastructure_needs = -8
     end
     for i = 0, 15 do
-        DATA.race[i].male_infrastructure_needs = -5
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].need = 2
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].use_case = 17
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].required = 8
-    end
+        DATA.race[i].male_infrastructure_needs = 16
     end
     for i = 0, 15 do
     for j = 0, 19 do
-        DATA.race[i].male_needs[j].need = 1
+        DATA.race[i].female_needs[j].need = 3
+    end
+    for j = 0, 19 do
+        DATA.race[i].female_needs[j].use_case = 7
+    end
+    for j = 0, 19 do
+        DATA.race[i].female_needs[j].required = -11
+    end
+    end
+    for i = 0, 15 do
+    for j = 0, 19 do
+        DATA.race[i].male_needs[j].need = 7
     end
     for j = 0, 19 do
         DATA.race[i].male_needs[j].use_case = 2
     end
     for j = 0, 19 do
-        DATA.race[i].male_needs[j].required = 0
+        DATA.race[i].male_needs[j].required = -15
     end
     end
     for i = 0, 15 do
         DATA.race[i].requires_large_river = false
     end
     for i = 0, 15 do
-        DATA.race[i].requires_large_forest = true
+        DATA.race[i].requires_large_forest = false
     end
     for i = 0, 300000 do
-        DATA.pop[i].race = 9
+        DATA.pop[i].race = 3
     end
     for i = 0, 300000 do
         DATA.pop[i].female = false
     end
     for i = 0, 300000 do
-        DATA.pop[i].age = 3
+        DATA.pop[i].age = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = 15
+        DATA.pop[i].savings = -2
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 10
+        DATA.pop[i].parent = 3
     end
     for i = 0, 300000 do
         DATA.pop[i].loyalty = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = -7
+        DATA.pop[i].life_needs_satisfaction = 1
     end
     for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = 18
+        DATA.pop[i].basic_needs_satisfaction = 14
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].need = 4
+        DATA.pop[i].need_satisfaction[j].need = 3
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].use_case = 14
+        DATA.pop[i].need_satisfaction[j].use_case = 19
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = -15
+        DATA.pop[i].need_satisfaction[j].consumed = 15
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = 18
+        DATA.pop[i].need_satisfaction[j].demanded = 17
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        DATA.pop[i].traits[j] = 6
+        DATA.pop[i].traits[j] = 4
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 10
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        DATA.pop[i].inventory[j] = 16
-    end
+        DATA.pop[i].successor = 14
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].price_memory[j] = -5
+        DATA.pop[i].inventory[j] = -15
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].forage_ratio = -2
+    for j = 0, 99 do
+        DATA.pop[i].price_memory[j] = 18
+    end
     end
     for i = 0, 300000 do
-        DATA.pop[i].work_ratio = -9
+        DATA.pop[i].forage_ratio = 4
+    end
+    for i = 0, 300000 do
+        DATA.pop[i].work_ratio = 0
     end
     for i = 0, 300000 do
         DATA.pop[i].rank = 1
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].dna[j] = -9
+        DATA.pop[i].dna[j] = -2
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].r = -18
+        DATA.province[i].r = -9
     end
     for i = 0, 10000 do
-        DATA.province[i].g = 19
+        DATA.province[i].g = -8
     end
     for i = 0, 10000 do
-        DATA.province[i].b = -4
+        DATA.province[i].b = -9
     end
     for i = 0, 10000 do
-        DATA.province[i].is_land = false
+        DATA.province[i].is_land = true
     end
     for i = 0, 10000 do
-        DATA.province[i].province_id = -16
+        DATA.province[i].province_id = 19
     end
     for i = 0, 10000 do
-        DATA.province[i].size = -15
+        DATA.province[i].size = -4
     end
     for i = 0, 10000 do
-        DATA.province[i].hydration = -12
+        DATA.province[i].hydration = 10
     end
     for i = 0, 10000 do
-        DATA.province[i].movement_cost = -11
+        DATA.province[i].movement_cost = -16
     end
     for i = 0, 10000 do
-        DATA.province[i].center = 1
+        DATA.province[i].center = 2
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_needed = -15
+        DATA.province[i].infrastructure_needed = -12
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure = 14
+        DATA.province[i].infrastructure = -11
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_investment = 5
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_production[j] = 13
-    end
+        DATA.province[i].infrastructure_investment = -18
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_consumption[j] = -3
+        DATA.province[i].local_production[j] = -15
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_demand[j] = 13
+        DATA.province[i].local_consumption[j] = 14
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_storage[j] = -5
+        DATA.province[i].local_demand[j] = 5
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_prices[j] = -7
+        DATA.province[i].local_storage[j] = 13
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_wealth = 17
+    for j = 0, 99 do
+        DATA.province[i].local_prices[j] = -3
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].trade_wealth = 6
+        DATA.province[i].local_wealth = 13
     end
     for i = 0, 10000 do
-        DATA.province[i].local_income = 17
+        DATA.province[i].trade_wealth = -5
     end
     for i = 0, 10000 do
-        DATA.province[i].local_building_upkeep = -3
+        DATA.province[i].local_income = -7
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers = 8
+        DATA.province[i].local_building_upkeep = 17
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_water = 11
+        DATA.province[i].foragers = 6
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_limit = 2
+        DATA.province[i].foragers_water = 17
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = -15
+        DATA.province[i].foragers_limit = -3
+    end
+    for i = 0, 10000 do
+    for j = 0, 24 do
+        DATA.province[i].local_resources[j].resource = 14
+    end
+    for j = 0, 24 do
+        DATA.province[i].local_resources[j].location = 15
+    end
+    end
+    for i = 0, 10000 do
+        DATA.province[i].mood = 2
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.province[i].unit_types[j] = 2
+    end
     end
     for i = 0, 10000 do
         DATA.province[i].on_a_river = false
     end
     for i = 0, 10000 do
         DATA.province[i].on_a_forest = true
+    end
+    for i = 0, 5000 do
+        DATA.army[i].destination = 15
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.warband[i].units_current[j] = 17
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.warband[i].units_target[j] = 20
+    end
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].status = 5
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].idle_stance = 0
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].current_free_time_ratio = -5
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].treasury = -19
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].total_upkeep = -3
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].predicted_upkeep = -13
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].supplies = -6
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].supplies_target_days = 3
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].morale = -10
+    end
+    for i = 0, 50000 do
+        DATA.warband_unit[i].type = 10
     end
     DATA.save_state()
     DATA.load_state()
@@ -7575,273 +10555,323 @@ function DATA.test_save_load_0()
     for i = 0, 1500000 do
         test_passed = test_passed and DATA.tile[i].pathfinding_index == 10
     end
-    for i = 0, 1500000 do
-        test_passed = test_passed and DATA.tile[i].bedrock == 19
-    end
-    for i = 0, 1500000 do
-        test_passed = test_passed and DATA.tile[i].biome == 20
+    for i = 0, 15 do
+        test_passed = test_passed and DATA.race[i].r == 19
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].r == -7
+        test_passed = test_passed and DATA.race[i].g == 20
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].g == 15
+        test_passed = test_passed and DATA.race[i].b == -7
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].b == 10
+        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == 15
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == 8
+        test_passed = test_passed and DATA.race[i].fecundity == 10
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].fecundity == 13
+        test_passed = test_passed and DATA.race[i].spotting == 8
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].spotting == -4
+        test_passed = test_passed and DATA.race[i].visibility == 13
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].visibility == -17
+        test_passed = test_passed and DATA.race[i].males_per_hundred_females == -4
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].males_per_hundred_females == 15
+        test_passed = test_passed and DATA.race[i].child_age == -17
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].child_age == -20
+        test_passed = test_passed and DATA.race[i].teen_age == 15
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].teen_age == -15
+        test_passed = test_passed and DATA.race[i].adult_age == -20
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].adult_age == 5
+        test_passed = test_passed and DATA.race[i].middle_age == -15
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].middle_age == 20
+        test_passed = test_passed and DATA.race[i].elder_age == 5
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].elder_age == -20
+        test_passed = test_passed and DATA.race[i].max_age == 20
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].max_age == 19
+        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == -20
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == 11
+        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == 19
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == 1
+        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 11
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == -5
+        test_passed = test_passed and DATA.race[i].female_body_size == 1
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_body_size == 0
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_body_size == -16
+        test_passed = test_passed and DATA.race[i].male_body_size == -5
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].female_efficiency[j] == -8
+        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 0
     end
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].male_efficiency[j] == 16
+        test_passed = test_passed and DATA.race[i].male_efficiency[j] == -16
     end
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == -6
+        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == -8
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == -5
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].need == 2
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 17
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].required == 8
-    end
+        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 16
     end
     for i = 0, 15 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].need == 1
+        test_passed = test_passed and DATA.race[i].female_needs[j].need == 3
+    end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 7
+    end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.race[i].female_needs[j].required == -11
+    end
+    end
+    for i = 0, 15 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.race[i].male_needs[j].need == 7
     end
     for j = 0, 19 do
         test_passed = test_passed and DATA.race[i].male_needs[j].use_case == 2
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].required == 0
+        test_passed = test_passed and DATA.race[i].male_needs[j].required == -15
     end
     end
     for i = 0, 15 do
         test_passed = test_passed and DATA.race[i].requires_large_river == false
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_forest == true
+        test_passed = test_passed and DATA.race[i].requires_large_forest == false
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].race == 9
+        test_passed = test_passed and DATA.pop[i].race == 3
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].female == false
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].age == 3
+        test_passed = test_passed and DATA.pop[i].age == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == 15
+        test_passed = test_passed and DATA.pop[i].savings == -2
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 10
+        test_passed = test_passed and DATA.pop[i].parent == 3
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].loyalty == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -7
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 1
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == 18
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == 14
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 4
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 3
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 14
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 19
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == -15
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 15
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 18
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 17
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[i].traits[j] == 6
+        test_passed = test_passed and DATA.pop[i].traits[j] == 4
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 10
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].inventory[j] == 16
-    end
+        test_passed = test_passed and DATA.pop[i].successor == 14
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].price_memory[j] == -5
+        test_passed = test_passed and DATA.pop[i].inventory[j] == -15
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].forage_ratio == -2
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.pop[i].price_memory[j] == 18
+    end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].work_ratio == -9
+        test_passed = test_passed and DATA.pop[i].forage_ratio == 4
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].work_ratio == 0
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].rank == 1
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].dna[j] == -9
+        test_passed = test_passed and DATA.pop[i].dna[j] == -2
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].r == -18
+        test_passed = test_passed and DATA.province[i].r == -9
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].g == 19
+        test_passed = test_passed and DATA.province[i].g == -8
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].b == -4
+        test_passed = test_passed and DATA.province[i].b == -9
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].is_land == false
+        test_passed = test_passed and DATA.province[i].is_land == true
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].province_id == -16
+        test_passed = test_passed and DATA.province[i].province_id == 19
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].size == -15
+        test_passed = test_passed and DATA.province[i].size == -4
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].hydration == -12
+        test_passed = test_passed and DATA.province[i].hydration == 10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].movement_cost == -11
+        test_passed = test_passed and DATA.province[i].movement_cost == -16
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].center == 1
+        test_passed = test_passed and DATA.province[i].center == 2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_needed == -15
+        test_passed = test_passed and DATA.province[i].infrastructure_needed == -12
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure == 14
+        test_passed = test_passed and DATA.province[i].infrastructure == -11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_investment == 5
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_production[j] == 13
-    end
+        test_passed = test_passed and DATA.province[i].infrastructure_investment == -18
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_consumption[j] == -3
+        test_passed = test_passed and DATA.province[i].local_production[j] == -15
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_demand[j] == 13
+        test_passed = test_passed and DATA.province[i].local_consumption[j] == 14
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_storage[j] == -5
+        test_passed = test_passed and DATA.province[i].local_demand[j] == 5
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_prices[j] == -7
+        test_passed = test_passed and DATA.province[i].local_storage[j] == 13
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_wealth == 17
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_prices[j] == -3
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].trade_wealth == 6
+        test_passed = test_passed and DATA.province[i].local_wealth == 13
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_income == 17
+        test_passed = test_passed and DATA.province[i].trade_wealth == -5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_building_upkeep == -3
+        test_passed = test_passed and DATA.province[i].local_income == -7
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers == 8
+        test_passed = test_passed and DATA.province[i].local_building_upkeep == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_water == 11
+        test_passed = test_passed and DATA.province[i].foragers == 6
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_limit == 2
+        test_passed = test_passed and DATA.province[i].foragers_water == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == -15
+        test_passed = test_passed and DATA.province[i].foragers_limit == -3
+    end
+    for i = 0, 10000 do
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 14
+    end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 15
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].mood == 2
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 2
+    end
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].on_a_river == false
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].on_a_forest == true
+    end
+    for i = 0, 5000 do
+        test_passed = test_passed and DATA.army[i].destination == 15
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[i].units_current[j] == 17
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[i].units_target[j] == 20
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].status == 5
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].idle_stance == 0
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -5
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].treasury == -19
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].total_upkeep == -3
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -13
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].supplies == -6
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].supplies_target_days == 3
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].morale == -10
+    end
+    for i = 0, 50000 do
+        test_passed = test_passed and DATA.warband_unit[i].type == 10
     end
     print("SAVE_LOAD_TEST_0:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -7878,8 +10908,6 @@ function DATA.test_set_get_0()
     fat_id.real_g = 2
     fat_id.real_b = 7
     fat_id.pathfinding_index = 10
-    fat_id.bedrock = 19
-    fat_id.biome = 20
     local test_passed = true
     test_passed = test_passed and fat_id.is_land == false
     if not test_passed then print("is_land", false, fat_id.is_land) end
@@ -7941,10 +10969,6 @@ function DATA.test_set_get_0()
     if not test_passed then print("real_b", 7, fat_id.real_b) end
     test_passed = test_passed and fat_id.pathfinding_index == 10
     if not test_passed then print("pathfinding_index", 10, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.bedrock == 19
-    if not test_passed then print("bedrock", 19, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == 20
-    if not test_passed then print("biome", 20, fat_id.biome) end
     print("SET_GET_TEST_0_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_race(0)
@@ -8207,8 +11231,17 @@ function DATA.test_set_get_0()
     fat_id.foragers = -11
     fat_id.foragers_water = -1
     fat_id.foragers_limit = -14
-    fat_id.mood = -16
-    fat_id.on_a_river = false
+    for j = 0, 24 do
+        DATA.province[0].local_resources[j].resource = 2
+    end
+    for j = 0, 24 do
+        DATA.province[0].local_resources[j].location = 10
+    end
+    fat_id.mood = 10
+    for j = 0, 19 do
+        DATA.province[0].unit_types[j] = 17
+    end
+    fat_id.on_a_river = true
     fat_id.on_a_forest = false
     local test_passed = true
     test_passed = test_passed and fat_id.r == 4
@@ -8269,13 +11302,104 @@ function DATA.test_set_get_0()
     if not test_passed then print("foragers_water", -1, fat_id.foragers_water) end
     test_passed = test_passed and fat_id.foragers_limit == -14
     if not test_passed then print("foragers_limit", -14, fat_id.foragers_limit) end
-    test_passed = test_passed and fat_id.mood == -16
-    if not test_passed then print("mood", -16, fat_id.mood) end
-    test_passed = test_passed and fat_id.on_a_river == false
-    if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 2
+    end
+    if not test_passed then print("local_resources.resource", 2, DATA.province[0].local_resources[0].resource) end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 10
+    end
+    if not test_passed then print("local_resources.location", 10, DATA.province[0].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == 10
+    if not test_passed then print("mood", 10, fat_id.mood) end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 17
+    end
+    if not test_passed then print("unit_types", 17, DATA.province[0].unit_types[0]) end
+    test_passed = test_passed and fat_id.on_a_river == true
+    if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == false
     if not test_passed then print("on_a_forest", false, fat_id.on_a_forest) end
     print("SET_GET_TEST_0_province:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_army(0)
+    fat_id.destination = 12
+    local test_passed = true
+    test_passed = test_passed and fat_id.destination == 12
+    if not test_passed then print("destination", 12, fat_id.destination) end
+    print("SET_GET_TEST_0_army:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband(0)
+    for j = 0, 19 do
+        DATA.warband[0].units_current[j] = 4
+    end
+    for j = 0, 19 do
+        DATA.warband[0].units_target[j] = 6
+    end
+    fat_id.status = 0
+    fat_id.idle_stance = 1
+    fat_id.current_free_time_ratio = 12
+    fat_id.treasury = 11
+    fat_id.total_upkeep = 5
+    fat_id.predicted_upkeep = -1
+    fat_id.supplies = 10
+    fat_id.supplies_target_days = 2
+    fat_id.morale = 17
+    local test_passed = true
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[0].units_current[j] == 4
+    end
+    if not test_passed then print("units_current", 4, DATA.warband[0].units_current[0]) end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[0].units_target[j] == 6
+    end
+    if not test_passed then print("units_target", 6, DATA.warband[0].units_target[0]) end
+    test_passed = test_passed and fat_id.status == 0
+    if not test_passed then print("status", 0, fat_id.status) end
+    test_passed = test_passed and fat_id.idle_stance == 1
+    if not test_passed then print("idle_stance", 1, fat_id.idle_stance) end
+    test_passed = test_passed and fat_id.current_free_time_ratio == 12
+    if not test_passed then print("current_free_time_ratio", 12, fat_id.current_free_time_ratio) end
+    test_passed = test_passed and fat_id.treasury == 11
+    if not test_passed then print("treasury", 11, fat_id.treasury) end
+    test_passed = test_passed and fat_id.total_upkeep == 5
+    if not test_passed then print("total_upkeep", 5, fat_id.total_upkeep) end
+    test_passed = test_passed and fat_id.predicted_upkeep == -1
+    if not test_passed then print("predicted_upkeep", -1, fat_id.predicted_upkeep) end
+    test_passed = test_passed and fat_id.supplies == 10
+    if not test_passed then print("supplies", 10, fat_id.supplies) end
+    test_passed = test_passed and fat_id.supplies_target_days == 2
+    if not test_passed then print("supplies_target_days", 2, fat_id.supplies_target_days) end
+    test_passed = test_passed and fat_id.morale == 17
+    if not test_passed then print("morale", 17, fat_id.morale) end
+    print("SET_GET_TEST_0_warband:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_army_membership(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_army_membership:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_leader(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_warband_leader:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_recruiter(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_warband_recruiter:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_commander(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_warband_commander:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_location(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_warband_location:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_unit(0)
+    fat_id.type = 12
+    local test_passed = true
+    test_passed = test_passed and fat_id.type == 12
+    if not test_passed then print("type", 12, fat_id.type) end
+    print("SET_GET_TEST_0_warband_unit:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_character_location(0)
     local test_passed = true
@@ -8405,72 +11529,66 @@ function DATA.test_save_load_1()
     for i = 0, 1500000 do
         DATA.tile[i].pathfinding_index = 0
     end
-    for i = 0, 1500000 do
-        DATA.tile[i].bedrock = 16
-    end
-    for i = 0, 1500000 do
-        DATA.tile[i].biome = 7
+    for i = 0, 15 do
+        DATA.race[i].r = 13
     end
     for i = 0, 15 do
-        DATA.race[i].r = 8
+        DATA.race[i].g = -6
     end
     for i = 0, 15 do
-        DATA.race[i].g = 11
+        DATA.race[i].b = 8
     end
     for i = 0, 15 do
-        DATA.race[i].b = 15
+        DATA.race[i].carrying_capacity_weight = 11
     end
     for i = 0, 15 do
-        DATA.race[i].carrying_capacity_weight = -6
-    end
-    for i = 0, 15 do
-        DATA.race[i].fecundity = 2
+        DATA.race[i].fecundity = 15
     end
     for i = 0, 15 do
         DATA.race[i].spotting = -6
     end
     for i = 0, 15 do
-        DATA.race[i].visibility = -6
+        DATA.race[i].visibility = 2
     end
     for i = 0, 15 do
-        DATA.race[i].males_per_hundred_females = 9
+        DATA.race[i].males_per_hundred_females = -6
     end
     for i = 0, 15 do
-        DATA.race[i].child_age = -2
+        DATA.race[i].child_age = -6
     end
     for i = 0, 15 do
-        DATA.race[i].teen_age = -19
+        DATA.race[i].teen_age = 9
     end
     for i = 0, 15 do
-        DATA.race[i].adult_age = 6
+        DATA.race[i].adult_age = -2
     end
     for i = 0, 15 do
-        DATA.race[i].middle_age = 15
+        DATA.race[i].middle_age = -19
     end
     for i = 0, 15 do
-        DATA.race[i].elder_age = -14
+        DATA.race[i].elder_age = 6
     end
     for i = 0, 15 do
-        DATA.race[i].max_age = -9
+        DATA.race[i].max_age = 15
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_temperature = 20
+        DATA.race[i].minimum_comfortable_temperature = -14
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_absolute_temperature = -2
+        DATA.race[i].minimum_absolute_temperature = -9
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_elevation = -13
+        DATA.race[i].minimum_comfortable_elevation = 20
     end
     for i = 0, 15 do
-        DATA.race[i].female_body_size = 1
+        DATA.race[i].female_body_size = -2
     end
     for i = 0, 15 do
-        DATA.race[i].male_body_size = 12
+        DATA.race[i].male_body_size = -13
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        DATA.race[i].female_efficiency[j] = 7
+        DATA.race[i].female_efficiency[j] = 1
     end
     end
     for i = 0, 15 do
@@ -8479,199 +11597,255 @@ function DATA.test_save_load_1()
     end
     end
     for i = 0, 15 do
-        DATA.race[i].female_infrastructure_needs = -8
+        DATA.race[i].female_infrastructure_needs = 7
     end
     for i = 0, 15 do
-        DATA.race[i].male_infrastructure_needs = -1
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].need = 4
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].use_case = 18
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].required = 11
-    end
+        DATA.race[i].male_infrastructure_needs = 12
     end
     for i = 0, 15 do
     for j = 0, 19 do
-        DATA.race[i].male_needs[j].need = 6
+        DATA.race[i].female_needs[j].need = 3
     end
     for j = 0, 19 do
-        DATA.race[i].male_needs[j].use_case = 18
+        DATA.race[i].female_needs[j].use_case = 9
     end
     for j = 0, 19 do
-        DATA.race[i].male_needs[j].required = -18
+        DATA.race[i].female_needs[j].required = -2
     end
     end
     for i = 0, 15 do
-        DATA.race[i].requires_large_river = false
+    for j = 0, 19 do
+        DATA.race[i].male_needs[j].need = 7
+    end
+    for j = 0, 19 do
+        DATA.race[i].male_needs[j].use_case = 16
+    end
+    for j = 0, 19 do
+        DATA.race[i].male_needs[j].required = 5
+    end
     end
     for i = 0, 15 do
-        DATA.race[i].requires_large_forest = true
+        DATA.race[i].requires_large_river = true
+    end
+    for i = 0, 15 do
+        DATA.race[i].requires_large_forest = false
     end
     for i = 0, 300000 do
-        DATA.pop[i].race = 12
+        DATA.pop[i].race = 7
     end
     for i = 0, 300000 do
         DATA.pop[i].female = false
     end
     for i = 0, 300000 do
-        DATA.pop[i].age = 5
+        DATA.pop[i].age = 13
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = 3
+        DATA.pop[i].savings = -9
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 17
+        DATA.pop[i].parent = 11
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 11
+        DATA.pop[i].loyalty = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = -15
+        DATA.pop[i].life_needs_satisfaction = 3
     end
     for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = 8
+        DATA.pop[i].basic_needs_satisfaction = -15
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].need = 1
+        DATA.pop[i].need_satisfaction[j].need = 7
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].use_case = 5
+        DATA.pop[i].need_satisfaction[j].use_case = 16
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = 13
+        DATA.pop[i].need_satisfaction[j].consumed = -14
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = 5
+        DATA.pop[i].need_satisfaction[j].demanded = -10
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        DATA.pop[i].traits[j] = 5
+        DATA.pop[i].traits[j] = 8
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 15
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        DATA.pop[i].inventory[j] = -19
-    end
+        DATA.pop[i].successor = 12
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].price_memory[j] = 10
+        DATA.pop[i].inventory[j] = 3
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].forage_ratio = -18
+    for j = 0, 99 do
+        DATA.pop[i].price_memory[j] = 11
+    end
     end
     for i = 0, 300000 do
-        DATA.pop[i].work_ratio = -1
+        DATA.pop[i].forage_ratio = -19
     end
     for i = 0, 300000 do
-        DATA.pop[i].rank = 3
+        DATA.pop[i].work_ratio = 10
+    end
+    for i = 0, 300000 do
+        DATA.pop[i].rank = 0
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].dna[j] = -10
+        DATA.pop[i].dna[j] = -1
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].r = -10
+        DATA.province[i].r = 19
     end
     for i = 0, 10000 do
-        DATA.province[i].g = 12
+        DATA.province[i].g = 17
     end
     for i = 0, 10000 do
-        DATA.province[i].b = -6
+        DATA.province[i].b = 17
     end
     for i = 0, 10000 do
-        DATA.province[i].is_land = true
+        DATA.province[i].is_land = false
     end
     for i = 0, 10000 do
-        DATA.province[i].province_id = -8
+        DATA.province[i].province_id = -10
     end
     for i = 0, 10000 do
-        DATA.province[i].size = 14
+        DATA.province[i].size = -10
     end
     for i = 0, 10000 do
-        DATA.province[i].hydration = 15
+        DATA.province[i].hydration = 12
     end
     for i = 0, 10000 do
         DATA.province[i].movement_cost = -6
     end
     for i = 0, 10000 do
-        DATA.province[i].center = 12
+        DATA.province[i].center = 0
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_needed = 12
+        DATA.province[i].infrastructure_needed = -8
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure = 2
+        DATA.province[i].infrastructure = 14
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_investment = 16
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_production[j] = 2
-    end
+        DATA.province[i].infrastructure_investment = 15
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_consumption[j] = 9
+        DATA.province[i].local_production[j] = -6
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_demand[j] = -3
+        DATA.province[i].local_consumption[j] = 5
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_storage[j] = 15
+        DATA.province[i].local_demand[j] = 12
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_prices[j] = 18
+        DATA.province[i].local_storage[j] = 2
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_wealth = -20
+    for j = 0, 99 do
+        DATA.province[i].local_prices[j] = 16
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].trade_wealth = 4
+        DATA.province[i].local_wealth = 2
     end
     for i = 0, 10000 do
-        DATA.province[i].local_income = 12
+        DATA.province[i].trade_wealth = 9
     end
     for i = 0, 10000 do
-        DATA.province[i].local_building_upkeep = -12
+        DATA.province[i].local_income = -3
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers = 13
+        DATA.province[i].local_building_upkeep = 15
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_water = 15
+        DATA.province[i].foragers = 18
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_limit = -7
+        DATA.province[i].foragers_water = -20
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = 7
+        DATA.province[i].foragers_limit = 4
+    end
+    for i = 0, 10000 do
+    for j = 0, 24 do
+        DATA.province[i].local_resources[j].resource = 16
+    end
+    for j = 0, 24 do
+        DATA.province[i].local_resources[j].location = 4
+    end
+    end
+    for i = 0, 10000 do
+        DATA.province[i].mood = 13
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.province[i].unit_types[j] = 17
+    end
     end
     for i = 0, 10000 do
         DATA.province[i].on_a_river = true
     end
     for i = 0, 10000 do
         DATA.province[i].on_a_forest = false
+    end
+    for i = 0, 5000 do
+        DATA.army[i].destination = 1
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.warband[i].units_current[j] = 10
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.warband[i].units_target[j] = 3
+    end
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].status = 8
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].idle_stance = 0
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].current_free_time_ratio = 12
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].treasury = 6
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].total_upkeep = 11
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].predicted_upkeep = 2
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].supplies = 6
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].supplies_target_days = 2
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].morale = -20
+    end
+    for i = 0, 50000 do
+        DATA.warband_unit[i].type = 17
     end
     DATA.save_state()
     DATA.load_state()
@@ -8766,72 +11940,66 @@ function DATA.test_save_load_1()
     for i = 0, 1500000 do
         test_passed = test_passed and DATA.tile[i].pathfinding_index == 0
     end
-    for i = 0, 1500000 do
-        test_passed = test_passed and DATA.tile[i].bedrock == 16
-    end
-    for i = 0, 1500000 do
-        test_passed = test_passed and DATA.tile[i].biome == 7
+    for i = 0, 15 do
+        test_passed = test_passed and DATA.race[i].r == 13
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].r == 8
+        test_passed = test_passed and DATA.race[i].g == -6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].g == 11
+        test_passed = test_passed and DATA.race[i].b == 8
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].b == 15
+        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == 11
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == -6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].fecundity == 2
+        test_passed = test_passed and DATA.race[i].fecundity == 15
     end
     for i = 0, 15 do
         test_passed = test_passed and DATA.race[i].spotting == -6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].visibility == -6
+        test_passed = test_passed and DATA.race[i].visibility == 2
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].males_per_hundred_females == 9
+        test_passed = test_passed and DATA.race[i].males_per_hundred_females == -6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].child_age == -2
+        test_passed = test_passed and DATA.race[i].child_age == -6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].teen_age == -19
+        test_passed = test_passed and DATA.race[i].teen_age == 9
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].adult_age == 6
+        test_passed = test_passed and DATA.race[i].adult_age == -2
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].middle_age == 15
+        test_passed = test_passed and DATA.race[i].middle_age == -19
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].elder_age == -14
+        test_passed = test_passed and DATA.race[i].elder_age == 6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].max_age == -9
+        test_passed = test_passed and DATA.race[i].max_age == 15
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == 20
+        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == -14
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == -2
+        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == -9
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == -13
+        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 20
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_body_size == 1
+        test_passed = test_passed and DATA.race[i].female_body_size == -2
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_body_size == 12
+        test_passed = test_passed and DATA.race[i].male_body_size == -13
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 7
+        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 1
     end
     end
     for i = 0, 15 do
@@ -8840,199 +12008,255 @@ function DATA.test_save_load_1()
     end
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == -8
+        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == 7
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == -1
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].need == 4
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 18
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].required == 11
-    end
+        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 12
     end
     for i = 0, 15 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].need == 6
+        test_passed = test_passed and DATA.race[i].female_needs[j].need == 3
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].use_case == 18
+        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 9
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].required == -18
+        test_passed = test_passed and DATA.race[i].female_needs[j].required == -2
     end
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_river == false
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.race[i].male_needs[j].need == 7
+    end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.race[i].male_needs[j].use_case == 16
+    end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.race[i].male_needs[j].required == 5
+    end
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_forest == true
+        test_passed = test_passed and DATA.race[i].requires_large_river == true
+    end
+    for i = 0, 15 do
+        test_passed = test_passed and DATA.race[i].requires_large_forest == false
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].race == 12
+        test_passed = test_passed and DATA.pop[i].race == 7
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].female == false
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].age == 5
+        test_passed = test_passed and DATA.pop[i].age == 13
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == 3
+        test_passed = test_passed and DATA.pop[i].savings == -9
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 17
+        test_passed = test_passed and DATA.pop[i].parent == 11
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 11
+        test_passed = test_passed and DATA.pop[i].loyalty == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -15
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 3
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == 8
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -15
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 1
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 7
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 5
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 16
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 13
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == -14
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 5
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == -10
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[i].traits[j] == 5
+        test_passed = test_passed and DATA.pop[i].traits[j] == 8
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 15
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].inventory[j] == -19
-    end
+        test_passed = test_passed and DATA.pop[i].successor == 12
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].price_memory[j] == 10
+        test_passed = test_passed and DATA.pop[i].inventory[j] == 3
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].forage_ratio == -18
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.pop[i].price_memory[j] == 11
+    end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].work_ratio == -1
+        test_passed = test_passed and DATA.pop[i].forage_ratio == -19
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].rank == 3
+        test_passed = test_passed and DATA.pop[i].work_ratio == 10
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].rank == 0
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].dna[j] == -10
+        test_passed = test_passed and DATA.pop[i].dna[j] == -1
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].r == -10
+        test_passed = test_passed and DATA.province[i].r == 19
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].g == 12
+        test_passed = test_passed and DATA.province[i].g == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].b == -6
+        test_passed = test_passed and DATA.province[i].b == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].is_land == true
+        test_passed = test_passed and DATA.province[i].is_land == false
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].province_id == -8
+        test_passed = test_passed and DATA.province[i].province_id == -10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].size == 14
+        test_passed = test_passed and DATA.province[i].size == -10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].hydration == 15
+        test_passed = test_passed and DATA.province[i].hydration == 12
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].movement_cost == -6
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].center == 12
+        test_passed = test_passed and DATA.province[i].center == 0
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_needed == 12
+        test_passed = test_passed and DATA.province[i].infrastructure_needed == -8
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure == 2
+        test_passed = test_passed and DATA.province[i].infrastructure == 14
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_investment == 16
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_production[j] == 2
-    end
+        test_passed = test_passed and DATA.province[i].infrastructure_investment == 15
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_consumption[j] == 9
+        test_passed = test_passed and DATA.province[i].local_production[j] == -6
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_demand[j] == -3
+        test_passed = test_passed and DATA.province[i].local_consumption[j] == 5
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_storage[j] == 15
+        test_passed = test_passed and DATA.province[i].local_demand[j] == 12
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_prices[j] == 18
+        test_passed = test_passed and DATA.province[i].local_storage[j] == 2
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_wealth == -20
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_prices[j] == 16
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].trade_wealth == 4
+        test_passed = test_passed and DATA.province[i].local_wealth == 2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_income == 12
+        test_passed = test_passed and DATA.province[i].trade_wealth == 9
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_building_upkeep == -12
+        test_passed = test_passed and DATA.province[i].local_income == -3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers == 13
+        test_passed = test_passed and DATA.province[i].local_building_upkeep == 15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_water == 15
+        test_passed = test_passed and DATA.province[i].foragers == 18
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_limit == -7
+        test_passed = test_passed and DATA.province[i].foragers_water == -20
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == 7
+        test_passed = test_passed and DATA.province[i].foragers_limit == 4
+    end
+    for i = 0, 10000 do
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 16
+    end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 4
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].mood == 13
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 17
+    end
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].on_a_river == true
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].on_a_forest == false
+    end
+    for i = 0, 5000 do
+        test_passed = test_passed and DATA.army[i].destination == 1
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[i].units_current[j] == 10
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[i].units_target[j] == 3
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].status == 8
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].idle_stance == 0
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 12
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].treasury == 6
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].total_upkeep == 11
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == 2
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].supplies == 6
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].supplies_target_days == 2
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].morale == -20
+    end
+    for i = 0, 50000 do
+        test_passed = test_passed and DATA.warband_unit[i].type == 17
     end
     print("SAVE_LOAD_TEST_1:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -9069,8 +12293,6 @@ function DATA.test_set_get_1()
     fat_id.real_g = -7
     fat_id.real_b = 7
     fat_id.pathfinding_index = 0
-    fat_id.bedrock = 16
-    fat_id.biome = 7
     local test_passed = true
     test_passed = test_passed and fat_id.is_land == true
     if not test_passed then print("is_land", true, fat_id.is_land) end
@@ -9132,10 +12354,6 @@ function DATA.test_set_get_1()
     if not test_passed then print("real_b", 7, fat_id.real_b) end
     test_passed = test_passed and fat_id.pathfinding_index == 0
     if not test_passed then print("pathfinding_index", 0, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.bedrock == 16
-    if not test_passed then print("bedrock", 16, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == 7
-    if not test_passed then print("biome", 7, fat_id.biome) end
     print("SET_GET_TEST_1_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_race(0)
@@ -9398,9 +12616,18 @@ function DATA.test_set_get_1()
     fat_id.foragers = 17
     fat_id.foragers_water = -14
     fat_id.foragers_limit = 0
+    for j = 0, 24 do
+        DATA.province[0].local_resources[j].resource = 0
+    end
+    for j = 0, 24 do
+        DATA.province[0].local_resources[j].location = 0
+    end
     fat_id.mood = -19
+    for j = 0, 19 do
+        DATA.province[0].unit_types[j] = 20
+    end
     fat_id.on_a_river = true
-    fat_id.on_a_forest = true
+    fat_id.on_a_forest = false
     local test_passed = true
     test_passed = test_passed and fat_id.r == -12
     if not test_passed then print("r", -12, fat_id.r) end
@@ -9460,13 +12687,104 @@ function DATA.test_set_get_1()
     if not test_passed then print("foragers_water", -14, fat_id.foragers_water) end
     test_passed = test_passed and fat_id.foragers_limit == 0
     if not test_passed then print("foragers_limit", 0, fat_id.foragers_limit) end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 0
+    end
+    if not test_passed then print("local_resources.resource", 0, DATA.province[0].local_resources[0].resource) end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 0
+    end
+    if not test_passed then print("local_resources.location", 0, DATA.province[0].local_resources[0].location) end
     test_passed = test_passed and fat_id.mood == -19
     if not test_passed then print("mood", -19, fat_id.mood) end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 20
+    end
+    if not test_passed then print("unit_types", 20, DATA.province[0].unit_types[0]) end
     test_passed = test_passed and fat_id.on_a_river == true
     if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
-    test_passed = test_passed and fat_id.on_a_forest == true
-    if not test_passed then print("on_a_forest", true, fat_id.on_a_forest) end
+    test_passed = test_passed and fat_id.on_a_forest == false
+    if not test_passed then print("on_a_forest", false, fat_id.on_a_forest) end
     print("SET_GET_TEST_1_province:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_army(0)
+    fat_id.destination = 4
+    local test_passed = true
+    test_passed = test_passed and fat_id.destination == 4
+    if not test_passed then print("destination", 4, fat_id.destination) end
+    print("SET_GET_TEST_1_army:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband(0)
+    for j = 0, 19 do
+        DATA.warband[0].units_current[j] = -12
+    end
+    for j = 0, 19 do
+        DATA.warband[0].units_target[j] = 16
+    end
+    fat_id.status = 1
+    fat_id.idle_stance = 1
+    fat_id.current_free_time_ratio = -13
+    fat_id.treasury = 11
+    fat_id.total_upkeep = 8
+    fat_id.predicted_upkeep = 10
+    fat_id.supplies = 4
+    fat_id.supplies_target_days = -7
+    fat_id.morale = -14
+    local test_passed = true
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[0].units_current[j] == -12
+    end
+    if not test_passed then print("units_current", -12, DATA.warband[0].units_current[0]) end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[0].units_target[j] == 16
+    end
+    if not test_passed then print("units_target", 16, DATA.warband[0].units_target[0]) end
+    test_passed = test_passed and fat_id.status == 1
+    if not test_passed then print("status", 1, fat_id.status) end
+    test_passed = test_passed and fat_id.idle_stance == 1
+    if not test_passed then print("idle_stance", 1, fat_id.idle_stance) end
+    test_passed = test_passed and fat_id.current_free_time_ratio == -13
+    if not test_passed then print("current_free_time_ratio", -13, fat_id.current_free_time_ratio) end
+    test_passed = test_passed and fat_id.treasury == 11
+    if not test_passed then print("treasury", 11, fat_id.treasury) end
+    test_passed = test_passed and fat_id.total_upkeep == 8
+    if not test_passed then print("total_upkeep", 8, fat_id.total_upkeep) end
+    test_passed = test_passed and fat_id.predicted_upkeep == 10
+    if not test_passed then print("predicted_upkeep", 10, fat_id.predicted_upkeep) end
+    test_passed = test_passed and fat_id.supplies == 4
+    if not test_passed then print("supplies", 4, fat_id.supplies) end
+    test_passed = test_passed and fat_id.supplies_target_days == -7
+    if not test_passed then print("supplies_target_days", -7, fat_id.supplies_target_days) end
+    test_passed = test_passed and fat_id.morale == -14
+    if not test_passed then print("morale", -14, fat_id.morale) end
+    print("SET_GET_TEST_1_warband:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_army_membership(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_army_membership:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_leader(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_warband_leader:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_recruiter(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_warband_recruiter:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_commander(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_warband_commander:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_location(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_warband_location:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_unit(0)
+    fat_id.type = 4
+    local test_passed = true
+    test_passed = test_passed and fat_id.type == 4
+    if not test_passed then print("type", 4, fat_id.type) end
+    print("SET_GET_TEST_1_warband_unit:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_character_location(0)
     local test_passed = true
@@ -9596,94 +12914,88 @@ function DATA.test_save_load_2()
     for i = 0, 1500000 do
         DATA.tile[i].pathfinding_index = 5
     end
-    for i = 0, 1500000 do
-        DATA.tile[i].bedrock = 17
-    end
-    for i = 0, 1500000 do
-        DATA.tile[i].biome = 5
+    for i = 0, 15 do
+        DATA.race[i].r = 15
     end
     for i = 0, 15 do
-        DATA.race[i].r = -5
+        DATA.race[i].g = -9
     end
     for i = 0, 15 do
-        DATA.race[i].g = -6
+        DATA.race[i].b = -5
     end
     for i = 0, 15 do
-        DATA.race[i].b = -19
+        DATA.race[i].carrying_capacity_weight = -6
     end
     for i = 0, 15 do
-        DATA.race[i].carrying_capacity_weight = -9
-    end
-    for i = 0, 15 do
-        DATA.race[i].fecundity = 0
+        DATA.race[i].fecundity = -19
     end
     for i = 0, 15 do
         DATA.race[i].spotting = -9
     end
     for i = 0, 15 do
-        DATA.race[i].visibility = -12
+        DATA.race[i].visibility = 0
     end
     for i = 0, 15 do
-        DATA.race[i].males_per_hundred_females = 12
+        DATA.race[i].males_per_hundred_females = -9
     end
     for i = 0, 15 do
-        DATA.race[i].child_age = 12
+        DATA.race[i].child_age = -12
     end
     for i = 0, 15 do
-        DATA.race[i].teen_age = 3
+        DATA.race[i].teen_age = 12
     end
     for i = 0, 15 do
         DATA.race[i].adult_age = 12
     end
     for i = 0, 15 do
-        DATA.race[i].middle_age = 15
+        DATA.race[i].middle_age = 3
     end
     for i = 0, 15 do
-        DATA.race[i].elder_age = -9
+        DATA.race[i].elder_age = 12
     end
     for i = 0, 15 do
-        DATA.race[i].max_age = 8
+        DATA.race[i].max_age = 15
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_temperature = 6
+        DATA.race[i].minimum_comfortable_temperature = -9
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_absolute_temperature = 13
+        DATA.race[i].minimum_absolute_temperature = 8
     end
     for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_elevation = 3
+        DATA.race[i].minimum_comfortable_elevation = 6
     end
     for i = 0, 15 do
-        DATA.race[i].female_body_size = 17
+        DATA.race[i].female_body_size = 13
     end
     for i = 0, 15 do
-        DATA.race[i].male_body_size = 2
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].female_efficiency[j] = 3
-    end
+        DATA.race[i].male_body_size = 3
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        DATA.race[i].male_efficiency[j] = 8
+        DATA.race[i].female_efficiency[j] = 17
     end
     end
     for i = 0, 15 do
-        DATA.race[i].female_infrastructure_needs = -10
+    for j = 0, 9 do
+        DATA.race[i].male_efficiency[j] = 2
+    end
     end
     for i = 0, 15 do
-        DATA.race[i].male_infrastructure_needs = 5
+        DATA.race[i].female_infrastructure_needs = 3
+    end
+    for i = 0, 15 do
+        DATA.race[i].male_infrastructure_needs = 8
     end
     for i = 0, 15 do
     for j = 0, 19 do
-        DATA.race[i].female_needs[j].need = 7
+        DATA.race[i].female_needs[j].need = 2
     end
     for j = 0, 19 do
-        DATA.race[i].female_needs[j].use_case = 20
+        DATA.race[i].female_needs[j].use_case = 12
     end
     for j = 0, 19 do
-        DATA.race[i].female_needs[j].required = 13
+        DATA.race[i].female_needs[j].required = 9
     end
     end
     for i = 0, 15 do
@@ -9856,13 +13168,69 @@ function DATA.test_save_load_2()
         DATA.province[i].foragers_limit = 7
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = -18
+    for j = 0, 24 do
+        DATA.province[i].local_resources[j].resource = 1
+    end
+    for j = 0, 24 do
+        DATA.province[i].local_resources[j].location = 1
+    end
+    end
+    for i = 0, 10000 do
+        DATA.province[i].mood = 3
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.province[i].unit_types[j] = 11
+    end
     end
     for i = 0, 10000 do
         DATA.province[i].on_a_river = true
     end
     for i = 0, 10000 do
-        DATA.province[i].on_a_forest = false
+        DATA.province[i].on_a_forest = true
+    end
+    for i = 0, 5000 do
+        DATA.army[i].destination = 0
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.warband[i].units_current[j] = -15
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        DATA.warband[i].units_target[j] = -13
+    end
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].status = 1
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].idle_stance = 0
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].current_free_time_ratio = -18
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].treasury = -19
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].total_upkeep = 3
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].predicted_upkeep = -4
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].supplies = -12
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].supplies_target_days = -10
+    end
+    for i = 0, 10000 do
+        DATA.warband[i].morale = -9
+    end
+    for i = 0, 50000 do
+        DATA.warband_unit[i].type = 16
     end
     DATA.save_state()
     DATA.load_state()
@@ -9957,94 +13325,88 @@ function DATA.test_save_load_2()
     for i = 0, 1500000 do
         test_passed = test_passed and DATA.tile[i].pathfinding_index == 5
     end
-    for i = 0, 1500000 do
-        test_passed = test_passed and DATA.tile[i].bedrock == 17
-    end
-    for i = 0, 1500000 do
-        test_passed = test_passed and DATA.tile[i].biome == 5
+    for i = 0, 15 do
+        test_passed = test_passed and DATA.race[i].r == 15
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].r == -5
+        test_passed = test_passed and DATA.race[i].g == -9
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].g == -6
+        test_passed = test_passed and DATA.race[i].b == -5
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].b == -19
+        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == -6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == -9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].fecundity == 0
+        test_passed = test_passed and DATA.race[i].fecundity == -19
     end
     for i = 0, 15 do
         test_passed = test_passed and DATA.race[i].spotting == -9
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].visibility == -12
+        test_passed = test_passed and DATA.race[i].visibility == 0
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].males_per_hundred_females == 12
+        test_passed = test_passed and DATA.race[i].males_per_hundred_females == -9
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].child_age == 12
+        test_passed = test_passed and DATA.race[i].child_age == -12
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].teen_age == 3
+        test_passed = test_passed and DATA.race[i].teen_age == 12
     end
     for i = 0, 15 do
         test_passed = test_passed and DATA.race[i].adult_age == 12
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].middle_age == 15
+        test_passed = test_passed and DATA.race[i].middle_age == 3
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].elder_age == -9
+        test_passed = test_passed and DATA.race[i].elder_age == 12
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].max_age == 8
+        test_passed = test_passed and DATA.race[i].max_age == 15
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == 6
+        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == -9
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == 13
+        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == 8
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 3
+        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 6
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_body_size == 17
+        test_passed = test_passed and DATA.race[i].female_body_size == 13
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_body_size == 2
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 3
-    end
+        test_passed = test_passed and DATA.race[i].male_body_size == 3
     end
     for i = 0, 15 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].male_efficiency[j] == 8
+        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 17
     end
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == -10
+    for j = 0, 9 do
+        test_passed = test_passed and DATA.race[i].male_efficiency[j] == 2
+    end
     end
     for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 5
+        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == 3
+    end
+    for i = 0, 15 do
+        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 8
     end
     for i = 0, 15 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].need == 7
+        test_passed = test_passed and DATA.race[i].female_needs[j].need == 2
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 20
+        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 12
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].required == 13
+        test_passed = test_passed and DATA.race[i].female_needs[j].required == 9
     end
     end
     for i = 0, 15 do
@@ -10217,13 +13579,69 @@ function DATA.test_save_load_2()
         test_passed = test_passed and DATA.province[i].foragers_limit == 7
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == -18
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 1
+    end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 1
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].mood == 3
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 11
+    end
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].on_a_river == true
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].on_a_forest == false
+        test_passed = test_passed and DATA.province[i].on_a_forest == true
+    end
+    for i = 0, 5000 do
+        test_passed = test_passed and DATA.army[i].destination == 0
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[i].units_current[j] == -15
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[i].units_target[j] == -13
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].status == 1
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].idle_stance == 0
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -18
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].treasury == -19
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].total_upkeep == 3
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -4
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].supplies == -12
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].supplies_target_days == -10
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.warband[i].morale == -9
+    end
+    for i = 0, 50000 do
+        test_passed = test_passed and DATA.warband_unit[i].type == 16
     end
     print("SAVE_LOAD_TEST_2:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -10260,8 +13678,6 @@ function DATA.test_set_get_2()
     fat_id.real_g = 7
     fat_id.real_b = 13
     fat_id.pathfinding_index = 5
-    fat_id.bedrock = 17
-    fat_id.biome = 5
     local test_passed = true
     test_passed = test_passed and fat_id.is_land == true
     if not test_passed then print("is_land", true, fat_id.is_land) end
@@ -10323,10 +13739,6 @@ function DATA.test_set_get_2()
     if not test_passed then print("real_b", 13, fat_id.real_b) end
     test_passed = test_passed and fat_id.pathfinding_index == 5
     if not test_passed then print("pathfinding_index", 5, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.bedrock == 17
-    if not test_passed then print("bedrock", 17, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == 5
-    if not test_passed then print("biome", 5, fat_id.biome) end
     print("SET_GET_TEST_2_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_race(0)
@@ -10589,9 +14001,18 @@ function DATA.test_set_get_2()
     fat_id.foragers = -3
     fat_id.foragers_water = -18
     fat_id.foragers_limit = -19
-    fat_id.mood = 3
+    for j = 0, 24 do
+        DATA.province[0].local_resources[j].resource = 11
+    end
+    for j = 0, 24 do
+        DATA.province[0].local_resources[j].location = 14
+    end
+    fat_id.mood = 0
+    for j = 0, 19 do
+        DATA.province[0].unit_types[j] = 12
+    end
     fat_id.on_a_river = false
-    fat_id.on_a_forest = false
+    fat_id.on_a_forest = true
     local test_passed = true
     test_passed = test_passed and fat_id.r == -17
     if not test_passed then print("r", -17, fat_id.r) end
@@ -10651,13 +14072,104 @@ function DATA.test_set_get_2()
     if not test_passed then print("foragers_water", -18, fat_id.foragers_water) end
     test_passed = test_passed and fat_id.foragers_limit == -19
     if not test_passed then print("foragers_limit", -19, fat_id.foragers_limit) end
-    test_passed = test_passed and fat_id.mood == 3
-    if not test_passed then print("mood", 3, fat_id.mood) end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 11
+    end
+    if not test_passed then print("local_resources.resource", 11, DATA.province[0].local_resources[0].resource) end
+    for j = 0, 24 do
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 14
+    end
+    if not test_passed then print("local_resources.location", 14, DATA.province[0].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == 0
+    if not test_passed then print("mood", 0, fat_id.mood) end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 12
+    end
+    if not test_passed then print("unit_types", 12, DATA.province[0].unit_types[0]) end
     test_passed = test_passed and fat_id.on_a_river == false
     if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
-    test_passed = test_passed and fat_id.on_a_forest == false
-    if not test_passed then print("on_a_forest", false, fat_id.on_a_forest) end
+    test_passed = test_passed and fat_id.on_a_forest == true
+    if not test_passed then print("on_a_forest", true, fat_id.on_a_forest) end
     print("SET_GET_TEST_2_province:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_army(0)
+    fat_id.destination = 1
+    local test_passed = true
+    test_passed = test_passed and fat_id.destination == 1
+    if not test_passed then print("destination", 1, fat_id.destination) end
+    print("SET_GET_TEST_2_army:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband(0)
+    for j = 0, 19 do
+        DATA.warband[0].units_current[j] = -17
+    end
+    for j = 0, 19 do
+        DATA.warband[0].units_target[j] = -15
+    end
+    fat_id.status = 1
+    fat_id.idle_stance = 1
+    fat_id.current_free_time_ratio = -10
+    fat_id.treasury = -1
+    fat_id.total_upkeep = -4
+    fat_id.predicted_upkeep = 18
+    fat_id.supplies = -7
+    fat_id.supplies_target_days = 18
+    fat_id.morale = -18
+    local test_passed = true
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[0].units_current[j] == -17
+    end
+    if not test_passed then print("units_current", -17, DATA.warband[0].units_current[0]) end
+    for j = 0, 19 do
+        test_passed = test_passed and DATA.warband[0].units_target[j] == -15
+    end
+    if not test_passed then print("units_target", -15, DATA.warband[0].units_target[0]) end
+    test_passed = test_passed and fat_id.status == 1
+    if not test_passed then print("status", 1, fat_id.status) end
+    test_passed = test_passed and fat_id.idle_stance == 1
+    if not test_passed then print("idle_stance", 1, fat_id.idle_stance) end
+    test_passed = test_passed and fat_id.current_free_time_ratio == -10
+    if not test_passed then print("current_free_time_ratio", -10, fat_id.current_free_time_ratio) end
+    test_passed = test_passed and fat_id.treasury == -1
+    if not test_passed then print("treasury", -1, fat_id.treasury) end
+    test_passed = test_passed and fat_id.total_upkeep == -4
+    if not test_passed then print("total_upkeep", -4, fat_id.total_upkeep) end
+    test_passed = test_passed and fat_id.predicted_upkeep == 18
+    if not test_passed then print("predicted_upkeep", 18, fat_id.predicted_upkeep) end
+    test_passed = test_passed and fat_id.supplies == -7
+    if not test_passed then print("supplies", -7, fat_id.supplies) end
+    test_passed = test_passed and fat_id.supplies_target_days == 18
+    if not test_passed then print("supplies_target_days", 18, fat_id.supplies_target_days) end
+    test_passed = test_passed and fat_id.morale == -18
+    if not test_passed then print("morale", -18, fat_id.morale) end
+    print("SET_GET_TEST_2_warband:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_army_membership(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_army_membership:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_leader(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_warband_leader:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_recruiter(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_warband_recruiter:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_commander(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_warband_commander:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_location(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_warband_location:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_warband_unit(0)
+    fat_id.type = 1
+    local test_passed = true
+    test_passed = test_passed and fat_id.type == 1
+    if not test_passed then print("type", 1, fat_id.type) end
+    print("SET_GET_TEST_2_warband_unit:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_character_location(0)
     local test_passed = true

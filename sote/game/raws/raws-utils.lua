@@ -79,7 +79,7 @@ function ut.production_method(id)
 end
 
 ---@param id string
----@return fat_biome_id
+---@return biome_id
 function ut.biome(id)
 	local r = RAWS_MANAGER.biomes_by_name[id]
 	if r == nil then
@@ -87,11 +87,11 @@ function ut.biome(id)
 		error("Biome " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	return DATA.fatten_biome(r)
+	return r
 end
 
 ---@param id string
----@return fat_bedrock_id
+---@return bedrock_id
 function ut.bedrock(id)
 	local r = RAWS_MANAGER.bedrocks_by_name[id]
 	if r == nil then
@@ -99,7 +99,7 @@ function ut.bedrock(id)
 		error("Bedrock " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	return DATA.fatten_bedrock(r)
+	return r
 end
 
 ---@param id string

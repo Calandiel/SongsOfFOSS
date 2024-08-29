@@ -2,15 +2,21 @@ local tabb = require "engine.table"
 local emp = {}
 
 local economy_values = require "game.raws.values.economical"
+local province_utils = require "game.entities.province".Province
 
 ---Employs pops in the province.
----@param province Province
+---@param province province_id
 function emp.run(province)
 	-- Sample random pop and try to employ it
 	---@type table<pop_id, pop_id>
-	local eligible_pops = tabb.filter(province.all_pops, function (pop)
-		return (DATA.pop_get_age(pop) > DATA.pop_get_race(pop).teen_age) and (DATA.pop_get_work_ratio(pop) > 0.02)
-	end)
+	local eligible_pops = tabb.filter(
+		tabb.map_array(DATA.get_pop_location_from_location(province), DATA.pop_location_get_pop),
+		function (pop)
+			local race = DATA.pop_get_race(pop)
+			local teen_age = DATA.race_get_teen_age(race)
+			return (DATA.pop_get_age(pop) > teen_age) and (DATA.pop_get_work_ratio(pop) > 0.02)
+		end
+	)
 
 	local pop = tabb.random_select_from_set(eligible_pops)
 
@@ -53,7 +59,7 @@ function emp.run(province)
 				if profit < 0.01 and love.math.random() < 0.25 then
 					local pop = tabb.random_select_from_set(building.workers)
 					if pop then
-						province:fire_pop(pop)
+						province_utils.fire_pop(province, pop)
 					end
 				end
 			else
@@ -114,7 +120,7 @@ function emp.run(province)
 	end
 
 	-- Lastly, hire new workers
-	local potential_job = province:potential_job(hire_building)
+	local potential_job = province_utils.potential_job(province, hire_building)
 	if potential_job == nil then
 		return
 	end
@@ -133,11 +139,11 @@ function emp.run(province)
 	-- 	end
 	-- end
 
-	if DATA.pop_get_age(pop) > DATA.pop_get_race(pop).teen_age then
+	if DATA.pop_get_age(pop) > DATA.race_get_teen_age(DATA.pop_get_race(pop)) then
 		if DATA.pop_get_job(pop) then
 			-- pop is not employed
 			-- employ him
-			province:employ_pop(pop, hire_building)
+			province_utils.employ_pop(province, pop, hire_building)
 		else
 			-- pop is already employed
 			-- consider changing his job
@@ -159,8 +165,7 @@ function emp.run(province)
 
 			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
 				-- change job!
-				province:fire_pop(pop)
-				province:employ_pop(pop, hire_building)
+				province_utils.employ_pop(province, pop, hire_building)
 			end
 		end
 	end

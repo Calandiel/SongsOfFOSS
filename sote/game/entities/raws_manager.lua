@@ -13,11 +13,11 @@
 ---@field jobs_by_name table<string, Job>
 ---@field technologies_by_name table<string, Technology>
 ---@field production_methods_by_name table<string, ProductionMethod>
----@field resources_by_name table<string, Resource>
+---@field resources_by_name table<string, resource_id>
 ---@field decisions_by_name table<string, DecisionRealm>
 ---@field decisions_characters_by_name table<string, DecisionCharacter>
 ---@field events_by_name table<string, Event>
----@field unit_types_by_name table<string, UnitType>
+---@field unit_types_by_name table<string, unit_type_id>
 ---@field do_logging boolean
 local raws_manager = {}
 

@@ -1,4 +1,5 @@
 local province_utils = require "game.entities.province".Province
+local warband_utils = require "game.entities.warband"
 local rtab = {}
 rtab.POP = {}
 
@@ -25,12 +26,12 @@ function rtab.POP.new(race, faith, culture, female, age, home, location, charact
 
 	r.name = culture.language:get_random_name()
 
-	province_utils.set_home(province_id, r.id)
+	province_utils.set_home(home, r.id)
 
 	if character_flag then
-		location:add_character(r.id)
+		province_utils.add_character(location, r.id)
 	else
-		location:add_guest_pop(r.id)
+		province_utils.add_guest_pop(location, r.id)
 	end
 
 	r.busy                     = false
@@ -80,12 +81,13 @@ end
 ---The "fire" routine for soldiers. Also used in some other contexts?
 ---@param pop pop_id
 function rtab.POP.unregister_military(pop)
-	local unit_of = DATA.pop_get_unit_of_warband(pop)
+	local unit_of = DATA.get_warband_unit_from_unit(pop)
 	if unit_of then
-		unit_of:fire_unit(pop)
+		warband_utils.fire_unit(DATA.warband_unit_get_warband(unit_of), pop)
 	end
 end
 
+---@param pop_id pop_id
 function rtab.POP.get_age_multiplier(pop_id)
 	local age_multiplier = 1
 	local age = DATA.pop_get_age(pop_id)
@@ -195,39 +197,42 @@ end
 
 ---Returns the adjusted health value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType
+---@param unit unit_type_id
 ---@return number attack health modified by pop race and sex
 function rtab.POP.get_health(pop, unit)
-	return unit.base_health * rtab.POP.size(pop)
+	return DATA.unit_type_get_base_health(unit) * rtab.POP.size(pop)
 end
 
 ---Returns the adjusted attack value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType
+---@param unit unit_type_id
 ---@return number pop_adjusted attack modified by pop race and sex
 function rtab.POP.get_attack(pop, unit)
-	return unit.base_attack * rtab.POP.job_efficiency(pop, JOBTYPE.WARRIOR)
+	return DATA.unit_type_get_base_attack(unit) * rtab.POP.job_efficiency(pop, JOBTYPE.WARRIOR)
 end
 
 ---Returns the adjusted armor value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType
+---@param unit unit_type_id
 ---@return number pop_adjusted armor modified by pop race and sex
 function rtab.POP.get_armor(pop, unit)
-	return unit.base_armor
+	return DATA.unit_type_get_base_armor(unit)
 end
 
 ---Returns the adjusted speed value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType?
+---@param unit unit_type_id
 ---@return number pop_adjusted speed modified by pop race and sex
 function rtab.POP.get_speed(pop, unit)
-	return (unit and unit.speed or 1)
+	if unit then
+		return DATA.unit_type_get_speed(unit)
+	end
+	return 1
 end
 
 ---Returns the adjusted combat strength values for the provided pop.
 ---@param pop pop_id
----@param unit UnitType
+---@param unit unit_type_id
 ---@return number health
 ---@return number attack
 ---@return number armor
@@ -238,36 +243,48 @@ end
 
 ---Returns the adjusted spotting value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType?
+---@param unit unit_type_id
 ---@return number pop_adjusted spotting modified by pop race and sex
 function rtab.POP.get_spotting(pop, unit)
 	local race = DATA.pop_get_race(pop)
 	local spotting = DATA.race_get_spotting(race)
-	return (unit and unit.spotting or 1) * spotting
+	if unit then
+		return DATA.unit_type_get_spotting(unit) * spotting
+	end
+	return spotting
 end
 
 ---Returns the adjusted visibility value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType?
+---@param unit unit_type_id
 ---@return number pop_adjusted visibility modified by pop race and sex
 function rtab.POP.pop_get_visibility(pop, unit)
 	local race = DATA.pop_get_race(pop)
 	local visibility = DATA.race_get_visibility(race)
-	return (unit and unit.visibility or 1) * visibility * rtab.POP.size(pop)
+	local mod = visibility * rtab.POP.size(pop)
+	if unit then
+		return DATA.unit_type_get_visibility(unit) * mod
+	end
+	return mod
 end
 
 ---Returns the adjusted travel day cost value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType?
+---@param unit unit_type_id
 ---@return number pop_adjusted food need modified by pop race and sex
 function rtab.POP.get_supply_use(pop, unit)
 	local pop_food = rtab.POP.calculate_need_use_case_satisfaction(pop, NEED.FOOD, CALORIES_USE_CASE)
-	return ((unit and unit.supply_useds or 0) + pop_food) / 30
+	local base = 0
+	if unit then
+		base = base + DATA.unit_type_get_supply_used(unit)
+	end
+
+	return (base + pop_food) / 30
 end
 
 ---Returns the adjusted hauling capacity value for the provided pop.
 ---@param pop pop_id
----@param unit UnitType?
+---@param unit unit_type_id
 ---@return number pop_adjusted hauling modified by pop race and sex
 function rtab.POP.get_supply_capacity(pop, unit)
 	local race = DATA.pop_get_race(pop)
@@ -275,7 +292,13 @@ function rtab.POP.get_supply_capacity(pop, unit)
 	if DATA.pop_get_female(pop) then
 		job = DATA.race_get_female_efficiency(race, JOBTYPE.HAULING)
 	end
-	return (unit and unit.supply_capacity * 0.25 or 0) + job
+
+	local base = 0
+	if unit then
+		base = base + DATA.unit_type_get_supply_capacity(unit)
+	end
+
+	return base + job
 end
 
 return rtab

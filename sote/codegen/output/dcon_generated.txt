@@ -153,16 +153,6 @@ object {
         type = { uint32_t }
         tag = { scenario }
     }
-    property{
-        name = { bedrock }
-        type = { uint32_t }
-        tag = { scenario }
-    }
-    property{
-        name = { biome }
-        type = { uint32_t }
-        tag = { scenario }
-    }
 }
 object {
     name { race }
@@ -522,8 +512,18 @@ object {
         tag = { scenario }
     }
     property{
+        name = { local_resources }
+        type = { base_types::resource_location }
+        tag = { scenario }
+    }
+    property{
         name = { mood }
         type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { unit_types }
+        type = { uint32_t }
         tag = { scenario }
     }
     property{
@@ -534,6 +534,119 @@ object {
     property{
         name = { on_a_forest }
         type = { bitfield }
+        tag = { scenario }
+    }
+}
+object {
+    name { army }
+    storage_type { contiguous }
+    size { 5000 }
+    tag {scenario}
+    property{
+        name = { destination }
+        type = { province_id }
+        tag = { scenario }
+    }
+}
+object {
+    name { warband }
+    storage_type { contiguous }
+    size { 10000 }
+    tag {scenario}
+    property{
+        name = { units_current }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { units_target }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { status }
+        type = { base_enums::WARBAND_STATUS }
+        tag = { scenario }
+    }
+    property{
+        name = { idle_stance }
+        type = { base_enums::WARBAND_STANCE }
+        tag = { scenario }
+    }
+    property{
+        name = { current_free_time_ratio }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { treasury }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { total_upkeep }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { predicted_upkeep }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { supplies }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { supplies_target_days }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { morale }
+        type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { army_membership }
+    storage_type { contiguous }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_leader }
+    storage_type { contiguous }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_recruiter }
+    storage_type { contiguous }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_commander }
+    storage_type { contiguous }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_location }
+    storage_type { contiguous }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_unit }
+    storage_type { contiguous }
+    size { 50000 }
+    tag {scenario}
+    property{
+        name = { type }
+        type = { unit_type_id }
         tag = { scenario }
     }
 }
@@ -646,6 +759,24 @@ object {
     tag {scenario}
 }
 object {
+    name { trade_good_category }
+    storage_type { contiguous }
+    size { 5 }
+    tag {scenario}
+}
+object {
+    name { warband_status }
+    storage_type { contiguous }
+    size { 10 }
+    tag {scenario}
+}
+object {
+    name { warband_stance }
+    storage_type { contiguous }
+    size { 4 }
+    tag {scenario}
+}
+object {
     name { trade_good }
     storage_type { contiguous }
     size { 100 }
@@ -663,6 +794,11 @@ object {
     property{
         name = { b }
         type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { category }
+        type = { base_enums::TRADE_GOOD_CATEGORY }
         tag = { scenario }
     }
     property{
@@ -789,12 +925,12 @@ object {
         tag = { scenario }
     }
     property{
-        name = { maximum_rain }
+        name = { minimum_rain }
         type = { float }
         tag = { scenario }
     }
     property{
-        name = { minimum_rain }
+        name = { maximum_rain }
         type = { float }
         tag = { scenario }
     }
@@ -965,13 +1101,18 @@ object {
         tag = { scenario }
     }
     property{
-        name = { igneous_extrusive }
-        type = { bitfield }
+        name = { grain_size }
+        type = { float }
         tag = { scenario }
     }
     property{
         name = { acidity }
         type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { igneous_extrusive }
+        type = { bitfield }
         tag = { scenario }
     }
     property{
@@ -987,11 +1128,6 @@ object {
     property{
         name = { clastic }
         type = { bitfield }
-        tag = { scenario }
-    }
-    property{
-        name = { grain_size }
-        type = { float }
         tag = { scenario }
     }
     property{
@@ -1022,6 +1158,148 @@ object {
     property{
         name = { sedimentary_ocean_shallow }
         type = { bitfield }
+        tag = { scenario }
+    }
+}
+object {
+    name { resource }
+    storage_type { contiguous }
+    size { 300 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { required_biome }
+        type = { biome_id }
+        tag = { scenario }
+    }
+    property{
+        name = { required_bedrock }
+        type = { bedrock_id }
+        tag = { scenario }
+    }
+    property{
+        name = { base_frequency }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { minimum_trees }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { maximum_trees }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { minimum_elevation }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { maximum_elevation }
+        type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { unit_type }
+    storage_type { contiguous }
+    size { 20 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { base_price }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { upkeep }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { supply_used }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { trade_good_requirements }
+        type = { base_types::trade_good_container }
+        tag = { scenario }
+    }
+    property{
+        name = { base_health }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { base_attack }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { base_armor }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { speed }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { foraging }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { bonuses }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { supply_capacity }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { spotting }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { visibility }
+        type = { float }
         tag = { scenario }
     }
 }

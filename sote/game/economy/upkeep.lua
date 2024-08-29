@@ -2,8 +2,9 @@ local economic_effects = require "game.raws.effects.economic"
 local upk = {}
 
 ---Runs upkeep on buildings in a province and destroys buildings if upkeep needs aren't met!
----@param province Province
-function upk.run(province)
+---@param province_id province_id
+function upk.run(province_id)
+	local province = DATA.fatten_province(province_id)
 	province.local_building_upkeep = 0
 
 	---@type table<pop_id, number>
@@ -25,7 +26,7 @@ function upk.run(province)
 			local owner = building.owner
 			if owner == nil then
 				economic_effects.change_local_wealth(
-					province,
+					province_id,
 					-up,
 					economic_effects.reasons.Upkeep
 				)

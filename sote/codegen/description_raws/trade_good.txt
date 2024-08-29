@@ -4,5 +4,5 @@ description string
 r float
 g float
 b float
-category TradeGoodCategory
+category TRADE_GOOD_CATEGORY=TRADE_GOOD_CATEGORY.GOOD
 base_price float

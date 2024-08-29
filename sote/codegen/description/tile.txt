@@ -28,6 +28,6 @@ real_r float between 0 and 1, as per Love2Ds convention...
 real_g float between 0 and 1, as per Love2Ds convention...
 real_b float between 0 and 1, as per Love2Ds convention...
 pathfinding_index uint32_t
-resource Resource?
-bedrock uint32_t
-biome uint32_t
+resource resource_id
+bedrock bedrock_id
+biome biome_id

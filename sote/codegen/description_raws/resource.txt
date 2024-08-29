@@ -1,0 +1,17 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+required_biome biome_id[20]
+required_bedrock bedrock_id[20]
+base_frequency float=1000 number of tiles per which this resource is spawned
+coastal boolean=false
+land boolean=true
+water boolean=false
+ice_age boolean=false requires presence of ice age ice
+minimum_trees float=0
+maximum_trees float=1
+minimum_elevation float=-math.huge
+maximum_elevation float=math.huge

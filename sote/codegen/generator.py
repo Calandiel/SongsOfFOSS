@@ -42,10 +42,26 @@ class Atom:
     c_type: str
     lsp_type: str
     dcon_type: str
+    default_value: typing.Union[None, str]
+    generated_during_runtime: bool
 
-    def __init__(self, description) -> None:
+    def __init__(self, description: str) -> None:
         # if description == "trade_good":
         #     print(description)
+
+        if description.startswith('@'):
+            self.generated_during_runtime = True
+            description = description[1:]
+        else:
+            self.generated_during_runtime = False
+
+        l = description.split("=")
+        if len(l) > 1:
+            self.default_value = l[1]
+        else:
+            self.default_value = None
+
+        description = l[0]
 
         # print(1)
         if description in REGISTERED_ENUMS:
@@ -322,6 +338,7 @@ class LinkField(Field):
     def array_string(self, max_count: int):
         if self.value.lsp_type in REGISTERED_ID_NAMES:
             return ""
+        raise(RuntimeError(f"Invalid link: {self.value.lsp_type} {self.name}"))
         lsp_table_type = f'---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.lsp_type)}>\n'
         declaration = f'{self.local_var_name()}'
         return lsp_table_type + declaration + '= {}\n'
@@ -382,6 +399,7 @@ class LinkField(Field):
                     f"    local old_value = {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n"\
                     f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
                     f"    {self.remove_key_func_name()}({arg}, old_value)\n"\
+                    f"    table.insert({self.local_accessor_name()}[value], {arg})\n"\
                     f"end\n"
         else:
             return  f"function {self.remove_key_func_name()}(old_value)\n" \
@@ -393,6 +411,7 @@ class LinkField(Field):
                     f"    local old_value = {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n"\
                     f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
                     f"    {self.remove_key_func_name()}(old_value)\n"\
+                    f"    {self.local_accessor_name()}[value] = {arg}\n"\
                     f"end\n"
 
     def local_accessor_name(self):
@@ -692,11 +711,53 @@ class EntityDescription:
 
         #raw data
         if self.is_raws:
-            result += f'---@class {prefix_to_id_name(self.name)}_data_blob\n'
+            # result += f'---@class {prefix_to_id_name(self.name)}_data_blob\n'
+            # for field in self.fields:
+            #     if field.
+            #     result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+            # for field in self.links:
+            #     result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+
+            #data for entity setup
+
+            result += f'---@class (exact) {prefix_to_id_name(self.name)}_data_blob_definition\n'
             for field in self.fields:
-                result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+                if field.value.generated_during_runtime:
+                    continue
+                if field.value.default_value is None:
+                    if field.array_size == 1:
+                        result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+                    else:
+                        result += f'---@field {field.name} {field.value.lsp_type}[] {field.description}\n'
+                else:
+                    result += f'---@field {field.name} {field.value.lsp_type}? {field.description}\n'
+
             for field in self.links:
                 result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+
+            # setup function to avoid loops over all key-value pairs
+            result += f"---Sets values of {self.name} for given id\n"
+            result += f"---@param id {prefix_to_id_name(self.name)}\n"
+            result += f"---@param data {prefix_to_id_name(self.name)}_data_blob_definition\n"
+            result += f"function {NAMESPACE}.setup_{self.name}(id, data)\n"
+            for field in self.fields:
+                if field.value.generated_during_runtime:
+                    continue
+                if field.value.default_value is None:
+                    if field.array_size == 1:
+                        result += f"    {field.setter_name()}(id, data.{field.name})\n"
+                    else:
+                        result += f"    for i, value in ipairs(data.{field.name}) do\n"
+                        result += f"        {field.setter_name()}(id, value, i - 1)\n"
+                        result += f"    end\n"
+                else:
+                    result += f"    if data.{field.name} ~= nil then\n"
+                    result += f"        {field.setter_name()}(id, data.{field.name})\n"
+                    result += f"    end\n"
+            result += f"end\n"
+
+
+
 
         result += "\n"
 
@@ -746,6 +807,9 @@ class EntityDescription:
         result += f"        if {self.name}_indices_pool[i] then\n"
         result += f"            {self.name}_indices_pool[i] = false\n"
         result += f"            {NAMESPACE}.{self.name}_indices_set[i] = i\n"
+        for field in self.fields:
+            if not field.value.default_value is None:
+                result += f"            {field.setter_name()}(i, {field.value.default_value})\n"
         result +=  "            return i\n"
         result +=  "        end\n"
         result +=  "    end\n"
@@ -1167,25 +1231,44 @@ Jobtype = StaticEntityDescription("jobtype")
 Need = StaticEntityDescription("need")
 Rank = StaticEntityDescription("character_rank")
 Trait = StaticEntityDescription("trait")
+TradeGoodCategory = StaticEntityDescription("trade_good_category")
+WarbandStatus = StaticEntityDescription("warband_status")
+WarbandStance = StaticEntityDescription("warband_stance")
 
 TILES_MAX_COUNT = 500 * 500 * 6
 
 TileDescription = EntityDescription("tile", TILES_MAX_COUNT, False)
 
 TradeGoodDescription = EntityDescription("trade_good", 100, True)
+GoodContainer = StructDescription("trade_good_container")
+
 UseCaseDescription = EntityDescription("use_case", 100, True)
 UseWeight = EntityDescription("use_weight", 300, True)
 Biome = EntityDescription("biome", 100, True)
 Bedrock = EntityDescription("bedrock", 150, True)
+Resource = EntityDescription("resource", 300, True)
+ResourcesLocation = StructDescription("resource_location")
+
+UnitType = EntityDescription("unit_type", 20, True)
 
 Satisfaction = StructDescription("need_satisfaction")
 NeedDefinition = StructDescription("need_definition")
+
 
 POPS_MAX_COUNT = 300000
 
 Race = EntityDescription("race", 15, False)
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
 Province = EntityDescription("province", 10000, False)
+Army = EntityDescription("army", 5000, False)
+Warband = EntityDescription("warband", 10000, False)
+
+ArmyMembership = EntityDescription("army_membership", 10000, False)
+WarbandLeader = EntityDescription("warband_leader", 10000, False)
+WarbandRecruiter = EntityDescription("warband_recruiter", 10000, False)
+WarbandCommander = EntityDescription("warband_commander", 10000, False)
+WarbandLocation = EntityDescription("warband_location", 10000, False)
+WarbandUnit = EntityDescription("warband_unit", 50000, False)
 
 CharacterLocation = EntityDescription("character_location", 100000, False)
 HomeLocation = EntityDescription("home", POPS_MAX_COUNT, False)

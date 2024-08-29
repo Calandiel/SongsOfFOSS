@@ -5,7 +5,7 @@ local economy_values = require "game.raws.values.economical"
 local economy_effects = require "game.raws.effects.economic"
 
 ---Employs pops in the province.
----@param province Province
+---@param province province_id
 function bld.run(province)
     -- destroy unused building
 	---@type Building[]

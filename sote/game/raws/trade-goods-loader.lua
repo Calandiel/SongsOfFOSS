@@ -14,8 +14,10 @@ function d.load()
 		local retrieved_use_case = retrieve_use_case(use_case)
 		local retrieved_trade_good = retrieve_good(trade_good)
 
-		local trade_good_use_case = DATA.set_use_weight(retrieved_trade_good, retrieved_use_case)
-		DATA.use_weight_set_weight(trade_good_use_case, weight)
+		local use_weight = DATA.create_use_weight()
+		DATA.use_weight_set_trade_good(use_weight, retrieved_trade_good)
+		DATA.use_weight_set_use_case(use_weight, retrieved_use_case)
+		DATA.use_weight_set_weight(use_weight, weight)
 	end
 
 
@@ -27,7 +29,6 @@ function d.load()
 		r = 222 / 255,
 		g = 11 / 255,
 		b = 93 / 255,
-		category = "good",
 		base_price = 1.25,
 	}
 	add_use_case("berries", "calories", 1.25)
@@ -41,7 +42,6 @@ function d.load()
 		r = 245 / 255,
 		g = 222 / 255,
 		b = 179 / 255,
-		category = "good",
 		base_price = 1,
 	}
 	add_use_case("grain", "calories", 1)
@@ -55,7 +55,6 @@ function d.load()
 		r = 1,
 		g = 0.86,
 		b = 0.5,
-		category = "good",
 		base_price = 2,
 	}
 	add_use_case("mushrooms", "calories", 1.6)
@@ -158,7 +157,6 @@ function d.load()
 		r = 0.12,
 		g = 0.12,
 		b = 1,
-		category = "good",
 		base_price = 2,
 	}
 	add_use_case("honey", "calories", 1)
@@ -173,7 +171,7 @@ function d.load()
 		r = 0.12,
 		g = 1,
 		b = 1,
-		category = "service",
+		category = TRADE_GOOD_CATEGORY.SERVICE,
 		base_price = 1,
 	}
 	add_use_case("water", "water", 1)
@@ -185,7 +183,7 @@ function d.load()
 		r = 0.683,
 		g = 0.128,
 		b = 0.974,
-		category = "service",
+		category = TRADE_GOOD_CATEGORY.SERVICE,
 		base_price = 6,
 	}
 	add_use_case("healthcare", "healthcare", 1)
@@ -197,7 +195,7 @@ function d.load()
 		r = 0.32,
 		g = 0.838,
 		b = 0.38,
-		category = "service",
+		category = TRADE_GOOD_CATEGORY.SERVICE,
 		base_price = 2,
 	}
 	add_use_case("amenities", "amenities", 1)
@@ -212,7 +210,7 @@ function d.load()
 		g = 0.42,
 		b = 0.92,
 		base_price = 1,
-		category = "capacity",
+		category = TRADE_GOOD_CATEGORY.CAPACITY,
 	}
 	add_use_case("administration", "administration", 1)
 

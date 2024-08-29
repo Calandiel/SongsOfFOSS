@@ -63,10 +63,10 @@ end
 ---@field r number
 ---@field g number
 ---@field b number
----@field primary_race Race
+---@field primary_race race_id
 ---@field primary_culture Culture
 ---@field primary_faith Faith
----@field capitol Province
+---@field capitol province_id
 ---@field leader Character?
 ---@field overseer Character?
 ---@field trading_right_given_to table<Character, Character>
@@ -79,14 +79,14 @@ end
 ---@field paying_tribute_to table<Realm, Realm>
 ---@field tributaries table<Realm, Realm>
 ---@field tributary_status table<Realm, TributaryStatus>
----@field provinces table<Province, Province>
----@field quests_raid table<Province, nil|number> reward for raid
----@field quests_explore table<Province, nil|number> reward for exploration
----@field quests_patrol table<Province, nil|number> reward for patrol
----@field patrols table<Province, table<Warband, Warband>>
+---@field provinces table<province_id, province_id>
+---@field quests_raid table<province_id, nil|number> reward for raid
+---@field quests_explore table<province_id, nil|number> reward for exploration
+---@field quests_patrol table<province_id, nil|number> reward for patrol
+---@field patrols table<province_id, table<Warband, Warband>>
 ---@field capitol_guard Warband?
 ---@field prepare_attack_flag boolean?
----@field known_provinces table<Province, Province> For terra incognita.
+---@field known_provinces table<province_id, province_id> For terra incognita.
 ---@field coa_base_r number
 ---@field coa_base_g number
 ---@field coa_base_b number
