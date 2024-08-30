@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
-local wb = require "game.entities.warband"
 local pop_utils = require "game.entities.pop".POP
+local warband_utils = require "game.entities.warband"
+local army_utils = require "game.entities.army"
 
 local EconomicValues = require "game.raws.values.economical"
 local economic_triggers = require "game.raws.triggers.economy"
@@ -47,13 +48,11 @@ function prov.Province.new(fake_flag)
 	o.infrastructure_needed = 0
 	o.infrastructure = 0
 	o.infrastructure_investment = 0
-	o.unit_types = {}
 	o.throughput_boosts = {}
 	o.input_efficiency_boosts = {}
 	o.output_efficiency_boosts = {}
 	o.on_a_river = false
 	o.on_a_forest = false
-	o.warbands = {}
 
 	if not fake_flag then
 		WORLD.province_count = WORLD.province_count + 1
@@ -102,9 +101,9 @@ end
 ---@return number
 function prov.Province.military(province)
 	local total = 0
-	local warbands = DATA.province_get_warbands(province)
-	for _, party in pairs(warbands) do
-		total = total + party:size()
+	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+		---@type number
+		total = total + warband_utils.size(DATA.warband_location_get_location(party))
 	end
 	return total
 end
@@ -113,16 +112,12 @@ end
 ---@param province province_id
 ---@return number
 function prov.Province.military_target(province)
-	local sum = 0
-	local warbands = DATA.province_get_warbands(province)
-	for _, warband in pairs(warbands) do
-		for _, u in pairs(warband.units_target) do
-			sum = sum + u
-		end
-		-- adding up leader position
-		sum = sum + 1
+	local total = 0
+	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+		---@type number
+		total = total + warband_utils.target_size(DATA.warband_location_get_location(party))
 	end
-	return sum
+	return total
 end
 
 ---Returns the total population of the province, not including characters.
@@ -306,8 +301,8 @@ function prov.Province.transfer_pop(origin, pop, target)
 					return false
 				end
 
-				local unit_of = DATA.pop_get_unit_of_warband(child)
-				if unit_of ~= nil then
+				local unit_of = DATA.get_warband_unit_from_unit(child)
+				if unit_of ~= INVALID_ID then
 					return false
 				end
 
@@ -351,8 +346,8 @@ function prov.Province.transfer_home(origin, pop, target)
 					return false
 				end
 
-				local unit_of = DATA.pop_get_unit_of_warband(child)
-				if unit_of ~= nil then
+				local unit_of = DATA.get_warband_unit_from_unit(child)
+				if unit_of ~= INVALID_ID then
 					return false
 				end
 
@@ -385,9 +380,12 @@ end
 ---@param province province_id
 function prov.Province.local_army_size(province)
 	local total = 0
-	for _, w in pairs(DATA.province_get_warbands(province)) do
-		if w.status == "idle" or w.status == "patrol" then
-			total = total + w:size()
+	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+		local warband = DATA.warband_location_get_location(party)
+		local status = DATA.warband_get_status(warband)
+		if status == WARBAND_STATUS.PATROL then
+			---@type number
+			total = total + warband_utils.size(warband)
 		end
 	end
 	return total
@@ -691,11 +689,12 @@ end
 ---Marks a pop as a soldier of a given type in a given warband.
 ---@param province province_id
 ---@param pop pop_id
----@param unit_type UnitType
----@param warband Warband
+---@param unit_type unit_type_id
+---@param warband warband_id
 function prov.Province.recruit(province, pop, unit_type, warband)
+	local membership = DATA.get_warband_unit_from_unit(pop)
 	-- if pop is already drafted, do nothing
-	if DATA.pop_get_unit_of_warband(pop) then
+	if membership ~= INVALID_ID then
 		return
 	end
 
@@ -704,7 +703,7 @@ function prov.Province.recruit(province, pop, unit_type, warband)
 	pop_utils.unregister_military(pop)
 
 	-- set warband
-	warband:hire_unit(province, pop, unit_type)
+	warband_utils.hire_unit(warband, pop, unit_type)
 end
 
 ---@param province province_id
@@ -820,9 +819,12 @@ function prov.Province.get_spotting(province)
 		s = s + b.type.spotting
 	end
 
-	for _, w in pairs(self.warbands) do
-		if w.status == "idle" or w.status == "patrol" then
-			s = s + w:spotting()
+	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+		local warband = DATA.warband_location_get_location(party)
+		local status = DATA.warband_get_status(warband)
+		if status == WARBAND_STATUS.PATROL then
+			---@type number
+			s = s + warband_utils.spotting(warband)
 		end
 	end
 
@@ -866,7 +868,7 @@ function prov.Province.spot_chance(province, visibility)
 end
 
 ---@param province province_id
----@param army Army Attacking army
+---@param army army_id Attacking army
 ---@param stealth_penalty number? Multiplicative penalty, multiplies army visibility score.
 ---@return boolean True if the army was spotted.
 function prov.Province.army_spot_test(province, army, stealth_penalty)
@@ -877,7 +879,7 @@ function prov.Province.army_spot_test(province, army, stealth_penalty)
 		stealth_penalty = 1
 	end
 
-	local visib = (army:get_visibility() + love.math.random(20)) * stealth_penalty
+	local visib = (army_utils.get_visibility(army) + love.math.random(20)) * stealth_penalty
 	local odds = prov.Province.spot_chance(province, visib)
 	if love.math.random() < odds then
 		-- Spot!
@@ -923,11 +925,11 @@ function prov.Province.get_unemployment(province)
 	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
 		local pop_id = DATA.pop_location_get_pop(p)
 
-		local unit_of = DATA.pop_get_unit_of_warband(pop_id)
+		local unit_of = DATA.get_warband_unit_from_unit(pop_id)
 		local job = DATA.pop_get_job(pop_id)
 		if job then
 
-		elseif unit_of then
+		elseif unit_of ~= INVALID_ID then
 
 		else
 			u = u + 1
@@ -938,24 +940,29 @@ function prov.Province.get_unemployment(province)
 end
 
 ---@param province province_id
+---@return warband_id warband
 function prov.Province.new_warband(province)
-	local warband = wb:new()
-	self.warbands[warband] = warband
+	local warband = DATA.create_warband()
+	local location = DATA.fatten_warband_location(DATA.create_warband_location())
+	location.location = province
+	location.warband = warband
 	return warband
 end
 
 ---@param province province_id
 function prov.Province.num_of_warbands(province)
-	return tabb.size(self.warbands)
+	return tabb.size(DATA.get_warband_location_from_location(province))
 end
 
 ---@param province province_id
+---@return warband_id[]
 function prov.Province.vacant_warbands(province)
 	local res = {}
 
-	for k, v in pairs(self.warbands) do
-		if v:vacant() then
-			table.insert(res, k)
+	for _, v in pairs(DATA.get_warband_location_from_location(province)) do
+		local warband = DATA.warband_location_get_warband(v)
+		if warband_utils.vacant(warband) then
+			table.insert(res, warband)
 		end
 	end
 

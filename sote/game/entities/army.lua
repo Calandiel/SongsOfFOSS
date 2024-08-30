@@ -35,30 +35,14 @@ function army_utils.decimate(army)
 	end
 end
 
----Returns the units in the army
+---Returns the pop membership in the army
 ---@param army army_id
----@return table<pop_id, UnitType>
-function army_utils.units(army)
-	---@type table<pop_id, UnitType>
-	local res = {}
-	for _, warband in pairs(self.warbands) do
-		for pop, unit in pairs(warband.units) do
-			res[pop] = unit
-		end
-	end
-
-	return res
-end
-
----Returns pops in the army
----@param army army_id
----@return table<pop_id, province_id>
+---@return warband_unit_id[]
 function army_utils.pops(army)
-	---@type table<pop_id, province_id>
 	local res = {}
-	for _, warband in pairs(self.warbands) do
-		for _, pop in pairs(warband.pops) do
-			res[pop] = DATA.pop_get_home_province(pop)
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
+		for _, unit in pairs(DATA.get_warband_unit_from_warband(DATA.army_membership_get_member(army_membership))) do
+			table.insert(res, unit)
 		end
 	end
 	return res
@@ -70,8 +54,9 @@ end
 ---@return number
 function army_utils.kill_off(army, ratio)
 	local losses = 0
-	for _, warband in pairs(self.warbands) do
-		losses = losses + warband.kill_off(ratio)
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+		losses = losses + warband_utils.kill_off(warband, ratio)
 	end
 	return losses
 end
@@ -80,7 +65,7 @@ end
 ---@param attacker army_id
 ---@param prov province_id
 ---@param spotted boolean Set it to true if the army was spotted before battle, false otherwise.
----@param defender Army The opposing defending army_utils.
+---@param defender army_id The opposing defending army_utils.
 ---@return boolean success, number attacker_losses, number defender_losses
 function army_utils.attack(attacker, prov, spotted, defender)
 	local atk_armor = 0
@@ -88,8 +73,9 @@ function army_utils.attack(attacker, prov, spotted, defender)
 	local atk_attack = 0
 	local atk_hp = 0
 	local atk_stack = 0
-	for _, warband in pairs(self.warbands) do
-		local health, attack, armor, speed, count = warband.total_strength()
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(attacker)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+		local health, attack, armor, speed, count = warband_utils.total_strength(warband)
 		atk_armor = atk_armor + armor
 		atk_attack = atk_attack + attack
 		atk_speed = atk_speed + speed
@@ -111,8 +97,9 @@ function army_utils.attack(attacker, prov, spotted, defender)
 	local def_attack = 0
 	local def_hp = 0
 	local def_stack = 0
-	for _, warband in pairs(defender.warbands) do
-		local health, attack, armor, speed, count = warband.total_strength()
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(defender)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+		local health, attack, armor, speed, count = warband_utils.total_strength(warband)
 		def_armor = def_armor + armor
 		def_attack = def_attack + attack
 		def_speed = def_speed + speed
@@ -172,8 +159,8 @@ function army_utils.attack(attacker, prov, spotted, defender)
 	local def_frac = defpower / (def_stack / atk_stack)
 
 	--- kill dead ones
-	local losses = self.kill_off(1 - frac)
-	local def_losses = defender.kill_off(1 - def_frac)
+	local losses = army_utils.kill_off(attacker, 1 - frac)
+	local def_losses = army_utils.kill_off(defender, 1 - def_frac)
 	return victory, losses, def_losses
 end
 

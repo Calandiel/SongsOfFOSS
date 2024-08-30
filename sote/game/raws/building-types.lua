@@ -1,120 +1,112 @@
 local tabb = require "engine.table"
 
----@enum BUILDING_GROUP
-BUILDING_GROUP = {
-	GROUNDS = 1,
-	FARM = 2,
-	WORKSHOP = 3
-}
 
----@type table<BUILDING_GROUP, table<BuildingType, BuildingType>>
-GROUP_TO_BUILDING_TYPES = {
-	[BUILDING_GROUP.GROUNDS] = {},
-	[BUILDING_GROUP.FARM] = {},
-	[BUILDING_GROUP.WORKSHOP] = {}
-}
-
----@class (exact) BuildingType
----@field __index BuildingType
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field production_method ProductionMethod
----@field building_group BUILDING_GROUP?
----@field construction_cost number
----@field upkeep number
----@field unlocked_by Technology
----@field required_biome table<number, biome_id>
----@field required_resource table<number, Resource>
----@field unique boolean only one per province!
----@field movable boolean is it possible to migrate with this building?
----@field government boolean only the government can build this building!
----@field needed_infrastructure number
----@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
-
----@class BuildingType
 BuildingType = {}
 BuildingType.__index = BuildingType
 ---Creates a new building
----@param o BuildingType
----@return BuildingType
+---@param o building_type_id_data_blob_definition
+---@return building_type_id
 function BuildingType:new(o)
 	if RAWS_MANAGER.do_logging then
 		print("BuildingType: " .. o.name)
 	end
-	---@type BuildingType
-	local r = {}
 
-	r.name = "<building type>"
-	r.icon = 'uncertainty.png'
-	r.description = "<building type description>"
-	r.r = 0
-	r.g = 0
-	r.b = 0
-	r.construction_cost = 0
-	r.upkeep = 0
-	r.required_biome = {}
-	r.required_resource = {}
-	r.unique = false
-	r.government = false
-	r.movable = false
-	r.needed_infrastructure = 0
-	r.spotting = 0
+	local new_id = DATA.create_building_type()
+	DATA.setup_building_type(new_id, o)
 
-	for k, v in pairs(o) do
-		r[k] = v
-	end
+	local required_tech = o.unlocked_by
+	local fat = DATA.fatten_technology_building(DATA.create_technology_building())
+	fat.technology = required_tech
+	fat.unlocked = new_id
 
-	if r.building_group then
-		GROUP_TO_BUILDING_TYPES[self] = self
-	end
-
-	setmetatable(r, BuildingType)
-	if RAWS_MANAGER.building_types_by_name[r.name] ~= nil then
-		local msg = "Failed to load a building types (" .. tostring(r.name) .. ")"
+	if RAWS_MANAGER.building_types_by_name[o.name] ~= nil then
+		local msg = "Failed to load a building types (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	RAWS_MANAGER.building_types_by_name[r.name] = r
-	return r
+	RAWS_MANAGER.building_types_by_name[o.name] = new_id
+	return new_id
 end
 
-function BuildingType:get_tooltip()
-	local s = self.description
+---@param building_type building_type_id
+---@return string
+function BuildingType.get_tooltip(building_type)
+	local fat = DATA.fatten_building_type(building_type)
 
-	s = s .. "\n\nBase cost: " .. tostring(self.construction_cost) .. MONEY_SYMBOL
-	s = s .. "\n\nUpkeep: " .. tostring(self.upkeep) .. MONEY_SYMBOL
+	local s = fat.description
 
-	if self.production_method then
-		if tabb.size(self.production_method.jobs) > 0 then
-			s = s .. "\n\nJobs: "
-			for job, count in pairs(self.production_method.jobs) do
-				s = s .. job.name .. " (" .. tostring(count) .. "), "
+	s = s .. "\n\nBase cost: " .. tostring(fat.construction_cost) .. MONEY_SYMBOL
+	s = s .. "\n\nUpkeep: " .. tostring(fat.upkeep) .. MONEY_SYMBOL
+
+	if fat.production_method ~= INVALID_ID then
+		local prod_method = fat.production_method
+		do
+			local new_string = ""
+			local job_found = false
+			new_string = new_string .. "\n\nJobs: "
+			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+				local job = DATA.production_method_get_jobs_job(prod_method, i)
+				if job == INVALID_ID then
+					break
+				end
+				local amount = DATA.production_method_get_jobs_amount(prod_method, i)
+				---@type string
+				new_string = new_string .. DATA.job_get_description(job) .. " (" .. tostring(amount) .. "), "
+				job_found = true
+			end
+
+			if job_found then
+				s = s .. new_string
 			end
 		end
-		if tabb.size(self.production_method.inputs) > 0 then
-			s = s .. "\n\nInputs: "
-			for inp, count in pairs(self.production_method.inputs) do
-				s = s .. inp .. " (" .. tostring(count) .. "), "
+
+		do
+			local new_string = ""
+			local found = false
+			new_string = new_string .. "\n\nInputs: "
+			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+				local use = DATA.production_method_get_inputs_use(prod_method, i)
+				if use == INVALID_ID then
+					break
+				end
+				local amount = DATA.production_method_get_inputs_amount(prod_method, i)
+				---@type string
+				new_string = new_string .. DATA.use_case_get_description(use) .. " (" .. tostring(amount) .. "), "
+				found = true
+			end
+
+			if found then
+				s = s .. new_string
 			end
 		end
-		if tabb.size(self.production_method.outputs) > 0 then
-			s = s .. "\n\nOutputs: "
-			for out, count in pairs(self.production_method.outputs) do
-				s = s .. out .. " (" .. tostring(count) .. "), "
+
+		do
+			local new_string = ""
+			local found = false
+			new_string = new_string .. "\n\nOutputs: "
+			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+				local good = DATA.production_method_get_outputs_good(prod_method, i)
+				if good == INVALID_ID then
+					break
+				end
+				local amount = DATA.production_method_get_outputs_amount(prod_method, i)
+				---@type string
+				new_string = new_string .. DATA.trade_good_get_description(good) .. " (" .. tostring(amount) .. "), "
+				found = true
+			end
+
+			if found then
+				s = s .. new_string
 			end
 		end
 	end
 
-	if self.needed_infrastructure > 0 then
-		s = s .. "\n\nNeeded infrastructure: " .. tostring(self.needed_infrastructure)
+	if fat.needed_infrastructure > 0 then
+		s = s .. "\n\nNeeded infrastructure: " .. tostring(fat.needed_infrastructure)
 	end
 
-	if self.spotting > 0 then
-		s = s .. "\n\nSpotting: " .. tostring(self.spotting)
+	if fat.spotting > 0 then
+		s = s .. "\n\nSpotting: " .. tostring(fat.spotting)
 	end
 
 	return s

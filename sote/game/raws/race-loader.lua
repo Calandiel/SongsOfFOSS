@@ -40,6 +40,7 @@ function ll.load()
 	-- BASE: HUMAN
 	Race:new {
 		name = "human",
+		description = "humans",
 		r = 0.8,
 		g = 0.8,
 		b = 0.8,
@@ -69,7 +70,45 @@ function ll.load()
 			{need = NEED.HEALTHCARE, use_case = retrieve_use_case('healthcare'), required = 1},
 			{need = NEED.LUXURY, use_case = retrieve_use_case('liquors'), required = 1}
 		},
+		female_efficiency = {
+			[JOBTYPE.FARMER] = 1,
+			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.CLERK] = 1,
+			[JOBTYPE.LABOURER] = 1,
+			[JOBTYPE.WARRIOR] = 1,
+			[JOBTYPE.HAULING] = 1,
+			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HUNTING] = 1
+		},
+		male_efficiency = {
+			[JOBTYPE.FARMER] = 1,
+			[JOBTYPE.ARTISAN] = 1,
+			[JOBTYPE.CLERK] = 1,
+			[JOBTYPE.LABOURER] = 1,
+			[JOBTYPE.WARRIOR] = 1,
+			[JOBTYPE.HAULING] = 1,
+			[JOBTYPE.FORAGER] = 1,
+			[JOBTYPE.HUNTING] = 1
+		},
 		icon = 'barbute.png',
+		males_per_hundred_females = 104,
+		child_age = 3,
+		teen_age = 12,
+		adult_age = 16,
+		middle_age = 40,
+		elder_age = 65,
+		max_age = 85,
+		minimum_comfortable_temperature = 5,
+		minimum_absolute_temperature = -10,
+		minimum_comfortable_elevation = 0,
+		fecundity = 1,
+		spotting = 1,
+		visibility = 1,
+		female_body_size = 1,
+		female_infrastructure_needs = 1,
+		male_body_size = 1,
+		male_infrastructure_needs = 1,
+		carrying_capacity_weight = 1
 	}
 
 	---@type PortraitDescription

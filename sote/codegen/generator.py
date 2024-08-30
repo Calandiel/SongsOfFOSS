@@ -44,16 +44,20 @@ class Atom:
     dcon_type: str
     default_value: typing.Union[None, str]
     generated_during_runtime: bool
+    ignore_in_data_layout: bool
 
     def __init__(self, description: str) -> None:
         # if description == "trade_good":
         #     print(description)
+        self.ignore_in_data_layout = False
+        self.generated_during_runtime = False
 
         if description.startswith('@'):
             self.generated_during_runtime = True
             description = description[1:]
-        else:
-            self.generated_during_runtime = False
+        if description.startswith('#'):
+            self.ignore_in_data_layout = True
+            description = description[1:]
 
         l = description.split("=")
         if len(l) > 1:
@@ -70,7 +74,7 @@ class Atom:
             self.dcon_type = "base_enums::" + description
             return
         # print(2)
-        if description in ["uint32_t", "int32_t", "float"]:
+        if description in ["uint32_t", "int32_t", "float", "uint16_t", "uint8_t"]:
             self.c_type = description
             self.lsp_type = "number"
             self.dcon_type = description
@@ -133,7 +137,7 @@ class Atom:
         if self.c_type == "int32_t":
             return random.randint(-20, 20)
 
-        if self.c_type == "uint32_t":
+        if self.c_type in ("uint32_t", "uint16_t", "uint8_t"):
             return random.randint(0, 20)
 
 
@@ -194,6 +198,9 @@ class Field:
         """
         Returns a string with getter binding
         """
+        if self.value.ignore_in_data_layout:
+            return ""
+
         arg = prefix_to_id_name(self.prefix)
         if self.value.c_type:
             if self.array_size == 1:
@@ -203,7 +210,7 @@ class Field:
                     for field in struct.fields:
                         result += \
                         f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
-                        f"---@return {field.lsp_type} {self.name} {self.description}\n" \
+                        f"---@return {field.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}_{field.name}({arg})\n" \
                         f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name}\n" \
                         f"end\n"
@@ -251,6 +258,9 @@ class Field:
         """
         Returns a string with setter binding
         """
+        if self.value.ignore_in_data_layout:
+            return ""
+
         arg = prefix_to_id_name(self.prefix)
         if self.value.c_type:
             if self.array_size == 1:
@@ -349,6 +359,8 @@ class Field:
         """
         Generates struct field for table
         """
+        if self.value.ignore_in_data_layout:
+            return ""
         if self.value.c_type:
             if self.array_size == 1:
                 return f"        {self.value.c_type} {self.name};\n"
@@ -527,6 +539,8 @@ class StructDescription:
         result = ""
         result += f'---@class struct_{self.name}\n'
         for field in self.fields:
+            if field.value.ignore_in_data_layout:
+                continue
             if field.value.c_type:
                 result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
 
@@ -724,7 +738,7 @@ class EntityDescription:
         result += f'---@class fat_{prefix_to_id_name(self.name)}\n'
         result += f'---@field id {prefix_to_id_name(self.name)} Unique {self.name} id\n'
         for field in self.fields:
-            if field.array_size == 1:
+            if field.array_size == 1 and not field.value.ignore_in_data_layout:
                 result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
         for field in self.links:
             result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
@@ -734,8 +748,10 @@ class EntityDescription:
         # struct:
         result += f'---@class struct_{self.name}\n'
         for field in self.fields:
+            if field.value.ignore_in_data_layout:
+                continue
             if field.value.c_type:
-                if field.array_size == 1:
+                if field.array_size == 1 and not field.value.ignore_in_data_layout:
                     result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
                 else:
                     result += f'---@field {field.name} table<{field.index.lsp_type}, {field.value.lsp_type}> {field.description}\n'
@@ -779,12 +795,14 @@ class EntityDescription:
             for field in self.fields:
                 if field.value.generated_during_runtime:
                     continue
+                if field.value.ignore_in_data_layout:
+                    continue
                 if field.value.default_value is None:
                     if field.array_size == 1:
                         result += f"    {field.setter_name()}(id, data.{field.name})\n"
                     else:
                         result += f"    for i, value in ipairs(data.{field.name}) do\n"
-                        result += f"        {field.setter_name()}(id, value, i - 1)\n"
+                        result += f"        {field.setter_name()}(id, i - 1, value)\n"
                         result += f"    end\n"
                 else:
                     result += f"    if data.{field.name} ~= nil then\n"
@@ -811,6 +829,8 @@ class EntityDescription:
         result += f"\n---{self.name}: FFI arrays---\n"
 
         for field in self.fields:
+            if field.value.ignore_in_data_layout:
+                continue
             if not field.value.c_type:
                 result += field.array_string(self.max_count)
 
@@ -844,7 +864,7 @@ class EntityDescription:
         result += f"            {self.name}_indices_pool[i] = false\n"
         result += f"            {NAMESPACE}.{self.name}_indices_set[i] = i\n"
         for field in self.fields:
-            if not field.value.default_value is None:
+            if not field.value.default_value is None and not field.value.ignore_in_data_layout:
                 result += f"            {field.setter_name()}(i, {field.value.default_value})\n"
         result +=  "            return i\n"
         result +=  "        end\n"
@@ -922,6 +942,8 @@ class EntityDescription:
 
         result += "    __index = function (t,k)\n"
         for field in self.fields:
+            if field.value.ignore_in_data_layout:
+                continue
             if field.array_size == 1:
                 result += f"        if (k == \"{field.name}\") then return {field.getter_name()}(t.id) end\n"
         for field in self.links:
@@ -931,6 +953,8 @@ class EntityDescription:
 
         result += "    __newindex = function (t,k,v)\n"
         for field in self.fields:
+            if field.value.ignore_in_data_layout:
+                continue
             if field.array_size == 1:
                 result += f"        if (k == \"{field.name}\") then\n"
                 result += f"            {field.setter_name()}(t.id, v)\n"
@@ -1275,15 +1299,18 @@ Trait = StaticEntityDescription("trait")
 TradeGoodCategory = StaticEntityDescription("trade_good_category")
 WarbandStatus = StaticEntityDescription("warband_status")
 WarbandStance = StaticEntityDescription("warband_stance")
+BuildingArchetype = StaticEntityDescription("building_archetype")
 
 TILES_MAX_COUNT = 500 * 500 * 6
 
 TileDescription = EntityDescription("tile", TILES_MAX_COUNT, False)
 
 TradeGoodDescription = EntityDescription("trade_good", 100, True)
-GoodContainer = StructDescription("trade_good_container")
-
 UseCaseDescription = EntityDescription("use_case", 100, True)
+
+GoodContainer = StructDescription("trade_good_container")
+UseContainer = StructDescription("use_case_container")
+
 UseWeight = EntityDescription("use_weight", 300, True)
 Biome = EntityDescription("biome", 100, True)
 Bedrock = EntityDescription("bedrock", 150, True)
@@ -1295,10 +1322,22 @@ UnitType = EntityDescription("unit_type", 20, True)
 Satisfaction = StructDescription("need_satisfaction")
 NeedDefinition = StructDescription("need_definition")
 
+Job = EntityDescription("job", 250, True)
+
+JobContainer = StructDescription("job_container")
+
+ProductionMethod = EntityDescription("production_method", 250, True)
+Technology = EntityDescription("technology", 400, True)
+TechnologyUnlock = EntityDescription("technology_unlock", 800, True)
+
+BuildingType = EntityDescription("building_type", 250, True)
+TechnologyBuilding = EntityDescription("technology_building", 400, True)
+TechnologyUnit = EntityDescription("technology_unit", 400, True)
+
+Race = EntityDescription("race", 15, True)
 
 POPS_MAX_COUNT = 300000
 
-Race = EntityDescription("race", 15, False)
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
 Province = EntityDescription("province", 10000, False)
 Army = EntityDescription("army", 5000, False)

@@ -1,7 +1,7 @@
 local ut = {}
 
 ---@param id string
----@return Job
+---@return job_id
 function ut.job(id)
 	local r = RAWS_MANAGER.jobs_by_name[id]
 	if r == nil then
@@ -9,7 +9,7 @@ function ut.job(id)
 		error("Job " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
@@ -40,7 +40,7 @@ function ut.trade_good_use_case(id)
 end
 
 ---@param id string
----@return Technology
+---@return technology_id
 function ut.technology(id)
 	local r = RAWS_MANAGER.technologies_by_name[id]
 	if r == nil then
@@ -48,12 +48,12 @@ function ut.technology(id)
 		error("Technology " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return Race
+---@return race_id
 function ut.race(id)
 	local r = RAWS_MANAGER.races_by_name[id]
 	if r == nil then
@@ -61,12 +61,12 @@ function ut.race(id)
 		error("Race " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return ProductionMethod
+---@return production_method_id
 function ut.production_method(id)
 	local r = RAWS_MANAGER.production_methods_by_name[id]
 	if r == nil then
@@ -74,7 +74,7 @@ function ut.production_method(id)
 		error("Production method " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
@@ -111,12 +111,12 @@ function ut.biogeographic_realm(id)
 		error("Biogeographic realm " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return Resource
+---@return resource_id
 function ut.resource(id)
 	local r = RAWS_MANAGER.resources_by_name[id]
 	if r == nil then
@@ -124,12 +124,12 @@ function ut.resource(id)
 		error("Resource " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return UnitType
+---@return unit_type_id
 function ut.unit_type(id)
 	local r = RAWS_MANAGER.unit_types_by_name[id]
 	if r == nil then
@@ -137,7 +137,7 @@ function ut.unit_type(id)
 		error("Unit Type " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
@@ -150,7 +150,7 @@ function ut.event(id)
 		error("Event " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 

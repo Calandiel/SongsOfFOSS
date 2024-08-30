@@ -1,151 +1,224 @@
 local tabb = require "engine.table"
 
----@class (exact) Technology
----@field __index Technology
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field required_biome table<number, biome_id>
----@field required_race table<number, Race>
----@field required_resource table<number, Resource>
----@field unlocked_by table<number, Technology>
----@field potentially_unlocks table<number, Technology> Do not touch this one. It's expanded automatically.
----@field unlocked_buildings table<number, BuildingType>
----@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
----@field unlocked_unit_types table<number, UnitType>
----@field associated_job Job|nil The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
----@field get_tooltip fun(self:Technology):string
----@field throughput_boosts table<ProductionMethod, number>
----@field input_efficiency_boosts table<ProductionMethod, number>
----@field output_efficiency_boosts table<ProductionMethod, number>
----@field new fun(self:Technology, o:Technology?):Technology
-
----@class Technology
 local Technology = {}
-Technology.__index = Technology
+
 ---Creates a new technology
----@param o Technology
----@return Technology
+---commenting
+---@param o technology_id_data_blob_definition
+---@return technology_id
 function Technology:new(o)
 	if RAWS_MANAGER.do_logging then
 		print("Technology: " .. tostring(o.name))
 	end
-	---@type Technology
-	local r = {}
 
-	r.name = "<technology>"
-	r.icon = 'uncertainty.png'
-	r.description = "<technology description>"
-	r.r = 0
-	r.g = 0
-	r.b = 0
-	r.required_biome = {}
-	r.required_race = {}
-	r.required_resource = {}
-	r.unlocked_by = {}
-	r.potentially_unlocks = {}
-	r.unlocked_buildings = {}
-	r.unlocked_unit_types = {}
-	r.research_cost = 0.5
-	r.throughput_boosts = {}
-	r.input_efficiency_boosts = {}
-	r.output_efficiency_boosts = {}
+	local new_id = DATA.create_technology()
+	DATA.setup_technology(new_id, o)
 
-
-	for k, v in pairs(o) do
-		r[k] = v
-	end
-	setmetatable(r, Technology)
-
-	if ASSETS.icons[r.icon] == nil then
-		print("Missing icon: " .. r.icon)
-		error("Technology " .. r.name .. " has no icon. " .. "Missing icon: " .. r.icon)
+	if ASSETS.icons[o.icon] == nil then
+		print("Missing icon: " .. o.icon)
+		error("Technology " .. o.name .. " has no icon. " .. "Missing icon: " .. o.icon)
 	end
 
-	if RAWS_MANAGER.technologies_by_name[r.name] ~= nil then
-		local msg = "Failed to load a technology (" .. tostring(r.name) .. ")"
+	if RAWS_MANAGER.technologies_by_name[o.name] ~= nil then
+		local msg = "Failed to load a technology (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	RAWS_MANAGER.technologies_by_name[r.name] = r
-	return r
+	RAWS_MANAGER.technologies_by_name[o.name] = new_id
+
+	return new_id
 end
 
-function Technology:get_tooltip()
-	local s = self.description .. "\n\n"
+---Generates tooltip for a given technology
+---@param technology any
+---@return unknown
+function Technology.get_tooltip(technology)
+	local technology_data = DATA.fatten_technology(technology)
 
-	s = s .. "Difficulty: " .. tostring(self.research_cost) .. "\n"
-	if self.associated_job then
-		s = s .. "\nAssociated job: " .. self.associated_job.name
-	end
+	local s = technology_data.description .. "\n\n"
 
-	if tabb.size(self.required_biome) > 0 then
-		s = s .. "\nRequired biome: "
-		for _, b in pairs(self.required_biome) do
-			local biome_name = DATA.biome_get_name(b)
-			s = s .. biome_name .. ", "
-		end
-		s = s .. "\n"
-	end
-	if tabb.size(self.required_race) > 0 then
-		s = s .. "\nRequired race: "
-		for _, b in pairs(self.required_race) do
-			s = s .. b.name .. ", "
-		end
-		s = s .. "\n"
-	end
-	if tabb.size(self.required_resource) > 0 then
-		s = s .. "\nRequired resource: "
-		for _, b in pairs(self.required_resource) do
-			s = s .. b.name .. ", "
-		end
-		s = s .. "\n"
+	s = s .. "Difficulty: " .. tostring(technology_data.research_cost) .. "\n"
+	if technology_data.associated_job then
+		s = s .. "\nAssociated job: " .. DATA.job_get_name(technology_data.associated_job)
 	end
 
-	if tabb.size(self.unlocked_buildings) > 0 then
-		s = s .. "\nUnlocked buildings: "
-		for _, b in pairs(self.unlocked_buildings) do
-			s = s .. b.name .. ", "
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Required biome: "
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local thing = DATA.technology_get_required_biome(technology, i)
+			if thing == INVALID_ID then
+				break
+			end
+			local name = DATA.biome_get_name(thing)
+			string = string .. name .. ", "
+			requires = true
 		end
-		s = s .. "\n"
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
 	end
-	if tabb.size(self.unlocked_unit_types) > 0 then
-		s = s .. "\nUnlocked unit types: "
-		for _, b in pairs(self.unlocked_unit_types) do
-			s = s .. b.name .. ", "
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Required race: "
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local thing = DATA.technology_get_required_race(technology, i)
+			if thing == INVALID_ID then
+				break
+			end
+			local name = DATA.race_get_name(thing)
+			string = string .. name .. ", "
+			requires = true
 		end
-		s = s .. "\n"
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
 	end
-	if tabb.size(self.potentially_unlocks) > 0 then
-		s = s .. "\nPotentially unlocks: "
-		for _, b in pairs(self.potentially_unlocks) do
-			s = s .. b.name .. ", "
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Required resource: "
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local thing = DATA.technology_get_required_resource(technology, i)
+			if thing == INVALID_ID then
+				break
+			end
+			local name = DATA.resource_get_name(thing)
+			string = string .. name .. ", "
+			requires = true
 		end
-		s = s .. "\n"
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
 	end
-	if tabb.size(self.throughput_boosts) > 0 then
-		s = s .. "\nThroughput: "
-		for prod, am in pairs(self.throughput_boosts) do
-			s = s .. prod.name .. " (+" .. tostring(math.floor(100 * am)) .. "%), "
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Unlocked buildings: "
+		for _, item in ipairs(DATA.get_technology_building_from_technology(technology)) do
+			local name = DATA.building_type_get_description(item)
+			string = string .. name .. ", "
+			requires = true
 		end
-		s = s .. "\n"
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
 	end
-	if tabb.size(self.input_efficiency_boosts) > 0 then
-		s = s .. "\nInput efficiency: "
-		for prod, am in pairs(self.input_efficiency_boosts) do
-			s = s .. prod.name .. " (+" .. tostring(math.floor(100 * am)) .. "%), "
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Unlocked units: "
+		for _, item in ipairs(DATA.get_technology_unit_from_technology(technology)) do
+			local name = DATA.unit_type_get_name(item)
+			string = string .. name .. ", "
+			requires = true
 		end
-		s = s .. "\n"
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
 	end
-	if tabb.size(self.output_efficiency_boosts) > 0 then
-		s = s .. "\nOutput efficiency: "
-		for prod, am in pairs(self.output_efficiency_boosts) do
-			s = s .. prod.name .. " (+" .. tostring(math.floor(100 * am)) .. "%), "
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Unlocked technology paths: "
+		local thing = DATA.get_technology_unlock_from_origin(technology)
+		for _, i in ipairs(thing) do
+			local name = DATA.technology_get_name(i)
+			string = string .. name .. ", "
+			requires = true
 		end
-		s = s .. "\n"
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
+	end
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Unlocked by: "
+		local thing = DATA.get_technology_unlock_from_unlocked(technology)
+		for _, i in ipairs(thing) do
+			local name = DATA.technology_get_name(i)
+			string = string .. name .. ", "
+			requires = true
+		end
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
+	end
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Throughput: "
+
+		local function build_string(production_method_id)
+			local thing = DATA.technology_get_throughput_boosts(technology, production_method_id)
+			local name = DATA.production_method_get_name(production_method_id)
+			string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
+			requires = true
+		end
+
+		DATA.for_each_production_method(build_string)
+
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
+	end
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Input: "
+
+		local function build_string(production_method_id)
+			local thing = DATA.technology_get_input_efficiency_boosts(technology, production_method_id)
+			local name = DATA.production_method_get_name(production_method_id)
+			string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
+			requires = true
+		end
+
+		DATA.for_each_production_method(build_string)
+
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
+	end
+
+	do
+		local requires = false
+		local string = ""
+		string = string .. "\n Output: "
+
+		local function build_string(production_method_id)
+			local thing = DATA.technology_get_output_efficiency_boosts(technology, production_method_id)
+			local name = DATA.production_method_get_name(production_method_id)
+			string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
+			requires = true
+		end
+
+		DATA.for_each_production_method(build_string)
+
+		string = string .. "\n"
+		if requires then
+			s = s .. string
+		end
 	end
 
 	return s

@@ -6,17 +6,26 @@ local bitser = require("engine.bitser")
 
 DATA = {}
 ---@class struct_trade_good_container
----@field good trade_good_id
----@field amount number
+---@field good trade_good_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
         uint32_t good;
         float amount;
     } trade_good_container;
 ]]
+---@class struct_use_case_container
+---@field use use_case_id 
+---@field amount number 
+ffi.cdef[[
+    typedef struct {
+        uint32_t use;
+        float amount;
+    } use_case_container;
+]]
 ---@class struct_resource_location
----@field resource resource_id
----@field location tile_id
+---@field resource resource_id 
+---@field location tile_id 
 ffi.cdef[[
     typedef struct {
         uint32_t resource;
@@ -24,10 +33,10 @@ ffi.cdef[[
     } resource_location;
 ]]
 ---@class struct_need_satisfaction
----@field need NEED
----@field use_case use_case_id
----@field consumed number
----@field demanded number
+---@field need NEED 
+---@field use_case use_case_id 
+---@field consumed number 
+---@field demanded number 
 ffi.cdef[[
     typedef struct {
         uint8_t need;
@@ -37,15 +46,24 @@ ffi.cdef[[
     } need_satisfaction;
 ]]
 ---@class struct_need_definition
----@field need NEED
----@field use_case use_case_id
----@field required number
+---@field need NEED 
+---@field use_case use_case_id 
+---@field required number 
 ffi.cdef[[
     typedef struct {
         uint8_t need;
         uint32_t use_case;
         float required;
     } need_definition;
+]]
+---@class struct_job_container
+---@field job job_id 
+---@field amount number 
+ffi.cdef[[
+    typedef struct {
+        uint32_t job;
+        uint32_t amount;
+    } job_container;
 ]]
 ----------tile----------
 
@@ -57,71 +75,71 @@ ffi.cdef[[
 
 ---@class fat_tile_id
 ---@field id tile_id Unique tile id
----@field is_land boolean
----@field is_fresh boolean
----@field elevation number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field july_waterflow number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
+---@field is_land boolean 
+---@field is_fresh boolean 
+---@field elevation number 
+---@field grass number 
+---@field shrub number 
+---@field conifer number 
+---@field broadleaf number 
+---@field ideal_grass number 
+---@field ideal_shrub number 
+---@field ideal_conifer number 
+---@field ideal_broadleaf number 
+---@field silt number 
+---@field clay number 
+---@field sand number 
+---@field soil_minerals number 
+---@field soil_organics number 
+---@field january_waterflow number 
+---@field july_waterflow number 
+---@field waterlevel number 
+---@field has_river boolean 
+---@field has_marsh boolean 
+---@field ice number 
+---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource resource_id
----@field bedrock bedrock_id
----@field biome biome_id
+---@field pathfinding_index number 
+---@field resource resource_id 
+---@field bedrock bedrock_id 
+---@field biome biome_id 
 
 ---@class struct_tile
----@field is_land boolean
----@field is_fresh boolean
----@field elevation number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field july_waterflow number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
+---@field is_land boolean 
+---@field is_fresh boolean 
+---@field elevation number 
+---@field grass number 
+---@field shrub number 
+---@field conifer number 
+---@field broadleaf number 
+---@field ideal_grass number 
+---@field ideal_shrub number 
+---@field ideal_conifer number 
+---@field ideal_broadleaf number 
+---@field silt number 
+---@field clay number 
+---@field sand number 
+---@field soil_minerals number 
+---@field soil_organics number 
+---@field january_waterflow number 
+---@field july_waterflow number 
+---@field waterlevel number 
+---@field has_river boolean 
+---@field has_marsh boolean 
+---@field ice number 
+---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
+---@field pathfinding_index number 
 
 
 ffi.cdef[[
@@ -177,7 +195,7 @@ DATA.tile_size = 1500000
 ---@type table<tile_id, boolean>
 local tile_indices_pool = ffi.new("bool[?]", 1500000)
 for i = 1, 1499999 do
-    tile_indices_pool[i] = true
+    tile_indices_pool[i] = true 
 end
 ---@type table<tile_id, tile_id>
 DATA.tile_indices_set = {}
@@ -199,7 +217,7 @@ function DATA.delete_tile(i)
     tile_indices_pool[i] = true
     DATA.tile_indices_set[i] = nil
 end
----@param func fun(item: tile_id)
+---@param func fun(item: tile_id) 
 function DATA.for_each_tile(func)
     for _, item in pairs(DATA.tile_indices_set) do
         func(item)
@@ -207,7 +225,7 @@ function DATA.for_each_tile(func)
 end
 
 ---@param tile_id tile_id valid tile id
----@return boolean is_land
+---@return boolean is_land 
 function DATA.tile_get_is_land(tile_id)
     return DATA.tile[tile_id].is_land
 end
@@ -217,7 +235,7 @@ function DATA.tile_set_is_land(tile_id, value)
     DATA.tile[tile_id].is_land = value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_fresh
+---@return boolean is_fresh 
 function DATA.tile_get_is_fresh(tile_id)
     return DATA.tile[tile_id].is_fresh
 end
@@ -227,7 +245,7 @@ function DATA.tile_set_is_fresh(tile_id, value)
     DATA.tile[tile_id].is_fresh = value
 end
 ---@param tile_id tile_id valid tile id
----@return number elevation
+---@return number elevation 
 function DATA.tile_get_elevation(tile_id)
     return DATA.tile[tile_id].elevation
 end
@@ -242,7 +260,7 @@ function DATA.tile_inc_elevation(tile_id, value)
     DATA.tile[tile_id].elevation = DATA.tile[tile_id].elevation + value
 end
 ---@param tile_id tile_id valid tile id
----@return number grass
+---@return number grass 
 function DATA.tile_get_grass(tile_id)
     return DATA.tile[tile_id].grass
 end
@@ -257,7 +275,7 @@ function DATA.tile_inc_grass(tile_id, value)
     DATA.tile[tile_id].grass = DATA.tile[tile_id].grass + value
 end
 ---@param tile_id tile_id valid tile id
----@return number shrub
+---@return number shrub 
 function DATA.tile_get_shrub(tile_id)
     return DATA.tile[tile_id].shrub
 end
@@ -272,7 +290,7 @@ function DATA.tile_inc_shrub(tile_id, value)
     DATA.tile[tile_id].shrub = DATA.tile[tile_id].shrub + value
 end
 ---@param tile_id tile_id valid tile id
----@return number conifer
+---@return number conifer 
 function DATA.tile_get_conifer(tile_id)
     return DATA.tile[tile_id].conifer
 end
@@ -287,7 +305,7 @@ function DATA.tile_inc_conifer(tile_id, value)
     DATA.tile[tile_id].conifer = DATA.tile[tile_id].conifer + value
 end
 ---@param tile_id tile_id valid tile id
----@return number broadleaf
+---@return number broadleaf 
 function DATA.tile_get_broadleaf(tile_id)
     return DATA.tile[tile_id].broadleaf
 end
@@ -302,7 +320,7 @@ function DATA.tile_inc_broadleaf(tile_id, value)
     DATA.tile[tile_id].broadleaf = DATA.tile[tile_id].broadleaf + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_grass
+---@return number ideal_grass 
 function DATA.tile_get_ideal_grass(tile_id)
     return DATA.tile[tile_id].ideal_grass
 end
@@ -317,7 +335,7 @@ function DATA.tile_inc_ideal_grass(tile_id, value)
     DATA.tile[tile_id].ideal_grass = DATA.tile[tile_id].ideal_grass + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_shrub
+---@return number ideal_shrub 
 function DATA.tile_get_ideal_shrub(tile_id)
     return DATA.tile[tile_id].ideal_shrub
 end
@@ -332,7 +350,7 @@ function DATA.tile_inc_ideal_shrub(tile_id, value)
     DATA.tile[tile_id].ideal_shrub = DATA.tile[tile_id].ideal_shrub + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_conifer
+---@return number ideal_conifer 
 function DATA.tile_get_ideal_conifer(tile_id)
     return DATA.tile[tile_id].ideal_conifer
 end
@@ -347,7 +365,7 @@ function DATA.tile_inc_ideal_conifer(tile_id, value)
     DATA.tile[tile_id].ideal_conifer = DATA.tile[tile_id].ideal_conifer + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_broadleaf
+---@return number ideal_broadleaf 
 function DATA.tile_get_ideal_broadleaf(tile_id)
     return DATA.tile[tile_id].ideal_broadleaf
 end
@@ -362,7 +380,7 @@ function DATA.tile_inc_ideal_broadleaf(tile_id, value)
     DATA.tile[tile_id].ideal_broadleaf = DATA.tile[tile_id].ideal_broadleaf + value
 end
 ---@param tile_id tile_id valid tile id
----@return number silt
+---@return number silt 
 function DATA.tile_get_silt(tile_id)
     return DATA.tile[tile_id].silt
 end
@@ -377,7 +395,7 @@ function DATA.tile_inc_silt(tile_id, value)
     DATA.tile[tile_id].silt = DATA.tile[tile_id].silt + value
 end
 ---@param tile_id tile_id valid tile id
----@return number clay
+---@return number clay 
 function DATA.tile_get_clay(tile_id)
     return DATA.tile[tile_id].clay
 end
@@ -392,7 +410,7 @@ function DATA.tile_inc_clay(tile_id, value)
     DATA.tile[tile_id].clay = DATA.tile[tile_id].clay + value
 end
 ---@param tile_id tile_id valid tile id
----@return number sand
+---@return number sand 
 function DATA.tile_get_sand(tile_id)
     return DATA.tile[tile_id].sand
 end
@@ -407,7 +425,7 @@ function DATA.tile_inc_sand(tile_id, value)
     DATA.tile[tile_id].sand = DATA.tile[tile_id].sand + value
 end
 ---@param tile_id tile_id valid tile id
----@return number soil_minerals
+---@return number soil_minerals 
 function DATA.tile_get_soil_minerals(tile_id)
     return DATA.tile[tile_id].soil_minerals
 end
@@ -422,7 +440,7 @@ function DATA.tile_inc_soil_minerals(tile_id, value)
     DATA.tile[tile_id].soil_minerals = DATA.tile[tile_id].soil_minerals + value
 end
 ---@param tile_id tile_id valid tile id
----@return number soil_organics
+---@return number soil_organics 
 function DATA.tile_get_soil_organics(tile_id)
     return DATA.tile[tile_id].soil_organics
 end
@@ -437,7 +455,7 @@ function DATA.tile_inc_soil_organics(tile_id, value)
     DATA.tile[tile_id].soil_organics = DATA.tile[tile_id].soil_organics + value
 end
 ---@param tile_id tile_id valid tile id
----@return number january_waterflow
+---@return number january_waterflow 
 function DATA.tile_get_january_waterflow(tile_id)
     return DATA.tile[tile_id].january_waterflow
 end
@@ -452,7 +470,7 @@ function DATA.tile_inc_january_waterflow(tile_id, value)
     DATA.tile[tile_id].january_waterflow = DATA.tile[tile_id].january_waterflow + value
 end
 ---@param tile_id tile_id valid tile id
----@return number july_waterflow
+---@return number july_waterflow 
 function DATA.tile_get_july_waterflow(tile_id)
     return DATA.tile[tile_id].july_waterflow
 end
@@ -467,7 +485,7 @@ function DATA.tile_inc_july_waterflow(tile_id, value)
     DATA.tile[tile_id].july_waterflow = DATA.tile[tile_id].july_waterflow + value
 end
 ---@param tile_id tile_id valid tile id
----@return number waterlevel
+---@return number waterlevel 
 function DATA.tile_get_waterlevel(tile_id)
     return DATA.tile[tile_id].waterlevel
 end
@@ -482,7 +500,7 @@ function DATA.tile_inc_waterlevel(tile_id, value)
     DATA.tile[tile_id].waterlevel = DATA.tile[tile_id].waterlevel + value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_river
+---@return boolean has_river 
 function DATA.tile_get_has_river(tile_id)
     return DATA.tile[tile_id].has_river
 end
@@ -492,7 +510,7 @@ function DATA.tile_set_has_river(tile_id, value)
     DATA.tile[tile_id].has_river = value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_marsh
+---@return boolean has_marsh 
 function DATA.tile_get_has_marsh(tile_id)
     return DATA.tile[tile_id].has_marsh
 end
@@ -502,7 +520,7 @@ function DATA.tile_set_has_marsh(tile_id, value)
     DATA.tile[tile_id].has_marsh = value
 end
 ---@param tile_id tile_id valid tile id
----@return number ice
+---@return number ice 
 function DATA.tile_get_ice(tile_id)
     return DATA.tile[tile_id].ice
 end
@@ -517,7 +535,7 @@ function DATA.tile_inc_ice(tile_id, value)
     DATA.tile[tile_id].ice = DATA.tile[tile_id].ice + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ice_age_ice
+---@return number ice_age_ice 
 function DATA.tile_get_ice_age_ice(tile_id)
     return DATA.tile[tile_id].ice_age_ice
 end
@@ -622,7 +640,7 @@ function DATA.tile_inc_real_b(tile_id, value)
     DATA.tile[tile_id].real_b = DATA.tile[tile_id].real_b + value
 end
 ---@param tile_id tile_id valid tile id
----@return number pathfinding_index
+---@return number pathfinding_index 
 function DATA.tile_get_pathfinding_index(tile_id)
     return DATA.tile[tile_id].pathfinding_index
 end
@@ -637,7 +655,7 @@ function DATA.tile_inc_pathfinding_index(tile_id, value)
     DATA.tile[tile_id].pathfinding_index = DATA.tile[tile_id].pathfinding_index + value
 end
 ---@param tile_id tile_id valid tile id
----@return resource_id resource
+---@return resource_id resource 
 function DATA.tile_get_resource(tile_id)
     return DATA.tile_resource[tile_id]
 end
@@ -647,7 +665,7 @@ function DATA.tile_set_resource(tile_id, value)
     DATA.tile_resource[tile_id] = value
 end
 ---@param tile_id tile_id valid tile id
----@return bedrock_id bedrock
+---@return bedrock_id bedrock 
 function DATA.tile_get_bedrock(tile_id)
     return DATA.tile_bedrock[tile_id]
 end
@@ -657,7 +675,7 @@ function DATA.tile_set_bedrock(tile_id, value)
     DATA.tile_bedrock[tile_id] = value
 end
 ---@param tile_id tile_id valid tile id
----@return biome_id biome
+---@return biome_id biome 
 function DATA.tile_get_biome(tile_id)
     return DATA.tile_biome[tile_id]
 end
@@ -847,815 +865,6 @@ function DATA.fatten_tile(id)
     local result = {id = id}
     setmetatable(result, fat_tile_id_metatable)    return result
 end
-----------race----------
-
-
----race: LSP types---
-
----Unique identificator for race entity
----@alias race_id number
-
----@class fat_race_id
----@field id race_id Unique race id
----@field name string
----@field icon string
----@field female_portrait nil|PortraitSet
----@field male_portrait nil|PortraitSet
----@field description string
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
----@field spotting number How good is this unit at scouting
----@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field male_body_size number
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field requires_large_river boolean
----@field requires_large_forest boolean
-
----@class struct_race
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
----@field spotting number How good is this unit at scouting
----@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field male_body_size number
----@field female_efficiency table<JOBTYPE, number>
----@field male_efficiency table<JOBTYPE, number>
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field female_needs table<number, struct_need_definition>
----@field male_needs table<number, struct_need_definition>
----@field requires_large_river boolean
----@field requires_large_forest boolean
-
-
-ffi.cdef[[
-    typedef struct {
-        float r;
-        float g;
-        float b;
-        float carrying_capacity_weight;
-        float fecundity;
-        float spotting;
-        float visibility;
-        float males_per_hundred_females;
-        float child_age;
-        float teen_age;
-        float adult_age;
-        float middle_age;
-        float elder_age;
-        float max_age;
-        float minimum_comfortable_temperature;
-        float minimum_absolute_temperature;
-        float minimum_comfortable_elevation;
-        float female_body_size;
-        float male_body_size;
-        float female_efficiency[10];
-        float male_efficiency[10];
-        float female_infrastructure_needs;
-        float male_infrastructure_needs;
-        need_definition female_needs[20];
-        need_definition male_needs[20];
-        bool requires_large_river;
-        bool requires_large_forest;
-    } race;
-]]
-
----race: FFI arrays---
----@type (string)[]
-DATA.race_name= {}
----@type (string)[]
-DATA.race_icon= {}
----@type (nil|PortraitSet)[]
-DATA.race_female_portrait= {}
----@type (nil|PortraitSet)[]
-DATA.race_male_portrait= {}
----@type (string)[]
-DATA.race_description= {}
----@type nil
-DATA.race_malloc = ffi.C.malloc(ffi.sizeof("race") * 16)
----@type table<race_id, struct_race>
-DATA.race = ffi.cast("race*", DATA.race_malloc)
-
----race: LUA bindings---
-
-DATA.race_size = 15
----@type table<race_id, boolean>
-local race_indices_pool = ffi.new("bool[?]", 15)
-for i = 1, 14 do
-    race_indices_pool[i] = true
-end
----@type table<race_id, race_id>
-DATA.race_indices_set = {}
-function DATA.create_race()
-    for i = 1, 14 do
-        if race_indices_pool[i] then
-            race_indices_pool[i] = false
-            DATA.race_indices_set[i] = i
-            return i
-        end
-    end
-    error("Run out of space for race")
-end
-function DATA.delete_race(i)
-    race_indices_pool[i] = true
-    DATA.race_indices_set[i] = nil
-end
----@param func fun(item: race_id)
-function DATA.for_each_race(func)
-    for _, item in pairs(DATA.race_indices_set) do
-        func(item)
-    end
-end
-
----@param race_id race_id valid race id
----@return string name
-function DATA.race_get_name(race_id)
-    return DATA.race_name[race_id]
-end
----@param race_id race_id valid race id
----@param value string valid string
-function DATA.race_set_name(race_id, value)
-    DATA.race_name[race_id] = value
-end
----@param race_id race_id valid race id
----@return string icon
-function DATA.race_get_icon(race_id)
-    return DATA.race_icon[race_id]
-end
----@param race_id race_id valid race id
----@param value string valid string
-function DATA.race_set_icon(race_id, value)
-    DATA.race_icon[race_id] = value
-end
----@param race_id race_id valid race id
----@return nil|PortraitSet female_portrait
-function DATA.race_get_female_portrait(race_id)
-    return DATA.race_female_portrait[race_id]
-end
----@param race_id race_id valid race id
----@param value nil|PortraitSet valid nil|PortraitSet
-function DATA.race_set_female_portrait(race_id, value)
-    DATA.race_female_portrait[race_id] = value
-end
----@param race_id race_id valid race id
----@return nil|PortraitSet male_portrait
-function DATA.race_get_male_portrait(race_id)
-    return DATA.race_male_portrait[race_id]
-end
----@param race_id race_id valid race id
----@param value nil|PortraitSet valid nil|PortraitSet
-function DATA.race_set_male_portrait(race_id, value)
-    DATA.race_male_portrait[race_id] = value
-end
----@param race_id race_id valid race id
----@return string description
-function DATA.race_get_description(race_id)
-    return DATA.race_description[race_id]
-end
----@param race_id race_id valid race id
----@param value string valid string
-function DATA.race_set_description(race_id, value)
-    DATA.race_description[race_id] = value
-end
----@param race_id race_id valid race id
----@return number r
-function DATA.race_get_r(race_id)
-    return DATA.race[race_id].r
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_r(race_id, value)
-    DATA.race[race_id].r = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_r(race_id, value)
-    DATA.race[race_id].r = DATA.race[race_id].r + value
-end
----@param race_id race_id valid race id
----@return number g
-function DATA.race_get_g(race_id)
-    return DATA.race[race_id].g
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_g(race_id, value)
-    DATA.race[race_id].g = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_g(race_id, value)
-    DATA.race[race_id].g = DATA.race[race_id].g + value
-end
----@param race_id race_id valid race id
----@return number b
-function DATA.race_get_b(race_id)
-    return DATA.race[race_id].b
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_b(race_id, value)
-    DATA.race[race_id].b = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_b(race_id, value)
-    DATA.race[race_id].b = DATA.race[race_id].b + value
-end
----@param race_id race_id valid race id
----@return number carrying_capacity_weight
-function DATA.race_get_carrying_capacity_weight(race_id)
-    return DATA.race[race_id].carrying_capacity_weight
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_carrying_capacity_weight(race_id, value)
-    DATA.race[race_id].carrying_capacity_weight = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_carrying_capacity_weight(race_id, value)
-    DATA.race[race_id].carrying_capacity_weight = DATA.race[race_id].carrying_capacity_weight + value
-end
----@param race_id race_id valid race id
----@return number fecundity
-function DATA.race_get_fecundity(race_id)
-    return DATA.race[race_id].fecundity
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_fecundity(race_id, value)
-    DATA.race[race_id].fecundity = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_fecundity(race_id, value)
-    DATA.race[race_id].fecundity = DATA.race[race_id].fecundity + value
-end
----@param race_id race_id valid race id
----@return number spotting How good is this unit at scouting
-function DATA.race_get_spotting(race_id)
-    return DATA.race[race_id].spotting
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_spotting(race_id, value)
-    DATA.race[race_id].spotting = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_spotting(race_id, value)
-    DATA.race[race_id].spotting = DATA.race[race_id].spotting + value
-end
----@param race_id race_id valid race id
----@return number visibility How visible is this unit in battles
-function DATA.race_get_visibility(race_id)
-    return DATA.race[race_id].visibility
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_visibility(race_id, value)
-    DATA.race[race_id].visibility = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_visibility(race_id, value)
-    DATA.race[race_id].visibility = DATA.race[race_id].visibility + value
-end
----@param race_id race_id valid race id
----@return number males_per_hundred_females
-function DATA.race_get_males_per_hundred_females(race_id)
-    return DATA.race[race_id].males_per_hundred_females
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_males_per_hundred_females(race_id, value)
-    DATA.race[race_id].males_per_hundred_females = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_males_per_hundred_females(race_id, value)
-    DATA.race[race_id].males_per_hundred_females = DATA.race[race_id].males_per_hundred_females + value
-end
----@param race_id race_id valid race id
----@return number child_age
-function DATA.race_get_child_age(race_id)
-    return DATA.race[race_id].child_age
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_child_age(race_id, value)
-    DATA.race[race_id].child_age = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_child_age(race_id, value)
-    DATA.race[race_id].child_age = DATA.race[race_id].child_age + value
-end
----@param race_id race_id valid race id
----@return number teen_age
-function DATA.race_get_teen_age(race_id)
-    return DATA.race[race_id].teen_age
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_teen_age(race_id, value)
-    DATA.race[race_id].teen_age = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_teen_age(race_id, value)
-    DATA.race[race_id].teen_age = DATA.race[race_id].teen_age + value
-end
----@param race_id race_id valid race id
----@return number adult_age
-function DATA.race_get_adult_age(race_id)
-    return DATA.race[race_id].adult_age
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_adult_age(race_id, value)
-    DATA.race[race_id].adult_age = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_adult_age(race_id, value)
-    DATA.race[race_id].adult_age = DATA.race[race_id].adult_age + value
-end
----@param race_id race_id valid race id
----@return number middle_age
-function DATA.race_get_middle_age(race_id)
-    return DATA.race[race_id].middle_age
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_middle_age(race_id, value)
-    DATA.race[race_id].middle_age = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_middle_age(race_id, value)
-    DATA.race[race_id].middle_age = DATA.race[race_id].middle_age + value
-end
----@param race_id race_id valid race id
----@return number elder_age
-function DATA.race_get_elder_age(race_id)
-    return DATA.race[race_id].elder_age
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_elder_age(race_id, value)
-    DATA.race[race_id].elder_age = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_elder_age(race_id, value)
-    DATA.race[race_id].elder_age = DATA.race[race_id].elder_age + value
-end
----@param race_id race_id valid race id
----@return number max_age
-function DATA.race_get_max_age(race_id)
-    return DATA.race[race_id].max_age
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_max_age(race_id, value)
-    DATA.race[race_id].max_age = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_max_age(race_id, value)
-    DATA.race[race_id].max_age = DATA.race[race_id].max_age + value
-end
----@param race_id race_id valid race id
----@return number minimum_comfortable_temperature
-function DATA.race_get_minimum_comfortable_temperature(race_id)
-    return DATA.race[race_id].minimum_comfortable_temperature
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_minimum_comfortable_temperature(race_id, value)
-    DATA.race[race_id].minimum_comfortable_temperature = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_minimum_comfortable_temperature(race_id, value)
-    DATA.race[race_id].minimum_comfortable_temperature = DATA.race[race_id].minimum_comfortable_temperature + value
-end
----@param race_id race_id valid race id
----@return number minimum_absolute_temperature
-function DATA.race_get_minimum_absolute_temperature(race_id)
-    return DATA.race[race_id].minimum_absolute_temperature
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_minimum_absolute_temperature(race_id, value)
-    DATA.race[race_id].minimum_absolute_temperature = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_minimum_absolute_temperature(race_id, value)
-    DATA.race[race_id].minimum_absolute_temperature = DATA.race[race_id].minimum_absolute_temperature + value
-end
----@param race_id race_id valid race id
----@return number minimum_comfortable_elevation
-function DATA.race_get_minimum_comfortable_elevation(race_id)
-    return DATA.race[race_id].minimum_comfortable_elevation
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_minimum_comfortable_elevation(race_id, value)
-    DATA.race[race_id].minimum_comfortable_elevation = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_minimum_comfortable_elevation(race_id, value)
-    DATA.race[race_id].minimum_comfortable_elevation = DATA.race[race_id].minimum_comfortable_elevation + value
-end
----@param race_id race_id valid race id
----@return number female_body_size
-function DATA.race_get_female_body_size(race_id)
-    return DATA.race[race_id].female_body_size
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_female_body_size(race_id, value)
-    DATA.race[race_id].female_body_size = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_female_body_size(race_id, value)
-    DATA.race[race_id].female_body_size = DATA.race[race_id].female_body_size + value
-end
----@param race_id race_id valid race id
----@return number male_body_size
-function DATA.race_get_male_body_size(race_id)
-    return DATA.race[race_id].male_body_size
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_male_body_size(race_id, value)
-    DATA.race[race_id].male_body_size = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_male_body_size(race_id, value)
-    DATA.race[race_id].male_body_size = DATA.race[race_id].male_body_size + value
-end
----@param race_id race_id valid race id
----@param index JOBTYPE valid
----@return number female_efficiency
-function DATA.race_get_female_efficiency(race_id, index)
-    return DATA.race[race_id].female_efficiency[index]
-end
----@param race_id race_id valid race id
----@param index JOBTYPE valid index
----@param value number valid number
-function DATA.race_set_female_efficiency(race_id, index, value)
-    DATA.race[race_id].female_efficiency[index] = value
-end
----@param race_id race_id valid race id
----@param index JOBTYPE valid index
----@param value number valid number
-function DATA.race_inc_female_efficiency(race_id, index, value)
-    DATA.race[race_id].female_efficiency[index] = DATA.race[race_id].female_efficiency[index] + value
-end
----@param race_id race_id valid race id
----@param index JOBTYPE valid
----@return number male_efficiency
-function DATA.race_get_male_efficiency(race_id, index)
-    return DATA.race[race_id].male_efficiency[index]
-end
----@param race_id race_id valid race id
----@param index JOBTYPE valid index
----@param value number valid number
-function DATA.race_set_male_efficiency(race_id, index, value)
-    DATA.race[race_id].male_efficiency[index] = value
-end
----@param race_id race_id valid race id
----@param index JOBTYPE valid index
----@param value number valid number
-function DATA.race_inc_male_efficiency(race_id, index, value)
-    DATA.race[race_id].male_efficiency[index] = DATA.race[race_id].male_efficiency[index] + value
-end
----@param race_id race_id valid race id
----@return number female_infrastructure_needs
-function DATA.race_get_female_infrastructure_needs(race_id)
-    return DATA.race[race_id].female_infrastructure_needs
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_female_infrastructure_needs(race_id, value)
-    DATA.race[race_id].female_infrastructure_needs = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_female_infrastructure_needs(race_id, value)
-    DATA.race[race_id].female_infrastructure_needs = DATA.race[race_id].female_infrastructure_needs + value
-end
----@param race_id race_id valid race id
----@return number male_infrastructure_needs
-function DATA.race_get_male_infrastructure_needs(race_id)
-    return DATA.race[race_id].male_infrastructure_needs
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_set_male_infrastructure_needs(race_id, value)
-    DATA.race[race_id].male_infrastructure_needs = value
-end
----@param race_id race_id valid race id
----@param value number valid number
-function DATA.race_inc_male_infrastructure_needs(race_id, value)
-    DATA.race[race_id].male_infrastructure_needs = DATA.race[race_id].male_infrastructure_needs + value
-end
----@param race_id race_id valid race id
----@param index number valid
----@return NEED female_needs
-function DATA.race_get_female_needs_need(race_id, index)
-    return DATA.race[race_id].female_needs[index].need
-end
----@param race_id race_id valid race id
----@param index number valid
----@return use_case_id female_needs
-function DATA.race_get_female_needs_use_case(race_id, index)
-    return DATA.race[race_id].female_needs[index].use_case
-end
----@param race_id race_id valid race id
----@param index number valid
----@return number female_needs
-function DATA.race_get_female_needs_required(race_id, index)
-    return DATA.race[race_id].female_needs[index].required
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value NEED valid NEED
-function DATA.race_set_female_needs_need(race_id, index, value)
-    DATA.race[race_id].female_needs[index].need = value
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value use_case_id valid use_case_id
-function DATA.race_set_female_needs_use_case(race_id, index, value)
-    DATA.race[race_id].female_needs[index].use_case = value
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value number valid number
-function DATA.race_set_female_needs_required(race_id, index, value)
-    DATA.race[race_id].female_needs[index].required = value
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value number valid number
-function DATA.race_inc_female_needs_required(race_id, index, value)
-    DATA.race[race_id].female_needs[index].required = DATA.race[race_id].female_needs[index].required + value
-end
----@param race_id race_id valid race id
----@param index number valid
----@return NEED male_needs
-function DATA.race_get_male_needs_need(race_id, index)
-    return DATA.race[race_id].male_needs[index].need
-end
----@param race_id race_id valid race id
----@param index number valid
----@return use_case_id male_needs
-function DATA.race_get_male_needs_use_case(race_id, index)
-    return DATA.race[race_id].male_needs[index].use_case
-end
----@param race_id race_id valid race id
----@param index number valid
----@return number male_needs
-function DATA.race_get_male_needs_required(race_id, index)
-    return DATA.race[race_id].male_needs[index].required
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value NEED valid NEED
-function DATA.race_set_male_needs_need(race_id, index, value)
-    DATA.race[race_id].male_needs[index].need = value
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value use_case_id valid use_case_id
-function DATA.race_set_male_needs_use_case(race_id, index, value)
-    DATA.race[race_id].male_needs[index].use_case = value
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value number valid number
-function DATA.race_set_male_needs_required(race_id, index, value)
-    DATA.race[race_id].male_needs[index].required = value
-end
----@param race_id race_id valid race id
----@param index number valid index
----@param value number valid number
-function DATA.race_inc_male_needs_required(race_id, index, value)
-    DATA.race[race_id].male_needs[index].required = DATA.race[race_id].male_needs[index].required + value
-end
----@param race_id race_id valid race id
----@return boolean requires_large_river
-function DATA.race_get_requires_large_river(race_id)
-    return DATA.race[race_id].requires_large_river
-end
----@param race_id race_id valid race id
----@param value boolean valid boolean
-function DATA.race_set_requires_large_river(race_id, value)
-    DATA.race[race_id].requires_large_river = value
-end
----@param race_id race_id valid race id
----@return boolean requires_large_forest
-function DATA.race_get_requires_large_forest(race_id)
-    return DATA.race[race_id].requires_large_forest
-end
----@param race_id race_id valid race id
----@param value boolean valid boolean
-function DATA.race_set_requires_large_forest(race_id, value)
-    DATA.race[race_id].requires_large_forest = value
-end
-
-
-local fat_race_id_metatable = {
-    __index = function (t,k)
-        if (k == "name") then return DATA.race_get_name(t.id) end
-        if (k == "icon") then return DATA.race_get_icon(t.id) end
-        if (k == "female_portrait") then return DATA.race_get_female_portrait(t.id) end
-        if (k == "male_portrait") then return DATA.race_get_male_portrait(t.id) end
-        if (k == "description") then return DATA.race_get_description(t.id) end
-        if (k == "r") then return DATA.race_get_r(t.id) end
-        if (k == "g") then return DATA.race_get_g(t.id) end
-        if (k == "b") then return DATA.race_get_b(t.id) end
-        if (k == "carrying_capacity_weight") then return DATA.race_get_carrying_capacity_weight(t.id) end
-        if (k == "fecundity") then return DATA.race_get_fecundity(t.id) end
-        if (k == "spotting") then return DATA.race_get_spotting(t.id) end
-        if (k == "visibility") then return DATA.race_get_visibility(t.id) end
-        if (k == "males_per_hundred_females") then return DATA.race_get_males_per_hundred_females(t.id) end
-        if (k == "child_age") then return DATA.race_get_child_age(t.id) end
-        if (k == "teen_age") then return DATA.race_get_teen_age(t.id) end
-        if (k == "adult_age") then return DATA.race_get_adult_age(t.id) end
-        if (k == "middle_age") then return DATA.race_get_middle_age(t.id) end
-        if (k == "elder_age") then return DATA.race_get_elder_age(t.id) end
-        if (k == "max_age") then return DATA.race_get_max_age(t.id) end
-        if (k == "minimum_comfortable_temperature") then return DATA.race_get_minimum_comfortable_temperature(t.id) end
-        if (k == "minimum_absolute_temperature") then return DATA.race_get_minimum_absolute_temperature(t.id) end
-        if (k == "minimum_comfortable_elevation") then return DATA.race_get_minimum_comfortable_elevation(t.id) end
-        if (k == "female_body_size") then return DATA.race_get_female_body_size(t.id) end
-        if (k == "male_body_size") then return DATA.race_get_male_body_size(t.id) end
-        if (k == "female_infrastructure_needs") then return DATA.race_get_female_infrastructure_needs(t.id) end
-        if (k == "male_infrastructure_needs") then return DATA.race_get_male_infrastructure_needs(t.id) end
-        if (k == "requires_large_river") then return DATA.race_get_requires_large_river(t.id) end
-        if (k == "requires_large_forest") then return DATA.race_get_requires_large_forest(t.id) end
-        return rawget(t, k)
-    end,
-    __newindex = function (t,k,v)
-        if (k == "name") then
-            DATA.race_set_name(t.id, v)
-            return
-        end
-        if (k == "icon") then
-            DATA.race_set_icon(t.id, v)
-            return
-        end
-        if (k == "female_portrait") then
-            DATA.race_set_female_portrait(t.id, v)
-            return
-        end
-        if (k == "male_portrait") then
-            DATA.race_set_male_portrait(t.id, v)
-            return
-        end
-        if (k == "description") then
-            DATA.race_set_description(t.id, v)
-            return
-        end
-        if (k == "r") then
-            DATA.race_set_r(t.id, v)
-            return
-        end
-        if (k == "g") then
-            DATA.race_set_g(t.id, v)
-            return
-        end
-        if (k == "b") then
-            DATA.race_set_b(t.id, v)
-            return
-        end
-        if (k == "carrying_capacity_weight") then
-            DATA.race_set_carrying_capacity_weight(t.id, v)
-            return
-        end
-        if (k == "fecundity") then
-            DATA.race_set_fecundity(t.id, v)
-            return
-        end
-        if (k == "spotting") then
-            DATA.race_set_spotting(t.id, v)
-            return
-        end
-        if (k == "visibility") then
-            DATA.race_set_visibility(t.id, v)
-            return
-        end
-        if (k == "males_per_hundred_females") then
-            DATA.race_set_males_per_hundred_females(t.id, v)
-            return
-        end
-        if (k == "child_age") then
-            DATA.race_set_child_age(t.id, v)
-            return
-        end
-        if (k == "teen_age") then
-            DATA.race_set_teen_age(t.id, v)
-            return
-        end
-        if (k == "adult_age") then
-            DATA.race_set_adult_age(t.id, v)
-            return
-        end
-        if (k == "middle_age") then
-            DATA.race_set_middle_age(t.id, v)
-            return
-        end
-        if (k == "elder_age") then
-            DATA.race_set_elder_age(t.id, v)
-            return
-        end
-        if (k == "max_age") then
-            DATA.race_set_max_age(t.id, v)
-            return
-        end
-        if (k == "minimum_comfortable_temperature") then
-            DATA.race_set_minimum_comfortable_temperature(t.id, v)
-            return
-        end
-        if (k == "minimum_absolute_temperature") then
-            DATA.race_set_minimum_absolute_temperature(t.id, v)
-            return
-        end
-        if (k == "minimum_comfortable_elevation") then
-            DATA.race_set_minimum_comfortable_elevation(t.id, v)
-            return
-        end
-        if (k == "female_body_size") then
-            DATA.race_set_female_body_size(t.id, v)
-            return
-        end
-        if (k == "male_body_size") then
-            DATA.race_set_male_body_size(t.id, v)
-            return
-        end
-        if (k == "female_infrastructure_needs") then
-            DATA.race_set_female_infrastructure_needs(t.id, v)
-            return
-        end
-        if (k == "male_infrastructure_needs") then
-            DATA.race_set_male_infrastructure_needs(t.id, v)
-            return
-        end
-        if (k == "requires_large_river") then
-            DATA.race_set_requires_large_river(t.id, v)
-            return
-        end
-        if (k == "requires_large_forest") then
-            DATA.race_set_requires_large_forest(t.id, v)
-            return
-        end
-        rawset(t, k, v)
-    end
-}
----@param id race_id
----@return fat_race_id fat_id
-function DATA.fatten_race(id)
-    local result = {id = id}
-    setmetatable(result, fat_race_id_metatable)    return result
-end
 ----------pop----------
 
 
@@ -1666,51 +875,52 @@ end
 
 ---@class fat_pop_id
 ---@field id pop_id Unique pop id
----@field race race_id
----@field faith Faith
----@field culture Culture
----@field female boolean
----@field age number
----@field name string
----@field job Job
----@field savings number
----@field parent pop_id
----@field loyalty pop_id
+---@field race race_id 
+---@field faith Faith 
+---@field culture Culture 
+---@field female boolean 
+---@field age number 
+---@field name string 
+---@field job job_id 
+---@field savings number 
+---@field parent pop_id 
+---@field loyalty pop_id 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field employer Building
----@field successor pop_id
+---@field employer Building 
+---@field successor pop_id 
 ---@field owned_buildings table <Building,Building>
----@field has_trade_permits_in table<Realm,Realm>
----@field has_building_permits_in table<Realm,Realm>
+---@field has_trade_permits_in table<Realm,Realm> 
+---@field has_building_permits_in table<Realm,Realm> 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field busy boolean
----@field dead boolean
+---@field busy boolean 
+---@field dead boolean 
 ---@field realm Realm Represents the home realm of the character
----@field leader_of table<Realm,Realm>
----@field current_negotiations table<pop_id,pop_id>
----@field rank CHARACTER_RANK
----@field former_pop boolean
+---@field leader_of table<Realm,Realm> 
+---@field current_negotiations table<pop_id,pop_id> 
+---@field rank CHARACTER_RANK 
+---@field former_pop boolean 
 
 ---@class struct_pop
----@field race race_id
----@field female boolean
----@field age number
----@field savings number
----@field parent pop_id
----@field loyalty pop_id
+---@field race race_id 
+---@field female boolean 
+---@field age number 
+---@field job job_id 
+---@field savings number 
+---@field parent pop_id 
+---@field loyalty pop_id 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field need_satisfaction table<number, struct_need_satisfaction>
----@field traits table<number, TRAIT>
----@field successor pop_id
----@field inventory table<trade_good_id, number>
----@field price_memory table<trade_good_id, number>
+---@field need_satisfaction table<number, struct_need_satisfaction> 
+---@field traits table<number, TRAIT> 
+---@field successor pop_id 
+---@field inventory table<trade_good_id, number> 
+---@field price_memory table<trade_good_id, number> 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field rank CHARACTER_RANK
----@field dna table<number, number>
+---@field rank CHARACTER_RANK 
+---@field dna table<number, number> 
 
 
 ffi.cdef[[
@@ -1718,6 +928,7 @@ ffi.cdef[[
         uint32_t race;
         bool female;
         uint32_t age;
+        uint32_t job;
         float savings;
         uint32_t parent;
         uint32_t loyalty;
@@ -1742,8 +953,6 @@ DATA.pop_faith= {}
 DATA.pop_culture= {}
 ---@type (string)[]
 DATA.pop_name= {}
----@type (Job)[]
-DATA.pop_job= {}
 ---@type (Building)[]
 DATA.pop_employer= {}
 ---@type (table)[]
@@ -1775,7 +984,7 @@ DATA.pop_size = 300000
 ---@type table<pop_id, boolean>
 local pop_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    pop_indices_pool[i] = true
+    pop_indices_pool[i] = true 
 end
 ---@type table<pop_id, pop_id>
 DATA.pop_indices_set = {}
@@ -1867,7 +1076,7 @@ function DATA.delete_pop(i)
     pop_indices_pool[i] = true
     DATA.pop_indices_set[i] = nil
 end
----@param func fun(item: pop_id)
+---@param func fun(item: pop_id) 
 function DATA.for_each_pop(func)
     for _, item in pairs(DATA.pop_indices_set) do
         func(item)
@@ -1875,7 +1084,7 @@ function DATA.for_each_pop(func)
 end
 
 ---@param pop_id pop_id valid pop id
----@return race_id race
+---@return race_id race 
 function DATA.pop_get_race(pop_id)
     return DATA.pop[pop_id].race
 end
@@ -1885,7 +1094,7 @@ function DATA.pop_set_race(pop_id, value)
     DATA.pop[pop_id].race = value
 end
 ---@param pop_id pop_id valid pop id
----@return Faith faith
+---@return Faith faith 
 function DATA.pop_get_faith(pop_id)
     return DATA.pop_faith[pop_id]
 end
@@ -1895,7 +1104,7 @@ function DATA.pop_set_faith(pop_id, value)
     DATA.pop_faith[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Culture culture
+---@return Culture culture 
 function DATA.pop_get_culture(pop_id)
     return DATA.pop_culture[pop_id]
 end
@@ -1905,7 +1114,7 @@ function DATA.pop_set_culture(pop_id, value)
     DATA.pop_culture[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean female
+---@return boolean female 
 function DATA.pop_get_female(pop_id)
     return DATA.pop[pop_id].female
 end
@@ -1915,7 +1124,7 @@ function DATA.pop_set_female(pop_id, value)
     DATA.pop[pop_id].female = value
 end
 ---@param pop_id pop_id valid pop id
----@return number age
+---@return number age 
 function DATA.pop_get_age(pop_id)
     return DATA.pop[pop_id].age
 end
@@ -1930,7 +1139,7 @@ function DATA.pop_inc_age(pop_id, value)
     DATA.pop[pop_id].age = DATA.pop[pop_id].age + value
 end
 ---@param pop_id pop_id valid pop id
----@return string name
+---@return string name 
 function DATA.pop_get_name(pop_id)
     return DATA.pop_name[pop_id]
 end
@@ -1940,17 +1149,17 @@ function DATA.pop_set_name(pop_id, value)
     DATA.pop_name[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Job job
+---@return job_id job 
 function DATA.pop_get_job(pop_id)
-    return DATA.pop_job[pop_id]
+    return DATA.pop[pop_id].job
 end
 ---@param pop_id pop_id valid pop id
----@param value Job valid Job
+---@param value job_id valid job_id
 function DATA.pop_set_job(pop_id, value)
-    DATA.pop_job[pop_id] = value
+    DATA.pop[pop_id].job = value
 end
 ---@param pop_id pop_id valid pop id
----@return number savings
+---@return number savings 
 function DATA.pop_get_savings(pop_id)
     return DATA.pop[pop_id].savings
 end
@@ -1965,7 +1174,7 @@ function DATA.pop_inc_savings(pop_id, value)
     DATA.pop[pop_id].savings = DATA.pop[pop_id].savings + value
 end
 ---@param pop_id pop_id valid pop id
----@return pop_id parent
+---@return pop_id parent 
 function DATA.pop_get_parent(pop_id)
     return DATA.pop[pop_id].parent
 end
@@ -1975,7 +1184,7 @@ function DATA.pop_set_parent(pop_id, value)
     DATA.pop[pop_id].parent = value
 end
 ---@param pop_id pop_id valid pop id
----@return pop_id loyalty
+---@return pop_id loyalty 
 function DATA.pop_get_loyalty(pop_id)
     return DATA.pop[pop_id].loyalty
 end
@@ -2016,25 +1225,25 @@ function DATA.pop_inc_basic_needs_satisfaction(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return NEED need_satisfaction
+---@return NEED need_satisfaction 
 function DATA.pop_get_need_satisfaction_need(pop_id, index)
     return DATA.pop[pop_id].need_satisfaction[index].need
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return use_case_id need_satisfaction
+---@return use_case_id need_satisfaction 
 function DATA.pop_get_need_satisfaction_use_case(pop_id, index)
     return DATA.pop[pop_id].need_satisfaction[index].use_case
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number need_satisfaction
+---@return number need_satisfaction 
 function DATA.pop_get_need_satisfaction_consumed(pop_id, index)
     return DATA.pop[pop_id].need_satisfaction[index].consumed
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number need_satisfaction
+---@return number need_satisfaction 
 function DATA.pop_get_need_satisfaction_demanded(pop_id, index)
     return DATA.pop[pop_id].need_satisfaction[index].demanded
 end
@@ -2076,7 +1285,7 @@ function DATA.pop_inc_need_satisfaction_demanded(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return TRAIT traits
+---@return TRAIT traits 
 function DATA.pop_get_traits(pop_id, index)
     return DATA.pop[pop_id].traits[index]
 end
@@ -2087,7 +1296,7 @@ function DATA.pop_set_traits(pop_id, index, value)
     DATA.pop[pop_id].traits[index] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Building employer
+---@return Building employer 
 function DATA.pop_get_employer(pop_id)
     return DATA.pop_employer[pop_id]
 end
@@ -2097,7 +1306,7 @@ function DATA.pop_set_employer(pop_id, value)
     DATA.pop_employer[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return pop_id successor
+---@return pop_id successor 
 function DATA.pop_get_successor(pop_id)
     return DATA.pop[pop_id].successor
 end
@@ -2117,7 +1326,7 @@ function DATA.pop_set_owned_buildings(pop_id, value)
     DATA.pop_owned_buildings[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return table<Realm,Realm> has_trade_permits_in
+---@return table<Realm,Realm> has_trade_permits_in 
 function DATA.pop_get_has_trade_permits_in(pop_id)
     return DATA.pop_has_trade_permits_in[pop_id]
 end
@@ -2127,7 +1336,7 @@ function DATA.pop_set_has_trade_permits_in(pop_id, value)
     DATA.pop_has_trade_permits_in[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return table<Realm,Realm> has_building_permits_in
+---@return table<Realm,Realm> has_building_permits_in 
 function DATA.pop_get_has_building_permits_in(pop_id)
     return DATA.pop_has_building_permits_in[pop_id]
 end
@@ -2138,7 +1347,7 @@ function DATA.pop_set_has_building_permits_in(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
----@return number inventory
+---@return number inventory 
 function DATA.pop_get_inventory(pop_id, index)
     return DATA.pop[pop_id].inventory[index]
 end
@@ -2156,7 +1365,7 @@ function DATA.pop_inc_inventory(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
----@return number price_memory
+---@return number price_memory 
 function DATA.pop_get_price_memory(pop_id, index)
     return DATA.pop[pop_id].price_memory[index]
 end
@@ -2203,7 +1412,7 @@ function DATA.pop_inc_work_ratio(pop_id, value)
     DATA.pop[pop_id].work_ratio = DATA.pop[pop_id].work_ratio + value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean busy
+---@return boolean busy 
 function DATA.pop_get_busy(pop_id)
     return DATA.pop_busy[pop_id]
 end
@@ -2213,7 +1422,7 @@ function DATA.pop_set_busy(pop_id, value)
     DATA.pop_busy[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean dead
+---@return boolean dead 
 function DATA.pop_get_dead(pop_id)
     return DATA.pop_dead[pop_id]
 end
@@ -2233,7 +1442,7 @@ function DATA.pop_set_realm(pop_id, value)
     DATA.pop_realm[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return table<Realm,Realm> leader_of
+---@return table<Realm,Realm> leader_of 
 function DATA.pop_get_leader_of(pop_id)
     return DATA.pop_leader_of[pop_id]
 end
@@ -2243,7 +1452,7 @@ function DATA.pop_set_leader_of(pop_id, value)
     DATA.pop_leader_of[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return table<pop_id,pop_id> current_negotiations
+---@return table<pop_id,pop_id> current_negotiations 
 function DATA.pop_get_current_negotiations(pop_id)
     return DATA.pop_current_negotiations[pop_id]
 end
@@ -2253,7 +1462,7 @@ function DATA.pop_set_current_negotiations(pop_id, value)
     DATA.pop_current_negotiations[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return CHARACTER_RANK rank
+---@return CHARACTER_RANK rank 
 function DATA.pop_get_rank(pop_id)
     return DATA.pop[pop_id].rank
 end
@@ -2263,7 +1472,7 @@ function DATA.pop_set_rank(pop_id, value)
     DATA.pop[pop_id].rank = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean former_pop
+---@return boolean former_pop 
 function DATA.pop_get_former_pop(pop_id)
     return DATA.pop_former_pop[pop_id]
 end
@@ -2274,7 +1483,7 @@ function DATA.pop_set_former_pop(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number dna
+---@return number dna 
 function DATA.pop_get_dna(pop_id, index)
     return DATA.pop[pop_id].dna[index]
 end
@@ -2446,69 +1655,69 @@ end
 
 ---@class fat_province_id
 ---@field id province_id Unique province id
----@field name string
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field is_land boolean 
+---@field province_id number 
+---@field size number 
 ---@field hydration number Number of humans that can live of off this provinces innate water
----@field movement_cost number
+---@field movement_cost number 
 ---@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field realm Realm?
----@field buildings table<Building,Building>
----@field technologies_present table<Technology,Technology>
----@field technologies_researchable table<Technology,Technology>
----@field buildable_buildings table<BuildingType,BuildingType>
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
+---@field infrastructure_needed number 
+---@field infrastructure number 
+---@field infrastructure_investment number 
+---@field realm Realm? 
+---@field buildings table<Building,Building> 
+---@field local_wealth number 
+---@field trade_wealth number 
+---@field local_income number 
+---@field local_building_upkeep number 
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
----@field foragers_targets table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>
+---@field foragers_targets table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}> 
 ---@field mood number how local population thinks about the state
----@field throughput_boosts table<ProductionMethod,number>
----@field input_efficiency_boosts table<ProductionMethod,number>
----@field output_efficiency_boosts table<ProductionMethod,number>
----@field on_a_river boolean
----@field on_a_forest boolean
+---@field on_a_river boolean 
+---@field on_a_forest boolean 
 
 ---@class struct_province
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field is_land boolean 
+---@field province_id number 
+---@field size number 
 ---@field hydration number Number of humans that can live of off this provinces innate water
----@field movement_cost number
+---@field movement_cost number 
 ---@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field local_production table<trade_good_id, number>
----@field local_consumption table<trade_good_id, number>
----@field local_demand table<trade_good_id, number>
----@field local_storage table<trade_good_id, number>
----@field local_prices table<trade_good_id, number>
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
+---@field infrastructure_needed number 
+---@field infrastructure number 
+---@field infrastructure_investment number 
+---@field technologies_present table<technology_id, number> 
+---@field technologies_researchable table<technology_id, number> 
+---@field buildable_buildings table<building_type_id, boolean> 
+---@field local_production table<trade_good_id, number> 
+---@field local_consumption table<trade_good_id, number> 
+---@field local_demand table<trade_good_id, number> 
+---@field local_storage table<trade_good_id, number> 
+---@field local_prices table<trade_good_id, number> 
+---@field local_wealth number 
+---@field trade_wealth number 
+---@field local_income number 
+---@field local_building_upkeep number 
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
 ---@field local_resources table<number, struct_resource_location> An array of local resources and their positions
 ---@field mood number how local population thinks about the state
----@field unit_types table<unit_type_id, number>
----@field on_a_river boolean
----@field on_a_forest boolean
+---@field unit_types table<unit_type_id, number> 
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
+---@field on_a_river boolean 
+---@field on_a_forest boolean 
 
 
 ffi.cdef[[
@@ -2525,6 +1734,9 @@ ffi.cdef[[
         float infrastructure_needed;
         float infrastructure;
         float infrastructure_investment;
+        uint32_t technologies_present[400];
+        uint32_t technologies_researchable[400];
+        bool buildable_buildings[250];
         float local_production[100];
         float local_consumption[100];
         float local_demand[100];
@@ -2540,6 +1752,9 @@ ffi.cdef[[
         resource_location local_resources[25];
         float mood;
         uint32_t unit_types[20];
+        float throughput_boosts[250];
+        float input_efficiency_boosts[250];
+        float output_efficiency_boosts[250];
         bool on_a_river;
         bool on_a_forest;
     } province;
@@ -2552,20 +1767,8 @@ DATA.province_name= {}
 DATA.province_realm= {}
 ---@type (table<Building,Building>)[]
 DATA.province_buildings= {}
----@type (table<Technology,Technology>)[]
-DATA.province_technologies_present= {}
----@type (table<Technology,Technology>)[]
-DATA.province_technologies_researchable= {}
----@type (table<BuildingType,BuildingType>)[]
-DATA.province_buildable_buildings= {}
 ---@type (table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>)[]
 DATA.province_foragers_targets= {}
----@type (table<ProductionMethod,number>)[]
-DATA.province_throughput_boosts= {}
----@type (table<ProductionMethod,number>)[]
-DATA.province_input_efficiency_boosts= {}
----@type (table<ProductionMethod,number>)[]
-DATA.province_output_efficiency_boosts= {}
 ---@type nil
 DATA.province_malloc = ffi.C.malloc(ffi.sizeof("province") * 10001)
 ---@type table<province_id, struct_province>
@@ -2577,7 +1780,7 @@ DATA.province_size = 10000
 ---@type table<province_id, boolean>
 local province_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    province_indices_pool[i] = true
+    province_indices_pool[i] = true 
 end
 ---@type table<province_id, province_id>
 DATA.province_indices_set = {}
@@ -2675,7 +1878,7 @@ function DATA.delete_province(i)
     province_indices_pool[i] = true
     DATA.province_indices_set[i] = nil
 end
----@param func fun(item: province_id)
+---@param func fun(item: province_id) 
 function DATA.for_each_province(func)
     for _, item in pairs(DATA.province_indices_set) do
         func(item)
@@ -2683,7 +1886,7 @@ function DATA.for_each_province(func)
 end
 
 ---@param province_id province_id valid province id
----@return string name
+---@return string name 
 function DATA.province_get_name(province_id)
     return DATA.province_name[province_id]
 end
@@ -2693,7 +1896,7 @@ function DATA.province_set_name(province_id, value)
     DATA.province_name[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return number r
+---@return number r 
 function DATA.province_get_r(province_id)
     return DATA.province[province_id].r
 end
@@ -2708,7 +1911,7 @@ function DATA.province_inc_r(province_id, value)
     DATA.province[province_id].r = DATA.province[province_id].r + value
 end
 ---@param province_id province_id valid province id
----@return number g
+---@return number g 
 function DATA.province_get_g(province_id)
     return DATA.province[province_id].g
 end
@@ -2723,7 +1926,7 @@ function DATA.province_inc_g(province_id, value)
     DATA.province[province_id].g = DATA.province[province_id].g + value
 end
 ---@param province_id province_id valid province id
----@return number b
+---@return number b 
 function DATA.province_get_b(province_id)
     return DATA.province[province_id].b
 end
@@ -2738,7 +1941,7 @@ function DATA.province_inc_b(province_id, value)
     DATA.province[province_id].b = DATA.province[province_id].b + value
 end
 ---@param province_id province_id valid province id
----@return boolean is_land
+---@return boolean is_land 
 function DATA.province_get_is_land(province_id)
     return DATA.province[province_id].is_land
 end
@@ -2748,7 +1951,7 @@ function DATA.province_set_is_land(province_id, value)
     DATA.province[province_id].is_land = value
 end
 ---@param province_id province_id valid province id
----@return number province_id
+---@return number province_id 
 function DATA.province_get_province_id(province_id)
     return DATA.province[province_id].province_id
 end
@@ -2763,7 +1966,7 @@ function DATA.province_inc_province_id(province_id, value)
     DATA.province[province_id].province_id = DATA.province[province_id].province_id + value
 end
 ---@param province_id province_id valid province id
----@return number size
+---@return number size 
 function DATA.province_get_size(province_id)
     return DATA.province[province_id].size
 end
@@ -2793,7 +1996,7 @@ function DATA.province_inc_hydration(province_id, value)
     DATA.province[province_id].hydration = DATA.province[province_id].hydration + value
 end
 ---@param province_id province_id valid province id
----@return number movement_cost
+---@return number movement_cost 
 function DATA.province_get_movement_cost(province_id)
     return DATA.province[province_id].movement_cost
 end
@@ -2818,7 +2021,7 @@ function DATA.province_set_center(province_id, value)
     DATA.province[province_id].center = value
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_needed
+---@return number infrastructure_needed 
 function DATA.province_get_infrastructure_needed(province_id)
     return DATA.province[province_id].infrastructure_needed
 end
@@ -2833,7 +2036,7 @@ function DATA.province_inc_infrastructure_needed(province_id, value)
     DATA.province[province_id].infrastructure_needed = DATA.province[province_id].infrastructure_needed + value
 end
 ---@param province_id province_id valid province id
----@return number infrastructure
+---@return number infrastructure 
 function DATA.province_get_infrastructure(province_id)
     return DATA.province[province_id].infrastructure
 end
@@ -2848,7 +2051,7 @@ function DATA.province_inc_infrastructure(province_id, value)
     DATA.province[province_id].infrastructure = DATA.province[province_id].infrastructure + value
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_investment
+---@return number infrastructure_investment 
 function DATA.province_get_infrastructure_investment(province_id)
     return DATA.province[province_id].infrastructure_investment
 end
@@ -2863,7 +2066,7 @@ function DATA.province_inc_infrastructure_investment(province_id, value)
     DATA.province[province_id].infrastructure_investment = DATA.province[province_id].infrastructure_investment + value
 end
 ---@param province_id province_id valid province id
----@return Realm? realm
+---@return Realm? realm 
 function DATA.province_get_realm(province_id)
     return DATA.province_realm[province_id]
 end
@@ -2873,7 +2076,7 @@ function DATA.province_set_realm(province_id, value)
     DATA.province_realm[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return table<Building,Building> buildings
+---@return table<Building,Building> buildings 
 function DATA.province_get_buildings(province_id)
     return DATA.province_buildings[province_id]
 end
@@ -2883,38 +2086,56 @@ function DATA.province_set_buildings(province_id, value)
     DATA.province_buildings[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return table<Technology,Technology> technologies_present
-function DATA.province_get_technologies_present(province_id)
-    return DATA.province_technologies_present[province_id]
+---@param index technology_id valid
+---@return number technologies_present 
+function DATA.province_get_technologies_present(province_id, index)
+    return DATA.province[province_id].technologies_present[index]
 end
 ---@param province_id province_id valid province id
----@param value table<Technology,Technology> valid table<Technology,Technology>
-function DATA.province_set_technologies_present(province_id, value)
-    DATA.province_technologies_present[province_id] = value
+---@param index technology_id valid index
+---@param value number valid number
+function DATA.province_set_technologies_present(province_id, index, value)
+    DATA.province[province_id].technologies_present[index] = value
 end
 ---@param province_id province_id valid province id
----@return table<Technology,Technology> technologies_researchable
-function DATA.province_get_technologies_researchable(province_id)
-    return DATA.province_technologies_researchable[province_id]
+---@param index technology_id valid index
+---@param value number valid number
+function DATA.province_inc_technologies_present(province_id, index, value)
+    DATA.province[province_id].technologies_present[index] = DATA.province[province_id].technologies_present[index] + value
 end
 ---@param province_id province_id valid province id
----@param value table<Technology,Technology> valid table<Technology,Technology>
-function DATA.province_set_technologies_researchable(province_id, value)
-    DATA.province_technologies_researchable[province_id] = value
+---@param index technology_id valid
+---@return number technologies_researchable 
+function DATA.province_get_technologies_researchable(province_id, index)
+    return DATA.province[province_id].technologies_researchable[index]
 end
 ---@param province_id province_id valid province id
----@return table<BuildingType,BuildingType> buildable_buildings
-function DATA.province_get_buildable_buildings(province_id)
-    return DATA.province_buildable_buildings[province_id]
+---@param index technology_id valid index
+---@param value number valid number
+function DATA.province_set_technologies_researchable(province_id, index, value)
+    DATA.province[province_id].technologies_researchable[index] = value
 end
 ---@param province_id province_id valid province id
----@param value table<BuildingType,BuildingType> valid table<BuildingType,BuildingType>
-function DATA.province_set_buildable_buildings(province_id, value)
-    DATA.province_buildable_buildings[province_id] = value
+---@param index technology_id valid index
+---@param value number valid number
+function DATA.province_inc_technologies_researchable(province_id, index, value)
+    DATA.province[province_id].technologies_researchable[index] = DATA.province[province_id].technologies_researchable[index] + value
+end
+---@param province_id province_id valid province id
+---@param index building_type_id valid
+---@return boolean buildable_buildings 
+function DATA.province_get_buildable_buildings(province_id, index)
+    return DATA.province[province_id].buildable_buildings[index]
+end
+---@param province_id province_id valid province id
+---@param index building_type_id valid index
+---@param value boolean valid boolean
+function DATA.province_set_buildable_buildings(province_id, index, value)
+    DATA.province[province_id].buildable_buildings[index] = value
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_production
+---@return number local_production 
 function DATA.province_get_local_production(province_id, index)
     return DATA.province[province_id].local_production[index]
 end
@@ -2932,7 +2153,7 @@ function DATA.province_inc_local_production(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_consumption
+---@return number local_consumption 
 function DATA.province_get_local_consumption(province_id, index)
     return DATA.province[province_id].local_consumption[index]
 end
@@ -2950,7 +2171,7 @@ function DATA.province_inc_local_consumption(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_demand
+---@return number local_demand 
 function DATA.province_get_local_demand(province_id, index)
     return DATA.province[province_id].local_demand[index]
 end
@@ -2968,7 +2189,7 @@ function DATA.province_inc_local_demand(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_storage
+---@return number local_storage 
 function DATA.province_get_local_storage(province_id, index)
     return DATA.province[province_id].local_storage[index]
 end
@@ -2986,7 +2207,7 @@ function DATA.province_inc_local_storage(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_prices
+---@return number local_prices 
 function DATA.province_get_local_prices(province_id, index)
     return DATA.province[province_id].local_prices[index]
 end
@@ -3003,7 +2224,7 @@ function DATA.province_inc_local_prices(province_id, index, value)
     DATA.province[province_id].local_prices[index] = DATA.province[province_id].local_prices[index] + value
 end
 ---@param province_id province_id valid province id
----@return number local_wealth
+---@return number local_wealth 
 function DATA.province_get_local_wealth(province_id)
     return DATA.province[province_id].local_wealth
 end
@@ -3018,7 +2239,7 @@ function DATA.province_inc_local_wealth(province_id, value)
     DATA.province[province_id].local_wealth = DATA.province[province_id].local_wealth + value
 end
 ---@param province_id province_id valid province id
----@return number trade_wealth
+---@return number trade_wealth 
 function DATA.province_get_trade_wealth(province_id)
     return DATA.province[province_id].trade_wealth
 end
@@ -3033,7 +2254,7 @@ function DATA.province_inc_trade_wealth(province_id, value)
     DATA.province[province_id].trade_wealth = DATA.province[province_id].trade_wealth + value
 end
 ---@param province_id province_id valid province id
----@return number local_income
+---@return number local_income 
 function DATA.province_get_local_income(province_id)
     return DATA.province[province_id].local_income
 end
@@ -3048,7 +2269,7 @@ function DATA.province_inc_local_income(province_id, value)
     DATA.province[province_id].local_income = DATA.province[province_id].local_income + value
 end
 ---@param province_id province_id valid province id
----@return number local_building_upkeep
+---@return number local_building_upkeep 
 function DATA.province_get_local_building_upkeep(province_id)
     return DATA.province[province_id].local_building_upkeep
 end
@@ -3108,7 +2329,7 @@ function DATA.province_inc_foragers_limit(province_id, value)
     DATA.province[province_id].foragers_limit = DATA.province[province_id].foragers_limit + value
 end
 ---@param province_id province_id valid province id
----@return table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}> foragers_targets
+---@return table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}> foragers_targets 
 function DATA.province_get_foragers_targets(province_id)
     return DATA.province_foragers_targets[province_id]
 end
@@ -3158,7 +2379,7 @@ function DATA.province_inc_mood(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index unit_type_id valid
----@return number unit_types
+---@return number unit_types 
 function DATA.province_get_unit_types(province_id, index)
     return DATA.province[province_id].unit_types[index]
 end
@@ -3175,37 +2396,61 @@ function DATA.province_inc_unit_types(province_id, index, value)
     DATA.province[province_id].unit_types[index] = DATA.province[province_id].unit_types[index] + value
 end
 ---@param province_id province_id valid province id
----@return table<ProductionMethod,number> throughput_boosts
-function DATA.province_get_throughput_boosts(province_id)
-    return DATA.province_throughput_boosts[province_id]
+---@param index production_method_id valid
+---@return number throughput_boosts 
+function DATA.province_get_throughput_boosts(province_id, index)
+    return DATA.province[province_id].throughput_boosts[index]
 end
 ---@param province_id province_id valid province id
----@param value table<ProductionMethod,number> valid table<ProductionMethod,number>
-function DATA.province_set_throughput_boosts(province_id, value)
-    DATA.province_throughput_boosts[province_id] = value
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_set_throughput_boosts(province_id, index, value)
+    DATA.province[province_id].throughput_boosts[index] = value
 end
 ---@param province_id province_id valid province id
----@return table<ProductionMethod,number> input_efficiency_boosts
-function DATA.province_get_input_efficiency_boosts(province_id)
-    return DATA.province_input_efficiency_boosts[province_id]
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_inc_throughput_boosts(province_id, index, value)
+    DATA.province[province_id].throughput_boosts[index] = DATA.province[province_id].throughput_boosts[index] + value
 end
 ---@param province_id province_id valid province id
----@param value table<ProductionMethod,number> valid table<ProductionMethod,number>
-function DATA.province_set_input_efficiency_boosts(province_id, value)
-    DATA.province_input_efficiency_boosts[province_id] = value
+---@param index production_method_id valid
+---@return number input_efficiency_boosts 
+function DATA.province_get_input_efficiency_boosts(province_id, index)
+    return DATA.province[province_id].input_efficiency_boosts[index]
 end
 ---@param province_id province_id valid province id
----@return table<ProductionMethod,number> output_efficiency_boosts
-function DATA.province_get_output_efficiency_boosts(province_id)
-    return DATA.province_output_efficiency_boosts[province_id]
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_set_input_efficiency_boosts(province_id, index, value)
+    DATA.province[province_id].input_efficiency_boosts[index] = value
 end
 ---@param province_id province_id valid province id
----@param value table<ProductionMethod,number> valid table<ProductionMethod,number>
-function DATA.province_set_output_efficiency_boosts(province_id, value)
-    DATA.province_output_efficiency_boosts[province_id] = value
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_inc_input_efficiency_boosts(province_id, index, value)
+    DATA.province[province_id].input_efficiency_boosts[index] = DATA.province[province_id].input_efficiency_boosts[index] + value
 end
 ---@param province_id province_id valid province id
----@return boolean on_a_river
+---@param index production_method_id valid
+---@return number output_efficiency_boosts 
+function DATA.province_get_output_efficiency_boosts(province_id, index)
+    return DATA.province[province_id].output_efficiency_boosts[index]
+end
+---@param province_id province_id valid province id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_set_output_efficiency_boosts(province_id, index, value)
+    DATA.province[province_id].output_efficiency_boosts[index] = value
+end
+---@param province_id province_id valid province id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_inc_output_efficiency_boosts(province_id, index, value)
+    DATA.province[province_id].output_efficiency_boosts[index] = DATA.province[province_id].output_efficiency_boosts[index] + value
+end
+---@param province_id province_id valid province id
+---@return boolean on_a_river 
 function DATA.province_get_on_a_river(province_id)
     return DATA.province[province_id].on_a_river
 end
@@ -3215,7 +2460,7 @@ function DATA.province_set_on_a_river(province_id, value)
     DATA.province[province_id].on_a_river = value
 end
 ---@param province_id province_id valid province id
----@return boolean on_a_forest
+---@return boolean on_a_forest 
 function DATA.province_get_on_a_forest(province_id)
     return DATA.province[province_id].on_a_forest
 end
@@ -3243,9 +2488,6 @@ local fat_province_id_metatable = {
         if (k == "infrastructure_investment") then return DATA.province_get_infrastructure_investment(t.id) end
         if (k == "realm") then return DATA.province_get_realm(t.id) end
         if (k == "buildings") then return DATA.province_get_buildings(t.id) end
-        if (k == "technologies_present") then return DATA.province_get_technologies_present(t.id) end
-        if (k == "technologies_researchable") then return DATA.province_get_technologies_researchable(t.id) end
-        if (k == "buildable_buildings") then return DATA.province_get_buildable_buildings(t.id) end
         if (k == "local_wealth") then return DATA.province_get_local_wealth(t.id) end
         if (k == "trade_wealth") then return DATA.province_get_trade_wealth(t.id) end
         if (k == "local_income") then return DATA.province_get_local_income(t.id) end
@@ -3255,9 +2497,6 @@ local fat_province_id_metatable = {
         if (k == "foragers_limit") then return DATA.province_get_foragers_limit(t.id) end
         if (k == "foragers_targets") then return DATA.province_get_foragers_targets(t.id) end
         if (k == "mood") then return DATA.province_get_mood(t.id) end
-        if (k == "throughput_boosts") then return DATA.province_get_throughput_boosts(t.id) end
-        if (k == "input_efficiency_boosts") then return DATA.province_get_input_efficiency_boosts(t.id) end
-        if (k == "output_efficiency_boosts") then return DATA.province_get_output_efficiency_boosts(t.id) end
         if (k == "on_a_river") then return DATA.province_get_on_a_river(t.id) end
         if (k == "on_a_forest") then return DATA.province_get_on_a_forest(t.id) end
         return rawget(t, k)
@@ -3323,18 +2562,6 @@ local fat_province_id_metatable = {
             DATA.province_set_buildings(t.id, v)
             return
         end
-        if (k == "technologies_present") then
-            DATA.province_set_technologies_present(t.id, v)
-            return
-        end
-        if (k == "technologies_researchable") then
-            DATA.province_set_technologies_researchable(t.id, v)
-            return
-        end
-        if (k == "buildable_buildings") then
-            DATA.province_set_buildable_buildings(t.id, v)
-            return
-        end
         if (k == "local_wealth") then
             DATA.province_set_local_wealth(t.id, v)
             return
@@ -3371,18 +2598,6 @@ local fat_province_id_metatable = {
             DATA.province_set_mood(t.id, v)
             return
         end
-        if (k == "throughput_boosts") then
-            DATA.province_set_throughput_boosts(t.id, v)
-            return
-        end
-        if (k == "input_efficiency_boosts") then
-            DATA.province_set_input_efficiency_boosts(t.id, v)
-            return
-        end
-        if (k == "output_efficiency_boosts") then
-            DATA.province_set_output_efficiency_boosts(t.id, v)
-            return
-        end
         if (k == "on_a_river") then
             DATA.province_set_on_a_river(t.id, v)
             return
@@ -3410,10 +2625,10 @@ end
 
 ---@class fat_army_id
 ---@field id army_id Unique army id
----@field destination province_id
+---@field destination province_id 
 
 ---@class struct_army
----@field destination province_id
+---@field destination province_id 
 
 
 ffi.cdef[[
@@ -3434,7 +2649,7 @@ DATA.army_size = 5000
 ---@type table<army_id, boolean>
 local army_indices_pool = ffi.new("bool[?]", 5000)
 for i = 1, 4999 do
-    army_indices_pool[i] = true
+    army_indices_pool[i] = true 
 end
 ---@type table<army_id, army_id>
 DATA.army_indices_set = {}
@@ -3462,7 +2677,7 @@ function DATA.delete_army(i)
     army_indices_pool[i] = true
     DATA.army_indices_set[i] = nil
 end
----@param func fun(item: army_id)
+---@param func fun(item: army_id) 
 function DATA.for_each_army(func)
     for _, item in pairs(DATA.army_indices_set) do
         func(item)
@@ -3470,7 +2685,7 @@ function DATA.for_each_army(func)
 end
 
 ---@param army_id army_id valid army id
----@return province_id destination
+---@return province_id destination 
 function DATA.army_get_destination(army_id)
     return DATA.army[army_id].destination
 end
@@ -3510,30 +2725,30 @@ end
 
 ---@class fat_warband_id
 ---@field id warband_id Unique warband id
----@field name string
----@field guard_of Realm?
----@field status WARBAND_STATUS
----@field idle_stance WARBAND_STANCE
+---@field name string 
+---@field guard_of Realm? 
+---@field status WARBAND_STATUS 
+---@field idle_stance WARBAND_STANCE 
 ---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field treasury number
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
+---@field treasury number 
+---@field total_upkeep number 
+---@field predicted_upkeep number 
+---@field supplies number 
+---@field supplies_target_days number 
+---@field morale number 
 
 ---@class struct_warband
 ---@field units_current table<unit_type_id, number> Current distribution of units in the warband
 ---@field units_target table<unit_type_id, number> Units to recruit
----@field status WARBAND_STATUS
----@field idle_stance WARBAND_STANCE
+---@field status WARBAND_STATUS 
+---@field idle_stance WARBAND_STANCE 
 ---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field treasury number
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
+---@field treasury number 
+---@field total_upkeep number 
+---@field predicted_upkeep number 
+---@field supplies number 
+---@field supplies_target_days number 
+---@field morale number 
 
 
 ffi.cdef[[
@@ -3568,7 +2783,7 @@ DATA.warband_size = 10000
 ---@type table<warband_id, boolean>
 local warband_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_indices_pool[i] = true
+    warband_indices_pool[i] = true 
 end
 ---@type table<warband_id, warband_id>
 DATA.warband_indices_set = {}
@@ -3624,7 +2839,7 @@ function DATA.delete_warband(i)
     warband_indices_pool[i] = true
     DATA.warband_indices_set[i] = nil
 end
----@param func fun(item: warband_id)
+---@param func fun(item: warband_id) 
 function DATA.for_each_warband(func)
     for _, item in pairs(DATA.warband_indices_set) do
         func(item)
@@ -3632,7 +2847,7 @@ function DATA.for_each_warband(func)
 end
 
 ---@param warband_id warband_id valid warband id
----@return string name
+---@return string name 
 function DATA.warband_get_name(warband_id)
     return DATA.warband_name[warband_id]
 end
@@ -3642,7 +2857,7 @@ function DATA.warband_set_name(warband_id, value)
     DATA.warband_name[warband_id] = value
 end
 ---@param warband_id warband_id valid warband id
----@return Realm? guard_of
+---@return Realm? guard_of 
 function DATA.warband_get_guard_of(warband_id)
     return DATA.warband_guard_of[warband_id]
 end
@@ -3688,7 +2903,7 @@ function DATA.warband_inc_units_target(warband_id, index, value)
     DATA.warband[warband_id].units_target[index] = DATA.warband[warband_id].units_target[index] + value
 end
 ---@param warband_id warband_id valid warband id
----@return WARBAND_STATUS status
+---@return WARBAND_STATUS status 
 function DATA.warband_get_status(warband_id)
     return DATA.warband[warband_id].status
 end
@@ -3698,7 +2913,7 @@ function DATA.warband_set_status(warband_id, value)
     DATA.warband[warband_id].status = value
 end
 ---@param warband_id warband_id valid warband id
----@return WARBAND_STANCE idle_stance
+---@return WARBAND_STANCE idle_stance 
 function DATA.warband_get_idle_stance(warband_id)
     return DATA.warband[warband_id].idle_stance
 end
@@ -3723,7 +2938,7 @@ function DATA.warband_inc_current_free_time_ratio(warband_id, value)
     DATA.warband[warband_id].current_free_time_ratio = DATA.warband[warband_id].current_free_time_ratio + value
 end
 ---@param warband_id warband_id valid warband id
----@return number treasury
+---@return number treasury 
 function DATA.warband_get_treasury(warband_id)
     return DATA.warband[warband_id].treasury
 end
@@ -3738,7 +2953,7 @@ function DATA.warband_inc_treasury(warband_id, value)
     DATA.warband[warband_id].treasury = DATA.warband[warband_id].treasury + value
 end
 ---@param warband_id warband_id valid warband id
----@return number total_upkeep
+---@return number total_upkeep 
 function DATA.warband_get_total_upkeep(warband_id)
     return DATA.warband[warband_id].total_upkeep
 end
@@ -3753,7 +2968,7 @@ function DATA.warband_inc_total_upkeep(warband_id, value)
     DATA.warband[warband_id].total_upkeep = DATA.warband[warband_id].total_upkeep + value
 end
 ---@param warband_id warband_id valid warband id
----@return number predicted_upkeep
+---@return number predicted_upkeep 
 function DATA.warband_get_predicted_upkeep(warband_id)
     return DATA.warband[warband_id].predicted_upkeep
 end
@@ -3768,7 +2983,7 @@ function DATA.warband_inc_predicted_upkeep(warband_id, value)
     DATA.warband[warband_id].predicted_upkeep = DATA.warband[warband_id].predicted_upkeep + value
 end
 ---@param warband_id warband_id valid warband id
----@return number supplies
+---@return number supplies 
 function DATA.warband_get_supplies(warband_id)
     return DATA.warband[warband_id].supplies
 end
@@ -3783,7 +2998,7 @@ function DATA.warband_inc_supplies(warband_id, value)
     DATA.warband[warband_id].supplies = DATA.warband[warband_id].supplies + value
 end
 ---@param warband_id warband_id valid warband id
----@return number supplies_target_days
+---@return number supplies_target_days 
 function DATA.warband_get_supplies_target_days(warband_id)
     return DATA.warband[warband_id].supplies_target_days
 end
@@ -3798,7 +3013,7 @@ function DATA.warband_inc_supplies_target_days(warband_id, value)
     DATA.warband[warband_id].supplies_target_days = DATA.warband[warband_id].supplies_target_days + value
 end
 ---@param warband_id warband_id valid warband id
----@return number morale
+---@return number morale 
 function DATA.warband_get_morale(warband_id)
     return DATA.warband[warband_id].morale
 end
@@ -3893,11 +3108,11 @@ end
 
 ---@class fat_army_membership_id
 ---@field id army_membership_id Unique army_membership id
----@field army army_id
+---@field army army_id 
 ---@field member warband_id part of army
 
 ---@class struct_army_membership
----@field army army_id
+---@field army army_id 
 ---@field member warband_id part of army
 
 
@@ -3924,7 +3139,7 @@ DATA.army_membership_size = 10000
 ---@type table<army_membership_id, boolean>
 local army_membership_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    army_membership_indices_pool[i] = true
+    army_membership_indices_pool[i] = true 
 end
 ---@type table<army_membership_id, army_membership_id>
 DATA.army_membership_indices_set = {}
@@ -3950,7 +3165,7 @@ function DATA.delete_army_membership(i)
     army_membership_indices_pool[i] = true
     DATA.army_membership_indices_set[i] = nil
 end
----@param func fun(item: army_membership_id)
+---@param func fun(item: army_membership_id) 
 function DATA.for_each_army_membership(func)
     for _, item in pairs(DATA.army_membership_indices_set) do
         func(item)
@@ -3958,12 +3173,12 @@ function DATA.for_each_army_membership(func)
 end
 
 ---@param army_membership_id army_membership_id valid army_membership id
----@return army_id army
+---@return army_id army 
 function DATA.army_membership_get_army(army_membership_id)
     return DATA.army_membership[army_membership_id].army
 end
 ---@param army army_id valid army_id
----@return army_membership_id[] An array of army_membership
+---@return army_membership_id[] An array of army_membership 
 function DATA.get_army_membership_from_army(army)
     return DATA.army_membership_from_army[army]
 end
@@ -3995,7 +3210,7 @@ function DATA.army_membership_get_member(army_membership_id)
     return DATA.army_membership[army_membership_id].member
 end
 ---@param member warband_id valid warband_id
----@return army_membership_id army_membership
+---@return army_membership_id army_membership 
 function DATA.get_army_membership_from_member(member)
     return DATA.army_membership_from_member[member]
 end
@@ -4046,12 +3261,12 @@ end
 
 ---@class fat_warband_leader_id
 ---@field id warband_leader_id Unique warband_leader id
----@field leader pop_id
----@field warband warband_id
+---@field leader pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_leader
----@field leader pop_id
----@field warband warband_id
+---@field leader pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -4077,7 +3292,7 @@ DATA.warband_leader_size = 10000
 ---@type table<warband_leader_id, boolean>
 local warband_leader_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_leader_indices_pool[i] = true
+    warband_leader_indices_pool[i] = true 
 end
 ---@type table<warband_leader_id, warband_leader_id>
 DATA.warband_leader_indices_set = {}
@@ -4103,7 +3318,7 @@ function DATA.delete_warband_leader(i)
     warband_leader_indices_pool[i] = true
     DATA.warband_leader_indices_set[i] = nil
 end
----@param func fun(item: warband_leader_id)
+---@param func fun(item: warband_leader_id) 
 function DATA.for_each_warband_leader(func)
     for _, item in pairs(DATA.warband_leader_indices_set) do
         func(item)
@@ -4111,12 +3326,12 @@ function DATA.for_each_warband_leader(func)
 end
 
 ---@param warband_leader_id warband_leader_id valid warband_leader id
----@return pop_id leader
+---@return pop_id leader 
 function DATA.warband_leader_get_leader(warband_leader_id)
     return DATA.warband_leader[warband_leader_id].leader
 end
 ---@param leader pop_id valid pop_id
----@return warband_leader_id warband_leader
+---@return warband_leader_id warband_leader 
 function DATA.get_warband_leader_from_leader(leader)
     return DATA.warband_leader_from_leader[leader]
 end
@@ -4132,12 +3347,12 @@ function DATA.warband_leader_set_leader(warband_leader_id, value)
     DATA.warband_leader_from_leader[value] = warband_leader_id
 end
 ---@param warband_leader_id warband_leader_id valid warband_leader id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_leader_get_warband(warband_leader_id)
     return DATA.warband_leader[warband_leader_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_leader_id warband_leader
+---@return warband_leader_id warband_leader 
 function DATA.get_warband_leader_from_warband(warband)
     return DATA.warband_leader_from_warband[warband]
 end
@@ -4188,12 +3403,12 @@ end
 
 ---@class fat_warband_recruiter_id
 ---@field id warband_recruiter_id Unique warband_recruiter id
----@field recruiter pop_id
----@field warband warband_id
+---@field recruiter pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_recruiter
----@field recruiter pop_id
----@field warband warband_id
+---@field recruiter pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -4219,7 +3434,7 @@ DATA.warband_recruiter_size = 10000
 ---@type table<warband_recruiter_id, boolean>
 local warband_recruiter_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_recruiter_indices_pool[i] = true
+    warband_recruiter_indices_pool[i] = true 
 end
 ---@type table<warband_recruiter_id, warband_recruiter_id>
 DATA.warband_recruiter_indices_set = {}
@@ -4245,7 +3460,7 @@ function DATA.delete_warband_recruiter(i)
     warband_recruiter_indices_pool[i] = true
     DATA.warband_recruiter_indices_set[i] = nil
 end
----@param func fun(item: warband_recruiter_id)
+---@param func fun(item: warband_recruiter_id) 
 function DATA.for_each_warband_recruiter(func)
     for _, item in pairs(DATA.warband_recruiter_indices_set) do
         func(item)
@@ -4253,12 +3468,12 @@ function DATA.for_each_warband_recruiter(func)
 end
 
 ---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
----@return pop_id recruiter
+---@return pop_id recruiter 
 function DATA.warband_recruiter_get_recruiter(warband_recruiter_id)
     return DATA.warband_recruiter[warband_recruiter_id].recruiter
 end
 ---@param recruiter pop_id valid pop_id
----@return warband_recruiter_id warband_recruiter
+---@return warband_recruiter_id warband_recruiter 
 function DATA.get_warband_recruiter_from_recruiter(recruiter)
     return DATA.warband_recruiter_from_recruiter[recruiter]
 end
@@ -4274,12 +3489,12 @@ function DATA.warband_recruiter_set_recruiter(warband_recruiter_id, value)
     DATA.warband_recruiter_from_recruiter[value] = warband_recruiter_id
 end
 ---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_recruiter_get_warband(warband_recruiter_id)
     return DATA.warband_recruiter[warband_recruiter_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_recruiter_id warband_recruiter
+---@return warband_recruiter_id warband_recruiter 
 function DATA.get_warband_recruiter_from_warband(warband)
     return DATA.warband_recruiter_from_warband[warband]
 end
@@ -4330,12 +3545,12 @@ end
 
 ---@class fat_warband_commander_id
 ---@field id warband_commander_id Unique warband_commander id
----@field commander pop_id
----@field warband warband_id
+---@field commander pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_commander
----@field commander pop_id
----@field warband warband_id
+---@field commander pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -4361,7 +3576,7 @@ DATA.warband_commander_size = 10000
 ---@type table<warband_commander_id, boolean>
 local warband_commander_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_commander_indices_pool[i] = true
+    warband_commander_indices_pool[i] = true 
 end
 ---@type table<warband_commander_id, warband_commander_id>
 DATA.warband_commander_indices_set = {}
@@ -4387,7 +3602,7 @@ function DATA.delete_warband_commander(i)
     warband_commander_indices_pool[i] = true
     DATA.warband_commander_indices_set[i] = nil
 end
----@param func fun(item: warband_commander_id)
+---@param func fun(item: warband_commander_id) 
 function DATA.for_each_warband_commander(func)
     for _, item in pairs(DATA.warband_commander_indices_set) do
         func(item)
@@ -4395,12 +3610,12 @@ function DATA.for_each_warband_commander(func)
 end
 
 ---@param warband_commander_id warband_commander_id valid warband_commander id
----@return pop_id commander
+---@return pop_id commander 
 function DATA.warband_commander_get_commander(warband_commander_id)
     return DATA.warband_commander[warband_commander_id].commander
 end
 ---@param commander pop_id valid pop_id
----@return warband_commander_id warband_commander
+---@return warband_commander_id warband_commander 
 function DATA.get_warband_commander_from_commander(commander)
     return DATA.warband_commander_from_commander[commander]
 end
@@ -4416,12 +3631,12 @@ function DATA.warband_commander_set_commander(warband_commander_id, value)
     DATA.warband_commander_from_commander[value] = warband_commander_id
 end
 ---@param warband_commander_id warband_commander_id valid warband_commander id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_commander_get_warband(warband_commander_id)
     return DATA.warband_commander[warband_commander_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_commander_id warband_commander
+---@return warband_commander_id warband_commander 
 function DATA.get_warband_commander_from_warband(warband)
     return DATA.warband_commander_from_warband[warband]
 end
@@ -4473,11 +3688,11 @@ end
 ---@class fat_warband_location_id
 ---@field id warband_location_id Unique warband_location id
 ---@field location province_id location of warband
----@field warband warband_id
+---@field warband warband_id 
 
 ---@class struct_warband_location
 ---@field location province_id location of warband
----@field warband warband_id
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -4503,7 +3718,7 @@ DATA.warband_location_size = 10000
 ---@type table<warband_location_id, boolean>
 local warband_location_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_location_indices_pool[i] = true
+    warband_location_indices_pool[i] = true 
 end
 ---@type table<warband_location_id, warband_location_id>
 DATA.warband_location_indices_set = {}
@@ -4529,7 +3744,7 @@ function DATA.delete_warband_location(i)
     warband_location_indices_pool[i] = true
     DATA.warband_location_indices_set[i] = nil
 end
----@param func fun(item: warband_location_id)
+---@param func fun(item: warband_location_id) 
 function DATA.for_each_warband_location(func)
     for _, item in pairs(DATA.warband_location_indices_set) do
         func(item)
@@ -4542,7 +3757,7 @@ function DATA.warband_location_get_location(warband_location_id)
     return DATA.warband_location[warband_location_id].location
 end
 ---@param location province_id valid province_id
----@return warband_location_id[] An array of warband_location
+---@return warband_location_id[] An array of warband_location 
 function DATA.get_warband_location_from_location(location)
     return DATA.warband_location_from_location[location]
 end
@@ -4569,12 +3784,12 @@ function DATA.warband_location_set_location(warband_location_id, value)
     table.insert(DATA.warband_location_from_location[value], warband_location_id)
 end
 ---@param warband_location_id warband_location_id valid warband_location id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_location_get_warband(warband_location_id)
     return DATA.warband_location[warband_location_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_location_id warband_location
+---@return warband_location_id warband_location 
 function DATA.get_warband_location_from_warband(warband)
     return DATA.warband_location_from_warband[warband]
 end
@@ -4626,13 +3841,13 @@ end
 ---@class fat_warband_unit_id
 ---@field id warband_unit_id Unique warband_unit id
 ---@field type unit_type_id Current unit type
----@field unit pop_id
----@field warband warband_id
+---@field unit pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_unit
 ---@field type unit_type_id Current unit type
----@field unit pop_id
----@field warband warband_id
+---@field unit pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -4659,7 +3874,7 @@ DATA.warband_unit_size = 50000
 ---@type table<warband_unit_id, boolean>
 local warband_unit_indices_pool = ffi.new("bool[?]", 50000)
 for i = 1, 49999 do
-    warband_unit_indices_pool[i] = true
+    warband_unit_indices_pool[i] = true 
 end
 ---@type table<warband_unit_id, warband_unit_id>
 DATA.warband_unit_indices_set = {}
@@ -4685,7 +3900,7 @@ function DATA.delete_warband_unit(i)
     warband_unit_indices_pool[i] = true
     DATA.warband_unit_indices_set[i] = nil
 end
----@param func fun(item: warband_unit_id)
+---@param func fun(item: warband_unit_id) 
 function DATA.for_each_warband_unit(func)
     for _, item in pairs(DATA.warband_unit_indices_set) do
         func(item)
@@ -4703,12 +3918,12 @@ function DATA.warband_unit_set_type(warband_unit_id, value)
     DATA.warband_unit[warband_unit_id].type = value
 end
 ---@param warband_unit_id warband_unit_id valid warband_unit id
----@return pop_id unit
+---@return pop_id unit 
 function DATA.warband_unit_get_unit(warband_unit_id)
     return DATA.warband_unit[warband_unit_id].unit
 end
 ---@param unit pop_id valid pop_id
----@return warband_unit_id warband_unit
+---@return warband_unit_id warband_unit 
 function DATA.get_warband_unit_from_unit(unit)
     return DATA.warband_unit_from_unit[unit]
 end
@@ -4724,12 +3939,12 @@ function DATA.warband_unit_set_unit(warband_unit_id, value)
     DATA.warband_unit_from_unit[value] = warband_unit_id
 end
 ---@param warband_unit_id warband_unit_id valid warband_unit id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_unit_get_warband(warband_unit_id)
     return DATA.warband_unit[warband_unit_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_unit_id[] An array of warband_unit
+---@return warband_unit_id[] An array of warband_unit 
 function DATA.get_warband_unit_from_warband(warband)
     return DATA.warband_unit_from_warband[warband]
 end
@@ -4797,11 +4012,11 @@ end
 ---@class fat_character_location_id
 ---@field id character_location_id Unique character_location id
 ---@field location province_id location of character
----@field character pop_id
+---@field character pop_id 
 
 ---@class struct_character_location
 ---@field location province_id location of character
----@field character pop_id
+---@field character pop_id 
 
 
 ffi.cdef[[
@@ -4827,7 +4042,7 @@ DATA.character_location_size = 100000
 ---@type table<character_location_id, boolean>
 local character_location_indices_pool = ffi.new("bool[?]", 100000)
 for i = 1, 99999 do
-    character_location_indices_pool[i] = true
+    character_location_indices_pool[i] = true 
 end
 ---@type table<character_location_id, character_location_id>
 DATA.character_location_indices_set = {}
@@ -4853,7 +4068,7 @@ function DATA.delete_character_location(i)
     character_location_indices_pool[i] = true
     DATA.character_location_indices_set[i] = nil
 end
----@param func fun(item: character_location_id)
+---@param func fun(item: character_location_id) 
 function DATA.for_each_character_location(func)
     for _, item in pairs(DATA.character_location_indices_set) do
         func(item)
@@ -4866,7 +4081,7 @@ function DATA.character_location_get_location(character_location_id)
     return DATA.character_location[character_location_id].location
 end
 ---@param location province_id valid province_id
----@return character_location_id[] An array of character_location
+---@return character_location_id[] An array of character_location 
 function DATA.get_character_location_from_location(location)
     return DATA.character_location_from_location[location]
 end
@@ -4893,12 +4108,12 @@ function DATA.character_location_set_location(character_location_id, value)
     table.insert(DATA.character_location_from_location[value], character_location_id)
 end
 ---@param character_location_id character_location_id valid character_location id
----@return pop_id character
+---@return pop_id character 
 function DATA.character_location_get_character(character_location_id)
     return DATA.character_location[character_location_id].character
 end
 ---@param character pop_id valid pop_id
----@return character_location_id character_location
+---@return character_location_id character_location 
 function DATA.get_character_location_from_character(character)
     return DATA.character_location_from_character[character]
 end
@@ -4980,7 +4195,7 @@ DATA.home_size = 300000
 ---@type table<home_id, boolean>
 local home_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    home_indices_pool[i] = true
+    home_indices_pool[i] = true 
 end
 ---@type table<home_id, home_id>
 DATA.home_indices_set = {}
@@ -5006,7 +4221,7 @@ function DATA.delete_home(i)
     home_indices_pool[i] = true
     DATA.home_indices_set[i] = nil
 end
----@param func fun(item: home_id)
+---@param func fun(item: home_id) 
 function DATA.for_each_home(func)
     for _, item in pairs(DATA.home_indices_set) do
         func(item)
@@ -5019,7 +4234,7 @@ function DATA.home_get_home(home_id)
     return DATA.home[home_id].home
 end
 ---@param home province_id valid province_id
----@return home_id[] An array of home
+---@return home_id[] An array of home 
 function DATA.get_home_from_home(home)
     return DATA.home_from_home[home]
 end
@@ -5051,7 +4266,7 @@ function DATA.home_get_pop(home_id)
     return DATA.home[home_id].pop
 end
 ---@param pop pop_id valid pop_id
----@return home_id home
+---@return home_id home 
 function DATA.get_home_from_pop(pop)
     return DATA.home_from_pop[pop]
 end
@@ -5103,11 +4318,11 @@ end
 ---@class fat_pop_location_id
 ---@field id pop_location_id Unique pop_location id
 ---@field location province_id location of pop
----@field pop pop_id
+---@field pop pop_id 
 
 ---@class struct_pop_location
 ---@field location province_id location of pop
----@field pop pop_id
+---@field pop pop_id 
 
 
 ffi.cdef[[
@@ -5133,7 +4348,7 @@ DATA.pop_location_size = 300000
 ---@type table<pop_location_id, boolean>
 local pop_location_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    pop_location_indices_pool[i] = true
+    pop_location_indices_pool[i] = true 
 end
 ---@type table<pop_location_id, pop_location_id>
 DATA.pop_location_indices_set = {}
@@ -5159,7 +4374,7 @@ function DATA.delete_pop_location(i)
     pop_location_indices_pool[i] = true
     DATA.pop_location_indices_set[i] = nil
 end
----@param func fun(item: pop_location_id)
+---@param func fun(item: pop_location_id) 
 function DATA.for_each_pop_location(func)
     for _, item in pairs(DATA.pop_location_indices_set) do
         func(item)
@@ -5172,7 +4387,7 @@ function DATA.pop_location_get_location(pop_location_id)
     return DATA.pop_location[pop_location_id].location
 end
 ---@param location province_id valid province_id
----@return pop_location_id[] An array of pop_location
+---@return pop_location_id[] An array of pop_location 
 function DATA.get_pop_location_from_location(location)
     return DATA.pop_location_from_location[location]
 end
@@ -5199,12 +4414,12 @@ function DATA.pop_location_set_location(pop_location_id, value)
     table.insert(DATA.pop_location_from_location[value], pop_location_id)
 end
 ---@param pop_location_id pop_location_id valid pop_location id
----@return pop_id pop
+---@return pop_id pop 
 function DATA.pop_location_get_pop(pop_location_id)
     return DATA.pop_location[pop_location_id].pop
 end
 ---@param pop pop_id valid pop_id
----@return pop_location_id pop_location
+---@return pop_location_id pop_location 
 function DATA.get_pop_location_from_pop(pop)
     return DATA.pop_location_from_pop[pop]
 end
@@ -5256,11 +4471,11 @@ end
 ---@class fat_outlaw_location_id
 ---@field id outlaw_location_id Unique outlaw_location id
 ---@field location province_id location of the outlaw
----@field outlaw pop_id
+---@field outlaw pop_id 
 
 ---@class struct_outlaw_location
 ---@field location province_id location of the outlaw
----@field outlaw pop_id
+---@field outlaw pop_id 
 
 
 ffi.cdef[[
@@ -5286,7 +4501,7 @@ DATA.outlaw_location_size = 300000
 ---@type table<outlaw_location_id, boolean>
 local outlaw_location_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    outlaw_location_indices_pool[i] = true
+    outlaw_location_indices_pool[i] = true 
 end
 ---@type table<outlaw_location_id, outlaw_location_id>
 DATA.outlaw_location_indices_set = {}
@@ -5312,7 +4527,7 @@ function DATA.delete_outlaw_location(i)
     outlaw_location_indices_pool[i] = true
     DATA.outlaw_location_indices_set[i] = nil
 end
----@param func fun(item: outlaw_location_id)
+---@param func fun(item: outlaw_location_id) 
 function DATA.for_each_outlaw_location(func)
     for _, item in pairs(DATA.outlaw_location_indices_set) do
         func(item)
@@ -5325,7 +4540,7 @@ function DATA.outlaw_location_get_location(outlaw_location_id)
     return DATA.outlaw_location[outlaw_location_id].location
 end
 ---@param location province_id valid province_id
----@return outlaw_location_id[] An array of outlaw_location
+---@return outlaw_location_id[] An array of outlaw_location 
 function DATA.get_outlaw_location_from_location(location)
     return DATA.outlaw_location_from_location[location]
 end
@@ -5352,12 +4567,12 @@ function DATA.outlaw_location_set_location(outlaw_location_id, value)
     table.insert(DATA.outlaw_location_from_location[value], outlaw_location_id)
 end
 ---@param outlaw_location_id outlaw_location_id valid outlaw_location id
----@return pop_id outlaw
+---@return pop_id outlaw 
 function DATA.outlaw_location_get_outlaw(outlaw_location_id)
     return DATA.outlaw_location[outlaw_location_id].outlaw
 end
 ---@param outlaw pop_id valid pop_id
----@return outlaw_location_id outlaw_location
+---@return outlaw_location_id outlaw_location 
 function DATA.get_outlaw_location_from_outlaw(outlaw)
     return DATA.outlaw_location_from_outlaw[outlaw]
 end
@@ -5408,12 +4623,12 @@ end
 
 ---@class fat_tile_province_membership_id
 ---@field id tile_province_membership_id Unique tile_province_membership id
----@field province province_id
----@field tile tile_id
+---@field province province_id 
+---@field tile tile_id 
 
 ---@class struct_tile_province_membership
----@field province province_id
----@field tile tile_id
+---@field province province_id 
+---@field tile tile_id 
 
 
 ffi.cdef[[
@@ -5439,7 +4654,7 @@ DATA.tile_province_membership_size = 1500000
 ---@type table<tile_province_membership_id, boolean>
 local tile_province_membership_indices_pool = ffi.new("bool[?]", 1500000)
 for i = 1, 1499999 do
-    tile_province_membership_indices_pool[i] = true
+    tile_province_membership_indices_pool[i] = true 
 end
 ---@type table<tile_province_membership_id, tile_province_membership_id>
 DATA.tile_province_membership_indices_set = {}
@@ -5465,7 +4680,7 @@ function DATA.delete_tile_province_membership(i)
     tile_province_membership_indices_pool[i] = true
     DATA.tile_province_membership_indices_set[i] = nil
 end
----@param func fun(item: tile_province_membership_id)
+---@param func fun(item: tile_province_membership_id) 
 function DATA.for_each_tile_province_membership(func)
     for _, item in pairs(DATA.tile_province_membership_indices_set) do
         func(item)
@@ -5473,12 +4688,12 @@ function DATA.for_each_tile_province_membership(func)
 end
 
 ---@param tile_province_membership_id tile_province_membership_id valid tile_province_membership id
----@return province_id province
+---@return province_id province 
 function DATA.tile_province_membership_get_province(tile_province_membership_id)
     return DATA.tile_province_membership[tile_province_membership_id].province
 end
 ---@param province province_id valid province_id
----@return tile_province_membership_id[] An array of tile_province_membership
+---@return tile_province_membership_id[] An array of tile_province_membership 
 function DATA.get_tile_province_membership_from_province(province)
     return DATA.tile_province_membership_from_province[province]
 end
@@ -5505,12 +4720,12 @@ function DATA.tile_province_membership_set_province(tile_province_membership_id,
     table.insert(DATA.tile_province_membership_from_province[value], tile_province_membership_id)
 end
 ---@param tile_province_membership_id tile_province_membership_id valid tile_province_membership id
----@return tile_id tile
+---@return tile_id tile 
 function DATA.tile_province_membership_get_tile(tile_province_membership_id)
     return DATA.tile_province_membership[tile_province_membership_id].tile
 end
 ---@param tile tile_id valid tile_id
----@return tile_province_membership_id tile_province_membership
+---@return tile_province_membership_id tile_province_membership 
 function DATA.get_tile_province_membership_from_tile(tile)
     return DATA.tile_province_membership_from_tile[tile]
 end
@@ -5561,12 +4776,12 @@ end
 
 ---@class fat_province_neighborhood_id
 ---@field id province_neighborhood_id Unique province_neighborhood id
----@field origin province_id
----@field target province_id
+---@field origin province_id 
+---@field target province_id 
 
 ---@class struct_province_neighborhood
----@field origin province_id
----@field target province_id
+---@field origin province_id 
+---@field target province_id 
 
 
 ffi.cdef[[
@@ -5592,7 +4807,7 @@ DATA.province_neighborhood_size = 100000
 ---@type table<province_neighborhood_id, boolean>
 local province_neighborhood_indices_pool = ffi.new("bool[?]", 100000)
 for i = 1, 99999 do
-    province_neighborhood_indices_pool[i] = true
+    province_neighborhood_indices_pool[i] = true 
 end
 ---@type table<province_neighborhood_id, province_neighborhood_id>
 DATA.province_neighborhood_indices_set = {}
@@ -5618,7 +4833,7 @@ function DATA.delete_province_neighborhood(i)
     province_neighborhood_indices_pool[i] = true
     DATA.province_neighborhood_indices_set[i] = nil
 end
----@param func fun(item: province_neighborhood_id)
+---@param func fun(item: province_neighborhood_id) 
 function DATA.for_each_province_neighborhood(func)
     for _, item in pairs(DATA.province_neighborhood_indices_set) do
         func(item)
@@ -5626,12 +4841,12 @@ function DATA.for_each_province_neighborhood(func)
 end
 
 ---@param province_neighborhood_id province_neighborhood_id valid province_neighborhood id
----@return province_id origin
+---@return province_id origin 
 function DATA.province_neighborhood_get_origin(province_neighborhood_id)
     return DATA.province_neighborhood[province_neighborhood_id].origin
 end
 ---@param origin province_id valid province_id
----@return province_neighborhood_id[] An array of province_neighborhood
+---@return province_neighborhood_id[] An array of province_neighborhood 
 function DATA.get_province_neighborhood_from_origin(origin)
     return DATA.province_neighborhood_from_origin[origin]
 end
@@ -5658,12 +4873,12 @@ function DATA.province_neighborhood_set_origin(province_neighborhood_id, value)
     table.insert(DATA.province_neighborhood_from_origin[value], province_neighborhood_id)
 end
 ---@param province_neighborhood_id province_neighborhood_id valid province_neighborhood id
----@return province_id target
+---@return province_id target 
 function DATA.province_neighborhood_get_target(province_neighborhood_id)
     return DATA.province_neighborhood[province_neighborhood_id].target
 end
 ---@param target province_id valid province_id
----@return province_neighborhood_id[] An array of province_neighborhood
+---@return province_neighborhood_id[] An array of province_neighborhood 
 function DATA.get_province_neighborhood_from_target(target)
     return DATA.province_neighborhood_from_target[target]
 end
@@ -5725,12 +4940,12 @@ end
 
 ---@class fat_parent_child_relation_id
 ---@field id parent_child_relation_id Unique parent_child_relation id
----@field parent pop_id
----@field child pop_id
+---@field parent pop_id 
+---@field child pop_id 
 
 ---@class struct_parent_child_relation
----@field parent pop_id
----@field child pop_id
+---@field parent pop_id 
+---@field child pop_id 
 
 
 ffi.cdef[[
@@ -5756,7 +4971,7 @@ DATA.parent_child_relation_size = 900000
 ---@type table<parent_child_relation_id, boolean>
 local parent_child_relation_indices_pool = ffi.new("bool[?]", 900000)
 for i = 1, 899999 do
-    parent_child_relation_indices_pool[i] = true
+    parent_child_relation_indices_pool[i] = true 
 end
 ---@type table<parent_child_relation_id, parent_child_relation_id>
 DATA.parent_child_relation_indices_set = {}
@@ -5782,7 +4997,7 @@ function DATA.delete_parent_child_relation(i)
     parent_child_relation_indices_pool[i] = true
     DATA.parent_child_relation_indices_set[i] = nil
 end
----@param func fun(item: parent_child_relation_id)
+---@param func fun(item: parent_child_relation_id) 
 function DATA.for_each_parent_child_relation(func)
     for _, item in pairs(DATA.parent_child_relation_indices_set) do
         func(item)
@@ -5790,12 +5005,12 @@ function DATA.for_each_parent_child_relation(func)
 end
 
 ---@param parent_child_relation_id parent_child_relation_id valid parent_child_relation id
----@return pop_id parent
+---@return pop_id parent 
 function DATA.parent_child_relation_get_parent(parent_child_relation_id)
     return DATA.parent_child_relation[parent_child_relation_id].parent
 end
 ---@param parent pop_id valid pop_id
----@return parent_child_relation_id[] An array of parent_child_relation
+---@return parent_child_relation_id[] An array of parent_child_relation 
 function DATA.get_parent_child_relation_from_parent(parent)
     return DATA.parent_child_relation_from_parent[parent]
 end
@@ -5822,12 +5037,12 @@ function DATA.parent_child_relation_set_parent(parent_child_relation_id, value)
     table.insert(DATA.parent_child_relation_from_parent[value], parent_child_relation_id)
 end
 ---@param parent_child_relation_id parent_child_relation_id valid parent_child_relation id
----@return pop_id child
+---@return pop_id child 
 function DATA.parent_child_relation_get_child(parent_child_relation_id)
     return DATA.parent_child_relation[parent_child_relation_id].child
 end
 ---@param child pop_id valid pop_id
----@return parent_child_relation_id parent_child_relation
+---@return parent_child_relation_id parent_child_relation 
 function DATA.get_parent_child_relation_from_child(child)
     return DATA.parent_child_relation_from_child[child]
 end
@@ -5878,12 +5093,12 @@ end
 
 ---@class fat_loyalty_id
 ---@field id loyalty_id Unique loyalty id
----@field top pop_id
----@field bottom pop_id
+---@field top pop_id 
+---@field bottom pop_id 
 
 ---@class struct_loyalty
----@field top pop_id
----@field bottom pop_id
+---@field top pop_id 
+---@field bottom pop_id 
 
 
 ffi.cdef[[
@@ -5909,7 +5124,7 @@ DATA.loyalty_size = 10000
 ---@type table<loyalty_id, boolean>
 local loyalty_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    loyalty_indices_pool[i] = true
+    loyalty_indices_pool[i] = true 
 end
 ---@type table<loyalty_id, loyalty_id>
 DATA.loyalty_indices_set = {}
@@ -5935,7 +5150,7 @@ function DATA.delete_loyalty(i)
     loyalty_indices_pool[i] = true
     DATA.loyalty_indices_set[i] = nil
 end
----@param func fun(item: loyalty_id)
+---@param func fun(item: loyalty_id) 
 function DATA.for_each_loyalty(func)
     for _, item in pairs(DATA.loyalty_indices_set) do
         func(item)
@@ -5943,12 +5158,12 @@ function DATA.for_each_loyalty(func)
 end
 
 ---@param loyalty_id loyalty_id valid loyalty id
----@return pop_id top
+---@return pop_id top 
 function DATA.loyalty_get_top(loyalty_id)
     return DATA.loyalty[loyalty_id].top
 end
 ---@param top pop_id valid pop_id
----@return loyalty_id[] An array of loyalty
+---@return loyalty_id[] An array of loyalty 
 function DATA.get_loyalty_from_top(top)
     return DATA.loyalty_from_top[top]
 end
@@ -5975,12 +5190,12 @@ function DATA.loyalty_set_top(loyalty_id, value)
     table.insert(DATA.loyalty_from_top[value], loyalty_id)
 end
 ---@param loyalty_id loyalty_id valid loyalty id
----@return pop_id bottom
+---@return pop_id bottom 
 function DATA.loyalty_get_bottom(loyalty_id)
     return DATA.loyalty[loyalty_id].bottom
 end
 ---@param bottom pop_id valid pop_id
----@return loyalty_id loyalty
+---@return loyalty_id loyalty 
 function DATA.get_loyalty_from_bottom(bottom)
     return DATA.loyalty_from_bottom[bottom]
 end
@@ -6031,12 +5246,12 @@ end
 
 ---@class fat_succession_id
 ---@field id succession_id Unique succession id
----@field successor_of pop_id
----@field successor pop_id
+---@field successor_of pop_id 
+---@field successor pop_id 
 
 ---@class struct_succession
----@field successor_of pop_id
----@field successor pop_id
+---@field successor_of pop_id 
+---@field successor pop_id 
 
 
 ffi.cdef[[
@@ -6062,7 +5277,7 @@ DATA.succession_size = 10000
 ---@type table<succession_id, boolean>
 local succession_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    succession_indices_pool[i] = true
+    succession_indices_pool[i] = true 
 end
 ---@type table<succession_id, succession_id>
 DATA.succession_indices_set = {}
@@ -6088,7 +5303,7 @@ function DATA.delete_succession(i)
     succession_indices_pool[i] = true
     DATA.succession_indices_set[i] = nil
 end
----@param func fun(item: succession_id)
+---@param func fun(item: succession_id) 
 function DATA.for_each_succession(func)
     for _, item in pairs(DATA.succession_indices_set) do
         func(item)
@@ -6096,12 +5311,12 @@ function DATA.for_each_succession(func)
 end
 
 ---@param succession_id succession_id valid succession id
----@return pop_id successor_of
+---@return pop_id successor_of 
 function DATA.succession_get_successor_of(succession_id)
     return DATA.succession[succession_id].successor_of
 end
 ---@param successor_of pop_id valid pop_id
----@return succession_id succession
+---@return succession_id succession 
 function DATA.get_succession_from_successor_of(successor_of)
     return DATA.succession_from_successor_of[successor_of]
 end
@@ -6117,12 +5332,12 @@ function DATA.succession_set_successor_of(succession_id, value)
     DATA.succession_from_successor_of[value] = succession_id
 end
 ---@param succession_id succession_id valid succession id
----@return pop_id successor
+---@return pop_id successor 
 function DATA.succession_get_successor(succession_id)
     return DATA.succession[succession_id].successor
 end
 ---@param successor pop_id valid pop_id
----@return succession_id[] An array of succession
+---@return succession_id[] An array of succession 
 function DATA.get_succession_from_successor(successor)
     return DATA.succession_from_successor[successor]
 end
@@ -6184,12 +5399,12 @@ end
 
 ---@class fat_jobtype_id
 ---@field id jobtype_id Unique jobtype id
----@field name string
+---@field name string 
 
 ---@class struct_jobtype
 
 ---@class (exact) jobtype_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of jobtype for given id
 ---@param id jobtype_id
 ---@param data jobtype_id_data_blob_definition
@@ -6216,7 +5431,7 @@ DATA.jobtype_size = 10
 ---@type table<jobtype_id, boolean>
 local jobtype_indices_pool = ffi.new("bool[?]", 10)
 for i = 1, 9 do
-    jobtype_indices_pool[i] = true
+    jobtype_indices_pool[i] = true 
 end
 ---@type table<jobtype_id, jobtype_id>
 DATA.jobtype_indices_set = {}
@@ -6234,7 +5449,7 @@ function DATA.delete_jobtype(i)
     jobtype_indices_pool[i] = true
     DATA.jobtype_indices_set[i] = nil
 end
----@param func fun(item: jobtype_id)
+---@param func fun(item: jobtype_id) 
 function DATA.for_each_jobtype(func)
     for _, item in pairs(DATA.jobtype_indices_set) do
         func(item)
@@ -6242,7 +5457,7 @@ function DATA.for_each_jobtype(func)
 end
 
 ---@param jobtype_id jobtype_id valid jobtype id
----@return string name
+---@return string name 
 function DATA.jobtype_get_name(jobtype_id)
     return DATA.jobtype_name[jobtype_id]
 end
@@ -6311,26 +5526,26 @@ DATA.jobtype_set_name(index_jobtype, "HUNTING")
 
 ---@class fat_need_id
 ---@field id need_id Unique need id
----@field name string
----@field age_independent boolean
----@field life_need boolean
+---@field name string 
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
 ---@class struct_need
----@field age_independent boolean
----@field life_need boolean
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
 ---@class (exact) need_id_data_blob_definition
----@field name string
----@field age_independent boolean
----@field life_need boolean
+---@field name string 
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
@@ -6373,7 +5588,7 @@ DATA.need_size = 9
 ---@type table<need_id, boolean>
 local need_indices_pool = ffi.new("bool[?]", 9)
 for i = 1, 8 do
-    need_indices_pool[i] = true
+    need_indices_pool[i] = true 
 end
 ---@type table<need_id, need_id>
 DATA.need_indices_set = {}
@@ -6391,7 +5606,7 @@ function DATA.delete_need(i)
     need_indices_pool[i] = true
     DATA.need_indices_set[i] = nil
 end
----@param func fun(item: need_id)
+---@param func fun(item: need_id) 
 function DATA.for_each_need(func)
     for _, item in pairs(DATA.need_indices_set) do
         func(item)
@@ -6399,7 +5614,7 @@ function DATA.for_each_need(func)
 end
 
 ---@param need_id need_id valid need id
----@return string name
+---@return string name 
 function DATA.need_get_name(need_id)
     return DATA.need_name[need_id]
 end
@@ -6409,7 +5624,7 @@ function DATA.need_set_name(need_id, value)
     DATA.need_name[need_id] = value
 end
 ---@param need_id need_id valid need id
----@return boolean age_independent
+---@return boolean age_independent 
 function DATA.need_get_age_independent(need_id)
     return DATA.need[need_id].age_independent
 end
@@ -6419,7 +5634,7 @@ function DATA.need_set_age_independent(need_id, value)
     DATA.need[need_id].age_independent = value
 end
 ---@param need_id need_id valid need id
----@return boolean life_need
+---@return boolean life_need 
 function DATA.need_get_life_need(need_id)
     return DATA.need[need_id].life_need
 end
@@ -6602,14 +5817,14 @@ DATA.need_set_job_to_satisfy(index_need, JOBTYPE.ARTISAN)
 
 ---@class fat_character_rank_id
 ---@field id character_rank_id Unique character_rank id
----@field name string
----@field localisation string
+---@field name string 
+---@field localisation string 
 
 ---@class struct_character_rank
 
 ---@class (exact) character_rank_id_data_blob_definition
----@field name string
----@field localisation string
+---@field name string 
+---@field localisation string 
 ---Sets values of character_rank for given id
 ---@param id character_rank_id
 ---@param data character_rank_id_data_blob_definition
@@ -6639,7 +5854,7 @@ DATA.character_rank_size = 5
 ---@type table<character_rank_id, boolean>
 local character_rank_indices_pool = ffi.new("bool[?]", 5)
 for i = 1, 4 do
-    character_rank_indices_pool[i] = true
+    character_rank_indices_pool[i] = true 
 end
 ---@type table<character_rank_id, character_rank_id>
 DATA.character_rank_indices_set = {}
@@ -6657,7 +5872,7 @@ function DATA.delete_character_rank(i)
     character_rank_indices_pool[i] = true
     DATA.character_rank_indices_set[i] = nil
 end
----@param func fun(item: character_rank_id)
+---@param func fun(item: character_rank_id) 
 function DATA.for_each_character_rank(func)
     for _, item in pairs(DATA.character_rank_indices_set) do
         func(item)
@@ -6665,7 +5880,7 @@ function DATA.for_each_character_rank(func)
 end
 
 ---@param character_rank_id character_rank_id valid character_rank id
----@return string name
+---@return string name 
 function DATA.character_rank_get_name(character_rank_id)
     return DATA.character_rank_name[character_rank_id]
 end
@@ -6675,7 +5890,7 @@ function DATA.character_rank_set_name(character_rank_id, value)
     DATA.character_rank_name[character_rank_id] = value
 end
 ---@param character_rank_id character_rank_id valid character_rank id
----@return string localisation
+---@return string localisation 
 function DATA.character_rank_get_localisation(character_rank_id)
     return DATA.character_rank_localisation[character_rank_id]
 end
@@ -6737,18 +5952,18 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 
 ---@class fat_trait_id
 ---@field id trait_id Unique trait id
----@field name string
----@field short_description string
----@field full_description string
----@field icon string
+---@field name string 
+---@field short_description string 
+---@field full_description string 
+---@field icon string 
 
 ---@class struct_trait
 
 ---@class (exact) trait_id_data_blob_definition
----@field name string
----@field short_description string
----@field full_description string
----@field icon string
+---@field name string 
+---@field short_description string 
+---@field full_description string 
+---@field icon string 
 ---Sets values of trait for given id
 ---@param id trait_id
 ---@param data trait_id_data_blob_definition
@@ -6784,7 +5999,7 @@ DATA.trait_size = 12
 ---@type table<trait_id, boolean>
 local trait_indices_pool = ffi.new("bool[?]", 12)
 for i = 1, 11 do
-    trait_indices_pool[i] = true
+    trait_indices_pool[i] = true 
 end
 ---@type table<trait_id, trait_id>
 DATA.trait_indices_set = {}
@@ -6802,7 +6017,7 @@ function DATA.delete_trait(i)
     trait_indices_pool[i] = true
     DATA.trait_indices_set[i] = nil
 end
----@param func fun(item: trait_id)
+---@param func fun(item: trait_id) 
 function DATA.for_each_trait(func)
     for _, item in pairs(DATA.trait_indices_set) do
         func(item)
@@ -6810,7 +6025,7 @@ function DATA.for_each_trait(func)
 end
 
 ---@param trait_id trait_id valid trait id
----@return string name
+---@return string name 
 function DATA.trait_get_name(trait_id)
     return DATA.trait_name[trait_id]
 end
@@ -6820,7 +6035,7 @@ function DATA.trait_set_name(trait_id, value)
     DATA.trait_name[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string short_description
+---@return string short_description 
 function DATA.trait_get_short_description(trait_id)
     return DATA.trait_short_description[trait_id]
 end
@@ -6830,7 +6045,7 @@ function DATA.trait_set_short_description(trait_id, value)
     DATA.trait_short_description[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string full_description
+---@return string full_description 
 function DATA.trait_get_full_description(trait_id)
     return DATA.trait_full_description[trait_id]
 end
@@ -6840,7 +6055,7 @@ function DATA.trait_set_full_description(trait_id, value)
     DATA.trait_full_description[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string icon
+---@return string icon 
 function DATA.trait_get_icon(trait_id)
     return DATA.trait_icon[trait_id]
 end
@@ -6960,12 +6175,12 @@ DATA.trait_set_icon(index_trait, "scales.png")
 
 ---@class fat_trade_good_category_id
 ---@field id trade_good_category_id Unique trade_good_category id
----@field name string
+---@field name string 
 
 ---@class struct_trade_good_category
 
 ---@class (exact) trade_good_category_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of trade_good_category for given id
 ---@param id trade_good_category_id
 ---@param data trade_good_category_id_data_blob_definition
@@ -6992,7 +6207,7 @@ DATA.trade_good_category_size = 5
 ---@type table<trade_good_category_id, boolean>
 local trade_good_category_indices_pool = ffi.new("bool[?]", 5)
 for i = 1, 4 do
-    trade_good_category_indices_pool[i] = true
+    trade_good_category_indices_pool[i] = true 
 end
 ---@type table<trade_good_category_id, trade_good_category_id>
 DATA.trade_good_category_indices_set = {}
@@ -7010,7 +6225,7 @@ function DATA.delete_trade_good_category(i)
     trade_good_category_indices_pool[i] = true
     DATA.trade_good_category_indices_set[i] = nil
 end
----@param func fun(item: trade_good_category_id)
+---@param func fun(item: trade_good_category_id) 
 function DATA.for_each_trade_good_category(func)
     for _, item in pairs(DATA.trade_good_category_indices_set) do
         func(item)
@@ -7018,7 +6233,7 @@ function DATA.for_each_trade_good_category(func)
 end
 
 ---@param trade_good_category_id trade_good_category_id valid trade_good_category id
----@return string name
+---@return string name 
 function DATA.trade_good_category_get_name(trade_good_category_id)
     return DATA.trade_good_category_name[trade_good_category_id]
 end
@@ -7072,12 +6287,12 @@ DATA.trade_good_category_set_name(index_trade_good_category, "capacity")
 
 ---@class fat_warband_status_id
 ---@field id warband_status_id Unique warband_status id
----@field name string
+---@field name string 
 
 ---@class struct_warband_status
 
 ---@class (exact) warband_status_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of warband_status for given id
 ---@param id warband_status_id
 ---@param data warband_status_id_data_blob_definition
@@ -7104,7 +6319,7 @@ DATA.warband_status_size = 10
 ---@type table<warband_status_id, boolean>
 local warband_status_indices_pool = ffi.new("bool[?]", 10)
 for i = 1, 9 do
-    warband_status_indices_pool[i] = true
+    warband_status_indices_pool[i] = true 
 end
 ---@type table<warband_status_id, warband_status_id>
 DATA.warband_status_indices_set = {}
@@ -7122,7 +6337,7 @@ function DATA.delete_warband_status(i)
     warband_status_indices_pool[i] = true
     DATA.warband_status_indices_set[i] = nil
 end
----@param func fun(item: warband_status_id)
+---@param func fun(item: warband_status_id) 
 function DATA.for_each_warband_status(func)
     for _, item in pairs(DATA.warband_status_indices_set) do
         func(item)
@@ -7130,7 +6345,7 @@ function DATA.for_each_warband_status(func)
 end
 
 ---@param warband_status_id warband_status_id valid warband_status id
----@return string name
+---@return string name 
 function DATA.warband_status_get_name(warband_status_id)
     return DATA.warband_status_name[warband_status_id]
 end
@@ -7199,12 +6414,12 @@ DATA.warband_status_set_name(index_warband_status, "off_duty")
 
 ---@class fat_warband_stance_id
 ---@field id warband_stance_id Unique warband_stance id
----@field name string
+---@field name string 
 
 ---@class struct_warband_stance
 
 ---@class (exact) warband_stance_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of warband_stance for given id
 ---@param id warband_stance_id
 ---@param data warband_stance_id_data_blob_definition
@@ -7231,7 +6446,7 @@ DATA.warband_stance_size = 4
 ---@type table<warband_stance_id, boolean>
 local warband_stance_indices_pool = ffi.new("bool[?]", 4)
 for i = 1, 3 do
-    warband_stance_indices_pool[i] = true
+    warband_stance_indices_pool[i] = true 
 end
 ---@type table<warband_stance_id, warband_stance_id>
 DATA.warband_stance_indices_set = {}
@@ -7249,7 +6464,7 @@ function DATA.delete_warband_stance(i)
     warband_stance_indices_pool[i] = true
     DATA.warband_stance_indices_set[i] = nil
 end
----@param func fun(item: warband_stance_id)
+---@param func fun(item: warband_stance_id) 
 function DATA.for_each_warband_stance(func)
     for _, item in pairs(DATA.warband_stance_indices_set) do
         func(item)
@@ -7257,7 +6472,7 @@ function DATA.for_each_warband_stance(func)
 end
 
 ---@param warband_stance_id warband_stance_id valid warband_stance id
----@return string name
+---@return string name 
 function DATA.warband_stance_get_name(warband_stance_id)
     return DATA.warband_stance_name[warband_stance_id]
 end
@@ -7298,6 +6513,124 @@ index_warband_stance = DATA.create_warband_stance()
 DATA.warband_stance_set_name(index_warband_stance, "work")
 index_warband_stance = DATA.create_warband_stance()
 DATA.warband_stance_set_name(index_warband_stance, "forage")
+----------building_archetype----------
+
+
+---building_archetype: LSP types---
+
+---Unique identificator for building_archetype entity
+---@alias building_archetype_id number
+
+---@class fat_building_archetype_id
+---@field id building_archetype_id Unique building_archetype id
+---@field name string 
+
+---@class struct_building_archetype
+
+---@class (exact) building_archetype_id_data_blob_definition
+---@field name string 
+---Sets values of building_archetype for given id
+---@param id building_archetype_id
+---@param data building_archetype_id_data_blob_definition
+function DATA.setup_building_archetype(id, data)
+    DATA.building_archetype_set_name(id, data.name)
+end
+
+ffi.cdef[[
+    typedef struct {
+    } building_archetype;
+]]
+
+---building_archetype: FFI arrays---
+---@type (string)[]
+DATA.building_archetype_name= {}
+---@type nil
+DATA.building_archetype_malloc = ffi.C.malloc(ffi.sizeof("building_archetype") * 8)
+---@type table<building_archetype_id, struct_building_archetype>
+DATA.building_archetype = ffi.cast("building_archetype*", DATA.building_archetype_malloc)
+
+---building_archetype: LUA bindings---
+
+DATA.building_archetype_size = 7
+---@type table<building_archetype_id, boolean>
+local building_archetype_indices_pool = ffi.new("bool[?]", 7)
+for i = 1, 6 do
+    building_archetype_indices_pool[i] = true 
+end
+---@type table<building_archetype_id, building_archetype_id>
+DATA.building_archetype_indices_set = {}
+function DATA.create_building_archetype()
+    for i = 1, 6 do
+        if building_archetype_indices_pool[i] then
+            building_archetype_indices_pool[i] = false
+            DATA.building_archetype_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for building_archetype")
+end
+function DATA.delete_building_archetype(i)
+    building_archetype_indices_pool[i] = true
+    DATA.building_archetype_indices_set[i] = nil
+end
+---@param func fun(item: building_archetype_id) 
+function DATA.for_each_building_archetype(func)
+    for _, item in pairs(DATA.building_archetype_indices_set) do
+        func(item)
+    end
+end
+
+---@param building_archetype_id building_archetype_id valid building_archetype id
+---@return string name 
+function DATA.building_archetype_get_name(building_archetype_id)
+    return DATA.building_archetype_name[building_archetype_id]
+end
+---@param building_archetype_id building_archetype_id valid building_archetype id
+---@param value string valid string
+function DATA.building_archetype_set_name(building_archetype_id, value)
+    DATA.building_archetype_name[building_archetype_id] = value
+end
+
+
+local fat_building_archetype_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.building_archetype_get_name(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.building_archetype_set_name(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id building_archetype_id
+---@return fat_building_archetype_id fat_id
+function DATA.fatten_building_archetype(id)
+    local result = {id = id}
+    setmetatable(result, fat_building_archetype_id_metatable)    return result
+end
+---@enum BUILDING_ARCHETYPE
+BUILDING_ARCHETYPE = {
+    INVALID = 0,
+    GROUNDS = 1,
+    FARM = 2,
+    MINE = 3,
+    WORKSHOP = 4,
+    DEFENSE = 5,
+}
+local index_building_archetype
+index_building_archetype = DATA.create_building_archetype()
+DATA.building_archetype_set_name(index_building_archetype, "GROUNDS")
+index_building_archetype = DATA.create_building_archetype()
+DATA.building_archetype_set_name(index_building_archetype, "FARM")
+index_building_archetype = DATA.create_building_archetype()
+DATA.building_archetype_set_name(index_building_archetype, "MINE")
+index_building_archetype = DATA.create_building_archetype()
+DATA.building_archetype_set_name(index_building_archetype, "WORKSHOP")
+index_building_archetype = DATA.create_building_archetype()
+DATA.building_archetype_set_name(index_building_archetype, "DEFENSE")
 ----------trade_good----------
 
 
@@ -7308,31 +6641,31 @@ DATA.warband_stance_set_name(index_warband_stance, "forage")
 
 ---@class fat_trade_good_id
 ---@field id trade_good_id Unique trade_good id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 
 ---@class struct_trade_good
----@field r number
----@field g number
----@field b number
----@field category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 
 ---@class (exact) trade_good_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field category TRADE_GOOD_CATEGORY?
----@field base_price number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field category TRADE_GOOD_CATEGORY? 
+---@field base_price number 
 ---Sets values of trade_good for given id
 ---@param id trade_good_id
 ---@param data trade_good_id_data_blob_definition
@@ -7377,7 +6710,7 @@ DATA.trade_good_size = 100
 ---@type table<trade_good_id, boolean>
 local trade_good_indices_pool = ffi.new("bool[?]", 100)
 for i = 1, 99 do
-    trade_good_indices_pool[i] = true
+    trade_good_indices_pool[i] = true 
 end
 ---@type table<trade_good_id, trade_good_id>
 DATA.trade_good_indices_set = {}
@@ -7406,7 +6739,7 @@ function DATA.delete_trade_good(i)
     trade_good_indices_pool[i] = true
     DATA.trade_good_indices_set[i] = nil
 end
----@param func fun(item: trade_good_id)
+---@param func fun(item: trade_good_id) 
 function DATA.for_each_trade_good(func)
     for _, item in pairs(DATA.trade_good_indices_set) do
         func(item)
@@ -7414,7 +6747,7 @@ function DATA.for_each_trade_good(func)
 end
 
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string name
+---@return string name 
 function DATA.trade_good_get_name(trade_good_id)
     return DATA.trade_good_name[trade_good_id]
 end
@@ -7424,7 +6757,7 @@ function DATA.trade_good_set_name(trade_good_id, value)
     DATA.trade_good_name[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string icon
+---@return string icon 
 function DATA.trade_good_get_icon(trade_good_id)
     return DATA.trade_good_icon[trade_good_id]
 end
@@ -7434,7 +6767,7 @@ function DATA.trade_good_set_icon(trade_good_id, value)
     DATA.trade_good_icon[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string description
+---@return string description 
 function DATA.trade_good_get_description(trade_good_id)
     return DATA.trade_good_description[trade_good_id]
 end
@@ -7444,7 +6777,7 @@ function DATA.trade_good_set_description(trade_good_id, value)
     DATA.trade_good_description[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number r
+---@return number r 
 function DATA.trade_good_get_r(trade_good_id)
     return DATA.trade_good[trade_good_id].r
 end
@@ -7459,7 +6792,7 @@ function DATA.trade_good_inc_r(trade_good_id, value)
     DATA.trade_good[trade_good_id].r = DATA.trade_good[trade_good_id].r + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number g
+---@return number g 
 function DATA.trade_good_get_g(trade_good_id)
     return DATA.trade_good[trade_good_id].g
 end
@@ -7474,7 +6807,7 @@ function DATA.trade_good_inc_g(trade_good_id, value)
     DATA.trade_good[trade_good_id].g = DATA.trade_good[trade_good_id].g + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number b
+---@return number b 
 function DATA.trade_good_get_b(trade_good_id)
     return DATA.trade_good[trade_good_id].b
 end
@@ -7489,7 +6822,7 @@ function DATA.trade_good_inc_b(trade_good_id, value)
     DATA.trade_good[trade_good_id].b = DATA.trade_good[trade_good_id].b + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return TRADE_GOOD_CATEGORY category
+---@return TRADE_GOOD_CATEGORY category 
 function DATA.trade_good_get_category(trade_good_id)
     return DATA.trade_good[trade_good_id].category
 end
@@ -7499,7 +6832,7 @@ function DATA.trade_good_set_category(trade_good_id, value)
     DATA.trade_good[trade_good_id].category = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number base_price
+---@return number base_price 
 function DATA.trade_good_get_base_price(trade_good_id)
     return DATA.trade_good[trade_good_id].base_price
 end
@@ -7579,25 +6912,25 @@ end
 
 ---@class fat_use_case_id
 ---@field id use_case_id Unique use_case id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class struct_use_case
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class (exact) use_case_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---Sets values of use_case for given id
 ---@param id use_case_id
 ---@param data use_case_id_data_blob_definition
@@ -7636,7 +6969,7 @@ DATA.use_case_size = 100
 ---@type table<use_case_id, boolean>
 local use_case_indices_pool = ffi.new("bool[?]", 100)
 for i = 1, 99 do
-    use_case_indices_pool[i] = true
+    use_case_indices_pool[i] = true 
 end
 ---@type table<use_case_id, use_case_id>
 DATA.use_case_indices_set = {}
@@ -7664,7 +6997,7 @@ function DATA.delete_use_case(i)
     use_case_indices_pool[i] = true
     DATA.use_case_indices_set[i] = nil
 end
----@param func fun(item: use_case_id)
+---@param func fun(item: use_case_id) 
 function DATA.for_each_use_case(func)
     for _, item in pairs(DATA.use_case_indices_set) do
         func(item)
@@ -7672,7 +7005,7 @@ function DATA.for_each_use_case(func)
 end
 
 ---@param use_case_id use_case_id valid use_case id
----@return string name
+---@return string name 
 function DATA.use_case_get_name(use_case_id)
     return DATA.use_case_name[use_case_id]
 end
@@ -7682,7 +7015,7 @@ function DATA.use_case_set_name(use_case_id, value)
     DATA.use_case_name[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return string icon
+---@return string icon 
 function DATA.use_case_get_icon(use_case_id)
     return DATA.use_case_icon[use_case_id]
 end
@@ -7692,7 +7025,7 @@ function DATA.use_case_set_icon(use_case_id, value)
     DATA.use_case_icon[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return string description
+---@return string description 
 function DATA.use_case_get_description(use_case_id)
     return DATA.use_case_description[use_case_id]
 end
@@ -7702,7 +7035,7 @@ function DATA.use_case_set_description(use_case_id, value)
     DATA.use_case_description[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number r
+---@return number r 
 function DATA.use_case_get_r(use_case_id)
     return DATA.use_case[use_case_id].r
 end
@@ -7717,7 +7050,7 @@ function DATA.use_case_inc_r(use_case_id, value)
     DATA.use_case[use_case_id].r = DATA.use_case[use_case_id].r + value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number g
+---@return number g 
 function DATA.use_case_get_g(use_case_id)
     return DATA.use_case[use_case_id].g
 end
@@ -7732,7 +7065,7 @@ function DATA.use_case_inc_g(use_case_id, value)
     DATA.use_case[use_case_id].g = DATA.use_case[use_case_id].g + value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number b
+---@return number b 
 function DATA.use_case_get_b(use_case_id)
     return DATA.use_case[use_case_id].b
 end
@@ -7846,7 +7179,7 @@ DATA.use_weight_size = 300
 ---@type table<use_weight_id, boolean>
 local use_weight_indices_pool = ffi.new("bool[?]", 300)
 for i = 1, 299 do
-    use_weight_indices_pool[i] = true
+    use_weight_indices_pool[i] = true 
 end
 ---@type table<use_weight_id, use_weight_id>
 DATA.use_weight_indices_set = {}
@@ -7872,7 +7205,7 @@ function DATA.delete_use_weight(i)
     use_weight_indices_pool[i] = true
     DATA.use_weight_indices_set[i] = nil
 end
----@param func fun(item: use_weight_id)
+---@param func fun(item: use_weight_id) 
 function DATA.for_each_use_weight(func)
     for _, item in pairs(DATA.use_weight_indices_set) do
         func(item)
@@ -7900,7 +7233,7 @@ function DATA.use_weight_get_trade_good(use_weight_id)
     return DATA.use_weight[use_weight_id].trade_good
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@return use_weight_id[] An array of use_weight
+---@return use_weight_id[] An array of use_weight 
 function DATA.get_use_weight_from_trade_good(trade_good)
     return DATA.use_weight_from_trade_good[trade_good]
 end
@@ -7932,7 +7265,7 @@ function DATA.use_weight_get_use_case(use_weight_id)
     return DATA.use_weight[use_weight_id].use_case
 end
 ---@param use_case use_case_id valid use_case_id
----@return use_weight_id[] An array of use_weight
+---@return use_weight_id[] An array of use_weight 
 function DATA.get_use_weight_from_use_case(use_case)
     return DATA.use_weight_from_use_case[use_case]
 end
@@ -7999,13 +7332,13 @@ end
 
 ---@class fat_biome_id
 ---@field id biome_id Unique biome id
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean 
+---@field marsh boolean 
+---@field icy boolean 
 ---@field minimum_slope number m
 ---@field maximum_slope number m
 ---@field minimum_elevation number m
@@ -8042,12 +7375,12 @@ end
 ---@field maximum_silt number %
 
 ---@class struct_biome
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean 
+---@field marsh boolean 
+---@field icy boolean 
 ---@field minimum_slope number m
 ---@field maximum_slope number m
 ---@field minimum_elevation number m
@@ -8084,13 +7417,13 @@ end
 ---@field maximum_silt number %
 
 ---@class (exact) biome_id_data_blob_definition
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean?
----@field marsh boolean?
----@field icy boolean?
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean? 
+---@field marsh boolean? 
+---@field icy boolean? 
 ---@field minimum_slope number? m
 ---@field maximum_slope number? m
 ---@field minimum_elevation number? m
@@ -8305,7 +7638,7 @@ DATA.biome_size = 100
 ---@type table<biome_id, boolean>
 local biome_indices_pool = ffi.new("bool[?]", 100)
 for i = 1, 99 do
-    biome_indices_pool[i] = true
+    biome_indices_pool[i] = true 
 end
 ---@type table<biome_id, biome_id>
 DATA.biome_indices_set = {}
@@ -8360,7 +7693,7 @@ function DATA.delete_biome(i)
     biome_indices_pool[i] = true
     DATA.biome_indices_set[i] = nil
 end
----@param func fun(item: biome_id)
+---@param func fun(item: biome_id) 
 function DATA.for_each_biome(func)
     for _, item in pairs(DATA.biome_indices_set) do
         func(item)
@@ -8368,7 +7701,7 @@ function DATA.for_each_biome(func)
 end
 
 ---@param biome_id biome_id valid biome id
----@return string name
+---@return string name 
 function DATA.biome_get_name(biome_id)
     return DATA.biome_name[biome_id]
 end
@@ -8378,7 +7711,7 @@ function DATA.biome_set_name(biome_id, value)
     DATA.biome_name[biome_id] = value
 end
 ---@param biome_id biome_id valid biome id
----@return number r
+---@return number r 
 function DATA.biome_get_r(biome_id)
     return DATA.biome[biome_id].r
 end
@@ -8393,7 +7726,7 @@ function DATA.biome_inc_r(biome_id, value)
     DATA.biome[biome_id].r = DATA.biome[biome_id].r + value
 end
 ---@param biome_id biome_id valid biome id
----@return number g
+---@return number g 
 function DATA.biome_get_g(biome_id)
     return DATA.biome[biome_id].g
 end
@@ -8408,7 +7741,7 @@ function DATA.biome_inc_g(biome_id, value)
     DATA.biome[biome_id].g = DATA.biome[biome_id].g + value
 end
 ---@param biome_id biome_id valid biome id
----@return number b
+---@return number b 
 function DATA.biome_get_b(biome_id)
     return DATA.biome[biome_id].b
 end
@@ -8423,7 +7756,7 @@ function DATA.biome_inc_b(biome_id, value)
     DATA.biome[biome_id].b = DATA.biome[biome_id].b + value
 end
 ---@param biome_id biome_id valid biome id
----@return boolean aquatic
+---@return boolean aquatic 
 function DATA.biome_get_aquatic(biome_id)
     return DATA.biome[biome_id].aquatic
 end
@@ -8433,7 +7766,7 @@ function DATA.biome_set_aquatic(biome_id, value)
     DATA.biome[biome_id].aquatic = value
 end
 ---@param biome_id biome_id valid biome id
----@return boolean marsh
+---@return boolean marsh 
 function DATA.biome_get_marsh(biome_id)
     return DATA.biome[biome_id].marsh
 end
@@ -8443,7 +7776,7 @@ function DATA.biome_set_marsh(biome_id, value)
     DATA.biome[biome_id].marsh = value
 end
 ---@param biome_id biome_id valid biome id
----@return boolean icy
+---@return boolean icy 
 function DATA.biome_get_icy(biome_id)
     return DATA.biome[biome_id].icy
 end
@@ -9193,77 +8526,77 @@ end
 
 ---@class fat_bedrock_id
 ---@field id bedrock_id Unique bedrock id
----@field name string
----@field r number
----@field g number
----@field b number
----@field color_id number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number
----@field acidity number
----@field igneous_extrusive boolean
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field color_id number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number 
+---@field acidity number 
+---@field igneous_extrusive boolean 
+---@field igneous_intrusive boolean 
+---@field sedimentary boolean 
+---@field clastic boolean 
+---@field evaporative boolean 
+---@field metamorphic_marble boolean 
+---@field metamorphic_slate boolean 
+---@field oceanic boolean 
+---@field sedimentary_ocean_deep boolean 
+---@field sedimentary_ocean_shallow boolean 
 
 ---@class struct_bedrock
----@field r number
----@field g number
----@field b number
----@field color_id number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number
----@field acidity number
----@field igneous_extrusive boolean
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field r number 
+---@field g number 
+---@field b number 
+---@field color_id number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number 
+---@field acidity number 
+---@field igneous_extrusive boolean 
+---@field igneous_intrusive boolean 
+---@field sedimentary boolean 
+---@field clastic boolean 
+---@field evaporative boolean 
+---@field metamorphic_marble boolean 
+---@field metamorphic_slate boolean 
+---@field oceanic boolean 
+---@field sedimentary_ocean_deep boolean 
+---@field sedimentary_ocean_shallow boolean 
 
 ---@class (exact) bedrock_id_data_blob_definition
----@field name string
----@field r number
----@field g number
----@field b number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number?
----@field acidity number?
----@field igneous_extrusive boolean?
----@field igneous_intrusive boolean?
----@field sedimentary boolean?
----@field clastic boolean?
----@field evaporative boolean?
----@field metamorphic_marble boolean?
----@field metamorphic_slate boolean?
----@field oceanic boolean?
----@field sedimentary_ocean_deep boolean?
----@field sedimentary_ocean_shallow boolean?
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number? 
+---@field acidity number? 
+---@field igneous_extrusive boolean? 
+---@field igneous_intrusive boolean? 
+---@field sedimentary boolean? 
+---@field clastic boolean? 
+---@field evaporative boolean? 
+---@field metamorphic_marble boolean? 
+---@field metamorphic_slate boolean? 
+---@field oceanic boolean? 
+---@field sedimentary_ocean_deep boolean? 
+---@field sedimentary_ocean_shallow boolean? 
 ---Sets values of bedrock for given id
 ---@param id bedrock_id
 ---@param data bedrock_id_data_blob_definition
@@ -9357,7 +8690,7 @@ DATA.bedrock_size = 150
 ---@type table<bedrock_id, boolean>
 local bedrock_indices_pool = ffi.new("bool[?]", 150)
 for i = 1, 149 do
-    bedrock_indices_pool[i] = true
+    bedrock_indices_pool[i] = true 
 end
 ---@type table<bedrock_id, bedrock_id>
 DATA.bedrock_indices_set = {}
@@ -9387,7 +8720,7 @@ function DATA.delete_bedrock(i)
     bedrock_indices_pool[i] = true
     DATA.bedrock_indices_set[i] = nil
 end
----@param func fun(item: bedrock_id)
+---@param func fun(item: bedrock_id) 
 function DATA.for_each_bedrock(func)
     for _, item in pairs(DATA.bedrock_indices_set) do
         func(item)
@@ -9395,7 +8728,7 @@ function DATA.for_each_bedrock(func)
 end
 
 ---@param bedrock_id bedrock_id valid bedrock id
----@return string name
+---@return string name 
 function DATA.bedrock_get_name(bedrock_id)
     return DATA.bedrock_name[bedrock_id]
 end
@@ -9405,7 +8738,7 @@ function DATA.bedrock_set_name(bedrock_id, value)
     DATA.bedrock_name[bedrock_id] = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number r
+---@return number r 
 function DATA.bedrock_get_r(bedrock_id)
     return DATA.bedrock[bedrock_id].r
 end
@@ -9420,7 +8753,7 @@ function DATA.bedrock_inc_r(bedrock_id, value)
     DATA.bedrock[bedrock_id].r = DATA.bedrock[bedrock_id].r + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number g
+---@return number g 
 function DATA.bedrock_get_g(bedrock_id)
     return DATA.bedrock[bedrock_id].g
 end
@@ -9435,7 +8768,7 @@ function DATA.bedrock_inc_g(bedrock_id, value)
     DATA.bedrock[bedrock_id].g = DATA.bedrock[bedrock_id].g + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number b
+---@return number b 
 function DATA.bedrock_get_b(bedrock_id)
     return DATA.bedrock[bedrock_id].b
 end
@@ -9450,7 +8783,7 @@ function DATA.bedrock_inc_b(bedrock_id, value)
     DATA.bedrock[bedrock_id].b = DATA.bedrock[bedrock_id].b + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number color_id
+---@return number color_id 
 function DATA.bedrock_get_color_id(bedrock_id)
     return DATA.bedrock[bedrock_id].color_id
 end
@@ -9465,7 +8798,7 @@ function DATA.bedrock_inc_color_id(bedrock_id, value)
     DATA.bedrock[bedrock_id].color_id = DATA.bedrock[bedrock_id].color_id + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number sand
+---@return number sand 
 function DATA.bedrock_get_sand(bedrock_id)
     return DATA.bedrock[bedrock_id].sand
 end
@@ -9480,7 +8813,7 @@ function DATA.bedrock_inc_sand(bedrock_id, value)
     DATA.bedrock[bedrock_id].sand = DATA.bedrock[bedrock_id].sand + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number silt
+---@return number silt 
 function DATA.bedrock_get_silt(bedrock_id)
     return DATA.bedrock[bedrock_id].silt
 end
@@ -9495,7 +8828,7 @@ function DATA.bedrock_inc_silt(bedrock_id, value)
     DATA.bedrock[bedrock_id].silt = DATA.bedrock[bedrock_id].silt + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number clay
+---@return number clay 
 function DATA.bedrock_get_clay(bedrock_id)
     return DATA.bedrock[bedrock_id].clay
 end
@@ -9510,7 +8843,7 @@ function DATA.bedrock_inc_clay(bedrock_id, value)
     DATA.bedrock[bedrock_id].clay = DATA.bedrock[bedrock_id].clay + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number organics
+---@return number organics 
 function DATA.bedrock_get_organics(bedrock_id)
     return DATA.bedrock[bedrock_id].organics
 end
@@ -9525,7 +8858,7 @@ function DATA.bedrock_inc_organics(bedrock_id, value)
     DATA.bedrock[bedrock_id].organics = DATA.bedrock[bedrock_id].organics + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number minerals
+---@return number minerals 
 function DATA.bedrock_get_minerals(bedrock_id)
     return DATA.bedrock[bedrock_id].minerals
 end
@@ -9540,7 +8873,7 @@ function DATA.bedrock_inc_minerals(bedrock_id, value)
     DATA.bedrock[bedrock_id].minerals = DATA.bedrock[bedrock_id].minerals + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number weathering
+---@return number weathering 
 function DATA.bedrock_get_weathering(bedrock_id)
     return DATA.bedrock[bedrock_id].weathering
 end
@@ -9555,7 +8888,7 @@ function DATA.bedrock_inc_weathering(bedrock_id, value)
     DATA.bedrock[bedrock_id].weathering = DATA.bedrock[bedrock_id].weathering + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number grain_size
+---@return number grain_size 
 function DATA.bedrock_get_grain_size(bedrock_id)
     return DATA.bedrock[bedrock_id].grain_size
 end
@@ -9570,7 +8903,7 @@ function DATA.bedrock_inc_grain_size(bedrock_id, value)
     DATA.bedrock[bedrock_id].grain_size = DATA.bedrock[bedrock_id].grain_size + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number acidity
+---@return number acidity 
 function DATA.bedrock_get_acidity(bedrock_id)
     return DATA.bedrock[bedrock_id].acidity
 end
@@ -9585,7 +8918,7 @@ function DATA.bedrock_inc_acidity(bedrock_id, value)
     DATA.bedrock[bedrock_id].acidity = DATA.bedrock[bedrock_id].acidity + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_extrusive
+---@return boolean igneous_extrusive 
 function DATA.bedrock_get_igneous_extrusive(bedrock_id)
     return DATA.bedrock[bedrock_id].igneous_extrusive
 end
@@ -9595,7 +8928,7 @@ function DATA.bedrock_set_igneous_extrusive(bedrock_id, value)
     DATA.bedrock[bedrock_id].igneous_extrusive = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_intrusive
+---@return boolean igneous_intrusive 
 function DATA.bedrock_get_igneous_intrusive(bedrock_id)
     return DATA.bedrock[bedrock_id].igneous_intrusive
 end
@@ -9605,7 +8938,7 @@ function DATA.bedrock_set_igneous_intrusive(bedrock_id, value)
     DATA.bedrock[bedrock_id].igneous_intrusive = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary
+---@return boolean sedimentary 
 function DATA.bedrock_get_sedimentary(bedrock_id)
     return DATA.bedrock[bedrock_id].sedimentary
 end
@@ -9615,7 +8948,7 @@ function DATA.bedrock_set_sedimentary(bedrock_id, value)
     DATA.bedrock[bedrock_id].sedimentary = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean clastic
+---@return boolean clastic 
 function DATA.bedrock_get_clastic(bedrock_id)
     return DATA.bedrock[bedrock_id].clastic
 end
@@ -9625,7 +8958,7 @@ function DATA.bedrock_set_clastic(bedrock_id, value)
     DATA.bedrock[bedrock_id].clastic = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean evaporative
+---@return boolean evaporative 
 function DATA.bedrock_get_evaporative(bedrock_id)
     return DATA.bedrock[bedrock_id].evaporative
 end
@@ -9635,7 +8968,7 @@ function DATA.bedrock_set_evaporative(bedrock_id, value)
     DATA.bedrock[bedrock_id].evaporative = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean metamorphic_marble
+---@return boolean metamorphic_marble 
 function DATA.bedrock_get_metamorphic_marble(bedrock_id)
     return DATA.bedrock[bedrock_id].metamorphic_marble
 end
@@ -9645,7 +8978,7 @@ function DATA.bedrock_set_metamorphic_marble(bedrock_id, value)
     DATA.bedrock[bedrock_id].metamorphic_marble = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean metamorphic_slate
+---@return boolean metamorphic_slate 
 function DATA.bedrock_get_metamorphic_slate(bedrock_id)
     return DATA.bedrock[bedrock_id].metamorphic_slate
 end
@@ -9655,7 +8988,7 @@ function DATA.bedrock_set_metamorphic_slate(bedrock_id, value)
     DATA.bedrock[bedrock_id].metamorphic_slate = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean oceanic
+---@return boolean oceanic 
 function DATA.bedrock_get_oceanic(bedrock_id)
     return DATA.bedrock[bedrock_id].oceanic
 end
@@ -9665,7 +8998,7 @@ function DATA.bedrock_set_oceanic(bedrock_id, value)
     DATA.bedrock[bedrock_id].oceanic = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary_ocean_deep
+---@return boolean sedimentary_ocean_deep 
 function DATA.bedrock_get_sedimentary_ocean_deep(bedrock_id)
     return DATA.bedrock[bedrock_id].sedimentary_ocean_deep
 end
@@ -9675,7 +9008,7 @@ function DATA.bedrock_set_sedimentary_ocean_deep(bedrock_id, value)
     DATA.bedrock[bedrock_id].sedimentary_ocean_deep = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary_ocean_shallow
+---@return boolean sedimentary_ocean_shallow 
 function DATA.bedrock_get_sedimentary_ocean_shallow(bedrock_id)
     return DATA.bedrock[bedrock_id].sedimentary_ocean_shallow
 end
@@ -9825,52 +9158,52 @@ end
 
 ---@class fat_resource_id
 ---@field id resource_id Unique resource id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field base_frequency number number of tiles per which this resource is spawned
----@field coastal boolean
----@field land boolean
----@field water boolean
+---@field coastal boolean 
+---@field land boolean 
+---@field water boolean 
 ---@field ice_age boolean requires presence of ice age ice
----@field minimum_trees number
----@field maximum_trees number
----@field minimum_elevation number
----@field maximum_elevation number
+---@field minimum_trees number 
+---@field maximum_trees number 
+---@field minimum_elevation number 
+---@field maximum_elevation number 
 
 ---@class struct_resource
----@field r number
----@field g number
----@field b number
----@field required_biome table<number, biome_id>
----@field required_bedrock table<number, bedrock_id>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field required_biome table<number, biome_id> 
+---@field required_bedrock table<number, bedrock_id> 
 ---@field base_frequency number number of tiles per which this resource is spawned
----@field minimum_trees number
----@field maximum_trees number
----@field minimum_elevation number
----@field maximum_elevation number
+---@field minimum_trees number 
+---@field maximum_trees number 
+---@field minimum_elevation number 
+---@field maximum_elevation number 
 
 ---@class (exact) resource_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field required_biome biome_id[]
----@field required_bedrock bedrock_id[]
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field required_biome biome_id[] 
+---@field required_bedrock bedrock_id[] 
 ---@field base_frequency number? number of tiles per which this resource is spawned
----@field coastal boolean?
----@field land boolean?
----@field water boolean?
+---@field coastal boolean? 
+---@field land boolean? 
+---@field water boolean? 
 ---@field ice_age boolean? requires presence of ice age ice
----@field minimum_trees number?
----@field maximum_trees number?
----@field minimum_elevation number?
----@field maximum_elevation number?
+---@field minimum_trees number? 
+---@field maximum_trees number? 
+---@field minimum_elevation number? 
+---@field maximum_elevation number? 
 ---Sets values of resource for given id
 ---@param id resource_id
 ---@param data resource_id_data_blob_definition
@@ -9882,10 +9215,10 @@ function DATA.setup_resource(id, data)
     DATA.resource_set_g(id, data.g)
     DATA.resource_set_b(id, data.b)
     for i, value in ipairs(data.required_biome) do
-        DATA.resource_set_required_biome(id, value, i - 1)
+        DATA.resource_set_required_biome(id, i - 1, value)
     end
     for i, value in ipairs(data.required_bedrock) do
-        DATA.resource_set_required_bedrock(id, value, i - 1)
+        DATA.resource_set_required_bedrock(id, i - 1, value)
     end
     if data.base_frequency ~= nil then
         DATA.resource_set_base_frequency(id, data.base_frequency)
@@ -9957,7 +9290,7 @@ DATA.resource_size = 300
 ---@type table<resource_id, boolean>
 local resource_indices_pool = ffi.new("bool[?]", 300)
 for i = 1, 299 do
-    resource_indices_pool[i] = true
+    resource_indices_pool[i] = true 
 end
 ---@type table<resource_id, resource_id>
 DATA.resource_indices_set = {}
@@ -9984,7 +9317,7 @@ function DATA.delete_resource(i)
     resource_indices_pool[i] = true
     DATA.resource_indices_set[i] = nil
 end
----@param func fun(item: resource_id)
+---@param func fun(item: resource_id) 
 function DATA.for_each_resource(func)
     for _, item in pairs(DATA.resource_indices_set) do
         func(item)
@@ -9992,7 +9325,7 @@ function DATA.for_each_resource(func)
 end
 
 ---@param resource_id resource_id valid resource id
----@return string name
+---@return string name 
 function DATA.resource_get_name(resource_id)
     return DATA.resource_name[resource_id]
 end
@@ -10002,7 +9335,7 @@ function DATA.resource_set_name(resource_id, value)
     DATA.resource_name[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return string icon
+---@return string icon 
 function DATA.resource_get_icon(resource_id)
     return DATA.resource_icon[resource_id]
 end
@@ -10012,7 +9345,7 @@ function DATA.resource_set_icon(resource_id, value)
     DATA.resource_icon[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return string description
+---@return string description 
 function DATA.resource_get_description(resource_id)
     return DATA.resource_description[resource_id]
 end
@@ -10022,7 +9355,7 @@ function DATA.resource_set_description(resource_id, value)
     DATA.resource_description[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return number r
+---@return number r 
 function DATA.resource_get_r(resource_id)
     return DATA.resource[resource_id].r
 end
@@ -10037,7 +9370,7 @@ function DATA.resource_inc_r(resource_id, value)
     DATA.resource[resource_id].r = DATA.resource[resource_id].r + value
 end
 ---@param resource_id resource_id valid resource id
----@return number g
+---@return number g 
 function DATA.resource_get_g(resource_id)
     return DATA.resource[resource_id].g
 end
@@ -10052,7 +9385,7 @@ function DATA.resource_inc_g(resource_id, value)
     DATA.resource[resource_id].g = DATA.resource[resource_id].g + value
 end
 ---@param resource_id resource_id valid resource id
----@return number b
+---@return number b 
 function DATA.resource_get_b(resource_id)
     return DATA.resource[resource_id].b
 end
@@ -10068,7 +9401,7 @@ function DATA.resource_inc_b(resource_id, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.resource_get_required_biome(resource_id, index)
     return DATA.resource[resource_id].required_biome[index]
 end
@@ -10080,7 +9413,7 @@ function DATA.resource_set_required_biome(resource_id, index, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
----@return bedrock_id required_bedrock
+---@return bedrock_id required_bedrock 
 function DATA.resource_get_required_bedrock(resource_id, index)
     return DATA.resource[resource_id].required_bedrock[index]
 end
@@ -10106,7 +9439,7 @@ function DATA.resource_inc_base_frequency(resource_id, value)
     DATA.resource[resource_id].base_frequency = DATA.resource[resource_id].base_frequency + value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean coastal
+---@return boolean coastal 
 function DATA.resource_get_coastal(resource_id)
     return DATA.resource_coastal[resource_id]
 end
@@ -10116,7 +9449,7 @@ function DATA.resource_set_coastal(resource_id, value)
     DATA.resource_coastal[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean land
+---@return boolean land 
 function DATA.resource_get_land(resource_id)
     return DATA.resource_land[resource_id]
 end
@@ -10126,7 +9459,7 @@ function DATA.resource_set_land(resource_id, value)
     DATA.resource_land[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean water
+---@return boolean water 
 function DATA.resource_get_water(resource_id)
     return DATA.resource_water[resource_id]
 end
@@ -10146,7 +9479,7 @@ function DATA.resource_set_ice_age(resource_id, value)
     DATA.resource_ice_age[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return number minimum_trees
+---@return number minimum_trees 
 function DATA.resource_get_minimum_trees(resource_id)
     return DATA.resource[resource_id].minimum_trees
 end
@@ -10161,7 +9494,7 @@ function DATA.resource_inc_minimum_trees(resource_id, value)
     DATA.resource[resource_id].minimum_trees = DATA.resource[resource_id].minimum_trees + value
 end
 ---@param resource_id resource_id valid resource id
----@return number maximum_trees
+---@return number maximum_trees 
 function DATA.resource_get_maximum_trees(resource_id)
     return DATA.resource[resource_id].maximum_trees
 end
@@ -10176,7 +9509,7 @@ function DATA.resource_inc_maximum_trees(resource_id, value)
     DATA.resource[resource_id].maximum_trees = DATA.resource[resource_id].maximum_trees + value
 end
 ---@param resource_id resource_id valid resource id
----@return number minimum_elevation
+---@return number minimum_elevation 
 function DATA.resource_get_minimum_elevation(resource_id)
     return DATA.resource[resource_id].minimum_elevation
 end
@@ -10191,7 +9524,7 @@ function DATA.resource_inc_minimum_elevation(resource_id, value)
     DATA.resource[resource_id].minimum_elevation = DATA.resource[resource_id].minimum_elevation + value
 end
 ---@param resource_id resource_id valid resource id
----@return number maximum_elevation
+---@return number maximum_elevation 
 function DATA.resource_get_maximum_elevation(resource_id)
     return DATA.resource[resource_id].maximum_elevation
 end
@@ -10306,64 +9639,63 @@ end
 
 ---@class fat_unit_type_id
 ---@field id unit_type_id Unique unit_type id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field base_price number
----@field upkeep number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number 
+---@field upkeep number 
 ---@field supply_used number how much food does this unit consume each month
----@field base_health number
----@field base_attack number
----@field base_armor number
----@field speed number
+---@field base_health number 
+---@field base_attack number 
+---@field base_armor number 
+---@field speed number 
 ---@field foraging number how much food does this unit forage from the local province?
 ---@field supply_capacity number how much food can this unit carry
----@field unlocked_by Technology?
----@field spotting number
----@field visibility number
+---@field spotting number 
+---@field visibility number 
 
 ---@class struct_unit_type
----@field r number
----@field g number
----@field b number
----@field base_price number
----@field upkeep number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number 
+---@field upkeep number 
 ---@field supply_used number how much food does this unit consume each month
----@field trade_good_requirements table<number, struct_trade_good_container>
----@field base_health number
----@field base_attack number
----@field base_armor number
----@field speed number
+---@field trade_good_requirements table<number, struct_trade_good_container> 
+---@field base_health number 
+---@field base_attack number 
+---@field base_armor number 
+---@field speed number 
 ---@field foraging number how much food does this unit forage from the local province?
----@field bonuses table<unit_type_id, number>
+---@field bonuses table<unit_type_id, number> 
 ---@field supply_capacity number how much food can this unit carry
----@field spotting number
----@field visibility number
+---@field spotting number 
+---@field visibility number 
 
 ---@class (exact) unit_type_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field base_price number?
----@field upkeep number?
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number? 
+---@field upkeep number? 
 ---@field supply_used number? how much food does this unit consume each month
----@field trade_good_requirements struct_trade_good_container[]
----@field base_health number?
----@field base_attack number?
----@field base_armor number?
----@field speed number?
+---@field trade_good_requirements struct_trade_good_container[] 
+---@field base_health number? 
+---@field base_attack number? 
+---@field base_armor number? 
+---@field speed number? 
 ---@field foraging number? how much food does this unit forage from the local province?
----@field bonuses number[]
+---@field bonuses number[] 
 ---@field supply_capacity number? how much food can this unit carry
----@field unlocked_by Technology??
----@field spotting number?
----@field visibility number?
+---@field unlocked_by technology_id 
+---@field spotting number? 
+---@field visibility number? 
 ---Sets values of unit_type for given id
 ---@param id unit_type_id
 ---@param data unit_type_id_data_blob_definition
@@ -10384,7 +9716,7 @@ function DATA.setup_unit_type(id, data)
         DATA.unit_type_set_supply_used(id, data.supply_used)
     end
     for i, value in ipairs(data.trade_good_requirements) do
-        DATA.unit_type_set_trade_good_requirements(id, value, i - 1)
+        DATA.unit_type_set_trade_good_requirements(id, i - 1, value)
     end
     if data.base_health ~= nil then
         DATA.unit_type_set_base_health(id, data.base_health)
@@ -10402,13 +9734,10 @@ function DATA.setup_unit_type(id, data)
         DATA.unit_type_set_foraging(id, data.foraging)
     end
     for i, value in ipairs(data.bonuses) do
-        DATA.unit_type_set_bonuses(id, value, i - 1)
+        DATA.unit_type_set_bonuses(id, i - 1, value)
     end
     if data.supply_capacity ~= nil then
         DATA.unit_type_set_supply_capacity(id, data.supply_capacity)
-    end
-    if data.unlocked_by ~= nil then
-        DATA.unit_type_set_unlocked_by(id, data.unlocked_by)
     end
     if data.spotting ~= nil then
         DATA.unit_type_set_spotting(id, data.spotting)
@@ -10446,8 +9775,6 @@ DATA.unit_type_name= {}
 DATA.unit_type_icon= {}
 ---@type (string)[]
 DATA.unit_type_description= {}
----@type (Technology?)[]
-DATA.unit_type_unlocked_by= {}
 ---@type nil
 DATA.unit_type_malloc = ffi.C.malloc(ffi.sizeof("unit_type") * 21)
 ---@type table<unit_type_id, struct_unit_type>
@@ -10459,7 +9786,7 @@ DATA.unit_type_size = 20
 ---@type table<unit_type_id, boolean>
 local unit_type_indices_pool = ffi.new("bool[?]", 20)
 for i = 1, 19 do
-    unit_type_indices_pool[i] = true
+    unit_type_indices_pool[i] = true 
 end
 ---@type table<unit_type_id, unit_type_id>
 DATA.unit_type_indices_set = {}
@@ -10477,7 +9804,6 @@ function DATA.create_unit_type()
             DATA.unit_type_set_speed(i, 1)
             DATA.unit_type_set_foraging(i, 0.1)
             DATA.unit_type_set_supply_capacity(i, 5)
-            DATA.unit_type_set_unlocked_by(i, nil)
             DATA.unit_type_set_spotting(i, 1)
             DATA.unit_type_set_visibility(i, 1)
             return i
@@ -10486,10 +9812,14 @@ function DATA.create_unit_type()
     error("Run out of space for unit_type")
 end
 function DATA.delete_unit_type(i)
+    do
+        local to_delete = DATA.get_technology_unit_from_unlocked(i)
+        DATA.delete_technology_unit(to_delete)
+    end
     unit_type_indices_pool[i] = true
     DATA.unit_type_indices_set[i] = nil
 end
----@param func fun(item: unit_type_id)
+---@param func fun(item: unit_type_id) 
 function DATA.for_each_unit_type(func)
     for _, item in pairs(DATA.unit_type_indices_set) do
         func(item)
@@ -10497,7 +9827,7 @@ function DATA.for_each_unit_type(func)
 end
 
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string name
+---@return string name 
 function DATA.unit_type_get_name(unit_type_id)
     return DATA.unit_type_name[unit_type_id]
 end
@@ -10507,7 +9837,7 @@ function DATA.unit_type_set_name(unit_type_id, value)
     DATA.unit_type_name[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string icon
+---@return string icon 
 function DATA.unit_type_get_icon(unit_type_id)
     return DATA.unit_type_icon[unit_type_id]
 end
@@ -10517,7 +9847,7 @@ function DATA.unit_type_set_icon(unit_type_id, value)
     DATA.unit_type_icon[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string description
+---@return string description 
 function DATA.unit_type_get_description(unit_type_id)
     return DATA.unit_type_description[unit_type_id]
 end
@@ -10527,7 +9857,7 @@ function DATA.unit_type_set_description(unit_type_id, value)
     DATA.unit_type_description[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number r
+---@return number r 
 function DATA.unit_type_get_r(unit_type_id)
     return DATA.unit_type[unit_type_id].r
 end
@@ -10542,7 +9872,7 @@ function DATA.unit_type_inc_r(unit_type_id, value)
     DATA.unit_type[unit_type_id].r = DATA.unit_type[unit_type_id].r + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number g
+---@return number g 
 function DATA.unit_type_get_g(unit_type_id)
     return DATA.unit_type[unit_type_id].g
 end
@@ -10557,7 +9887,7 @@ function DATA.unit_type_inc_g(unit_type_id, value)
     DATA.unit_type[unit_type_id].g = DATA.unit_type[unit_type_id].g + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number b
+---@return number b 
 function DATA.unit_type_get_b(unit_type_id)
     return DATA.unit_type[unit_type_id].b
 end
@@ -10572,7 +9902,7 @@ function DATA.unit_type_inc_b(unit_type_id, value)
     DATA.unit_type[unit_type_id].b = DATA.unit_type[unit_type_id].b + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_price
+---@return number base_price 
 function DATA.unit_type_get_base_price(unit_type_id)
     return DATA.unit_type[unit_type_id].base_price
 end
@@ -10587,7 +9917,7 @@ function DATA.unit_type_inc_base_price(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_price = DATA.unit_type[unit_type_id].base_price + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number upkeep
+---@return number upkeep 
 function DATA.unit_type_get_upkeep(unit_type_id)
     return DATA.unit_type[unit_type_id].upkeep
 end
@@ -10618,13 +9948,13 @@ function DATA.unit_type_inc_supply_used(unit_type_id, value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
----@return trade_good_id trade_good_requirements
+---@return trade_good_id trade_good_requirements 
 function DATA.unit_type_get_trade_good_requirements_good(unit_type_id, index)
     return DATA.unit_type[unit_type_id].trade_good_requirements[index].good
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
----@return number trade_good_requirements
+---@return number trade_good_requirements 
 function DATA.unit_type_get_trade_good_requirements_amount(unit_type_id, index)
     return DATA.unit_type[unit_type_id].trade_good_requirements[index].amount
 end
@@ -10647,7 +9977,7 @@ function DATA.unit_type_inc_trade_good_requirements_amount(unit_type_id, index, 
     DATA.unit_type[unit_type_id].trade_good_requirements[index].amount = DATA.unit_type[unit_type_id].trade_good_requirements[index].amount + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_health
+---@return number base_health 
 function DATA.unit_type_get_base_health(unit_type_id)
     return DATA.unit_type[unit_type_id].base_health
 end
@@ -10662,7 +9992,7 @@ function DATA.unit_type_inc_base_health(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_health = DATA.unit_type[unit_type_id].base_health + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_attack
+---@return number base_attack 
 function DATA.unit_type_get_base_attack(unit_type_id)
     return DATA.unit_type[unit_type_id].base_attack
 end
@@ -10677,7 +10007,7 @@ function DATA.unit_type_inc_base_attack(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_attack = DATA.unit_type[unit_type_id].base_attack + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_armor
+---@return number base_armor 
 function DATA.unit_type_get_base_armor(unit_type_id)
     return DATA.unit_type[unit_type_id].base_armor
 end
@@ -10692,7 +10022,7 @@ function DATA.unit_type_inc_base_armor(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_armor = DATA.unit_type[unit_type_id].base_armor + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number speed
+---@return number speed 
 function DATA.unit_type_get_speed(unit_type_id)
     return DATA.unit_type[unit_type_id].speed
 end
@@ -10723,7 +10053,7 @@ function DATA.unit_type_inc_foraging(unit_type_id, value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index unit_type_id valid
----@return number bonuses
+---@return number bonuses 
 function DATA.unit_type_get_bonuses(unit_type_id, index)
     return DATA.unit_type[unit_type_id].bonuses[index]
 end
@@ -10755,17 +10085,7 @@ function DATA.unit_type_inc_supply_capacity(unit_type_id, value)
     DATA.unit_type[unit_type_id].supply_capacity = DATA.unit_type[unit_type_id].supply_capacity + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return Technology? unlocked_by
-function DATA.unit_type_get_unlocked_by(unit_type_id)
-    return DATA.unit_type_unlocked_by[unit_type_id]
-end
----@param unit_type_id unit_type_id valid unit_type id
----@param value Technology? valid Technology?
-function DATA.unit_type_set_unlocked_by(unit_type_id, value)
-    DATA.unit_type_unlocked_by[unit_type_id] = value
-end
----@param unit_type_id unit_type_id valid unit_type id
----@return number spotting
+---@return number spotting 
 function DATA.unit_type_get_spotting(unit_type_id)
     return DATA.unit_type[unit_type_id].spotting
 end
@@ -10780,7 +10100,7 @@ function DATA.unit_type_inc_spotting(unit_type_id, value)
     DATA.unit_type[unit_type_id].spotting = DATA.unit_type[unit_type_id].spotting + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number visibility
+---@return number visibility 
 function DATA.unit_type_get_visibility(unit_type_id)
     return DATA.unit_type[unit_type_id].visibility
 end
@@ -10813,7 +10133,6 @@ local fat_unit_type_id_metatable = {
         if (k == "speed") then return DATA.unit_type_get_speed(t.id) end
         if (k == "foraging") then return DATA.unit_type_get_foraging(t.id) end
         if (k == "supply_capacity") then return DATA.unit_type_get_supply_capacity(t.id) end
-        if (k == "unlocked_by") then return DATA.unit_type_get_unlocked_by(t.id) end
         if (k == "spotting") then return DATA.unit_type_get_spotting(t.id) end
         if (k == "visibility") then return DATA.unit_type_get_visibility(t.id) end
         return rawget(t, k)
@@ -10879,10 +10198,6 @@ local fat_unit_type_id_metatable = {
             DATA.unit_type_set_supply_capacity(t.id, v)
             return
         end
-        if (k == "unlocked_by") then
-            DATA.unit_type_set_unlocked_by(t.id, v)
-            return
-        end
         if (k == "spotting") then
             DATA.unit_type_set_spotting(t.id, v)
             return
@@ -10900,6 +10215,3288 @@ function DATA.fatten_unit_type(id)
     local result = {id = id}
     setmetatable(result, fat_unit_type_id_metatable)    return result
 end
+----------job----------
+
+
+---job: LSP types---
+
+---Unique identificator for job entity
+---@alias job_id number
+
+---@class fat_job_id
+---@field id job_id Unique job id
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+
+---@class struct_job
+---@field r number 
+---@field g number 
+---@field b number 
+
+---@class (exact) job_id_data_blob_definition
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---Sets values of job for given id
+---@param id job_id
+---@param data job_id_data_blob_definition
+function DATA.setup_job(id, data)
+    DATA.job_set_name(id, data.name)
+    DATA.job_set_icon(id, data.icon)
+    DATA.job_set_description(id, data.description)
+    DATA.job_set_r(id, data.r)
+    DATA.job_set_g(id, data.g)
+    DATA.job_set_b(id, data.b)
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+    } job;
+]]
+
+---job: FFI arrays---
+---@type (string)[]
+DATA.job_name= {}
+---@type (string)[]
+DATA.job_icon= {}
+---@type (string)[]
+DATA.job_description= {}
+---@type nil
+DATA.job_malloc = ffi.C.malloc(ffi.sizeof("job") * 251)
+---@type table<job_id, struct_job>
+DATA.job = ffi.cast("job*", DATA.job_malloc)
+
+---job: LUA bindings---
+
+DATA.job_size = 250
+---@type table<job_id, boolean>
+local job_indices_pool = ffi.new("bool[?]", 250)
+for i = 1, 249 do
+    job_indices_pool[i] = true 
+end
+---@type table<job_id, job_id>
+DATA.job_indices_set = {}
+function DATA.create_job()
+    for i = 1, 249 do
+        if job_indices_pool[i] then
+            job_indices_pool[i] = false
+            DATA.job_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for job")
+end
+function DATA.delete_job(i)
+    job_indices_pool[i] = true
+    DATA.job_indices_set[i] = nil
+end
+---@param func fun(item: job_id) 
+function DATA.for_each_job(func)
+    for _, item in pairs(DATA.job_indices_set) do
+        func(item)
+    end
+end
+
+---@param job_id job_id valid job id
+---@return string name 
+function DATA.job_get_name(job_id)
+    return DATA.job_name[job_id]
+end
+---@param job_id job_id valid job id
+---@param value string valid string
+function DATA.job_set_name(job_id, value)
+    DATA.job_name[job_id] = value
+end
+---@param job_id job_id valid job id
+---@return string icon 
+function DATA.job_get_icon(job_id)
+    return DATA.job_icon[job_id]
+end
+---@param job_id job_id valid job id
+---@param value string valid string
+function DATA.job_set_icon(job_id, value)
+    DATA.job_icon[job_id] = value
+end
+---@param job_id job_id valid job id
+---@return string description 
+function DATA.job_get_description(job_id)
+    return DATA.job_description[job_id]
+end
+---@param job_id job_id valid job id
+---@param value string valid string
+function DATA.job_set_description(job_id, value)
+    DATA.job_description[job_id] = value
+end
+---@param job_id job_id valid job id
+---@return number r 
+function DATA.job_get_r(job_id)
+    return DATA.job[job_id].r
+end
+---@param job_id job_id valid job id
+---@param value number valid number
+function DATA.job_set_r(job_id, value)
+    DATA.job[job_id].r = value
+end
+---@param job_id job_id valid job id
+---@param value number valid number
+function DATA.job_inc_r(job_id, value)
+    DATA.job[job_id].r = DATA.job[job_id].r + value
+end
+---@param job_id job_id valid job id
+---@return number g 
+function DATA.job_get_g(job_id)
+    return DATA.job[job_id].g
+end
+---@param job_id job_id valid job id
+---@param value number valid number
+function DATA.job_set_g(job_id, value)
+    DATA.job[job_id].g = value
+end
+---@param job_id job_id valid job id
+---@param value number valid number
+function DATA.job_inc_g(job_id, value)
+    DATA.job[job_id].g = DATA.job[job_id].g + value
+end
+---@param job_id job_id valid job id
+---@return number b 
+function DATA.job_get_b(job_id)
+    return DATA.job[job_id].b
+end
+---@param job_id job_id valid job id
+---@param value number valid number
+function DATA.job_set_b(job_id, value)
+    DATA.job[job_id].b = value
+end
+---@param job_id job_id valid job id
+---@param value number valid number
+function DATA.job_inc_b(job_id, value)
+    DATA.job[job_id].b = DATA.job[job_id].b + value
+end
+
+
+local fat_job_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.job_get_name(t.id) end
+        if (k == "icon") then return DATA.job_get_icon(t.id) end
+        if (k == "description") then return DATA.job_get_description(t.id) end
+        if (k == "r") then return DATA.job_get_r(t.id) end
+        if (k == "g") then return DATA.job_get_g(t.id) end
+        if (k == "b") then return DATA.job_get_b(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.job_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.job_set_icon(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.job_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.job_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.job_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.job_set_b(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id job_id
+---@return fat_job_id fat_id
+function DATA.fatten_job(id)
+    local result = {id = id}
+    setmetatable(result, fat_job_id_metatable)    return result
+end
+----------production_method----------
+
+
+---production_method: LSP types---
+
+---Unique identificator for production_method entity
+---@alias production_method_id number
+
+---@class fat_production_method_id
+---@field id production_method_id Unique production_method id
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
+---@field foraging boolean If true, worktime counts towards the foragers count
+---@field hydration boolean If true, worktime counts towards the foragers_water count
+---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
+---@field forest_dependence number Set to 1 if building consumes local forests
+---@field crop boolean If true, the building will periodically change its yield for a season.
+---@field temperature_ideal_min number 
+---@field temperature_ideal_max number 
+---@field temperature_extreme_min number 
+---@field temperature_extreme_max number 
+---@field rainfall_ideal_min number 
+---@field rainfall_ideal_max number 
+---@field rainfall_extreme_min number 
+---@field rainfall_extreme_max number 
+---@field clay_ideal_min number 
+---@field clay_ideal_max number 
+---@field clay_extreme_min number 
+---@field clay_extreme_max number 
+
+---@class struct_production_method
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
+---@field jobs table<number, struct_job_container> 
+---@field inputs table<number, struct_use_case_container> 
+---@field outputs table<number, struct_trade_good_container> 
+---@field foraging boolean If true, worktime counts towards the foragers count
+---@field hydration boolean If true, worktime counts towards the foragers_water count
+---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
+---@field forest_dependence number Set to 1 if building consumes local forests
+---@field crop boolean If true, the building will periodically change its yield for a season.
+---@field temperature_ideal_min number 
+---@field temperature_ideal_max number 
+---@field temperature_extreme_min number 
+---@field temperature_extreme_max number 
+---@field rainfall_ideal_min number 
+---@field rainfall_ideal_max number 
+---@field rainfall_extreme_min number 
+---@field rainfall_extreme_max number 
+---@field clay_ideal_min number 
+---@field clay_ideal_max number 
+---@field clay_extreme_min number 
+---@field clay_extreme_max number 
+
+---@class (exact) production_method_id_data_blob_definition
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
+---@field jobs struct_job_container[] 
+---@field inputs struct_use_case_container[] 
+---@field outputs struct_trade_good_container[] 
+---@field foraging boolean? If true, worktime counts towards the foragers count
+---@field hydration boolean? If true, worktime counts towards the foragers_water count
+---@field nature_yield_dependence number? How much does the local flora and fauna impact this buildings yield? Defaults to 0
+---@field forest_dependence number? Set to 1 if building consumes local forests
+---@field crop boolean? If true, the building will periodically change its yield for a season.
+---@field temperature_ideal_min number? 
+---@field temperature_ideal_max number? 
+---@field temperature_extreme_min number? 
+---@field temperature_extreme_max number? 
+---@field rainfall_ideal_min number? 
+---@field rainfall_ideal_max number? 
+---@field rainfall_extreme_min number? 
+---@field rainfall_extreme_max number? 
+---@field clay_ideal_min number? 
+---@field clay_ideal_max number? 
+---@field clay_extreme_min number? 
+---@field clay_extreme_max number? 
+---Sets values of production_method for given id
+---@param id production_method_id
+---@param data production_method_id_data_blob_definition
+function DATA.setup_production_method(id, data)
+    DATA.production_method_set_name(id, data.name)
+    DATA.production_method_set_icon(id, data.icon)
+    DATA.production_method_set_description(id, data.description)
+    DATA.production_method_set_r(id, data.r)
+    DATA.production_method_set_g(id, data.g)
+    DATA.production_method_set_b(id, data.b)
+    DATA.production_method_set_job_type(id, data.job_type)
+    for i, value in ipairs(data.jobs) do
+        DATA.production_method_set_jobs(id, i - 1, value)
+    end
+    for i, value in ipairs(data.inputs) do
+        DATA.production_method_set_inputs(id, i - 1, value)
+    end
+    for i, value in ipairs(data.outputs) do
+        DATA.production_method_set_outputs(id, i - 1, value)
+    end
+    if data.foraging ~= nil then
+        DATA.production_method_set_foraging(id, data.foraging)
+    end
+    if data.hydration ~= nil then
+        DATA.production_method_set_hydration(id, data.hydration)
+    end
+    if data.nature_yield_dependence ~= nil then
+        DATA.production_method_set_nature_yield_dependence(id, data.nature_yield_dependence)
+    end
+    if data.forest_dependence ~= nil then
+        DATA.production_method_set_forest_dependence(id, data.forest_dependence)
+    end
+    if data.crop ~= nil then
+        DATA.production_method_set_crop(id, data.crop)
+    end
+    if data.temperature_ideal_min ~= nil then
+        DATA.production_method_set_temperature_ideal_min(id, data.temperature_ideal_min)
+    end
+    if data.temperature_ideal_max ~= nil then
+        DATA.production_method_set_temperature_ideal_max(id, data.temperature_ideal_max)
+    end
+    if data.temperature_extreme_min ~= nil then
+        DATA.production_method_set_temperature_extreme_min(id, data.temperature_extreme_min)
+    end
+    if data.temperature_extreme_max ~= nil then
+        DATA.production_method_set_temperature_extreme_max(id, data.temperature_extreme_max)
+    end
+    if data.rainfall_ideal_min ~= nil then
+        DATA.production_method_set_rainfall_ideal_min(id, data.rainfall_ideal_min)
+    end
+    if data.rainfall_ideal_max ~= nil then
+        DATA.production_method_set_rainfall_ideal_max(id, data.rainfall_ideal_max)
+    end
+    if data.rainfall_extreme_min ~= nil then
+        DATA.production_method_set_rainfall_extreme_min(id, data.rainfall_extreme_min)
+    end
+    if data.rainfall_extreme_max ~= nil then
+        DATA.production_method_set_rainfall_extreme_max(id, data.rainfall_extreme_max)
+    end
+    if data.clay_ideal_min ~= nil then
+        DATA.production_method_set_clay_ideal_min(id, data.clay_ideal_min)
+    end
+    if data.clay_ideal_max ~= nil then
+        DATA.production_method_set_clay_ideal_max(id, data.clay_ideal_max)
+    end
+    if data.clay_extreme_min ~= nil then
+        DATA.production_method_set_clay_extreme_min(id, data.clay_extreme_min)
+    end
+    if data.clay_extreme_max ~= nil then
+        DATA.production_method_set_clay_extreme_max(id, data.clay_extreme_max)
+    end
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+        uint8_t job_type;
+        job_container jobs[8];
+        use_case_container inputs[8];
+        trade_good_container outputs[8];
+        bool foraging;
+        bool hydration;
+        float nature_yield_dependence;
+        float forest_dependence;
+        bool crop;
+        float temperature_ideal_min;
+        float temperature_ideal_max;
+        float temperature_extreme_min;
+        float temperature_extreme_max;
+        float rainfall_ideal_min;
+        float rainfall_ideal_max;
+        float rainfall_extreme_min;
+        float rainfall_extreme_max;
+        float clay_ideal_min;
+        float clay_ideal_max;
+        float clay_extreme_min;
+        float clay_extreme_max;
+    } production_method;
+]]
+
+---production_method: FFI arrays---
+---@type (string)[]
+DATA.production_method_name= {}
+---@type (string)[]
+DATA.production_method_icon= {}
+---@type (string)[]
+DATA.production_method_description= {}
+---@type nil
+DATA.production_method_malloc = ffi.C.malloc(ffi.sizeof("production_method") * 251)
+---@type table<production_method_id, struct_production_method>
+DATA.production_method = ffi.cast("production_method*", DATA.production_method_malloc)
+
+---production_method: LUA bindings---
+
+DATA.production_method_size = 250
+---@type table<production_method_id, boolean>
+local production_method_indices_pool = ffi.new("bool[?]", 250)
+for i = 1, 249 do
+    production_method_indices_pool[i] = true 
+end
+---@type table<production_method_id, production_method_id>
+DATA.production_method_indices_set = {}
+function DATA.create_production_method()
+    for i = 1, 249 do
+        if production_method_indices_pool[i] then
+            production_method_indices_pool[i] = false
+            DATA.production_method_indices_set[i] = i
+            DATA.production_method_set_foraging(i, false)
+            DATA.production_method_set_hydration(i, false)
+            DATA.production_method_set_nature_yield_dependence(i, 0)
+            DATA.production_method_set_forest_dependence(i, 0)
+            DATA.production_method_set_crop(i, false)
+            DATA.production_method_set_temperature_ideal_min(i, 10)
+            DATA.production_method_set_temperature_ideal_max(i, 30)
+            DATA.production_method_set_temperature_extreme_min(i, 0)
+            DATA.production_method_set_temperature_extreme_max(i, 50)
+            DATA.production_method_set_rainfall_ideal_min(i, 50)
+            DATA.production_method_set_rainfall_ideal_max(i, 100)
+            DATA.production_method_set_rainfall_extreme_min(i, 5)
+            DATA.production_method_set_rainfall_extreme_max(i, 350)
+            DATA.production_method_set_clay_ideal_min(i, 0)
+            DATA.production_method_set_clay_ideal_max(i, 1)
+            DATA.production_method_set_clay_extreme_min(i, 0)
+            DATA.production_method_set_clay_extreme_max(i, 1)
+            return i
+        end
+    end
+    error("Run out of space for production_method")
+end
+function DATA.delete_production_method(i)
+    production_method_indices_pool[i] = true
+    DATA.production_method_indices_set[i] = nil
+end
+---@param func fun(item: production_method_id) 
+function DATA.for_each_production_method(func)
+    for _, item in pairs(DATA.production_method_indices_set) do
+        func(item)
+    end
+end
+
+---@param production_method_id production_method_id valid production_method id
+---@return string name 
+function DATA.production_method_get_name(production_method_id)
+    return DATA.production_method_name[production_method_id]
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value string valid string
+function DATA.production_method_set_name(production_method_id, value)
+    DATA.production_method_name[production_method_id] = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return string icon 
+function DATA.production_method_get_icon(production_method_id)
+    return DATA.production_method_icon[production_method_id]
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value string valid string
+function DATA.production_method_set_icon(production_method_id, value)
+    DATA.production_method_icon[production_method_id] = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return string description 
+function DATA.production_method_get_description(production_method_id)
+    return DATA.production_method_description[production_method_id]
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value string valid string
+function DATA.production_method_set_description(production_method_id, value)
+    DATA.production_method_description[production_method_id] = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number r 
+function DATA.production_method_get_r(production_method_id)
+    return DATA.production_method[production_method_id].r
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_r(production_method_id, value)
+    DATA.production_method[production_method_id].r = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_r(production_method_id, value)
+    DATA.production_method[production_method_id].r = DATA.production_method[production_method_id].r + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number g 
+function DATA.production_method_get_g(production_method_id)
+    return DATA.production_method[production_method_id].g
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_g(production_method_id, value)
+    DATA.production_method[production_method_id].g = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_g(production_method_id, value)
+    DATA.production_method[production_method_id].g = DATA.production_method[production_method_id].g + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number b 
+function DATA.production_method_get_b(production_method_id)
+    return DATA.production_method[production_method_id].b
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_b(production_method_id, value)
+    DATA.production_method[production_method_id].b = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_b(production_method_id, value)
+    DATA.production_method[production_method_id].b = DATA.production_method[production_method_id].b + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return JOBTYPE job_type 
+function DATA.production_method_get_job_type(production_method_id)
+    return DATA.production_method[production_method_id].job_type
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value JOBTYPE valid JOBTYPE
+function DATA.production_method_set_job_type(production_method_id, value)
+    DATA.production_method[production_method_id].job_type = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid
+---@return job_id jobs 
+function DATA.production_method_get_jobs_job(production_method_id, index)
+    return DATA.production_method[production_method_id].jobs[index].job
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid
+---@return number jobs 
+function DATA.production_method_get_jobs_amount(production_method_id, index)
+    return DATA.production_method[production_method_id].jobs[index].amount
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value job_id valid job_id
+function DATA.production_method_set_jobs_job(production_method_id, index, value)
+    DATA.production_method[production_method_id].jobs[index].job = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value number valid number
+function DATA.production_method_set_jobs_amount(production_method_id, index, value)
+    DATA.production_method[production_method_id].jobs[index].amount = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value number valid number
+function DATA.production_method_inc_jobs_amount(production_method_id, index, value)
+    DATA.production_method[production_method_id].jobs[index].amount = DATA.production_method[production_method_id].jobs[index].amount + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid
+---@return use_case_id inputs 
+function DATA.production_method_get_inputs_use(production_method_id, index)
+    return DATA.production_method[production_method_id].inputs[index].use
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid
+---@return number inputs 
+function DATA.production_method_get_inputs_amount(production_method_id, index)
+    return DATA.production_method[production_method_id].inputs[index].amount
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value use_case_id valid use_case_id
+function DATA.production_method_set_inputs_use(production_method_id, index, value)
+    DATA.production_method[production_method_id].inputs[index].use = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value number valid number
+function DATA.production_method_set_inputs_amount(production_method_id, index, value)
+    DATA.production_method[production_method_id].inputs[index].amount = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value number valid number
+function DATA.production_method_inc_inputs_amount(production_method_id, index, value)
+    DATA.production_method[production_method_id].inputs[index].amount = DATA.production_method[production_method_id].inputs[index].amount + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid
+---@return trade_good_id outputs 
+function DATA.production_method_get_outputs_good(production_method_id, index)
+    return DATA.production_method[production_method_id].outputs[index].good
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid
+---@return number outputs 
+function DATA.production_method_get_outputs_amount(production_method_id, index)
+    return DATA.production_method[production_method_id].outputs[index].amount
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value trade_good_id valid trade_good_id
+function DATA.production_method_set_outputs_good(production_method_id, index, value)
+    DATA.production_method[production_method_id].outputs[index].good = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value number valid number
+function DATA.production_method_set_outputs_amount(production_method_id, index, value)
+    DATA.production_method[production_method_id].outputs[index].amount = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param index number valid index
+---@param value number valid number
+function DATA.production_method_inc_outputs_amount(production_method_id, index, value)
+    DATA.production_method[production_method_id].outputs[index].amount = DATA.production_method[production_method_id].outputs[index].amount + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return boolean foraging If true, worktime counts towards the foragers count
+function DATA.production_method_get_foraging(production_method_id)
+    return DATA.production_method[production_method_id].foraging
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value boolean valid boolean
+function DATA.production_method_set_foraging(production_method_id, value)
+    DATA.production_method[production_method_id].foraging = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return boolean hydration If true, worktime counts towards the foragers_water count
+function DATA.production_method_get_hydration(production_method_id)
+    return DATA.production_method[production_method_id].hydration
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value boolean valid boolean
+function DATA.production_method_set_hydration(production_method_id, value)
+    DATA.production_method[production_method_id].hydration = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number nature_yield_dependence How much does the local flora and fauna impact this buildings yield? Defaults to 0
+function DATA.production_method_get_nature_yield_dependence(production_method_id)
+    return DATA.production_method[production_method_id].nature_yield_dependence
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_nature_yield_dependence(production_method_id, value)
+    DATA.production_method[production_method_id].nature_yield_dependence = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_nature_yield_dependence(production_method_id, value)
+    DATA.production_method[production_method_id].nature_yield_dependence = DATA.production_method[production_method_id].nature_yield_dependence + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number forest_dependence Set to 1 if building consumes local forests
+function DATA.production_method_get_forest_dependence(production_method_id)
+    return DATA.production_method[production_method_id].forest_dependence
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_forest_dependence(production_method_id, value)
+    DATA.production_method[production_method_id].forest_dependence = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_forest_dependence(production_method_id, value)
+    DATA.production_method[production_method_id].forest_dependence = DATA.production_method[production_method_id].forest_dependence + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return boolean crop If true, the building will periodically change its yield for a season.
+function DATA.production_method_get_crop(production_method_id)
+    return DATA.production_method[production_method_id].crop
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value boolean valid boolean
+function DATA.production_method_set_crop(production_method_id, value)
+    DATA.production_method[production_method_id].crop = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number temperature_ideal_min 
+function DATA.production_method_get_temperature_ideal_min(production_method_id)
+    return DATA.production_method[production_method_id].temperature_ideal_min
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_temperature_ideal_min(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_ideal_min = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_temperature_ideal_min(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_ideal_min = DATA.production_method[production_method_id].temperature_ideal_min + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number temperature_ideal_max 
+function DATA.production_method_get_temperature_ideal_max(production_method_id)
+    return DATA.production_method[production_method_id].temperature_ideal_max
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_temperature_ideal_max(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_ideal_max = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_temperature_ideal_max(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_ideal_max = DATA.production_method[production_method_id].temperature_ideal_max + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number temperature_extreme_min 
+function DATA.production_method_get_temperature_extreme_min(production_method_id)
+    return DATA.production_method[production_method_id].temperature_extreme_min
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_temperature_extreme_min(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_extreme_min = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_temperature_extreme_min(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_extreme_min = DATA.production_method[production_method_id].temperature_extreme_min + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number temperature_extreme_max 
+function DATA.production_method_get_temperature_extreme_max(production_method_id)
+    return DATA.production_method[production_method_id].temperature_extreme_max
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_temperature_extreme_max(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_extreme_max = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_temperature_extreme_max(production_method_id, value)
+    DATA.production_method[production_method_id].temperature_extreme_max = DATA.production_method[production_method_id].temperature_extreme_max + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number rainfall_ideal_min 
+function DATA.production_method_get_rainfall_ideal_min(production_method_id)
+    return DATA.production_method[production_method_id].rainfall_ideal_min
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_rainfall_ideal_min(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_ideal_min = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_rainfall_ideal_min(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_ideal_min = DATA.production_method[production_method_id].rainfall_ideal_min + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number rainfall_ideal_max 
+function DATA.production_method_get_rainfall_ideal_max(production_method_id)
+    return DATA.production_method[production_method_id].rainfall_ideal_max
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_rainfall_ideal_max(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_ideal_max = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_rainfall_ideal_max(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_ideal_max = DATA.production_method[production_method_id].rainfall_ideal_max + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number rainfall_extreme_min 
+function DATA.production_method_get_rainfall_extreme_min(production_method_id)
+    return DATA.production_method[production_method_id].rainfall_extreme_min
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_rainfall_extreme_min(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_extreme_min = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_rainfall_extreme_min(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_extreme_min = DATA.production_method[production_method_id].rainfall_extreme_min + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number rainfall_extreme_max 
+function DATA.production_method_get_rainfall_extreme_max(production_method_id)
+    return DATA.production_method[production_method_id].rainfall_extreme_max
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_rainfall_extreme_max(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_extreme_max = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_rainfall_extreme_max(production_method_id, value)
+    DATA.production_method[production_method_id].rainfall_extreme_max = DATA.production_method[production_method_id].rainfall_extreme_max + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number clay_ideal_min 
+function DATA.production_method_get_clay_ideal_min(production_method_id)
+    return DATA.production_method[production_method_id].clay_ideal_min
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_clay_ideal_min(production_method_id, value)
+    DATA.production_method[production_method_id].clay_ideal_min = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_clay_ideal_min(production_method_id, value)
+    DATA.production_method[production_method_id].clay_ideal_min = DATA.production_method[production_method_id].clay_ideal_min + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number clay_ideal_max 
+function DATA.production_method_get_clay_ideal_max(production_method_id)
+    return DATA.production_method[production_method_id].clay_ideal_max
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_clay_ideal_max(production_method_id, value)
+    DATA.production_method[production_method_id].clay_ideal_max = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_clay_ideal_max(production_method_id, value)
+    DATA.production_method[production_method_id].clay_ideal_max = DATA.production_method[production_method_id].clay_ideal_max + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number clay_extreme_min 
+function DATA.production_method_get_clay_extreme_min(production_method_id)
+    return DATA.production_method[production_method_id].clay_extreme_min
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_clay_extreme_min(production_method_id, value)
+    DATA.production_method[production_method_id].clay_extreme_min = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_clay_extreme_min(production_method_id, value)
+    DATA.production_method[production_method_id].clay_extreme_min = DATA.production_method[production_method_id].clay_extreme_min + value
+end
+---@param production_method_id production_method_id valid production_method id
+---@return number clay_extreme_max 
+function DATA.production_method_get_clay_extreme_max(production_method_id)
+    return DATA.production_method[production_method_id].clay_extreme_max
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_set_clay_extreme_max(production_method_id, value)
+    DATA.production_method[production_method_id].clay_extreme_max = value
+end
+---@param production_method_id production_method_id valid production_method id
+---@param value number valid number
+function DATA.production_method_inc_clay_extreme_max(production_method_id, value)
+    DATA.production_method[production_method_id].clay_extreme_max = DATA.production_method[production_method_id].clay_extreme_max + value
+end
+
+
+local fat_production_method_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.production_method_get_name(t.id) end
+        if (k == "icon") then return DATA.production_method_get_icon(t.id) end
+        if (k == "description") then return DATA.production_method_get_description(t.id) end
+        if (k == "r") then return DATA.production_method_get_r(t.id) end
+        if (k == "g") then return DATA.production_method_get_g(t.id) end
+        if (k == "b") then return DATA.production_method_get_b(t.id) end
+        if (k == "job_type") then return DATA.production_method_get_job_type(t.id) end
+        if (k == "foraging") then return DATA.production_method_get_foraging(t.id) end
+        if (k == "hydration") then return DATA.production_method_get_hydration(t.id) end
+        if (k == "nature_yield_dependence") then return DATA.production_method_get_nature_yield_dependence(t.id) end
+        if (k == "forest_dependence") then return DATA.production_method_get_forest_dependence(t.id) end
+        if (k == "crop") then return DATA.production_method_get_crop(t.id) end
+        if (k == "temperature_ideal_min") then return DATA.production_method_get_temperature_ideal_min(t.id) end
+        if (k == "temperature_ideal_max") then return DATA.production_method_get_temperature_ideal_max(t.id) end
+        if (k == "temperature_extreme_min") then return DATA.production_method_get_temperature_extreme_min(t.id) end
+        if (k == "temperature_extreme_max") then return DATA.production_method_get_temperature_extreme_max(t.id) end
+        if (k == "rainfall_ideal_min") then return DATA.production_method_get_rainfall_ideal_min(t.id) end
+        if (k == "rainfall_ideal_max") then return DATA.production_method_get_rainfall_ideal_max(t.id) end
+        if (k == "rainfall_extreme_min") then return DATA.production_method_get_rainfall_extreme_min(t.id) end
+        if (k == "rainfall_extreme_max") then return DATA.production_method_get_rainfall_extreme_max(t.id) end
+        if (k == "clay_ideal_min") then return DATA.production_method_get_clay_ideal_min(t.id) end
+        if (k == "clay_ideal_max") then return DATA.production_method_get_clay_ideal_max(t.id) end
+        if (k == "clay_extreme_min") then return DATA.production_method_get_clay_extreme_min(t.id) end
+        if (k == "clay_extreme_max") then return DATA.production_method_get_clay_extreme_max(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.production_method_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.production_method_set_icon(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.production_method_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.production_method_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.production_method_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.production_method_set_b(t.id, v)
+            return
+        end
+        if (k == "job_type") then
+            DATA.production_method_set_job_type(t.id, v)
+            return
+        end
+        if (k == "foraging") then
+            DATA.production_method_set_foraging(t.id, v)
+            return
+        end
+        if (k == "hydration") then
+            DATA.production_method_set_hydration(t.id, v)
+            return
+        end
+        if (k == "nature_yield_dependence") then
+            DATA.production_method_set_nature_yield_dependence(t.id, v)
+            return
+        end
+        if (k == "forest_dependence") then
+            DATA.production_method_set_forest_dependence(t.id, v)
+            return
+        end
+        if (k == "crop") then
+            DATA.production_method_set_crop(t.id, v)
+            return
+        end
+        if (k == "temperature_ideal_min") then
+            DATA.production_method_set_temperature_ideal_min(t.id, v)
+            return
+        end
+        if (k == "temperature_ideal_max") then
+            DATA.production_method_set_temperature_ideal_max(t.id, v)
+            return
+        end
+        if (k == "temperature_extreme_min") then
+            DATA.production_method_set_temperature_extreme_min(t.id, v)
+            return
+        end
+        if (k == "temperature_extreme_max") then
+            DATA.production_method_set_temperature_extreme_max(t.id, v)
+            return
+        end
+        if (k == "rainfall_ideal_min") then
+            DATA.production_method_set_rainfall_ideal_min(t.id, v)
+            return
+        end
+        if (k == "rainfall_ideal_max") then
+            DATA.production_method_set_rainfall_ideal_max(t.id, v)
+            return
+        end
+        if (k == "rainfall_extreme_min") then
+            DATA.production_method_set_rainfall_extreme_min(t.id, v)
+            return
+        end
+        if (k == "rainfall_extreme_max") then
+            DATA.production_method_set_rainfall_extreme_max(t.id, v)
+            return
+        end
+        if (k == "clay_ideal_min") then
+            DATA.production_method_set_clay_ideal_min(t.id, v)
+            return
+        end
+        if (k == "clay_ideal_max") then
+            DATA.production_method_set_clay_ideal_max(t.id, v)
+            return
+        end
+        if (k == "clay_extreme_min") then
+            DATA.production_method_set_clay_extreme_min(t.id, v)
+            return
+        end
+        if (k == "clay_extreme_max") then
+            DATA.production_method_set_clay_extreme_max(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id production_method_id
+---@return fat_production_method_id fat_id
+function DATA.fatten_production_method(id)
+    local result = {id = id}
+    setmetatable(result, fat_production_method_id_metatable)    return result
+end
+----------technology----------
+
+
+---technology: LSP types---
+
+---Unique identificator for technology entity
+---@alias technology_id number
+
+---@class fat_technology_id
+---@field id technology_id Unique technology id
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
+---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
+
+---@class struct_technology
+---@field r number 
+---@field g number 
+---@field b number 
+---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
+---@field required_biome table<number, biome_id> 
+---@field required_resource table<number, resource_id> 
+---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
+
+---@class (exact) technology_id_data_blob_definition
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
+---@field required_biome biome_id[] 
+---@field required_race race_id[] 
+---@field required_resource resource_id[] 
+---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
+---@field throughput_boosts number[] 
+---@field input_efficiency_boosts number[] 
+---@field output_efficiency_boosts number[] 
+---Sets values of technology for given id
+---@param id technology_id
+---@param data technology_id_data_blob_definition
+function DATA.setup_technology(id, data)
+    DATA.technology_set_name(id, data.name)
+    DATA.technology_set_icon(id, data.icon)
+    DATA.technology_set_description(id, data.description)
+    DATA.technology_set_r(id, data.r)
+    DATA.technology_set_g(id, data.g)
+    DATA.technology_set_b(id, data.b)
+    DATA.technology_set_research_cost(id, data.research_cost)
+    for i, value in ipairs(data.required_biome) do
+        DATA.technology_set_required_biome(id, i - 1, value)
+    end
+    for i, value in ipairs(data.required_race) do
+        DATA.technology_set_required_race(id, i - 1, value)
+    end
+    for i, value in ipairs(data.required_resource) do
+        DATA.technology_set_required_resource(id, i - 1, value)
+    end
+    DATA.technology_set_associated_job(id, data.associated_job)
+    for i, value in ipairs(data.throughput_boosts) do
+        DATA.technology_set_throughput_boosts(id, i - 1, value)
+    end
+    for i, value in ipairs(data.input_efficiency_boosts) do
+        DATA.technology_set_input_efficiency_boosts(id, i - 1, value)
+    end
+    for i, value in ipairs(data.output_efficiency_boosts) do
+        DATA.technology_set_output_efficiency_boosts(id, i - 1, value)
+    end
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+        float research_cost;
+        uint32_t required_biome[20];
+        uint32_t required_resource[20];
+        uint32_t associated_job;
+        float throughput_boosts[250];
+        float input_efficiency_boosts[250];
+        float output_efficiency_boosts[250];
+    } technology;
+]]
+
+---technology: FFI arrays---
+---@type (string)[]
+DATA.technology_name= {}
+---@type (string)[]
+DATA.technology_icon= {}
+---@type (string)[]
+DATA.technology_description= {}
+---@type (table<number, race_id>)[]
+DATA.technology_required_race= {}
+---@type nil
+DATA.technology_malloc = ffi.C.malloc(ffi.sizeof("technology") * 401)
+---@type table<technology_id, struct_technology>
+DATA.technology = ffi.cast("technology*", DATA.technology_malloc)
+
+---technology: LUA bindings---
+
+DATA.technology_size = 400
+---@type table<technology_id, boolean>
+local technology_indices_pool = ffi.new("bool[?]", 400)
+for i = 1, 399 do
+    technology_indices_pool[i] = true 
+end
+---@type table<technology_id, technology_id>
+DATA.technology_indices_set = {}
+function DATA.create_technology()
+    for i = 1, 399 do
+        if technology_indices_pool[i] then
+            technology_indices_pool[i] = false
+            DATA.technology_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for technology")
+end
+function DATA.delete_technology(i)
+    do
+        ---@type technology_unlock_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_technology_unlock_from_origin(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_technology_unlock(value)
+        end
+    end
+    do
+        ---@type technology_unlock_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_technology_unlock_from_unlocked(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_technology_unlock(value)
+        end
+    end
+    do
+        ---@type technology_building_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_technology_building_from_technology(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_technology_building(value)
+        end
+    end
+    do
+        ---@type technology_unit_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_technology_unit_from_technology(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_technology_unit(value)
+        end
+    end
+    technology_indices_pool[i] = true
+    DATA.technology_indices_set[i] = nil
+end
+---@param func fun(item: technology_id) 
+function DATA.for_each_technology(func)
+    for _, item in pairs(DATA.technology_indices_set) do
+        func(item)
+    end
+end
+
+---@param technology_id technology_id valid technology id
+---@return string name 
+function DATA.technology_get_name(technology_id)
+    return DATA.technology_name[technology_id]
+end
+---@param technology_id technology_id valid technology id
+---@param value string valid string
+function DATA.technology_set_name(technology_id, value)
+    DATA.technology_name[technology_id] = value
+end
+---@param technology_id technology_id valid technology id
+---@return string icon 
+function DATA.technology_get_icon(technology_id)
+    return DATA.technology_icon[technology_id]
+end
+---@param technology_id technology_id valid technology id
+---@param value string valid string
+function DATA.technology_set_icon(technology_id, value)
+    DATA.technology_icon[technology_id] = value
+end
+---@param technology_id technology_id valid technology id
+---@return string description 
+function DATA.technology_get_description(technology_id)
+    return DATA.technology_description[technology_id]
+end
+---@param technology_id technology_id valid technology id
+---@param value string valid string
+function DATA.technology_set_description(technology_id, value)
+    DATA.technology_description[technology_id] = value
+end
+---@param technology_id technology_id valid technology id
+---@return number r 
+function DATA.technology_get_r(technology_id)
+    return DATA.technology[technology_id].r
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_set_r(technology_id, value)
+    DATA.technology[technology_id].r = value
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_inc_r(technology_id, value)
+    DATA.technology[technology_id].r = DATA.technology[technology_id].r + value
+end
+---@param technology_id technology_id valid technology id
+---@return number g 
+function DATA.technology_get_g(technology_id)
+    return DATA.technology[technology_id].g
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_set_g(technology_id, value)
+    DATA.technology[technology_id].g = value
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_inc_g(technology_id, value)
+    DATA.technology[technology_id].g = DATA.technology[technology_id].g + value
+end
+---@param technology_id technology_id valid technology id
+---@return number b 
+function DATA.technology_get_b(technology_id)
+    return DATA.technology[technology_id].b
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_set_b(technology_id, value)
+    DATA.technology[technology_id].b = value
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_inc_b(technology_id, value)
+    DATA.technology[technology_id].b = DATA.technology[technology_id].b + value
+end
+---@param technology_id technology_id valid technology id
+---@return number research_cost Amount of research points (education_endowment) per pop needed for the technology
+function DATA.technology_get_research_cost(technology_id)
+    return DATA.technology[technology_id].research_cost
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_set_research_cost(technology_id, value)
+    DATA.technology[technology_id].research_cost = value
+end
+---@param technology_id technology_id valid technology id
+---@param value number valid number
+function DATA.technology_inc_research_cost(technology_id, value)
+    DATA.technology[technology_id].research_cost = DATA.technology[technology_id].research_cost + value
+end
+---@param technology_id technology_id valid technology id
+---@param index number valid
+---@return biome_id required_biome 
+function DATA.technology_get_required_biome(technology_id, index)
+    return DATA.technology[technology_id].required_biome[index]
+end
+---@param technology_id technology_id valid technology id
+---@param index number valid index
+---@param value biome_id valid biome_id
+function DATA.technology_set_required_biome(technology_id, index, value)
+    DATA.technology[technology_id].required_biome[index] = value
+end
+---@param technology_id technology_id valid technology id
+---@param index number valid
+---@return race_id required_race 
+function DATA.technology_get_required_race(technology_id, index)
+    return DATA.technology_required_race[technology_id][index]
+end
+---@param technology_id technology_id valid technology id
+---@param index number valid index
+---@param value race_id valid race_id
+function DATA.technology_set_required_race(technology_id, index, value)
+    DATA.technology_required_race[technology_id][index] = value
+end
+---@param technology_id technology_id valid technology id
+---@param index number valid
+---@return resource_id required_resource 
+function DATA.technology_get_required_resource(technology_id, index)
+    return DATA.technology[technology_id].required_resource[index]
+end
+---@param technology_id technology_id valid technology id
+---@param index number valid index
+---@param value resource_id valid resource_id
+function DATA.technology_set_required_resource(technology_id, index, value)
+    DATA.technology[technology_id].required_resource[index] = value
+end
+---@param technology_id technology_id valid technology id
+---@return job_id associated_job The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
+function DATA.technology_get_associated_job(technology_id)
+    return DATA.technology[technology_id].associated_job
+end
+---@param technology_id technology_id valid technology id
+---@param value job_id valid job_id
+function DATA.technology_set_associated_job(technology_id, value)
+    DATA.technology[technology_id].associated_job = value
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid
+---@return number throughput_boosts 
+function DATA.technology_get_throughput_boosts(technology_id, index)
+    return DATA.technology[technology_id].throughput_boosts[index]
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.technology_set_throughput_boosts(technology_id, index, value)
+    DATA.technology[technology_id].throughput_boosts[index] = value
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.technology_inc_throughput_boosts(technology_id, index, value)
+    DATA.technology[technology_id].throughput_boosts[index] = DATA.technology[technology_id].throughput_boosts[index] + value
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid
+---@return number input_efficiency_boosts 
+function DATA.technology_get_input_efficiency_boosts(technology_id, index)
+    return DATA.technology[technology_id].input_efficiency_boosts[index]
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.technology_set_input_efficiency_boosts(technology_id, index, value)
+    DATA.technology[technology_id].input_efficiency_boosts[index] = value
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.technology_inc_input_efficiency_boosts(technology_id, index, value)
+    DATA.technology[technology_id].input_efficiency_boosts[index] = DATA.technology[technology_id].input_efficiency_boosts[index] + value
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid
+---@return number output_efficiency_boosts 
+function DATA.technology_get_output_efficiency_boosts(technology_id, index)
+    return DATA.technology[technology_id].output_efficiency_boosts[index]
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.technology_set_output_efficiency_boosts(technology_id, index, value)
+    DATA.technology[technology_id].output_efficiency_boosts[index] = value
+end
+---@param technology_id technology_id valid technology id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.technology_inc_output_efficiency_boosts(technology_id, index, value)
+    DATA.technology[technology_id].output_efficiency_boosts[index] = DATA.technology[technology_id].output_efficiency_boosts[index] + value
+end
+
+
+local fat_technology_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.technology_get_name(t.id) end
+        if (k == "icon") then return DATA.technology_get_icon(t.id) end
+        if (k == "description") then return DATA.technology_get_description(t.id) end
+        if (k == "r") then return DATA.technology_get_r(t.id) end
+        if (k == "g") then return DATA.technology_get_g(t.id) end
+        if (k == "b") then return DATA.technology_get_b(t.id) end
+        if (k == "research_cost") then return DATA.technology_get_research_cost(t.id) end
+        if (k == "associated_job") then return DATA.technology_get_associated_job(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.technology_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.technology_set_icon(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.technology_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.technology_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.technology_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.technology_set_b(t.id, v)
+            return
+        end
+        if (k == "research_cost") then
+            DATA.technology_set_research_cost(t.id, v)
+            return
+        end
+        if (k == "associated_job") then
+            DATA.technology_set_associated_job(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id technology_id
+---@return fat_technology_id fat_id
+function DATA.fatten_technology(id)
+    local result = {id = id}
+    setmetatable(result, fat_technology_id_metatable)    return result
+end
+----------technology_unlock----------
+
+
+---technology_unlock: LSP types---
+
+---Unique identificator for technology_unlock entity
+---@alias technology_unlock_id number
+
+---@class fat_technology_unlock_id
+---@field id technology_unlock_id Unique technology_unlock id
+---@field origin technology_id 
+---@field unlocked technology_id 
+
+---@class struct_technology_unlock
+---@field origin technology_id 
+---@field unlocked technology_id 
+
+---@class (exact) technology_unlock_id_data_blob_definition
+---@field origin technology_id 
+---@field unlocked technology_id 
+---Sets values of technology_unlock for given id
+---@param id technology_unlock_id
+---@param data technology_unlock_id_data_blob_definition
+function DATA.setup_technology_unlock(id, data)
+end
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t origin;
+        uint32_t unlocked;
+    } technology_unlock;
+]]
+
+---technology_unlock: FFI arrays---
+---@type nil
+DATA.technology_unlock_malloc = ffi.C.malloc(ffi.sizeof("technology_unlock") * 801)
+---@type table<technology_unlock_id, struct_technology_unlock>
+DATA.technology_unlock = ffi.cast("technology_unlock*", DATA.technology_unlock_malloc)
+---@type table<technology_id, technology_unlock_id[]>>
+DATA.technology_unlock_from_origin= {}
+---@type table<technology_id, technology_unlock_id[]>>
+DATA.technology_unlock_from_unlocked= {}
+
+---technology_unlock: LUA bindings---
+
+DATA.technology_unlock_size = 800
+---@type table<technology_unlock_id, boolean>
+local technology_unlock_indices_pool = ffi.new("bool[?]", 800)
+for i = 1, 799 do
+    technology_unlock_indices_pool[i] = true 
+end
+---@type table<technology_unlock_id, technology_unlock_id>
+DATA.technology_unlock_indices_set = {}
+function DATA.create_technology_unlock()
+    for i = 1, 799 do
+        if technology_unlock_indices_pool[i] then
+            technology_unlock_indices_pool[i] = false
+            DATA.technology_unlock_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for technology_unlock")
+end
+function DATA.delete_technology_unlock(i)
+    do
+        local old_value = DATA.technology_unlock[i].origin
+        __REMOVE_KEY_TECHNOLOGY_UNLOCK_ORIGIN(i, old_value)
+    end
+    do
+        local old_value = DATA.technology_unlock[i].unlocked
+        __REMOVE_KEY_TECHNOLOGY_UNLOCK_UNLOCKED(i, old_value)
+    end
+    technology_unlock_indices_pool[i] = true
+    DATA.technology_unlock_indices_set[i] = nil
+end
+---@param func fun(item: technology_unlock_id) 
+function DATA.for_each_technology_unlock(func)
+    for _, item in pairs(DATA.technology_unlock_indices_set) do
+        func(item)
+    end
+end
+
+---@param technology_unlock_id technology_unlock_id valid technology_unlock id
+---@return technology_id origin 
+function DATA.technology_unlock_get_origin(technology_unlock_id)
+    return DATA.technology_unlock[technology_unlock_id].origin
+end
+---@param origin technology_id valid technology_id
+---@return technology_unlock_id[] An array of technology_unlock 
+function DATA.get_technology_unlock_from_origin(origin)
+    return DATA.technology_unlock_from_origin[origin]
+end
+---@param technology_unlock_id technology_unlock_id valid technology_unlock id
+---@param old_value technology_id valid technology_id
+function __REMOVE_KEY_TECHNOLOGY_UNLOCK_ORIGIN(technology_unlock_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.technology_unlock_from_origin[old_value]) do
+        if value == technology_unlock_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.technology_unlock_from_origin[old_value], found_key)
+    end
+end
+---@param technology_unlock_id technology_unlock_id valid technology_unlock id
+---@param value technology_id valid technology_id
+function DATA.technology_unlock_set_origin(technology_unlock_id, value)
+    local old_value = DATA.technology_unlock[technology_unlock_id].origin
+    DATA.technology_unlock[technology_unlock_id].origin = value
+    __REMOVE_KEY_TECHNOLOGY_UNLOCK_ORIGIN(technology_unlock_id, old_value)
+    table.insert(DATA.technology_unlock_from_origin[value], technology_unlock_id)
+end
+---@param technology_unlock_id technology_unlock_id valid technology_unlock id
+---@return technology_id unlocked 
+function DATA.technology_unlock_get_unlocked(technology_unlock_id)
+    return DATA.technology_unlock[technology_unlock_id].unlocked
+end
+---@param unlocked technology_id valid technology_id
+---@return technology_unlock_id[] An array of technology_unlock 
+function DATA.get_technology_unlock_from_unlocked(unlocked)
+    return DATA.technology_unlock_from_unlocked[unlocked]
+end
+---@param technology_unlock_id technology_unlock_id valid technology_unlock id
+---@param old_value technology_id valid technology_id
+function __REMOVE_KEY_TECHNOLOGY_UNLOCK_UNLOCKED(technology_unlock_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.technology_unlock_from_unlocked[old_value]) do
+        if value == technology_unlock_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.technology_unlock_from_unlocked[old_value], found_key)
+    end
+end
+---@param technology_unlock_id technology_unlock_id valid technology_unlock id
+---@param value technology_id valid technology_id
+function DATA.technology_unlock_set_unlocked(technology_unlock_id, value)
+    local old_value = DATA.technology_unlock[technology_unlock_id].unlocked
+    DATA.technology_unlock[technology_unlock_id].unlocked = value
+    __REMOVE_KEY_TECHNOLOGY_UNLOCK_UNLOCKED(technology_unlock_id, old_value)
+    table.insert(DATA.technology_unlock_from_unlocked[value], technology_unlock_id)
+end
+
+
+local fat_technology_unlock_id_metatable = {
+    __index = function (t,k)
+        if (k == "origin") then return DATA.technology_unlock_get_origin(t.id) end
+        if (k == "unlocked") then return DATA.technology_unlock_get_unlocked(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "origin") then
+            DATA.technology_unlock_set_origin(t.id, v)
+            return
+        end
+        if (k == "unlocked") then
+            DATA.technology_unlock_set_unlocked(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id technology_unlock_id
+---@return fat_technology_unlock_id fat_id
+function DATA.fatten_technology_unlock(id)
+    local result = {id = id}
+    setmetatable(result, fat_technology_unlock_id_metatable)    return result
+end
+----------building_type----------
+
+
+---building_type: LSP types---
+
+---Unique identificator for building_type entity
+---@alias building_type_id number
+
+---@class fat_building_type_id
+---@field id building_type_id Unique building_type id
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field construction_cost number 
+---@field upkeep number 
+---@field unique boolean only one per province!
+---@field movable boolean is it possible to migrate with this building?
+---@field government boolean only the government can build this building!
+---@field needed_infrastructure number 
+---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
+
+---@class struct_building_type
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field construction_cost number 
+---@field upkeep number 
+---@field required_biome table<number, biome_id> 
+---@field required_resource table<number, resource_id> 
+---@field unique boolean only one per province!
+---@field movable boolean is it possible to migrate with this building?
+---@field government boolean only the government can build this building!
+---@field needed_infrastructure number 
+---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
+
+---@class (exact) building_type_id_data_blob_definition
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field archetype BUILDING_ARCHETYPE 
+---@field unlocked_by technology_id 
+---@field construction_cost number 
+---@field upkeep number? 
+---@field required_biome biome_id[] 
+---@field required_resource resource_id[] 
+---@field unique boolean? only one per province!
+---@field movable boolean? is it possible to migrate with this building?
+---@field government boolean? only the government can build this building!
+---@field needed_infrastructure number? 
+---@field spotting number? The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
+---Sets values of building_type for given id
+---@param id building_type_id
+---@param data building_type_id_data_blob_definition
+function DATA.setup_building_type(id, data)
+    DATA.building_type_set_name(id, data.name)
+    DATA.building_type_set_icon(id, data.icon)
+    DATA.building_type_set_description(id, data.description)
+    DATA.building_type_set_r(id, data.r)
+    DATA.building_type_set_g(id, data.g)
+    DATA.building_type_set_b(id, data.b)
+    DATA.building_type_set_production_method(id, data.production_method)
+    DATA.building_type_set_construction_cost(id, data.construction_cost)
+    if data.upkeep ~= nil then
+        DATA.building_type_set_upkeep(id, data.upkeep)
+    end
+    for i, value in ipairs(data.required_biome) do
+        DATA.building_type_set_required_biome(id, i - 1, value)
+    end
+    for i, value in ipairs(data.required_resource) do
+        DATA.building_type_set_required_resource(id, i - 1, value)
+    end
+    if data.unique ~= nil then
+        DATA.building_type_set_unique(id, data.unique)
+    end
+    if data.movable ~= nil then
+        DATA.building_type_set_movable(id, data.movable)
+    end
+    if data.government ~= nil then
+        DATA.building_type_set_government(id, data.government)
+    end
+    if data.needed_infrastructure ~= nil then
+        DATA.building_type_set_needed_infrastructure(id, data.needed_infrastructure)
+    end
+    if data.spotting ~= nil then
+        DATA.building_type_set_spotting(id, data.spotting)
+    end
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+        uint32_t production_method;
+        float construction_cost;
+        float upkeep;
+        uint32_t required_biome[20];
+        uint32_t required_resource[20];
+        bool unique;
+        bool movable;
+        bool government;
+        float needed_infrastructure;
+        float spotting;
+    } building_type;
+]]
+
+---building_type: FFI arrays---
+---@type (string)[]
+DATA.building_type_name= {}
+---@type (string)[]
+DATA.building_type_icon= {}
+---@type (string)[]
+DATA.building_type_description= {}
+---@type nil
+DATA.building_type_malloc = ffi.C.malloc(ffi.sizeof("building_type") * 251)
+---@type table<building_type_id, struct_building_type>
+DATA.building_type = ffi.cast("building_type*", DATA.building_type_malloc)
+
+---building_type: LUA bindings---
+
+DATA.building_type_size = 250
+---@type table<building_type_id, boolean>
+local building_type_indices_pool = ffi.new("bool[?]", 250)
+for i = 1, 249 do
+    building_type_indices_pool[i] = true 
+end
+---@type table<building_type_id, building_type_id>
+DATA.building_type_indices_set = {}
+function DATA.create_building_type()
+    for i = 1, 249 do
+        if building_type_indices_pool[i] then
+            building_type_indices_pool[i] = false
+            DATA.building_type_indices_set[i] = i
+            DATA.building_type_set_upkeep(i, 0)
+            DATA.building_type_set_unique(i, false)
+            DATA.building_type_set_movable(i, false)
+            DATA.building_type_set_government(i, false)
+            DATA.building_type_set_needed_infrastructure(i, 0)
+            DATA.building_type_set_spotting(i, 0)
+            return i
+        end
+    end
+    error("Run out of space for building_type")
+end
+function DATA.delete_building_type(i)
+    do
+        local to_delete = DATA.get_technology_building_from_unlocked(i)
+        DATA.delete_technology_building(to_delete)
+    end
+    building_type_indices_pool[i] = true
+    DATA.building_type_indices_set[i] = nil
+end
+---@param func fun(item: building_type_id) 
+function DATA.for_each_building_type(func)
+    for _, item in pairs(DATA.building_type_indices_set) do
+        func(item)
+    end
+end
+
+---@param building_type_id building_type_id valid building_type id
+---@return string name 
+function DATA.building_type_get_name(building_type_id)
+    return DATA.building_type_name[building_type_id]
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value string valid string
+function DATA.building_type_set_name(building_type_id, value)
+    DATA.building_type_name[building_type_id] = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return string icon 
+function DATA.building_type_get_icon(building_type_id)
+    return DATA.building_type_icon[building_type_id]
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value string valid string
+function DATA.building_type_set_icon(building_type_id, value)
+    DATA.building_type_icon[building_type_id] = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return string description 
+function DATA.building_type_get_description(building_type_id)
+    return DATA.building_type_description[building_type_id]
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value string valid string
+function DATA.building_type_set_description(building_type_id, value)
+    DATA.building_type_description[building_type_id] = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number r 
+function DATA.building_type_get_r(building_type_id)
+    return DATA.building_type[building_type_id].r
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_r(building_type_id, value)
+    DATA.building_type[building_type_id].r = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_r(building_type_id, value)
+    DATA.building_type[building_type_id].r = DATA.building_type[building_type_id].r + value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number g 
+function DATA.building_type_get_g(building_type_id)
+    return DATA.building_type[building_type_id].g
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_g(building_type_id, value)
+    DATA.building_type[building_type_id].g = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_g(building_type_id, value)
+    DATA.building_type[building_type_id].g = DATA.building_type[building_type_id].g + value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number b 
+function DATA.building_type_get_b(building_type_id)
+    return DATA.building_type[building_type_id].b
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_b(building_type_id, value)
+    DATA.building_type[building_type_id].b = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_b(building_type_id, value)
+    DATA.building_type[building_type_id].b = DATA.building_type[building_type_id].b + value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return production_method_id production_method 
+function DATA.building_type_get_production_method(building_type_id)
+    return DATA.building_type[building_type_id].production_method
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value production_method_id valid production_method_id
+function DATA.building_type_set_production_method(building_type_id, value)
+    DATA.building_type[building_type_id].production_method = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number construction_cost 
+function DATA.building_type_get_construction_cost(building_type_id)
+    return DATA.building_type[building_type_id].construction_cost
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_construction_cost(building_type_id, value)
+    DATA.building_type[building_type_id].construction_cost = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_construction_cost(building_type_id, value)
+    DATA.building_type[building_type_id].construction_cost = DATA.building_type[building_type_id].construction_cost + value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number upkeep 
+function DATA.building_type_get_upkeep(building_type_id)
+    return DATA.building_type[building_type_id].upkeep
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_upkeep(building_type_id, value)
+    DATA.building_type[building_type_id].upkeep = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_upkeep(building_type_id, value)
+    DATA.building_type[building_type_id].upkeep = DATA.building_type[building_type_id].upkeep + value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param index number valid
+---@return biome_id required_biome 
+function DATA.building_type_get_required_biome(building_type_id, index)
+    return DATA.building_type[building_type_id].required_biome[index]
+end
+---@param building_type_id building_type_id valid building_type id
+---@param index number valid index
+---@param value biome_id valid biome_id
+function DATA.building_type_set_required_biome(building_type_id, index, value)
+    DATA.building_type[building_type_id].required_biome[index] = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param index number valid
+---@return resource_id required_resource 
+function DATA.building_type_get_required_resource(building_type_id, index)
+    return DATA.building_type[building_type_id].required_resource[index]
+end
+---@param building_type_id building_type_id valid building_type id
+---@param index number valid index
+---@param value resource_id valid resource_id
+function DATA.building_type_set_required_resource(building_type_id, index, value)
+    DATA.building_type[building_type_id].required_resource[index] = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return boolean unique only one per province!
+function DATA.building_type_get_unique(building_type_id)
+    return DATA.building_type[building_type_id].unique
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value boolean valid boolean
+function DATA.building_type_set_unique(building_type_id, value)
+    DATA.building_type[building_type_id].unique = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return boolean movable is it possible to migrate with this building?
+function DATA.building_type_get_movable(building_type_id)
+    return DATA.building_type[building_type_id].movable
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value boolean valid boolean
+function DATA.building_type_set_movable(building_type_id, value)
+    DATA.building_type[building_type_id].movable = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return boolean government only the government can build this building!
+function DATA.building_type_get_government(building_type_id)
+    return DATA.building_type[building_type_id].government
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value boolean valid boolean
+function DATA.building_type_set_government(building_type_id, value)
+    DATA.building_type[building_type_id].government = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number needed_infrastructure 
+function DATA.building_type_get_needed_infrastructure(building_type_id)
+    return DATA.building_type[building_type_id].needed_infrastructure
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_needed_infrastructure(building_type_id, value)
+    DATA.building_type[building_type_id].needed_infrastructure = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_needed_infrastructure(building_type_id, value)
+    DATA.building_type[building_type_id].needed_infrastructure = DATA.building_type[building_type_id].needed_infrastructure + value
+end
+---@param building_type_id building_type_id valid building_type id
+---@return number spotting The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
+function DATA.building_type_get_spotting(building_type_id)
+    return DATA.building_type[building_type_id].spotting
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_set_spotting(building_type_id, value)
+    DATA.building_type[building_type_id].spotting = value
+end
+---@param building_type_id building_type_id valid building_type id
+---@param value number valid number
+function DATA.building_type_inc_spotting(building_type_id, value)
+    DATA.building_type[building_type_id].spotting = DATA.building_type[building_type_id].spotting + value
+end
+
+
+local fat_building_type_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.building_type_get_name(t.id) end
+        if (k == "icon") then return DATA.building_type_get_icon(t.id) end
+        if (k == "description") then return DATA.building_type_get_description(t.id) end
+        if (k == "r") then return DATA.building_type_get_r(t.id) end
+        if (k == "g") then return DATA.building_type_get_g(t.id) end
+        if (k == "b") then return DATA.building_type_get_b(t.id) end
+        if (k == "production_method") then return DATA.building_type_get_production_method(t.id) end
+        if (k == "construction_cost") then return DATA.building_type_get_construction_cost(t.id) end
+        if (k == "upkeep") then return DATA.building_type_get_upkeep(t.id) end
+        if (k == "unique") then return DATA.building_type_get_unique(t.id) end
+        if (k == "movable") then return DATA.building_type_get_movable(t.id) end
+        if (k == "government") then return DATA.building_type_get_government(t.id) end
+        if (k == "needed_infrastructure") then return DATA.building_type_get_needed_infrastructure(t.id) end
+        if (k == "spotting") then return DATA.building_type_get_spotting(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.building_type_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.building_type_set_icon(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.building_type_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.building_type_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.building_type_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.building_type_set_b(t.id, v)
+            return
+        end
+        if (k == "production_method") then
+            DATA.building_type_set_production_method(t.id, v)
+            return
+        end
+        if (k == "construction_cost") then
+            DATA.building_type_set_construction_cost(t.id, v)
+            return
+        end
+        if (k == "upkeep") then
+            DATA.building_type_set_upkeep(t.id, v)
+            return
+        end
+        if (k == "unique") then
+            DATA.building_type_set_unique(t.id, v)
+            return
+        end
+        if (k == "movable") then
+            DATA.building_type_set_movable(t.id, v)
+            return
+        end
+        if (k == "government") then
+            DATA.building_type_set_government(t.id, v)
+            return
+        end
+        if (k == "needed_infrastructure") then
+            DATA.building_type_set_needed_infrastructure(t.id, v)
+            return
+        end
+        if (k == "spotting") then
+            DATA.building_type_set_spotting(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id building_type_id
+---@return fat_building_type_id fat_id
+function DATA.fatten_building_type(id)
+    local result = {id = id}
+    setmetatable(result, fat_building_type_id_metatable)    return result
+end
+----------technology_building----------
+
+
+---technology_building: LSP types---
+
+---Unique identificator for technology_building entity
+---@alias technology_building_id number
+
+---@class fat_technology_building_id
+---@field id technology_building_id Unique technology_building id
+---@field technology technology_id 
+---@field unlocked building_type_id 
+
+---@class struct_technology_building
+---@field technology technology_id 
+---@field unlocked building_type_id 
+
+---@class (exact) technology_building_id_data_blob_definition
+---@field technology technology_id 
+---@field unlocked building_type_id 
+---Sets values of technology_building for given id
+---@param id technology_building_id
+---@param data technology_building_id_data_blob_definition
+function DATA.setup_technology_building(id, data)
+end
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t technology;
+        uint32_t unlocked;
+    } technology_building;
+]]
+
+---technology_building: FFI arrays---
+---@type nil
+DATA.technology_building_malloc = ffi.C.malloc(ffi.sizeof("technology_building") * 401)
+---@type table<technology_building_id, struct_technology_building>
+DATA.technology_building = ffi.cast("technology_building*", DATA.technology_building_malloc)
+---@type table<technology_id, technology_building_id[]>>
+DATA.technology_building_from_technology= {}
+---@type table<building_type_id, technology_building_id>
+DATA.technology_building_from_unlocked= {}
+
+---technology_building: LUA bindings---
+
+DATA.technology_building_size = 400
+---@type table<technology_building_id, boolean>
+local technology_building_indices_pool = ffi.new("bool[?]", 400)
+for i = 1, 399 do
+    technology_building_indices_pool[i] = true 
+end
+---@type table<technology_building_id, technology_building_id>
+DATA.technology_building_indices_set = {}
+function DATA.create_technology_building()
+    for i = 1, 399 do
+        if technology_building_indices_pool[i] then
+            technology_building_indices_pool[i] = false
+            DATA.technology_building_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for technology_building")
+end
+function DATA.delete_technology_building(i)
+    do
+        local old_value = DATA.technology_building[i].technology
+        __REMOVE_KEY_TECHNOLOGY_BUILDING_TECHNOLOGY(i, old_value)
+    end
+    do
+        local old_value = DATA.technology_building[i].unlocked
+        __REMOVE_KEY_TECHNOLOGY_BUILDING_UNLOCKED(old_value)
+    end
+    technology_building_indices_pool[i] = true
+    DATA.technology_building_indices_set[i] = nil
+end
+---@param func fun(item: technology_building_id) 
+function DATA.for_each_technology_building(func)
+    for _, item in pairs(DATA.technology_building_indices_set) do
+        func(item)
+    end
+end
+
+---@param technology_building_id technology_building_id valid technology_building id
+---@return technology_id technology 
+function DATA.technology_building_get_technology(technology_building_id)
+    return DATA.technology_building[technology_building_id].technology
+end
+---@param technology technology_id valid technology_id
+---@return technology_building_id[] An array of technology_building 
+function DATA.get_technology_building_from_technology(technology)
+    return DATA.technology_building_from_technology[technology]
+end
+---@param technology_building_id technology_building_id valid technology_building id
+---@param old_value technology_id valid technology_id
+function __REMOVE_KEY_TECHNOLOGY_BUILDING_TECHNOLOGY(technology_building_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.technology_building_from_technology[old_value]) do
+        if value == technology_building_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.technology_building_from_technology[old_value], found_key)
+    end
+end
+---@param technology_building_id technology_building_id valid technology_building id
+---@param value technology_id valid technology_id
+function DATA.technology_building_set_technology(technology_building_id, value)
+    local old_value = DATA.technology_building[technology_building_id].technology
+    DATA.technology_building[technology_building_id].technology = value
+    __REMOVE_KEY_TECHNOLOGY_BUILDING_TECHNOLOGY(technology_building_id, old_value)
+    table.insert(DATA.technology_building_from_technology[value], technology_building_id)
+end
+---@param technology_building_id technology_building_id valid technology_building id
+---@return building_type_id unlocked 
+function DATA.technology_building_get_unlocked(technology_building_id)
+    return DATA.technology_building[technology_building_id].unlocked
+end
+---@param unlocked building_type_id valid building_type_id
+---@return technology_building_id technology_building 
+function DATA.get_technology_building_from_unlocked(unlocked)
+    return DATA.technology_building_from_unlocked[unlocked]
+end
+function __REMOVE_KEY_TECHNOLOGY_BUILDING_UNLOCKED(old_value)
+    DATA.technology_building_from_unlocked[old_value] = nil
+end
+---@param technology_building_id technology_building_id valid technology_building id
+---@param value building_type_id valid building_type_id
+function DATA.technology_building_set_unlocked(technology_building_id, value)
+    local old_value = DATA.technology_building[technology_building_id].unlocked
+    DATA.technology_building[technology_building_id].unlocked = value
+    __REMOVE_KEY_TECHNOLOGY_BUILDING_UNLOCKED(old_value)
+    DATA.technology_building_from_unlocked[value] = technology_building_id
+end
+
+
+local fat_technology_building_id_metatable = {
+    __index = function (t,k)
+        if (k == "technology") then return DATA.technology_building_get_technology(t.id) end
+        if (k == "unlocked") then return DATA.technology_building_get_unlocked(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "technology") then
+            DATA.technology_building_set_technology(t.id, v)
+            return
+        end
+        if (k == "unlocked") then
+            DATA.technology_building_set_unlocked(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id technology_building_id
+---@return fat_technology_building_id fat_id
+function DATA.fatten_technology_building(id)
+    local result = {id = id}
+    setmetatable(result, fat_technology_building_id_metatable)    return result
+end
+----------technology_unit----------
+
+
+---technology_unit: LSP types---
+
+---Unique identificator for technology_unit entity
+---@alias technology_unit_id number
+
+---@class fat_technology_unit_id
+---@field id technology_unit_id Unique technology_unit id
+---@field technology technology_id 
+---@field unlocked unit_type_id 
+
+---@class struct_technology_unit
+---@field technology technology_id 
+---@field unlocked unit_type_id 
+
+---@class (exact) technology_unit_id_data_blob_definition
+---@field technology technology_id 
+---@field unlocked unit_type_id 
+---Sets values of technology_unit for given id
+---@param id technology_unit_id
+---@param data technology_unit_id_data_blob_definition
+function DATA.setup_technology_unit(id, data)
+end
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t technology;
+        uint32_t unlocked;
+    } technology_unit;
+]]
+
+---technology_unit: FFI arrays---
+---@type nil
+DATA.technology_unit_malloc = ffi.C.malloc(ffi.sizeof("technology_unit") * 401)
+---@type table<technology_unit_id, struct_technology_unit>
+DATA.technology_unit = ffi.cast("technology_unit*", DATA.technology_unit_malloc)
+---@type table<technology_id, technology_unit_id[]>>
+DATA.technology_unit_from_technology= {}
+---@type table<unit_type_id, technology_unit_id>
+DATA.technology_unit_from_unlocked= {}
+
+---technology_unit: LUA bindings---
+
+DATA.technology_unit_size = 400
+---@type table<technology_unit_id, boolean>
+local technology_unit_indices_pool = ffi.new("bool[?]", 400)
+for i = 1, 399 do
+    technology_unit_indices_pool[i] = true 
+end
+---@type table<technology_unit_id, technology_unit_id>
+DATA.technology_unit_indices_set = {}
+function DATA.create_technology_unit()
+    for i = 1, 399 do
+        if technology_unit_indices_pool[i] then
+            technology_unit_indices_pool[i] = false
+            DATA.technology_unit_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for technology_unit")
+end
+function DATA.delete_technology_unit(i)
+    do
+        local old_value = DATA.technology_unit[i].technology
+        __REMOVE_KEY_TECHNOLOGY_UNIT_TECHNOLOGY(i, old_value)
+    end
+    do
+        local old_value = DATA.technology_unit[i].unlocked
+        __REMOVE_KEY_TECHNOLOGY_UNIT_UNLOCKED(old_value)
+    end
+    technology_unit_indices_pool[i] = true
+    DATA.technology_unit_indices_set[i] = nil
+end
+---@param func fun(item: technology_unit_id) 
+function DATA.for_each_technology_unit(func)
+    for _, item in pairs(DATA.technology_unit_indices_set) do
+        func(item)
+    end
+end
+
+---@param technology_unit_id technology_unit_id valid technology_unit id
+---@return technology_id technology 
+function DATA.technology_unit_get_technology(technology_unit_id)
+    return DATA.technology_unit[technology_unit_id].technology
+end
+---@param technology technology_id valid technology_id
+---@return technology_unit_id[] An array of technology_unit 
+function DATA.get_technology_unit_from_technology(technology)
+    return DATA.technology_unit_from_technology[technology]
+end
+---@param technology_unit_id technology_unit_id valid technology_unit id
+---@param old_value technology_id valid technology_id
+function __REMOVE_KEY_TECHNOLOGY_UNIT_TECHNOLOGY(technology_unit_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.technology_unit_from_technology[old_value]) do
+        if value == technology_unit_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.technology_unit_from_technology[old_value], found_key)
+    end
+end
+---@param technology_unit_id technology_unit_id valid technology_unit id
+---@param value technology_id valid technology_id
+function DATA.technology_unit_set_technology(technology_unit_id, value)
+    local old_value = DATA.technology_unit[technology_unit_id].technology
+    DATA.technology_unit[technology_unit_id].technology = value
+    __REMOVE_KEY_TECHNOLOGY_UNIT_TECHNOLOGY(technology_unit_id, old_value)
+    table.insert(DATA.technology_unit_from_technology[value], technology_unit_id)
+end
+---@param technology_unit_id technology_unit_id valid technology_unit id
+---@return unit_type_id unlocked 
+function DATA.technology_unit_get_unlocked(technology_unit_id)
+    return DATA.technology_unit[technology_unit_id].unlocked
+end
+---@param unlocked unit_type_id valid unit_type_id
+---@return technology_unit_id technology_unit 
+function DATA.get_technology_unit_from_unlocked(unlocked)
+    return DATA.technology_unit_from_unlocked[unlocked]
+end
+function __REMOVE_KEY_TECHNOLOGY_UNIT_UNLOCKED(old_value)
+    DATA.technology_unit_from_unlocked[old_value] = nil
+end
+---@param technology_unit_id technology_unit_id valid technology_unit id
+---@param value unit_type_id valid unit_type_id
+function DATA.technology_unit_set_unlocked(technology_unit_id, value)
+    local old_value = DATA.technology_unit[technology_unit_id].unlocked
+    DATA.technology_unit[technology_unit_id].unlocked = value
+    __REMOVE_KEY_TECHNOLOGY_UNIT_UNLOCKED(old_value)
+    DATA.technology_unit_from_unlocked[value] = technology_unit_id
+end
+
+
+local fat_technology_unit_id_metatable = {
+    __index = function (t,k)
+        if (k == "technology") then return DATA.technology_unit_get_technology(t.id) end
+        if (k == "unlocked") then return DATA.technology_unit_get_unlocked(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "technology") then
+            DATA.technology_unit_set_technology(t.id, v)
+            return
+        end
+        if (k == "unlocked") then
+            DATA.technology_unit_set_unlocked(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id technology_unit_id
+---@return fat_technology_unit_id fat_id
+function DATA.fatten_technology_unit(id)
+    local result = {id = id}
+    setmetatable(result, fat_technology_unit_id_metatable)    return result
+end
+----------race----------
+
+
+---race: LSP types---
+
+---Unique identificator for race entity
+---@alias race_id number
+
+---@class fat_race_id
+---@field id race_id Unique race id
+---@field name string 
+---@field icon string 
+---@field female_portrait nil|PortraitSet 
+---@field male_portrait nil|PortraitSet 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
+---@field spotting number How good is this unit at scouting
+---@field visibility number How visible is this unit in battles
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field requires_large_river boolean 
+---@field requires_large_forest boolean 
+
+---@class struct_race
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
+---@field spotting number How good is this unit at scouting
+---@field visibility number How visible is this unit in battles
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_efficiency table<JOBTYPE, number> 
+---@field male_efficiency table<JOBTYPE, number> 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field female_needs table<number, struct_need_definition> 
+---@field male_needs table<number, struct_need_definition> 
+---@field requires_large_river boolean 
+---@field requires_large_forest boolean 
+
+---@class (exact) race_id_data_blob_definition
+---@field name string 
+---@field icon string 
+---@field female_portrait nil|PortraitSet 
+---@field male_portrait nil|PortraitSet 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
+---@field spotting number How good is this unit at scouting
+---@field visibility number How visible is this unit in battles
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number? 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_efficiency number[] 
+---@field male_efficiency number[] 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field female_needs struct_need_definition[] 
+---@field male_needs struct_need_definition[] 
+---@field requires_large_river boolean? 
+---@field requires_large_forest boolean? 
+---Sets values of race for given id
+---@param id race_id
+---@param data race_id_data_blob_definition
+function DATA.setup_race(id, data)
+    DATA.race_set_name(id, data.name)
+    DATA.race_set_icon(id, data.icon)
+    DATA.race_set_female_portrait(id, data.female_portrait)
+    DATA.race_set_male_portrait(id, data.male_portrait)
+    DATA.race_set_description(id, data.description)
+    DATA.race_set_r(id, data.r)
+    DATA.race_set_g(id, data.g)
+    DATA.race_set_b(id, data.b)
+    DATA.race_set_carrying_capacity_weight(id, data.carrying_capacity_weight)
+    DATA.race_set_fecundity(id, data.fecundity)
+    DATA.race_set_spotting(id, data.spotting)
+    DATA.race_set_visibility(id, data.visibility)
+    DATA.race_set_males_per_hundred_females(id, data.males_per_hundred_females)
+    DATA.race_set_child_age(id, data.child_age)
+    DATA.race_set_teen_age(id, data.teen_age)
+    DATA.race_set_adult_age(id, data.adult_age)
+    DATA.race_set_middle_age(id, data.middle_age)
+    DATA.race_set_elder_age(id, data.elder_age)
+    DATA.race_set_max_age(id, data.max_age)
+    DATA.race_set_minimum_comfortable_temperature(id, data.minimum_comfortable_temperature)
+    DATA.race_set_minimum_absolute_temperature(id, data.minimum_absolute_temperature)
+    if data.minimum_comfortable_elevation ~= nil then
+        DATA.race_set_minimum_comfortable_elevation(id, data.minimum_comfortable_elevation)
+    end
+    DATA.race_set_female_body_size(id, data.female_body_size)
+    DATA.race_set_male_body_size(id, data.male_body_size)
+    for i, value in ipairs(data.female_efficiency) do
+        DATA.race_set_female_efficiency(id, i - 1, value)
+    end
+    for i, value in ipairs(data.male_efficiency) do
+        DATA.race_set_male_efficiency(id, i - 1, value)
+    end
+    DATA.race_set_female_infrastructure_needs(id, data.female_infrastructure_needs)
+    DATA.race_set_male_infrastructure_needs(id, data.male_infrastructure_needs)
+    for i, value in ipairs(data.female_needs) do
+        DATA.race_set_female_needs(id, i - 1, value)
+    end
+    for i, value in ipairs(data.male_needs) do
+        DATA.race_set_male_needs(id, i - 1, value)
+    end
+    if data.requires_large_river ~= nil then
+        DATA.race_set_requires_large_river(id, data.requires_large_river)
+    end
+    if data.requires_large_forest ~= nil then
+        DATA.race_set_requires_large_forest(id, data.requires_large_forest)
+    end
+end
+
+ffi.cdef[[
+    typedef struct {
+        float r;
+        float g;
+        float b;
+        float carrying_capacity_weight;
+        float fecundity;
+        float spotting;
+        float visibility;
+        float males_per_hundred_females;
+        float child_age;
+        float teen_age;
+        float adult_age;
+        float middle_age;
+        float elder_age;
+        float max_age;
+        float minimum_comfortable_temperature;
+        float minimum_absolute_temperature;
+        float minimum_comfortable_elevation;
+        float female_body_size;
+        float male_body_size;
+        float female_efficiency[10];
+        float male_efficiency[10];
+        float female_infrastructure_needs;
+        float male_infrastructure_needs;
+        need_definition female_needs[20];
+        need_definition male_needs[20];
+        bool requires_large_river;
+        bool requires_large_forest;
+    } race;
+]]
+
+---race: FFI arrays---
+---@type (string)[]
+DATA.race_name= {}
+---@type (string)[]
+DATA.race_icon= {}
+---@type (nil|PortraitSet)[]
+DATA.race_female_portrait= {}
+---@type (nil|PortraitSet)[]
+DATA.race_male_portrait= {}
+---@type (string)[]
+DATA.race_description= {}
+---@type nil
+DATA.race_malloc = ffi.C.malloc(ffi.sizeof("race") * 16)
+---@type table<race_id, struct_race>
+DATA.race = ffi.cast("race*", DATA.race_malloc)
+
+---race: LUA bindings---
+
+DATA.race_size = 15
+---@type table<race_id, boolean>
+local race_indices_pool = ffi.new("bool[?]", 15)
+for i = 1, 14 do
+    race_indices_pool[i] = true 
+end
+---@type table<race_id, race_id>
+DATA.race_indices_set = {}
+function DATA.create_race()
+    for i = 1, 14 do
+        if race_indices_pool[i] then
+            race_indices_pool[i] = false
+            DATA.race_indices_set[i] = i
+            DATA.race_set_minimum_comfortable_elevation(i, 0.0)
+            DATA.race_set_requires_large_river(i, false)
+            DATA.race_set_requires_large_forest(i, false)
+            return i
+        end
+    end
+    error("Run out of space for race")
+end
+function DATA.delete_race(i)
+    race_indices_pool[i] = true
+    DATA.race_indices_set[i] = nil
+end
+---@param func fun(item: race_id) 
+function DATA.for_each_race(func)
+    for _, item in pairs(DATA.race_indices_set) do
+        func(item)
+    end
+end
+
+---@param race_id race_id valid race id
+---@return string name 
+function DATA.race_get_name(race_id)
+    return DATA.race_name[race_id]
+end
+---@param race_id race_id valid race id
+---@param value string valid string
+function DATA.race_set_name(race_id, value)
+    DATA.race_name[race_id] = value
+end
+---@param race_id race_id valid race id
+---@return string icon 
+function DATA.race_get_icon(race_id)
+    return DATA.race_icon[race_id]
+end
+---@param race_id race_id valid race id
+---@param value string valid string
+function DATA.race_set_icon(race_id, value)
+    DATA.race_icon[race_id] = value
+end
+---@param race_id race_id valid race id
+---@return nil|PortraitSet female_portrait 
+function DATA.race_get_female_portrait(race_id)
+    return DATA.race_female_portrait[race_id]
+end
+---@param race_id race_id valid race id
+---@param value nil|PortraitSet valid nil|PortraitSet
+function DATA.race_set_female_portrait(race_id, value)
+    DATA.race_female_portrait[race_id] = value
+end
+---@param race_id race_id valid race id
+---@return nil|PortraitSet male_portrait 
+function DATA.race_get_male_portrait(race_id)
+    return DATA.race_male_portrait[race_id]
+end
+---@param race_id race_id valid race id
+---@param value nil|PortraitSet valid nil|PortraitSet
+function DATA.race_set_male_portrait(race_id, value)
+    DATA.race_male_portrait[race_id] = value
+end
+---@param race_id race_id valid race id
+---@return string description 
+function DATA.race_get_description(race_id)
+    return DATA.race_description[race_id]
+end
+---@param race_id race_id valid race id
+---@param value string valid string
+function DATA.race_set_description(race_id, value)
+    DATA.race_description[race_id] = value
+end
+---@param race_id race_id valid race id
+---@return number r 
+function DATA.race_get_r(race_id)
+    return DATA.race[race_id].r
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_r(race_id, value)
+    DATA.race[race_id].r = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_r(race_id, value)
+    DATA.race[race_id].r = DATA.race[race_id].r + value
+end
+---@param race_id race_id valid race id
+---@return number g 
+function DATA.race_get_g(race_id)
+    return DATA.race[race_id].g
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_g(race_id, value)
+    DATA.race[race_id].g = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_g(race_id, value)
+    DATA.race[race_id].g = DATA.race[race_id].g + value
+end
+---@param race_id race_id valid race id
+---@return number b 
+function DATA.race_get_b(race_id)
+    return DATA.race[race_id].b
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_b(race_id, value)
+    DATA.race[race_id].b = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_b(race_id, value)
+    DATA.race[race_id].b = DATA.race[race_id].b + value
+end
+---@param race_id race_id valid race id
+---@return number carrying_capacity_weight 
+function DATA.race_get_carrying_capacity_weight(race_id)
+    return DATA.race[race_id].carrying_capacity_weight
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_carrying_capacity_weight(race_id, value)
+    DATA.race[race_id].carrying_capacity_weight = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_carrying_capacity_weight(race_id, value)
+    DATA.race[race_id].carrying_capacity_weight = DATA.race[race_id].carrying_capacity_weight + value
+end
+---@param race_id race_id valid race id
+---@return number fecundity 
+function DATA.race_get_fecundity(race_id)
+    return DATA.race[race_id].fecundity
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_fecundity(race_id, value)
+    DATA.race[race_id].fecundity = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_fecundity(race_id, value)
+    DATA.race[race_id].fecundity = DATA.race[race_id].fecundity + value
+end
+---@param race_id race_id valid race id
+---@return number spotting How good is this unit at scouting
+function DATA.race_get_spotting(race_id)
+    return DATA.race[race_id].spotting
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_spotting(race_id, value)
+    DATA.race[race_id].spotting = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_spotting(race_id, value)
+    DATA.race[race_id].spotting = DATA.race[race_id].spotting + value
+end
+---@param race_id race_id valid race id
+---@return number visibility How visible is this unit in battles
+function DATA.race_get_visibility(race_id)
+    return DATA.race[race_id].visibility
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_visibility(race_id, value)
+    DATA.race[race_id].visibility = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_visibility(race_id, value)
+    DATA.race[race_id].visibility = DATA.race[race_id].visibility + value
+end
+---@param race_id race_id valid race id
+---@return number males_per_hundred_females 
+function DATA.race_get_males_per_hundred_females(race_id)
+    return DATA.race[race_id].males_per_hundred_females
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_males_per_hundred_females(race_id, value)
+    DATA.race[race_id].males_per_hundred_females = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_males_per_hundred_females(race_id, value)
+    DATA.race[race_id].males_per_hundred_females = DATA.race[race_id].males_per_hundred_females + value
+end
+---@param race_id race_id valid race id
+---@return number child_age 
+function DATA.race_get_child_age(race_id)
+    return DATA.race[race_id].child_age
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_child_age(race_id, value)
+    DATA.race[race_id].child_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_child_age(race_id, value)
+    DATA.race[race_id].child_age = DATA.race[race_id].child_age + value
+end
+---@param race_id race_id valid race id
+---@return number teen_age 
+function DATA.race_get_teen_age(race_id)
+    return DATA.race[race_id].teen_age
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_teen_age(race_id, value)
+    DATA.race[race_id].teen_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_teen_age(race_id, value)
+    DATA.race[race_id].teen_age = DATA.race[race_id].teen_age + value
+end
+---@param race_id race_id valid race id
+---@return number adult_age 
+function DATA.race_get_adult_age(race_id)
+    return DATA.race[race_id].adult_age
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_adult_age(race_id, value)
+    DATA.race[race_id].adult_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_adult_age(race_id, value)
+    DATA.race[race_id].adult_age = DATA.race[race_id].adult_age + value
+end
+---@param race_id race_id valid race id
+---@return number middle_age 
+function DATA.race_get_middle_age(race_id)
+    return DATA.race[race_id].middle_age
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_middle_age(race_id, value)
+    DATA.race[race_id].middle_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_middle_age(race_id, value)
+    DATA.race[race_id].middle_age = DATA.race[race_id].middle_age + value
+end
+---@param race_id race_id valid race id
+---@return number elder_age 
+function DATA.race_get_elder_age(race_id)
+    return DATA.race[race_id].elder_age
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_elder_age(race_id, value)
+    DATA.race[race_id].elder_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_elder_age(race_id, value)
+    DATA.race[race_id].elder_age = DATA.race[race_id].elder_age + value
+end
+---@param race_id race_id valid race id
+---@return number max_age 
+function DATA.race_get_max_age(race_id)
+    return DATA.race[race_id].max_age
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_max_age(race_id, value)
+    DATA.race[race_id].max_age = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_max_age(race_id, value)
+    DATA.race[race_id].max_age = DATA.race[race_id].max_age + value
+end
+---@param race_id race_id valid race id
+---@return number minimum_comfortable_temperature 
+function DATA.race_get_minimum_comfortable_temperature(race_id)
+    return DATA.race[race_id].minimum_comfortable_temperature
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_minimum_comfortable_temperature(race_id, value)
+    DATA.race[race_id].minimum_comfortable_temperature = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_minimum_comfortable_temperature(race_id, value)
+    DATA.race[race_id].minimum_comfortable_temperature = DATA.race[race_id].minimum_comfortable_temperature + value
+end
+---@param race_id race_id valid race id
+---@return number minimum_absolute_temperature 
+function DATA.race_get_minimum_absolute_temperature(race_id)
+    return DATA.race[race_id].minimum_absolute_temperature
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_minimum_absolute_temperature(race_id, value)
+    DATA.race[race_id].minimum_absolute_temperature = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_minimum_absolute_temperature(race_id, value)
+    DATA.race[race_id].minimum_absolute_temperature = DATA.race[race_id].minimum_absolute_temperature + value
+end
+---@param race_id race_id valid race id
+---@return number minimum_comfortable_elevation 
+function DATA.race_get_minimum_comfortable_elevation(race_id)
+    return DATA.race[race_id].minimum_comfortable_elevation
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_minimum_comfortable_elevation(race_id, value)
+    DATA.race[race_id].minimum_comfortable_elevation = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_minimum_comfortable_elevation(race_id, value)
+    DATA.race[race_id].minimum_comfortable_elevation = DATA.race[race_id].minimum_comfortable_elevation + value
+end
+---@param race_id race_id valid race id
+---@return number female_body_size 
+function DATA.race_get_female_body_size(race_id)
+    return DATA.race[race_id].female_body_size
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_female_body_size(race_id, value)
+    DATA.race[race_id].female_body_size = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_female_body_size(race_id, value)
+    DATA.race[race_id].female_body_size = DATA.race[race_id].female_body_size + value
+end
+---@param race_id race_id valid race id
+---@return number male_body_size 
+function DATA.race_get_male_body_size(race_id)
+    return DATA.race[race_id].male_body_size
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_male_body_size(race_id, value)
+    DATA.race[race_id].male_body_size = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_male_body_size(race_id, value)
+    DATA.race[race_id].male_body_size = DATA.race[race_id].male_body_size + value
+end
+---@param race_id race_id valid race id
+---@param index JOBTYPE valid
+---@return number female_efficiency 
+function DATA.race_get_female_efficiency(race_id, index)
+    return DATA.race[race_id].female_efficiency[index]
+end
+---@param race_id race_id valid race id
+---@param index JOBTYPE valid index
+---@param value number valid number
+function DATA.race_set_female_efficiency(race_id, index, value)
+    DATA.race[race_id].female_efficiency[index] = value
+end
+---@param race_id race_id valid race id
+---@param index JOBTYPE valid index
+---@param value number valid number
+function DATA.race_inc_female_efficiency(race_id, index, value)
+    DATA.race[race_id].female_efficiency[index] = DATA.race[race_id].female_efficiency[index] + value
+end
+---@param race_id race_id valid race id
+---@param index JOBTYPE valid
+---@return number male_efficiency 
+function DATA.race_get_male_efficiency(race_id, index)
+    return DATA.race[race_id].male_efficiency[index]
+end
+---@param race_id race_id valid race id
+---@param index JOBTYPE valid index
+---@param value number valid number
+function DATA.race_set_male_efficiency(race_id, index, value)
+    DATA.race[race_id].male_efficiency[index] = value
+end
+---@param race_id race_id valid race id
+---@param index JOBTYPE valid index
+---@param value number valid number
+function DATA.race_inc_male_efficiency(race_id, index, value)
+    DATA.race[race_id].male_efficiency[index] = DATA.race[race_id].male_efficiency[index] + value
+end
+---@param race_id race_id valid race id
+---@return number female_infrastructure_needs 
+function DATA.race_get_female_infrastructure_needs(race_id)
+    return DATA.race[race_id].female_infrastructure_needs
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_female_infrastructure_needs(race_id, value)
+    DATA.race[race_id].female_infrastructure_needs = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_female_infrastructure_needs(race_id, value)
+    DATA.race[race_id].female_infrastructure_needs = DATA.race[race_id].female_infrastructure_needs + value
+end
+---@param race_id race_id valid race id
+---@return number male_infrastructure_needs 
+function DATA.race_get_male_infrastructure_needs(race_id)
+    return DATA.race[race_id].male_infrastructure_needs
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_set_male_infrastructure_needs(race_id, value)
+    DATA.race[race_id].male_infrastructure_needs = value
+end
+---@param race_id race_id valid race id
+---@param value number valid number
+function DATA.race_inc_male_infrastructure_needs(race_id, value)
+    DATA.race[race_id].male_infrastructure_needs = DATA.race[race_id].male_infrastructure_needs + value
+end
+---@param race_id race_id valid race id
+---@param index number valid
+---@return NEED female_needs 
+function DATA.race_get_female_needs_need(race_id, index)
+    return DATA.race[race_id].female_needs[index].need
+end
+---@param race_id race_id valid race id
+---@param index number valid
+---@return use_case_id female_needs 
+function DATA.race_get_female_needs_use_case(race_id, index)
+    return DATA.race[race_id].female_needs[index].use_case
+end
+---@param race_id race_id valid race id
+---@param index number valid
+---@return number female_needs 
+function DATA.race_get_female_needs_required(race_id, index)
+    return DATA.race[race_id].female_needs[index].required
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value NEED valid NEED
+function DATA.race_set_female_needs_need(race_id, index, value)
+    DATA.race[race_id].female_needs[index].need = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value use_case_id valid use_case_id
+function DATA.race_set_female_needs_use_case(race_id, index, value)
+    DATA.race[race_id].female_needs[index].use_case = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value number valid number
+function DATA.race_set_female_needs_required(race_id, index, value)
+    DATA.race[race_id].female_needs[index].required = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value number valid number
+function DATA.race_inc_female_needs_required(race_id, index, value)
+    DATA.race[race_id].female_needs[index].required = DATA.race[race_id].female_needs[index].required + value
+end
+---@param race_id race_id valid race id
+---@param index number valid
+---@return NEED male_needs 
+function DATA.race_get_male_needs_need(race_id, index)
+    return DATA.race[race_id].male_needs[index].need
+end
+---@param race_id race_id valid race id
+---@param index number valid
+---@return use_case_id male_needs 
+function DATA.race_get_male_needs_use_case(race_id, index)
+    return DATA.race[race_id].male_needs[index].use_case
+end
+---@param race_id race_id valid race id
+---@param index number valid
+---@return number male_needs 
+function DATA.race_get_male_needs_required(race_id, index)
+    return DATA.race[race_id].male_needs[index].required
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value NEED valid NEED
+function DATA.race_set_male_needs_need(race_id, index, value)
+    DATA.race[race_id].male_needs[index].need = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value use_case_id valid use_case_id
+function DATA.race_set_male_needs_use_case(race_id, index, value)
+    DATA.race[race_id].male_needs[index].use_case = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value number valid number
+function DATA.race_set_male_needs_required(race_id, index, value)
+    DATA.race[race_id].male_needs[index].required = value
+end
+---@param race_id race_id valid race id
+---@param index number valid index
+---@param value number valid number
+function DATA.race_inc_male_needs_required(race_id, index, value)
+    DATA.race[race_id].male_needs[index].required = DATA.race[race_id].male_needs[index].required + value
+end
+---@param race_id race_id valid race id
+---@return boolean requires_large_river 
+function DATA.race_get_requires_large_river(race_id)
+    return DATA.race[race_id].requires_large_river
+end
+---@param race_id race_id valid race id
+---@param value boolean valid boolean
+function DATA.race_set_requires_large_river(race_id, value)
+    DATA.race[race_id].requires_large_river = value
+end
+---@param race_id race_id valid race id
+---@return boolean requires_large_forest 
+function DATA.race_get_requires_large_forest(race_id)
+    return DATA.race[race_id].requires_large_forest
+end
+---@param race_id race_id valid race id
+---@param value boolean valid boolean
+function DATA.race_set_requires_large_forest(race_id, value)
+    DATA.race[race_id].requires_large_forest = value
+end
+
+
+local fat_race_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.race_get_name(t.id) end
+        if (k == "icon") then return DATA.race_get_icon(t.id) end
+        if (k == "female_portrait") then return DATA.race_get_female_portrait(t.id) end
+        if (k == "male_portrait") then return DATA.race_get_male_portrait(t.id) end
+        if (k == "description") then return DATA.race_get_description(t.id) end
+        if (k == "r") then return DATA.race_get_r(t.id) end
+        if (k == "g") then return DATA.race_get_g(t.id) end
+        if (k == "b") then return DATA.race_get_b(t.id) end
+        if (k == "carrying_capacity_weight") then return DATA.race_get_carrying_capacity_weight(t.id) end
+        if (k == "fecundity") then return DATA.race_get_fecundity(t.id) end
+        if (k == "spotting") then return DATA.race_get_spotting(t.id) end
+        if (k == "visibility") then return DATA.race_get_visibility(t.id) end
+        if (k == "males_per_hundred_females") then return DATA.race_get_males_per_hundred_females(t.id) end
+        if (k == "child_age") then return DATA.race_get_child_age(t.id) end
+        if (k == "teen_age") then return DATA.race_get_teen_age(t.id) end
+        if (k == "adult_age") then return DATA.race_get_adult_age(t.id) end
+        if (k == "middle_age") then return DATA.race_get_middle_age(t.id) end
+        if (k == "elder_age") then return DATA.race_get_elder_age(t.id) end
+        if (k == "max_age") then return DATA.race_get_max_age(t.id) end
+        if (k == "minimum_comfortable_temperature") then return DATA.race_get_minimum_comfortable_temperature(t.id) end
+        if (k == "minimum_absolute_temperature") then return DATA.race_get_minimum_absolute_temperature(t.id) end
+        if (k == "minimum_comfortable_elevation") then return DATA.race_get_minimum_comfortable_elevation(t.id) end
+        if (k == "female_body_size") then return DATA.race_get_female_body_size(t.id) end
+        if (k == "male_body_size") then return DATA.race_get_male_body_size(t.id) end
+        if (k == "female_infrastructure_needs") then return DATA.race_get_female_infrastructure_needs(t.id) end
+        if (k == "male_infrastructure_needs") then return DATA.race_get_male_infrastructure_needs(t.id) end
+        if (k == "requires_large_river") then return DATA.race_get_requires_large_river(t.id) end
+        if (k == "requires_large_forest") then return DATA.race_get_requires_large_forest(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.race_set_name(t.id, v)
+            return
+        end
+        if (k == "icon") then
+            DATA.race_set_icon(t.id, v)
+            return
+        end
+        if (k == "female_portrait") then
+            DATA.race_set_female_portrait(t.id, v)
+            return
+        end
+        if (k == "male_portrait") then
+            DATA.race_set_male_portrait(t.id, v)
+            return
+        end
+        if (k == "description") then
+            DATA.race_set_description(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.race_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.race_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.race_set_b(t.id, v)
+            return
+        end
+        if (k == "carrying_capacity_weight") then
+            DATA.race_set_carrying_capacity_weight(t.id, v)
+            return
+        end
+        if (k == "fecundity") then
+            DATA.race_set_fecundity(t.id, v)
+            return
+        end
+        if (k == "spotting") then
+            DATA.race_set_spotting(t.id, v)
+            return
+        end
+        if (k == "visibility") then
+            DATA.race_set_visibility(t.id, v)
+            return
+        end
+        if (k == "males_per_hundred_females") then
+            DATA.race_set_males_per_hundred_females(t.id, v)
+            return
+        end
+        if (k == "child_age") then
+            DATA.race_set_child_age(t.id, v)
+            return
+        end
+        if (k == "teen_age") then
+            DATA.race_set_teen_age(t.id, v)
+            return
+        end
+        if (k == "adult_age") then
+            DATA.race_set_adult_age(t.id, v)
+            return
+        end
+        if (k == "middle_age") then
+            DATA.race_set_middle_age(t.id, v)
+            return
+        end
+        if (k == "elder_age") then
+            DATA.race_set_elder_age(t.id, v)
+            return
+        end
+        if (k == "max_age") then
+            DATA.race_set_max_age(t.id, v)
+            return
+        end
+        if (k == "minimum_comfortable_temperature") then
+            DATA.race_set_minimum_comfortable_temperature(t.id, v)
+            return
+        end
+        if (k == "minimum_absolute_temperature") then
+            DATA.race_set_minimum_absolute_temperature(t.id, v)
+            return
+        end
+        if (k == "minimum_comfortable_elevation") then
+            DATA.race_set_minimum_comfortable_elevation(t.id, v)
+            return
+        end
+        if (k == "female_body_size") then
+            DATA.race_set_female_body_size(t.id, v)
+            return
+        end
+        if (k == "male_body_size") then
+            DATA.race_set_male_body_size(t.id, v)
+            return
+        end
+        if (k == "female_infrastructure_needs") then
+            DATA.race_set_female_infrastructure_needs(t.id, v)
+            return
+        end
+        if (k == "male_infrastructure_needs") then
+            DATA.race_set_male_infrastructure_needs(t.id, v)
+            return
+        end
+        if (k == "requires_large_river") then
+            DATA.race_set_requires_large_river(t.id, v)
+            return
+        end
+        if (k == "requires_large_forest") then
+            DATA.race_set_requires_large_forest(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id race_id
+---@return fat_race_id fat_id
+function DATA.fatten_race(id)
+    local result = {id = id}
+    setmetatable(result, fat_race_id_metatable)    return result
+end
 
 
 function DATA.save_state()
@@ -10907,7 +13504,6 @@ function DATA.save_state()
     local current_shift = 0
     local total_ffi_size = 0
     total_ffi_size = total_ffi_size + ffi.sizeof("tile") * 1500000
-    total_ffi_size = total_ffi_size + ffi.sizeof("race") * 15
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
@@ -10930,9 +13526,6 @@ function DATA.save_state()
     local current_buffer = ffi.new("uint8_t[?]", total_ffi_size)
     current_shift = ffi.sizeof("tile") * 1500000
     ffi.copy(current_buffer + current_offset, DATA.tile, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("race") * 15
-    ffi.copy(current_buffer + current_offset, DATA.race, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("pop") * 300000
     ffi.copy(current_buffer + current_offset, DATA.pop, current_shift)
@@ -11001,7 +13594,6 @@ function DATA.load_state()
     local current_shift = 0
     local total_ffi_size = 0
     total_ffi_size = total_ffi_size + ffi.sizeof("tile") * 1500000
-    total_ffi_size = total_ffi_size + ffi.sizeof("race") * 15
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
@@ -11023,9 +13615,6 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("succession") * 10000
     current_shift = ffi.sizeof("tile") * 1500000
     ffi.copy(DATA.tile, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("race") * 15
-    ffi.copy(DATA.race, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("pop") * 300000
     ffi.copy(DATA.pop, data + current_offset, current_shift)
@@ -11176,323 +13765,255 @@ function DATA.test_save_load_0()
     for i = 0, 1500000 do
         DATA.tile[i].pathfinding_index = 10
     end
-    for i = 0, 15 do
-        DATA.race[i].r = 19
-    end
-    for i = 0, 15 do
-        DATA.race[i].g = 20
-    end
-    for i = 0, 15 do
-        DATA.race[i].b = -7
-    end
-    for i = 0, 15 do
-        DATA.race[i].carrying_capacity_weight = 15
-    end
-    for i = 0, 15 do
-        DATA.race[i].fecundity = 10
-    end
-    for i = 0, 15 do
-        DATA.race[i].spotting = 8
-    end
-    for i = 0, 15 do
-        DATA.race[i].visibility = 13
-    end
-    for i = 0, 15 do
-        DATA.race[i].males_per_hundred_females = -4
-    end
-    for i = 0, 15 do
-        DATA.race[i].child_age = -17
-    end
-    for i = 0, 15 do
-        DATA.race[i].teen_age = 15
-    end
-    for i = 0, 15 do
-        DATA.race[i].adult_age = -20
-    end
-    for i = 0, 15 do
-        DATA.race[i].middle_age = -15
-    end
-    for i = 0, 15 do
-        DATA.race[i].elder_age = 5
-    end
-    for i = 0, 15 do
-        DATA.race[i].max_age = 20
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_temperature = -20
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_absolute_temperature = 19
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_elevation = 11
-    end
-    for i = 0, 15 do
-        DATA.race[i].female_body_size = 1
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_body_size = -5
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].female_efficiency[j] = 0
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].male_efficiency[j] = -16
-    end
-    end
-    for i = 0, 15 do
-        DATA.race[i].female_infrastructure_needs = -8
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_infrastructure_needs = 16
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].need = 3
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].use_case = 7
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].required = -11
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].need = 7
-    end
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].use_case = 2
-    end
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].required = -15
-    end
-    end
-    for i = 0, 15 do
-        DATA.race[i].requires_large_river = false
-    end
-    for i = 0, 15 do
-        DATA.race[i].requires_large_forest = false
+    for i = 0, 300000 do
+        DATA.pop[i].race = 19
     end
     for i = 0, 300000 do
-        DATA.pop[i].race = 3
-    end
-    for i = 0, 300000 do
-        DATA.pop[i].female = false
+        DATA.pop[i].female = true
     end
     for i = 0, 300000 do
         DATA.pop[i].age = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = -2
+        DATA.pop[i].job = 15
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 3
+        DATA.pop[i].savings = 8
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 17
+        DATA.pop[i].parent = 16
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = 1
+        DATA.pop[i].loyalty = 8
     end
     for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = 14
+        DATA.pop[i].life_needs_satisfaction = -17
+    end
+    for i = 0, 300000 do
+        DATA.pop[i].basic_needs_satisfaction = 15
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].need = 3
+        DATA.pop[i].need_satisfaction[j].need = 0
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].use_case = 19
+        DATA.pop[i].need_satisfaction[j].use_case = 2
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = 15
+        DATA.pop[i].need_satisfaction[j].consumed = 5
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = 17
+        DATA.pop[i].need_satisfaction[j].demanded = 20
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        DATA.pop[i].traits[j] = 4
+        DATA.pop[i].traits[j] = 0
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 14
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        DATA.pop[i].inventory[j] = -15
-    end
+        DATA.pop[i].successor = 19
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].price_memory[j] = 18
+        DATA.pop[i].inventory[j] = 11
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].forage_ratio = 4
+    for j = 0, 99 do
+        DATA.pop[i].price_memory[j] = 1
+    end
+    end
+    for i = 0, 300000 do
+        DATA.pop[i].forage_ratio = -5
     end
     for i = 0, 300000 do
         DATA.pop[i].work_ratio = 0
     end
     for i = 0, 300000 do
-        DATA.pop[i].rank = 1
+        DATA.pop[i].rank = 0
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].dna[j] = -2
+        DATA.pop[i].dna[j] = -8
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].r = -9
+        DATA.province[i].r = 16
     end
     for i = 0, 10000 do
-        DATA.province[i].g = -8
+        DATA.province[i].g = -6
     end
     for i = 0, 10000 do
-        DATA.province[i].b = -9
+        DATA.province[i].b = -5
     end
     for i = 0, 10000 do
         DATA.province[i].is_land = true
     end
     for i = 0, 10000 do
-        DATA.province[i].province_id = 19
+        DATA.province[i].province_id = 14
     end
     for i = 0, 10000 do
-        DATA.province[i].size = -4
+        DATA.province[i].size = 8
     end
     for i = 0, 10000 do
-        DATA.province[i].hydration = 10
+        DATA.province[i].hydration = -15
     end
     for i = 0, 10000 do
-        DATA.province[i].movement_cost = -16
+        DATA.province[i].movement_cost = -15
     end
     for i = 0, 10000 do
-        DATA.province[i].center = 2
+        DATA.province[i].center = 10
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_needed = -12
+        DATA.province[i].infrastructure_needed = 12
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure = -11
+        DATA.province[i].infrastructure = 11
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_investment = -18
+        DATA.province[i].infrastructure_investment = -14
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_production[j] = -15
-    end
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_consumption[j] = 14
+    for j = 0, 399 do
+        DATA.province[i].technologies_present[j] = 9
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_demand[j] = 5
+    for j = 0, 399 do
+        DATA.province[i].technologies_researchable[j] = 17
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_storage[j] = 13
+    for j = 0, 249 do
+        DATA.province[i].buildable_buildings[j] = false
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_prices[j] = -3
+        DATA.province[i].local_production[j] = -13
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_wealth = 13
+    for j = 0, 99 do
+        DATA.province[i].local_consumption[j] = 15
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].trade_wealth = -5
+    for j = 0, 99 do
+        DATA.province[i].local_demand[j] = 1
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_income = -7
+    for j = 0, 99 do
+        DATA.province[i].local_storage[j] = 14
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_building_upkeep = 17
+    for j = 0, 99 do
+        DATA.province[i].local_prices[j] = -7
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers = 6
+        DATA.province[i].local_wealth = 18
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_water = 17
+        DATA.province[i].trade_wealth = 15
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_limit = -3
+        DATA.province[i].local_income = 17
+    end
+    for i = 0, 10000 do
+        DATA.province[i].local_building_upkeep = -2
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers = 8
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers_water = -15
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers_limit = 18
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].resource = 14
+        DATA.province[i].local_resources[j].resource = 12
     end
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].location = 15
+        DATA.province[i].local_resources[j].location = 10
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = 2
+        DATA.province[i].mood = 16
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.province[i].unit_types[j] = 2
+        DATA.province[i].unit_types[j] = 7
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].on_a_river = false
+    for j = 0, 249 do
+        DATA.province[i].throughput_boosts[j] = -2
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        DATA.province[i].input_efficiency_boosts[j] = -9
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        DATA.province[i].output_efficiency_boosts[j] = -8
+    end
+    end
+    for i = 0, 10000 do
+        DATA.province[i].on_a_river = true
     end
     for i = 0, 10000 do
         DATA.province[i].on_a_forest = true
     end
     for i = 0, 5000 do
-        DATA.army[i].destination = 15
+        DATA.army[i].destination = 19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_current[j] = 17
+        DATA.warband[i].units_current[j] = -4
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_target[j] = 20
+        DATA.warband[i].units_target[j] = 10
     end
     end
     for i = 0, 10000 do
-        DATA.warband[i].status = 5
+        DATA.warband[i].status = 1
     end
     for i = 0, 10000 do
         DATA.warband[i].idle_stance = 0
     end
     for i = 0, 10000 do
-        DATA.warband[i].current_free_time_ratio = -5
+        DATA.warband[i].current_free_time_ratio = -12
     end
     for i = 0, 10000 do
-        DATA.warband[i].treasury = -19
+        DATA.warband[i].treasury = -11
     end
     for i = 0, 10000 do
-        DATA.warband[i].total_upkeep = -3
+        DATA.warband[i].total_upkeep = -18
     end
     for i = 0, 10000 do
-        DATA.warband[i].predicted_upkeep = -13
+        DATA.warband[i].predicted_upkeep = -15
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies = -6
+        DATA.warband[i].supplies = 14
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies_target_days = 3
+        DATA.warband[i].supplies_target_days = 5
     end
     for i = 0, 10000 do
-        DATA.warband[i].morale = -10
+        DATA.warband[i].morale = 13
     end
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 10
+        DATA.warband_unit[i].type = 8
     end
     DATA.save_state()
     DATA.load_state()
@@ -11587,323 +14108,255 @@ function DATA.test_save_load_0()
     for i = 0, 1500000 do
         test_passed = test_passed and DATA.tile[i].pathfinding_index == 10
     end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].r == 19
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].g == 20
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].b == -7
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == 15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].fecundity == 10
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].spotting == 8
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].visibility == 13
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].males_per_hundred_females == -4
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].child_age == -17
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].teen_age == 15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].adult_age == -20
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].middle_age == -15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].elder_age == 5
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].max_age == 20
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == -20
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == 19
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 11
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_body_size == 1
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_body_size == -5
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 0
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].male_efficiency[j] == -16
-    end
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == -8
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 16
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].need == 3
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 7
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].required == -11
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].need == 7
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].use_case == 2
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].required == -15
-    end
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_river == false
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_forest == false
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].race == 19
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].race == 3
-    end
-    for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].female == false
+        test_passed = test_passed and DATA.pop[i].female == true
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].age == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == -2
+        test_passed = test_passed and DATA.pop[i].job == 15
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 3
+        test_passed = test_passed and DATA.pop[i].savings == 8
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 17
+        test_passed = test_passed and DATA.pop[i].parent == 16
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 1
+        test_passed = test_passed and DATA.pop[i].loyalty == 8
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == 14
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -17
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == 15
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 3
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 0
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 19
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 2
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 15
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 5
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 17
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 20
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[i].traits[j] == 4
+        test_passed = test_passed and DATA.pop[i].traits[j] == 0
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 14
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].inventory[j] == -15
-    end
+        test_passed = test_passed and DATA.pop[i].successor == 19
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].price_memory[j] == 18
+        test_passed = test_passed and DATA.pop[i].inventory[j] == 11
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].forage_ratio == 4
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.pop[i].price_memory[j] == 1
+    end
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].forage_ratio == -5
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].work_ratio == 0
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].rank == 1
+        test_passed = test_passed and DATA.pop[i].rank == 0
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].dna[j] == -2
+        test_passed = test_passed and DATA.pop[i].dna[j] == -8
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].r == -9
+        test_passed = test_passed and DATA.province[i].r == 16
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].g == -8
+        test_passed = test_passed and DATA.province[i].g == -6
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].b == -9
+        test_passed = test_passed and DATA.province[i].b == -5
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].is_land == true
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].province_id == 19
+        test_passed = test_passed and DATA.province[i].province_id == 14
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].size == -4
+        test_passed = test_passed and DATA.province[i].size == 8
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].hydration == 10
+        test_passed = test_passed and DATA.province[i].hydration == -15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].movement_cost == -16
+        test_passed = test_passed and DATA.province[i].movement_cost == -15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].center == 2
+        test_passed = test_passed and DATA.province[i].center == 10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_needed == -12
+        test_passed = test_passed and DATA.province[i].infrastructure_needed == 12
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure == -11
+        test_passed = test_passed and DATA.province[i].infrastructure == 11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_investment == -18
+        test_passed = test_passed and DATA.province[i].infrastructure_investment == -14
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_production[j] == -15
-    end
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_consumption[j] == 14
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_present[j] == 9
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_demand[j] == 5
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_researchable[j] == 17
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_storage[j] == 13
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == false
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_prices[j] == -3
+        test_passed = test_passed and DATA.province[i].local_production[j] == -13
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_wealth == 13
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_consumption[j] == 15
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].trade_wealth == -5
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_demand[j] == 1
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_income == -7
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_storage[j] == 14
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_building_upkeep == 17
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_prices[j] == -7
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers == 6
+        test_passed = test_passed and DATA.province[i].local_wealth == 18
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_water == 17
+        test_passed = test_passed and DATA.province[i].trade_wealth == 15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_limit == -3
+        test_passed = test_passed and DATA.province[i].local_income == 17
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].local_building_upkeep == -2
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers == 8
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers_water == -15
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers_limit == 18
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 14
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 12
     end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].location == 15
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 10
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == 2
+        test_passed = test_passed and DATA.province[i].mood == 16
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[i].unit_types[j] == 2
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 7
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].on_a_river == false
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].throughput_boosts[j] == -2
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].input_efficiency_boosts[j] == -9
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].output_efficiency_boosts[j] == -8
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].on_a_river == true
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].on_a_forest == true
     end
     for i = 0, 5000 do
-        test_passed = test_passed and DATA.army[i].destination == 15
+        test_passed = test_passed and DATA.army[i].destination == 19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_current[j] == 17
+        test_passed = test_passed and DATA.warband[i].units_current[j] == -4
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_target[j] == 20
+        test_passed = test_passed and DATA.warband[i].units_target[j] == 10
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].status == 5
+        test_passed = test_passed and DATA.warband[i].status == 1
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.warband[i].idle_stance == 0
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -5
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -12
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].treasury == -19
+        test_passed = test_passed and DATA.warband[i].treasury == -11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].total_upkeep == -3
+        test_passed = test_passed and DATA.warband[i].total_upkeep == -18
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -13
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies == -6
+        test_passed = test_passed and DATA.warband[i].supplies == 14
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies_target_days == 3
+        test_passed = test_passed and DATA.warband[i].supplies_target_days == 5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].morale == -10
+        test_passed = test_passed and DATA.warband[i].morale == 13
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 10
+        test_passed = test_passed and DATA.warband_unit[i].type == 8
     end
     print("SAVE_LOAD_TEST_0:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -12003,171 +14456,43 @@ function DATA.test_set_get_0()
     if not test_passed then print("pathfinding_index", 10, fat_id.pathfinding_index) end
     print("SET_GET_TEST_0_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
-    local fat_id = DATA.fatten_race(0)
-    fat_id.r = 4
-    fat_id.g = 6
-    fat_id.b = -18
-    fat_id.carrying_capacity_weight = -4
-    fat_id.fecundity = 12
-    fat_id.spotting = 11
-    fat_id.visibility = 5
-    fat_id.males_per_hundred_females = -1
-    fat_id.child_age = 10
-    fat_id.teen_age = 2
-    fat_id.adult_age = 17
-    fat_id.middle_age = -7
-    fat_id.elder_age = 12
-    fat_id.max_age = -12
-    fat_id.minimum_comfortable_temperature = -2
-    fat_id.minimum_absolute_temperature = -12
-    fat_id.minimum_comfortable_elevation = -14
-    fat_id.female_body_size = 19
-    fat_id.male_body_size = -4
-    for j = 0, 9 do
-        DATA.race[0].female_efficiency[j] = 14
-    end
-    for j = 0, 9 do
-        DATA.race[0].male_efficiency[j] = 18
-    end
-    fat_id.female_infrastructure_needs = -11
-    fat_id.male_infrastructure_needs = -1
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].need = 1
-    end
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].use_case = 2
-    end
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].required = 1
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].need = 7
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].use_case = 17
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].required = -14
-    end
-    fat_id.requires_large_river = false
-    fat_id.requires_large_forest = false
-    local test_passed = true
-    test_passed = test_passed and fat_id.r == 4
-    if not test_passed then print("r", 4, fat_id.r) end
-    test_passed = test_passed and fat_id.g == 6
-    if not test_passed then print("g", 6, fat_id.g) end
-    test_passed = test_passed and fat_id.b == -18
-    if not test_passed then print("b", -18, fat_id.b) end
-    test_passed = test_passed and fat_id.carrying_capacity_weight == -4
-    if not test_passed then print("carrying_capacity_weight", -4, fat_id.carrying_capacity_weight) end
-    test_passed = test_passed and fat_id.fecundity == 12
-    if not test_passed then print("fecundity", 12, fat_id.fecundity) end
-    test_passed = test_passed and fat_id.spotting == 11
-    if not test_passed then print("spotting", 11, fat_id.spotting) end
-    test_passed = test_passed and fat_id.visibility == 5
-    if not test_passed then print("visibility", 5, fat_id.visibility) end
-    test_passed = test_passed and fat_id.males_per_hundred_females == -1
-    if not test_passed then print("males_per_hundred_females", -1, fat_id.males_per_hundred_females) end
-    test_passed = test_passed and fat_id.child_age == 10
-    if not test_passed then print("child_age", 10, fat_id.child_age) end
-    test_passed = test_passed and fat_id.teen_age == 2
-    if not test_passed then print("teen_age", 2, fat_id.teen_age) end
-    test_passed = test_passed and fat_id.adult_age == 17
-    if not test_passed then print("adult_age", 17, fat_id.adult_age) end
-    test_passed = test_passed and fat_id.middle_age == -7
-    if not test_passed then print("middle_age", -7, fat_id.middle_age) end
-    test_passed = test_passed and fat_id.elder_age == 12
-    if not test_passed then print("elder_age", 12, fat_id.elder_age) end
-    test_passed = test_passed and fat_id.max_age == -12
-    if not test_passed then print("max_age", -12, fat_id.max_age) end
-    test_passed = test_passed and fat_id.minimum_comfortable_temperature == -2
-    if not test_passed then print("minimum_comfortable_temperature", -2, fat_id.minimum_comfortable_temperature) end
-    test_passed = test_passed and fat_id.minimum_absolute_temperature == -12
-    if not test_passed then print("minimum_absolute_temperature", -12, fat_id.minimum_absolute_temperature) end
-    test_passed = test_passed and fat_id.minimum_comfortable_elevation == -14
-    if not test_passed then print("minimum_comfortable_elevation", -14, fat_id.minimum_comfortable_elevation) end
-    test_passed = test_passed and fat_id.female_body_size == 19
-    if not test_passed then print("female_body_size", 19, fat_id.female_body_size) end
-    test_passed = test_passed and fat_id.male_body_size == -4
-    if not test_passed then print("male_body_size", -4, fat_id.male_body_size) end
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[0].female_efficiency[j] == 14
-    end
-    if not test_passed then print("female_efficiency", 14, DATA.race[0].female_efficiency[0]) end
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[0].male_efficiency[j] == 18
-    end
-    if not test_passed then print("male_efficiency", 18, DATA.race[0].male_efficiency[0]) end
-    test_passed = test_passed and fat_id.female_infrastructure_needs == -11
-    if not test_passed then print("female_infrastructure_needs", -11, fat_id.female_infrastructure_needs) end
-    test_passed = test_passed and fat_id.male_infrastructure_needs == -1
-    if not test_passed then print("male_infrastructure_needs", -1, fat_id.male_infrastructure_needs) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].need == 1
-    end
-    if not test_passed then print("female_needs.need", 1, DATA.race[0].female_needs[0].need) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].use_case == 2
-    end
-    if not test_passed then print("female_needs.use_case", 2, DATA.race[0].female_needs[0].use_case) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].required == 1
-    end
-    if not test_passed then print("female_needs.required", 1, DATA.race[0].female_needs[0].required) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].need == 7
-    end
-    if not test_passed then print("male_needs.need", 7, DATA.race[0].male_needs[0].need) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].use_case == 17
-    end
-    if not test_passed then print("male_needs.use_case", 17, DATA.race[0].male_needs[0].use_case) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].required == -14
-    end
-    if not test_passed then print("male_needs.required", -14, DATA.race[0].male_needs[0].required) end
-    test_passed = test_passed and fat_id.requires_large_river == false
-    if not test_passed then print("requires_large_river", false, fat_id.requires_large_river) end
-    test_passed = test_passed and fat_id.requires_large_forest == false
-    if not test_passed then print("requires_large_forest", false, fat_id.requires_large_forest) end
-    print("SET_GET_TEST_0_race:")
-    if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_pop(0)
     fat_id.race = 12
     fat_id.female = false
     fat_id.age = 1
-    fat_id.savings = -4
-    fat_id.parent = 16
-    fat_id.loyalty = 15
-    fat_id.life_needs_satisfaction = 5
-    fat_id.basic_needs_satisfaction = -1
+    fat_id.job = 8
+    fat_id.savings = 12
+    fat_id.parent = 15
+    fat_id.loyalty = 12
+    fat_id.life_needs_satisfaction = -1
+    fat_id.basic_needs_satisfaction = 10
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].need = 7
+        DATA.pop[0].need_satisfaction[j].need = 5
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].use_case = 11
+        DATA.pop[0].need_satisfaction[j].use_case = 18
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].consumed = 17
+        DATA.pop[0].need_satisfaction[j].consumed = -7
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].demanded = -7
+        DATA.pop[0].need_satisfaction[j].demanded = 12
     end
     for j = 0, 9 do
-        DATA.pop[0].traits[j] = 8
+        DATA.pop[0].traits[j] = 2
     end
-    fat_id.successor = 4
+    fat_id.successor = 9
     for j = 0, 99 do
-        DATA.pop[0].inventory[j] = -2
+        DATA.pop[0].inventory[j] = -12
     end
     for j = 0, 99 do
-        DATA.pop[0].price_memory[j] = -12
+        DATA.pop[0].price_memory[j] = -14
     end
-    fat_id.forage_ratio = -14
-    fat_id.work_ratio = 19
-    fat_id.rank = 2
+    fat_id.forage_ratio = 19
+    fat_id.work_ratio = -4
+    fat_id.rank = 1
     for j = 0, 19 do
-        DATA.pop[0].dna[j] = 14
+        DATA.pop[0].dna[j] = -1
     end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 12
@@ -12176,56 +14501,58 @@ function DATA.test_set_get_0()
     if not test_passed then print("female", false, fat_id.female) end
     test_passed = test_passed and fat_id.age == 1
     if not test_passed then print("age", 1, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -4
-    if not test_passed then print("savings", -4, fat_id.savings) end
-    test_passed = test_passed and fat_id.parent == 16
-    if not test_passed then print("parent", 16, fat_id.parent) end
-    test_passed = test_passed and fat_id.loyalty == 15
-    if not test_passed then print("loyalty", 15, fat_id.loyalty) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 5
-    if not test_passed then print("life_needs_satisfaction", 5, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == -1
-    if not test_passed then print("basic_needs_satisfaction", -1, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.job == 8
+    if not test_passed then print("job", 8, fat_id.job) end
+    test_passed = test_passed and fat_id.savings == 12
+    if not test_passed then print("savings", 12, fat_id.savings) end
+    test_passed = test_passed and fat_id.parent == 15
+    if not test_passed then print("parent", 15, fat_id.parent) end
+    test_passed = test_passed and fat_id.loyalty == 12
+    if not test_passed then print("loyalty", 12, fat_id.loyalty) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == -1
+    if not test_passed then print("life_needs_satisfaction", -1, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 10
+    if not test_passed then print("basic_needs_satisfaction", 10, fat_id.basic_needs_satisfaction) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 7
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 5
     end
-    if not test_passed then print("need_satisfaction.need", 7, DATA.pop[0].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 5, DATA.pop[0].need_satisfaction[0].need) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 11
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 18
     end
-    if not test_passed then print("need_satisfaction.use_case", 11, DATA.pop[0].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[0].need_satisfaction[0].use_case) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == 17
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -7
     end
-    if not test_passed then print("need_satisfaction.consumed", 17, DATA.pop[0].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -7, DATA.pop[0].need_satisfaction[0].consumed) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == -7
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 12
     end
-    if not test_passed then print("need_satisfaction.demanded", -7, DATA.pop[0].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 12, DATA.pop[0].need_satisfaction[0].demanded) end
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[0].traits[j] == 8
+        test_passed = test_passed and DATA.pop[0].traits[j] == 2
     end
-    if not test_passed then print("traits", 8, DATA.pop[0].traits[0]) end
-    test_passed = test_passed and fat_id.successor == 4
-    if not test_passed then print("successor", 4, fat_id.successor) end
+    if not test_passed then print("traits", 2, DATA.pop[0].traits[0]) end
+    test_passed = test_passed and fat_id.successor == 9
+    if not test_passed then print("successor", 9, fat_id.successor) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].inventory[j] == -2
+        test_passed = test_passed and DATA.pop[0].inventory[j] == -12
     end
-    if not test_passed then print("inventory", -2, DATA.pop[0].inventory[0]) end
+    if not test_passed then print("inventory", -12, DATA.pop[0].inventory[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].price_memory[j] == -12
+        test_passed = test_passed and DATA.pop[0].price_memory[j] == -14
     end
-    if not test_passed then print("price_memory", -12, DATA.pop[0].price_memory[0]) end
-    test_passed = test_passed and fat_id.forage_ratio == -14
-    if not test_passed then print("forage_ratio", -14, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 19
-    if not test_passed then print("work_ratio", 19, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 2
-    if not test_passed then print("rank", 2, fat_id.rank) end
+    if not test_passed then print("price_memory", -14, DATA.pop[0].price_memory[0]) end
+    test_passed = test_passed and fat_id.forage_ratio == 19
+    if not test_passed then print("forage_ratio", 19, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == -4
+    if not test_passed then print("work_ratio", -4, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.rank == 1
+    if not test_passed then print("rank", 1, fat_id.rank) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].dna[j] == 14
+        test_passed = test_passed and DATA.pop[0].dna[j] == -1
     end
-    if not test_passed then print("dna", 14, DATA.pop[0].dna[0]) end
+    if not test_passed then print("dna", -1, DATA.pop[0].dna[0]) end
     print("SET_GET_TEST_0_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_province(0)
@@ -12241,37 +14568,55 @@ function DATA.test_set_get_0()
     fat_id.infrastructure_needed = 2
     fat_id.infrastructure = 17
     fat_id.infrastructure_investment = -7
-    for j = 0, 99 do
-        DATA.province[0].local_production[j] = 12
+    for j = 0, 399 do
+        DATA.province[0].technologies_present[j] = 16
+    end
+    for j = 0, 399 do
+        DATA.province[0].technologies_researchable[j] = 4
+    end
+    for j = 0, 249 do
+        DATA.province[0].buildable_buildings[j] = false
     end
     for j = 0, 99 do
-        DATA.province[0].local_consumption[j] = -12
+        DATA.province[0].local_production[j] = -12
     end
     for j = 0, 99 do
-        DATA.province[0].local_demand[j] = -2
+        DATA.province[0].local_consumption[j] = -14
     end
     for j = 0, 99 do
-        DATA.province[0].local_storage[j] = -12
+        DATA.province[0].local_demand[j] = 19
     end
     for j = 0, 99 do
-        DATA.province[0].local_prices[j] = -14
+        DATA.province[0].local_storage[j] = -4
     end
-    fat_id.local_wealth = 19
-    fat_id.trade_wealth = -4
-    fat_id.local_income = 14
-    fat_id.local_building_upkeep = 18
-    fat_id.foragers = -11
-    fat_id.foragers_water = -1
-    fat_id.foragers_limit = -14
+    for j = 0, 99 do
+        DATA.province[0].local_prices[j] = 14
+    end
+    fat_id.local_wealth = 18
+    fat_id.trade_wealth = -11
+    fat_id.local_income = -1
+    fat_id.local_building_upkeep = -14
+    fat_id.foragers = -16
+    fat_id.foragers_water = 1
+    fat_id.foragers_limit = 10
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].resource = 2
+        DATA.province[0].local_resources[j].resource = 17
     end
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].location = 10
+        DATA.province[0].local_resources[j].location = 3
     end
-    fat_id.mood = 10
+    fat_id.mood = 2
     for j = 0, 19 do
-        DATA.province[0].unit_types[j] = 17
+        DATA.province[0].unit_types[j] = 13
+    end
+    for j = 0, 249 do
+        DATA.province[0].throughput_boosts[j] = 0
+    end
+    for j = 0, 249 do
+        DATA.province[0].input_efficiency_boosts[j] = 19
+    end
+    for j = 0, 249 do
+        DATA.province[0].output_efficiency_boosts[j] = 20
     end
     fat_id.on_a_river = true
     fat_id.on_a_forest = false
@@ -12300,54 +14645,78 @@ function DATA.test_set_get_0()
     if not test_passed then print("infrastructure", 17, fat_id.infrastructure) end
     test_passed = test_passed and fat_id.infrastructure_investment == -7
     if not test_passed then print("infrastructure_investment", -7, fat_id.infrastructure_investment) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_production[j] == 12
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[0].technologies_present[j] == 16
     end
-    if not test_passed then print("local_production", 12, DATA.province[0].local_production[0]) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_consumption[j] == -12
+    if not test_passed then print("technologies_present", 16, DATA.province[0].technologies_present[0]) end
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[0].technologies_researchable[j] == 4
     end
-    if not test_passed then print("local_consumption", -12, DATA.province[0].local_consumption[0]) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_demand[j] == -2
+    if not test_passed then print("technologies_researchable", 4, DATA.province[0].technologies_researchable[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == false
     end
-    if not test_passed then print("local_demand", -2, DATA.province[0].local_demand[0]) end
+    if not test_passed then print("buildable_buildings", false, DATA.province[0].buildable_buildings[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_storage[j] == -12
+        test_passed = test_passed and DATA.province[0].local_production[j] == -12
     end
-    if not test_passed then print("local_storage", -12, DATA.province[0].local_storage[0]) end
+    if not test_passed then print("local_production", -12, DATA.province[0].local_production[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_prices[j] == -14
+        test_passed = test_passed and DATA.province[0].local_consumption[j] == -14
     end
-    if not test_passed then print("local_prices", -14, DATA.province[0].local_prices[0]) end
-    test_passed = test_passed and fat_id.local_wealth == 19
-    if not test_passed then print("local_wealth", 19, fat_id.local_wealth) end
-    test_passed = test_passed and fat_id.trade_wealth == -4
-    if not test_passed then print("trade_wealth", -4, fat_id.trade_wealth) end
-    test_passed = test_passed and fat_id.local_income == 14
-    if not test_passed then print("local_income", 14, fat_id.local_income) end
-    test_passed = test_passed and fat_id.local_building_upkeep == 18
-    if not test_passed then print("local_building_upkeep", 18, fat_id.local_building_upkeep) end
-    test_passed = test_passed and fat_id.foragers == -11
-    if not test_passed then print("foragers", -11, fat_id.foragers) end
-    test_passed = test_passed and fat_id.foragers_water == -1
-    if not test_passed then print("foragers_water", -1, fat_id.foragers_water) end
-    test_passed = test_passed and fat_id.foragers_limit == -14
-    if not test_passed then print("foragers_limit", -14, fat_id.foragers_limit) end
+    if not test_passed then print("local_consumption", -14, DATA.province[0].local_consumption[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_demand[j] == 19
+    end
+    if not test_passed then print("local_demand", 19, DATA.province[0].local_demand[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_storage[j] == -4
+    end
+    if not test_passed then print("local_storage", -4, DATA.province[0].local_storage[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_prices[j] == 14
+    end
+    if not test_passed then print("local_prices", 14, DATA.province[0].local_prices[0]) end
+    test_passed = test_passed and fat_id.local_wealth == 18
+    if not test_passed then print("local_wealth", 18, fat_id.local_wealth) end
+    test_passed = test_passed and fat_id.trade_wealth == -11
+    if not test_passed then print("trade_wealth", -11, fat_id.trade_wealth) end
+    test_passed = test_passed and fat_id.local_income == -1
+    if not test_passed then print("local_income", -1, fat_id.local_income) end
+    test_passed = test_passed and fat_id.local_building_upkeep == -14
+    if not test_passed then print("local_building_upkeep", -14, fat_id.local_building_upkeep) end
+    test_passed = test_passed and fat_id.foragers == -16
+    if not test_passed then print("foragers", -16, fat_id.foragers) end
+    test_passed = test_passed and fat_id.foragers_water == 1
+    if not test_passed then print("foragers_water", 1, fat_id.foragers_water) end
+    test_passed = test_passed and fat_id.foragers_limit == 10
+    if not test_passed then print("foragers_limit", 10, fat_id.foragers_limit) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 2
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 17
     end
-    if not test_passed then print("local_resources.resource", 2, DATA.province[0].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 17, DATA.province[0].local_resources[0].resource) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].location == 10
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 3
     end
-    if not test_passed then print("local_resources.location", 10, DATA.province[0].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == 10
-    if not test_passed then print("mood", 10, fat_id.mood) end
+    if not test_passed then print("local_resources.location", 3, DATA.province[0].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == 2
+    if not test_passed then print("mood", 2, fat_id.mood) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[0].unit_types[j] == 17
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 13
     end
-    if not test_passed then print("unit_types", 17, DATA.province[0].unit_types[0]) end
+    if not test_passed then print("unit_types", 13, DATA.province[0].unit_types[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].throughput_boosts[j] == 0
+    end
+    if not test_passed then print("throughput_boosts", 0, DATA.province[0].throughput_boosts[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].input_efficiency_boosts[j] == 19
+    end
+    if not test_passed then print("input_efficiency_boosts", 19, DATA.province[0].input_efficiency_boosts[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].output_efficiency_boosts[j] == 20
+    end
+    if not test_passed then print("output_efficiency_boosts", 20, DATA.province[0].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == true
     if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == false
@@ -12561,143 +14930,45 @@ function DATA.test_save_load_1()
     for i = 0, 1500000 do
         DATA.tile[i].pathfinding_index = 0
     end
-    for i = 0, 15 do
-        DATA.race[i].r = 13
-    end
-    for i = 0, 15 do
-        DATA.race[i].g = -6
-    end
-    for i = 0, 15 do
-        DATA.race[i].b = 8
-    end
-    for i = 0, 15 do
-        DATA.race[i].carrying_capacity_weight = 11
-    end
-    for i = 0, 15 do
-        DATA.race[i].fecundity = 15
-    end
-    for i = 0, 15 do
-        DATA.race[i].spotting = -6
-    end
-    for i = 0, 15 do
-        DATA.race[i].visibility = 2
-    end
-    for i = 0, 15 do
-        DATA.race[i].males_per_hundred_females = -6
-    end
-    for i = 0, 15 do
-        DATA.race[i].child_age = -6
-    end
-    for i = 0, 15 do
-        DATA.race[i].teen_age = 9
-    end
-    for i = 0, 15 do
-        DATA.race[i].adult_age = -2
-    end
-    for i = 0, 15 do
-        DATA.race[i].middle_age = -19
-    end
-    for i = 0, 15 do
-        DATA.race[i].elder_age = 6
-    end
-    for i = 0, 15 do
-        DATA.race[i].max_age = 15
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_temperature = -14
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_absolute_temperature = -9
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_elevation = 20
-    end
-    for i = 0, 15 do
-        DATA.race[i].female_body_size = -2
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_body_size = -13
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].female_efficiency[j] = 1
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].male_efficiency[j] = 12
-    end
-    end
-    for i = 0, 15 do
-        DATA.race[i].female_infrastructure_needs = 7
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_infrastructure_needs = 12
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].need = 3
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].use_case = 9
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].required = -2
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].need = 7
-    end
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].use_case = 16
-    end
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].required = 5
-    end
-    end
-    for i = 0, 15 do
-        DATA.race[i].requires_large_river = true
-    end
-    for i = 0, 15 do
-        DATA.race[i].requires_large_forest = false
+    for i = 0, 300000 do
+        DATA.pop[i].race = 16
     end
     for i = 0, 300000 do
-        DATA.pop[i].race = 7
+        DATA.pop[i].female = true
     end
     for i = 0, 300000 do
-        DATA.pop[i].female = false
+        DATA.pop[i].age = 14
     end
     for i = 0, 300000 do
-        DATA.pop[i].age = 13
+        DATA.pop[i].job = 15
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = -9
+        DATA.pop[i].savings = 15
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 11
+        DATA.pop[i].parent = 7
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 17
+        DATA.pop[i].loyalty = 11
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = 3
+        DATA.pop[i].life_needs_satisfaction = -6
     end
     for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = -15
+        DATA.pop[i].basic_needs_satisfaction = -6
     end
     for i = 0, 300000 do
     for j = 0, 19 do
         DATA.pop[i].need_satisfaction[j].need = 7
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].use_case = 16
+        DATA.pop[i].need_satisfaction[j].use_case = 9
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = -14
+        DATA.pop[i].need_satisfaction[j].consumed = -19
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = -10
+        DATA.pop[i].need_satisfaction[j].demanded = 6
     end
     end
     for i = 0, 300000 do
@@ -12706,178 +14977,208 @@ function DATA.test_save_load_1()
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 12
+        DATA.pop[i].successor = 20
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].inventory[j] = 3
+        DATA.pop[i].inventory[j] = -14
     end
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].price_memory[j] = 11
+        DATA.pop[i].price_memory[j] = -9
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].forage_ratio = -19
+        DATA.pop[i].forage_ratio = 20
     end
     for i = 0, 300000 do
-        DATA.pop[i].work_ratio = 10
+        DATA.pop[i].work_ratio = -2
     end
     for i = 0, 300000 do
         DATA.pop[i].rank = 0
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].dna[j] = -1
+        DATA.pop[i].dna[j] = 1
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].r = 19
+        DATA.province[i].r = 12
     end
     for i = 0, 10000 do
-        DATA.province[i].g = 17
+        DATA.province[i].g = 7
     end
     for i = 0, 10000 do
-        DATA.province[i].b = 17
+        DATA.province[i].b = 12
     end
     for i = 0, 10000 do
-        DATA.province[i].is_land = false
+        DATA.province[i].is_land = true
     end
     for i = 0, 10000 do
-        DATA.province[i].province_id = -10
+        DATA.province[i].province_id = -1
     end
     for i = 0, 10000 do
-        DATA.province[i].size = -10
+        DATA.province[i].size = -2
     end
     for i = 0, 10000 do
-        DATA.province[i].hydration = 12
+        DATA.province[i].hydration = 17
     end
     for i = 0, 10000 do
-        DATA.province[i].movement_cost = -6
+        DATA.province[i].movement_cost = 11
     end
     for i = 0, 10000 do
-        DATA.province[i].center = 0
+        DATA.province[i].center = 16
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_needed = -8
+        DATA.province[i].infrastructure_needed = 5
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure = 14
+        DATA.province[i].infrastructure = 17
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_investment = 15
+        DATA.province[i].infrastructure_investment = -18
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_production[j] = -6
-    end
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_consumption[j] = 5
+    for j = 0, 399 do
+        DATA.province[i].technologies_present[j] = 15
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_demand[j] = 12
+    for j = 0, 399 do
+        DATA.province[i].technologies_researchable[j] = 7
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_storage[j] = 2
+    for j = 0, 249 do
+        DATA.province[i].buildable_buildings[j] = false
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_prices[j] = 16
+        DATA.province[i].local_production[j] = 6
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_wealth = 2
+    for j = 0, 99 do
+        DATA.province[i].local_consumption[j] = -9
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].trade_wealth = 9
+    for j = 0, 99 do
+        DATA.province[i].local_demand[j] = 3
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_income = -3
+    for j = 0, 99 do
+        DATA.province[i].local_storage[j] = 15
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_building_upkeep = 15
+    for j = 0, 99 do
+        DATA.province[i].local_prices[j] = 3
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers = 18
+        DATA.province[i].local_wealth = -15
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_water = -20
+        DATA.province[i].trade_wealth = 8
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_limit = 4
+        DATA.province[i].local_income = 12
+    end
+    for i = 0, 10000 do
+        DATA.province[i].local_building_upkeep = -14
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers = -10
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers_water = 13
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers_limit = 5
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].resource = 16
+        DATA.province[i].local_resources[j].resource = 11
     end
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].location = 4
+        DATA.province[i].local_resources[j].location = 15
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = 13
+        DATA.province[i].mood = -19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.province[i].unit_types[j] = 17
+        DATA.province[i].unit_types[j] = 15
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].on_a_river = true
+    for j = 0, 249 do
+        DATA.province[i].throughput_boosts[j] = -18
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].on_a_forest = false
+    for j = 0, 249 do
+        DATA.province[i].input_efficiency_boosts[j] = -1
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        DATA.province[i].output_efficiency_boosts[j] = 19
+    end
+    end
+    for i = 0, 10000 do
+        DATA.province[i].on_a_river = false
+    end
+    for i = 0, 10000 do
+        DATA.province[i].on_a_forest = true
     end
     for i = 0, 5000 do
-        DATA.army[i].destination = 1
+        DATA.army[i].destination = 5
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_current[j] = 10
+        DATA.warband[i].units_current[j] = 12
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_target[j] = 3
+        DATA.warband[i].units_target[j] = -6
     end
     end
     for i = 0, 10000 do
-        DATA.warband[i].status = 8
+        DATA.warband[i].status = 0
     end
     for i = 0, 10000 do
         DATA.warband[i].idle_stance = 0
     end
     for i = 0, 10000 do
-        DATA.warband[i].current_free_time_ratio = 12
+        DATA.warband[i].current_free_time_ratio = 14
     end
     for i = 0, 10000 do
-        DATA.warband[i].treasury = 6
+        DATA.warband[i].treasury = 15
     end
     for i = 0, 10000 do
-        DATA.warband[i].total_upkeep = 11
+        DATA.warband[i].total_upkeep = -6
     end
     for i = 0, 10000 do
-        DATA.warband[i].predicted_upkeep = 2
+        DATA.warband[i].predicted_upkeep = 5
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies = 6
+        DATA.warband[i].supplies = 12
     end
     for i = 0, 10000 do
         DATA.warband[i].supplies_target_days = 2
     end
     for i = 0, 10000 do
-        DATA.warband[i].morale = -20
+        DATA.warband[i].morale = 16
     end
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 17
+        DATA.warband_unit[i].type = 11
     end
     DATA.save_state()
     DATA.load_state()
@@ -12972,143 +15273,45 @@ function DATA.test_save_load_1()
     for i = 0, 1500000 do
         test_passed = test_passed and DATA.tile[i].pathfinding_index == 0
     end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].r == 13
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].g == -6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].b == 8
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == 11
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].fecundity == 15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].spotting == -6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].visibility == 2
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].males_per_hundred_females == -6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].child_age == -6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].teen_age == 9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].adult_age == -2
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].middle_age == -19
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].elder_age == 6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].max_age == 15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == -14
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == -9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 20
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_body_size == -2
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_body_size == -13
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 1
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].male_efficiency[j] == 12
-    end
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == 7
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 12
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].need == 3
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 9
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].required == -2
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].need == 7
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].use_case == 16
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].required == 5
-    end
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_river == true
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_forest == false
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].race == 16
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].race == 7
+        test_passed = test_passed and DATA.pop[i].female == true
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].female == false
+        test_passed = test_passed and DATA.pop[i].age == 14
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].age == 13
+        test_passed = test_passed and DATA.pop[i].job == 15
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == -9
+        test_passed = test_passed and DATA.pop[i].savings == 15
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 11
+        test_passed = test_passed and DATA.pop[i].parent == 7
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 17
+        test_passed = test_passed and DATA.pop[i].loyalty == 11
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 3
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -6
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -15
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -6
     end
     for i = 0, 300000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 7
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 16
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 9
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == -14
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == -19
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == -10
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 6
     end
     end
     for i = 0, 300000 do
@@ -13117,178 +15320,208 @@ function DATA.test_save_load_1()
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 12
+        test_passed = test_passed and DATA.pop[i].successor == 20
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].inventory[j] == 3
+        test_passed = test_passed and DATA.pop[i].inventory[j] == -14
     end
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].price_memory[j] == 11
+        test_passed = test_passed and DATA.pop[i].price_memory[j] == -9
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].forage_ratio == -19
+        test_passed = test_passed and DATA.pop[i].forage_ratio == 20
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].work_ratio == 10
+        test_passed = test_passed and DATA.pop[i].work_ratio == -2
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].rank == 0
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].dna[j] == -1
+        test_passed = test_passed and DATA.pop[i].dna[j] == 1
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].r == 19
+        test_passed = test_passed and DATA.province[i].r == 12
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].g == 17
+        test_passed = test_passed and DATA.province[i].g == 7
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].b == 17
+        test_passed = test_passed and DATA.province[i].b == 12
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].is_land == false
+        test_passed = test_passed and DATA.province[i].is_land == true
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].province_id == -10
+        test_passed = test_passed and DATA.province[i].province_id == -1
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].size == -10
+        test_passed = test_passed and DATA.province[i].size == -2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].hydration == 12
+        test_passed = test_passed and DATA.province[i].hydration == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].movement_cost == -6
+        test_passed = test_passed and DATA.province[i].movement_cost == 11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].center == 0
+        test_passed = test_passed and DATA.province[i].center == 16
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_needed == -8
+        test_passed = test_passed and DATA.province[i].infrastructure_needed == 5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure == 14
+        test_passed = test_passed and DATA.province[i].infrastructure == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_investment == 15
+        test_passed = test_passed and DATA.province[i].infrastructure_investment == -18
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_production[j] == -6
-    end
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_consumption[j] == 5
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_present[j] == 15
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_demand[j] == 12
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_researchable[j] == 7
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_storage[j] == 2
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == false
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_prices[j] == 16
+        test_passed = test_passed and DATA.province[i].local_production[j] == 6
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_wealth == 2
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_consumption[j] == -9
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].trade_wealth == 9
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_demand[j] == 3
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_income == -3
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_storage[j] == 15
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_building_upkeep == 15
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_prices[j] == 3
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers == 18
+        test_passed = test_passed and DATA.province[i].local_wealth == -15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_water == -20
+        test_passed = test_passed and DATA.province[i].trade_wealth == 8
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_limit == 4
+        test_passed = test_passed and DATA.province[i].local_income == 12
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].local_building_upkeep == -14
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers == -10
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers_water == 13
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers_limit == 5
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 16
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 11
     end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].location == 4
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 15
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == 13
+        test_passed = test_passed and DATA.province[i].mood == -19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[i].unit_types[j] == 17
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 15
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].on_a_river == true
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].throughput_boosts[j] == -18
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].on_a_forest == false
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].input_efficiency_boosts[j] == -1
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].output_efficiency_boosts[j] == 19
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].on_a_river == false
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].on_a_forest == true
     end
     for i = 0, 5000 do
-        test_passed = test_passed and DATA.army[i].destination == 1
+        test_passed = test_passed and DATA.army[i].destination == 5
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_current[j] == 10
+        test_passed = test_passed and DATA.warband[i].units_current[j] == 12
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_target[j] == 3
+        test_passed = test_passed and DATA.warband[i].units_target[j] == -6
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].status == 8
+        test_passed = test_passed and DATA.warband[i].status == 0
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.warband[i].idle_stance == 0
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 12
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 14
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].treasury == 6
+        test_passed = test_passed and DATA.warband[i].treasury == 15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].total_upkeep == 11
+        test_passed = test_passed and DATA.warband[i].total_upkeep == -6
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].predicted_upkeep == 2
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == 5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies == 6
+        test_passed = test_passed and DATA.warband[i].supplies == 12
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.warband[i].supplies_target_days == 2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].morale == -20
+        test_passed = test_passed and DATA.warband[i].morale == 16
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 17
+        test_passed = test_passed and DATA.warband_unit[i].type == 11
     end
     print("SAVE_LOAD_TEST_1:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -13388,171 +15621,43 @@ function DATA.test_set_get_1()
     if not test_passed then print("pathfinding_index", 0, fat_id.pathfinding_index) end
     print("SET_GET_TEST_1_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
-    local fat_id = DATA.fatten_race(0)
-    fat_id.r = -12
-    fat_id.g = 16
-    fat_id.b = -16
-    fat_id.carrying_capacity_weight = -4
-    fat_id.fecundity = -13
-    fat_id.spotting = 11
-    fat_id.visibility = 8
-    fat_id.males_per_hundred_females = 10
-    fat_id.child_age = 4
-    fat_id.teen_age = -7
-    fat_id.adult_age = -14
-    fat_id.middle_age = 11
-    fat_id.elder_age = -19
-    fat_id.max_age = 4
-    fat_id.minimum_comfortable_temperature = 7
-    fat_id.minimum_absolute_temperature = 18
-    fat_id.minimum_comfortable_elevation = -20
-    fat_id.female_body_size = 8
-    fat_id.male_body_size = -3
-    for j = 0, 9 do
-        DATA.race[0].female_efficiency[j] = -6
-    end
-    for j = 0, 9 do
-        DATA.race[0].male_efficiency[j] = 17
-    end
-    fat_id.female_infrastructure_needs = -14
-    fat_id.male_infrastructure_needs = 0
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].need = 0
-    end
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].use_case = 0
-    end
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].required = -19
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].need = 0
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].use_case = 12
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].required = -7
-    end
-    fat_id.requires_large_river = false
-    fat_id.requires_large_forest = true
-    local test_passed = true
-    test_passed = test_passed and fat_id.r == -12
-    if not test_passed then print("r", -12, fat_id.r) end
-    test_passed = test_passed and fat_id.g == 16
-    if not test_passed then print("g", 16, fat_id.g) end
-    test_passed = test_passed and fat_id.b == -16
-    if not test_passed then print("b", -16, fat_id.b) end
-    test_passed = test_passed and fat_id.carrying_capacity_weight == -4
-    if not test_passed then print("carrying_capacity_weight", -4, fat_id.carrying_capacity_weight) end
-    test_passed = test_passed and fat_id.fecundity == -13
-    if not test_passed then print("fecundity", -13, fat_id.fecundity) end
-    test_passed = test_passed and fat_id.spotting == 11
-    if not test_passed then print("spotting", 11, fat_id.spotting) end
-    test_passed = test_passed and fat_id.visibility == 8
-    if not test_passed then print("visibility", 8, fat_id.visibility) end
-    test_passed = test_passed and fat_id.males_per_hundred_females == 10
-    if not test_passed then print("males_per_hundred_females", 10, fat_id.males_per_hundred_females) end
-    test_passed = test_passed and fat_id.child_age == 4
-    if not test_passed then print("child_age", 4, fat_id.child_age) end
-    test_passed = test_passed and fat_id.teen_age == -7
-    if not test_passed then print("teen_age", -7, fat_id.teen_age) end
-    test_passed = test_passed and fat_id.adult_age == -14
-    if not test_passed then print("adult_age", -14, fat_id.adult_age) end
-    test_passed = test_passed and fat_id.middle_age == 11
-    if not test_passed then print("middle_age", 11, fat_id.middle_age) end
-    test_passed = test_passed and fat_id.elder_age == -19
-    if not test_passed then print("elder_age", -19, fat_id.elder_age) end
-    test_passed = test_passed and fat_id.max_age == 4
-    if not test_passed then print("max_age", 4, fat_id.max_age) end
-    test_passed = test_passed and fat_id.minimum_comfortable_temperature == 7
-    if not test_passed then print("minimum_comfortable_temperature", 7, fat_id.minimum_comfortable_temperature) end
-    test_passed = test_passed and fat_id.minimum_absolute_temperature == 18
-    if not test_passed then print("minimum_absolute_temperature", 18, fat_id.minimum_absolute_temperature) end
-    test_passed = test_passed and fat_id.minimum_comfortable_elevation == -20
-    if not test_passed then print("minimum_comfortable_elevation", -20, fat_id.minimum_comfortable_elevation) end
-    test_passed = test_passed and fat_id.female_body_size == 8
-    if not test_passed then print("female_body_size", 8, fat_id.female_body_size) end
-    test_passed = test_passed and fat_id.male_body_size == -3
-    if not test_passed then print("male_body_size", -3, fat_id.male_body_size) end
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[0].female_efficiency[j] == -6
-    end
-    if not test_passed then print("female_efficiency", -6, DATA.race[0].female_efficiency[0]) end
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[0].male_efficiency[j] == 17
-    end
-    if not test_passed then print("male_efficiency", 17, DATA.race[0].male_efficiency[0]) end
-    test_passed = test_passed and fat_id.female_infrastructure_needs == -14
-    if not test_passed then print("female_infrastructure_needs", -14, fat_id.female_infrastructure_needs) end
-    test_passed = test_passed and fat_id.male_infrastructure_needs == 0
-    if not test_passed then print("male_infrastructure_needs", 0, fat_id.male_infrastructure_needs) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].need == 0
-    end
-    if not test_passed then print("female_needs.need", 0, DATA.race[0].female_needs[0].need) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].use_case == 0
-    end
-    if not test_passed then print("female_needs.use_case", 0, DATA.race[0].female_needs[0].use_case) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].required == -19
-    end
-    if not test_passed then print("female_needs.required", -19, DATA.race[0].female_needs[0].required) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].need == 0
-    end
-    if not test_passed then print("male_needs.need", 0, DATA.race[0].male_needs[0].need) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].use_case == 12
-    end
-    if not test_passed then print("male_needs.use_case", 12, DATA.race[0].male_needs[0].use_case) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].required == -7
-    end
-    if not test_passed then print("male_needs.required", -7, DATA.race[0].male_needs[0].required) end
-    test_passed = test_passed and fat_id.requires_large_river == false
-    if not test_passed then print("requires_large_river", false, fat_id.requires_large_river) end
-    test_passed = test_passed and fat_id.requires_large_forest == true
-    if not test_passed then print("requires_large_forest", true, fat_id.requires_large_forest) end
-    print("SET_GET_TEST_1_race:")
-    if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_pop(0)
     fat_id.race = 4
     fat_id.female = true
     fat_id.age = 8
-    fat_id.savings = -13
-    fat_id.parent = 15
-    fat_id.loyalty = 14
-    fat_id.life_needs_satisfaction = 10
-    fat_id.basic_needs_satisfaction = 4
+    fat_id.job = 3
+    fat_id.savings = 11
+    fat_id.parent = 14
+    fat_id.loyalty = 15
+    fat_id.life_needs_satisfaction = 4
+    fat_id.basic_needs_satisfaction = -7
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].need = 3
+        DATA.pop[0].need_satisfaction[j].need = 1
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].use_case = 3
+        DATA.pop[0].need_satisfaction[j].use_case = 15
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].consumed = 11
+        DATA.pop[0].need_satisfaction[j].consumed = -19
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].demanded = -19
+        DATA.pop[0].need_satisfaction[j].demanded = 4
     end
     for j = 0, 9 do
         DATA.pop[0].traits[j] = 6
     end
-    fat_id.successor = 13
+    fat_id.successor = 19
     for j = 0, 99 do
-        DATA.pop[0].inventory[j] = 18
+        DATA.pop[0].inventory[j] = -20
     end
     for j = 0, 99 do
-        DATA.pop[0].price_memory[j] = -20
+        DATA.pop[0].price_memory[j] = 8
     end
-    fat_id.forage_ratio = 8
-    fat_id.work_ratio = -3
-    fat_id.rank = 1
+    fat_id.forage_ratio = -3
+    fat_id.work_ratio = -6
+    fat_id.rank = 0
     for j = 0, 19 do
-        DATA.pop[0].dna[j] = 17
+        DATA.pop[0].dna[j] = 0
     end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 4
@@ -13561,56 +15666,58 @@ function DATA.test_set_get_1()
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 8
     if not test_passed then print("age", 8, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -13
-    if not test_passed then print("savings", -13, fat_id.savings) end
-    test_passed = test_passed and fat_id.parent == 15
-    if not test_passed then print("parent", 15, fat_id.parent) end
-    test_passed = test_passed and fat_id.loyalty == 14
-    if not test_passed then print("loyalty", 14, fat_id.loyalty) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 10
-    if not test_passed then print("life_needs_satisfaction", 10, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 4
-    if not test_passed then print("basic_needs_satisfaction", 4, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.job == 3
+    if not test_passed then print("job", 3, fat_id.job) end
+    test_passed = test_passed and fat_id.savings == 11
+    if not test_passed then print("savings", 11, fat_id.savings) end
+    test_passed = test_passed and fat_id.parent == 14
+    if not test_passed then print("parent", 14, fat_id.parent) end
+    test_passed = test_passed and fat_id.loyalty == 15
+    if not test_passed then print("loyalty", 15, fat_id.loyalty) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 4
+    if not test_passed then print("life_needs_satisfaction", 4, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == -7
+    if not test_passed then print("basic_needs_satisfaction", -7, fat_id.basic_needs_satisfaction) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 3
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 1
     end
-    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[0].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 1, DATA.pop[0].need_satisfaction[0].need) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 3
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 15
     end
-    if not test_passed then print("need_satisfaction.use_case", 3, DATA.pop[0].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 15, DATA.pop[0].need_satisfaction[0].use_case) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == 11
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -19
     end
-    if not test_passed then print("need_satisfaction.consumed", 11, DATA.pop[0].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -19, DATA.pop[0].need_satisfaction[0].consumed) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == -19
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 4
     end
-    if not test_passed then print("need_satisfaction.demanded", -19, DATA.pop[0].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 4, DATA.pop[0].need_satisfaction[0].demanded) end
     for j = 0, 9 do
         test_passed = test_passed and DATA.pop[0].traits[j] == 6
     end
     if not test_passed then print("traits", 6, DATA.pop[0].traits[0]) end
-    test_passed = test_passed and fat_id.successor == 13
-    if not test_passed then print("successor", 13, fat_id.successor) end
+    test_passed = test_passed and fat_id.successor == 19
+    if not test_passed then print("successor", 19, fat_id.successor) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].inventory[j] == 18
+        test_passed = test_passed and DATA.pop[0].inventory[j] == -20
     end
-    if not test_passed then print("inventory", 18, DATA.pop[0].inventory[0]) end
+    if not test_passed then print("inventory", -20, DATA.pop[0].inventory[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].price_memory[j] == -20
+        test_passed = test_passed and DATA.pop[0].price_memory[j] == 8
     end
-    if not test_passed then print("price_memory", -20, DATA.pop[0].price_memory[0]) end
-    test_passed = test_passed and fat_id.forage_ratio == 8
-    if not test_passed then print("forage_ratio", 8, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -3
-    if not test_passed then print("work_ratio", -3, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 1
-    if not test_passed then print("rank", 1, fat_id.rank) end
+    if not test_passed then print("price_memory", 8, DATA.pop[0].price_memory[0]) end
+    test_passed = test_passed and fat_id.forage_ratio == -3
+    if not test_passed then print("forage_ratio", -3, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == -6
+    if not test_passed then print("work_ratio", -6, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.rank == 0
+    if not test_passed then print("rank", 0, fat_id.rank) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].dna[j] == 17
+        test_passed = test_passed and DATA.pop[0].dna[j] == 0
     end
-    if not test_passed then print("dna", 17, DATA.pop[0].dna[0]) end
+    if not test_passed then print("dna", 0, DATA.pop[0].dna[0]) end
     print("SET_GET_TEST_1_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_province(0)
@@ -13626,37 +15733,55 @@ function DATA.test_set_get_1()
     fat_id.infrastructure_needed = 4
     fat_id.infrastructure = -7
     fat_id.infrastructure_investment = -14
-    for j = 0, 99 do
-        DATA.province[0].local_production[j] = 11
+    for j = 0, 399 do
+        DATA.province[0].technologies_present[j] = 15
+    end
+    for j = 0, 399 do
+        DATA.province[0].technologies_researchable[j] = 0
+    end
+    for j = 0, 249 do
+        DATA.province[0].buildable_buildings[j] = false
     end
     for j = 0, 99 do
-        DATA.province[0].local_consumption[j] = -19
+        DATA.province[0].local_production[j] = 7
     end
     for j = 0, 99 do
-        DATA.province[0].local_demand[j] = 4
+        DATA.province[0].local_consumption[j] = 18
     end
     for j = 0, 99 do
-        DATA.province[0].local_storage[j] = 7
+        DATA.province[0].local_demand[j] = -20
     end
     for j = 0, 99 do
-        DATA.province[0].local_prices[j] = 18
+        DATA.province[0].local_storage[j] = 8
     end
-    fat_id.local_wealth = -20
-    fat_id.trade_wealth = 8
-    fat_id.local_income = -3
-    fat_id.local_building_upkeep = -6
-    fat_id.foragers = 17
-    fat_id.foragers_water = -14
-    fat_id.foragers_limit = 0
+    for j = 0, 99 do
+        DATA.province[0].local_prices[j] = -3
+    end
+    fat_id.local_wealth = -6
+    fat_id.trade_wealth = 17
+    fat_id.local_income = -14
+    fat_id.local_building_upkeep = 0
+    fat_id.foragers = -19
+    fat_id.foragers_water = -19
+    fat_id.foragers_limit = -19
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].resource = 0
+        DATA.province[0].local_resources[j].resource = 20
     end
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].location = 0
+        DATA.province[0].local_resources[j].location = 17
     end
-    fat_id.mood = -19
+    fat_id.mood = -20
     for j = 0, 19 do
-        DATA.province[0].unit_types[j] = 20
+        DATA.province[0].unit_types[j] = 12
+    end
+    for j = 0, 249 do
+        DATA.province[0].throughput_boosts[j] = -7
+    end
+    for j = 0, 249 do
+        DATA.province[0].input_efficiency_boosts[j] = 7
+    end
+    for j = 0, 249 do
+        DATA.province[0].output_efficiency_boosts[j] = -19
     end
     fat_id.on_a_river = true
     fat_id.on_a_forest = false
@@ -13685,54 +15810,78 @@ function DATA.test_set_get_1()
     if not test_passed then print("infrastructure", -7, fat_id.infrastructure) end
     test_passed = test_passed and fat_id.infrastructure_investment == -14
     if not test_passed then print("infrastructure_investment", -14, fat_id.infrastructure_investment) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_production[j] == 11
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[0].technologies_present[j] == 15
     end
-    if not test_passed then print("local_production", 11, DATA.province[0].local_production[0]) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_consumption[j] == -19
+    if not test_passed then print("technologies_present", 15, DATA.province[0].technologies_present[0]) end
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[0].technologies_researchable[j] == 0
     end
-    if not test_passed then print("local_consumption", -19, DATA.province[0].local_consumption[0]) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_demand[j] == 4
+    if not test_passed then print("technologies_researchable", 0, DATA.province[0].technologies_researchable[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == false
     end
-    if not test_passed then print("local_demand", 4, DATA.province[0].local_demand[0]) end
+    if not test_passed then print("buildable_buildings", false, DATA.province[0].buildable_buildings[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_storage[j] == 7
+        test_passed = test_passed and DATA.province[0].local_production[j] == 7
     end
-    if not test_passed then print("local_storage", 7, DATA.province[0].local_storage[0]) end
+    if not test_passed then print("local_production", 7, DATA.province[0].local_production[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_prices[j] == 18
+        test_passed = test_passed and DATA.province[0].local_consumption[j] == 18
     end
-    if not test_passed then print("local_prices", 18, DATA.province[0].local_prices[0]) end
-    test_passed = test_passed and fat_id.local_wealth == -20
-    if not test_passed then print("local_wealth", -20, fat_id.local_wealth) end
-    test_passed = test_passed and fat_id.trade_wealth == 8
-    if not test_passed then print("trade_wealth", 8, fat_id.trade_wealth) end
-    test_passed = test_passed and fat_id.local_income == -3
-    if not test_passed then print("local_income", -3, fat_id.local_income) end
-    test_passed = test_passed and fat_id.local_building_upkeep == -6
-    if not test_passed then print("local_building_upkeep", -6, fat_id.local_building_upkeep) end
-    test_passed = test_passed and fat_id.foragers == 17
-    if not test_passed then print("foragers", 17, fat_id.foragers) end
-    test_passed = test_passed and fat_id.foragers_water == -14
-    if not test_passed then print("foragers_water", -14, fat_id.foragers_water) end
-    test_passed = test_passed and fat_id.foragers_limit == 0
-    if not test_passed then print("foragers_limit", 0, fat_id.foragers_limit) end
+    if not test_passed then print("local_consumption", 18, DATA.province[0].local_consumption[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_demand[j] == -20
+    end
+    if not test_passed then print("local_demand", -20, DATA.province[0].local_demand[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_storage[j] == 8
+    end
+    if not test_passed then print("local_storage", 8, DATA.province[0].local_storage[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_prices[j] == -3
+    end
+    if not test_passed then print("local_prices", -3, DATA.province[0].local_prices[0]) end
+    test_passed = test_passed and fat_id.local_wealth == -6
+    if not test_passed then print("local_wealth", -6, fat_id.local_wealth) end
+    test_passed = test_passed and fat_id.trade_wealth == 17
+    if not test_passed then print("trade_wealth", 17, fat_id.trade_wealth) end
+    test_passed = test_passed and fat_id.local_income == -14
+    if not test_passed then print("local_income", -14, fat_id.local_income) end
+    test_passed = test_passed and fat_id.local_building_upkeep == 0
+    if not test_passed then print("local_building_upkeep", 0, fat_id.local_building_upkeep) end
+    test_passed = test_passed and fat_id.foragers == -19
+    if not test_passed then print("foragers", -19, fat_id.foragers) end
+    test_passed = test_passed and fat_id.foragers_water == -19
+    if not test_passed then print("foragers_water", -19, fat_id.foragers_water) end
+    test_passed = test_passed and fat_id.foragers_limit == -19
+    if not test_passed then print("foragers_limit", -19, fat_id.foragers_limit) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 0
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 20
     end
-    if not test_passed then print("local_resources.resource", 0, DATA.province[0].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 20, DATA.province[0].local_resources[0].resource) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].location == 0
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 17
     end
-    if not test_passed then print("local_resources.location", 0, DATA.province[0].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == -19
-    if not test_passed then print("mood", -19, fat_id.mood) end
+    if not test_passed then print("local_resources.location", 17, DATA.province[0].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == -20
+    if not test_passed then print("mood", -20, fat_id.mood) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[0].unit_types[j] == 20
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 12
     end
-    if not test_passed then print("unit_types", 20, DATA.province[0].unit_types[0]) end
+    if not test_passed then print("unit_types", 12, DATA.province[0].unit_types[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].throughput_boosts[j] == -7
+    end
+    if not test_passed then print("throughput_boosts", -7, DATA.province[0].throughput_boosts[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].input_efficiency_boosts[j] == 7
+    end
+    if not test_passed then print("input_efficiency_boosts", 7, DATA.province[0].input_efficiency_boosts[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].output_efficiency_boosts[j] == -19
+    end
+    if not test_passed then print("output_efficiency_boosts", -19, DATA.province[0].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == true
     if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == false
@@ -13946,143 +16095,45 @@ function DATA.test_save_load_2()
     for i = 0, 1500000 do
         DATA.tile[i].pathfinding_index = 5
     end
-    for i = 0, 15 do
-        DATA.race[i].r = 15
-    end
-    for i = 0, 15 do
-        DATA.race[i].g = -9
-    end
-    for i = 0, 15 do
-        DATA.race[i].b = -5
-    end
-    for i = 0, 15 do
-        DATA.race[i].carrying_capacity_weight = -6
-    end
-    for i = 0, 15 do
-        DATA.race[i].fecundity = -19
-    end
-    for i = 0, 15 do
-        DATA.race[i].spotting = -9
-    end
-    for i = 0, 15 do
-        DATA.race[i].visibility = 0
-    end
-    for i = 0, 15 do
-        DATA.race[i].males_per_hundred_females = -9
-    end
-    for i = 0, 15 do
-        DATA.race[i].child_age = -12
-    end
-    for i = 0, 15 do
-        DATA.race[i].teen_age = 12
-    end
-    for i = 0, 15 do
-        DATA.race[i].adult_age = 12
-    end
-    for i = 0, 15 do
-        DATA.race[i].middle_age = 3
-    end
-    for i = 0, 15 do
-        DATA.race[i].elder_age = 12
-    end
-    for i = 0, 15 do
-        DATA.race[i].max_age = 15
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_temperature = -9
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_absolute_temperature = 8
-    end
-    for i = 0, 15 do
-        DATA.race[i].minimum_comfortable_elevation = 6
-    end
-    for i = 0, 15 do
-        DATA.race[i].female_body_size = 13
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_body_size = 3
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].female_efficiency[j] = 17
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        DATA.race[i].male_efficiency[j] = 2
-    end
-    end
-    for i = 0, 15 do
-        DATA.race[i].female_infrastructure_needs = 3
-    end
-    for i = 0, 15 do
-        DATA.race[i].male_infrastructure_needs = 8
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].need = 2
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].use_case = 12
-    end
-    for j = 0, 19 do
-        DATA.race[i].female_needs[j].required = 9
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].need = 3
-    end
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].use_case = 15
-    end
-    for j = 0, 19 do
-        DATA.race[i].male_needs[j].required = -3
-    end
-    end
-    for i = 0, 15 do
-        DATA.race[i].requires_large_river = false
-    end
-    for i = 0, 15 do
-        DATA.race[i].requires_large_forest = false
+    for i = 0, 300000 do
+        DATA.pop[i].race = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].race = 14
+        DATA.pop[i].female = true
     end
     for i = 0, 300000 do
-        DATA.pop[i].female = false
+        DATA.pop[i].age = 7
     end
     for i = 0, 300000 do
-        DATA.pop[i].age = 11
+        DATA.pop[i].job = 7
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = 16
+        DATA.pop[i].savings = -19
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 17
+        DATA.pop[i].parent = 5
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 14
+        DATA.pop[i].loyalty = 10
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = 11
+        DATA.pop[i].life_needs_satisfaction = -9
     end
     for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = -6
+        DATA.pop[i].basic_needs_satisfaction = -12
     end
     for i = 0, 300000 do
     for j = 0, 19 do
         DATA.pop[i].need_satisfaction[j].need = 5
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].use_case = 5
+        DATA.pop[i].need_satisfaction[j].use_case = 16
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = 19
+        DATA.pop[i].need_satisfaction[j].consumed = 15
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = -3
+        DATA.pop[i].need_satisfaction[j].demanded = -9
     end
     end
     for i = 0, 300000 do
@@ -14091,178 +16142,208 @@ function DATA.test_save_load_2()
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 9
+        DATA.pop[i].successor = 13
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].inventory[j] = -1
+        DATA.pop[i].inventory[j] = 13
     end
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].price_memory[j] = 12
+        DATA.pop[i].price_memory[j] = 3
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].forage_ratio = 15
+        DATA.pop[i].forage_ratio = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].work_ratio = 13
+        DATA.pop[i].work_ratio = 2
     end
     for i = 0, 300000 do
-        DATA.pop[i].rank = 3
+        DATA.pop[i].rank = 2
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].dna[j] = -1
+        DATA.pop[i].dna[j] = 8
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].r = -7
+        DATA.province[i].r = -10
     end
     for i = 0, 10000 do
-        DATA.province[i].g = 11
+        DATA.province[i].g = 5
     end
     for i = 0, 10000 do
-        DATA.province[i].b = 12
+        DATA.province[i].b = 9
     end
     for i = 0, 10000 do
-        DATA.province[i].is_land = false
+        DATA.province[i].is_land = true
     end
     for i = 0, 10000 do
-        DATA.province[i].province_id = 19
+        DATA.province[i].province_id = 11
     end
     for i = 0, 10000 do
-        DATA.province[i].size = -16
+        DATA.province[i].size = -3
     end
     for i = 0, 10000 do
-        DATA.province[i].hydration = 1
+        DATA.province[i].hydration = 11
     end
     for i = 0, 10000 do
-        DATA.province[i].movement_cost = -20
+        DATA.province[i].movement_cost = 12
     end
     for i = 0, 10000 do
-        DATA.province[i].center = 6
+        DATA.province[i].center = 16
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_needed = -14
+        DATA.province[i].infrastructure_needed = 2
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure = -17
+        DATA.province[i].infrastructure = 9
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_investment = 16
+        DATA.province[i].infrastructure_investment = 9
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_production[j] = -17
-    end
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_consumption[j] = -3
+    for j = 0, 399 do
+        DATA.province[i].technologies_present[j] = 11
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_demand[j] = 17
+    for j = 0, 399 do
+        DATA.province[i].technologies_researchable[j] = 18
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        DATA.province[i].local_storage[j] = -6
+    for j = 0, 249 do
+        DATA.province[i].buildable_buildings[j] = false
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_prices[j] = -14
+        DATA.province[i].local_production[j] = 11
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_wealth = 13
+    for j = 0, 99 do
+        DATA.province[i].local_consumption[j] = -6
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].trade_wealth = -12
+    for j = 0, 99 do
+        DATA.province[i].local_demand[j] = 0
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_income = -3
+    for j = 0, 99 do
+        DATA.province[i].local_storage[j] = -10
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_building_upkeep = -5
+    for j = 0, 99 do
+        DATA.province[i].local_prices[j] = 19
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers = -7
+        DATA.province[i].local_wealth = -3
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_water = -17
+        DATA.province[i].trade_wealth = 10
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_limit = 7
+        DATA.province[i].local_income = -1
+    end
+    for i = 0, 10000 do
+        DATA.province[i].local_building_upkeep = -1
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers = 12
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers_water = 15
+    end
+    for i = 0, 10000 do
+        DATA.province[i].foragers_limit = 13
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].resource = 1
+        DATA.province[i].local_resources[j].resource = 16
     end
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].location = 1
+        DATA.province[i].local_resources[j].location = 20
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = 3
+        DATA.province[i].mood = 19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.province[i].unit_types[j] = 11
+        DATA.province[i].unit_types[j] = 18
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].on_a_river = true
+    for j = 0, 249 do
+        DATA.province[i].throughput_boosts[j] = 6
+    end
     end
     for i = 0, 10000 do
-        DATA.province[i].on_a_forest = true
+    for j = 0, 249 do
+        DATA.province[i].input_efficiency_boosts[j] = -1
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        DATA.province[i].output_efficiency_boosts[j] = -7
+    end
+    end
+    for i = 0, 10000 do
+        DATA.province[i].on_a_river = false
+    end
+    for i = 0, 10000 do
+        DATA.province[i].on_a_forest = false
     end
     for i = 0, 5000 do
-        DATA.army[i].destination = 0
+        DATA.army[i].destination = 19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_current[j] = -15
+        DATA.warband[i].units_current[j] = -16
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_target[j] = -13
+        DATA.warband[i].units_target[j] = 1
     end
     end
     for i = 0, 10000 do
-        DATA.warband[i].status = 1
+        DATA.warband[i].status = 0
     end
     for i = 0, 10000 do
         DATA.warband[i].idle_stance = 0
     end
     for i = 0, 10000 do
-        DATA.warband[i].current_free_time_ratio = -18
+        DATA.warband[i].current_free_time_ratio = -14
     end
     for i = 0, 10000 do
-        DATA.warband[i].treasury = -19
+        DATA.warband[i].treasury = -17
     end
     for i = 0, 10000 do
-        DATA.warband[i].total_upkeep = 3
+        DATA.warband[i].total_upkeep = 16
     end
     for i = 0, 10000 do
-        DATA.warband[i].predicted_upkeep = -4
+        DATA.warband[i].predicted_upkeep = -17
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies = -12
+        DATA.warband[i].supplies = -3
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies_target_days = -10
+        DATA.warband[i].supplies_target_days = 17
     end
     for i = 0, 10000 do
-        DATA.warband[i].morale = -9
+        DATA.warband[i].morale = -6
     end
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 16
+        DATA.warband_unit[i].type = 3
     end
     DATA.save_state()
     DATA.load_state()
@@ -14357,143 +16438,45 @@ function DATA.test_save_load_2()
     for i = 0, 1500000 do
         test_passed = test_passed and DATA.tile[i].pathfinding_index == 5
     end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].r == 15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].g == -9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].b == -5
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].carrying_capacity_weight == -6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].fecundity == -19
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].spotting == -9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].visibility == 0
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].males_per_hundred_females == -9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].child_age == -12
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].teen_age == 12
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].adult_age == 12
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].middle_age == 3
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].elder_age == 12
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].max_age == 15
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_temperature == -9
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_absolute_temperature == 8
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].minimum_comfortable_elevation == 6
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_body_size == 13
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_body_size == 3
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].female_efficiency[j] == 17
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[i].male_efficiency[j] == 2
-    end
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].female_infrastructure_needs == 3
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].male_infrastructure_needs == 8
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].need == 2
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].use_case == 12
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].female_needs[j].required == 9
-    end
-    end
-    for i = 0, 15 do
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].need == 3
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].use_case == 15
-    end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[i].male_needs[j].required == -3
-    end
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_river == false
-    end
-    for i = 0, 15 do
-        test_passed = test_passed and DATA.race[i].requires_large_forest == false
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].race == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].race == 14
+        test_passed = test_passed and DATA.pop[i].female == true
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].female == false
+        test_passed = test_passed and DATA.pop[i].age == 7
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].age == 11
+        test_passed = test_passed and DATA.pop[i].job == 7
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == 16
+        test_passed = test_passed and DATA.pop[i].savings == -19
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 17
+        test_passed = test_passed and DATA.pop[i].parent == 5
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 14
+        test_passed = test_passed and DATA.pop[i].loyalty == 10
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 11
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -9
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -6
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -12
     end
     for i = 0, 300000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 5
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 5
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 16
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 19
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 15
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == -3
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == -9
     end
     end
     for i = 0, 300000 do
@@ -14502,178 +16485,208 @@ function DATA.test_save_load_2()
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 9
+        test_passed = test_passed and DATA.pop[i].successor == 13
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].inventory[j] == -1
+        test_passed = test_passed and DATA.pop[i].inventory[j] == 13
     end
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].price_memory[j] == 12
+        test_passed = test_passed and DATA.pop[i].price_memory[j] == 3
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].forage_ratio == 15
+        test_passed = test_passed and DATA.pop[i].forage_ratio == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].work_ratio == 13
+        test_passed = test_passed and DATA.pop[i].work_ratio == 2
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].rank == 3
+        test_passed = test_passed and DATA.pop[i].rank == 2
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].dna[j] == -1
+        test_passed = test_passed and DATA.pop[i].dna[j] == 8
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].r == -7
+        test_passed = test_passed and DATA.province[i].r == -10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].g == 11
+        test_passed = test_passed and DATA.province[i].g == 5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].b == 12
+        test_passed = test_passed and DATA.province[i].b == 9
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].is_land == false
+        test_passed = test_passed and DATA.province[i].is_land == true
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].province_id == 19
+        test_passed = test_passed and DATA.province[i].province_id == 11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].size == -16
+        test_passed = test_passed and DATA.province[i].size == -3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].hydration == 1
+        test_passed = test_passed and DATA.province[i].hydration == 11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].movement_cost == -20
+        test_passed = test_passed and DATA.province[i].movement_cost == 12
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].center == 6
+        test_passed = test_passed and DATA.province[i].center == 16
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_needed == -14
+        test_passed = test_passed and DATA.province[i].infrastructure_needed == 2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure == -17
+        test_passed = test_passed and DATA.province[i].infrastructure == 9
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_investment == 16
+        test_passed = test_passed and DATA.province[i].infrastructure_investment == 9
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_production[j] == -17
-    end
-    end
-    for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_consumption[j] == -3
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_present[j] == 11
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_demand[j] == 17
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_researchable[j] == 18
     end
     end
     for i = 0, 10000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_storage[j] == -6
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == false
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_prices[j] == -14
+        test_passed = test_passed and DATA.province[i].local_production[j] == 11
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_wealth == 13
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_consumption[j] == -6
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].trade_wealth == -12
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_demand[j] == 0
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_income == -3
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_storage[j] == -10
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_building_upkeep == -5
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[i].local_prices[j] == 19
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers == -7
+        test_passed = test_passed and DATA.province[i].local_wealth == -3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_water == -17
+        test_passed = test_passed and DATA.province[i].trade_wealth == 10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_limit == 7
+        test_passed = test_passed and DATA.province[i].local_income == -1
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].local_building_upkeep == -1
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers == 12
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers_water == 15
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].foragers_limit == 13
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 1
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 16
     end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].location == 1
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 20
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == 3
+        test_passed = test_passed and DATA.province[i].mood == 19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[i].unit_types[j] == 11
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 18
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].on_a_river == true
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].throughput_boosts[j] == 6
+    end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].on_a_forest == true
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].input_efficiency_boosts[j] == -1
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[i].output_efficiency_boosts[j] == -7
+    end
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].on_a_river == false
+    end
+    for i = 0, 10000 do
+        test_passed = test_passed and DATA.province[i].on_a_forest == false
     end
     for i = 0, 5000 do
-        test_passed = test_passed and DATA.army[i].destination == 0
+        test_passed = test_passed and DATA.army[i].destination == 19
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_current[j] == -15
+        test_passed = test_passed and DATA.warband[i].units_current[j] == -16
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_target[j] == -13
+        test_passed = test_passed and DATA.warband[i].units_target[j] == 1
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].status == 1
+        test_passed = test_passed and DATA.warband[i].status == 0
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.warband[i].idle_stance == 0
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -18
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -14
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].treasury == -19
+        test_passed = test_passed and DATA.warband[i].treasury == -17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].total_upkeep == 3
+        test_passed = test_passed and DATA.warband[i].total_upkeep == 16
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -4
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies == -12
+        test_passed = test_passed and DATA.warband[i].supplies == -3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies_target_days == -10
+        test_passed = test_passed and DATA.warband[i].supplies_target_days == 17
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].morale == -9
+        test_passed = test_passed and DATA.warband[i].morale == -6
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 16
+        test_passed = test_passed and DATA.warband_unit[i].type == 3
     end
     print("SAVE_LOAD_TEST_2:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -14773,171 +16786,43 @@ function DATA.test_set_get_2()
     if not test_passed then print("pathfinding_index", 5, fat_id.pathfinding_index) end
     print("SET_GET_TEST_2_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
-    local fat_id = DATA.fatten_race(0)
-    fat_id.r = -17
-    fat_id.g = -15
-    fat_id.b = -15
-    fat_id.carrying_capacity_weight = 3
-    fat_id.fecundity = -10
-    fat_id.spotting = -1
-    fat_id.visibility = -4
-    fat_id.males_per_hundred_females = 18
-    fat_id.child_age = -7
-    fat_id.teen_age = 18
-    fat_id.adult_age = -18
-    fat_id.middle_age = 17
-    fat_id.elder_age = -10
-    fat_id.max_age = 7
-    fat_id.minimum_comfortable_temperature = 20
-    fat_id.minimum_absolute_temperature = 5
-    fat_id.minimum_comfortable_elevation = 12
-    fat_id.female_body_size = 3
-    fat_id.male_body_size = 14
-    for j = 0, 9 do
-        DATA.race[0].female_efficiency[j] = 8
-    end
-    for j = 0, 9 do
-        DATA.race[0].male_efficiency[j] = 12
-    end
-    fat_id.female_infrastructure_needs = -3
-    fat_id.male_infrastructure_needs = -18
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].need = 0
-    end
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].use_case = 11
-    end
-    for j = 0, 19 do
-        DATA.race[0].female_needs[j].required = 9
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].need = 5
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].use_case = 12
-    end
-    for j = 0, 19 do
-        DATA.race[0].male_needs[j].required = 7
-    end
-    fat_id.requires_large_river = true
-    fat_id.requires_large_forest = true
-    local test_passed = true
-    test_passed = test_passed and fat_id.r == -17
-    if not test_passed then print("r", -17, fat_id.r) end
-    test_passed = test_passed and fat_id.g == -15
-    if not test_passed then print("g", -15, fat_id.g) end
-    test_passed = test_passed and fat_id.b == -15
-    if not test_passed then print("b", -15, fat_id.b) end
-    test_passed = test_passed and fat_id.carrying_capacity_weight == 3
-    if not test_passed then print("carrying_capacity_weight", 3, fat_id.carrying_capacity_weight) end
-    test_passed = test_passed and fat_id.fecundity == -10
-    if not test_passed then print("fecundity", -10, fat_id.fecundity) end
-    test_passed = test_passed and fat_id.spotting == -1
-    if not test_passed then print("spotting", -1, fat_id.spotting) end
-    test_passed = test_passed and fat_id.visibility == -4
-    if not test_passed then print("visibility", -4, fat_id.visibility) end
-    test_passed = test_passed and fat_id.males_per_hundred_females == 18
-    if not test_passed then print("males_per_hundred_females", 18, fat_id.males_per_hundred_females) end
-    test_passed = test_passed and fat_id.child_age == -7
-    if not test_passed then print("child_age", -7, fat_id.child_age) end
-    test_passed = test_passed and fat_id.teen_age == 18
-    if not test_passed then print("teen_age", 18, fat_id.teen_age) end
-    test_passed = test_passed and fat_id.adult_age == -18
-    if not test_passed then print("adult_age", -18, fat_id.adult_age) end
-    test_passed = test_passed and fat_id.middle_age == 17
-    if not test_passed then print("middle_age", 17, fat_id.middle_age) end
-    test_passed = test_passed and fat_id.elder_age == -10
-    if not test_passed then print("elder_age", -10, fat_id.elder_age) end
-    test_passed = test_passed and fat_id.max_age == 7
-    if not test_passed then print("max_age", 7, fat_id.max_age) end
-    test_passed = test_passed and fat_id.minimum_comfortable_temperature == 20
-    if not test_passed then print("minimum_comfortable_temperature", 20, fat_id.minimum_comfortable_temperature) end
-    test_passed = test_passed and fat_id.minimum_absolute_temperature == 5
-    if not test_passed then print("minimum_absolute_temperature", 5, fat_id.minimum_absolute_temperature) end
-    test_passed = test_passed and fat_id.minimum_comfortable_elevation == 12
-    if not test_passed then print("minimum_comfortable_elevation", 12, fat_id.minimum_comfortable_elevation) end
-    test_passed = test_passed and fat_id.female_body_size == 3
-    if not test_passed then print("female_body_size", 3, fat_id.female_body_size) end
-    test_passed = test_passed and fat_id.male_body_size == 14
-    if not test_passed then print("male_body_size", 14, fat_id.male_body_size) end
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[0].female_efficiency[j] == 8
-    end
-    if not test_passed then print("female_efficiency", 8, DATA.race[0].female_efficiency[0]) end
-    for j = 0, 9 do
-        test_passed = test_passed and DATA.race[0].male_efficiency[j] == 12
-    end
-    if not test_passed then print("male_efficiency", 12, DATA.race[0].male_efficiency[0]) end
-    test_passed = test_passed and fat_id.female_infrastructure_needs == -3
-    if not test_passed then print("female_infrastructure_needs", -3, fat_id.female_infrastructure_needs) end
-    test_passed = test_passed and fat_id.male_infrastructure_needs == -18
-    if not test_passed then print("male_infrastructure_needs", -18, fat_id.male_infrastructure_needs) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].need == 0
-    end
-    if not test_passed then print("female_needs.need", 0, DATA.race[0].female_needs[0].need) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].use_case == 11
-    end
-    if not test_passed then print("female_needs.use_case", 11, DATA.race[0].female_needs[0].use_case) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].female_needs[j].required == 9
-    end
-    if not test_passed then print("female_needs.required", 9, DATA.race[0].female_needs[0].required) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].need == 5
-    end
-    if not test_passed then print("male_needs.need", 5, DATA.race[0].male_needs[0].need) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].use_case == 12
-    end
-    if not test_passed then print("male_needs.use_case", 12, DATA.race[0].male_needs[0].use_case) end
-    for j = 0, 19 do
-        test_passed = test_passed and DATA.race[0].male_needs[j].required == 7
-    end
-    if not test_passed then print("male_needs.required", 7, DATA.race[0].male_needs[0].required) end
-    test_passed = test_passed and fat_id.requires_large_river == true
-    if not test_passed then print("requires_large_river", true, fat_id.requires_large_river) end
-    test_passed = test_passed and fat_id.requires_large_forest == true
-    if not test_passed then print("requires_large_forest", true, fat_id.requires_large_forest) end
-    print("SET_GET_TEST_2_race:")
-    if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_pop(0)
     fat_id.race = 1
     fat_id.female = true
     fat_id.age = 2
-    fat_id.savings = 3
-    fat_id.parent = 5
-    fat_id.loyalty = 9
-    fat_id.life_needs_satisfaction = -4
-    fat_id.basic_needs_satisfaction = 18
+    fat_id.job = 11
+    fat_id.savings = -10
+    fat_id.parent = 9
+    fat_id.loyalty = 8
+    fat_id.life_needs_satisfaction = 18
+    fat_id.basic_needs_satisfaction = -7
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].need = 3
+        DATA.pop[0].need_satisfaction[j].need = 0
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].use_case = 19
+        DATA.pop[0].need_satisfaction[j].use_case = 18
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].consumed = -18
+        DATA.pop[0].need_satisfaction[j].consumed = -10
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].demanded = 17
+        DATA.pop[0].need_satisfaction[j].demanded = 7
     end
     for j = 0, 9 do
         DATA.pop[0].traits[j] = 10
     end
-    fat_id.successor = 5
+    fat_id.successor = 12
     for j = 0, 99 do
-        DATA.pop[0].inventory[j] = 7
+        DATA.pop[0].inventory[j] = 12
     end
     for j = 0, 99 do
-        DATA.pop[0].price_memory[j] = 20
+        DATA.pop[0].price_memory[j] = 3
     end
-    fat_id.forage_ratio = 5
-    fat_id.work_ratio = 12
+    fat_id.forage_ratio = 14
+    fat_id.work_ratio = 8
     fat_id.rank = 2
     for j = 0, 19 do
-        DATA.pop[0].dna[j] = 14
+        DATA.pop[0].dna[j] = -18
     end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 1
@@ -14946,56 +16831,58 @@ function DATA.test_set_get_2()
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 2
     if not test_passed then print("age", 2, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == 3
-    if not test_passed then print("savings", 3, fat_id.savings) end
-    test_passed = test_passed and fat_id.parent == 5
-    if not test_passed then print("parent", 5, fat_id.parent) end
-    test_passed = test_passed and fat_id.loyalty == 9
-    if not test_passed then print("loyalty", 9, fat_id.loyalty) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == -4
-    if not test_passed then print("life_needs_satisfaction", -4, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 18
-    if not test_passed then print("basic_needs_satisfaction", 18, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.job == 11
+    if not test_passed then print("job", 11, fat_id.job) end
+    test_passed = test_passed and fat_id.savings == -10
+    if not test_passed then print("savings", -10, fat_id.savings) end
+    test_passed = test_passed and fat_id.parent == 9
+    if not test_passed then print("parent", 9, fat_id.parent) end
+    test_passed = test_passed and fat_id.loyalty == 8
+    if not test_passed then print("loyalty", 8, fat_id.loyalty) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 18
+    if not test_passed then print("life_needs_satisfaction", 18, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == -7
+    if not test_passed then print("basic_needs_satisfaction", -7, fat_id.basic_needs_satisfaction) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 3
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 0
     end
-    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[0].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 0, DATA.pop[0].need_satisfaction[0].need) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 19
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 18
     end
-    if not test_passed then print("need_satisfaction.use_case", 19, DATA.pop[0].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[0].need_satisfaction[0].use_case) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -18
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -10
     end
-    if not test_passed then print("need_satisfaction.consumed", -18, DATA.pop[0].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -10, DATA.pop[0].need_satisfaction[0].consumed) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 17
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 7
     end
-    if not test_passed then print("need_satisfaction.demanded", 17, DATA.pop[0].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 7, DATA.pop[0].need_satisfaction[0].demanded) end
     for j = 0, 9 do
         test_passed = test_passed and DATA.pop[0].traits[j] == 10
     end
     if not test_passed then print("traits", 10, DATA.pop[0].traits[0]) end
-    test_passed = test_passed and fat_id.successor == 5
-    if not test_passed then print("successor", 5, fat_id.successor) end
+    test_passed = test_passed and fat_id.successor == 12
+    if not test_passed then print("successor", 12, fat_id.successor) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].inventory[j] == 7
+        test_passed = test_passed and DATA.pop[0].inventory[j] == 12
     end
-    if not test_passed then print("inventory", 7, DATA.pop[0].inventory[0]) end
+    if not test_passed then print("inventory", 12, DATA.pop[0].inventory[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].price_memory[j] == 20
+        test_passed = test_passed and DATA.pop[0].price_memory[j] == 3
     end
-    if not test_passed then print("price_memory", 20, DATA.pop[0].price_memory[0]) end
-    test_passed = test_passed and fat_id.forage_ratio == 5
-    if not test_passed then print("forage_ratio", 5, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 12
-    if not test_passed then print("work_ratio", 12, fat_id.work_ratio) end
+    if not test_passed then print("price_memory", 3, DATA.pop[0].price_memory[0]) end
+    test_passed = test_passed and fat_id.forage_ratio == 14
+    if not test_passed then print("forage_ratio", 14, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 8
+    if not test_passed then print("work_ratio", 8, fat_id.work_ratio) end
     test_passed = test_passed and fat_id.rank == 2
     if not test_passed then print("rank", 2, fat_id.rank) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].dna[j] == 14
+        test_passed = test_passed and DATA.pop[0].dna[j] == -18
     end
-    if not test_passed then print("dna", 14, DATA.pop[0].dna[0]) end
+    if not test_passed then print("dna", -18, DATA.pop[0].dna[0]) end
     print("SET_GET_TEST_2_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_province(0)
@@ -15011,39 +16898,57 @@ function DATA.test_set_get_2()
     fat_id.infrastructure_needed = 18
     fat_id.infrastructure = -18
     fat_id.infrastructure_investment = 17
-    for j = 0, 99 do
-        DATA.province[0].local_production[j] = -10
+    for j = 0, 399 do
+        DATA.province[0].technologies_present[j] = 5
+    end
+    for j = 0, 399 do
+        DATA.province[0].technologies_researchable[j] = 13
+    end
+    for j = 0, 249 do
+        DATA.province[0].buildable_buildings[j] = false
     end
     for j = 0, 99 do
-        DATA.province[0].local_consumption[j] = 7
+        DATA.province[0].local_production[j] = 12
     end
     for j = 0, 99 do
-        DATA.province[0].local_demand[j] = 20
+        DATA.province[0].local_consumption[j] = 3
     end
     for j = 0, 99 do
-        DATA.province[0].local_storage[j] = 5
+        DATA.province[0].local_demand[j] = 14
+    end
+    for j = 0, 99 do
+        DATA.province[0].local_storage[j] = 8
     end
     for j = 0, 99 do
         DATA.province[0].local_prices[j] = 12
     end
-    fat_id.local_wealth = 3
-    fat_id.trade_wealth = 14
-    fat_id.local_income = 8
-    fat_id.local_building_upkeep = 12
-    fat_id.foragers = -3
-    fat_id.foragers_water = -18
-    fat_id.foragers_limit = -19
+    fat_id.local_wealth = -3
+    fat_id.trade_wealth = -18
+    fat_id.local_income = -19
+    fat_id.local_building_upkeep = 3
+    fat_id.foragers = 9
+    fat_id.foragers_water = 0
+    fat_id.foragers_limit = 4
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].resource = 11
+        DATA.province[0].local_resources[j].resource = 13
     end
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].location = 14
+        DATA.province[0].local_resources[j].location = 16
     end
-    fat_id.mood = 0
+    fat_id.mood = -10
     for j = 0, 19 do
-        DATA.province[0].unit_types[j] = 12
+        DATA.province[0].unit_types[j] = 17
     end
-    fat_id.on_a_river = false
+    for j = 0, 249 do
+        DATA.province[0].throughput_boosts[j] = -9
+    end
+    for j = 0, 249 do
+        DATA.province[0].input_efficiency_boosts[j] = -5
+    end
+    for j = 0, 249 do
+        DATA.province[0].output_efficiency_boosts[j] = -6
+    end
+    fat_id.on_a_river = true
     fat_id.on_a_forest = true
     local test_passed = true
     test_passed = test_passed and fat_id.r == -17
@@ -15070,56 +16975,80 @@ function DATA.test_set_get_2()
     if not test_passed then print("infrastructure", -18, fat_id.infrastructure) end
     test_passed = test_passed and fat_id.infrastructure_investment == 17
     if not test_passed then print("infrastructure_investment", 17, fat_id.infrastructure_investment) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_production[j] == -10
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[0].technologies_present[j] == 5
     end
-    if not test_passed then print("local_production", -10, DATA.province[0].local_production[0]) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_consumption[j] == 7
+    if not test_passed then print("technologies_present", 5, DATA.province[0].technologies_present[0]) end
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[0].technologies_researchable[j] == 13
     end
-    if not test_passed then print("local_consumption", 7, DATA.province[0].local_consumption[0]) end
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_demand[j] == 20
+    if not test_passed then print("technologies_researchable", 13, DATA.province[0].technologies_researchable[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == false
     end
-    if not test_passed then print("local_demand", 20, DATA.province[0].local_demand[0]) end
+    if not test_passed then print("buildable_buildings", false, DATA.province[0].buildable_buildings[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_storage[j] == 5
+        test_passed = test_passed and DATA.province[0].local_production[j] == 12
     end
-    if not test_passed then print("local_storage", 5, DATA.province[0].local_storage[0]) end
+    if not test_passed then print("local_production", 12, DATA.province[0].local_production[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_consumption[j] == 3
+    end
+    if not test_passed then print("local_consumption", 3, DATA.province[0].local_consumption[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_demand[j] == 14
+    end
+    if not test_passed then print("local_demand", 14, DATA.province[0].local_demand[0]) end
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.province[0].local_storage[j] == 8
+    end
+    if not test_passed then print("local_storage", 8, DATA.province[0].local_storage[0]) end
     for j = 0, 99 do
         test_passed = test_passed and DATA.province[0].local_prices[j] == 12
     end
     if not test_passed then print("local_prices", 12, DATA.province[0].local_prices[0]) end
-    test_passed = test_passed and fat_id.local_wealth == 3
-    if not test_passed then print("local_wealth", 3, fat_id.local_wealth) end
-    test_passed = test_passed and fat_id.trade_wealth == 14
-    if not test_passed then print("trade_wealth", 14, fat_id.trade_wealth) end
-    test_passed = test_passed and fat_id.local_income == 8
-    if not test_passed then print("local_income", 8, fat_id.local_income) end
-    test_passed = test_passed and fat_id.local_building_upkeep == 12
-    if not test_passed then print("local_building_upkeep", 12, fat_id.local_building_upkeep) end
-    test_passed = test_passed and fat_id.foragers == -3
-    if not test_passed then print("foragers", -3, fat_id.foragers) end
-    test_passed = test_passed and fat_id.foragers_water == -18
-    if not test_passed then print("foragers_water", -18, fat_id.foragers_water) end
-    test_passed = test_passed and fat_id.foragers_limit == -19
-    if not test_passed then print("foragers_limit", -19, fat_id.foragers_limit) end
+    test_passed = test_passed and fat_id.local_wealth == -3
+    if not test_passed then print("local_wealth", -3, fat_id.local_wealth) end
+    test_passed = test_passed and fat_id.trade_wealth == -18
+    if not test_passed then print("trade_wealth", -18, fat_id.trade_wealth) end
+    test_passed = test_passed and fat_id.local_income == -19
+    if not test_passed then print("local_income", -19, fat_id.local_income) end
+    test_passed = test_passed and fat_id.local_building_upkeep == 3
+    if not test_passed then print("local_building_upkeep", 3, fat_id.local_building_upkeep) end
+    test_passed = test_passed and fat_id.foragers == 9
+    if not test_passed then print("foragers", 9, fat_id.foragers) end
+    test_passed = test_passed and fat_id.foragers_water == 0
+    if not test_passed then print("foragers_water", 0, fat_id.foragers_water) end
+    test_passed = test_passed and fat_id.foragers_limit == 4
+    if not test_passed then print("foragers_limit", 4, fat_id.foragers_limit) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 11
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 13
     end
-    if not test_passed then print("local_resources.resource", 11, DATA.province[0].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 13, DATA.province[0].local_resources[0].resource) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].location == 14
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 16
     end
-    if not test_passed then print("local_resources.location", 14, DATA.province[0].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == 0
-    if not test_passed then print("mood", 0, fat_id.mood) end
+    if not test_passed then print("local_resources.location", 16, DATA.province[0].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == -10
+    if not test_passed then print("mood", -10, fat_id.mood) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[0].unit_types[j] == 12
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 17
     end
-    if not test_passed then print("unit_types", 12, DATA.province[0].unit_types[0]) end
-    test_passed = test_passed and fat_id.on_a_river == false
-    if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
+    if not test_passed then print("unit_types", 17, DATA.province[0].unit_types[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].throughput_boosts[j] == -9
+    end
+    if not test_passed then print("throughput_boosts", -9, DATA.province[0].throughput_boosts[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].input_efficiency_boosts[j] == -5
+    end
+    if not test_passed then print("input_efficiency_boosts", -5, DATA.province[0].input_efficiency_boosts[0]) end
+    for j = 0, 249 do
+        test_passed = test_passed and DATA.province[0].output_efficiency_boosts[j] == -6
+    end
+    if not test_passed then print("output_efficiency_boosts", -6, DATA.province[0].output_efficiency_boosts[0]) end
+    test_passed = test_passed and fat_id.on_a_river == true
+    if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == true
     if not test_passed then print("on_a_forest", true, fat_id.on_a_forest) end
     print("SET_GET_TEST_2_province:")

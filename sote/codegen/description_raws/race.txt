@@ -19,7 +19,7 @@ elder_age float
 max_age float
 minimum_comfortable_temperature float
 minimum_absolute_temperature float
-minimum_comfortable_elevation float
+minimum_comfortable_elevation float=0.0
 female_body_size float
 male_body_size float
 female_efficiency float[JOBTYPE]
@@ -28,5 +28,5 @@ female_infrastructure_needs float
 male_infrastructure_needs float
 female_needs need_definition[20]
 male_needs need_definition[20]
-requires_large_river bool
-requires_large_forest bool
+requires_large_river bool=false
+requires_large_forest bool=false

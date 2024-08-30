@@ -1,17 +1,7 @@
 
 
----@class (exact) Job
----@field __index Job
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
-
----@class Job
 local Job = {}
-Job.__index = Job
+
 ---Creates a new job
 ---@param o Job
 ---@return Job

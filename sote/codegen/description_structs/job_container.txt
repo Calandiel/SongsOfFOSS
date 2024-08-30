@@ -1,0 +1,2 @@
+job job
+amount uint32_t

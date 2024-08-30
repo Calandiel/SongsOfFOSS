@@ -155,147 +155,6 @@ object {
     }
 }
 object {
-    name { race }
-    storage_type { contiguous }
-    size { 15 }
-    tag {scenario}
-    property{
-        name = { r }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { g }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { b }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { carrying_capacity_weight }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { fecundity }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { spotting }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { visibility }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { males_per_hundred_females }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { child_age }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { teen_age }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { adult_age }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { middle_age }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { elder_age }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { max_age }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { minimum_comfortable_temperature }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { minimum_absolute_temperature }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { minimum_comfortable_elevation }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { female_body_size }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { male_body_size }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { female_efficiency }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { male_efficiency }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { female_infrastructure_needs }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { male_infrastructure_needs }
-        type = { float }
-        tag = { scenario }
-    }
-    property{
-        name = { female_needs }
-        type = { base_types::need_definition }
-        tag = { scenario }
-    }
-    property{
-        name = { male_needs }
-        type = { base_types::need_definition }
-        tag = { scenario }
-    }
-    property{
-        name = { requires_large_river }
-        type = { bitfield }
-        tag = { scenario }
-    }
-    property{
-        name = { requires_large_forest }
-        type = { bitfield }
-        tag = { scenario }
-    }
-}
-object {
     name { pop }
     storage_type { contiguous }
     size { 300000 }
@@ -313,6 +172,11 @@ object {
     property{
         name = { age }
         type = { uint32_t }
+        tag = { scenario }
+    }
+    property{
+        name = { job }
+        type = { job_id }
         tag = { scenario }
     }
     property{
@@ -452,6 +316,21 @@ object {
         tag = { scenario }
     }
     property{
+        name = { technologies_present }
+        type = { uint32_t }
+        tag = { scenario }
+    }
+    property{
+        name = { technologies_researchable }
+        type = { uint32_t }
+        tag = { scenario }
+    }
+    property{
+        name = { buildable_buildings }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
         name = { local_production }
         type = { float }
         tag = { scenario }
@@ -524,6 +403,21 @@ object {
     property{
         name = { unit_types }
         type = { uint32_t }
+        tag = { scenario }
+    }
+    property{
+        name = { throughput_boosts }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { input_efficiency_boosts }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { output_efficiency_boosts }
+        type = { float }
         tag = { scenario }
     }
     property{
@@ -774,6 +668,12 @@ object {
     name { warband_stance }
     storage_type { contiguous }
     size { 4 }
+    tag {scenario}
+}
+object {
+    name { building_archetype }
+    storage_type { contiguous }
+    size { 7 }
     tag {scenario}
 }
 object {
@@ -1300,6 +1200,449 @@ object {
     property{
         name = { visibility }
         type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { job }
+    storage_type { contiguous }
+    size { 250 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { production_method }
+    storage_type { contiguous }
+    size { 250 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { job_type }
+        type = { base_enums::JOBTYPE }
+        tag = { scenario }
+    }
+    property{
+        name = { jobs }
+        type = { base_types::job_container }
+        tag = { scenario }
+    }
+    property{
+        name = { inputs }
+        type = { base_types::use_case_container }
+        tag = { scenario }
+    }
+    property{
+        name = { outputs }
+        type = { base_types::trade_good_container }
+        tag = { scenario }
+    }
+    property{
+        name = { foraging }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { hydration }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { nature_yield_dependence }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { forest_dependence }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { crop }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { temperature_ideal_min }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { temperature_ideal_max }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { temperature_extreme_min }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { temperature_extreme_max }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { rainfall_ideal_min }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { rainfall_ideal_max }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { rainfall_extreme_min }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { rainfall_extreme_max }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { clay_ideal_min }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { clay_ideal_max }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { clay_extreme_min }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { clay_extreme_max }
+        type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { technology }
+    storage_type { contiguous }
+    size { 400 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { research_cost }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { required_biome }
+        type = { biome_id }
+        tag = { scenario }
+    }
+    property{
+        name = { required_resource }
+        type = { resource_id }
+        tag = { scenario }
+    }
+    property{
+        name = { associated_job }
+        type = { job_id }
+        tag = { scenario }
+    }
+    property{
+        name = { throughput_boosts }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { input_efficiency_boosts }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { output_efficiency_boosts }
+        type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { technology_unlock }
+    storage_type { contiguous }
+    size { 800 }
+    tag {scenario}
+}
+object {
+    name { building_type }
+    storage_type { contiguous }
+    size { 250 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { production_method }
+        type = { production_method_id }
+        tag = { scenario }
+    }
+    property{
+        name = { archetype }
+        type = { base_enums::BUILDING_ARCHETYPE }
+        tag = { scenario }
+    }
+    property{
+        name = { unlocked_by }
+        type = { technology_id }
+        tag = { scenario }
+    }
+    property{
+        name = { construction_cost }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { upkeep }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { required_biome }
+        type = { biome_id }
+        tag = { scenario }
+    }
+    property{
+        name = { required_resource }
+        type = { resource_id }
+        tag = { scenario }
+    }
+    property{
+        name = { unique }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { movable }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { government }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { needed_infrastructure }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { spotting }
+        type = { float }
+        tag = { scenario }
+    }
+}
+object {
+    name { technology_building }
+    storage_type { contiguous }
+    size { 400 }
+    tag {scenario}
+}
+object {
+    name { technology_unit }
+    storage_type { contiguous }
+    size { 400 }
+    tag {scenario}
+}
+object {
+    name { race }
+    storage_type { contiguous }
+    size { 15 }
+    tag {scenario}
+    property{
+        name = { r }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { g }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { b }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { carrying_capacity_weight }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { fecundity }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { spotting }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { visibility }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { males_per_hundred_females }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { child_age }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { teen_age }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { adult_age }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { middle_age }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { elder_age }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { max_age }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { minimum_comfortable_temperature }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { minimum_absolute_temperature }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { minimum_comfortable_elevation }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { female_body_size }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { male_body_size }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { female_efficiency }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { male_efficiency }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { female_infrastructure_needs }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { male_infrastructure_needs }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { female_needs }
+        type = { base_types::need_definition }
+        tag = { scenario }
+    }
+    property{
+        name = { male_needs }
+        type = { base_types::need_definition }
+        tag = { scenario }
+    }
+    property{
+        name = { requires_large_river }
+        type = { bitfield }
+        tag = { scenario }
+    }
+    property{
+        name = { requires_large_forest }
+        type = { bitfield }
         tag = { scenario }
     }
 }

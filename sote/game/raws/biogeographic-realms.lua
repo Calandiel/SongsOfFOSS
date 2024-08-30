@@ -1,3 +1,5 @@
+---@diagnostic disable: no-unknown
+
 ---@class (exact) BiogeographicRealm
 ---@field name string
 ---@field r number

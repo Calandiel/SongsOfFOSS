@@ -15,6 +15,6 @@ speed float=1
 foraging float=0.1 how much food does this unit forage from the local province?
 bonuses float[unit_type]
 supply_capacity float=5 how much food can this unit carry
-unlocked_by Technology?=nil
+unlocked_by #technology_id
 spotting float=1
 visibility float=1

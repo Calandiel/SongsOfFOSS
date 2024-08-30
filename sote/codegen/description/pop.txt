@@ -4,7 +4,7 @@ culture Culture
 female bool
 age uint32_t
 name string
-job Job
+job job
 savings float
 parent pop_id
 loyalty pop_id

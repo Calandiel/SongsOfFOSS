@@ -1,0 +1,14 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+research_cost float Amount of research points (education_endowment) per pop needed for the technology
+required_biome biome_id[20]
+required_race race_id[20]
+required_resource resource_id[20]
+associated_job job The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
+throughput_boosts float[production_method]
+input_efficiency_boosts float[production_method]
+output_efficiency_boosts float[production_method]

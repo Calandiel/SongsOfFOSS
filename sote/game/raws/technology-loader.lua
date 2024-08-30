@@ -12,6 +12,7 @@ function d.load()
 	local res = require "game.raws.raws-utils".resource
 	local bio = require "game.raws.raws-utils".biome
 	local prod = require "game.raws.raws-utils".production_method
+	local job = require "game.raws.raws-utils".job
 
 	Technology:new {
 		name = "paleolithic-knowledge",
@@ -21,9 +22,14 @@ function d.load()
 		g = 1,
 		b = 1,
 		required_biome = {},
+		required_resource = {},
 		required_race = {},
 		unlocked_by = {},
 		research_cost = 0.2,
+		associated_job = job("gatherers"),
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {}
 	}
 	Technology:new {
 		name = "vegetable-tanning",
@@ -34,6 +40,13 @@ function d.load()
 		b = 1,
 		unlocked_by = { tec("paleolithic-knowledge") },
 		research_cost = 0.2,
+		associated_job = job("hunters"),
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {}
 	}
 	Technology:new {
 		name = "ground-stone-tools",
@@ -44,6 +57,10 @@ function d.load()
 		b = 1,
 		unlocked_by = { tec("paleolithic-knowledge") },
 		research_cost = 0.2,
+		associated_job = job("knappers"),
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
 		throughput_boosts = {
 			[prod("blanks-knapping")] = 0.1,
 		},
@@ -64,6 +81,13 @@ function d.load()
 		b = 1,
 		unlocked_by = { tec("ground-stone-tools") },
 		research_cost = 0.2,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("woodcutters")
 	}
 	Technology:new {
 		name = "wooden-furniture",
@@ -74,6 +98,13 @@ function d.load()
 		b = 1,
 		unlocked_by = { tec("dedicated-woodcutters") },
 		research_cost = 0.25,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("artisans")
 	}
 	Technology:new {
 		name = "pottery",
@@ -85,6 +116,12 @@ function d.load()
 		unlocked_by = { tec("paleolithic-knowledge") },
 		research_cost = 0.3,
 		required_resource = { res("quality-clay") },
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("potterers")
 	}
 	Technology:new {
 		name = "early-metal-working",
@@ -96,6 +133,12 @@ function d.load()
 		unlocked_by = { tec("ground-stone-tools") },
 		required_resource = { res("meteoric-iron"), res("native-copper"), res("native-gold") },
 		research_cost = 0.25,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "agriculture",
@@ -116,10 +159,13 @@ function d.load()
 		unlocked_by = { tec("paleolithic-knowledge") },
 		throughput_boosts = {
 			[prod("gathering-0")] = 0.15,
-			[prod("gathering-1")] = 0.15,
-			[prod("gathering-2")] = 0.15
+			[prod("gathering-1")] = 0.3,
+			[prod("gathering-2")] = 0.6
 		},
 		research_cost = 0.15,
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("farmers")
 	}
 	Technology:new {
 		name = "selective-plant-breeding",
@@ -130,6 +176,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("agriculture"), },
 		research_cost = 0.65,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("farmers")
 	}
 	Technology:new {
 		name = "hoes",
@@ -140,6 +193,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("agriculture"), },
 		research_cost = 0.5,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("farmers")
 	}
 	Technology:new {
 		name = "sickles",
@@ -150,6 +210,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("agriculture"), },
 		research_cost = 0.5,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("farmers")
 	}
 	Technology:new {
 		name = "beekeeping",
@@ -161,6 +228,12 @@ function d.load()
 		unlocked_by = { tec("paleolithic-knowledge") },
 		required_resource = { res("bees") },
 		research_cost = 0.65,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("farmers")
 	}
 	Technology:new {
 		name = "basic-fermentation",
@@ -171,6 +244,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("agriculture"), },
 		research_cost = 0.65,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("brewers")
 	}
 	Technology:new {
 		name = "warm-fermentation",
@@ -185,6 +265,12 @@ function d.load()
 			[prod("brewing-grain")] = 0.15,
 			[prod("brewing-fruit")] = 0.15
 		},
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("brewers")
 	}
 	Technology:new {
 		name = "mead",
@@ -195,6 +281,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("basic-fermentation"), tec("beekeeping") },
 		research_cost = 0.65,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("brewers")
 	}
 	Technology:new {
 		name = "resin-glue",
@@ -206,6 +299,12 @@ function d.load()
 		unlocked_by = { tec("basic-fermentation"), tec("beekeeping") },
 		required_biome = { bio("taiga"), bio("woodland-taiga"), bio("coniferous-forest"), bio("coniferous-woodland") },
 		research_cost = 0.65,
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("brewers")
 	}
 	Technology:new {
 		name = "animal-glue",
@@ -217,6 +316,12 @@ function d.load()
 		unlocked_by = { tec("paleolithic-knowledge") },
 		required_biome = {},
 		research_cost = 0.35,
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("brewers")
 	}
 	Technology:new {
 		name = "surface-mining",
@@ -227,7 +332,13 @@ function d.load()
 		b = 0.8,
 		unlocked_by = { tec("early-metal-working"), tec("pottery") },
 		required_resource = { res("copper"), },
-		research_cost = 1
+		research_cost = 1,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("miners")
 	}
 	Technology:new {
 		name = "metal-casting",
@@ -238,7 +349,13 @@ function d.load()
 		b = 0.8,
 		unlocked_by = { tec("surface-mining") },
 		required_resource = { res("copper") },
-		research_cost = 1
+		research_cost = 1,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "bloomeries",
@@ -249,7 +366,13 @@ function d.load()
 		b = 0.8,
 		unlocked_by = { tec("surface-mining"), tec("dedicated-woodcutters") },
 		required_resource = { res("iron") },
-		research_cost = 1
+		research_cost = 1,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "dedicated-stonecutters",
@@ -260,7 +383,13 @@ function d.load()
 		b = 1,
 		unlocked_by = { tec("ground-stone-tools"), tec("dedicated-woodcutters") },
 		required_resource = { res("stone"), res("gems") },
-		research_cost = 1.2
+		research_cost = 1.2,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("quarrymen")
 	}
 	Technology:new {
 		name = "gem-cutting",
@@ -271,7 +400,13 @@ function d.load()
 		b = 1,
 		unlocked_by = { tec("dedicated-stonecutters"), tec("early-metal-working") },
 		required_resource = { res("gems") },
-		research_cost = 1.2
+		research_cost = 1.2,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("artisans")
 	}
 	Technology:new {
 		name = "jewelry",
@@ -282,7 +417,13 @@ function d.load()
 		b = 0.8,
 		unlocked_by = { tec("gem-cutting"), tec("early-metal-working") },
 		required_resource = { res("gold"), res("silver") },
-		research_cost = 1
+		research_cost = 1,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("artisans")
 	}
 	Technology:new {
 		name = "watchtowers",
@@ -295,6 +436,11 @@ function d.load()
 		required_race = {},
 		unlocked_by = { tec("dedicated-woodcutters") },
 		research_cost = 0.055,
+		required_resource = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("warriors")
 	}
 
 	Technology:new {
@@ -307,6 +453,12 @@ function d.load()
 		unlocked_by = { tec("pottery"), tec("dedicated-woodcutters") },
 		research_cost = 0.3,
 		required_resource = { res("quality-clay") },
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("potterers")
 	}
 
 	Technology:new {
@@ -319,6 +471,12 @@ function d.load()
 		unlocked_by = { tec("metal-casting"), tec("bloomeries") },
 		required_resource = {},
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smiths")
 	}
 	Technology:new {
 		name = "alloys",
@@ -330,6 +488,12 @@ function d.load()
 		unlocked_by = { tec("metal-casting"), tec("bloomeries") },
 		required_resource = { res("native-bronze") },
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "electrum",
@@ -341,6 +505,12 @@ function d.load()
 		unlocked_by = { tec("alloys") },
 		required_resource = { res("gold"), res("silver") },
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "arsenical-bronze",
@@ -352,6 +522,12 @@ function d.load()
 		unlocked_by = { tec("alloys") },
 		required_resource = { res("arsenic"), res("copper") },
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "tin-bronze",
@@ -363,6 +539,12 @@ function d.load()
 		unlocked_by = { tec("arsenical-bronze") },
 		required_resource = { res("tin"), res("copper") },
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "brass",
@@ -374,6 +556,12 @@ function d.load()
 		unlocked_by = { tec("alloys") },
 		required_resource = { res("zinc"), res("copper") },
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smelters")
 	}
 	Technology:new {
 		name = "coinage",
@@ -385,6 +573,12 @@ function d.load()
 		unlocked_by = { tec("electrum") },
 		required_resource = {},
 		research_cost = 0.5,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smiths")
 	}
 	Technology:new {
 		name = "plate-armor",
@@ -396,6 +590,12 @@ function d.load()
 		unlocked_by = { tec("alloys") },
 		required_resource = {},
 		research_cost = 0.25,
+		required_biome = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("smiths")
 	}
 	Technology:new {
 		name = "brickmaking",
@@ -406,6 +606,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("dedicated-woodcutters"), tec("pottery") },
 		research_cost = 1,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("potterers")
 	}
 	Technology:new {
 		name = "kiln",
@@ -416,6 +623,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("brickmaking"), },
 		research_cost = 1,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("potterers")
 	}
 	Technology:new {
 		name = "fire-setting-mining",
@@ -426,6 +640,13 @@ function d.load()
 		b = love.math.random(),
 		unlocked_by = { tec("surface-mining"), },
 		research_cost = 1,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("miners")
 	}
 	Technology:new {
 		name = "transformation-magic",
@@ -436,6 +657,13 @@ function d.load()
 		b = 1,
 		-- unlocked_decisions = { dec("gender-bender"), },
 		research_cost = 1,
+		required_biome = {},
+		required_resource = {},
+		required_race = {},
+		throughput_boosts = {},
+		input_efficiency_boosts = {},
+		output_efficiency_boosts = {},
+		associated_job = job("shamans")
 	}
 end
 
