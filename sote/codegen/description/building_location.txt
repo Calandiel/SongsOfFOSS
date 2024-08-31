@@ -1,0 +1,2 @@
+link many location province location of the building
+link one building building

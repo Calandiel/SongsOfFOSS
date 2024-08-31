@@ -19,8 +19,27 @@ Decision.CharacterProvince.__index = Decision.CharacterProvince
 
 --- I wish generics were properly implemented...
 
+---@class (exact) DecisionRealmData
+---@field primary_target DecisionTarget
+---@field secondary_target DecisionTarget
+---@field sorting number Controls how high or how low on the list of available decisions this decision is in the UI
+---@field name string
+---@field ui_name string
+---@field tooltip fun(root:Realm, primary_target:any):string
+---@field effect fun(root:Realm, primary_target:any, secondary_target:any) Called when the action is taken
+---@field pretrigger fun(root:Realm):boolean A quick check before any other checks to cull potential decision takers
+---@field clickable fun(root:Realm, primary_target:any):boolean Determines whether or not the decision is visible to the player. Unsuccessful naming. Comment is correct.
+---@field available fun(root:Realm, primary_target:any, secondary_target:any):boolean Determines whether or not the decision can be taken ("clicked" by the player) Unsuccessful naming. Comment is correct.
+---@field ai_will_do fun(root:Realm, primary_target:any, secondary_target:any):number Returns a probability that an AI will take the decision
+---@field ai_targetting_attempts number Number of attempts an AI will take to find a secondary target
+---@field ai_target fun(root:Realm):any,boolean Selects the primary target for the AI
+---@field ai_secondary_target fun(root:Realm, primary_target:any):any,boolean Selects the secondary target for the AI
+---@field base_probability number Base chance that the AI will consider this decision each month at all (before any other checks). Use this to cull decisions.
+---@field get_secondary_targets? fun(root:Realm, primary_target:any):table<number, any> Returns potential targets FOR THE PLAYER
+
+
 ---@class (exact) DecisionRealm
----@field new fun(self:DecisionRealm, o:DecisionRealm):DecisionRealm
+---@field new fun(self:DecisionRealm, o:DecisionRealmData):DecisionRealm
 ---@field primary_target DecisionTarget
 ---@field secondary_target DecisionTarget
 ---@field sorting number Controls how high or how low on the list of available decisions this decision is in the UI
@@ -157,7 +176,7 @@ local function init_decision(i)
 end
 
 
-
+---@param i DecisionRealmData
 ---@return DecisionRealm
 function Decision.Realm:new(i)
 	---@type DecisionRealm

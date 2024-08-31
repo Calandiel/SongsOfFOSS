@@ -14,8 +14,6 @@ rtab.POP = {}
 ---@param character_flag boolean?
 ---@return pop_id
 function rtab.POP.new(race, faith, culture, female, age, home, location, character_flag)
-	local tabb = require "engine.table"
-
 	local r = DATA.fatten_pop(DATA.create_pop())
 
 	r.race = race
@@ -35,8 +33,6 @@ function rtab.POP.new(race, faith, culture, female, age, home, location, charact
 	end
 
 	r.busy                     = false
-	r.owned_buildings          = {}
-	r.current_negotiations     = {}
 
 	local total_consumed, total_demanded = 0, 0
 

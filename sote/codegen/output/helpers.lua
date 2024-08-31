@@ -11,11 +11,15 @@ MAX_TRAIT_INDEX = 19
 MAX_NEED_SATISFACTION_POSITIONS_INDEX = 19
 MAX_RESOURCES_IN_PROVINCE_INDEX = 24
 MAX_REQUIREMENTS_TECHNOLOGY = 20
+MAX_REQUIREMENTS_BUILDING_TYPE = 20
 MAX_SIZE_ARRAYS_PRODUCTION_METHOD = 8
 INVALID_ID = 0
 
 ---@alias Character pop_id
 ---@alias POP pop_id
+---@alias Province province_id
+---@alias BuildingType building_type_id
+---@alias Technology technology_id
 
 ---@type table<trade_good_id, table<use_case_id, number>>
 USE_WEIGHT = {}

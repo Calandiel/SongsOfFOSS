@@ -3,6 +3,7 @@ local tabb = require "engine.table"
 local ll = {}
 local military_effects = require "game.raws.effects.military"
 local utils = require "game.raws.raws-utils"
+local province_utils = require "game.entities.province".Province
 local economic_effects = require "game.raws.effects.economic"
 
 function ll.load()
@@ -90,14 +91,14 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			return root == primary_target.realm
+			return root == DATA.province_get_realm(primary_target)
 		end,
 		available = function(root, primary_target)
 			---@type Realm
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			local pop = primary_target:local_population()
+			local pop = province_utils.local_population(primary_target)
 			return root.budget.treasury > pop * gift_cost_per_pop
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
@@ -128,10 +129,11 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			primary_target.mood = math.min(10, primary_target.mood + 0.05)
-			economic_effects.change_treasury(root, -primary_target:local_population() * gift_cost_per_pop, economic_effects.reasons.Donation)
+			local fat_target = DATA.fatten_province(primary_target)
+			fat_target.mood = math.min(10, fat_target.mood + 0.05)
+			economic_effects.change_treasury(root, -province_utils.local_population(primary_target) * gift_cost_per_pop, economic_effects.reasons.Donation)
 			if WORLD:does_player_control_realm(root) then
-				WORLD:emit_notification("Population of " .. primary_target.name .. " is jubilant after receiving our gifts!")
+				WORLD:emit_notification("Population of " .. fat_target.name .. " is jubilant after receiving our gifts!")
 			end
 		end
 	}
@@ -210,7 +212,7 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			return root == primary_target.realm
+			return root == DATA.province_get_realm(primary_target)
 		end,
 		-- Controls if the action can be clicked by the player
 		available = function(root, primary_target, secondary_target)
@@ -246,7 +248,7 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			primary_target.mood = primary_target.mood - 1
+			DATA.province_inc_mood(primary_target, -1)
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("People were greatly upset!")
 			end

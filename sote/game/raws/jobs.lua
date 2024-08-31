@@ -1,32 +1,20 @@
-
-
 local Job = {}
 
 ---Creates a new job
----@param o Job
----@return Job
+---@param o job_id_data_blob_definition
+---@return job_id
 function Job:new(o)
-	---@type Job
-	local r = {}
+	local new_id = DATA.create_job()
+	DATA.setup_job(new_id, o)
 
-	r.name = "<job>"
-	r.icon = 'uncertainty.png'
-	r.description = "<job description>"
-	r.r = 0
-	r.g = 0
-	r.b = 0
 
-	for k, v in pairs(o) do
-		r[k] = v
-	end
-	setmetatable(r, Job)
-	if RAWS_MANAGER.jobs_by_name[r.name] ~= nil then
-		local msg = "Failed to load a job (" .. tostring(r.name) .. ")"
+	if RAWS_MANAGER.jobs_by_name[o.name] ~= nil then
+		local msg = "Failed to load a job (" .. tostring(o.name) .. ")"
 		print(msg)
 		error(msg)
 	end
-	RAWS_MANAGER.jobs_by_name[r.name] = r
-	return r
+	RAWS_MANAGER.jobs_by_name[o.name] = new_id
+	return new_id
 end
 
 return Job

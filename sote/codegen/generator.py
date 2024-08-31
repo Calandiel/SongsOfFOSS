@@ -8,6 +8,7 @@ from __future__ import annotations
 import typing
 import random
 
+# pylint: disable=locally-disabled, multiple-statements, fixme, line-too-long, too-many-lines, f-string-without-interpolation
 
 REGISTERED_NAMES: typing.Dict[str, EntityDescription] = {}
 REGISTERED_ENUMS: typing.Dict[str, StaticEntityDescription] = {}
@@ -386,15 +387,21 @@ class LinkField(Field):
     def array_string(self, max_count: int):
         if self.value.lsp_type in REGISTERED_ID_NAMES:
             return ""
-        raise(RuntimeError(f"Invalid link: {self.value.lsp_type} {self.name}"))
-        lsp_table_type = f'---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.lsp_type)}>\n'
-        declaration = f'{self.local_var_name()}'
-        return lsp_table_type + declaration + '= {}\n'
+        raise RuntimeError(f"Invalid link: {self.value.lsp_type} {self.name}")
+        # lsp_table_type = f'---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.lsp_type)}>\n'
+        # declaration = f'{self.local_var_name()}'
+        # return lsp_table_type + declaration + '= {}\n'
 
     def local_accessor_symbol(self):
+        """
+        Generates symbol for accessor of relation from this field
+        """
         return f'{self.prefix}_from_{self.name}'
 
     def get_from_function(self):
+        """
+        Generates name for accessor function of relation from this field
+        """
         return f"{NAMESPACE}.get_{self.prefix}_from_{self.name}"
 
     def lua_getter(self):
@@ -491,9 +498,6 @@ class EntityField(Field):
     """
     Description of entity field
     """
-
-    def __init__(self, prefix, name, field_type, description, array_size = 1, index_type = "uint32_t") -> None:
-        super().__init__(prefix, name, field_type, description, array_size, index_type)
 
     def array_string(self, max_count: int):
         """
@@ -651,7 +655,7 @@ class EntityDescription:
                                 array_size = REGISTERED_NAMES[raw_array_size].max_count
                                 array_index = raw_array_size
                             else:
-                                raise(RuntimeError(f"INVALID PROPERTY {name} IN {self.name}"))
+                                raise RuntimeError(f"INVALID PROPERTY {name} IN {self.name}")
 
 
                     description = " ".join(line_splitted[2:])
@@ -704,7 +708,7 @@ class EntityDescription:
                                 is_unique = False
                             target_field = field
                     if target_field is None:
-                        raise(RuntimeError(f"link {self.name} {relation} was not found"))
+                        raise RuntimeError(f"link {self.name} {relation} was not found")
                     result += f"    do\n"
                     # print(self.name, relation, is_unique)
                     if is_unique:
@@ -735,7 +739,7 @@ class EntityDescription:
         result += f'---@alias {prefix_to_id_name(self.name)} number\n\n'
 
         #fat id
-        result += f'---@class fat_{prefix_to_id_name(self.name)}\n'
+        result += f'---@class (exact) fat_{prefix_to_id_name(self.name)}\n'
         result += f'---@field id {prefix_to_id_name(self.name)} Unique {self.name} id\n'
         for field in self.fields:
             if field.array_size == 1 and not field.value.ignore_in_data_layout:
@@ -1343,6 +1347,13 @@ Province = EntityDescription("province", 10000, False)
 Army = EntityDescription("army", 5000, False)
 Warband = EntityDescription("warband", 10000, False)
 
+Negotiations = EntityDescription("negotiation", 2500, False)
+
+Building = EntityDescription("building", 200000, False)
+BuildingOwnership = EntityDescription("ownership", 200000, False)
+Employment = EntityDescription("employment", 300000, False)
+BuildingLocation = EntityDescription("building_location", 200000, False)
+
 ArmyMembership = EntityDescription("army_membership", 10000, False)
 WarbandLeader = EntityDescription("warband_leader", 10000, False)
 WarbandRecruiter = EntityDescription("warband_recruiter", 10000, False)
@@ -1372,13 +1383,13 @@ with open(OUTPUT_PATH, "w", encoding="utf8") as out:
     out.write('local bitser = require("engine.bitser")\n')
     out.write("\n")
     out.write(f'{NAMESPACE} = {{}}\n')
-    for struct in STRUCTS_LIST:
-        out.write(str(struct))
+    for struct_description in STRUCTS_LIST:
+        out.write(str(struct_description))
 
-    for entity in ENTITY_LIST:
-        out.write(str(entity))
-    for entity in RAWS_LIST:
-        out.write(str(entity))
+    for entity_description in ENTITY_LIST:
+        out.write(str(entity_description))
+    for entity_description in RAWS_LIST:
+        out.write(str(entity_description))
 
     out.write(auxiliary_types())
     out.write(save_state())
@@ -1389,7 +1400,7 @@ with open(OUTPUT_PATH, "w", encoding="utf8") as out:
 
 
 with open(DCON_DESC_PATH, "w", encoding="utf8") as out:
-    for entity in ENTITY_LIST:
-        out.write(entity.generate_dcon_description())
-    for entity in RAWS_LIST:
-        out.write(entity.generate_dcon_description())
+    for entity_description in ENTITY_LIST:
+        out.write(entity_description.generate_dcon_description())
+    for entity_description in RAWS_LIST:
+        out.write(entity_description.generate_dcon_description())

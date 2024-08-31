@@ -12,10 +12,9 @@ infrastructure_needed float
 infrastructure float
 infrastructure_investment float
 realm Realm?
-buildings table<Building,Building>
-technologies_present uint32_t[technology]
-technologies_researchable uint32_t[technology]
-buildable_buildings bool[building_type]
+technologies_present uint8_t[technology]
+technologies_researchable uint8_t[technology]
+buildable_buildings uint8_t[building_type]
 local_production float[trade_good]
 local_consumption float[trade_good]
 local_demand float[trade_good]
@@ -31,7 +30,7 @@ foragers_limit float amount of calories foraged by pops and characters
 foragers_targets table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>
 local_resources resource_location[25] An array of local resources and their positions
 mood float how local population thinks about the state
-unit_types uint32_t[unit_type]
+unit_types uint8_t[unit_type]
 throughput_boosts float[production_method]
 input_efficiency_boosts float[production_method]
 output_efficiency_boosts float[production_method]

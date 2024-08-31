@@ -73,7 +73,7 @@ ffi.cdef[[
 ---Unique identificator for tile entity
 ---@alias tile_id number
 
----@class fat_tile_id
+---@class (exact) fat_tile_id
 ---@field id tile_id Unique tile id
 ---@field is_land boolean 
 ---@field is_fresh boolean 
@@ -873,7 +873,7 @@ end
 ---Unique identificator for pop entity
 ---@alias pop_id number
 
----@class fat_pop_id
+---@class (exact) fat_pop_id
 ---@field id pop_id Unique pop id
 ---@field race race_id 
 ---@field faith Faith 
@@ -881,15 +881,12 @@ end
 ---@field female boolean 
 ---@field age number 
 ---@field name string 
----@field job job_id 
 ---@field savings number 
 ---@field parent pop_id 
 ---@field loyalty pop_id 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field employer Building 
 ---@field successor pop_id 
----@field owned_buildings table <Building,Building>
 ---@field has_trade_permits_in table<Realm,Realm> 
 ---@field has_building_permits_in table<Realm,Realm> 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
@@ -898,7 +895,6 @@ end
 ---@field dead boolean 
 ---@field realm Realm Represents the home realm of the character
 ---@field leader_of table<Realm,Realm> 
----@field current_negotiations table<pop_id,pop_id> 
 ---@field rank CHARACTER_RANK 
 ---@field former_pop boolean 
 
@@ -906,7 +902,6 @@ end
 ---@field race race_id 
 ---@field female boolean 
 ---@field age number 
----@field job job_id 
 ---@field savings number 
 ---@field parent pop_id 
 ---@field loyalty pop_id 
@@ -928,7 +923,6 @@ ffi.cdef[[
         uint32_t race;
         bool female;
         uint32_t age;
-        uint32_t job;
         float savings;
         uint32_t parent;
         uint32_t loyalty;
@@ -953,10 +947,6 @@ DATA.pop_faith= {}
 DATA.pop_culture= {}
 ---@type (string)[]
 DATA.pop_name= {}
----@type (Building)[]
-DATA.pop_employer= {}
----@type (table)[]
-DATA.pop_owned_buildings= {}
 ---@type (table<Realm,Realm>)[]
 DATA.pop_has_trade_permits_in= {}
 ---@type (table<Realm,Realm>)[]
@@ -969,8 +959,6 @@ DATA.pop_dead= {}
 DATA.pop_realm= {}
 ---@type (table<Realm,Realm>)[]
 DATA.pop_leader_of= {}
----@type (table<pop_id,pop_id>)[]
-DATA.pop_current_negotiations= {}
 ---@type (boolean)[]
 DATA.pop_former_pop= {}
 ---@type nil
@@ -999,6 +987,40 @@ function DATA.create_pop()
     error("Run out of space for pop")
 end
 function DATA.delete_pop(i)
+    do
+        ---@type negotiation_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_negotiation_from_initiator(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_negotiation(value)
+        end
+    end
+    do
+        ---@type negotiation_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_negotiation_from_target(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_negotiation(value)
+        end
+    end
+    do
+        ---@type ownership_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_ownership_from_owner(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_ownership(value)
+        end
+    end
+    do
+        local to_delete = DATA.get_employment_from_worker(i)
+        DATA.delete_employment(to_delete)
+    end
     do
         local to_delete = DATA.get_warband_leader_from_leader(i)
         DATA.delete_warband_leader(to_delete)
@@ -1149,16 +1171,6 @@ function DATA.pop_set_name(pop_id, value)
     DATA.pop_name[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return job_id job 
-function DATA.pop_get_job(pop_id)
-    return DATA.pop[pop_id].job
-end
----@param pop_id pop_id valid pop id
----@param value job_id valid job_id
-function DATA.pop_set_job(pop_id, value)
-    DATA.pop[pop_id].job = value
-end
----@param pop_id pop_id valid pop id
 ---@return number savings 
 function DATA.pop_get_savings(pop_id)
     return DATA.pop[pop_id].savings
@@ -1296,16 +1308,6 @@ function DATA.pop_set_traits(pop_id, index, value)
     DATA.pop[pop_id].traits[index] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Building employer 
-function DATA.pop_get_employer(pop_id)
-    return DATA.pop_employer[pop_id]
-end
----@param pop_id pop_id valid pop id
----@param value Building valid Building
-function DATA.pop_set_employer(pop_id, value)
-    DATA.pop_employer[pop_id] = value
-end
----@param pop_id pop_id valid pop id
 ---@return pop_id successor 
 function DATA.pop_get_successor(pop_id)
     return DATA.pop[pop_id].successor
@@ -1314,16 +1316,6 @@ end
 ---@param value pop_id valid pop_id
 function DATA.pop_set_successor(pop_id, value)
     DATA.pop[pop_id].successor = value
-end
----@param pop_id pop_id valid pop id
----@return table owned_buildings <Building,Building>
-function DATA.pop_get_owned_buildings(pop_id)
-    return DATA.pop_owned_buildings[pop_id]
-end
----@param pop_id pop_id valid pop id
----@param value table valid table
-function DATA.pop_set_owned_buildings(pop_id, value)
-    DATA.pop_owned_buildings[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
 ---@return table<Realm,Realm> has_trade_permits_in 
@@ -1452,16 +1444,6 @@ function DATA.pop_set_leader_of(pop_id, value)
     DATA.pop_leader_of[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return table<pop_id,pop_id> current_negotiations 
-function DATA.pop_get_current_negotiations(pop_id)
-    return DATA.pop_current_negotiations[pop_id]
-end
----@param pop_id pop_id valid pop id
----@param value table<pop_id,pop_id> valid table<pop_id,pop_id>
-function DATA.pop_set_current_negotiations(pop_id, value)
-    DATA.pop_current_negotiations[pop_id] = value
-end
----@param pop_id pop_id valid pop id
 ---@return CHARACTER_RANK rank 
 function DATA.pop_get_rank(pop_id)
     return DATA.pop[pop_id].rank
@@ -1509,15 +1491,12 @@ local fat_pop_id_metatable = {
         if (k == "female") then return DATA.pop_get_female(t.id) end
         if (k == "age") then return DATA.pop_get_age(t.id) end
         if (k == "name") then return DATA.pop_get_name(t.id) end
-        if (k == "job") then return DATA.pop_get_job(t.id) end
         if (k == "savings") then return DATA.pop_get_savings(t.id) end
         if (k == "parent") then return DATA.pop_get_parent(t.id) end
         if (k == "loyalty") then return DATA.pop_get_loyalty(t.id) end
         if (k == "life_needs_satisfaction") then return DATA.pop_get_life_needs_satisfaction(t.id) end
         if (k == "basic_needs_satisfaction") then return DATA.pop_get_basic_needs_satisfaction(t.id) end
-        if (k == "employer") then return DATA.pop_get_employer(t.id) end
         if (k == "successor") then return DATA.pop_get_successor(t.id) end
-        if (k == "owned_buildings") then return DATA.pop_get_owned_buildings(t.id) end
         if (k == "has_trade_permits_in") then return DATA.pop_get_has_trade_permits_in(t.id) end
         if (k == "has_building_permits_in") then return DATA.pop_get_has_building_permits_in(t.id) end
         if (k == "forage_ratio") then return DATA.pop_get_forage_ratio(t.id) end
@@ -1526,7 +1505,6 @@ local fat_pop_id_metatable = {
         if (k == "dead") then return DATA.pop_get_dead(t.id) end
         if (k == "realm") then return DATA.pop_get_realm(t.id) end
         if (k == "leader_of") then return DATA.pop_get_leader_of(t.id) end
-        if (k == "current_negotiations") then return DATA.pop_get_current_negotiations(t.id) end
         if (k == "rank") then return DATA.pop_get_rank(t.id) end
         if (k == "former_pop") then return DATA.pop_get_former_pop(t.id) end
         return rawget(t, k)
@@ -1556,10 +1534,6 @@ local fat_pop_id_metatable = {
             DATA.pop_set_name(t.id, v)
             return
         end
-        if (k == "job") then
-            DATA.pop_set_job(t.id, v)
-            return
-        end
         if (k == "savings") then
             DATA.pop_set_savings(t.id, v)
             return
@@ -1580,16 +1554,8 @@ local fat_pop_id_metatable = {
             DATA.pop_set_basic_needs_satisfaction(t.id, v)
             return
         end
-        if (k == "employer") then
-            DATA.pop_set_employer(t.id, v)
-            return
-        end
         if (k == "successor") then
             DATA.pop_set_successor(t.id, v)
-            return
-        end
-        if (k == "owned_buildings") then
-            DATA.pop_set_owned_buildings(t.id, v)
             return
         end
         if (k == "has_trade_permits_in") then
@@ -1624,10 +1590,6 @@ local fat_pop_id_metatable = {
             DATA.pop_set_leader_of(t.id, v)
             return
         end
-        if (k == "current_negotiations") then
-            DATA.pop_set_current_negotiations(t.id, v)
-            return
-        end
         if (k == "rank") then
             DATA.pop_set_rank(t.id, v)
             return
@@ -1653,7 +1615,7 @@ end
 ---Unique identificator for province entity
 ---@alias province_id number
 
----@class fat_province_id
+---@class (exact) fat_province_id
 ---@field id province_id Unique province id
 ---@field name string 
 ---@field r number 
@@ -1669,7 +1631,6 @@ end
 ---@field infrastructure number 
 ---@field infrastructure_investment number 
 ---@field realm Realm? 
----@field buildings table<Building,Building> 
 ---@field local_wealth number 
 ---@field trade_wealth number 
 ---@field local_income number 
@@ -1697,7 +1658,7 @@ end
 ---@field infrastructure_investment number 
 ---@field technologies_present table<technology_id, number> 
 ---@field technologies_researchable table<technology_id, number> 
----@field buildable_buildings table<building_type_id, boolean> 
+---@field buildable_buildings table<building_type_id, number> 
 ---@field local_production table<trade_good_id, number> 
 ---@field local_consumption table<trade_good_id, number> 
 ---@field local_demand table<trade_good_id, number> 
@@ -1734,9 +1695,9 @@ ffi.cdef[[
         float infrastructure_needed;
         float infrastructure;
         float infrastructure_investment;
-        uint32_t technologies_present[400];
-        uint32_t technologies_researchable[400];
-        bool buildable_buildings[250];
+        uint8_t technologies_present[400];
+        uint8_t technologies_researchable[400];
+        uint8_t buildable_buildings[250];
         float local_production[100];
         float local_consumption[100];
         float local_demand[100];
@@ -1751,7 +1712,7 @@ ffi.cdef[[
         float foragers_limit;
         resource_location local_resources[25];
         float mood;
-        uint32_t unit_types[20];
+        uint8_t unit_types[20];
         float throughput_boosts[250];
         float input_efficiency_boosts[250];
         float output_efficiency_boosts[250];
@@ -1765,8 +1726,6 @@ ffi.cdef[[
 DATA.province_name= {}
 ---@type (Realm?)[]
 DATA.province_realm= {}
----@type (table<Building,Building>)[]
-DATA.province_buildings= {}
 ---@type (table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>)[]
 DATA.province_foragers_targets= {}
 ---@type nil
@@ -1795,6 +1754,16 @@ function DATA.create_province()
     error("Run out of space for province")
 end
 function DATA.delete_province(i)
+    do
+        ---@type building_location_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_building_location_from_location(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_building_location(value)
+        end
+    end
     do
         ---@type warband_location_id[]
         local to_delete = {}
@@ -2076,16 +2045,6 @@ function DATA.province_set_realm(province_id, value)
     DATA.province_realm[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return table<Building,Building> buildings 
-function DATA.province_get_buildings(province_id)
-    return DATA.province_buildings[province_id]
-end
----@param province_id province_id valid province id
----@param value table<Building,Building> valid table<Building,Building>
-function DATA.province_set_buildings(province_id, value)
-    DATA.province_buildings[province_id] = value
-end
----@param province_id province_id valid province id
 ---@param index technology_id valid
 ---@return number technologies_present 
 function DATA.province_get_technologies_present(province_id, index)
@@ -2123,15 +2082,21 @@ function DATA.province_inc_technologies_researchable(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index building_type_id valid
----@return boolean buildable_buildings 
+---@return number buildable_buildings 
 function DATA.province_get_buildable_buildings(province_id, index)
     return DATA.province[province_id].buildable_buildings[index]
 end
 ---@param province_id province_id valid province id
 ---@param index building_type_id valid index
----@param value boolean valid boolean
+---@param value number valid number
 function DATA.province_set_buildable_buildings(province_id, index, value)
     DATA.province[province_id].buildable_buildings[index] = value
+end
+---@param province_id province_id valid province id
+---@param index building_type_id valid index
+---@param value number valid number
+function DATA.province_inc_buildable_buildings(province_id, index, value)
+    DATA.province[province_id].buildable_buildings[index] = DATA.province[province_id].buildable_buildings[index] + value
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
@@ -2487,7 +2452,6 @@ local fat_province_id_metatable = {
         if (k == "infrastructure") then return DATA.province_get_infrastructure(t.id) end
         if (k == "infrastructure_investment") then return DATA.province_get_infrastructure_investment(t.id) end
         if (k == "realm") then return DATA.province_get_realm(t.id) end
-        if (k == "buildings") then return DATA.province_get_buildings(t.id) end
         if (k == "local_wealth") then return DATA.province_get_local_wealth(t.id) end
         if (k == "trade_wealth") then return DATA.province_get_trade_wealth(t.id) end
         if (k == "local_income") then return DATA.province_get_local_income(t.id) end
@@ -2558,10 +2522,6 @@ local fat_province_id_metatable = {
             DATA.province_set_realm(t.id, v)
             return
         end
-        if (k == "buildings") then
-            DATA.province_set_buildings(t.id, v)
-            return
-        end
         if (k == "local_wealth") then
             DATA.province_set_local_wealth(t.id, v)
             return
@@ -2623,7 +2583,7 @@ end
 ---Unique identificator for army entity
 ---@alias army_id number
 
----@class fat_army_id
+---@class (exact) fat_army_id
 ---@field id army_id Unique army id
 ---@field destination province_id 
 
@@ -2723,7 +2683,7 @@ end
 ---Unique identificator for warband entity
 ---@alias warband_id number
 
----@class fat_warband_id
+---@class (exact) fat_warband_id
 ---@field id warband_id Unique warband id
 ---@field name string 
 ---@field guard_of Realm? 
@@ -3098,6 +3058,1039 @@ function DATA.fatten_warband(id)
     local result = {id = id}
     setmetatable(result, fat_warband_id_metatable)    return result
 end
+----------negotiation----------
+
+
+---negotiation: LSP types---
+
+---Unique identificator for negotiation entity
+---@alias negotiation_id number
+
+---@class (exact) fat_negotiation_id
+---@field id negotiation_id Unique negotiation id
+---@field initiator pop_id 
+---@field target pop_id 
+
+---@class struct_negotiation
+---@field initiator pop_id 
+---@field target pop_id 
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t initiator;
+        uint32_t target;
+    } negotiation;
+]]
+
+---negotiation: FFI arrays---
+---@type nil
+DATA.negotiation_malloc = ffi.C.malloc(ffi.sizeof("negotiation") * 2501)
+---@type table<negotiation_id, struct_negotiation>
+DATA.negotiation = ffi.cast("negotiation*", DATA.negotiation_malloc)
+---@type table<pop_id, negotiation_id[]>>
+DATA.negotiation_from_initiator= {}
+---@type table<pop_id, negotiation_id[]>>
+DATA.negotiation_from_target= {}
+
+---negotiation: LUA bindings---
+
+DATA.negotiation_size = 2500
+---@type table<negotiation_id, boolean>
+local negotiation_indices_pool = ffi.new("bool[?]", 2500)
+for i = 1, 2499 do
+    negotiation_indices_pool[i] = true 
+end
+---@type table<negotiation_id, negotiation_id>
+DATA.negotiation_indices_set = {}
+function DATA.create_negotiation()
+    for i = 1, 2499 do
+        if negotiation_indices_pool[i] then
+            negotiation_indices_pool[i] = false
+            DATA.negotiation_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for negotiation")
+end
+function DATA.delete_negotiation(i)
+    do
+        local old_value = DATA.negotiation[i].initiator
+        __REMOVE_KEY_NEGOTIATION_INITIATOR(i, old_value)
+    end
+    do
+        local old_value = DATA.negotiation[i].target
+        __REMOVE_KEY_NEGOTIATION_TARGET(i, old_value)
+    end
+    negotiation_indices_pool[i] = true
+    DATA.negotiation_indices_set[i] = nil
+end
+---@param func fun(item: negotiation_id) 
+function DATA.for_each_negotiation(func)
+    for _, item in pairs(DATA.negotiation_indices_set) do
+        func(item)
+    end
+end
+
+---@param negotiation_id negotiation_id valid negotiation id
+---@return pop_id initiator 
+function DATA.negotiation_get_initiator(negotiation_id)
+    return DATA.negotiation[negotiation_id].initiator
+end
+---@param initiator pop_id valid pop_id
+---@return negotiation_id[] An array of negotiation 
+function DATA.get_negotiation_from_initiator(initiator)
+    return DATA.negotiation_from_initiator[initiator]
+end
+---@param negotiation_id negotiation_id valid negotiation id
+---@param old_value pop_id valid pop_id
+function __REMOVE_KEY_NEGOTIATION_INITIATOR(negotiation_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.negotiation_from_initiator[old_value]) do
+        if value == negotiation_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.negotiation_from_initiator[old_value], found_key)
+    end
+end
+---@param negotiation_id negotiation_id valid negotiation id
+---@param value pop_id valid pop_id
+function DATA.negotiation_set_initiator(negotiation_id, value)
+    local old_value = DATA.negotiation[negotiation_id].initiator
+    DATA.negotiation[negotiation_id].initiator = value
+    __REMOVE_KEY_NEGOTIATION_INITIATOR(negotiation_id, old_value)
+    table.insert(DATA.negotiation_from_initiator[value], negotiation_id)
+end
+---@param negotiation_id negotiation_id valid negotiation id
+---@return pop_id target 
+function DATA.negotiation_get_target(negotiation_id)
+    return DATA.negotiation[negotiation_id].target
+end
+---@param target pop_id valid pop_id
+---@return negotiation_id[] An array of negotiation 
+function DATA.get_negotiation_from_target(target)
+    return DATA.negotiation_from_target[target]
+end
+---@param negotiation_id negotiation_id valid negotiation id
+---@param old_value pop_id valid pop_id
+function __REMOVE_KEY_NEGOTIATION_TARGET(negotiation_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.negotiation_from_target[old_value]) do
+        if value == negotiation_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.negotiation_from_target[old_value], found_key)
+    end
+end
+---@param negotiation_id negotiation_id valid negotiation id
+---@param value pop_id valid pop_id
+function DATA.negotiation_set_target(negotiation_id, value)
+    local old_value = DATA.negotiation[negotiation_id].target
+    DATA.negotiation[negotiation_id].target = value
+    __REMOVE_KEY_NEGOTIATION_TARGET(negotiation_id, old_value)
+    table.insert(DATA.negotiation_from_target[value], negotiation_id)
+end
+
+
+local fat_negotiation_id_metatable = {
+    __index = function (t,k)
+        if (k == "initiator") then return DATA.negotiation_get_initiator(t.id) end
+        if (k == "target") then return DATA.negotiation_get_target(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "initiator") then
+            DATA.negotiation_set_initiator(t.id, v)
+            return
+        end
+        if (k == "target") then
+            DATA.negotiation_set_target(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id negotiation_id
+---@return fat_negotiation_id fat_id
+function DATA.fatten_negotiation(id)
+    local result = {id = id}
+    setmetatable(result, fat_negotiation_id_metatable)    return result
+end
+----------building----------
+
+
+---building: LSP types---
+
+---Unique identificator for building entity
+---@alias building_id number
+
+---@class (exact) fat_building_id
+---@field id building_id Unique building id
+---@field type building_type_id 
+---@field subsidy number 
+---@field subsidy_last number 
+---@field income_mean number 
+---@field last_income number 
+---@field last_donation_to_owner number 
+---@field unused number 
+---@field work_ratio number 
+
+---@class struct_building
+---@field type building_type_id 
+---@field spent_on_inputs table<number, struct_trade_good_container> 
+---@field earn_from_outputs table<number, struct_trade_good_container> 
+---@field amount_of_inputs table<number, struct_trade_good_container> 
+---@field amount_of_outputs table<number, struct_trade_good_container> 
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t type;
+        trade_good_container spent_on_inputs[8];
+        trade_good_container earn_from_outputs[8];
+        trade_good_container amount_of_inputs[8];
+        trade_good_container amount_of_outputs[8];
+    } building;
+]]
+
+---building: FFI arrays---
+---@type (number)[]
+DATA.building_subsidy= {}
+---@type (number)[]
+DATA.building_subsidy_last= {}
+---@type (number)[]
+DATA.building_income_mean= {}
+---@type (number)[]
+DATA.building_last_income= {}
+---@type (number)[]
+DATA.building_last_donation_to_owner= {}
+---@type (number)[]
+DATA.building_unused= {}
+---@type (number)[]
+DATA.building_work_ratio= {}
+---@type nil
+DATA.building_malloc = ffi.C.malloc(ffi.sizeof("building") * 200001)
+---@type table<building_id, struct_building>
+DATA.building = ffi.cast("building*", DATA.building_malloc)
+
+---building: LUA bindings---
+
+DATA.building_size = 200000
+---@type table<building_id, boolean>
+local building_indices_pool = ffi.new("bool[?]", 200000)
+for i = 1, 199999 do
+    building_indices_pool[i] = true 
+end
+---@type table<building_id, building_id>
+DATA.building_indices_set = {}
+function DATA.create_building()
+    for i = 1, 199999 do
+        if building_indices_pool[i] then
+            building_indices_pool[i] = false
+            DATA.building_indices_set[i] = i
+            DATA.building_set_subsidy(i, 0)
+            DATA.building_set_subsidy_last(i, 0)
+            DATA.building_set_income_mean(i, 0)
+            DATA.building_set_last_income(i, 0)
+            DATA.building_set_last_donation_to_owner(i, 0)
+            DATA.building_set_unused(i, 0)
+            DATA.building_set_work_ratio(i, 1)
+            return i
+        end
+    end
+    error("Run out of space for building")
+end
+function DATA.delete_building(i)
+    do
+        local to_delete = DATA.get_ownership_from_building(i)
+        DATA.delete_ownership(to_delete)
+    end
+    do
+        ---@type employment_id[]
+        local to_delete = {}
+        for _, value in ipairs(DATA.get_employment_from_building(i)) do
+            table.insert(to_delete, value)
+        end
+        for _, value in ipairs(to_delete) do
+            DATA.delete_employment(value)
+        end
+    end
+    do
+        local to_delete = DATA.get_building_location_from_building(i)
+        DATA.delete_building_location(to_delete)
+    end
+    building_indices_pool[i] = true
+    DATA.building_indices_set[i] = nil
+end
+---@param func fun(item: building_id) 
+function DATA.for_each_building(func)
+    for _, item in pairs(DATA.building_indices_set) do
+        func(item)
+    end
+end
+
+---@param building_id building_id valid building id
+---@return building_type_id type 
+function DATA.building_get_type(building_id)
+    return DATA.building[building_id].type
+end
+---@param building_id building_id valid building id
+---@param value building_type_id valid building_type_id
+function DATA.building_set_type(building_id, value)
+    DATA.building[building_id].type = value
+end
+---@param building_id building_id valid building id
+---@return number subsidy 
+function DATA.building_get_subsidy(building_id)
+    return DATA.building_subsidy[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_subsidy(building_id, value)
+    DATA.building_subsidy[building_id] = value
+end
+---@param building_id building_id valid building id
+---@return number subsidy_last 
+function DATA.building_get_subsidy_last(building_id)
+    return DATA.building_subsidy_last[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_subsidy_last(building_id, value)
+    DATA.building_subsidy_last[building_id] = value
+end
+---@param building_id building_id valid building id
+---@return number income_mean 
+function DATA.building_get_income_mean(building_id)
+    return DATA.building_income_mean[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_income_mean(building_id, value)
+    DATA.building_income_mean[building_id] = value
+end
+---@param building_id building_id valid building id
+---@return number last_income 
+function DATA.building_get_last_income(building_id)
+    return DATA.building_last_income[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_last_income(building_id, value)
+    DATA.building_last_income[building_id] = value
+end
+---@param building_id building_id valid building id
+---@return number last_donation_to_owner 
+function DATA.building_get_last_donation_to_owner(building_id)
+    return DATA.building_last_donation_to_owner[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_last_donation_to_owner(building_id, value)
+    DATA.building_last_donation_to_owner[building_id] = value
+end
+---@param building_id building_id valid building id
+---@return number unused 
+function DATA.building_get_unused(building_id)
+    return DATA.building_unused[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_unused(building_id, value)
+    DATA.building_unused[building_id] = value
+end
+---@param building_id building_id valid building id
+---@return number work_ratio 
+function DATA.building_get_work_ratio(building_id)
+    return DATA.building_work_ratio[building_id]
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_work_ratio(building_id, value)
+    DATA.building_work_ratio[building_id] = value
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return trade_good_id spent_on_inputs 
+function DATA.building_get_spent_on_inputs_good(building_id, index)
+    return DATA.building[building_id].spent_on_inputs[index].good
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return number spent_on_inputs 
+function DATA.building_get_spent_on_inputs_amount(building_id, index)
+    return DATA.building[building_id].spent_on_inputs[index].amount
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value trade_good_id valid trade_good_id
+function DATA.building_set_spent_on_inputs_good(building_id, index, value)
+    DATA.building[building_id].spent_on_inputs[index].good = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_set_spent_on_inputs_amount(building_id, index, value)
+    DATA.building[building_id].spent_on_inputs[index].amount = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_inc_spent_on_inputs_amount(building_id, index, value)
+    DATA.building[building_id].spent_on_inputs[index].amount = DATA.building[building_id].spent_on_inputs[index].amount + value
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return trade_good_id earn_from_outputs 
+function DATA.building_get_earn_from_outputs_good(building_id, index)
+    return DATA.building[building_id].earn_from_outputs[index].good
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return number earn_from_outputs 
+function DATA.building_get_earn_from_outputs_amount(building_id, index)
+    return DATA.building[building_id].earn_from_outputs[index].amount
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value trade_good_id valid trade_good_id
+function DATA.building_set_earn_from_outputs_good(building_id, index, value)
+    DATA.building[building_id].earn_from_outputs[index].good = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_set_earn_from_outputs_amount(building_id, index, value)
+    DATA.building[building_id].earn_from_outputs[index].amount = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_inc_earn_from_outputs_amount(building_id, index, value)
+    DATA.building[building_id].earn_from_outputs[index].amount = DATA.building[building_id].earn_from_outputs[index].amount + value
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return trade_good_id amount_of_inputs 
+function DATA.building_get_amount_of_inputs_good(building_id, index)
+    return DATA.building[building_id].amount_of_inputs[index].good
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return number amount_of_inputs 
+function DATA.building_get_amount_of_inputs_amount(building_id, index)
+    return DATA.building[building_id].amount_of_inputs[index].amount
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value trade_good_id valid trade_good_id
+function DATA.building_set_amount_of_inputs_good(building_id, index, value)
+    DATA.building[building_id].amount_of_inputs[index].good = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_set_amount_of_inputs_amount(building_id, index, value)
+    DATA.building[building_id].amount_of_inputs[index].amount = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_inc_amount_of_inputs_amount(building_id, index, value)
+    DATA.building[building_id].amount_of_inputs[index].amount = DATA.building[building_id].amount_of_inputs[index].amount + value
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return trade_good_id amount_of_outputs 
+function DATA.building_get_amount_of_outputs_good(building_id, index)
+    return DATA.building[building_id].amount_of_outputs[index].good
+end
+---@param building_id building_id valid building id
+---@param index number valid
+---@return number amount_of_outputs 
+function DATA.building_get_amount_of_outputs_amount(building_id, index)
+    return DATA.building[building_id].amount_of_outputs[index].amount
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value trade_good_id valid trade_good_id
+function DATA.building_set_amount_of_outputs_good(building_id, index, value)
+    DATA.building[building_id].amount_of_outputs[index].good = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_set_amount_of_outputs_amount(building_id, index, value)
+    DATA.building[building_id].amount_of_outputs[index].amount = value
+end
+---@param building_id building_id valid building id
+---@param index number valid index
+---@param value number valid number
+function DATA.building_inc_amount_of_outputs_amount(building_id, index, value)
+    DATA.building[building_id].amount_of_outputs[index].amount = DATA.building[building_id].amount_of_outputs[index].amount + value
+end
+
+
+local fat_building_id_metatable = {
+    __index = function (t,k)
+        if (k == "type") then return DATA.building_get_type(t.id) end
+        if (k == "subsidy") then return DATA.building_get_subsidy(t.id) end
+        if (k == "subsidy_last") then return DATA.building_get_subsidy_last(t.id) end
+        if (k == "income_mean") then return DATA.building_get_income_mean(t.id) end
+        if (k == "last_income") then return DATA.building_get_last_income(t.id) end
+        if (k == "last_donation_to_owner") then return DATA.building_get_last_donation_to_owner(t.id) end
+        if (k == "unused") then return DATA.building_get_unused(t.id) end
+        if (k == "work_ratio") then return DATA.building_get_work_ratio(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "type") then
+            DATA.building_set_type(t.id, v)
+            return
+        end
+        if (k == "subsidy") then
+            DATA.building_set_subsidy(t.id, v)
+            return
+        end
+        if (k == "subsidy_last") then
+            DATA.building_set_subsidy_last(t.id, v)
+            return
+        end
+        if (k == "income_mean") then
+            DATA.building_set_income_mean(t.id, v)
+            return
+        end
+        if (k == "last_income") then
+            DATA.building_set_last_income(t.id, v)
+            return
+        end
+        if (k == "last_donation_to_owner") then
+            DATA.building_set_last_donation_to_owner(t.id, v)
+            return
+        end
+        if (k == "unused") then
+            DATA.building_set_unused(t.id, v)
+            return
+        end
+        if (k == "work_ratio") then
+            DATA.building_set_work_ratio(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id building_id
+---@return fat_building_id fat_id
+function DATA.fatten_building(id)
+    local result = {id = id}
+    setmetatable(result, fat_building_id_metatable)    return result
+end
+----------ownership----------
+
+
+---ownership: LSP types---
+
+---Unique identificator for ownership entity
+---@alias ownership_id number
+
+---@class (exact) fat_ownership_id
+---@field id ownership_id Unique ownership id
+---@field building building_id 
+---@field owner pop_id 
+
+---@class struct_ownership
+---@field building building_id 
+---@field owner pop_id 
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t building;
+        uint32_t owner;
+    } ownership;
+]]
+
+---ownership: FFI arrays---
+---@type nil
+DATA.ownership_malloc = ffi.C.malloc(ffi.sizeof("ownership") * 200001)
+---@type table<ownership_id, struct_ownership>
+DATA.ownership = ffi.cast("ownership*", DATA.ownership_malloc)
+---@type table<building_id, ownership_id>
+DATA.ownership_from_building= {}
+---@type table<pop_id, ownership_id[]>>
+DATA.ownership_from_owner= {}
+
+---ownership: LUA bindings---
+
+DATA.ownership_size = 200000
+---@type table<ownership_id, boolean>
+local ownership_indices_pool = ffi.new("bool[?]", 200000)
+for i = 1, 199999 do
+    ownership_indices_pool[i] = true 
+end
+---@type table<ownership_id, ownership_id>
+DATA.ownership_indices_set = {}
+function DATA.create_ownership()
+    for i = 1, 199999 do
+        if ownership_indices_pool[i] then
+            ownership_indices_pool[i] = false
+            DATA.ownership_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for ownership")
+end
+function DATA.delete_ownership(i)
+    do
+        local old_value = DATA.ownership[i].building
+        __REMOVE_KEY_OWNERSHIP_BUILDING(old_value)
+    end
+    do
+        local old_value = DATA.ownership[i].owner
+        __REMOVE_KEY_OWNERSHIP_OWNER(i, old_value)
+    end
+    ownership_indices_pool[i] = true
+    DATA.ownership_indices_set[i] = nil
+end
+---@param func fun(item: ownership_id) 
+function DATA.for_each_ownership(func)
+    for _, item in pairs(DATA.ownership_indices_set) do
+        func(item)
+    end
+end
+
+---@param ownership_id ownership_id valid ownership id
+---@return building_id building 
+function DATA.ownership_get_building(ownership_id)
+    return DATA.ownership[ownership_id].building
+end
+---@param building building_id valid building_id
+---@return ownership_id ownership 
+function DATA.get_ownership_from_building(building)
+    return DATA.ownership_from_building[building]
+end
+function __REMOVE_KEY_OWNERSHIP_BUILDING(old_value)
+    DATA.ownership_from_building[old_value] = nil
+end
+---@param ownership_id ownership_id valid ownership id
+---@param value building_id valid building_id
+function DATA.ownership_set_building(ownership_id, value)
+    local old_value = DATA.ownership[ownership_id].building
+    DATA.ownership[ownership_id].building = value
+    __REMOVE_KEY_OWNERSHIP_BUILDING(old_value)
+    DATA.ownership_from_building[value] = ownership_id
+end
+---@param ownership_id ownership_id valid ownership id
+---@return pop_id owner 
+function DATA.ownership_get_owner(ownership_id)
+    return DATA.ownership[ownership_id].owner
+end
+---@param owner pop_id valid pop_id
+---@return ownership_id[] An array of ownership 
+function DATA.get_ownership_from_owner(owner)
+    return DATA.ownership_from_owner[owner]
+end
+---@param ownership_id ownership_id valid ownership id
+---@param old_value pop_id valid pop_id
+function __REMOVE_KEY_OWNERSHIP_OWNER(ownership_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.ownership_from_owner[old_value]) do
+        if value == ownership_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.ownership_from_owner[old_value], found_key)
+    end
+end
+---@param ownership_id ownership_id valid ownership id
+---@param value pop_id valid pop_id
+function DATA.ownership_set_owner(ownership_id, value)
+    local old_value = DATA.ownership[ownership_id].owner
+    DATA.ownership[ownership_id].owner = value
+    __REMOVE_KEY_OWNERSHIP_OWNER(ownership_id, old_value)
+    table.insert(DATA.ownership_from_owner[value], ownership_id)
+end
+
+
+local fat_ownership_id_metatable = {
+    __index = function (t,k)
+        if (k == "building") then return DATA.ownership_get_building(t.id) end
+        if (k == "owner") then return DATA.ownership_get_owner(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "building") then
+            DATA.ownership_set_building(t.id, v)
+            return
+        end
+        if (k == "owner") then
+            DATA.ownership_set_owner(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id ownership_id
+---@return fat_ownership_id fat_id
+function DATA.fatten_ownership(id)
+    local result = {id = id}
+    setmetatable(result, fat_ownership_id_metatable)    return result
+end
+----------employment----------
+
+
+---employment: LSP types---
+
+---Unique identificator for employment entity
+---@alias employment_id number
+
+---@class (exact) fat_employment_id
+---@field id employment_id Unique employment id
+---@field worker_income number 
+---@field job job_id 
+---@field building building_id 
+---@field worker pop_id 
+
+---@class struct_employment
+---@field worker_income number 
+---@field job job_id 
+---@field building building_id 
+---@field worker pop_id 
+
+
+ffi.cdef[[
+    typedef struct {
+        float worker_income;
+        uint32_t job;
+        uint32_t building;
+        uint32_t worker;
+    } employment;
+]]
+
+---employment: FFI arrays---
+---@type nil
+DATA.employment_malloc = ffi.C.malloc(ffi.sizeof("employment") * 300001)
+---@type table<employment_id, struct_employment>
+DATA.employment = ffi.cast("employment*", DATA.employment_malloc)
+---@type table<building_id, employment_id[]>>
+DATA.employment_from_building= {}
+---@type table<pop_id, employment_id>
+DATA.employment_from_worker= {}
+
+---employment: LUA bindings---
+
+DATA.employment_size = 300000
+---@type table<employment_id, boolean>
+local employment_indices_pool = ffi.new("bool[?]", 300000)
+for i = 1, 299999 do
+    employment_indices_pool[i] = true 
+end
+---@type table<employment_id, employment_id>
+DATA.employment_indices_set = {}
+function DATA.create_employment()
+    for i = 1, 299999 do
+        if employment_indices_pool[i] then
+            employment_indices_pool[i] = false
+            DATA.employment_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for employment")
+end
+function DATA.delete_employment(i)
+    do
+        local old_value = DATA.employment[i].building
+        __REMOVE_KEY_EMPLOYMENT_BUILDING(i, old_value)
+    end
+    do
+        local old_value = DATA.employment[i].worker
+        __REMOVE_KEY_EMPLOYMENT_WORKER(old_value)
+    end
+    employment_indices_pool[i] = true
+    DATA.employment_indices_set[i] = nil
+end
+---@param func fun(item: employment_id) 
+function DATA.for_each_employment(func)
+    for _, item in pairs(DATA.employment_indices_set) do
+        func(item)
+    end
+end
+
+---@param employment_id employment_id valid employment id
+---@return number worker_income 
+function DATA.employment_get_worker_income(employment_id)
+    return DATA.employment[employment_id].worker_income
+end
+---@param employment_id employment_id valid employment id
+---@param value number valid number
+function DATA.employment_set_worker_income(employment_id, value)
+    DATA.employment[employment_id].worker_income = value
+end
+---@param employment_id employment_id valid employment id
+---@param value number valid number
+function DATA.employment_inc_worker_income(employment_id, value)
+    DATA.employment[employment_id].worker_income = DATA.employment[employment_id].worker_income + value
+end
+---@param employment_id employment_id valid employment id
+---@return job_id job 
+function DATA.employment_get_job(employment_id)
+    return DATA.employment[employment_id].job
+end
+---@param employment_id employment_id valid employment id
+---@param value job_id valid job_id
+function DATA.employment_set_job(employment_id, value)
+    DATA.employment[employment_id].job = value
+end
+---@param employment_id employment_id valid employment id
+---@return building_id building 
+function DATA.employment_get_building(employment_id)
+    return DATA.employment[employment_id].building
+end
+---@param building building_id valid building_id
+---@return employment_id[] An array of employment 
+function DATA.get_employment_from_building(building)
+    return DATA.employment_from_building[building]
+end
+---@param employment_id employment_id valid employment id
+---@param old_value building_id valid building_id
+function __REMOVE_KEY_EMPLOYMENT_BUILDING(employment_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.employment_from_building[old_value]) do
+        if value == employment_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.employment_from_building[old_value], found_key)
+    end
+end
+---@param employment_id employment_id valid employment id
+---@param value building_id valid building_id
+function DATA.employment_set_building(employment_id, value)
+    local old_value = DATA.employment[employment_id].building
+    DATA.employment[employment_id].building = value
+    __REMOVE_KEY_EMPLOYMENT_BUILDING(employment_id, old_value)
+    table.insert(DATA.employment_from_building[value], employment_id)
+end
+---@param employment_id employment_id valid employment id
+---@return pop_id worker 
+function DATA.employment_get_worker(employment_id)
+    return DATA.employment[employment_id].worker
+end
+---@param worker pop_id valid pop_id
+---@return employment_id employment 
+function DATA.get_employment_from_worker(worker)
+    return DATA.employment_from_worker[worker]
+end
+function __REMOVE_KEY_EMPLOYMENT_WORKER(old_value)
+    DATA.employment_from_worker[old_value] = nil
+end
+---@param employment_id employment_id valid employment id
+---@param value pop_id valid pop_id
+function DATA.employment_set_worker(employment_id, value)
+    local old_value = DATA.employment[employment_id].worker
+    DATA.employment[employment_id].worker = value
+    __REMOVE_KEY_EMPLOYMENT_WORKER(old_value)
+    DATA.employment_from_worker[value] = employment_id
+end
+
+
+local fat_employment_id_metatable = {
+    __index = function (t,k)
+        if (k == "worker_income") then return DATA.employment_get_worker_income(t.id) end
+        if (k == "job") then return DATA.employment_get_job(t.id) end
+        if (k == "building") then return DATA.employment_get_building(t.id) end
+        if (k == "worker") then return DATA.employment_get_worker(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "worker_income") then
+            DATA.employment_set_worker_income(t.id, v)
+            return
+        end
+        if (k == "job") then
+            DATA.employment_set_job(t.id, v)
+            return
+        end
+        if (k == "building") then
+            DATA.employment_set_building(t.id, v)
+            return
+        end
+        if (k == "worker") then
+            DATA.employment_set_worker(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id employment_id
+---@return fat_employment_id fat_id
+function DATA.fatten_employment(id)
+    local result = {id = id}
+    setmetatable(result, fat_employment_id_metatable)    return result
+end
+----------building_location----------
+
+
+---building_location: LSP types---
+
+---Unique identificator for building_location entity
+---@alias building_location_id number
+
+---@class (exact) fat_building_location_id
+---@field id building_location_id Unique building_location id
+---@field location province_id location of the building
+---@field building building_id 
+
+---@class struct_building_location
+---@field location province_id location of the building
+---@field building building_id 
+
+
+ffi.cdef[[
+    typedef struct {
+        uint32_t location;
+        uint32_t building;
+    } building_location;
+]]
+
+---building_location: FFI arrays---
+---@type nil
+DATA.building_location_malloc = ffi.C.malloc(ffi.sizeof("building_location") * 200001)
+---@type table<building_location_id, struct_building_location>
+DATA.building_location = ffi.cast("building_location*", DATA.building_location_malloc)
+---@type table<province_id, building_location_id[]>>
+DATA.building_location_from_location= {}
+---@type table<building_id, building_location_id>
+DATA.building_location_from_building= {}
+
+---building_location: LUA bindings---
+
+DATA.building_location_size = 200000
+---@type table<building_location_id, boolean>
+local building_location_indices_pool = ffi.new("bool[?]", 200000)
+for i = 1, 199999 do
+    building_location_indices_pool[i] = true 
+end
+---@type table<building_location_id, building_location_id>
+DATA.building_location_indices_set = {}
+function DATA.create_building_location()
+    for i = 1, 199999 do
+        if building_location_indices_pool[i] then
+            building_location_indices_pool[i] = false
+            DATA.building_location_indices_set[i] = i
+            return i
+        end
+    end
+    error("Run out of space for building_location")
+end
+function DATA.delete_building_location(i)
+    do
+        local old_value = DATA.building_location[i].location
+        __REMOVE_KEY_BUILDING_LOCATION_LOCATION(i, old_value)
+    end
+    do
+        local old_value = DATA.building_location[i].building
+        __REMOVE_KEY_BUILDING_LOCATION_BUILDING(old_value)
+    end
+    building_location_indices_pool[i] = true
+    DATA.building_location_indices_set[i] = nil
+end
+---@param func fun(item: building_location_id) 
+function DATA.for_each_building_location(func)
+    for _, item in pairs(DATA.building_location_indices_set) do
+        func(item)
+    end
+end
+
+---@param building_location_id building_location_id valid building_location id
+---@return province_id location location of the building
+function DATA.building_location_get_location(building_location_id)
+    return DATA.building_location[building_location_id].location
+end
+---@param location province_id valid province_id
+---@return building_location_id[] An array of building_location 
+function DATA.get_building_location_from_location(location)
+    return DATA.building_location_from_location[location]
+end
+---@param building_location_id building_location_id valid building_location id
+---@param old_value province_id valid province_id
+function __REMOVE_KEY_BUILDING_LOCATION_LOCATION(building_location_id, old_value)
+    local found_key = nil
+    for key, value in pairs(DATA.building_location_from_location[old_value]) do
+        if value == building_location_id then
+            found_key = key
+            break
+        end
+    end
+    if found_key ~= nil then
+        table.remove(DATA.building_location_from_location[old_value], found_key)
+    end
+end
+---@param building_location_id building_location_id valid building_location id
+---@param value province_id valid province_id
+function DATA.building_location_set_location(building_location_id, value)
+    local old_value = DATA.building_location[building_location_id].location
+    DATA.building_location[building_location_id].location = value
+    __REMOVE_KEY_BUILDING_LOCATION_LOCATION(building_location_id, old_value)
+    table.insert(DATA.building_location_from_location[value], building_location_id)
+end
+---@param building_location_id building_location_id valid building_location id
+---@return building_id building 
+function DATA.building_location_get_building(building_location_id)
+    return DATA.building_location[building_location_id].building
+end
+---@param building building_id valid building_id
+---@return building_location_id building_location 
+function DATA.get_building_location_from_building(building)
+    return DATA.building_location_from_building[building]
+end
+function __REMOVE_KEY_BUILDING_LOCATION_BUILDING(old_value)
+    DATA.building_location_from_building[old_value] = nil
+end
+---@param building_location_id building_location_id valid building_location id
+---@param value building_id valid building_id
+function DATA.building_location_set_building(building_location_id, value)
+    local old_value = DATA.building_location[building_location_id].building
+    DATA.building_location[building_location_id].building = value
+    __REMOVE_KEY_BUILDING_LOCATION_BUILDING(old_value)
+    DATA.building_location_from_building[value] = building_location_id
+end
+
+
+local fat_building_location_id_metatable = {
+    __index = function (t,k)
+        if (k == "location") then return DATA.building_location_get_location(t.id) end
+        if (k == "building") then return DATA.building_location_get_building(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "location") then
+            DATA.building_location_set_location(t.id, v)
+            return
+        end
+        if (k == "building") then
+            DATA.building_location_set_building(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id building_location_id
+---@return fat_building_location_id fat_id
+function DATA.fatten_building_location(id)
+    local result = {id = id}
+    setmetatable(result, fat_building_location_id_metatable)    return result
+end
 ----------army_membership----------
 
 
@@ -3106,7 +4099,7 @@ end
 ---Unique identificator for army_membership entity
 ---@alias army_membership_id number
 
----@class fat_army_membership_id
+---@class (exact) fat_army_membership_id
 ---@field id army_membership_id Unique army_membership id
 ---@field army army_id 
 ---@field member warband_id part of army
@@ -3259,7 +4252,7 @@ end
 ---Unique identificator for warband_leader entity
 ---@alias warband_leader_id number
 
----@class fat_warband_leader_id
+---@class (exact) fat_warband_leader_id
 ---@field id warband_leader_id Unique warband_leader id
 ---@field leader pop_id 
 ---@field warband warband_id 
@@ -3401,7 +4394,7 @@ end
 ---Unique identificator for warband_recruiter entity
 ---@alias warband_recruiter_id number
 
----@class fat_warband_recruiter_id
+---@class (exact) fat_warband_recruiter_id
 ---@field id warband_recruiter_id Unique warband_recruiter id
 ---@field recruiter pop_id 
 ---@field warband warband_id 
@@ -3543,7 +4536,7 @@ end
 ---Unique identificator for warband_commander entity
 ---@alias warband_commander_id number
 
----@class fat_warband_commander_id
+---@class (exact) fat_warband_commander_id
 ---@field id warband_commander_id Unique warband_commander id
 ---@field commander pop_id 
 ---@field warband warband_id 
@@ -3685,7 +4678,7 @@ end
 ---Unique identificator for warband_location entity
 ---@alias warband_location_id number
 
----@class fat_warband_location_id
+---@class (exact) fat_warband_location_id
 ---@field id warband_location_id Unique warband_location id
 ---@field location province_id location of warband
 ---@field warband warband_id 
@@ -3838,7 +4831,7 @@ end
 ---Unique identificator for warband_unit entity
 ---@alias warband_unit_id number
 
----@class fat_warband_unit_id
+---@class (exact) fat_warband_unit_id
 ---@field id warband_unit_id Unique warband_unit id
 ---@field type unit_type_id Current unit type
 ---@field unit pop_id 
@@ -4009,7 +5002,7 @@ end
 ---Unique identificator for character_location entity
 ---@alias character_location_id number
 
----@class fat_character_location_id
+---@class (exact) fat_character_location_id
 ---@field id character_location_id Unique character_location id
 ---@field location province_id location of character
 ---@field character pop_id 
@@ -4162,7 +5155,7 @@ end
 ---Unique identificator for home entity
 ---@alias home_id number
 
----@class fat_home_id
+---@class (exact) fat_home_id
 ---@field id home_id Unique home id
 ---@field home province_id home of pop
 ---@field pop pop_id characters and pops which think of this province as their home
@@ -4315,7 +5308,7 @@ end
 ---Unique identificator for pop_location entity
 ---@alias pop_location_id number
 
----@class fat_pop_location_id
+---@class (exact) fat_pop_location_id
 ---@field id pop_location_id Unique pop_location id
 ---@field location province_id location of pop
 ---@field pop pop_id 
@@ -4468,7 +5461,7 @@ end
 ---Unique identificator for outlaw_location entity
 ---@alias outlaw_location_id number
 
----@class fat_outlaw_location_id
+---@class (exact) fat_outlaw_location_id
 ---@field id outlaw_location_id Unique outlaw_location id
 ---@field location province_id location of the outlaw
 ---@field outlaw pop_id 
@@ -4621,7 +5614,7 @@ end
 ---Unique identificator for tile_province_membership entity
 ---@alias tile_province_membership_id number
 
----@class fat_tile_province_membership_id
+---@class (exact) fat_tile_province_membership_id
 ---@field id tile_province_membership_id Unique tile_province_membership id
 ---@field province province_id 
 ---@field tile tile_id 
@@ -4774,7 +5767,7 @@ end
 ---Unique identificator for province_neighborhood entity
 ---@alias province_neighborhood_id number
 
----@class fat_province_neighborhood_id
+---@class (exact) fat_province_neighborhood_id
 ---@field id province_neighborhood_id Unique province_neighborhood id
 ---@field origin province_id 
 ---@field target province_id 
@@ -4938,7 +5931,7 @@ end
 ---Unique identificator for parent_child_relation entity
 ---@alias parent_child_relation_id number
 
----@class fat_parent_child_relation_id
+---@class (exact) fat_parent_child_relation_id
 ---@field id parent_child_relation_id Unique parent_child_relation id
 ---@field parent pop_id 
 ---@field child pop_id 
@@ -5091,7 +6084,7 @@ end
 ---Unique identificator for loyalty entity
 ---@alias loyalty_id number
 
----@class fat_loyalty_id
+---@class (exact) fat_loyalty_id
 ---@field id loyalty_id Unique loyalty id
 ---@field top pop_id 
 ---@field bottom pop_id 
@@ -5244,7 +6237,7 @@ end
 ---Unique identificator for succession entity
 ---@alias succession_id number
 
----@class fat_succession_id
+---@class (exact) fat_succession_id
 ---@field id succession_id Unique succession id
 ---@field successor_of pop_id 
 ---@field successor pop_id 
@@ -5397,7 +6390,7 @@ end
 ---Unique identificator for jobtype entity
 ---@alias jobtype_id number
 
----@class fat_jobtype_id
+---@class (exact) fat_jobtype_id
 ---@field id jobtype_id Unique jobtype id
 ---@field name string 
 
@@ -5524,7 +6517,7 @@ DATA.jobtype_set_name(index_jobtype, "HUNTING")
 ---Unique identificator for need entity
 ---@alias need_id number
 
----@class fat_need_id
+---@class (exact) fat_need_id
 ---@field id need_id Unique need id
 ---@field name string 
 ---@field age_independent boolean 
@@ -5815,7 +6808,7 @@ DATA.need_set_job_to_satisfy(index_need, JOBTYPE.ARTISAN)
 ---Unique identificator for character_rank entity
 ---@alias character_rank_id number
 
----@class fat_character_rank_id
+---@class (exact) fat_character_rank_id
 ---@field id character_rank_id Unique character_rank id
 ---@field name string 
 ---@field localisation string 
@@ -5950,7 +6943,7 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 ---Unique identificator for trait entity
 ---@alias trait_id number
 
----@class fat_trait_id
+---@class (exact) fat_trait_id
 ---@field id trait_id Unique trait id
 ---@field name string 
 ---@field short_description string 
@@ -6173,7 +7166,7 @@ DATA.trait_set_icon(index_trait, "scales.png")
 ---Unique identificator for trade_good_category entity
 ---@alias trade_good_category_id number
 
----@class fat_trade_good_category_id
+---@class (exact) fat_trade_good_category_id
 ---@field id trade_good_category_id Unique trade_good_category id
 ---@field name string 
 
@@ -6285,7 +7278,7 @@ DATA.trade_good_category_set_name(index_trade_good_category, "capacity")
 ---Unique identificator for warband_status entity
 ---@alias warband_status_id number
 
----@class fat_warband_status_id
+---@class (exact) fat_warband_status_id
 ---@field id warband_status_id Unique warband_status id
 ---@field name string 
 
@@ -6412,7 +7405,7 @@ DATA.warband_status_set_name(index_warband_status, "off_duty")
 ---Unique identificator for warband_stance entity
 ---@alias warband_stance_id number
 
----@class fat_warband_stance_id
+---@class (exact) fat_warband_stance_id
 ---@field id warband_stance_id Unique warband_stance id
 ---@field name string 
 
@@ -6521,7 +7514,7 @@ DATA.warband_stance_set_name(index_warband_stance, "forage")
 ---Unique identificator for building_archetype entity
 ---@alias building_archetype_id number
 
----@class fat_building_archetype_id
+---@class (exact) fat_building_archetype_id
 ---@field id building_archetype_id Unique building_archetype id
 ---@field name string 
 
@@ -6639,7 +7632,7 @@ DATA.building_archetype_set_name(index_building_archetype, "DEFENSE")
 ---Unique identificator for trade_good entity
 ---@alias trade_good_id number
 
----@class fat_trade_good_id
+---@class (exact) fat_trade_good_id
 ---@field id trade_good_id Unique trade_good id
 ---@field name string 
 ---@field icon string 
@@ -6910,7 +7903,7 @@ end
 ---Unique identificator for use_case entity
 ---@alias use_case_id number
 
----@class fat_use_case_id
+---@class (exact) fat_use_case_id
 ---@field id use_case_id Unique use_case id
 ---@field name string 
 ---@field icon string 
@@ -7133,7 +8126,7 @@ end
 ---Unique identificator for use_weight entity
 ---@alias use_weight_id number
 
----@class fat_use_weight_id
+---@class (exact) fat_use_weight_id
 ---@field id use_weight_id Unique use_weight id
 ---@field weight number efficiency of this relation
 ---@field trade_good trade_good_id index of trade good
@@ -7330,7 +8323,7 @@ end
 ---Unique identificator for biome entity
 ---@alias biome_id number
 
----@class fat_biome_id
+---@class (exact) fat_biome_id
 ---@field id biome_id Unique biome id
 ---@field name string 
 ---@field r number 
@@ -8524,7 +9517,7 @@ end
 ---Unique identificator for bedrock entity
 ---@alias bedrock_id number
 
----@class fat_bedrock_id
+---@class (exact) fat_bedrock_id
 ---@field id bedrock_id Unique bedrock id
 ---@field name string 
 ---@field r number 
@@ -9156,7 +10149,7 @@ end
 ---Unique identificator for resource entity
 ---@alias resource_id number
 
----@class fat_resource_id
+---@class (exact) fat_resource_id
 ---@field id resource_id Unique resource id
 ---@field name string 
 ---@field icon string 
@@ -9637,7 +10630,7 @@ end
 ---Unique identificator for unit_type entity
 ---@alias unit_type_id number
 
----@class fat_unit_type_id
+---@class (exact) fat_unit_type_id
 ---@field id unit_type_id Unique unit_type id
 ---@field name string 
 ---@field icon string 
@@ -10223,7 +11216,7 @@ end
 ---Unique identificator for job entity
 ---@alias job_id number
 
----@class fat_job_id
+---@class (exact) fat_job_id
 ---@field id job_id Unique job id
 ---@field name string 
 ---@field icon string 
@@ -10436,7 +11429,7 @@ end
 ---Unique identificator for production_method entity
 ---@alias production_method_id number
 
----@class fat_production_method_id
+---@class (exact) fat_production_method_id
 ---@field id production_method_id Unique production_method id
 ---@field name string 
 ---@field icon string 
@@ -11238,7 +12231,7 @@ end
 ---Unique identificator for technology entity
 ---@alias technology_id number
 
----@class fat_technology_id
+---@class (exact) fat_technology_id
 ---@field id technology_id Unique technology id
 ---@field name string 
 ---@field icon string 
@@ -11662,7 +12655,7 @@ end
 ---Unique identificator for technology_unlock entity
 ---@alias technology_unlock_id number
 
----@class fat_technology_unlock_id
+---@class (exact) fat_technology_unlock_id
 ---@field id technology_unlock_id Unique technology_unlock id
 ---@field origin technology_id 
 ---@field unlocked technology_id 
@@ -11834,7 +12827,7 @@ end
 ---Unique identificator for building_type entity
 ---@alias building_type_id number
 
----@class fat_building_type_id
+---@class (exact) fat_building_type_id
 ---@field id building_type_id Unique building_type id
 ---@field name string 
 ---@field icon string 
@@ -12287,7 +13280,7 @@ end
 ---Unique identificator for technology_building entity
 ---@alias technology_building_id number
 
----@class fat_technology_building_id
+---@class (exact) fat_technology_building_id
 ---@field id technology_building_id Unique technology_building id
 ---@field technology technology_id 
 ---@field unlocked building_type_id 
@@ -12448,7 +13441,7 @@ end
 ---Unique identificator for technology_unit entity
 ---@alias technology_unit_id number
 
----@class fat_technology_unit_id
+---@class (exact) fat_technology_unit_id
 ---@field id technology_unit_id Unique technology_unit id
 ---@field technology technology_id 
 ---@field unlocked unit_type_id 
@@ -12609,7 +13602,7 @@ end
 ---Unique identificator for race entity
 ---@alias race_id number
 
----@class fat_race_id
+---@class (exact) fat_race_id
 ---@field id race_id Unique race id
 ---@field name string 
 ---@field icon string 
@@ -13508,6 +14501,11 @@ function DATA.save_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 2500
+    total_ffi_size = total_ffi_size + ffi.sizeof("building") * 200000
+    total_ffi_size = total_ffi_size + ffi.sizeof("ownership") * 200000
+    total_ffi_size = total_ffi_size + ffi.sizeof("employment") * 300000
+    total_ffi_size = total_ffi_size + ffi.sizeof("building_location") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 10000
@@ -13538,6 +14536,21 @@ function DATA.save_state()
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("warband") * 10000
     ffi.copy(current_buffer + current_offset, DATA.warband, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("negotiation") * 2500
+    ffi.copy(current_buffer + current_offset, DATA.negotiation, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("building") * 200000
+    ffi.copy(current_buffer + current_offset, DATA.building, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("ownership") * 200000
+    ffi.copy(current_buffer + current_offset, DATA.ownership, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("employment") * 300000
+    ffi.copy(current_buffer + current_offset, DATA.employment, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("building_location") * 200000
+    ffi.copy(current_buffer + current_offset, DATA.building_location, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("army_membership") * 10000
     ffi.copy(current_buffer + current_offset, DATA.army_membership, current_shift)
@@ -13598,6 +14611,11 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 2500
+    total_ffi_size = total_ffi_size + ffi.sizeof("building") * 200000
+    total_ffi_size = total_ffi_size + ffi.sizeof("ownership") * 200000
+    total_ffi_size = total_ffi_size + ffi.sizeof("employment") * 300000
+    total_ffi_size = total_ffi_size + ffi.sizeof("building_location") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 10000
@@ -13627,6 +14645,21 @@ function DATA.load_state()
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("warband") * 10000
     ffi.copy(DATA.warband, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("negotiation") * 2500
+    ffi.copy(DATA.negotiation, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("building") * 200000
+    ffi.copy(DATA.building, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("ownership") * 200000
+    ffi.copy(DATA.ownership, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("employment") * 300000
+    ffi.copy(DATA.employment, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("building_location") * 200000
+    ffi.copy(DATA.building_location, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("army_membership") * 10000
     ffi.copy(DATA.army_membership, data + current_offset, current_shift)
@@ -13775,22 +14808,19 @@ function DATA.test_save_load_0()
         DATA.pop[i].age = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].job = 15
+        DATA.pop[i].savings = 10
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = 8
+        DATA.pop[i].parent = 14
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 16
+        DATA.pop[i].loyalty = 16
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 8
+        DATA.pop[i].life_needs_satisfaction = -4
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = -17
-    end
-    for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = 15
+        DATA.pop[i].basic_needs_satisfaction = -17
     end
     for i = 0, 300000 do
     for j = 0, 19 do
@@ -13886,7 +14916,7 @@ function DATA.test_save_load_0()
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        DATA.province[i].buildable_buildings[j] = false
+        DATA.province[i].buildable_buildings[j] = 9
     end
     end
     for i = 0, 10000 do
@@ -14012,8 +15042,49 @@ function DATA.test_save_load_0()
     for i = 0, 10000 do
         DATA.warband[i].morale = 13
     end
+    for i = 0, 200000 do
+        DATA.building[i].type = 8
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].spent_on_inputs[j].good = 16
+    end
+    for j = 0, 7 do
+        DATA.building[i].spent_on_inputs[j].amount = -5
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].earn_from_outputs[j].good = 6
+    end
+    for j = 0, 7 do
+        DATA.building[i].earn_from_outputs[j].amount = 17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].amount_of_inputs[j].good = 13
+    end
+    for j = 0, 7 do
+        DATA.building[i].amount_of_inputs[j].amount = 17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].amount_of_outputs[j].good = 8
+    end
+    for j = 0, 7 do
+        DATA.building[i].amount_of_outputs[j].amount = 8
+    end
+    end
+    for i = 0, 300000 do
+        DATA.employment[i].worker_income = 11
+    end
+    for i = 0, 300000 do
+        DATA.employment[i].job = 20
+    end
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 8
+        DATA.warband_unit[i].type = 11
     end
     DATA.save_state()
     DATA.load_state()
@@ -14118,22 +15189,19 @@ function DATA.test_save_load_0()
         test_passed = test_passed and DATA.pop[i].age == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].job == 15
+        test_passed = test_passed and DATA.pop[i].savings == 10
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == 8
+        test_passed = test_passed and DATA.pop[i].parent == 14
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 16
+        test_passed = test_passed and DATA.pop[i].loyalty == 16
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 8
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -4
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -17
-    end
-    for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == 15
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -17
     end
     for i = 0, 300000 do
     for j = 0, 19 do
@@ -14229,7 +15297,7 @@ function DATA.test_save_load_0()
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == false
+        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == 9
     end
     end
     for i = 0, 10000 do
@@ -14355,8 +15423,49 @@ function DATA.test_save_load_0()
     for i = 0, 10000 do
         test_passed = test_passed and DATA.warband[i].morale == 13
     end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].type == 8
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 16
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == -5
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 6
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == 17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 13
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == 17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 8
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == 8
+    end
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.employment[i].worker_income == 11
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.employment[i].job == 20
+    end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 8
+        test_passed = test_passed and DATA.warband_unit[i].type == 11
     end
     print("SAVE_LOAD_TEST_0:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -14460,39 +15569,38 @@ function DATA.test_set_get_0()
     fat_id.race = 12
     fat_id.female = false
     fat_id.age = 1
-    fat_id.job = 8
-    fat_id.savings = 12
-    fat_id.parent = 15
-    fat_id.loyalty = 12
-    fat_id.life_needs_satisfaction = -1
-    fat_id.basic_needs_satisfaction = 10
+    fat_id.savings = -4
+    fat_id.parent = 16
+    fat_id.loyalty = 15
+    fat_id.life_needs_satisfaction = 5
+    fat_id.basic_needs_satisfaction = -1
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].need = 5
+        DATA.pop[0].need_satisfaction[j].need = 7
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].use_case = 18
+        DATA.pop[0].need_satisfaction[j].use_case = 11
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].consumed = -7
+        DATA.pop[0].need_satisfaction[j].consumed = 17
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].demanded = 12
+        DATA.pop[0].need_satisfaction[j].demanded = -7
     end
     for j = 0, 9 do
-        DATA.pop[0].traits[j] = 2
+        DATA.pop[0].traits[j] = 8
     end
-    fat_id.successor = 9
+    fat_id.successor = 4
     for j = 0, 99 do
-        DATA.pop[0].inventory[j] = -12
+        DATA.pop[0].inventory[j] = -2
     end
     for j = 0, 99 do
-        DATA.pop[0].price_memory[j] = -14
+        DATA.pop[0].price_memory[j] = -12
     end
-    fat_id.forage_ratio = 19
-    fat_id.work_ratio = -4
-    fat_id.rank = 1
+    fat_id.forage_ratio = -14
+    fat_id.work_ratio = 19
+    fat_id.rank = 2
     for j = 0, 19 do
-        DATA.pop[0].dna[j] = -1
+        DATA.pop[0].dna[j] = 14
     end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 12
@@ -14501,58 +15609,56 @@ function DATA.test_set_get_0()
     if not test_passed then print("female", false, fat_id.female) end
     test_passed = test_passed and fat_id.age == 1
     if not test_passed then print("age", 1, fat_id.age) end
-    test_passed = test_passed and fat_id.job == 8
-    if not test_passed then print("job", 8, fat_id.job) end
-    test_passed = test_passed and fat_id.savings == 12
-    if not test_passed then print("savings", 12, fat_id.savings) end
-    test_passed = test_passed and fat_id.parent == 15
-    if not test_passed then print("parent", 15, fat_id.parent) end
-    test_passed = test_passed and fat_id.loyalty == 12
-    if not test_passed then print("loyalty", 12, fat_id.loyalty) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == -1
-    if not test_passed then print("life_needs_satisfaction", -1, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 10
-    if not test_passed then print("basic_needs_satisfaction", 10, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.savings == -4
+    if not test_passed then print("savings", -4, fat_id.savings) end
+    test_passed = test_passed and fat_id.parent == 16
+    if not test_passed then print("parent", 16, fat_id.parent) end
+    test_passed = test_passed and fat_id.loyalty == 15
+    if not test_passed then print("loyalty", 15, fat_id.loyalty) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 5
+    if not test_passed then print("life_needs_satisfaction", 5, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == -1
+    if not test_passed then print("basic_needs_satisfaction", -1, fat_id.basic_needs_satisfaction) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 5
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 7
     end
-    if not test_passed then print("need_satisfaction.need", 5, DATA.pop[0].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 7, DATA.pop[0].need_satisfaction[0].need) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 18
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 11
     end
-    if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[0].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 11, DATA.pop[0].need_satisfaction[0].use_case) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -7
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == 17
     end
-    if not test_passed then print("need_satisfaction.consumed", -7, DATA.pop[0].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", 17, DATA.pop[0].need_satisfaction[0].consumed) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 12
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == -7
     end
-    if not test_passed then print("need_satisfaction.demanded", 12, DATA.pop[0].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", -7, DATA.pop[0].need_satisfaction[0].demanded) end
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[0].traits[j] == 2
+        test_passed = test_passed and DATA.pop[0].traits[j] == 8
     end
-    if not test_passed then print("traits", 2, DATA.pop[0].traits[0]) end
-    test_passed = test_passed and fat_id.successor == 9
-    if not test_passed then print("successor", 9, fat_id.successor) end
+    if not test_passed then print("traits", 8, DATA.pop[0].traits[0]) end
+    test_passed = test_passed and fat_id.successor == 4
+    if not test_passed then print("successor", 4, fat_id.successor) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].inventory[j] == -12
+        test_passed = test_passed and DATA.pop[0].inventory[j] == -2
     end
-    if not test_passed then print("inventory", -12, DATA.pop[0].inventory[0]) end
+    if not test_passed then print("inventory", -2, DATA.pop[0].inventory[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].price_memory[j] == -14
+        test_passed = test_passed and DATA.pop[0].price_memory[j] == -12
     end
-    if not test_passed then print("price_memory", -14, DATA.pop[0].price_memory[0]) end
-    test_passed = test_passed and fat_id.forage_ratio == 19
-    if not test_passed then print("forage_ratio", 19, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -4
-    if not test_passed then print("work_ratio", -4, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 1
-    if not test_passed then print("rank", 1, fat_id.rank) end
+    if not test_passed then print("price_memory", -12, DATA.pop[0].price_memory[0]) end
+    test_passed = test_passed and fat_id.forage_ratio == -14
+    if not test_passed then print("forage_ratio", -14, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 19
+    if not test_passed then print("work_ratio", 19, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.rank == 2
+    if not test_passed then print("rank", 2, fat_id.rank) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].dna[j] == -1
+        test_passed = test_passed and DATA.pop[0].dna[j] == 14
     end
-    if not test_passed then print("dna", -1, DATA.pop[0].dna[0]) end
+    if not test_passed then print("dna", 14, DATA.pop[0].dna[0]) end
     print("SET_GET_TEST_0_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_province(0)
@@ -14575,7 +15681,7 @@ function DATA.test_set_get_0()
         DATA.province[0].technologies_researchable[j] = 4
     end
     for j = 0, 249 do
-        DATA.province[0].buildable_buildings[j] = false
+        DATA.province[0].buildable_buildings[j] = 9
     end
     for j = 0, 99 do
         DATA.province[0].local_production[j] = -12
@@ -14654,9 +15760,9 @@ function DATA.test_set_get_0()
     end
     if not test_passed then print("technologies_researchable", 4, DATA.province[0].technologies_researchable[0]) end
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == false
+        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == 9
     end
-    if not test_passed then print("buildable_buildings", false, DATA.province[0].buildable_buildings[0]) end
+    if not test_passed then print("buildable_buildings", 9, DATA.province[0].buildable_buildings[0]) end
     for j = 0, 99 do
         test_passed = test_passed and DATA.province[0].local_production[j] == -12
     end
@@ -14774,6 +15880,91 @@ function DATA.test_set_get_0()
     test_passed = test_passed and fat_id.morale == 17
     if not test_passed then print("morale", 17, fat_id.morale) end
     print("SET_GET_TEST_0_warband:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_negotiation(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_negotiation:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_building(0)
+    fat_id.type = 12
+    for j = 0, 7 do
+        DATA.building[0].spent_on_inputs[j].good = 13
+    end
+    for j = 0, 7 do
+        DATA.building[0].spent_on_inputs[j].amount = -18
+    end
+    for j = 0, 7 do
+        DATA.building[0].earn_from_outputs[j].good = 8
+    end
+    for j = 0, 7 do
+        DATA.building[0].earn_from_outputs[j].amount = 12
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_inputs[j].good = 15
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_inputs[j].amount = 5
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_outputs[j].good = 9
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_outputs[j].amount = 10
+    end
+    local test_passed = true
+    test_passed = test_passed and fat_id.type == 12
+    if not test_passed then print("type", 12, fat_id.type) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].spent_on_inputs[j].good == 13
+    end
+    if not test_passed then print("spent_on_inputs.good", 13, DATA.building[0].spent_on_inputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].spent_on_inputs[j].amount == -18
+    end
+    if not test_passed then print("spent_on_inputs.amount", -18, DATA.building[0].spent_on_inputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].earn_from_outputs[j].good == 8
+    end
+    if not test_passed then print("earn_from_outputs.good", 8, DATA.building[0].earn_from_outputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].earn_from_outputs[j].amount == 12
+    end
+    if not test_passed then print("earn_from_outputs.amount", 12, DATA.building[0].earn_from_outputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_inputs[j].good == 15
+    end
+    if not test_passed then print("amount_of_inputs.good", 15, DATA.building[0].amount_of_inputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_inputs[j].amount == 5
+    end
+    if not test_passed then print("amount_of_inputs.amount", 5, DATA.building[0].amount_of_inputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_outputs[j].good == 9
+    end
+    if not test_passed then print("amount_of_outputs.good", 9, DATA.building[0].amount_of_outputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_outputs[j].amount == 10
+    end
+    if not test_passed then print("amount_of_outputs.amount", 10, DATA.building[0].amount_of_outputs[0].amount) end
+    print("SET_GET_TEST_0_building:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_ownership(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_ownership:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_employment(0)
+    fat_id.worker_income = 4
+    fat_id.job = 13
+    local test_passed = true
+    test_passed = test_passed and fat_id.worker_income == 4
+    if not test_passed then print("worker_income", 4, fat_id.worker_income) end
+    test_passed = test_passed and fat_id.job == 13
+    if not test_passed then print("job", 13, fat_id.job) end
+    print("SET_GET_TEST_0_employment:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_building_location(0)
+    local test_passed = true
+    print("SET_GET_TEST_0_building_location:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_army_membership(0)
     local test_passed = true
@@ -14940,44 +16131,41 @@ function DATA.test_save_load_1()
         DATA.pop[i].age = 14
     end
     for i = 0, 300000 do
-        DATA.pop[i].job = 15
+        DATA.pop[i].savings = 11
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = 15
+        DATA.pop[i].parent = 17
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 7
+        DATA.pop[i].loyalty = 7
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 11
-    end
-    for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = -6
+        DATA.pop[i].life_needs_satisfaction = 2
     end
     for i = 0, 300000 do
         DATA.pop[i].basic_needs_satisfaction = -6
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].need = 7
+        DATA.pop[i].need_satisfaction[j].need = 3
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].use_case = 9
+        DATA.pop[i].need_satisfaction[j].use_case = 14
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = -19
+        DATA.pop[i].need_satisfaction[j].consumed = -2
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = 6
+        DATA.pop[i].need_satisfaction[j].demanded = -19
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        DATA.pop[i].traits[j] = 8
+        DATA.pop[i].traits[j] = 6
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 20
+        DATA.pop[i].successor = 17
     end
     for i = 0, 300000 do
     for j = 0, 99 do
@@ -15051,7 +16239,7 @@ function DATA.test_save_load_1()
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        DATA.province[i].buildable_buildings[j] = false
+        DATA.province[i].buildable_buildings[j] = 12
     end
     end
     for i = 0, 10000 do
@@ -15177,8 +16365,49 @@ function DATA.test_save_load_1()
     for i = 0, 10000 do
         DATA.warband[i].morale = 16
     end
+    for i = 0, 200000 do
+        DATA.building[i].type = 11
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].spent_on_inputs[j].good = 14
+    end
+    for j = 0, 7 do
+        DATA.building[i].spent_on_inputs[j].amount = -3
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].earn_from_outputs[j].good = 17
+    end
+    for j = 0, 7 do
+        DATA.building[i].earn_from_outputs[j].amount = 18
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].amount_of_inputs[j].good = 0
+    end
+    for j = 0, 7 do
+        DATA.building[i].amount_of_inputs[j].amount = 4
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].amount_of_outputs[j].good = 16
+    end
+    for j = 0, 7 do
+        DATA.building[i].amount_of_outputs[j].amount = -12
+    end
+    end
+    for i = 0, 300000 do
+        DATA.employment[i].worker_income = 13
+    end
+    for i = 0, 300000 do
+        DATA.employment[i].job = 17
+    end
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 11
+        DATA.warband_unit[i].type = 6
     end
     DATA.save_state()
     DATA.load_state()
@@ -15283,44 +16512,41 @@ function DATA.test_save_load_1()
         test_passed = test_passed and DATA.pop[i].age == 14
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].job == 15
+        test_passed = test_passed and DATA.pop[i].savings == 11
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == 15
+        test_passed = test_passed and DATA.pop[i].parent == 17
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 7
+        test_passed = test_passed and DATA.pop[i].loyalty == 7
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 11
-    end
-    for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -6
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 2
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -6
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 7
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 3
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 9
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 14
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == -19
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == -2
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 6
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == -19
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[i].traits[j] == 8
+        test_passed = test_passed and DATA.pop[i].traits[j] == 6
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 20
+        test_passed = test_passed and DATA.pop[i].successor == 17
     end
     for i = 0, 300000 do
     for j = 0, 99 do
@@ -15394,7 +16620,7 @@ function DATA.test_save_load_1()
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == false
+        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == 12
     end
     end
     for i = 0, 10000 do
@@ -15520,8 +16746,49 @@ function DATA.test_save_load_1()
     for i = 0, 10000 do
         test_passed = test_passed and DATA.warband[i].morale == 16
     end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].type == 11
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 14
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == -3
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 17
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == 18
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 0
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == 4
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 16
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == -12
+    end
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.employment[i].worker_income == 13
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.employment[i].job == 17
+    end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 11
+        test_passed = test_passed and DATA.warband_unit[i].type == 6
     end
     print("SAVE_LOAD_TEST_1:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -15625,39 +16892,38 @@ function DATA.test_set_get_1()
     fat_id.race = 4
     fat_id.female = true
     fat_id.age = 8
-    fat_id.job = 3
-    fat_id.savings = 11
-    fat_id.parent = 14
-    fat_id.loyalty = 15
-    fat_id.life_needs_satisfaction = 4
-    fat_id.basic_needs_satisfaction = -7
+    fat_id.savings = -13
+    fat_id.parent = 15
+    fat_id.loyalty = 14
+    fat_id.life_needs_satisfaction = 10
+    fat_id.basic_needs_satisfaction = 4
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].need = 1
+        DATA.pop[0].need_satisfaction[j].need = 3
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].use_case = 15
+        DATA.pop[0].need_satisfaction[j].use_case = 3
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].consumed = -19
+        DATA.pop[0].need_satisfaction[j].consumed = 11
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].demanded = 4
+        DATA.pop[0].need_satisfaction[j].demanded = -19
     end
     for j = 0, 9 do
         DATA.pop[0].traits[j] = 6
     end
-    fat_id.successor = 19
+    fat_id.successor = 13
     for j = 0, 99 do
-        DATA.pop[0].inventory[j] = -20
+        DATA.pop[0].inventory[j] = 18
     end
     for j = 0, 99 do
-        DATA.pop[0].price_memory[j] = 8
+        DATA.pop[0].price_memory[j] = -20
     end
-    fat_id.forage_ratio = -3
-    fat_id.work_ratio = -6
-    fat_id.rank = 0
+    fat_id.forage_ratio = 8
+    fat_id.work_ratio = -3
+    fat_id.rank = 1
     for j = 0, 19 do
-        DATA.pop[0].dna[j] = 0
+        DATA.pop[0].dna[j] = 17
     end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 4
@@ -15666,58 +16932,56 @@ function DATA.test_set_get_1()
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 8
     if not test_passed then print("age", 8, fat_id.age) end
-    test_passed = test_passed and fat_id.job == 3
-    if not test_passed then print("job", 3, fat_id.job) end
-    test_passed = test_passed and fat_id.savings == 11
-    if not test_passed then print("savings", 11, fat_id.savings) end
-    test_passed = test_passed and fat_id.parent == 14
-    if not test_passed then print("parent", 14, fat_id.parent) end
-    test_passed = test_passed and fat_id.loyalty == 15
-    if not test_passed then print("loyalty", 15, fat_id.loyalty) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 4
-    if not test_passed then print("life_needs_satisfaction", 4, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == -7
-    if not test_passed then print("basic_needs_satisfaction", -7, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.savings == -13
+    if not test_passed then print("savings", -13, fat_id.savings) end
+    test_passed = test_passed and fat_id.parent == 15
+    if not test_passed then print("parent", 15, fat_id.parent) end
+    test_passed = test_passed and fat_id.loyalty == 14
+    if not test_passed then print("loyalty", 14, fat_id.loyalty) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 10
+    if not test_passed then print("life_needs_satisfaction", 10, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 4
+    if not test_passed then print("basic_needs_satisfaction", 4, fat_id.basic_needs_satisfaction) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 1
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 3
     end
-    if not test_passed then print("need_satisfaction.need", 1, DATA.pop[0].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[0].need_satisfaction[0].need) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 15
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 3
     end
-    if not test_passed then print("need_satisfaction.use_case", 15, DATA.pop[0].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 3, DATA.pop[0].need_satisfaction[0].use_case) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -19
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == 11
     end
-    if not test_passed then print("need_satisfaction.consumed", -19, DATA.pop[0].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", 11, DATA.pop[0].need_satisfaction[0].consumed) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 4
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == -19
     end
-    if not test_passed then print("need_satisfaction.demanded", 4, DATA.pop[0].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", -19, DATA.pop[0].need_satisfaction[0].demanded) end
     for j = 0, 9 do
         test_passed = test_passed and DATA.pop[0].traits[j] == 6
     end
     if not test_passed then print("traits", 6, DATA.pop[0].traits[0]) end
-    test_passed = test_passed and fat_id.successor == 19
-    if not test_passed then print("successor", 19, fat_id.successor) end
+    test_passed = test_passed and fat_id.successor == 13
+    if not test_passed then print("successor", 13, fat_id.successor) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].inventory[j] == -20
+        test_passed = test_passed and DATA.pop[0].inventory[j] == 18
     end
-    if not test_passed then print("inventory", -20, DATA.pop[0].inventory[0]) end
+    if not test_passed then print("inventory", 18, DATA.pop[0].inventory[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].price_memory[j] == 8
+        test_passed = test_passed and DATA.pop[0].price_memory[j] == -20
     end
-    if not test_passed then print("price_memory", 8, DATA.pop[0].price_memory[0]) end
-    test_passed = test_passed and fat_id.forage_ratio == -3
-    if not test_passed then print("forage_ratio", -3, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -6
-    if not test_passed then print("work_ratio", -6, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 0
-    if not test_passed then print("rank", 0, fat_id.rank) end
+    if not test_passed then print("price_memory", -20, DATA.pop[0].price_memory[0]) end
+    test_passed = test_passed and fat_id.forage_ratio == 8
+    if not test_passed then print("forage_ratio", 8, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == -3
+    if not test_passed then print("work_ratio", -3, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.rank == 1
+    if not test_passed then print("rank", 1, fat_id.rank) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].dna[j] == 0
+        test_passed = test_passed and DATA.pop[0].dna[j] == 17
     end
-    if not test_passed then print("dna", 0, DATA.pop[0].dna[0]) end
+    if not test_passed then print("dna", 17, DATA.pop[0].dna[0]) end
     print("SET_GET_TEST_1_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_province(0)
@@ -15740,7 +17004,7 @@ function DATA.test_set_get_1()
         DATA.province[0].technologies_researchable[j] = 0
     end
     for j = 0, 249 do
-        DATA.province[0].buildable_buildings[j] = false
+        DATA.province[0].buildable_buildings[j] = 12
     end
     for j = 0, 99 do
         DATA.province[0].local_production[j] = 7
@@ -15819,9 +17083,9 @@ function DATA.test_set_get_1()
     end
     if not test_passed then print("technologies_researchable", 0, DATA.province[0].technologies_researchable[0]) end
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == false
+        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == 12
     end
-    if not test_passed then print("buildable_buildings", false, DATA.province[0].buildable_buildings[0]) end
+    if not test_passed then print("buildable_buildings", 12, DATA.province[0].buildable_buildings[0]) end
     for j = 0, 99 do
         test_passed = test_passed and DATA.province[0].local_production[j] == 7
     end
@@ -15939,6 +17203,91 @@ function DATA.test_set_get_1()
     test_passed = test_passed and fat_id.morale == -14
     if not test_passed then print("morale", -14, fat_id.morale) end
     print("SET_GET_TEST_1_warband:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_negotiation(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_negotiation:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_building(0)
+    fat_id.type = 4
+    for j = 0, 7 do
+        DATA.building[0].spent_on_inputs[j].good = 18
+    end
+    for j = 0, 7 do
+        DATA.building[0].spent_on_inputs[j].amount = -16
+    end
+    for j = 0, 7 do
+        DATA.building[0].earn_from_outputs[j].good = 8
+    end
+    for j = 0, 7 do
+        DATA.building[0].earn_from_outputs[j].amount = -13
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_inputs[j].good = 15
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_inputs[j].amount = 8
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_outputs[j].good = 15
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_outputs[j].amount = 4
+    end
+    local test_passed = true
+    test_passed = test_passed and fat_id.type == 4
+    if not test_passed then print("type", 4, fat_id.type) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].spent_on_inputs[j].good == 18
+    end
+    if not test_passed then print("spent_on_inputs.good", 18, DATA.building[0].spent_on_inputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].spent_on_inputs[j].amount == -16
+    end
+    if not test_passed then print("spent_on_inputs.amount", -16, DATA.building[0].spent_on_inputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].earn_from_outputs[j].good == 8
+    end
+    if not test_passed then print("earn_from_outputs.good", 8, DATA.building[0].earn_from_outputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].earn_from_outputs[j].amount == -13
+    end
+    if not test_passed then print("earn_from_outputs.amount", -13, DATA.building[0].earn_from_outputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_inputs[j].good == 15
+    end
+    if not test_passed then print("amount_of_inputs.good", 15, DATA.building[0].amount_of_inputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_inputs[j].amount == 8
+    end
+    if not test_passed then print("amount_of_inputs.amount", 8, DATA.building[0].amount_of_inputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_outputs[j].good == 15
+    end
+    if not test_passed then print("amount_of_outputs.good", 15, DATA.building[0].amount_of_outputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_outputs[j].amount == 4
+    end
+    if not test_passed then print("amount_of_outputs.amount", 4, DATA.building[0].amount_of_outputs[0].amount) end
+    print("SET_GET_TEST_1_building:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_ownership(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_ownership:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_employment(0)
+    fat_id.worker_income = -12
+    fat_id.job = 18
+    local test_passed = true
+    test_passed = test_passed and fat_id.worker_income == -12
+    if not test_passed then print("worker_income", -12, fat_id.worker_income) end
+    test_passed = test_passed and fat_id.job == 18
+    if not test_passed then print("job", 18, fat_id.job) end
+    print("SET_GET_TEST_1_employment:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_building_location(0)
+    local test_passed = true
+    print("SET_GET_TEST_1_building_location:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_army_membership(0)
     local test_passed = true
@@ -16105,195 +17454,192 @@ function DATA.test_save_load_2()
         DATA.pop[i].age = 7
     end
     for i = 0, 300000 do
-        DATA.pop[i].job = 7
+        DATA.pop[i].savings = -6
     end
     for i = 0, 300000 do
-        DATA.pop[i].savings = -19
+        DATA.pop[i].parent = 0
     end
     for i = 0, 300000 do
-        DATA.pop[i].parent = 5
+        DATA.pop[i].loyalty = 5
     end
     for i = 0, 300000 do
-        DATA.pop[i].loyalty = 10
+        DATA.pop[i].life_needs_satisfaction = 0
     end
     for i = 0, 300000 do
-        DATA.pop[i].life_needs_satisfaction = -9
-    end
-    for i = 0, 300000 do
-        DATA.pop[i].basic_needs_satisfaction = -12
+        DATA.pop[i].basic_needs_satisfaction = -9
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].need = 5
+        DATA.pop[i].need_satisfaction[j].need = 2
     end
     for j = 0, 19 do
         DATA.pop[i].need_satisfaction[j].use_case = 16
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].consumed = 15
+        DATA.pop[i].need_satisfaction[j].consumed = 12
     end
     for j = 0, 19 do
-        DATA.pop[i].need_satisfaction[j].demanded = -9
+        DATA.pop[i].need_satisfaction[j].demanded = 3
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        DATA.pop[i].traits[j] = 7
+        DATA.pop[i].traits[j] = 8
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].successor = 13
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        DATA.pop[i].inventory[j] = 13
-    end
+        DATA.pop[i].successor = 17
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        DATA.pop[i].price_memory[j] = 3
+        DATA.pop[i].inventory[j] = -9
     end
     end
     for i = 0, 300000 do
-        DATA.pop[i].forage_ratio = 17
+    for j = 0, 99 do
+        DATA.pop[i].price_memory[j] = 8
+    end
     end
     for i = 0, 300000 do
-        DATA.pop[i].work_ratio = 2
+        DATA.pop[i].forage_ratio = 6
+    end
+    for i = 0, 300000 do
+        DATA.pop[i].work_ratio = 13
     end
     for i = 0, 300000 do
         DATA.pop[i].rank = 2
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        DATA.pop[i].dna[j] = 8
+        DATA.pop[i].dna[j] = 17
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].r = -10
+        DATA.province[i].r = 2
     end
     for i = 0, 10000 do
-        DATA.province[i].g = 5
+        DATA.province[i].g = 3
     end
     for i = 0, 10000 do
-        DATA.province[i].b = 9
+        DATA.province[i].b = 8
     end
     for i = 0, 10000 do
         DATA.province[i].is_land = true
     end
     for i = 0, 10000 do
-        DATA.province[i].province_id = 11
+        DATA.province[i].province_id = 5
     end
     for i = 0, 10000 do
-        DATA.province[i].size = -3
+        DATA.province[i].size = 9
     end
     for i = 0, 10000 do
-        DATA.province[i].hydration = 11
+        DATA.province[i].hydration = 13
     end
     for i = 0, 10000 do
-        DATA.province[i].movement_cost = 12
+        DATA.province[i].movement_cost = -5
     end
     for i = 0, 10000 do
-        DATA.province[i].center = 16
+        DATA.province[i].center = 15
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_needed = 2
+        DATA.province[i].infrastructure_needed = -3
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure = 9
+        DATA.province[i].infrastructure = 11
     end
     for i = 0, 10000 do
-        DATA.province[i].infrastructure_investment = 9
-    end
-    for i = 0, 10000 do
-    for j = 0, 399 do
-        DATA.province[i].technologies_present[j] = 11
-    end
+        DATA.province[i].infrastructure_investment = 12
     end
     for i = 0, 10000 do
     for j = 0, 399 do
-        DATA.province[i].technologies_researchable[j] = 18
+        DATA.province[i].technologies_present[j] = 16
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 399 do
+        DATA.province[i].technologies_researchable[j] = 11
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        DATA.province[i].buildable_buildings[j] = false
+        DATA.province[i].buildable_buildings[j] = 14
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_production[j] = 11
+        DATA.province[i].local_production[j] = 9
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_consumption[j] = -6
+        DATA.province[i].local_consumption[j] = 2
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_demand[j] = 0
+        DATA.province[i].local_demand[j] = 16
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_storage[j] = -10
+        DATA.province[i].local_storage[j] = 15
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        DATA.province[i].local_prices[j] = 19
+        DATA.province[i].local_prices[j] = 9
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].local_wealth = -3
+        DATA.province[i].local_wealth = 11
     end
     for i = 0, 10000 do
-        DATA.province[i].trade_wealth = 10
+        DATA.province[i].trade_wealth = -6
     end
     for i = 0, 10000 do
-        DATA.province[i].local_income = -1
+        DATA.province[i].local_income = 0
     end
     for i = 0, 10000 do
-        DATA.province[i].local_building_upkeep = -1
+        DATA.province[i].local_building_upkeep = -10
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers = 12
+        DATA.province[i].foragers = 19
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_water = 15
+        DATA.province[i].foragers_water = -3
     end
     for i = 0, 10000 do
-        DATA.province[i].foragers_limit = 13
+        DATA.province[i].foragers_limit = 10
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].resource = 16
+        DATA.province[i].local_resources[j].resource = 9
     end
     for j = 0, 24 do
-        DATA.province[i].local_resources[j].location = 20
+        DATA.province[i].local_resources[j].location = 9
     end
     end
     for i = 0, 10000 do
-        DATA.province[i].mood = 19
+        DATA.province[i].mood = 12
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.province[i].unit_types[j] = 18
+        DATA.province[i].unit_types[j] = 17
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        DATA.province[i].throughput_boosts[j] = 6
+        DATA.province[i].throughput_boosts[j] = 13
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        DATA.province[i].input_efficiency_boosts[j] = -1
+        DATA.province[i].input_efficiency_boosts[j] = 12
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        DATA.province[i].output_efficiency_boosts[j] = -7
+        DATA.province[i].output_efficiency_boosts[j] = 19
     end
     end
     for i = 0, 10000 do
@@ -16303,47 +17649,88 @@ function DATA.test_save_load_2()
         DATA.province[i].on_a_forest = false
     end
     for i = 0, 5000 do
-        DATA.army[i].destination = 19
+        DATA.army[i].destination = 6
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_current[j] = -16
+        DATA.warband[i].units_current[j] = 11
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        DATA.warband[i].units_target[j] = 1
+        DATA.warband[i].units_target[j] = 12
     end
     end
     for i = 0, 10000 do
-        DATA.warband[i].status = 0
+        DATA.warband[i].status = 5
     end
     for i = 0, 10000 do
-        DATA.warband[i].idle_stance = 0
+        DATA.warband[i].idle_stance = 2
     end
     for i = 0, 10000 do
-        DATA.warband[i].current_free_time_ratio = -14
+        DATA.warband[i].current_free_time_ratio = 19
     end
     for i = 0, 10000 do
-        DATA.warband[i].treasury = -17
+        DATA.warband[i].treasury = -16
     end
     for i = 0, 10000 do
-        DATA.warband[i].total_upkeep = 16
+        DATA.warband[i].total_upkeep = 1
     end
     for i = 0, 10000 do
-        DATA.warband[i].predicted_upkeep = -17
+        DATA.warband[i].predicted_upkeep = -20
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies = -3
+        DATA.warband[i].supplies = -8
     end
     for i = 0, 10000 do
-        DATA.warband[i].supplies_target_days = 17
+        DATA.warband[i].supplies_target_days = -14
     end
     for i = 0, 10000 do
-        DATA.warband[i].morale = -6
+        DATA.warband[i].morale = -17
+    end
+    for i = 0, 200000 do
+        DATA.building[i].type = 18
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].spent_on_inputs[j].good = 20
+    end
+    for j = 0, 7 do
+        DATA.building[i].spent_on_inputs[j].amount = -17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].earn_from_outputs[j].good = 8
+    end
+    for j = 0, 7 do
+        DATA.building[i].earn_from_outputs[j].amount = 17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].amount_of_inputs[j].good = 7
+    end
+    for j = 0, 7 do
+        DATA.building[i].amount_of_inputs[j].amount = -14
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        DATA.building[i].amount_of_outputs[j].good = 16
+    end
+    for j = 0, 7 do
+        DATA.building[i].amount_of_outputs[j].amount = -12
+    end
+    end
+    for i = 0, 300000 do
+        DATA.employment[i].worker_income = -3
+    end
+    for i = 0, 300000 do
+        DATA.employment[i].job = 7
     end
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 3
+        DATA.warband_unit[i].type = 6
     end
     DATA.save_state()
     DATA.load_state()
@@ -16448,195 +17835,192 @@ function DATA.test_save_load_2()
         test_passed = test_passed and DATA.pop[i].age == 7
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].job == 7
+        test_passed = test_passed and DATA.pop[i].savings == -6
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].savings == -19
+        test_passed = test_passed and DATA.pop[i].parent == 0
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].parent == 5
+        test_passed = test_passed and DATA.pop[i].loyalty == 5
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].loyalty == 10
+        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == 0
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].life_needs_satisfaction == -9
-    end
-    for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -12
+        test_passed = test_passed and DATA.pop[i].basic_needs_satisfaction == -9
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 5
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].need == 2
     end
     for j = 0, 19 do
         test_passed = test_passed and DATA.pop[i].need_satisfaction[j].use_case == 16
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 15
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].consumed == 12
     end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == -9
+        test_passed = test_passed and DATA.pop[i].need_satisfaction[j].demanded == 3
     end
     end
     for i = 0, 300000 do
     for j = 0, 9 do
-        test_passed = test_passed and DATA.pop[i].traits[j] == 7
+        test_passed = test_passed and DATA.pop[i].traits[j] == 8
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].successor == 13
-    end
-    for i = 0, 300000 do
-    for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].inventory[j] == 13
-    end
+        test_passed = test_passed and DATA.pop[i].successor == 17
     end
     for i = 0, 300000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[i].price_memory[j] == 3
+        test_passed = test_passed and DATA.pop[i].inventory[j] == -9
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].forage_ratio == 17
+    for j = 0, 99 do
+        test_passed = test_passed and DATA.pop[i].price_memory[j] == 8
+    end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.pop[i].work_ratio == 2
+        test_passed = test_passed and DATA.pop[i].forage_ratio == 6
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.pop[i].work_ratio == 13
     end
     for i = 0, 300000 do
         test_passed = test_passed and DATA.pop[i].rank == 2
     end
     for i = 0, 300000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[i].dna[j] == 8
+        test_passed = test_passed and DATA.pop[i].dna[j] == 17
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].r == -10
+        test_passed = test_passed and DATA.province[i].r == 2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].g == 5
+        test_passed = test_passed and DATA.province[i].g == 3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].b == 9
+        test_passed = test_passed and DATA.province[i].b == 8
     end
     for i = 0, 10000 do
         test_passed = test_passed and DATA.province[i].is_land == true
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].province_id == 11
+        test_passed = test_passed and DATA.province[i].province_id == 5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].size == -3
+        test_passed = test_passed and DATA.province[i].size == 9
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].hydration == 11
+        test_passed = test_passed and DATA.province[i].hydration == 13
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].movement_cost == 12
+        test_passed = test_passed and DATA.province[i].movement_cost == -5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].center == 16
+        test_passed = test_passed and DATA.province[i].center == 15
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_needed == 2
+        test_passed = test_passed and DATA.province[i].infrastructure_needed == -3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure == 9
+        test_passed = test_passed and DATA.province[i].infrastructure == 11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].infrastructure_investment == 9
-    end
-    for i = 0, 10000 do
-    for j = 0, 399 do
-        test_passed = test_passed and DATA.province[i].technologies_present[j] == 11
-    end
+        test_passed = test_passed and DATA.province[i].infrastructure_investment == 12
     end
     for i = 0, 10000 do
     for j = 0, 399 do
-        test_passed = test_passed and DATA.province[i].technologies_researchable[j] == 18
+        test_passed = test_passed and DATA.province[i].technologies_present[j] == 16
+    end
+    end
+    for i = 0, 10000 do
+    for j = 0, 399 do
+        test_passed = test_passed and DATA.province[i].technologies_researchable[j] == 11
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == false
+        test_passed = test_passed and DATA.province[i].buildable_buildings[j] == 14
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_production[j] == 11
+        test_passed = test_passed and DATA.province[i].local_production[j] == 9
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_consumption[j] == -6
+        test_passed = test_passed and DATA.province[i].local_consumption[j] == 2
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_demand[j] == 0
+        test_passed = test_passed and DATA.province[i].local_demand[j] == 16
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_storage[j] == -10
+        test_passed = test_passed and DATA.province[i].local_storage[j] == 15
     end
     end
     for i = 0, 10000 do
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[i].local_prices[j] == 19
+        test_passed = test_passed and DATA.province[i].local_prices[j] == 9
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_wealth == -3
+        test_passed = test_passed and DATA.province[i].local_wealth == 11
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].trade_wealth == 10
+        test_passed = test_passed and DATA.province[i].trade_wealth == -6
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_income == -1
+        test_passed = test_passed and DATA.province[i].local_income == 0
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].local_building_upkeep == -1
+        test_passed = test_passed and DATA.province[i].local_building_upkeep == -10
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers == 12
+        test_passed = test_passed and DATA.province[i].foragers == 19
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_water == 15
+        test_passed = test_passed and DATA.province[i].foragers_water == -3
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].foragers_limit == 13
+        test_passed = test_passed and DATA.province[i].foragers_limit == 10
     end
     for i = 0, 10000 do
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 16
+        test_passed = test_passed and DATA.province[i].local_resources[j].resource == 9
     end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[i].local_resources[j].location == 20
+        test_passed = test_passed and DATA.province[i].local_resources[j].location == 9
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.province[i].mood == 19
+        test_passed = test_passed and DATA.province[i].mood == 12
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[i].unit_types[j] == 18
+        test_passed = test_passed and DATA.province[i].unit_types[j] == 17
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[i].throughput_boosts[j] == 6
+        test_passed = test_passed and DATA.province[i].throughput_boosts[j] == 13
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[i].input_efficiency_boosts[j] == -1
+        test_passed = test_passed and DATA.province[i].input_efficiency_boosts[j] == 12
     end
     end
     for i = 0, 10000 do
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[i].output_efficiency_boosts[j] == -7
+        test_passed = test_passed and DATA.province[i].output_efficiency_boosts[j] == 19
     end
     end
     for i = 0, 10000 do
@@ -16646,47 +18030,88 @@ function DATA.test_save_load_2()
         test_passed = test_passed and DATA.province[i].on_a_forest == false
     end
     for i = 0, 5000 do
-        test_passed = test_passed and DATA.army[i].destination == 19
+        test_passed = test_passed and DATA.army[i].destination == 6
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_current[j] == -16
+        test_passed = test_passed and DATA.warband[i].units_current[j] == 11
     end
     end
     for i = 0, 10000 do
     for j = 0, 19 do
-        test_passed = test_passed and DATA.warband[i].units_target[j] == 1
+        test_passed = test_passed and DATA.warband[i].units_target[j] == 12
     end
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].status == 0
+        test_passed = test_passed and DATA.warband[i].status == 5
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].idle_stance == 0
+        test_passed = test_passed and DATA.warband[i].idle_stance == 2
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == -14
+        test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 19
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].treasury == -17
+        test_passed = test_passed and DATA.warband[i].treasury == -16
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].total_upkeep == 16
+        test_passed = test_passed and DATA.warband[i].total_upkeep == 1
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -17
+        test_passed = test_passed and DATA.warband[i].predicted_upkeep == -20
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies == -3
+        test_passed = test_passed and DATA.warband[i].supplies == -8
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].supplies_target_days == 17
+        test_passed = test_passed and DATA.warband[i].supplies_target_days == -14
     end
     for i = 0, 10000 do
-        test_passed = test_passed and DATA.warband[i].morale == -6
+        test_passed = test_passed and DATA.warband[i].morale == -17
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].type == 18
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 20
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == -17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 8
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == 17
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 7
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == -14
+    end
+    end
+    for i = 0, 200000 do
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 16
+    end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == -12
+    end
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.employment[i].worker_income == -3
+    end
+    for i = 0, 300000 do
+        test_passed = test_passed and DATA.employment[i].job == 7
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 3
+        test_passed = test_passed and DATA.warband_unit[i].type == 6
     end
     print("SAVE_LOAD_TEST_2:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -16790,39 +18215,38 @@ function DATA.test_set_get_2()
     fat_id.race = 1
     fat_id.female = true
     fat_id.age = 2
-    fat_id.job = 11
-    fat_id.savings = -10
-    fat_id.parent = 9
-    fat_id.loyalty = 8
-    fat_id.life_needs_satisfaction = 18
-    fat_id.basic_needs_satisfaction = -7
+    fat_id.savings = 3
+    fat_id.parent = 5
+    fat_id.loyalty = 9
+    fat_id.life_needs_satisfaction = -4
+    fat_id.basic_needs_satisfaction = 18
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].need = 0
+        DATA.pop[0].need_satisfaction[j].need = 3
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].use_case = 18
+        DATA.pop[0].need_satisfaction[j].use_case = 19
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].consumed = -10
+        DATA.pop[0].need_satisfaction[j].consumed = -18
     end
     for j = 0, 19 do
-        DATA.pop[0].need_satisfaction[j].demanded = 7
+        DATA.pop[0].need_satisfaction[j].demanded = 17
     end
     for j = 0, 9 do
         DATA.pop[0].traits[j] = 10
     end
-    fat_id.successor = 12
+    fat_id.successor = 5
     for j = 0, 99 do
-        DATA.pop[0].inventory[j] = 12
+        DATA.pop[0].inventory[j] = 7
     end
     for j = 0, 99 do
-        DATA.pop[0].price_memory[j] = 3
+        DATA.pop[0].price_memory[j] = 20
     end
-    fat_id.forage_ratio = 14
-    fat_id.work_ratio = 8
+    fat_id.forage_ratio = 5
+    fat_id.work_ratio = 12
     fat_id.rank = 2
     for j = 0, 19 do
-        DATA.pop[0].dna[j] = -18
+        DATA.pop[0].dna[j] = 14
     end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 1
@@ -16831,58 +18255,56 @@ function DATA.test_set_get_2()
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 2
     if not test_passed then print("age", 2, fat_id.age) end
-    test_passed = test_passed and fat_id.job == 11
-    if not test_passed then print("job", 11, fat_id.job) end
-    test_passed = test_passed and fat_id.savings == -10
-    if not test_passed then print("savings", -10, fat_id.savings) end
-    test_passed = test_passed and fat_id.parent == 9
-    if not test_passed then print("parent", 9, fat_id.parent) end
-    test_passed = test_passed and fat_id.loyalty == 8
-    if not test_passed then print("loyalty", 8, fat_id.loyalty) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 18
-    if not test_passed then print("life_needs_satisfaction", 18, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == -7
-    if not test_passed then print("basic_needs_satisfaction", -7, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.savings == 3
+    if not test_passed then print("savings", 3, fat_id.savings) end
+    test_passed = test_passed and fat_id.parent == 5
+    if not test_passed then print("parent", 5, fat_id.parent) end
+    test_passed = test_passed and fat_id.loyalty == 9
+    if not test_passed then print("loyalty", 9, fat_id.loyalty) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == -4
+    if not test_passed then print("life_needs_satisfaction", -4, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 18
+    if not test_passed then print("basic_needs_satisfaction", 18, fat_id.basic_needs_satisfaction) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 0
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].need == 3
     end
-    if not test_passed then print("need_satisfaction.need", 0, DATA.pop[0].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[0].need_satisfaction[0].need) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 18
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].use_case == 19
     end
-    if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[0].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 19, DATA.pop[0].need_satisfaction[0].use_case) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -10
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].consumed == -18
     end
-    if not test_passed then print("need_satisfaction.consumed", -10, DATA.pop[0].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -18, DATA.pop[0].need_satisfaction[0].consumed) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 7
+        test_passed = test_passed and DATA.pop[0].need_satisfaction[j].demanded == 17
     end
-    if not test_passed then print("need_satisfaction.demanded", 7, DATA.pop[0].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 17, DATA.pop[0].need_satisfaction[0].demanded) end
     for j = 0, 9 do
         test_passed = test_passed and DATA.pop[0].traits[j] == 10
     end
     if not test_passed then print("traits", 10, DATA.pop[0].traits[0]) end
-    test_passed = test_passed and fat_id.successor == 12
-    if not test_passed then print("successor", 12, fat_id.successor) end
+    test_passed = test_passed and fat_id.successor == 5
+    if not test_passed then print("successor", 5, fat_id.successor) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].inventory[j] == 12
+        test_passed = test_passed and DATA.pop[0].inventory[j] == 7
     end
-    if not test_passed then print("inventory", 12, DATA.pop[0].inventory[0]) end
+    if not test_passed then print("inventory", 7, DATA.pop[0].inventory[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.pop[0].price_memory[j] == 3
+        test_passed = test_passed and DATA.pop[0].price_memory[j] == 20
     end
-    if not test_passed then print("price_memory", 3, DATA.pop[0].price_memory[0]) end
-    test_passed = test_passed and fat_id.forage_ratio == 14
-    if not test_passed then print("forage_ratio", 14, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 8
-    if not test_passed then print("work_ratio", 8, fat_id.work_ratio) end
+    if not test_passed then print("price_memory", 20, DATA.pop[0].price_memory[0]) end
+    test_passed = test_passed and fat_id.forage_ratio == 5
+    if not test_passed then print("forage_ratio", 5, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 12
+    if not test_passed then print("work_ratio", 12, fat_id.work_ratio) end
     test_passed = test_passed and fat_id.rank == 2
     if not test_passed then print("rank", 2, fat_id.rank) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.pop[0].dna[j] == -18
+        test_passed = test_passed and DATA.pop[0].dna[j] == 14
     end
-    if not test_passed then print("dna", -18, DATA.pop[0].dna[0]) end
+    if not test_passed then print("dna", 14, DATA.pop[0].dna[0]) end
     print("SET_GET_TEST_2_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_province(0)
@@ -16905,48 +18327,48 @@ function DATA.test_set_get_2()
         DATA.province[0].technologies_researchable[j] = 13
     end
     for j = 0, 249 do
-        DATA.province[0].buildable_buildings[j] = false
+        DATA.province[0].buildable_buildings[j] = 20
     end
     for j = 0, 99 do
-        DATA.province[0].local_production[j] = 12
+        DATA.province[0].local_production[j] = 5
     end
     for j = 0, 99 do
-        DATA.province[0].local_consumption[j] = 3
+        DATA.province[0].local_consumption[j] = 12
     end
     for j = 0, 99 do
-        DATA.province[0].local_demand[j] = 14
+        DATA.province[0].local_demand[j] = 3
     end
     for j = 0, 99 do
-        DATA.province[0].local_storage[j] = 8
+        DATA.province[0].local_storage[j] = 14
     end
     for j = 0, 99 do
-        DATA.province[0].local_prices[j] = 12
+        DATA.province[0].local_prices[j] = 8
     end
-    fat_id.local_wealth = -3
-    fat_id.trade_wealth = -18
-    fat_id.local_income = -19
-    fat_id.local_building_upkeep = 3
-    fat_id.foragers = 9
-    fat_id.foragers_water = 0
-    fat_id.foragers_limit = 4
+    fat_id.local_wealth = 12
+    fat_id.trade_wealth = -3
+    fat_id.local_income = -18
+    fat_id.local_building_upkeep = -19
+    fat_id.foragers = 3
+    fat_id.foragers_water = 9
+    fat_id.foragers_limit = 0
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].resource = 13
+        DATA.province[0].local_resources[j].resource = 12
     end
     for j = 0, 24 do
-        DATA.province[0].local_resources[j].location = 16
+        DATA.province[0].local_resources[j].location = 13
     end
-    fat_id.mood = -10
+    fat_id.mood = 13
     for j = 0, 19 do
-        DATA.province[0].unit_types[j] = 17
+        DATA.province[0].unit_types[j] = 5
     end
     for j = 0, 249 do
-        DATA.province[0].throughput_boosts[j] = -9
+        DATA.province[0].throughput_boosts[j] = 15
     end
     for j = 0, 249 do
-        DATA.province[0].input_efficiency_boosts[j] = -5
+        DATA.province[0].input_efficiency_boosts[j] = -9
     end
     for j = 0, 249 do
-        DATA.province[0].output_efficiency_boosts[j] = -6
+        DATA.province[0].output_efficiency_boosts[j] = -5
     end
     fat_id.on_a_river = true
     fat_id.on_a_forest = true
@@ -16984,69 +18406,69 @@ function DATA.test_set_get_2()
     end
     if not test_passed then print("technologies_researchable", 13, DATA.province[0].technologies_researchable[0]) end
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == false
+        test_passed = test_passed and DATA.province[0].buildable_buildings[j] == 20
     end
-    if not test_passed then print("buildable_buildings", false, DATA.province[0].buildable_buildings[0]) end
+    if not test_passed then print("buildable_buildings", 20, DATA.province[0].buildable_buildings[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_production[j] == 12
+        test_passed = test_passed and DATA.province[0].local_production[j] == 5
     end
-    if not test_passed then print("local_production", 12, DATA.province[0].local_production[0]) end
+    if not test_passed then print("local_production", 5, DATA.province[0].local_production[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_consumption[j] == 3
+        test_passed = test_passed and DATA.province[0].local_consumption[j] == 12
     end
-    if not test_passed then print("local_consumption", 3, DATA.province[0].local_consumption[0]) end
+    if not test_passed then print("local_consumption", 12, DATA.province[0].local_consumption[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_demand[j] == 14
+        test_passed = test_passed and DATA.province[0].local_demand[j] == 3
     end
-    if not test_passed then print("local_demand", 14, DATA.province[0].local_demand[0]) end
+    if not test_passed then print("local_demand", 3, DATA.province[0].local_demand[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_storage[j] == 8
+        test_passed = test_passed and DATA.province[0].local_storage[j] == 14
     end
-    if not test_passed then print("local_storage", 8, DATA.province[0].local_storage[0]) end
+    if not test_passed then print("local_storage", 14, DATA.province[0].local_storage[0]) end
     for j = 0, 99 do
-        test_passed = test_passed and DATA.province[0].local_prices[j] == 12
+        test_passed = test_passed and DATA.province[0].local_prices[j] == 8
     end
-    if not test_passed then print("local_prices", 12, DATA.province[0].local_prices[0]) end
-    test_passed = test_passed and fat_id.local_wealth == -3
-    if not test_passed then print("local_wealth", -3, fat_id.local_wealth) end
-    test_passed = test_passed and fat_id.trade_wealth == -18
-    if not test_passed then print("trade_wealth", -18, fat_id.trade_wealth) end
-    test_passed = test_passed and fat_id.local_income == -19
-    if not test_passed then print("local_income", -19, fat_id.local_income) end
-    test_passed = test_passed and fat_id.local_building_upkeep == 3
-    if not test_passed then print("local_building_upkeep", 3, fat_id.local_building_upkeep) end
-    test_passed = test_passed and fat_id.foragers == 9
-    if not test_passed then print("foragers", 9, fat_id.foragers) end
-    test_passed = test_passed and fat_id.foragers_water == 0
-    if not test_passed then print("foragers_water", 0, fat_id.foragers_water) end
-    test_passed = test_passed and fat_id.foragers_limit == 4
-    if not test_passed then print("foragers_limit", 4, fat_id.foragers_limit) end
+    if not test_passed then print("local_prices", 8, DATA.province[0].local_prices[0]) end
+    test_passed = test_passed and fat_id.local_wealth == 12
+    if not test_passed then print("local_wealth", 12, fat_id.local_wealth) end
+    test_passed = test_passed and fat_id.trade_wealth == -3
+    if not test_passed then print("trade_wealth", -3, fat_id.trade_wealth) end
+    test_passed = test_passed and fat_id.local_income == -18
+    if not test_passed then print("local_income", -18, fat_id.local_income) end
+    test_passed = test_passed and fat_id.local_building_upkeep == -19
+    if not test_passed then print("local_building_upkeep", -19, fat_id.local_building_upkeep) end
+    test_passed = test_passed and fat_id.foragers == 3
+    if not test_passed then print("foragers", 3, fat_id.foragers) end
+    test_passed = test_passed and fat_id.foragers_water == 9
+    if not test_passed then print("foragers_water", 9, fat_id.foragers_water) end
+    test_passed = test_passed and fat_id.foragers_limit == 0
+    if not test_passed then print("foragers_limit", 0, fat_id.foragers_limit) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 13
+        test_passed = test_passed and DATA.province[0].local_resources[j].resource == 12
     end
-    if not test_passed then print("local_resources.resource", 13, DATA.province[0].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 12, DATA.province[0].local_resources[0].resource) end
     for j = 0, 24 do
-        test_passed = test_passed and DATA.province[0].local_resources[j].location == 16
+        test_passed = test_passed and DATA.province[0].local_resources[j].location == 13
     end
-    if not test_passed then print("local_resources.location", 16, DATA.province[0].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == -10
-    if not test_passed then print("mood", -10, fat_id.mood) end
+    if not test_passed then print("local_resources.location", 13, DATA.province[0].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == 13
+    if not test_passed then print("mood", 13, fat_id.mood) end
     for j = 0, 19 do
-        test_passed = test_passed and DATA.province[0].unit_types[j] == 17
+        test_passed = test_passed and DATA.province[0].unit_types[j] == 5
     end
-    if not test_passed then print("unit_types", 17, DATA.province[0].unit_types[0]) end
+    if not test_passed then print("unit_types", 5, DATA.province[0].unit_types[0]) end
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[0].throughput_boosts[j] == -9
+        test_passed = test_passed and DATA.province[0].throughput_boosts[j] == 15
     end
-    if not test_passed then print("throughput_boosts", -9, DATA.province[0].throughput_boosts[0]) end
+    if not test_passed then print("throughput_boosts", 15, DATA.province[0].throughput_boosts[0]) end
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[0].input_efficiency_boosts[j] == -5
+        test_passed = test_passed and DATA.province[0].input_efficiency_boosts[j] == -9
     end
-    if not test_passed then print("input_efficiency_boosts", -5, DATA.province[0].input_efficiency_boosts[0]) end
+    if not test_passed then print("input_efficiency_boosts", -9, DATA.province[0].input_efficiency_boosts[0]) end
     for j = 0, 249 do
-        test_passed = test_passed and DATA.province[0].output_efficiency_boosts[j] == -6
+        test_passed = test_passed and DATA.province[0].output_efficiency_boosts[j] == -5
     end
-    if not test_passed then print("output_efficiency_boosts", -6, DATA.province[0].output_efficiency_boosts[0]) end
+    if not test_passed then print("output_efficiency_boosts", -5, DATA.province[0].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == true
     if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == true
@@ -17104,6 +18526,91 @@ function DATA.test_set_get_2()
     test_passed = test_passed and fat_id.morale == -18
     if not test_passed then print("morale", -18, fat_id.morale) end
     print("SET_GET_TEST_2_warband:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_negotiation(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_negotiation:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_building(0)
+    fat_id.type = 1
+    for j = 0, 7 do
+        DATA.building[0].spent_on_inputs[j].good = 2
+    end
+    for j = 0, 7 do
+        DATA.building[0].spent_on_inputs[j].amount = -15
+    end
+    for j = 0, 7 do
+        DATA.building[0].earn_from_outputs[j].good = 11
+    end
+    for j = 0, 7 do
+        DATA.building[0].earn_from_outputs[j].amount = -10
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_inputs[j].good = 9
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_inputs[j].amount = -4
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_outputs[j].good = 19
+    end
+    for j = 0, 7 do
+        DATA.building[0].amount_of_outputs[j].amount = -7
+    end
+    local test_passed = true
+    test_passed = test_passed and fat_id.type == 1
+    if not test_passed then print("type", 1, fat_id.type) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].spent_on_inputs[j].good == 2
+    end
+    if not test_passed then print("spent_on_inputs.good", 2, DATA.building[0].spent_on_inputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].spent_on_inputs[j].amount == -15
+    end
+    if not test_passed then print("spent_on_inputs.amount", -15, DATA.building[0].spent_on_inputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].earn_from_outputs[j].good == 11
+    end
+    if not test_passed then print("earn_from_outputs.good", 11, DATA.building[0].earn_from_outputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].earn_from_outputs[j].amount == -10
+    end
+    if not test_passed then print("earn_from_outputs.amount", -10, DATA.building[0].earn_from_outputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_inputs[j].good == 9
+    end
+    if not test_passed then print("amount_of_inputs.good", 9, DATA.building[0].amount_of_inputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_inputs[j].amount == -4
+    end
+    if not test_passed then print("amount_of_inputs.amount", -4, DATA.building[0].amount_of_inputs[0].amount) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_outputs[j].good == 19
+    end
+    if not test_passed then print("amount_of_outputs.good", 19, DATA.building[0].amount_of_outputs[0].good) end
+    for j = 0, 7 do
+        test_passed = test_passed and DATA.building[0].amount_of_outputs[j].amount == -7
+    end
+    if not test_passed then print("amount_of_outputs.amount", -7, DATA.building[0].amount_of_outputs[0].amount) end
+    print("SET_GET_TEST_2_building:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_ownership(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_ownership:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_employment(0)
+    fat_id.worker_income = -17
+    fat_id.job = 2
+    local test_passed = true
+    test_passed = test_passed and fat_id.worker_income == -17
+    if not test_passed then print("worker_income", -17, fat_id.worker_income) end
+    test_passed = test_passed and fat_id.job == 2
+    if not test_passed then print("job", 2, fat_id.job) end
+    print("SET_GET_TEST_2_employment:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local fat_id = DATA.fatten_building_location(0)
+    local test_passed = true
+    print("SET_GET_TEST_2_building_location:")
     if test_passed then print("PASSED") else print("ERROR") end
     local fat_id = DATA.fatten_army_membership(0)
     local test_passed = true

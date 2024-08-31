@@ -28,32 +28,6 @@ function prov.Province.new(fake_flag)
 	o.g = g
 	o.b = b
 
-	o.mood = 0
-	o.size = 0
-	o.movement_cost = 1
-	o.foragers_limit = 0
-	o.is_land = false
-	o.buildings = {}
-	o.technologies_present = {}
-	o.technologies_researchable = {}
-	o.buildable_buildings = {}
-	o.hydration = 5
-	o.local_wealth = 0
-	o.trade_wealth = 0
-	o.local_income = 0
-	o.local_building_upkeep = 0
-	o.foragers = 0
-	o.foragers_water = 0
-	o.foragers_targets = {}
-	o.infrastructure_needed = 0
-	o.infrastructure = 0
-	o.infrastructure_investment = 0
-	o.throughput_boosts = {}
-	o.input_efficiency_boosts = {}
-	o.output_efficiency_boosts = {}
-	o.on_a_river = false
-	o.on_a_forest = false
-
 	if not fake_flag then
 		WORLD.province_count = WORLD.province_count + 1
 	end
@@ -306,8 +280,8 @@ function prov.Province.transfer_pop(origin, pop, target)
 					return false
 				end
 
-				local employer = DATA.pop_get_employer(child)
-				if employer ~= nil then
+				local employer = DATA.get_employment_from_worker(child)
+				if employer ~= INVALID_ID then
 					return false
 				end
 
@@ -351,8 +325,8 @@ function prov.Province.transfer_home(origin, pop, target)
 					return false
 				end
 
-				local employer = DATA.pop_get_employer(child)
-				if employer ~= nil then
+				local employer = DATA.get_employment_from_worker(child)
+				if employer ~= INVALID_ID then
 					return false
 				end
 
@@ -411,163 +385,261 @@ end
 ---@param province province_id
 ---@param pop pop_id
 function prov.Province.fire_pop(province, pop)
-	local employer = DATA.pop_get_employer(pop)
-	if employer then
-		employer.workers[pop] = nil
-		if tabb.size(employer.workers) == 0 then
-			employer.last_income = 0
-			employer.last_donation_to_owner = 0
-			employer.subsidy_last = 0
+	local employment = DATA.get_employment_from_worker(pop)
+	if employment ~= INVALID_ID then
+		DATA.delete_employment(employment)
+		local building = DATA.employment_get_building(employment)
+		if tabb.size(DATA.get_employment_from_building(building)) == 0 then
+			local fat = DATA.fatten_building(building)
+			fat.last_income = 0
+			fat.last_donation_to_owner = 0
+			fat.subsidy_last = 0
 		end
-		DATA.pop_set_employer(pop, nil)
-		DATA.pop_set_job(pop, nil)
 	end
 end
 
 ---Employs a pop and handles its removal from relevant data structures...
 ---@param province province_id
 ---@param pop pop_id
----@param building Building
+---@param building building_id
 function prov.Province.employ_pop(province, pop, building)
-	local employer = DATA.pop_get_employer(pop)
-	if employer ~= building then
-		local potential_job = prov.Province.potential_job(province, building)
-		if potential_job then
-			-- Now that we know that the job is needed, employ the pop!
-			-- ... but fire them first to update the previous building
-			if employer ~= nil then
-				prov.Province.fire_pop(province, pop)
-			end
-			building.workers[pop] = pop
-			DATA.pop_set_employer(pop, building)
-			DATA.pop_set_job(pop, potential_job)
+	local potential_job = prov.Province.potential_job(province, building)
+	if potential_job == nil then
+		return
+	end
+	-- Now that we know that the job is needed, employ the pop!
+	-- ... but fire them first to update the previous building if needed
+
+	local employment = DATA.get_employment_from_worker(pop)
+	if employment == INVALID_ID then
+		-- no need to update stuff: just create new employment
+		local new_employment = DATA.fatten_employment(DATA.create_employment())
+		new_employment.building = building
+		new_employment.worker = pop
+		new_employment.job = potential_job
+	else
+		local fat = DATA.fatten_employment(employment)
+
+		local old_building = fat.building
+		-- clean up data if it was the last worker
+		if tabb.size(DATA.get_employment_from_building(old_building)) == 0 then
+			local fat_building = DATA.fatten_building(old_building)
+			fat_building.last_income = 0
+			fat_building.last_donation_to_owner = 0
+			fat_building.subsidy_last = 0
 		end
+
+		fat.building = building
+		fat.job = potential_job
 	end
 end
 
 ---Returns a potential job, if a pop was to be employed by this building.
 ---@param province province_id
----@param building Building
----@return Job?
+---@param building building_id
+---@return job_id?
 function prov.Province.potential_job(province, building)
-	for job, amount in pairs(building.type.production_method.jobs) do
-		-- Make sure that the building doesn't have this job filled out...
-		local actually_employed = 0
-		for _, worker in pairs(building.workers) do
-			local worker_job = DATA.pop_get_job(worker)
-			if worker_job == job then
-				actually_employed = actually_employed + 1
+	local btype = DATA.building_get_type(building)
+	local method = DATA.building_type_get_production_method(btype)
+
+	for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+		local job = DATA.production_method_get_jobs_job(method, i)
+		if job == INVALID_ID then
+			break
+		end
+
+		local workers_with_this_job = 0
+		for _, employment in ipairs(DATA.get_employment_from_building(building)) do
+			if DATA.employment_get_job(employment) == job then
+				workers_with_this_job = workers_with_this_job + 1
 			end
 		end
-		if actually_employed < amount then
+
+		local max_amount = DATA.production_method_get_jobs_amount(method, i)
+		if max_amount > workers_with_this_job then
 			return job
 		end
 	end
+
 	return nil
 end
 
 ---@param province province_id
 ---@param technology Technology
 function prov.Province.research(province, technology)
-	self.technologies_present[technology] = technology
-	self.technologies_researchable[technology] = nil
+	DATA.province_set_technologies_present(province, technology, 1)
+	DATA.province_set_technologies_researchable(province, technology, 0)
 
-	for _, t in pairs(technology.potentially_unlocks) do
-		if self.technologies_present[t] == nil then
-			--print(t.name)
-			local ok = true
-			if #t.required_resource > 0 then
-				--print(t.name .. " -- --!")
-				local new_ok = false
-				for _, resource in pairs(t.required_resource) do
-					if self.local_resources[resource] then
-						new_ok = true
-						break
-					end
-				end
-				if not new_ok then
-					ok = false
-				else
-					--print("notok")
-				end
-			end
-			if #t.required_race > 0 then
-				local new_ok = false
-				for _, race in pairs(t.required_race) do
-					if race == self.realm.primary_race then
-						new_ok = true
-						break
-					end
-				end
-				if not new_ok then
-					ok = false
-				end
-			end
-			if #t.required_biome > 0 then
-				local new_ok = false
-				for _, biome in pairs(t.required_biome) do
-					if biome == DATA.tile_get_biome(self.center) then
-						new_ok = true
-						break
-					end
-				end
-				if not new_ok then
-					ok = false
-				end
-			end
-			if #t.unlocked_by > 0 then
-				local new_ok = true
-				for _, te in pairs(t.unlocked_by) do
-					if self.technologies_present[te] then
-						-- nothing to do, tech present
-					else
-						-- tech missing, this tech cannot be unlocked...
-						new_ok = false
-						break
-					end
-				end
-				if not new_ok then
-					ok = false
-				end
-			end
-			if ok then
-				self.technologies_researchable[t] = t
-			end
+	--- update technologies which could be potentially unlocked
+	for _, t in pairs(DATA.get_technology_unlock_from_origin(technology)) do
+		if DATA.province_get_technologies_present(province, t) then
+			goto continue
 		end
-	end
-	for _, b in pairs(technology.unlocked_buildings) do
+
+		--print(t.name)
 		local ok = true
-		if #b.required_biome > 0 then
-			ok = false
-			for _, biome in pairs(b.required_biome) do
-				if biome == DATA.tile_get_biome(self.center) then
-					ok = true
+
+		local has_required_resource = true
+
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local required_resource = DATA.technology_get_required_resource(technology, i)
+			if required_resource == INVALID_ID then
+				break
+			end
+			has_required_resource = false
+
+			for j = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+				local resource = DATA.province_get_local_resources_resource(province, j)
+				if resource == INVALID_ID then
+					break
+				end
+
+				if resource == required_resource then
+					has_required_resource = true
 					break
 				end
 			end
+
+			if has_required_resource then
+				break
+			end
 		end
+
+		ok = ok and has_required_resource
+
+		local has_required_race = true
+
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local required_race = DATA.technology_get_required_race(technology, i)
+			if required_race == INVALID_ID then
+				break
+			end
+			has_required_race = false
+
+			local realm = DATA.province_get_realm(province)
+
+			if realm.primary_race == required_race then
+				has_required_race = true
+			end
+
+			if has_required_race then
+				break
+			end
+		end
+
+		ok = ok and has_required_race
+
+		local has_required_biome = true
+
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local required_biome = DATA.technology_get_required_biome(technology, i)
+			if required_biome == INVALID_ID then
+				break
+			end
+			has_required_biome = false
+
+			local center = DATA.province_get_center(province)
+
+			if DATA.tile_get_biome(center) == required_biome then
+				has_required_biome = true
+			end
+
+			if has_required_biome then
+				break
+			end
+		end
+
+		ok = ok and has_required_biome
+
+
+		if #DATA.get_technology_unlock_from_unlocked(technology) > 0 then
+			local new_ok = true
+			for _, te in pairs(DATA.get_technology_unlock_from_unlocked(technology)) do
+				if DATA.province_get_technologies_present(province, te) then
+					-- nothing to do, tech present
+				else
+					-- tech missing, this tech cannot be unlocked...
+					new_ok = false
+					break
+				end
+			end
+			if not new_ok then
+				ok = false
+			end
+		end
+
 		if ok then
-			self.buildable_buildings[b] = b
+			DATA.province_set_technologies_researchable(province, t, 1)
 		end
-	end
-	for _, u in pairs(technology.unlocked_unit_types) do
-		self.unit_types[u] = u
-	end
-	for prod, am in pairs(technology.throughput_boosts) do
-		local old = self.throughput_boosts[prod] or 0
-		self.throughput_boosts[prod] = old + am
-	end
-	for prod, am in pairs(technology.input_efficiency_boosts) do
-		local old = self.input_efficiency_boosts[prod] or 0
-		self.input_efficiency_boosts[prod] = old + am
-	end
-	for prod, am in pairs(technology.output_efficiency_boosts) do
-		local old = self.output_efficiency_boosts[prod] or 0
-		self.output_efficiency_boosts[prod] = old + am
+
+		::continue::
 	end
 
-	if WORLD:does_player_see_realm_news(self.realm) then
-		WORLD:emit_notification("Technology unlocked: " .. technology.name)
+
+	-- update buildings
+
+	for _, b in pairs(DATA.get_technology_building_from_technology(technology)) do
+		local ok = true
+
+		for i = 0, MAX_REQUIREMENTS_BUILDING_TYPE - 1 do
+			local required_biome = DATA.building_type_get_required_biome(b, i)
+			if required_biome == INVALID_ID then
+				break
+			end
+
+			ok = false
+
+			if DATA.tile_get_biome(DATA.province_get_center(province)) == required_biome then
+				ok = true
+				break
+			end
+		end
+
+		local has_required_resource = true
+
+		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+			local required_resource = DATA.building_type_get_required_resource(b, i)
+			if required_resource == INVALID_ID then
+				break
+			end
+			has_required_resource = false
+
+			for j = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+				local resource = DATA.province_get_local_resources_resource(province, j)
+				if resource == INVALID_ID then
+					break
+				end
+
+				if resource == required_resource then
+					has_required_resource = true
+					break
+				end
+			end
+
+			if has_required_resource then
+				break
+			end
+		end
+
+		ok = has_required_resource and ok
+
+		if ok then
+			DATA.province_set_buildable_buildings(province, b, 1)
+		end
+	end
+
+	for _, unit_id in ipairs(DATA.get_technology_unit_from_technology(technology)) do
+		DATA.province_set_unit_types(province, unit_id, 1)
+	end
+
+	for i = 0, DATA.production_method_size - 1 do
+		DATA.province_inc_throughput_boosts(province, i, DATA.technology_get_throughput_boosts(technology, i))
+		DATA.province_inc_input_efficiency_boosts(province, i, DATA.technology_get_input_efficiency_boosts(technology, i))
+		DATA.province_inc_output_efficiency_boosts(province, i, DATA.technology_get_output_efficiency_boosts(technology, i))
+	end
+
+	if WORLD:does_player_see_realm_news(DATA.province_get_realm(province)) then
+		WORLD:emit_notification("Technology unlocked: " .. DATA.technology_get_name(technology))
 	end
 end
 
@@ -575,15 +647,32 @@ end
 ---@param province province_id
 ---@param technology Technology
 function prov.Province.forget(province, technology)
-	self.technologies_present[technology] = nil
-	self.technologies_researchable[technology] = technology
+	-- remove tech from province
+	DATA.province_set_technologies_present(province, technology, 0)
+	DATA.province_set_technologies_researchable(province, technology, 1)
 
 	-- temporary forget all buildings and bonuses
-	self.buildable_buildings = {}
-	self.unit_types = {}
-	self.throughput_boosts = {}
-	self.input_efficiency_boosts = {}
-	self.output_efficiency_boosts = {}
+
+	---@param building_type building_type_id
+	local function reset_building_type(building_type)
+		DATA.province_set_buildable_buildings(province, building_type, 0)
+	end
+
+	---@param unit_type unit_type_id
+	local function reset_unit_type(unit_type)
+		DATA.province_set_unit_types(province, unit_type, 0)
+	end
+
+	---@param production_method production_method_id
+	local function reset_production_method(production_method)
+		DATA.province_set_throughput_boosts(province, production_method, 0)
+		DATA.province_set_input_efficiency_boosts(province, production_method, 0)
+		DATA.province_set_output_efficiency_boosts(province, production_method, 0)
+	end
+
+	DATA.for_each_building_type(reset_building_type)
+	DATA.for_each_unit_type(reset_unit_type)
+	DATA.for_each_production_method(reset_production_method)
 
 	-- relearn everything
 	-- sounds like a horrible solution
@@ -591,17 +680,24 @@ function prov.Province.forget(province, technology)
 	-- you would need to do all these checks
 	-- for all techs anyway
 	-- because there are no assumptions for a graph of technologies
-	for _, old_technology in pairs(self.technologies_present) do
-		prov.Province.research(old_technology)
+
+	---@param any_technology Technology
+	local function research(any_technology)
+		if DATA.province_get_technologies_present(province, any_technology) then
+			prov.Province.research(province, any_technology)
+		end
 	end
+
+	DATA.for_each_technology(research)
 end
 
 ---@param province province_id
----@param building_type BuildingType
+---@param target_building_type BuildingType
 ---@return boolean
-function prov.Province.building_type_present(province, building_type)
-	for bld in pairs(DATA.province_get_buildings(province)) do
-		if bld.type == building_type then
+function prov.Province.building_type_present(province, target_building_type)
+	for bld in pairs(DATA.get_building_location_from_location(province)) do
+		local local_bld_type = DATA.building_get_type(bld)
+		if local_bld_type == target_building_type then
 			return true
 		end
 	end
@@ -613,35 +709,39 @@ end
 ---comment
 ---@param province province_id
 ---@param funds number
----@param building BuildingType
+---@param building building_type_id
 ---@param overseer pop_id?
 ---@param public boolean
 ---@return boolean
 ---@return BuildingAttemptFailureReason
 function prov.Province.can_build(province, funds, building, overseer, public)
 	local resource_check_passed = true
-	if #building.required_resource > 0 then
+
+	for i = 0, MAX_REQUIREMENTS_BUILDING_TYPE do
+		local resource = DATA.building_type_get_required_resource(building, i)
+		if resource == INVALID_ID then
+			goto RESOURCE_CHECK_ENDED
+		end
+
 		resource_check_passed = false
-		for _, tile_id in pairs(self.tiles) do
+		for _, tile_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
 			if DATA.tile_get_resource(tile_id) then
-				for _, res in pairs(building.required_resource) do
-					if DATA.tile_get_resource(tile_id) == res then
-						resource_check_passed = true
-						goto RESOURCE_CHECK_ENDED
-					end
+				if DATA.tile_get_resource(tile_id) == resource then
+					resource_check_passed = true
+					goto RESOURCE_CHECK_ENDED
 				end
 			end
 		end
-		::RESOURCE_CHECK_ENDED::
 	end
+	::RESOURCE_CHECK_ENDED::
 
 	local construction_cost = EconomicValues.building_cost(building, overseer, public)
 
-	if not economic_triggers.allowed_to_build(overseer, self.realm) then
+	if not economic_triggers.allowed_to_build(overseer, DATA.province_get_realm(province)) then
 		return false, "no_permission"
 	end
 
-	if building.unique and prov.Province.building_type_present(building) then
+	if DATA.building_type_get_unique(building) and prov.Province.building_type_present(province, building) then
 		return false, "unique_duplicate"
 	elseif not resource_check_passed then
 		return false, "missing_local_resources"
@@ -815,8 +915,12 @@ function prov.Province.get_spotting(province)
 		s = s + DATA.race_get_spotting(race)
 	end
 
-	for b, _ in pairs(self.buildings) do
-		s = s + b.type.spotting
+	for _, location in pairs(DATA.get_building_location_from_location(province)) do
+		local building = DATA.building_location_get_building(location)
+		local btype = DATA.building_get_type(building)
+		local spotting = DATA.building_type_get_spotting(btype)
+		---@type number
+		s = s + spotting
 	end
 
 	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
@@ -891,9 +995,9 @@ function prov.Province.army_spot_test(province, army, stealth_penalty)
 end
 
 ---@param province province_id
----@return table<Job, number>
+---@return table<job_id, number>
 function prov.Province.get_job_ratios(province)
-	---@type table<Job, number>
+	---@type table<job_id, number>
 	local r = {}
 
 	local pop = 0
@@ -901,8 +1005,9 @@ function prov.Province.get_job_ratios(province)
 	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
 		local pop_id = DATA.pop_location_get_pop(p)
 
-		local job = DATA.pop_get_job(pop_id)
-		if job then
+		local employment = DATA.get_employment_from_worker(pop_id)
+		if employment ~= INVALID_ID then
+			local job = DATA.employment_get_job(employment)
 			local old = r[job] or 0
 			r[job] = old + 1
 		end
@@ -926,8 +1031,8 @@ function prov.Province.get_unemployment(province)
 		local pop_id = DATA.pop_location_get_pop(p)
 
 		local unit_of = DATA.get_warband_unit_from_unit(pop_id)
-		local job = DATA.pop_get_job(pop_id)
-		if job then
+		local employment = DATA.get_employment_from_worker(pop_id)
+		if employment ~= INVALID_ID then
 
 		elseif unit_of ~= INVALID_ID then
 

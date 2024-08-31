@@ -21,6 +21,7 @@ function d.load()
 		outputs = {},
 		jobs = {},
 		self_sourcing_fraction = 1,
+		job_type = JOBTYPE.CLERK
 	}
 	ProductionMethod:new {
 		name = "communal-fire",
@@ -33,6 +34,7 @@ function d.load()
 		outputs = { [retrieve_good("administration")] = 10 },
 		jobs = {},
 		self_sourcing_fraction = 0,
+		job_type = JOBTYPE.CLERK
 	}
 	ProductionMethod:new {
 		name = "witch-doctor",
@@ -76,6 +78,7 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
+		inputs = {},
 		outputs = { [retrieve_good("berries")] = 0.6, [retrieve_good("grain")] = 0.75, [retrieve_good("timber")] = 0.25 },
 		jobs = { [job("gatherers")] = 1 },
 		job_type = JOBTYPE.FORAGER,

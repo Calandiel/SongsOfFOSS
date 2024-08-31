@@ -175,11 +175,6 @@ object {
         tag = { scenario }
     }
     property{
-        name = { job }
-        type = { job_id }
-        tag = { scenario }
-    }
-    property{
         name = { savings }
         type = { float }
         tag = { scenario }
@@ -317,17 +312,17 @@ object {
     }
     property{
         name = { technologies_present }
-        type = { uint32_t }
+        type = { uint8_t }
         tag = { scenario }
     }
     property{
         name = { technologies_researchable }
-        type = { uint32_t }
+        type = { uint8_t }
         tag = { scenario }
     }
     property{
         name = { buildable_buildings }
-        type = { bitfield }
+        type = { uint8_t }
         tag = { scenario }
     }
     property{
@@ -402,7 +397,7 @@ object {
     }
     property{
         name = { unit_types }
-        type = { uint32_t }
+        type = { uint8_t }
         tag = { scenario }
     }
     property{
@@ -502,6 +497,71 @@ object {
         type = { float }
         tag = { scenario }
     }
+}
+object {
+    name { negotiation }
+    storage_type { contiguous }
+    size { 2500 }
+    tag {scenario}
+}
+object {
+    name { building }
+    storage_type { contiguous }
+    size { 200000 }
+    tag {scenario}
+    property{
+        name = { type }
+        type = { building_type_id }
+        tag = { scenario }
+    }
+    property{
+        name = { spent_on_inputs }
+        type = { base_types::trade_good_container }
+        tag = { scenario }
+    }
+    property{
+        name = { earn_from_outputs }
+        type = { base_types::trade_good_container }
+        tag = { scenario }
+    }
+    property{
+        name = { amount_of_inputs }
+        type = { base_types::trade_good_container }
+        tag = { scenario }
+    }
+    property{
+        name = { amount_of_outputs }
+        type = { base_types::trade_good_container }
+        tag = { scenario }
+    }
+}
+object {
+    name { ownership }
+    storage_type { contiguous }
+    size { 200000 }
+    tag {scenario}
+}
+object {
+    name { employment }
+    storage_type { contiguous }
+    size { 300000 }
+    tag {scenario}
+    property{
+        name = { worker_income }
+        type = { float }
+        tag = { scenario }
+    }
+    property{
+        name = { job }
+        type = { job_id }
+        tag = { scenario }
+    }
+}
+object {
+    name { building_location }
+    storage_type { contiguous }
+    size { 200000 }
+    tag {scenario}
 }
 object {
     name { army_membership }

@@ -4,7 +4,6 @@ culture Culture
 female bool
 age uint32_t
 name string
-job job
 savings float
 parent pop_id
 loyalty pop_id
@@ -12,9 +11,7 @@ life_needs_satisfaction float from 0 to 1
 basic_needs_satisfaction float from 0 to 1
 need_satisfaction need_satisfaction[20]
 traits TRAIT[10]
-employer Building
 successor pop_id
-owned_buildings table <Building,Building>
 has_trade_permits_in table<Realm,Realm>
 has_building_permits_in table<Realm,Realm>
 inventory float[trade_good]
@@ -25,7 +22,6 @@ busy boolean
 dead boolean
 realm Realm Represents the home realm of the character
 leader_of table<Realm,Realm>
-current_negotiations table<pop_id,pop_id>
 rank CHARACTER_RANK
 former_pop boolean
 dna float[20]
