@@ -55,6 +55,8 @@ local function override_climate_data()
 		wg.world.jul_rainfall[ti] = tonumber(row[6])
 		wg.world.jan_humidity[ti] = tonumber(row[7])
 		wg.world.jul_humidity[ti] = tonumber(row[8])
+		wg.world.jan_wind_speed[ti] = tonumber(row[9])
+		wg.world.jul_wind_speed[ti] = tonumber(row[10])
 
 		-- local log_str = row[1] .. "," .. row[2] .. " --- " .. wg.world.colatitude[ti] .. "," .. wg.world.minus_longitude[ti] .. " --- " .. wg.world:true_elevation_for_waterflow(ti) .. " <-> " .. tonumber(row[11])
 		-- logger:log(log_str)

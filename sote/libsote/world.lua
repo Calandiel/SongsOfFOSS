@@ -77,10 +77,12 @@ function world:new(world_size, seed)
 	obj.jan_rainfall       = allocate_array("jan_rainfall",       obj.tile_count, "float")
 	obj.jan_temperature    = allocate_array("jan_temperature",    obj.tile_count, "float")
 	obj.jan_humidity	   = allocate_array("jan_humidity",       obj.tile_count, "float")
+	obj.jan_wind_speed     = allocate_array("jan_wind_speed",     obj.tile_count, "float")
 	obj.jan_water_movement = allocate_array("jan_water_movement", obj.tile_count, "float")
 	obj.jul_rainfall       = allocate_array("jul_rainfall",       obj.tile_count, "float")
 	obj.jul_temperature    = allocate_array("jul_temperature",    obj.tile_count, "float")
 	obj.jul_humidity	   = allocate_array("jul_humidity",       obj.tile_count, "float")
+	obj.jul_wind_speed     = allocate_array("jul_wind_speed",     obj.tile_count, "float")
 	obj.jul_water_movement = allocate_array("jul_water_movement", obj.tile_count, "float")
 	obj.water_movement     = allocate_array("water_movement",     obj.tile_count, "float")
 	obj.ice                = allocate_array("ice",                obj.tile_count, "uint16_t")
@@ -367,13 +369,13 @@ function world:_get_climate_data_by_tile(ti)
 	local lat = -llu.colat_to_lat(self.colatitude[ti])
 	local lon = -self.minus_longitude[ti]
 	local r_jan, t_jan, r_jul, t_jul = cu.get_climate_data(lat, lon, self.elevation[ti])
-	local h_jan, h_jul = cu.get_humidity(lat, lon)
-	return r_jan, t_jan, r_jul, t_jul, h_jan, h_jul
+	local h_jan, h_jul, w_jan, w_jul = cu.get_humidity_and_wind_speed(lat, lon)
+	return r_jan, t_jan, r_jul, t_jul, h_jan, h_jul, w_jan, w_jul
 end
 
 function world:cache_climate_data()
 	for ti = 0, self.tile_count - 1 do
-		local r_jan, t_jan, r_jul, t_jul, h_jan, h_jul = self:_get_climate_data_by_tile(ti)
+		local r_jan, t_jan, r_jul, t_jul, h_jan, h_jul, w_jan, w_jul = self:_get_climate_data_by_tile(ti)
 
 		self.jan_rainfall[ti]    = r_jan
 		self.jan_temperature[ti] = t_jan
@@ -381,6 +383,8 @@ function world:cache_climate_data()
 		self.jul_temperature[ti] = t_jul
 		self.jan_humidity[ti]    = h_jan
 		self.jul_humidity[ti]    = h_jul
+		self.jan_wind_speed[ti]  = w_jan
+		self.jul_wind_speed[ti]  = w_jul
 	end
 end
 
