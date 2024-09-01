@@ -1,4 +1,4 @@
-local gm = {}
+local gf = {}
 
 -- NOTE 2024.07.06: The comments are close to the original, but may have been edited for clarity and relevance to the current state.
 -- In order to distinguish between the original comments and the new ones, the original ones are marked with "--*"
@@ -9,7 +9,7 @@ local AGE_TYPES = {
 	game_age = 1
 }
 
-local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
+-- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local open_issues = require "libsote.glaciation.open-issues"
 local rock_qualities = require "libsote.rock-qualities"
 local rock_types = require "libsote.rock-type".TYPES
@@ -47,9 +47,6 @@ local tiles_influenced = {}
 local max_distance = 0
 local max_ice = 0
 local max_ice_moved = 0
-
-local max_silt_storage = 0
-local max_mineral_storage = 0
 
 local function set_debug(channel, ti, r, g, b, a)
 	world:set_debug_rgba(channel, ti, r, g, b, a or 255)
@@ -132,7 +129,7 @@ local function find_distance_of_each_glacier_tile_from_edge()
 				attacked_neighbor = true
 
 				local invasion_modifier = open_issues.true_elevation(world, nti)
-				invasion_modifier = math.max(invasion_modifier, 500)
+				invasion_modifier = math.max(500, invasion_modifier)
 				invasion_modifier = invasion_modifier / elevation_factor
 
 				invasion_ticker[nti] = invasion_ticker[nti] + math.floor(base_expansion / invasion_modifier)
@@ -163,15 +160,6 @@ local function find_distance_of_each_glacier_tile_from_edge()
 	-- 	if not glacial_seed[ti] then return end
 	-- 	logger:log(ti .. ": " .. distance_from_edge[ti])
 	-- end)
-
-	-- print("Expansion Ticker: " .. expansion_ticker)
-	-- world:for_each_tile(function(ti)
-	-- 	if distance_from_edge[ti] == 0 then return end
-	-- 	local fraction = distance_from_edge[ti] / max_distance
-	-- 	local red = fraction * 255
-	-- 	local blue = (1 - fraction) * 255
-	-- 	set_debug(world, ti, red, 0, blue)
-	-- end)
 end
 
 local function calculate_initial_ice_depth()
@@ -180,15 +168,6 @@ local function calculate_initial_ice_depth()
 
 		open_issues.calculate_initial_ice_depth(ti, ice_flow, distance_from_edge)
 	end)
-
-	-- world:for_each_tile(function(ti)
-	-- 	set_debug(world, ti, 0, 0, 0)
-	-- 	if ice_flow[ti] == 0 then return end
-	-- 	local fraction = ice_flow[ti] / max_ice
-	-- 	local red = fraction * 255
-	-- 	local blue = (1 - fraction) * 255
-	-- 	set_debug(world, ti, red, 0, blue)
-	-- end)
 end
 
 local function sort_glacial_seeds()
@@ -282,15 +261,6 @@ local function ice_expansion_loops(is_ice_age)
 			process_ice_expansion(ti, boost_iterations > 0)
 		end
 	end
-
-	-- world:for_each_tile(function(ti)
-	-- 	set_debug(world, ti, 0, 0, 0)
-	-- 	if ice_flow[ti] == 0 then return end
-	-- 	local fraction = ice_flow[ti] / max_ice
-	-- 	local red = fraction * 255
-	-- 	local blue = (1 - fraction) * 255
-	-- 	set_debug(world, ti, red, 0, blue)
-	-- end)
 
 	-- world:for_each_tile(function(ti)
 	-- 	if not glacial_seed[ti] then return end
@@ -405,11 +375,6 @@ local function remove_ineligible_ocean_ice_tiles(is_ice_age)
 
 		open_issues.remove_already_added(ti, already_added, is_eligible_melt_tile, use_original)
 	end)
-
-	-- world:for_each_tile(function(ti)
-	-- 	if not already_added[ti] then return end
-	-- 	set_debug(2, ti, 178, 235, 242, 180)
-	-- end)
 end
 
 local function create_melt_province(ti)
@@ -466,7 +431,6 @@ local function identify_edge_tiles_and_update_province_status(melt_province, is_
 				kill_province = false
 				table.insert(old_layer, nti)
 				table.insert(tiles_influenced, nti)
-				set_debug(3, nti, 128, 203, 196, 120)
 			end
 
 			if not glacial_seed[nti] then
@@ -500,7 +464,6 @@ local function expand_melt_province(is_ice_age, expansion_tick)
 				already_added[nti] = true
 				table.insert(new_layer, nti)
 				invasion_ticker[nti] = expansion_tick
-				set_debug(4, nti, 255, 204, 128, 100)
 			else
 				table.insert(new_layer, ti)
 			end
@@ -515,6 +478,8 @@ local function expand_melt_province(is_ice_age, expansion_tick)
 end
 
 local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
+	-- local max_silt_storage = 0
+
 	world:fill_ffi_array(invasion_ticker, 0)
 
 	--* Iterate through all melt tiles. Construct glacial melt provinces as we go
@@ -574,9 +539,7 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 			invasion_ticker[i_ti] = 0
 			already_added[i_ti] = false
 
-			local log_silt = math.log(silt_storage[i_ti] + 1)
-			max_silt_storage = math.max(log_silt, max_silt_storage)
-			max_mineral_storage = math.max(mineral_storage[i_ti], max_mineral_storage)
+			-- max_silt_storage = math.max(math.log(silt_storage[i_ti] + 1), max_silt_storage)
 		end
 
 		::continue2::
@@ -587,28 +550,11 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 	-- 	logger:log(ti .. ": " .. silt_storage[ti] .. ", " .. mineral_storage[ti])
 	-- end)
 
-	world:for_each_tile(function(ti)
-		local fraction = math.log(silt_storage[ti] + 1) / max_silt_storage
-		local red = fraction * 255
-		set_debug(6, ti, red, 0, 0, 255)
-		fraction = mineral_storage[ti] / max_mineral_storage
-		red = fraction * 255
-		set_debug(7, ti, red, 0, 0, 255)
-	end)
-end
-
-local function cull_back_silt_based_on_moisture_and_slope()
-end
-
-local function assign_ice_biomes_and_set_variables()
-	world:for_each_tile(function(ti)
-		if world.ice[ti] > 0 then
-			-- set biome here
-		else
-			world.silt[ti] = world.silt[ti] + silt_storage[ti]
-			world.mineral_richness[ti] = world.mineral_richness[ti] + mineral_storage[ti]
-		end
-	end)
+	-- world:for_each_tile(function(ti)
+	-- 	local fraction = math.log(silt_storage[ti] + 1) / max_silt_storage
+	-- 	local red = fraction * 255
+	-- 	set_debug(1, ti, red, 0, 0, 255)
+	-- end)
 end
 
 local function reset_variables()
@@ -646,6 +592,115 @@ local function process_age(age_type)
 	reset_variables()                                                                                                                                       -- #14
 end
 
+local function cull_back_silt_based_on_moisture_and_slope()
+	local silt_rank_one = 50 --* Retention will vary depending on the base amount of silt remaining
+	local silt_rank_two = 200
+	local silt_rank_three = 1000
+	local silt_rank_four = 5000
+
+	local wind_adjustment_slope = 0.65
+	local wind_adjustment_base = 0.35
+	local max_wind_factor = 25.0
+	local max_normalized_wind = 1
+	local water_normalization_factor = 60
+
+	local silt_limit = 10000
+	local silt_exponent = 0.8
+
+	-- local max_silt = 0
+	-- local max_mineral = 0
+
+	world:for_each_tile(function(ti)
+		if silt_storage[ti] <= 0 then return end
+
+		local temp_sand, temp_silt, temp_clay, _, _, _ = rock_qualities.get_characteristics_for_rock(world.rock_type[ti], 0, 0, 0, 0, 0, 0)
+
+		local true_water_calc = 0
+		if world.is_land[ti] then
+			local wind_factor = wind_adjustment_base + wind_adjustment_slope * (1 - math.min(world.jan_wind_speed[ti] / max_wind_factor, max_normalized_wind))
+			local permeability = require("libsote.world-gen-utils").permiation_calc(temp_sand, temp_silt, temp_clay)
+
+			true_water_calc = (world.jan_rainfall[ti] + world.jul_rainfall[ti]) * wind_factor * permeability
+		end
+
+		local steepest_face = 0
+		world:for_each_neighbor(ti, function(nti)
+			local elev_diff = open_issues.true_elevation(world, ti) - open_issues.true_elevation(world, nti)
+			if elev_diff <= 0 then return end
+			steepest_face = math.max(steepest_face, elev_diff)
+		end)
+
+		-- original code happily divides by zero if it chances on a flat piece of terrain, so I decided to set the slope_retention_factor to 1 in that case
+		local slope_retention_factor = steepest_face > 0 and math.min(math.pow((10 / steepest_face), 2), 1) or 1
+		local temp_factor = open_issues.calculate_temp_factor_for_retention_mult(world.jan_temperature[ti], world.jul_temperature[ti])
+		local retention_multiplier = math.min(math.pow((true_water_calc / water_normalization_factor), 2) * slope_retention_factor * temp_factor, 1)
+
+		local new_silt = silt_storage[ti]
+		local altered_silt = 0
+
+		if new_silt > silt_rank_four then
+			altered_silt = altered_silt + (new_silt - silt_rank_four) * math.pow(retention_multiplier, 2.0)
+			altered_silt = altered_silt + (new_silt - silt_rank_three) * retention_multiplier -- suspicious, as it does not follow the pattern, but Demian seems to remember it was on purpose, to "skew toward a specific outcome for silt"
+			altered_silt = altered_silt + (silt_rank_three - silt_rank_two) * math.pow(retention_multiplier, 0.75)
+			altered_silt = altered_silt + (silt_rank_two - silt_rank_one) * math.pow(retention_multiplier, 0.25)
+			altered_silt = altered_silt + silt_rank_one
+		elseif new_silt > silt_rank_three then
+			altered_silt = altered_silt + (new_silt - silt_rank_three) * retention_multiplier
+			altered_silt = altered_silt + (silt_rank_three - silt_rank_two) * math.pow(retention_multiplier, 0.75)
+			altered_silt = altered_silt + (silt_rank_two - silt_rank_one) * math.pow(retention_multiplier, 0.25)
+			altered_silt = altered_silt + silt_rank_one
+		elseif new_silt > silt_rank_two then
+			altered_silt = altered_silt + (new_silt - silt_rank_two) * math.pow(retention_multiplier, 0.75)
+			altered_silt = altered_silt + (silt_rank_two - silt_rank_one) * math.pow(retention_multiplier, 0.25)
+			altered_silt = altered_silt + silt_rank_one
+		elseif new_silt > silt_rank_one then
+			altered_silt = altered_silt + (new_silt - silt_rank_one) * math.pow(retention_multiplier, 0.25)
+			altered_silt = altered_silt + silt_rank_one
+		else
+			altered_silt = new_silt
+		end
+
+		if altered_silt > silt_limit then
+			altered_silt = math.pow((altered_silt - silt_limit), silt_exponent) + silt_limit
+		end
+
+		local original_silt_ratio = altered_silt / silt_storage[ti]
+
+		silt_storage[ti] = math.floor(altered_silt)
+		mineral_storage[ti] = math.floor(mineral_storage[ti] * original_silt_ratio)
+
+		-- max_silt = math.max(math.log(silt_storage[ti] + 1), max_silt)
+		-- max_mineral = math.max(math.log(mineral_storage[ti] + 1), max_mineral)
+	end)
+
+	-- world:for_each_tile(function(ti)
+	-- 	if not world.is_land[ti] then
+	-- 		set_debug(1, ti, 0, 0, 0, 255)
+	-- 		set_debug(2, ti, 0, 0, 0, 255)
+	-- 		return
+	-- 	end
+
+	-- 	local fraction = math.log(silt_storage[ti] + 1) / max_silt
+	-- 	local blue = fraction * 255
+	-- 	set_debug(1, ti, 0, 0, blue, 255)
+
+	-- 	fraction = math.log(mineral_storage[ti] + 1) / max_mineral
+	-- 	local red = fraction * 255
+	-- 	set_debug(2, ti, red, 0, 0, 255)
+	-- end)
+end
+
+local function assign_ice_biomes_and_set_variables()
+	world:for_each_tile(function(ti)
+		if world.ice[ti] > 0 then
+			-- set biome here
+		else
+			world.silt[ti] = world.silt[ti] + silt_storage[ti]
+			world.mineral_richness[ti] = world.mineral_richness[ti] + mineral_storage[ti]
+		end
+	end)
+end
+
 function gm.run(world_obj)
 	--* Before we even set seeds, we need to construct temp waterbodies to determine which ones are large, and which ones are small. Ocean waterbodies 
 	--* of a sufficient volume will have heat exchanging capacity and act as hard barriers for glacial expansion. Smaller waterbodies can simply 
@@ -673,7 +728,7 @@ function gm.run(world_obj)
 		rng:set_seed(world.seed + 19832)
 	end
 
-	world:adjust_debug_channels(7)
+	world:adjust_debug_channels(2)
 
 	world:fill_ffi_array(glacial_seed, false)
 	world:fill_ffi_array(already_added, false)
@@ -699,4 +754,4 @@ function gm.run(world_obj)
 	end
 end
 
-return gm
+return gf

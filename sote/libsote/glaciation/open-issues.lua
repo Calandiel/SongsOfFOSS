@@ -126,4 +126,33 @@ function oi.adjust_material_for_province_size_after(total_material, is_ice_age, 
 	return total_material
 end
 
+-- original temp factor is using some temperature bands table:
+--* Less than -20 = 0 
+--* -20 to -10 = 0.1
+--* -10 to 0 = 0.5  
+--* 0 to 10 = 0.75
+--* 10 to 20 = 1
+--* 20 - 30 = 1.5
+--* 30 - 40 = 1.25
+--* 40 - 50 = 1
+--* 50 - 60 = 0.5
+--* 60 - 70 = 0
+-- and returns 0 for extreme band and anything outside, which seems a bit drastic, maybe it's worth revisiting at some point
+function oi.calculate_temp_factor_for_retention_mult(temp_jan, temp_jul)
+	local average_temp = oi.avg_temp(temp_jan, temp_jul)
+
+	if average_temp >= 70 then return 0 end
+	if average_temp >= 60 then return (70 - average_temp) * 0.05 end
+	if average_temp >= 50 then return (60 - average_temp) * 0.05 + 0.5 end
+	if average_temp >= 40 then return (50 - average_temp) * 0.025 + 1 end
+	if average_temp >= 30 then return (40 - average_temp) * 0.025 + 1.25 end
+	if average_temp >= 20 then return (average_temp - 20) * 0.05 + 1 end
+	if average_temp >= 10 then return (average_temp - 10) * 0.025 + 0.75 end
+	if average_temp >= 0 then return average_temp * 0.025 + 0.5 end
+	if average_temp >= -10 then return (average_temp + 10) * 0.04 + 0.1 end
+	if average_temp >= -20 then return (average_temp + 20) * 0.01 end
+
+	return 0
+end
+
 return oi

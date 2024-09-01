@@ -193,7 +193,8 @@ function wl.dump_maps_from(world)
 	local image_rocks_data = love.image.newImageData(width, height)
 	local image_jan_rainfall_data = love.image.newImageData(width, height)
 	local image_jan_waterflow_data = love.image.newImageData(width, height)
-	local image_debug_data = love.image.newImageData(width, height)
+	local image_debug_data_1 = love.image.newImageData(width, height)
+	local image_debug_data_2 = love.image.newImageData(width, height)
 
 	local col = require "cpml".color
 
@@ -265,8 +266,12 @@ function wl.dump_maps_from(world)
 			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
 			-- debug ---------------------------------------------------------
-			col_r, col_g, col_b, _ = world:get_debug_rgba(6, q, r, face)
-			image_debug_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			col_r, col_g, col_b, _ = world:get_debug_rgba(1, q, r, face)
+			image_debug_data_1:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+
+			col_r, col_g, col_b, _ = world:get_debug_rgba(2, q, r, face)
+			image_debug_data_2:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+
 			-- local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
 			-- for channel = world.num_debug_channels - 1, 1, -1 do
 			-- 	local cr, cg, cb, ca = world:get_debug_rgba(channel, q, r, face)
@@ -281,14 +286,16 @@ function wl.dump_maps_from(world)
 	local rocks_file_data = image_rocks_data:encode('png')
 	local jan_rainfall_file_data = image_jan_rainfall_data:encode('png')
 	local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
-	local jan_debug_file_data = image_debug_data:encode('png')
+	local debug_file_data_1 = image_debug_data_1:encode('png')
+	local debug_file_data_2 = image_debug_data_2:encode('png')
 
 	-- Write the FileData to a file
 	love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
 	love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
 	love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
 	love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
-	love.filesystem.write(world.seed .. '_debug.png', jan_debug_file_data)
+	love.filesystem.write(world.seed .. '_debug_1.png', debug_file_data_1)
+	love.filesystem.write(world.seed .. '_debug_2.png', debug_file_data_2)
 end
 
 return wl
