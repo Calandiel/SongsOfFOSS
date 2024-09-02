@@ -20,7 +20,7 @@ wg.state = wg.states.idle
 wg.message = ""
 wg.world = nil
 
-local use_sote_climate_data = true
+local use_sote_climate_data = false
 
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[worldgen profiling]"

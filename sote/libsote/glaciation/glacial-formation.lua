@@ -22,7 +22,8 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
-local align_rng = true
+local align_rng = false
+local enable_debug = false
 
 local world
 local glacial_seed
@@ -701,7 +702,7 @@ local function assign_ice_biomes_and_set_variables()
 	end)
 end
 
-function gm.run(world_obj)
+function gf.run(world_obj)
 	--* Before we even set seeds, we need to construct temp waterbodies to determine which ones are large, and which ones are small. Ocean waterbodies 
 	--* of a sufficient volume will have heat exchanging capacity and act as hard barriers for glacial expansion. Smaller waterbodies can simply 
 	--* be elligible to be seeds but have "stricter threshold."
@@ -728,7 +729,9 @@ function gm.run(world_obj)
 		rng:set_seed(world.seed + 19832)
 	end
 
-	world:adjust_debug_channels(2)
+	if enable_debug then
+		world:adjust_debug_channels(2)
+	end
 
 	world:fill_ffi_array(glacial_seed, false)
 	world:fill_ffi_array(already_added, false)
@@ -742,7 +745,11 @@ function gm.run(world_obj)
 	world:fill_ffi_array(mineral_storage, 0)
 
 	process_age(AGE_TYPES.ice_age)
-	world:reset_debug_all()
+
+	if enable_debug then
+		world:reset_debug_all()
+	end
+
 	process_age(AGE_TYPES.game_age)
 
 	run_with_profiling(function() cull_back_silt_based_on_moisture_and_slope() end, "cull_back_silt_based_on_moisture_and_slope")                           -- #15

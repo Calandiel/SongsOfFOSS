@@ -186,6 +186,8 @@ local function alpha_blend(r1, g1, b1, a1, r2, g2, b2, a2)
 	end
 end
 
+local dump_debug = false
+
 function wl.dump_maps_from(world)
 	local width = 2000
 	local height = 1000
@@ -193,8 +195,13 @@ function wl.dump_maps_from(world)
 	local image_rocks_data = love.image.newImageData(width, height)
 	local image_jan_rainfall_data = love.image.newImageData(width, height)
 	local image_jan_waterflow_data = love.image.newImageData(width, height)
-	local image_debug_data_1 = love.image.newImageData(width, height)
-	local image_debug_data_2 = love.image.newImageData(width, height)
+
+	local image_debug_data_1
+	local image_debug_data_2
+	if dump_debug then
+		image_debug_data_1 = love.image.newImageData(width, height)
+		image_debug_data_2 = love.image.newImageData(width, height)
+	end
 
 	local col = require "cpml".color
 
@@ -266,11 +273,13 @@ function wl.dump_maps_from(world)
 			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
 			-- debug ---------------------------------------------------------
-			col_r, col_g, col_b, _ = world:get_debug_rgba(1, q, r, face)
-			image_debug_data_1:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			if dump_debug then
+				col_r, col_g, col_b, _ = world:get_debug_rgba(1, q, r, face)
+				image_debug_data_1:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
-			col_r, col_g, col_b, _ = world:get_debug_rgba(2, q, r, face)
-			image_debug_data_2:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+				col_r, col_g, col_b, _ = world:get_debug_rgba(2, q, r, face)
+				image_debug_data_2:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			end
 
 			-- local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
 			-- for channel = world.num_debug_channels - 1, 1, -1 do
@@ -286,16 +295,20 @@ function wl.dump_maps_from(world)
 	local rocks_file_data = image_rocks_data:encode('png')
 	local jan_rainfall_file_data = image_jan_rainfall_data:encode('png')
 	local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
-	local debug_file_data_1 = image_debug_data_1:encode('png')
-	local debug_file_data_2 = image_debug_data_2:encode('png')
 
 	-- Write the FileData to a file
 	love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
 	love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
 	love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
 	love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
-	love.filesystem.write(world.seed .. '_debug_1.png', debug_file_data_1)
-	love.filesystem.write(world.seed .. '_debug_2.png', debug_file_data_2)
+
+	if dump_debug then
+		local debug_file_data_1 = image_debug_data_1:encode('png')
+		local debug_file_data_2 = image_debug_data_2:encode('png')
+
+		love.filesystem.write(world.seed .. '_debug_1.png', debug_file_data_1)
+		love.filesystem.write(world.seed .. '_debug_2.png', debug_file_data_2)
+	end
 end
 
 return wl
