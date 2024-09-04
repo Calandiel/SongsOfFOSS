@@ -15,6 +15,8 @@ local STATES = {
 local cpml = require "cpml"
 local world_generator = require "libsote.world-generator"
 
+local debug = require "libsote.debug-control-panel"
+
 local hex = require "libsote.hex-utils"
 local function map_tiles_to_hex()
 	for _, tile in pairs(WORLD.tiles) do
@@ -25,24 +27,27 @@ local function map_tiles_to_hex()
 	end
 end
 
--- local function load_mapping_from_file(file)
--- 	for row in require("game.file-utils").csv_rows(file) do
--- 		local tile_id = tonumber(row[1])
--- 		local q = tonumber(row[2])
--- 		local r = tonumber(row[3])
--- 		local face = tonumber(row[4])
+local function load_mapping_from_file(file)
+	for row in require("game.file-utils").csv_rows(file) do
+		local tile_id = tonumber(row[1])
+		local q = tonumber(row[2])
+		local r = tonumber(row[3])
+		local face = tonumber(row[4])
 
--- 		wg.world:cache_tile_coord(tile_id, q, r, face)
--- 	end
--- end
+		wg.world:cache_tile_coord(tile_id, q, r, face)
+	end
+end
 
 local function cache_tile_coord()
 	print("Caching tile coordinates...")
 
-	map_tiles_to_hex()
-	-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
-	-- load_mapping_from_file("d:\\temp\\hex_mapping.csv")
-	wg.world:map_hex_coords()
+	if debug.map_tiles_from_file then
+		-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
+		load_mapping_from_file("d:\\temp\\hex_mapping.csv")
+	else
+		map_tiles_to_hex()
+	end
+	-- wg.world:map_hex_coords()
 
 	print("Done caching tile coordinates")
 end
@@ -91,11 +96,9 @@ local prof = require "libsote.profiling-helper"
 function wg.generate_coro()
 	math.randomseed(os.time())
 	local seed = math.random(1, 100000)
-	-- seed = 58738 -- climate integration was done on this one
-	-- seed = 53201 -- banding
-	-- seed = 20836 -- north pole cells
-	-- seed = 6618 -- tiny islands?
-	-- seed = 12177 -- waterflow calculations work
+	if debug.fixed_seed then
+		seed = debug.fixed_seed
+	end
 
 	local worldgen_coro = coroutine.create(world_generator.get_gen_coro)
 	while coroutine.status(worldgen_coro) ~= "dead" do
@@ -127,8 +130,11 @@ function wg.generate_coro()
 	local wl = require "libsote.world-loader"
 	wl.load_maps_from(wg.world)
 	coroutine.yield()
-	-- wl.dump_maps_from(wg.world)
-	-- coroutine.yield()
+
+	if debug.save_maps then
+		wl.dump_maps_from(wg.world)
+		coroutine.yield()
+	end
 
 	local default_map_mode = "elevation"
 	wg.map_mode = default_map_mode

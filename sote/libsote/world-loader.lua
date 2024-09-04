@@ -186,19 +186,44 @@ local function alpha_blend(r1, g1, b1, a1, r2, g2, b2, a2)
 	end
 end
 
-local dump_debug = false
+local debug = require "libsote.debug-control-panel"
+local debug_ms = debug.maps_selection
 
 function wl.dump_maps_from(world)
+	local elev_range = 1
+	local min_elev = 100000
+	if debug_ms.elevation then
+		local max_elev = -100000
+		world:for_each_tile(function(ti)
+			min_elev = math.min(min_elev, world.elevation[ti])
+			max_elev = math.max(max_elev, world.elevation[ti])
+		end)
+		elev_range = max_elev - min_elev
+	end
+
 	local width = 2000
 	local height = 1000
-	local image_elevation_data = love.image.newImageData(width, height)
-	local image_rocks_data = love.image.newImageData(width, height)
-	local image_jan_rainfall_data = love.image.newImageData(width, height)
-	local image_jan_waterflow_data = love.image.newImageData(width, height)
 
+	local image_elevation_data
+	local image_rocks_data
+	local image_jan_rainfall_data
+	local image_jan_waterflow_data
 	local image_debug_data_1
 	local image_debug_data_2
-	if dump_debug then
+
+	if debug_ms.elevation then
+		image_elevation_data = love.image.newImageData(width, height, "rgba16")
+	end
+	if debug_ms.rocks then
+		image_rocks_data = love.image.newImageData(width, height)
+	end
+	if debug_ms.climate then
+		image_jan_rainfall_data = love.image.newImageData(width, height)
+	end
+	if debug_ms.waterflow then
+		image_jan_waterflow_data = love.image.newImageData(width, height)
+	end
+	if debug_ms.debug then
 		image_debug_data_1 = love.image.newImageData(width, height)
 		image_debug_data_2 = love.image.newImageData(width, height)
 	end
@@ -210,99 +235,107 @@ function wl.dump_maps_from(world)
 			local lon = ((x + 0.5) / width * 2 - 1) * math.pi -- (x + 0.5) / width * 2 - 1 to align with ich.io sote, no -1 otherwise
 			local lat = ((y + 0.5) / height - 0.5) * math.pi
 			local q, r, face = hexu.latlon_to_hex_coords(lat, lon, world.size)
+			local is_land = world:get_is_land(q, r, face)
+			local elevation = world:get_elevation(q, r, face)
+
+			local col_r, col_g, col_b
 
 			-- elevation -----------------------------------------------------
-			local generated_elev = world:get_elevation(q, r, face)
-			local is_land = world:get_is_land(q, r, face)
-			local elev_as_grey = elev_to_gray(generated_elev, is_land)
-
-			local col_r = elev_as_grey / 255
-			local col_g = elev_as_grey / 255
-			local col_b = elev_as_grey / 255
-
-			image_elevation_data:setPixel(x, y, col_r, col_g, col_b, 1)
+			if debug_ms.elevation then
+				local normalized_elev = (elevation - min_elev) / elev_range
+				image_elevation_data:setPixel(x, y, normalized_elev, normalized_elev, normalized_elev, 1)
+			end
 
 			-- rocks ---------------------------------------------------------
-			local rock_type = world:get_rock_type(q, r, face)
-			local rock_layer_index = world:get_rock_layer(q, r, face)
-			local rock_layer = rock_layers[rock_type][rock_layer_index]
+			if debug_ms.rocks then
+				local rock_type = world:get_rock_type(q, r, face)
+				local rock_layer_index = world:get_rock_layer(q, r, face)
+				local rock_layer = rock_layers[rock_type][rock_layer_index]
 
-			if rock_layer ~= nil then
-				col_r = rock_layer.r
-				col_g = rock_layer.g
-				col_b = rock_layer.b
-			else
-				col_r = RAWS_MANAGER.bedrocks_by_name['limestone'].r
-				col_g = RAWS_MANAGER.bedrocks_by_name['limestone'].g
-				col_b = RAWS_MANAGER.bedrocks_by_name['limestone'].b
+				if rock_layer ~= nil then
+					col_r = rock_layer.r
+					col_g = rock_layer.g
+					col_b = rock_layer.b
+				else
+					col_r = RAWS_MANAGER.bedrocks_by_name['limestone'].r
+					col_g = RAWS_MANAGER.bedrocks_by_name['limestone'].g
+					col_b = RAWS_MANAGER.bedrocks_by_name['limestone'].b
+				end
+
+				image_rocks_data:setPixel(x, y, col_r, col_g, col_b, 1)
 			end
-
-			image_rocks_data:setPixel(x, y, col_r, col_g, col_b, 1)
 
 			-- climate -------------------------------------------------------
-			if is_land then
-				local r_ja, t_ja, r_ju, t_ju = world:get_climate_data(q, r, face, true)
-				-- local r_ja, t_ja, r_ju, t_ju = cu.get_climate_data(lat, lon, generated_elev)
-				local val = 1 - math.min(1, r_ja / 250.0)
-				local hue = math.min(1, math.max(0, val)) * 0.7
-				local rgb = col.from_hsv(hue, 1, 0.75 + val / 4)
-				col_r, col_g, col_b = rgb:unpack()
-			else
-				col_r = 0.1
-				col_g = 0.1
-				col_b = 0.1
-			end
+			if debug_ms.climate then
+				if is_land then
+					local r_ja, t_ja, r_ju, t_ju = world:get_climate_data(q, r, face, true)
+					-- local r_ja, t_ja, r_ju, t_ju = cu.get_climate_data(lat, lon, generated_elev)
+					local val = 1 - math.min(1, r_ja / 250.0)
+					local hue = math.min(1, math.max(0, val)) * 0.7
+					local rgb = col.from_hsv(hue, 1, 0.75 + val / 4)
+					col_r, col_g, col_b = rgb:unpack()
+				else
+					col_r = 0.1
+					col_g = 0.1
+					col_b = 0.1
+				end
 
-			image_jan_rainfall_data:setPixel(x, y, col_r, col_g, col_b, 1)
+				image_jan_rainfall_data:setPixel(x, y, col_r, col_g, col_b, 1)
+			end
 
 			-- water movement ------------------------------------------------
-			col_r, col_g, col_b = 2, 8, 209
-			if is_land then
-				local water_movement = world:get_water_movement(q, r, face)
-				local rank = gen_water_movement_rank(water_movement)
-				col_r, col_g, col_b = color_from_rank(rank)
-			else
-				local waterbody = world:get_waterbody(q, r, face)
-				if waterbody.type == waterbody.TYPES.freshwater_lake then
-					col_r, col_g, col_b = 15, 239, 255
-				elseif waterbody.type == waterbody.TYPES.saltwater_lake then
-					col_r, col_g, col_b = 30, 125, 255
+			if debug_ms.waterflow then
+				col_r, col_g, col_b = 2, 8, 209
+				if is_land then
+					local water_movement = world:get_water_movement(q, r, face)
+					local rank = gen_water_movement_rank(water_movement)
+					col_r, col_g, col_b = color_from_rank(rank)
+				else
+					local waterbody = world:get_waterbody(q, r, face)
+					if waterbody.type == waterbody.TYPES.freshwater_lake then
+						col_r, col_g, col_b = 15, 239, 255
+					elseif waterbody.type == waterbody.TYPES.saltwater_lake then
+						col_r, col_g, col_b = 30, 125, 255
+					end
 				end
+
+				image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 			end
 
-			image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
-
 			-- debug ---------------------------------------------------------
-			if dump_debug then
+			if debug_ms.debug then
 				col_r, col_g, col_b, _ = world:get_debug_rgba(1, q, r, face)
 				image_debug_data_1:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
 				col_r, col_g, col_b, _ = world:get_debug_rgba(2, q, r, face)
 				image_debug_data_2:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+				-- local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
+				-- for channel = world.num_debug_channels - 1, 1, -1 do
+				-- 	local cr, cg, cb, ca = world:get_debug_rgba(channel, q, r, face)
+				-- 	r_blend, g_blend, b_blend, a_blend = alpha_blend(r_blend, g_blend, b_blend, a_blend, cr, cg, cb, ca)
+				-- end
+				-- image_debug_data:setPixel(x, y, r_blend / 255, g_blend / 255, b_blend / 255, a_blend)
 			end
-
-			-- local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
-			-- for channel = world.num_debug_channels - 1, 1, -1 do
-			-- 	local cr, cg, cb, ca = world:get_debug_rgba(channel, q, r, face)
-			-- 	r_blend, g_blend, b_blend, a_blend = alpha_blend(r_blend, g_blend, b_blend, a_blend, cr, cg, cb, ca)
-			-- end
-			-- image_debug_data:setPixel(x, y, r_blend / 255, g_blend / 255, b_blend / 255, a_blend)
 		end
 	end
 
-	-- Encode the ImageData to a PNG FileData
-	local elevation_file_data = image_elevation_data:encode('png')
-	local rocks_file_data = image_rocks_data:encode('png')
-	local jan_rainfall_file_data = image_jan_rainfall_data:encode('png')
-	local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
-
-	-- Write the FileData to a file
-	love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
-	love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
-	love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
-	love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
-
-	if dump_debug then
+	if debug_ms.elevation then
+		local elevation_file_data = image_elevation_data:encode('png', world.seed .. '_elevation.png')
+		love.filesystem.write(world.seed .. '_elevation.png', elevation_file_data)
+	end
+	if debug_ms.rocks then
+		local rocks_file_data = image_rocks_data:encode('png', world.seed .. '_rocks.png')
+		love.filesystem.write(world.seed .. '_rocks.png', rocks_file_data)
+	end
+	if debug_ms.climate then
+		local jan_rainfall_file_data = image_jan_rainfall_data:encode('png', world.seed .. '_jan_rain.png')
+		love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
+	end
+	if debug_ms.waterflow then
+		local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
+		love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
+	end
+	if debug_ms.debug then
 		local debug_file_data_1 = image_debug_data_1:encode('png')
 		local debug_file_data_2 = image_debug_data_2:encode('png')
 
