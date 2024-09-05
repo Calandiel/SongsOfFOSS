@@ -444,21 +444,15 @@ function wg.refresh_map_mode()
 
 	local dim = wg.world_size * 3
 
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local x, y = wg.tile_id_to_color_coords(tile_id)
 		local pixel_index = x + y * dim
-
-		local r = tile.real_r
-		local g = tile.real_g
-		local b = tile.real_b
-
-		local result_pixel = { r, g, b, 1 }
 
 		pointer_tile_color[pixel_index * 4 + 0] = 255 * DATA.tile_get_real_r(tile_id)
 		pointer_tile_color[pixel_index * 4 + 1] = 255 * DATA.tile_get_real_g(tile_id)
 		pointer_tile_color[pixel_index * 4 + 2] = 255 * DATA.tile_get_real_b(tile_id)
 		pointer_tile_color[pixel_index * 4 + 3] = 255 * 1
-	end
+	end)
 
 	wg.tile_color_texture = love.graphics.newImage(wg.tile_color_image_data)
 	wg.tile_color_texture:setFilter("nearest", "nearest")

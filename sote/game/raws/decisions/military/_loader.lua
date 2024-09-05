@@ -11,8 +11,6 @@ local economic_effects = require "game.raws.effects.economic"
 
 local office_triggers = require "game.raws.triggers.offices"
 
-local TRAIT = require "game.raws.traits.generic"
-local RANK = require "game.raws.ranks.character_ranks"
 
 local NOT_BUSY = tooltiped_triggers.Pretrigger.not_busy
 local OR = tooltiped_triggers.Pretrigger.OR

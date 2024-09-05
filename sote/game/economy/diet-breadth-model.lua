@@ -1,58 +1,25 @@
 local tabb = require "engine.table"
 local tile = require "game.entities.tile"
+local province_utils = require "game.entities.province".Province
 
 local retrieve_good = require "game.raws.raws-utils".trade_good
 
-local province_utils = require "game.entities.province".Province
-
 local dbm = {}
-
----@enum ForageResource
-dbm.ForageResource = {
-	Water = 0,
-	Fruit = 1,
-	Grain = 2,
-	Game = 3,
-	Fungi = 4,
-	Shell = 5,
-	Fish = 6,
-	Wood = 7,
-}
-
-dbm.ForageResourceName = {
-	[dbm.ForageResource.Water] = 'water',
-	[dbm.ForageResource.Fruit] = 'berries',
-	[dbm.ForageResource.Grain] = 'seeds',
-	[dbm.ForageResource.Game] = 'game',
-	[dbm.ForageResource.Fungi] = 'mushrooms',
-	[dbm.ForageResource.Shell] = 'shellfish',
-	[dbm.ForageResource.Fish] = 'fish',
-	[dbm.ForageResource.Wood] = 'timber',
-}
-
-dbm.ForageActionWord = {
-    [JOBTYPE.FORAGER] = 'foraging',
-    [JOBTYPE.FARMER] = 'farming',
-    [JOBTYPE.LABOURER] = 'labouring',
-    [JOBTYPE.ARTISAN] = 'artisianship',
-    [JOBTYPE.CLERK] = 'recalling', -- communication of ideas? knowing things?
-    [JOBTYPE.WARRIOR] = 'fighting',
-    [JOBTYPE.HAULING] = 'hauling',
-    [JOBTYPE.HUNTING] = 'hunting',
-}
 
 ---@param culture Culture
 ---@return string tooltip
 function dbm.culture_target_tooltip(culture)
 	local ut = require "game.ui-utils"
-	return "\n · Traditional Foraging Targets: ".. tabb.accumulate(culture.traditional_forager_targets, "", function (a, use_case, resources)
-			return a .. "\n    · Foraging " .. use_case .. " targets (" .. ut.to_fixed_point2(resources.search * 100) .. "%):".. tabb.accumulate(resources.targets, "", function (text, resource, value)
-				if value > 0.01 then
-					return text .. "\n       · " .. dbm.ForageResourceName[resource] .. " (" .. ut.to_fixed_point2(value * 100) .. "%)"
-				end
-				return text
-			end)
-		end)
+	local result = "\n · Traditional Foraging Targets: \n"
+
+	DATA.for_each_forage_resource(function (item)
+		result = result ..
+			"\n    · Foraging "
+			.. DATA.forage_resource_get_description(item)
+			.. " (during " .. ut.to_fixed_point2(culture.traditional_forager_targets[item] * 100) .. "% of total foraging time)"
+	end)
+
+	return result
 end
 
 ---@param race race_id
@@ -206,76 +173,49 @@ function dbm.total_foraging_amounts(province)
 	return accumulate
 end
 
+---commenting
+---@param province province_id
+---@param forage FORAGE_RESOURCE
+---@param output trade_good_id
+---@param output_value number
+---@param available_amount number
+local function set_province_data(province, index, forage, output, output_value, available_amount)
+	DATA.province_set_foragers_targets_forage(province, index, forage)
+	DATA.province_set_foragers_targets_amount(province, index, available_amount)
+	DATA.province_set_foragers_targets_output_good(province, index, output)
+	DATA.province_set_foragers_targets_output_value(province, index, output_value)
+end
+
 ---@param province province_id
 ---@param amounts {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 ---Calculate and set a province's forager limit (CC) and foraging targets
 function dbm.set_foraging_targets(province, amounts)
-	---@type {resource: string, output: table<trade_good_id, number>, amount: number, handle: JOBTYPE}[]
-	local products = {}
-	products[dbm.ForageResource.Water] = {
-		icon = "droplets.png",
-		output = { [retrieve_good('water')] = 2 },
-		amount = DATA.province_get_hydration(province),
-		handle = JOBTYPE.HAULING,
-	}
-	products[dbm.ForageResource.Fruit] = {
-		icon = "berries-bowl.png",
-		output = { [retrieve_good('berries')] = 1.6 },
-		amount = amounts.fruit,
-		handle = JOBTYPE.FORAGER,
-	}
-	products[dbm.ForageResource.Grain] = {
-		icon = "wheat.png",
-		output = { [retrieve_good('grain')] = 2 },
-		amount = amounts.seeds,
-		handle = JOBTYPE.FARMER,
-	}
-	products[dbm.ForageResource.Wood] = {
-		icon = "pine-tree.png",
-		output = { [retrieve_good('bark')] = 1.25, [retrieve_good('timber')] = 0.25 },
-		amount = amounts.wood,
-		handle = JOBTYPE.ARTISAN,
-	}
-	products[dbm.ForageResource.Game] = {
-		icon = "bison.png",
-		output = { [retrieve_good('meat')] = 1, [retrieve_good('hide')] = 0.25 },
-		amount = amounts.game,
-		handle = JOBTYPE.HUNTING,
-	}
-	products[dbm.ForageResource.Fungi] = {
-		icon = "chanterelles.png",
-		output = { [retrieve_good('mushrooms')] = 1.25 },
-		amount = amounts.fungi,
-		handle = JOBTYPE.CLERK,
-	}
-	products[dbm.ForageResource.Shell] = {
-		icon = "oyster.png",
-		output = { [retrieve_good('shellfish')] = 1, [retrieve_good('seaweed')] = 2 },
-		amount = amounts.shell,
-		handle = JOBTYPE.HAULING,
-	}
-	products[dbm.ForageResource.Fish] = {
-		icon = "salmon.png",
-		output = { [retrieve_good('fish')] = 1.25 },
-		amount = amounts.fish,
-		handle = JOBTYPE.LABOURER,
-	}
-
+	set_province_data(province, 0, FORAGE_RESOURCE.WATER, retrieve_good("water"), 2, DATA.province_get_hydration(province))
+	set_province_data(province, 1, FORAGE_RESOURCE.FRUIT, retrieve_good("berries"), 1.6, amounts.fruit)
+	set_province_data(province, 2, FORAGE_RESOURCE.GRAIN, retrieve_good("grain"), 2, amounts.seeds)
+	set_province_data(province, 3, FORAGE_RESOURCE.WOOD, retrieve_good("bark"), 1.25, amounts.wood)
+	set_province_data(province, 4, FORAGE_RESOURCE.WOOD, retrieve_good("timber"), 0.25, amounts.wood)
+	set_province_data(province, 5, FORAGE_RESOURCE.GAME, retrieve_good("meat"), 1, amounts.game)
+	set_province_data(province, 6, FORAGE_RESOURCE.GAME, retrieve_good("hide"), 0.25, amounts.game)
+	set_province_data(province, 7, FORAGE_RESOURCE.FUNGI, retrieve_good("mushrooms"), 1.25, amounts.fungi)
+	set_province_data(province, 8, FORAGE_RESOURCE.SHELL, retrieve_good("shellfish"), 1, amounts.shell)
+	set_province_data(province, 9, FORAGE_RESOURCE.SHELL, retrieve_good("seaweed"), 2, amounts.shell)
+	set_province_data(province, 10, FORAGE_RESOURCE.FISH, retrieve_good("fish"), 1.25, amounts.fish)
 	DATA.province_set_foragers_limit(province, amounts.net_pp)
-	DATA.province_set_foragers_targets(province, products)
 end
+
+---@alias NeedUseCaseAmount {need: NEED, use_case: use_case_id, amount: number}
 
 -- TODO change to target a culture and find mean value across all pops based on race and culture needs
 ---@param race race_id
----@return table<use_case_id, number> food_needs_by_use
+---@return NeedUseCaseAmount[] food_needs_by_use
 function dbm.cultural_food_needs(race)
 	local males_per_hundred_females = DATA.race_get_males_per_hundred_females(race)
 	local male_to_female_ratio = males_per_hundred_females / (100 + males_per_hundred_females)
-	local accumulable = {}
-	local food_needs = {}
 
 	---@type table<use_case_id, number>
-	local food_needs_by_use = {}
+	local food_needs = {}
+
 	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local need = DATA.race_get_male_needs_need(race, i)
 		local use_case = DATA.race_get_male_needs_use_case(race, i)
@@ -286,18 +226,164 @@ function dbm.cultural_food_needs(race)
 				male_value * male_to_female_ratio
 				+ (1 - male_to_female_ratio) * female_value
 
-			if food_needs_by_use[use_case] == nil then
-				food_needs_by_use[use_case] = 0
-			end
-			food_needs_by_use[use_case] = food_needs_by_use[use_case] + average_gendered_use_case_need
+			table.insert(food_needs, {use_case = use_case, need = need, amount = average_gendered_use_case_need})
 		end
 	end
 
-	return food_needs_by_use
+	return food_needs
 end
 
----@alias TargetResourceTable {search: number, handle: number, output: number, energy: number}
----@alias TargetNeedsTable {need: number, total_search: number, total_output: number, total_handle: number, targets: table<ForageResource, TargetResourceTable>}
+
+---@class (exact) TargetResourceTable
+---@field forage_resource FORAGE_RESOURCE
+---@field search_time number
+---@field handle_time number
+---@field output number
+---@field output_energy number
+---@field energy_return_per_unit_of_time number
+
+---@class (exact) TargetNeedsTable
+---@field use_case use_case_id
+---@field required_amount_of_use number
+---@field total_search_time number
+---@field total_handle_time number
+---@field total_energy_output number
+---@field average_energy_return_per_unit_of_time number
+---@field data_per_forage_target TargetResourceTable[]
+
+local function turn_output_to_energy(good, use_case, output)
+	local weight = USE_WEIGHT[good][use_case]
+	return weight * output
+--	print("       VALID GOOD: " .. good .. ", AMOUNT: " .. values.amount .. ", OUTPUT: " .. weighted_output .. ", ENERGY: " .. weighted_output * values.amount)
+end
+
+---commenting
+---@param race race_id
+---@param province province_id
+---@param use_case use_case_id
+---@param needed number
+---@return TargetNeedsTable
+local function forage_targets_for_a_given_use_case(race, province, use_case, needed)
+--		print("    USE: " .. use .. ", NEEDED: " .. needed)
+	local province_size = DATA.province_get_size(province)
+
+	local total_search = 0
+	local total_output = 0
+	local total_handle = 0
+
+	---@type TargetResourceTable[]
+	local data_per_forage_target = {}
+
+	for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX do
+		local forage_case = DATA.province_get_foragers_targets_forage(province, i)
+		local required_job =  DATA.forage_resource_get_handle(forage_case)
+		local amount = DATA.province_get_foragers_targets_amount(province, i)
+		local output_good = DATA.province_get_foragers_targets_output_good(province, i)
+
+		if output_good == INVALID_ID then
+			break
+		end
+
+		---@type number
+		local energy = turn_output_to_energy(output_good, use_case, output_good)
+		local search_time = amount / province_size
+		local efficiency = dbm.mean_race_job_efficiency(race, required_job)
+		local handle_time = amount / efficiency * search_time
+		local real_energy_output = energy * amount * search_time
+
+		data_per_forage_target[i] = {
+			forage_resource = forage_case,
+			search_time = search_time,
+			handle_time = handle_time,
+			output = real_energy_output,
+			output_energy = energy,
+			energy_return_per_unit_of_time = energy / (search_time + handle_time)
+		}
+
+		---@type number
+		total_search = total_search + search_time
+		---@type number
+		total_handle = total_handle + handle_time
+		---@type number
+		total_output = total_output + real_energy_output
+	end
+
+	---@type TargetNeedsTable
+	local result = {
+		use_case = use_case,
+		required_amount_of_use = needed,
+		total_handle_time = total_handle,
+		total_search_time = total_search,
+		total_energy_output = total_output,
+		average_energy_return_per_unit_of_time = total_output / (total_handle + total_search),
+		data_per_forage_target = data_per_forage_target
+	}
+
+	return result
+end
+
+
+---Sets weights of targets below average return to 0
+---Sets weights of other targets to their return
+---@param forage_targets_data TargetNeedsTable
+---@return number[]
+local function use_case_data_to_weights(forage_targets_data)
+	---@type number[]
+	local weights = {}
+	local return_average = forage_targets_data.average_energy_return_per_unit_of_time
+
+	for i, data in pairs(forage_targets_data.data_per_forage_target) do
+		local return_this = data.energy_return_per_unit_of_time
+		if return_this < return_average then
+			weights[i] = 0
+		else
+			weights[i] = return_this
+		end
+	end
+
+	return weights
+end
+
+---@param use_cases_data TargetNeedsTable[]
+---@param weights number[][]
+local function normalize_weights(use_cases_data, weights)
+	local norm = 0
+
+	for i, targets_table in pairs(use_cases_data) do
+		for j, target_data in pairs(targets_table.data_per_forage_target) do
+			---@type number
+			norm = norm + weights[i][j] * (target_data.handle_time + target_data.search_time)
+		end
+	end
+
+	for i, targets_table in pairs(use_cases_data) do
+		for j, target_data in pairs(targets_table.data_per_forage_target) do
+			---@type number
+			weights[i][j] = weights[i][j] / norm
+		end
+	end
+end
+
+---@param use_cases_data TargetNeedsTable[]
+---@param weights number[][]
+---@return table<FORAGE_RESOURCE, number>
+local function weights_to_forage_time_distribution(use_cases_data, weights)
+	---@type table<FORAGE_RESOURCE, number>
+	local distribution = {}
+
+	DATA.for_each_forage_resource(function (item)
+		distribution[item] = 0
+	end)
+
+	for i, targets_table in pairs(use_cases_data) do
+		for j, target_data in pairs(targets_table.data_per_forage_target) do
+			local forage_resource = target_data.forage_resource
+			distribution[forage_resource] = distribution[forage_resource] + weights[i][j] * (target_data.handle_time + target_data.search_time)
+		end
+	end
+
+	return distribution
+end
 
 ---Use Diet-Breadth Model to weight, pick and normalize targets
 --- and search times for when foraging for food and water
@@ -305,144 +391,21 @@ end
 function dbm.cultural_foragable_targets(province)
 --	print("CULTURE: " .. culture.name)
 	-- get average life needs from realm primary race
-	local food_needs_by_case = dbm.cultural_food_needs(province.realm.primary_race)
-	local province_size = DATA.province_get_size(province)
---	print("  FINDING FOOD USE TARGETS...")
-	---@param targets_by_use table<use_case_id, TargetNeedsTable>
-	---@type table<use_case_id, TargetNeedsTable>
-	local targets_by_use = tabb.accumulate(food_needs_by_case, {}, function (targets_by_use, use, needed)
---		print("    USE: " .. use .. ", NEEDED: " .. needed)
-
-		---@type TargetNeedsTable
-		local accumulable = {need = needed, total_search = 0, total_output = 0, total_handle = 0, targets = {}}
-		targets_by_use[use] = tabb.accumulate(province.foragers_targets, accumulable,
-			function (target_use, resource, values)
---			print("     CHECKING: " .. dbm.ForageResourceName[resource])
-			if values.amount > 0 then
-				local energy = tabb.accumulate(values.output, 0, function (total_value, good, output)
-					local weight_id = DATA.get_use_weight(good, use)
-					if weight_id then
-						local weight = DATA.use_weight_get_weight(weight_id)
-						local weighted_output = weight * output
---						print("       VALID GOOD: " .. good .. ", AMOUNT: " .. values.amount .. ", OUTPUT: " .. weighted_output .. ", ENERGY: " .. weighted_output * values.amount)
-						total_value = total_value + weighted_output
-					end
-					return total_value
-				end)
-				if energy > 0 then
-					local search_time = values.amount / province_size
-					local handle_time = values.amount / dbm.mean_race_job_efficiency(province.realm.primary_race, values.handle) * search_time
-					local output = energy * values.amount * search_time
-					target_use.targets[resource] = {search = search_time, handle = handle_time, output = output, energy = energy}
-					target_use.total_search = target_use.total_search + search_time
-					target_use.total_handle = target_use.total_handle + handle_time
-					target_use.total_output = target_use.total_output + output
-				end
-			end
-			return target_use
-		end)
-		return targets_by_use
-	end)
+	local realm = province_utils.realm(province)
+	assert(realm ~= nil)
+	local race = DATA.realm_get_primary_race(realm)
+	local food_use_cases_needs = dbm.cultural_food_needs(race)
+	local food_use_cases_data = tabb.map_array(
+		food_use_cases_needs,
+		function (use_case_amount)
+			return forage_targets_for_a_given_use_case(race, province, use_case_amount.use_case, use_case_amount.amount)
+		end
+	)
 	-- find average return for each use target and filter by greater than or equal to average
-	---@type table<use_case_id, number>, table<use_case_id, number>
-	local total_targets_by_use, average_return_per_use = {}, {}
---	print("  CHOOSING TARGETS:")
 
-	---@type table<use_case_id, table<ForageResource, number>>
-	local accumulable = {}
-	local weighted_targets_by_use = tabb.accumulate(targets_by_use, accumulable, function (weighted_targets_by_use, use, values)
-		average_return_per_use[use] = values.total_output / (values.total_search + values.total_handle)
---		print("    TOTAL OUTPUT: " .. values.total_output .. " TOTAL HANDLE: " .. values.total_handle)
---		print("    AVERAGE RETURN: " .. average_return_per_use[use] .. " TOTAL SEARCH: " .. targets_by_use[use].total_search)
-		---@type table<ForageResource, number>
-		local accumulable_weighted_targets = {}
-		weighted_targets_by_use[use] = tabb.accumulate(values.targets, accumulable_weighted_targets, function (weighted_targets, resource, results)
-			local dividend = results.output
-			local divisor = results.search + results.handle
-			local return_for_resource = dividend / divisor
---			print("      RESOURCE: " .. dbm.ForageResourceName[resource] .. " AMOUNT: " .. amount .. " ENERGY: " .. energy)
---			print("        SEARCH: " .. search_time .. " HANDLE: " .. handle .. " RETURN: " .. return_for_resource)
-			if return_for_resource >= average_return_per_use[use] then
-				weighted_targets[resource] = return_for_resource
-				total_targets_by_use[use] = (total_targets_by_use[use] or 0) + return_for_resource
-			end
-			return weighted_targets
-		end)
-		return weighted_targets_by_use
-	end)
-	-- normalize use target list to sum to 1
---	print("  PREFERED FOOD USE TARGETS:")
-	local prefered_targets_by_use = tabb.accumulate(weighted_targets_by_use, {}, function(prefered_targets_by_use, use, targets)
---		print("    USE: " .. use .. ", TOTAL: " .. total_targets_by_use[use] .. ", SEARCH: " .. targets_by_use[use].total_search)
-		prefered_targets_by_use[use] = tabb.accumulate(targets, {}, function (prefer_target, resource, amount)
-			local normalized_amount = amount / total_targets_by_use[use]
---			print("      RESOURCE: " .. dbm.ForageResourceName[resource] .. " " .. amount .. " -> " .. normalized_amount)
-			prefer_target[resource] = normalized_amount
-			return prefer_target
-		end)
-		return prefered_targets_by_use
-	end)
-	-- use new prefered targets to set or shift culture's traditional targets
-	local total_search = 0
-	---@param traditional_foraging_target table<use_case_id, {search: number, targets: table<ForageResource, number>}>
-	local traditional_forager_targets = tabb.accumulate(prefered_targets_by_use, {}, function (traditional_foraging_target, use, targets)
-		local need = targets_by_use[use].need
-		local total_use_return, total_use_time = 0, 0
-		-- collect average expected time to satisfy use case
-		traditional_foraging_target[use] = {search = 0, targets = tabb.accumulate(targets, {}, function (prefered_target, resource, value)
-			local search = targets_by_use[use].targets[resource].search
-			local resource_return = weighted_targets_by_use[use][resource] * search
-			total_use_return = total_use_return + resource_return
-			total_use_time = total_use_time + search
-			prefered_target[resource] = value
-			return prefered_target
-		end)}
-		-- calculate average expected time to statisfy use case and normalize resource amounts
-		local average_expected_time = need / (total_use_return / total_use_time)
-		traditional_foraging_target[use].search = average_expected_time
-		total_search = total_search + average_expected_time
-		return traditional_foraging_target
-	end)
-	-- normalize use case search times to equally satisfy each use case
-	for _, values in pairs(traditional_forager_targets) do
-		values.search = values.search / total_search
-	end
-	if province.realm.primary_culture.traditional_forager_targets then
-		-- reduce old targets
-		for _, targets in pairs(province.realm.primary_culture.traditional_forager_targets) do
-			targets.search = targets.search * 0.95
-			for _, value in pairs(targets.targets) do
-				value = value * 0.95
-			end
-		end
-		-- add new targets
-		local total_search = 0
-		for use, targets in pairs(traditional_forager_targets) do
-			local old_search = (province.realm.primary_culture.traditional_forager_targets[use].search or 0)
-			local new_search = old_search + targets.search * 0.05
-			province.realm.primary_culture.traditional_forager_targets[use].search = new_search
-			total_search = total_search + new_search
-			for resource, value in pairs(targets.targets) do
-				local old_value = province.realm.primary_culture.traditional_forager_targets[use][resource] or 0
-				local new_value = old_value + value * 0.05
-				province.realm.primary_culture.traditional_forager_targets[use][resource] = new_value
-			end
-		end
-		-- normalize use case search times to equally satisfy each use case
-		for _, values in pairs(province.realm.primary_culture.traditional_forager_targets) do
-			values.search = values.search / total_search
-		end
-	else -- initial setting to first spawn of culture since traditional_foraging_target starts undeclared
-		province.realm.primary_culture.traditional_forager_targets = traditional_forager_targets
-    end
-
---	print("  TRADITIONAL FORAGER TARGETS:")
---	for use, resources in pairs(culture.traditional_forager_targets) do
---		print("    USE: " .. use .. ", TIME: " .. resources.search)
---		for resource, amount in pairs(resources.targets) do
---			print("      RESOURCE: " .. dbm.ForageResourceName[resource] .. " " .. amount)
---		end
---	end
+	local weights = tabb.map_array(food_use_cases_data, use_case_data_to_weights)
+	normalize_weights(food_use_cases_data, weights)
+	return weights_to_forage_time_distribution(food_use_cases_data, weights)
 end
 
 return dbm

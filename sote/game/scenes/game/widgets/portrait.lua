@@ -1,7 +1,6 @@
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
-local ranks = require "game.raws.ranks.character_ranks"
 
 ---@param rect Rect
 ---@param character Character

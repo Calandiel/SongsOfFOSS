@@ -14,6 +14,18 @@ function army_utils.get_visibility(army)
 	end
 	return vis
 end
+
+---@param army army_id
+---@return number
+function army_utils.size(army)
+	local result = 0
+	for _, army_membership in pairs(DATA.get_army_membership_from_army(army)) do
+		local warband = DATA.army_membership_get_member(army_membership)
+		result = result + warband_utils.size(warband)
+	end
+	return result
+end
+
 ---@param army army_id
 ---@return number
 function army_utils.loot_capacity(army)

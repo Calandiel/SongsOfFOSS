@@ -2,6 +2,7 @@ local world            = {}
 
 local decide           = require "game.ai.decide"
 local tile             = require "game.entities.tile"
+local province_utils   = require "game.entities.province".Province
 
 local plate_utils      = require "game.entities.plate"
 local utils            = require "game.ui-utils"
@@ -21,8 +22,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 
 ---@class (exact) World
 ---@field __index World
----@field player_character Character?
----@field player_province province_id?
+---@field player_character Character
 ---@field sub_hourly_tick number
 ---@field current_tick_in_month number
 ---@field current_tick_in_decade number
@@ -31,7 +31,6 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field month number
 ---@field year number
 ---@field world_size number
----@field tiles tile_id[]
 ---@field plates table<number, Plate>
 ---@field province_count number
 ---@field settled_provinces table<province_id, province_id>
@@ -50,6 +49,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
+---@field tile_from_world_id tile_id[]
 ---@field realms_changed boolean
 ---@field provinces_to_update_on_map table<province_id, province_id>
 
@@ -64,6 +64,10 @@ function world.World:new()
 	---@type World
 	local w = {}
 
+	w.tile_from_world_id = {}
+	---@type World|nil
+	WORLD = w
+
 	-- require the tile file to make sure that the tile was declared...
 	local tile_t = require "game.entities.tile"
 	local cells = require "game.entities.climate-cell"
@@ -71,7 +75,8 @@ function world.World:new()
 	-- Register classes and stuff...
 	local ws = DEFINES.world_size
 
-	w.tiles = {}
+	w.player_character = INVALID_ID
+
 	w.plates = {}
 	w.settled_provinces = {}
 	w.province_count = 0
@@ -108,17 +113,15 @@ function world.World:new()
 	w.provinces_to_update_on_map = {}
 	for tile_id = 1, 6 * ws * ws do
 		tile_t.Tile:new(tile_id)
-		table.insert(w.tiles, tile_id)
 	end
 	for cell = 1, w.climate_grid_size * w.climate_grid_size do
 		table.insert(w.climate_cells, cells.ClimateCell:new(cell))
 	end
 	local ut = require "game.climate.utils"
-	---@type World|nil
-	WORLD = w
-	for _, tile_id in pairs(w.tiles) do
-		w.tile_to_climate_cell[tile_id] = ut.get_climate_cell(tile.latlon(tile_id))
-	end
+
+	DATA.for_each_tile(function (item)
+		w.tile_to_climate_cell[item] = ut.get_climate_cell(tile.latlon(item))
+	end)
 	setmetatable(w, self)
 	return w
 end
@@ -167,7 +170,8 @@ end
 ---@return tile_id
 function world.World:random_tile()
 	local tc = self:tile_count()
-	return self.tiles[love.math.random(tc)]
+
+	return love.math.random(tc)
 end
 
 ---Creates and returns a new plate
@@ -681,12 +685,12 @@ function world.World:tick()
 					-- yearly tick
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
-					for _, settled_province in pairs(WORLD.provinces) do
-						pop_aging.age(settled_province)
-						if settled_province.realm then
-							settled_province.realm.tax_collected_this_year = 0
-						end
-					end
+					DATA.for_each_province(function (province)
+						pop_aging.age(province)
+					end)
+					DATA.for_each_realm(function (realm)
+						DATA.realm_set_budget_tax_collected_this_year(realm, 0)
+					end)
 				end
 
 				--print("Monthly tick end, refreshing")
@@ -758,25 +762,56 @@ end
 ---@param realm Realm
 ---@return boolean
 function world.World:does_player_control_realm(realm)
-	return (realm ~= nil) and (realm.leader == WORLD.player_character) and (self.player_character ~= nil)
+	if realm == INVALID_ID then
+		return false
+	end
+	if self.player_character == INVALID_ID then
+		return false
+	end
+	local leadership = DATA.get_realm_leadership_from_realm(realm)
+	if leadership == INVALID_ID then
+		return false
+	end
+	if DATA.realm_leadership_get_leader(leadership) == self.player_character then
+		return true
+	end
+	return false
+end
+
+function world.World:player_province()
+	if self.player_character == INVALID_ID then
+		return INVALID_ID
+	end
+
+	return PROVINCE(self.player_character)
+end
+
+function world.World:player_realm()
+	if self.player_character == INVALID_ID then
+		return INVALID_ID
+	end
+
+	return DATA.pop_get_realm(self.player_character)
 end
 
 ---comment
 ---@param realm Realm?
 ---@return boolean
 function world.World:does_player_see_realm_news(realm)
-	if realm == nil then return false end
-	if self.player_character == nil then
+	if realm == INVALID_ID then return false end
+	if self.player_character == INVALID_ID then
 		return false
 	end
-	return (self.player_character.realm == realm)
+	local location = PROVINCE(self.player_character)
+	local local_realm = province_utils.realm(location)
+	return (local_realm == realm)
 end
 
 ---comment
 ---@param province province_id
 ---@return boolean
 function world.World:does_player_see_province_news(province)
-	if self.player_character == nil then
+	if self.player_character == INVALID_ID then
 		return false
 	end
 

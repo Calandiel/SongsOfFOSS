@@ -1,0 +1,49 @@
+exists boolean
+name string
+budget_change float
+budget_saved_change float
+budget_spending_by_category float[ECONOMY_REASON]
+budget_income_by_category float[ECONOMY_REASON]
+budget_treasury_change_by_category float[ECONOMY_REASON]
+budget_treasury float
+budget_treasury_target float
+budget budget_per_category_data[BUDGET_CATEGORY]
+budget_tax_target float
+budget_tax_collected_this_year float
+r float
+g float
+b float
+primary_race race_id
+primary_culture Culture
+primary_faith Faith
+capitol province_id
+trading_right_cost float
+building_right_cost float
+trading_right_law TradingRightLaw
+building_right_law BuildingRightLaw
+quests_raid table<province_id,nil|number> reward for raid
+quests_explore table<province_id,nil|number> reward for exploration
+quests_patrol table<province_id,nil|number> reward for patrol
+patrols table<province_id,table<warband_id,warband_id>>
+prepare_attack_flag bool=false
+known_provinces table<province_id,province_id> For terra incognita.
+coa_base_r float
+coa_base_g float
+coa_base_b float
+coa_background_r float
+coa_background_g float
+coa_background_b float
+coa_foreground_r float
+coa_foreground_g float
+coa_foreground_b float
+coa_emblem_r float
+coa_emblem_g float
+coa_emblem_b float
+coa_background_image uint32_t
+coa_foreground_image uint32_t
+coa_emblem_image uint32_t
+resources float[trade_good] Currently stockpiled resources
+production float[trade_good] A "balance" of resource creation
+bought float[trade_good]
+sold float[trade_good]
+expected_food_consumption float

@@ -17,7 +17,7 @@ function cli.itcz()
 end
 
 function cli.koppen()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local r_ja, t_ja, r_ju, t_ju = tile.get_climate_data(tile_id)
 		local k = kopp.get_koppen(t_ja, t_ju, r_ja, r_ju, DATA.tile_get_is_land(tile_id))
 		local col = kopp.KOPPEN_COLORS[k]
@@ -26,7 +26,7 @@ function cli.koppen()
 		else
 			tile.set_real_color(tile_id, col[1] / 255, col[2] / 255, col[3] / 255)
 		end
-	end
+	end)
 end
 
 local flow_map_mode_exponent = 0.5

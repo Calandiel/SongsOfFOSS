@@ -143,6 +143,15 @@ function tab.random_select_from_set(items)
 	return k, v
 end
 
+---Given an array of objects, return a randomly selected value according to uniform distribution
+---@generic V
+---@param items V[]
+---@return V
+function tab.random_select_from_array(items)
+	local size = #items
+	return items[love.math.random(size)]
+end
+
 ---Given a table and a function with parameter of table value type that resolves to a boolean,
 ---return a new table with all values that resolve to true
 ---@generic K, V
@@ -199,6 +208,20 @@ function tab.accumulate(items, accumulable, accumulator)
 	local a = accumulable
 	for k, v in pairs(items) do
 		a = accumulator(a, k, v)
+	end
+	return a
+end
+
+---Maps values of a given table to according to a given mapping
+---@generic S, T, V
+---@param items table<S, T>
+---@param mapping fun(k: T):V
+---@return table<S, V>
+function tab.map(items, mapping)
+	---@type table
+	local a = {}
+	for k, v in pairs(items) do
+		a[k] = mapping(items)
 	end
 	return a
 end

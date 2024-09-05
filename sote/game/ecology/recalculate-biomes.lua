@@ -2,8 +2,7 @@ local tile = require "game.entities.tile"
 local re = {}
 
 function re.run()
-
-	for _, t in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (t)
 		local elevation = DATA.tile_get_elevation(t)
 
 		local slopeiness = 0
@@ -27,12 +26,11 @@ function re.run()
 		local conifer = DATA.tile_get_conifer(t)
 
 		for _, b_id in pairs(RAWS_MANAGER.biomes_load_order) do
-			local b = DATA.biome[b_id]
+			local b = DATA.fatten_biome(b_id)
 
 			if slopeiness < b.minimum_slope or slopeiness > b.maximum_slope then
 				goto continue
 			end
-
 
 			if b.aquatic ~= not is_land then
 				goto continue
@@ -46,26 +44,22 @@ function re.run()
 			if elevation < b.minimum_elevation or elevation > b.maximum_elevation then
 				goto continue
 			end
-
 			-- climate checks
 			local r_ja, t_ja, r_ju, t_ju = tile.get_climate_data(t)
 			local rain = (r_ja + r_ju) / 2
 			if rain < b.minimum_rain or rain > b.maximum_rain then
 				goto continue
 			end
-
 			--local tile_perm =
 			local tile_perm = tile.soil_permeability(t)
 			local available_water = rain * 2 * tile_perm
 			if available_water < b.minimum_available_water or available_water > b.maximum_available_water then
 				goto continue
 			end
-
 			local temperature = (t_ja + t_ju) / 2
 			if temperature < b.minimum_temperature or temperature > b.maximum_temperature then
 				goto continue
 			end
-
 			local summer_temperature = math.max(t_ja, t_ju)
 			local winter_temperature = math.min(t_ja, t_ju)
 			if summer_temperature < b.minimum_summer_temperature or summer_temperature > b.maximum_summer_temperature then
@@ -74,7 +68,6 @@ function re.run()
 			if winter_temperature < b.minimum_winter_temperature or winter_temperature > b.maximum_winter_temperature then
 				goto continue
 			end
-
 			-- soil checks
 			local soil_depth = tile.soil_depth(t)
 			if soil_depth < b.minimum_soil_depth or soil_depth > b.maximum_soil_depth then
@@ -93,7 +86,6 @@ function re.run()
 			if silt < b.minimum_silt or silt > b.maximum_silt then
 				goto continue
 			end
-
 			-- vegetation based checks
 			local trees = broadleaf + conifer
 			local dead_land = 1 - broadleaf - conifer - shrub - grass
@@ -116,12 +108,11 @@ function re.run()
 			if conifer_frac < b.minimum_conifer_fraction or conifer_frac > b.maximum_conifer_fraction then
 				goto continue
 			end
-
 			DATA.tile_set_biome(t, b_id)
 
 			::continue::
 		end
-	end
+	end)
 end
 
 return re

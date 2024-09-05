@@ -18,7 +18,7 @@ local pv = require "game.raws.values.political"
 ---@return function|nil
 local function macrobuilder(gam, tile_id, rect, x, y, size)
 	local player_character = WORLD.player_character
-	if player_character == nil then
+	if player_character == INVALID_ID then
 		return
 	end
 	local province = tile_utils.province(tile_id)

@@ -104,7 +104,7 @@ local columns = {
 		header = "Add reward",
 		render_closure = function(rect, k, v)
 			local player_character = WORLD.player_character
-			if player_character == nil then
+			if player_character == INVALID_ID then
 				return
 			end
 

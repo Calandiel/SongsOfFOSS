@@ -3,11 +3,16 @@ local tile = {}
 local cube = require "game.cube"
 local ll_utils = require "game.latlon"
 
----@class fat_tile_id
 tile.Tile = {}
-tile.Tile.__index = tile.Tile
-function tile.Tile:new(tile_id)
-	local tt = DATA.fatten_tile(tile_id)
+
+---@param tile_world_id number
+---@return tile_id
+function tile.Tile:new(tile_world_id)
+	local tile_dcon_id = DATA.create_tile()
+	local tt = DATA.fatten_tile(tile_dcon_id)
+	tt.world_id = tile_world_id
+
+	WORLD.tile_from_world_id[tile_world_id] = tile_dcon_id
 
 	tt.is_land = false
 	tt.is_fresh = false
@@ -41,21 +46,31 @@ function tile.Tile:new(tile_id)
 	tt.real_b = 0.1
 	tt.pathfinding_index = 0
 
-	return tt
+	return tile_dcon_id
 end
 
 ---@param id tile_id
+---@return province_id
 function tile.province(id)
-	return WORLD.tile_to_province[id]
+	local membership = DATA.get_tile_province_membership_from_tile(id)
+	if membership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.tile_province_membership_get_province(membership)
 end
 
----@param id tile_id?
----@return Realm?
+---@param id tile_id
+---@return Realm
 function tile.realm(id)
 	if id < 1 then
-		return nil
+		return INVALID_ID
 	end
-	return WORLD.tile_to_province[id].realm
+	local province = tile.province(id)
+	local membership = DATA.get_realm_provinces_from_province(province)
+	if membership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.realm_provinces_get_realm(membership)
 end
 
 ---@param id tile_id
@@ -151,7 +166,8 @@ local NEIGH_TOP = 1
 local NEIGH_BOTTOM = 2
 local NEIGH_RIGHT = 3
 local NEIGH_LEFT = 4
----Returns a neighbor tile (as a reference!)
+
+---Returns a neighbors tile_id
 ---@param tile_id tile_id
 ---@param neighbor_index neighbourID Ranges from 1 to 4 (both inclusive)
 ---@return tile_id neigbhbor
@@ -435,10 +451,11 @@ end
 ---@return number y
 ---@return number f
 function tile.index_to_coords(tile_id)
-	tile_id = tile_id - 1
+	local world_id = DATA.tile_get_world_id(tile_id)
+	world_id = world_id - 1
 	local ws = WORLD.world_size
-	local f = math.floor(tile_id / (ws * ws))
-	local remaining = tile_id - f * ws * ws
+	local f = math.floor(world_id / (ws * ws))
+	local remaining = world_id - f * ws * ws
 	local y = math.floor(remaining / ws)
 	local x = remaining - y * ws
 	return x, y, f
@@ -448,10 +465,10 @@ end
 ---@param x number
 ---@param y number
 ---@param f number
----@return number tile_id
+---@return integer world_tile_id
 function tile.coords_to_index(x, y, f)
 	local ws = WORLD.world_size
-	return 1 + (x + y * ws + f * ws * ws)
+	return WORLD.tile_from_world_id[1 + (x + y * ws + f * ws * ws)]
 end
 
 ---Given a 3d point on the surface of a sphere with radius one, return the tile_id for that point

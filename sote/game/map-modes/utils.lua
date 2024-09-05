@@ -28,7 +28,7 @@ ut.MAP_MODE_UPDATES_TYPE= {
 ---@param get_val_closure fun(tile_id):number
 ---@param colors table<FastMapModeEntry>
 function ut.simple_map_mode(get_val_closure, colors)
-	for _, tile_id in ipairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local val = get_val_closure(tile_id)
 		local r, g, b = 0.1, 0.1, 0.1
 		for _, cl in ipairs(colors) do
@@ -40,7 +40,7 @@ function ut.simple_map_mode(get_val_closure, colors)
 			end
 		end
 		tile.set_real_color(tile_id, r, g, b)
-	end
+	end)
 end
 
 ---Sets a hue based tile color from a 0-1 value. Clamps internally.
@@ -67,36 +67,16 @@ function ut.simple_hue_map_mode(get_val_closure, include_sea)
 	--print("hue")
 
 	local prev = -1
-	for i, tile_id in ipairs(WORLD.tiles) do
-		-- if i < 150 then
-		-- 	print("Check: ", prev == i)
-		-- end
-		if i == prev then
-			print("Repeated ID: " .. tostring(i))
-			error("Repeated ID: " .. tostring(i))
-			love.event.quit()
-			break
-		end
-
+	DATA.for_each_tile(function (tile_id)
 		if include_sea then
 			-- nothing to do, we include sea!
 		else
 			--is_land
 			--if DATA.tile_get_is_land(tile_id) then print(i, 'vs', prev) end
 			local vval = get_val_closure(tile_id)
-			if i < 150 then
-				if DATA.tile_get_is_land(tile_id) then print("simple_hue_map_mode", vval, tile_id) end
-			end
 			ut.hue_from_value(tile_id, vval)
 		end
-		-- if i < 150 then
-		-- 	print(prev, 'vs', i)
-		-- end
-		prev = i
-		-- if i < 150 then
-		-- 	print(prev, 'vs', i)
-		-- end
-	end
+	end)
 end
 
 ---@param get_val_closure fun(prov: Province):number Should return a number between 0 and 1
@@ -104,21 +84,14 @@ end
 function ut.provincial_hue_map_mode(get_val_closure, include_sea)
 	--print("hue")
 	local prev = -1
-	for i, province in pairs(WORLD.provinces) do
-		if i == prev then
-			print("Repeated ID: " .. tostring(i))
-			error("Repeated ID: " .. tostring(i))
-			love.event.quit()
-			break
-		end
+	DATA.for_each_province(function (province)
 		if include_sea then
 			-- nothing to do, we include sea!
 		else
 			local vval = get_val_closure(province)
-			ut.hue_from_value(province.center, vval)
+			ut.hue_from_value(DATA.province_get_center(province), vval)
 		end
-		prev = i
-	end
+	end)
 end
 
 ---Sets the real color on a tile to the default color
@@ -133,15 +106,15 @@ end
 
 ---Loops through all tiles and sets them to the default color.
 function ut.clear_color()
-	for _, tile_id in ipairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		ut.set_default_color(tile_id)
-	end
+	end)
 end
 
 function ut.clear_color_provinces()
-	for _, province in ipairs(WORLD.provinces) do
-		tile.set_real_color(province.center, 0.1, 0.1, 0.1)
-	end
+	DATA.for_each_province(function (province)
+		tile.set_real_color(DATA.province_get_center(province), 0.1, 0.1, 0.1)
+	end)
 end
 
 ut.elevation_threshold = {

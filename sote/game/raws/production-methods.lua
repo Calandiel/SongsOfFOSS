@@ -13,7 +13,7 @@ function ProductionMethod:new(o)
 	end
 
 	local new_id = DATA.create_production_method()
-	DATA.setup_production_method(o)
+	DATA.setup_production_method(new_id, o)
 
 	if RAWS_MANAGER.production_methods_by_name[o.name] ~= nil then
 		local msg = "Failed to load a production method (" .. tostring(o.name) .. ")"

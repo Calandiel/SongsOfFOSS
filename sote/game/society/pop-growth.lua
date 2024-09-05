@@ -2,7 +2,6 @@ local pg = {}
 
 local POP = require "game.entities.pop".POP
 local tabb = require "engine.table"
-local character_ranks = require "game.raws.ranks.character_ranks"
 local economical = require "game.raws.values.economical"
 local economic_effects = require "game.raws.effects.economic"
 

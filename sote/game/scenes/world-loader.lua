@@ -130,7 +130,7 @@ function wl.load_default()
 	local tect = love.image.newImageData("default/tectonics.png")
 	---@type table<number, Plate>
 	local found_plates = {}
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local r, g, b = read_pixel(tile_id, tect)
 
 		---@type number
@@ -142,7 +142,7 @@ function wl.load_default()
 			found_plates[pixel_id] = plate
 		end
 		found_plates[pixel_id]:add_tile(tile_id)
-	end
+	end)
 	print("Tectonic map loaded!")
 	coroutine.yield()
 	coroutine.yield()
@@ -150,7 +150,7 @@ function wl.load_default()
 	print("Loading hydrology maps...")
 	local hydro_jan = love.image.newImageData("default/waterflow-january.png")
 	local hydro_jul = love.image.newImageData("default/waterflow-july.png")
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local jan_r, jan_g, jan_b = read_pixel(tile_id, hydro_jan)
 		local jul_r, jul_g, jul_b = read_pixel(tile_id, hydro_jul)
 		jan_r, jan_g, jan_b = color.to_255(jan_r, jan_g, jan_b)
@@ -201,14 +201,14 @@ function wl.load_default()
 		if waterflow > 2500.0 then
 			DATA.tile_set_has_river(tile_id, true)
 		end
-	end
+	end)
 	print("Hydrology maps loaded!")
 	coroutine.yield()
 	coroutine.yield()
 
 	print("Loading heightmap...")
 	local height = love.image.newImageData("default/heightmap.png")
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local r, g, b = read_pixel(tile_id, height)
 		r, g, b = color.to_255(r, g, b)
 
@@ -221,13 +221,13 @@ function wl.load_default()
 		end
 
 		DATA.tile_set_elevation(tile_id, elev)
-	end
+	end)
 	print("Heightmap loaded!")
 	coroutine.yield()
 	coroutine.yield()
 
 	print("Correcting elevation...")
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local elevation = DATA.tile_get_elevation(tile_id)
 		if DATA.tile_get_is_land(tile_id) then
 			DATA.tile_set_elevation(tile_id, math.max(1, elevation))
@@ -237,7 +237,7 @@ function wl.load_default()
 			DATA.tile_set_elevation(tile_id, math.min(-1, elevation))
 			DATA.tile_set_waterlevel(tile_id, 0)
 		end
-	end
+	end)
 	print("Elevation corrected!")
 	coroutine.yield()
 	coroutine.yield()
@@ -248,7 +248,7 @@ function wl.load_default()
 	local minerals = love.image.newImageData("default/soil-minerals.png")
 	local texture = love.image.newImageData("default/soil-texture.png")
 	local col_utils = require "game.color"
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local depth_r, depth_g, depth_b = read_pixel(tile_id, depth)
 		local organics_r, organics_g, organics_b = read_pixel(tile_id, organics)
 		local minerals_r, minerals_g, minerals_b = read_pixel(tile_id, minerals)
@@ -277,7 +277,7 @@ function wl.load_default()
 			local hue_minerals, _, _ = col_utils.rgb_to_hsv(minerals_r, minerals_g, minerals_b)
 			DATA.tile_set_soil_minerals(tile_id, math.min(hue_minerals, 235.0) / 235.0)
 		end
-	end
+	end)
 	print("Soils loaded!")
 	coroutine.yield()
 	coroutine.yield()
@@ -294,12 +294,12 @@ function wl.load_default()
 			else return 0.0 end
 		else return 0.0 end
 	end
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local r, g, b = read_pixel(tile_id, ice)
 		DATA.tile_set_ice(tile_id, get_ice(r, g, b))
 		r, g, b = read_pixel(tile_id, ice)
 		DATA.tile_set_ice_age_ice(tile_id, get_ice(r, g, b))
-	end
+	end)
 	print("Ice loaded!")
 	coroutine.yield()
 	coroutine.yield()
@@ -307,7 +307,7 @@ function wl.load_default()
 	print("Loading rocks")
 	local rocks = love.image.newImageData("default/rocks.png")
 	local color_utils = require "game.color"
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local r, g, b = read_pixel(tile_id, rocks)
 		local id = color_utils.rgb_to_id(r, g, b)
 		if RAWS_MANAGER.bedrocks_by_color_id[id] ~= nil then
@@ -315,7 +315,7 @@ function wl.load_default()
 		else
 			DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_name['limestone'])
 		end
-	end
+	end)
 	coroutine.yield()
 	coroutine.yield()
 	print("Rocks loaded!")

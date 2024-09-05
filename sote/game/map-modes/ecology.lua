@@ -17,7 +17,7 @@ function ec.tile_carrying_capacity()
 end
 
 function ec.plants()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		if DATA.tile_get_is_land(tile_id) then
 			tile.set_real_color(
 				tile_id,
@@ -28,18 +28,19 @@ function ec.plants()
 		else
 			ut.set_default_color(tile_id)
 		end
-	end
+	end)
 end
 
 function ec.biomes()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local biome = DATA.tile_get_biome(tile_id)
-		if biome then
-			tile.set_real_color(tile_id, DATA.biome[biome].r, DATA.biome[biome].g, DATA.biome[biome].b)
+		if biome ~= INVALID_ID then
+			local fat = DATA.fatten_biome(biome)
+			tile.set_real_color(tile_id, fat.r, fat.g, fat.b)
 		else
 			ut.set_default_color(tile_id)
 		end
-	end
+	end)
 end
 
 return ec

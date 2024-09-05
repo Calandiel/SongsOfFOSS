@@ -24,7 +24,8 @@ DESCRIPTION_RAWS_PATH = "./sote/codegen/description_raws"
 DESCRIPTION_STATIC_PATH = "./sote/codegen/description_static"
 DESCRIPTION_STRUCTS_PATH = "./sote/codegen/description_structs"
 OUTPUT_PATH = "./sote/codegen/output/generated.lua"
-DCON_DESC_PATH = "./sote/codegen/output/dcon_generated.txt"
+DCON_DESC_PATH = "./sote/codegen/dcon/sote.txt"
+CPP_COMMON_TYPES_PATH = "./sote/codegen/dcon/common_types.hpp"
 NAMESPACE = "DATA"
 SAVE_FILE_NAME_LUA = "gamestatesave.bitserbeaver"
 SAVE_FILE_NAME_FFI = "gamestatesave.binbeaver"
@@ -72,7 +73,7 @@ class Atom:
         if description in REGISTERED_ENUMS:
             self.c_type = "uint8_t"
             self.lsp_type = description
-            self.dcon_type = "base_enums::" + description
+            self.dcon_type = "base_types::" + description
             return
         # print(2)
         if description in ["uint32_t", "int32_t", "float", "uint16_t", "uint8_t"]:
@@ -413,10 +414,39 @@ class LinkField(Field):
                         f"function {NAMESPACE}.get_{self.prefix}_from_{self.name}({arg})\n" \
                         f"    return {self.local_accessor_name()}[{arg}]\n"\
                         f"end\n"
+            result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n" \
+                        f"---@param func fun(item: {prefix_to_id_name(self.prefix)}) valid {self.value.lsp_type}\n" \
+                        f"function {NAMESPACE}.for_each_{self.prefix}_from_{self.name}({arg}, func)\n" \
+                        f"    if {self.local_accessor_name()}[{arg}] == nil then return end\n"\
+                        f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do func(item) end\n"\
+                        f"end\n"
+            result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n"
+            result +=   f"---@param func fun(item: {prefix_to_id_name(self.prefix)}):boolean \n"
+            result +=   f"---@return table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
+            result +=   f"function {NAMESPACE}.filter_array_{self.prefix}_from_{self.name}({arg}, func)\n"
+            result +=   f"    ---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
+            result +=    "    local t = {}\n"
+            result +=   f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do\n"
+            result +=    "        if func(item) then table.insert(t, item) end\n"
+            result +=    "    end\n"
+            result +=    "    return t\n"
+            result +=    "end\n"
+            result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n"
+            result +=   f"---@param func fun(item: {prefix_to_id_name(self.prefix)}):boolean \n"
+            result +=   f"---@return table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
+            result +=   f"function {NAMESPACE}.filter_{self.prefix}_from_{self.name}({arg}, func)\n"
+            result +=   f"    ---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
+            result +=    "    local t = {}\n"
+            result +=   f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do\n"
+            result +=    "        if func(item) then t[item] = item end\n"
+            result +=    "    end\n"
+            result +=    "    return t\n"
+            result +=    "end\n"
         else:
             result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"---@return {prefix_to_id_name(self.prefix)} {self.prefix} \n" \
                         f"function {self.get_from_function()}({arg})\n" \
+                        f"    if {self.local_accessor_name()}[{arg}] == nil then return 0 end\n"\
                         f"    return {self.local_accessor_name()}[{arg}]\n"\
                         f"end\n"
         return result
@@ -438,6 +468,7 @@ class LinkField(Field):
                     f"---@param old_value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                     f"function {self.remove_key_func_name()}({arg}, old_value)\n" \
                     f"    local found_key = nil\n"\
+                    f"    if {self.local_accessor_name()}[old_value] == nil then\n        {self.local_accessor_name()}[old_value] = {{}}\n        return\n    end\n" \
                     f"    for key, value in pairs({self.local_accessor_name()}[old_value]) do\n"\
                     f"        if value == {arg} then\n"\
                     f"            found_key = key\n"\
@@ -454,6 +485,7 @@ class LinkField(Field):
                     f"    local old_value = {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n"\
                     f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
                     f"    {self.remove_key_func_name()}({arg}, old_value)\n"\
+                    f"    if {self.local_accessor_name()}[value] == nil then {self.local_accessor_name()}[value] = {{}} end\n"\
                     f"    table.insert({self.local_accessor_name()}[value], {arg})\n"\
                     f"end\n"
         else:
@@ -539,6 +571,28 @@ class StructDescription:
                 description = " ".join(line_splitted[2:])
                 self.fields.append(EntityField(self.name, name, field_type, description))
 
+    def c_struct_string(self):
+        """
+        generates c description of structure
+        """
+        result = ""
+        result += "    typedef struct {\n"
+        for field in self.fields:
+            result += field.struct_field()
+        result +=f"    }} {self.name};\n"
+        return result
+
+    def cpp_struct_string(self):
+        """
+        generates cpp description of structure
+        """
+        result = ""
+        result += f"    struct {self.name} {{\n"
+        for field in self.fields:
+            result += field.struct_field()
+        result +=f"    }};\n"
+        return result
+
     def __str__(self) -> str:
         result = ""
         result += f'---@class struct_{self.name}\n'
@@ -550,10 +604,7 @@ class StructDescription:
 
         # struct declaration
         result += "ffi.cdef[[\n"
-        result += "    typedef struct {\n"
-        for field in self.fields:
-            result += field.struct_field()
-        result +=f"    }} {self.name};\n"
+        result += self.c_struct_string()
         result += "]]\n"
 
         return result
@@ -569,24 +620,29 @@ class EntityDescription:
     links: typing.List[LinkField]
     is_raws: bool
     is_relationship: bool
+    erasable: bool
 
     def generate_dcon_description(self):
         """
         Generates DataContainer compliant description
         """
-        result =  "object {\n" \
-        f"    name {{ {self.name} }}\n"\
-         "    storage_type { contiguous }\n"\
-        f"    size {{ {self.max_count} }}\n"\
-        "    tag {scenario}\n"
+        result =   "object {\n"
+        result += f"    name {{ {self.name} }}\n"
+        if not self.erasable:
+            result += "    storage_type { contiguous }\n"
+        else:
+            result += "    storage_type { erasable }\n"
+        result += f"    size {{ {self.max_count} }}\n"
+        result += "    tag {scenario}\n"
 
-        for field in self.fields:
-            if field.value.c_type:
-                result +=  "    property{\n"
-                result += f"        name = {{ {field.name} }}\n"
-                result += f"        type = {{ {field.value.dcon_type} }}\n"
-                result +=  "        tag = { scenario }\n"
-                result +=  "    }\n"
+
+        # for field in self.fields:
+        #     if field.value.c_type:
+        #         result +=  "    property{\n"
+        #         result += f"        name = {{ {field.name} }}\n"
+        #         result += f"        type = {{ {field.value.dcon_type} }}\n"
+        #         result +=  "        tag = { scenario }\n"
+        #         result +=  "    }\n"
 
         result += "}\n"
         return result
@@ -596,6 +652,11 @@ class EntityDescription:
         self.max_count = max_count
         self.fields = []
         self.links = []
+
+        if is_raw:
+            self.erasable = False
+        else:
+            self.erasable = True
 
         load_path = ""
 
@@ -673,6 +734,16 @@ class EntityDescription:
         result +=  "        func(item)\n"
         result +=  "    end\n"
         result +=  "end\n"
+        result += f"---@param func fun(item: {prefix_to_id_name(self.name)}):boolean \n"
+        result += f"---@return table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}> \n"
+        result += f"function {NAMESPACE}.filter_{self.name}(func)\n"
+        result += f"    ---@type table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}> \n"
+        result +=  "    local t = {}\n"
+        result += f"    for _, item in pairs({NAMESPACE}.{self.name}_indices_set) do\n"
+        result +=  "        if func(item) then t[item] = item end\n"
+        result +=  "    end\n"
+        result +=  "    return t\n"
+        result +=  "end\n"
         return result
 
 
@@ -713,19 +784,24 @@ class EntityDescription:
                     # print(self.name, relation, is_unique)
                     if is_unique:
                         result += f"        local to_delete = {target_field.get_from_function()}(i)\n"
-                        result += f"        {NAMESPACE}.delete_{link.name}(to_delete)\n"
+                        result += f"        if to_delete ~= INVALID_ID then\n"
+                        result += f"            {NAMESPACE}.delete_{link.name}(to_delete)\n"
+                        result += f"        end\n"
                     else:
                         result += f"        ---@type {prefix_to_id_name(link.name)}[]\n"
                         result += f"        local to_delete = {{}}\n"
-                        result += f"        for _, value in ipairs({target_field.get_from_function()}(i)) do\n"
-                        result +=  "            table.insert(to_delete, value)\n"
+                        result += f"        if {target_field.get_from_function()}(i) ~= nil then\n"
+                        result += f"            for _, value in ipairs({target_field.get_from_function()}(i)) do\n"
+                        result +=  "                table.insert(to_delete, value)\n"
+                        result += f"            end\n"
                         result += f"        end\n"
                         result += f"        for _, value in ipairs(to_delete) do\n"
                         result += f"            {NAMESPACE}.delete_{link.name}(value)\n"
                         result += f"        end\n"
                     result += f"    end\n"
-        result += f"    {self.name}_indices_pool[i] = true\n"
+        # result += f"    {self.name}_indices_pool[i] = true\n"
         result += f"    {NAMESPACE}.{self.name}_indices_set[i] = nil\n"
+        result += f"    return DCON.dcon_delete_{self.name}(i - 1)\n"
         result +=  "end\n"
         return result
 
@@ -784,7 +860,8 @@ class EntityDescription:
                     if field.array_size == 1:
                         result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
                     else:
-                        result += f'---@field {field.name} {field.value.lsp_type}[] {field.description}\n'
+                        if not field.value.c_type in REGISTERED_STRUCTS:
+                            result += f'---@field {field.name} {field.value.lsp_type}[] {field.description}\n'
                 else:
                     result += f'---@field {field.name} {field.value.lsp_type}? {field.description}\n'
 
@@ -797,6 +874,9 @@ class EntityDescription:
             result += f"---@param data {prefix_to_id_name(self.name)}_data_blob_definition\n"
             result += f"function {NAMESPACE}.setup_{self.name}(id, data)\n"
             for field in self.fields:
+                if not field.value.default_value is None:
+                    result += f"    {field.setter_name()}(id, {field.value.default_value})\n"
+            for field in self.fields:
                 if field.value.generated_during_runtime:
                     continue
                 if field.value.ignore_in_data_layout:
@@ -805,9 +885,13 @@ class EntityDescription:
                     if field.array_size == 1:
                         result += f"    {field.setter_name()}(id, data.{field.name})\n"
                     else:
-                        result += f"    for i, value in ipairs(data.{field.name}) do\n"
-                        result += f"        {field.setter_name()}(id, i - 1, value)\n"
-                        result += f"    end\n"
+                        if field.value.c_type in REGISTERED_STRUCTS:
+                            #print(field.value.c_type)
+                            pass
+                        else:
+                            result += f"    for i, value in ipairs(data.{field.name}) do\n"
+                            result += f"        {field.setter_name()}(id, i - 1, value)\n"
+                            result += f"    end\n"
                 else:
                     result += f"    if data.{field.name} ~= nil then\n"
                     result += f"        {field.setter_name()}(id, data.{field.name})\n"
@@ -826,7 +910,12 @@ class EntityDescription:
             result += field.struct_field()
         for field in self.links:
             result += field.struct_field()
-        result +=f"    }} {self.name};\n"
+        result += f"    }} {self.name};\n"
+        # declare dcon functions:
+        if self.erasable:
+            result += f"void dcon_delete_{self.name}(int32_t j);\n"
+        result += f"int32_t dcon_create_{self.name}();\n"
+        result += f"void dcon_{self.name}_resize(uint32_t sz);\n"
         result += "]]\n"
 
         # arrays
@@ -838,16 +927,22 @@ class EntityDescription:
             if not field.value.c_type:
                 result += field.array_string(self.max_count)
 
+
+        # DCON
+        # result += f"DCON.dcon_{self.name}_resize({self.max_count - 2})\n"
         # AOS
         result +=  "---@type nil\n"
-        result += f"{NAMESPACE}.{self.name}_malloc = ffi.C.malloc(ffi.sizeof(\"{self.name}\") * {self.max_count + 1})\n"
+        result += f"{NAMESPACE}.{self.name}_calloc = ffi.C.calloc(1, ffi.sizeof(\"{self.name}\") * {self.max_count + 1})\n"
         result += f"---@type table<{prefix_to_id_name(self.name)}, struct_{self.name}>\n"
-        result += f"{NAMESPACE}.{self.name} = ffi.cast(\"{self.name}*\", {NAMESPACE}.{self.name}_malloc)\n"
+        result += f"{NAMESPACE}.{self.name} = ffi.cast(\"{self.name}*\", {NAMESPACE}.{self.name}_calloc)\n"
 
         for field in self.links:
             result += field.array_string(self.max_count)
             result += field.accessor_string()
-
+            if field.can_repeat:
+                result +=   f"for i = 1, {self.max_count} do\n"\
+                            f"    {field.local_accessor_name()}[i] = {{}}\n"\
+                            f"end\n"\
 
         result += f"\n---{self.name}: LUA bindings---\n\n"
 
@@ -863,20 +958,24 @@ class EntityDescription:
         result += f"{NAMESPACE}.{self.name}_indices_set = {{}}\n"
 
         result += f"function {NAMESPACE}.create_{self.name}()\n"
-        result += f"    for i = 1, {self.max_count - 1} do\n"
-        result += f"        if {self.name}_indices_pool[i] then\n"
-        result += f"            {self.name}_indices_pool[i] = false\n"
+        result += f"    ---@type number\n"
+        result += f"    local i = DCON.dcon_create_{self.name}() + 1\n"
+        # result += f"    for i = 1, {self.max_count - 1} do\n"
+        # result += f"        if {self.name}_indices_pool[i] then\n"
+        # result += f"            {self.name}_indices_pool[i] = false\n"
         result += f"            {NAMESPACE}.{self.name}_indices_set[i] = i\n"
-        for field in self.fields:
-            if not field.value.default_value is None and not field.value.ignore_in_data_layout:
-                result += f"            {field.setter_name()}(i, {field.value.default_value})\n"
-        result +=  "            return i\n"
-        result +=  "        end\n"
-        result +=  "    end\n"
-        result += f"    error(\"Run out of space for {self.name}\")\n"
+        # for field in self.fields:
+        #     if not field.value.default_value is None and not field.value.ignore_in_data_layout:
+        #         result += f"            {field.setter_name()}(i, {field.value.default_value})\n"
+        # result +=  "            return i\n"
+        # result +=  "        end\n"
+        # result +=  "    end\n"
+        # result += f"    error(\"Run out of space for {self.name}\")\n"
+        result += f"    return i\n"
         result +=  "end\n"
 
-        result += self.delete_string()
+        if self.erasable:
+            result += self.delete_string()
 
         result += self.for_each()
 
@@ -1179,6 +1278,7 @@ def tests():
         for entity in ENTITY_LIST:
             for field in entity.fields:
                 if field.value.c_type:
+                    result += f"    print(\"{entity.name} {field.name}\")\n"
                     result += f"    for i = 0, {entity.max_count} do\n"
                     if field.value.c_type in REGISTERED_STRUCTS:
                         if field.array_size == 1:
@@ -1239,7 +1339,8 @@ def tests():
 
 
         for entity in ENTITY_LIST:
-            result += f"    local fat_id = {NAMESPACE}.fatten_{entity.name}(0)\n"
+            result += f"    local id = {NAMESPACE}.create_{entity.name}()\n"
+            result += f"    local fat_id = {NAMESPACE}.fatten_{entity.name}(id)\n"
             random.seed(i)
             for field in entity.fields:
                 if field.value.c_type:
@@ -1247,19 +1348,19 @@ def tests():
                         if field.array_size == 1:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"    {NAMESPACE}.{entity.name}[0].{field.name}.{secondary_field.name} = {generated_value}\n"
+                                result += f"    {NAMESPACE}.{entity.name}[id].{field.name}.{secondary_field.name} = {generated_value}\n"
                         else:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
                                 result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        {NAMESPACE}.{entity.name}[0].{field.name}[j].{secondary_field.name} = {generated_value}\n"
+                                result += f"        {NAMESPACE}.{entity.name}[id].{field.name}[j].{secondary_field.name} = {generated_value}\n"
                                 result +=  "    end\n"
                     else:
                         if field.array_size == 1:
                             result += f"    fat_id.{field.name} = {field.value.generate_value()}\n"
                         else:
                             result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        {NAMESPACE}.{entity.name}[0].{field.name}[j] = {field.value.generate_value()}\n"
+                            result += f"        {NAMESPACE}.{entity.name}[id].{field.name}[j] = {field.value.generate_value()}\n"
                             result +=  "    end\n"
             result += "    local test_passed = true\n"
             random.seed(i)
@@ -1269,15 +1370,15 @@ def tests():
                         if field.array_size == 1:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"    test_passed = test_passed and {NAMESPACE}.{entity.name}[0].{field.name}.{secondary_field.name} == {generated_value}\n"
-                                result += f"    if not test_passed then print(\"{field.name}.{secondary_field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[0].{field.name}[0].{secondary_field.name}) end\n"
+                                result += f"    test_passed = test_passed and {NAMESPACE}.{entity.name}[id].{field.name}.{secondary_field.name} == {generated_value}\n"
+                                result += f"    if not test_passed then print(\"{field.name}.{secondary_field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[id].{field.name}[0].{secondary_field.name}) end\n"
                         else:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
                                 result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[0].{field.name}[j].{secondary_field.name} == {generated_value}\n"
+                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[id].{field.name}[j].{secondary_field.name} == {generated_value}\n"
                                 result +=  "    end\n"
-                                result += f"    if not test_passed then print(\"{field.name}.{secondary_field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[0].{field.name}[0].{secondary_field.name}) end\n"
+                                result += f"    if not test_passed then print(\"{field.name}.{secondary_field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[id].{field.name}[0].{secondary_field.name}) end\n"
                     else:
                         if field.array_size == 1:
                             generated_value = field.value.generate_value()
@@ -1286,9 +1387,9 @@ def tests():
                         else:
                             generated_value = field.value.generate_value()
                             result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[0].{field.name}[j] == {generated_value}\n"
+                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[id].{field.name}[j] == {generated_value}\n"
                             result +=  "    end\n"
-                            result += f"    if not test_passed then print(\"{field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[0].{field.name}[0]) end\n"
+                            result += f"    if not test_passed then print(\"{field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[id].{field.name}[0]) end\n"
 
             result += f"    print(\"SET_GET_TEST_{i}_{entity.name}:\")\n"
             result +=  "    if test_passed then print(\"PASSED\") else print(\"ERROR\") end\n"
@@ -1304,21 +1405,26 @@ TradeGoodCategory = StaticEntityDescription("trade_good_category")
 WarbandStatus = StaticEntityDescription("warband_status")
 WarbandStance = StaticEntityDescription("warband_stance")
 BuildingArchetype = StaticEntityDescription("building_archetype")
+ForageResource = StaticEntityDescription("forage_resource")
+BudgetCategory = StaticEntityDescription("budget_category")
+EconomyReason = StaticEntityDescription("economy_reason")
 
 TILES_MAX_COUNT = 500 * 500 * 6
 
-TileDescription = EntityDescription("tile", TILES_MAX_COUNT, False)
+BudgetCategoryData = StructDescription("budget_per_category_data")
 
 TradeGoodDescription = EntityDescription("trade_good", 100, True)
 UseCaseDescription = EntityDescription("use_case", 100, True)
-
 GoodContainer = StructDescription("trade_good_container")
 UseContainer = StructDescription("use_case_container")
-
 UseWeight = EntityDescription("use_weight", 300, True)
 Biome = EntityDescription("biome", 100, True)
 Bedrock = EntityDescription("bedrock", 150, True)
 Resource = EntityDescription("resource", 300, True)
+ForageContainer = StructDescription("forage_container")
+
+TileDescription = EntityDescription("tile", TILES_MAX_COUNT, False)
+TileDescription.erasable = False
 ResourcesLocation = StructDescription("resource_location")
 
 UnitType = EntityDescription("unit_type", 20, True)
@@ -1341,11 +1447,13 @@ TechnologyUnit = EntityDescription("technology_unit", 400, True)
 Race = EntityDescription("race", 15, True)
 
 POPS_MAX_COUNT = 300000
+REALMS_MAX_COUNT = 15000
 
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
-Province = EntityDescription("province", 10000, False)
+Province = EntityDescription("province", 20000, False)
 Army = EntityDescription("army", 5000, False)
-Warband = EntityDescription("warband", 10000, False)
+Warband = EntityDescription("warband", 20000, False)
+Realm = EntityDescription("realm", REALMS_MAX_COUNT, False)
 
 Negotiations = EntityDescription("negotiation", 2500, False)
 
@@ -1367,17 +1475,26 @@ PopLocation = EntityDescription("pop_location", POPS_MAX_COUNT, False)
 OutlawLocation = EntityDescription("outlaw_location", POPS_MAX_COUNT, False)
 
 TileMembership = EntityDescription("tile_province_membership", TILES_MAX_COUNT, False)
-ProvinceNeighbourhood = EntityDescription("province_neighborhood", 100000, False)
+ProvinceNeighbourhood = EntityDescription("province_neighborhood", 250000, False)
 
 ParentChild = EntityDescription("parent_child_relation", 900000, False)
 Loyalty = EntityDescription("loyalty", 10000, False)
 Succession = EntityDescription("succession", 10000, False)
 
+RealmArmies = EntityDescription("realm_armies", REALMS_MAX_COUNT, False)
+RealmGuard = EntityDescription("realm_guard", REALMS_MAX_COUNT, False)
+RealmOverseer = EntityDescription("realm_overseer", REALMS_MAX_COUNT, False)
+RealmLeader = EntityDescription("realm_leadership", REALMS_MAX_COUNT, False)
+RealmSubjects = EntityDescription("realm_subject_relation", REALMS_MAX_COUNT, False)
+RealmTaxCollector = EntityDescription("tax_collector", REALMS_MAX_COUNT * 3, False)
+RealmPersonalRights = EntityDescription("personal_rights", REALMS_MAX_COUNT * 30, False)
+RealmProvince = EntityDescription("realm_provinces", REALMS_MAX_COUNT * 2, False)
+RealmPopularity = EntityDescription("popularity", REALMS_MAX_COUNT * 30, False)
 
 with open(OUTPUT_PATH, "w", encoding="utf8") as out:
     out.write('local ffi = require("ffi")\n')
     out.write(  'ffi.cdef[[\n'\
-                '    void* malloc(size_t size);\n'\
+                '    void* calloc( size_t num, size_t size );\n'\
                 ']]\n'
     )
     out.write('local bitser = require("engine.bitser")\n')
@@ -1404,3 +1521,10 @@ with open(DCON_DESC_PATH, "w", encoding="utf8") as out:
         out.write(entity_description.generate_dcon_description())
     for entity_description in RAWS_LIST:
         out.write(entity_description.generate_dcon_description())
+
+with open(CPP_COMMON_TYPES_PATH, "w", encoding="utf8") as out:
+    out.write("namespace base_types {\n")
+    for struct in STRUCTS_LIST:
+        out.write(struct.cpp_struct_string())
+        out.write("\n")
+    out.write("}")

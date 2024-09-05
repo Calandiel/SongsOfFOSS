@@ -1,11 +1,9 @@
 local tabb = require "engine.table"
 
-local pop = require "game.entities.pop"
+local pop_utils = require "game.entities.pop".POP
 
-local ranks = require "game.raws.ranks.character_ranks"
 local PoliticalValues = require "game.raws.values.political"
 
-local TRAIT = require "game.raws.traits.generic"
 
 local military_effects = require "game.raws.effects.military"
 
@@ -67,48 +65,50 @@ end
 ---comment
 ---@param character Character
 local function roll_traits(character)
+	local fat = DATA.fatten_pop(character)
 	if love.math.random() > 0.85 then
-		character.traits[TRAIT.AMBITIOUS] = TRAIT.AMBITIOUS
+		pop_utils.add_trait(character, TRAIT.AMBITIOUS)
 	end
 
 	if love.math.random() > 0.7 then
-		character.traits[TRAIT.GREEDY] = TRAIT.GREEDY
+		pop_utils.add_trait(character, TRAIT.GREEDY)
+		fat.savings = fat.savings + 250
 	end
 
 	if love.math.random() > 0.9 then
-		character.traits[TRAIT.WARLIKE] = TRAIT.WARLIKE
+		pop_utils.add_trait(character, TRAIT.WARLIKE)
 	else
 		if love.math.random() > 0.6 then
-			character.traits[TRAIT.TRADER] = TRAIT.TRADER
-			character.savings = character.savings + 500
+			pop_utils.add_trait(character, TRAIT.TRADER)
+			fat.savings = fat.savings + 500
 		end
 	end
 
-	if love.math.random() > 0.7 and not character.traits[TRAIT.AMBITIOUS] then
-		character.traits[TRAIT.LOYAL] = TRAIT.LOYAL
+	if love.math.random() > 0.7 and not pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
+		pop_utils.add_trait(character, TRAIT.LOYAL)
 	end
 
-	if love.math.random() > 0.7 and not character.traits[TRAIT.AMBITIOUS] then
-		character.traits[TRAIT.CONTENT] = TRAIT.CONTENT
+	if love.math.random() > 0.7 and not pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
+		pop_utils.add_trait(character, TRAIT.CONTENT)
 	end
 
 	local organiser_roll = love.math.random()
 
-	if organiser_roll < 0.1 then
-		character.traits[TRAIT.BAD_ORGANISER] = TRAIT.BAD_ORGANISER
-	elseif organiser_roll < 0.9 then
+	if organiser_roll < 0.05 then
+		pop_utils.add_trait(character, TRAIT.BAD_ORGANISER)
+	elseif organiser_roll < 0.95 then
 		-- do nothing ...
 	else
-		character.traits[TRAIT.GOOD_ORGANISER] = TRAIT.GOOD_ORGANISER
+		pop_utils.add_trait(character, TRAIT.GOOD_ORGANISER)
 	end
 
 	local laziness_roll = love.math.random()
 	if laziness_roll < 0.1 then
-		character.traits[TRAIT.LAZY] = TRAIT.LAZY
+		pop_utils.add_trait(character, TRAIT.LAZY)
 	elseif laziness_roll < 0.9 then
 		-- do nothing ...
 	else
-		character.traits[TRAIT.HARDWORKER] = TRAIT.HARDWORKER
+		pop_utils.add_trait(character, TRAIT.HARDWORKER)
 	end
 end
 
@@ -119,38 +119,45 @@ end
 ---@param reason POLITICAL_REASON
 function PoliticalEffects.transfer_power(realm, target, reason)
 	-- LOGS:write("realm: " .. realm.name .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
-
+	local fat_realm = DATA.fatten_realm(realm)
+	local fat_target = DATA.fatten_pop(realm)
+	local leadership = DATA.get_realm_leadership_from_realm(realm)
 	local depose_message = ""
-	if realm.leader ~= nil then
-		if WORLD.player_character == realm.leader then
-			depose_message = "I am no longer the leader of " .. realm.name .. '.'
+	if leadership ~= INVALID_ID then
+		local current_leader = DATA.realm_leadership_get_leader(leadership)
+		local fat_current_leader = DATA.fatten_pop(current_leader)
+		if WORLD.player_character == current_leader then
+			depose_message = "I am no longer the leader of " .. fat_realm.name .. '.'
 		elseif WORLD:does_player_see_realm_news(realm) then
-			depose_message = realm.leader.name .. " is no longer the leader of " .. realm.name .. '.'
+			depose_message = fat_current_leader.name .. " is no longer the leader of " .. fat_realm.name .. '.'
 		end
 	end
-	local new_leader_message = target.name .. " is now the leader of " .. realm.name .. '.'
+	local new_leader_message = fat_target.name .. " is now the leader of " .. fat_realm.name .. '. Reason: ' .. reason
 	if WORLD.player_character == target then
-		new_leader_message = "I am now the leader of " .. realm.name .. '.'
+		new_leader_message = "I am now the leader of " .. fat_realm.name .. '. Reason: ' .. reason
 	end
 	if WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification(depose_message .. " " .. new_leader_message)
 	end
 
-	if realm.leader then
-		realm.leader.rank = ranks.NOBLE
-		realm.leader.leader_of[realm] = nil
+	if leadership ~= INVALID_ID then
+		local current_leader = DATA.realm_leadership_get_leader(leadership)
+		local fat_current_leader = DATA.fatten_pop(current_leader)
+		fat_current_leader.rank = CHARACTER_RANK.NOBLE
+		DATA.realm_leadership_set_leader(leadership, target)
+	else
+		local new_leadership = DATA.create_realm_leadership()
+		local fat_new_leadership = DATA.fatten_realm_leadership(new_leadership)
+		fat_new_leadership.leader = target
+		fat_new_leadership.realm = realm
 	end
 
-	if target.rank ~= ranks.CHIEF then
-		target.realm = realm
+	if fat_target.rank ~= CHARACTER_RANK.CHIEF then
+		DATA.pop_set_realm(target, realm)
 	end
 
-	target.rank = ranks.CHIEF
-	PoliticalEffects.remove_overseer(realm)
-
-	target.leader_of[realm] = realm
-
-	realm.leader = target
+	fat_target.rank = CHARACTER_RANK.CHIEF
+	-- PoliticalEffects.remove_overseer(realm)
 end
 
 ---comment
@@ -201,15 +208,22 @@ end
 ---comment
 ---@param realm Realm
 function PoliticalEffects.remove_overseer(realm)
-	local overseer = realm.overseer
-	realm.overseer = nil
-
-	if overseer then
-		PoliticalEffects.medium_popularity_decrease(overseer, realm)
+	local fat_realm = DATA.fatten_realm(realm)
+	local overseership = DATA.get_realm_overseer_from_realm(realm)
+	if overseership == INVALID_ID then
+		return
 	end
 
-	if overseer and WORLD:does_player_see_realm_news(realm) then
-		WORLD:emit_notification(overseer.name .. " is no longer an overseer of " .. realm.name .. ".")
+	local overseer = DATA.realm_overseer_get_overseer(overseership)
+	local fat_overseer = DATA.fatten_pop(overseer)
+
+	DATA.delete_realm_overseer(overseer)
+
+	if overseer ~= INVALID_ID then
+		PoliticalEffects.medium_popularity_decrease(overseer, realm)
+		if WORLD:does_player_see_realm_news(realm) then
+			WORLD:emit_notification(fat_overseer.name .. " is no longer an overseer of " .. fat_realm.name .. ".")
+		end
 	end
 end
 
@@ -259,6 +273,7 @@ end
 ---@param realm Realm
 ---@param x number
 function PoliticalEffects.change_popularity(character, realm, x)
+
 	character.popularity[realm] = PoliticalValues.popularity(character, realm) + x
 end
 
@@ -312,6 +327,7 @@ function PoliticalEffects.grant_nobility(pop, province, reason)
 	-- LOGS:write("realm: " .. province.realm.name .. "\n new noble: " .. pop.name .. "\n" .. "reason: " .. reason .. "\n")
 
 	-- print(pop.name, "becomes noble")
+
 	if province ~= pop.province then
 		error(
 			"REQUEST TO TURN POP INTO NOBLE FROM INVALID PROVINCE:"
@@ -359,11 +375,18 @@ end
 ---@param reason POLITICAL_REASON
 ---@return Character?
 function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
-	local pop = tabb.random_select_from_set(tabb.filter(province.home_to, function (a)
-		return not IS_CHARACTER(a) and DATA.pop_get_province(a) == province
+	local pop = tabb.random_select_from_array(DATA.filter_array_home_from_home(province, function (item)
+		local pop = DATA.home_get_pop(item)
+		if IS_CHARACTER(pop) then
+			return false
+		end
+		if PROVINCE(pop) ~= province then
+			return false
+		end
+		return true
 	end))
 
-	if pop and DATA.pop_get_province(pop) == province then
+	if pop ~= INVALID_ID then
 		PoliticalEffects.grant_nobility(pop, province, reason)
 		return pop
 	end
@@ -379,22 +402,26 @@ end
 ---@param culture Culture
 ---@return Character
 function PoliticalEffects.generate_new_noble(realm, province, race, faith, culture)
-	local character = pop.POP:new(
+	local fat_race = DATA.fatten_race(race)
+
+	local character = pop_utils.new(
 		race,
 		faith,
 		culture,
-		love.math.random() > race.males_per_hundred_females / (100 + race.males_per_hundred_females),
-		love.math.random(race.adult_age, race.max_age),
+		love.math.random() > fat_race.males_per_hundred_females / (100 + fat_race.males_per_hundred_females),
+		love.math.random(fat_race.adult_age, fat_race.max_age),
 		province, province, true
 	)
-	character.rank = ranks.NOBLE
 
-	character.savings = character.savings + math.sqrt(character.age) * 10
+	local fat = DATA.fatten_pop(character)
+	fat.rank = CHARACTER_RANK.NOBLE
+
+	fat.savings = fat.savings + math.sqrt(fat.age) * 10
 
 	roll_traits(character)
-	character.realm = realm
-	province:add_character(character)
-	province:set_home(character)
+	fat.realm = realm
+	pop_utils.add_character(province, character)
+	pop_utils.set_home(province, character)
 
 	return character
 end

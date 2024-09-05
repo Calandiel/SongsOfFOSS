@@ -32,8 +32,7 @@ VERSION_STRING = "v0.3.0 (Midgard)"
 
 SILENT_ASSET_LOADING = false
 
-DATA = require "codegen.output.generated"
-require "codegen.output.helpers"
+require "codegen.output.manager"
 
 --if WORLD == nil then
 ---@type World|nil

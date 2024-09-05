@@ -14,9 +14,9 @@ local ut = require "game.climate.utils"
 function r.run()
 	reset_climate_cells()
 
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		WORLD.tile_to_climate_cell[tile_id] = ut.get_climate_cell(tile.latlon(tile_id))
-	end
+	end)
 end
 
 function r.run_hex(world)

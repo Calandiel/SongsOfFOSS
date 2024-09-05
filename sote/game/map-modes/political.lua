@@ -4,6 +4,9 @@ local tile = require "game.entities.tile"
 local ut = require "game.map-modes.utils"
 local csu = require "game.map-modes._color-space-utils"
 
+local province_utils = require "game.entities.province".Province
+local realm_utils = require "game.entities.realm".Realm
+
 local pol = {}
 
 function pol.diplomacy(clicked_tile_id)
@@ -13,76 +16,109 @@ function pol.diplomacy(clicked_tile_id)
 	local clicked_realm = tile.realm(clicked_tile)
 
 	if clicked_realm then
-		for _, province in pairs(WORLD.provinces) do
-			local checked_realm = province.realm
-			ut.set_default_color(province.center)
-			local tile_id = province.center
-			if checked_realm ~= nil then
-				if checked_realm then
-					if checked_realm == clicked_realm then
-						tile.set_real_color(tile_id, 051 / 255, 117 / 255, 056 / 255)
-					elseif checked_realm.tributaries[clicked_realm] ~= nil then
-						tile.set_real_color(tile_id, 150 / 255, 60 / 255, 100 / 255) -- color overlords
-					elseif checked_realm.paying_tribute_to[clicked_realm] ~= nil then
-						tile.set_real_color(tile_id, 220 / 255, 205 / 255, 125 / 255) -- color tributaries
-					elseif checked_realm:is_realm_in_hierarchy(clicked_realm) then
-						tile.set_real_color(tile_id, 120 / 255, 105 / 255, 55 / 255) -- color indirect tributaries
-					elseif checked_realm:at_war_with(clicked_realm) then
-						tile.set_real_color(tile_id, 126 / 255, 041 / 255, 084 / 255) -- color wars
+		DATA.for_each_province(function (province)
+			local checked_realm = province_utils.realm(province)
+			local center = DATA.province_get_center(province)
+			ut.set_default_color(center)
+			if checked_realm ~= INVALID_ID then
+
+				local is_tributary = false
+				DATA.for_each_realm_subject_relation_from_overlord(clicked_realm, function (item)
+					local subject = DATA.realm_subject_relation_get_subject(item)
+					if subject == checked_realm then
+						is_tributary = true
 					end
+				end)
+
+				local is_overlord = false
+				DATA.for_each_realm_subject_relation_from_subject(clicked_realm, function (item)
+					local overlord = DATA.realm_subject_relation_get_subject(item)
+					if overlord == checked_realm then
+						is_overlord = true
+					end
+				end)
+
+				if checked_realm == clicked_realm then
+					tile.set_real_color(center, 051 / 255, 117 / 255, 056 / 255)
+				elseif is_overlord then
+					tile.set_real_color(center, 150 / 255, 60 / 255, 100 / 255) -- color overlords
+				elseif is_tributary then
+					tile.set_real_color(center, 220 / 255, 205 / 255, 125 / 255) -- color tributaries
+				elseif realm_utils.is_realm_in_hierarchy(checked_realm, clicked_realm) then
+					tile.set_real_color(center, 120 / 255, 105 / 255, 55 / 255) -- color indirect tributaries
+				elseif realm_utils.at_war_with(checked_realm, clicked_realm) then
+					tile.set_real_color(center, 126 / 255, 041 / 255, 084 / 255) -- color wars
 				end
 			end
-		end
+		end)
 	end
 
-	for _, province in pairs(WORLD.provinces) do
-		tile.set_real_color(province.center, 0.1, 0.1, 0.1)
-		local realm = province.realm
-		if realm and ((tabb.size(realm.paying_tribute_to) >= 1) or (tabb.size(realm.tributaries) >= 1)) then
-			local top_realms = realm:get_top_realm()
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		tile.set_real_color(center, 0.1, 0.1, 0.1)
+		local realm = province_utils.realm(province)
+
+		if realm == INVALID_ID then
+			return
+		end
+
+		local is_part_of_regional_power = false
+		DATA.for_each_realm_subject_relation_from_overlord(realm, function (item)
+			is_part_of_regional_power = true
+		end)
+		DATA.for_each_realm_subject_relation_from_subject(realm, function (item)
+			is_part_of_regional_power = true
+		end)
+
+		if is_part_of_regional_power then
+			local top_realms = realm_utils.get_top_realm(realm)
 			if tabb.size(top_realms) == 1 then
 				for _, top in pairs(top_realms) do
-					tile.set_real_color(province.center, top.r, top.g, top.b)
+					local fat_top = DATA.fatten_realm(top)
+					tile.set_real_color(center, fat_top.r, fat_top.g, fat_top.b)
 				end
 			end
 		end
-	end
+	end)
 end
 
 function pol.realms()
-	for _, province in pairs(WORLD.provinces) do
-		local tile_id = province.center
-		ut.set_default_color(tile_id)
-		local local_province = tile.province(tile_id)
-
-		if local_province ~= nil then
-			local local_realm = local_province.realm
-
-			if local_realm ~= nil then
-				tile.set_real_color(tile_id,
-					local_realm.r,
-					local_realm.g,
-					local_realm.b
-				)
-			end
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		ut.set_default_color(center)
+		local local_province = tile.province(center)
+		if local_province == INVALID_ID then
+			return
 		end
-	end
+
+		local realm = province_utils.realm(province)
+		if realm == INVALID_ID then
+			return
+		end
+
+		local fat = DATA.fatten_realm(realm)
+
+		tile.set_real_color(center,
+			fat.r,
+			fat.g,
+			fat.b
+		)
+	end)
 end
 
 function pol.province()
-	for _, province in pairs(WORLD.provinces) do
-		local tile_id = province.center
-		ut.set_default_color(tile_id)
-		local local_province = tile.province(tile_id)
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		ut.set_default_color(center)
 
-		if local_province ~= nil then
-			if DATA.tile_get_is_land(tile_id) then
-				tile.set_real_color(tile_id,local_province.r, local_province.g, local_province.b)
-			else
-				tile.set_real_color(tile_id,0.25 * local_province.r, 0.25 * local_province.g, 0.25 * local_province.b)
-			end
+		local fat = DATA.fatten_province(province)
+
+		if DATA.tile_get_is_land(center) then
+			tile.set_real_color(center, fat.r, fat.g, fat.b)
+		else
+			tile.set_real_color(center, 0.25 * fat.r, 0.25 * fat.g, 0.25 * fat.b)
 		end
-	end
+	end)
 end
 
 
@@ -107,7 +143,7 @@ function pol.atlas_tiles()
 		end, ut.elevation_threshold
 	)
 
-	for _, tile_id in ipairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local h, s, v = csu.rgb_to_hsv(
 			DATA.tile_get_real_r(tile_id),
 			DATA.tile_get_real_g(tile_id),
@@ -119,47 +155,52 @@ function pol.atlas_tiles()
 		DATA.tile_set_real_r(tile_id, r)
 		DATA.tile_set_real_g(tile_id, g)
 		DATA.tile_set_real_b(tile_id, b)
-	end
+	end)
 end
 
 function pol.atlas_provinces()
-	for _, province in pairs(WORLD.provinces) do
-		local local_realm = province.realm
-		if local_realm ~= nil then
-			local result_h, result_s, result_v = csu.rgb_to_hsv(
-				local_realm.r, local_realm.g, local_realm.b
-			)
-
-			--- Resolve colors for tributaries so that we can map paint!
-			local top_realms = local_realm:get_top_realm()
-			if tabb.size(top_realms) == 1 then
-				for _, source_realm in pairs(top_realms) do
-
-					local pol_h, pol_s, pol_v = csu.rgb_to_hsv(
-						source_realm.r, source_realm.g, source_realm.b
-					)
-
-					result_h = mix(result_h, pol_h, 0.9)
-					result_s = mix(result_s, pol_s, 0.8)
-					result_v = mix(result_v, pol_v, 0.6)
-				end
-			end
-
-			local r, g, b = csu.hsv_to_rgb(
-				result_h, result_s / 2, math.sqrt(result_v + 0.5) + 1 - math.sqrt(1.5)
-			)
-
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		local realm = province_utils.realm(province)
+		if realm == INVALID_ID then
 			tile.set_real_color(
-				province.center,
-				r, g, b
-			)
-		else
-			tile.set_real_color(
-				province.center,
+				center,
 				1, 1, 1
 			)
+			return
 		end
-	end
+
+		local fat_realm = DATA.fatten_realm(realm)
+
+		local result_h, result_s, result_v = csu.rgb_to_hsv(
+			fat_realm.r, fat_realm.g, fat_realm.b
+		)
+
+		--- Resolve colors for tributaries so that we can map paint!
+		local top_realms = realm_utils.get_top_realm(realm)
+		if tabb.size(top_realms) == 1 then
+			for _, source_realm in pairs(top_realms) do
+				local fat_source = DATA.fatten_realm(source_realm)
+
+				local pol_h, pol_s, pol_v = csu.rgb_to_hsv(
+					fat_source.r, fat_source.g, fat_source.b
+				)
+
+				result_h = mix(result_h, pol_h, 0.9)
+				result_s = mix(result_s, pol_s, 0.8)
+				result_v = mix(result_v, pol_v, 0.6)
+			end
+		end
+
+		local r, g, b = csu.hsv_to_rgb(
+			result_h, result_s / 2, math.sqrt(result_v + 0.5) + 1 - math.sqrt(1.5)
+		)
+
+		tile.set_real_color(
+			center,
+			r, g, b
+		)
+	end)
 end
 
 return pol

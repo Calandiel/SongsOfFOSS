@@ -1,5 +1,3 @@
-local province_utils = require "game.entities.province".Province
-local warband_utils = require "game.entities.warband"
 local rtab = {}
 rtab.POP = {}
 
@@ -24,12 +22,12 @@ function rtab.POP.new(race, faith, culture, female, age, home, location, charact
 
 	r.name = culture.language:get_random_name()
 
-	province_utils.set_home(home, r.id)
+	rtab.POP.set_home(home, r.id)
 
 	if character_flag then
-		province_utils.add_character(location, r.id)
+		rtab.POP.add_character(location, r.id)
 	else
-		province_utils.add_guest_pop(location, r.id)
+		rtab.POP.add_guest_pop(location, r.id)
 	end
 
 	r.busy                     = false
@@ -59,10 +57,7 @@ function rtab.POP.new(race, faith, culture, female, age, home, location, charact
 	r.basic_needs_satisfaction = total_consumed / total_demanded
 	r.life_needs_satisfaction = 0.5
 
-	r.has_trade_permits_in     = {}
-	r.has_building_permits_in  = {}
 	r.savings                  = 0
-	r.leader_of                = {}
 	r.dead                     = false
 	r.former_pop               = false
 
@@ -71,16 +66,6 @@ function rtab.POP.new(race, faith, culture, female, age, home, location, charact
 	end
 
 	return r.id
-end
-
----Unregisters a pop as a military pop.  \
----The "fire" routine for soldiers. Also used in some other contexts?
----@param pop pop_id
-function rtab.POP.unregister_military(pop)
-	local unit_of = DATA.get_warband_unit_from_unit(pop)
-	if unit_of then
-		warband_utils.fire_unit(DATA.warband_unit_get_warband(unit_of), pop)
-	end
 end
 
 ---@param pop_id pop_id
@@ -295,6 +280,58 @@ function rtab.POP.get_supply_capacity(pop, unit)
 	end
 
 	return base + job
+end
+
+
+
+---Kills a single pop and removes it from all relevant references.
+---@param pop pop_id
+function rtab.POP.kill_pop(pop)
+	-- print("kill " .. pop.name)
+	rtab.POP.fire_pop(pop)
+	rtab.POP.unregister_military(pop)
+	DATA.delete_pop(pop)
+end
+
+---Fires an employed pop and adds it to the unemployed pops list.
+---It leaves the "job" set so that inference of social class can be performed.
+---@param pop pop_id
+function rtab.POP.fire_pop(pop)
+	local employment = DATA.get_employment_from_worker(pop)
+	if employment ~= INVALID_ID then
+		DATA.delete_employment(employment)
+		local building = DATA.employment_get_building(employment)
+		if #DATA.get_employment_from_building(building) == 0 then
+			local fat = DATA.fatten_building(building)
+			fat.last_income = 0
+			fat.last_donation_to_owner = 0
+			fat.subsidy_last = 0
+		end
+	end
+end
+
+---adds new trait to character
+---@param pop pop_id
+---@param trait TRAIT
+function rtab.POP.add_trait(pop, trait)
+	for i = 0, MAX_TRAIT_INDEX  do
+		if DATA.pop_get_traits(pop, i) == TRAIT.INVALID then
+			DATA.pop_set_traits(pop, i, trait)
+			return
+		end
+	end
+end
+
+---adds new trait to character
+---@param pop pop_id
+---@param trait TRAIT
+function rtab.POP.has_trait(pop, trait)
+	for i = 0, MAX_TRAIT_INDEX  do
+		if DATA.pop_get_traits(pop, i) == trait then
+			return true
+		end
+	end
+	return false
 end
 
 return rtab

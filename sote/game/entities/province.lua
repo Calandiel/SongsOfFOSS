@@ -32,7 +32,7 @@ function prov.Province.new(fake_flag)
 		WORLD.province_count = WORLD.province_count + 1
 	end
 
-	return o
+	return o.id
 end
 
 ---comment
@@ -99,7 +99,19 @@ end
 ---@param province province_id
 ---@return number
 function prov.Province.local_population(province)
-	return tabb.size(DATA.get_pop_location_from_location(province))
+	local result = 0
+	DATA.for_each_pop_location_from_location(province, function (item)
+		result = result + 1
+	end)
+	return result
+end
+
+---Returns the total amount of characters of the province, not including characters.
+---Doesn't include outlaws and active armies.
+---@param province province_id
+---@return number
+function prov.Province.local_characters(province)
+	return tabb.size(DATA.get_character_location_from_location(province))
 end
 
 ---Returns the total count of all pops who consider this province home, not including characters.
@@ -176,63 +188,6 @@ function prov.Province.population_weight(province)
 		total = total + DATA.race_get_carrying_capacity_weight(race) * age_multiplier
 	end
 	return total
-end
-
----Adds a pop to the province. Sets province as a home. Does not handle cleaning of old data
----@param province province_id
----@param pop pop_id
-function prov.Province.add_pop(province, pop)
-	prov.Province.add_guest_pop(province, pop)
-	prov.Province.set_home(province, pop)
-end
-
----Adds pop as a guest of this province. Preserves old home of a pop.
----@param province province_id
----@param pop pop_id
-function prov.Province.add_guest_pop(province, pop)
-	local location = DATA.get_pop_location_from_pop(pop)
-	if location then
-		DATA.pop_location_set_location(location, province)
-	else
-		local new_location = DATA.create_pop_location()
-		DATA.pop_location_set_location(new_location, province)
-		DATA.pop_location_set_pop(new_location, pop)
-	end
-end
-
----Adds a character to the province
----@param province province_id
----@param character Character
-function prov.Province.add_character(province, character)
-	local location = DATA.get_character_location_from_character(character)
-	if location then
-		DATA.character_location_set_location(location, province)
-	else
-		local new_location = DATA.create_pop_location()
-		DATA.character_location_set_location(new_location, province)
-		DATA.character_location_set_character(new_location, character)
-	end
-end
-
----Sets province as pop's home
----@param province province_id
----@param pop pop_id
-function prov.Province.set_home(province, pop)
-	-- print('SET HOME', pop.name)
-	local home = DATA.get_home_from_pop(pop)
-	if home then
-		DATA.home_set_home(home, province)
-	else
-		local new_home = DATA.create_home()
-		DATA.home_set_home(new_home, province)
-		DATA.home_set_pop(new_home, pop)
-	end
-
-	-- as this province is your home, you belong to local realm now
-	local realm = DATA.province_get_realm(province)
-	if realm then
-		DATA.pop_set_realm(pop, realm)
-	end
 end
 
 --- Transfers a character to the target province
@@ -339,18 +294,6 @@ function prov.Province.transfer_home(origin, pop, target)
 	end
 end
 
----Kills a single pop and removes it from all relevant references.
----@param province province_id
----@param pop pop_id
-function prov.Province.kill_pop(province, pop)
-	-- print("kill " .. pop.name)
-
-	prov.Province.fire_pop(province, pop)
-	pop_utils.unregister_military(pop)
-
-	DATA.delete_pop(pop)
-end
-
 ---@param province province_id
 function prov.Province.local_army_size(province)
 	local total = 0
@@ -376,27 +319,11 @@ function prov.Province.take_away_pop(province, pop)
 end
 
 ---@param province province_id
-function prov.Province.return_pop_from_army(province, pop, unit_type)
+---@param pop pop_id
+function prov.Province.return_pop_from_army(province, pop)
 	prov.Province.add_guest_pop(province, pop)
 end
 
----Fires an employed pop and adds it to the unemployed pops list.
----It leaves the "job" set so that inference of social class can be performed.
----@param province province_id
----@param pop pop_id
-function prov.Province.fire_pop(province, pop)
-	local employment = DATA.get_employment_from_worker(pop)
-	if employment ~= INVALID_ID then
-		DATA.delete_employment(employment)
-		local building = DATA.employment_get_building(employment)
-		if tabb.size(DATA.get_employment_from_building(building)) == 0 then
-			local fat = DATA.fatten_building(building)
-			fat.last_income = 0
-			fat.last_donation_to_owner = 0
-			fat.subsidy_last = 0
-		end
-	end
-end
 
 ---Employs a pop and handles its removal from relevant data structures...
 ---@param province province_id
@@ -516,9 +443,9 @@ function prov.Province.research(province, technology)
 			end
 			has_required_race = false
 
-			local realm = DATA.province_get_realm(province)
+			local realm = DATA.realm_provinces_get_realm(DATA.get_realm_provinces_from_province(province))
 
-			if realm.primary_race == required_race then
+			if DATA.realm_get_primary_race(realm) == required_race then
 				has_required_race = true
 			end
 
@@ -638,7 +565,8 @@ function prov.Province.research(province, technology)
 		DATA.province_inc_output_efficiency_boosts(province, i, DATA.technology_get_output_efficiency_boosts(technology, i))
 	end
 
-	if WORLD:does_player_see_realm_news(DATA.province_get_realm(province)) then
+	local realm = prov.Province.realm(province)
+	if WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification("Technology unlocked: " .. DATA.technology_get_name(technology))
 	end
 end
@@ -851,7 +779,7 @@ function prov.Province.get_dominant_faith(province)
 end
 
 ---@param province province_id
----@return race_id|nil
+---@return race_id
 function prov.Province.get_dominant_race(province)
 	---@type table<race_id, number>
 	local e = {}
@@ -862,7 +790,7 @@ function prov.Province.get_dominant_race(province)
 		local old = e[race] or 0
 		e[race] = old + 1
 	end
-	local best = nil
+	local best = INVALID_ID
 	local max = 0
 	for k, v in pairs(e) do
 		if v > max then
@@ -880,7 +808,7 @@ end
 function prov.Province.neighbors_realm(province, realm)
 	for _, n in pairs(DATA.get_province_neighborhood_from_origin(province)) do
 		local neighbor = DATA.province_neighborhood_get_target(n)
-		local neighbor_realm = DATA.province_get_realm(neighbor)
+		local neighbor_realm = prov.Province.realm(neighbor)
 		if neighbor_realm == realm then
 			return true
 		end
@@ -888,20 +816,72 @@ function prov.Province.neighbors_realm(province, realm)
 	return false
 end
 
----Returns whether or not a province borders a given realm
+---commenting
 ---@param province province_id
----@param realm Realm
----@return boolean
-function prov.Province.neighbors_realm_tributary(province, realm)
-	for _, n in pairs(DATA.get_province_neighborhood_from_origin(province)) do
-		local neighbor = DATA.province_neighborhood_get_target(n)
-		local neighbor_realm = DATA.province_get_realm(neighbor)
-
-		if neighbor_realm and neighbor_realm:is_realm_in_hierarchy(realm) then
-			return true
-		end
+---@return realm_id
+function prov.Province.realm(province)
+	local data = DATA.get_realm_provinces_from_province(province)
+	if data == INVALID_ID then
+		return INVALID_ID
 	end
-	return false
+	return DATA.realm_provinces_get_realm(data)
+end
+
+---Adds a pop to the province. Sets province as a home. Does not handle cleaning of old data
+---@param province province_id
+---@param pop pop_id
+function pop_utils.add_pop(province, pop)
+	pop_utils.add_guest_pop(province, pop)
+	pop_utils.set_home(province, pop)
+end
+
+
+---Adds pop as a guest of this province. Preserves old home of a pop.
+---@param province province_id
+---@param pop pop_id
+function pop_utils.add_guest_pop(province, pop)
+	local location = DATA.get_pop_location_from_pop(pop)
+	if location then
+		DATA.pop_location_set_location(location, province)
+	else
+		local new_location = DATA.create_pop_location()
+		DATA.pop_location_set_location(new_location, province)
+		DATA.pop_location_set_pop(new_location, pop)
+	end
+end
+
+---Adds a character to the province
+---@param province province_id
+---@param character Character
+function pop_utils.add_character(province, character)
+	local location = DATA.get_character_location_from_character(character)
+	if location then
+		DATA.character_location_set_location(location, province)
+	else
+		local new_location = DATA.create_pop_location()
+		DATA.character_location_set_location(new_location, province)
+		DATA.character_location_set_character(new_location, character)
+	end
+end
+
+---Sets province as pop's home
+---@param province province_id
+---@param pop pop_id
+function pop_utils.set_home(province, pop)
+	local home = DATA.get_home_from_pop(pop)
+	if home then
+		DATA.home_set_home(home, province)
+	else
+		local new_home = DATA.create_home()
+		DATA.home_set_home(new_home, province)
+		DATA.home_set_pop(new_home, pop)
+	end
+
+	-- as this province is your home, you belong to local realm now
+	local realm = prov.Province.realm(province)
+	if realm ~= INVALID_ID then
+		DATA.pop_set_realm(pop, realm)
+	end
 end
 
 ---@param province province_id

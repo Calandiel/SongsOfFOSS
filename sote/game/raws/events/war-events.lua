@@ -44,7 +44,6 @@ local function load()
             end
 
             for _, unit in pairs(unit_types) do
-                local TRAIT = require "game.raws.traits.generic"
                 local health, attack, armor, speed = root:get_strength(unit)
                 local spotting, visibility, supply, capacity = root:get_spotting(unit), root:get_visibility(unit), root:get_supply_use(unit), root:get_supply_capacity(unit)
 

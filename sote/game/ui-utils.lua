@@ -202,7 +202,7 @@ end
 function ut.render_icon(rect, icon_name, r, g, b, a)
 	local _r, _g, _b, _a = love.graphics.getColor()
 	local subrect = rect:centered_square()
-	
+
 	love.graphics.setColor(r, g, b, a)
 	ui.image(ASSETS.icons[icon_name], subrect)
 
@@ -489,12 +489,13 @@ function ut.set_font(font)
 end
 
 ---Draws a coat of arms of a realm. Returns true if clicked.
----@param realm Realm?
+---@param realm_id Realm
 ---@param rect Rect
-function ut.coa(realm, rect)
-	if realm == nil then
+function ut.coa(realm_id, rect)
+	if realm_id == INVALID_ID then
 		return
 	end
+	local realm = DATA.fatten_realm(realm_id)
 	-- Pull old colors...
 	local r = ui.style.panel_inside.r
 	local g = ui.style.panel_inside.g

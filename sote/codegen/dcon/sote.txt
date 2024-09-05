@@ -1,0 +1,366 @@
+object {
+    name { tile }
+    storage_type { contiguous }
+    size { 1500000 }
+    tag {scenario}
+}
+object {
+    name { pop }
+    storage_type { erasable }
+    size { 300000 }
+    tag {scenario}
+}
+object {
+    name { province }
+    storage_type { erasable }
+    size { 20000 }
+    tag {scenario}
+}
+object {
+    name { army }
+    storage_type { erasable }
+    size { 5000 }
+    tag {scenario}
+}
+object {
+    name { warband }
+    storage_type { erasable }
+    size { 20000 }
+    tag {scenario}
+}
+object {
+    name { realm }
+    storage_type { erasable }
+    size { 15000 }
+    tag {scenario}
+}
+object {
+    name { negotiation }
+    storage_type { erasable }
+    size { 2500 }
+    tag {scenario}
+}
+object {
+    name { building }
+    storage_type { erasable }
+    size { 200000 }
+    tag {scenario}
+}
+object {
+    name { ownership }
+    storage_type { erasable }
+    size { 200000 }
+    tag {scenario}
+}
+object {
+    name { employment }
+    storage_type { erasable }
+    size { 300000 }
+    tag {scenario}
+}
+object {
+    name { building_location }
+    storage_type { erasable }
+    size { 200000 }
+    tag {scenario}
+}
+object {
+    name { army_membership }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_leader }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_recruiter }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_commander }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_location }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { warband_unit }
+    storage_type { erasable }
+    size { 50000 }
+    tag {scenario}
+}
+object {
+    name { character_location }
+    storage_type { erasable }
+    size { 100000 }
+    tag {scenario}
+}
+object {
+    name { home }
+    storage_type { erasable }
+    size { 300000 }
+    tag {scenario}
+}
+object {
+    name { pop_location }
+    storage_type { erasable }
+    size { 300000 }
+    tag {scenario}
+}
+object {
+    name { outlaw_location }
+    storage_type { erasable }
+    size { 300000 }
+    tag {scenario}
+}
+object {
+    name { tile_province_membership }
+    storage_type { erasable }
+    size { 1500000 }
+    tag {scenario}
+}
+object {
+    name { province_neighborhood }
+    storage_type { erasable }
+    size { 250000 }
+    tag {scenario}
+}
+object {
+    name { parent_child_relation }
+    storage_type { erasable }
+    size { 900000 }
+    tag {scenario}
+}
+object {
+    name { loyalty }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { succession }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
+    name { realm_armies }
+    storage_type { erasable }
+    size { 15000 }
+    tag {scenario}
+}
+object {
+    name { realm_guard }
+    storage_type { erasable }
+    size { 15000 }
+    tag {scenario}
+}
+object {
+    name { realm_overseer }
+    storage_type { erasable }
+    size { 15000 }
+    tag {scenario}
+}
+object {
+    name { realm_leadership }
+    storage_type { erasable }
+    size { 15000 }
+    tag {scenario}
+}
+object {
+    name { realm_subject_relation }
+    storage_type { erasable }
+    size { 15000 }
+    tag {scenario}
+}
+object {
+    name { tax_collector }
+    storage_type { erasable }
+    size { 45000 }
+    tag {scenario}
+}
+object {
+    name { personal_rights }
+    storage_type { erasable }
+    size { 450000 }
+    tag {scenario}
+}
+object {
+    name { realm_provinces }
+    storage_type { erasable }
+    size { 30000 }
+    tag {scenario}
+}
+object {
+    name { popularity }
+    storage_type { erasable }
+    size { 450000 }
+    tag {scenario}
+}
+object {
+    name { jobtype }
+    storage_type { contiguous }
+    size { 10 }
+    tag {scenario}
+}
+object {
+    name { need }
+    storage_type { contiguous }
+    size { 9 }
+    tag {scenario}
+}
+object {
+    name { character_rank }
+    storage_type { contiguous }
+    size { 5 }
+    tag {scenario}
+}
+object {
+    name { trait }
+    storage_type { contiguous }
+    size { 12 }
+    tag {scenario}
+}
+object {
+    name { trade_good_category }
+    storage_type { contiguous }
+    size { 5 }
+    tag {scenario}
+}
+object {
+    name { warband_status }
+    storage_type { contiguous }
+    size { 10 }
+    tag {scenario}
+}
+object {
+    name { warband_stance }
+    storage_type { contiguous }
+    size { 4 }
+    tag {scenario}
+}
+object {
+    name { building_archetype }
+    storage_type { contiguous }
+    size { 7 }
+    tag {scenario}
+}
+object {
+    name { forage_resource }
+    storage_type { contiguous }
+    size { 10 }
+    tag {scenario}
+}
+object {
+    name { budget_category }
+    storage_type { contiguous }
+    size { 7 }
+    tag {scenario}
+}
+object {
+    name { economy_reason }
+    storage_type { contiguous }
+    size { 38 }
+    tag {scenario}
+}
+object {
+    name { trade_good }
+    storage_type { contiguous }
+    size { 100 }
+    tag {scenario}
+}
+object {
+    name { use_case }
+    storage_type { contiguous }
+    size { 100 }
+    tag {scenario}
+}
+object {
+    name { use_weight }
+    storage_type { contiguous }
+    size { 300 }
+    tag {scenario}
+}
+object {
+    name { biome }
+    storage_type { contiguous }
+    size { 100 }
+    tag {scenario}
+}
+object {
+    name { bedrock }
+    storage_type { contiguous }
+    size { 150 }
+    tag {scenario}
+}
+object {
+    name { resource }
+    storage_type { contiguous }
+    size { 300 }
+    tag {scenario}
+}
+object {
+    name { unit_type }
+    storage_type { contiguous }
+    size { 20 }
+    tag {scenario}
+}
+object {
+    name { job }
+    storage_type { contiguous }
+    size { 250 }
+    tag {scenario}
+}
+object {
+    name { production_method }
+    storage_type { contiguous }
+    size { 250 }
+    tag {scenario}
+}
+object {
+    name { technology }
+    storage_type { contiguous }
+    size { 400 }
+    tag {scenario}
+}
+object {
+    name { technology_unlock }
+    storage_type { contiguous }
+    size { 800 }
+    tag {scenario}
+}
+object {
+    name { building_type }
+    storage_type { contiguous }
+    size { 250 }
+    tag {scenario}
+}
+object {
+    name { technology_building }
+    storage_type { contiguous }
+    size { 400 }
+    tag {scenario}
+}
+object {
+    name { technology_unit }
+    storage_type { contiguous }
+    size { 400 }
+    tag {scenario}
+}
+object {
+    name { race }
+    storage_type { contiguous }
+    size { 15 }
+    tag {scenario}
+}

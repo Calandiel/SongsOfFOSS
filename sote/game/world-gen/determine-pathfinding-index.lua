@@ -3,14 +3,14 @@ local dpi = {}
 
 function dpi.determine()
 	-- First, clear old indices
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		DATA.tile_set_pathfinding_index(tile_id, 0)
-	end
+	end)
 	-- then, flood fill to fill new indices!
 	---@type Queue<tile_id>
 	local queue = require "engine.queue":new()
 	local index = 0
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		if DATA.tile_get_pathfinding_index(tile_id) == 0 then
 			-- unasigned tile! time to flood fill!
 			index = index + 1
@@ -26,7 +26,7 @@ function dpi.determine()
 				end
 			end
 		end
-	end
+	end)
 end
 
 return dpi

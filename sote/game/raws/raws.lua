@@ -40,27 +40,16 @@ return function(do_logging)
 	require "game.raws.production-methods-loader".load()
 
 	require "game.raws.technology-loader".load()
-	for _, t in pairs(RAWS_MANAGER.technologies_by_name) do
-		for _, tt in pairs(t.unlocked_by) do
-			tt.potentially_unlocks[#tt.potentially_unlocks + 1] = t
-		end
-	end
 
 	if do_logging then
 		print('building types')
 	end
 	require "game.raws.building-types-loader".load()
-	for _, b in pairs(RAWS_MANAGER.building_types_by_name) do
-		b.unlocked_by.unlocked_buildings[#b.unlocked_by.unlocked_buildings + 1] = b
-	end
 
 	if do_logging then
 		print('unit-types')
 	end
 	require "game.raws.unit-types-loader".load()
-	for _, u in pairs(RAWS_MANAGER.unit_types_by_name) do
-		u.unlocked_by.unlocked_unit_types[#u.unlocked_by.unlocked_unit_types + 1] = u
-	end
 
 	if do_logging then
 		print('decisions')

@@ -11,7 +11,7 @@ local scroll = 0
 ---@param selected_decision any
 ---@return DecisionCharacter?, any, any
 return function(rect, decision_type, primary_target, selected_decision)
-    if WORLD.player_character == nil then
+    if WORLD.player_character == INVALID_ID then
         return
     end
 

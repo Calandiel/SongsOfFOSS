@@ -5,7 +5,7 @@ local tile = require "game.entities.tile"
 
 
 function so.texture()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		ut.set_default_color(tile_id)
 
 		local depth = tile.soil_depth(tile_id)
@@ -18,7 +18,7 @@ function so.texture()
 			silt / depth,
 			clay / depth
 		)
-	end
+	end)
 end
 
 function so.depth()

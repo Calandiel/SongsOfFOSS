@@ -1,7 +1,6 @@
 local tabb = require "engine.table"
 local economic_effects = require "game.raws.effects.economic"
 
-local TRAIT = require "game.raws.traits.generic"
 
 local tr = {}
 

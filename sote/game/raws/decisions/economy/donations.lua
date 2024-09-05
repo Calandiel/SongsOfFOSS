@@ -1,7 +1,6 @@
 local utils = require "game.raws.raws-utils"
 
 local Decision = require "game.raws.decisions"
-local TRAIT = require "game.raws.traits.generic"
 
 local economic_effects = require "game.raws.effects.economic"
 local political_effects = require "game.raws.effects.political"

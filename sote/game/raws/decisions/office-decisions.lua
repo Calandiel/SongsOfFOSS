@@ -5,7 +5,6 @@ local utils = require "game.raws.raws-utils"
 local economic_effects = require "game.raws.effects.economic"
 local MilitaryEffects = require "game.raws.effects.military"
 local PoliticalEffects = require "game.raws.effects.political"
-local TRAIT = require "game.raws.traits.generic"
 
 local ot = require "game.raws.triggers.offices"
 

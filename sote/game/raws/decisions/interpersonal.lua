@@ -1,7 +1,6 @@
 local tabb = require "engine.table"
 
 local Decision = require "game.raws.decisions"
-local TRAIT = require "game.raws.traits.generic"
 local utils = require "game.raws.raws-utils"
 
 local ie = require "game.raws.effects.interpersonal"

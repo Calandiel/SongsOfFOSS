@@ -4,7 +4,7 @@ local ut = require "game.map-modes.utils"
 local tile = require "game.entities.tile"
 
 function geo.resources()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local res = DATA.tile_get_resource(tile_id)
 		if res then
 			local r, g, b = res.r, res.g, res.b
@@ -12,11 +12,11 @@ function geo.resources()
 		else
 			ut.set_default_color(tile_id)
 		end
-	end
+	end)
 end
 
 function geo.plates()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local local_plate = tile.plate(tile_id)
 
 		if local_plate then
@@ -25,11 +25,11 @@ function geo.plates()
 		else
 			tile.set_real_color(tile_id,0.1, 0.1, 0.1)
 		end
-	end
+	end)
 end
 
 function geo.rocks()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local local_bedrock = DATA.tile_get_bedrock(tile_id)
 		if local_bedrock then
 			local r = DATA.bedrock[local_bedrock].r
@@ -39,7 +39,7 @@ function geo.rocks()
 		else
 			tile.set_real_color(tile_id, 0.1, 0.1, 0.1)
 		end
-	end
+	end)
 end
 
 local function elevation_wrapper(tile_id)
@@ -57,11 +57,11 @@ function geo.elevation()
 		ut.elevation_threshold
 	)
 
-	for _, tile_id in ipairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		if DATA.tile_get_ice(tile_id) > 0 then
 			tile.set_real_color(tile_id, 0.95, 0.95, 1)
 		end
-	end
+	end)
 end
 
 return geo

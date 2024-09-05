@@ -71,40 +71,40 @@ function inspector.draw(gam)
 
     local inspector_visible = {
         ["macrobuilder"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end,
         ["macrodecision"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end,
         ["army"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end,
         ["character-decisions"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end,
         ["warband"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             if WORLD.player_character.leading_warband then return true end
             if office_triggers.guard_leader(WORLD.player_character, WORLD.player_character.realm) then return true end
             return false
         end,
         ["property"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end,
         ["market"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end,
         ["preferences"] = function ()
             return true
         end,
         ["quests"] = function ()
-            if WORLD.player_character == nil then return false end
+            if WORLD.player_character == INVALID_ID then return false end
             return true
         end
     }

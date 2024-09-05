@@ -14,23 +14,61 @@
 local Race = {}
 Race.__index = Race
 
----@param o race_id_data_blob_definition
+---@class race_id_data_blob_definition_extended : race_id_data_blob_definition
+---@field female_needs table<NEED, table<use_case_id, number>>
+---@field male_needs table<NEED, table<use_case_id, number>>
+
+---@param o race_id_data_blob_definition_extended
 function Race:new(o)
 	local r = DATA.create_race()
 
 
 	-- assert that needs are valid
-	local amount = 0
-	for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
-		if o.male_needs[i] then
-			assert(o.male_needs[i].need == o.female_needs[i].need)
-			assert(o.male_needs[i].use_case == o.female_needs[i].use_case)
+	---@type struct_need_definition[]
+	local male_needs = {}
+	---@type struct_need_definition[]
+	local female_needs = {}
 
-			amount = amount + 1
+	for need, uses_table in pairs(o.male_needs) do
+		for use_case, value in pairs(uses_table) do
+			table.insert(male_needs, {
+				need = need,
+				use_case = use_case,
+				required = value
+			})
 		end
 	end
 
-	DATA.setup_race(o)
+	for need, uses_table in pairs(o.female_needs) do
+		for use_case, value in pairs(uses_table) do
+			table.insert(female_needs, {
+				need = need,
+				use_case = use_case,
+				required = value
+			})
+		end
+	end
+
+	--- check that they are consistent:
+
+	for i = 1, math.max(#male_needs, #female_needs) do
+		assert(male_needs[i].need == female_needs[i].need)
+		assert(male_needs[i].use_case == female_needs[i].use_case)
+
+		local need = male_needs[i].need
+		local use_case = male_needs[i].use_case
+
+		print(need, use_case)
+
+		DATA.race_set_male_needs_need(r, i - 1, need)
+		DATA.race_set_female_needs_need(r, i - 1, need)
+		DATA.race_set_male_needs_use_case(r, i - 1, use_case)
+		DATA.race_set_female_needs_use_case(r, i - 1, use_case)
+		DATA.race_set_male_needs_required(r, i - 1, male_needs[i].required)
+		DATA.race_set_female_needs_required(r, i - 1, female_needs[i].required)
+	end
+
+	DATA.setup_race(r, o)
 
 	if RAWS_MANAGER.races_by_name[o.name] ~= nil then
 		local msg = "Failed to load a race (" .. tostring(o.name) .. ")"

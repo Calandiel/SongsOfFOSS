@@ -1,7 +1,6 @@
 local economic_effects = require "game.raws.effects.economic"
 local tabb = require "engine.table"
 local pop_utils = require "game.entities.pop".POP
-local province_utils = require "game.entities.province".Province
 
 local warband_utils = {}
 
@@ -103,8 +102,11 @@ function warband_utils.realm(warband)
 		return DATA.pop_get_realm(DATA.warband_leader_get_leader(leadership))
 	else
 		-- TODO
-		local guard_of = DATA.get_guard
-		return self.guard_of
+		local guard_of = DATA.get_realm_guard_from_guard(warband)
+		if guard_of == INVALID_ID then
+			return INVALID_ID
+		end
+		return DATA.realm_guard_get_realm(guard_of)
 	end
 end
 
@@ -428,8 +430,7 @@ function warband_utils.kill_off(warband, ratio)
 	end
 
 	for i, pop in ipairs(pops_to_kill) do
-		local pop_province = DATA.get_pop_location_from_pop(pop)
-		province_utils.kill_pop(pop_province, pop)
+		pop_utils.kill_pop(pop)
 	end
 
 	return losses
@@ -540,6 +541,16 @@ end
 ---@return number
 function warband_utils.exploration_speed(warband)
 	return warband_utils.size(warband) * (1 - DATA.warband_get_current_free_time_ratio(warband))
+end
+
+---Unregisters a pop as a military pop.  \
+---The "fire" routine for soldiers. Also used in some other contexts?
+---@param pop pop_id
+function warband_utils.unregister_military(pop)
+	local unit_of = DATA.get_warband_unit_from_unit(pop)
+	if unit_of then
+		warband_utils.fire_unit(DATA.warband_unit_get_warband(unit_of), pop)
+	end
 end
 
 return warband_utils

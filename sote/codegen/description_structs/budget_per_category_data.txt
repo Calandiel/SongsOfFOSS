@@ -1,0 +1,4 @@
+ratio float
+budget float
+to_be_invested float
+target float

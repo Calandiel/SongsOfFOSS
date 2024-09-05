@@ -248,7 +248,7 @@ object {
 object {
     name { province }
     storage_type { contiguous }
-    size { 10000 }
+    size { 20000 }
     tag {scenario}
     property{
         name = { r }
@@ -386,6 +386,11 @@ object {
         tag = { scenario }
     }
     property{
+        name = { foragers_targets }
+        type = { base_types::forage_container }
+        tag = { scenario }
+    }
+    property{
         name = { local_resources }
         type = { base_types::resource_location }
         tag = { scenario }
@@ -440,7 +445,7 @@ object {
 object {
     name { warband }
     storage_type { contiguous }
-    size { 10000 }
+    size { 20000 }
     tag {scenario}
     property{
         name = { units_current }
@@ -735,6 +740,17 @@ object {
     storage_type { contiguous }
     size { 7 }
     tag {scenario}
+}
+object {
+    name { forage_resource }
+    storage_type { contiguous }
+    size { 10 }
+    tag {scenario}
+    property{
+        name = { handle }
+        type = { base_enums::JOBTYPE }
+        tag = { scenario }
+    }
 }
 object {
     name { trade_good }

@@ -27,12 +27,13 @@ local single_tile_cost = function(t)
 end
 
 function pro.run()
-	for _, province in pairs(WORLD.provinces) do
-		province.movement_cost = 0
-		for _, tile in pairs(province.tiles) do
-			province.movement_cost = province.movement_cost + single_tile_cost(tile)
+	DATA.for_each_province(function (province_id)
+		local fat = DATA.fatten_province(province_id)
+		fat.movement_cost = 0
+		for _, tile_member in pairs(DATA.get_tile_province_membership_from_province(province_id)) do
+			fat.movement_cost = fat.movement_cost + single_tile_cost(DATA.tile_province_membership_get_tile(tile_member))
 		end
-	end
+	end)
 end
 
 return pro

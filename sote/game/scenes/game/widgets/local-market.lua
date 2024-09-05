@@ -32,7 +32,7 @@ end
 
 ---@class ItemData
 ---@field name string
----@field tag string
+---@field item trade_good_id
 ---@field r number
 ---@field g number
 ---@field b number
@@ -171,7 +171,7 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
                 local tooltip = "Shows the diffence between buy price in your current position and sell price in selected one"
                 if WORLD.player_character then
-                    local player_province = WORLD.player_character.province
+                    local player_province = WORLD:player_province()
                     if player_province then
                         local price_at_player = ev.get_local_price(player_province, v.tag)
                         local data = 1
@@ -243,7 +243,7 @@ return function(province, ui_panel, base_unit, gam)
             header = "Buy " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character == nil then
+                if player_character == INVALID_ID then
                     return
                 end
 
@@ -276,7 +276,7 @@ return function(province, ui_panel, base_unit, gam)
             header = "Sell " .. TRADE_AMOUNT,
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character == nil then
+                if player_character == INVALID_ID then
                     return
                 end
 

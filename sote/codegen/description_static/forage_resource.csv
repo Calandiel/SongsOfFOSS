@@ -1,0 +1,9 @@
+name;description;icon;handle
+Water;water;droplets.png;JOBTYPE.HAULING
+Fruit;berries;berries-bowl.png;JOBTYPE.FORAGER
+Grain;seeds;wheat.png;JOBTYPE.FARMER
+Game;game;bison.png;JOBTYPE.HUNTING
+Fungi;mushrooms;chanterelles.png;JOBTYPE.CLERK
+Shell;shellfish;oyster.png;JOBTYPE.HAULING
+Fish;fish;salmon.png;JOBTYPE.LABOURER
+Wood;timber;pine-tree.png;JOBTYPE.ARTISAN

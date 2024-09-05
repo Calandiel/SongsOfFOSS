@@ -1,5 +1,4 @@
 local tabb = require "engine.table"
-local job_types = require "game.raws.job_types"
 
 local ui = require "engine.ui";
 local ut = require "game.ui-utils"

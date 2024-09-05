@@ -1152,7 +1152,7 @@ function re.draw(gam)
 			closure = function()
 				decisions_tab(gam, tile_id, tab_content)
 			end,
-			visible = WORLD.player_character ~= nil
+			visible = WORLD.player_character ~= INVALID_ID
 		},
 		{
 			text = "GEO",

@@ -29,7 +29,6 @@ local NOT_IN_NEGOTIATIONS = triggers.is_not_in_negotiations
 local economic_effects = require "game.raws.effects.economic"
 local character_values = require "game.raws.values.character"
 
-local TRAIT = require "game.raws.traits.generic"
 
 local function load()
 	Decision.Character:new {

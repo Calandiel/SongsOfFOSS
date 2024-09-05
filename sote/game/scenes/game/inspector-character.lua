@@ -5,8 +5,6 @@ local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
 local pv = require "game.raws.values.political"
 
-local TRAIT_ICONS = require "game.raws.traits.trait_to_icon"
-
 local trade_good = require "game.raws.raws-utils".trade_good
 
 local characters_list_widget = require "game.scenes.game.widgets.character-list"

@@ -89,13 +89,20 @@ end
 
 ---Returns popularity of a character in a given realm
 ---@param character Character?
----@param realm Realm
+---@param realm Realm?
 ---@return number
 function PoliticalValues.popularity(character, realm)
     if character == nil then
         return 0
     end
-    return character.popularity[realm] or 0
+    if realm == nil then
+        return 0
+    end
+    local popularity_link = DATA.get_popularity_from_character(character)
+    if popularity_link == INVALID_ID then
+        return 0
+    end
+    return DATA.popularity_link_get_value(popularity_link)
 end
 
 return PoliticalValues

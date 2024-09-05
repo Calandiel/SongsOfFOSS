@@ -476,7 +476,7 @@ function d.load()
 		throughput_boosts = {},
 		input_efficiency_boosts = {},
 		output_efficiency_boosts = {},
-		associated_job = job("smiths")
+		associated_job = job("blacksmiths")
 	}
 	Technology:new {
 		name = "alloys",
@@ -578,7 +578,7 @@ function d.load()
 		throughput_boosts = {},
 		input_efficiency_boosts = {},
 		output_efficiency_boosts = {},
-		associated_job = job("smiths")
+		associated_job = job("blacksmiths")
 	}
 	Technology:new {
 		name = "plate-armor",
@@ -595,7 +595,7 @@ function d.load()
 		throughput_boosts = {},
 		input_efficiency_boosts = {},
 		output_efficiency_boosts = {},
-		associated_job = job("smiths")
+		associated_job = job("blacksmiths")
 	}
 	Technology:new {
 		name = "brickmaking",

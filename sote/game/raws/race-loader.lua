@@ -51,24 +51,44 @@ function ll.load()
 			fallback = human_female_portrait
 		},
 		female_needs = {
-			{need = NEED.FOOD, use_case = WATER_USE_CASE, required = 1},
-			{need = NEED.FOOD, use_case = CALORIES_USE_CASE, required = 1}, -- 1000
-			{need = NEED.FOOD, use_case = retrieve_use_case('fruit'), required = 0.5}, --- 500
-			{need = NEED.FOOD, use_case = retrieve_use_case('meat'), required = 0.25}, --- 500
-			{need = NEED.CLOTHING, use_case = retrieve_use_case('clothes'), required = 1},
-			{need = NEED.FURNITURE, use_case = retrieve_use_case('furniture'), required = 1},
-			{need = NEED.HEALTHCARE, use_case = retrieve_use_case('healthcare'), required = 1},
-			{need = NEED.LUXURY, use_case = retrieve_use_case('liquors'), required = 1}
+			[NEED.FOOD] = {				-- ~2000 kcal
+				[retrieve_use_case('water')] = 1,
+				[retrieve_use_case('calories')] = 1,		-- 1000 kcal
+				[retrieve_use_case('fruit')] = 0.5,		--  500 kcal
+				[retrieve_use_case('meat')] = 0.25,		--  500 kcal
+			},
+			[NEED.CLOTHING] = {
+				[retrieve_use_case('clothes')] = 1,
+			},
+			[NEED.FURNITURE] = {
+				[retrieve_use_case('furniture')] = 1,
+			},
+			[NEED.HEALTHCARE] = {
+				[retrieve_use_case('healthcare')] = 1,
+			},
+			[NEED.LUXURY] = {
+				[retrieve_use_case('liquors')] = 1,
+			},
 		},
 		male_needs = {
-			{need = NEED.FOOD, use_case = WATER_USE_CASE, required = 1},
-			{need = NEED.FOOD, use_case = CALORIES_USE_CASE, required = 1}, -- 1000
-			{need = NEED.FOOD, use_case = retrieve_use_case('fruit'), required = 0.5}, --- 500
-			{need = NEED.FOOD, use_case = retrieve_use_case('meat'), required = 0.25}, --- 500
-			{need = NEED.CLOTHING, use_case = retrieve_use_case('clothes'), required = 1},
-			{need = NEED.FURNITURE, use_case = retrieve_use_case('furniture'), required = 1},
-			{need = NEED.HEALTHCARE, use_case = retrieve_use_case('healthcare'), required = 1},
-			{need = NEED.LUXURY, use_case = retrieve_use_case('liquors'), required = 1}
+			[NEED.FOOD] = {				-- ~2000 kcal
+				[retrieve_use_case('water')] = 1,
+				[retrieve_use_case('calories')] = 1,		-- 1000 kcal
+				[retrieve_use_case('fruit')] = 0.5,		--  500 kcal
+				[retrieve_use_case('meat')] = 0.25,		--  500 kcal
+			},
+			[NEED.CLOTHING] = {
+				[retrieve_use_case('clothes')] = 1,
+			},
+			[NEED.FURNITURE] = {
+				[retrieve_use_case('furniture')] = 1,
+			},
+			[NEED.HEALTHCARE] = {
+				[retrieve_use_case('healthcare')] = 1,
+			},
+			[NEED.LUXURY] = {
+				[retrieve_use_case('liquors')] = 1,
+			},
 		},
 		female_efficiency = {
 			[JOBTYPE.FARMER] = 1,

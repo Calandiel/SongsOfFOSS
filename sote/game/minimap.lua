@@ -45,9 +45,10 @@ function mm.make_minimap_image_data(game, width, height, province)
 			local character = WORLD.player_character
 			local visible = true
 
-			if character then
+			if character ~= INVALID_ID then
 				visible = false
-				if character.realm.known_provinces[tile.province(tt)] then
+				local realm = DATA.pop_get_realm(character)
+				if DATA.realm_get_known_provinces(realm)[tile.province(tt)] then
 					visible = true
 				end
 			end

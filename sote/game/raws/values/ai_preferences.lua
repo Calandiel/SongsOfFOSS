@@ -1,6 +1,5 @@
 local tabb = require "engine.table"
 
-local TRAIT = require "game.raws.traits.generic"
 local trade_good = require "game.raws.raws-utils".trade_good
 local use_case = require "game.raws.raws-utils".trade_good_use_case
 

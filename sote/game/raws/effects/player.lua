@@ -1,8 +1,7 @@
 local effects = {}
 
 function effects.to_observer()
-    WORLD.player_character = nil
-    WORLD.player_province = nil
+    WORLD.player_character = INVALID_ID
 end
 
 
@@ -10,7 +9,6 @@ end
 ---@param character Character
 function effects.take_control(character)
     WORLD.player_character = character
-    WORLD.player_province = character.province
 end
 
 return effects

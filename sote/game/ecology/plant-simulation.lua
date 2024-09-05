@@ -39,7 +39,7 @@ KILL = {} --grass_kill
 function gen.run()
 	print("Running plant generation...")
 	-- Loop over all land tiles (there's also iter_all and iter_water)
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		-- Do cool things here!
 
 		-- "iter" refers to the ID of the tile, retrieved from the iterator over all land tiles
@@ -574,7 +574,7 @@ function gen.run()
 		AERATION_LOSS[tile] = 2 - sand_aeration_loss - silt_aeration_loss - clay_aeration_loss
 		SOIL_AERATION[tile] = soil_organic_aeration_factor
 		--]]
-	end
+	end)
 end
 
 return gen

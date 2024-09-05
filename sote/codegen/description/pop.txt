@@ -12,8 +12,6 @@ basic_needs_satisfaction float from 0 to 1
 need_satisfaction need_satisfaction[20]
 traits TRAIT[10]
 successor pop_id
-has_trade_permits_in table<Realm,Realm>
-has_building_permits_in table<Realm,Realm>
 inventory float[trade_good]
 price_memory float[trade_good]
 forage_ratio float a number in (0, 1) interval representing a ratio of time pop spends to forage
@@ -21,7 +19,6 @@ work_ratio float a number in (0, 1) interval representing a ratio of time worker
 busy boolean
 dead boolean
 realm Realm Represents the home realm of the character
-leader_of table<Realm,Realm>
 rank CHARACTER_RANK
 former_pop boolean
 dna float[20]

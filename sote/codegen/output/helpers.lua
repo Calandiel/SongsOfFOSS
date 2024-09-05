@@ -4,6 +4,13 @@ function IS_CHARACTER(pop_id)
 	return DATA.pop_get_rank(pop_id) ~= CHARACTER_RANK.POP
 end
 
+---Returns province of a pop
+---@param pop_id pop_id
+function PROVINCE(pop_id)
+	-- assume that pop has location?
+	return DATA.pop_location_get_location(DATA.get_pop_location_from_pop(pop_id))
+end
+
 --- update these values when you change description in according generator descriptors
 
 
@@ -12,6 +19,7 @@ MAX_NEED_SATISFACTION_POSITIONS_INDEX = 19
 MAX_RESOURCES_IN_PROVINCE_INDEX = 24
 MAX_REQUIREMENTS_TECHNOLOGY = 20
 MAX_REQUIREMENTS_BUILDING_TYPE = 20
+MAX_REQUIREMENTS_RESOURCE = 20
 MAX_SIZE_ARRAYS_PRODUCTION_METHOD = 8
 INVALID_ID = 0
 
@@ -20,6 +28,11 @@ INVALID_ID = 0
 ---@alias Province province_id
 ---@alias BuildingType building_type_id
 ---@alias Technology technology_id
+---@alias Building building_id
+---@alias Race race_id
+---@alias Realm realm_id
+---@alias Warband warband_id
+---@alias Army army_id
 
 ---@type table<trade_good_id, table<use_case_id, number>>
 USE_WEIGHT = {}

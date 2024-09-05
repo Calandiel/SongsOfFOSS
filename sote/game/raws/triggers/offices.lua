@@ -1,4 +1,3 @@
-local ranks = require "game.raws.ranks.character_ranks"
 
 local triggers = {}
 

@@ -1,6 +1,5 @@
 local Decision = require "game.raws.decisions"
 local utils = require "game.raws.raws-utils"
-local TRAIT = require "game.raws.traits.generic"
 
 local function load()
 
@@ -102,8 +101,8 @@ local function load()
 
 	for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
 		Decision.Character:new {
-			name = 'recruit-' .. unit.name,
-			ui_name = "(AI) Recruit " .. unit.name,
+			name = 'recruit-' .. DATA.unit_type_get_name(unit),
+			ui_name = "(AI) Recruit " .. DATA.unit_type_get_name(unit),
 			tooltip = utils.constant_string("I will hire a new unit."),
 			sorting = 5,
 			primary_target = "none",
@@ -117,8 +116,8 @@ local function load()
 						return false
 					end
 				end
-
-				local warband = root.recruiter_for_warband
+				local recruiter = DATA.get_warband_recruiter_from_recruiter(root)
+				local warband = DATA.warband_recruiter_get_warband(recruiter)
 				if warband == nil then
 					return false
 				end
@@ -168,8 +167,8 @@ local function load()
 		}
 
 		Decision.Character:new {
-			name = 'fire-' .. unit.name,
-			ui_name = "Fire " .. unit.name,
+			name = 'fire-' .. DATA.unit_type_get_name(unit),
+			ui_name = "Fire " .. DATA.unit_type_get_name(unit),
 			tooltip = utils.constant_string("I will fire a unit."),
 			sorting = 5,
 			primary_target = "none",

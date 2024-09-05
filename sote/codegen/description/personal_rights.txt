@@ -1,0 +1,4 @@
+link many person pop
+link many realm realm
+can_trade bool=false
+can_build bool=false

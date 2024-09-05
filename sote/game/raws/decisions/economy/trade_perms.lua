@@ -1,4 +1,3 @@
-local TRAIT = require "game.raws.traits.generic"
 
 local Decision = require "game.raws.decisions"
 

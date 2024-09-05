@@ -6,8 +6,6 @@ local military_effects = require "game.raws.effects.military"
 local economic_effects = require "game.raws.effects.economic"
 local economic_values = require "game.raws.values.economical"
 
-local TRAIT = require "game.raws.traits.generic"
-local RANK = require "game.raws.ranks.character_ranks"
 
 return function ()
 	local base_gift_size = 20

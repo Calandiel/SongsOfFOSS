@@ -4,7 +4,7 @@ local dbg = {}
 
 
 function dbg.coastlines()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		if DATA.tile_get_is_land(tile_id) then
 			if tile.is_coast(tile_id) then
 				tile.set_real_color(tile_id,1, 1, 1)
@@ -14,19 +14,19 @@ function dbg.coastlines()
 		else
 			tile.set_real_color(tile_id,0, 0, 1)
 		end
-	end
+	end)
 end
 
 function dbg.yellow()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		tile.set_real_color(tile_id,1, 1, 0)
-	end
+	end)
 end
 
 function dbg.selected_tile(clicked_tile_id)
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		tile.set_real_color(tile_id,0.2, 0.2, 0.2)
-	end
+	end)
 
 	local clicked = clicked_tile_id
 	if clicked then
@@ -61,15 +61,15 @@ function dbg.selected_tile(clicked_tile_id)
 end
 
 function dbg.debug_color()
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		-- tile.set_real_color(tile_id,tile.debug_r, tile.debug_g, tile.debug_b)
 		local prov = tile.province(tile_id)
-		if prov.on_a_river then
+		if DATA.province_get_on_a_river(prov) then
 			tile.set_real_color(tile_id,1, 1, 1)
 		else
 			tile.set_real_color(tile_id,0, 0, 0)
 		end
-	end
+	end)
 end
 
 return dbg

@@ -1,0 +1,4 @@
+output_good trade_good
+output_value float
+amount float
+forage FORAGE_RESOURCE

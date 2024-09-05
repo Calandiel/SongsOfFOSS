@@ -126,6 +126,9 @@ local tabb = require "engine.table"
 local political = require "game.map-modes.political"
 local mmut = require "game.map-modes.utils"
 
+local realm_utils = require "game.entities.realm".Realm
+local province_utils = require "game.entities.province".Province
+
 local plate_gen = require "game.world-gen.plate-gen"
 
 
@@ -178,6 +181,22 @@ local tile_inspectors = {
 
 gam.selected = {}
 
+local function is_known(province)
+	local player_character = WORLD.player_character
+	if player_character == INVALID_ID then
+		return true
+	end
+	local can_set = true
+	local realm = DATA.pop_get_realm(player_character)
+	if realm ~= INVALID_ID then
+		can_set = false
+		if DATA.realm_get_known_provinces(realm)[province] then
+			can_set = true
+		end
+	end
+	return can_set
+end
+
 ---Called when a tile is clicked.
 function gam.on_tile_click()
 	local tile_id = gam.clicked_tile_id
@@ -222,7 +241,7 @@ function gam.on_tile_click()
 			print("Climate Cell")
 			tab.print(climate_cell)
 
-			local la, lo = tile:latlon()
+			local la, lo = tile.latlon(tile_id)
 			print(la, lo)
 			local utt = require "game.climate.utils"
 			local x, y = utt.get_x_y(climate_cell.cell_id)
@@ -235,8 +254,9 @@ function gam.on_tile_click()
 				print("Biome:", nil)
 			end
 
-			if tile.province(tile_id) then
-				print("Foragers limit: ", tile.province(tile_id).foragers_limit)
+			local province = tile.province(tile_id)
+			if province ~= INVALID_ID then
+				print("Foragers limit: ", DATA.province_get_foragers_limit(province))
 			end
 		end
 
@@ -530,6 +550,7 @@ function gam.handle_camera_controls()
 
 		CACHED_CAMERA_POSITION = gam.camera_position
 		if ui.is_mouse_held(2) then
+			---@type number
 			local len = gam.camera_position:len()
 
 			rotation_up = (mouse_y - gam.locked_screen_y) / screen_y * len * len / 2
@@ -771,9 +792,9 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("player_tile") then
 		local character = WORLD.player_character
 		if character then
-			local province = WORLD.player_character.province
-			if province then
-				gam.planet_shader:send('player_tile', province.center - 1)
+			local province = PROVINCE(WORLD.player_character)
+			if province ~= INVALID_ID then
+				gam.planet_shader:send('player_tile', DATA.province_get_center(province) - 1)
 			end
 		else
 			gam.planet_shader:send('player_tile', 0)
@@ -906,18 +927,23 @@ function gam.draw()
 
 			local province_visible = true
 			local character = WORLD.player_character
-			if character and character.realm then
-				province_visible = false
-				if character.realm.known_provinces[tile.province(tile_id)] then
-					province_visible = true
+			if character ~= INVALID_ID then
+				local province = PROVINCE(character)
+				if province ~= INVALID_ID then
+					local realm = DATA.pop_get_realm(character)
+					province_visible = false
+					if DATA.realm_get_known_provinces(realm)[tile.province(tile_id)] then
+						province_visible = true
+					end
 				end
 			end
 			if (DATA.tile_get_is_land(tile_id) and province_visible) then
 				rect_for_icons.x = x - size / 2
 				rect_for_icons.y = y - size / 2
 				local res = DATA.tile_get_resource(tile_id)
-				if res then
-					ui.image(ASSETS.get_icon(res.icon), rect_for_icons)
+				if res ~= INVALID_ID then
+					local icon = DATA.resource_get_icon(res)
+					ui.image(ASSETS.get_icon(icon), rect_for_icons)
 				end
 			end
 
@@ -929,8 +955,8 @@ function gam.draw()
 		---@type Queue<Province>
 		local qq = require "engine.queue":new()
 		local to_draw = flood_fill
-		local center_tile = WORLD.tiles
-			[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+		local world_id = tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)
+		local center_tile = WORLD.tile_from_world_id[world_id]
 		local prov = tile.province(center_tile)
 		visited[prov] = prov
 		qq:enqueue(prov)
@@ -938,17 +964,22 @@ function gam.draw()
 			to_draw = to_draw - 1
 			local td = qq:dequeue()
 
-			for _, data in ipairs(td.local_resources_location) do
-				draw_tile(data[1])
+			for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+				local res = DATA.province_get_local_resources_resource(td, i)
+				if res == INVALID_ID then
+					break
+				end
+				draw_tile(DATA.province_get_local_resources_location(td, i))
 			end
 
-			for _, n in pairs(td.neighbors) do
+			DATA.for_each_province_neighborhood_from_origin(td, function (neighborhood)
+				local n = DATA.province_neighborhood_get_target(neighborhood)
 				if visited[n] then
 				else
 					visited[n] = n
 					qq:enqueue(n)
 				end
-			end
+			end)
 		end
 	end
 
@@ -959,19 +990,13 @@ function gam.draw()
 		---@param mode 'path' | 'label' | 'decision' | 'macrobuilder'
 		local function draw_province(province, mode)
 			-- sanity checks
-			local visibility = true
-			if WORLD.player_character then
-				visibility = false
-				if WORLD.player_character.realm.known_provinces[province] then
-					visibility = true
-				end
-			end
+			local visibility = is_known(province)
 
 			if not visibility then
 				return
 			end
 
-			local center = province.center
+			local center = DATA.province_get_center(province)
 
 			-- if not province.realm then
 			-- 	return
@@ -1017,7 +1042,7 @@ function gam.draw()
 				local hours, path = decision.path(player, province)
 
 				if path then
-					table.insert(path, player.province)
+					table.insert(path, WORLD:player_province())
 					result = require "game.scenes.game.widgets.onmap.path" (gam, rect_for_icons, hours, path, tile_to_x_y)
 				end
 			end
@@ -1045,17 +1070,17 @@ function gam.draw()
 		if gam.inspector == 'macrodecision' then
 			local character = WORLD.player_character
 			if character then
-				for _, province in pairs(character.realm.known_provinces) do
+				for _, province in pairs(DATA.realm_get_known_provinces(WORLD:player_realm())) do
 					draw_province(province, 'path')
 				end
-				for _, province in pairs(character.realm.known_provinces) do
+				for _, province in pairs(DATA.realm_get_known_provinces(WORLD:player_realm())) do
 					draw_province(province, 'decision')
 				end
 			end
 		elseif gam.inspector == 'macrobuilder' then
 			local character = WORLD.player_character
 			if character then
-				for _, province in pairs(character.realm.known_provinces) do
+				for _, province in pairs(DATA.realm_get_known_provinces(WORLD:player_realm())) do
 					draw_province(province, 'macrobuilder')
 				end
 			end
@@ -1068,8 +1093,8 @@ function gam.draw()
 			---@type Queue<Province>
 			local qq = require "engine.queue":new()
 			local to_draw = flood_fill
-			local center_tile = WORLD.tiles
-				[tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)]
+			local index = tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)
+			local center_tile = WORLD.tile_from_world_id[index]
 
 			local prov = tile.province(center_tile)
 			visited[prov] = prov
@@ -1078,7 +1103,7 @@ function gam.draw()
 				to_draw = to_draw - 1
 				local td = qq:dequeue()
 
-				local x, y, z = tile_to_x_y(td.center)
+				local x, y, z = tile_to_x_y(DATA.province_get_center(td))
 
 				rect_for_icons.x = x - size / 2
 				rect_for_icons.y = y - size / 2
@@ -1086,34 +1111,30 @@ function gam.draw()
 				rect_for_icons.height = size
 				--
 				table.insert(provinces_to_draw, td)
-				for _, n in pairs(td.neighbors) do
+				DATA.for_each_province_neighborhood_from_origin(td, function (neighborhood)
+					local n = DATA.province_neighborhood_get_target(neighborhood)
 					if visited[n] then
 					else
 						visited[n] = n
 						qq:enqueue(n)
 					end
-				end
+				end)
 			end
 
 			table.sort(provinces_to_draw, function(a, b)
-				local x1, y1, z1 = tile_to_x_y(a.center)
-				local x2, y2, z2 = tile_to_x_y(b.center)
+				local x1, y1, z1 = tile_to_x_y(DATA.province_get_center(a))
+				local x2, y2, z2 = tile_to_x_y(DATA.province_get_center(b))
 				return (z2 - z1) > 0
 			end)
 
 			for _, province in ipairs(provinces_to_draw) do
 				-- draw an icon on map
-				local tile_id = province.center
+				local tile_id = DATA.province_get_center(province)
 
-				local visibility = true
-				if WORLD.player_character then
-					visibility = false
-					if WORLD.player_character.realm.known_provinces[province] then
-						visibility = true
-					end
-				end
+				local visibility = is_known(province)
+				local realm = province_utils.realm(province)
 
-				if province.realm and visibility then
+				if realm ~= INVALID_ID and visibility then
 					-- get screen coordinates
 					local x, y, z = tile_to_x_y(tile_id)
 					rect_for_icons.x = x - size / 2
@@ -1171,7 +1192,7 @@ function gam.draw()
 
 
 	-- Draw notifications
-	if WORLD.player_character ~= nil then
+	if WORLD.player_character ~= INVALID_ID then
 		if gam.outliner then
 			-- "Mask" the mouse interaction
 			local notif_panel = fs:subrect(0, ut.BASE_HEIGHT, ut.BASE_HEIGHT * 17, ut.BASE_HEIGHT * 9, "right", 'up')
@@ -1359,7 +1380,7 @@ function gam.draw()
 
 	local tile_data_viewable = true
 	if gam.clicked_tile_id then
-		if WORLD.player_character ~= nil then
+		if WORLD.player_character ~= INVALID_ID then
 			local realm = WORLD.player_character.realm
 			local current_pro = WORLD.player_character.province
 			local pro = tile.province(gam.clicked_tile_id)
@@ -1486,10 +1507,10 @@ function gam.draw()
 
 	-- DRAWING AN ARROW TOWARD PLAYERS PROVINCE
 	local player = WORLD.player_character
-	if player and gam.inspector == nil then
-		local province = player.province
-		if province then
-			local center = province.center
+	if player ~= INVALID_ID and gam.inspector == nil then
+		local province = WORLD:player_province()
+		if province ~= INVALID_ID then
+			local center = DATA.province_get_center(province)
 			local lat, lon = tile.latlon(center)
 			local x, y, z = require "game.latlon".lat_lon_to_cart(lat, lon)
 			local target = cpml.vec3.new(x, y, z)
@@ -1689,6 +1710,9 @@ local function neighbor_neighbor_data(tile_id)
 	return r, g, b, a
 end
 
+local realm_filter(tile_id)
+
+end
 
 ---Returns 0 if both tiles are owned by same unique overlord and 1 otherwise
 ---@param tile1 tile_id
@@ -1709,8 +1733,8 @@ local function same_realm_test(tile1, tile2)
 		return 1
 	end
 
-	local overlords_1 = realm_1:get_top_realm()
-	local overlords_2 = realm_2:get_top_realm()
+	local overlords_1 = realm_utils.get_top_realm(realm_1)
+	local overlords_2 = realm_utils.get_top_realm(realm_2)
 
 	if tabb.size(overlords_1) ~= tabb.size(overlords_2) then
 		return 1
@@ -1804,16 +1828,17 @@ function gam.recalculate_province_map()
 	---@type number[]
 	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_provinces_data:getFFIPointer())
 
-	for _, tile_id in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		local x, y = gam.tile_id_to_color_coords(tile_id)
 		local pixel_index = x + y * dim
 
 		local prov = tile.province(tile_id)
+		local fat_prov = DATA.fatten_province(prov)
 
 		if prov then
-			pointer[pixel_index * 4 + 0] = 255 * prov.r
-			pointer[pixel_index * 4 + 1] = 255 * prov.g
-			pointer[pixel_index * 4 + 2] = 255 * prov.b
+			pointer[pixel_index * 4 + 0] = 255 * fat_prov.r
+			pointer[pixel_index * 4 + 1] = 255 * fat_prov.g
+			pointer[pixel_index * 4 + 2] = 255 * fat_prov.b
 			pointer[pixel_index * 4 + 3] = 255 * 1
 		end
 
@@ -1830,7 +1855,7 @@ function gam.recalculate_province_map()
 		pointer_neigbours[pixel_index * 4 + 1] = 255 * g
 		pointer_neigbours[pixel_index * 4 + 2] = 255 * b
 		pointer_neigbours[pixel_index * 4 + 3] = 255 * a
-	end
+	end)
 
 	gam.tile_province_texture = love.graphics.newImage(gam.tile_province_image_data, {
 		mipmaps = false,
@@ -1860,6 +1885,36 @@ local function get_pair_index(embedding)
 	end
 end
 
+local function get_pair_shift_from_index(index)
+	if index == 1 then
+		return 1, 1
+	end
+	if index == 2 then
+		return 1, -1
+	end
+	if index == 3 then
+		return -1, -1
+	end
+	if index == 4 then
+		return -1, 1
+	end
+end
+
+local function get_pair_from_index(index)
+	if index == 1 then
+		return {1, 3}
+	end
+	if index == 2 then
+		return {3, 2}
+	end
+	if index == 3 then
+		return {2, 4}
+	end
+	if index == 4 then
+		return {4, 1}
+	end
+end
+
 --- Takes scalar field on tiles and turns it into love.Image
 --- which stores average values of a provided function on corners of tile in according channels
 ---@param data_function TileForm
@@ -1879,7 +1934,9 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 	end
 
 	if provinces_to_update == nil then
-		provinces_to_update = WORLD.provinces
+		provinces_to_update = DATA.filter_province(function (item)
+			return true
+		end)
 	end
 
 	local data = gam.DATA_CACHE[data_id]
@@ -1898,9 +1955,13 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 	if TILE_FRIENDS == nil then
 		TILE_FRIENDS = {}
 	end
-
+	local fast_tiles = 0
+	local slow_tiles = 0
+	local slow_time = 0
+	local fast_time = 0
 	for _, province in pairs(provinces_to_update) do
-		for _, tile_id in pairs(province.tiles) do
+		DATA.for_each_tile_province_membership_from_province(province, function (tile_membership)
+			local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
 			local current_tile_data = {0, 0, 0, 0}
 			local x, y = gam.tile_id_to_color_coords(tile_id)
 			local pixel_index = x + y * dim
@@ -1926,18 +1987,60 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 			end
 
 			do
+				TILE_FRIENDS[tile_id] = {{}, {}, {}, {}}
+
+				--- if tile belongs to interior, there is a very simple way to calculate friends:
+				local x_current, y_current, f = tile.index_to_coords(tile_id)
+				if
+					x_current > 0
+					and y_current > 0
+					and x_current < WORLD.world_size - 1
+					and y_current < WORLD.world_size - 1
+				then
+					fast_tiles = fast_tiles + 1
+					local now = love.timer.getTime()
+					for pair_index = 1, 4 do
+						local x_shift, y_shift = get_pair_shift_from_index(pair_index)
+
+						local x_corner = x_current + x_shift
+						local y_corner = y_current + y_shift
+
+						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_id)
+						local tile_1 = tile.coords_to_index(x_corner, y_current, f)
+						local tile_2 = tile.coords_to_index(x_current, y_corner, f)
+						local tile_corner = tile.coords_to_index(x_corner, y_corner, f)
+
+						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_1)
+						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_2)
+						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_corner)
+
+						local csum = 0
+						local count = 4
+
+						csum = csum + data_function(tile_id, tile_id)
+						csum = csum + data_function(tile_id, tile_1) * direct_neigbours_weight
+						csum = csum + data_function(tile_id, tile_2) * direct_neigbours_weight
+						csum = csum + data_function(tile_id, tile_corner) * secondary_neighbour_weight
+						count = count + 1
+
+						current_tile_data[pair_index] = csum / count
+					end
+					fast_time = fast_time + love.timer.getTime() - now
+					goto save_data_to_texture_data
+				end
+
+				local now = love.timer.getTime()
+
 				local neighbours = {
 					tile.get_neighbor(tile_id, 1),
 					tile.get_neighbor(tile_id, 2),
 					tile.get_neighbor(tile_id, 3),
 					tile.get_neighbor(tile_id, 4)
 				}
-
-				TILE_FRIENDS[tile_id] = {{}, {}, {}, {}}
-
 				local corner_flag = false
 				local corner_pair = {0, 0, 0, 0}
 
+				slow_tiles = slow_tiles + 1
 				for n_index, neighbour in ipairs(neighbours) do
 					for neighbour_of_neighour in tile.iter_neighbors(neighbour) do
 						if neighbour_of_neighour == tile_id then
@@ -1992,6 +2095,8 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 					end
 					current_tile_data[pair_index] = current_tile_data[pair_index] / 3
 				end
+
+				slow_time = slow_time + love.timer.getTime() - now
 			end
 
 			::save_data_to_texture_data::
@@ -2000,9 +2105,11 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 			pointer[pixel_index * 4 + 1] = 255 * current_tile_data[2]
 			pointer[pixel_index * 4 + 2] = 255 * current_tile_data[3]
 			pointer[pixel_index * 4 + 3] = 255 * current_tile_data[4]
-		end
-
+		end)
 	end
+
+	print("slow tiles: ", slow_tiles, slow_time, slow_time / slow_tiles)
+	print("fast tiles: ", fast_tiles, fast_time, fast_time / fast_tiles)
 
 
 	gam.DATA_TEXTURES_CACHE[data_id] =
@@ -2033,7 +2140,13 @@ function gam.recalculate_realm_map(update_all)
 	---@type number[]
 	local pointer_neigbours = require("ffi").cast("uint8_t*", gam.tile_neighbor_realm_data:getFFIPointer())
 
-	local provinces_to_update = WORLD.provinces
+	---@type province_id[]
+	local provinces_to_update = {}
+
+	DATA.for_each_province(function (item)
+		provinces_to_update[item] = item
+	end)
+
 	if update_all then
 		print("UPDATING ALL REALM BORDERS")
 	else
@@ -2043,17 +2156,19 @@ function gam.recalculate_realm_map(update_all)
 
 	-- clear cached values
 	for _, province in pairs(provinces_to_update) do
-		for _, tile_id in pairs(province.tiles) do
+		DATA.for_each_tile_province_membership_from_province(province, function (tile_membership)
+			local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
 			if gam.BORDER_TILES_CACHE[tile_id] == nil then
 				goto continue
 			end
 			gam.REALMS_NEIGBOURS_TEST_CACHE[tile_id] = nil
 			::continue::
-		end
+		end)
 	end
 
 	for _, province in pairs(provinces_to_update) do
-		for _, tile_id in pairs(province.tiles) do
+		DATA.for_each_tile_province_membership_from_province(province, function (tile_membership)
+			local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
 			if gam.BORDER_TILES_CACHE[tile_id] == nil then
 				goto continue
 			end
@@ -2072,7 +2187,7 @@ function gam.recalculate_realm_map(update_all)
 			pointer_neigbours[pixel_index * 4 + 3] = 255 * a2
 
 			::continue::
-		end
+		end)
 	end
 
 	gam.tile_neighbor_realm_texture = love.graphics.newImage(gam.tile_neighbor_realm_data, {
@@ -2151,14 +2266,15 @@ function gam._recalculate_province_texture()
 	local id_g = 0
 	local id_b = 0
 
-	for _, province in ipairs(WORLD.ordered_provinces_list) do
-		for _, tile_id in pairs(province.tiles) do
+	DATA.for_each_province(function (province)
+		DATA.for_each_tile_province_membership_from_province(province, function (tile_member)
+			local tile_id = DATA.tile_province_membership_get_tile(tile_member)
 			local x, y = gam.tile_id_to_color_coords(tile_id)
 			local pixel_index = x + y * dim
 			pointer_province_id[pixel_index * 4 + 0] = id_r
 			pointer_province_id[pixel_index * 4 + 1] = id_g
 			pointer_province_id[pixel_index * 4 + 2] = id_b
-		end
+		end)
 		id_r = id_r + 1
 		if id_r == 256 then
 			id_r = 0
@@ -2167,7 +2283,7 @@ function gam._recalculate_province_texture()
 				error("Too many provinces! The renderer cannot support this!")
 			end
 		end
-	end
+	end)
 
 	gam.tile_province_id_texture = love.graphics.newImage(gam.tile_province_id_data)
 	gam.tile_province_id_texture:setFilter("nearest", "nearest")
@@ -2231,22 +2347,15 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 		local id = 0
 
 		print("update texture data")
-		for _, province in ipairs(WORLD.ordered_provinces_list) do
-			local can_set = true
-			local player_character = WORLD.player_character
-			if player_character and player_character.realm then
-				can_set = false
-				if player_character.realm.known_provinces[province] then
-					can_set = true
-				end
-			end
+		DATA.for_each_province(function (province)
+			local can_set = is_known(province)
 
 			gam.map_update_progress = gam.map_update_progress + 1
 			if async_flag and gam.map_update_progress % 100 == 0 then
 				coroutine.yield(false)
 			end
 
-			local current_tile = province.center
+			local current_tile = DATA.province_get_center(province)
 
 			if can_set or gam.map_mode_data[gam.map_mode][6] == mmut.MAP_MODE_UPDATES_TYPE.STATIC then
 				pointer_province_color[id * 4 + 0] = 255 * DATA.tile_get_real_r(current_tile)
@@ -2261,7 +2370,7 @@ function gam._refresh_provincial_map_mode(use_secondary, async_flag)
 			end
 
 			id = id + 1
-		end
+		end)
 
 		print("generate texture from data")
 		gam.province_color_texture = love.graphics.newImage(gam.province_color_data)
@@ -2336,17 +2445,10 @@ function gam._refresh_map_mode(async_flag)
 
 		-- Apply the color
 
-		for _, province in pairs(WORLD.provinces) do
+		DATA.for_each_province(function (province)
 			-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
-			local can_set = true
-			local player_character = WORLD.player_character
-			if player_character and player_character.realm then
-				can_set = false
-				if player_character.realm.known_provinces[province] then
-					can_set = true
-				end
-			end
-			for _, tile_id in pairs(province.tiles) do
+			local can_set = is_known(province)
+			DATA.for_each_tile_province_membership_from_province(province, function (tile_id)
 				gam.map_update_progress = gam.map_update_progress + 1
 
 				if async_flag and gam.map_update_progress % 1000 == 0 then
@@ -2374,8 +2476,8 @@ function gam._refresh_map_mode(async_flag)
 					--pointer_tile_color[pixel_index * 4 + 2] = 255 * 0.15
 					--pointer_tile_color[pixel_index * 4 + 3] = 255 * 0
 				end
-			end
-		end
+			end)
+		end)
 		-- Update the texture
 		gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 		gam.tile_color_texture:setFilter("nearest", "nearest")
@@ -2412,15 +2514,8 @@ function gam._refresh_fog_of_war(async_flag)
 
 	do
 		local id = 0
-		for _, province in ipairs(WORLD.ordered_provinces_list) do
-			local can_set = true
-			local player_character = WORLD.player_character
-			if player_character and player_character.realm then
-				can_set = false
-				if player_character.realm.known_provinces[province] then
-					can_set = true
-				end
-			end
+		DATA.for_each_province(function (province)
+			local can_set = is_known(province)
 
 			gam.map_update_progress = gam.map_update_progress + 1
 			if async_flag then
@@ -2434,7 +2529,7 @@ function gam._refresh_fog_of_war(async_flag)
 			end
 
 			id = id + 1
-		end
+		end)
 
 		print("generate texture from data")
 		gam.fog_of_war_texture = love.graphics.newImage(gam.fog_of_war_data)

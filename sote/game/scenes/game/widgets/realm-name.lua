@@ -19,7 +19,7 @@ local function realm_name(gam, realm,  rect, mode)
     local function press()
         gam.inspector = "realm"
         gam.selected.realm = realm
-        local capitol = realm.capitol.center
+        local capitol = DATA.province_get_center(DATA.realm_get_capitol(realm))
         gam.click_tile(capitol)
     end
 
@@ -37,7 +37,7 @@ local function realm_name(gam, realm,  rect, mode)
 
     local name_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height, "left", "up")
 
-    if ut.text_button(realm.name, name_rect) then
+    if ut.text_button(DATA.realm_get_name(realm), name_rect) then
         if mode == "immediate" then
             press()
             return true

@@ -11,7 +11,6 @@ center tile_id The tile which contains this province's settlement, if there is a
 infrastructure_needed float
 infrastructure float
 infrastructure_investment float
-realm Realm?
 technologies_present uint8_t[technology]
 technologies_researchable uint8_t[technology]
 buildable_buildings uint8_t[building_type]
@@ -27,7 +26,7 @@ local_building_upkeep float
 foragers float Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 foragers_water float amount foraged by pops and characters
 foragers_limit float amount of calories foraged by pops and characters
-foragers_targets table<ForageResource,{icon:string,output:table<trade_good_id,number>,amount:number,handle:JOBTYPE}>
+foragers_targets forage_container[25]
 local_resources resource_location[25] An array of local resources and their positions
 mood float how local population thinks about the state
 unit_types uint8_t[unit_type]

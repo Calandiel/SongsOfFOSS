@@ -4,8 +4,9 @@ local tile = require "game.entities.tile"
 local ge = {}
 
 function ge.run()
-	for _, tile_id in pairs(WORLD.tiles) do
-		for _, res in pairs(RAWS_MANAGER.resources_by_name) do
+	DATA.for_each_tile(function (tile_id)
+		for _, res_id in pairs(RAWS_MANAGER.resources_by_name) do
+			local res = DATA.fatten_resource(res_id)
 			if DATA.tile_get_is_land(tile_id) then
 				if not res.land then
 					goto NEXT
@@ -18,13 +19,38 @@ function ge.run()
 			if res.coastal and not tile.is_coast(tile_id) then
 				goto NEXT
 			end
-			if tabb.size(res.required_bedrock) > 0 then
-				if not tabb.contains(res.required_bedrock, DATA.tile_get_bedrock(tile_id)) then
+			do
+				local ok = true
+				for i = 0, MAX_REQUIREMENTS_RESOURCE - 1 do
+					local requirement = DATA.resource_get_required_bedrock(res_id, i)
+					if requirement == INVALID_ID then
+						break
+					end
+					ok = false
+					if requirement == DATA.tile_get_bedrock(tile_id) then
+						ok = true
+						break
+					end
+				end
+				if not ok then
 					goto NEXT
 				end
 			end
-			if tabb.size(res.required_biome) > 0 then
-				if not tabb.contains(res.required_biome, DATA.tile_get_biome(tile_id)) then
+
+			do
+				local ok = true
+				for i = 0, MAX_REQUIREMENTS_RESOURCE - 1 do
+					local requirement = DATA.resource_get_required_biome(res_id, i)
+					if requirement == INVALID_ID then
+						break
+					end
+					ok = false
+					if requirement == DATA.tile_get_biome(tile_id) then
+						ok = true
+						break
+					end
+				end
+				if not ok then
 					goto NEXT
 				end
 			end
@@ -50,26 +76,29 @@ function ge.run()
 			--
 			local chance = 1.0 / res.base_frequency
 			if love.math.random() < chance then
-				DATA.tile_set_resource(tile_id, res);
+				DATA.tile_set_resource(tile_id, res_id);
 				break
 			end
 			::NEXT::
 		end
-	end
+	end)
 	-- Write resources back on tiles for faster querying
-	for _, province in pairs(WORLD.provinces) do
-		for _, tile_id in pairs(province.tiles) do
-			local resource = DATA.tile_get_resource(tile_id)
-			if resource then
-				province.local_resources[resource] = resource
-				table.insert(province.local_resources_location,
-					{
-						tile_id, resource
-					}
-				)
+	DATA.for_each_province(function (province)
+		for _, tile_membership_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
+			local tile_id = DATA.tile_province_membership_get_tile(tile_membership_id)
+			local res = DATA.tile_get_resource(tile_id)
+			if res ~= INVALID_ID then
+				-- add resource to province
+				for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+					local ith_resource = DATA.province_get_local_resources_resource(province, i)
+					if ith_resource == INVALID_ID then
+						DATA.province_set_local_resources_location(province, i, tile_id)
+						DATA.province_set_local_resources_resource(province, i, res)
+					end
+				end
 			end
 		end
-	end
+	end)
 end
 
 return ge

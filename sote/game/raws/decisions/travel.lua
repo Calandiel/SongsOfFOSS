@@ -3,8 +3,6 @@ local tabb = require "engine.table"
 local pathfinding = require "game.ai.pathfinding"
 local Decision = require "game.raws.decisions"
 
-local TRAIT = require "game.raws.traits.generic"
-local RANK = require "game.raws.ranks.character_ranks"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 

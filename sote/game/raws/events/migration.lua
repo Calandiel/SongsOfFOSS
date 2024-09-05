@@ -7,10 +7,8 @@ local realm             = require "game.entities.realm"
 local Event             = require "game.raws.events"
 local event_utils       = require "game.raws.events._utils"
 
-local character_ranks   = require "game.raws.ranks.character_ranks"
 
 local AI_VALUE          = require "game.raws.values.ai_preferences"
-local TRAIT             = require "game.raws.traits.generic"
 
 local pv                = require "game.raws.values.political"
 local diplomacy_events  = require "game.raws.effects.diplomacy"

@@ -11,9 +11,7 @@ local economy_triggers = require "game.raws.triggers.economy"
 local localisation = require "game.raws.events._localisation"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
-local RANK = require "game.raws.ranks.character_ranks"
 
-local TRAIT = require "game.raws.traits.generic"
 
 local function negotiation_options(self, character, associated_data)
 	---@type NegotiationData
