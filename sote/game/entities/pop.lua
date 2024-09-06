@@ -7,11 +7,8 @@ rtab.POP = {}
 ---@param culture Culture
 ---@param female boolean
 ---@param age number
----@param home province_id
----@param location province_id
----@param character_flag boolean?
 ---@return pop_id
-function rtab.POP.new(race, faith, culture, female, age, home, location, character_flag)
+function rtab.POP.new(race, faith, culture, female, age)
 	local r = DATA.fatten_pop(DATA.create_pop())
 
 	r.race = race
@@ -21,15 +18,6 @@ function rtab.POP.new(race, faith, culture, female, age, home, location, charact
 	r.age = age
 
 	r.name = culture.language:get_random_name()
-
-	rtab.POP.set_home(home, r.id)
-
-	if character_flag then
-		rtab.POP.add_character(location, r.id)
-	else
-		rtab.POP.add_guest_pop(location, r.id)
-	end
-
 	r.busy                     = false
 
 	local total_consumed, total_demanded = 0, 0

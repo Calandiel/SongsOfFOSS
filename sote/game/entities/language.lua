@@ -16,7 +16,7 @@ local MIN_S = 2
 local SAMPLES_ending_province = 10
 local SAMPLES_ending_realm = 10
 local SAMPLES_ending_adj = 5
-local SAMPLES_ranks = 2
+local SAMPLES_ranks = 5
 
 -- sort phonemes by frequency; ie. common phonemes first, then rarer ones
 local VOWELS = {

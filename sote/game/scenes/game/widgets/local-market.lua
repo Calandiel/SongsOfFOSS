@@ -65,7 +65,7 @@ return function(province, ui_panel, base_unit, gam)
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.tag
+                return v.item
             end
         },
         {
@@ -173,7 +173,7 @@ return function(province, ui_panel, base_unit, gam)
                 if WORLD.player_character then
                     local player_province = WORLD:player_province()
                     if player_province then
-                        local price_at_player = ev.get_local_price(player_province, v.tag)
+                        local price_at_player = ev.get_local_price(player_province, v.item)
                         local data = 1
                         if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 0
@@ -203,9 +203,9 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
 
                 if WORLD.player_character then
-                    local local_province = WORLD.player_character.province
-                    if local_province then
-                        local price_at_player = ev.get_local_price(local_province, v.tag)
+                    local local_province = WORLD:player_province()
+                    if local_province ~= INVALID_ID then
+                        local price_at_player = ev.get_local_price(local_province, v.item)
                         local data = 1
                         if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 1
@@ -250,13 +250,14 @@ return function(province, ui_panel, base_unit, gam)
                 ---@type string
                 local tooltip = "Buy " .. tostring(TRADE_AMOUNT) .. ". \n"
 
-                local valid_province = player_character.province == province
+                local valid_province = WORLD:player_province() == province
                 if not valid_province then
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
                 local can_buy, reasons = et.can_buy(player_character, v.tag, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
+                    ---@type string
                     tooltip = tooltip .. reason .. "\n"
                 end
 
@@ -268,7 +269,7 @@ return function(province, ui_panel, base_unit, gam)
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.tag
+                return v.item
             end,
             active = true
         },
@@ -283,13 +284,14 @@ return function(province, ui_panel, base_unit, gam)
                 ---@type string
                 local tooltip = "Sell " .. tostring(TRADE_AMOUNT) .. ". \n"
 
-                local valid_province = player_character.province == province
+                local valid_province = WORLD:player_province() == province
                 if not valid_province then
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
                 local can_buy, reasons = et.can_sell(player_character, v.tag, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
+                    ---@type string
                     tooltip = tooltip .. reason .. "\n"
                 end
 
@@ -301,7 +303,7 @@ return function(province, ui_panel, base_unit, gam)
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.tag
+                return v.item
             end,
             active = true
         },
@@ -326,7 +328,7 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
 
                 if ut.icon_button(ASSETS.icons['mesh-ball.png'], rect, "Show price on map") then
-                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.tag
+                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.item
                     gam.update_map_mode("prices")
                 end
             end,
@@ -348,10 +350,6 @@ return function(province, ui_panel, base_unit, gam)
         ---@type table<string, ItemData>
         local data_blob = {}
 
-        local consumption = province.local_consumption
-        local production = province.local_production
-        local demand = province.local_demand
-
         local character = WORLD.player_character
 
         if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
@@ -363,22 +361,26 @@ return function(province, ui_panel, base_unit, gam)
         end
 
         for good_name, good_id in pairs(RAWS_MANAGER.trade_goods_by_name) do
-            local good_supply = production[good_id] or 0
-            local good_demand = demand[good_id] or 0
-            local good_consumption = consumption[good_id] or 0
+            local good_supply = DATA.province_get_local_production(province, good_id)
+            local good_demand = DATA.province_get_local_demand(province, good_id)
+            local good_consumption = DATA.province_get_local_consumption(province, good_id)
             local inventory = 0
             if character then
-                inventory = character.inventory[good_id] or 0
+                inventory =  DATA.pop_get_inventory(character, good_id)
             end
-            if inventory > 0 or good_supply > 0 or good_consumption > 0
-                or (province.local_storage[good_id] or 0) > 0
+            local local_storage = DATA.province_get_local_storage(province, good_id)
+            if
+                inventory > 0
+                or good_supply > 0
+                or good_consumption > 0
+                or local_storage > 0
             then
                 local good = DATA.fatten_trade_good(good_id)
                 data_blob[good_name] = {
                     data = good,
                     name = good.description,
                     icon = good.icon,
-                    tag = good.name,
+                    item = good.id,
                     r = good.r,
                     g = good.g,
                     b = good.b,
@@ -386,7 +388,7 @@ return function(province, ui_panel, base_unit, gam)
                     demand = good_demand,
                     consumption = good_consumption,
                     balance = good_supply - good_consumption,
-                    stockpile = province.local_storage[good_id] or 0,
+                    stockpile = local_storage,
                     buy_price = ev.get_local_price(province, good_id),
                     sell_price = ev.get_pessimistic_local_price(province, good_id, TRADE_AMOUNT, true),
                     inventory = inventory

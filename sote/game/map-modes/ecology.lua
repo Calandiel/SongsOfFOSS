@@ -5,7 +5,7 @@ local ec = {}
 
 function ec.carrying_capacity()
 	ut.provincial_hue_map_mode(function(prov)
-		return (prov.foragers_limit - 5) / 50
+		return (DATA.province_get_foragers_limit(prov) - 5) / 50
 	end)
 end
 

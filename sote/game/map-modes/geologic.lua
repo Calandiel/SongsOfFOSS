@@ -6,8 +6,9 @@ local tile = require "game.entities.tile"
 function geo.resources()
 	DATA.for_each_tile(function (tile_id)
 		local res = DATA.tile_get_resource(tile_id)
-		if res then
-			local r, g, b = res.r, res.g, res.b
+		if res ~= INVALID_ID then
+			local fat_res = DATA.fatten_resource(res)
+			local r, g, b = fat_res.r, fat_res.g, fat_res.b
 			tile.set_real_color(tile_id, r, g, b)
 		else
 			ut.set_default_color(tile_id)

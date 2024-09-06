@@ -30,8 +30,8 @@ function Technology:new(o)
 end
 
 ---Generates tooltip for a given technology
----@param technology any
----@return unknown
+---@param technology technology_id
+---@return string
 function Technology.get_tooltip(technology)
 	local technology_data = DATA.fatten_technology(technology)
 
@@ -169,8 +169,10 @@ function Technology.get_tooltip(technology)
 		local function build_string(production_method_id)
 			local thing = DATA.technology_get_throughput_boosts(technology, production_method_id)
 			local name = DATA.production_method_get_name(production_method_id)
-			string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
-			requires = true
+			if thing ~= 0 then
+				string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
+				requires = true
+			end
 		end
 
 		DATA.for_each_production_method(build_string)
@@ -189,8 +191,10 @@ function Technology.get_tooltip(technology)
 		local function build_string(production_method_id)
 			local thing = DATA.technology_get_input_efficiency_boosts(technology, production_method_id)
 			local name = DATA.production_method_get_name(production_method_id)
-			string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
-			requires = true
+			if thing ~= 0 then
+				string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
+				requires = true
+			end
 		end
 
 		DATA.for_each_production_method(build_string)
@@ -209,8 +213,10 @@ function Technology.get_tooltip(technology)
 		local function build_string(production_method_id)
 			local thing = DATA.technology_get_output_efficiency_boosts(technology, production_method_id)
 			local name = DATA.production_method_get_name(production_method_id)
-			string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
-			requires = true
+			if thing ~= 0 then
+				string = string .. name .. " (+" .. tostring(math.floor(100 * thing)) .. "%), "
+				requires = true
+			end
 		end
 
 		DATA.for_each_production_method(build_string)

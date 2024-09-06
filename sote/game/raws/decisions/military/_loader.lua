@@ -5,6 +5,9 @@ local utils = require "game.raws.raws-utils"
 local Decision = require "game.raws.decisions"
 local tooltiped_triggers = require "game.raws.triggers.tooltiped_triggers"
 
+local realm_utils = require "game.entities.realm".Realm
+local province_utils = require "game.entities.province".Province
+
 local military_effects = require "game.raws.effects.military"
 local military_values = require "game.raws.values.military"
 local economic_effects = require "game.raws.effects.economic"
@@ -35,18 +38,28 @@ return function ()
 		{},
 		{},
 		function(root, primary_target, secondary_target)
-			local realm = root.province.realm
-			assert(realm ~= nil, "INVALID REALM")
-			local province = root.province
-			local warband = root.leading_warband
-			if office_triggers.guard_leader(root, root.province.realm) then
-				warband = realm.capitol_guard
+			local realm = REALM(root)
+			assert(realm ~= INVALID_ID, "INVALID REALM")
+			local province = PROVINCE(root)
+			local warband_leader = DATA.get_warband_leader_from_leader(root)
+			local warband = INVALID_ID
+			if warband_leader == INVALID_ID then
+				if office_triggers.guard_leader(root, realm) then
+					local guard = DATA.get_realm_guard_from_realm(realm)
+					warband = DATA.realm_guard_get_guard(guard)
+				end
+			else
+				warband = DATA.warband_leader_get_warband(warband_leader)
 			end
-			assert(warband ~= nil, "INVALID PARTY")
-			realm:add_patrol(province, warband)
+			assert(warband ~= INVALID_ID, "INVALID PARTY")
+
+			realm_utils.add_patrol(realm, province, warband)
 		end,
 		function(root, primary_target, secondary_target)
-			if office_triggers.guard_leader(root, root.province.realm) then
+			local realm = REALM(root)
+			local local_province = PROVINCE(root)
+			local local_realm = province_utils.realm(local_province)
+			if office_triggers.guard_leader(root, local_realm) then
 				return 1
 			end
 			if root.realm.prepare_attack_flag == true and (root.loyalty == root.realm.leader or root.realm.leader == root) then

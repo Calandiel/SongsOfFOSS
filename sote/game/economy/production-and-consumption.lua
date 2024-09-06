@@ -324,16 +324,23 @@ function pro.run(province)
 
 		for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX do
 			local forage_case = DATA.province_get_foragers_targets_forage(province, i)
+			if forage_case == FORAGE_RESOURCE.INVALID then
+				break
+			end
+
 			local required_job =  DATA.forage_resource_get_handle(forage_case)
 			local amount = DATA.province_get_foragers_targets_amount(province, i)
 			local output_good = DATA.province_get_foragers_targets_output_good(province, i)
+			local output_value = DATA.province_get_foragers_targets_output_value(province, i)
 			local efficiency = pop_job_efficiency[required_job]
-			local search_time = amount / province_size
-			local handle_time = amount / efficiency * search_time
+
+			local search_time = province_size
+			local handle_time = amount / efficiency
 			local total_time = search_time + handle_time
+
 			local cultural_time = culture.traditional_forager_targets[forage_case]
 			local gathered_ratio = cultural_time / total_time
-			foraged_goods[output_good] = foraged_goods[output_good] + gathered_ratio * output_good
+			foraged_goods[output_good] = foraged_goods[output_good] + gathered_ratio * output_good * output_value
 		end
 
 		return foraged_goods

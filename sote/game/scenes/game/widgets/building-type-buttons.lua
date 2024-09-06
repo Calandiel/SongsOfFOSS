@@ -1,6 +1,8 @@
 local ui = require "engine.ui";
 local uit = require "game.ui-utils"
 local tile_utils = require "game.entities.tile"
+local province_utils = require "game.entities.province".Province
+local building_type_tooltip = require "game.raws.building-types".get_tooltip
 
 local economic_effects = require "game.raws.effects.economic"
 local EconomicValues = require "game.raws.values.economical"
@@ -45,27 +47,35 @@ end
 ---@param rect Rect
 ---@param building_type BuildingType
 ---@param tile_id tile_id
----@param owner POP?
----@param overseer POP?
+---@param owner POP
+---@param overseer POP
 ---@param public_flag boolean
 local function construction_button(gam, rect, building_type, tile_id, owner, overseer, public_flag)
 	local character = WORLD.player_character
-	if character == nil then
+	if character == INVALID_ID then
 		return
 	end
-	local realm = character.realm
-	if realm == nil then
+	local realm = REALM(character)
+	if realm == INVALID_ID then
 		return
+	end
+
+	local local_province = tile_utils.province(tile_id)
+
+	local is_public_project = public_flag
+	if owner == INVALID_ID then
+		is_public_project = true
 	end
 
 	local funds = 0
-	if public_flag or owner == nil then
-		funds = realm.budget.treasury
+	if is_public_project then
+		funds = DATA.realm_get_budget_treasury(realm)
 	else
-		funds = owner.savings
+		funds = DATA.pop_get_savings(owner)
 	end
 
-	local success, reason = tile_utils.province(tile_id):can_build(
+	local success, reason = province_utils.can_build(
+		local_province,
 		funds,
 		building_type,
 		overseer,
@@ -98,7 +108,7 @@ local function construction_button(gam, rect, building_type, tile_id, owner, ove
 				public_flag
 			)
 
-			WORLD:emit_notification("Tile improvement complete (" .. building_type.name .. ")")
+			WORLD:emit_notification("Tile improvement complete (" .. DATA.building_type_get_name(building_type) .. ")")
 
 			if gam.selected.building_type == building_type then
 				gam.selected.building_type = building_type
@@ -115,15 +125,18 @@ local btb = {}
 ---@param building_type BuildingType
 ---@param tile_id tile_id
 function btb.building_type_buttons(gam, rect, building_type, tile_id)
-	ui.tooltip(building_type:get_tooltip(), rect)
+	local icon = DATA.building_type_get_icon(building_type)
+	local name = DATA.building_type_get_name(building_type)
+
+	ui.tooltip(building_type_tooltip(building_type), rect)
 	---@type Rect
 	local r = rect
 	local im = r:subrect(0, 0, rect.height, rect.height, "left", "up")
-	ui.image(ASSETS.get_icon(building_type.icon), im)
+	ui.image(ASSETS.get_icon(icon), im)
 	r.x = r.x + rect.height
 	r.width = r.width - rect.height * 4
 
-	uit.data_entry(building_type.name, "", r)
+	uit.data_entry(name, "", r)
 
 	r.x = r.x + r.width
 	r.width = rect.height
@@ -138,15 +151,16 @@ function btb.building_type_buttons(gam, rect, building_type, tile_id)
 	r.width = rect.height
 
 	local province = tile_utils.province(tile_id)
+	local realm = province_utils.realm(province)
 
-	if (WORLD.player_character) and WORLD.player_character.province == province then
+	if (WORLD.player_character ~= INVALID_ID) and WORLD:player_province() == province then
 		construction_button(gam, r, building_type, tile_id, WORLD.player_character, WORLD.player_character, false)
 	end
 
 	r.x = r.x + rect.height
 	r.width = rect.height
-	if WORLD:does_player_control_realm(province.realm) then
-		construction_button(gam, r, building_type, tile_id, nil, pv.overseer(province.realm), true)
+	if WORLD:does_player_control_realm(realm) then
+		construction_button(gam, r, building_type, tile_id, INVALID_ID, pv.overseer(realm), true)
 	end
 end
 

@@ -43,11 +43,13 @@ end
 ---Draw character window
 ---@param game GameScene
 function window.draw(game)
-    local character = game.selected.character
+    local character_id = game.selected.character
 
-    if character == nil then
+    if character_id == INVALID_ID then
         return
     end
+    local character = DATA.fatten_pop(character_id)
+    local race = DATA.pop_get_race(character_id)
 
     local ui_panel = window.rect()
     -- draw a panel
@@ -57,7 +59,7 @@ function window.draw(game)
     --panel for a future portrait
     local portrait = ui_panel:subrect(0, 0, unit * 4, unit * 4, "left", "up")
     local coa = ui_panel:subrect(unit * 3 - 2, unit * 3 - 2, unit, unit, "left", "up")
-    require "game.scenes.game.widgets.portrait" (portrait, character)
+    require "game.scenes.game.widgets.portrait" (portrait, character_id)
 
     if character.dead then
         return
@@ -69,18 +71,18 @@ function window.draw(game)
         inventory_panel,
         function (index, rect)
             if index > 0 then
-                local good = tabb.nth(RAWS_MANAGER.trade_goods_by_name, index)
-                local amount = character.inventory[good] or 0
-                local trade_good_id = trade_good(good)
-                local name = DATA.trade_good_get_name(trade_good_id)
-                local icon = DATA.trade_good_get_icon(trade_good_id)
+                local _, good = tabb.nth(RAWS_MANAGER.trade_goods_by_name, index)
+                assert(good ~= nil)
+                local amount = DATA.pop_get_inventory(character_id, good)
+                local name = DATA.trade_good_get_name(good)
+                local icon = DATA.trade_good_get_icon(good)
 
                 local tooltip = "Amount of "
                     .. name
                     .. " "
                     .. character.name
                     .. " owns. They think that its price is "
-                    .. ut.to_fixed_point2(character.price_memory[good] or 0)
+                    .. ut.to_fixed_point2(DATA.pop_get_price_memory(character_id, good))
                 ut.sqrt_number_entry_icon(
                     icon,
                     amount or 0,
@@ -124,36 +126,41 @@ function window.draw(game)
     local character_tab =                 layout:next(unit * 16, unit * 1)
     local characters_list =                 layout:next(unit * 16, unit * 6)
 
-    character_name_widget(name_panel, character)
+    character_name_widget(name_panel, character_id)
 
     local sex = "male"
     if character.female then
         sex = "female"
     end
 
-    ui.left_text(string.title(sex) .. " " .. string.title(character.race.name), age_panel)
+    ui.left_text(string.title(sex) .. " " .. string.title(DATA.race_get_name(race)), age_panel)
     ui.right_text("Age: " .. character.age, age_panel)
 
     ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
 
     local popularity = 0
-    if character.province then
-        popularity = pv.popularity(character, character.province.realm)
+    local province = PROVINCE(character_id)
+    local realm = INVALID_ID
+    if province ~= INVALID_ID then
+        local part_of_realm = DATA.get_realm_provinces_from_province(province)
+        if part_of_realm ~= INVALID_ID then
+            realm = DATA.realm_provinces_get_realm(part_of_realm)
+            popularity = pv.popularity(character_id, realm)
+        end
     end
     ut.balance_entry_icon("duality-mask.png", popularity, popularity_panel, "Popularity")
 
-
-    local province = character.province
     local player = WORLD.player_character
-
+    local player_realm = WORLD:player_realm()
     local province_visible = true
 
-    if province and (player == nil or player.realm.known_provinces[province]) then
-        if ut.text_button(character.province.name, location_panel, "Current location of character") then
+
+    if province ~= INVALID_ID and (player == INVALID_ID or DATA.realm_get_known_provinces(player_realm)[province]) then
+        if ut.text_button(DATA.province_get_name(province), location_panel, "Current location of character") then
             game.inspector = "tile"
-            game.selected.province = character.province
-            game.selected.tile = character.province.center
-            game.clicked_tile_id = character.province.center
+            game.selected.province = province
+            game.selected.tile = DATA.province_get_center(province)
+            game.clicked_tile_id = DATA.province_get_center(province)
         end
     else
         ut.text_button("Unknown", location_panel, "Current location of character", false)
@@ -161,16 +168,28 @@ function window.draw(game)
     end
 
     local warband_panel = location_panel:subrect(0, unit * 2, location_panel.width, location_panel.height, "left", "up")
-    local warband = nil
-    if character.leading_warband then
-        warband = character.leading_warband
-    elseif character.recruiter_for_warband then
-        warband = character.recruiter_for_warband
-    elseif character.unit_of_warband then
-        warband = character.unit_of_warband
-    end
-    if warband then
-        ib.text_button_to_warband(game, warband, warband_panel, warband.name, "This character is part of " .. warband.name .. ".")
+    local warband = INVALID_ID
+    local leader_of = DATA.get_warband_leader_from_leader(character_id)
+    local commander_of = DATA.get_warband_commander_from_commander(character_id)
+    local recruiter_of = DATA.get_warband_recruiter_from_recruiter(character_id)
+    local unit_of = DATA.get_warband_unit_from_unit(character_id)
+
+    if leader_of ~= INVALID_ID then
+        warband = DATA.warband_leader_get_warband(leader_of)
+        local name = DATA.warband_get_name(warband)
+        ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a leader of " .. name .. ".")
+    elseif commander_of ~= INVALID_ID then
+        warband = DATA.warband_commander_get_warband(commander_of)
+        local name = DATA.warband_get_name(warband)
+        ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a commander of " .. name .. ".")
+    elseif recruiter_of ~= INVALID_ID then
+        warband = DATA.warband_recruiter_get_warband(recruiter_of)
+        local name = DATA.warband_get_name(warband)
+        ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a recruiter of " .. name .. ".")
+    elseif unit_of ~= INVALID_ID then
+        warband = DATA.warband_unit_get_warband(unit_of)
+        local name = DATA.warband_get_name(warband)
+        ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a unit of " .. name .. ".")
     else
         ut.text_button("None", warband_panel, "This character is not part of a warband", false)
     end
@@ -198,20 +217,25 @@ function window.draw(game)
     -- character description
     local s = ""
 
+    local loyalty = DATA.get_loyalty_from_bottom(character_id)
+
     -- loyalty text
-    if character.loyalty == nil then
+    if loyalty == INVALID_ID then
         local ending = "himself"
         if character.female then
             ending = "herself"
         end
         s = s .. "\n " .. character.name .. " is loyal to " .. ending .. "."
     else
-        s = s .. "\n " .. character.name .. " is loyal to " .. character.loyalty.name .. "."
+        local loyal_to = DATA.loyalty_get_top(loyalty)
+        s = s .. "\n " .. character.name .. " is loyal to " .. DATA.pop_get_name(loyal_to) .. "."
     end
 
     -- successor text
-    if character.successor then
-        s = s .. "\n " .. character.successor.name .. " is the designated successor of " .. character.name .. "."
+    local succession = DATA.get_succession_from_successor_of(character_id)
+    if succession ~= INVALID_ID then
+        local successor = DATA.succession_get_successor(succession)
+        s = s .. "\n " .. DATA.pop_get_name(successor) .. " is the designated successor of " .. character.name .. "."
     else
         s = s .. "\n " .. character.name .. " has not designated a successor yet."
     end
@@ -220,14 +244,28 @@ function window.draw(game)
     description_panel:shrink(5)
     ui.text(s, description_panel, "left", "up")
 
+    ---@type TRAIT[]
+    local traits = {}
+    local trait_count = 0
+
+    for i = 0, MAX_TRAIT_INDEX do
+        local trait = DATA.pop_get_traits(character_id, i)
+        if trait == TRAIT.INVALID then
+            break
+        end
+        table.insert(traits, trait)
+        ---@type number
+        trait_count = trait_count + 1
+    end
+
     traits_slider = ut.scrollview(
         traits_panel,
         function (index, rect)
             if index > 0 then
-                local trait = tabb.nth(character.traits, index)
+                local trait = traits[index]
                 ut.data_entry_icon(
-                    TRAIT_ICONS[trait],
-                    trait,
+                    DATA.trait_get_icon(trait),
+                    DATA.trait_get_name(trait),
                     rect,
                     nil,
                     nil,
@@ -236,7 +274,7 @@ function window.draw(game)
             end
         end,
         UI_STYLE.scrollable_list_large_item_height,
-        tabb.size(character.traits),
+        trait_count,
         unit,
         traits_slider
     )
@@ -273,7 +311,9 @@ function window.draw(game)
             text = "Local",
             tooltip = "Characters in the same province.",
             closure = function ()
-                local response = characters_list_widget(characters_list, character.province.characters, nil, true)()
+                local locations = DATA.get_character_location_from_location(province)
+                local characters = tabb.map_array(locations, DATA.character_location_get_character)
+                local response = characters_list_widget(characters_list, characters, nil, true)()
                 if response then
                     game.selected.character = response
                 end
@@ -284,7 +324,9 @@ function window.draw(game)
         text = "Children",
         tooltip = "This character's children.",
         closure = function ()
-            local response = characters_list_widget(characters_list, character.children, nil, true)()
+            local parenthood = DATA.get_parent_child_relation_from_parent(character_id)
+            local children = tabb.map_array(parenthood, DATA.parent_child_relation_get_child)
+            local response = characters_list_widget(characters_list, children, nil, true)()
             if response then
                 game.selected.character = response
             end

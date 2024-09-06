@@ -2,15 +2,15 @@ local ut = require "game.ui-utils"
 
 
 ---@param gam table
----@param realm Realm?
+---@param realm Realm
 ---@param rect Rect
 ---@param mode "immediate"|"callback"|nil
-local function realm_name(gam, realm,  rect, mode)
+local function realm_name(gam, realm, rect, mode)
     if mode == nil then
         mode = "immediate"
     end
 
-    if realm == nil then
+    if realm == INVALID_ID then
         return
     end
 

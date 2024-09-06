@@ -38,7 +38,7 @@ function ll.load()
 	}
 
 	-- BASE: HUMAN
-	Race:new {
+	HUMAN = Race:new {
 		name = "human",
 		description = "humans",
 		r = 0.8,
@@ -1006,7 +1006,7 @@ function ll.load()
 			[JOBTYPE.WARRIOR] = 1.25, -- kappa are ambush predators
 			[JOBTYPE.HAULING] = small_size * 2, -- kappa are ambush predators
 			[JOBTYPE.FORAGER] = 1.25,
-			[JOBTYPE.HUNTING] = 1.375 -- kappa are ambush predators
+			[JOBTYPE.HUNTING] = 1.375, -- kappa are ambush predators
 		},
 		female_needs = {
 			[NEED.FOOD] = {					-- ~1250 kcal

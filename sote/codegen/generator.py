@@ -232,6 +232,7 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid\n" \
                         f"---@return {field.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}_{field.name}({arg}, index)\n" \
+                        f"    if {NAMESPACE}.{self.prefix}[{arg}].{self.name} == nil then return 0 end\n" \
                         f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name}\n" \
                         f"end\n"
                     return result
@@ -239,6 +240,7 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid\n" \
                         f"---@return {self.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}({arg}, index)\n" \
+                        f"    if {NAMESPACE}.{self.prefix}[{arg}].{self.name} == nil then return 0 end\n" \
                         f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index]\n" \
                         f"end\n"
         else:
@@ -247,6 +249,7 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid\n" \
                         f"---@return {self.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}({arg}, index)\n" \
+                        f"    if {self.local_var_name()}[{arg}] == nil then return 0 end\n"\
                         f"    return {self.local_var_name()}[{arg}][index]\n" \
                         f"end\n"
             else:
@@ -426,6 +429,7 @@ class LinkField(Field):
             result +=   f"function {NAMESPACE}.filter_array_{self.prefix}_from_{self.name}({arg}, func)\n"
             result +=   f"    ---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
             result +=    "    local t = {}\n"
+            result +=   f"    if {self.local_accessor_name()}[{arg}] == nil then return t end\n"
             result +=   f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do\n"
             result +=    "        if func(item) then table.insert(t, item) end\n"
             result +=    "    end\n"
@@ -437,6 +441,7 @@ class LinkField(Field):
             result +=   f"function {NAMESPACE}.filter_{self.prefix}_from_{self.name}({arg}, func)\n"
             result +=   f"    ---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
             result +=    "    local t = {}\n"
+            result +=   f"    if {self.local_accessor_name()}[{arg}] == nil then return t end\n"
             result +=   f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do\n"
             result +=    "        if func(item) then t[item] = item end\n"
             result +=    "    end\n"
@@ -889,9 +894,14 @@ class EntityDescription:
                             #print(field.value.c_type)
                             pass
                         else:
-                            result += f"    for i, value in ipairs(data.{field.name}) do\n"
-                            result += f"        {field.setter_name()}(id, i - 1, value)\n"
-                            result += f"    end\n"
+                            if field.index.lsp_type in REGISTERED_ENUMS:
+                                result += f"    for i, value in ipairs(data.{field.name}) do\n"
+                                result += f"        {field.setter_name()}(id, i, value)\n"
+                                result += f"    end\n"
+                            else:
+                                result += f"    for i, value in ipairs(data.{field.name}) do\n"
+                                result += f"        {field.setter_name()}(id, i - 1, value)\n"
+                                result += f"    end\n"
                 else:
                     result += f"    if data.{field.name} ~= nil then\n"
                     result += f"        {field.setter_name()}(id, data.{field.name})\n"

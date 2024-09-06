@@ -23,15 +23,15 @@ function tb.mask(gam)
 	local tr = tb.rect()
 	local character = WORLD.player_character
 	if character == INVALID_ID then
-		return false
+		return true
 	end
 	local province = WORLD:player_province()
 	if province == INVALID_ID then
-		return false
+		return true
 	end
 	local realm = WORLD:player_realm()
 	if realm == INVALID_ID then
-		return false
+		return true
 	end
 	return not ui.trigger(tr)
 end

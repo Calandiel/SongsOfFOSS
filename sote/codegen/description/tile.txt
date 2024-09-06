@@ -1,6 +1,7 @@
 world_id uint32_t
 is_land bool
 is_fresh bool
+is_border bool
 elevation float
 grass float
 shrub float

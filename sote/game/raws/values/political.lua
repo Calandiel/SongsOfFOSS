@@ -23,14 +23,17 @@ end
 
 ---comment
 ---@param realm Realm
+---@return Character
 function PoliticalValues.overseer(realm)
-    if realm.overseer then
-        return realm.overseer
+    local overseer = DATA.get_realm_overseer_from_realm(realm)
+    local leader = DATA.get_realm_leadership_from_realm(realm)
+    if overseer ~= INVALID_ID then
+        return DATA.realm_overseer_get_overseer(overseer)
     end
-    if realm.leader then
-        return realm.leader
+    if leader ~= INVALID_ID then
+        return DATA.realm_leadership_get_leader(leader)
     end
-    return nil
+    return INVALID_ID
 end
 
 ---comment
@@ -88,21 +91,28 @@ function PoliticalValues.military_strength_ready(character)
 end
 
 ---Returns popularity of a character in a given realm
----@param character Character?
----@param realm Realm?
+---@param character Character
+---@param realm Realm
 ---@return number
 function PoliticalValues.popularity(character, realm)
-    if character == nil then
+    if character == INVALID_ID then
         return 0
     end
-    if realm == nil then
+    if realm == INVALID_ID then
         return 0
     end
-    local popularity_link = DATA.get_popularity_from_character(character)
-    if popularity_link == INVALID_ID then
-        return 0
-    end
-    return DATA.popularity_link_get_value(popularity_link)
+
+    local value = 0
+
+    DATA.for_each_popularity_from_who(character, function (item)
+        local item_realm = DATA.popularity_get_where(item)
+        if item_realm == realm then
+            value = DATA.popularity_get_value(item)
+            return
+        end
+    end)
+
+    return value
 end
 
 return PoliticalValues

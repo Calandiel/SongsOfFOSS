@@ -75,10 +75,10 @@ end
 ---@return number
 function prov.Province.military(province)
 	local total = 0
-	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+	DATA.for_each_warband_location_from_location(province, function (item)
 		---@type number
-		total = total + warband_utils.size(DATA.warband_location_get_location(party))
-	end
+		total = total + warband_utils.size(DATA.warband_location_get_warband(item))
+	end)
 	return total
 end
 
@@ -87,10 +87,10 @@ end
 ---@return number
 function prov.Province.military_target(province)
 	local total = 0
-	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+	DATA.for_each_warband_location_from_location(province, function (item)
 		---@type number
-		total = total + warband_utils.target_size(DATA.warband_location_get_location(party))
-	end
+		total = total + warband_utils.target_size(DATA.warband_location_get_warband(item))
+	end)
 	return total
 end
 
@@ -297,14 +297,14 @@ end
 ---@param province province_id
 function prov.Province.local_army_size(province)
 	local total = 0
-	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
-		local warband = DATA.warband_location_get_location(party)
+	DATA.for_each_warband_location_from_location(province, function (item)
+		local warband = DATA.warband_location_get_location(item)
 		local status = DATA.warband_get_status(warband)
 		if status == WARBAND_STATUS.PATROL then
 			---@type number
 			total = total + warband_utils.size(warband)
 		end
-	end
+	end)
 	return total
 end
 
@@ -399,7 +399,7 @@ function prov.Province.research(province, technology)
 
 	--- update technologies which could be potentially unlocked
 	for _, t in pairs(DATA.get_technology_unlock_from_origin(technology)) do
-		if DATA.province_get_technologies_present(province, t) then
+		if DATA.province_get_technologies_present(province, t) == 1 then
 			goto continue
 		end
 
@@ -482,7 +482,7 @@ function prov.Province.research(province, technology)
 		if #DATA.get_technology_unlock_from_unlocked(technology) > 0 then
 			local new_ok = true
 			for _, te in pairs(DATA.get_technology_unlock_from_unlocked(technology)) do
-				if DATA.province_get_technologies_present(province, te) then
+				if DATA.province_get_technologies_present(province, te) == 1 then
 					-- nothing to do, tech present
 				else
 					-- tech missing, this tech cannot be unlocked...
@@ -611,7 +611,7 @@ function prov.Province.forget(province, technology)
 
 	---@param any_technology Technology
 	local function research(any_technology)
-		if DATA.province_get_technologies_present(province, any_technology) then
+		if DATA.province_get_technologies_present(province, any_technology) == 1 then
 			prov.Province.research(province, any_technology)
 		end
 	end
@@ -827,21 +827,12 @@ function prov.Province.realm(province)
 	return DATA.realm_provinces_get_realm(data)
 end
 
----Adds a pop to the province. Sets province as a home. Does not handle cleaning of old data
----@param province province_id
----@param pop pop_id
-function pop_utils.add_pop(province, pop)
-	pop_utils.add_guest_pop(province, pop)
-	pop_utils.set_home(province, pop)
-end
-
-
 ---Adds pop as a guest of this province. Preserves old home of a pop.
 ---@param province province_id
 ---@param pop pop_id
-function pop_utils.add_guest_pop(province, pop)
+function prov.Province.add_pop(province, pop)
 	local location = DATA.get_pop_location_from_pop(pop)
-	if location then
+	if location ~= INVALID_ID then
 		DATA.pop_location_set_location(location, province)
 	else
 		local new_location = DATA.create_pop_location()
@@ -853,9 +844,9 @@ end
 ---Adds a character to the province
 ---@param province province_id
 ---@param character Character
-function pop_utils.add_character(province, character)
+function prov.Province.add_character(province, character)
 	local location = DATA.get_character_location_from_character(character)
-	if location then
+	if location ~= INVALID_ID then
 		DATA.character_location_set_location(location, province)
 	else
 		local new_location = DATA.create_pop_location()
@@ -867,9 +858,9 @@ end
 ---Sets province as pop's home
 ---@param province province_id
 ---@param pop pop_id
-function pop_utils.set_home(province, pop)
+function prov.Province.set_home(province, pop)
 	local home = DATA.get_home_from_pop(pop)
-	if home then
+	if home ~= INVALID_ID then
 		DATA.home_set_home(home, province)
 	else
 		local new_home = DATA.create_home()
@@ -889,28 +880,28 @@ end
 function prov.Province.get_spotting(province)
 	local s = 0
 
-	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
+	DATA.for_each_pop_location_from_location(province, function (p)
 		local pop_id = DATA.pop_location_get_pop(p)
 		local race = DATA.pop_get_race(pop_id)
 		s = s + DATA.race_get_spotting(race)
-	end
+	end)
 
-	for _, location in pairs(DATA.get_building_location_from_location(province)) do
+	DATA.for_each_building_location_from_location(province, function (location)
 		local building = DATA.building_location_get_building(location)
 		local btype = DATA.building_get_type(building)
 		local spotting = DATA.building_type_get_spotting(btype)
 		---@type number
 		s = s + spotting
-	end
+	end)
 
-	for _, party in pairs(DATA.get_warband_location_from_location(province)) do
+	DATA.for_each_warband_location_from_location(province, function (party)
 		local warband = DATA.warband_location_get_location(party)
 		local status = DATA.warband_get_status(warband)
 		if status == WARBAND_STATUS.PATROL then
 			---@type number
 			s = s + warband_utils.spotting(warband)
 		end
-	end
+	end)
 
 	return s
 end
@@ -1036,7 +1027,11 @@ end
 
 ---@param province province_id
 function prov.Province.num_of_warbands(province)
-	return tabb.size(DATA.get_warband_location_from_location(province))
+	local amount = 0
+	DATA.for_each_warband_location_from_location(province, function (item)
+		amount = amount + 1
+	end)
+	return amount
 end
 
 ---@param province province_id
@@ -1044,12 +1039,12 @@ end
 function prov.Province.vacant_warbands(province)
 	local res = {}
 
-	for _, v in pairs(DATA.get_warband_location_from_location(province)) do
-		local warband = DATA.warband_location_get_warband(v)
+	DATA.for_each_warband_location_from_location(province, function (item)
+		local warband = DATA.warband_location_get_warband(item)
 		if warband_utils.vacant(warband) then
 			table.insert(res, warband)
 		end
-	end
+	end)
 
 	return res
 end

@@ -10,6 +10,7 @@ function hydr.run()
 			for _, tile_membership_id in pairs(DATA.get_tile_province_membership_from_province(province_id)) do
 				local tile_id = DATA.tile_province_membership_get_tile(tile_membership_id)
 				local jan_rain, _, jul_rain, _ = tile.get_climate_data(tile_id)
+				---@type number
 				support = support + (jan_rain + jul_rain) * 0.5 / 2 / 30
 			end
 		end

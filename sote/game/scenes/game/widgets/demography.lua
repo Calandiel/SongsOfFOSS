@@ -2,6 +2,8 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
+local province_utils = require "game.entities.province".Province
+
 
 ---Draws demography data
 ---@param provinces Province[]
@@ -13,21 +15,25 @@ local function demography(provinces, ui_panel, collapsed)
         ---@type table<Race, number>
         local counts = {}
         for _, province in pairs(provinces) do
-            for _, pop in pairs(province.all_pops) do
-                local old = counts[pop.race] or 0
-                counts[pop.race] = old + 1
-            end
+            DATA.for_each_pop_location_from_location(province, function (item)
+                local pop = DATA.pop_location_get_pop(item)
+                local race = DATA.pop_get_race(pop)
+                assert(race ~= INVALID_ID)
+                local old = counts[race] or 0
+                counts[race] = old + 1
+            end)
         end
 
         ---@type Entry[]
         local entries = {}
-        for race, count in pairs(counts) do
+        for race_id, count in pairs(counts) do
+            local fat_race = DATA.fatten_race(race_id)
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = race.name .. " (" .. count .. ")",
-                r = race.r,
-                g = race.g,
-                b = race.b,
+                tooltip = fat_race.name .. " (" .. count .. ")",
+                r = fat_race.r,
+                g = fat_race.g,
+                b = fat_race.b,
             }
         end
         ut.graph(entries, rect)
@@ -37,10 +43,12 @@ local function demography(provinces, ui_panel, collapsed)
         ---@type table<Culture, number>
         local counts = {}
         for _, province in pairs(provinces) do
-            for _, pop in pairs(province.all_pops) do
-                local old = counts[pop.culture] or 0
-                counts[pop.culture] = old + 1
-            end
+            DATA.for_each_pop_location_from_location(province, function (item)
+                local pop = DATA.pop_location_get_pop(item)
+                local culture = DATA.pop_get_culture(pop)
+                local old = counts[culture] or 0
+                counts[culture] = old + 1
+            end)
         end
 
         ---@type Entry[]
@@ -62,10 +70,12 @@ local function demography(provinces, ui_panel, collapsed)
         ---@type table<Faith, number>
         local counts = {}
         for _, province in pairs(provinces) do
-            for _, pop in pairs(province.all_pops) do
-                local old = counts[pop.faith] or 0
-                counts[pop.faith] = old + 1
-            end
+            DATA.for_each_pop_location_from_location(province, function (item)
+                local pop = DATA.pop_location_get_pop(item)
+                local faith = DATA.pop_get_faith(pop)
+                local old = counts[faith] or 0
+                counts[faith] = old + 1
+            end)
         end
 
         ---@type Entry[]
@@ -85,62 +95,53 @@ local function demography(provinces, ui_panel, collapsed)
 
 
     local function graph_jobs (rect)
-        local unemp = {
-            name = "Unemployed",
-            r = 0.23,
-            g = 0.23,
-            b = 0.23,
-        }
-        local warr = {
-            name = "Warriors",
-            r = 0.43,
-            g = 0.23,
-            b = 0.13,
-        }
-        local child = {
-            name = "Children",
-            r = 0.83,
-            g = 0.83,
-            b = 0.83,
-        }
-
-        ---@type table<Job, number>
+        ---@type table<job_id, number>
         local counts = {}
-        counts[unemp] = 0
-        counts[child] = 0
-        counts[warr] = 0
+        counts[UNEMPLOYED] = 0
+        counts[CHILDREN] = 0
+        counts[WARRIORS] = 0
+
         for _, province in pairs(provinces) do
-            for __, pop in pairs(province.all_pops) do
-                if pop.job then
-                    if counts[pop.job] then
-                        counts[pop.job] = counts[pop.job] + 1
+            DATA.for_each_pop_location_from_location(province, function (item)
+                local pop = DATA.pop_location_get_pop(item)
+                local employment = DATA.get_employment_from_worker(pop)
+                local age = DATA.pop_get_age(pop)
+                local race = DATA.pop_get_race(pop)
+                local teen_age = DATA.race_get_teen_age(race)
+                if employment ~= INVALID_ID then
+                    local job = DATA.employment_get_job(employment)
+                    if counts[job] then
+                        counts[job] = counts[job] + 1
                     else
-                        counts[pop.job] = 1
+                        counts[job] = 1
                     end
                 else
-                    if pop.age > pop.race.teen_age then
-                        if pop.unit_of_warband then
-                            counts[warr] = counts[warr] + 1
+                    if age > teen_age then
+                        local warband_membership = DATA.get_warband_unit_from_unit(pop)
+                        if warband_membership ~= INVALID_ID then
+                            counts[WARRIORS] = counts[WARRIORS] + 1
                         else
-                            counts[unemp] = counts[unemp] + 1
+                            counts[UNEMPLOYED] = counts[UNEMPLOYED] + 1
                         end
                     else
-                        counts[child] = counts[child] + 1
+                        counts[CHILDREN] = counts[CHILDREN] + 1
                     end
                 end
-            end
+            end)
         end
 
-        ---@type Entry[]
+        ---@type NamedEntry[]
         local entries = {}
         for job, count in pairs(counts) do
+            local fat = DATA.fatten_job(job)
+            local description = fat.description
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = job.name .. " (" .. count .. ")",
-                r = job.r,
-                g = job.g,
-                b = job.b,
-                name = job.name,
+                tooltip = description .. " (" .. count .. ")",
+                r = fat.r,
+                g = fat.g,
+                b = fat.b,
+                name = description,
             }
         end
         table.sort(entries, function(a, b)
@@ -154,8 +155,8 @@ local function demography(provinces, ui_panel, collapsed)
         local carr_cap = 0
         local population = 0
         for _, province in ipairs(provinces) do
-            carr_cap = math.floor(province.foragers_limit) + carr_cap
-            population = population + province:population()
+            carr_cap = carr_cap + math.floor(DATA.province_get_foragers_limit(province))
+            population = population + province_utils.local_population(province)
         end
 
         ut.data_entry("Population: ", tostring(population) .. "/" .. tostring(carr_cap), rect)

@@ -80,7 +80,7 @@ function dem.technologies()
 	ut.provincial_hue_map_mode(function(province)
 		local count = 0
 		DATA.for_each_technology(function (item)
-			if DATA.province_get_technologies_present(province, item) then
+			if DATA.province_get_technologies_present(province, item) == 1 then
 				count = count + 1
 			end
 		end)
@@ -104,9 +104,9 @@ function dem.selected_technology()
 			local fat_province = DATA.fatten_province(province)
 			local realm = province_utils.realm(province)
 			if fat_province.is_land and realm ~= INVALID_ID then
-				if DATA.province_get_technologies_present(province, tt) then
+				if DATA.province_get_technologies_present(province, tt) == 1 then
 					tile.set_real_color(fat_province.center, 0, 0, 1)
-				elseif DATA.province_get_technologies_researchable(province, tt) then
+				elseif DATA.province_get_technologies_researchable(province, tt) == 1 then
 					tile.set_real_color(fat_province.center, 0, 1, 1)
 				else
 					tile.set_real_color(fat_province.center, 1, 0, 0)
@@ -139,12 +139,12 @@ function dem.selected_building_efficiency()
 	end
 end
 
----@type trade_good_id?
-HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = nil
+---@type trade_good_id
+HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = INVALID_ID
 
 function dem.prices()
 	local c = HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY
-	if c ~= nil then
+	if c ~= INVALID_ID then
 		-- calculate stats
 		local total = 0
 		local mean = 0

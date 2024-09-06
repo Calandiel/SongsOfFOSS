@@ -481,8 +481,7 @@ function tile.cart_to_index(x, y, z)
 	local ws = WORLD.world_size
 	fx = math.floor(ws * fx)
 	fy = math.floor(ws * fy)
-	local clicked_tile = tile.coords_to_index(fx, fy, ff)
-	return clicked_tile
+	return tile.coords_to_index(fx, fy, ff)
 end
 
 ---Given latitude [-pi/2, pi/2] and longitude [-pi,pi], return the tile ID

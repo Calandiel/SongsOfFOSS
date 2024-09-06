@@ -20,6 +20,9 @@ local function calculate_province_neighbors(province, deep_logs)
 	end
 	local visited_tiles = 0
 
+	---@type tile_id[]
+	local border_tiles = {}
+
 	---@type table<province_id, province_id>
 	local neigbours_to_connect = {}
 	for _, tile_membership_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
@@ -33,6 +36,8 @@ local function calculate_province_neighbors(province, deep_logs)
 				print("Neigh: " .. tostring(tile.province(n)) .. ", us: " .. tostring(province))
 			end
 			if tile.province(n) ~= province then
+				DATA.tile_set_is_border(tile_id, true)
+				table.insert(border_tiles, tile_id)
 				neigbours_to_connect[tile.province(n)] = tile.province(n)
 			end
 		end
@@ -41,6 +46,13 @@ local function calculate_province_neighbors(province, deep_logs)
 		end
 		visited_tiles = visited_tiles + 1
 	end
+
+	for index, tile_id in ipairs(border_tiles) do
+		for n in tile.iter_neighbors(tile_id) do
+			DATA.tile_set_is_border(n, true)
+		end
+	end
+
 	for _, item in pairs(neigbours_to_connect) do
 		local province_link = DATA.fatten_province_neighborhood(DATA.create_province_neighborhood())
 		if province_link.id % 10000 == 0 then
@@ -389,11 +401,11 @@ function pro.run()
 		DATA.for_each_province(function (province)
 			local N = 20
 			-- sample N random tiles
-			---@type table<number, tile_id>
+			---@type tile_id[]
 			local sample = {}
 
 			for i = 1, N do
-				local membership = tabb.random_select_from_set(DATA.get_tile_province_membership_from_province(province))
+				local membership = tabb.random_select_from_array(DATA.get_tile_province_membership_from_province(province))
 				table.insert(sample, DATA.tile_province_membership_get_tile(membership))
 			end
 

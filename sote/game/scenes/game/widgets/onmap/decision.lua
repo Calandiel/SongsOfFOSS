@@ -13,7 +13,7 @@ local function macrodecision(gam, tile_id, rect)
 	end
 
 	local player = WORLD.player_character
-	if player == nil then
+	if player == INVALID_ID then
 		return
 	end
 	local province = tile_utils.province(tile_id)

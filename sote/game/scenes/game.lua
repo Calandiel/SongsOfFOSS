@@ -39,7 +39,7 @@
 ---@field locked_screen_y number
 ---@field draw fun()
 ---@field click_tile fun(number)
----@field clicked_tile_id tile_id|nil
+---@field clicked_tile_id tile_id
 ---@field reset_decision_selection fun()
 ---@field notification_slider number
 ---@field outliner_slider number
@@ -97,7 +97,7 @@
 ---
 ---@field REALMS_NEIGBOURS_TEST_CACHE {[1]: number, [2]: number, [3]: number, [4]: number}[]
 ---@field BORDER_TILES_CACHE table<tile_id, tile_id>
----@field recalculate_smooth_data_map fun(data_function: TileForm, data_id: string, provinces_to_update: table<Province, Province>|Province[]|nil, direct_neigbours_weight: number?, secondary_neighbour_weight: number?)
+---@field recalculate_smooth_data_map fun(data_function: TileForm, data_id: string, provinces_to_update: table<Province, Province>|Province[]|nil, direct_neigbours_weight: number?, secondary_neighbour_weight: number?, filter: (fun(tile_id: tile_id): boolean)|nil)
 ---@field DATA_CACHE table<string, love.ImageData>
 ---@field DATA_TEXTURES_CACHE table<string, love.Image>
 local gam = {}
@@ -165,8 +165,8 @@ local tile_inspectors = {
 
 
 ---@class (exact) Selection
----@field character Character?
----@field tile tile_id?
+---@field character Character
+---@field tile tile_id
 ---@field province Province?
 ---@field realm Realm?
 ---@field building_type BuildingType?
@@ -179,7 +179,10 @@ local tile_inspectors = {
 ---@field tech Technology?
 ---@field cached_tech Technology?
 
-gam.selected = {}
+gam.selected = {
+	character = INVALID_ID,
+	tile = INVALID_ID
+}
 
 local function is_known(province)
 	local player_character = WORLD.player_character
@@ -230,7 +233,7 @@ function gam.on_tile_click()
 	--]]
 
 
-	if tile_id ~= nil then
+	if tile_id ~= INVALID_ID then
 		local clicked_tile = DATA.fatten_tile(tile_id)
 		local tab = require "engine.table"
 		if tab.contains(ARGS, "--dev") then
@@ -248,7 +251,7 @@ function gam.on_tile_click()
 			local cla, clo = utt.latitude(y), utt.longitude(x)
 			print(cla, clo)
 
-			if clicked_tile.biome then
+			if clicked_tile.biome ~= INVALID_ID then
 				print("Biome:", DATA.biome_get_name(clicked_tile.biome))
 			else
 				print("Biome:", nil)
@@ -760,6 +763,7 @@ function gam.draw()
 	if coll_point then
 		if ui.is_mouse_released(1) then
 			new_clicked_tile = tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)
+			print(new_clicked_tile)
 			click_detected = true
 		end
 	else
@@ -1379,13 +1383,13 @@ function gam.draw()
 	-- Make sure you add triggers for detecting clicks over UI!
 
 	local tile_data_viewable = true
-	if gam.clicked_tile_id then
+	if gam.clicked_tile_id ~= INVALID_ID then
 		if WORLD.player_character ~= INVALID_ID then
-			local realm = WORLD.player_character.realm
-			local current_pro = WORLD.player_character.province
+			local realm = WORLD:player_province()
+			local province = WORLD:player_province()
 			local pro = tile.province(gam.clicked_tile_id)
 			if realm then
-				if (realm.known_provinces[pro] == nil) and (pro ~= current_pro) then
+				if (DATA.realm_get_known_provinces(realm)[pro] == nil) and (pro ~= province) then
 					tile_data_viewable = false
 				end
 			end
@@ -1418,26 +1422,32 @@ function gam.draw()
 	end
 
 	if click_detected and click_success and new_clicked_tile then
-		if (gam.click_callback == nil) and ((tb.mask(gam) and require "game.scenes.game.inspectors.left-side-bar".mask())) and not province_on_map_interaction then
+		if
+			gam.click_callback == nil
+			and tb.mask(gam)
+			and require "game.scenes.game.inspectors.left-side-bar".mask()
+			and not province_on_map_interaction
+		then
 			gam.click_tile(new_clicked_tile)
 			gam.on_tile_click()
 			local skip_frame = false
+
 			if gam.inspector == nil then
 				skip_frame = true
 			end
 
 			local realm = tile.realm(new_clicked_tile)
 
-			if gam.inspector == "character" and realm then
-				if realm ~= nil then
-					if gam.selected.character == realm.leader then
-						gam.inspector = "tile"
-					else
-						gam.selected.character = realm.leader
-					end
+			if gam.inspector == "character" and realm ~= INVALID_ID then
+				local leadership = DATA.get_realm_leadership_from_realm(realm)
+				local leader = DATA.realm_leadership_get_leader(leadership)
+				if gam.selected.character == leader then
+					gam.inspector = "tile"
+				else
+					gam.selected.character = leader
 				end
 			elseif gam.inspector == "realm" then
-				if realm ~= nil then
+				if realm ~= INVALID_ID then
 					if gam.selected.realm == realm then
 						-- If we double click a realm, change the inspector to tile
 						gam.inspector = "tile"
@@ -1446,7 +1456,7 @@ function gam.draw()
 					end
 				end
 			elseif gam.inspector == "army" then
-				if realm ~= nil then
+				if realm ~= INVALID_ID then
 					if gam.selected.realm == realm then
 						-- If we double click a realm, change the inspector to tile
 						gam.inspector = "tile"
@@ -1459,6 +1469,7 @@ function gam.draw()
 			else
 				gam.inspector = "tile"
 			end
+
 			if skip_frame then
 				return
 			end
@@ -1710,27 +1721,34 @@ local function neighbor_neighbor_data(tile_id)
 	return r, g, b, a
 end
 
-local realm_filter(tile_id)
-
-end
-
 ---Returns 0 if both tiles are owned by same unique overlord and 1 otherwise
 ---@param tile1 tile_id
 ---@param tile2 tile_id
 ---@return integer
 local function same_realm_test(tile1, tile2)
+	local province_1 = tile.province(tile1)
+	local province_2 = tile.province(tile2)
+
+	if province_1 == province_2 then
+		return 0
+	end
+
 	local realm_1 = tile.realm(tile1)
 	local realm_2 = tile.realm(tile2)
 
-	if realm_1 == nil then
-		if realm_2 == nil then
+	if realm_1 == INVALID_ID then
+		if realm_2 == INVALID_ID then
 			return 0
 		end
 		return 1
 	end
 
-	if realm_2 == nil then
+	if realm_2 == INVALID_ID then
 		return 1
+	end
+
+	if realm_1 == realm_2 then
+		return 0
 	end
 
 	local overlords_1 = realm_utils.get_top_realm(realm_1)
@@ -1738,10 +1756,6 @@ local function same_realm_test(tile1, tile2)
 
 	if tabb.size(overlords_1) ~= tabb.size(overlords_2) then
 		return 1
-	end
-
-	if realm_1 == realm_2 then
-		return 0
 	end
 
 	if tabb.size(overlords_1) == 1 and tabb.size(overlords_2) == 1 then
@@ -1922,7 +1936,8 @@ end
 ---@param provinces_to_update table<Province, Province>|Province[]|nil
 ---@param direct_neigbours_weight number?
 ---@param secondary_neighbour_weight number?
-function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_update, direct_neigbours_weight, secondary_neighbour_weight)
+---@param filter (fun(tile_id: tile_id): boolean)|nil
+function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_update, direct_neigbours_weight, secondary_neighbour_weight, filter)
 	local dim = WORLD.world_size * 3
 
 	if direct_neigbours_weight == nil then
@@ -1957,14 +1972,23 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 	end
 	local fast_tiles = 0
 	local slow_tiles = 0
-	local slow_time = 0
-	local fast_time = 0
+
+	local now = love.timer.getTime()
+
 	for _, province in pairs(provinces_to_update) do
 		DATA.for_each_tile_province_membership_from_province(province, function (tile_membership)
 			local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
+
 			local current_tile_data = {0, 0, 0, 0}
+
 			local x, y = gam.tile_id_to_color_coords(tile_id)
 			local pixel_index = x + y * dim
+
+			if filter ~= nil then
+				if not filter(tile_id) then
+					goto save_data_to_texture_data
+				end
+			end
 
 			if TILE_FRIENDS[tile_id] ~= nil then
 				for i = 1, 4 do
@@ -1987,8 +2011,6 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 			end
 
 			do
-				TILE_FRIENDS[tile_id] = {{}, {}, {}, {}}
-
 				--- if tile belongs to interior, there is a very simple way to calculate friends:
 				local x_current, y_current, f = tile.index_to_coords(tile_id)
 				if
@@ -1998,21 +2020,20 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 					and y_current < WORLD.world_size - 1
 				then
 					fast_tiles = fast_tiles + 1
-					local now = love.timer.getTime()
 					for pair_index = 1, 4 do
 						local x_shift, y_shift = get_pair_shift_from_index(pair_index)
 
 						local x_corner = x_current + x_shift
 						local y_corner = y_current + y_shift
 
-						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_id)
+						-- table.insert(TILE_FRIENDS[tile_id][pair_index], tile_id)
 						local tile_1 = tile.coords_to_index(x_corner, y_current, f)
 						local tile_2 = tile.coords_to_index(x_current, y_corner, f)
 						local tile_corner = tile.coords_to_index(x_corner, y_corner, f)
 
-						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_1)
-						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_2)
-						table.insert(TILE_FRIENDS[tile_id][pair_index], tile_corner)
+						-- table.insert(TILE_FRIENDS[tile_id][pair_index], tile_1)
+						-- table.insert(TILE_FRIENDS[tile_id][pair_index], tile_2)
+						-- table.insert(TILE_FRIENDS[tile_id][pair_index], tile_corner)
 
 						local csum = 0
 						local count = 4
@@ -2025,11 +2046,10 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 
 						current_tile_data[pair_index] = csum / count
 					end
-					fast_time = fast_time + love.timer.getTime() - now
 					goto save_data_to_texture_data
 				end
 
-				local now = love.timer.getTime()
+				TILE_FRIENDS[tile_id] = {{}, {}, {}, {}}
 
 				local neighbours = {
 					tile.get_neighbor(tile_id, 1),
@@ -2095,8 +2115,6 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 					end
 					current_tile_data[pair_index] = current_tile_data[pair_index] / 3
 				end
-
-				slow_time = slow_time + love.timer.getTime() - now
 			end
 
 			::save_data_to_texture_data::
@@ -2108,8 +2126,7 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 		end)
 	end
 
-	print("slow tiles: ", slow_tiles, slow_time, slow_time / slow_tiles)
-	print("fast tiles: ", fast_tiles, fast_time, fast_time / fast_tiles)
+	print("update time: ", love.timer.getTime() - now)
 
 
 	gam.DATA_TEXTURES_CACHE[data_id] =
@@ -2123,9 +2140,9 @@ end
 
 function gam.recalculate_realm_map(update_all)
 	if update_all then
-		gam.recalculate_smooth_data_map(same_realm_test, "tile_corner_neighbor_realm", nil, 0, 1)
+		gam.recalculate_smooth_data_map(same_realm_test, "tile_corner_neighbor_realm", nil, 0, 1, DATA.tile_get_is_border)
 	else
-		gam.recalculate_smooth_data_map(same_realm_test, "tile_corner_neighbor_realm", WORLD.provinces_to_update_on_map, 0, 1)
+		gam.recalculate_smooth_data_map(same_realm_test, "tile_corner_neighbor_realm", WORLD.provinces_to_update_on_map, 0, 1, DATA.tile_get_is_border)
 	end
 
 	-- sanity check:

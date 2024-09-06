@@ -190,7 +190,7 @@ end
 ---@param amounts {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 ---Calculate and set a province's forager limit (CC) and foraging targets
 function dbm.set_foraging_targets(province, amounts)
-	set_province_data(province, 0, FORAGE_RESOURCE.WATER, retrieve_good("water"), 2, DATA.province_get_hydration(province))
+	set_province_data(province, 0, FORAGE_RESOURCE.WATER, retrieve_good("water"), 8, DATA.province_get_hydration(province))
 	set_province_data(province, 1, FORAGE_RESOURCE.FRUIT, retrieve_good("berries"), 1.6, amounts.fruit)
 	set_province_data(province, 2, FORAGE_RESOURCE.GRAIN, retrieve_good("grain"), 2, amounts.seeds)
 	set_province_data(province, 3, FORAGE_RESOURCE.WOOD, retrieve_good("bark"), 1.25, amounts.wood)
@@ -251,9 +251,9 @@ end
 ---@field average_energy_return_per_unit_of_time number
 ---@field data_per_forage_target TargetResourceTable[]
 
-local function turn_output_to_energy(good, use_case, output)
+local function turn_output_to_energy(good, use_case, amount)
 	local weight = USE_WEIGHT[good][use_case]
-	return weight * output
+	return weight * amount
 --	print("       VALID GOOD: " .. good .. ", AMOUNT: " .. values.amount .. ", OUTPUT: " .. weighted_output .. ", ENERGY: " .. weighted_output * values.amount)
 end
 
@@ -270,6 +270,7 @@ local function forage_targets_for_a_given_use_case(race, province, use_case, nee
 	local total_search = 0
 	local total_output = 0
 	local total_handle = 0
+	local total_energy_output = 0
 
 	---@type TargetResourceTable[]
 	local data_per_forage_target = {}
@@ -279,25 +280,29 @@ local function forage_targets_for_a_given_use_case(race, province, use_case, nee
 		local required_job =  DATA.forage_resource_get_handle(forage_case)
 		local amount = DATA.province_get_foragers_targets_amount(province, i)
 		local output_good = DATA.province_get_foragers_targets_output_good(province, i)
+		local output_value = DATA.province_get_foragers_targets_output_value(province, i)
 
 		if output_good == INVALID_ID then
 			break
 		end
 
 		---@type number
-		local energy = turn_output_to_energy(output_good, use_case, output_good)
-		local search_time = amount / province_size
-		local efficiency = dbm.mean_race_job_efficiency(race, required_job)
-		local handle_time = amount / efficiency * search_time
-		local real_energy_output = energy * amount * search_time
+		local energy = turn_output_to_energy(output_good, use_case, output_value) -- per collected unit
+		local search_time = province_size -- total searching time to find everything
+		local efficiency = dbm.mean_race_job_efficiency(race, required_job) -- efficiency of actually collecting the thing
+		local handle_time = amount / efficiency -- time spent to collect everything
+		local total_energy = energy * amount -- total collected "energy"
+
+		assert(handle_time == handle_time, tostring(handle_time))
+		assert(efficiency > 0, tostring(efficiency) .. " " .. DATA.race_get_name(race) .. " " .. DATA.jobtype_get_name(required_job))
 
 		data_per_forage_target[i] = {
 			forage_resource = forage_case,
 			search_time = search_time,
 			handle_time = handle_time,
-			output = real_energy_output,
-			output_energy = energy,
-			energy_return_per_unit_of_time = energy / (search_time + handle_time)
+			output = amount,
+			output_energy = total_energy,
+			energy_return_per_unit_of_time = total_energy / (search_time + handle_time)
 		}
 
 		---@type number
@@ -305,7 +310,9 @@ local function forage_targets_for_a_given_use_case(race, province, use_case, nee
 		---@type number
 		total_handle = total_handle + handle_time
 		---@type number
-		total_output = total_output + real_energy_output
+		total_output = total_output + amount
+		---@type number
+		total_energy_output = total_energy_output + total_energy
 	end
 
 	---@type TargetNeedsTable
@@ -314,8 +321,8 @@ local function forage_targets_for_a_given_use_case(race, province, use_case, nee
 		required_amount_of_use = needed,
 		total_handle_time = total_handle,
 		total_search_time = total_search,
-		total_energy_output = total_output,
-		average_energy_return_per_unit_of_time = total_output / (total_handle + total_search),
+		total_energy_output = total_energy_output,
+		average_energy_return_per_unit_of_time = total_energy_output / (total_handle + total_search),
 		data_per_forage_target = data_per_forage_target
 	}
 
@@ -339,6 +346,10 @@ local function use_case_data_to_weights(forage_targets_data)
 		else
 			weights[i] = return_this
 		end
+		-- if weights[i] ~= weights[i] then
+		-- 	tabb.print(data)
+		-- end
+		assert(weights[i] == weights[i], "INVALID WEIGHT")
 	end
 
 	return weights
@@ -347,19 +358,48 @@ end
 ---@param use_cases_data TargetNeedsTable[]
 ---@param weights number[][]
 local function normalize_weights(use_cases_data, weights)
-	local norm = 0
+	--- do several epochs to get close to solution: writing proper solver of such equations is out of question... for now
+	local num_of_iterations = 10
+	for iteration = 1, num_of_iterations do
+		--- calculate norm: total time required to gather according to weights
 
-	for i, targets_table in pairs(use_cases_data) do
-		for j, target_data in pairs(targets_table.data_per_forage_target) do
-			---@type number
-			norm = norm + weights[i][j] * (target_data.handle_time + target_data.search_time)
+		local norm = 0
+		for i, targets_table in pairs(use_cases_data) do
+			for j, target_data in pairs(targets_table.data_per_forage_target) do
+				---@type number
+				norm = norm + weights[i][j] * (target_data.handle_time + target_data.search_time)
+			end
 		end
-	end
 
-	for i, targets_table in pairs(use_cases_data) do
-		for j, target_data in pairs(targets_table.data_per_forage_target) do
+		--- convert to ratio of day time
+
+		for i, targets_table in pairs(use_cases_data) do
+			for j, target_data in pairs(targets_table.data_per_forage_target) do
+				---@type number
+				weights[i][j] = weights[i][j] / norm
+			end
+		end
+
+		if iteration == num_of_iterations then
+			break
+		end
+
+		--- now we can cut down/increase weights according to needed amount of use
+
+		for i, targets_table in pairs(use_cases_data) do
+			local total_energy = 0
+			for j, target_data in pairs(targets_table.data_per_forage_target) do
+				local day_ratio = weights[i][j]
+				total_energy = total_energy + target_data.energy_return_per_unit_of_time * day_ratio
+			end
+
 			---@type number
-			weights[i][j] = weights[i][j] / norm
+			local scale = targets_table.required_amount_of_use / total_energy
+
+			for j, target_data in pairs(targets_table.data_per_forage_target) do
+				---@type number
+				weights[i][j] = weights[i][j] * scale
+			end
 		end
 	end
 end
@@ -395,6 +435,7 @@ function dbm.cultural_foragable_targets(province)
 	assert(realm ~= nil)
 	local race = DATA.realm_get_primary_race(realm)
 	local food_use_cases_needs = dbm.cultural_food_needs(race)
+
 	local food_use_cases_data = tabb.map_array(
 		food_use_cases_needs,
 		function (use_case_amount)

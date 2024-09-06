@@ -40,13 +40,15 @@ function inspector.draw(gam)
 
     local wealth_data_rect = rect:subrect(0, 0, base_unit * 9, base_unit, "left", "up")
 
-    ut.money_entry("Local wealth:", province.local_wealth, wealth_data_rect)
+    local fat = DATA.fatten_province(province)
+
+    ut.money_entry("Local wealth:", fat.local_wealth, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
-    ut.money_entry("Trade wealth:", province.trade_wealth, wealth_data_rect)
+    ut.money_entry("Trade wealth:", fat.trade_wealth, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
-    ut.money_entry("Local income:", province.local_income, wealth_data_rect)
+    ut.money_entry("Local income:", fat.local_income, wealth_data_rect)
     wealth_data_rect.x = wealth_data_rect.x + wealth_data_rect.width + base_unit
-    ut.money_entry("Local building upkeep:", province.local_building_upkeep, wealth_data_rect)
+    ut.money_entry("Local building upkeep:", fat.local_building_upkeep, wealth_data_rect)
     wealth_data_rect.y = wealth_data_rect.y + base_unit
 
     rect.y = rect.y + base_unit

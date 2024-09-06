@@ -131,7 +131,7 @@ function world.World:base_visibility(size)
 	local humans_id = RAWS_MANAGER.races_by_name['human']
 	local raiders = RAWS_MANAGER.unit_types_by_name["raiders"]
 
-	return RAWS_MANAGER.races_by_name['human'].visibility * RAWS_MANAGER.unit_types_by_name["raiders"].visibility * size
+	return DATA.race_get_visibility(humans_id) * DATA.unit_type_get_visibility(raiders) * size
 end
 
 --- Set province as settled: it enables updates of this province.
@@ -755,6 +755,24 @@ function world.World:is_player(character)
 	if WORLD.player_character == character then
 		return true
 	end
+	return false
+end
+
+---Checks if player owns the building
+---@param building building_id
+---@return boolean
+function world.World:player_is_owner(building)
+	if building == INVALID_ID then
+		return false
+	end
+
+	local ownership = DATA.get_ownership_from_building(building)
+	local owner = DATA.ownership_get_owner(ownership)
+
+	if owner == self.player_character then
+		return true
+	end
+
 	return false
 end
 

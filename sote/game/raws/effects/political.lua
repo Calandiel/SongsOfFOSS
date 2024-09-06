@@ -1,6 +1,7 @@
 local tabb = require "engine.table"
 
 local pop_utils = require "game.entities.pop".POP
+local province_utils = require "game.entities.province".Province
 
 local PoliticalValues = require "game.raws.values.political"
 
@@ -120,7 +121,7 @@ end
 function PoliticalEffects.transfer_power(realm, target, reason)
 	-- LOGS:write("realm: " .. realm.name .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
 	local fat_realm = DATA.fatten_realm(realm)
-	local fat_target = DATA.fatten_pop(realm)
+	local fat_target = DATA.fatten_pop(target)
 	local leadership = DATA.get_realm_leadership_from_realm(realm)
 	local depose_message = ""
 	if leadership ~= INVALID_ID then
@@ -409,8 +410,7 @@ function PoliticalEffects.generate_new_noble(realm, province, race, faith, cultu
 		faith,
 		culture,
 		love.math.random() > fat_race.males_per_hundred_females / (100 + fat_race.males_per_hundred_females),
-		love.math.random(fat_race.adult_age, fat_race.max_age),
-		province, province, true
+		love.math.random(fat_race.adult_age, fat_race.max_age)
 	)
 
 	local fat = DATA.fatten_pop(character)
@@ -420,8 +420,8 @@ function PoliticalEffects.generate_new_noble(realm, province, race, faith, cultu
 
 	roll_traits(character)
 	fat.realm = realm
-	pop_utils.add_character(province, character)
-	pop_utils.set_home(province, character)
+	province_utils.add_character(province, character)
+	province_utils.set_home(province, character)
 
 	return character
 end

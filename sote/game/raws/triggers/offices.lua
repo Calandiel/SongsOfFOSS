@@ -56,6 +56,7 @@ end
 ---@param warband Warband
 function triggers.warband_leader(character, warband)
     -- go through officer posts and check if that of highest filled
+
     if warband.leader and warband.leader ~= character then return false end
     if warband.recruiter and warband.recruiter ~= character then return false end
     if warband.commander and warband.commander ~= character then return false end
@@ -67,10 +68,17 @@ end
 ---@param character Character
 ---@param realm Realm
 function triggers.guard_leader(character, realm)
-    if character.realm ~= realm then return false end
-    local guard = realm.capitol_guard
-    if guard == nil then return false end
-    return triggers.warband_leader(character, guard)
+    if realm == INVALID_ID then
+        return false
+    end
+    if character == INVALID_ID then
+        return false
+    end
+    if REALM(character) ~= realm then return false end
+    local guard = DATA.get_realm_guard_from_realm(realm)
+    if guard == INVALID_ID then return false end
+    local warband = DATA.realm_guard_get_guard(guard)
+    return triggers.warband_leader(character, warband)
 end
 
 ---checks if character can patrol the province

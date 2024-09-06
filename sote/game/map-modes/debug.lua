@@ -63,12 +63,17 @@ end
 function dbg.debug_color()
 	DATA.for_each_tile(function (tile_id)
 		-- tile.set_real_color(tile_id,tile.debug_r, tile.debug_g, tile.debug_b)
-		local prov = tile.province(tile_id)
-		if DATA.province_get_on_a_river(prov) then
-			tile.set_real_color(tile_id,1, 1, 1)
+		if DATA.tile_get_is_border(tile_id) then
+			tile.set_real_color(tile_id, 1, 1, 1)
 		else
-			tile.set_real_color(tile_id,0, 0, 0)
+			tile.set_real_color(tile_id, 0, 0, 0)
 		end
+		-- local prov = tile.province(tile_id)
+		-- if DATA.province_get_on_a_river(prov) then
+		-- 	tile.set_real_color(tile_id,1, 1, 1)
+		-- else
+		-- 	tile.set_real_color(tile_id,0, 0, 0)
+		-- end
 	end)
 end
 

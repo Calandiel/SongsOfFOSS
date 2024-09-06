@@ -136,9 +136,9 @@ function pol.atlas_tiles()
 		function(tile_id)
 			local elevation = DATA.tile_get_elevation(tile_id)
 			if DATA.tile_get_is_land(tile_id) then
-				return math.max(0, tile_id)
+				return math.max(0, elevation)
 			else
-				return math.min(0, tile_id)
+				return math.min(0, elevation)
 			end
 		end, ut.elevation_threshold
 	)

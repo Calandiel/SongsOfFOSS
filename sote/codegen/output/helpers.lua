@@ -6,9 +6,26 @@ end
 
 ---Returns province of a pop
 ---@param pop_id pop_id
+---@return province_id
 function PROVINCE(pop_id)
 	-- assume that pop has location?
-	return DATA.pop_location_get_location(DATA.get_pop_location_from_pop(pop_id))
+	local location_pop = DATA.get_pop_location_from_pop(pop_id)
+	local location_character = DATA.get_character_location_from_character(pop_id)
+
+	if location_pop ~= INVALID_ID then
+		return DATA.pop_location_get_location(location_pop)
+	end
+	if location_character ~= INVALID_ID then
+		return DATA.character_location_get_location(location_character)
+	end
+
+	return INVALID_ID
+end
+
+---Returns realm of a pop
+---@param pop_id pop_id
+function REALM(pop_id)
+	return DATA.pop_get_realm(pop_id)
 end
 
 --- update these values when you change description in according generator descriptors

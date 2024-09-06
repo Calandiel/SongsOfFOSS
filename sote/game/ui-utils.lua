@@ -14,6 +14,14 @@ ut.DATA_PADDING = 2
 ---@field g number
 ---@field b number
 
+---@class (exact) NamedEntry
+---@field weight number
+---@field tooltip string
+---@field name string
+---@field r number
+---@field g number
+---@field b number
+
 ---Draws a linear, horizontal graph.
 ---@param entries table<number, Entry>
 ---@param rect Rect
@@ -942,24 +950,31 @@ end
 ---@param rect Rect
 ---@param pop POP
 function ut.render_pop_satsifaction(rect, pop)
-	local needs_tooltip = "Forage Ratio: " .. ut.to_fixed_point2(pop.forage_ratio) .. "%, Work Ratio: " .. ut.to_fixed_point2(pop.work_ratio) .. "%"
-	for need, values in pairs(pop.need_satisfaction) do
-		local tooltip = ""
-		for case, value in pairs(values) do
-			if value.demanded > 0 then
-				tooltip = tooltip .. "\n  " .. case .. ": "
-					.. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
-					.. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
-			end
+	local needs_tooltip = "Forage Ratio: " .. ut.to_fixed_point2(DATA.pop_get_forage_ratio(pop)) .. "%, Work Ratio: " .. ut.to_fixed_point2(DATA.pop_get_work_ratio(pop)) .. "%"
+
+	for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		local use_case = DATA.pop_get_need_satisfaction_use_case(pop, index)
+		if use_case == 0 then
+			break
 		end
-		if tooltip ~= "" then
-			needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
-		end
+		local need = DATA.pop_get_need_satisfaction_need(pop, index)
+		local demanded = DATA.pop_get_need_satisfaction_demanded(pop, index)
+		local consumed = DATA.pop_get_need_satisfaction_consumed(pop, index)
+		---@type string
+		needs_tooltip = needs_tooltip
+			.. "\n  "
+			.. DATA.use_case_get_name(use_case)
+			.. "(" .. DATA.need_get_name(need) .. ")"
+			.. ": "
+			.. ut.to_fixed_point2(consumed)
+			.. " / "
+			.. ut.to_fixed_point2(demanded)
+			.. " (" .. ut.to_fixed_point2(consumed / demanded * 100) .. "%)"
 	end
 
 	ut.generic_number_field(
 		"inner-self.png",
-		pop.basic_needs_satisfaction,
+		DATA.pop_get_basic_needs_satisfaction(pop),
 		rect,
 		"Satisfaction of needs of this character. \n" .. needs_tooltip,
 		ut.NUMBER_MODE.PERCENTAGE,

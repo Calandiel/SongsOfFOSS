@@ -58,14 +58,15 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	local pop_to_spawn = math.max(5, capitol.foragers_limit / race.carrying_capacity_weight * race.fecundity * 0.5)
 	for _ = 1, pop_to_spawn do
 		local age = math.floor(math.abs(love.math.randomNormal(race.adult_age, race.adult_age)) + 1)
-		pop_utils.new(
+		local new_pop = pop_utils.new(
 			race_id,
 			faith,
 			culture,
 			love.math.random() > male_percentage,
-			age,
-			capitol_id, capitol_id
+			age
 		)
+		province_utils.add_pop(capitol_id, new_pop)
+		province_utils.set_home(capitol_id, new_pop)
 	end
 
 	-- spawn leader
@@ -111,9 +112,9 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 		---@type technology_id[]
 		local to_research = {}
 		DATA.for_each_technology(function (item)
-			if DATA.province_get_technologies_researchable(capitol_id, item) then
-				DATA.realm_inc_budget_budget(r, BUDGET_CATEGORY.EDUCATION, 1)
+			if DATA.province_get_technologies_researchable(capitol_id, item) == 1 then
 				if love.math.random() < 0.1 then
+					DATA.realm_inc_budget_budget(r, BUDGET_CATEGORY.EDUCATION, 1)
 					table.insert(to_research, item)
 				end
 			end
@@ -137,14 +138,15 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 		local parents = {}
 
 		DATA.for_each_pop_location_from_location(capitol_id, function (parent_location)
-			local fat_potential_parent = DATA.fatten_pop(parent_location)
+			local potential_parent_id = DATA.pop_location_get_pop(parent_location)
+			local fat_potential_parent = DATA.fatten_pop(potential_parent_id)
 			if fat_potential_parent.age <= fat_child.age + race.adult_age then
 				return
 			end
 			if fat_potential_parent.age >= fat_child.age + race.elder_age then
 				return
 			end
-			table.insert(parents)
+			table.insert(parents, potential_parent_id)
 		end)
 
 		local parent = tabb.random_select_from_set(parents)
@@ -308,7 +310,7 @@ function st.run()
 		-- This will make it so culture "expand" slowly through mountains and such.
 		if (love.math.random() > 0.001 + fat_prov.movement_cost / 1000.0) or fat_prov.on_a_river then
 			DATA.for_each_province_neighborhood_from_origin(prov, function (item)
-				local neigh = DATA.province_neighborhood_get_target(prov)
+				local neigh = DATA.province_neighborhood_get_target(item)
 				local fat_neigh = DATA.fatten_province(neigh)
 				local neigh_realm = province_utils.realm(neigh)
 
