@@ -3,8 +3,8 @@ local ut = require "game.ui-utils"
 
 local tile_utils = require "game.entities.tile"
 
-local ev = require "game.raws.values.economical"
-local ee = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economy"
+local ee = require "game.raws.effects.economy"
 local pv = require "game.raws.values.political"
 
 

@@ -7,8 +7,8 @@ local production_utils = require "game.raws.production-methods"
 
 local tabb = require "engine.table"
 local dbm = require "game.economy.diet-breadth-model"
-local economic_effects = require "game.raws.effects.economic"
-local ev = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economy"
+local ev = require "game.raws.values.economy"
 local pv = require "game.raws.values.political"
 
 local pro = {}
@@ -769,8 +769,8 @@ function pro.run(province)
 		end
 
 		-- adjust pop savings
-		economic_effects.add_pop_savings(pop_id, income, economic_effects.reasons.Forage)
-		economic_effects.add_pop_savings(pop_id, -total_expense, economic_effects.reasons.BasicNeeds)
+		economic_effects.add_pop_savings(pop_id, income, ECONOMY_REASON.FORAGE)
+		economic_effects.add_pop_savings(pop_id, -total_expense, ECONOMY_REASON.BASIC_NEEDS)
 
 		-- for next month determine if it should forage more or less
 		local forage_ratio = DATA.pop_get_forage_ratio(pop_id)
@@ -857,7 +857,7 @@ function pro.run(province)
 				total_local_donations = total_local_donations + pop_donation_total * 0.4
 				total_trade_donations = total_trade_donations + pop_donation_total * 0.2
 			else
-				local popularity = pv.popularity(pop, DATA.province_get_realm(province))
+				local popularity = pv.popularity(pop, province_utils.realm(province))
 				if popularity > 0 then
 					total_popularity = total_popularity + popularity
 				end
@@ -963,7 +963,7 @@ function pro.run(province)
 		-- so obviously we need some wealth sources
 		-- should be removed when economy simulation will be completed
 		local base_income = race_weight * age / DATA.race_get_max_age(race);
-		economic_effects.add_pop_savings(pop, base_income, economic_effects.reasons.MonthlyChange)
+		economic_effects.add_pop_savings(pop, base_income, ECONOMY_REASON.MONTHLY_CHANGE)
 
 		local free_time_of_pop = 1;
 		-- Drafted pops work only when warband is "idle"
@@ -1180,7 +1180,7 @@ function pro.run(province)
 					income = math.min(trade_wealth, income) + 0.5 * (income - trade_wealth)
 				end
 				DATA.employment_inc_worker_income(employment, income)
-				economic_effects.add_pop_savings(pop, income, economic_effects.reasons.Work)
+				economic_effects.add_pop_savings(pop, income, ECONOMY_REASON.WORK)
 				DATA.province_set_trade_wealth(province,  math.max(0, trade_wealth - income))
 			end
 			PROFILER:end_timer('production-building-update')
@@ -1216,7 +1216,7 @@ function pro.run(province)
 
 		for _, location in ipairs(DATA.get_character_location_from_location(province)) do
 			local character = DATA.character_location_get_character(location)
-			local popularity = pv.popularity(character, DATA.province_get_realm(province))
+			local popularity = pv.popularity(character, province_utils.realm(province))
 
 			if popularity > 0 then
 				local share = elites_share * popularity / total_popularity
@@ -1231,16 +1231,16 @@ function pro.run(province)
 						.. tostring(total_popularity)
 					)
 				end
-				economic_effects.add_pop_savings(c, share, economic_effects.reasons.Donation)
+				economic_effects.add_pop_savings(character, share, ECONOMY_REASON.DONATION)
 			end
 		end
 	end
-	economic_effects.register_income(DATA.province_get_realm(province), realm_share, economic_effects.reasons.Donation)
-	economic_effects.change_local_wealth(province, total_local_donations, economic_effects.reasons.Donation)
+	economic_effects.register_income(province_utils.realm(province), realm_share, ECONOMY_REASON.DONATION)
+	economic_effects.change_local_wealth(province, total_local_donations, ECONOMY_REASON.DONATION)
 	DATA.province_set_trade_wealth(province, DATA.province_get_trade_wealth(province) + total_trade_donations)
 
 	for character, income in pairs(donations_to_owners) do
-		economic_effects.add_pop_savings(character, income, economic_effects.reasons.BuildingIncome)
+		economic_effects.add_pop_savings(character, income, ECONOMY_REASON.BUILDING_INCOME)
 	end
 
 	PROFILER:end_timer('donations')
@@ -1323,7 +1323,7 @@ function pro.run(province)
 		end
 		DATA.province_set_local_consumption(province, good, market_data[good].consumption)
 		DATA.province_set_local_demand(province, good, market_data[good].demand)
-		DATA.province_set_local_supply(province, good, market_data[good].supply)
+		DATA.province_set_local_production(province, good, market_data[good].supply)
 	end
 	DATA.for_each_trade_good(record_data)
 end

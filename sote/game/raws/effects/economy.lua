@@ -2,66 +2,93 @@ local tabb = require "engine.table"
 
 local ut = require "game.ui-utils"
 
-local ev = require "game.raws.values.economical"
+local ev = require "game.raws.values.economy"
 local et = require "game.raws.triggers.economy"
 
+local building_utils = require "game.entities.building".Building
+local pop_utils = require "game.entities.pop".POP
+local province_utils = require "game.entities.province".Province
+local warband_utils = require "game.entities.warband"
+
 local EconomicEffects = {}
+
+---consumes `days` worth amount of supplies
+---@param warband warband_id
+---@param days number
+---@return number
+function EconomicEffects.consume_supplies(warband, days)
+	local daily_consumption = warband_utils.daily_supply_consumption(warband)
+	local consumption = days * daily_consumption
+	local leader = DATA.get_warband_leader_from_warband(warband)
+
+	assert(leader ~= INVALID_ID, "ATTEMPT TO CONSUME SUPPLIES BY WARBAND WITHOUT LEADER")
+
+	local consumed = EconomicEffects.consume_use_case_from_inventory(DATA.warband_leader_get_leader(leader), CALORIES_USE_CASE, consumption)
+
+	-- give some wiggle room for floats
+	if consumed > consumption + 0.01
+		or consumed < consumption - 0.01 then
+		error("CONSUMED WRONG AMOUNT. "
+			.. "\n consumed = "
+			.. tostring(consumed)
+			.. "\n consumption = "
+			.. tostring(consumption)
+			.. "\n daily_consumption = "
+			.. tostring(daily_consumption)
+			.. "\n days = "
+			.. tostring(days))
+	end
+	return consumed
+end
 
 ---Change realm treasury and display effects to player
 ---@param realm Realm
 ---@param x number
----@param reason EconomicReason
+---@param reason ECONOMY_REASON
 function EconomicEffects.change_treasury(realm, x, reason)
-	realm.budget.treasury = realm.budget.treasury + x
-	if realm.budget.treasury_change_by_category[reason] == nil then
-		realm.budget.treasury_change_by_category[reason] = 0
-	end
-	realm.budget.treasury_change_by_category[reason] = realm.budget.treasury_change_by_category[reason] + x
+	local fat_realm = DATA.fatten_realm(realm)
+	fat_realm.budget_treasury = fat_realm.budget_treasury + x
 
-	if reason == EconomicEffects.reasons.Tax and x > 0 then
-		realm.tax_collected_this_year = realm.tax_collected_this_year + x
+	if reason == ECONOMY_REASON.TAX and x > 0 then
+		fat_realm.budget_tax_collected_this_year = fat_realm.budget_tax_collected_this_year + x
 	end
 
+	DATA.realm_inc_budget_treasury_change_by_category(realm, reason, x)
 	EconomicEffects.display_treasury_change(realm, x, reason)
 end
 
 ---Register budget incomes and display them
 ---@param realm Realm
 ---@param x number
----@param reason EconomicReason
+---@param reason ECONOMY_REASON
 function EconomicEffects.register_income(realm, x, reason)
-	realm.budget.change = realm.budget.change + x
-	if realm.budget.income_by_category[reason] == nil then
-		realm.budget.income_by_category[reason] = 0
+	local fat_realm = DATA.fatten_realm(realm)
+	fat_realm.budget_change = fat_realm.budget_change + x
+
+	if reason == ECONOMY_REASON.TAX and x > 0 then
+		fat_realm.budget_tax_collected_this_year = fat_realm.budget_tax_collected_this_year + x
 	end
 
-	if reason == EconomicEffects.reasons.Tax and x > 0 then
-		realm.tax_collected_this_year = realm.tax_collected_this_year + x
-	end
-
-	realm.budget.income_by_category[reason] = realm.budget.income_by_category[reason] + x
+	DATA.realm_inc_budget_income_by_category(realm, reason, x)
 	EconomicEffects.display_treasury_change(realm, x, reason)
 end
 
 ---Register budget spendings and display them
+---DOES NOT ACTUALLY SPENDS MONEY
 ---@param realm Realm
 ---@param x number
----@param reason EconomicReason
+---@param reason ECONOMY_REASON
 function EconomicEffects.register_spendings(realm, x, reason)
-	if realm.budget.spending_by_category[reason] == nil then
-		realm.budget.spending_by_category[reason] = 0
-	end
-	realm.budget.spending_by_category[reason] = realm.budget.spending_by_category[reason] + x
+	DATA.realm_inc_budget_spending_by_category(realm, reason, x)
 	EconomicEffects.display_treasury_change(realm, -x, reason)
 end
 
 ---Change pop savings and display effects to player
 ---@param pop pop_id
 ---@param x number
----@param reason EconomicReason
+---@param reason ECONOMY_REASON
 function EconomicEffects.add_pop_savings(pop, x, reason)
-	local savings = DATA.pop_get_savings(pop)
-	DATA.pop_set_savings(pop, savings + x)
+	DATA.pop_inc_savings(pop, x)
 
 	if DATA.pop_get_savings(pop) ~= DATA.pop_get_savings(pop) then
 		error("BAD POP SAVINGS INCREASE: " .. tostring(x) .. " " .. reason)
@@ -88,42 +115,43 @@ end
 ---@param realm Realm
 ---@param x number
 function EconomicEffects.set_education_budget(realm, x)
-	realm.budget.education.ratio = x
+	DATA.realm_set_budget_ratio(realm, BUDGET_CATEGORY.EDUCATION, x)
 end
 
 ---@param realm Realm
 ---@param x number
 function EconomicEffects.set_court_budget(realm, x)
-	realm.budget.court.ratio = x
+	DATA.realm_set_budget_ratio(realm, BUDGET_CATEGORY.COURT, x)
 end
 
 ---@param realm Realm
 ---@param x number
 function EconomicEffects.set_infrastructure_budget(realm, x)
-	realm.budget.infrastructure.ratio = x
+	DATA.realm_set_budget_ratio(realm, BUDGET_CATEGORY.INFRASTRUCTURE, x)
 end
 
 ---@param realm Realm
 ---@param x number
 function EconomicEffects.set_military_budget(realm, x)
-	realm.budget.military.ratio = x
+	DATA.realm_set_budget_ratio(realm, BUDGET_CATEGORY.MILITARY, x)
 end
 
 ---comment
----@param budget BudgetCategory
+---@param realm realm_id
+---@param category BUDGET_CATEGORY
 ---@param x number
-function EconomicEffects.set_budget(budget, x)
-	budget.ratio = math.max(0, x)
+function EconomicEffects.set_budget(realm, category, x)
+	DATA.realm_set_budget_ratio(realm, category, x)
 end
 
 ---Directly inject money from treasury to budget category
 ---@param realm Realm
----@param budget_category BudgetCategory
+---@param category BUDGET_CATEGORY
 ---@param x number
----@param reason EconomicReason
-function EconomicEffects.direct_investment(realm, budget_category, x, reason)
+---@param reason ECONOMY_REASON
+function EconomicEffects.direct_investment(realm, category, x, reason)
 	EconomicEffects.change_treasury(realm, -x, reason)
-	budget_category.budget = budget_category.budget + x
+	DATA.realm_inc_budget_budget(realm, category, x)
 end
 
 --- Directly injects money to province infrastructure
@@ -131,7 +159,7 @@ end
 ---@param province province_id
 ---@param x number
 function EconomicEffects.direct_investment_infrastructure(realm, province, x)
-	EconomicEffects.change_treasury(realm, -x, EconomicEffects.reasons.Infrastructure)
+	EconomicEffects.change_treasury(realm, -x, ECONOMY_REASON.INFRASTRUCTURE)
 	local current = DATA.province_get_infrastructure_investment(province)
 	DATA.province_set_infrastructure_investment(province, current + x)
 end
@@ -139,7 +167,7 @@ end
 ---commenting
 ---@param province province_id
 ---@param x number
----@param reason EconomicReason
+---@param reason ECONOMY_REASON
 function EconomicEffects.change_local_wealth(province, x, reason)
 	local current = DATA.province_get_local_wealth(province)
 
@@ -162,38 +190,57 @@ end
 
 ---comment
 ---@param building Building
----@param pop POP?
+---@param pop POP
 function EconomicEffects.set_ownership(building, pop)
-	building.owner = pop
+	assert(pop ~= INVALID_ID)
+	assert(building ~= INVALID_ID)
 
-	if pop then
-		pop.owned_buildings[building] = building
+	local ownership = DATA.get_ownership_from_building(building)
+	if ownership == INVALID_ID then
+		local new_ownership = DATA.create_ownership()
+		DATA.ownership_set_building(new_ownership, building)
+		DATA.ownership_set_owner(new_ownership, pop)
+	else
+		DATA.ownership_set_owner(ownership, pop)
 	end
 
-	if pop and WORLD:does_player_see_province_news(building.province) then
+	local province = building_utils.province(building)
+
+	if pop and WORLD:does_player_see_province_news(province) then
+		local building_type = DATA.building_get_type(building)
+		local name_building = DATA.building_type_get_name(building_type)
+		local pop_name = DATA.pop_get_name(pop)
+
 		if WORLD.player_character == pop then
-			WORLD:emit_notification(building.type.name .. " is now owned by me, " .. pop.name .. ".")
+			WORLD:emit_notification(name_building .. " is now owned by me, " .. pop_name .. ".")
 		else
-			WORLD:emit_notification(building.type.name .. " is now owned by " .. pop.name .. ".")
+			WORLD:emit_notification(name_building .. " is now owned by " .. pop_name .. ".")
 		end
 	end
 end
 
 ---@param building Building
 function EconomicEffects.unset_ownership(building)
-	local owner = building.owner
+	local ownership = DATA.get_ownership_from_building(building)
 
-	if owner == nil then
+	if ownership == INVALID_ID then
 		return
 	end
 
-	owner.owned_buildings[building] = nil
+	local owner = DATA.ownership_get_owner(ownership)
+	local province = building_utils.province(building)
 
-	if WORLD:does_player_see_province_news(owner.province) then
+	DATA.delete_ownership(ownership)
+
+	if WORLD:does_player_see_province_news(province) then
+		local building_type = DATA.building_get_type(building)
+		local name_building = DATA.building_type_get_name(building_type)
+		local pop_name = DATA.pop_get_name(owner)
+
 		if WORLD.player_character == owner then
-			WORLD:emit_notification(building.type.name .. " is no longer owned by me, " .. owner.name .. ".")
+			WORLD:emit_notification(name_building .. " is no longer owned by me, " .. pop_name .. ".")
 		else
-			WORLD:emit_notification(building.type.name .. " is no longer owned by " .. owner.name .. ".")
+			WORLD:emit_notification(name_building .. " is no longer owned by " .. pop_name .. ".")
 		end
 	end
 end
@@ -201,16 +248,22 @@ end
 ---comment
 ---@param building_type BuildingType
 ---@param province province_id
----@param owner POP?
+---@param owner POP
 ---@return Building
 function EconomicEffects.construct_building(building_type, province, owner)
-	local Building = require "game.entities.building".Building
-	local result_building = Building:new(province, building_type)
-	EconomicEffects.set_ownership(result_building, owner)
+	local result_building = building_utils.new(province, building_type)
+
+	local name_building = DATA.building_type_get_name(building_type)
+	local province_name = DATA.province_get_name(province)
 
 	if WORLD:does_player_see_province_news(province) then
-		WORLD:emit_notification(building_type.name .. " was constructed in " .. province.name .. ".")
+		WORLD:emit_notification(name_building .. " was constructed in " .. province_name .. ".")
 	end
+
+	if owner ~= INVALID_ID then
+		EconomicEffects.set_ownership(result_building, owner)
+	end
+
 	return result_building
 end
 
@@ -218,14 +271,14 @@ end
 ---@param building Building
 function EconomicEffects.destroy_building(building)
 	EconomicEffects.unset_ownership(building)
-	building:remove_from_province()
+	building_utils.remove_from_province(building)
 end
 
 ---comment
 ---@param building_type BuildingType
 ---@param province province_id
----@param owner POP?
----@param overseer POP?
+---@param owner POP
+---@param overseer POP
 ---@param public boolean
 ---@return Building
 function EconomicEffects.construct_building_with_payment(building_type, province, owner, overseer, public)
@@ -233,9 +286,9 @@ function EconomicEffects.construct_building_with_payment(building_type, province
 	local building = EconomicEffects.construct_building(building_type, province, owner)
 
 	if public or (owner == nil) then
-		EconomicEffects.change_treasury(province.realm, -construction_cost, EconomicEffects.reasons.Building)
+		EconomicEffects.change_treasury(province_utils.realm(province), -construction_cost, ECONOMY_REASON.BUILDING)
 	else
-		EconomicEffects.add_pop_savings(owner, -construction_cost, EconomicEffects.reasons.Building)
+		EconomicEffects.add_pop_savings(owner, -construction_cost, ECONOMY_REASON.BUILDING)
 	end
 
 	return building
@@ -246,18 +299,18 @@ end
 ---@param realm Realm
 ---@return number
 function EconomicEffects.collect_tribute(collector, realm)
-	local tribute_amount = math.min(10, math.floor(realm.budget.tribute.budget))
+	local hauling = pop_utils.get_supply_capacity(collector, INVALID_ID) * 2
+	local max_tribute = DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.TRIBUTE)
+	local tribute_amount = math.min(hauling, math.floor(max_tribute))
 
 	if WORLD:does_player_see_realm_news(realm) then
 		WORLD:emit_notification("Tribute collector had arrived. Another day of humiliation. " ..
 			tribute_amount .. MONEY_SYMBOL .. " were collected.")
 	end
 
-	EconomicEffects.register_spendings(realm, tribute_amount, EconomicEffects.reasons.Tribute)
-	realm.budget.tribute.budget = realm.budget.tribute.budget - tribute_amount
-
-	EconomicEffects.add_pop_savings(collector, tribute_amount, EconomicEffects.reasons.Tribute)
-
+	EconomicEffects.register_spendings(realm, tribute_amount, ECONOMY_REASON.TRIBUTE)
+	DATA.realm_inc_budget_budget(realm, BUDGET_CATEGORY.TRIBUTE, -tribute_amount)
+	EconomicEffects.add_pop_savings(collector, tribute_amount, ECONOMY_REASON.TRIBUTE)
 	return tribute_amount
 end
 
@@ -282,8 +335,8 @@ function EconomicEffects.return_tribute_home(collector, realm, tribute)
 			to_treasury .. MONEY_SYMBOL .. " wealth.")
 	end
 
-	EconomicEffects.register_income(realm, to_treasury, EconomicEffects.reasons.Tribute)
-	EconomicEffects.add_pop_savings(collector, -to_treasury, EconomicEffects.reasons.Tribute)
+	EconomicEffects.register_income(realm, to_treasury, ECONOMY_REASON.TRIBUTE)
+	EconomicEffects.add_pop_savings(collector, -to_treasury, ECONOMY_REASON.TRIBUTE)
 end
 
 ---comment
@@ -374,7 +427,7 @@ function EconomicEffects.buy(character, good, amount)
 		)
 	end
 
-	EconomicEffects.add_pop_savings(character, -cost, EconomicEffects.reasons.Trade)
+	EconomicEffects.add_pop_savings(character, -cost, ECONOMY_REASON.TRADE)
 
 	local trade_wealth = DATA.province_get_trade_wealth(province)
 	DATA.province_set_trade_wealth(province, trade_wealth + cost)
@@ -396,28 +449,20 @@ function EconomicEffects.buy(character, good, amount)
 	-- print('!!! BUY')
 
 	if WORLD:does_player_see_province_news(province) then
-		WORLD:emit_notification("Trader " ..
-			character.name .. " bought " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
+		local name = DATA.pop_get_name(character)
+		WORLD:emit_notification(
+			"Trader "
+			.. name
+			.. " bought "
+			.. amount
+			.. " "
+			.. good
+			.. " for "
+			.. ut.to_fixed_point2(cost) .. MONEY_SYMBOL
+		)
 	end
 
 	return true
-end
-
----Returns available units for satisfying a use case from pop inventory or realm resources
----@param pop pop_id
----@param use_case use_case_id
----@return number
-function EconomicEffects.available_use_case_from_inventory(pop, use_case)
-	local supply = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
-		local good = DATA.use_weight_get_trade_good(weight_id)
-		local weight = DATA.use_weight_get_weight(weight_id)
-		local good_in_inventory = inventory[good] or 0
-		if good_in_inventory > 0 then
-			a = a + good_in_inventory * weight
-		end
-		return a
-	end)
-	return supply
 end
 
 --- Consumes up to amount of use case from inventory in equal parts to available.
@@ -427,7 +472,7 @@ end
 ---@param amount number
 ---@return number consumed
 function EconomicEffects.consume_use_case_from_inventory(pop, use_case, amount)
-	local supply = EconomicEffects.available_use_case_from_inventory(inventory, use_case)
+	local supply = ev.available_use_case_from_inventory(pop, use_case)
 	if supply < amount then
 		error("NOT ENOUGH IN INVENTORY: "
 			.. "\n supply = "
@@ -438,7 +483,7 @@ function EconomicEffects.consume_use_case_from_inventory(pop, use_case, amount)
 	local consumed = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
 		local good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
-		local good_in_inventory = inventory[good] or 0
+		local good_in_inventory = DATA.pop_get_inventory(pop, good)
 		if good_in_inventory > 0 then
 			local available = good_in_inventory * weight
 			local satisfied = available / supply * amount
@@ -463,7 +508,7 @@ function EconomicEffects.consume_use_case_from_inventory(pop, use_case, amount)
 					.. tostring(used)
 				)
 			end
-			inventory[good] = math.max(0, inventory[good] - used)
+			DATA.pop_set_inventory(pop, good, math.max(0, DATA.pop_get_inventory(pop, good) - used))
 			a = a + satisfied
 		end
 		return a
@@ -485,14 +530,15 @@ end
 ---@param use use_case_id
 ---@param amount number
 function EconomicEffects.character_buy_use(character, use, amount)
-	local can_buy, _ = et.can_buy_use(character.province, character.savings, use, amount)
+	local province = PROVINCE(character)
+	local savings = DATA.pop_get_savings(character)
+	local can_buy, _ = et.can_buy_use(province, savings, use, amount)
 	if not can_buy then
 		return false
 	end
 
 	-- can_buy validates province
-	---@type province_id
-	local province = character.province
+
 	local price = ev.get_local_price_of_use(province, use)
 
 	local cost = price * amount
@@ -519,12 +565,13 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		local good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_price = ev.get_local_price(province, good)
-		if character.price_memory[good] == nil then
-			character.price_memory[good] = good_price
+		local memory = DATA.pop_get_price_memory(character, good)
+		if memory == 0 then
+			DATA.pop_set_price_memory(character, good, good_price)
 		else
-			character.price_memory[good] = character.price_memory[good] * (3 / 4) + good_price * (1 / 4)
+			DATA.pop_set_price_memory(character, good, memory * (3 / 4) + good_price * (1 / 4))
 		end
-		local goods_available = province.local_storage[good] or 0
+		local goods_available = DATA.province_get_local_storage(province, good)
 		if goods_available > 0 then
 			goods[#goods + 1] = { good = good, weight = weight, price = good_price, available = goods_available }
 		end
@@ -568,13 +615,16 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		spendings = spendings + costs
 
 		--MAKE TRANSACTION
-		province.trade_wealth = province.trade_wealth + costs
-		character.inventory[values.good] = (character.inventory[values.good] or 0) + amount
+		DATA.province_inc_trade_wealth(province, costs)
+		---pop's savings are reduced later
 
+		DATA.pop_inc_inventory(character, values.good, amount)
 		EconomicEffects.change_local_stockpile(province, values.good, -consumed_amount)
 
-		local trade_volume = (province.local_consumption[values.good] or 0) +
-			(province.local_production[values.good] or 0) + consumed_amount
+		local trade_volume =
+			DATA.province_get_local_consumption(province, values.good)
+			+ DATA.province_get_local_production(province, values.good)
+			+ consumed_amount
 		local price_change = consumed_amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * values.price
 
 		EconomicEffects.change_local_price(province, values.good, price_change)
@@ -598,18 +648,23 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		)
 	end
 
-	EconomicEffects.add_pop_savings(character, -spendings, EconomicEffects.reasons.Trade)
+	EconomicEffects.add_pop_savings(character, -spendings, ECONOMY_REASON.TRADE)
 
 	if WORLD:does_player_see_province_news(province) then
-		WORLD:emit_notification("Trader " ..
-			character.name ..
-			" bought " .. amount .. " " .. use .. " for " .. ut.to_fixed_point2(spendings) .. MONEY_SYMBOL)
+		WORLD:emit_notification(
+			"Trader " .. DATA.pop_get_name(character)
+			.. " bought " .. amount	.. " " .. use
+			.. " for " .. ut.to_fixed_point2(spendings)
+			.. MONEY_SYMBOL
+		)
 	end
 end
 
+
+--[[ unused code, rewrite on demand, but it would be better to purchase realms goods via some agent
 ---comment
 ---@param realm Realm
----@param use trade_good_id
+---@param use use_case_id
 ---@param amount number
 function EconomicEffects.realm_buy_use(realm, use, amount)
 	local can_buy, _ = et.can_buy_use(realm.capitol, realm.budget.treasury, use, amount)
@@ -722,12 +777,13 @@ function EconomicEffects.realm_buy_use(realm, use, amount)
 		)
 	end
 
-	EconomicEffects.change_treasury(realm, -spendings, EconomicEffects.reasons.Trade)
+	EconomicEffects.change_treasury(realm, -spendings, ECONOMY_REASON.TRADE)
 
 	if WORLD:does_player_see_province_news(province) then
 		WORLD:emit_notification(realm.name .. " bought " .. amount .. " " .. use .. " for " .. ut.to_fixed_point2(spendings) .. MONEY_SYMBOL .. ".")
 	end
 end
+--]]
 
 ---comment
 ---@param character Character
@@ -741,14 +797,16 @@ function EconomicEffects.sell(character, good, amount)
 
 	-- can_sell validates province
 	---@type province_id
-	local province = character.province
+	local province = PROVINCE(character)
 	local price = ev.get_pessimistic_local_price(province, good, amount, true)
 
-	if character.price_memory[good] == nil then
-		character.price_memory[good] = price
-	else
-		character.price_memory[good] = character.price_memory[good] * (3 / 4) + price * (1 / 4)
+	local memory = DATA.pop_get_price_memory(character, good)
+	local new_memory = price
+	if memory > 0 then
+		new_memory = memory * (3 / 4) + price * (1 / 4)
 	end
+
+	DATA.pop_set_price_memory(character, good, new_memory)
 
 	local cost = price * amount
 
@@ -762,20 +820,28 @@ function EconomicEffects.sell(character, good, amount)
 		)
 	end
 
-	EconomicEffects.add_pop_savings(character, cost, EconomicEffects.reasons.Trade)
-	province.trade_wealth = province.trade_wealth - cost
-	character.inventory[good] = (character.inventory[good] or 0) - amount
+	EconomicEffects.add_pop_savings(character, cost, ECONOMY_REASON.TRADE)
+	DATA.province_inc_trade_wealth(province, cost)
+
+	DATA.pop_inc_inventory(character, good, -amount)
 	EconomicEffects.change_local_stockpile(province, good, amount)
 
-	local trade_volume = (province.local_consumption[good] or 0) + (province.local_production[good] or 0) + amount
+	local trade_volume =
+			DATA.province_get_local_consumption(province, good)
+			+ DATA.province_get_local_production(province, good)
+			+ amount
+
 	local price_change = amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * price
 	EconomicEffects.change_local_price(province, good, -price_change)
 
 	-- print('!!! SELL')
 
 	if WORLD:does_player_see_province_news(province) then
-		WORLD:emit_notification("Trader " ..
-			character.name .. " sold " .. amount .. " " .. good .. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL)
+		WORLD:emit_notification(
+			"Trader " .. DATA.pop_get_name(character)
+			.. " sold " .. amount .. " " .. good
+			.. " for " .. ut.to_fixed_point2(cost) .. MONEY_SYMBOL
+		)
 	end
 	return true
 end
@@ -785,16 +851,39 @@ end
 ---@param realm Realm
 ---@param amount number
 function EconomicEffects.gift_to_tribe(character, realm, amount)
-	if character.savings < amount then
+	local savings = DATA.pop_get_savings(character)
+	if savings < amount then
 		return
 	end
 
-	EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Donation)
-	EconomicEffects.change_treasury(realm, amount, EconomicEffects.reasons.Donation)
+	EconomicEffects.add_pop_savings(character, -amount, ECONOMY_REASON.DONATION)
+	EconomicEffects.change_treasury(realm, amount, ECONOMY_REASON.DONATION)
 
-	realm.capitol.mood = realm.capitol.mood + amount / realm.capitol:local_population() / 100
-	character.popularity[realm] = (character.popularity[realm] or 0) +
-		amount / (realm.capitol:local_population() + 1) / 100
+	local capitol = DATA.realm_get_capitol(realm)
+
+	local mood_change = amount / (province_utils.local_population(capitol) + 1) / 100
+
+	DATA.province_inc_mood(capitol, mood_change)
+	EconomicEffects.gain_popularity(character, realm, mood_change)
+end
+
+function EconomicEffects.gain_popularity(character, realm, amount)
+	local popularity = INVALID_ID
+	DATA.for_each_popularity_from_who(character, function (item)
+		local where = DATA.popularity_get_where(item)
+		if where == realm then
+			popularity = item
+		end
+	end)
+
+	if popularity == INVALID_ID then
+		local new = DATA.create_popularity()
+		DATA.popularity_set_who(new, character)
+		DATA.popularity_set_where(new, character)
+		DATA.popularity_set_value(new, amount)
+	else
+		DATA.popularity_inc_value(popularity, amount)
+	end
 end
 
 ---comment
@@ -802,22 +891,24 @@ end
 ---@param character Character
 ---@param amount number
 function EconomicEffects.gift_to_warband(warband, character, amount)
-	if warband == nil then
-		return
-	end
+	assert(warband ~= INVALID_ID)
+	assert(character ~= INVALID_ID)
+
+	local savings = DATA.pop_get_savings(character)
+	local treasury = DATA.warband_get_treasury(warband)
 
 	if amount > 0 then
-		if character.savings < amount then
-			amount = character.savings
+		if savings < amount then
+			amount = savings
 		end
 	else
-		if warband.treasury < -amount then
-			amount = warband.treasury
+		if treasury < -amount then
+			amount = treasury
 		end
 	end
 
-	EconomicEffects.add_pop_savings(character, -amount, EconomicEffects.reasons.Warband)
-	warband.treasury = warband.treasury + amount
+	EconomicEffects.add_pop_savings(character, -amount, ECONOMY_REASON.WARBAND)
+	DATA.warband_inc_treasury(warband, amount)
 end
 
 ---commenting
@@ -826,21 +917,29 @@ end
 function EconomicEffects.collect_tax(character)
 	local total_tax = 0
 	local tax_collection_ability = 0.05
-	if character.traits[traits.HARDWORKER] then
-		tax_collection_ability = tax_collection_ability + 0.01
-	end
-	if character.traits[traits.GREEDY] then
-		tax_collection_ability = tax_collection_ability + 0.03
-	end
-	if character.traits[traits.LAZY] then
-		tax_collection_ability = tax_collection_ability - 0.01
-	end
-	for _, pop in pairs(character.province.all_pops) do
-		if pop.savings > 0 then
-			total_tax = total_tax + pop.savings * tax_collection_ability
-			EconomicEffects.add_pop_savings(pop, -pop.savings * tax_collection_ability, EconomicEffects.reasons.Tax)
+
+	for i = 0, MAX_TRAIT_INDEX do
+		local trait = DATA.pop_get_traits(character, i)
+		if trait == INVALID_ID then
+			break
+		end
+		if trait == TRAIT.GREEDY then
+			tax_collection_ability = tax_collection_ability + 0.03
+		elseif trait == TRAIT.HARDWORKER then
+			tax_collection_ability = tax_collection_ability + 0.01
+		elseif trait == TRAIT.LAZY then
+			tax_collection_ability = tax_collection_ability - 0.01
 		end
 	end
+
+	DATA.for_each_pop_location(function (item)
+		local pop = DATA.pop_location_get_pop(item)
+		local savings = DATA.pop_get_savings(pop)
+		if savings > 0 then
+			total_tax = total_tax + savings * tax_collection_ability
+			EconomicEffects.add_pop_savings(pop, -savings * tax_collection_ability, ECONOMY_REASON.TAX)
+		end
+	end)
 	return total_tax
 end
 
@@ -848,23 +947,21 @@ end
 ---@param character Character
 ---@param realm Realm
 function EconomicEffects.grant_trade_rights(character, realm)
-	character.has_trade_permits_in[realm] = realm
-	realm.trading_right_given_to[character] = character
-end
+	local rights = INVALID_ID
+	DATA.for_each_personal_rights_from_person(character, function (item)
+		local item_realm = DATA.personal_rights_get_realm(item)
+		if item_realm == realm then
+			rights = item_realm
+		end
+	end)
 
----Clears all trading rights of character
----@param character Character
-function EconomicEffects.abandon_trade_rights(character)
-	---@type Realm[]
-	local realms = {}
-
-	for _, realm in pairs(character.has_trade_permits_in) do
-		table.insert(realms, realm)
-	end
-
-	for _, realm in ipairs(realms) do
-		character.has_trade_permits_in[realm] = nil
-		realm.trading_right_given_to[character] = nil
+	if rights == INVALID_ID then
+		local new = DATA.fatten_personal_rights(DATA.create_personal_rights())
+		new.can_trade = true
+		new.person = character
+		new.realm = realm
+	else
+		DATA.personal_rights_set_can_trade(character, true)
 	end
 end
 
@@ -872,24 +969,34 @@ end
 ---@param character Character
 ---@param realm Realm
 function EconomicEffects.grant_building_rights(character, realm)
-	character.has_building_permits_in[realm] = realm
-	realm.building_right_given_to[character] = character
+	local rights = INVALID_ID
+	DATA.for_each_personal_rights_from_person(character, function (item)
+		local item_realm = DATA.personal_rights_get_realm(item)
+		if item_realm == realm then
+			rights = item_realm
+		end
+	end)
+
+	if rights == INVALID_ID then
+		local new = DATA.fatten_personal_rights(DATA.create_personal_rights())
+		new.can_build = true
+		new.person = character
+		new.realm = realm
+	else
+		DATA.personal_rights_set_can_build(character, true)
+	end
 end
 
 ---Clears all trading rights of character
 ---@param character Character
-function EconomicEffects.abandon_building_rights(character)
-	---@type Realm[]
-	local realms = {}
-
-	for _, realm in pairs(character.has_building_permits_in) do
-		table.insert(realms, realm)
-	end
-
-	for _, realm in ipairs(realms) do
-		character.has_building_permits_in[realm] = nil
-		realm.building_right_given_to[character] = nil
+function EconomicEffects.abandon_personal_rights(character)
+	local to_remove = DATA.filter_personal_rights_from_person(character, ACCEPT_ALL)
+	for index, value in ipairs(to_remove) do
+		DATA.delete_personal_rights(value)
 	end
 end
+
+
+
 
 return EconomicEffects

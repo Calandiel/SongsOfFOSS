@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local Decision = require "game.raws.decisions"
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local MilitaryEffects = require "game.raws.effects.military"
 local PoliticalEffects = require "game.raws.effects.political"
 

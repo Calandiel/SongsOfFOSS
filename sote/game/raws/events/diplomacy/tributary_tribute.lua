@@ -1,5 +1,5 @@
 local Event = require "game.raws.events"
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 ---@class (exact) TributeCollection
 ---@field origin Realm

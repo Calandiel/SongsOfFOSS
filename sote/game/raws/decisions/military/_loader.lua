@@ -10,7 +10,7 @@ local province_utils = require "game.entities.province".Province
 
 local military_effects = require "game.raws.effects.military"
 local military_values = require "game.raws.values.military"
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 local office_triggers = require "game.raws.triggers.offices"
 
@@ -136,7 +136,7 @@ return function ()
 			end
 
 			realm.quests_raid[primary_target] = realm.quests_raid[primary_target] + base_raiding_reward
-			economic_effects.add_pop_savings(root, -base_raiding_reward, economic_effects.reasons.Quest)
+			economic_effects.add_pop_savings(root, -base_raiding_reward, ECONOMY_REASON.QUEST)
 		end
 	}
 
@@ -197,7 +197,7 @@ return function ()
 				realm.quests_explore[primary_target] = 0
 			end
 			realm.quests_explore[primary_target] = realm.quests_explore[primary_target] + base_raiding_reward
-			economic_effects.add_pop_savings(root, -base_raiding_reward, economic_effects.reasons.Quest)
+			economic_effects.add_pop_savings(root, -base_raiding_reward, ECONOMY_REASON.QUEST)
 		end
 	}
 
@@ -253,7 +253,7 @@ return function ()
 			end
 
 			realm.quests_patrol[primary_target] = realm.quests_patrol[primary_target] + base_raiding_reward
-			economic_effects.add_pop_savings(root, -base_raiding_reward, economic_effects.reasons.Quest)
+			economic_effects.add_pop_savings(root, -base_raiding_reward, ECONOMY_REASON.QUEST)
 		end
 	}
 

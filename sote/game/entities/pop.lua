@@ -95,7 +95,7 @@ function rtab.POP.update_satisfaction(pop_id)
 	local life_consumed, life_demanded = 0, 0
 	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, i)
-		if use_case == 0 then
+		if use_case == INVALID_ID then
 			break
 		end
 		local need = DATA.pop_get_need_satisfaction_need(pop_id, i)
@@ -193,7 +193,7 @@ end
 ---@param unit unit_type_id
 ---@return number pop_adjusted speed modified by pop race and sex
 function rtab.POP.get_speed(pop, unit)
-	if unit then
+	if unit ~= INVALID_ID then
 		return DATA.unit_type_get_speed(unit)
 	end
 	return 1
@@ -217,7 +217,7 @@ end
 function rtab.POP.get_spotting(pop, unit)
 	local race = DATA.pop_get_race(pop)
 	local spotting = DATA.race_get_spotting(race)
-	if unit then
+	if unit ~= INVALID_ID then
 		return DATA.unit_type_get_spotting(unit) * spotting
 	end
 	return spotting
@@ -231,7 +231,7 @@ function rtab.POP.get_visibility(pop, unit)
 	local race = DATA.pop_get_race(pop)
 	local visibility = DATA.race_get_visibility(race)
 	local mod = visibility * rtab.POP.size(pop)
-	if unit then
+	if unit ~= INVALID_ID then
 		return DATA.unit_type_get_visibility(unit) * mod
 	end
 	return mod
@@ -244,7 +244,7 @@ end
 function rtab.POP.get_supply_use(pop, unit)
 	local pop_food = rtab.POP.calculate_need_use_case_satisfaction(pop, NEED.FOOD, CALORIES_USE_CASE)
 	local base = 0
-	if unit then
+	if unit ~= INVALID_ID then
 		base = base + DATA.unit_type_get_supply_used(unit)
 	end
 
@@ -263,7 +263,7 @@ function rtab.POP.get_supply_capacity(pop, unit)
 	end
 
 	local base = 0
-	if unit then
+	if unit ~= INVALID_ID then
 		base = base + DATA.unit_type_get_supply_capacity(unit)
 	end
 
@@ -271,32 +271,6 @@ function rtab.POP.get_supply_capacity(pop, unit)
 end
 
 
-
----Kills a single pop and removes it from all relevant references.
----@param pop pop_id
-function rtab.POP.kill_pop(pop)
-	-- print("kill " .. pop.name)
-	rtab.POP.fire_pop(pop)
-	rtab.POP.unregister_military(pop)
-	DATA.delete_pop(pop)
-end
-
----Fires an employed pop and adds it to the unemployed pops list.
----It leaves the "job" set so that inference of social class can be performed.
----@param pop pop_id
-function rtab.POP.fire_pop(pop)
-	local employment = DATA.get_employment_from_worker(pop)
-	if employment ~= INVALID_ID then
-		DATA.delete_employment(employment)
-		local building = DATA.employment_get_building(employment)
-		if #DATA.get_employment_from_building(building) == 0 then
-			local fat = DATA.fatten_building(building)
-			fat.last_income = 0
-			fat.last_donation_to_owner = 0
-			fat.subsidy_last = 0
-		end
-	end
-end
 
 ---adds new trait to character
 ---@param pop pop_id

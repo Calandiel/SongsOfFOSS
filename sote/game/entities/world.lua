@@ -3,6 +3,7 @@ local world            = {}
 local decide           = require "game.ai.decide"
 local tile             = require "game.entities.tile"
 local province_utils   = require "game.entities.province".Province
+local warband_utils    = require "game.entities.warband"
 
 local plate_utils      = require "game.entities.plate"
 local utils            = require "game.ui-utils"
@@ -449,11 +450,15 @@ function world.World:tick()
 		---@type province_id[]
 		local to_remove = {}
 		for _, settled_province in pairs(ta) do
-			if settled_province.realm == nil then
+			local realm = province_utils.realm(settled_province)
+			if realm == INVALID_ID then
 				table.insert(to_remove, settled_province)
-			elseif settled_province.realm.capitol == settled_province then
-				--print("Econ prerun")
-				realm_economic_update.prerun(settled_province.realm)
+			else
+				local capitol = DATA.realm_get_capitol(realm)
+				if capitol == settled_province then
+					--print("Econ prerun")
+					realm_economic_update.prerun(realm)
+				end
 			end
 		end
 		for _, province in pairs(to_remove) do
@@ -509,23 +514,13 @@ function world.World:tick()
 		local court = require "game.society.court"
 		local construct = require "game.ai.construction"
 		for _, settled_province in pairs(ta) do
-			local realm = settled_province.realm
+			local realm = province_utils.realm(settled_province)
+			assert(realm ~= INVALID_ID)
+			local overseer = political_values.overseer(realm)
+			assert(overseer ~= INVALID_ID)
+			local capitol = DATA.realm_get_capitol(realm)
 
-			if realm then
-				local overseer = political_values.overseer(realm)
-				if overseer == nil then
-					error(realm.name)
-				end
-				if overseer.province == nil then
-					error(overseer.name .. " " .. realm.name
-						.. tabb.accumulate(overseer, nil, function (_, k, v)
-							print("\n " .. tostring(k) .. tostring(v))
-						end)
-					)
-				end
-			end
-
-			if realm ~= nil and settled_province.realm.capitol == settled_province then
+			if realm ~= nil and capitol == settled_province then
 				PROFILER:start_timer("realm")
 
 				-- Run the realm AI once a month
@@ -537,8 +532,8 @@ function world.World:tick()
 					treasury.run(realm)
 					military.run(realm)
 				else
-					self:emit_treasury_change_effect(0, "new month")
-					self:emit_treasury_change_effect(0, "new month", true)
+					self:emit_treasury_change_effect(0, ECONOMY_REASON.NEW_MONTH)
+					self:emit_treasury_change_effect(0, ECONOMY_REASON.NEW_MONTH, true)
 				end
 				--print("Construct")
 				PROFILER:start_timer("realm-construct-update")
@@ -562,12 +557,12 @@ function world.World:tick()
 
 				PROFILER:start_timer("war")
 				-- launch patrols
-				for _, target in pairs(realm.provinces) do
-					local warbands = realm.patrols[target]
+				for target, warbands in pairs(DATA.realm_get_patrols(realm)) do
 					local units = 0
 					if warbands ~= nil then
 						for _, warband in pairs(warbands) do
-							units = units + warband:size()
+							---@type number
+							units = units + warband_utils.size(warband)
 						end
 					end
 					-- launch the patrol
@@ -585,11 +580,12 @@ function world.World:tick()
 		PROFILER:start_timer("decisions")
 
 		for _, settled_province in pairs(ta) do
-			for _, character in pairs(settled_province.characters) do
+			DATA.for_each_character_location_from_location(settled_province, function (item)
+				local character = DATA.character_location_get_character(item)
 				if character ~= WORLD.player_character then
 					decide.run_character(character)
 				end
-			end
+			end)
 		end
 
 		PROFILER:end_timer("decisions")
@@ -634,34 +630,12 @@ function world.World:tick()
 				if check[4] <= 0 then
 					local character = check[2]
 					local event = RAWS_MANAGER.events_by_name[check[1]]
-					local province = character.province
-
 					-- LOGS:write(
 					-- 	"\n Handling event: " .. check[1] .. "\n" ..
 					-- 	"root: " .. character.name .. "\n" ..
 					-- 	"realm:" .. character.realm.name .. "\n"
 					-- )
-
 					event:on_trigger(character, check[3])
-
-					-- sanity check: province should not contain characters without province
-					if province and province.characters[character] and character.province == nil then
-						if province.characters[character] then
-							error(
-								'DEAD CHARACTER WAS NOT CLEARED FROM HIS PROVINCE: '
-								.. check[1]
-							)
-						end
-					end
-
-					-- sanity check: character should be in the list of characters of his current province
-					if not character.dead and character.province.characters[character] == nil then
-						error(
-							'CHARACTER IS NOT IN HIS PROVINCE: '
-							.. check[1]
-						)
-					end
-
 					--print("ontrig")
 					self.player_deferred_actions[check] = nil
 				else
@@ -715,7 +689,7 @@ end
 
 ---@class (exact) TreasuryEffectRecord
 ---@field amount number
----@field reason EconomicReason
+---@field reason ECONOMY_REASON
 ---@field day number
 ---@field month number
 ---@field year number
@@ -723,7 +697,7 @@ end
 
 ---Emits a treasury change to player
 ---@param amount number
----@param reason EconomicReason
+---@param reason ECONOMY_REASON
 ---@param character_flag boolean?
 function world.World:emit_treasury_change_effect(amount, reason, character_flag)
 	if character_flag == nil then
@@ -833,7 +807,7 @@ function world.World:does_player_see_province_news(province)
 		return false
 	end
 
-	return (self.player_character.province == province)
+	return (self:player_province() == province)
 end
 
 world.ticks_per_hour = 120

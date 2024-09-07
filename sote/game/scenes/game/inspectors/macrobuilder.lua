@@ -4,7 +4,7 @@ local ui = require "engine.ui";
 local ut = require "game.ui-utils"
 
 local pv = require "game.raws.values.political"
-local ev = require "game.raws.values.economical"
+local ev = require "game.raws.values.economy"
 
 local inspector = {}
 

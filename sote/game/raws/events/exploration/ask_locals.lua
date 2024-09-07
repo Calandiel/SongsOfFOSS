@@ -2,7 +2,7 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
@@ -82,8 +82,8 @@ return function()
 			end
 
 			local function outcome_accept()
-				economic_effects.add_pop_savings(character, -price, economic_effects.reasons.Exploration)
-				economic_effects.add_pop_savings(partner, price, economic_effects.reasons.Exploration)
+				economic_effects.add_pop_savings(character, -price, ECONOMY_REASON.EXPLORATION)
+				economic_effects.add_pop_savings(partner, price, ECONOMY_REASON.EXPLORATION)
 				help_outcome(character, associated_data)
 				WORLD:emit_immediate_event("exploration-help-payment-received", partner, associated_data)
 			end

@@ -1,7 +1,7 @@
 local Event = require "game.raws.events"
 local E_ut = require "game.raws.events._utils"
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 local uit = require "game.ui-utils"

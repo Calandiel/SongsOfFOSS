@@ -4,8 +4,8 @@ local event_utils = require "game.raws.events._utils"
 
 local realm_entity = require "game.entities.realm"
 
-local economic_effects = require "game.raws.effects.economic"
-local ev = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economy"
+local ev = require "game.raws.values.economy"
 local ut = require "game.ui-utils"
 
 
@@ -464,12 +464,12 @@ local function load()
 				-- Therefore, it's a sure success.
 				local max_loot = army:loot_capacity()
 				local real_loot = math.min(max_loot, province.local_wealth)
-				economic_effects.change_local_wealth(province, -real_loot, economic_effects.reasons.Raid)
+				economic_effects.change_local_wealth(province, -real_loot, ECONOMY_REASON.RAID)
 				if realm and max_loot > real_loot then
 					local leftover = max_loot - real_loot
 					local potential_loot = ev.raidable_treasury(realm)
 					local extra = math.min(potential_loot, leftover)
-					economic_effects.change_treasury(realm, -extra, economic_effects.reasons.Raid)
+					economic_effects.change_treasury(realm, -extra, ECONOMY_REASON.RAID)
 					real_loot = real_loot + extra
 				end
 
@@ -597,8 +597,11 @@ local function load()
 			-- pay quest rewards to warband leaders
 			for _, w in pairs(warbands) do
 				if w.leader then
-					economic_effects.add_pop_savings(w.leader, quest_reward / num_of_warbands,
-						economic_effects.reasons.Quest)
+					economic_effects.add_pop_savings(
+						w.leader,
+						quest_reward / num_of_warbands,
+						ECONOMY_REASON.QUEST
+					)
 				end
 			end
 
@@ -617,7 +620,7 @@ local function load()
 			loot = loot - loot * 0.5
 
 			-- pay the remaining half of loot to local population
-			economic_effects.change_local_wealth(realm.capitol, loot, economic_effects.reasons.Raid)
+			economic_effects.change_local_wealth(realm.capitol, loot, ECONOMY_REASON.RAID)
 
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid in " .. target.name .. " succeeded. Warriors brought home " ..

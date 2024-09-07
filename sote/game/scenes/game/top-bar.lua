@@ -3,8 +3,8 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
 local pv = require "game.raws.values.political"
-local ev = require "game.raws.values.economical"
-local economic_effects = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economy"
+local economic_effects = require "game.raws.effects.economy"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
@@ -37,7 +37,7 @@ function tb.mask(gam)
 end
 
 ---@class (exact) TreasuryDisplayEffect
----@field reason EconomicReason
+---@field reason ECONOMY_REASON
 ---@field amount number
 ---@field timer number
 

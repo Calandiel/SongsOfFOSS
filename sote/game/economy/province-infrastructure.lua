@@ -20,14 +20,18 @@ function r.run(province)
 		if female then
 			n = race.female_infrastructure_needs
 		end
+		---@type number
 		inf = inf + n * pop_utils.get_age_multiplier(pop)
 	end
 
 	-- From buildings
-	for _, building in pairs(province.buildings) do
+	DATA.for_each_building_location(function (item)
+		local building = DATA.building_location_get_building(item)
+		local building_type = DATA.building_get_type(building)
+		local infrastructure_needs = DATA.building_type_get_needed_infrastructure(building_type)
 		---@type number
-		inf = inf + building.type.needed_infrastructure
-	end
+		inf = inf + infrastructure_needs
+	end)
 
 	-- Write the needs
 	fat_province.infrastructure_needed = inf

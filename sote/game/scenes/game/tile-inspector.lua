@@ -6,7 +6,7 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 local tabb = require "engine.table"
 
-local ef = require "game.raws.effects.economic"
+local ef = require "game.raws.effects.economy"
 local btb = require "game.scenes.game.widgets.building-type-buttons"
 
 local dbm = require "game.economy.diet-breadth-model"
@@ -817,7 +817,7 @@ local function buildings_construction_tab(gam, tile_id, panel)
 	local amount = 0
 
 	DATA.for_each_building_type(function (item)
-		if DATA.province_get_buildable_buildings(province_id, item) then
+		if DATA.province_get_buildable_buildings(province_id, item) == 1 then
 			table.insert(building_types, item)
 			amount = amount + 1
 		end

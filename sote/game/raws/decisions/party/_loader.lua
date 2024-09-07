@@ -3,8 +3,8 @@ local utils = require "game.raws.raws-utils"
 local Decision = require "game.raws.decisions"
 
 local military_effects = require "game.raws.effects.military"
-local economic_effects = require "game.raws.effects.economic"
-local economic_values = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economy"
+local economic_values = require "game.raws.values.economy"
 
 
 return function ()

@@ -3,8 +3,8 @@ local pop_utils = require "game.entities.pop".POP
 local warband_utils = require "game.entities.warband"
 local army_utils = require "game.entities.army"
 
-local EconomicValues = require "game.raws.values.economical"
-local economic_triggers = require "game.raws.triggers.economy"
+local economy_values = require "game.raws.values.economy"
+local economy_triggers = require "game.raws.triggers.economy"
 
 local prov = {}
 local col = require "game.color"
@@ -638,7 +638,7 @@ end
 ---@param province province_id
 ---@param funds number
 ---@param building building_type_id
----@param overseer pop_id?
+---@param overseer pop_id
 ---@param public boolean
 ---@return boolean
 ---@return BuildingAttemptFailureReason
@@ -663,9 +663,9 @@ function prov.Province.can_build(province, funds, building, overseer, public)
 	end
 	::RESOURCE_CHECK_ENDED::
 
-	local construction_cost = EconomicValues.building_cost(building, overseer, public)
+	local construction_cost = economy_values.building_cost(building, overseer, public)
 
-	if not economic_triggers.allowed_to_build(overseer, DATA.province_get_realm(province)) then
+	if not economy_triggers.allowed_to_build(overseer, prov.Province.realm(province)) then
 		return false, "no_permission"
 	end
 
@@ -690,48 +690,6 @@ function prov.Province.get_infrastructure_efficiency(province)
 		inf = 2 * provided / (provided + needed)
 	end
 	return inf
-end
-
----@param province province_id
----@param pop pop_id
-function prov.Province.outlaw_pop(province, pop)
-	-- ignore pops which are already outlawed
-	if DATA.get_outlaw_location_from_outlaw(pop) then
-		return
-	end
-
-	prov.Province.fire_pop(province, pop)
-	pop_utils.unregister_military(pop)
-
-	local id = DATA.create_outlaw_location()
-	DATA.outlaw_location_set_location(id, province)
-	DATA.outlaw_location_set_outlaw(id, pop)
-
-	local pop_location = DATA.get_pop_location_from_pop(pop)
-	if pop_location then
-		return
-	end
-	DATA.delete_pop_location(pop_location)
-end
-
----Marks a pop as a soldier of a given type in a given warband.
----@param province province_id
----@param pop pop_id
----@param unit_type unit_type_id
----@param warband warband_id
-function prov.Province.recruit(province, pop, unit_type, warband)
-	local membership = DATA.get_warband_unit_from_unit(pop)
-	-- if pop is already drafted, do nothing
-	if membership ~= INVALID_ID then
-		return
-	end
-
-	-- clean pop and set his unit type
-	prov.Province.fire_pop(province, pop)
-	pop_utils.unregister_military(pop)
-
-	-- set warband
-	warband_utils.hire_unit(warband, pop, unit_type)
 end
 
 ---@param province province_id

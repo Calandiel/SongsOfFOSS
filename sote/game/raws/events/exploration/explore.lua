@@ -4,8 +4,8 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
-local economic_values = require "game.raws.values.economical"
-local economic_effects = require "game.raws.effects.economic"
+local economic_values = require "game.raws.values.economy"
+local economic_effects = require "game.raws.effects.economy"
 local economic_triggers = require "game.raws.triggers.economy"
 local political_effects = require "game.raws.effects.political"
 local political_values = require "game.raws.values.political"
@@ -347,7 +347,7 @@ return function()
 
 			if root.realm.quests_explore[root.province] then
 				economic_effects.add_pop_savings(root, root.realm.quests_explore[root.province],
-					economic_effects.reasons.Quest)
+					ECONOMY_REASON.QUEST)
 				root.realm.quests_explore[root.province] = nil
 			end
 

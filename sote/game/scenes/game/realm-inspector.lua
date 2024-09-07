@@ -5,8 +5,8 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
-local economic_effects = require "game.raws.effects.economic"
-local ev = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economy"
+local ev = require "game.raws.values.economy"
 
 local list_widget = require "game.scenes.game.widgets.list-widget"
 
@@ -175,7 +175,7 @@ function re.draw(gam)
 								realm,
 								realm.budget.court,
 								TREASURY_GIFT_AMOUNT,
-								economic_effects.reasons.Court
+								ECONOMY_REASON.COURT
 							)
 						end
 						a.y = a.y + uit.BASE_HEIGHT
@@ -402,7 +402,7 @@ function re.draw(gam)
 								realm,
 								realm.budget.education,
 								TREASURY_GIFT_AMOUNT,
-								economic_effects.reasons.Education
+								ECONOMY_REASON.EDUCATION
 							)
 						end
 					end

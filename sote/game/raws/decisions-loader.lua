@@ -4,7 +4,7 @@ local ll = {}
 local military_effects = require "game.raws.effects.military"
 local utils = require "game.raws.raws-utils"
 local province_utils = require "game.entities.province".Province
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 function ll.load()
 	local Decision = require "game.raws.decisions"
@@ -91,7 +91,7 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			return root == DATA.province_get_realm(primary_target)
+			return root == province_utils.realm(primary_target)
 		end,
 		available = function(root, primary_target)
 			---@type Realm
@@ -131,7 +131,7 @@ function ll.load()
 			local primary_target = primary_target
 			local fat_target = DATA.fatten_province(primary_target)
 			fat_target.mood = math.min(10, fat_target.mood + 0.05)
-			economic_effects.change_treasury(root, -province_utils.local_population(primary_target) * gift_cost_per_pop, economic_effects.reasons.Donation)
+			economic_effects.change_treasury(root, -province_utils.local_population(primary_target) * gift_cost_per_pop, ECONOMY_REASON.DONATION)
 			if WORLD:does_player_control_realm(root) then
 				WORLD:emit_notification("Population of " .. fat_target.name .. " is jubilant after receiving our gifts!")
 			end
@@ -212,7 +212,7 @@ function ll.load()
 			local root = root
 			---@type Province
 			local primary_target = primary_target
-			return root == DATA.province_get_realm(primary_target)
+			return root == province_utils.realm(primary_target)
 		end,
 		-- Controls if the action can be clicked by the player
 		available = function(root, primary_target, secondary_target)

@@ -2,7 +2,7 @@ local utils = require "game.raws.raws-utils"
 
 local Decision = require "game.raws.decisions"
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local political_effects = require "game.raws.effects.political"
 
 local base_gift_size = 20
@@ -49,8 +49,8 @@ return function ()
 			if province == nil then return end
 
 			province.mood = math.min(10, province.mood + base_gift_size / province:home_population() / 2)
-			economic_effects.change_local_wealth(province, base_gift_size, economic_effects.reasons.Donation)
-			economic_effects.add_pop_savings(root, -base_gift_size, economic_effects.reasons.Donation)
+			economic_effects.change_local_wealth(province, base_gift_size, ECONOMY_REASON.DONATION)
+			economic_effects.add_pop_savings(root, -base_gift_size, ECONOMY_REASON.DONATION)
 			political_effects.small_popularity_boost(root, province.realm)
 
 			if WORLD:does_player_see_realm_news(province.realm) then

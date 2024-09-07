@@ -1,6 +1,6 @@
 local Decision = require "game.raws.decisions"
 
-local economic_values = require "game.raws.values.economical"
+local economic_values = require "game.raws.values.economy"
 
 return function ()
 	Decision.Character:new {

@@ -1,49 +1,47 @@
 local tabb = require "engine.table"
-
-local good = require "game.raws.raws-utils".trade_good
-local use_case = require "game.raws.raws-utils".trade_good_use_case
+local warband_utils = require "game.entities.warband"
 
 local eco_values = {}
 
 ---comment
 ---@param realm Realm
 function eco_values.potential_monthly_tribute_size(realm)
-    return realm.budget.saved_change * 0.1
+    return DATA.realm_get_budget_saved_change(realm) * 0.1
 end
+
+
 
 ---Returns amount of wealth character would want in exchange for paying tribute \
 ---It's calculated as a part of savings of pops of his tribe which somewhat represents wellbeing of it
 ---@param realm Realm
 function eco_values.realm_independence_price(realm)
     local total = 0
-
-    local capitol = realm.capitol
-
+    local capitol = DATA.realm_get_capitol(realm)
     for _, pop_location in pairs(DATA.get_pop_location_from_location(capitol)) do
         local pop = DATA.pop_location_get_pop(pop_location)
         total = total + DATA.pop_get_savings(pop)
     end
-
     return total * 0.5 + 50
 end
 
 ---comment
----@param realm Realm?
+---@param realm Realm
 function eco_values.raidable_treasury(realm)
-    if realm == nil then return 0 end
-    return math.max(0, realm.budget.treasury * 0.1)
+    if realm == INVALID_ID then return 0 end
+    local treasury = DATA.realm_get_budget_treasury(realm)
+    return math.max(0, treasury * 0.1)
 end
 
 ---comment
 ---@param building_type BuildingType
 ---@param public boolean
----@param overseer Character?
+---@param overseer Character
 ---@return number
 function eco_values.building_cost(building_type, overseer, public)
     local cost_multiplier = 1
 
     -- overseer effect
-    if overseer == nil then
+    if overseer == INVALID_ID then
         cost_multiplier = 2
     else
         for i = 0, MAX_TRAIT_INDEX do
@@ -65,7 +63,8 @@ function eco_values.building_cost(building_type, overseer, public)
         cost_multiplier = cost_multiplier * 0.8
     end
 
-    return building_type.construction_cost * cost_multiplier
+    local base_cost = DATA.building_type_get_construction_cost(building_type)
+    return base_cost * cost_multiplier
 end
 
 ---comment
@@ -200,14 +199,8 @@ end
 ---@param female boolean
 ---@param building_type BuildingType
 function eco_values.race_throughput_multiplier(race, female, building_type)
-    local job = tabb.nth(building_type.production_method.jobs, 1)
-    if job == nil then
-        return 1
-    end
-
-    local production_method = building_type.production_method
-    local jobtype = production_method.job_type
-
+    local method = DATA.building_type_get_production_method(building_type)
+    local jobtype = DATA.production_method_get_job_type(method)
     if female then
         return DATA.race_get_female_efficiency(race, jobtype)
     end
@@ -218,14 +211,8 @@ end
 ---@param female boolean
 ---@param building_type BuildingType
 function eco_values.race_output_multiplier(race, female, building_type)
-    local job = tabb.nth(building_type.production_method.jobs, 1)
-    if job == nil then
-        return 1
-    end
-
-    local production_method = building_type.production_method
-    local jobtype = production_method.job_type
-
+    local method = DATA.building_type_get_production_method(building_type)
+    local jobtype = DATA.production_method_get_job_type(method)
     if female then
         return DATA.race_get_female_efficiency(race, jobtype)
     end
@@ -235,18 +222,29 @@ end
 ---@param province province_id
 ---@param building_type BuildingType
 function eco_values.projected_income_building_type_unknown_pop(province, building_type)
-    local shortage_modifier = eco_values.estimate_shortage(province, building_type.production_method)
+    local method = DATA.building_type_get_production_method(building_type)
+    local shortage_modifier = eco_values.estimate_shortage(province, method)
     local income = 0
-    for input, amount in pairs(building_type.production_method.inputs) do
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local input = DATA.production_method_get_inputs_use(method, i)
+        if input == INVALID_ID then
+            break
+        end
+        local amount = DATA.production_method_get_inputs_amount(method, i)
         local price = eco_values.get_local_price_of_use(province, input)
-        local spent = price * amount
-        income = income - spent
-    end
-    for output, amount in pairs(building_type.production_method.outputs) do
-        local price = eco_values.get_pessimistic_local_price(province, output, amount, false)
-        local earnt = price * amount
         ---@type number
-        income = income + earnt
+        income = income - amount * price
+    end
+
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local output = DATA.production_method_get_outputs_good(method, i)
+        if output == INVALID_ID then
+            break
+        end
+        local amount = DATA.production_method_get_outputs_amount(method, i)
+        local price = eco_values.get_local_price(province, output)
+        ---@type number
+        income = income + amount * price
     end
 
     return income * shortage_modifier
@@ -257,21 +255,45 @@ end
 ---@param race race_id
 ---@param female boolean
 function eco_values.projected_income_building_type(province, building_type, race, female)
-    local shortage_modifier = eco_values.estimate_shortage(province, building_type.production_method)
+    local method = DATA.building_type_get_production_method(building_type)
+    local shortage_modifier = eco_values.estimate_shortage(province, method)
+
+    local throughput_boost =
+        (1 + DATA.province_get_throughput_boosts(province, method))
+        * eco_values.race_throughput_multiplier(race, female, building_type)
+
+    local input_boost =
+        math.max(0, 1 - DATA.province_get_input_boosts(province, method))
+
+    local output_boost =
+        (1 + DATA.province_get_output_efficiency_boosts(province, method))
+        * eco_values.race_output_multiplier(race, female, building_type)
+
     local income = 0
-    for input, amount in pairs(building_type.production_method.inputs) do
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local input = DATA.production_method_get_inputs_use(method, i)
+        if input == INVALID_ID then
+            break
+        end
+        local amount = DATA.production_method_get_inputs_amount(method, i) * input_boost
         local price = eco_values.get_local_price_of_use(province, input)
-        local spent = price * amount
-        income = income - spent
-    end
-    for input, amount in pairs(building_type.production_method.outputs) do
-        local price = eco_values.get_pessimistic_local_price(province, input, amount, false)
-        local earnt = price * amount * eco_values.race_output_multiplier(race, female, building_type)
         ---@type number
-        income = income + earnt
+        income = income - amount * price
     end
 
-    return income * shortage_modifier
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local output = DATA.production_method_get_outputs_good(method, i)
+        if output == INVALID_ID then
+            break
+        end
+        local amount = DATA.production_method_get_outputs_amount(method, i)
+        amount = amount * output_boost
+        local price = eco_values.get_local_price(province, output)
+        ---@type number
+        income = income + amount * price
+    end
+
+    return income * shortage_modifier * throughput_boost
 end
 
 
@@ -280,35 +302,45 @@ end
 ---@param race race_id
 ---@param female boolean
 ---@param prices table<trade_good_id, number>
----@param efficiency number
+---@param throughput_multiplier number
 ---@return number income, number input_boost, number output_boost, number throughput_boost
-function eco_values.projected_income(building, race, female, prices, efficiency)
-    local province = building.province
-    local production_method = building.type.production_method
+function eco_values.projected_income(building, race, female, prices, throughput_multiplier)
+    local province = DATA.building_location_get_location(DATA.get_building_location_from_building(building))
+    local building_type = DATA.building_get_type(building)
+    local method = DATA.building_type_get_production_method(building_type)
 
     local throughput_boost =
-        (1 + (province.throughput_boosts[production_method] or 0))
-        * eco_values.race_throughput_multiplier(race, female, building.type)
-
+        (1 + DATA.province_get_throughput_boosts(province, method))
+        * eco_values.race_throughput_multiplier(race, female, building_type)
     local input_boost =
-        math.max(0, 1 - (province.input_efficiency_boosts[production_method] or 0))
-
+        math.max(0, 1 - DATA.province_get_input_boosts(province, method))
     local output_boost =
-        (1 + (province.output_efficiency_boosts[production_method] or 0))
-        * eco_values.race_output_multiplier(race, female, building.type)
+        (1 + DATA.province_get_output_efficiency_boosts(province, method))
+        * eco_values.race_output_multiplier(race, female, building_type)
 
     local income = 0
-    for input, amount in pairs(building.type.production_method.inputs) do
-        local price = eco_values.get_local_price_of_use_with_prices(province, input, prices)
-        local spent = price * amount * efficiency * throughput_boost * input_boost
-        income = income - spent
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local input = DATA.production_method_get_inputs_use(method, i)
+        if input == INVALID_ID then
+            break
+        end
+        local amount = DATA.production_method_get_inputs_amount(method, i)
+        amount = amount * throughput_multiplier * throughput_boost * input_boost
+        local price = eco_values.get_local_price_of_use(province, input)
+        ---@type number
+        income = income - amount * price
     end
 
-    income = income
-    for output, amount in pairs(building.type.production_method.outputs) do
-        local price = prices[output]
-        local earnt = price * amount * efficiency * throughput_boost * output_boost
-        income = income + earnt
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local output = DATA.production_method_get_outputs_good(method, i)
+        if output == INVALID_ID then
+            break
+        end
+        local amount = DATA.production_method_get_outputs_amount(method, i)
+        amount = amount * throughput_multiplier * throughput_boost * output_boost
+        local price = eco_values.get_local_price(province, output)
+        ---@type number
+        income = income + amount * price
     end
 
     return income, input_boost, output_boost, throughput_boost
@@ -360,17 +392,64 @@ function eco_values.get_local_amount_of_use(province, use)
 end
 
 ---Estimates shortage_modifier
----@param prod ProductionMethod
-function eco_values.estimate_shortage(province, prod)
+---@param method production_method_id
+function eco_values.estimate_shortage(province, method)
     local input_satisfaction = 1
-    for input, amount in pairs(prod.inputs) do
-        local required_input = amount
+    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+        local input = DATA.production_method_get_inputs_use(method, i)
+        if input == INVALID_ID then
+            break
+        end
+        local required_input = DATA.production_method_get_inputs_amount(method, i)
         local available = eco_values.available_use(province, input)
         local ratio = math.max(0, available) / required_input
         input_satisfaction = math.min(input_satisfaction, ratio)
     end
 
     return math.min(1, input_satisfaction)
+end
+
+---Returns total food supply from warband
+---@param warband warband_id
+---@return number
+function eco_values.get_supply_available(warband)
+	local leader = DATA.get_warband_leader_from_warband(warband)
+	if leader == INVALID_ID then
+		return 0
+	end
+	local pop = DATA.warband_leader_get_leader(leader)
+	return eco_values.available_use_case_from_inventory(pop, CALORIES_USE_CASE)
+end
+
+---Returns available units for satisfying a use case from pop inventory
+---@param pop pop_id
+---@param use_case use_case_id
+---@return number
+function eco_values.available_use_case_from_inventory(pop, use_case)
+	local supply = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
+		local good = DATA.use_weight_get_trade_good(weight_id)
+		local weight = DATA.use_weight_get_weight(weight_id)
+		local good_in_inventory = DATA.pop_get_inventory(pop, good)
+		if good_in_inventory > 0 then
+			a = a + good_in_inventory * weight
+		end
+		return a
+	end)
+	return supply
+end
+
+---Returns amount of days warband can travel depending on collected supplies
+---@param warband warband_id
+---@return number
+function eco_values.days_of_travel(warband)
+	local supplies = eco_values.get_supply_available(warband)
+	local per_day = warband_utils.daily_supply_consumption(warband)
+
+	if per_day == 0 then
+		return 9999
+	end
+
+	return supplies / per_day
 end
 
 return eco_values

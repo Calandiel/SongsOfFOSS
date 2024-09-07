@@ -1,6 +1,6 @@
 local tabb = require "engine.table"
 local path = require "game.ai.pathfinding"
-local economical = require "game.raws.values.economical"
+local economical = require "game.raws.values.economy"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 local retrieve_trade_good = require "game.raws.raws-utils".trade_good
@@ -26,7 +26,7 @@ local IS_LOCAL_LEADER = pretriggers.leader_of_local_territory
 local IS_OVERLORD_OF_TARGET = triggers.is_overlord_of_target
 local NOT_IN_NEGOTIATIONS = triggers.is_not_in_negotiations
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local character_values = require "game.raws.values.character"
 
 
@@ -722,7 +722,7 @@ local function load()
 				-- consume food from character inventory
 				economic_effects.consume_use_case_from_inventory(root.inventory, CALORIES_USE_CASE, calorie_cost)
 				-- give out payment to expedition
-				economic_effects.change_treasury(root.realm, -pop_payment, economic_effects.reasons.Colonisation)
+				economic_effects.change_treasury(root.realm, -pop_payment, ECONOMY_REASON.COLONISATION)
 				WORLD:emit_immediate_action('migration-colonize', root, migration_data)
 			else
 				WORLD:emit_immediate_event('request-migration-colonize', migration_data.organizer, migration_data)

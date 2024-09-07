@@ -7,8 +7,8 @@ local ut = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 local portrait_widget = require "game.scenes.game.widgets.portrait"
 local list_widget = require "game.scenes.game.widgets.list-widget"
-local economical = require "game.raws.values.economical"
-local economic_effects = require "game.raws.effects.economic"
+local economical = require "game.raws.values.economy"
+local economic_effects = require "game.raws.effects.economy"
 local dbm = require "game.economy.diet-breadth-model"
 
 local BUILDING_SUBSIDY_AMOUNT = 0.125

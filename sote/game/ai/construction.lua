@@ -1,8 +1,7 @@
 local tabb = require "engine.table"
 local ai = require "game.raws.values.ai_preferences"
-local effects = require "game.raws.effects.economic"
-local eco_values = require "game.raws.values.economical"
-local economic_effects = require "game.raws.effects.economic"
+local eco_values = require "game.raws.values.economy"
+local economy_effects = require "game.raws.effects.economy"
 local pv = require "game.raws.values.political"
 
 local co = {}
@@ -210,13 +209,13 @@ function co.run(realm)
 					local result = construction_in_province(province, char_funds, 0, builder, builder)
 
 					local spendings = char_funds - result
-					effects.add_pop_savings(builder, -spendings, effects.reasons.Building)
+					effects.add_pop_savings(builder, -spendings, ECONOMY_REASON.BUILDING)
 				end
 			end
 		end
 	end
 
-	economic_effects.change_treasury(realm, funds - realm.budget.treasury, economic_effects.reasons.Building)
+	economic_effects.change_treasury(realm, funds - realm.budget.treasury, ECONOMY_REASON.BUILDING)
 end
 
 return co

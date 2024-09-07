@@ -8,8 +8,8 @@ local trade_good = require "game.raws.raws-utils".trade_good
 
 local use_case = require "game.raws.raws-utils".trade_good_use_case
 
-local economy_values = require "game.raws.values.economical"
-local economy_effects = require "game.raws.effects.economic"
+local economy_values = require "game.raws.values.economy"
+local economy_effects = require "game.raws.effects.economy"
 
 local inspector = {}
 

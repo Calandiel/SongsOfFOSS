@@ -1,4 +1,4 @@
-local ev = require "game.raws.values.economical"
+local ev = require "game.raws.values.economy"
 local ECONOMY_LAW = require "game.raws.laws.economy"
 
 local triggers = {}
@@ -128,12 +128,12 @@ function triggers.can_buy_use(province, savings, use, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_AMOUNT)
     end
 
-    if province == nil then
+    if province == INVALID_ID then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
     end
 
-    if province then
+    if province ~= INVALID_ID then
         if ev.get_local_amount_of_use(province, use) < amount then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.LOCAL_GOODS_IS_TOO_LOW)

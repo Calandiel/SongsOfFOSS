@@ -6,7 +6,7 @@ local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
 
 local NOT_BUSY = pretriggers.not_busy
 
-local economic_values = require "game.raws.values.economical"
+local economic_values = require "game.raws.values.economy"
 local economic_triggers = require "game.raws.triggers.economy"
 
 return function ()

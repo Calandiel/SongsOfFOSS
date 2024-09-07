@@ -2,7 +2,7 @@ local Event = require "game.raws.events"
 local text = require "game.raws.events._localisation"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local political_effects = require "game.raws.effects.political"
 
 
@@ -53,8 +53,8 @@ return function ()
 
 						political_effects.small_popularity_decrease(character, character.realm)
 
-						economic_effects.register_income(character.realm, tax * 0.9, economic_effects.reasons.Tax)
-						economic_effects.add_pop_savings(character, tax * 0.1, economic_effects.reasons.Tax)
+						economic_effects.register_income(character.realm, tax * 0.9, ECONOMY_REASON.TAX)
+						economic_effects.add_pop_savings(character, tax * 0.1, ECONOMY_REASON.TAX)
 
 						character.busy = false
 					end,
@@ -73,8 +73,8 @@ return function ()
 
 						political_effects.medium_popularity_decrease(character, character.realm)
 
-						economic_effects.register_income(character.realm, tax / 2 * 0.9, economic_effects.reasons.Tax)
-						economic_effects.add_pop_savings(character, tax / 2 * 1.1, economic_effects.reasons.Tax)
+						economic_effects.register_income(character.realm, tax / 2 * 0.9, ECONOMY_REASON.TAX)
+						economic_effects.add_pop_savings(character, tax / 2 * 1.1, ECONOMY_REASON.TAX)
 
 						character.busy = false
 					end,

@@ -1,7 +1,4 @@
-local province_utils = require "game.entities.province".Province
-
 local bld = {}
-
 bld.Building = {}
 
 ---@param province province_id province to build the building in
@@ -23,6 +20,20 @@ end
 ---@param building building_id
 function bld.Building.remove_from_province(building)
 	DATA.delete_building(building)
+end
+
+function bld.Building.amount_of_workers(building)
+	local amount = 0
+	DATA.for_each_employment_from_building(building, function (item)
+		amount = amount + 1
+	end)
+	return amount
+end
+
+function bld.Building.province(building)
+	local location = DATA.get_building_location_from_building(building)
+	assert(location ~= INVALID_ID, "BUILDING DOESN'T BELONG TO THIS WORLD?")
+	return DATA.building_location_get_location(location)
 end
 
 return bld

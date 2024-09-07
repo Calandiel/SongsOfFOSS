@@ -1,4 +1,4 @@
-local economy_effects = require "game.raws.effects.economic"
+local economy_effects = require "game.raws.effects.economy"
 local politics_effects = require "game.raws.effects.political"
 
 local effects = {}

@@ -108,12 +108,12 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	fat.budget_treasury = love.math.random() * 20 + 20 * pop_to_spawn
 
 	-- give some realms early tech advantage to reduce waiting:
-	for i = 0, 2 do
+	for i = 0, 4 do
 		---@type technology_id[]
 		local to_research = {}
 		DATA.for_each_technology(function (item)
 			if DATA.province_get_technologies_researchable(capitol_id, item) == 1 then
-				if love.math.random() < 0.1 then
+				if love.math.random() < 0.3 then
 					DATA.realm_inc_budget_budget(r, BUDGET_CATEGORY.EDUCATION, 1)
 					table.insert(to_research, item)
 				end

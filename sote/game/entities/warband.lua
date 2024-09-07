@@ -1,4 +1,3 @@
-local economic_effects = require "game.raws.effects.economic"
 local tabb = require "engine.table"
 local pop_utils = require "game.entities.pop".POP
 
@@ -413,28 +412,6 @@ function warband_utils.predict_upkeep(warband)
 	return result
 end
 
----Kills ratio of army
----@param warband warband_id
----@param ratio number
-function warband_utils.kill_off(warband, ratio)
-	local losses = 0
-	---@type POP[]
-	local pops_to_kill = {}
-
-	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
-		local pop = DATA.warband_unit_get_unit(membership)
-		if not IS_CHARACTER(pop) and love.math.random() < ratio then
-			table.insert(pops_to_kill, pop)
-			losses = losses + 1
-		end
-	end
-
-	for i, pop in ipairs(pops_to_kill) do
-		pop_utils.kill_pop(pop)
-	end
-
-	return losses
-end
 
 ---comment
 ---@param warband warband_id
@@ -481,60 +458,6 @@ function warband_utils.supplies_target(warband)
 	return warband_utils.daily_supply_consumption(warband) * DATA.warband_get_supplies_target_days(warband)
 end
 
----consumes `days` worth amount of supplies
----@param warband warband_id
----@param days number
----@return number
-function warband_utils.consume_supplies(warband, days)
-	local daily_consumption = warband_utils.daily_supply_consumption(warband)
-	local consumption = days * daily_consumption
-	local leader = DATA.get_warband_leader_from_warband(warband)
-
-	assert(leader ~= INVALID_ID, "ATTEMPT TO CONSUME SUPPLIES BY WARBAND WITHOUT LEADER")
-
-	local consumed = economic_effects.consume_use_case_from_inventory(DATA.warband_leader_get_leader(leader), CALORIES_USE_CASE, consumption)
-
-	-- give some wiggle room for floats
-	if consumed > consumption + 0.01
-		or consumed < consumption - 0.01 then
-		error("CONSUMED WRONG AMOUNT. "
-			.. "\n consumed = "
-			.. tostring(consumed)
-			.. "\n consumption = "
-			.. tostring(consumption)
-			.. "\n daily_consumption = "
-			.. tostring(daily_consumption)
-			.. "\n days = "
-			.. tostring(days))
-	end
-	return consumed
-end
-
----Returns total food supply from warband
----@param warband warband_id
----@return number
-function warband_utils.get_supply_available(warband)
-	local leader = DATA.get_warband_leader_from_warband(warband)
-	if leader == INVALID_ID then
-		return 0
-	end
-	local pop = DATA.warband_leader_get_leader(leader)
-	return economic_effects.available_use_case_from_inventory(pop, CALORIES_USE_CASE)
-end
-
----Returns amount of days warband can travel depending on collected supplies
----@param warband warband_id
----@return number
-function warband_utils.days_of_travel(warband)
-	local supplies = warband_utils.get_supply_available(warband)
-	local per_day = warband_utils.daily_supply_consumption(warband)
-
-	if per_day == 0 then
-		return 9999
-	end
-
-	return supplies / per_day
-end
 
 ---Returns speed of exploration
 ---@param warband warband_id

@@ -2,7 +2,7 @@ local ut = require "game.map-modes.utils"
 local tabb = require "engine.table"
 local csu = require "game.map-modes._color-space-utils"
 
-local ev = require "game.raws.values.economical"
+local ev = require "game.raws.values.economy"
 local tile = require "game.entities.tile"
 local province_utils = require "game.entities.province".Province
 local production_utils = require "game.raws.production-methods"

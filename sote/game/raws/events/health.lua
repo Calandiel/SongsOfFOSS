@@ -21,7 +21,7 @@ function load()
                 {
                     text = "Everything comes to an end.",
                     tooltip = "Return to the character selection screen.",
-                    viable = function() 
+                    viable = function()
                         return true
                     end,
                     outcome = function()

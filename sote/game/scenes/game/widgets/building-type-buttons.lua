@@ -4,8 +4,8 @@ local tile_utils = require "game.entities.tile"
 local province_utils = require "game.entities.province".Province
 local building_type_tooltip = require "game.raws.building-types".get_tooltip
 
-local economic_effects = require "game.raws.effects.economic"
-local EconomicValues = require "game.raws.values.economical"
+local economic_effects = require "game.raws.effects.economy"
+local EconomicValues = require "game.raws.values.economy"
 local pv = require "game.raws.values.political"
 
 ---comment

@@ -1,5 +1,5 @@
 local Event = require "game.raws.events"
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 local uit = require "game.ui-utils"
@@ -144,8 +144,8 @@ return function ()
 					tooltip = "Pay",
 					viable = function() return true end,
 					outcome = function()
-                        economic_effects.add_pop_savings(character, -price, economic_effects.reasons.LoyaltyGift)
-                        economic_effects.add_pop_savings(associated_data, price, economic_effects.reasons.LoyaltyGift)
+                        economic_effects.add_pop_savings(character, -price, ECONOMY_REASON.LOYALTY_GIFT)
+                        economic_effects.add_pop_savings(associated_data, price, ECONOMY_REASON.LOYALTY_GIFT)
 						InterpersonalEffects.set_loyalty(associated_data, character)
                         -- WORLD:emit_notification("I asked for payment from " .. associated_data.name)
 					end,
@@ -224,7 +224,7 @@ return function ()
 						-- consume food from character inventory
 						economic_effects.consume_use_case_from_inventory(associated_data.leader.inventory, CALORIES_USE_CASE, associated_data.travel_cost)
 						-- give out payment to expedition
-						economic_effects.add_pop_savings(associated_data.leader, -associated_data.pop_payment, economic_effects.reasons.Colonisation)
+						economic_effects.add_pop_savings(associated_data.leader, -associated_data.pop_payment, ECONOMY_REASON.COLONISATION)
 						WORLD:emit_immediate_action('migration-colonize', associated_data.leader, associated_data)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data.leader, 0, {

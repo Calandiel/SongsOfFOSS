@@ -2,7 +2,7 @@ local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 local window = {}
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 ---@return Rect
 function window.rect()
@@ -127,7 +127,7 @@ local columns = {
 					REWARD_AMOUNT
 				end
 
-				economic_effects.add_pop_savings(player_character, -REWARD_AMOUNT, economic_effects.reasons.Quest)
+				economic_effects.add_pop_savings(player_character, -REWARD_AMOUNT, ECONOMY_REASON.QUEST)
 			end
 		end,
 		width = unit * 4,

@@ -22,6 +22,24 @@ function PROVINCE(pop_id)
 	return INVALID_ID
 end
 
+---Returns province of a pop
+---@param pop_id pop_id
+---@return province_id
+function HOME(pop_id)
+	-- assume that pop has location?
+	local location_pop = DATA.get_home_from_pop(pop_id)
+
+	if location_pop ~= INVALID_ID then
+		return DATA.home_get_home(location_pop)
+	end
+
+	return INVALID_ID
+end
+
+function ACCEPT_ALL (item)
+	return true
+end
+
 ---Returns realm of a pop
 ---@param pop_id pop_id
 function REALM(pop_id)

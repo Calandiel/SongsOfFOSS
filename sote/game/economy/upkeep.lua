@@ -1,6 +1,7 @@
 local building_utils = require "game.entities.building".Building
+local province_utils = require "game.entities.province".Province
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local upk = {}
 
 ---Runs upkeep on buildings in a province and destroys buildings if upkeep needs aren't met!
@@ -8,6 +9,9 @@ local upk = {}
 function upk.run(province_id)
 	local province = DATA.fatten_province(province_id)
 	province.local_building_upkeep = 0
+
+	local local_realm = province_utils.realm(province_id)
+	assert(local_realm ~= INVALID_ID)
 
 	---@type table<pop_id, number>
 	local upkeep_owners = {}
@@ -27,7 +31,8 @@ function upk.run(province_id)
 		if fat_type.government then
 			government_upkeep = government_upkeep + up
 			-- Destroy this building if necessary...
-			if province.realm.budget.treasury < 0 then
+			local budget = DATA.realm_get_budget_treasury(local_realm)
+			if budget < 0 then
 				if love.math.random() < 0.1 then
 					table.insert(building_to_remove, building)
 				end
@@ -39,7 +44,7 @@ function upk.run(province_id)
 				economic_effects.change_local_wealth(
 					province_id,
 					-up,
-					economic_effects.reasons.Upkeep
+					ECONOMY_REASON.UPKEEP
 				)
 				province.local_building_upkeep = province.local_building_upkeep + up
 
@@ -66,14 +71,14 @@ function upk.run(province_id)
 	end
 
 	for owner, upkeep in pairs(upkeep_owners) do
-		economic_effects.add_pop_savings(owner, -upkeep, economic_effects.reasons.Upkeep)
+		economic_effects.add_pop_savings(owner, -upkeep, ECONOMY_REASON.UPKEEP)
 	end
 
 	for _, item in pairs(building_to_remove) do
 		building_utils.remove_from_province(item)
 	end
 
-	economic_effects.change_treasury(province.realm, -government_upkeep, economic_effects.reasons.Upkeep)
+	economic_effects.change_treasury(local_realm, -government_upkeep, ECONOMY_REASON.UPKEEP)
 end
 
 return upk

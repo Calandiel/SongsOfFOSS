@@ -1,8 +1,10 @@
 local tabb = require "engine.table"
 local emp = {}
 
-local economy_values = require "game.raws.values.economical"
+local economy_values = require "game.raws.values.economy"
 local province_utils = require "game.entities.province".Province
+local building_utils = require "game.entities.building".Building
+local method_utils = require "game.raws.production-methods"
 
 ---Employs pops in the province.
 ---@param province province_id
@@ -42,34 +44,39 @@ function emp.run(province)
 	local profits = {}
 	---@type table<Building, number>
 	local raw_profits = {}
-	for _, building in pairs(province.buildings) do
-		local num_of_workers = tabb.size(building.workers)
+	DATA.for_each_building_location_from_location(province, function (item)
+		local building_id = DATA.building_location_get_building(item)
+		local building = DATA.fatten_building(building_id)
+		local building_type = DATA.building_get_type(building_id)
+		local production_method = DATA.building_type_get_production_method(building_type)
+		local workers = building_utils.amount_of_workers(building_id)
+		local max_workers = method_utils.total_jobs(production_method)
 
-		if num_of_workers >= building.type.production_method:total_jobs() then
+		if workers >= max_workers then
 			-- don"t hire
-			profits[building] = nil
+			profits[building_id] = nil
 		else
 
 			local profit = 0
 
-			if num_of_workers > 0 then
+			if workers > 0 then
 				profit = building.income_mean + building.subsidy_last
 
 				-- if profit is almost negative, eventually fire a worker
 				if profit < 0.01 and love.math.random() < 0.25 then
-					local pop = tabb.random_select_from_set(building.workers)
-					if pop then
-						province_utils.fire_pop(province, pop)
+					local _, pop_to_fire = tabb.random_select_from_set(DATA.filter_employment_from_building(building_id, ACCEPT_ALL))
+					if pop_to_fire ~= INVALID_ID then
+						province_utils.fire_pop(province, DATA.employment_get_worker(pop))
 					end
 				end
 			else
 				local shortage_modifier = economy_values.estimate_shortage(
 					province,
-					building.type.production_method
+					production_method
 				)
 				profit =
 					economy_values.projected_income(
-						building,
+						building_id,
 						DATA.pop_get_race(pop),
 						DATA.pop_get_female(pop),
 						prices,
@@ -77,13 +84,14 @@ function emp.run(province)
 					)
 				profit = profit + building.subsidy
 			end
+
 			-- sanity check to avoid exp overflow
-			raw_profits[building] = profit
-			profits[building] = math.min(31, profit / 10) + love.math.random() / 10
+			raw_profits[building_id] = profit
+			profits[building_id] = math.min(31, profit / 10) + love.math.random() / 10
 		end
 
 
-	end
+	end)
 
 	-- softmax
 	---@type number
@@ -147,8 +155,12 @@ function emp.run(province)
 		else
 			-- pop is already employed
 			-- consider changing his job
-			local employer = DATA.pop_get_employer(pop)
-			local pop_current_income = employer.last_income / tabb.size(employer.workers)
+			local employment = DATA.get_employment_from_worker(pop)
+			local employer = DATA.employment_get_building(employment)
+			local last_income = DATA.building_get_last_income(employer)
+			local workers = building_utils.amount_of_workers(employer)
+
+			local pop_current_income = last_income / workers
 
 			-- TODO: move to cultural value
 			local likelihood_of_changing_job = 0.9

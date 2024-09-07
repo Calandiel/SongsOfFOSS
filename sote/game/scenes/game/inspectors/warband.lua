@@ -8,7 +8,7 @@ local list_widget = require "game.scenes.game.widgets.list-widget"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 local window = {}
 

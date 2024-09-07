@@ -4,8 +4,8 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ge = require "game.raws.effects.generic"
 
-local ee = require "game.raws.effects.economic"
-local ev = require "game.raws.values.economical"
+local ee = require "game.raws.effects.economy"
+local ev = require "game.raws.values.economy"
 local et = require "game.raws.triggers.economy"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case

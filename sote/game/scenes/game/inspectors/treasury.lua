@@ -3,7 +3,7 @@ local uit = require "game.ui-utils"
 
 local bc = require "game.scenes.game.widgets.budget-category"
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 local TREASURY_TARGET_CHANGE = 1
 

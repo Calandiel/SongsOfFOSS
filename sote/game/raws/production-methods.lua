@@ -4,8 +4,13 @@ local tile_utils = require "game.entities.tile"
 
 local ProductionMethod = {}
 
+---@class production_method_id_data_blob_definition_extended : production_method_id_data_blob_definition
+---@field inputs table<use_case_id, number>
+---@field outputs table<trade_good_id, number>
+---@field jobs table<jobtype_id, number>
+
 ---Creates a new production method
----@param o production_method_id_data_blob_definition
+---@param o production_method_id_data_blob_definition_extended
 ---@return production_method_id
 function ProductionMethod:new(o)
 	if RAWS_MANAGER.do_logging then
@@ -14,6 +19,30 @@ function ProductionMethod:new(o)
 
 	local new_id = DATA.create_production_method()
 	DATA.setup_production_method(new_id, o)
+
+	local job_index = 0
+	DATA.for_each_job(function (item)
+		if o.jobs[item] == nil then
+			return
+		end
+		DATA.production_method_set_jobs_job(new_id, job_index, item)
+		DATA.production_method_set_jobs_amount(new_id, job_index, o.jobs[item])
+		job_index = job_index + 1
+	end)
+
+	local input_index = 0
+	for use_case, amount in pairs(o.inputs) do
+		DATA.production_method_set_inputs_amount(new_id, input_index, amount)
+		DATA.production_method_set_inputs_use(new_id, input_index, use_case)
+		input_index = input_index + 1
+	end
+
+	local output_index = 0
+	for good, amount in pairs(o.outputs) do
+		DATA.production_method_set_outputs_amount(new_id, input_index, amount)
+		DATA.production_method_set_outputs_good(new_id, input_index, good)
+		output_index = output_index + 1
+	end
 
 	if RAWS_MANAGER.production_methods_by_name[o.name] ~= nil then
 		local msg = "Failed to load a production method (" .. tostring(o.name) .. ")"
@@ -107,7 +136,8 @@ function ProductionMethod.get_efficiency(method, province)
 		nature_yield = nature_yield * dbm.foraging_efficiency(fat_province.hydration, fat_province.foragers_water)
 	end
 	if fat_method.forest_dependence > 0 then
-		nature_yield = nature_yield * (fat_province.foragers_targets[dbm.ForageResource.Wood].amount / fat_province.size) * fat_method.forest_dependence
+		local amount_of_wood = DATA.province_get_foragers_targets_amount(province, FORAGE_RESOURCE.WOOD)
+		nature_yield = nature_yield * (amount_of_wood / fat_province.size) * fat_method.forest_dependence
 	end
 	if fat_method.nature_yield_dependence > 0 then
 		nature_yield = nature_yield * math.max(0, fat_province.foragers_limit / fat_province.size) * fat_method.nature_yield_dependence

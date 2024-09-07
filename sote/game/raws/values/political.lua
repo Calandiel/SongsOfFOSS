@@ -1,3 +1,4 @@
+local province_utils = require "game.entities.province"
 
 PoliticalValues = {}
 
@@ -11,7 +12,7 @@ function PoliticalValues.power_base(character, province)
         local test_character = DATA.character_location_get_character(character_location)
         local loyal_to = DATA.pop_get_loyalty(test_character)
         if (loyal_to == character) or (test_character == character) then
-            local realm = DATA.province_get_realm(province)
+            local realm = province_utils.realm(province)
             if realm then
                 total = total + PoliticalValues.popularity(test_character, realm)
             end
@@ -33,7 +34,7 @@ function PoliticalValues.overseer(realm)
     if leader ~= INVALID_ID then
         return DATA.realm_leadership_get_leader(leader)
     end
-    return INVALID_ID
+    error("NO OVERSEER")
 end
 
 ---comment

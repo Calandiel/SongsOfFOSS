@@ -3,8 +3,8 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
-local ev = require "game.raws.values.economical"
-local ef = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economy"
+local ef = require "game.raws.effects.economy"
 local et = require "game.raws.triggers.economy"
 
 local TRADE_AMOUNT = 1

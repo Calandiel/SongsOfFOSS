@@ -1,8 +1,10 @@
 local tabb = require "engine.table"
 
 local values = require "game.raws.values.ai_preferences"
-local ef = require "game.raws.effects.economic"
+local ef = require "game.raws.effects.economy"
 local pe = require "game.raws.effects.political"
+local province_utils = require "game.entities.province".Province
+
 local co = {}
 
 ---@param realm Realm
@@ -10,22 +12,18 @@ function co.run(realm)
 	-- First, calculate court needs
 	---@type number
 	local con = 0
+	local capitol = DATA.realm_get_capitol(realm)
 	-- Your court is nobles of your capital
-	for _, character in pairs(realm.capitol.characters) do
-		if character.province == nil then
-			error("CHARACTER DOES NOT HAVE A PROVINCE .. \n"
-				.. character.name .. "\n"
-				.. tostring(character.age) .. "\n"
-				.. tostring(character.dead) .. "\n"
-				.. tostring(character.former_pop))
-		end
+	DATA.for_each_character_location_from_location(capitol, function (item)
+		local character = DATA.character_location_get_character(item)
 		con = con + values.money_utility(character)
-	end
+	end)
+
 	con = con * 10
-	realm.budget.court.target = con
+	DATA.realm_set_budget_target(realm, BUDGET_CATEGORY.COURT, con)
 
 	-- Once we know the needed investment, handle investments
-	local inv = realm.budget.court.to_be_invested
+	local inv = DATA.realm_get_budget_to_be_invested(realm, BUDGET_CATEGORY.COURT)
 	local spillover = 0
 	if inv > con then
 		spillover = inv - con
@@ -35,59 +33,63 @@ function co.run(realm)
 
 	-- Lastly, invest a fraction of the investment into actual investment
 	local invested                    = inv * (1 / (12 * 7.5)) -- 7.5 years to invest everything
-	realm.budget.court.to_be_invested = inv - invested
-	realm.budget.court.budget         = realm.budget.court.budget + invested
+
+	DATA.realm_inc_budget_to_be_invested(realm, BUDGET_CATEGORY.COURT, -invested)
+	DATA.realm_inc_budget_budget(realm, BUDGET_CATEGORY.COURT, invested)
+
 
 	-- Nobles get their share of a court wealth
-	-- At the very end, apply some decay to present investment to prevent runaway growth
-	local wealth_decay_rate           = 1 - 1 / (12 * 2) -- 2 years to decay everything
-	if realm.budget.court.budget > con then
-		wealth_decay_rate = 1 - 1 / (12 * 1) -- 1 years to decay the part above the needed amount
+
+	local budget = DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.COURT)
+	local wealth_decay_rate           = 1 - 1 / (12 * 1) -- 1 year to decay everything
+	if budget > con then
+		wealth_decay_rate = 1 - 1 / (12 * 0.5) -- 0.5 years to decay the part above the needed amount
 	end
-	local total_decay = (1 - wealth_decay_rate) * realm.budget.court.budget
+	local total_decay = (1 - wealth_decay_rate) * budget
 
 	local real_overseer_wage = total_decay * 0.1
+	local overseer = PoliticalValues.overseer(realm)
 
-	if realm.overseer then
-		ef.add_pop_savings(realm.overseer, real_overseer_wage, ef.reasons.Court)
+	ef.add_pop_savings(overseer, real_overseer_wage, ECONOMY_REASON.COURT)
+	total_decay = total_decay - real_overseer_wage
+	DATA.realm_inc_budget_budget(realm, BUDGET_CATEGORY.COURT, -real_overseer_wage)
 
-		total_decay = total_decay - real_overseer_wage
-		realm.budget.court.budget = realm.budget.court.budget - real_overseer_wage
-	end
-
-	local nobles_amount = tabb.size(realm.capitol.characters)
+	local nobles_amount = province_utils.local_characters(capitol)
 	local nobles_wage = total_decay / (nobles_amount + 1)
 
-	for _, character in pairs(realm.capitol.characters) do
-		ef.add_pop_savings(character, nobles_wage, ef.reasons.Court)
-	end
+	DATA.for_each_character_location_from_location(capitol, function (item)
+		local character = DATA.character_location_get_character(item)
+		ef.add_pop_savings(character, nobles_wage, ECONOMY_REASON.COURT)
+	end)
+	DATA.realm_inc_budget_budget(realm, BUDGET_CATEGORY.COURT, -total_decay)
+
 
 	-- raise new nobles
 	local NOBLES_RATIO = 0.15
-	for _, prov in pairs(realm.provinces) do
+	DATA.for_each_realm_provinces_from_realm(realm, function (item)
+		local province = DATA.realm_provinces_get_province(item)
+		---@type {nobles: number, population:number, elligible: pop_id[]}
 		local p = { nobles = 0, population = 0, elligible = {} }
-		tabb.accumulate(prov.home_to, p, function(a, k, v)
-			if v.province == prov then
-				if v:is_character() then
-					a.nobles = a.nobles + 1
-				else
-					a.population = a.population + 1
-					a.elligible[k] = v
-				end
+		DATA.for_each_home_from_home(province, function (home_location)
+			local pop = DATA.home_get_pop(home_location)
+			if IS_CHARACTER(pop) then
+				p.nobles = p.nobles + 1
+			else
+				p.population = p.population + 1
+				table.insert(p.elligible, pop)
 			end
-			return a
 		end)
+
 		if (p.nobles < NOBLES_RATIO * p.population) and (p.population > 5) and (p.nobles < 15) then
-			local pop = tabb.random_select_from_set(tabb.filter(p.elligible, function(a)
-				return a.province == prov
+			local pop = tabb.random_select_from_array(tabb.filter_array(p.elligible, function(a)
+				return PROVINCE(a) == province
 			end))
+
 			if pop then
-				pe.grant_nobility(pop, prov, pe.reasons.PopulationGrowth)
+				pe.grant_nobility(pop, province, pe.reasons.PopulationGrowth)
 			end
 		end
-	end
-
-	realm.budget.court.budget = realm.budget.court.budget - total_decay
+	end)
 end
 
 return co

@@ -5,8 +5,8 @@ local EventUtils = require "game.raws.events._utils"
 
 local diplomacy_effects = require "game.raws.effects.diplomacy"
 local political_values = require "game.raws.values.political"
-local economy_values = require "game.raws.values.economical"
-local economy_effects = require "game.raws.effects.economic"
+local economy_values = require "game.raws.values.economy"
+local economy_effects = require "game.raws.effects.economy"
 local economy_triggers = require "game.raws.triggers.economy"
 local localisation = require "game.raws.events._localisation"
 local AI_VALUE = require "game.raws.values.ai_preferences"
@@ -840,8 +840,8 @@ return function ()
 						--- enforce negotiation
 
 						--- transfer wealth
-						economy_effects.add_pop_savings(initiator, -trade.wealth_transfer_from_initiator_to_target, economy_effects.reasons.Negotiations)
-						economy_effects.add_pop_savings(target, trade.wealth_transfer_from_initiator_to_target, economy_effects.reasons.Negotiations)
+						economy_effects.add_pop_savings(initiator, -trade.wealth_transfer_from_initiator_to_target, ECONOMY_REASON.NEGOTIATIONS)
+						economy_effects.add_pop_savings(target, trade.wealth_transfer_from_initiator_to_target, ECONOMY_REASON.NEGOTIATIONS)
 
 						--- transfer goods
 						for good, amount in pairs(trade.goods_transfer_from_initiator_to_target) do

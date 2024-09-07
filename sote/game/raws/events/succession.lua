@@ -7,7 +7,7 @@ local tabb = require "engine.table"
 
 local pe = require "game.raws.effects.political"
 local pv = require "game.raws.values.political"
-local ee = require "game.raws.effects.economic"
+local ee = require "game.raws.effects.economy"
 local me = require "game.raws.effects.military"
 local ie = require "game.raws.effects.interpersonal"
 local di = require "game.raws.effects.diplomacy"
@@ -211,11 +211,11 @@ local function load()
 			-- succession of wealth
 			local wealth_successor = character.successor
 			if wealth_successor then
-				ee.add_pop_savings(wealth_successor, character.savings, ee.reasons.Inheritance)
-				ee.add_pop_savings(character, -character.savings, ee.reasons.Inheritance)
+				ee.add_pop_savings(wealth_successor, character.savings, ECONOMY_REASON.INHERITANCE)
+				ee.add_pop_savings(character, -character.savings, ECONOMY_REASON.INHERITANCE)
 			else
-				ee.change_local_wealth(character.province, character.savings, ee.reasons.Inheritance)
-				ee.add_pop_savings(character, -character.savings, ee.reasons.Inheritance)
+				ee.change_local_wealth(character.province, character.savings, ECONOMY_REASON.INHERITANCE)
+				ee.add_pop_savings(character, -character.savings, ECONOMY_REASON.INHERITANCE)
 			end
 
 			-- loyalty reset

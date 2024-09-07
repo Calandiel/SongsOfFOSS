@@ -6,10 +6,10 @@ local bitser = require("engine.bitser")
 
 DATA = {}
 ---@class struct_budget_per_category_data
----@field ratio number
----@field budget number
----@field to_be_invested number
----@field target number
+---@field ratio number 
+---@field budget number 
+---@field to_be_invested number 
+---@field target number 
 ffi.cdef[[
     typedef struct {
         float ratio;
@@ -19,8 +19,8 @@ ffi.cdef[[
     } budget_per_category_data;
 ]]
 ---@class struct_trade_good_container
----@field good trade_good_id
----@field amount number
+---@field good trade_good_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
         uint32_t good;
@@ -28,8 +28,8 @@ ffi.cdef[[
     } trade_good_container;
 ]]
 ---@class struct_use_case_container
----@field use use_case_id
----@field amount number
+---@field use use_case_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
         uint32_t use;
@@ -37,10 +37,10 @@ ffi.cdef[[
     } use_case_container;
 ]]
 ---@class struct_forage_container
----@field output_good trade_good_id
----@field output_value number
----@field amount number
----@field forage FORAGE_RESOURCE
+---@field output_good trade_good_id 
+---@field output_value number 
+---@field amount number 
+---@field forage FORAGE_RESOURCE 
 ffi.cdef[[
     typedef struct {
         uint32_t output_good;
@@ -50,8 +50,8 @@ ffi.cdef[[
     } forage_container;
 ]]
 ---@class struct_resource_location
----@field resource resource_id
----@field location tile_id
+---@field resource resource_id 
+---@field location tile_id 
 ffi.cdef[[
     typedef struct {
         uint32_t resource;
@@ -59,10 +59,10 @@ ffi.cdef[[
     } resource_location;
 ]]
 ---@class struct_need_satisfaction
----@field need NEED
----@field use_case use_case_id
----@field consumed number
----@field demanded number
+---@field need NEED 
+---@field use_case use_case_id 
+---@field consumed number 
+---@field demanded number 
 ffi.cdef[[
     typedef struct {
         uint8_t need;
@@ -72,9 +72,9 @@ ffi.cdef[[
     } need_satisfaction;
 ]]
 ---@class struct_need_definition
----@field need NEED
----@field use_case use_case_id
----@field required number
+---@field need NEED 
+---@field use_case use_case_id 
+---@field required number 
 ffi.cdef[[
     typedef struct {
         uint8_t need;
@@ -83,8 +83,8 @@ ffi.cdef[[
     } need_definition;
 ]]
 ---@class struct_job_container
----@field job job_id
----@field amount number
+---@field job job_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
         uint32_t job;
@@ -101,78 +101,78 @@ ffi.cdef[[
 
 ---@class (exact) fat_tile_id
 ---@field id tile_id Unique tile id
----@field world_id number
----@field is_land boolean
----@field is_fresh boolean
----@field is_border boolean
----@field elevation number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field july_waterflow number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
+---@field world_id number 
+---@field is_land boolean 
+---@field is_fresh boolean 
+---@field is_border boolean 
+---@field elevation number 
+---@field grass number 
+---@field shrub number 
+---@field conifer number 
+---@field broadleaf number 
+---@field ideal_grass number 
+---@field ideal_shrub number 
+---@field ideal_conifer number 
+---@field ideal_broadleaf number 
+---@field silt number 
+---@field clay number 
+---@field sand number 
+---@field soil_minerals number 
+---@field soil_organics number 
+---@field january_waterflow number 
+---@field july_waterflow number 
+---@field waterlevel number 
+---@field has_river boolean 
+---@field has_marsh boolean 
+---@field ice number 
+---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource resource_id
----@field bedrock bedrock_id
----@field biome biome_id
+---@field pathfinding_index number 
+---@field resource resource_id 
+---@field bedrock bedrock_id 
+---@field biome biome_id 
 
 ---@class struct_tile
----@field world_id number
----@field is_land boolean
----@field is_fresh boolean
----@field is_border boolean
----@field elevation number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field july_waterflow number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
+---@field world_id number 
+---@field is_land boolean 
+---@field is_fresh boolean 
+---@field is_border boolean 
+---@field elevation number 
+---@field grass number 
+---@field shrub number 
+---@field conifer number 
+---@field broadleaf number 
+---@field ideal_grass number 
+---@field ideal_shrub number 
+---@field ideal_conifer number 
+---@field ideal_broadleaf number 
+---@field silt number 
+---@field clay number 
+---@field sand number 
+---@field soil_minerals number 
+---@field soil_organics number 
+---@field january_waterflow number 
+---@field july_waterflow number 
+---@field waterlevel number 
+---@field has_river boolean 
+---@field has_marsh boolean 
+---@field ice number 
+---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource resource_id
----@field bedrock bedrock_id
----@field biome biome_id
+---@field pathfinding_index number 
+---@field resource resource_id 
+---@field bedrock bedrock_id 
+---@field biome biome_id 
 
 
 ffi.cdef[[
@@ -229,7 +229,7 @@ DATA.tile_size = 1500000
 ---@type table<tile_id, boolean>
 local tile_indices_pool = ffi.new("bool[?]", 1500000)
 for i = 1, 1499999 do
-    tile_indices_pool[i] = true
+    tile_indices_pool[i] = true 
 end
 ---@type table<tile_id, tile_id>
 DATA.tile_indices_set = {}
@@ -239,16 +239,16 @@ function DATA.create_tile()
             DATA.tile_indices_set[i] = i
     return i
 end
----@param func fun(item: tile_id)
+---@param func fun(item: tile_id) 
 function DATA.for_each_tile(func)
     for _, item in pairs(DATA.tile_indices_set) do
         func(item)
     end
 end
----@param func fun(item: tile_id):boolean
----@return table<tile_id, tile_id>
+---@param func fun(item: tile_id):boolean 
+---@return table<tile_id, tile_id> 
 function DATA.filter_tile(func)
-    ---@type table<tile_id, tile_id>
+    ---@type table<tile_id, tile_id> 
     local t = {}
     for _, item in pairs(DATA.tile_indices_set) do
         if func(item) then t[item] = item end
@@ -257,7 +257,7 @@ function DATA.filter_tile(func)
 end
 
 ---@param tile_id tile_id valid tile id
----@return number world_id
+---@return number world_id 
 function DATA.tile_get_world_id(tile_id)
     return DATA.tile[tile_id].world_id
 end
@@ -272,7 +272,7 @@ function DATA.tile_inc_world_id(tile_id, value)
     DATA.tile[tile_id].world_id = DATA.tile[tile_id].world_id + value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_land
+---@return boolean is_land 
 function DATA.tile_get_is_land(tile_id)
     return DATA.tile[tile_id].is_land
 end
@@ -282,7 +282,7 @@ function DATA.tile_set_is_land(tile_id, value)
     DATA.tile[tile_id].is_land = value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_fresh
+---@return boolean is_fresh 
 function DATA.tile_get_is_fresh(tile_id)
     return DATA.tile[tile_id].is_fresh
 end
@@ -292,7 +292,7 @@ function DATA.tile_set_is_fresh(tile_id, value)
     DATA.tile[tile_id].is_fresh = value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_border
+---@return boolean is_border 
 function DATA.tile_get_is_border(tile_id)
     return DATA.tile[tile_id].is_border
 end
@@ -302,7 +302,7 @@ function DATA.tile_set_is_border(tile_id, value)
     DATA.tile[tile_id].is_border = value
 end
 ---@param tile_id tile_id valid tile id
----@return number elevation
+---@return number elevation 
 function DATA.tile_get_elevation(tile_id)
     return DATA.tile[tile_id].elevation
 end
@@ -317,7 +317,7 @@ function DATA.tile_inc_elevation(tile_id, value)
     DATA.tile[tile_id].elevation = DATA.tile[tile_id].elevation + value
 end
 ---@param tile_id tile_id valid tile id
----@return number grass
+---@return number grass 
 function DATA.tile_get_grass(tile_id)
     return DATA.tile[tile_id].grass
 end
@@ -332,7 +332,7 @@ function DATA.tile_inc_grass(tile_id, value)
     DATA.tile[tile_id].grass = DATA.tile[tile_id].grass + value
 end
 ---@param tile_id tile_id valid tile id
----@return number shrub
+---@return number shrub 
 function DATA.tile_get_shrub(tile_id)
     return DATA.tile[tile_id].shrub
 end
@@ -347,7 +347,7 @@ function DATA.tile_inc_shrub(tile_id, value)
     DATA.tile[tile_id].shrub = DATA.tile[tile_id].shrub + value
 end
 ---@param tile_id tile_id valid tile id
----@return number conifer
+---@return number conifer 
 function DATA.tile_get_conifer(tile_id)
     return DATA.tile[tile_id].conifer
 end
@@ -362,7 +362,7 @@ function DATA.tile_inc_conifer(tile_id, value)
     DATA.tile[tile_id].conifer = DATA.tile[tile_id].conifer + value
 end
 ---@param tile_id tile_id valid tile id
----@return number broadleaf
+---@return number broadleaf 
 function DATA.tile_get_broadleaf(tile_id)
     return DATA.tile[tile_id].broadleaf
 end
@@ -377,7 +377,7 @@ function DATA.tile_inc_broadleaf(tile_id, value)
     DATA.tile[tile_id].broadleaf = DATA.tile[tile_id].broadleaf + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_grass
+---@return number ideal_grass 
 function DATA.tile_get_ideal_grass(tile_id)
     return DATA.tile[tile_id].ideal_grass
 end
@@ -392,7 +392,7 @@ function DATA.tile_inc_ideal_grass(tile_id, value)
     DATA.tile[tile_id].ideal_grass = DATA.tile[tile_id].ideal_grass + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_shrub
+---@return number ideal_shrub 
 function DATA.tile_get_ideal_shrub(tile_id)
     return DATA.tile[tile_id].ideal_shrub
 end
@@ -407,7 +407,7 @@ function DATA.tile_inc_ideal_shrub(tile_id, value)
     DATA.tile[tile_id].ideal_shrub = DATA.tile[tile_id].ideal_shrub + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_conifer
+---@return number ideal_conifer 
 function DATA.tile_get_ideal_conifer(tile_id)
     return DATA.tile[tile_id].ideal_conifer
 end
@@ -422,7 +422,7 @@ function DATA.tile_inc_ideal_conifer(tile_id, value)
     DATA.tile[tile_id].ideal_conifer = DATA.tile[tile_id].ideal_conifer + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_broadleaf
+---@return number ideal_broadleaf 
 function DATA.tile_get_ideal_broadleaf(tile_id)
     return DATA.tile[tile_id].ideal_broadleaf
 end
@@ -437,7 +437,7 @@ function DATA.tile_inc_ideal_broadleaf(tile_id, value)
     DATA.tile[tile_id].ideal_broadleaf = DATA.tile[tile_id].ideal_broadleaf + value
 end
 ---@param tile_id tile_id valid tile id
----@return number silt
+---@return number silt 
 function DATA.tile_get_silt(tile_id)
     return DATA.tile[tile_id].silt
 end
@@ -452,7 +452,7 @@ function DATA.tile_inc_silt(tile_id, value)
     DATA.tile[tile_id].silt = DATA.tile[tile_id].silt + value
 end
 ---@param tile_id tile_id valid tile id
----@return number clay
+---@return number clay 
 function DATA.tile_get_clay(tile_id)
     return DATA.tile[tile_id].clay
 end
@@ -467,7 +467,7 @@ function DATA.tile_inc_clay(tile_id, value)
     DATA.tile[tile_id].clay = DATA.tile[tile_id].clay + value
 end
 ---@param tile_id tile_id valid tile id
----@return number sand
+---@return number sand 
 function DATA.tile_get_sand(tile_id)
     return DATA.tile[tile_id].sand
 end
@@ -482,7 +482,7 @@ function DATA.tile_inc_sand(tile_id, value)
     DATA.tile[tile_id].sand = DATA.tile[tile_id].sand + value
 end
 ---@param tile_id tile_id valid tile id
----@return number soil_minerals
+---@return number soil_minerals 
 function DATA.tile_get_soil_minerals(tile_id)
     return DATA.tile[tile_id].soil_minerals
 end
@@ -497,7 +497,7 @@ function DATA.tile_inc_soil_minerals(tile_id, value)
     DATA.tile[tile_id].soil_minerals = DATA.tile[tile_id].soil_minerals + value
 end
 ---@param tile_id tile_id valid tile id
----@return number soil_organics
+---@return number soil_organics 
 function DATA.tile_get_soil_organics(tile_id)
     return DATA.tile[tile_id].soil_organics
 end
@@ -512,7 +512,7 @@ function DATA.tile_inc_soil_organics(tile_id, value)
     DATA.tile[tile_id].soil_organics = DATA.tile[tile_id].soil_organics + value
 end
 ---@param tile_id tile_id valid tile id
----@return number january_waterflow
+---@return number january_waterflow 
 function DATA.tile_get_january_waterflow(tile_id)
     return DATA.tile[tile_id].january_waterflow
 end
@@ -527,7 +527,7 @@ function DATA.tile_inc_january_waterflow(tile_id, value)
     DATA.tile[tile_id].january_waterflow = DATA.tile[tile_id].january_waterflow + value
 end
 ---@param tile_id tile_id valid tile id
----@return number july_waterflow
+---@return number july_waterflow 
 function DATA.tile_get_july_waterflow(tile_id)
     return DATA.tile[tile_id].july_waterflow
 end
@@ -542,7 +542,7 @@ function DATA.tile_inc_july_waterflow(tile_id, value)
     DATA.tile[tile_id].july_waterflow = DATA.tile[tile_id].july_waterflow + value
 end
 ---@param tile_id tile_id valid tile id
----@return number waterlevel
+---@return number waterlevel 
 function DATA.tile_get_waterlevel(tile_id)
     return DATA.tile[tile_id].waterlevel
 end
@@ -557,7 +557,7 @@ function DATA.tile_inc_waterlevel(tile_id, value)
     DATA.tile[tile_id].waterlevel = DATA.tile[tile_id].waterlevel + value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_river
+---@return boolean has_river 
 function DATA.tile_get_has_river(tile_id)
     return DATA.tile[tile_id].has_river
 end
@@ -567,7 +567,7 @@ function DATA.tile_set_has_river(tile_id, value)
     DATA.tile[tile_id].has_river = value
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_marsh
+---@return boolean has_marsh 
 function DATA.tile_get_has_marsh(tile_id)
     return DATA.tile[tile_id].has_marsh
 end
@@ -577,7 +577,7 @@ function DATA.tile_set_has_marsh(tile_id, value)
     DATA.tile[tile_id].has_marsh = value
 end
 ---@param tile_id tile_id valid tile id
----@return number ice
+---@return number ice 
 function DATA.tile_get_ice(tile_id)
     return DATA.tile[tile_id].ice
 end
@@ -592,7 +592,7 @@ function DATA.tile_inc_ice(tile_id, value)
     DATA.tile[tile_id].ice = DATA.tile[tile_id].ice + value
 end
 ---@param tile_id tile_id valid tile id
----@return number ice_age_ice
+---@return number ice_age_ice 
 function DATA.tile_get_ice_age_ice(tile_id)
     return DATA.tile[tile_id].ice_age_ice
 end
@@ -697,7 +697,7 @@ function DATA.tile_inc_real_b(tile_id, value)
     DATA.tile[tile_id].real_b = DATA.tile[tile_id].real_b + value
 end
 ---@param tile_id tile_id valid tile id
----@return number pathfinding_index
+---@return number pathfinding_index 
 function DATA.tile_get_pathfinding_index(tile_id)
     return DATA.tile[tile_id].pathfinding_index
 end
@@ -712,7 +712,7 @@ function DATA.tile_inc_pathfinding_index(tile_id, value)
     DATA.tile[tile_id].pathfinding_index = DATA.tile[tile_id].pathfinding_index + value
 end
 ---@param tile_id tile_id valid tile id
----@return resource_id resource
+---@return resource_id resource 
 function DATA.tile_get_resource(tile_id)
     return DATA.tile[tile_id].resource
 end
@@ -722,7 +722,7 @@ function DATA.tile_set_resource(tile_id, value)
     DATA.tile[tile_id].resource = value
 end
 ---@param tile_id tile_id valid tile id
----@return bedrock_id bedrock
+---@return bedrock_id bedrock 
 function DATA.tile_get_bedrock(tile_id)
     return DATA.tile[tile_id].bedrock
 end
@@ -732,7 +732,7 @@ function DATA.tile_set_bedrock(tile_id, value)
     DATA.tile[tile_id].bedrock = value
 end
 ---@param tile_id tile_id valid tile id
----@return biome_id biome
+---@return biome_id biome 
 function DATA.tile_get_biome(tile_id)
     return DATA.tile[tile_id].biome
 end
@@ -942,44 +942,44 @@ end
 
 ---@class (exact) fat_pop_id
 ---@field id pop_id Unique pop id
----@field race race_id
----@field faith Faith
----@field culture Culture
----@field female boolean
----@field age number
----@field name string
----@field savings number
----@field parent pop_id
----@field loyalty pop_id
+---@field race race_id 
+---@field faith Faith 
+---@field culture Culture 
+---@field female boolean 
+---@field age number 
+---@field name string 
+---@field savings number 
+---@field parent pop_id 
+---@field loyalty pop_id 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field successor pop_id
+---@field successor pop_id 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field busy boolean
----@field dead boolean
+---@field busy boolean 
+---@field dead boolean 
 ---@field realm Realm Represents the home realm of the character
----@field rank CHARACTER_RANK
----@field former_pop boolean
+---@field rank CHARACTER_RANK 
+---@field former_pop boolean 
 
 ---@class struct_pop
----@field race race_id
----@field female boolean
----@field age number
----@field savings number
----@field parent pop_id
----@field loyalty pop_id
+---@field race race_id 
+---@field female boolean 
+---@field age number 
+---@field savings number 
+---@field parent pop_id 
+---@field loyalty pop_id 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field need_satisfaction table<number, struct_need_satisfaction>
----@field traits table<number, TRAIT>
----@field successor pop_id
----@field inventory table<trade_good_id, number>
----@field price_memory table<trade_good_id, number>
+---@field need_satisfaction table<number, struct_need_satisfaction> 
+---@field traits table<number, TRAIT> 
+---@field successor pop_id 
+---@field inventory table<trade_good_id, number> 
+---@field price_memory table<trade_good_id, number> 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field rank CHARACTER_RANK
----@field dna table<number, number>
+---@field rank CHARACTER_RANK 
+---@field dna table<number, number> 
 
 
 ffi.cdef[[
@@ -1033,7 +1033,7 @@ DATA.pop_size = 300000
 ---@type table<pop_id, boolean>
 local pop_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    pop_indices_pool[i] = true
+    pop_indices_pool[i] = true 
 end
 ---@type table<pop_id, pop_id>
 DATA.pop_indices_set = {}
@@ -1239,16 +1239,16 @@ function DATA.delete_pop(i)
     DATA.pop_indices_set[i] = nil
     return DCON.dcon_delete_pop(i - 1)
 end
----@param func fun(item: pop_id)
+---@param func fun(item: pop_id) 
 function DATA.for_each_pop(func)
     for _, item in pairs(DATA.pop_indices_set) do
         func(item)
     end
 end
----@param func fun(item: pop_id):boolean
----@return table<pop_id, pop_id>
+---@param func fun(item: pop_id):boolean 
+---@return table<pop_id, pop_id> 
 function DATA.filter_pop(func)
-    ---@type table<pop_id, pop_id>
+    ---@type table<pop_id, pop_id> 
     local t = {}
     for _, item in pairs(DATA.pop_indices_set) do
         if func(item) then t[item] = item end
@@ -1257,7 +1257,7 @@ function DATA.filter_pop(func)
 end
 
 ---@param pop_id pop_id valid pop id
----@return race_id race
+---@return race_id race 
 function DATA.pop_get_race(pop_id)
     return DATA.pop[pop_id].race
 end
@@ -1267,7 +1267,7 @@ function DATA.pop_set_race(pop_id, value)
     DATA.pop[pop_id].race = value
 end
 ---@param pop_id pop_id valid pop id
----@return Faith faith
+---@return Faith faith 
 function DATA.pop_get_faith(pop_id)
     return DATA.pop_faith[pop_id]
 end
@@ -1277,7 +1277,7 @@ function DATA.pop_set_faith(pop_id, value)
     DATA.pop_faith[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Culture culture
+---@return Culture culture 
 function DATA.pop_get_culture(pop_id)
     return DATA.pop_culture[pop_id]
 end
@@ -1287,7 +1287,7 @@ function DATA.pop_set_culture(pop_id, value)
     DATA.pop_culture[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean female
+---@return boolean female 
 function DATA.pop_get_female(pop_id)
     return DATA.pop[pop_id].female
 end
@@ -1297,7 +1297,7 @@ function DATA.pop_set_female(pop_id, value)
     DATA.pop[pop_id].female = value
 end
 ---@param pop_id pop_id valid pop id
----@return number age
+---@return number age 
 function DATA.pop_get_age(pop_id)
     return DATA.pop[pop_id].age
 end
@@ -1312,7 +1312,7 @@ function DATA.pop_inc_age(pop_id, value)
     DATA.pop[pop_id].age = DATA.pop[pop_id].age + value
 end
 ---@param pop_id pop_id valid pop id
----@return string name
+---@return string name 
 function DATA.pop_get_name(pop_id)
     return DATA.pop_name[pop_id]
 end
@@ -1322,7 +1322,7 @@ function DATA.pop_set_name(pop_id, value)
     DATA.pop_name[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return number savings
+---@return number savings 
 function DATA.pop_get_savings(pop_id)
     return DATA.pop[pop_id].savings
 end
@@ -1337,7 +1337,7 @@ function DATA.pop_inc_savings(pop_id, value)
     DATA.pop[pop_id].savings = DATA.pop[pop_id].savings + value
 end
 ---@param pop_id pop_id valid pop id
----@return pop_id parent
+---@return pop_id parent 
 function DATA.pop_get_parent(pop_id)
     return DATA.pop[pop_id].parent
 end
@@ -1347,7 +1347,7 @@ function DATA.pop_set_parent(pop_id, value)
     DATA.pop[pop_id].parent = value
 end
 ---@param pop_id pop_id valid pop id
----@return pop_id loyalty
+---@return pop_id loyalty 
 function DATA.pop_get_loyalty(pop_id)
     return DATA.pop[pop_id].loyalty
 end
@@ -1388,28 +1388,28 @@ function DATA.pop_inc_basic_needs_satisfaction(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return NEED need_satisfaction
+---@return NEED need_satisfaction 
 function DATA.pop_get_need_satisfaction_need(pop_id, index)
     if DATA.pop[pop_id].need_satisfaction == nil then return 0 end
     return DATA.pop[pop_id].need_satisfaction[index].need
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return use_case_id need_satisfaction
+---@return use_case_id need_satisfaction 
 function DATA.pop_get_need_satisfaction_use_case(pop_id, index)
     if DATA.pop[pop_id].need_satisfaction == nil then return 0 end
     return DATA.pop[pop_id].need_satisfaction[index].use_case
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number need_satisfaction
+---@return number need_satisfaction 
 function DATA.pop_get_need_satisfaction_consumed(pop_id, index)
     if DATA.pop[pop_id].need_satisfaction == nil then return 0 end
     return DATA.pop[pop_id].need_satisfaction[index].consumed
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number need_satisfaction
+---@return number need_satisfaction 
 function DATA.pop_get_need_satisfaction_demanded(pop_id, index)
     if DATA.pop[pop_id].need_satisfaction == nil then return 0 end
     return DATA.pop[pop_id].need_satisfaction[index].demanded
@@ -1452,7 +1452,7 @@ function DATA.pop_inc_need_satisfaction_demanded(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return TRAIT traits
+---@return TRAIT traits 
 function DATA.pop_get_traits(pop_id, index)
     if DATA.pop[pop_id].traits == nil then return 0 end
     return DATA.pop[pop_id].traits[index]
@@ -1464,7 +1464,7 @@ function DATA.pop_set_traits(pop_id, index, value)
     DATA.pop[pop_id].traits[index] = value
 end
 ---@param pop_id pop_id valid pop id
----@return pop_id successor
+---@return pop_id successor 
 function DATA.pop_get_successor(pop_id)
     return DATA.pop[pop_id].successor
 end
@@ -1475,7 +1475,7 @@ function DATA.pop_set_successor(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
----@return number inventory
+---@return number inventory 
 function DATA.pop_get_inventory(pop_id, index)
     if DATA.pop[pop_id].inventory == nil then return 0 end
     return DATA.pop[pop_id].inventory[index]
@@ -1494,7 +1494,7 @@ function DATA.pop_inc_inventory(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
----@return number price_memory
+---@return number price_memory 
 function DATA.pop_get_price_memory(pop_id, index)
     if DATA.pop[pop_id].price_memory == nil then return 0 end
     return DATA.pop[pop_id].price_memory[index]
@@ -1542,7 +1542,7 @@ function DATA.pop_inc_work_ratio(pop_id, value)
     DATA.pop[pop_id].work_ratio = DATA.pop[pop_id].work_ratio + value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean busy
+---@return boolean busy 
 function DATA.pop_get_busy(pop_id)
     return DATA.pop_busy[pop_id]
 end
@@ -1552,7 +1552,7 @@ function DATA.pop_set_busy(pop_id, value)
     DATA.pop_busy[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean dead
+---@return boolean dead 
 function DATA.pop_get_dead(pop_id)
     return DATA.pop_dead[pop_id]
 end
@@ -1572,7 +1572,7 @@ function DATA.pop_set_realm(pop_id, value)
     DATA.pop_realm[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return CHARACTER_RANK rank
+---@return CHARACTER_RANK rank 
 function DATA.pop_get_rank(pop_id)
     return DATA.pop[pop_id].rank
 end
@@ -1582,7 +1582,7 @@ function DATA.pop_set_rank(pop_id, value)
     DATA.pop[pop_id].rank = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean former_pop
+---@return boolean former_pop 
 function DATA.pop_get_former_pop(pop_id)
     return DATA.pop_former_pop[pop_id]
 end
@@ -1593,7 +1593,7 @@ function DATA.pop_set_former_pop(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number dna
+---@return number dna 
 function DATA.pop_get_dna(pop_id, index)
     if DATA.pop[pop_id].dna == nil then return 0 end
     return DATA.pop[pop_id].dna[index]
@@ -1731,67 +1731,67 @@ end
 
 ---@class (exact) fat_province_id
 ---@field id province_id Unique province id
----@field name string
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field is_land boolean 
+---@field province_id number 
+---@field size number 
 ---@field hydration number Number of humans that can live of off this provinces innate water
----@field movement_cost number
+---@field movement_cost number 
 ---@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
+---@field infrastructure_needed number 
+---@field infrastructure number 
+---@field infrastructure_investment number 
+---@field local_wealth number 
+---@field trade_wealth number 
+---@field local_income number 
+---@field local_building_upkeep number 
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
 ---@field mood number how local population thinks about the state
----@field on_a_river boolean
----@field on_a_forest boolean
+---@field on_a_river boolean 
+---@field on_a_forest boolean 
 
 ---@class struct_province
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field is_land boolean 
+---@field province_id number 
+---@field size number 
 ---@field hydration number Number of humans that can live of off this provinces innate water
----@field movement_cost number
+---@field movement_cost number 
 ---@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field technologies_present table<technology_id, number>
----@field technologies_researchable table<technology_id, number>
----@field buildable_buildings table<building_type_id, number>
----@field local_production table<trade_good_id, number>
----@field local_consumption table<trade_good_id, number>
----@field local_demand table<trade_good_id, number>
----@field local_storage table<trade_good_id, number>
----@field local_prices table<trade_good_id, number>
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
+---@field infrastructure_needed number 
+---@field infrastructure number 
+---@field infrastructure_investment number 
+---@field technologies_present table<technology_id, number> 
+---@field technologies_researchable table<technology_id, number> 
+---@field buildable_buildings table<building_type_id, number> 
+---@field local_production table<trade_good_id, number> 
+---@field local_consumption table<trade_good_id, number> 
+---@field local_demand table<trade_good_id, number> 
+---@field local_storage table<trade_good_id, number> 
+---@field local_prices table<trade_good_id, number> 
+---@field local_wealth number 
+---@field trade_wealth number 
+---@field local_income number 
+---@field local_building_upkeep number 
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
----@field foragers_targets table<number, struct_forage_container>
+---@field foragers_targets table<number, struct_forage_container> 
 ---@field local_resources table<number, struct_resource_location> An array of local resources and their positions
 ---@field mood number how local population thinks about the state
----@field unit_types table<unit_type_id, number>
----@field throughput_boosts table<production_method_id, number>
----@field input_efficiency_boosts table<production_method_id, number>
----@field output_efficiency_boosts table<production_method_id, number>
----@field on_a_river boolean
----@field on_a_forest boolean
+---@field unit_types table<unit_type_id, number> 
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
+---@field on_a_river boolean 
+---@field on_a_forest boolean 
 
 
 ffi.cdef[[
@@ -1852,7 +1852,7 @@ DATA.province_size = 20000
 ---@type table<province_id, boolean>
 local province_indices_pool = ffi.new("bool[?]", 20000)
 for i = 1, 19999 do
-    province_indices_pool[i] = true
+    province_indices_pool[i] = true 
 end
 ---@type table<province_id, province_id>
 DATA.province_indices_set = {}
@@ -1980,16 +1980,16 @@ function DATA.delete_province(i)
     DATA.province_indices_set[i] = nil
     return DCON.dcon_delete_province(i - 1)
 end
----@param func fun(item: province_id)
+---@param func fun(item: province_id) 
 function DATA.for_each_province(func)
     for _, item in pairs(DATA.province_indices_set) do
         func(item)
     end
 end
----@param func fun(item: province_id):boolean
----@return table<province_id, province_id>
+---@param func fun(item: province_id):boolean 
+---@return table<province_id, province_id> 
 function DATA.filter_province(func)
-    ---@type table<province_id, province_id>
+    ---@type table<province_id, province_id> 
     local t = {}
     for _, item in pairs(DATA.province_indices_set) do
         if func(item) then t[item] = item end
@@ -1998,7 +1998,7 @@ function DATA.filter_province(func)
 end
 
 ---@param province_id province_id valid province id
----@return string name
+---@return string name 
 function DATA.province_get_name(province_id)
     return DATA.province_name[province_id]
 end
@@ -2008,7 +2008,7 @@ function DATA.province_set_name(province_id, value)
     DATA.province_name[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return number r
+---@return number r 
 function DATA.province_get_r(province_id)
     return DATA.province[province_id].r
 end
@@ -2023,7 +2023,7 @@ function DATA.province_inc_r(province_id, value)
     DATA.province[province_id].r = DATA.province[province_id].r + value
 end
 ---@param province_id province_id valid province id
----@return number g
+---@return number g 
 function DATA.province_get_g(province_id)
     return DATA.province[province_id].g
 end
@@ -2038,7 +2038,7 @@ function DATA.province_inc_g(province_id, value)
     DATA.province[province_id].g = DATA.province[province_id].g + value
 end
 ---@param province_id province_id valid province id
----@return number b
+---@return number b 
 function DATA.province_get_b(province_id)
     return DATA.province[province_id].b
 end
@@ -2053,7 +2053,7 @@ function DATA.province_inc_b(province_id, value)
     DATA.province[province_id].b = DATA.province[province_id].b + value
 end
 ---@param province_id province_id valid province id
----@return boolean is_land
+---@return boolean is_land 
 function DATA.province_get_is_land(province_id)
     return DATA.province[province_id].is_land
 end
@@ -2063,7 +2063,7 @@ function DATA.province_set_is_land(province_id, value)
     DATA.province[province_id].is_land = value
 end
 ---@param province_id province_id valid province id
----@return number province_id
+---@return number province_id 
 function DATA.province_get_province_id(province_id)
     return DATA.province[province_id].province_id
 end
@@ -2078,7 +2078,7 @@ function DATA.province_inc_province_id(province_id, value)
     DATA.province[province_id].province_id = DATA.province[province_id].province_id + value
 end
 ---@param province_id province_id valid province id
----@return number size
+---@return number size 
 function DATA.province_get_size(province_id)
     return DATA.province[province_id].size
 end
@@ -2108,7 +2108,7 @@ function DATA.province_inc_hydration(province_id, value)
     DATA.province[province_id].hydration = DATA.province[province_id].hydration + value
 end
 ---@param province_id province_id valid province id
----@return number movement_cost
+---@return number movement_cost 
 function DATA.province_get_movement_cost(province_id)
     return DATA.province[province_id].movement_cost
 end
@@ -2133,7 +2133,7 @@ function DATA.province_set_center(province_id, value)
     DATA.province[province_id].center = value
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_needed
+---@return number infrastructure_needed 
 function DATA.province_get_infrastructure_needed(province_id)
     return DATA.province[province_id].infrastructure_needed
 end
@@ -2148,7 +2148,7 @@ function DATA.province_inc_infrastructure_needed(province_id, value)
     DATA.province[province_id].infrastructure_needed = DATA.province[province_id].infrastructure_needed + value
 end
 ---@param province_id province_id valid province id
----@return number infrastructure
+---@return number infrastructure 
 function DATA.province_get_infrastructure(province_id)
     return DATA.province[province_id].infrastructure
 end
@@ -2163,7 +2163,7 @@ function DATA.province_inc_infrastructure(province_id, value)
     DATA.province[province_id].infrastructure = DATA.province[province_id].infrastructure + value
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_investment
+---@return number infrastructure_investment 
 function DATA.province_get_infrastructure_investment(province_id)
     return DATA.province[province_id].infrastructure_investment
 end
@@ -2179,7 +2179,7 @@ function DATA.province_inc_infrastructure_investment(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index technology_id valid
----@return number technologies_present
+---@return number technologies_present 
 function DATA.province_get_technologies_present(province_id, index)
     if DATA.province[province_id].technologies_present == nil then return 0 end
     return DATA.province[province_id].technologies_present[index]
@@ -2198,7 +2198,7 @@ function DATA.province_inc_technologies_present(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index technology_id valid
----@return number technologies_researchable
+---@return number technologies_researchable 
 function DATA.province_get_technologies_researchable(province_id, index)
     if DATA.province[province_id].technologies_researchable == nil then return 0 end
     return DATA.province[province_id].technologies_researchable[index]
@@ -2217,7 +2217,7 @@ function DATA.province_inc_technologies_researchable(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index building_type_id valid
----@return number buildable_buildings
+---@return number buildable_buildings 
 function DATA.province_get_buildable_buildings(province_id, index)
     if DATA.province[province_id].buildable_buildings == nil then return 0 end
     return DATA.province[province_id].buildable_buildings[index]
@@ -2236,7 +2236,7 @@ function DATA.province_inc_buildable_buildings(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_production
+---@return number local_production 
 function DATA.province_get_local_production(province_id, index)
     if DATA.province[province_id].local_production == nil then return 0 end
     return DATA.province[province_id].local_production[index]
@@ -2255,7 +2255,7 @@ function DATA.province_inc_local_production(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_consumption
+---@return number local_consumption 
 function DATA.province_get_local_consumption(province_id, index)
     if DATA.province[province_id].local_consumption == nil then return 0 end
     return DATA.province[province_id].local_consumption[index]
@@ -2274,7 +2274,7 @@ function DATA.province_inc_local_consumption(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_demand
+---@return number local_demand 
 function DATA.province_get_local_demand(province_id, index)
     if DATA.province[province_id].local_demand == nil then return 0 end
     return DATA.province[province_id].local_demand[index]
@@ -2293,7 +2293,7 @@ function DATA.province_inc_local_demand(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_storage
+---@return number local_storage 
 function DATA.province_get_local_storage(province_id, index)
     if DATA.province[province_id].local_storage == nil then return 0 end
     return DATA.province[province_id].local_storage[index]
@@ -2312,7 +2312,7 @@ function DATA.province_inc_local_storage(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_prices
+---@return number local_prices 
 function DATA.province_get_local_prices(province_id, index)
     if DATA.province[province_id].local_prices == nil then return 0 end
     return DATA.province[province_id].local_prices[index]
@@ -2330,7 +2330,7 @@ function DATA.province_inc_local_prices(province_id, index, value)
     DATA.province[province_id].local_prices[index] = DATA.province[province_id].local_prices[index] + value
 end
 ---@param province_id province_id valid province id
----@return number local_wealth
+---@return number local_wealth 
 function DATA.province_get_local_wealth(province_id)
     return DATA.province[province_id].local_wealth
 end
@@ -2345,7 +2345,7 @@ function DATA.province_inc_local_wealth(province_id, value)
     DATA.province[province_id].local_wealth = DATA.province[province_id].local_wealth + value
 end
 ---@param province_id province_id valid province id
----@return number trade_wealth
+---@return number trade_wealth 
 function DATA.province_get_trade_wealth(province_id)
     return DATA.province[province_id].trade_wealth
 end
@@ -2360,7 +2360,7 @@ function DATA.province_inc_trade_wealth(province_id, value)
     DATA.province[province_id].trade_wealth = DATA.province[province_id].trade_wealth + value
 end
 ---@param province_id province_id valid province id
----@return number local_income
+---@return number local_income 
 function DATA.province_get_local_income(province_id)
     return DATA.province[province_id].local_income
 end
@@ -2375,7 +2375,7 @@ function DATA.province_inc_local_income(province_id, value)
     DATA.province[province_id].local_income = DATA.province[province_id].local_income + value
 end
 ---@param province_id province_id valid province id
----@return number local_building_upkeep
+---@return number local_building_upkeep 
 function DATA.province_get_local_building_upkeep(province_id)
     return DATA.province[province_id].local_building_upkeep
 end
@@ -2436,28 +2436,28 @@ function DATA.province_inc_foragers_limit(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return trade_good_id foragers_targets
+---@return trade_good_id foragers_targets 
 function DATA.province_get_foragers_targets_output_good(province_id, index)
     if DATA.province[province_id].foragers_targets == nil then return 0 end
     return DATA.province[province_id].foragers_targets[index].output_good
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return number foragers_targets
+---@return number foragers_targets 
 function DATA.province_get_foragers_targets_output_value(province_id, index)
     if DATA.province[province_id].foragers_targets == nil then return 0 end
     return DATA.province[province_id].foragers_targets[index].output_value
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return number foragers_targets
+---@return number foragers_targets 
 function DATA.province_get_foragers_targets_amount(province_id, index)
     if DATA.province[province_id].foragers_targets == nil then return 0 end
     return DATA.province[province_id].foragers_targets[index].amount
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return FORAGE_RESOURCE foragers_targets
+---@return FORAGE_RESOURCE foragers_targets 
 function DATA.province_get_foragers_targets_forage(province_id, index)
     if DATA.province[province_id].foragers_targets == nil then return 0 end
     return DATA.province[province_id].foragers_targets[index].forage
@@ -2541,7 +2541,7 @@ function DATA.province_inc_mood(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index unit_type_id valid
----@return number unit_types
+---@return number unit_types 
 function DATA.province_get_unit_types(province_id, index)
     if DATA.province[province_id].unit_types == nil then return 0 end
     return DATA.province[province_id].unit_types[index]
@@ -2560,7 +2560,7 @@ function DATA.province_inc_unit_types(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
----@return number throughput_boosts
+---@return number throughput_boosts 
 function DATA.province_get_throughput_boosts(province_id, index)
     if DATA.province[province_id].throughput_boosts == nil then return 0 end
     return DATA.province[province_id].throughput_boosts[index]
@@ -2579,7 +2579,7 @@ function DATA.province_inc_throughput_boosts(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
----@return number input_efficiency_boosts
+---@return number input_efficiency_boosts 
 function DATA.province_get_input_efficiency_boosts(province_id, index)
     if DATA.province[province_id].input_efficiency_boosts == nil then return 0 end
     return DATA.province[province_id].input_efficiency_boosts[index]
@@ -2598,7 +2598,7 @@ function DATA.province_inc_input_efficiency_boosts(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
----@return number output_efficiency_boosts
+---@return number output_efficiency_boosts 
 function DATA.province_get_output_efficiency_boosts(province_id, index)
     if DATA.province[province_id].output_efficiency_boosts == nil then return 0 end
     return DATA.province[province_id].output_efficiency_boosts[index]
@@ -2616,7 +2616,7 @@ function DATA.province_inc_output_efficiency_boosts(province_id, index, value)
     DATA.province[province_id].output_efficiency_boosts[index] = DATA.province[province_id].output_efficiency_boosts[index] + value
 end
 ---@param province_id province_id valid province id
----@return boolean on_a_river
+---@return boolean on_a_river 
 function DATA.province_get_on_a_river(province_id)
     return DATA.province[province_id].on_a_river
 end
@@ -2626,7 +2626,7 @@ function DATA.province_set_on_a_river(province_id, value)
     DATA.province[province_id].on_a_river = value
 end
 ---@param province_id province_id valid province id
----@return boolean on_a_forest
+---@return boolean on_a_forest 
 function DATA.province_get_on_a_forest(province_id)
     return DATA.province[province_id].on_a_forest
 end
@@ -2776,10 +2776,10 @@ end
 
 ---@class (exact) fat_army_id
 ---@field id army_id Unique army id
----@field destination province_id
+---@field destination province_id 
 
 ---@class struct_army
----@field destination province_id
+---@field destination province_id 
 
 
 ffi.cdef[[
@@ -2803,7 +2803,7 @@ DATA.army_size = 5000
 ---@type table<army_id, boolean>
 local army_indices_pool = ffi.new("bool[?]", 5000)
 for i = 1, 4999 do
-    army_indices_pool[i] = true
+    army_indices_pool[i] = true 
 end
 ---@type table<army_id, army_id>
 DATA.army_indices_set = {}
@@ -2835,16 +2835,16 @@ function DATA.delete_army(i)
     DATA.army_indices_set[i] = nil
     return DCON.dcon_delete_army(i - 1)
 end
----@param func fun(item: army_id)
+---@param func fun(item: army_id) 
 function DATA.for_each_army(func)
     for _, item in pairs(DATA.army_indices_set) do
         func(item)
     end
 end
----@param func fun(item: army_id):boolean
----@return table<army_id, army_id>
+---@param func fun(item: army_id):boolean 
+---@return table<army_id, army_id> 
 function DATA.filter_army(func)
-    ---@type table<army_id, army_id>
+    ---@type table<army_id, army_id> 
     local t = {}
     for _, item in pairs(DATA.army_indices_set) do
         if func(item) then t[item] = item end
@@ -2853,7 +2853,7 @@ function DATA.filter_army(func)
 end
 
 ---@param army_id army_id valid army id
----@return province_id destination
+---@return province_id destination 
 function DATA.army_get_destination(army_id)
     return DATA.army[army_id].destination
 end
@@ -2893,30 +2893,30 @@ end
 
 ---@class (exact) fat_warband_id
 ---@field id warband_id Unique warband id
----@field name string
----@field guard_of Realm?
----@field status WARBAND_STATUS
----@field idle_stance WARBAND_STANCE
+---@field name string 
+---@field guard_of Realm? 
+---@field status WARBAND_STATUS 
+---@field idle_stance WARBAND_STANCE 
 ---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field treasury number
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
+---@field treasury number 
+---@field total_upkeep number 
+---@field predicted_upkeep number 
+---@field supplies number 
+---@field supplies_target_days number 
+---@field morale number 
 
 ---@class struct_warband
 ---@field units_current table<unit_type_id, number> Current distribution of units in the warband
 ---@field units_target table<unit_type_id, number> Units to recruit
----@field status WARBAND_STATUS
----@field idle_stance WARBAND_STANCE
+---@field status WARBAND_STATUS 
+---@field idle_stance WARBAND_STANCE 
 ---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field treasury number
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
+---@field treasury number 
+---@field total_upkeep number 
+---@field predicted_upkeep number 
+---@field supplies number 
+---@field supplies_target_days number 
+---@field morale number 
 
 
 ffi.cdef[[
@@ -2954,7 +2954,7 @@ DATA.warband_size = 20000
 ---@type table<warband_id, boolean>
 local warband_indices_pool = ffi.new("bool[?]", 20000)
 for i = 1, 19999 do
-    warband_indices_pool[i] = true
+    warband_indices_pool[i] = true 
 end
 ---@type table<warband_id, warband_id>
 DATA.warband_indices_set = {}
@@ -3016,16 +3016,16 @@ function DATA.delete_warband(i)
     DATA.warband_indices_set[i] = nil
     return DCON.dcon_delete_warband(i - 1)
 end
----@param func fun(item: warband_id)
+---@param func fun(item: warband_id) 
 function DATA.for_each_warband(func)
     for _, item in pairs(DATA.warband_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_id):boolean
----@return table<warband_id, warband_id>
+---@param func fun(item: warband_id):boolean 
+---@return table<warband_id, warband_id> 
 function DATA.filter_warband(func)
-    ---@type table<warband_id, warband_id>
+    ---@type table<warband_id, warband_id> 
     local t = {}
     for _, item in pairs(DATA.warband_indices_set) do
         if func(item) then t[item] = item end
@@ -3034,7 +3034,7 @@ function DATA.filter_warband(func)
 end
 
 ---@param warband_id warband_id valid warband id
----@return string name
+---@return string name 
 function DATA.warband_get_name(warband_id)
     return DATA.warband_name[warband_id]
 end
@@ -3044,7 +3044,7 @@ function DATA.warband_set_name(warband_id, value)
     DATA.warband_name[warband_id] = value
 end
 ---@param warband_id warband_id valid warband id
----@return Realm? guard_of
+---@return Realm? guard_of 
 function DATA.warband_get_guard_of(warband_id)
     return DATA.warband_guard_of[warband_id]
 end
@@ -3092,7 +3092,7 @@ function DATA.warband_inc_units_target(warband_id, index, value)
     DATA.warband[warband_id].units_target[index] = DATA.warband[warband_id].units_target[index] + value
 end
 ---@param warband_id warband_id valid warband id
----@return WARBAND_STATUS status
+---@return WARBAND_STATUS status 
 function DATA.warband_get_status(warband_id)
     return DATA.warband[warband_id].status
 end
@@ -3102,7 +3102,7 @@ function DATA.warband_set_status(warband_id, value)
     DATA.warband[warband_id].status = value
 end
 ---@param warband_id warband_id valid warband id
----@return WARBAND_STANCE idle_stance
+---@return WARBAND_STANCE idle_stance 
 function DATA.warband_get_idle_stance(warband_id)
     return DATA.warband[warband_id].idle_stance
 end
@@ -3127,7 +3127,7 @@ function DATA.warband_inc_current_free_time_ratio(warband_id, value)
     DATA.warband[warband_id].current_free_time_ratio = DATA.warband[warband_id].current_free_time_ratio + value
 end
 ---@param warband_id warband_id valid warband id
----@return number treasury
+---@return number treasury 
 function DATA.warband_get_treasury(warband_id)
     return DATA.warband[warband_id].treasury
 end
@@ -3142,7 +3142,7 @@ function DATA.warband_inc_treasury(warband_id, value)
     DATA.warband[warband_id].treasury = DATA.warband[warband_id].treasury + value
 end
 ---@param warband_id warband_id valid warband id
----@return number total_upkeep
+---@return number total_upkeep 
 function DATA.warband_get_total_upkeep(warband_id)
     return DATA.warband[warband_id].total_upkeep
 end
@@ -3157,7 +3157,7 @@ function DATA.warband_inc_total_upkeep(warband_id, value)
     DATA.warband[warband_id].total_upkeep = DATA.warband[warband_id].total_upkeep + value
 end
 ---@param warband_id warband_id valid warband id
----@return number predicted_upkeep
+---@return number predicted_upkeep 
 function DATA.warband_get_predicted_upkeep(warband_id)
     return DATA.warband[warband_id].predicted_upkeep
 end
@@ -3172,7 +3172,7 @@ function DATA.warband_inc_predicted_upkeep(warband_id, value)
     DATA.warband[warband_id].predicted_upkeep = DATA.warband[warband_id].predicted_upkeep + value
 end
 ---@param warband_id warband_id valid warband id
----@return number supplies
+---@return number supplies 
 function DATA.warband_get_supplies(warband_id)
     return DATA.warband[warband_id].supplies
 end
@@ -3187,7 +3187,7 @@ function DATA.warband_inc_supplies(warband_id, value)
     DATA.warband[warband_id].supplies = DATA.warband[warband_id].supplies + value
 end
 ---@param warband_id warband_id valid warband id
----@return number supplies_target_days
+---@return number supplies_target_days 
 function DATA.warband_get_supplies_target_days(warband_id)
     return DATA.warband[warband_id].supplies_target_days
 end
@@ -3202,7 +3202,7 @@ function DATA.warband_inc_supplies_target_days(warband_id, value)
     DATA.warband[warband_id].supplies_target_days = DATA.warband[warband_id].supplies_target_days + value
 end
 ---@param warband_id warband_id valid warband id
----@return number morale
+---@return number morale 
 function DATA.warband_get_morale(warband_id)
     return DATA.warband[warband_id].morale
 end
@@ -3297,87 +3297,87 @@ end
 
 ---@class (exact) fat_realm_id
 ---@field id realm_id Unique realm id
----@field exists boolean
----@field name string
----@field budget_change number
----@field budget_saved_change number
----@field budget_treasury number
----@field budget_treasury_target number
----@field budget_tax_target number
----@field budget_tax_collected_this_year number
----@field r number
----@field g number
----@field b number
----@field primary_race race_id
----@field primary_culture Culture
----@field primary_faith Faith
----@field capitol province_id
----@field trading_right_cost number
----@field building_right_cost number
----@field trading_right_law TradingRightLaw
----@field building_right_law BuildingRightLaw
+---@field exists boolean 
+---@field name string 
+---@field budget_change number 
+---@field budget_saved_change number 
+---@field budget_treasury number 
+---@field budget_treasury_target number 
+---@field budget_tax_target number 
+---@field budget_tax_collected_this_year number 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field primary_race race_id 
+---@field primary_culture Culture 
+---@field primary_faith Faith 
+---@field capitol province_id 
+---@field trading_right_cost number 
+---@field building_right_cost number 
+---@field trading_right_law TradingRightLaw 
+---@field building_right_law BuildingRightLaw 
 ---@field quests_raid table<province_id,nil|number> reward for raid
 ---@field quests_explore table<province_id,nil|number> reward for exploration
 ---@field quests_patrol table<province_id,nil|number> reward for patrol
----@field patrols table<province_id,table<warband_id,warband_id>>
----@field prepare_attack_flag boolean
+---@field patrols table<province_id,table<warband_id,warband_id>> 
+---@field prepare_attack_flag boolean 
 ---@field known_provinces table<province_id,province_id> For terra incognita.
----@field coa_base_r number
----@field coa_base_g number
----@field coa_base_b number
----@field coa_background_r number
----@field coa_background_g number
----@field coa_background_b number
----@field coa_foreground_r number
----@field coa_foreground_g number
----@field coa_foreground_b number
----@field coa_emblem_r number
----@field coa_emblem_g number
----@field coa_emblem_b number
----@field coa_background_image number
----@field coa_foreground_image number
----@field coa_emblem_image number
----@field expected_food_consumption number
+---@field coa_base_r number 
+---@field coa_base_g number 
+---@field coa_base_b number 
+---@field coa_background_r number 
+---@field coa_background_g number 
+---@field coa_background_b number 
+---@field coa_foreground_r number 
+---@field coa_foreground_g number 
+---@field coa_foreground_b number 
+---@field coa_emblem_r number 
+---@field coa_emblem_g number 
+---@field coa_emblem_b number 
+---@field coa_background_image number 
+---@field coa_foreground_image number 
+---@field coa_emblem_image number 
+---@field expected_food_consumption number 
 
 ---@class struct_realm
----@field budget_change number
----@field budget_saved_change number
----@field budget_spending_by_category table<ECONOMY_REASON, number>
----@field budget_income_by_category table<ECONOMY_REASON, number>
----@field budget_treasury_change_by_category table<ECONOMY_REASON, number>
----@field budget_treasury number
----@field budget_treasury_target number
----@field budget table<BUDGET_CATEGORY, struct_budget_per_category_data>
----@field budget_tax_target number
----@field budget_tax_collected_this_year number
----@field r number
----@field g number
----@field b number
----@field primary_race race_id
----@field capitol province_id
----@field trading_right_cost number
----@field building_right_cost number
----@field prepare_attack_flag boolean
----@field coa_base_r number
----@field coa_base_g number
----@field coa_base_b number
----@field coa_background_r number
----@field coa_background_g number
----@field coa_background_b number
----@field coa_foreground_r number
----@field coa_foreground_g number
----@field coa_foreground_b number
----@field coa_emblem_r number
----@field coa_emblem_g number
----@field coa_emblem_b number
----@field coa_background_image number
----@field coa_foreground_image number
----@field coa_emblem_image number
+---@field budget_change number 
+---@field budget_saved_change number 
+---@field budget_spending_by_category table<ECONOMY_REASON, number> 
+---@field budget_income_by_category table<ECONOMY_REASON, number> 
+---@field budget_treasury_change_by_category table<ECONOMY_REASON, number> 
+---@field budget_treasury number 
+---@field budget_treasury_target number 
+---@field budget table<BUDGET_CATEGORY, struct_budget_per_category_data> 
+---@field budget_tax_target number 
+---@field budget_tax_collected_this_year number 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field primary_race race_id 
+---@field capitol province_id 
+---@field trading_right_cost number 
+---@field building_right_cost number 
+---@field prepare_attack_flag boolean 
+---@field coa_base_r number 
+---@field coa_base_g number 
+---@field coa_base_b number 
+---@field coa_background_r number 
+---@field coa_background_g number 
+---@field coa_background_b number 
+---@field coa_foreground_r number 
+---@field coa_foreground_g number 
+---@field coa_foreground_b number 
+---@field coa_emblem_r number 
+---@field coa_emblem_g number 
+---@field coa_emblem_b number 
+---@field coa_background_image number 
+---@field coa_foreground_image number 
+---@field coa_emblem_image number 
 ---@field resources table<trade_good_id, number> Currently stockpiled resources
 ---@field production table<trade_good_id, number> A "balance" of resource creation
----@field bought table<trade_good_id, number>
----@field sold table<trade_good_id, number>
----@field expected_food_consumption number
+---@field bought table<trade_good_id, number> 
+---@field sold table<trade_good_id, number> 
+---@field expected_food_consumption number 
 
 
 ffi.cdef[[
@@ -3460,7 +3460,7 @@ DATA.realm_size = 15000
 ---@type table<realm_id, boolean>
 local realm_indices_pool = ffi.new("bool[?]", 15000)
 for i = 1, 14999 do
-    realm_indices_pool[i] = true
+    realm_indices_pool[i] = true 
 end
 ---@type table<realm_id, realm_id>
 DATA.realm_indices_set = {}
@@ -3576,16 +3576,16 @@ function DATA.delete_realm(i)
     DATA.realm_indices_set[i] = nil
     return DCON.dcon_delete_realm(i - 1)
 end
----@param func fun(item: realm_id)
+---@param func fun(item: realm_id) 
 function DATA.for_each_realm(func)
     for _, item in pairs(DATA.realm_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_id):boolean
----@return table<realm_id, realm_id>
+---@param func fun(item: realm_id):boolean 
+---@return table<realm_id, realm_id> 
 function DATA.filter_realm(func)
-    ---@type table<realm_id, realm_id>
+    ---@type table<realm_id, realm_id> 
     local t = {}
     for _, item in pairs(DATA.realm_indices_set) do
         if func(item) then t[item] = item end
@@ -3594,7 +3594,7 @@ function DATA.filter_realm(func)
 end
 
 ---@param realm_id realm_id valid realm id
----@return boolean exists
+---@return boolean exists 
 function DATA.realm_get_exists(realm_id)
     return DATA.realm_exists[realm_id]
 end
@@ -3604,7 +3604,7 @@ function DATA.realm_set_exists(realm_id, value)
     DATA.realm_exists[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return string name
+---@return string name 
 function DATA.realm_get_name(realm_id)
     return DATA.realm_name[realm_id]
 end
@@ -3614,7 +3614,7 @@ function DATA.realm_set_name(realm_id, value)
     DATA.realm_name[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_change
+---@return number budget_change 
 function DATA.realm_get_budget_change(realm_id)
     return DATA.realm[realm_id].budget_change
 end
@@ -3629,7 +3629,7 @@ function DATA.realm_inc_budget_change(realm_id, value)
     DATA.realm[realm_id].budget_change = DATA.realm[realm_id].budget_change + value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_saved_change
+---@return number budget_saved_change 
 function DATA.realm_get_budget_saved_change(realm_id)
     return DATA.realm[realm_id].budget_saved_change
 end
@@ -3645,7 +3645,7 @@ function DATA.realm_inc_budget_saved_change(realm_id, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
----@return number budget_spending_by_category
+---@return number budget_spending_by_category 
 function DATA.realm_get_budget_spending_by_category(realm_id, index)
     if DATA.realm[realm_id].budget_spending_by_category == nil then return 0 end
     return DATA.realm[realm_id].budget_spending_by_category[index]
@@ -3664,7 +3664,7 @@ function DATA.realm_inc_budget_spending_by_category(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
----@return number budget_income_by_category
+---@return number budget_income_by_category 
 function DATA.realm_get_budget_income_by_category(realm_id, index)
     if DATA.realm[realm_id].budget_income_by_category == nil then return 0 end
     return DATA.realm[realm_id].budget_income_by_category[index]
@@ -3683,7 +3683,7 @@ function DATA.realm_inc_budget_income_by_category(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
----@return number budget_treasury_change_by_category
+---@return number budget_treasury_change_by_category 
 function DATA.realm_get_budget_treasury_change_by_category(realm_id, index)
     if DATA.realm[realm_id].budget_treasury_change_by_category == nil then return 0 end
     return DATA.realm[realm_id].budget_treasury_change_by_category[index]
@@ -3701,7 +3701,7 @@ function DATA.realm_inc_budget_treasury_change_by_category(realm_id, index, valu
     DATA.realm[realm_id].budget_treasury_change_by_category[index] = DATA.realm[realm_id].budget_treasury_change_by_category[index] + value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_treasury
+---@return number budget_treasury 
 function DATA.realm_get_budget_treasury(realm_id)
     return DATA.realm[realm_id].budget_treasury
 end
@@ -3716,7 +3716,7 @@ function DATA.realm_inc_budget_treasury(realm_id, value)
     DATA.realm[realm_id].budget_treasury = DATA.realm[realm_id].budget_treasury + value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_treasury_target
+---@return number budget_treasury_target 
 function DATA.realm_get_budget_treasury_target(realm_id)
     return DATA.realm[realm_id].budget_treasury_target
 end
@@ -3732,28 +3732,28 @@ function DATA.realm_inc_budget_treasury_target(realm_id, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_ratio(realm_id, index)
     if DATA.realm[realm_id].budget == nil then return 0 end
     return DATA.realm[realm_id].budget[index].ratio
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_budget(realm_id, index)
     if DATA.realm[realm_id].budget == nil then return 0 end
     return DATA.realm[realm_id].budget[index].budget
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_to_be_invested(realm_id, index)
     if DATA.realm[realm_id].budget == nil then return 0 end
     return DATA.realm[realm_id].budget[index].to_be_invested
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_target(realm_id, index)
     if DATA.realm[realm_id].budget == nil then return 0 end
     return DATA.realm[realm_id].budget[index].target
@@ -3807,7 +3807,7 @@ function DATA.realm_inc_budget_target(realm_id, index, value)
     DATA.realm[realm_id].budget[index].target = DATA.realm[realm_id].budget[index].target + value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_tax_target
+---@return number budget_tax_target 
 function DATA.realm_get_budget_tax_target(realm_id)
     return DATA.realm[realm_id].budget_tax_target
 end
@@ -3822,7 +3822,7 @@ function DATA.realm_inc_budget_tax_target(realm_id, value)
     DATA.realm[realm_id].budget_tax_target = DATA.realm[realm_id].budget_tax_target + value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_tax_collected_this_year
+---@return number budget_tax_collected_this_year 
 function DATA.realm_get_budget_tax_collected_this_year(realm_id)
     return DATA.realm[realm_id].budget_tax_collected_this_year
 end
@@ -3837,7 +3837,7 @@ function DATA.realm_inc_budget_tax_collected_this_year(realm_id, value)
     DATA.realm[realm_id].budget_tax_collected_this_year = DATA.realm[realm_id].budget_tax_collected_this_year + value
 end
 ---@param realm_id realm_id valid realm id
----@return number r
+---@return number r 
 function DATA.realm_get_r(realm_id)
     return DATA.realm[realm_id].r
 end
@@ -3852,7 +3852,7 @@ function DATA.realm_inc_r(realm_id, value)
     DATA.realm[realm_id].r = DATA.realm[realm_id].r + value
 end
 ---@param realm_id realm_id valid realm id
----@return number g
+---@return number g 
 function DATA.realm_get_g(realm_id)
     return DATA.realm[realm_id].g
 end
@@ -3867,7 +3867,7 @@ function DATA.realm_inc_g(realm_id, value)
     DATA.realm[realm_id].g = DATA.realm[realm_id].g + value
 end
 ---@param realm_id realm_id valid realm id
----@return number b
+---@return number b 
 function DATA.realm_get_b(realm_id)
     return DATA.realm[realm_id].b
 end
@@ -3882,7 +3882,7 @@ function DATA.realm_inc_b(realm_id, value)
     DATA.realm[realm_id].b = DATA.realm[realm_id].b + value
 end
 ---@param realm_id realm_id valid realm id
----@return race_id primary_race
+---@return race_id primary_race 
 function DATA.realm_get_primary_race(realm_id)
     return DATA.realm[realm_id].primary_race
 end
@@ -3892,7 +3892,7 @@ function DATA.realm_set_primary_race(realm_id, value)
     DATA.realm[realm_id].primary_race = value
 end
 ---@param realm_id realm_id valid realm id
----@return Culture primary_culture
+---@return Culture primary_culture 
 function DATA.realm_get_primary_culture(realm_id)
     return DATA.realm_primary_culture[realm_id]
 end
@@ -3902,7 +3902,7 @@ function DATA.realm_set_primary_culture(realm_id, value)
     DATA.realm_primary_culture[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return Faith primary_faith
+---@return Faith primary_faith 
 function DATA.realm_get_primary_faith(realm_id)
     return DATA.realm_primary_faith[realm_id]
 end
@@ -3912,7 +3912,7 @@ function DATA.realm_set_primary_faith(realm_id, value)
     DATA.realm_primary_faith[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return province_id capitol
+---@return province_id capitol 
 function DATA.realm_get_capitol(realm_id)
     return DATA.realm[realm_id].capitol
 end
@@ -3922,7 +3922,7 @@ function DATA.realm_set_capitol(realm_id, value)
     DATA.realm[realm_id].capitol = value
 end
 ---@param realm_id realm_id valid realm id
----@return number trading_right_cost
+---@return number trading_right_cost 
 function DATA.realm_get_trading_right_cost(realm_id)
     return DATA.realm[realm_id].trading_right_cost
 end
@@ -3937,7 +3937,7 @@ function DATA.realm_inc_trading_right_cost(realm_id, value)
     DATA.realm[realm_id].trading_right_cost = DATA.realm[realm_id].trading_right_cost + value
 end
 ---@param realm_id realm_id valid realm id
----@return number building_right_cost
+---@return number building_right_cost 
 function DATA.realm_get_building_right_cost(realm_id)
     return DATA.realm[realm_id].building_right_cost
 end
@@ -3952,7 +3952,7 @@ function DATA.realm_inc_building_right_cost(realm_id, value)
     DATA.realm[realm_id].building_right_cost = DATA.realm[realm_id].building_right_cost + value
 end
 ---@param realm_id realm_id valid realm id
----@return TradingRightLaw trading_right_law
+---@return TradingRightLaw trading_right_law 
 function DATA.realm_get_trading_right_law(realm_id)
     return DATA.realm_trading_right_law[realm_id]
 end
@@ -3962,7 +3962,7 @@ function DATA.realm_set_trading_right_law(realm_id, value)
     DATA.realm_trading_right_law[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return BuildingRightLaw building_right_law
+---@return BuildingRightLaw building_right_law 
 function DATA.realm_get_building_right_law(realm_id)
     return DATA.realm_building_right_law[realm_id]
 end
@@ -4002,7 +4002,7 @@ function DATA.realm_set_quests_patrol(realm_id, value)
     DATA.realm_quests_patrol[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return table<province_id,table<warband_id,warband_id>> patrols
+---@return table<province_id,table<warband_id,warband_id>> patrols 
 function DATA.realm_get_patrols(realm_id)
     return DATA.realm_patrols[realm_id]
 end
@@ -4012,7 +4012,7 @@ function DATA.realm_set_patrols(realm_id, value)
     DATA.realm_patrols[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return boolean prepare_attack_flag
+---@return boolean prepare_attack_flag 
 function DATA.realm_get_prepare_attack_flag(realm_id)
     return DATA.realm[realm_id].prepare_attack_flag
 end
@@ -4032,7 +4032,7 @@ function DATA.realm_set_known_provinces(realm_id, value)
     DATA.realm_known_provinces[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_base_r
+---@return number coa_base_r 
 function DATA.realm_get_coa_base_r(realm_id)
     return DATA.realm[realm_id].coa_base_r
 end
@@ -4047,7 +4047,7 @@ function DATA.realm_inc_coa_base_r(realm_id, value)
     DATA.realm[realm_id].coa_base_r = DATA.realm[realm_id].coa_base_r + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_base_g
+---@return number coa_base_g 
 function DATA.realm_get_coa_base_g(realm_id)
     return DATA.realm[realm_id].coa_base_g
 end
@@ -4062,7 +4062,7 @@ function DATA.realm_inc_coa_base_g(realm_id, value)
     DATA.realm[realm_id].coa_base_g = DATA.realm[realm_id].coa_base_g + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_base_b
+---@return number coa_base_b 
 function DATA.realm_get_coa_base_b(realm_id)
     return DATA.realm[realm_id].coa_base_b
 end
@@ -4077,7 +4077,7 @@ function DATA.realm_inc_coa_base_b(realm_id, value)
     DATA.realm[realm_id].coa_base_b = DATA.realm[realm_id].coa_base_b + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_r
+---@return number coa_background_r 
 function DATA.realm_get_coa_background_r(realm_id)
     return DATA.realm[realm_id].coa_background_r
 end
@@ -4092,7 +4092,7 @@ function DATA.realm_inc_coa_background_r(realm_id, value)
     DATA.realm[realm_id].coa_background_r = DATA.realm[realm_id].coa_background_r + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_g
+---@return number coa_background_g 
 function DATA.realm_get_coa_background_g(realm_id)
     return DATA.realm[realm_id].coa_background_g
 end
@@ -4107,7 +4107,7 @@ function DATA.realm_inc_coa_background_g(realm_id, value)
     DATA.realm[realm_id].coa_background_g = DATA.realm[realm_id].coa_background_g + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_b
+---@return number coa_background_b 
 function DATA.realm_get_coa_background_b(realm_id)
     return DATA.realm[realm_id].coa_background_b
 end
@@ -4122,7 +4122,7 @@ function DATA.realm_inc_coa_background_b(realm_id, value)
     DATA.realm[realm_id].coa_background_b = DATA.realm[realm_id].coa_background_b + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_r
+---@return number coa_foreground_r 
 function DATA.realm_get_coa_foreground_r(realm_id)
     return DATA.realm[realm_id].coa_foreground_r
 end
@@ -4137,7 +4137,7 @@ function DATA.realm_inc_coa_foreground_r(realm_id, value)
     DATA.realm[realm_id].coa_foreground_r = DATA.realm[realm_id].coa_foreground_r + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_g
+---@return number coa_foreground_g 
 function DATA.realm_get_coa_foreground_g(realm_id)
     return DATA.realm[realm_id].coa_foreground_g
 end
@@ -4152,7 +4152,7 @@ function DATA.realm_inc_coa_foreground_g(realm_id, value)
     DATA.realm[realm_id].coa_foreground_g = DATA.realm[realm_id].coa_foreground_g + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_b
+---@return number coa_foreground_b 
 function DATA.realm_get_coa_foreground_b(realm_id)
     return DATA.realm[realm_id].coa_foreground_b
 end
@@ -4167,7 +4167,7 @@ function DATA.realm_inc_coa_foreground_b(realm_id, value)
     DATA.realm[realm_id].coa_foreground_b = DATA.realm[realm_id].coa_foreground_b + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_r
+---@return number coa_emblem_r 
 function DATA.realm_get_coa_emblem_r(realm_id)
     return DATA.realm[realm_id].coa_emblem_r
 end
@@ -4182,7 +4182,7 @@ function DATA.realm_inc_coa_emblem_r(realm_id, value)
     DATA.realm[realm_id].coa_emblem_r = DATA.realm[realm_id].coa_emblem_r + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_g
+---@return number coa_emblem_g 
 function DATA.realm_get_coa_emblem_g(realm_id)
     return DATA.realm[realm_id].coa_emblem_g
 end
@@ -4197,7 +4197,7 @@ function DATA.realm_inc_coa_emblem_g(realm_id, value)
     DATA.realm[realm_id].coa_emblem_g = DATA.realm[realm_id].coa_emblem_g + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_b
+---@return number coa_emblem_b 
 function DATA.realm_get_coa_emblem_b(realm_id)
     return DATA.realm[realm_id].coa_emblem_b
 end
@@ -4212,7 +4212,7 @@ function DATA.realm_inc_coa_emblem_b(realm_id, value)
     DATA.realm[realm_id].coa_emblem_b = DATA.realm[realm_id].coa_emblem_b + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_image
+---@return number coa_background_image 
 function DATA.realm_get_coa_background_image(realm_id)
     return DATA.realm[realm_id].coa_background_image
 end
@@ -4227,7 +4227,7 @@ function DATA.realm_inc_coa_background_image(realm_id, value)
     DATA.realm[realm_id].coa_background_image = DATA.realm[realm_id].coa_background_image + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_image
+---@return number coa_foreground_image 
 function DATA.realm_get_coa_foreground_image(realm_id)
     return DATA.realm[realm_id].coa_foreground_image
 end
@@ -4242,7 +4242,7 @@ function DATA.realm_inc_coa_foreground_image(realm_id, value)
     DATA.realm[realm_id].coa_foreground_image = DATA.realm[realm_id].coa_foreground_image + value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_image
+---@return number coa_emblem_image 
 function DATA.realm_get_coa_emblem_image(realm_id)
     return DATA.realm[realm_id].coa_emblem_image
 end
@@ -4296,7 +4296,7 @@ function DATA.realm_inc_production(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index trade_good_id valid
----@return number bought
+---@return number bought 
 function DATA.realm_get_bought(realm_id, index)
     if DATA.realm[realm_id].bought == nil then return 0 end
     return DATA.realm[realm_id].bought[index]
@@ -4315,7 +4315,7 @@ function DATA.realm_inc_bought(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index trade_good_id valid
----@return number sold
+---@return number sold 
 function DATA.realm_get_sold(realm_id, index)
     if DATA.realm[realm_id].sold == nil then return 0 end
     return DATA.realm[realm_id].sold[index]
@@ -4333,7 +4333,7 @@ function DATA.realm_inc_sold(realm_id, index, value)
     DATA.realm[realm_id].sold[index] = DATA.realm[realm_id].sold[index] + value
 end
 ---@param realm_id realm_id valid realm id
----@return number expected_food_consumption
+---@return number expected_food_consumption 
 function DATA.realm_get_expected_food_consumption(realm_id)
     return DATA.realm[realm_id].expected_food_consumption
 end
@@ -4578,12 +4578,12 @@ end
 
 ---@class (exact) fat_negotiation_id
 ---@field id negotiation_id Unique negotiation id
----@field initiator pop_id
----@field target pop_id
+---@field initiator pop_id 
+---@field target pop_id 
 
 ---@class struct_negotiation
----@field initiator pop_id
----@field target pop_id
+---@field initiator pop_id 
+---@field target pop_id 
 
 
 ffi.cdef[[
@@ -4618,7 +4618,7 @@ DATA.negotiation_size = 2500
 ---@type table<negotiation_id, boolean>
 local negotiation_indices_pool = ffi.new("bool[?]", 2500)
 for i = 1, 2499 do
-    negotiation_indices_pool[i] = true
+    negotiation_indices_pool[i] = true 
 end
 ---@type table<negotiation_id, negotiation_id>
 DATA.negotiation_indices_set = {}
@@ -4640,16 +4640,16 @@ function DATA.delete_negotiation(i)
     DATA.negotiation_indices_set[i] = nil
     return DCON.dcon_delete_negotiation(i - 1)
 end
----@param func fun(item: negotiation_id)
+---@param func fun(item: negotiation_id) 
 function DATA.for_each_negotiation(func)
     for _, item in pairs(DATA.negotiation_indices_set) do
         func(item)
     end
 end
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_negotiation(func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     for _, item in pairs(DATA.negotiation_indices_set) do
         if func(item) then t[item] = item end
@@ -4658,12 +4658,12 @@ function DATA.filter_negotiation(func)
 end
 
 ---@param negotiation_id negotiation_id valid negotiation id
----@return pop_id initiator
+---@return pop_id initiator 
 function DATA.negotiation_get_initiator(negotiation_id)
     return DATA.negotiation[negotiation_id].initiator
 end
 ---@param initiator pop_id valid pop_id
----@return negotiation_id[] An array of negotiation
+---@return negotiation_id[] An array of negotiation 
 function DATA.get_negotiation_from_initiator(initiator)
     return DATA.negotiation_from_initiator[initiator]
 end
@@ -4674,10 +4674,10 @@ function DATA.for_each_negotiation_from_initiator(initiator, func)
     for _, item in pairs(DATA.negotiation_from_initiator[initiator]) do func(item) end
 end
 ---@param initiator pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_array_negotiation_from_initiator(initiator, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     if DATA.negotiation_from_initiator[initiator] == nil then return t end
     for _, item in pairs(DATA.negotiation_from_initiator[initiator]) do
@@ -4686,10 +4686,10 @@ function DATA.filter_array_negotiation_from_initiator(initiator, func)
     return t
 end
 ---@param initiator pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_negotiation_from_initiator(initiator, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     if DATA.negotiation_from_initiator[initiator] == nil then return t end
     for _, item in pairs(DATA.negotiation_from_initiator[initiator]) do
@@ -4725,12 +4725,12 @@ function DATA.negotiation_set_initiator(negotiation_id, value)
     table.insert(DATA.negotiation_from_initiator[value], negotiation_id)
 end
 ---@param negotiation_id negotiation_id valid negotiation id
----@return pop_id target
+---@return pop_id target 
 function DATA.negotiation_get_target(negotiation_id)
     return DATA.negotiation[negotiation_id].target
 end
 ---@param target pop_id valid pop_id
----@return negotiation_id[] An array of negotiation
+---@return negotiation_id[] An array of negotiation 
 function DATA.get_negotiation_from_target(target)
     return DATA.negotiation_from_target[target]
 end
@@ -4741,10 +4741,10 @@ function DATA.for_each_negotiation_from_target(target, func)
     for _, item in pairs(DATA.negotiation_from_target[target]) do func(item) end
 end
 ---@param target pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_array_negotiation_from_target(target, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     if DATA.negotiation_from_target[target] == nil then return t end
     for _, item in pairs(DATA.negotiation_from_target[target]) do
@@ -4753,10 +4753,10 @@ function DATA.filter_array_negotiation_from_target(target, func)
     return t
 end
 ---@param target pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_negotiation_from_target(target, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     if DATA.negotiation_from_target[target] == nil then return t end
     for _, item in pairs(DATA.negotiation_from_target[target]) do
@@ -4827,26 +4827,40 @@ end
 
 ---@class (exact) fat_building_id
 ---@field id building_id Unique building id
----@field type building_type_id
----@field subsidy number
----@field subsidy_last number
----@field income_mean number
----@field last_income number
----@field last_donation_to_owner number
----@field unused number
----@field work_ratio number
+---@field type building_type_id 
+---@field subsidy number 
+---@field subsidy_last number 
+---@field income_mean number 
+---@field last_income number 
+---@field last_donation_to_owner number 
+---@field unused number 
+---@field work_ratio number 
 
 ---@class struct_building
----@field type building_type_id
----@field spent_on_inputs table<number, struct_trade_good_container>
----@field earn_from_outputs table<number, struct_trade_good_container>
----@field amount_of_inputs table<number, struct_trade_good_container>
----@field amount_of_outputs table<number, struct_trade_good_container>
+---@field type building_type_id 
+---@field subsidy number 
+---@field subsidy_last number 
+---@field income_mean number 
+---@field last_income number 
+---@field last_donation_to_owner number 
+---@field unused number 
+---@field work_ratio number 
+---@field spent_on_inputs table<number, struct_trade_good_container> 
+---@field earn_from_outputs table<number, struct_trade_good_container> 
+---@field amount_of_inputs table<number, struct_trade_good_container> 
+---@field amount_of_outputs table<number, struct_trade_good_container> 
 
 
 ffi.cdef[[
     typedef struct {
         uint32_t type;
+        float subsidy;
+        float subsidy_last;
+        float income_mean;
+        float last_income;
+        float last_donation_to_owner;
+        float unused;
+        float work_ratio;
         trade_good_container spent_on_inputs[8];
         trade_good_container earn_from_outputs[8];
         trade_good_container amount_of_inputs[8];
@@ -4858,20 +4872,6 @@ void dcon_building_resize(uint32_t sz);
 ]]
 
 ---building: FFI arrays---
----@type (number)[]
-DATA.building_subsidy= {}
----@type (number)[]
-DATA.building_subsidy_last= {}
----@type (number)[]
-DATA.building_income_mean= {}
----@type (number)[]
-DATA.building_last_income= {}
----@type (number)[]
-DATA.building_last_donation_to_owner= {}
----@type (number)[]
-DATA.building_unused= {}
----@type (number)[]
-DATA.building_work_ratio= {}
 ---@type nil
 DATA.building_calloc = ffi.C.calloc(1, ffi.sizeof("building") * 200001)
 ---@type table<building_id, struct_building>
@@ -4883,7 +4883,7 @@ DATA.building_size = 200000
 ---@type table<building_id, boolean>
 local building_indices_pool = ffi.new("bool[?]", 200000)
 for i = 1, 199999 do
-    building_indices_pool[i] = true
+    building_indices_pool[i] = true 
 end
 ---@type table<building_id, building_id>
 DATA.building_indices_set = {}
@@ -4921,16 +4921,16 @@ function DATA.delete_building(i)
     DATA.building_indices_set[i] = nil
     return DCON.dcon_delete_building(i - 1)
 end
----@param func fun(item: building_id)
+---@param func fun(item: building_id) 
 function DATA.for_each_building(func)
     for _, item in pairs(DATA.building_indices_set) do
         func(item)
     end
 end
----@param func fun(item: building_id):boolean
----@return table<building_id, building_id>
+---@param func fun(item: building_id):boolean 
+---@return table<building_id, building_id> 
 function DATA.filter_building(func)
-    ---@type table<building_id, building_id>
+    ---@type table<building_id, building_id> 
     local t = {}
     for _, item in pairs(DATA.building_indices_set) do
         if func(item) then t[item] = item end
@@ -4939,7 +4939,7 @@ function DATA.filter_building(func)
 end
 
 ---@param building_id building_id valid building id
----@return building_type_id type
+---@return building_type_id type 
 function DATA.building_get_type(building_id)
     return DATA.building[building_id].type
 end
@@ -4949,85 +4949,120 @@ function DATA.building_set_type(building_id, value)
     DATA.building[building_id].type = value
 end
 ---@param building_id building_id valid building id
----@return number subsidy
+---@return number subsidy 
 function DATA.building_get_subsidy(building_id)
-    return DATA.building_subsidy[building_id]
+    return DATA.building[building_id].subsidy
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_subsidy(building_id, value)
-    DATA.building_subsidy[building_id] = value
+    DATA.building[building_id].subsidy = value
 end
 ---@param building_id building_id valid building id
----@return number subsidy_last
+---@param value number valid number
+function DATA.building_inc_subsidy(building_id, value)
+    DATA.building[building_id].subsidy = DATA.building[building_id].subsidy + value
+end
+---@param building_id building_id valid building id
+---@return number subsidy_last 
 function DATA.building_get_subsidy_last(building_id)
-    return DATA.building_subsidy_last[building_id]
+    return DATA.building[building_id].subsidy_last
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_subsidy_last(building_id, value)
-    DATA.building_subsidy_last[building_id] = value
+    DATA.building[building_id].subsidy_last = value
 end
 ---@param building_id building_id valid building id
----@return number income_mean
+---@param value number valid number
+function DATA.building_inc_subsidy_last(building_id, value)
+    DATA.building[building_id].subsidy_last = DATA.building[building_id].subsidy_last + value
+end
+---@param building_id building_id valid building id
+---@return number income_mean 
 function DATA.building_get_income_mean(building_id)
-    return DATA.building_income_mean[building_id]
+    return DATA.building[building_id].income_mean
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_income_mean(building_id, value)
-    DATA.building_income_mean[building_id] = value
+    DATA.building[building_id].income_mean = value
 end
 ---@param building_id building_id valid building id
----@return number last_income
+---@param value number valid number
+function DATA.building_inc_income_mean(building_id, value)
+    DATA.building[building_id].income_mean = DATA.building[building_id].income_mean + value
+end
+---@param building_id building_id valid building id
+---@return number last_income 
 function DATA.building_get_last_income(building_id)
-    return DATA.building_last_income[building_id]
+    return DATA.building[building_id].last_income
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_last_income(building_id, value)
-    DATA.building_last_income[building_id] = value
+    DATA.building[building_id].last_income = value
 end
 ---@param building_id building_id valid building id
----@return number last_donation_to_owner
+---@param value number valid number
+function DATA.building_inc_last_income(building_id, value)
+    DATA.building[building_id].last_income = DATA.building[building_id].last_income + value
+end
+---@param building_id building_id valid building id
+---@return number last_donation_to_owner 
 function DATA.building_get_last_donation_to_owner(building_id)
-    return DATA.building_last_donation_to_owner[building_id]
+    return DATA.building[building_id].last_donation_to_owner
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_last_donation_to_owner(building_id, value)
-    DATA.building_last_donation_to_owner[building_id] = value
+    DATA.building[building_id].last_donation_to_owner = value
 end
 ---@param building_id building_id valid building id
----@return number unused
+---@param value number valid number
+function DATA.building_inc_last_donation_to_owner(building_id, value)
+    DATA.building[building_id].last_donation_to_owner = DATA.building[building_id].last_donation_to_owner + value
+end
+---@param building_id building_id valid building id
+---@return number unused 
 function DATA.building_get_unused(building_id)
-    return DATA.building_unused[building_id]
+    return DATA.building[building_id].unused
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_unused(building_id, value)
-    DATA.building_unused[building_id] = value
+    DATA.building[building_id].unused = value
 end
 ---@param building_id building_id valid building id
----@return number work_ratio
+---@param value number valid number
+function DATA.building_inc_unused(building_id, value)
+    DATA.building[building_id].unused = DATA.building[building_id].unused + value
+end
+---@param building_id building_id valid building id
+---@return number work_ratio 
 function DATA.building_get_work_ratio(building_id)
-    return DATA.building_work_ratio[building_id]
+    return DATA.building[building_id].work_ratio
 end
 ---@param building_id building_id valid building id
 ---@param value number valid number
 function DATA.building_set_work_ratio(building_id, value)
-    DATA.building_work_ratio[building_id] = value
+    DATA.building[building_id].work_ratio = value
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_inc_work_ratio(building_id, value)
+    DATA.building[building_id].work_ratio = DATA.building[building_id].work_ratio + value
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return trade_good_id spent_on_inputs
+---@return trade_good_id spent_on_inputs 
 function DATA.building_get_spent_on_inputs_good(building_id, index)
     if DATA.building[building_id].spent_on_inputs == nil then return 0 end
     return DATA.building[building_id].spent_on_inputs[index].good
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number spent_on_inputs
+---@return number spent_on_inputs 
 function DATA.building_get_spent_on_inputs_amount(building_id, index)
     if DATA.building[building_id].spent_on_inputs == nil then return 0 end
     return DATA.building[building_id].spent_on_inputs[index].amount
@@ -5052,14 +5087,14 @@ function DATA.building_inc_spent_on_inputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return trade_good_id earn_from_outputs
+---@return trade_good_id earn_from_outputs 
 function DATA.building_get_earn_from_outputs_good(building_id, index)
     if DATA.building[building_id].earn_from_outputs == nil then return 0 end
     return DATA.building[building_id].earn_from_outputs[index].good
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number earn_from_outputs
+---@return number earn_from_outputs 
 function DATA.building_get_earn_from_outputs_amount(building_id, index)
     if DATA.building[building_id].earn_from_outputs == nil then return 0 end
     return DATA.building[building_id].earn_from_outputs[index].amount
@@ -5084,14 +5119,14 @@ function DATA.building_inc_earn_from_outputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return trade_good_id amount_of_inputs
+---@return trade_good_id amount_of_inputs 
 function DATA.building_get_amount_of_inputs_good(building_id, index)
     if DATA.building[building_id].amount_of_inputs == nil then return 0 end
     return DATA.building[building_id].amount_of_inputs[index].good
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number amount_of_inputs
+---@return number amount_of_inputs 
 function DATA.building_get_amount_of_inputs_amount(building_id, index)
     if DATA.building[building_id].amount_of_inputs == nil then return 0 end
     return DATA.building[building_id].amount_of_inputs[index].amount
@@ -5116,14 +5151,14 @@ function DATA.building_inc_amount_of_inputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return trade_good_id amount_of_outputs
+---@return trade_good_id amount_of_outputs 
 function DATA.building_get_amount_of_outputs_good(building_id, index)
     if DATA.building[building_id].amount_of_outputs == nil then return 0 end
     return DATA.building[building_id].amount_of_outputs[index].good
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number amount_of_outputs
+---@return number amount_of_outputs 
 function DATA.building_get_amount_of_outputs_amount(building_id, index)
     if DATA.building[building_id].amount_of_outputs == nil then return 0 end
     return DATA.building[building_id].amount_of_outputs[index].amount
@@ -5212,12 +5247,12 @@ end
 
 ---@class (exact) fat_ownership_id
 ---@field id ownership_id Unique ownership id
----@field building building_id
----@field owner pop_id
+---@field building building_id 
+---@field owner pop_id 
 
 ---@class struct_ownership
----@field building building_id
----@field owner pop_id
+---@field building building_id 
+---@field owner pop_id 
 
 
 ffi.cdef[[
@@ -5249,7 +5284,7 @@ DATA.ownership_size = 200000
 ---@type table<ownership_id, boolean>
 local ownership_indices_pool = ffi.new("bool[?]", 200000)
 for i = 1, 199999 do
-    ownership_indices_pool[i] = true
+    ownership_indices_pool[i] = true 
 end
 ---@type table<ownership_id, ownership_id>
 DATA.ownership_indices_set = {}
@@ -5271,16 +5306,16 @@ function DATA.delete_ownership(i)
     DATA.ownership_indices_set[i] = nil
     return DCON.dcon_delete_ownership(i - 1)
 end
----@param func fun(item: ownership_id)
+---@param func fun(item: ownership_id) 
 function DATA.for_each_ownership(func)
     for _, item in pairs(DATA.ownership_indices_set) do
         func(item)
     end
 end
----@param func fun(item: ownership_id):boolean
----@return table<ownership_id, ownership_id>
+---@param func fun(item: ownership_id):boolean 
+---@return table<ownership_id, ownership_id> 
 function DATA.filter_ownership(func)
-    ---@type table<ownership_id, ownership_id>
+    ---@type table<ownership_id, ownership_id> 
     local t = {}
     for _, item in pairs(DATA.ownership_indices_set) do
         if func(item) then t[item] = item end
@@ -5289,12 +5324,12 @@ function DATA.filter_ownership(func)
 end
 
 ---@param ownership_id ownership_id valid ownership id
----@return building_id building
+---@return building_id building 
 function DATA.ownership_get_building(ownership_id)
     return DATA.ownership[ownership_id].building
 end
 ---@param building building_id valid building_id
----@return ownership_id ownership
+---@return ownership_id ownership 
 function DATA.get_ownership_from_building(building)
     if DATA.ownership_from_building[building] == nil then return 0 end
     return DATA.ownership_from_building[building]
@@ -5311,12 +5346,12 @@ function DATA.ownership_set_building(ownership_id, value)
     DATA.ownership_from_building[value] = ownership_id
 end
 ---@param ownership_id ownership_id valid ownership id
----@return pop_id owner
+---@return pop_id owner 
 function DATA.ownership_get_owner(ownership_id)
     return DATA.ownership[ownership_id].owner
 end
 ---@param owner pop_id valid pop_id
----@return ownership_id[] An array of ownership
+---@return ownership_id[] An array of ownership 
 function DATA.get_ownership_from_owner(owner)
     return DATA.ownership_from_owner[owner]
 end
@@ -5327,10 +5362,10 @@ function DATA.for_each_ownership_from_owner(owner, func)
     for _, item in pairs(DATA.ownership_from_owner[owner]) do func(item) end
 end
 ---@param owner pop_id valid pop_id
----@param func fun(item: ownership_id):boolean
----@return table<ownership_id, ownership_id>
+---@param func fun(item: ownership_id):boolean 
+---@return table<ownership_id, ownership_id> 
 function DATA.filter_array_ownership_from_owner(owner, func)
-    ---@type table<ownership_id, ownership_id>
+    ---@type table<ownership_id, ownership_id> 
     local t = {}
     if DATA.ownership_from_owner[owner] == nil then return t end
     for _, item in pairs(DATA.ownership_from_owner[owner]) do
@@ -5339,10 +5374,10 @@ function DATA.filter_array_ownership_from_owner(owner, func)
     return t
 end
 ---@param owner pop_id valid pop_id
----@param func fun(item: ownership_id):boolean
----@return table<ownership_id, ownership_id>
+---@param func fun(item: ownership_id):boolean 
+---@return table<ownership_id, ownership_id> 
 function DATA.filter_ownership_from_owner(owner, func)
-    ---@type table<ownership_id, ownership_id>
+    ---@type table<ownership_id, ownership_id> 
     local t = {}
     if DATA.ownership_from_owner[owner] == nil then return t end
     for _, item in pairs(DATA.ownership_from_owner[owner]) do
@@ -5413,16 +5448,16 @@ end
 
 ---@class (exact) fat_employment_id
 ---@field id employment_id Unique employment id
----@field worker_income number
----@field job job_id
----@field building building_id
----@field worker pop_id
+---@field worker_income number 
+---@field job job_id 
+---@field building building_id 
+---@field worker pop_id 
 
 ---@class struct_employment
----@field worker_income number
----@field job job_id
----@field building building_id
----@field worker pop_id
+---@field worker_income number 
+---@field job job_id 
+---@field building building_id 
+---@field worker pop_id 
 
 
 ffi.cdef[[
@@ -5456,7 +5491,7 @@ DATA.employment_size = 300000
 ---@type table<employment_id, boolean>
 local employment_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    employment_indices_pool[i] = true
+    employment_indices_pool[i] = true 
 end
 ---@type table<employment_id, employment_id>
 DATA.employment_indices_set = {}
@@ -5478,16 +5513,16 @@ function DATA.delete_employment(i)
     DATA.employment_indices_set[i] = nil
     return DCON.dcon_delete_employment(i - 1)
 end
----@param func fun(item: employment_id)
+---@param func fun(item: employment_id) 
 function DATA.for_each_employment(func)
     for _, item in pairs(DATA.employment_indices_set) do
         func(item)
     end
 end
----@param func fun(item: employment_id):boolean
----@return table<employment_id, employment_id>
+---@param func fun(item: employment_id):boolean 
+---@return table<employment_id, employment_id> 
 function DATA.filter_employment(func)
-    ---@type table<employment_id, employment_id>
+    ---@type table<employment_id, employment_id> 
     local t = {}
     for _, item in pairs(DATA.employment_indices_set) do
         if func(item) then t[item] = item end
@@ -5496,7 +5531,7 @@ function DATA.filter_employment(func)
 end
 
 ---@param employment_id employment_id valid employment id
----@return number worker_income
+---@return number worker_income 
 function DATA.employment_get_worker_income(employment_id)
     return DATA.employment[employment_id].worker_income
 end
@@ -5511,7 +5546,7 @@ function DATA.employment_inc_worker_income(employment_id, value)
     DATA.employment[employment_id].worker_income = DATA.employment[employment_id].worker_income + value
 end
 ---@param employment_id employment_id valid employment id
----@return job_id job
+---@return job_id job 
 function DATA.employment_get_job(employment_id)
     return DATA.employment[employment_id].job
 end
@@ -5521,12 +5556,12 @@ function DATA.employment_set_job(employment_id, value)
     DATA.employment[employment_id].job = value
 end
 ---@param employment_id employment_id valid employment id
----@return building_id building
+---@return building_id building 
 function DATA.employment_get_building(employment_id)
     return DATA.employment[employment_id].building
 end
 ---@param building building_id valid building_id
----@return employment_id[] An array of employment
+---@return employment_id[] An array of employment 
 function DATA.get_employment_from_building(building)
     return DATA.employment_from_building[building]
 end
@@ -5537,10 +5572,10 @@ function DATA.for_each_employment_from_building(building, func)
     for _, item in pairs(DATA.employment_from_building[building]) do func(item) end
 end
 ---@param building building_id valid building_id
----@param func fun(item: employment_id):boolean
----@return table<employment_id, employment_id>
+---@param func fun(item: employment_id):boolean 
+---@return table<employment_id, employment_id> 
 function DATA.filter_array_employment_from_building(building, func)
-    ---@type table<employment_id, employment_id>
+    ---@type table<employment_id, employment_id> 
     local t = {}
     if DATA.employment_from_building[building] == nil then return t end
     for _, item in pairs(DATA.employment_from_building[building]) do
@@ -5549,10 +5584,10 @@ function DATA.filter_array_employment_from_building(building, func)
     return t
 end
 ---@param building building_id valid building_id
----@param func fun(item: employment_id):boolean
----@return table<employment_id, employment_id>
+---@param func fun(item: employment_id):boolean 
+---@return table<employment_id, employment_id> 
 function DATA.filter_employment_from_building(building, func)
-    ---@type table<employment_id, employment_id>
+    ---@type table<employment_id, employment_id> 
     local t = {}
     if DATA.employment_from_building[building] == nil then return t end
     for _, item in pairs(DATA.employment_from_building[building]) do
@@ -5588,12 +5623,12 @@ function DATA.employment_set_building(employment_id, value)
     table.insert(DATA.employment_from_building[value], employment_id)
 end
 ---@param employment_id employment_id valid employment id
----@return pop_id worker
+---@return pop_id worker 
 function DATA.employment_get_worker(employment_id)
     return DATA.employment[employment_id].worker
 end
 ---@param worker pop_id valid pop_id
----@return employment_id employment
+---@return employment_id employment 
 function DATA.get_employment_from_worker(worker)
     if DATA.employment_from_worker[worker] == nil then return 0 end
     return DATA.employment_from_worker[worker]
@@ -5656,11 +5691,11 @@ end
 ---@class (exact) fat_building_location_id
 ---@field id building_location_id Unique building_location id
 ---@field location province_id location of the building
----@field building building_id
+---@field building building_id 
 
 ---@class struct_building_location
 ---@field location province_id location of the building
----@field building building_id
+---@field building building_id 
 
 
 ffi.cdef[[
@@ -5692,7 +5727,7 @@ DATA.building_location_size = 200000
 ---@type table<building_location_id, boolean>
 local building_location_indices_pool = ffi.new("bool[?]", 200000)
 for i = 1, 199999 do
-    building_location_indices_pool[i] = true
+    building_location_indices_pool[i] = true 
 end
 ---@type table<building_location_id, building_location_id>
 DATA.building_location_indices_set = {}
@@ -5714,16 +5749,16 @@ function DATA.delete_building_location(i)
     DATA.building_location_indices_set[i] = nil
     return DCON.dcon_delete_building_location(i - 1)
 end
----@param func fun(item: building_location_id)
+---@param func fun(item: building_location_id) 
 function DATA.for_each_building_location(func)
     for _, item in pairs(DATA.building_location_indices_set) do
         func(item)
     end
 end
----@param func fun(item: building_location_id):boolean
----@return table<building_location_id, building_location_id>
+---@param func fun(item: building_location_id):boolean 
+---@return table<building_location_id, building_location_id> 
 function DATA.filter_building_location(func)
-    ---@type table<building_location_id, building_location_id>
+    ---@type table<building_location_id, building_location_id> 
     local t = {}
     for _, item in pairs(DATA.building_location_indices_set) do
         if func(item) then t[item] = item end
@@ -5737,7 +5772,7 @@ function DATA.building_location_get_location(building_location_id)
     return DATA.building_location[building_location_id].location
 end
 ---@param location province_id valid province_id
----@return building_location_id[] An array of building_location
+---@return building_location_id[] An array of building_location 
 function DATA.get_building_location_from_location(location)
     return DATA.building_location_from_location[location]
 end
@@ -5748,10 +5783,10 @@ function DATA.for_each_building_location_from_location(location, func)
     for _, item in pairs(DATA.building_location_from_location[location]) do func(item) end
 end
 ---@param location province_id valid province_id
----@param func fun(item: building_location_id):boolean
----@return table<building_location_id, building_location_id>
+---@param func fun(item: building_location_id):boolean 
+---@return table<building_location_id, building_location_id> 
 function DATA.filter_array_building_location_from_location(location, func)
-    ---@type table<building_location_id, building_location_id>
+    ---@type table<building_location_id, building_location_id> 
     local t = {}
     if DATA.building_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.building_location_from_location[location]) do
@@ -5760,10 +5795,10 @@ function DATA.filter_array_building_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: building_location_id):boolean
----@return table<building_location_id, building_location_id>
+---@param func fun(item: building_location_id):boolean 
+---@return table<building_location_id, building_location_id> 
 function DATA.filter_building_location_from_location(location, func)
-    ---@type table<building_location_id, building_location_id>
+    ---@type table<building_location_id, building_location_id> 
     local t = {}
     if DATA.building_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.building_location_from_location[location]) do
@@ -5799,12 +5834,12 @@ function DATA.building_location_set_location(building_location_id, value)
     table.insert(DATA.building_location_from_location[value], building_location_id)
 end
 ---@param building_location_id building_location_id valid building_location id
----@return building_id building
+---@return building_id building 
 function DATA.building_location_get_building(building_location_id)
     return DATA.building_location[building_location_id].building
 end
 ---@param building building_id valid building_id
----@return building_location_id building_location
+---@return building_location_id building_location 
 function DATA.get_building_location_from_building(building)
     if DATA.building_location_from_building[building] == nil then return 0 end
     return DATA.building_location_from_building[building]
@@ -5856,11 +5891,11 @@ end
 
 ---@class (exact) fat_army_membership_id
 ---@field id army_membership_id Unique army_membership id
----@field army army_id
+---@field army army_id 
 ---@field member warband_id part of army
 
 ---@class struct_army_membership
----@field army army_id
+---@field army army_id 
 ---@field member warband_id part of army
 
 
@@ -5893,7 +5928,7 @@ DATA.army_membership_size = 10000
 ---@type table<army_membership_id, boolean>
 local army_membership_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    army_membership_indices_pool[i] = true
+    army_membership_indices_pool[i] = true 
 end
 ---@type table<army_membership_id, army_membership_id>
 DATA.army_membership_indices_set = {}
@@ -5915,16 +5950,16 @@ function DATA.delete_army_membership(i)
     DATA.army_membership_indices_set[i] = nil
     return DCON.dcon_delete_army_membership(i - 1)
 end
----@param func fun(item: army_membership_id)
+---@param func fun(item: army_membership_id) 
 function DATA.for_each_army_membership(func)
     for _, item in pairs(DATA.army_membership_indices_set) do
         func(item)
     end
 end
----@param func fun(item: army_membership_id):boolean
----@return table<army_membership_id, army_membership_id>
+---@param func fun(item: army_membership_id):boolean 
+---@return table<army_membership_id, army_membership_id> 
 function DATA.filter_army_membership(func)
-    ---@type table<army_membership_id, army_membership_id>
+    ---@type table<army_membership_id, army_membership_id> 
     local t = {}
     for _, item in pairs(DATA.army_membership_indices_set) do
         if func(item) then t[item] = item end
@@ -5933,12 +5968,12 @@ function DATA.filter_army_membership(func)
 end
 
 ---@param army_membership_id army_membership_id valid army_membership id
----@return army_id army
+---@return army_id army 
 function DATA.army_membership_get_army(army_membership_id)
     return DATA.army_membership[army_membership_id].army
 end
 ---@param army army_id valid army_id
----@return army_membership_id[] An array of army_membership
+---@return army_membership_id[] An array of army_membership 
 function DATA.get_army_membership_from_army(army)
     return DATA.army_membership_from_army[army]
 end
@@ -5949,10 +5984,10 @@ function DATA.for_each_army_membership_from_army(army, func)
     for _, item in pairs(DATA.army_membership_from_army[army]) do func(item) end
 end
 ---@param army army_id valid army_id
----@param func fun(item: army_membership_id):boolean
----@return table<army_membership_id, army_membership_id>
+---@param func fun(item: army_membership_id):boolean 
+---@return table<army_membership_id, army_membership_id> 
 function DATA.filter_array_army_membership_from_army(army, func)
-    ---@type table<army_membership_id, army_membership_id>
+    ---@type table<army_membership_id, army_membership_id> 
     local t = {}
     if DATA.army_membership_from_army[army] == nil then return t end
     for _, item in pairs(DATA.army_membership_from_army[army]) do
@@ -5961,10 +5996,10 @@ function DATA.filter_array_army_membership_from_army(army, func)
     return t
 end
 ---@param army army_id valid army_id
----@param func fun(item: army_membership_id):boolean
----@return table<army_membership_id, army_membership_id>
+---@param func fun(item: army_membership_id):boolean 
+---@return table<army_membership_id, army_membership_id> 
 function DATA.filter_army_membership_from_army(army, func)
-    ---@type table<army_membership_id, army_membership_id>
+    ---@type table<army_membership_id, army_membership_id> 
     local t = {}
     if DATA.army_membership_from_army[army] == nil then return t end
     for _, item in pairs(DATA.army_membership_from_army[army]) do
@@ -6005,7 +6040,7 @@ function DATA.army_membership_get_member(army_membership_id)
     return DATA.army_membership[army_membership_id].member
 end
 ---@param member warband_id valid warband_id
----@return army_membership_id army_membership
+---@return army_membership_id army_membership 
 function DATA.get_army_membership_from_member(member)
     if DATA.army_membership_from_member[member] == nil then return 0 end
     return DATA.army_membership_from_member[member]
@@ -6057,12 +6092,12 @@ end
 
 ---@class (exact) fat_warband_leader_id
 ---@field id warband_leader_id Unique warband_leader id
----@field leader pop_id
----@field warband warband_id
+---@field leader pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_leader
----@field leader pop_id
----@field warband warband_id
+---@field leader pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -6091,7 +6126,7 @@ DATA.warband_leader_size = 10000
 ---@type table<warband_leader_id, boolean>
 local warband_leader_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_leader_indices_pool[i] = true
+    warband_leader_indices_pool[i] = true 
 end
 ---@type table<warband_leader_id, warband_leader_id>
 DATA.warband_leader_indices_set = {}
@@ -6113,16 +6148,16 @@ function DATA.delete_warband_leader(i)
     DATA.warband_leader_indices_set[i] = nil
     return DCON.dcon_delete_warband_leader(i - 1)
 end
----@param func fun(item: warband_leader_id)
+---@param func fun(item: warband_leader_id) 
 function DATA.for_each_warband_leader(func)
     for _, item in pairs(DATA.warband_leader_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_leader_id):boolean
----@return table<warband_leader_id, warband_leader_id>
+---@param func fun(item: warband_leader_id):boolean 
+---@return table<warband_leader_id, warband_leader_id> 
 function DATA.filter_warband_leader(func)
-    ---@type table<warband_leader_id, warband_leader_id>
+    ---@type table<warband_leader_id, warband_leader_id> 
     local t = {}
     for _, item in pairs(DATA.warband_leader_indices_set) do
         if func(item) then t[item] = item end
@@ -6131,12 +6166,12 @@ function DATA.filter_warband_leader(func)
 end
 
 ---@param warband_leader_id warband_leader_id valid warband_leader id
----@return pop_id leader
+---@return pop_id leader 
 function DATA.warband_leader_get_leader(warband_leader_id)
     return DATA.warband_leader[warband_leader_id].leader
 end
 ---@param leader pop_id valid pop_id
----@return warband_leader_id warband_leader
+---@return warband_leader_id warband_leader 
 function DATA.get_warband_leader_from_leader(leader)
     if DATA.warband_leader_from_leader[leader] == nil then return 0 end
     return DATA.warband_leader_from_leader[leader]
@@ -6153,12 +6188,12 @@ function DATA.warband_leader_set_leader(warband_leader_id, value)
     DATA.warband_leader_from_leader[value] = warband_leader_id
 end
 ---@param warband_leader_id warband_leader_id valid warband_leader id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_leader_get_warband(warband_leader_id)
     return DATA.warband_leader[warband_leader_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_leader_id warband_leader
+---@return warband_leader_id warband_leader 
 function DATA.get_warband_leader_from_warband(warband)
     if DATA.warband_leader_from_warband[warband] == nil then return 0 end
     return DATA.warband_leader_from_warband[warband]
@@ -6210,12 +6245,12 @@ end
 
 ---@class (exact) fat_warband_recruiter_id
 ---@field id warband_recruiter_id Unique warband_recruiter id
----@field recruiter pop_id
----@field warband warband_id
+---@field recruiter pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_recruiter
----@field recruiter pop_id
----@field warband warband_id
+---@field recruiter pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -6244,7 +6279,7 @@ DATA.warband_recruiter_size = 10000
 ---@type table<warband_recruiter_id, boolean>
 local warband_recruiter_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_recruiter_indices_pool[i] = true
+    warband_recruiter_indices_pool[i] = true 
 end
 ---@type table<warband_recruiter_id, warband_recruiter_id>
 DATA.warband_recruiter_indices_set = {}
@@ -6266,16 +6301,16 @@ function DATA.delete_warband_recruiter(i)
     DATA.warband_recruiter_indices_set[i] = nil
     return DCON.dcon_delete_warband_recruiter(i - 1)
 end
----@param func fun(item: warband_recruiter_id)
+---@param func fun(item: warband_recruiter_id) 
 function DATA.for_each_warband_recruiter(func)
     for _, item in pairs(DATA.warband_recruiter_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_recruiter_id):boolean
----@return table<warband_recruiter_id, warband_recruiter_id>
+---@param func fun(item: warband_recruiter_id):boolean 
+---@return table<warband_recruiter_id, warband_recruiter_id> 
 function DATA.filter_warband_recruiter(func)
-    ---@type table<warband_recruiter_id, warband_recruiter_id>
+    ---@type table<warband_recruiter_id, warband_recruiter_id> 
     local t = {}
     for _, item in pairs(DATA.warband_recruiter_indices_set) do
         if func(item) then t[item] = item end
@@ -6284,12 +6319,12 @@ function DATA.filter_warband_recruiter(func)
 end
 
 ---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
----@return pop_id recruiter
+---@return pop_id recruiter 
 function DATA.warband_recruiter_get_recruiter(warband_recruiter_id)
     return DATA.warband_recruiter[warband_recruiter_id].recruiter
 end
 ---@param recruiter pop_id valid pop_id
----@return warband_recruiter_id warband_recruiter
+---@return warband_recruiter_id warband_recruiter 
 function DATA.get_warband_recruiter_from_recruiter(recruiter)
     if DATA.warband_recruiter_from_recruiter[recruiter] == nil then return 0 end
     return DATA.warband_recruiter_from_recruiter[recruiter]
@@ -6306,12 +6341,12 @@ function DATA.warband_recruiter_set_recruiter(warband_recruiter_id, value)
     DATA.warband_recruiter_from_recruiter[value] = warband_recruiter_id
 end
 ---@param warband_recruiter_id warband_recruiter_id valid warband_recruiter id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_recruiter_get_warband(warband_recruiter_id)
     return DATA.warband_recruiter[warband_recruiter_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_recruiter_id warband_recruiter
+---@return warband_recruiter_id warband_recruiter 
 function DATA.get_warband_recruiter_from_warband(warband)
     if DATA.warband_recruiter_from_warband[warband] == nil then return 0 end
     return DATA.warband_recruiter_from_warband[warband]
@@ -6363,12 +6398,12 @@ end
 
 ---@class (exact) fat_warband_commander_id
 ---@field id warband_commander_id Unique warband_commander id
----@field commander pop_id
----@field warband warband_id
+---@field commander pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_commander
----@field commander pop_id
----@field warband warband_id
+---@field commander pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -6397,7 +6432,7 @@ DATA.warband_commander_size = 10000
 ---@type table<warband_commander_id, boolean>
 local warband_commander_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_commander_indices_pool[i] = true
+    warband_commander_indices_pool[i] = true 
 end
 ---@type table<warband_commander_id, warband_commander_id>
 DATA.warband_commander_indices_set = {}
@@ -6419,16 +6454,16 @@ function DATA.delete_warband_commander(i)
     DATA.warband_commander_indices_set[i] = nil
     return DCON.dcon_delete_warband_commander(i - 1)
 end
----@param func fun(item: warband_commander_id)
+---@param func fun(item: warband_commander_id) 
 function DATA.for_each_warband_commander(func)
     for _, item in pairs(DATA.warband_commander_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_commander_id):boolean
----@return table<warband_commander_id, warband_commander_id>
+---@param func fun(item: warband_commander_id):boolean 
+---@return table<warband_commander_id, warband_commander_id> 
 function DATA.filter_warband_commander(func)
-    ---@type table<warband_commander_id, warband_commander_id>
+    ---@type table<warband_commander_id, warband_commander_id> 
     local t = {}
     for _, item in pairs(DATA.warband_commander_indices_set) do
         if func(item) then t[item] = item end
@@ -6437,12 +6472,12 @@ function DATA.filter_warband_commander(func)
 end
 
 ---@param warband_commander_id warband_commander_id valid warband_commander id
----@return pop_id commander
+---@return pop_id commander 
 function DATA.warband_commander_get_commander(warband_commander_id)
     return DATA.warband_commander[warband_commander_id].commander
 end
 ---@param commander pop_id valid pop_id
----@return warband_commander_id warband_commander
+---@return warband_commander_id warband_commander 
 function DATA.get_warband_commander_from_commander(commander)
     if DATA.warband_commander_from_commander[commander] == nil then return 0 end
     return DATA.warband_commander_from_commander[commander]
@@ -6459,12 +6494,12 @@ function DATA.warband_commander_set_commander(warband_commander_id, value)
     DATA.warband_commander_from_commander[value] = warband_commander_id
 end
 ---@param warband_commander_id warband_commander_id valid warband_commander id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_commander_get_warband(warband_commander_id)
     return DATA.warband_commander[warband_commander_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_commander_id warband_commander
+---@return warband_commander_id warband_commander 
 function DATA.get_warband_commander_from_warband(warband)
     if DATA.warband_commander_from_warband[warband] == nil then return 0 end
     return DATA.warband_commander_from_warband[warband]
@@ -6517,11 +6552,11 @@ end
 ---@class (exact) fat_warband_location_id
 ---@field id warband_location_id Unique warband_location id
 ---@field location province_id location of warband
----@field warband warband_id
+---@field warband warband_id 
 
 ---@class struct_warband_location
 ---@field location province_id location of warband
----@field warband warband_id
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -6553,7 +6588,7 @@ DATA.warband_location_size = 10000
 ---@type table<warband_location_id, boolean>
 local warband_location_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    warband_location_indices_pool[i] = true
+    warband_location_indices_pool[i] = true 
 end
 ---@type table<warband_location_id, warband_location_id>
 DATA.warband_location_indices_set = {}
@@ -6575,16 +6610,16 @@ function DATA.delete_warband_location(i)
     DATA.warband_location_indices_set[i] = nil
     return DCON.dcon_delete_warband_location(i - 1)
 end
----@param func fun(item: warband_location_id)
+---@param func fun(item: warband_location_id) 
 function DATA.for_each_warband_location(func)
     for _, item in pairs(DATA.warband_location_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_location_id):boolean
----@return table<warband_location_id, warband_location_id>
+---@param func fun(item: warband_location_id):boolean 
+---@return table<warband_location_id, warband_location_id> 
 function DATA.filter_warband_location(func)
-    ---@type table<warband_location_id, warband_location_id>
+    ---@type table<warband_location_id, warband_location_id> 
     local t = {}
     for _, item in pairs(DATA.warband_location_indices_set) do
         if func(item) then t[item] = item end
@@ -6598,7 +6633,7 @@ function DATA.warband_location_get_location(warband_location_id)
     return DATA.warband_location[warband_location_id].location
 end
 ---@param location province_id valid province_id
----@return warband_location_id[] An array of warband_location
+---@return warband_location_id[] An array of warband_location 
 function DATA.get_warband_location_from_location(location)
     return DATA.warband_location_from_location[location]
 end
@@ -6609,10 +6644,10 @@ function DATA.for_each_warband_location_from_location(location, func)
     for _, item in pairs(DATA.warband_location_from_location[location]) do func(item) end
 end
 ---@param location province_id valid province_id
----@param func fun(item: warband_location_id):boolean
----@return table<warband_location_id, warband_location_id>
+---@param func fun(item: warband_location_id):boolean 
+---@return table<warband_location_id, warband_location_id> 
 function DATA.filter_array_warband_location_from_location(location, func)
-    ---@type table<warband_location_id, warband_location_id>
+    ---@type table<warband_location_id, warband_location_id> 
     local t = {}
     if DATA.warband_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.warband_location_from_location[location]) do
@@ -6621,10 +6656,10 @@ function DATA.filter_array_warband_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: warband_location_id):boolean
----@return table<warband_location_id, warband_location_id>
+---@param func fun(item: warband_location_id):boolean 
+---@return table<warband_location_id, warband_location_id> 
 function DATA.filter_warband_location_from_location(location, func)
-    ---@type table<warband_location_id, warband_location_id>
+    ---@type table<warband_location_id, warband_location_id> 
     local t = {}
     if DATA.warband_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.warband_location_from_location[location]) do
@@ -6660,12 +6695,12 @@ function DATA.warband_location_set_location(warband_location_id, value)
     table.insert(DATA.warband_location_from_location[value], warband_location_id)
 end
 ---@param warband_location_id warband_location_id valid warband_location id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_location_get_warband(warband_location_id)
     return DATA.warband_location[warband_location_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_location_id warband_location
+---@return warband_location_id warband_location 
 function DATA.get_warband_location_from_warband(warband)
     if DATA.warband_location_from_warband[warband] == nil then return 0 end
     return DATA.warband_location_from_warband[warband]
@@ -6718,13 +6753,13 @@ end
 ---@class (exact) fat_warband_unit_id
 ---@field id warband_unit_id Unique warband_unit id
 ---@field type unit_type_id Current unit type
----@field unit pop_id
----@field warband warband_id
+---@field unit pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_unit
 ---@field type unit_type_id Current unit type
----@field unit pop_id
----@field warband warband_id
+---@field unit pop_id 
+---@field warband warband_id 
 
 
 ffi.cdef[[
@@ -6757,7 +6792,7 @@ DATA.warband_unit_size = 50000
 ---@type table<warband_unit_id, boolean>
 local warband_unit_indices_pool = ffi.new("bool[?]", 50000)
 for i = 1, 49999 do
-    warband_unit_indices_pool[i] = true
+    warband_unit_indices_pool[i] = true 
 end
 ---@type table<warband_unit_id, warband_unit_id>
 DATA.warband_unit_indices_set = {}
@@ -6779,16 +6814,16 @@ function DATA.delete_warband_unit(i)
     DATA.warband_unit_indices_set[i] = nil
     return DCON.dcon_delete_warband_unit(i - 1)
 end
----@param func fun(item: warband_unit_id)
+---@param func fun(item: warband_unit_id) 
 function DATA.for_each_warband_unit(func)
     for _, item in pairs(DATA.warband_unit_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_unit_id):boolean
----@return table<warband_unit_id, warband_unit_id>
+---@param func fun(item: warband_unit_id):boolean 
+---@return table<warband_unit_id, warband_unit_id> 
 function DATA.filter_warband_unit(func)
-    ---@type table<warband_unit_id, warband_unit_id>
+    ---@type table<warband_unit_id, warband_unit_id> 
     local t = {}
     for _, item in pairs(DATA.warband_unit_indices_set) do
         if func(item) then t[item] = item end
@@ -6807,12 +6842,12 @@ function DATA.warband_unit_set_type(warband_unit_id, value)
     DATA.warband_unit[warband_unit_id].type = value
 end
 ---@param warband_unit_id warband_unit_id valid warband_unit id
----@return pop_id unit
+---@return pop_id unit 
 function DATA.warband_unit_get_unit(warband_unit_id)
     return DATA.warband_unit[warband_unit_id].unit
 end
 ---@param unit pop_id valid pop_id
----@return warband_unit_id warband_unit
+---@return warband_unit_id warband_unit 
 function DATA.get_warband_unit_from_unit(unit)
     if DATA.warband_unit_from_unit[unit] == nil then return 0 end
     return DATA.warband_unit_from_unit[unit]
@@ -6829,12 +6864,12 @@ function DATA.warband_unit_set_unit(warband_unit_id, value)
     DATA.warband_unit_from_unit[value] = warband_unit_id
 end
 ---@param warband_unit_id warband_unit_id valid warband_unit id
----@return warband_id warband
+---@return warband_id warband 
 function DATA.warband_unit_get_warband(warband_unit_id)
     return DATA.warband_unit[warband_unit_id].warband
 end
 ---@param warband warband_id valid warband_id
----@return warband_unit_id[] An array of warband_unit
+---@return warband_unit_id[] An array of warband_unit 
 function DATA.get_warband_unit_from_warband(warband)
     return DATA.warband_unit_from_warband[warband]
 end
@@ -6845,10 +6880,10 @@ function DATA.for_each_warband_unit_from_warband(warband, func)
     for _, item in pairs(DATA.warband_unit_from_warband[warband]) do func(item) end
 end
 ---@param warband warband_id valid warband_id
----@param func fun(item: warband_unit_id):boolean
----@return table<warband_unit_id, warband_unit_id>
+---@param func fun(item: warband_unit_id):boolean 
+---@return table<warband_unit_id, warband_unit_id> 
 function DATA.filter_array_warband_unit_from_warband(warband, func)
-    ---@type table<warband_unit_id, warband_unit_id>
+    ---@type table<warband_unit_id, warband_unit_id> 
     local t = {}
     if DATA.warband_unit_from_warband[warband] == nil then return t end
     for _, item in pairs(DATA.warband_unit_from_warband[warband]) do
@@ -6857,10 +6892,10 @@ function DATA.filter_array_warband_unit_from_warband(warband, func)
     return t
 end
 ---@param warband warband_id valid warband_id
----@param func fun(item: warband_unit_id):boolean
----@return table<warband_unit_id, warband_unit_id>
+---@param func fun(item: warband_unit_id):boolean 
+---@return table<warband_unit_id, warband_unit_id> 
 function DATA.filter_warband_unit_from_warband(warband, func)
-    ---@type table<warband_unit_id, warband_unit_id>
+    ---@type table<warband_unit_id, warband_unit_id> 
     local t = {}
     if DATA.warband_unit_from_warband[warband] == nil then return t end
     for _, item in pairs(DATA.warband_unit_from_warband[warband]) do
@@ -6937,11 +6972,11 @@ end
 ---@class (exact) fat_character_location_id
 ---@field id character_location_id Unique character_location id
 ---@field location province_id location of character
----@field character pop_id
+---@field character pop_id 
 
 ---@class struct_character_location
 ---@field location province_id location of character
----@field character pop_id
+---@field character pop_id 
 
 
 ffi.cdef[[
@@ -6973,7 +7008,7 @@ DATA.character_location_size = 100000
 ---@type table<character_location_id, boolean>
 local character_location_indices_pool = ffi.new("bool[?]", 100000)
 for i = 1, 99999 do
-    character_location_indices_pool[i] = true
+    character_location_indices_pool[i] = true 
 end
 ---@type table<character_location_id, character_location_id>
 DATA.character_location_indices_set = {}
@@ -6995,16 +7030,16 @@ function DATA.delete_character_location(i)
     DATA.character_location_indices_set[i] = nil
     return DCON.dcon_delete_character_location(i - 1)
 end
----@param func fun(item: character_location_id)
+---@param func fun(item: character_location_id) 
 function DATA.for_each_character_location(func)
     for _, item in pairs(DATA.character_location_indices_set) do
         func(item)
     end
 end
----@param func fun(item: character_location_id):boolean
----@return table<character_location_id, character_location_id>
+---@param func fun(item: character_location_id):boolean 
+---@return table<character_location_id, character_location_id> 
 function DATA.filter_character_location(func)
-    ---@type table<character_location_id, character_location_id>
+    ---@type table<character_location_id, character_location_id> 
     local t = {}
     for _, item in pairs(DATA.character_location_indices_set) do
         if func(item) then t[item] = item end
@@ -7018,7 +7053,7 @@ function DATA.character_location_get_location(character_location_id)
     return DATA.character_location[character_location_id].location
 end
 ---@param location province_id valid province_id
----@return character_location_id[] An array of character_location
+---@return character_location_id[] An array of character_location 
 function DATA.get_character_location_from_location(location)
     return DATA.character_location_from_location[location]
 end
@@ -7029,10 +7064,10 @@ function DATA.for_each_character_location_from_location(location, func)
     for _, item in pairs(DATA.character_location_from_location[location]) do func(item) end
 end
 ---@param location province_id valid province_id
----@param func fun(item: character_location_id):boolean
----@return table<character_location_id, character_location_id>
+---@param func fun(item: character_location_id):boolean 
+---@return table<character_location_id, character_location_id> 
 function DATA.filter_array_character_location_from_location(location, func)
-    ---@type table<character_location_id, character_location_id>
+    ---@type table<character_location_id, character_location_id> 
     local t = {}
     if DATA.character_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.character_location_from_location[location]) do
@@ -7041,10 +7076,10 @@ function DATA.filter_array_character_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: character_location_id):boolean
----@return table<character_location_id, character_location_id>
+---@param func fun(item: character_location_id):boolean 
+---@return table<character_location_id, character_location_id> 
 function DATA.filter_character_location_from_location(location, func)
-    ---@type table<character_location_id, character_location_id>
+    ---@type table<character_location_id, character_location_id> 
     local t = {}
     if DATA.character_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.character_location_from_location[location]) do
@@ -7080,12 +7115,12 @@ function DATA.character_location_set_location(character_location_id, value)
     table.insert(DATA.character_location_from_location[value], character_location_id)
 end
 ---@param character_location_id character_location_id valid character_location id
----@return pop_id character
+---@return pop_id character 
 function DATA.character_location_get_character(character_location_id)
     return DATA.character_location[character_location_id].character
 end
 ---@param character pop_id valid pop_id
----@return character_location_id character_location
+---@return character_location_id character_location 
 function DATA.get_character_location_from_character(character)
     if DATA.character_location_from_character[character] == nil then return 0 end
     return DATA.character_location_from_character[character]
@@ -7174,7 +7209,7 @@ DATA.home_size = 300000
 ---@type table<home_id, boolean>
 local home_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    home_indices_pool[i] = true
+    home_indices_pool[i] = true 
 end
 ---@type table<home_id, home_id>
 DATA.home_indices_set = {}
@@ -7196,16 +7231,16 @@ function DATA.delete_home(i)
     DATA.home_indices_set[i] = nil
     return DCON.dcon_delete_home(i - 1)
 end
----@param func fun(item: home_id)
+---@param func fun(item: home_id) 
 function DATA.for_each_home(func)
     for _, item in pairs(DATA.home_indices_set) do
         func(item)
     end
 end
----@param func fun(item: home_id):boolean
----@return table<home_id, home_id>
+---@param func fun(item: home_id):boolean 
+---@return table<home_id, home_id> 
 function DATA.filter_home(func)
-    ---@type table<home_id, home_id>
+    ---@type table<home_id, home_id> 
     local t = {}
     for _, item in pairs(DATA.home_indices_set) do
         if func(item) then t[item] = item end
@@ -7219,7 +7254,7 @@ function DATA.home_get_home(home_id)
     return DATA.home[home_id].home
 end
 ---@param home province_id valid province_id
----@return home_id[] An array of home
+---@return home_id[] An array of home 
 function DATA.get_home_from_home(home)
     return DATA.home_from_home[home]
 end
@@ -7230,10 +7265,10 @@ function DATA.for_each_home_from_home(home, func)
     for _, item in pairs(DATA.home_from_home[home]) do func(item) end
 end
 ---@param home province_id valid province_id
----@param func fun(item: home_id):boolean
----@return table<home_id, home_id>
+---@param func fun(item: home_id):boolean 
+---@return table<home_id, home_id> 
 function DATA.filter_array_home_from_home(home, func)
-    ---@type table<home_id, home_id>
+    ---@type table<home_id, home_id> 
     local t = {}
     if DATA.home_from_home[home] == nil then return t end
     for _, item in pairs(DATA.home_from_home[home]) do
@@ -7242,10 +7277,10 @@ function DATA.filter_array_home_from_home(home, func)
     return t
 end
 ---@param home province_id valid province_id
----@param func fun(item: home_id):boolean
----@return table<home_id, home_id>
+---@param func fun(item: home_id):boolean 
+---@return table<home_id, home_id> 
 function DATA.filter_home_from_home(home, func)
-    ---@type table<home_id, home_id>
+    ---@type table<home_id, home_id> 
     local t = {}
     if DATA.home_from_home[home] == nil then return t end
     for _, item in pairs(DATA.home_from_home[home]) do
@@ -7286,7 +7321,7 @@ function DATA.home_get_pop(home_id)
     return DATA.home[home_id].pop
 end
 ---@param pop pop_id valid pop_id
----@return home_id home
+---@return home_id home 
 function DATA.get_home_from_pop(pop)
     if DATA.home_from_pop[pop] == nil then return 0 end
     return DATA.home_from_pop[pop]
@@ -7339,11 +7374,11 @@ end
 ---@class (exact) fat_pop_location_id
 ---@field id pop_location_id Unique pop_location id
 ---@field location province_id location of pop
----@field pop pop_id
+---@field pop pop_id 
 
 ---@class struct_pop_location
 ---@field location province_id location of pop
----@field pop pop_id
+---@field pop pop_id 
 
 
 ffi.cdef[[
@@ -7375,7 +7410,7 @@ DATA.pop_location_size = 300000
 ---@type table<pop_location_id, boolean>
 local pop_location_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    pop_location_indices_pool[i] = true
+    pop_location_indices_pool[i] = true 
 end
 ---@type table<pop_location_id, pop_location_id>
 DATA.pop_location_indices_set = {}
@@ -7397,16 +7432,16 @@ function DATA.delete_pop_location(i)
     DATA.pop_location_indices_set[i] = nil
     return DCON.dcon_delete_pop_location(i - 1)
 end
----@param func fun(item: pop_location_id)
+---@param func fun(item: pop_location_id) 
 function DATA.for_each_pop_location(func)
     for _, item in pairs(DATA.pop_location_indices_set) do
         func(item)
     end
 end
----@param func fun(item: pop_location_id):boolean
----@return table<pop_location_id, pop_location_id>
+---@param func fun(item: pop_location_id):boolean 
+---@return table<pop_location_id, pop_location_id> 
 function DATA.filter_pop_location(func)
-    ---@type table<pop_location_id, pop_location_id>
+    ---@type table<pop_location_id, pop_location_id> 
     local t = {}
     for _, item in pairs(DATA.pop_location_indices_set) do
         if func(item) then t[item] = item end
@@ -7420,7 +7455,7 @@ function DATA.pop_location_get_location(pop_location_id)
     return DATA.pop_location[pop_location_id].location
 end
 ---@param location province_id valid province_id
----@return pop_location_id[] An array of pop_location
+---@return pop_location_id[] An array of pop_location 
 function DATA.get_pop_location_from_location(location)
     return DATA.pop_location_from_location[location]
 end
@@ -7431,10 +7466,10 @@ function DATA.for_each_pop_location_from_location(location, func)
     for _, item in pairs(DATA.pop_location_from_location[location]) do func(item) end
 end
 ---@param location province_id valid province_id
----@param func fun(item: pop_location_id):boolean
----@return table<pop_location_id, pop_location_id>
+---@param func fun(item: pop_location_id):boolean 
+---@return table<pop_location_id, pop_location_id> 
 function DATA.filter_array_pop_location_from_location(location, func)
-    ---@type table<pop_location_id, pop_location_id>
+    ---@type table<pop_location_id, pop_location_id> 
     local t = {}
     if DATA.pop_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.pop_location_from_location[location]) do
@@ -7443,10 +7478,10 @@ function DATA.filter_array_pop_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: pop_location_id):boolean
----@return table<pop_location_id, pop_location_id>
+---@param func fun(item: pop_location_id):boolean 
+---@return table<pop_location_id, pop_location_id> 
 function DATA.filter_pop_location_from_location(location, func)
-    ---@type table<pop_location_id, pop_location_id>
+    ---@type table<pop_location_id, pop_location_id> 
     local t = {}
     if DATA.pop_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.pop_location_from_location[location]) do
@@ -7482,12 +7517,12 @@ function DATA.pop_location_set_location(pop_location_id, value)
     table.insert(DATA.pop_location_from_location[value], pop_location_id)
 end
 ---@param pop_location_id pop_location_id valid pop_location id
----@return pop_id pop
+---@return pop_id pop 
 function DATA.pop_location_get_pop(pop_location_id)
     return DATA.pop_location[pop_location_id].pop
 end
 ---@param pop pop_id valid pop_id
----@return pop_location_id pop_location
+---@return pop_location_id pop_location 
 function DATA.get_pop_location_from_pop(pop)
     if DATA.pop_location_from_pop[pop] == nil then return 0 end
     return DATA.pop_location_from_pop[pop]
@@ -7540,11 +7575,11 @@ end
 ---@class (exact) fat_outlaw_location_id
 ---@field id outlaw_location_id Unique outlaw_location id
 ---@field location province_id location of the outlaw
----@field outlaw pop_id
+---@field outlaw pop_id 
 
 ---@class struct_outlaw_location
 ---@field location province_id location of the outlaw
----@field outlaw pop_id
+---@field outlaw pop_id 
 
 
 ffi.cdef[[
@@ -7576,7 +7611,7 @@ DATA.outlaw_location_size = 300000
 ---@type table<outlaw_location_id, boolean>
 local outlaw_location_indices_pool = ffi.new("bool[?]", 300000)
 for i = 1, 299999 do
-    outlaw_location_indices_pool[i] = true
+    outlaw_location_indices_pool[i] = true 
 end
 ---@type table<outlaw_location_id, outlaw_location_id>
 DATA.outlaw_location_indices_set = {}
@@ -7598,16 +7633,16 @@ function DATA.delete_outlaw_location(i)
     DATA.outlaw_location_indices_set[i] = nil
     return DCON.dcon_delete_outlaw_location(i - 1)
 end
----@param func fun(item: outlaw_location_id)
+---@param func fun(item: outlaw_location_id) 
 function DATA.for_each_outlaw_location(func)
     for _, item in pairs(DATA.outlaw_location_indices_set) do
         func(item)
     end
 end
----@param func fun(item: outlaw_location_id):boolean
----@return table<outlaw_location_id, outlaw_location_id>
+---@param func fun(item: outlaw_location_id):boolean 
+---@return table<outlaw_location_id, outlaw_location_id> 
 function DATA.filter_outlaw_location(func)
-    ---@type table<outlaw_location_id, outlaw_location_id>
+    ---@type table<outlaw_location_id, outlaw_location_id> 
     local t = {}
     for _, item in pairs(DATA.outlaw_location_indices_set) do
         if func(item) then t[item] = item end
@@ -7621,7 +7656,7 @@ function DATA.outlaw_location_get_location(outlaw_location_id)
     return DATA.outlaw_location[outlaw_location_id].location
 end
 ---@param location province_id valid province_id
----@return outlaw_location_id[] An array of outlaw_location
+---@return outlaw_location_id[] An array of outlaw_location 
 function DATA.get_outlaw_location_from_location(location)
     return DATA.outlaw_location_from_location[location]
 end
@@ -7632,10 +7667,10 @@ function DATA.for_each_outlaw_location_from_location(location, func)
     for _, item in pairs(DATA.outlaw_location_from_location[location]) do func(item) end
 end
 ---@param location province_id valid province_id
----@param func fun(item: outlaw_location_id):boolean
----@return table<outlaw_location_id, outlaw_location_id>
+---@param func fun(item: outlaw_location_id):boolean 
+---@return table<outlaw_location_id, outlaw_location_id> 
 function DATA.filter_array_outlaw_location_from_location(location, func)
-    ---@type table<outlaw_location_id, outlaw_location_id>
+    ---@type table<outlaw_location_id, outlaw_location_id> 
     local t = {}
     if DATA.outlaw_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.outlaw_location_from_location[location]) do
@@ -7644,10 +7679,10 @@ function DATA.filter_array_outlaw_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: outlaw_location_id):boolean
----@return table<outlaw_location_id, outlaw_location_id>
+---@param func fun(item: outlaw_location_id):boolean 
+---@return table<outlaw_location_id, outlaw_location_id> 
 function DATA.filter_outlaw_location_from_location(location, func)
-    ---@type table<outlaw_location_id, outlaw_location_id>
+    ---@type table<outlaw_location_id, outlaw_location_id> 
     local t = {}
     if DATA.outlaw_location_from_location[location] == nil then return t end
     for _, item in pairs(DATA.outlaw_location_from_location[location]) do
@@ -7683,12 +7718,12 @@ function DATA.outlaw_location_set_location(outlaw_location_id, value)
     table.insert(DATA.outlaw_location_from_location[value], outlaw_location_id)
 end
 ---@param outlaw_location_id outlaw_location_id valid outlaw_location id
----@return pop_id outlaw
+---@return pop_id outlaw 
 function DATA.outlaw_location_get_outlaw(outlaw_location_id)
     return DATA.outlaw_location[outlaw_location_id].outlaw
 end
 ---@param outlaw pop_id valid pop_id
----@return outlaw_location_id outlaw_location
+---@return outlaw_location_id outlaw_location 
 function DATA.get_outlaw_location_from_outlaw(outlaw)
     if DATA.outlaw_location_from_outlaw[outlaw] == nil then return 0 end
     return DATA.outlaw_location_from_outlaw[outlaw]
@@ -7740,12 +7775,12 @@ end
 
 ---@class (exact) fat_tile_province_membership_id
 ---@field id tile_province_membership_id Unique tile_province_membership id
----@field province province_id
----@field tile tile_id
+---@field province province_id 
+---@field tile tile_id 
 
 ---@class struct_tile_province_membership
----@field province province_id
----@field tile tile_id
+---@field province province_id 
+---@field tile tile_id 
 
 
 ffi.cdef[[
@@ -7777,7 +7812,7 @@ DATA.tile_province_membership_size = 1500000
 ---@type table<tile_province_membership_id, boolean>
 local tile_province_membership_indices_pool = ffi.new("bool[?]", 1500000)
 for i = 1, 1499999 do
-    tile_province_membership_indices_pool[i] = true
+    tile_province_membership_indices_pool[i] = true 
 end
 ---@type table<tile_province_membership_id, tile_province_membership_id>
 DATA.tile_province_membership_indices_set = {}
@@ -7799,16 +7834,16 @@ function DATA.delete_tile_province_membership(i)
     DATA.tile_province_membership_indices_set[i] = nil
     return DCON.dcon_delete_tile_province_membership(i - 1)
 end
----@param func fun(item: tile_province_membership_id)
+---@param func fun(item: tile_province_membership_id) 
 function DATA.for_each_tile_province_membership(func)
     for _, item in pairs(DATA.tile_province_membership_indices_set) do
         func(item)
     end
 end
----@param func fun(item: tile_province_membership_id):boolean
----@return table<tile_province_membership_id, tile_province_membership_id>
+---@param func fun(item: tile_province_membership_id):boolean 
+---@return table<tile_province_membership_id, tile_province_membership_id> 
 function DATA.filter_tile_province_membership(func)
-    ---@type table<tile_province_membership_id, tile_province_membership_id>
+    ---@type table<tile_province_membership_id, tile_province_membership_id> 
     local t = {}
     for _, item in pairs(DATA.tile_province_membership_indices_set) do
         if func(item) then t[item] = item end
@@ -7817,12 +7852,12 @@ function DATA.filter_tile_province_membership(func)
 end
 
 ---@param tile_province_membership_id tile_province_membership_id valid tile_province_membership id
----@return province_id province
+---@return province_id province 
 function DATA.tile_province_membership_get_province(tile_province_membership_id)
     return DATA.tile_province_membership[tile_province_membership_id].province
 end
 ---@param province province_id valid province_id
----@return tile_province_membership_id[] An array of tile_province_membership
+---@return tile_province_membership_id[] An array of tile_province_membership 
 function DATA.get_tile_province_membership_from_province(province)
     return DATA.tile_province_membership_from_province[province]
 end
@@ -7833,10 +7868,10 @@ function DATA.for_each_tile_province_membership_from_province(province, func)
     for _, item in pairs(DATA.tile_province_membership_from_province[province]) do func(item) end
 end
 ---@param province province_id valid province_id
----@param func fun(item: tile_province_membership_id):boolean
----@return table<tile_province_membership_id, tile_province_membership_id>
+---@param func fun(item: tile_province_membership_id):boolean 
+---@return table<tile_province_membership_id, tile_province_membership_id> 
 function DATA.filter_array_tile_province_membership_from_province(province, func)
-    ---@type table<tile_province_membership_id, tile_province_membership_id>
+    ---@type table<tile_province_membership_id, tile_province_membership_id> 
     local t = {}
     if DATA.tile_province_membership_from_province[province] == nil then return t end
     for _, item in pairs(DATA.tile_province_membership_from_province[province]) do
@@ -7845,10 +7880,10 @@ function DATA.filter_array_tile_province_membership_from_province(province, func
     return t
 end
 ---@param province province_id valid province_id
----@param func fun(item: tile_province_membership_id):boolean
----@return table<tile_province_membership_id, tile_province_membership_id>
+---@param func fun(item: tile_province_membership_id):boolean 
+---@return table<tile_province_membership_id, tile_province_membership_id> 
 function DATA.filter_tile_province_membership_from_province(province, func)
-    ---@type table<tile_province_membership_id, tile_province_membership_id>
+    ---@type table<tile_province_membership_id, tile_province_membership_id> 
     local t = {}
     if DATA.tile_province_membership_from_province[province] == nil then return t end
     for _, item in pairs(DATA.tile_province_membership_from_province[province]) do
@@ -7884,12 +7919,12 @@ function DATA.tile_province_membership_set_province(tile_province_membership_id,
     table.insert(DATA.tile_province_membership_from_province[value], tile_province_membership_id)
 end
 ---@param tile_province_membership_id tile_province_membership_id valid tile_province_membership id
----@return tile_id tile
+---@return tile_id tile 
 function DATA.tile_province_membership_get_tile(tile_province_membership_id)
     return DATA.tile_province_membership[tile_province_membership_id].tile
 end
 ---@param tile tile_id valid tile_id
----@return tile_province_membership_id tile_province_membership
+---@return tile_province_membership_id tile_province_membership 
 function DATA.get_tile_province_membership_from_tile(tile)
     if DATA.tile_province_membership_from_tile[tile] == nil then return 0 end
     return DATA.tile_province_membership_from_tile[tile]
@@ -7941,12 +7976,12 @@ end
 
 ---@class (exact) fat_province_neighborhood_id
 ---@field id province_neighborhood_id Unique province_neighborhood id
----@field origin province_id
----@field target province_id
+---@field origin province_id 
+---@field target province_id 
 
 ---@class struct_province_neighborhood
----@field origin province_id
----@field target province_id
+---@field origin province_id 
+---@field target province_id 
 
 
 ffi.cdef[[
@@ -7981,7 +8016,7 @@ DATA.province_neighborhood_size = 250000
 ---@type table<province_neighborhood_id, boolean>
 local province_neighborhood_indices_pool = ffi.new("bool[?]", 250000)
 for i = 1, 249999 do
-    province_neighborhood_indices_pool[i] = true
+    province_neighborhood_indices_pool[i] = true 
 end
 ---@type table<province_neighborhood_id, province_neighborhood_id>
 DATA.province_neighborhood_indices_set = {}
@@ -8003,16 +8038,16 @@ function DATA.delete_province_neighborhood(i)
     DATA.province_neighborhood_indices_set[i] = nil
     return DCON.dcon_delete_province_neighborhood(i - 1)
 end
----@param func fun(item: province_neighborhood_id)
+---@param func fun(item: province_neighborhood_id) 
 function DATA.for_each_province_neighborhood(func)
     for _, item in pairs(DATA.province_neighborhood_indices_set) do
         func(item)
     end
 end
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_province_neighborhood(func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     for _, item in pairs(DATA.province_neighborhood_indices_set) do
         if func(item) then t[item] = item end
@@ -8021,12 +8056,12 @@ function DATA.filter_province_neighborhood(func)
 end
 
 ---@param province_neighborhood_id province_neighborhood_id valid province_neighborhood id
----@return province_id origin
+---@return province_id origin 
 function DATA.province_neighborhood_get_origin(province_neighborhood_id)
     return DATA.province_neighborhood[province_neighborhood_id].origin
 end
 ---@param origin province_id valid province_id
----@return province_neighborhood_id[] An array of province_neighborhood
+---@return province_neighborhood_id[] An array of province_neighborhood 
 function DATA.get_province_neighborhood_from_origin(origin)
     return DATA.province_neighborhood_from_origin[origin]
 end
@@ -8037,10 +8072,10 @@ function DATA.for_each_province_neighborhood_from_origin(origin, func)
     for _, item in pairs(DATA.province_neighborhood_from_origin[origin]) do func(item) end
 end
 ---@param origin province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_array_province_neighborhood_from_origin(origin, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     if DATA.province_neighborhood_from_origin[origin] == nil then return t end
     for _, item in pairs(DATA.province_neighborhood_from_origin[origin]) do
@@ -8049,10 +8084,10 @@ function DATA.filter_array_province_neighborhood_from_origin(origin, func)
     return t
 end
 ---@param origin province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_province_neighborhood_from_origin(origin, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     if DATA.province_neighborhood_from_origin[origin] == nil then return t end
     for _, item in pairs(DATA.province_neighborhood_from_origin[origin]) do
@@ -8088,12 +8123,12 @@ function DATA.province_neighborhood_set_origin(province_neighborhood_id, value)
     table.insert(DATA.province_neighborhood_from_origin[value], province_neighborhood_id)
 end
 ---@param province_neighborhood_id province_neighborhood_id valid province_neighborhood id
----@return province_id target
+---@return province_id target 
 function DATA.province_neighborhood_get_target(province_neighborhood_id)
     return DATA.province_neighborhood[province_neighborhood_id].target
 end
 ---@param target province_id valid province_id
----@return province_neighborhood_id[] An array of province_neighborhood
+---@return province_neighborhood_id[] An array of province_neighborhood 
 function DATA.get_province_neighborhood_from_target(target)
     return DATA.province_neighborhood_from_target[target]
 end
@@ -8104,10 +8139,10 @@ function DATA.for_each_province_neighborhood_from_target(target, func)
     for _, item in pairs(DATA.province_neighborhood_from_target[target]) do func(item) end
 end
 ---@param target province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_array_province_neighborhood_from_target(target, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     if DATA.province_neighborhood_from_target[target] == nil then return t end
     for _, item in pairs(DATA.province_neighborhood_from_target[target]) do
@@ -8116,10 +8151,10 @@ function DATA.filter_array_province_neighborhood_from_target(target, func)
     return t
 end
 ---@param target province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_province_neighborhood_from_target(target, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     if DATA.province_neighborhood_from_target[target] == nil then return t end
     for _, item in pairs(DATA.province_neighborhood_from_target[target]) do
@@ -8190,12 +8225,12 @@ end
 
 ---@class (exact) fat_parent_child_relation_id
 ---@field id parent_child_relation_id Unique parent_child_relation id
----@field parent pop_id
----@field child pop_id
+---@field parent pop_id 
+---@field child pop_id 
 
 ---@class struct_parent_child_relation
----@field parent pop_id
----@field child pop_id
+---@field parent pop_id 
+---@field child pop_id 
 
 
 ffi.cdef[[
@@ -8227,7 +8262,7 @@ DATA.parent_child_relation_size = 900000
 ---@type table<parent_child_relation_id, boolean>
 local parent_child_relation_indices_pool = ffi.new("bool[?]", 900000)
 for i = 1, 899999 do
-    parent_child_relation_indices_pool[i] = true
+    parent_child_relation_indices_pool[i] = true 
 end
 ---@type table<parent_child_relation_id, parent_child_relation_id>
 DATA.parent_child_relation_indices_set = {}
@@ -8249,16 +8284,16 @@ function DATA.delete_parent_child_relation(i)
     DATA.parent_child_relation_indices_set[i] = nil
     return DCON.dcon_delete_parent_child_relation(i - 1)
 end
----@param func fun(item: parent_child_relation_id)
+---@param func fun(item: parent_child_relation_id) 
 function DATA.for_each_parent_child_relation(func)
     for _, item in pairs(DATA.parent_child_relation_indices_set) do
         func(item)
     end
 end
----@param func fun(item: parent_child_relation_id):boolean
----@return table<parent_child_relation_id, parent_child_relation_id>
+---@param func fun(item: parent_child_relation_id):boolean 
+---@return table<parent_child_relation_id, parent_child_relation_id> 
 function DATA.filter_parent_child_relation(func)
-    ---@type table<parent_child_relation_id, parent_child_relation_id>
+    ---@type table<parent_child_relation_id, parent_child_relation_id> 
     local t = {}
     for _, item in pairs(DATA.parent_child_relation_indices_set) do
         if func(item) then t[item] = item end
@@ -8267,12 +8302,12 @@ function DATA.filter_parent_child_relation(func)
 end
 
 ---@param parent_child_relation_id parent_child_relation_id valid parent_child_relation id
----@return pop_id parent
+---@return pop_id parent 
 function DATA.parent_child_relation_get_parent(parent_child_relation_id)
     return DATA.parent_child_relation[parent_child_relation_id].parent
 end
 ---@param parent pop_id valid pop_id
----@return parent_child_relation_id[] An array of parent_child_relation
+---@return parent_child_relation_id[] An array of parent_child_relation 
 function DATA.get_parent_child_relation_from_parent(parent)
     return DATA.parent_child_relation_from_parent[parent]
 end
@@ -8283,10 +8318,10 @@ function DATA.for_each_parent_child_relation_from_parent(parent, func)
     for _, item in pairs(DATA.parent_child_relation_from_parent[parent]) do func(item) end
 end
 ---@param parent pop_id valid pop_id
----@param func fun(item: parent_child_relation_id):boolean
----@return table<parent_child_relation_id, parent_child_relation_id>
+---@param func fun(item: parent_child_relation_id):boolean 
+---@return table<parent_child_relation_id, parent_child_relation_id> 
 function DATA.filter_array_parent_child_relation_from_parent(parent, func)
-    ---@type table<parent_child_relation_id, parent_child_relation_id>
+    ---@type table<parent_child_relation_id, parent_child_relation_id> 
     local t = {}
     if DATA.parent_child_relation_from_parent[parent] == nil then return t end
     for _, item in pairs(DATA.parent_child_relation_from_parent[parent]) do
@@ -8295,10 +8330,10 @@ function DATA.filter_array_parent_child_relation_from_parent(parent, func)
     return t
 end
 ---@param parent pop_id valid pop_id
----@param func fun(item: parent_child_relation_id):boolean
----@return table<parent_child_relation_id, parent_child_relation_id>
+---@param func fun(item: parent_child_relation_id):boolean 
+---@return table<parent_child_relation_id, parent_child_relation_id> 
 function DATA.filter_parent_child_relation_from_parent(parent, func)
-    ---@type table<parent_child_relation_id, parent_child_relation_id>
+    ---@type table<parent_child_relation_id, parent_child_relation_id> 
     local t = {}
     if DATA.parent_child_relation_from_parent[parent] == nil then return t end
     for _, item in pairs(DATA.parent_child_relation_from_parent[parent]) do
@@ -8334,12 +8369,12 @@ function DATA.parent_child_relation_set_parent(parent_child_relation_id, value)
     table.insert(DATA.parent_child_relation_from_parent[value], parent_child_relation_id)
 end
 ---@param parent_child_relation_id parent_child_relation_id valid parent_child_relation id
----@return pop_id child
+---@return pop_id child 
 function DATA.parent_child_relation_get_child(parent_child_relation_id)
     return DATA.parent_child_relation[parent_child_relation_id].child
 end
 ---@param child pop_id valid pop_id
----@return parent_child_relation_id parent_child_relation
+---@return parent_child_relation_id parent_child_relation 
 function DATA.get_parent_child_relation_from_child(child)
     if DATA.parent_child_relation_from_child[child] == nil then return 0 end
     return DATA.parent_child_relation_from_child[child]
@@ -8391,12 +8426,12 @@ end
 
 ---@class (exact) fat_loyalty_id
 ---@field id loyalty_id Unique loyalty id
----@field top pop_id
----@field bottom pop_id
+---@field top pop_id 
+---@field bottom pop_id 
 
 ---@class struct_loyalty
----@field top pop_id
----@field bottom pop_id
+---@field top pop_id 
+---@field bottom pop_id 
 
 
 ffi.cdef[[
@@ -8428,7 +8463,7 @@ DATA.loyalty_size = 10000
 ---@type table<loyalty_id, boolean>
 local loyalty_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    loyalty_indices_pool[i] = true
+    loyalty_indices_pool[i] = true 
 end
 ---@type table<loyalty_id, loyalty_id>
 DATA.loyalty_indices_set = {}
@@ -8450,16 +8485,16 @@ function DATA.delete_loyalty(i)
     DATA.loyalty_indices_set[i] = nil
     return DCON.dcon_delete_loyalty(i - 1)
 end
----@param func fun(item: loyalty_id)
+---@param func fun(item: loyalty_id) 
 function DATA.for_each_loyalty(func)
     for _, item in pairs(DATA.loyalty_indices_set) do
         func(item)
     end
 end
----@param func fun(item: loyalty_id):boolean
----@return table<loyalty_id, loyalty_id>
+---@param func fun(item: loyalty_id):boolean 
+---@return table<loyalty_id, loyalty_id> 
 function DATA.filter_loyalty(func)
-    ---@type table<loyalty_id, loyalty_id>
+    ---@type table<loyalty_id, loyalty_id> 
     local t = {}
     for _, item in pairs(DATA.loyalty_indices_set) do
         if func(item) then t[item] = item end
@@ -8468,12 +8503,12 @@ function DATA.filter_loyalty(func)
 end
 
 ---@param loyalty_id loyalty_id valid loyalty id
----@return pop_id top
+---@return pop_id top 
 function DATA.loyalty_get_top(loyalty_id)
     return DATA.loyalty[loyalty_id].top
 end
 ---@param top pop_id valid pop_id
----@return loyalty_id[] An array of loyalty
+---@return loyalty_id[] An array of loyalty 
 function DATA.get_loyalty_from_top(top)
     return DATA.loyalty_from_top[top]
 end
@@ -8484,10 +8519,10 @@ function DATA.for_each_loyalty_from_top(top, func)
     for _, item in pairs(DATA.loyalty_from_top[top]) do func(item) end
 end
 ---@param top pop_id valid pop_id
----@param func fun(item: loyalty_id):boolean
----@return table<loyalty_id, loyalty_id>
+---@param func fun(item: loyalty_id):boolean 
+---@return table<loyalty_id, loyalty_id> 
 function DATA.filter_array_loyalty_from_top(top, func)
-    ---@type table<loyalty_id, loyalty_id>
+    ---@type table<loyalty_id, loyalty_id> 
     local t = {}
     if DATA.loyalty_from_top[top] == nil then return t end
     for _, item in pairs(DATA.loyalty_from_top[top]) do
@@ -8496,10 +8531,10 @@ function DATA.filter_array_loyalty_from_top(top, func)
     return t
 end
 ---@param top pop_id valid pop_id
----@param func fun(item: loyalty_id):boolean
----@return table<loyalty_id, loyalty_id>
+---@param func fun(item: loyalty_id):boolean 
+---@return table<loyalty_id, loyalty_id> 
 function DATA.filter_loyalty_from_top(top, func)
-    ---@type table<loyalty_id, loyalty_id>
+    ---@type table<loyalty_id, loyalty_id> 
     local t = {}
     if DATA.loyalty_from_top[top] == nil then return t end
     for _, item in pairs(DATA.loyalty_from_top[top]) do
@@ -8535,12 +8570,12 @@ function DATA.loyalty_set_top(loyalty_id, value)
     table.insert(DATA.loyalty_from_top[value], loyalty_id)
 end
 ---@param loyalty_id loyalty_id valid loyalty id
----@return pop_id bottom
+---@return pop_id bottom 
 function DATA.loyalty_get_bottom(loyalty_id)
     return DATA.loyalty[loyalty_id].bottom
 end
 ---@param bottom pop_id valid pop_id
----@return loyalty_id loyalty
+---@return loyalty_id loyalty 
 function DATA.get_loyalty_from_bottom(bottom)
     if DATA.loyalty_from_bottom[bottom] == nil then return 0 end
     return DATA.loyalty_from_bottom[bottom]
@@ -8592,12 +8627,12 @@ end
 
 ---@class (exact) fat_succession_id
 ---@field id succession_id Unique succession id
----@field successor_of pop_id
----@field successor pop_id
+---@field successor_of pop_id 
+---@field successor pop_id 
 
 ---@class struct_succession
----@field successor_of pop_id
----@field successor pop_id
+---@field successor_of pop_id 
+---@field successor pop_id 
 
 
 ffi.cdef[[
@@ -8629,7 +8664,7 @@ DATA.succession_size = 10000
 ---@type table<succession_id, boolean>
 local succession_indices_pool = ffi.new("bool[?]", 10000)
 for i = 1, 9999 do
-    succession_indices_pool[i] = true
+    succession_indices_pool[i] = true 
 end
 ---@type table<succession_id, succession_id>
 DATA.succession_indices_set = {}
@@ -8651,16 +8686,16 @@ function DATA.delete_succession(i)
     DATA.succession_indices_set[i] = nil
     return DCON.dcon_delete_succession(i - 1)
 end
----@param func fun(item: succession_id)
+---@param func fun(item: succession_id) 
 function DATA.for_each_succession(func)
     for _, item in pairs(DATA.succession_indices_set) do
         func(item)
     end
 end
----@param func fun(item: succession_id):boolean
----@return table<succession_id, succession_id>
+---@param func fun(item: succession_id):boolean 
+---@return table<succession_id, succession_id> 
 function DATA.filter_succession(func)
-    ---@type table<succession_id, succession_id>
+    ---@type table<succession_id, succession_id> 
     local t = {}
     for _, item in pairs(DATA.succession_indices_set) do
         if func(item) then t[item] = item end
@@ -8669,12 +8704,12 @@ function DATA.filter_succession(func)
 end
 
 ---@param succession_id succession_id valid succession id
----@return pop_id successor_of
+---@return pop_id successor_of 
 function DATA.succession_get_successor_of(succession_id)
     return DATA.succession[succession_id].successor_of
 end
 ---@param successor_of pop_id valid pop_id
----@return succession_id succession
+---@return succession_id succession 
 function DATA.get_succession_from_successor_of(successor_of)
     if DATA.succession_from_successor_of[successor_of] == nil then return 0 end
     return DATA.succession_from_successor_of[successor_of]
@@ -8691,12 +8726,12 @@ function DATA.succession_set_successor_of(succession_id, value)
     DATA.succession_from_successor_of[value] = succession_id
 end
 ---@param succession_id succession_id valid succession id
----@return pop_id successor
+---@return pop_id successor 
 function DATA.succession_get_successor(succession_id)
     return DATA.succession[succession_id].successor
 end
 ---@param successor pop_id valid pop_id
----@return succession_id[] An array of succession
+---@return succession_id[] An array of succession 
 function DATA.get_succession_from_successor(successor)
     return DATA.succession_from_successor[successor]
 end
@@ -8707,10 +8742,10 @@ function DATA.for_each_succession_from_successor(successor, func)
     for _, item in pairs(DATA.succession_from_successor[successor]) do func(item) end
 end
 ---@param successor pop_id valid pop_id
----@param func fun(item: succession_id):boolean
----@return table<succession_id, succession_id>
+---@param func fun(item: succession_id):boolean 
+---@return table<succession_id, succession_id> 
 function DATA.filter_array_succession_from_successor(successor, func)
-    ---@type table<succession_id, succession_id>
+    ---@type table<succession_id, succession_id> 
     local t = {}
     if DATA.succession_from_successor[successor] == nil then return t end
     for _, item in pairs(DATA.succession_from_successor[successor]) do
@@ -8719,10 +8754,10 @@ function DATA.filter_array_succession_from_successor(successor, func)
     return t
 end
 ---@param successor pop_id valid pop_id
----@param func fun(item: succession_id):boolean
----@return table<succession_id, succession_id>
+---@param func fun(item: succession_id):boolean 
+---@return table<succession_id, succession_id> 
 function DATA.filter_succession_from_successor(successor, func)
-    ---@type table<succession_id, succession_id>
+    ---@type table<succession_id, succession_id> 
     local t = {}
     if DATA.succession_from_successor[successor] == nil then return t end
     for _, item in pairs(DATA.succession_from_successor[successor]) do
@@ -8793,12 +8828,12 @@ end
 
 ---@class (exact) fat_realm_armies_id
 ---@field id realm_armies_id Unique realm_armies id
----@field realm realm_id
----@field army army_id
+---@field realm realm_id 
+---@field army army_id 
 
 ---@class struct_realm_armies
----@field realm realm_id
----@field army army_id
+---@field realm realm_id 
+---@field army army_id 
 
 
 ffi.cdef[[
@@ -8830,7 +8865,7 @@ DATA.realm_armies_size = 15000
 ---@type table<realm_armies_id, boolean>
 local realm_armies_indices_pool = ffi.new("bool[?]", 15000)
 for i = 1, 14999 do
-    realm_armies_indices_pool[i] = true
+    realm_armies_indices_pool[i] = true 
 end
 ---@type table<realm_armies_id, realm_armies_id>
 DATA.realm_armies_indices_set = {}
@@ -8852,16 +8887,16 @@ function DATA.delete_realm_armies(i)
     DATA.realm_armies_indices_set[i] = nil
     return DCON.dcon_delete_realm_armies(i - 1)
 end
----@param func fun(item: realm_armies_id)
+---@param func fun(item: realm_armies_id) 
 function DATA.for_each_realm_armies(func)
     for _, item in pairs(DATA.realm_armies_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_armies_id):boolean
----@return table<realm_armies_id, realm_armies_id>
+---@param func fun(item: realm_armies_id):boolean 
+---@return table<realm_armies_id, realm_armies_id> 
 function DATA.filter_realm_armies(func)
-    ---@type table<realm_armies_id, realm_armies_id>
+    ---@type table<realm_armies_id, realm_armies_id> 
     local t = {}
     for _, item in pairs(DATA.realm_armies_indices_set) do
         if func(item) then t[item] = item end
@@ -8870,12 +8905,12 @@ function DATA.filter_realm_armies(func)
 end
 
 ---@param realm_armies_id realm_armies_id valid realm_armies id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.realm_armies_get_realm(realm_armies_id)
     return DATA.realm_armies[realm_armies_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return realm_armies_id[] An array of realm_armies
+---@return realm_armies_id[] An array of realm_armies 
 function DATA.get_realm_armies_from_realm(realm)
     return DATA.realm_armies_from_realm[realm]
 end
@@ -8886,10 +8921,10 @@ function DATA.for_each_realm_armies_from_realm(realm, func)
     for _, item in pairs(DATA.realm_armies_from_realm[realm]) do func(item) end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_armies_id):boolean
----@return table<realm_armies_id, realm_armies_id>
+---@param func fun(item: realm_armies_id):boolean 
+---@return table<realm_armies_id, realm_armies_id> 
 function DATA.filter_array_realm_armies_from_realm(realm, func)
-    ---@type table<realm_armies_id, realm_armies_id>
+    ---@type table<realm_armies_id, realm_armies_id> 
     local t = {}
     if DATA.realm_armies_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.realm_armies_from_realm[realm]) do
@@ -8898,10 +8933,10 @@ function DATA.filter_array_realm_armies_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_armies_id):boolean
----@return table<realm_armies_id, realm_armies_id>
+---@param func fun(item: realm_armies_id):boolean 
+---@return table<realm_armies_id, realm_armies_id> 
 function DATA.filter_realm_armies_from_realm(realm, func)
-    ---@type table<realm_armies_id, realm_armies_id>
+    ---@type table<realm_armies_id, realm_armies_id> 
     local t = {}
     if DATA.realm_armies_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.realm_armies_from_realm[realm]) do
@@ -8937,12 +8972,12 @@ function DATA.realm_armies_set_realm(realm_armies_id, value)
     table.insert(DATA.realm_armies_from_realm[value], realm_armies_id)
 end
 ---@param realm_armies_id realm_armies_id valid realm_armies id
----@return army_id army
+---@return army_id army 
 function DATA.realm_armies_get_army(realm_armies_id)
     return DATA.realm_armies[realm_armies_id].army
 end
 ---@param army army_id valid army_id
----@return realm_armies_id realm_armies
+---@return realm_armies_id realm_armies 
 function DATA.get_realm_armies_from_army(army)
     if DATA.realm_armies_from_army[army] == nil then return 0 end
     return DATA.realm_armies_from_army[army]
@@ -8994,12 +9029,12 @@ end
 
 ---@class (exact) fat_realm_guard_id
 ---@field id realm_guard_id Unique realm_guard id
----@field guard warband_id
----@field realm realm_id
+---@field guard warband_id 
+---@field realm realm_id 
 
 ---@class struct_realm_guard
----@field guard warband_id
----@field realm realm_id
+---@field guard warband_id 
+---@field realm realm_id 
 
 
 ffi.cdef[[
@@ -9028,7 +9063,7 @@ DATA.realm_guard_size = 15000
 ---@type table<realm_guard_id, boolean>
 local realm_guard_indices_pool = ffi.new("bool[?]", 15000)
 for i = 1, 14999 do
-    realm_guard_indices_pool[i] = true
+    realm_guard_indices_pool[i] = true 
 end
 ---@type table<realm_guard_id, realm_guard_id>
 DATA.realm_guard_indices_set = {}
@@ -9050,16 +9085,16 @@ function DATA.delete_realm_guard(i)
     DATA.realm_guard_indices_set[i] = nil
     return DCON.dcon_delete_realm_guard(i - 1)
 end
----@param func fun(item: realm_guard_id)
+---@param func fun(item: realm_guard_id) 
 function DATA.for_each_realm_guard(func)
     for _, item in pairs(DATA.realm_guard_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_guard_id):boolean
----@return table<realm_guard_id, realm_guard_id>
+---@param func fun(item: realm_guard_id):boolean 
+---@return table<realm_guard_id, realm_guard_id> 
 function DATA.filter_realm_guard(func)
-    ---@type table<realm_guard_id, realm_guard_id>
+    ---@type table<realm_guard_id, realm_guard_id> 
     local t = {}
     for _, item in pairs(DATA.realm_guard_indices_set) do
         if func(item) then t[item] = item end
@@ -9068,12 +9103,12 @@ function DATA.filter_realm_guard(func)
 end
 
 ---@param realm_guard_id realm_guard_id valid realm_guard id
----@return warband_id guard
+---@return warband_id guard 
 function DATA.realm_guard_get_guard(realm_guard_id)
     return DATA.realm_guard[realm_guard_id].guard
 end
 ---@param guard warband_id valid warband_id
----@return realm_guard_id realm_guard
+---@return realm_guard_id realm_guard 
 function DATA.get_realm_guard_from_guard(guard)
     if DATA.realm_guard_from_guard[guard] == nil then return 0 end
     return DATA.realm_guard_from_guard[guard]
@@ -9090,12 +9125,12 @@ function DATA.realm_guard_set_guard(realm_guard_id, value)
     DATA.realm_guard_from_guard[value] = realm_guard_id
 end
 ---@param realm_guard_id realm_guard_id valid realm_guard id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.realm_guard_get_realm(realm_guard_id)
     return DATA.realm_guard[realm_guard_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return realm_guard_id realm_guard
+---@return realm_guard_id realm_guard 
 function DATA.get_realm_guard_from_realm(realm)
     if DATA.realm_guard_from_realm[realm] == nil then return 0 end
     return DATA.realm_guard_from_realm[realm]
@@ -9147,12 +9182,12 @@ end
 
 ---@class (exact) fat_realm_overseer_id
 ---@field id realm_overseer_id Unique realm_overseer id
----@field overseer pop_id
----@field realm realm_id
+---@field overseer pop_id 
+---@field realm realm_id 
 
 ---@class struct_realm_overseer
----@field overseer pop_id
----@field realm realm_id
+---@field overseer pop_id 
+---@field realm realm_id 
 
 
 ffi.cdef[[
@@ -9181,7 +9216,7 @@ DATA.realm_overseer_size = 15000
 ---@type table<realm_overseer_id, boolean>
 local realm_overseer_indices_pool = ffi.new("bool[?]", 15000)
 for i = 1, 14999 do
-    realm_overseer_indices_pool[i] = true
+    realm_overseer_indices_pool[i] = true 
 end
 ---@type table<realm_overseer_id, realm_overseer_id>
 DATA.realm_overseer_indices_set = {}
@@ -9203,16 +9238,16 @@ function DATA.delete_realm_overseer(i)
     DATA.realm_overseer_indices_set[i] = nil
     return DCON.dcon_delete_realm_overseer(i - 1)
 end
----@param func fun(item: realm_overseer_id)
+---@param func fun(item: realm_overseer_id) 
 function DATA.for_each_realm_overseer(func)
     for _, item in pairs(DATA.realm_overseer_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_overseer_id):boolean
----@return table<realm_overseer_id, realm_overseer_id>
+---@param func fun(item: realm_overseer_id):boolean 
+---@return table<realm_overseer_id, realm_overseer_id> 
 function DATA.filter_realm_overseer(func)
-    ---@type table<realm_overseer_id, realm_overseer_id>
+    ---@type table<realm_overseer_id, realm_overseer_id> 
     local t = {}
     for _, item in pairs(DATA.realm_overseer_indices_set) do
         if func(item) then t[item] = item end
@@ -9221,12 +9256,12 @@ function DATA.filter_realm_overseer(func)
 end
 
 ---@param realm_overseer_id realm_overseer_id valid realm_overseer id
----@return pop_id overseer
+---@return pop_id overseer 
 function DATA.realm_overseer_get_overseer(realm_overseer_id)
     return DATA.realm_overseer[realm_overseer_id].overseer
 end
 ---@param overseer pop_id valid pop_id
----@return realm_overseer_id realm_overseer
+---@return realm_overseer_id realm_overseer 
 function DATA.get_realm_overseer_from_overseer(overseer)
     if DATA.realm_overseer_from_overseer[overseer] == nil then return 0 end
     return DATA.realm_overseer_from_overseer[overseer]
@@ -9243,12 +9278,12 @@ function DATA.realm_overseer_set_overseer(realm_overseer_id, value)
     DATA.realm_overseer_from_overseer[value] = realm_overseer_id
 end
 ---@param realm_overseer_id realm_overseer_id valid realm_overseer id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.realm_overseer_get_realm(realm_overseer_id)
     return DATA.realm_overseer[realm_overseer_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return realm_overseer_id realm_overseer
+---@return realm_overseer_id realm_overseer 
 function DATA.get_realm_overseer_from_realm(realm)
     if DATA.realm_overseer_from_realm[realm] == nil then return 0 end
     return DATA.realm_overseer_from_realm[realm]
@@ -9300,12 +9335,12 @@ end
 
 ---@class (exact) fat_realm_leadership_id
 ---@field id realm_leadership_id Unique realm_leadership id
----@field leader pop_id
----@field realm realm_id
+---@field leader pop_id 
+---@field realm realm_id 
 
 ---@class struct_realm_leadership
----@field leader pop_id
----@field realm realm_id
+---@field leader pop_id 
+---@field realm realm_id 
 
 
 ffi.cdef[[
@@ -9337,7 +9372,7 @@ DATA.realm_leadership_size = 15000
 ---@type table<realm_leadership_id, boolean>
 local realm_leadership_indices_pool = ffi.new("bool[?]", 15000)
 for i = 1, 14999 do
-    realm_leadership_indices_pool[i] = true
+    realm_leadership_indices_pool[i] = true 
 end
 ---@type table<realm_leadership_id, realm_leadership_id>
 DATA.realm_leadership_indices_set = {}
@@ -9359,16 +9394,16 @@ function DATA.delete_realm_leadership(i)
     DATA.realm_leadership_indices_set[i] = nil
     return DCON.dcon_delete_realm_leadership(i - 1)
 end
----@param func fun(item: realm_leadership_id)
+---@param func fun(item: realm_leadership_id) 
 function DATA.for_each_realm_leadership(func)
     for _, item in pairs(DATA.realm_leadership_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_leadership_id):boolean
----@return table<realm_leadership_id, realm_leadership_id>
+---@param func fun(item: realm_leadership_id):boolean 
+---@return table<realm_leadership_id, realm_leadership_id> 
 function DATA.filter_realm_leadership(func)
-    ---@type table<realm_leadership_id, realm_leadership_id>
+    ---@type table<realm_leadership_id, realm_leadership_id> 
     local t = {}
     for _, item in pairs(DATA.realm_leadership_indices_set) do
         if func(item) then t[item] = item end
@@ -9377,12 +9412,12 @@ function DATA.filter_realm_leadership(func)
 end
 
 ---@param realm_leadership_id realm_leadership_id valid realm_leadership id
----@return pop_id leader
+---@return pop_id leader 
 function DATA.realm_leadership_get_leader(realm_leadership_id)
     return DATA.realm_leadership[realm_leadership_id].leader
 end
 ---@param leader pop_id valid pop_id
----@return realm_leadership_id[] An array of realm_leadership
+---@return realm_leadership_id[] An array of realm_leadership 
 function DATA.get_realm_leadership_from_leader(leader)
     return DATA.realm_leadership_from_leader[leader]
 end
@@ -9393,10 +9428,10 @@ function DATA.for_each_realm_leadership_from_leader(leader, func)
     for _, item in pairs(DATA.realm_leadership_from_leader[leader]) do func(item) end
 end
 ---@param leader pop_id valid pop_id
----@param func fun(item: realm_leadership_id):boolean
----@return table<realm_leadership_id, realm_leadership_id>
+---@param func fun(item: realm_leadership_id):boolean 
+---@return table<realm_leadership_id, realm_leadership_id> 
 function DATA.filter_array_realm_leadership_from_leader(leader, func)
-    ---@type table<realm_leadership_id, realm_leadership_id>
+    ---@type table<realm_leadership_id, realm_leadership_id> 
     local t = {}
     if DATA.realm_leadership_from_leader[leader] == nil then return t end
     for _, item in pairs(DATA.realm_leadership_from_leader[leader]) do
@@ -9405,10 +9440,10 @@ function DATA.filter_array_realm_leadership_from_leader(leader, func)
     return t
 end
 ---@param leader pop_id valid pop_id
----@param func fun(item: realm_leadership_id):boolean
----@return table<realm_leadership_id, realm_leadership_id>
+---@param func fun(item: realm_leadership_id):boolean 
+---@return table<realm_leadership_id, realm_leadership_id> 
 function DATA.filter_realm_leadership_from_leader(leader, func)
-    ---@type table<realm_leadership_id, realm_leadership_id>
+    ---@type table<realm_leadership_id, realm_leadership_id> 
     local t = {}
     if DATA.realm_leadership_from_leader[leader] == nil then return t end
     for _, item in pairs(DATA.realm_leadership_from_leader[leader]) do
@@ -9444,12 +9479,12 @@ function DATA.realm_leadership_set_leader(realm_leadership_id, value)
     table.insert(DATA.realm_leadership_from_leader[value], realm_leadership_id)
 end
 ---@param realm_leadership_id realm_leadership_id valid realm_leadership id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.realm_leadership_get_realm(realm_leadership_id)
     return DATA.realm_leadership[realm_leadership_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return realm_leadership_id realm_leadership
+---@return realm_leadership_id realm_leadership 
 function DATA.get_realm_leadership_from_realm(realm)
     if DATA.realm_leadership_from_realm[realm] == nil then return 0 end
     return DATA.realm_leadership_from_realm[realm]
@@ -9501,22 +9536,22 @@ end
 
 ---@class (exact) fat_realm_subject_relation_id
 ---@field id realm_subject_relation_id Unique realm_subject_relation id
----@field wealth_transfer boolean
----@field goods_transfer boolean
----@field warriors_contribution boolean
----@field protection boolean
----@field local_ruler boolean
----@field overlord realm_id
----@field subject realm_id
+---@field wealth_transfer boolean 
+---@field goods_transfer boolean 
+---@field warriors_contribution boolean 
+---@field protection boolean 
+---@field local_ruler boolean 
+---@field overlord realm_id 
+---@field subject realm_id 
 
 ---@class struct_realm_subject_relation
----@field wealth_transfer boolean
----@field goods_transfer boolean
----@field warriors_contribution boolean
----@field protection boolean
----@field local_ruler boolean
----@field overlord realm_id
----@field subject realm_id
+---@field wealth_transfer boolean 
+---@field goods_transfer boolean 
+---@field warriors_contribution boolean 
+---@field protection boolean 
+---@field local_ruler boolean 
+---@field overlord realm_id 
+---@field subject realm_id 
 
 
 ffi.cdef[[
@@ -9556,7 +9591,7 @@ DATA.realm_subject_relation_size = 15000
 ---@type table<realm_subject_relation_id, boolean>
 local realm_subject_relation_indices_pool = ffi.new("bool[?]", 15000)
 for i = 1, 14999 do
-    realm_subject_relation_indices_pool[i] = true
+    realm_subject_relation_indices_pool[i] = true 
 end
 ---@type table<realm_subject_relation_id, realm_subject_relation_id>
 DATA.realm_subject_relation_indices_set = {}
@@ -9578,16 +9613,16 @@ function DATA.delete_realm_subject_relation(i)
     DATA.realm_subject_relation_indices_set[i] = nil
     return DCON.dcon_delete_realm_subject_relation(i - 1)
 end
----@param func fun(item: realm_subject_relation_id)
+---@param func fun(item: realm_subject_relation_id) 
 function DATA.for_each_realm_subject_relation(func)
     for _, item in pairs(DATA.realm_subject_relation_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_realm_subject_relation(func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     for _, item in pairs(DATA.realm_subject_relation_indices_set) do
         if func(item) then t[item] = item end
@@ -9596,7 +9631,7 @@ function DATA.filter_realm_subject_relation(func)
 end
 
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean wealth_transfer
+---@return boolean wealth_transfer 
 function DATA.realm_subject_relation_get_wealth_transfer(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].wealth_transfer
 end
@@ -9606,7 +9641,7 @@ function DATA.realm_subject_relation_set_wealth_transfer(realm_subject_relation_
     DATA.realm_subject_relation[realm_subject_relation_id].wealth_transfer = value
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean goods_transfer
+---@return boolean goods_transfer 
 function DATA.realm_subject_relation_get_goods_transfer(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].goods_transfer
 end
@@ -9616,7 +9651,7 @@ function DATA.realm_subject_relation_set_goods_transfer(realm_subject_relation_i
     DATA.realm_subject_relation[realm_subject_relation_id].goods_transfer = value
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean warriors_contribution
+---@return boolean warriors_contribution 
 function DATA.realm_subject_relation_get_warriors_contribution(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].warriors_contribution
 end
@@ -9626,7 +9661,7 @@ function DATA.realm_subject_relation_set_warriors_contribution(realm_subject_rel
     DATA.realm_subject_relation[realm_subject_relation_id].warriors_contribution = value
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean protection
+---@return boolean protection 
 function DATA.realm_subject_relation_get_protection(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].protection
 end
@@ -9636,7 +9671,7 @@ function DATA.realm_subject_relation_set_protection(realm_subject_relation_id, v
     DATA.realm_subject_relation[realm_subject_relation_id].protection = value
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean local_ruler
+---@return boolean local_ruler 
 function DATA.realm_subject_relation_get_local_ruler(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].local_ruler
 end
@@ -9646,12 +9681,12 @@ function DATA.realm_subject_relation_set_local_ruler(realm_subject_relation_id, 
     DATA.realm_subject_relation[realm_subject_relation_id].local_ruler = value
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return realm_id overlord
+---@return realm_id overlord 
 function DATA.realm_subject_relation_get_overlord(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].overlord
 end
 ---@param overlord realm_id valid realm_id
----@return realm_subject_relation_id[] An array of realm_subject_relation
+---@return realm_subject_relation_id[] An array of realm_subject_relation 
 function DATA.get_realm_subject_relation_from_overlord(overlord)
     return DATA.realm_subject_relation_from_overlord[overlord]
 end
@@ -9662,10 +9697,10 @@ function DATA.for_each_realm_subject_relation_from_overlord(overlord, func)
     for _, item in pairs(DATA.realm_subject_relation_from_overlord[overlord]) do func(item) end
 end
 ---@param overlord realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_array_realm_subject_relation_from_overlord(overlord, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     if DATA.realm_subject_relation_from_overlord[overlord] == nil then return t end
     for _, item in pairs(DATA.realm_subject_relation_from_overlord[overlord]) do
@@ -9674,10 +9709,10 @@ function DATA.filter_array_realm_subject_relation_from_overlord(overlord, func)
     return t
 end
 ---@param overlord realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_realm_subject_relation_from_overlord(overlord, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     if DATA.realm_subject_relation_from_overlord[overlord] == nil then return t end
     for _, item in pairs(DATA.realm_subject_relation_from_overlord[overlord]) do
@@ -9713,12 +9748,12 @@ function DATA.realm_subject_relation_set_overlord(realm_subject_relation_id, val
     table.insert(DATA.realm_subject_relation_from_overlord[value], realm_subject_relation_id)
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return realm_id subject
+---@return realm_id subject 
 function DATA.realm_subject_relation_get_subject(realm_subject_relation_id)
     return DATA.realm_subject_relation[realm_subject_relation_id].subject
 end
 ---@param subject realm_id valid realm_id
----@return realm_subject_relation_id[] An array of realm_subject_relation
+---@return realm_subject_relation_id[] An array of realm_subject_relation 
 function DATA.get_realm_subject_relation_from_subject(subject)
     return DATA.realm_subject_relation_from_subject[subject]
 end
@@ -9729,10 +9764,10 @@ function DATA.for_each_realm_subject_relation_from_subject(subject, func)
     for _, item in pairs(DATA.realm_subject_relation_from_subject[subject]) do func(item) end
 end
 ---@param subject realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_array_realm_subject_relation_from_subject(subject, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     if DATA.realm_subject_relation_from_subject[subject] == nil then return t end
     for _, item in pairs(DATA.realm_subject_relation_from_subject[subject]) do
@@ -9741,10 +9776,10 @@ function DATA.filter_array_realm_subject_relation_from_subject(subject, func)
     return t
 end
 ---@param subject realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_realm_subject_relation_from_subject(subject, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     if DATA.realm_subject_relation_from_subject[subject] == nil then return t end
     for _, item in pairs(DATA.realm_subject_relation_from_subject[subject]) do
@@ -9840,12 +9875,12 @@ end
 
 ---@class (exact) fat_tax_collector_id
 ---@field id tax_collector_id Unique tax_collector id
----@field collector pop_id
----@field realm realm_id
+---@field collector pop_id 
+---@field realm realm_id 
 
 ---@class struct_tax_collector
----@field collector pop_id
----@field realm realm_id
+---@field collector pop_id 
+---@field realm realm_id 
 
 
 ffi.cdef[[
@@ -9877,7 +9912,7 @@ DATA.tax_collector_size = 45000
 ---@type table<tax_collector_id, boolean>
 local tax_collector_indices_pool = ffi.new("bool[?]", 45000)
 for i = 1, 44999 do
-    tax_collector_indices_pool[i] = true
+    tax_collector_indices_pool[i] = true 
 end
 ---@type table<tax_collector_id, tax_collector_id>
 DATA.tax_collector_indices_set = {}
@@ -9899,16 +9934,16 @@ function DATA.delete_tax_collector(i)
     DATA.tax_collector_indices_set[i] = nil
     return DCON.dcon_delete_tax_collector(i - 1)
 end
----@param func fun(item: tax_collector_id)
+---@param func fun(item: tax_collector_id) 
 function DATA.for_each_tax_collector(func)
     for _, item in pairs(DATA.tax_collector_indices_set) do
         func(item)
     end
 end
----@param func fun(item: tax_collector_id):boolean
----@return table<tax_collector_id, tax_collector_id>
+---@param func fun(item: tax_collector_id):boolean 
+---@return table<tax_collector_id, tax_collector_id> 
 function DATA.filter_tax_collector(func)
-    ---@type table<tax_collector_id, tax_collector_id>
+    ---@type table<tax_collector_id, tax_collector_id> 
     local t = {}
     for _, item in pairs(DATA.tax_collector_indices_set) do
         if func(item) then t[item] = item end
@@ -9917,12 +9952,12 @@ function DATA.filter_tax_collector(func)
 end
 
 ---@param tax_collector_id tax_collector_id valid tax_collector id
----@return pop_id collector
+---@return pop_id collector 
 function DATA.tax_collector_get_collector(tax_collector_id)
     return DATA.tax_collector[tax_collector_id].collector
 end
 ---@param collector pop_id valid pop_id
----@return tax_collector_id tax_collector
+---@return tax_collector_id tax_collector 
 function DATA.get_tax_collector_from_collector(collector)
     if DATA.tax_collector_from_collector[collector] == nil then return 0 end
     return DATA.tax_collector_from_collector[collector]
@@ -9939,12 +9974,12 @@ function DATA.tax_collector_set_collector(tax_collector_id, value)
     DATA.tax_collector_from_collector[value] = tax_collector_id
 end
 ---@param tax_collector_id tax_collector_id valid tax_collector id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.tax_collector_get_realm(tax_collector_id)
     return DATA.tax_collector[tax_collector_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return tax_collector_id[] An array of tax_collector
+---@return tax_collector_id[] An array of tax_collector 
 function DATA.get_tax_collector_from_realm(realm)
     return DATA.tax_collector_from_realm[realm]
 end
@@ -9955,10 +9990,10 @@ function DATA.for_each_tax_collector_from_realm(realm, func)
     for _, item in pairs(DATA.tax_collector_from_realm[realm]) do func(item) end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: tax_collector_id):boolean
----@return table<tax_collector_id, tax_collector_id>
+---@param func fun(item: tax_collector_id):boolean 
+---@return table<tax_collector_id, tax_collector_id> 
 function DATA.filter_array_tax_collector_from_realm(realm, func)
-    ---@type table<tax_collector_id, tax_collector_id>
+    ---@type table<tax_collector_id, tax_collector_id> 
     local t = {}
     if DATA.tax_collector_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.tax_collector_from_realm[realm]) do
@@ -9967,10 +10002,10 @@ function DATA.filter_array_tax_collector_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: tax_collector_id):boolean
----@return table<tax_collector_id, tax_collector_id>
+---@param func fun(item: tax_collector_id):boolean 
+---@return table<tax_collector_id, tax_collector_id> 
 function DATA.filter_tax_collector_from_realm(realm, func)
-    ---@type table<tax_collector_id, tax_collector_id>
+    ---@type table<tax_collector_id, tax_collector_id> 
     local t = {}
     if DATA.tax_collector_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.tax_collector_from_realm[realm]) do
@@ -10041,16 +10076,16 @@ end
 
 ---@class (exact) fat_personal_rights_id
 ---@field id personal_rights_id Unique personal_rights id
----@field can_trade boolean
----@field can_build boolean
----@field person pop_id
----@field realm realm_id
+---@field can_trade boolean 
+---@field can_build boolean 
+---@field person pop_id 
+---@field realm realm_id 
 
 ---@class struct_personal_rights
----@field can_trade boolean
----@field can_build boolean
----@field person pop_id
----@field realm realm_id
+---@field can_trade boolean 
+---@field can_build boolean 
+---@field person pop_id 
+---@field realm realm_id 
 
 
 ffi.cdef[[
@@ -10087,7 +10122,7 @@ DATA.personal_rights_size = 450000
 ---@type table<personal_rights_id, boolean>
 local personal_rights_indices_pool = ffi.new("bool[?]", 450000)
 for i = 1, 449999 do
-    personal_rights_indices_pool[i] = true
+    personal_rights_indices_pool[i] = true 
 end
 ---@type table<personal_rights_id, personal_rights_id>
 DATA.personal_rights_indices_set = {}
@@ -10109,16 +10144,16 @@ function DATA.delete_personal_rights(i)
     DATA.personal_rights_indices_set[i] = nil
     return DCON.dcon_delete_personal_rights(i - 1)
 end
----@param func fun(item: personal_rights_id)
+---@param func fun(item: personal_rights_id) 
 function DATA.for_each_personal_rights(func)
     for _, item in pairs(DATA.personal_rights_indices_set) do
         func(item)
     end
 end
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_personal_rights(func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     for _, item in pairs(DATA.personal_rights_indices_set) do
         if func(item) then t[item] = item end
@@ -10127,7 +10162,7 @@ function DATA.filter_personal_rights(func)
 end
 
 ---@param personal_rights_id personal_rights_id valid personal_rights id
----@return boolean can_trade
+---@return boolean can_trade 
 function DATA.personal_rights_get_can_trade(personal_rights_id)
     return DATA.personal_rights[personal_rights_id].can_trade
 end
@@ -10137,7 +10172,7 @@ function DATA.personal_rights_set_can_trade(personal_rights_id, value)
     DATA.personal_rights[personal_rights_id].can_trade = value
 end
 ---@param personal_rights_id personal_rights_id valid personal_rights id
----@return boolean can_build
+---@return boolean can_build 
 function DATA.personal_rights_get_can_build(personal_rights_id)
     return DATA.personal_rights[personal_rights_id].can_build
 end
@@ -10147,12 +10182,12 @@ function DATA.personal_rights_set_can_build(personal_rights_id, value)
     DATA.personal_rights[personal_rights_id].can_build = value
 end
 ---@param personal_rights_id personal_rights_id valid personal_rights id
----@return pop_id person
+---@return pop_id person 
 function DATA.personal_rights_get_person(personal_rights_id)
     return DATA.personal_rights[personal_rights_id].person
 end
 ---@param person pop_id valid pop_id
----@return personal_rights_id[] An array of personal_rights
+---@return personal_rights_id[] An array of personal_rights 
 function DATA.get_personal_rights_from_person(person)
     return DATA.personal_rights_from_person[person]
 end
@@ -10163,10 +10198,10 @@ function DATA.for_each_personal_rights_from_person(person, func)
     for _, item in pairs(DATA.personal_rights_from_person[person]) do func(item) end
 end
 ---@param person pop_id valid pop_id
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_array_personal_rights_from_person(person, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     if DATA.personal_rights_from_person[person] == nil then return t end
     for _, item in pairs(DATA.personal_rights_from_person[person]) do
@@ -10175,10 +10210,10 @@ function DATA.filter_array_personal_rights_from_person(person, func)
     return t
 end
 ---@param person pop_id valid pop_id
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_personal_rights_from_person(person, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     if DATA.personal_rights_from_person[person] == nil then return t end
     for _, item in pairs(DATA.personal_rights_from_person[person]) do
@@ -10214,12 +10249,12 @@ function DATA.personal_rights_set_person(personal_rights_id, value)
     table.insert(DATA.personal_rights_from_person[value], personal_rights_id)
 end
 ---@param personal_rights_id personal_rights_id valid personal_rights id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.personal_rights_get_realm(personal_rights_id)
     return DATA.personal_rights[personal_rights_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return personal_rights_id[] An array of personal_rights
+---@return personal_rights_id[] An array of personal_rights 
 function DATA.get_personal_rights_from_realm(realm)
     return DATA.personal_rights_from_realm[realm]
 end
@@ -10230,10 +10265,10 @@ function DATA.for_each_personal_rights_from_realm(realm, func)
     for _, item in pairs(DATA.personal_rights_from_realm[realm]) do func(item) end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_array_personal_rights_from_realm(realm, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     if DATA.personal_rights_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.personal_rights_from_realm[realm]) do
@@ -10242,10 +10277,10 @@ function DATA.filter_array_personal_rights_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_personal_rights_from_realm(realm, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     if DATA.personal_rights_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.personal_rights_from_realm[realm]) do
@@ -10326,12 +10361,12 @@ end
 
 ---@class (exact) fat_realm_provinces_id
 ---@field id realm_provinces_id Unique realm_provinces id
----@field province province_id
----@field realm realm_id
+---@field province province_id 
+---@field realm realm_id 
 
 ---@class struct_realm_provinces
----@field province province_id
----@field realm realm_id
+---@field province province_id 
+---@field realm realm_id 
 
 
 ffi.cdef[[
@@ -10363,7 +10398,7 @@ DATA.realm_provinces_size = 30000
 ---@type table<realm_provinces_id, boolean>
 local realm_provinces_indices_pool = ffi.new("bool[?]", 30000)
 for i = 1, 29999 do
-    realm_provinces_indices_pool[i] = true
+    realm_provinces_indices_pool[i] = true 
 end
 ---@type table<realm_provinces_id, realm_provinces_id>
 DATA.realm_provinces_indices_set = {}
@@ -10385,16 +10420,16 @@ function DATA.delete_realm_provinces(i)
     DATA.realm_provinces_indices_set[i] = nil
     return DCON.dcon_delete_realm_provinces(i - 1)
 end
----@param func fun(item: realm_provinces_id)
+---@param func fun(item: realm_provinces_id) 
 function DATA.for_each_realm_provinces(func)
     for _, item in pairs(DATA.realm_provinces_indices_set) do
         func(item)
     end
 end
----@param func fun(item: realm_provinces_id):boolean
----@return table<realm_provinces_id, realm_provinces_id>
+---@param func fun(item: realm_provinces_id):boolean 
+---@return table<realm_provinces_id, realm_provinces_id> 
 function DATA.filter_realm_provinces(func)
-    ---@type table<realm_provinces_id, realm_provinces_id>
+    ---@type table<realm_provinces_id, realm_provinces_id> 
     local t = {}
     for _, item in pairs(DATA.realm_provinces_indices_set) do
         if func(item) then t[item] = item end
@@ -10403,12 +10438,12 @@ function DATA.filter_realm_provinces(func)
 end
 
 ---@param realm_provinces_id realm_provinces_id valid realm_provinces id
----@return province_id province
+---@return province_id province 
 function DATA.realm_provinces_get_province(realm_provinces_id)
     return DATA.realm_provinces[realm_provinces_id].province
 end
 ---@param province province_id valid province_id
----@return realm_provinces_id realm_provinces
+---@return realm_provinces_id realm_provinces 
 function DATA.get_realm_provinces_from_province(province)
     if DATA.realm_provinces_from_province[province] == nil then return 0 end
     return DATA.realm_provinces_from_province[province]
@@ -10425,12 +10460,12 @@ function DATA.realm_provinces_set_province(realm_provinces_id, value)
     DATA.realm_provinces_from_province[value] = realm_provinces_id
 end
 ---@param realm_provinces_id realm_provinces_id valid realm_provinces id
----@return realm_id realm
+---@return realm_id realm 
 function DATA.realm_provinces_get_realm(realm_provinces_id)
     return DATA.realm_provinces[realm_provinces_id].realm
 end
 ---@param realm realm_id valid realm_id
----@return realm_provinces_id[] An array of realm_provinces
+---@return realm_provinces_id[] An array of realm_provinces 
 function DATA.get_realm_provinces_from_realm(realm)
     return DATA.realm_provinces_from_realm[realm]
 end
@@ -10441,10 +10476,10 @@ function DATA.for_each_realm_provinces_from_realm(realm, func)
     for _, item in pairs(DATA.realm_provinces_from_realm[realm]) do func(item) end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_provinces_id):boolean
----@return table<realm_provinces_id, realm_provinces_id>
+---@param func fun(item: realm_provinces_id):boolean 
+---@return table<realm_provinces_id, realm_provinces_id> 
 function DATA.filter_array_realm_provinces_from_realm(realm, func)
-    ---@type table<realm_provinces_id, realm_provinces_id>
+    ---@type table<realm_provinces_id, realm_provinces_id> 
     local t = {}
     if DATA.realm_provinces_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.realm_provinces_from_realm[realm]) do
@@ -10453,10 +10488,10 @@ function DATA.filter_array_realm_provinces_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_provinces_id):boolean
----@return table<realm_provinces_id, realm_provinces_id>
+---@param func fun(item: realm_provinces_id):boolean 
+---@return table<realm_provinces_id, realm_provinces_id> 
 function DATA.filter_realm_provinces_from_realm(realm, func)
-    ---@type table<realm_provinces_id, realm_provinces_id>
+    ---@type table<realm_provinces_id, realm_provinces_id> 
     local t = {}
     if DATA.realm_provinces_from_realm[realm] == nil then return t end
     for _, item in pairs(DATA.realm_provinces_from_realm[realm]) do
@@ -10528,12 +10563,12 @@ end
 ---@class (exact) fat_popularity_id
 ---@field id popularity_id Unique popularity id
 ---@field value number efficiency of this relation
----@field who pop_id
+---@field who pop_id 
 ---@field where realm_id popularity where
 
 ---@class struct_popularity
 ---@field value number efficiency of this relation
----@field who pop_id
+---@field who pop_id 
 ---@field where realm_id popularity where
 
 
@@ -10570,7 +10605,7 @@ DATA.popularity_size = 450000
 ---@type table<popularity_id, boolean>
 local popularity_indices_pool = ffi.new("bool[?]", 450000)
 for i = 1, 449999 do
-    popularity_indices_pool[i] = true
+    popularity_indices_pool[i] = true 
 end
 ---@type table<popularity_id, popularity_id>
 DATA.popularity_indices_set = {}
@@ -10592,16 +10627,16 @@ function DATA.delete_popularity(i)
     DATA.popularity_indices_set[i] = nil
     return DCON.dcon_delete_popularity(i - 1)
 end
----@param func fun(item: popularity_id)
+---@param func fun(item: popularity_id) 
 function DATA.for_each_popularity(func)
     for _, item in pairs(DATA.popularity_indices_set) do
         func(item)
     end
 end
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_popularity(func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     for _, item in pairs(DATA.popularity_indices_set) do
         if func(item) then t[item] = item end
@@ -10625,12 +10660,12 @@ function DATA.popularity_inc_value(popularity_id, value)
     DATA.popularity[popularity_id].value = DATA.popularity[popularity_id].value + value
 end
 ---@param popularity_id popularity_id valid popularity id
----@return pop_id who
+---@return pop_id who 
 function DATA.popularity_get_who(popularity_id)
     return DATA.popularity[popularity_id].who
 end
 ---@param who pop_id valid pop_id
----@return popularity_id[] An array of popularity
+---@return popularity_id[] An array of popularity 
 function DATA.get_popularity_from_who(who)
     return DATA.popularity_from_who[who]
 end
@@ -10641,10 +10676,10 @@ function DATA.for_each_popularity_from_who(who, func)
     for _, item in pairs(DATA.popularity_from_who[who]) do func(item) end
 end
 ---@param who pop_id valid pop_id
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_array_popularity_from_who(who, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     if DATA.popularity_from_who[who] == nil then return t end
     for _, item in pairs(DATA.popularity_from_who[who]) do
@@ -10653,10 +10688,10 @@ function DATA.filter_array_popularity_from_who(who, func)
     return t
 end
 ---@param who pop_id valid pop_id
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_popularity_from_who(who, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     if DATA.popularity_from_who[who] == nil then return t end
     for _, item in pairs(DATA.popularity_from_who[who]) do
@@ -10697,7 +10732,7 @@ function DATA.popularity_get_where(popularity_id)
     return DATA.popularity[popularity_id].where
 end
 ---@param where realm_id valid realm_id
----@return popularity_id[] An array of popularity
+---@return popularity_id[] An array of popularity 
 function DATA.get_popularity_from_where(where)
     return DATA.popularity_from_where[where]
 end
@@ -10708,10 +10743,10 @@ function DATA.for_each_popularity_from_where(where, func)
     for _, item in pairs(DATA.popularity_from_where[where]) do func(item) end
 end
 ---@param where realm_id valid realm_id
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_array_popularity_from_where(where, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     if DATA.popularity_from_where[where] == nil then return t end
     for _, item in pairs(DATA.popularity_from_where[where]) do
@@ -10720,10 +10755,10 @@ function DATA.filter_array_popularity_from_where(where, func)
     return t
 end
 ---@param where realm_id valid realm_id
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_popularity_from_where(where, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     if DATA.popularity_from_where[where] == nil then return t end
     for _, item in pairs(DATA.popularity_from_where[where]) do
@@ -10799,14 +10834,14 @@ end
 
 ---@class (exact) fat_jobtype_id
 ---@field id jobtype_id Unique jobtype id
----@field name string
----@field action_word string
+---@field name string 
+---@field action_word string 
 
 ---@class struct_jobtype
 
 ---@class (exact) jobtype_id_data_blob_definition
----@field name string
----@field action_word string
+---@field name string 
+---@field action_word string 
 ---Sets values of jobtype for given id
 ---@param id jobtype_id
 ---@param data jobtype_id_data_blob_definition
@@ -10838,7 +10873,7 @@ DATA.jobtype_size = 10
 ---@type table<jobtype_id, boolean>
 local jobtype_indices_pool = ffi.new("bool[?]", 10)
 for i = 1, 9 do
-    jobtype_indices_pool[i] = true
+    jobtype_indices_pool[i] = true 
 end
 ---@type table<jobtype_id, jobtype_id>
 DATA.jobtype_indices_set = {}
@@ -10848,16 +10883,16 @@ function DATA.create_jobtype()
             DATA.jobtype_indices_set[i] = i
     return i
 end
----@param func fun(item: jobtype_id)
+---@param func fun(item: jobtype_id) 
 function DATA.for_each_jobtype(func)
     for _, item in pairs(DATA.jobtype_indices_set) do
         func(item)
     end
 end
----@param func fun(item: jobtype_id):boolean
----@return table<jobtype_id, jobtype_id>
+---@param func fun(item: jobtype_id):boolean 
+---@return table<jobtype_id, jobtype_id> 
 function DATA.filter_jobtype(func)
-    ---@type table<jobtype_id, jobtype_id>
+    ---@type table<jobtype_id, jobtype_id> 
     local t = {}
     for _, item in pairs(DATA.jobtype_indices_set) do
         if func(item) then t[item] = item end
@@ -10866,7 +10901,7 @@ function DATA.filter_jobtype(func)
 end
 
 ---@param jobtype_id jobtype_id valid jobtype id
----@return string name
+---@return string name 
 function DATA.jobtype_get_name(jobtype_id)
     return DATA.jobtype_name[jobtype_id]
 end
@@ -10876,7 +10911,7 @@ function DATA.jobtype_set_name(jobtype_id, value)
     DATA.jobtype_name[jobtype_id] = value
 end
 ---@param jobtype_id jobtype_id valid jobtype id
----@return string action_word
+---@return string action_word 
 function DATA.jobtype_get_action_word(jobtype_id)
     return DATA.jobtype_action_word[jobtype_id]
 end
@@ -10958,26 +10993,26 @@ DATA.jobtype_set_action_word(index_jobtype, "hunting")
 
 ---@class (exact) fat_need_id
 ---@field id need_id Unique need id
----@field name string
----@field age_independent boolean
----@field life_need boolean
+---@field name string 
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
 ---@class struct_need
----@field age_independent boolean
----@field life_need boolean
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
 ---@class (exact) need_id_data_blob_definition
----@field name string
----@field age_independent boolean
----@field life_need boolean
+---@field name string 
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
@@ -11022,7 +11057,7 @@ DATA.need_size = 9
 ---@type table<need_id, boolean>
 local need_indices_pool = ffi.new("bool[?]", 9)
 for i = 1, 8 do
-    need_indices_pool[i] = true
+    need_indices_pool[i] = true 
 end
 ---@type table<need_id, need_id>
 DATA.need_indices_set = {}
@@ -11032,16 +11067,16 @@ function DATA.create_need()
             DATA.need_indices_set[i] = i
     return i
 end
----@param func fun(item: need_id)
+---@param func fun(item: need_id) 
 function DATA.for_each_need(func)
     for _, item in pairs(DATA.need_indices_set) do
         func(item)
     end
 end
----@param func fun(item: need_id):boolean
----@return table<need_id, need_id>
+---@param func fun(item: need_id):boolean 
+---@return table<need_id, need_id> 
 function DATA.filter_need(func)
-    ---@type table<need_id, need_id>
+    ---@type table<need_id, need_id> 
     local t = {}
     for _, item in pairs(DATA.need_indices_set) do
         if func(item) then t[item] = item end
@@ -11050,7 +11085,7 @@ function DATA.filter_need(func)
 end
 
 ---@param need_id need_id valid need id
----@return string name
+---@return string name 
 function DATA.need_get_name(need_id)
     return DATA.need_name[need_id]
 end
@@ -11060,7 +11095,7 @@ function DATA.need_set_name(need_id, value)
     DATA.need_name[need_id] = value
 end
 ---@param need_id need_id valid need id
----@return boolean age_independent
+---@return boolean age_independent 
 function DATA.need_get_age_independent(need_id)
     return DATA.need[need_id].age_independent
 end
@@ -11070,7 +11105,7 @@ function DATA.need_set_age_independent(need_id, value)
     DATA.need[need_id].age_independent = value
 end
 ---@param need_id need_id valid need id
----@return boolean life_need
+---@return boolean life_need 
 function DATA.need_get_life_need(need_id)
     return DATA.need[need_id].life_need
 end
@@ -11253,14 +11288,14 @@ DATA.need_set_job_to_satisfy(index_need, JOBTYPE.ARTISAN)
 
 ---@class (exact) fat_character_rank_id
 ---@field id character_rank_id Unique character_rank id
----@field name string
----@field localisation string
+---@field name string 
+---@field localisation string 
 
 ---@class struct_character_rank
 
 ---@class (exact) character_rank_id_data_blob_definition
----@field name string
----@field localisation string
+---@field name string 
+---@field localisation string 
 ---Sets values of character_rank for given id
 ---@param id character_rank_id
 ---@param data character_rank_id_data_blob_definition
@@ -11292,7 +11327,7 @@ DATA.character_rank_size = 5
 ---@type table<character_rank_id, boolean>
 local character_rank_indices_pool = ffi.new("bool[?]", 5)
 for i = 1, 4 do
-    character_rank_indices_pool[i] = true
+    character_rank_indices_pool[i] = true 
 end
 ---@type table<character_rank_id, character_rank_id>
 DATA.character_rank_indices_set = {}
@@ -11302,16 +11337,16 @@ function DATA.create_character_rank()
             DATA.character_rank_indices_set[i] = i
     return i
 end
----@param func fun(item: character_rank_id)
+---@param func fun(item: character_rank_id) 
 function DATA.for_each_character_rank(func)
     for _, item in pairs(DATA.character_rank_indices_set) do
         func(item)
     end
 end
----@param func fun(item: character_rank_id):boolean
----@return table<character_rank_id, character_rank_id>
+---@param func fun(item: character_rank_id):boolean 
+---@return table<character_rank_id, character_rank_id> 
 function DATA.filter_character_rank(func)
-    ---@type table<character_rank_id, character_rank_id>
+    ---@type table<character_rank_id, character_rank_id> 
     local t = {}
     for _, item in pairs(DATA.character_rank_indices_set) do
         if func(item) then t[item] = item end
@@ -11320,7 +11355,7 @@ function DATA.filter_character_rank(func)
 end
 
 ---@param character_rank_id character_rank_id valid character_rank id
----@return string name
+---@return string name 
 function DATA.character_rank_get_name(character_rank_id)
     return DATA.character_rank_name[character_rank_id]
 end
@@ -11330,7 +11365,7 @@ function DATA.character_rank_set_name(character_rank_id, value)
     DATA.character_rank_name[character_rank_id] = value
 end
 ---@param character_rank_id character_rank_id valid character_rank id
----@return string localisation
+---@return string localisation 
 function DATA.character_rank_get_localisation(character_rank_id)
     return DATA.character_rank_localisation[character_rank_id]
 end
@@ -11392,18 +11427,18 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 
 ---@class (exact) fat_trait_id
 ---@field id trait_id Unique trait id
----@field name string
----@field short_description string
----@field full_description string
----@field icon string
+---@field name string 
+---@field short_description string 
+---@field full_description string 
+---@field icon string 
 
 ---@class struct_trait
 
 ---@class (exact) trait_id_data_blob_definition
----@field name string
----@field short_description string
----@field full_description string
----@field icon string
+---@field name string 
+---@field short_description string 
+---@field full_description string 
+---@field icon string 
 ---Sets values of trait for given id
 ---@param id trait_id
 ---@param data trait_id_data_blob_definition
@@ -11441,7 +11476,7 @@ DATA.trait_size = 12
 ---@type table<trait_id, boolean>
 local trait_indices_pool = ffi.new("bool[?]", 12)
 for i = 1, 11 do
-    trait_indices_pool[i] = true
+    trait_indices_pool[i] = true 
 end
 ---@type table<trait_id, trait_id>
 DATA.trait_indices_set = {}
@@ -11451,16 +11486,16 @@ function DATA.create_trait()
             DATA.trait_indices_set[i] = i
     return i
 end
----@param func fun(item: trait_id)
+---@param func fun(item: trait_id) 
 function DATA.for_each_trait(func)
     for _, item in pairs(DATA.trait_indices_set) do
         func(item)
     end
 end
----@param func fun(item: trait_id):boolean
----@return table<trait_id, trait_id>
+---@param func fun(item: trait_id):boolean 
+---@return table<trait_id, trait_id> 
 function DATA.filter_trait(func)
-    ---@type table<trait_id, trait_id>
+    ---@type table<trait_id, trait_id> 
     local t = {}
     for _, item in pairs(DATA.trait_indices_set) do
         if func(item) then t[item] = item end
@@ -11469,7 +11504,7 @@ function DATA.filter_trait(func)
 end
 
 ---@param trait_id trait_id valid trait id
----@return string name
+---@return string name 
 function DATA.trait_get_name(trait_id)
     return DATA.trait_name[trait_id]
 end
@@ -11479,7 +11514,7 @@ function DATA.trait_set_name(trait_id, value)
     DATA.trait_name[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string short_description
+---@return string short_description 
 function DATA.trait_get_short_description(trait_id)
     return DATA.trait_short_description[trait_id]
 end
@@ -11489,7 +11524,7 @@ function DATA.trait_set_short_description(trait_id, value)
     DATA.trait_short_description[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string full_description
+---@return string full_description 
 function DATA.trait_get_full_description(trait_id)
     return DATA.trait_full_description[trait_id]
 end
@@ -11499,7 +11534,7 @@ function DATA.trait_set_full_description(trait_id, value)
     DATA.trait_full_description[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string icon
+---@return string icon 
 function DATA.trait_get_icon(trait_id)
     return DATA.trait_icon[trait_id]
 end
@@ -11619,12 +11654,12 @@ DATA.trait_set_icon(index_trait, "scales.png")
 
 ---@class (exact) fat_trade_good_category_id
 ---@field id trade_good_category_id Unique trade_good_category id
----@field name string
+---@field name string 
 
 ---@class struct_trade_good_category
 
 ---@class (exact) trade_good_category_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of trade_good_category for given id
 ---@param id trade_good_category_id
 ---@param data trade_good_category_id_data_blob_definition
@@ -11653,7 +11688,7 @@ DATA.trade_good_category_size = 5
 ---@type table<trade_good_category_id, boolean>
 local trade_good_category_indices_pool = ffi.new("bool[?]", 5)
 for i = 1, 4 do
-    trade_good_category_indices_pool[i] = true
+    trade_good_category_indices_pool[i] = true 
 end
 ---@type table<trade_good_category_id, trade_good_category_id>
 DATA.trade_good_category_indices_set = {}
@@ -11663,16 +11698,16 @@ function DATA.create_trade_good_category()
             DATA.trade_good_category_indices_set[i] = i
     return i
 end
----@param func fun(item: trade_good_category_id)
+---@param func fun(item: trade_good_category_id) 
 function DATA.for_each_trade_good_category(func)
     for _, item in pairs(DATA.trade_good_category_indices_set) do
         func(item)
     end
 end
----@param func fun(item: trade_good_category_id):boolean
----@return table<trade_good_category_id, trade_good_category_id>
+---@param func fun(item: trade_good_category_id):boolean 
+---@return table<trade_good_category_id, trade_good_category_id> 
 function DATA.filter_trade_good_category(func)
-    ---@type table<trade_good_category_id, trade_good_category_id>
+    ---@type table<trade_good_category_id, trade_good_category_id> 
     local t = {}
     for _, item in pairs(DATA.trade_good_category_indices_set) do
         if func(item) then t[item] = item end
@@ -11681,7 +11716,7 @@ function DATA.filter_trade_good_category(func)
 end
 
 ---@param trade_good_category_id trade_good_category_id valid trade_good_category id
----@return string name
+---@return string name 
 function DATA.trade_good_category_get_name(trade_good_category_id)
     return DATA.trade_good_category_name[trade_good_category_id]
 end
@@ -11735,12 +11770,12 @@ DATA.trade_good_category_set_name(index_trade_good_category, "capacity")
 
 ---@class (exact) fat_warband_status_id
 ---@field id warband_status_id Unique warband_status id
----@field name string
+---@field name string 
 
 ---@class struct_warband_status
 
 ---@class (exact) warband_status_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of warband_status for given id
 ---@param id warband_status_id
 ---@param data warband_status_id_data_blob_definition
@@ -11769,7 +11804,7 @@ DATA.warband_status_size = 10
 ---@type table<warband_status_id, boolean>
 local warband_status_indices_pool = ffi.new("bool[?]", 10)
 for i = 1, 9 do
-    warband_status_indices_pool[i] = true
+    warband_status_indices_pool[i] = true 
 end
 ---@type table<warband_status_id, warband_status_id>
 DATA.warband_status_indices_set = {}
@@ -11779,16 +11814,16 @@ function DATA.create_warband_status()
             DATA.warband_status_indices_set[i] = i
     return i
 end
----@param func fun(item: warband_status_id)
+---@param func fun(item: warband_status_id) 
 function DATA.for_each_warband_status(func)
     for _, item in pairs(DATA.warband_status_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_status_id):boolean
----@return table<warband_status_id, warband_status_id>
+---@param func fun(item: warband_status_id):boolean 
+---@return table<warband_status_id, warband_status_id> 
 function DATA.filter_warband_status(func)
-    ---@type table<warband_status_id, warband_status_id>
+    ---@type table<warband_status_id, warband_status_id> 
     local t = {}
     for _, item in pairs(DATA.warband_status_indices_set) do
         if func(item) then t[item] = item end
@@ -11797,7 +11832,7 @@ function DATA.filter_warband_status(func)
 end
 
 ---@param warband_status_id warband_status_id valid warband_status id
----@return string name
+---@return string name 
 function DATA.warband_status_get_name(warband_status_id)
     return DATA.warband_status_name[warband_status_id]
 end
@@ -11866,12 +11901,12 @@ DATA.warband_status_set_name(index_warband_status, "off_duty")
 
 ---@class (exact) fat_warband_stance_id
 ---@field id warband_stance_id Unique warband_stance id
----@field name string
+---@field name string 
 
 ---@class struct_warband_stance
 
 ---@class (exact) warband_stance_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of warband_stance for given id
 ---@param id warband_stance_id
 ---@param data warband_stance_id_data_blob_definition
@@ -11900,7 +11935,7 @@ DATA.warband_stance_size = 4
 ---@type table<warband_stance_id, boolean>
 local warband_stance_indices_pool = ffi.new("bool[?]", 4)
 for i = 1, 3 do
-    warband_stance_indices_pool[i] = true
+    warband_stance_indices_pool[i] = true 
 end
 ---@type table<warband_stance_id, warband_stance_id>
 DATA.warband_stance_indices_set = {}
@@ -11910,16 +11945,16 @@ function DATA.create_warband_stance()
             DATA.warband_stance_indices_set[i] = i
     return i
 end
----@param func fun(item: warband_stance_id)
+---@param func fun(item: warband_stance_id) 
 function DATA.for_each_warband_stance(func)
     for _, item in pairs(DATA.warband_stance_indices_set) do
         func(item)
     end
 end
----@param func fun(item: warband_stance_id):boolean
----@return table<warband_stance_id, warband_stance_id>
+---@param func fun(item: warband_stance_id):boolean 
+---@return table<warband_stance_id, warband_stance_id> 
 function DATA.filter_warband_stance(func)
-    ---@type table<warband_stance_id, warband_stance_id>
+    ---@type table<warband_stance_id, warband_stance_id> 
     local t = {}
     for _, item in pairs(DATA.warband_stance_indices_set) do
         if func(item) then t[item] = item end
@@ -11928,7 +11963,7 @@ function DATA.filter_warband_stance(func)
 end
 
 ---@param warband_stance_id warband_stance_id valid warband_stance id
----@return string name
+---@return string name 
 function DATA.warband_stance_get_name(warband_stance_id)
     return DATA.warband_stance_name[warband_stance_id]
 end
@@ -11979,12 +12014,12 @@ DATA.warband_stance_set_name(index_warband_stance, "forage")
 
 ---@class (exact) fat_building_archetype_id
 ---@field id building_archetype_id Unique building_archetype id
----@field name string
+---@field name string 
 
 ---@class struct_building_archetype
 
 ---@class (exact) building_archetype_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of building_archetype for given id
 ---@param id building_archetype_id
 ---@param data building_archetype_id_data_blob_definition
@@ -12013,7 +12048,7 @@ DATA.building_archetype_size = 7
 ---@type table<building_archetype_id, boolean>
 local building_archetype_indices_pool = ffi.new("bool[?]", 7)
 for i = 1, 6 do
-    building_archetype_indices_pool[i] = true
+    building_archetype_indices_pool[i] = true 
 end
 ---@type table<building_archetype_id, building_archetype_id>
 DATA.building_archetype_indices_set = {}
@@ -12023,16 +12058,16 @@ function DATA.create_building_archetype()
             DATA.building_archetype_indices_set[i] = i
     return i
 end
----@param func fun(item: building_archetype_id)
+---@param func fun(item: building_archetype_id) 
 function DATA.for_each_building_archetype(func)
     for _, item in pairs(DATA.building_archetype_indices_set) do
         func(item)
     end
 end
----@param func fun(item: building_archetype_id):boolean
----@return table<building_archetype_id, building_archetype_id>
+---@param func fun(item: building_archetype_id):boolean 
+---@return table<building_archetype_id, building_archetype_id> 
 function DATA.filter_building_archetype(func)
-    ---@type table<building_archetype_id, building_archetype_id>
+    ---@type table<building_archetype_id, building_archetype_id> 
     local t = {}
     for _, item in pairs(DATA.building_archetype_indices_set) do
         if func(item) then t[item] = item end
@@ -12041,7 +12076,7 @@ function DATA.filter_building_archetype(func)
 end
 
 ---@param building_archetype_id building_archetype_id valid building_archetype id
----@return string name
+---@return string name 
 function DATA.building_archetype_get_name(building_archetype_id)
     return DATA.building_archetype_name[building_archetype_id]
 end
@@ -12101,19 +12136,19 @@ DATA.building_archetype_set_name(index_building_archetype, "DEFENSE")
 
 ---@class (exact) fat_forage_resource_id
 ---@field id forage_resource_id Unique forage_resource id
----@field name string
----@field description string
----@field icon string
----@field handle JOBTYPE
+---@field name string 
+---@field description string 
+---@field icon string 
+---@field handle JOBTYPE 
 
 ---@class struct_forage_resource
----@field handle JOBTYPE
+---@field handle JOBTYPE 
 
 ---@class (exact) forage_resource_id_data_blob_definition
----@field name string
----@field description string
----@field icon string
----@field handle JOBTYPE
+---@field name string 
+---@field description string 
+---@field icon string 
+---@field handle JOBTYPE 
 ---Sets values of forage_resource for given id
 ---@param id forage_resource_id
 ---@param data forage_resource_id_data_blob_definition
@@ -12150,7 +12185,7 @@ DATA.forage_resource_size = 10
 ---@type table<forage_resource_id, boolean>
 local forage_resource_indices_pool = ffi.new("bool[?]", 10)
 for i = 1, 9 do
-    forage_resource_indices_pool[i] = true
+    forage_resource_indices_pool[i] = true 
 end
 ---@type table<forage_resource_id, forage_resource_id>
 DATA.forage_resource_indices_set = {}
@@ -12160,16 +12195,16 @@ function DATA.create_forage_resource()
             DATA.forage_resource_indices_set[i] = i
     return i
 end
----@param func fun(item: forage_resource_id)
+---@param func fun(item: forage_resource_id) 
 function DATA.for_each_forage_resource(func)
     for _, item in pairs(DATA.forage_resource_indices_set) do
         func(item)
     end
 end
----@param func fun(item: forage_resource_id):boolean
----@return table<forage_resource_id, forage_resource_id>
+---@param func fun(item: forage_resource_id):boolean 
+---@return table<forage_resource_id, forage_resource_id> 
 function DATA.filter_forage_resource(func)
-    ---@type table<forage_resource_id, forage_resource_id>
+    ---@type table<forage_resource_id, forage_resource_id> 
     local t = {}
     for _, item in pairs(DATA.forage_resource_indices_set) do
         if func(item) then t[item] = item end
@@ -12178,7 +12213,7 @@ function DATA.filter_forage_resource(func)
 end
 
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return string name
+---@return string name 
 function DATA.forage_resource_get_name(forage_resource_id)
     return DATA.forage_resource_name[forage_resource_id]
 end
@@ -12188,7 +12223,7 @@ function DATA.forage_resource_set_name(forage_resource_id, value)
     DATA.forage_resource_name[forage_resource_id] = value
 end
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return string description
+---@return string description 
 function DATA.forage_resource_get_description(forage_resource_id)
     return DATA.forage_resource_description[forage_resource_id]
 end
@@ -12198,7 +12233,7 @@ function DATA.forage_resource_set_description(forage_resource_id, value)
     DATA.forage_resource_description[forage_resource_id] = value
 end
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return string icon
+---@return string icon 
 function DATA.forage_resource_get_icon(forage_resource_id)
     return DATA.forage_resource_icon[forage_resource_id]
 end
@@ -12208,7 +12243,7 @@ function DATA.forage_resource_set_icon(forage_resource_id, value)
     DATA.forage_resource_icon[forage_resource_id] = value
 end
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return JOBTYPE handle
+---@return JOBTYPE handle 
 function DATA.forage_resource_get_handle(forage_resource_id)
     return DATA.forage_resource[forage_resource_id].handle
 end
@@ -12316,12 +12351,12 @@ DATA.forage_resource_set_handle(index_forage_resource, JOBTYPE.ARTISAN)
 
 ---@class (exact) fat_budget_category_id
 ---@field id budget_category_id Unique budget_category id
----@field name string
+---@field name string 
 
 ---@class struct_budget_category
 
 ---@class (exact) budget_category_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of budget_category for given id
 ---@param id budget_category_id
 ---@param data budget_category_id_data_blob_definition
@@ -12350,7 +12385,7 @@ DATA.budget_category_size = 7
 ---@type table<budget_category_id, boolean>
 local budget_category_indices_pool = ffi.new("bool[?]", 7)
 for i = 1, 6 do
-    budget_category_indices_pool[i] = true
+    budget_category_indices_pool[i] = true 
 end
 ---@type table<budget_category_id, budget_category_id>
 DATA.budget_category_indices_set = {}
@@ -12360,16 +12395,16 @@ function DATA.create_budget_category()
             DATA.budget_category_indices_set[i] = i
     return i
 end
----@param func fun(item: budget_category_id)
+---@param func fun(item: budget_category_id) 
 function DATA.for_each_budget_category(func)
     for _, item in pairs(DATA.budget_category_indices_set) do
         func(item)
     end
 end
----@param func fun(item: budget_category_id):boolean
----@return table<budget_category_id, budget_category_id>
+---@param func fun(item: budget_category_id):boolean 
+---@return table<budget_category_id, budget_category_id> 
 function DATA.filter_budget_category(func)
-    ---@type table<budget_category_id, budget_category_id>
+    ---@type table<budget_category_id, budget_category_id> 
     local t = {}
     for _, item in pairs(DATA.budget_category_indices_set) do
         if func(item) then t[item] = item end
@@ -12378,7 +12413,7 @@ function DATA.filter_budget_category(func)
 end
 
 ---@param budget_category_id budget_category_id valid budget_category id
----@return string name
+---@return string name 
 function DATA.budget_category_get_name(budget_category_id)
     return DATA.budget_category_name[budget_category_id]
 end
@@ -12438,14 +12473,14 @@ DATA.budget_category_set_name(index_budget_category, "tribute")
 
 ---@class (exact) fat_economy_reason_id
 ---@field id economy_reason_id Unique economy_reason id
----@field name string
----@field description string
+---@field name string 
+---@field description string 
 
 ---@class struct_economy_reason
 
 ---@class (exact) economy_reason_id_data_blob_definition
----@field name string
----@field description string
+---@field name string 
+---@field description string 
 ---Sets values of economy_reason for given id
 ---@param id economy_reason_id
 ---@param data economy_reason_id_data_blob_definition
@@ -12477,7 +12512,7 @@ DATA.economy_reason_size = 38
 ---@type table<economy_reason_id, boolean>
 local economy_reason_indices_pool = ffi.new("bool[?]", 38)
 for i = 1, 37 do
-    economy_reason_indices_pool[i] = true
+    economy_reason_indices_pool[i] = true 
 end
 ---@type table<economy_reason_id, economy_reason_id>
 DATA.economy_reason_indices_set = {}
@@ -12487,16 +12522,16 @@ function DATA.create_economy_reason()
             DATA.economy_reason_indices_set[i] = i
     return i
 end
----@param func fun(item: economy_reason_id)
+---@param func fun(item: economy_reason_id) 
 function DATA.for_each_economy_reason(func)
     for _, item in pairs(DATA.economy_reason_indices_set) do
         func(item)
     end
 end
----@param func fun(item: economy_reason_id):boolean
----@return table<economy_reason_id, economy_reason_id>
+---@param func fun(item: economy_reason_id):boolean 
+---@return table<economy_reason_id, economy_reason_id> 
 function DATA.filter_economy_reason(func)
-    ---@type table<economy_reason_id, economy_reason_id>
+    ---@type table<economy_reason_id, economy_reason_id> 
     local t = {}
     for _, item in pairs(DATA.economy_reason_indices_set) do
         if func(item) then t[item] = item end
@@ -12505,7 +12540,7 @@ function DATA.filter_economy_reason(func)
 end
 
 ---@param economy_reason_id economy_reason_id valid economy_reason id
----@return string name
+---@return string name 
 function DATA.economy_reason_get_name(economy_reason_id)
     return DATA.economy_reason_name[economy_reason_id]
 end
@@ -12515,7 +12550,7 @@ function DATA.economy_reason_set_name(economy_reason_id, value)
     DATA.economy_reason_name[economy_reason_id] = value
 end
 ---@param economy_reason_id economy_reason_id valid economy_reason id
----@return string description
+---@return string description 
 function DATA.economy_reason_get_description(economy_reason_id)
     return DATA.economy_reason_description[economy_reason_id]
 end
@@ -12709,31 +12744,31 @@ DATA.economy_reason_set_description(index_economy_reason, "Negotiations")
 
 ---@class (exact) fat_trade_good_id
 ---@field id trade_good_id Unique trade_good id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 
 ---@class struct_trade_good
----@field r number
----@field g number
----@field b number
----@field category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 
 ---@class (exact) trade_good_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field category TRADE_GOOD_CATEGORY?
----@field base_price number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field category TRADE_GOOD_CATEGORY? 
+---@field base_price number 
 ---Sets values of trade_good for given id
 ---@param id trade_good_id
 ---@param data trade_good_id_data_blob_definition
@@ -12781,7 +12816,7 @@ DATA.trade_good_size = 100
 ---@type table<trade_good_id, boolean>
 local trade_good_indices_pool = ffi.new("bool[?]", 100)
 for i = 1, 99 do
-    trade_good_indices_pool[i] = true
+    trade_good_indices_pool[i] = true 
 end
 ---@type table<trade_good_id, trade_good_id>
 DATA.trade_good_indices_set = {}
@@ -12791,16 +12826,16 @@ function DATA.create_trade_good()
             DATA.trade_good_indices_set[i] = i
     return i
 end
----@param func fun(item: trade_good_id)
+---@param func fun(item: trade_good_id) 
 function DATA.for_each_trade_good(func)
     for _, item in pairs(DATA.trade_good_indices_set) do
         func(item)
     end
 end
----@param func fun(item: trade_good_id):boolean
----@return table<trade_good_id, trade_good_id>
+---@param func fun(item: trade_good_id):boolean 
+---@return table<trade_good_id, trade_good_id> 
 function DATA.filter_trade_good(func)
-    ---@type table<trade_good_id, trade_good_id>
+    ---@type table<trade_good_id, trade_good_id> 
     local t = {}
     for _, item in pairs(DATA.trade_good_indices_set) do
         if func(item) then t[item] = item end
@@ -12809,7 +12844,7 @@ function DATA.filter_trade_good(func)
 end
 
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string name
+---@return string name 
 function DATA.trade_good_get_name(trade_good_id)
     return DATA.trade_good_name[trade_good_id]
 end
@@ -12819,7 +12854,7 @@ function DATA.trade_good_set_name(trade_good_id, value)
     DATA.trade_good_name[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string icon
+---@return string icon 
 function DATA.trade_good_get_icon(trade_good_id)
     return DATA.trade_good_icon[trade_good_id]
 end
@@ -12829,7 +12864,7 @@ function DATA.trade_good_set_icon(trade_good_id, value)
     DATA.trade_good_icon[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string description
+---@return string description 
 function DATA.trade_good_get_description(trade_good_id)
     return DATA.trade_good_description[trade_good_id]
 end
@@ -12839,7 +12874,7 @@ function DATA.trade_good_set_description(trade_good_id, value)
     DATA.trade_good_description[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number r
+---@return number r 
 function DATA.trade_good_get_r(trade_good_id)
     return DATA.trade_good[trade_good_id].r
 end
@@ -12854,7 +12889,7 @@ function DATA.trade_good_inc_r(trade_good_id, value)
     DATA.trade_good[trade_good_id].r = DATA.trade_good[trade_good_id].r + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number g
+---@return number g 
 function DATA.trade_good_get_g(trade_good_id)
     return DATA.trade_good[trade_good_id].g
 end
@@ -12869,7 +12904,7 @@ function DATA.trade_good_inc_g(trade_good_id, value)
     DATA.trade_good[trade_good_id].g = DATA.trade_good[trade_good_id].g + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number b
+---@return number b 
 function DATA.trade_good_get_b(trade_good_id)
     return DATA.trade_good[trade_good_id].b
 end
@@ -12884,7 +12919,7 @@ function DATA.trade_good_inc_b(trade_good_id, value)
     DATA.trade_good[trade_good_id].b = DATA.trade_good[trade_good_id].b + value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return TRADE_GOOD_CATEGORY category
+---@return TRADE_GOOD_CATEGORY category 
 function DATA.trade_good_get_category(trade_good_id)
     return DATA.trade_good[trade_good_id].category
 end
@@ -12894,7 +12929,7 @@ function DATA.trade_good_set_category(trade_good_id, value)
     DATA.trade_good[trade_good_id].category = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number base_price
+---@return number base_price 
 function DATA.trade_good_get_base_price(trade_good_id)
     return DATA.trade_good[trade_good_id].base_price
 end
@@ -12974,25 +13009,25 @@ end
 
 ---@class (exact) fat_use_case_id
 ---@field id use_case_id Unique use_case id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class struct_use_case
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class (exact) use_case_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---Sets values of use_case for given id
 ---@param id use_case_id
 ---@param data use_case_id_data_blob_definition
@@ -13033,7 +13068,7 @@ DATA.use_case_size = 100
 ---@type table<use_case_id, boolean>
 local use_case_indices_pool = ffi.new("bool[?]", 100)
 for i = 1, 99 do
-    use_case_indices_pool[i] = true
+    use_case_indices_pool[i] = true 
 end
 ---@type table<use_case_id, use_case_id>
 DATA.use_case_indices_set = {}
@@ -13043,16 +13078,16 @@ function DATA.create_use_case()
             DATA.use_case_indices_set[i] = i
     return i
 end
----@param func fun(item: use_case_id)
+---@param func fun(item: use_case_id) 
 function DATA.for_each_use_case(func)
     for _, item in pairs(DATA.use_case_indices_set) do
         func(item)
     end
 end
----@param func fun(item: use_case_id):boolean
----@return table<use_case_id, use_case_id>
+---@param func fun(item: use_case_id):boolean 
+---@return table<use_case_id, use_case_id> 
 function DATA.filter_use_case(func)
-    ---@type table<use_case_id, use_case_id>
+    ---@type table<use_case_id, use_case_id> 
     local t = {}
     for _, item in pairs(DATA.use_case_indices_set) do
         if func(item) then t[item] = item end
@@ -13061,7 +13096,7 @@ function DATA.filter_use_case(func)
 end
 
 ---@param use_case_id use_case_id valid use_case id
----@return string name
+---@return string name 
 function DATA.use_case_get_name(use_case_id)
     return DATA.use_case_name[use_case_id]
 end
@@ -13071,7 +13106,7 @@ function DATA.use_case_set_name(use_case_id, value)
     DATA.use_case_name[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return string icon
+---@return string icon 
 function DATA.use_case_get_icon(use_case_id)
     return DATA.use_case_icon[use_case_id]
 end
@@ -13081,7 +13116,7 @@ function DATA.use_case_set_icon(use_case_id, value)
     DATA.use_case_icon[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return string description
+---@return string description 
 function DATA.use_case_get_description(use_case_id)
     return DATA.use_case_description[use_case_id]
 end
@@ -13091,7 +13126,7 @@ function DATA.use_case_set_description(use_case_id, value)
     DATA.use_case_description[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number r
+---@return number r 
 function DATA.use_case_get_r(use_case_id)
     return DATA.use_case[use_case_id].r
 end
@@ -13106,7 +13141,7 @@ function DATA.use_case_inc_r(use_case_id, value)
     DATA.use_case[use_case_id].r = DATA.use_case[use_case_id].r + value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number g
+---@return number g 
 function DATA.use_case_get_g(use_case_id)
     return DATA.use_case[use_case_id].g
 end
@@ -13121,7 +13156,7 @@ function DATA.use_case_inc_g(use_case_id, value)
     DATA.use_case[use_case_id].g = DATA.use_case[use_case_id].g + value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number b
+---@return number b 
 function DATA.use_case_get_b(use_case_id)
     return DATA.use_case[use_case_id].b
 end
@@ -13243,7 +13278,7 @@ DATA.use_weight_size = 300
 ---@type table<use_weight_id, boolean>
 local use_weight_indices_pool = ffi.new("bool[?]", 300)
 for i = 1, 299 do
-    use_weight_indices_pool[i] = true
+    use_weight_indices_pool[i] = true 
 end
 ---@type table<use_weight_id, use_weight_id>
 DATA.use_weight_indices_set = {}
@@ -13253,16 +13288,16 @@ function DATA.create_use_weight()
             DATA.use_weight_indices_set[i] = i
     return i
 end
----@param func fun(item: use_weight_id)
+---@param func fun(item: use_weight_id) 
 function DATA.for_each_use_weight(func)
     for _, item in pairs(DATA.use_weight_indices_set) do
         func(item)
     end
 end
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_use_weight(func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     for _, item in pairs(DATA.use_weight_indices_set) do
         if func(item) then t[item] = item end
@@ -13291,7 +13326,7 @@ function DATA.use_weight_get_trade_good(use_weight_id)
     return DATA.use_weight[use_weight_id].trade_good
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@return use_weight_id[] An array of use_weight
+---@return use_weight_id[] An array of use_weight 
 function DATA.get_use_weight_from_trade_good(trade_good)
     return DATA.use_weight_from_trade_good[trade_good]
 end
@@ -13302,10 +13337,10 @@ function DATA.for_each_use_weight_from_trade_good(trade_good, func)
     for _, item in pairs(DATA.use_weight_from_trade_good[trade_good]) do func(item) end
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_array_use_weight_from_trade_good(trade_good, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     if DATA.use_weight_from_trade_good[trade_good] == nil then return t end
     for _, item in pairs(DATA.use_weight_from_trade_good[trade_good]) do
@@ -13314,10 +13349,10 @@ function DATA.filter_array_use_weight_from_trade_good(trade_good, func)
     return t
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_use_weight_from_trade_good(trade_good, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     if DATA.use_weight_from_trade_good[trade_good] == nil then return t end
     for _, item in pairs(DATA.use_weight_from_trade_good[trade_good]) do
@@ -13358,7 +13393,7 @@ function DATA.use_weight_get_use_case(use_weight_id)
     return DATA.use_weight[use_weight_id].use_case
 end
 ---@param use_case use_case_id valid use_case_id
----@return use_weight_id[] An array of use_weight
+---@return use_weight_id[] An array of use_weight 
 function DATA.get_use_weight_from_use_case(use_case)
     return DATA.use_weight_from_use_case[use_case]
 end
@@ -13369,10 +13404,10 @@ function DATA.for_each_use_weight_from_use_case(use_case, func)
     for _, item in pairs(DATA.use_weight_from_use_case[use_case]) do func(item) end
 end
 ---@param use_case use_case_id valid use_case_id
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_array_use_weight_from_use_case(use_case, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     if DATA.use_weight_from_use_case[use_case] == nil then return t end
     for _, item in pairs(DATA.use_weight_from_use_case[use_case]) do
@@ -13381,10 +13416,10 @@ function DATA.filter_array_use_weight_from_use_case(use_case, func)
     return t
 end
 ---@param use_case use_case_id valid use_case_id
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_use_weight_from_use_case(use_case, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     if DATA.use_weight_from_use_case[use_case] == nil then return t end
     for _, item in pairs(DATA.use_weight_from_use_case[use_case]) do
@@ -13460,13 +13495,13 @@ end
 
 ---@class (exact) fat_biome_id
 ---@field id biome_id Unique biome id
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean 
+---@field marsh boolean 
+---@field icy boolean 
 ---@field minimum_slope number m
 ---@field maximum_slope number m
 ---@field minimum_elevation number m
@@ -13503,12 +13538,12 @@ end
 ---@field maximum_silt number %
 
 ---@class struct_biome
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean 
+---@field marsh boolean 
+---@field icy boolean 
 ---@field minimum_slope number m
 ---@field maximum_slope number m
 ---@field minimum_elevation number m
@@ -13545,13 +13580,13 @@ end
 ---@field maximum_silt number %
 
 ---@class (exact) biome_id_data_blob_definition
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean?
----@field marsh boolean?
----@field icy boolean?
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean? 
+---@field marsh boolean? 
+---@field icy boolean? 
 ---@field minimum_slope number? m
 ---@field maximum_slope number? m
 ---@field minimum_elevation number? m
@@ -13805,7 +13840,7 @@ DATA.biome_size = 100
 ---@type table<biome_id, boolean>
 local biome_indices_pool = ffi.new("bool[?]", 100)
 for i = 1, 99 do
-    biome_indices_pool[i] = true
+    biome_indices_pool[i] = true 
 end
 ---@type table<biome_id, biome_id>
 DATA.biome_indices_set = {}
@@ -13815,16 +13850,16 @@ function DATA.create_biome()
             DATA.biome_indices_set[i] = i
     return i
 end
----@param func fun(item: biome_id)
+---@param func fun(item: biome_id) 
 function DATA.for_each_biome(func)
     for _, item in pairs(DATA.biome_indices_set) do
         func(item)
     end
 end
----@param func fun(item: biome_id):boolean
----@return table<biome_id, biome_id>
+---@param func fun(item: biome_id):boolean 
+---@return table<biome_id, biome_id> 
 function DATA.filter_biome(func)
-    ---@type table<biome_id, biome_id>
+    ---@type table<biome_id, biome_id> 
     local t = {}
     for _, item in pairs(DATA.biome_indices_set) do
         if func(item) then t[item] = item end
@@ -13833,7 +13868,7 @@ function DATA.filter_biome(func)
 end
 
 ---@param biome_id biome_id valid biome id
----@return string name
+---@return string name 
 function DATA.biome_get_name(biome_id)
     return DATA.biome_name[biome_id]
 end
@@ -13843,7 +13878,7 @@ function DATA.biome_set_name(biome_id, value)
     DATA.biome_name[biome_id] = value
 end
 ---@param biome_id biome_id valid biome id
----@return number r
+---@return number r 
 function DATA.biome_get_r(biome_id)
     return DATA.biome[biome_id].r
 end
@@ -13858,7 +13893,7 @@ function DATA.biome_inc_r(biome_id, value)
     DATA.biome[biome_id].r = DATA.biome[biome_id].r + value
 end
 ---@param biome_id biome_id valid biome id
----@return number g
+---@return number g 
 function DATA.biome_get_g(biome_id)
     return DATA.biome[biome_id].g
 end
@@ -13873,7 +13908,7 @@ function DATA.biome_inc_g(biome_id, value)
     DATA.biome[biome_id].g = DATA.biome[biome_id].g + value
 end
 ---@param biome_id biome_id valid biome id
----@return number b
+---@return number b 
 function DATA.biome_get_b(biome_id)
     return DATA.biome[biome_id].b
 end
@@ -13888,7 +13923,7 @@ function DATA.biome_inc_b(biome_id, value)
     DATA.biome[biome_id].b = DATA.biome[biome_id].b + value
 end
 ---@param biome_id biome_id valid biome id
----@return boolean aquatic
+---@return boolean aquatic 
 function DATA.biome_get_aquatic(biome_id)
     return DATA.biome[biome_id].aquatic
 end
@@ -13898,7 +13933,7 @@ function DATA.biome_set_aquatic(biome_id, value)
     DATA.biome[biome_id].aquatic = value
 end
 ---@param biome_id biome_id valid biome id
----@return boolean marsh
+---@return boolean marsh 
 function DATA.biome_get_marsh(biome_id)
     return DATA.biome[biome_id].marsh
 end
@@ -13908,7 +13943,7 @@ function DATA.biome_set_marsh(biome_id, value)
     DATA.biome[biome_id].marsh = value
 end
 ---@param biome_id biome_id valid biome id
----@return boolean icy
+---@return boolean icy 
 function DATA.biome_get_icy(biome_id)
     return DATA.biome[biome_id].icy
 end
@@ -14658,77 +14693,77 @@ end
 
 ---@class (exact) fat_bedrock_id
 ---@field id bedrock_id Unique bedrock id
----@field name string
----@field r number
----@field g number
----@field b number
----@field color_id number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number
----@field acidity number
----@field igneous_extrusive boolean
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field color_id number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number 
+---@field acidity number 
+---@field igneous_extrusive boolean 
+---@field igneous_intrusive boolean 
+---@field sedimentary boolean 
+---@field clastic boolean 
+---@field evaporative boolean 
+---@field metamorphic_marble boolean 
+---@field metamorphic_slate boolean 
+---@field oceanic boolean 
+---@field sedimentary_ocean_deep boolean 
+---@field sedimentary_ocean_shallow boolean 
 
 ---@class struct_bedrock
----@field r number
----@field g number
----@field b number
----@field color_id number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number
----@field acidity number
----@field igneous_extrusive boolean
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field r number 
+---@field g number 
+---@field b number 
+---@field color_id number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number 
+---@field acidity number 
+---@field igneous_extrusive boolean 
+---@field igneous_intrusive boolean 
+---@field sedimentary boolean 
+---@field clastic boolean 
+---@field evaporative boolean 
+---@field metamorphic_marble boolean 
+---@field metamorphic_slate boolean 
+---@field oceanic boolean 
+---@field sedimentary_ocean_deep boolean 
+---@field sedimentary_ocean_shallow boolean 
 
 ---@class (exact) bedrock_id_data_blob_definition
----@field name string
----@field r number
----@field g number
----@field b number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number?
----@field acidity number?
----@field igneous_extrusive boolean?
----@field igneous_intrusive boolean?
----@field sedimentary boolean?
----@field clastic boolean?
----@field evaporative boolean?
----@field metamorphic_marble boolean?
----@field metamorphic_slate boolean?
----@field oceanic boolean?
----@field sedimentary_ocean_deep boolean?
----@field sedimentary_ocean_shallow boolean?
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number? 
+---@field acidity number? 
+---@field igneous_extrusive boolean? 
+---@field igneous_intrusive boolean? 
+---@field sedimentary boolean? 
+---@field clastic boolean? 
+---@field evaporative boolean? 
+---@field metamorphic_marble boolean? 
+---@field metamorphic_slate boolean? 
+---@field oceanic boolean? 
+---@field sedimentary_ocean_deep boolean? 
+---@field sedimentary_ocean_shallow boolean? 
 ---Sets values of bedrock for given id
 ---@param id bedrock_id
 ---@param data bedrock_id_data_blob_definition
@@ -14836,7 +14871,7 @@ DATA.bedrock_size = 150
 ---@type table<bedrock_id, boolean>
 local bedrock_indices_pool = ffi.new("bool[?]", 150)
 for i = 1, 149 do
-    bedrock_indices_pool[i] = true
+    bedrock_indices_pool[i] = true 
 end
 ---@type table<bedrock_id, bedrock_id>
 DATA.bedrock_indices_set = {}
@@ -14846,16 +14881,16 @@ function DATA.create_bedrock()
             DATA.bedrock_indices_set[i] = i
     return i
 end
----@param func fun(item: bedrock_id)
+---@param func fun(item: bedrock_id) 
 function DATA.for_each_bedrock(func)
     for _, item in pairs(DATA.bedrock_indices_set) do
         func(item)
     end
 end
----@param func fun(item: bedrock_id):boolean
----@return table<bedrock_id, bedrock_id>
+---@param func fun(item: bedrock_id):boolean 
+---@return table<bedrock_id, bedrock_id> 
 function DATA.filter_bedrock(func)
-    ---@type table<bedrock_id, bedrock_id>
+    ---@type table<bedrock_id, bedrock_id> 
     local t = {}
     for _, item in pairs(DATA.bedrock_indices_set) do
         if func(item) then t[item] = item end
@@ -14864,7 +14899,7 @@ function DATA.filter_bedrock(func)
 end
 
 ---@param bedrock_id bedrock_id valid bedrock id
----@return string name
+---@return string name 
 function DATA.bedrock_get_name(bedrock_id)
     return DATA.bedrock_name[bedrock_id]
 end
@@ -14874,7 +14909,7 @@ function DATA.bedrock_set_name(bedrock_id, value)
     DATA.bedrock_name[bedrock_id] = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number r
+---@return number r 
 function DATA.bedrock_get_r(bedrock_id)
     return DATA.bedrock[bedrock_id].r
 end
@@ -14889,7 +14924,7 @@ function DATA.bedrock_inc_r(bedrock_id, value)
     DATA.bedrock[bedrock_id].r = DATA.bedrock[bedrock_id].r + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number g
+---@return number g 
 function DATA.bedrock_get_g(bedrock_id)
     return DATA.bedrock[bedrock_id].g
 end
@@ -14904,7 +14939,7 @@ function DATA.bedrock_inc_g(bedrock_id, value)
     DATA.bedrock[bedrock_id].g = DATA.bedrock[bedrock_id].g + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number b
+---@return number b 
 function DATA.bedrock_get_b(bedrock_id)
     return DATA.bedrock[bedrock_id].b
 end
@@ -14919,7 +14954,7 @@ function DATA.bedrock_inc_b(bedrock_id, value)
     DATA.bedrock[bedrock_id].b = DATA.bedrock[bedrock_id].b + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number color_id
+---@return number color_id 
 function DATA.bedrock_get_color_id(bedrock_id)
     return DATA.bedrock[bedrock_id].color_id
 end
@@ -14934,7 +14969,7 @@ function DATA.bedrock_inc_color_id(bedrock_id, value)
     DATA.bedrock[bedrock_id].color_id = DATA.bedrock[bedrock_id].color_id + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number sand
+---@return number sand 
 function DATA.bedrock_get_sand(bedrock_id)
     return DATA.bedrock[bedrock_id].sand
 end
@@ -14949,7 +14984,7 @@ function DATA.bedrock_inc_sand(bedrock_id, value)
     DATA.bedrock[bedrock_id].sand = DATA.bedrock[bedrock_id].sand + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number silt
+---@return number silt 
 function DATA.bedrock_get_silt(bedrock_id)
     return DATA.bedrock[bedrock_id].silt
 end
@@ -14964,7 +14999,7 @@ function DATA.bedrock_inc_silt(bedrock_id, value)
     DATA.bedrock[bedrock_id].silt = DATA.bedrock[bedrock_id].silt + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number clay
+---@return number clay 
 function DATA.bedrock_get_clay(bedrock_id)
     return DATA.bedrock[bedrock_id].clay
 end
@@ -14979,7 +15014,7 @@ function DATA.bedrock_inc_clay(bedrock_id, value)
     DATA.bedrock[bedrock_id].clay = DATA.bedrock[bedrock_id].clay + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number organics
+---@return number organics 
 function DATA.bedrock_get_organics(bedrock_id)
     return DATA.bedrock[bedrock_id].organics
 end
@@ -14994,7 +15029,7 @@ function DATA.bedrock_inc_organics(bedrock_id, value)
     DATA.bedrock[bedrock_id].organics = DATA.bedrock[bedrock_id].organics + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number minerals
+---@return number minerals 
 function DATA.bedrock_get_minerals(bedrock_id)
     return DATA.bedrock[bedrock_id].minerals
 end
@@ -15009,7 +15044,7 @@ function DATA.bedrock_inc_minerals(bedrock_id, value)
     DATA.bedrock[bedrock_id].minerals = DATA.bedrock[bedrock_id].minerals + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number weathering
+---@return number weathering 
 function DATA.bedrock_get_weathering(bedrock_id)
     return DATA.bedrock[bedrock_id].weathering
 end
@@ -15024,7 +15059,7 @@ function DATA.bedrock_inc_weathering(bedrock_id, value)
     DATA.bedrock[bedrock_id].weathering = DATA.bedrock[bedrock_id].weathering + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number grain_size
+---@return number grain_size 
 function DATA.bedrock_get_grain_size(bedrock_id)
     return DATA.bedrock[bedrock_id].grain_size
 end
@@ -15039,7 +15074,7 @@ function DATA.bedrock_inc_grain_size(bedrock_id, value)
     DATA.bedrock[bedrock_id].grain_size = DATA.bedrock[bedrock_id].grain_size + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number acidity
+---@return number acidity 
 function DATA.bedrock_get_acidity(bedrock_id)
     return DATA.bedrock[bedrock_id].acidity
 end
@@ -15054,7 +15089,7 @@ function DATA.bedrock_inc_acidity(bedrock_id, value)
     DATA.bedrock[bedrock_id].acidity = DATA.bedrock[bedrock_id].acidity + value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_extrusive
+---@return boolean igneous_extrusive 
 function DATA.bedrock_get_igneous_extrusive(bedrock_id)
     return DATA.bedrock[bedrock_id].igneous_extrusive
 end
@@ -15064,7 +15099,7 @@ function DATA.bedrock_set_igneous_extrusive(bedrock_id, value)
     DATA.bedrock[bedrock_id].igneous_extrusive = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_intrusive
+---@return boolean igneous_intrusive 
 function DATA.bedrock_get_igneous_intrusive(bedrock_id)
     return DATA.bedrock[bedrock_id].igneous_intrusive
 end
@@ -15074,7 +15109,7 @@ function DATA.bedrock_set_igneous_intrusive(bedrock_id, value)
     DATA.bedrock[bedrock_id].igneous_intrusive = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary
+---@return boolean sedimentary 
 function DATA.bedrock_get_sedimentary(bedrock_id)
     return DATA.bedrock[bedrock_id].sedimentary
 end
@@ -15084,7 +15119,7 @@ function DATA.bedrock_set_sedimentary(bedrock_id, value)
     DATA.bedrock[bedrock_id].sedimentary = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean clastic
+---@return boolean clastic 
 function DATA.bedrock_get_clastic(bedrock_id)
     return DATA.bedrock[bedrock_id].clastic
 end
@@ -15094,7 +15129,7 @@ function DATA.bedrock_set_clastic(bedrock_id, value)
     DATA.bedrock[bedrock_id].clastic = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean evaporative
+---@return boolean evaporative 
 function DATA.bedrock_get_evaporative(bedrock_id)
     return DATA.bedrock[bedrock_id].evaporative
 end
@@ -15104,7 +15139,7 @@ function DATA.bedrock_set_evaporative(bedrock_id, value)
     DATA.bedrock[bedrock_id].evaporative = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean metamorphic_marble
+---@return boolean metamorphic_marble 
 function DATA.bedrock_get_metamorphic_marble(bedrock_id)
     return DATA.bedrock[bedrock_id].metamorphic_marble
 end
@@ -15114,7 +15149,7 @@ function DATA.bedrock_set_metamorphic_marble(bedrock_id, value)
     DATA.bedrock[bedrock_id].metamorphic_marble = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean metamorphic_slate
+---@return boolean metamorphic_slate 
 function DATA.bedrock_get_metamorphic_slate(bedrock_id)
     return DATA.bedrock[bedrock_id].metamorphic_slate
 end
@@ -15124,7 +15159,7 @@ function DATA.bedrock_set_metamorphic_slate(bedrock_id, value)
     DATA.bedrock[bedrock_id].metamorphic_slate = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean oceanic
+---@return boolean oceanic 
 function DATA.bedrock_get_oceanic(bedrock_id)
     return DATA.bedrock[bedrock_id].oceanic
 end
@@ -15134,7 +15169,7 @@ function DATA.bedrock_set_oceanic(bedrock_id, value)
     DATA.bedrock[bedrock_id].oceanic = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary_ocean_deep
+---@return boolean sedimentary_ocean_deep 
 function DATA.bedrock_get_sedimentary_ocean_deep(bedrock_id)
     return DATA.bedrock[bedrock_id].sedimentary_ocean_deep
 end
@@ -15144,7 +15179,7 @@ function DATA.bedrock_set_sedimentary_ocean_deep(bedrock_id, value)
     DATA.bedrock[bedrock_id].sedimentary_ocean_deep = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary_ocean_shallow
+---@return boolean sedimentary_ocean_shallow 
 function DATA.bedrock_get_sedimentary_ocean_shallow(bedrock_id)
     return DATA.bedrock[bedrock_id].sedimentary_ocean_shallow
 end
@@ -15294,52 +15329,52 @@ end
 
 ---@class (exact) fat_resource_id
 ---@field id resource_id Unique resource id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field base_frequency number number of tiles per which this resource is spawned
----@field coastal boolean
----@field land boolean
----@field water boolean
+---@field coastal boolean 
+---@field land boolean 
+---@field water boolean 
 ---@field ice_age boolean requires presence of ice age ice
----@field minimum_trees number
----@field maximum_trees number
----@field minimum_elevation number
----@field maximum_elevation number
+---@field minimum_trees number 
+---@field maximum_trees number 
+---@field minimum_elevation number 
+---@field maximum_elevation number 
 
 ---@class struct_resource
----@field r number
----@field g number
----@field b number
----@field required_biome table<number, biome_id>
----@field required_bedrock table<number, bedrock_id>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field required_biome table<number, biome_id> 
+---@field required_bedrock table<number, bedrock_id> 
 ---@field base_frequency number number of tiles per which this resource is spawned
----@field minimum_trees number
----@field maximum_trees number
----@field minimum_elevation number
----@field maximum_elevation number
+---@field minimum_trees number 
+---@field maximum_trees number 
+---@field minimum_elevation number 
+---@field maximum_elevation number 
 
 ---@class (exact) resource_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field required_biome biome_id[]
----@field required_bedrock bedrock_id[]
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field required_biome biome_id[] 
+---@field required_bedrock bedrock_id[] 
 ---@field base_frequency number? number of tiles per which this resource is spawned
----@field coastal boolean?
----@field land boolean?
----@field water boolean?
+---@field coastal boolean? 
+---@field land boolean? 
+---@field water boolean? 
 ---@field ice_age boolean? requires presence of ice age ice
----@field minimum_trees number?
----@field maximum_trees number?
----@field minimum_elevation number?
----@field maximum_elevation number?
+---@field minimum_trees number? 
+---@field maximum_trees number? 
+---@field minimum_elevation number? 
+---@field maximum_elevation number? 
 ---Sets values of resource for given id
 ---@param id resource_id
 ---@param data resource_id_data_blob_definition
@@ -15437,7 +15472,7 @@ DATA.resource_size = 300
 ---@type table<resource_id, boolean>
 local resource_indices_pool = ffi.new("bool[?]", 300)
 for i = 1, 299 do
-    resource_indices_pool[i] = true
+    resource_indices_pool[i] = true 
 end
 ---@type table<resource_id, resource_id>
 DATA.resource_indices_set = {}
@@ -15447,16 +15482,16 @@ function DATA.create_resource()
             DATA.resource_indices_set[i] = i
     return i
 end
----@param func fun(item: resource_id)
+---@param func fun(item: resource_id) 
 function DATA.for_each_resource(func)
     for _, item in pairs(DATA.resource_indices_set) do
         func(item)
     end
 end
----@param func fun(item: resource_id):boolean
----@return table<resource_id, resource_id>
+---@param func fun(item: resource_id):boolean 
+---@return table<resource_id, resource_id> 
 function DATA.filter_resource(func)
-    ---@type table<resource_id, resource_id>
+    ---@type table<resource_id, resource_id> 
     local t = {}
     for _, item in pairs(DATA.resource_indices_set) do
         if func(item) then t[item] = item end
@@ -15465,7 +15500,7 @@ function DATA.filter_resource(func)
 end
 
 ---@param resource_id resource_id valid resource id
----@return string name
+---@return string name 
 function DATA.resource_get_name(resource_id)
     return DATA.resource_name[resource_id]
 end
@@ -15475,7 +15510,7 @@ function DATA.resource_set_name(resource_id, value)
     DATA.resource_name[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return string icon
+---@return string icon 
 function DATA.resource_get_icon(resource_id)
     return DATA.resource_icon[resource_id]
 end
@@ -15485,7 +15520,7 @@ function DATA.resource_set_icon(resource_id, value)
     DATA.resource_icon[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return string description
+---@return string description 
 function DATA.resource_get_description(resource_id)
     return DATA.resource_description[resource_id]
 end
@@ -15495,7 +15530,7 @@ function DATA.resource_set_description(resource_id, value)
     DATA.resource_description[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return number r
+---@return number r 
 function DATA.resource_get_r(resource_id)
     return DATA.resource[resource_id].r
 end
@@ -15510,7 +15545,7 @@ function DATA.resource_inc_r(resource_id, value)
     DATA.resource[resource_id].r = DATA.resource[resource_id].r + value
 end
 ---@param resource_id resource_id valid resource id
----@return number g
+---@return number g 
 function DATA.resource_get_g(resource_id)
     return DATA.resource[resource_id].g
 end
@@ -15525,7 +15560,7 @@ function DATA.resource_inc_g(resource_id, value)
     DATA.resource[resource_id].g = DATA.resource[resource_id].g + value
 end
 ---@param resource_id resource_id valid resource id
----@return number b
+---@return number b 
 function DATA.resource_get_b(resource_id)
     return DATA.resource[resource_id].b
 end
@@ -15541,7 +15576,7 @@ function DATA.resource_inc_b(resource_id, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.resource_get_required_biome(resource_id, index)
     if DATA.resource[resource_id].required_biome == nil then return 0 end
     return DATA.resource[resource_id].required_biome[index]
@@ -15554,7 +15589,7 @@ function DATA.resource_set_required_biome(resource_id, index, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
----@return bedrock_id required_bedrock
+---@return bedrock_id required_bedrock 
 function DATA.resource_get_required_bedrock(resource_id, index)
     if DATA.resource[resource_id].required_bedrock == nil then return 0 end
     return DATA.resource[resource_id].required_bedrock[index]
@@ -15581,7 +15616,7 @@ function DATA.resource_inc_base_frequency(resource_id, value)
     DATA.resource[resource_id].base_frequency = DATA.resource[resource_id].base_frequency + value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean coastal
+---@return boolean coastal 
 function DATA.resource_get_coastal(resource_id)
     return DATA.resource_coastal[resource_id]
 end
@@ -15591,7 +15626,7 @@ function DATA.resource_set_coastal(resource_id, value)
     DATA.resource_coastal[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean land
+---@return boolean land 
 function DATA.resource_get_land(resource_id)
     return DATA.resource_land[resource_id]
 end
@@ -15601,7 +15636,7 @@ function DATA.resource_set_land(resource_id, value)
     DATA.resource_land[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean water
+---@return boolean water 
 function DATA.resource_get_water(resource_id)
     return DATA.resource_water[resource_id]
 end
@@ -15621,7 +15656,7 @@ function DATA.resource_set_ice_age(resource_id, value)
     DATA.resource_ice_age[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return number minimum_trees
+---@return number minimum_trees 
 function DATA.resource_get_minimum_trees(resource_id)
     return DATA.resource[resource_id].minimum_trees
 end
@@ -15636,7 +15671,7 @@ function DATA.resource_inc_minimum_trees(resource_id, value)
     DATA.resource[resource_id].minimum_trees = DATA.resource[resource_id].minimum_trees + value
 end
 ---@param resource_id resource_id valid resource id
----@return number maximum_trees
+---@return number maximum_trees 
 function DATA.resource_get_maximum_trees(resource_id)
     return DATA.resource[resource_id].maximum_trees
 end
@@ -15651,7 +15686,7 @@ function DATA.resource_inc_maximum_trees(resource_id, value)
     DATA.resource[resource_id].maximum_trees = DATA.resource[resource_id].maximum_trees + value
 end
 ---@param resource_id resource_id valid resource id
----@return number minimum_elevation
+---@return number minimum_elevation 
 function DATA.resource_get_minimum_elevation(resource_id)
     return DATA.resource[resource_id].minimum_elevation
 end
@@ -15666,7 +15701,7 @@ function DATA.resource_inc_minimum_elevation(resource_id, value)
     DATA.resource[resource_id].minimum_elevation = DATA.resource[resource_id].minimum_elevation + value
 end
 ---@param resource_id resource_id valid resource id
----@return number maximum_elevation
+---@return number maximum_elevation 
 function DATA.resource_get_maximum_elevation(resource_id)
     return DATA.resource[resource_id].maximum_elevation
 end
@@ -15781,62 +15816,62 @@ end
 
 ---@class (exact) fat_unit_type_id
 ---@field id unit_type_id Unique unit_type id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field base_price number
----@field upkeep number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number 
+---@field upkeep number 
 ---@field supply_used number how much food does this unit consume each month
----@field base_health number
----@field base_attack number
----@field base_armor number
----@field speed number
+---@field base_health number 
+---@field base_attack number 
+---@field base_armor number 
+---@field speed number 
 ---@field foraging number how much food does this unit forage from the local province?
 ---@field supply_capacity number how much food can this unit carry
----@field spotting number
----@field visibility number
+---@field spotting number 
+---@field visibility number 
 
 ---@class struct_unit_type
----@field r number
----@field g number
----@field b number
----@field base_price number
----@field upkeep number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number 
+---@field upkeep number 
 ---@field supply_used number how much food does this unit consume each month
----@field trade_good_requirements table<number, struct_trade_good_container>
----@field base_health number
----@field base_attack number
----@field base_armor number
----@field speed number
+---@field trade_good_requirements table<number, struct_trade_good_container> 
+---@field base_health number 
+---@field base_attack number 
+---@field base_armor number 
+---@field speed number 
 ---@field foraging number how much food does this unit forage from the local province?
----@field bonuses table<unit_type_id, number>
+---@field bonuses table<unit_type_id, number> 
 ---@field supply_capacity number how much food can this unit carry
----@field spotting number
----@field visibility number
+---@field spotting number 
+---@field visibility number 
 
 ---@class (exact) unit_type_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field base_price number?
----@field upkeep number?
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number? 
+---@field upkeep number? 
 ---@field supply_used number? how much food does this unit consume each month
----@field base_health number?
----@field base_attack number?
----@field base_armor number?
----@field speed number?
+---@field base_health number? 
+---@field base_attack number? 
+---@field base_armor number? 
+---@field speed number? 
 ---@field foraging number? how much food does this unit forage from the local province?
----@field bonuses number[]
+---@field bonuses number[] 
 ---@field supply_capacity number? how much food can this unit carry
----@field unlocked_by technology_id
----@field spotting number?
----@field visibility number?
+---@field unlocked_by technology_id 
+---@field spotting number? 
+---@field visibility number? 
 ---Sets values of unit_type for given id
 ---@param id unit_type_id
 ---@param data unit_type_id_data_blob_definition
@@ -15937,7 +15972,7 @@ DATA.unit_type_size = 20
 ---@type table<unit_type_id, boolean>
 local unit_type_indices_pool = ffi.new("bool[?]", 20)
 for i = 1, 19 do
-    unit_type_indices_pool[i] = true
+    unit_type_indices_pool[i] = true 
 end
 ---@type table<unit_type_id, unit_type_id>
 DATA.unit_type_indices_set = {}
@@ -15947,16 +15982,16 @@ function DATA.create_unit_type()
             DATA.unit_type_indices_set[i] = i
     return i
 end
----@param func fun(item: unit_type_id)
+---@param func fun(item: unit_type_id) 
 function DATA.for_each_unit_type(func)
     for _, item in pairs(DATA.unit_type_indices_set) do
         func(item)
     end
 end
----@param func fun(item: unit_type_id):boolean
----@return table<unit_type_id, unit_type_id>
+---@param func fun(item: unit_type_id):boolean 
+---@return table<unit_type_id, unit_type_id> 
 function DATA.filter_unit_type(func)
-    ---@type table<unit_type_id, unit_type_id>
+    ---@type table<unit_type_id, unit_type_id> 
     local t = {}
     for _, item in pairs(DATA.unit_type_indices_set) do
         if func(item) then t[item] = item end
@@ -15965,7 +16000,7 @@ function DATA.filter_unit_type(func)
 end
 
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string name
+---@return string name 
 function DATA.unit_type_get_name(unit_type_id)
     return DATA.unit_type_name[unit_type_id]
 end
@@ -15975,7 +16010,7 @@ function DATA.unit_type_set_name(unit_type_id, value)
     DATA.unit_type_name[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string icon
+---@return string icon 
 function DATA.unit_type_get_icon(unit_type_id)
     return DATA.unit_type_icon[unit_type_id]
 end
@@ -15985,7 +16020,7 @@ function DATA.unit_type_set_icon(unit_type_id, value)
     DATA.unit_type_icon[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string description
+---@return string description 
 function DATA.unit_type_get_description(unit_type_id)
     return DATA.unit_type_description[unit_type_id]
 end
@@ -15995,7 +16030,7 @@ function DATA.unit_type_set_description(unit_type_id, value)
     DATA.unit_type_description[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number r
+---@return number r 
 function DATA.unit_type_get_r(unit_type_id)
     return DATA.unit_type[unit_type_id].r
 end
@@ -16010,7 +16045,7 @@ function DATA.unit_type_inc_r(unit_type_id, value)
     DATA.unit_type[unit_type_id].r = DATA.unit_type[unit_type_id].r + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number g
+---@return number g 
 function DATA.unit_type_get_g(unit_type_id)
     return DATA.unit_type[unit_type_id].g
 end
@@ -16025,7 +16060,7 @@ function DATA.unit_type_inc_g(unit_type_id, value)
     DATA.unit_type[unit_type_id].g = DATA.unit_type[unit_type_id].g + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number b
+---@return number b 
 function DATA.unit_type_get_b(unit_type_id)
     return DATA.unit_type[unit_type_id].b
 end
@@ -16040,7 +16075,7 @@ function DATA.unit_type_inc_b(unit_type_id, value)
     DATA.unit_type[unit_type_id].b = DATA.unit_type[unit_type_id].b + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_price
+---@return number base_price 
 function DATA.unit_type_get_base_price(unit_type_id)
     return DATA.unit_type[unit_type_id].base_price
 end
@@ -16055,7 +16090,7 @@ function DATA.unit_type_inc_base_price(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_price = DATA.unit_type[unit_type_id].base_price + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number upkeep
+---@return number upkeep 
 function DATA.unit_type_get_upkeep(unit_type_id)
     return DATA.unit_type[unit_type_id].upkeep
 end
@@ -16086,14 +16121,14 @@ function DATA.unit_type_inc_supply_used(unit_type_id, value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
----@return trade_good_id trade_good_requirements
+---@return trade_good_id trade_good_requirements 
 function DATA.unit_type_get_trade_good_requirements_good(unit_type_id, index)
     if DATA.unit_type[unit_type_id].trade_good_requirements == nil then return 0 end
     return DATA.unit_type[unit_type_id].trade_good_requirements[index].good
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
----@return number trade_good_requirements
+---@return number trade_good_requirements 
 function DATA.unit_type_get_trade_good_requirements_amount(unit_type_id, index)
     if DATA.unit_type[unit_type_id].trade_good_requirements == nil then return 0 end
     return DATA.unit_type[unit_type_id].trade_good_requirements[index].amount
@@ -16117,7 +16152,7 @@ function DATA.unit_type_inc_trade_good_requirements_amount(unit_type_id, index, 
     DATA.unit_type[unit_type_id].trade_good_requirements[index].amount = DATA.unit_type[unit_type_id].trade_good_requirements[index].amount + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_health
+---@return number base_health 
 function DATA.unit_type_get_base_health(unit_type_id)
     return DATA.unit_type[unit_type_id].base_health
 end
@@ -16132,7 +16167,7 @@ function DATA.unit_type_inc_base_health(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_health = DATA.unit_type[unit_type_id].base_health + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_attack
+---@return number base_attack 
 function DATA.unit_type_get_base_attack(unit_type_id)
     return DATA.unit_type[unit_type_id].base_attack
 end
@@ -16147,7 +16182,7 @@ function DATA.unit_type_inc_base_attack(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_attack = DATA.unit_type[unit_type_id].base_attack + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_armor
+---@return number base_armor 
 function DATA.unit_type_get_base_armor(unit_type_id)
     return DATA.unit_type[unit_type_id].base_armor
 end
@@ -16162,7 +16197,7 @@ function DATA.unit_type_inc_base_armor(unit_type_id, value)
     DATA.unit_type[unit_type_id].base_armor = DATA.unit_type[unit_type_id].base_armor + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number speed
+---@return number speed 
 function DATA.unit_type_get_speed(unit_type_id)
     return DATA.unit_type[unit_type_id].speed
 end
@@ -16193,7 +16228,7 @@ function DATA.unit_type_inc_foraging(unit_type_id, value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index unit_type_id valid
----@return number bonuses
+---@return number bonuses 
 function DATA.unit_type_get_bonuses(unit_type_id, index)
     if DATA.unit_type[unit_type_id].bonuses == nil then return 0 end
     return DATA.unit_type[unit_type_id].bonuses[index]
@@ -16226,7 +16261,7 @@ function DATA.unit_type_inc_supply_capacity(unit_type_id, value)
     DATA.unit_type[unit_type_id].supply_capacity = DATA.unit_type[unit_type_id].supply_capacity + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number spotting
+---@return number spotting 
 function DATA.unit_type_get_spotting(unit_type_id)
     return DATA.unit_type[unit_type_id].spotting
 end
@@ -16241,7 +16276,7 @@ function DATA.unit_type_inc_spotting(unit_type_id, value)
     DATA.unit_type[unit_type_id].spotting = DATA.unit_type[unit_type_id].spotting + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number visibility
+---@return number visibility 
 function DATA.unit_type_get_visibility(unit_type_id)
     return DATA.unit_type[unit_type_id].visibility
 end
@@ -16366,25 +16401,25 @@ end
 
 ---@class (exact) fat_job_id
 ---@field id job_id Unique job id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class struct_job
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class (exact) job_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---Sets values of job for given id
 ---@param id job_id
 ---@param data job_id_data_blob_definition
@@ -16425,7 +16460,7 @@ DATA.job_size = 250
 ---@type table<job_id, boolean>
 local job_indices_pool = ffi.new("bool[?]", 250)
 for i = 1, 249 do
-    job_indices_pool[i] = true
+    job_indices_pool[i] = true 
 end
 ---@type table<job_id, job_id>
 DATA.job_indices_set = {}
@@ -16435,16 +16470,16 @@ function DATA.create_job()
             DATA.job_indices_set[i] = i
     return i
 end
----@param func fun(item: job_id)
+---@param func fun(item: job_id) 
 function DATA.for_each_job(func)
     for _, item in pairs(DATA.job_indices_set) do
         func(item)
     end
 end
----@param func fun(item: job_id):boolean
----@return table<job_id, job_id>
+---@param func fun(item: job_id):boolean 
+---@return table<job_id, job_id> 
 function DATA.filter_job(func)
-    ---@type table<job_id, job_id>
+    ---@type table<job_id, job_id> 
     local t = {}
     for _, item in pairs(DATA.job_indices_set) do
         if func(item) then t[item] = item end
@@ -16453,7 +16488,7 @@ function DATA.filter_job(func)
 end
 
 ---@param job_id job_id valid job id
----@return string name
+---@return string name 
 function DATA.job_get_name(job_id)
     return DATA.job_name[job_id]
 end
@@ -16463,7 +16498,7 @@ function DATA.job_set_name(job_id, value)
     DATA.job_name[job_id] = value
 end
 ---@param job_id job_id valid job id
----@return string icon
+---@return string icon 
 function DATA.job_get_icon(job_id)
     return DATA.job_icon[job_id]
 end
@@ -16473,7 +16508,7 @@ function DATA.job_set_icon(job_id, value)
     DATA.job_icon[job_id] = value
 end
 ---@param job_id job_id valid job id
----@return string description
+---@return string description 
 function DATA.job_get_description(job_id)
     return DATA.job_description[job_id]
 end
@@ -16483,7 +16518,7 @@ function DATA.job_set_description(job_id, value)
     DATA.job_description[job_id] = value
 end
 ---@param job_id job_id valid job id
----@return number r
+---@return number r 
 function DATA.job_get_r(job_id)
     return DATA.job[job_id].r
 end
@@ -16498,7 +16533,7 @@ function DATA.job_inc_r(job_id, value)
     DATA.job[job_id].r = DATA.job[job_id].r + value
 end
 ---@param job_id job_id valid job id
----@return number g
+---@return number g 
 function DATA.job_get_g(job_id)
     return DATA.job[job_id].g
 end
@@ -16513,7 +16548,7 @@ function DATA.job_inc_g(job_id, value)
     DATA.job[job_id].g = DATA.job[job_id].g + value
 end
 ---@param job_id job_id valid job id
----@return number b
+---@return number b 
 function DATA.job_get_b(job_id)
     return DATA.job[job_id].b
 end
@@ -16583,82 +16618,82 @@ end
 
 ---@class (exact) fat_production_method_id
 ---@field id production_method_id Unique production_method id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field job_type JOBTYPE
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
 ---@field foraging boolean If true, worktime counts towards the foragers count
 ---@field hydration boolean If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number Set to 1 if building consumes local forests
 ---@field crop boolean If true, the building will periodically change its yield for a season.
----@field temperature_ideal_min number
----@field temperature_ideal_max number
----@field temperature_extreme_min number
----@field temperature_extreme_max number
----@field rainfall_ideal_min number
----@field rainfall_ideal_max number
----@field rainfall_extreme_min number
----@field rainfall_extreme_max number
----@field clay_ideal_min number
----@field clay_ideal_max number
----@field clay_extreme_min number
----@field clay_extreme_max number
+---@field temperature_ideal_min number 
+---@field temperature_ideal_max number 
+---@field temperature_extreme_min number 
+---@field temperature_extreme_max number 
+---@field rainfall_ideal_min number 
+---@field rainfall_ideal_max number 
+---@field rainfall_extreme_min number 
+---@field rainfall_extreme_max number 
+---@field clay_ideal_min number 
+---@field clay_ideal_max number 
+---@field clay_extreme_min number 
+---@field clay_extreme_max number 
 
 ---@class struct_production_method
----@field r number
----@field g number
----@field b number
----@field job_type JOBTYPE
----@field jobs table<number, struct_job_container>
----@field inputs table<number, struct_use_case_container>
----@field outputs table<number, struct_trade_good_container>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
+---@field jobs table<number, struct_job_container> 
+---@field inputs table<number, struct_use_case_container> 
+---@field outputs table<number, struct_trade_good_container> 
 ---@field foraging boolean If true, worktime counts towards the foragers count
 ---@field hydration boolean If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number Set to 1 if building consumes local forests
 ---@field crop boolean If true, the building will periodically change its yield for a season.
----@field temperature_ideal_min number
----@field temperature_ideal_max number
----@field temperature_extreme_min number
----@field temperature_extreme_max number
----@field rainfall_ideal_min number
----@field rainfall_ideal_max number
----@field rainfall_extreme_min number
----@field rainfall_extreme_max number
----@field clay_ideal_min number
----@field clay_ideal_max number
----@field clay_extreme_min number
----@field clay_extreme_max number
+---@field temperature_ideal_min number 
+---@field temperature_ideal_max number 
+---@field temperature_extreme_min number 
+---@field temperature_extreme_max number 
+---@field rainfall_ideal_min number 
+---@field rainfall_ideal_max number 
+---@field rainfall_extreme_min number 
+---@field rainfall_extreme_max number 
+---@field clay_ideal_min number 
+---@field clay_ideal_max number 
+---@field clay_extreme_min number 
+---@field clay_extreme_max number 
 
 ---@class (exact) production_method_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field job_type JOBTYPE
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
 ---@field foraging boolean? If true, worktime counts towards the foragers count
 ---@field hydration boolean? If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number? How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number? Set to 1 if building consumes local forests
 ---@field crop boolean? If true, the building will periodically change its yield for a season.
----@field temperature_ideal_min number?
----@field temperature_ideal_max number?
----@field temperature_extreme_min number?
----@field temperature_extreme_max number?
----@field rainfall_ideal_min number?
----@field rainfall_ideal_max number?
----@field rainfall_extreme_min number?
----@field rainfall_extreme_max number?
----@field clay_ideal_min number?
----@field clay_ideal_max number?
----@field clay_extreme_min number?
----@field clay_extreme_max number?
+---@field temperature_ideal_min number? 
+---@field temperature_ideal_max number? 
+---@field temperature_extreme_min number? 
+---@field temperature_extreme_max number? 
+---@field rainfall_ideal_min number? 
+---@field rainfall_ideal_max number? 
+---@field rainfall_extreme_min number? 
+---@field rainfall_extreme_max number? 
+---@field clay_ideal_min number? 
+---@field clay_ideal_max number? 
+---@field clay_extreme_min number? 
+---@field clay_extreme_max number? 
 ---Sets values of production_method for given id
 ---@param id production_method_id
 ---@param data production_method_id_data_blob_definition
@@ -16789,7 +16824,7 @@ DATA.production_method_size = 250
 ---@type table<production_method_id, boolean>
 local production_method_indices_pool = ffi.new("bool[?]", 250)
 for i = 1, 249 do
-    production_method_indices_pool[i] = true
+    production_method_indices_pool[i] = true 
 end
 ---@type table<production_method_id, production_method_id>
 DATA.production_method_indices_set = {}
@@ -16799,16 +16834,16 @@ function DATA.create_production_method()
             DATA.production_method_indices_set[i] = i
     return i
 end
----@param func fun(item: production_method_id)
+---@param func fun(item: production_method_id) 
 function DATA.for_each_production_method(func)
     for _, item in pairs(DATA.production_method_indices_set) do
         func(item)
     end
 end
----@param func fun(item: production_method_id):boolean
----@return table<production_method_id, production_method_id>
+---@param func fun(item: production_method_id):boolean 
+---@return table<production_method_id, production_method_id> 
 function DATA.filter_production_method(func)
-    ---@type table<production_method_id, production_method_id>
+    ---@type table<production_method_id, production_method_id> 
     local t = {}
     for _, item in pairs(DATA.production_method_indices_set) do
         if func(item) then t[item] = item end
@@ -16817,7 +16852,7 @@ function DATA.filter_production_method(func)
 end
 
 ---@param production_method_id production_method_id valid production_method id
----@return string name
+---@return string name 
 function DATA.production_method_get_name(production_method_id)
     return DATA.production_method_name[production_method_id]
 end
@@ -16827,7 +16862,7 @@ function DATA.production_method_set_name(production_method_id, value)
     DATA.production_method_name[production_method_id] = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return string icon
+---@return string icon 
 function DATA.production_method_get_icon(production_method_id)
     return DATA.production_method_icon[production_method_id]
 end
@@ -16837,7 +16872,7 @@ function DATA.production_method_set_icon(production_method_id, value)
     DATA.production_method_icon[production_method_id] = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return string description
+---@return string description 
 function DATA.production_method_get_description(production_method_id)
     return DATA.production_method_description[production_method_id]
 end
@@ -16847,7 +16882,7 @@ function DATA.production_method_set_description(production_method_id, value)
     DATA.production_method_description[production_method_id] = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number r
+---@return number r 
 function DATA.production_method_get_r(production_method_id)
     return DATA.production_method[production_method_id].r
 end
@@ -16862,7 +16897,7 @@ function DATA.production_method_inc_r(production_method_id, value)
     DATA.production_method[production_method_id].r = DATA.production_method[production_method_id].r + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number g
+---@return number g 
 function DATA.production_method_get_g(production_method_id)
     return DATA.production_method[production_method_id].g
 end
@@ -16877,7 +16912,7 @@ function DATA.production_method_inc_g(production_method_id, value)
     DATA.production_method[production_method_id].g = DATA.production_method[production_method_id].g + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number b
+---@return number b 
 function DATA.production_method_get_b(production_method_id)
     return DATA.production_method[production_method_id].b
 end
@@ -16892,7 +16927,7 @@ function DATA.production_method_inc_b(production_method_id, value)
     DATA.production_method[production_method_id].b = DATA.production_method[production_method_id].b + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return JOBTYPE job_type
+---@return JOBTYPE job_type 
 function DATA.production_method_get_job_type(production_method_id)
     return DATA.production_method[production_method_id].job_type
 end
@@ -16903,14 +16938,14 @@ function DATA.production_method_set_job_type(production_method_id, value)
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return job_id jobs
+---@return job_id jobs 
 function DATA.production_method_get_jobs_job(production_method_id, index)
     if DATA.production_method[production_method_id].jobs == nil then return 0 end
     return DATA.production_method[production_method_id].jobs[index].job
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return number jobs
+---@return number jobs 
 function DATA.production_method_get_jobs_amount(production_method_id, index)
     if DATA.production_method[production_method_id].jobs == nil then return 0 end
     return DATA.production_method[production_method_id].jobs[index].amount
@@ -16935,14 +16970,14 @@ function DATA.production_method_inc_jobs_amount(production_method_id, index, val
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return use_case_id inputs
+---@return use_case_id inputs 
 function DATA.production_method_get_inputs_use(production_method_id, index)
     if DATA.production_method[production_method_id].inputs == nil then return 0 end
     return DATA.production_method[production_method_id].inputs[index].use
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return number inputs
+---@return number inputs 
 function DATA.production_method_get_inputs_amount(production_method_id, index)
     if DATA.production_method[production_method_id].inputs == nil then return 0 end
     return DATA.production_method[production_method_id].inputs[index].amount
@@ -16967,14 +17002,14 @@ function DATA.production_method_inc_inputs_amount(production_method_id, index, v
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return trade_good_id outputs
+---@return trade_good_id outputs 
 function DATA.production_method_get_outputs_good(production_method_id, index)
     if DATA.production_method[production_method_id].outputs == nil then return 0 end
     return DATA.production_method[production_method_id].outputs[index].good
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return number outputs
+---@return number outputs 
 function DATA.production_method_get_outputs_amount(production_method_id, index)
     if DATA.production_method[production_method_id].outputs == nil then return 0 end
     return DATA.production_method[production_method_id].outputs[index].amount
@@ -17058,7 +17093,7 @@ function DATA.production_method_set_crop(production_method_id, value)
     DATA.production_method[production_method_id].crop = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_ideal_min
+---@return number temperature_ideal_min 
 function DATA.production_method_get_temperature_ideal_min(production_method_id)
     return DATA.production_method[production_method_id].temperature_ideal_min
 end
@@ -17073,7 +17108,7 @@ function DATA.production_method_inc_temperature_ideal_min(production_method_id, 
     DATA.production_method[production_method_id].temperature_ideal_min = DATA.production_method[production_method_id].temperature_ideal_min + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_ideal_max
+---@return number temperature_ideal_max 
 function DATA.production_method_get_temperature_ideal_max(production_method_id)
     return DATA.production_method[production_method_id].temperature_ideal_max
 end
@@ -17088,7 +17123,7 @@ function DATA.production_method_inc_temperature_ideal_max(production_method_id, 
     DATA.production_method[production_method_id].temperature_ideal_max = DATA.production_method[production_method_id].temperature_ideal_max + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_extreme_min
+---@return number temperature_extreme_min 
 function DATA.production_method_get_temperature_extreme_min(production_method_id)
     return DATA.production_method[production_method_id].temperature_extreme_min
 end
@@ -17103,7 +17138,7 @@ function DATA.production_method_inc_temperature_extreme_min(production_method_id
     DATA.production_method[production_method_id].temperature_extreme_min = DATA.production_method[production_method_id].temperature_extreme_min + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_extreme_max
+---@return number temperature_extreme_max 
 function DATA.production_method_get_temperature_extreme_max(production_method_id)
     return DATA.production_method[production_method_id].temperature_extreme_max
 end
@@ -17118,7 +17153,7 @@ function DATA.production_method_inc_temperature_extreme_max(production_method_id
     DATA.production_method[production_method_id].temperature_extreme_max = DATA.production_method[production_method_id].temperature_extreme_max + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_ideal_min
+---@return number rainfall_ideal_min 
 function DATA.production_method_get_rainfall_ideal_min(production_method_id)
     return DATA.production_method[production_method_id].rainfall_ideal_min
 end
@@ -17133,7 +17168,7 @@ function DATA.production_method_inc_rainfall_ideal_min(production_method_id, val
     DATA.production_method[production_method_id].rainfall_ideal_min = DATA.production_method[production_method_id].rainfall_ideal_min + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_ideal_max
+---@return number rainfall_ideal_max 
 function DATA.production_method_get_rainfall_ideal_max(production_method_id)
     return DATA.production_method[production_method_id].rainfall_ideal_max
 end
@@ -17148,7 +17183,7 @@ function DATA.production_method_inc_rainfall_ideal_max(production_method_id, val
     DATA.production_method[production_method_id].rainfall_ideal_max = DATA.production_method[production_method_id].rainfall_ideal_max + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_extreme_min
+---@return number rainfall_extreme_min 
 function DATA.production_method_get_rainfall_extreme_min(production_method_id)
     return DATA.production_method[production_method_id].rainfall_extreme_min
 end
@@ -17163,7 +17198,7 @@ function DATA.production_method_inc_rainfall_extreme_min(production_method_id, v
     DATA.production_method[production_method_id].rainfall_extreme_min = DATA.production_method[production_method_id].rainfall_extreme_min + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_extreme_max
+---@return number rainfall_extreme_max 
 function DATA.production_method_get_rainfall_extreme_max(production_method_id)
     return DATA.production_method[production_method_id].rainfall_extreme_max
 end
@@ -17178,7 +17213,7 @@ function DATA.production_method_inc_rainfall_extreme_max(production_method_id, v
     DATA.production_method[production_method_id].rainfall_extreme_max = DATA.production_method[production_method_id].rainfall_extreme_max + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_ideal_min
+---@return number clay_ideal_min 
 function DATA.production_method_get_clay_ideal_min(production_method_id)
     return DATA.production_method[production_method_id].clay_ideal_min
 end
@@ -17193,7 +17228,7 @@ function DATA.production_method_inc_clay_ideal_min(production_method_id, value)
     DATA.production_method[production_method_id].clay_ideal_min = DATA.production_method[production_method_id].clay_ideal_min + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_ideal_max
+---@return number clay_ideal_max 
 function DATA.production_method_get_clay_ideal_max(production_method_id)
     return DATA.production_method[production_method_id].clay_ideal_max
 end
@@ -17208,7 +17243,7 @@ function DATA.production_method_inc_clay_ideal_max(production_method_id, value)
     DATA.production_method[production_method_id].clay_ideal_max = DATA.production_method[production_method_id].clay_ideal_max + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_extreme_min
+---@return number clay_extreme_min 
 function DATA.production_method_get_clay_extreme_min(production_method_id)
     return DATA.production_method[production_method_id].clay_extreme_min
 end
@@ -17223,7 +17258,7 @@ function DATA.production_method_inc_clay_extreme_min(production_method_id, value
     DATA.production_method[production_method_id].clay_extreme_min = DATA.production_method[production_method_id].clay_extreme_min + value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_extreme_max
+---@return number clay_extreme_max 
 function DATA.production_method_get_clay_extreme_max(production_method_id)
     return DATA.production_method[production_method_id].clay_extreme_max
 end
@@ -17383,42 +17418,42 @@ end
 
 ---@class (exact) fat_technology_id
 ---@field id technology_id Unique technology id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
 ---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
 
 ---@class struct_technology
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
----@field required_biome table<number, biome_id>
----@field required_resource table<number, resource_id>
+---@field required_biome table<number, biome_id> 
+---@field required_resource table<number, resource_id> 
 ---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
----@field throughput_boosts table<production_method_id, number>
----@field input_efficiency_boosts table<production_method_id, number>
----@field output_efficiency_boosts table<production_method_id, number>
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
 
 ---@class (exact) technology_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
----@field required_biome biome_id[]
----@field required_race race_id[]
----@field required_resource resource_id[]
+---@field required_biome biome_id[] 
+---@field required_race race_id[] 
+---@field required_resource resource_id[] 
 ---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
----@field throughput_boosts number[]
----@field input_efficiency_boosts number[]
----@field output_efficiency_boosts number[]
+---@field throughput_boosts number[] 
+---@field input_efficiency_boosts number[] 
+---@field output_efficiency_boosts number[] 
 ---Sets values of technology for given id
 ---@param id technology_id
 ---@param data technology_id_data_blob_definition
@@ -17488,7 +17523,7 @@ DATA.technology_size = 400
 ---@type table<technology_id, boolean>
 local technology_indices_pool = ffi.new("bool[?]", 400)
 for i = 1, 399 do
-    technology_indices_pool[i] = true
+    technology_indices_pool[i] = true 
 end
 ---@type table<technology_id, technology_id>
 DATA.technology_indices_set = {}
@@ -17498,16 +17533,16 @@ function DATA.create_technology()
             DATA.technology_indices_set[i] = i
     return i
 end
----@param func fun(item: technology_id)
+---@param func fun(item: technology_id) 
 function DATA.for_each_technology(func)
     for _, item in pairs(DATA.technology_indices_set) do
         func(item)
     end
 end
----@param func fun(item: technology_id):boolean
----@return table<technology_id, technology_id>
+---@param func fun(item: technology_id):boolean 
+---@return table<technology_id, technology_id> 
 function DATA.filter_technology(func)
-    ---@type table<technology_id, technology_id>
+    ---@type table<technology_id, technology_id> 
     local t = {}
     for _, item in pairs(DATA.technology_indices_set) do
         if func(item) then t[item] = item end
@@ -17516,7 +17551,7 @@ function DATA.filter_technology(func)
 end
 
 ---@param technology_id technology_id valid technology id
----@return string name
+---@return string name 
 function DATA.technology_get_name(technology_id)
     return DATA.technology_name[technology_id]
 end
@@ -17526,7 +17561,7 @@ function DATA.technology_set_name(technology_id, value)
     DATA.technology_name[technology_id] = value
 end
 ---@param technology_id technology_id valid technology id
----@return string icon
+---@return string icon 
 function DATA.technology_get_icon(technology_id)
     return DATA.technology_icon[technology_id]
 end
@@ -17536,7 +17571,7 @@ function DATA.technology_set_icon(technology_id, value)
     DATA.technology_icon[technology_id] = value
 end
 ---@param technology_id technology_id valid technology id
----@return string description
+---@return string description 
 function DATA.technology_get_description(technology_id)
     return DATA.technology_description[technology_id]
 end
@@ -17546,7 +17581,7 @@ function DATA.technology_set_description(technology_id, value)
     DATA.technology_description[technology_id] = value
 end
 ---@param technology_id technology_id valid technology id
----@return number r
+---@return number r 
 function DATA.technology_get_r(technology_id)
     return DATA.technology[technology_id].r
 end
@@ -17561,7 +17596,7 @@ function DATA.technology_inc_r(technology_id, value)
     DATA.technology[technology_id].r = DATA.technology[technology_id].r + value
 end
 ---@param technology_id technology_id valid technology id
----@return number g
+---@return number g 
 function DATA.technology_get_g(technology_id)
     return DATA.technology[technology_id].g
 end
@@ -17576,7 +17611,7 @@ function DATA.technology_inc_g(technology_id, value)
     DATA.technology[technology_id].g = DATA.technology[technology_id].g + value
 end
 ---@param technology_id technology_id valid technology id
----@return number b
+---@return number b 
 function DATA.technology_get_b(technology_id)
     return DATA.technology[technology_id].b
 end
@@ -17607,7 +17642,7 @@ function DATA.technology_inc_research_cost(technology_id, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.technology_get_required_biome(technology_id, index)
     if DATA.technology[technology_id].required_biome == nil then return 0 end
     return DATA.technology[technology_id].required_biome[index]
@@ -17620,7 +17655,7 @@ function DATA.technology_set_required_biome(technology_id, index, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
----@return race_id required_race
+---@return race_id required_race 
 function DATA.technology_get_required_race(technology_id, index)
     if DATA.technology_required_race[technology_id] == nil then return 0 end
     return DATA.technology_required_race[technology_id][index]
@@ -17633,7 +17668,7 @@ function DATA.technology_set_required_race(technology_id, index, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
----@return resource_id required_resource
+---@return resource_id required_resource 
 function DATA.technology_get_required_resource(technology_id, index)
     if DATA.technology[technology_id].required_resource == nil then return 0 end
     return DATA.technology[technology_id].required_resource[index]
@@ -17656,7 +17691,7 @@ function DATA.technology_set_associated_job(technology_id, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index production_method_id valid
----@return number throughput_boosts
+---@return number throughput_boosts 
 function DATA.technology_get_throughput_boosts(technology_id, index)
     if DATA.technology[technology_id].throughput_boosts == nil then return 0 end
     return DATA.technology[technology_id].throughput_boosts[index]
@@ -17675,7 +17710,7 @@ function DATA.technology_inc_throughput_boosts(technology_id, index, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index production_method_id valid
----@return number input_efficiency_boosts
+---@return number input_efficiency_boosts 
 function DATA.technology_get_input_efficiency_boosts(technology_id, index)
     if DATA.technology[technology_id].input_efficiency_boosts == nil then return 0 end
     return DATA.technology[technology_id].input_efficiency_boosts[index]
@@ -17694,7 +17729,7 @@ function DATA.technology_inc_input_efficiency_boosts(technology_id, index, value
 end
 ---@param technology_id technology_id valid technology id
 ---@param index production_method_id valid
----@return number output_efficiency_boosts
+---@return number output_efficiency_boosts 
 function DATA.technology_get_output_efficiency_boosts(technology_id, index)
     if DATA.technology[technology_id].output_efficiency_boosts == nil then return 0 end
     return DATA.technology[technology_id].output_efficiency_boosts[index]
@@ -17777,16 +17812,16 @@ end
 
 ---@class (exact) fat_technology_unlock_id
 ---@field id technology_unlock_id Unique technology_unlock id
----@field origin technology_id
----@field unlocked technology_id
+---@field origin technology_id 
+---@field unlocked technology_id 
 
 ---@class struct_technology_unlock
----@field origin technology_id
----@field unlocked technology_id
+---@field origin technology_id 
+---@field unlocked technology_id 
 
 ---@class (exact) technology_unlock_id_data_blob_definition
----@field origin technology_id
----@field unlocked technology_id
+---@field origin technology_id 
+---@field unlocked technology_id 
 ---Sets values of technology_unlock for given id
 ---@param id technology_unlock_id
 ---@param data technology_unlock_id_data_blob_definition
@@ -17824,7 +17859,7 @@ DATA.technology_unlock_size = 800
 ---@type table<technology_unlock_id, boolean>
 local technology_unlock_indices_pool = ffi.new("bool[?]", 800)
 for i = 1, 799 do
-    technology_unlock_indices_pool[i] = true
+    technology_unlock_indices_pool[i] = true 
 end
 ---@type table<technology_unlock_id, technology_unlock_id>
 DATA.technology_unlock_indices_set = {}
@@ -17834,16 +17869,16 @@ function DATA.create_technology_unlock()
             DATA.technology_unlock_indices_set[i] = i
     return i
 end
----@param func fun(item: technology_unlock_id)
+---@param func fun(item: technology_unlock_id) 
 function DATA.for_each_technology_unlock(func)
     for _, item in pairs(DATA.technology_unlock_indices_set) do
         func(item)
     end
 end
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_technology_unlock(func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     for _, item in pairs(DATA.technology_unlock_indices_set) do
         if func(item) then t[item] = item end
@@ -17852,12 +17887,12 @@ function DATA.filter_technology_unlock(func)
 end
 
 ---@param technology_unlock_id technology_unlock_id valid technology_unlock id
----@return technology_id origin
+---@return technology_id origin 
 function DATA.technology_unlock_get_origin(technology_unlock_id)
     return DATA.technology_unlock[technology_unlock_id].origin
 end
 ---@param origin technology_id valid technology_id
----@return technology_unlock_id[] An array of technology_unlock
+---@return technology_unlock_id[] An array of technology_unlock 
 function DATA.get_technology_unlock_from_origin(origin)
     return DATA.technology_unlock_from_origin[origin]
 end
@@ -17868,10 +17903,10 @@ function DATA.for_each_technology_unlock_from_origin(origin, func)
     for _, item in pairs(DATA.technology_unlock_from_origin[origin]) do func(item) end
 end
 ---@param origin technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_array_technology_unlock_from_origin(origin, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     if DATA.technology_unlock_from_origin[origin] == nil then return t end
     for _, item in pairs(DATA.technology_unlock_from_origin[origin]) do
@@ -17880,10 +17915,10 @@ function DATA.filter_array_technology_unlock_from_origin(origin, func)
     return t
 end
 ---@param origin technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_technology_unlock_from_origin(origin, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     if DATA.technology_unlock_from_origin[origin] == nil then return t end
     for _, item in pairs(DATA.technology_unlock_from_origin[origin]) do
@@ -17919,12 +17954,12 @@ function DATA.technology_unlock_set_origin(technology_unlock_id, value)
     table.insert(DATA.technology_unlock_from_origin[value], technology_unlock_id)
 end
 ---@param technology_unlock_id technology_unlock_id valid technology_unlock id
----@return technology_id unlocked
+---@return technology_id unlocked 
 function DATA.technology_unlock_get_unlocked(technology_unlock_id)
     return DATA.technology_unlock[technology_unlock_id].unlocked
 end
 ---@param unlocked technology_id valid technology_id
----@return technology_unlock_id[] An array of technology_unlock
+---@return technology_unlock_id[] An array of technology_unlock 
 function DATA.get_technology_unlock_from_unlocked(unlocked)
     return DATA.technology_unlock_from_unlocked[unlocked]
 end
@@ -17935,10 +17970,10 @@ function DATA.for_each_technology_unlock_from_unlocked(unlocked, func)
     for _, item in pairs(DATA.technology_unlock_from_unlocked[unlocked]) do func(item) end
 end
 ---@param unlocked technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_array_technology_unlock_from_unlocked(unlocked, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     if DATA.technology_unlock_from_unlocked[unlocked] == nil then return t end
     for _, item in pairs(DATA.technology_unlock_from_unlocked[unlocked]) do
@@ -17947,10 +17982,10 @@ function DATA.filter_array_technology_unlock_from_unlocked(unlocked, func)
     return t
 end
 ---@param unlocked technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_technology_unlock_from_unlocked(unlocked, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     if DATA.technology_unlock_from_unlocked[unlocked] == nil then return t end
     for _, item in pairs(DATA.technology_unlock_from_unlocked[unlocked]) do
@@ -18021,54 +18056,54 @@ end
 
 ---@class (exact) fat_building_type_id
 ---@field id building_type_id Unique building_type id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field production_method production_method_id
----@field construction_cost number
----@field upkeep number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field construction_cost number 
+---@field upkeep number 
 ---@field unique boolean only one per province!
 ---@field movable boolean is it possible to migrate with this building?
 ---@field government boolean only the government can build this building!
----@field needed_infrastructure number
+---@field needed_infrastructure number 
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 
 ---@class struct_building_type
----@field r number
----@field g number
----@field b number
----@field production_method production_method_id
----@field construction_cost number
----@field upkeep number
----@field required_biome table<number, biome_id>
----@field required_resource table<number, resource_id>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field construction_cost number 
+---@field upkeep number 
+---@field required_biome table<number, biome_id> 
+---@field required_resource table<number, resource_id> 
 ---@field unique boolean only one per province!
 ---@field movable boolean is it possible to migrate with this building?
 ---@field government boolean only the government can build this building!
----@field needed_infrastructure number
+---@field needed_infrastructure number 
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 
 ---@class (exact) building_type_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field production_method production_method_id
----@field archetype BUILDING_ARCHETYPE
----@field unlocked_by technology_id
----@field construction_cost number
----@field upkeep number?
----@field required_biome biome_id[]
----@field required_resource resource_id[]
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field archetype BUILDING_ARCHETYPE 
+---@field unlocked_by technology_id 
+---@field construction_cost number 
+---@field upkeep number? 
+---@field required_biome biome_id[] 
+---@field required_resource resource_id[] 
 ---@field unique boolean? only one per province!
 ---@field movable boolean? is it possible to migrate with this building?
 ---@field government boolean? only the government can build this building!
----@field needed_infrastructure number?
+---@field needed_infrastructure number? 
 ---@field spotting number? The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 ---Sets values of building_type for given id
 ---@param id building_type_id
@@ -18152,7 +18187,7 @@ DATA.building_type_size = 250
 ---@type table<building_type_id, boolean>
 local building_type_indices_pool = ffi.new("bool[?]", 250)
 for i = 1, 249 do
-    building_type_indices_pool[i] = true
+    building_type_indices_pool[i] = true 
 end
 ---@type table<building_type_id, building_type_id>
 DATA.building_type_indices_set = {}
@@ -18162,16 +18197,16 @@ function DATA.create_building_type()
             DATA.building_type_indices_set[i] = i
     return i
 end
----@param func fun(item: building_type_id)
+---@param func fun(item: building_type_id) 
 function DATA.for_each_building_type(func)
     for _, item in pairs(DATA.building_type_indices_set) do
         func(item)
     end
 end
----@param func fun(item: building_type_id):boolean
----@return table<building_type_id, building_type_id>
+---@param func fun(item: building_type_id):boolean 
+---@return table<building_type_id, building_type_id> 
 function DATA.filter_building_type(func)
-    ---@type table<building_type_id, building_type_id>
+    ---@type table<building_type_id, building_type_id> 
     local t = {}
     for _, item in pairs(DATA.building_type_indices_set) do
         if func(item) then t[item] = item end
@@ -18180,7 +18215,7 @@ function DATA.filter_building_type(func)
 end
 
 ---@param building_type_id building_type_id valid building_type id
----@return string name
+---@return string name 
 function DATA.building_type_get_name(building_type_id)
     return DATA.building_type_name[building_type_id]
 end
@@ -18190,7 +18225,7 @@ function DATA.building_type_set_name(building_type_id, value)
     DATA.building_type_name[building_type_id] = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return string icon
+---@return string icon 
 function DATA.building_type_get_icon(building_type_id)
     return DATA.building_type_icon[building_type_id]
 end
@@ -18200,7 +18235,7 @@ function DATA.building_type_set_icon(building_type_id, value)
     DATA.building_type_icon[building_type_id] = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return string description
+---@return string description 
 function DATA.building_type_get_description(building_type_id)
     return DATA.building_type_description[building_type_id]
 end
@@ -18210,7 +18245,7 @@ function DATA.building_type_set_description(building_type_id, value)
     DATA.building_type_description[building_type_id] = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number r
+---@return number r 
 function DATA.building_type_get_r(building_type_id)
     return DATA.building_type[building_type_id].r
 end
@@ -18225,7 +18260,7 @@ function DATA.building_type_inc_r(building_type_id, value)
     DATA.building_type[building_type_id].r = DATA.building_type[building_type_id].r + value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number g
+---@return number g 
 function DATA.building_type_get_g(building_type_id)
     return DATA.building_type[building_type_id].g
 end
@@ -18240,7 +18275,7 @@ function DATA.building_type_inc_g(building_type_id, value)
     DATA.building_type[building_type_id].g = DATA.building_type[building_type_id].g + value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number b
+---@return number b 
 function DATA.building_type_get_b(building_type_id)
     return DATA.building_type[building_type_id].b
 end
@@ -18255,7 +18290,7 @@ function DATA.building_type_inc_b(building_type_id, value)
     DATA.building_type[building_type_id].b = DATA.building_type[building_type_id].b + value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return production_method_id production_method
+---@return production_method_id production_method 
 function DATA.building_type_get_production_method(building_type_id)
     return DATA.building_type[building_type_id].production_method
 end
@@ -18265,7 +18300,7 @@ function DATA.building_type_set_production_method(building_type_id, value)
     DATA.building_type[building_type_id].production_method = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number construction_cost
+---@return number construction_cost 
 function DATA.building_type_get_construction_cost(building_type_id)
     return DATA.building_type[building_type_id].construction_cost
 end
@@ -18280,7 +18315,7 @@ function DATA.building_type_inc_construction_cost(building_type_id, value)
     DATA.building_type[building_type_id].construction_cost = DATA.building_type[building_type_id].construction_cost + value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number upkeep
+---@return number upkeep 
 function DATA.building_type_get_upkeep(building_type_id)
     return DATA.building_type[building_type_id].upkeep
 end
@@ -18296,7 +18331,7 @@ function DATA.building_type_inc_upkeep(building_type_id, value)
 end
 ---@param building_type_id building_type_id valid building_type id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.building_type_get_required_biome(building_type_id, index)
     if DATA.building_type[building_type_id].required_biome == nil then return 0 end
     return DATA.building_type[building_type_id].required_biome[index]
@@ -18309,7 +18344,7 @@ function DATA.building_type_set_required_biome(building_type_id, index, value)
 end
 ---@param building_type_id building_type_id valid building_type id
 ---@param index number valid
----@return resource_id required_resource
+---@return resource_id required_resource 
 function DATA.building_type_get_required_resource(building_type_id, index)
     if DATA.building_type[building_type_id].required_resource == nil then return 0 end
     return DATA.building_type[building_type_id].required_resource[index]
@@ -18351,7 +18386,7 @@ function DATA.building_type_set_government(building_type_id, value)
     DATA.building_type[building_type_id].government = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number needed_infrastructure
+---@return number needed_infrastructure 
 function DATA.building_type_get_needed_infrastructure(building_type_id)
     return DATA.building_type[building_type_id].needed_infrastructure
 end
@@ -18476,16 +18511,16 @@ end
 
 ---@class (exact) fat_technology_building_id
 ---@field id technology_building_id Unique technology_building id
----@field technology technology_id
----@field unlocked building_type_id
+---@field technology technology_id 
+---@field unlocked building_type_id 
 
 ---@class struct_technology_building
----@field technology technology_id
----@field unlocked building_type_id
+---@field technology technology_id 
+---@field unlocked building_type_id 
 
 ---@class (exact) technology_building_id_data_blob_definition
----@field technology technology_id
----@field unlocked building_type_id
+---@field technology technology_id 
+---@field unlocked building_type_id 
 ---Sets values of technology_building for given id
 ---@param id technology_building_id
 ---@param data technology_building_id_data_blob_definition
@@ -18520,7 +18555,7 @@ DATA.technology_building_size = 400
 ---@type table<technology_building_id, boolean>
 local technology_building_indices_pool = ffi.new("bool[?]", 400)
 for i = 1, 399 do
-    technology_building_indices_pool[i] = true
+    technology_building_indices_pool[i] = true 
 end
 ---@type table<technology_building_id, technology_building_id>
 DATA.technology_building_indices_set = {}
@@ -18530,16 +18565,16 @@ function DATA.create_technology_building()
             DATA.technology_building_indices_set[i] = i
     return i
 end
----@param func fun(item: technology_building_id)
+---@param func fun(item: technology_building_id) 
 function DATA.for_each_technology_building(func)
     for _, item in pairs(DATA.technology_building_indices_set) do
         func(item)
     end
 end
----@param func fun(item: technology_building_id):boolean
----@return table<technology_building_id, technology_building_id>
+---@param func fun(item: technology_building_id):boolean 
+---@return table<technology_building_id, technology_building_id> 
 function DATA.filter_technology_building(func)
-    ---@type table<technology_building_id, technology_building_id>
+    ---@type table<technology_building_id, technology_building_id> 
     local t = {}
     for _, item in pairs(DATA.technology_building_indices_set) do
         if func(item) then t[item] = item end
@@ -18548,12 +18583,12 @@ function DATA.filter_technology_building(func)
 end
 
 ---@param technology_building_id technology_building_id valid technology_building id
----@return technology_id technology
+---@return technology_id technology 
 function DATA.technology_building_get_technology(technology_building_id)
     return DATA.technology_building[technology_building_id].technology
 end
 ---@param technology technology_id valid technology_id
----@return technology_building_id[] An array of technology_building
+---@return technology_building_id[] An array of technology_building 
 function DATA.get_technology_building_from_technology(technology)
     return DATA.technology_building_from_technology[technology]
 end
@@ -18564,10 +18599,10 @@ function DATA.for_each_technology_building_from_technology(technology, func)
     for _, item in pairs(DATA.technology_building_from_technology[technology]) do func(item) end
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_building_id):boolean
----@return table<technology_building_id, technology_building_id>
+---@param func fun(item: technology_building_id):boolean 
+---@return table<technology_building_id, technology_building_id> 
 function DATA.filter_array_technology_building_from_technology(technology, func)
-    ---@type table<technology_building_id, technology_building_id>
+    ---@type table<technology_building_id, technology_building_id> 
     local t = {}
     if DATA.technology_building_from_technology[technology] == nil then return t end
     for _, item in pairs(DATA.technology_building_from_technology[technology]) do
@@ -18576,10 +18611,10 @@ function DATA.filter_array_technology_building_from_technology(technology, func)
     return t
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_building_id):boolean
----@return table<technology_building_id, technology_building_id>
+---@param func fun(item: technology_building_id):boolean 
+---@return table<technology_building_id, technology_building_id> 
 function DATA.filter_technology_building_from_technology(technology, func)
-    ---@type table<technology_building_id, technology_building_id>
+    ---@type table<technology_building_id, technology_building_id> 
     local t = {}
     if DATA.technology_building_from_technology[technology] == nil then return t end
     for _, item in pairs(DATA.technology_building_from_technology[technology]) do
@@ -18615,12 +18650,12 @@ function DATA.technology_building_set_technology(technology_building_id, value)
     table.insert(DATA.technology_building_from_technology[value], technology_building_id)
 end
 ---@param technology_building_id technology_building_id valid technology_building id
----@return building_type_id unlocked
+---@return building_type_id unlocked 
 function DATA.technology_building_get_unlocked(technology_building_id)
     return DATA.technology_building[technology_building_id].unlocked
 end
 ---@param unlocked building_type_id valid building_type_id
----@return technology_building_id technology_building
+---@return technology_building_id technology_building 
 function DATA.get_technology_building_from_unlocked(unlocked)
     if DATA.technology_building_from_unlocked[unlocked] == nil then return 0 end
     return DATA.technology_building_from_unlocked[unlocked]
@@ -18672,16 +18707,16 @@ end
 
 ---@class (exact) fat_technology_unit_id
 ---@field id technology_unit_id Unique technology_unit id
----@field technology technology_id
----@field unlocked unit_type_id
+---@field technology technology_id 
+---@field unlocked unit_type_id 
 
 ---@class struct_technology_unit
----@field technology technology_id
----@field unlocked unit_type_id
+---@field technology technology_id 
+---@field unlocked unit_type_id 
 
 ---@class (exact) technology_unit_id_data_blob_definition
----@field technology technology_id
----@field unlocked unit_type_id
+---@field technology technology_id 
+---@field unlocked unit_type_id 
 ---Sets values of technology_unit for given id
 ---@param id technology_unit_id
 ---@param data technology_unit_id_data_blob_definition
@@ -18716,7 +18751,7 @@ DATA.technology_unit_size = 400
 ---@type table<technology_unit_id, boolean>
 local technology_unit_indices_pool = ffi.new("bool[?]", 400)
 for i = 1, 399 do
-    technology_unit_indices_pool[i] = true
+    technology_unit_indices_pool[i] = true 
 end
 ---@type table<technology_unit_id, technology_unit_id>
 DATA.technology_unit_indices_set = {}
@@ -18726,16 +18761,16 @@ function DATA.create_technology_unit()
             DATA.technology_unit_indices_set[i] = i
     return i
 end
----@param func fun(item: technology_unit_id)
+---@param func fun(item: technology_unit_id) 
 function DATA.for_each_technology_unit(func)
     for _, item in pairs(DATA.technology_unit_indices_set) do
         func(item)
     end
 end
----@param func fun(item: technology_unit_id):boolean
----@return table<technology_unit_id, technology_unit_id>
+---@param func fun(item: technology_unit_id):boolean 
+---@return table<technology_unit_id, technology_unit_id> 
 function DATA.filter_technology_unit(func)
-    ---@type table<technology_unit_id, technology_unit_id>
+    ---@type table<technology_unit_id, technology_unit_id> 
     local t = {}
     for _, item in pairs(DATA.technology_unit_indices_set) do
         if func(item) then t[item] = item end
@@ -18744,12 +18779,12 @@ function DATA.filter_technology_unit(func)
 end
 
 ---@param technology_unit_id technology_unit_id valid technology_unit id
----@return technology_id technology
+---@return technology_id technology 
 function DATA.technology_unit_get_technology(technology_unit_id)
     return DATA.technology_unit[technology_unit_id].technology
 end
 ---@param technology technology_id valid technology_id
----@return technology_unit_id[] An array of technology_unit
+---@return technology_unit_id[] An array of technology_unit 
 function DATA.get_technology_unit_from_technology(technology)
     return DATA.technology_unit_from_technology[technology]
 end
@@ -18760,10 +18795,10 @@ function DATA.for_each_technology_unit_from_technology(technology, func)
     for _, item in pairs(DATA.technology_unit_from_technology[technology]) do func(item) end
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_unit_id):boolean
----@return table<technology_unit_id, technology_unit_id>
+---@param func fun(item: technology_unit_id):boolean 
+---@return table<technology_unit_id, technology_unit_id> 
 function DATA.filter_array_technology_unit_from_technology(technology, func)
-    ---@type table<technology_unit_id, technology_unit_id>
+    ---@type table<technology_unit_id, technology_unit_id> 
     local t = {}
     if DATA.technology_unit_from_technology[technology] == nil then return t end
     for _, item in pairs(DATA.technology_unit_from_technology[technology]) do
@@ -18772,10 +18807,10 @@ function DATA.filter_array_technology_unit_from_technology(technology, func)
     return t
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_unit_id):boolean
----@return table<technology_unit_id, technology_unit_id>
+---@param func fun(item: technology_unit_id):boolean 
+---@return table<technology_unit_id, technology_unit_id> 
 function DATA.filter_technology_unit_from_technology(technology, func)
-    ---@type table<technology_unit_id, technology_unit_id>
+    ---@type table<technology_unit_id, technology_unit_id> 
     local t = {}
     if DATA.technology_unit_from_technology[technology] == nil then return t end
     for _, item in pairs(DATA.technology_unit_from_technology[technology]) do
@@ -18811,12 +18846,12 @@ function DATA.technology_unit_set_technology(technology_unit_id, value)
     table.insert(DATA.technology_unit_from_technology[value], technology_unit_id)
 end
 ---@param technology_unit_id technology_unit_id valid technology_unit id
----@return unit_type_id unlocked
+---@return unit_type_id unlocked 
 function DATA.technology_unit_get_unlocked(technology_unit_id)
     return DATA.technology_unit[technology_unit_id].unlocked
 end
 ---@param unlocked unit_type_id valid unit_type_id
----@return technology_unit_id technology_unit
+---@return technology_unit_id technology_unit 
 function DATA.get_technology_unit_from_unlocked(unlocked)
     if DATA.technology_unit_from_unlocked[unlocked] == nil then return 0 end
     return DATA.technology_unit_from_unlocked[unlocked]
@@ -18868,95 +18903,95 @@ end
 
 ---@class (exact) fat_race_id
 ---@field id race_id Unique race id
----@field name string
----@field icon string
----@field female_portrait nil|PortraitSet
----@field male_portrait nil|PortraitSet
----@field description string
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
+---@field name string 
+---@field icon string 
+---@field female_portrait nil|PortraitSet 
+---@field male_portrait nil|PortraitSet 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
 ---@field spotting number How good is this unit at scouting
 ---@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field male_body_size number
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field requires_large_river boolean
----@field requires_large_forest boolean
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field requires_large_river boolean 
+---@field requires_large_forest boolean 
 
 ---@class struct_race
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
 ---@field spotting number How good is this unit at scouting
 ---@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field male_body_size number
----@field female_efficiency table<JOBTYPE, number>
----@field male_efficiency table<JOBTYPE, number>
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field female_needs table<number, struct_need_definition>
----@field male_needs table<number, struct_need_definition>
----@field requires_large_river boolean
----@field requires_large_forest boolean
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_efficiency table<JOBTYPE, number> 
+---@field male_efficiency table<JOBTYPE, number> 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field female_needs table<number, struct_need_definition> 
+---@field male_needs table<number, struct_need_definition> 
+---@field requires_large_river boolean 
+---@field requires_large_forest boolean 
 
 ---@class (exact) race_id_data_blob_definition
----@field name string
----@field icon string
----@field female_portrait nil|PortraitSet
----@field male_portrait nil|PortraitSet
----@field description string
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
+---@field name string 
+---@field icon string 
+---@field female_portrait nil|PortraitSet 
+---@field male_portrait nil|PortraitSet 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
 ---@field spotting number How good is this unit at scouting
 ---@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number?
----@field female_body_size number
----@field male_body_size number
----@field female_efficiency number[]
----@field male_efficiency number[]
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field requires_large_river boolean?
----@field requires_large_forest boolean?
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number? 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_efficiency number[] 
+---@field male_efficiency number[] 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field requires_large_river boolean? 
+---@field requires_large_forest boolean? 
 ---Sets values of race for given id
 ---@param id race_id
 ---@param data race_id_data_blob_definition
@@ -19062,7 +19097,7 @@ DATA.race_size = 15
 ---@type table<race_id, boolean>
 local race_indices_pool = ffi.new("bool[?]", 15)
 for i = 1, 14 do
-    race_indices_pool[i] = true
+    race_indices_pool[i] = true 
 end
 ---@type table<race_id, race_id>
 DATA.race_indices_set = {}
@@ -19072,16 +19107,16 @@ function DATA.create_race()
             DATA.race_indices_set[i] = i
     return i
 end
----@param func fun(item: race_id)
+---@param func fun(item: race_id) 
 function DATA.for_each_race(func)
     for _, item in pairs(DATA.race_indices_set) do
         func(item)
     end
 end
----@param func fun(item: race_id):boolean
----@return table<race_id, race_id>
+---@param func fun(item: race_id):boolean 
+---@return table<race_id, race_id> 
 function DATA.filter_race(func)
-    ---@type table<race_id, race_id>
+    ---@type table<race_id, race_id> 
     local t = {}
     for _, item in pairs(DATA.race_indices_set) do
         if func(item) then t[item] = item end
@@ -19090,7 +19125,7 @@ function DATA.filter_race(func)
 end
 
 ---@param race_id race_id valid race id
----@return string name
+---@return string name 
 function DATA.race_get_name(race_id)
     return DATA.race_name[race_id]
 end
@@ -19100,7 +19135,7 @@ function DATA.race_set_name(race_id, value)
     DATA.race_name[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return string icon
+---@return string icon 
 function DATA.race_get_icon(race_id)
     return DATA.race_icon[race_id]
 end
@@ -19110,7 +19145,7 @@ function DATA.race_set_icon(race_id, value)
     DATA.race_icon[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return nil|PortraitSet female_portrait
+---@return nil|PortraitSet female_portrait 
 function DATA.race_get_female_portrait(race_id)
     return DATA.race_female_portrait[race_id]
 end
@@ -19120,7 +19155,7 @@ function DATA.race_set_female_portrait(race_id, value)
     DATA.race_female_portrait[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return nil|PortraitSet male_portrait
+---@return nil|PortraitSet male_portrait 
 function DATA.race_get_male_portrait(race_id)
     return DATA.race_male_portrait[race_id]
 end
@@ -19130,7 +19165,7 @@ function DATA.race_set_male_portrait(race_id, value)
     DATA.race_male_portrait[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return string description
+---@return string description 
 function DATA.race_get_description(race_id)
     return DATA.race_description[race_id]
 end
@@ -19140,7 +19175,7 @@ function DATA.race_set_description(race_id, value)
     DATA.race_description[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return number r
+---@return number r 
 function DATA.race_get_r(race_id)
     return DATA.race[race_id].r
 end
@@ -19155,7 +19190,7 @@ function DATA.race_inc_r(race_id, value)
     DATA.race[race_id].r = DATA.race[race_id].r + value
 end
 ---@param race_id race_id valid race id
----@return number g
+---@return number g 
 function DATA.race_get_g(race_id)
     return DATA.race[race_id].g
 end
@@ -19170,7 +19205,7 @@ function DATA.race_inc_g(race_id, value)
     DATA.race[race_id].g = DATA.race[race_id].g + value
 end
 ---@param race_id race_id valid race id
----@return number b
+---@return number b 
 function DATA.race_get_b(race_id)
     return DATA.race[race_id].b
 end
@@ -19185,7 +19220,7 @@ function DATA.race_inc_b(race_id, value)
     DATA.race[race_id].b = DATA.race[race_id].b + value
 end
 ---@param race_id race_id valid race id
----@return number carrying_capacity_weight
+---@return number carrying_capacity_weight 
 function DATA.race_get_carrying_capacity_weight(race_id)
     return DATA.race[race_id].carrying_capacity_weight
 end
@@ -19200,7 +19235,7 @@ function DATA.race_inc_carrying_capacity_weight(race_id, value)
     DATA.race[race_id].carrying_capacity_weight = DATA.race[race_id].carrying_capacity_weight + value
 end
 ---@param race_id race_id valid race id
----@return number fecundity
+---@return number fecundity 
 function DATA.race_get_fecundity(race_id)
     return DATA.race[race_id].fecundity
 end
@@ -19245,7 +19280,7 @@ function DATA.race_inc_visibility(race_id, value)
     DATA.race[race_id].visibility = DATA.race[race_id].visibility + value
 end
 ---@param race_id race_id valid race id
----@return number males_per_hundred_females
+---@return number males_per_hundred_females 
 function DATA.race_get_males_per_hundred_females(race_id)
     return DATA.race[race_id].males_per_hundred_females
 end
@@ -19260,7 +19295,7 @@ function DATA.race_inc_males_per_hundred_females(race_id, value)
     DATA.race[race_id].males_per_hundred_females = DATA.race[race_id].males_per_hundred_females + value
 end
 ---@param race_id race_id valid race id
----@return number child_age
+---@return number child_age 
 function DATA.race_get_child_age(race_id)
     return DATA.race[race_id].child_age
 end
@@ -19275,7 +19310,7 @@ function DATA.race_inc_child_age(race_id, value)
     DATA.race[race_id].child_age = DATA.race[race_id].child_age + value
 end
 ---@param race_id race_id valid race id
----@return number teen_age
+---@return number teen_age 
 function DATA.race_get_teen_age(race_id)
     return DATA.race[race_id].teen_age
 end
@@ -19290,7 +19325,7 @@ function DATA.race_inc_teen_age(race_id, value)
     DATA.race[race_id].teen_age = DATA.race[race_id].teen_age + value
 end
 ---@param race_id race_id valid race id
----@return number adult_age
+---@return number adult_age 
 function DATA.race_get_adult_age(race_id)
     return DATA.race[race_id].adult_age
 end
@@ -19305,7 +19340,7 @@ function DATA.race_inc_adult_age(race_id, value)
     DATA.race[race_id].adult_age = DATA.race[race_id].adult_age + value
 end
 ---@param race_id race_id valid race id
----@return number middle_age
+---@return number middle_age 
 function DATA.race_get_middle_age(race_id)
     return DATA.race[race_id].middle_age
 end
@@ -19320,7 +19355,7 @@ function DATA.race_inc_middle_age(race_id, value)
     DATA.race[race_id].middle_age = DATA.race[race_id].middle_age + value
 end
 ---@param race_id race_id valid race id
----@return number elder_age
+---@return number elder_age 
 function DATA.race_get_elder_age(race_id)
     return DATA.race[race_id].elder_age
 end
@@ -19335,7 +19370,7 @@ function DATA.race_inc_elder_age(race_id, value)
     DATA.race[race_id].elder_age = DATA.race[race_id].elder_age + value
 end
 ---@param race_id race_id valid race id
----@return number max_age
+---@return number max_age 
 function DATA.race_get_max_age(race_id)
     return DATA.race[race_id].max_age
 end
@@ -19350,7 +19385,7 @@ function DATA.race_inc_max_age(race_id, value)
     DATA.race[race_id].max_age = DATA.race[race_id].max_age + value
 end
 ---@param race_id race_id valid race id
----@return number minimum_comfortable_temperature
+---@return number minimum_comfortable_temperature 
 function DATA.race_get_minimum_comfortable_temperature(race_id)
     return DATA.race[race_id].minimum_comfortable_temperature
 end
@@ -19365,7 +19400,7 @@ function DATA.race_inc_minimum_comfortable_temperature(race_id, value)
     DATA.race[race_id].minimum_comfortable_temperature = DATA.race[race_id].minimum_comfortable_temperature + value
 end
 ---@param race_id race_id valid race id
----@return number minimum_absolute_temperature
+---@return number minimum_absolute_temperature 
 function DATA.race_get_minimum_absolute_temperature(race_id)
     return DATA.race[race_id].minimum_absolute_temperature
 end
@@ -19380,7 +19415,7 @@ function DATA.race_inc_minimum_absolute_temperature(race_id, value)
     DATA.race[race_id].minimum_absolute_temperature = DATA.race[race_id].minimum_absolute_temperature + value
 end
 ---@param race_id race_id valid race id
----@return number minimum_comfortable_elevation
+---@return number minimum_comfortable_elevation 
 function DATA.race_get_minimum_comfortable_elevation(race_id)
     return DATA.race[race_id].minimum_comfortable_elevation
 end
@@ -19395,7 +19430,7 @@ function DATA.race_inc_minimum_comfortable_elevation(race_id, value)
     DATA.race[race_id].minimum_comfortable_elevation = DATA.race[race_id].minimum_comfortable_elevation + value
 end
 ---@param race_id race_id valid race id
----@return number female_body_size
+---@return number female_body_size 
 function DATA.race_get_female_body_size(race_id)
     return DATA.race[race_id].female_body_size
 end
@@ -19410,7 +19445,7 @@ function DATA.race_inc_female_body_size(race_id, value)
     DATA.race[race_id].female_body_size = DATA.race[race_id].female_body_size + value
 end
 ---@param race_id race_id valid race id
----@return number male_body_size
+---@return number male_body_size 
 function DATA.race_get_male_body_size(race_id)
     return DATA.race[race_id].male_body_size
 end
@@ -19426,7 +19461,7 @@ function DATA.race_inc_male_body_size(race_id, value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
----@return number female_efficiency
+---@return number female_efficiency 
 function DATA.race_get_female_efficiency(race_id, index)
     if DATA.race[race_id].female_efficiency == nil then return 0 end
     return DATA.race[race_id].female_efficiency[index]
@@ -19445,7 +19480,7 @@ function DATA.race_inc_female_efficiency(race_id, index, value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
----@return number male_efficiency
+---@return number male_efficiency 
 function DATA.race_get_male_efficiency(race_id, index)
     if DATA.race[race_id].male_efficiency == nil then return 0 end
     return DATA.race[race_id].male_efficiency[index]
@@ -19463,7 +19498,7 @@ function DATA.race_inc_male_efficiency(race_id, index, value)
     DATA.race[race_id].male_efficiency[index] = DATA.race[race_id].male_efficiency[index] + value
 end
 ---@param race_id race_id valid race id
----@return number female_infrastructure_needs
+---@return number female_infrastructure_needs 
 function DATA.race_get_female_infrastructure_needs(race_id)
     return DATA.race[race_id].female_infrastructure_needs
 end
@@ -19478,7 +19513,7 @@ function DATA.race_inc_female_infrastructure_needs(race_id, value)
     DATA.race[race_id].female_infrastructure_needs = DATA.race[race_id].female_infrastructure_needs + value
 end
 ---@param race_id race_id valid race id
----@return number male_infrastructure_needs
+---@return number male_infrastructure_needs 
 function DATA.race_get_male_infrastructure_needs(race_id)
     return DATA.race[race_id].male_infrastructure_needs
 end
@@ -19494,21 +19529,21 @@ function DATA.race_inc_male_infrastructure_needs(race_id, value)
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return NEED female_needs
+---@return NEED female_needs 
 function DATA.race_get_female_needs_need(race_id, index)
     if DATA.race[race_id].female_needs == nil then return 0 end
     return DATA.race[race_id].female_needs[index].need
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return use_case_id female_needs
+---@return use_case_id female_needs 
 function DATA.race_get_female_needs_use_case(race_id, index)
     if DATA.race[race_id].female_needs == nil then return 0 end
     return DATA.race[race_id].female_needs[index].use_case
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return number female_needs
+---@return number female_needs 
 function DATA.race_get_female_needs_required(race_id, index)
     if DATA.race[race_id].female_needs == nil then return 0 end
     return DATA.race[race_id].female_needs[index].required
@@ -19539,21 +19574,21 @@ function DATA.race_inc_female_needs_required(race_id, index, value)
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return NEED male_needs
+---@return NEED male_needs 
 function DATA.race_get_male_needs_need(race_id, index)
     if DATA.race[race_id].male_needs == nil then return 0 end
     return DATA.race[race_id].male_needs[index].need
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return use_case_id male_needs
+---@return use_case_id male_needs 
 function DATA.race_get_male_needs_use_case(race_id, index)
     if DATA.race[race_id].male_needs == nil then return 0 end
     return DATA.race[race_id].male_needs[index].use_case
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return number male_needs
+---@return number male_needs 
 function DATA.race_get_male_needs_required(race_id, index)
     if DATA.race[race_id].male_needs == nil then return 0 end
     return DATA.race[race_id].male_needs[index].required
@@ -19583,7 +19618,7 @@ function DATA.race_inc_male_needs_required(race_id, index, value)
     DATA.race[race_id].male_needs[index].required = DATA.race[race_id].male_needs[index].required + value
 end
 ---@param race_id race_id valid race id
----@return boolean requires_large_river
+---@return boolean requires_large_river 
 function DATA.race_get_requires_large_river(race_id)
     return DATA.race[race_id].requires_large_river
 end
@@ -19593,7 +19628,7 @@ function DATA.race_set_requires_large_river(race_id, value)
     DATA.race[race_id].requires_large_river = value
 end
 ---@param race_id race_id valid race id
----@return boolean requires_large_forest
+---@return boolean requires_large_forest 
 function DATA.race_get_requires_large_forest(race_id)
     return DATA.race[race_id].requires_large_forest
 end
@@ -20700,28 +20735,56 @@ function DATA.test_save_load_0()
     for i = 0, 200000 do
         DATA.building[i].type = 12
     end
+    print("building subsidy")
+    for i = 0, 200000 do
+        DATA.building[i].subsidy = -15
+    end
+    print("building subsidy_last")
+    for i = 0, 200000 do
+        DATA.building[i].subsidy_last = 3
+    end
+    print("building income_mean")
+    for i = 0, 200000 do
+        DATA.building[i].income_mean = -13
+    end
+    print("building last_income")
+    for i = 0, 200000 do
+        DATA.building[i].last_income = -18
+    end
+    print("building last_donation_to_owner")
+    for i = 0, 200000 do
+        DATA.building[i].last_donation_to_owner = 18
+    end
+    print("building unused")
+    for i = 0, 200000 do
+        DATA.building[i].unused = -19
+    end
+    print("building work_ratio")
+    for i = 0, 200000 do
+        DATA.building[i].work_ratio = -8
+    end
     print("building spent_on_inputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].spent_on_inputs[j].good = 2
+        DATA.building[i].spent_on_inputs[j].good = 5
     end
     for j = 0, 7 do
-        DATA.building[i].spent_on_inputs[j].amount = 3
+        DATA.building[i].spent_on_inputs[j].amount = -13
     end
     end
     print("building earn_from_outputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].earn_from_outputs[j].good = 3
+        DATA.building[i].earn_from_outputs[j].good = 15
     end
     for j = 0, 7 do
-        DATA.building[i].earn_from_outputs[j].amount = -18
+        DATA.building[i].earn_from_outputs[j].amount = -7
     end
     end
     print("building amount_of_inputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].amount_of_inputs[j].good = 19
+        DATA.building[i].amount_of_inputs[j].good = 1
     end
     for j = 0, 7 do
         DATA.building[i].amount_of_inputs[j].amount = -19
@@ -20730,23 +20793,23 @@ function DATA.test_save_load_0()
     print("building amount_of_outputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].amount_of_outputs[j].good = 6
+        DATA.building[i].amount_of_outputs[j].good = 17
     end
     for j = 0, 7 do
-        DATA.building[i].amount_of_outputs[j].amount = -9
+        DATA.building[i].amount_of_outputs[j].amount = 7
     end
     end
     print("employment worker_income")
     for i = 0, 300000 do
-        DATA.employment[i].worker_income = -13
+        DATA.employment[i].worker_income = 19
     end
     print("employment job")
     for i = 0, 300000 do
-        DATA.employment[i].job = 15
+        DATA.employment[i].job = 3
     end
     print("warband_unit type")
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 6
+        DATA.warband_unit[i].type = 8
     end
     print("realm_subject_relation wealth_transfer")
     for i = 0, 15000 do
@@ -20758,11 +20821,11 @@ function DATA.test_save_load_0()
     end
     print("realm_subject_relation warriors_contribution")
     for i = 0, 15000 do
-        DATA.realm_subject_relation[i].warriors_contribution = false
+        DATA.realm_subject_relation[i].warriors_contribution = true
     end
     print("realm_subject_relation protection")
     for i = 0, 15000 do
-        DATA.realm_subject_relation[i].protection = true
+        DATA.realm_subject_relation[i].protection = false
     end
     print("realm_subject_relation local_ruler")
     for i = 0, 15000 do
@@ -20770,7 +20833,7 @@ function DATA.test_save_load_0()
     end
     print("personal_rights can_trade")
     for i = 0, 450000 do
-        DATA.personal_rights[i].can_trade = true
+        DATA.personal_rights[i].can_trade = false
     end
     print("personal_rights can_build")
     for i = 0, 450000 do
@@ -20778,7 +20841,7 @@ function DATA.test_save_load_0()
     end
     print("popularity value")
     for i = 0, 450000 do
-        DATA.popularity[i].value = -16
+        DATA.popularity[i].value = -17
     end
     DATA.save_state()
     DATA.load_state()
@@ -21289,24 +21352,45 @@ function DATA.test_save_load_0()
         test_passed = test_passed and DATA.building[i].type == 12
     end
     for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].subsidy == -15
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].subsidy_last == 3
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].income_mean == -13
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].last_income == -18
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].last_donation_to_owner == 18
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].unused == -19
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].work_ratio == -8
+    end
+    for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 2
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 5
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == 3
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == -13
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 3
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 15
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == -18
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == -7
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 19
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 1
     end
     for j = 0, 7 do
         test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == -19
@@ -21314,20 +21398,20 @@ function DATA.test_save_load_0()
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 6
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 17
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == -9
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == 7
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.employment[i].worker_income == -13
+        test_passed = test_passed and DATA.employment[i].worker_income == 19
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.employment[i].job == 15
+        test_passed = test_passed and DATA.employment[i].job == 3
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 6
+        test_passed = test_passed and DATA.warband_unit[i].type == 8
     end
     for i = 0, 15000 do
         test_passed = test_passed and DATA.realm_subject_relation[i].wealth_transfer == true
@@ -21336,22 +21420,22 @@ function DATA.test_save_load_0()
         test_passed = test_passed and DATA.realm_subject_relation[i].goods_transfer == true
     end
     for i = 0, 15000 do
-        test_passed = test_passed and DATA.realm_subject_relation[i].warriors_contribution == false
+        test_passed = test_passed and DATA.realm_subject_relation[i].warriors_contribution == true
     end
     for i = 0, 15000 do
-        test_passed = test_passed and DATA.realm_subject_relation[i].protection == true
+        test_passed = test_passed and DATA.realm_subject_relation[i].protection == false
     end
     for i = 0, 15000 do
         test_passed = test_passed and DATA.realm_subject_relation[i].local_ruler == false
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.personal_rights[i].can_trade == true
+        test_passed = test_passed and DATA.personal_rights[i].can_trade == false
     end
     for i = 0, 450000 do
         test_passed = test_passed and DATA.personal_rights[i].can_build == true
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.popularity[i].value == -16
+        test_passed = test_passed and DATA.popularity[i].value == -17
     end
     print("SAVE_LOAD_TEST_0:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -21995,65 +22079,86 @@ function DATA.test_set_get_0()
     local id = DATA.create_building()
     local fat_id = DATA.fatten_building(id)
     fat_id.type = 12
+    fat_id.subsidy = 6
+    fat_id.subsidy_last = -18
+    fat_id.income_mean = -4
+    fat_id.last_income = 12
+    fat_id.last_donation_to_owner = 11
+    fat_id.unused = 5
+    fat_id.work_ratio = -1
     for j = 0, 7 do
-        DATA.building[id].spent_on_inputs[j].good = 13
+        DATA.building[id].spent_on_inputs[j].good = 15
     end
     for j = 0, 7 do
-        DATA.building[id].spent_on_inputs[j].amount = -18
+        DATA.building[id].spent_on_inputs[j].amount = 2
     end
     for j = 0, 7 do
-        DATA.building[id].earn_from_outputs[j].good = 8
+        DATA.building[id].earn_from_outputs[j].good = 18
     end
     for j = 0, 7 do
-        DATA.building[id].earn_from_outputs[j].amount = 12
+        DATA.building[id].earn_from_outputs[j].amount = -7
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_inputs[j].good = 15
+        DATA.building[id].amount_of_inputs[j].good = 16
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_inputs[j].amount = 5
+        DATA.building[id].amount_of_inputs[j].amount = -12
     end
     for j = 0, 7 do
         DATA.building[id].amount_of_outputs[j].good = 9
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_outputs[j].amount = 10
+        DATA.building[id].amount_of_outputs[j].amount = -12
     end
     local test_passed = true
     test_passed = test_passed and fat_id.type == 12
     if not test_passed then print("type", 12, fat_id.type) end
+    test_passed = test_passed and fat_id.subsidy == 6
+    if not test_passed then print("subsidy", 6, fat_id.subsidy) end
+    test_passed = test_passed and fat_id.subsidy_last == -18
+    if not test_passed then print("subsidy_last", -18, fat_id.subsidy_last) end
+    test_passed = test_passed and fat_id.income_mean == -4
+    if not test_passed then print("income_mean", -4, fat_id.income_mean) end
+    test_passed = test_passed and fat_id.last_income == 12
+    if not test_passed then print("last_income", 12, fat_id.last_income) end
+    test_passed = test_passed and fat_id.last_donation_to_owner == 11
+    if not test_passed then print("last_donation_to_owner", 11, fat_id.last_donation_to_owner) end
+    test_passed = test_passed and fat_id.unused == 5
+    if not test_passed then print("unused", 5, fat_id.unused) end
+    test_passed = test_passed and fat_id.work_ratio == -1
+    if not test_passed then print("work_ratio", -1, fat_id.work_ratio) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].good == 13
+        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].good == 15
     end
-    if not test_passed then print("spent_on_inputs.good", 13, DATA.building[id].spent_on_inputs[0].good) end
+    if not test_passed then print("spent_on_inputs.good", 15, DATA.building[id].spent_on_inputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].amount == -18
+        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].amount == 2
     end
-    if not test_passed then print("spent_on_inputs.amount", -18, DATA.building[id].spent_on_inputs[0].amount) end
+    if not test_passed then print("spent_on_inputs.amount", 2, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].good == 8
+        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].good == 18
     end
-    if not test_passed then print("earn_from_outputs.good", 8, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", 18, DATA.building[id].earn_from_outputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].amount == 12
+        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].amount == -7
     end
-    if not test_passed then print("earn_from_outputs.amount", 12, DATA.building[id].earn_from_outputs[0].amount) end
+    if not test_passed then print("earn_from_outputs.amount", -7, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].good == 15
+        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].good == 16
     end
-    if not test_passed then print("amount_of_inputs.good", 15, DATA.building[id].amount_of_inputs[0].good) end
+    if not test_passed then print("amount_of_inputs.good", 16, DATA.building[id].amount_of_inputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].amount == 5
+        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].amount == -12
     end
-    if not test_passed then print("amount_of_inputs.amount", 5, DATA.building[id].amount_of_inputs[0].amount) end
+    if not test_passed then print("amount_of_inputs.amount", -12, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 0, 7 do
         test_passed = test_passed and DATA.building[id].amount_of_outputs[j].good == 9
     end
     if not test_passed then print("amount_of_outputs.good", 9, DATA.building[id].amount_of_outputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].amount == 10
+        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].amount == -12
     end
-    if not test_passed then print("amount_of_outputs.amount", 10, DATA.building[id].amount_of_outputs[0].amount) end
+    if not test_passed then print("amount_of_outputs.amount", -12, DATA.building[id].amount_of_outputs[0].amount) end
     print("SET_GET_TEST_0_building:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_ownership()
@@ -22870,57 +22975,85 @@ function DATA.test_save_load_1()
     for i = 0, 200000 do
         DATA.building[i].type = 8
     end
+    print("building subsidy")
+    for i = 0, 200000 do
+        DATA.building[i].subsidy = -13
+    end
+    print("building subsidy_last")
+    for i = 0, 200000 do
+        DATA.building[i].subsidy_last = 19
+    end
+    print("building income_mean")
+    for i = 0, 200000 do
+        DATA.building[i].income_mean = -9
+    end
+    print("building last_income")
+    for i = 0, 200000 do
+        DATA.building[i].last_income = 2
+    end
+    print("building last_donation_to_owner")
+    for i = 0, 200000 do
+        DATA.building[i].last_donation_to_owner = -2
+    end
+    print("building unused")
+    for i = 0, 200000 do
+        DATA.building[i].unused = -16
+    end
+    print("building work_ratio")
+    for i = 0, 200000 do
+        DATA.building[i].work_ratio = -10
+    end
     print("building spent_on_inputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].spent_on_inputs[j].good = 3
+        DATA.building[i].spent_on_inputs[j].good = 5
     end
     for j = 0, 7 do
-        DATA.building[i].spent_on_inputs[j].amount = 19
+        DATA.building[i].spent_on_inputs[j].amount = -4
     end
     end
     print("building earn_from_outputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].earn_from_outputs[j].good = 5
+        DATA.building[i].earn_from_outputs[j].good = 16
     end
     for j = 0, 7 do
-        DATA.building[i].earn_from_outputs[j].amount = 2
+        DATA.building[i].earn_from_outputs[j].amount = -10
     end
     end
     print("building amount_of_inputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].amount_of_inputs[j].good = 9
+        DATA.building[i].amount_of_inputs[j].good = 8
     end
     for j = 0, 7 do
-        DATA.building[i].amount_of_inputs[j].amount = -16
+        DATA.building[i].amount_of_inputs[j].amount = -2
     end
     end
     print("building amount_of_outputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].amount_of_outputs[j].good = 5
+        DATA.building[i].amount_of_outputs[j].good = 14
     end
     for j = 0, 7 do
-        DATA.building[i].amount_of_outputs[j].amount = -10
+        DATA.building[i].amount_of_outputs[j].amount = 0
     end
     end
     print("employment worker_income")
     for i = 0, 300000 do
-        DATA.employment[i].worker_income = -4
+        DATA.employment[i].worker_income = 11
     end
     print("employment job")
     for i = 0, 300000 do
-        DATA.employment[i].job = 16
+        DATA.employment[i].job = 15
     end
     print("warband_unit type")
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 5
+        DATA.warband_unit[i].type = 3
     end
     print("realm_subject_relation wealth_transfer")
     for i = 0, 15000 do
-        DATA.realm_subject_relation[i].wealth_transfer = false
+        DATA.realm_subject_relation[i].wealth_transfer = true
     end
     print("realm_subject_relation goods_transfer")
     for i = 0, 15000 do
@@ -22940,15 +23073,15 @@ function DATA.test_save_load_1()
     end
     print("personal_rights can_trade")
     for i = 0, 450000 do
-        DATA.personal_rights[i].can_trade = false
+        DATA.personal_rights[i].can_trade = true
     end
     print("personal_rights can_build")
     for i = 0, 450000 do
-        DATA.personal_rights[i].can_build = true
+        DATA.personal_rights[i].can_build = false
     end
     print("popularity value")
     for i = 0, 450000 do
-        DATA.popularity[i].value = -19
+        DATA.popularity[i].value = -14
     end
     DATA.save_state()
     DATA.load_state()
@@ -23459,48 +23592,69 @@ function DATA.test_save_load_1()
         test_passed = test_passed and DATA.building[i].type == 8
     end
     for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].subsidy == -13
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].subsidy_last == 19
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].income_mean == -9
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].last_income == 2
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].last_donation_to_owner == -2
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].unused == -16
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].work_ratio == -10
+    end
+    for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 3
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 5
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == 19
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == -4
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 5
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 16
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == 2
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == -10
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 9
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 8
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == -16
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == -2
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 5
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 14
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == -10
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == 0
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.employment[i].worker_income == -4
+        test_passed = test_passed and DATA.employment[i].worker_income == 11
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.employment[i].job == 16
+        test_passed = test_passed and DATA.employment[i].job == 15
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 5
+        test_passed = test_passed and DATA.warband_unit[i].type == 3
     end
     for i = 0, 15000 do
-        test_passed = test_passed and DATA.realm_subject_relation[i].wealth_transfer == false
+        test_passed = test_passed and DATA.realm_subject_relation[i].wealth_transfer == true
     end
     for i = 0, 15000 do
         test_passed = test_passed and DATA.realm_subject_relation[i].goods_transfer == false
@@ -23515,13 +23669,13 @@ function DATA.test_save_load_1()
         test_passed = test_passed and DATA.realm_subject_relation[i].local_ruler == false
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.personal_rights[i].can_trade == false
+        test_passed = test_passed and DATA.personal_rights[i].can_trade == true
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.personal_rights[i].can_build == true
+        test_passed = test_passed and DATA.personal_rights[i].can_build == false
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.popularity[i].value == -19
+        test_passed = test_passed and DATA.popularity[i].value == -14
     end
     print("SAVE_LOAD_TEST_1:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -24165,65 +24319,86 @@ function DATA.test_set_get_1()
     local id = DATA.create_building()
     local fat_id = DATA.fatten_building(id)
     fat_id.type = 4
+    fat_id.subsidy = 16
+    fat_id.subsidy_last = -16
+    fat_id.income_mean = -4
+    fat_id.last_income = -13
+    fat_id.last_donation_to_owner = 11
+    fat_id.unused = 8
+    fat_id.work_ratio = 10
     for j = 0, 7 do
-        DATA.building[id].spent_on_inputs[j].good = 18
+        DATA.building[id].spent_on_inputs[j].good = 20
     end
     for j = 0, 7 do
-        DATA.building[id].spent_on_inputs[j].amount = -16
+        DATA.building[id].spent_on_inputs[j].amount = 4
     end
     for j = 0, 7 do
-        DATA.building[id].earn_from_outputs[j].good = 8
+        DATA.building[id].earn_from_outputs[j].good = 6
     end
     for j = 0, 7 do
-        DATA.building[id].earn_from_outputs[j].amount = -13
+        DATA.building[id].earn_from_outputs[j].amount = -14
     end
     for j = 0, 7 do
         DATA.building[id].amount_of_inputs[j].good = 15
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_inputs[j].amount = 8
+        DATA.building[id].amount_of_inputs[j].amount = -19
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_outputs[j].good = 15
+        DATA.building[id].amount_of_outputs[j].good = 12
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_outputs[j].amount = 4
+        DATA.building[id].amount_of_outputs[j].amount = 7
     end
     local test_passed = true
     test_passed = test_passed and fat_id.type == 4
     if not test_passed then print("type", 4, fat_id.type) end
+    test_passed = test_passed and fat_id.subsidy == 16
+    if not test_passed then print("subsidy", 16, fat_id.subsidy) end
+    test_passed = test_passed and fat_id.subsidy_last == -16
+    if not test_passed then print("subsidy_last", -16, fat_id.subsidy_last) end
+    test_passed = test_passed and fat_id.income_mean == -4
+    if not test_passed then print("income_mean", -4, fat_id.income_mean) end
+    test_passed = test_passed and fat_id.last_income == -13
+    if not test_passed then print("last_income", -13, fat_id.last_income) end
+    test_passed = test_passed and fat_id.last_donation_to_owner == 11
+    if not test_passed then print("last_donation_to_owner", 11, fat_id.last_donation_to_owner) end
+    test_passed = test_passed and fat_id.unused == 8
+    if not test_passed then print("unused", 8, fat_id.unused) end
+    test_passed = test_passed and fat_id.work_ratio == 10
+    if not test_passed then print("work_ratio", 10, fat_id.work_ratio) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].good == 18
+        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].good == 20
     end
-    if not test_passed then print("spent_on_inputs.good", 18, DATA.building[id].spent_on_inputs[0].good) end
+    if not test_passed then print("spent_on_inputs.good", 20, DATA.building[id].spent_on_inputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].amount == -16
+        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].amount == 4
     end
-    if not test_passed then print("spent_on_inputs.amount", -16, DATA.building[id].spent_on_inputs[0].amount) end
+    if not test_passed then print("spent_on_inputs.amount", 4, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].good == 8
+        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].good == 6
     end
-    if not test_passed then print("earn_from_outputs.good", 8, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", 6, DATA.building[id].earn_from_outputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].amount == -13
+        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].amount == -14
     end
-    if not test_passed then print("earn_from_outputs.amount", -13, DATA.building[id].earn_from_outputs[0].amount) end
+    if not test_passed then print("earn_from_outputs.amount", -14, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 0, 7 do
         test_passed = test_passed and DATA.building[id].amount_of_inputs[j].good == 15
     end
     if not test_passed then print("amount_of_inputs.good", 15, DATA.building[id].amount_of_inputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].amount == 8
+        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].amount == -19
     end
-    if not test_passed then print("amount_of_inputs.amount", 8, DATA.building[id].amount_of_inputs[0].amount) end
+    if not test_passed then print("amount_of_inputs.amount", -19, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].good == 15
+        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].good == 12
     end
-    if not test_passed then print("amount_of_outputs.good", 15, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", 12, DATA.building[id].amount_of_outputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].amount == 4
+        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].amount == 7
     end
-    if not test_passed then print("amount_of_outputs.amount", 4, DATA.building[id].amount_of_outputs[0].amount) end
+    if not test_passed then print("amount_of_outputs.amount", 7, DATA.building[id].amount_of_outputs[0].amount) end
     print("SET_GET_TEST_1_building:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_ownership()
@@ -25040,53 +25215,81 @@ function DATA.test_save_load_2()
     for i = 0, 200000 do
         DATA.building[i].type = 19
     end
+    print("building subsidy")
+    for i = 0, 200000 do
+        DATA.building[i].subsidy = -18
+    end
+    print("building subsidy_last")
+    for i = 0, 200000 do
+        DATA.building[i].subsidy_last = -4
+    end
+    print("building income_mean")
+    for i = 0, 200000 do
+        DATA.building[i].income_mean = 5
+    end
+    print("building last_income")
+    for i = 0, 200000 do
+        DATA.building[i].last_income = 19
+    end
+    print("building last_donation_to_owner")
+    for i = 0, 200000 do
+        DATA.building[i].last_donation_to_owner = -11
+    end
+    print("building unused")
+    for i = 0, 200000 do
+        DATA.building[i].unused = 10
+    end
+    print("building work_ratio")
+    for i = 0, 200000 do
+        DATA.building[i].work_ratio = -6
+    end
     print("building spent_on_inputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].spent_on_inputs[j].good = 1
+        DATA.building[i].spent_on_inputs[j].good = 2
     end
     for j = 0, 7 do
-        DATA.building[i].spent_on_inputs[j].amount = -4
+        DATA.building[i].spent_on_inputs[j].amount = 0
     end
     end
     print("building earn_from_outputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].earn_from_outputs[j].good = 12
+        DATA.building[i].earn_from_outputs[j].good = 3
     end
     for j = 0, 7 do
-        DATA.building[i].earn_from_outputs[j].amount = 19
+        DATA.building[i].earn_from_outputs[j].amount = -19
     end
     end
     print("building amount_of_inputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].amount_of_inputs[j].good = 4
+        DATA.building[i].amount_of_inputs[j].good = 14
     end
     for j = 0, 7 do
-        DATA.building[i].amount_of_inputs[j].amount = 10
+        DATA.building[i].amount_of_inputs[j].amount = -12
     end
     end
     print("building amount_of_outputs")
     for i = 0, 200000 do
     for j = 0, 7 do
-        DATA.building[i].amount_of_outputs[j].good = 7
+        DATA.building[i].amount_of_outputs[j].good = 16
     end
     for j = 0, 7 do
-        DATA.building[i].amount_of_outputs[j].amount = -15
+        DATA.building[i].amount_of_outputs[j].amount = 17
     end
     end
     print("employment worker_income")
     for i = 0, 300000 do
-        DATA.employment[i].worker_income = 0
+        DATA.employment[i].worker_income = 5
     end
     print("employment job")
     for i = 0, 300000 do
-        DATA.employment[i].job = 3
+        DATA.employment[i].job = 15
     end
     print("warband_unit type")
     for i = 0, 50000 do
-        DATA.warband_unit[i].type = 0
+        DATA.warband_unit[i].type = 16
     end
     print("realm_subject_relation wealth_transfer")
     for i = 0, 15000 do
@@ -25110,15 +25313,15 @@ function DATA.test_save_load_2()
     end
     print("personal_rights can_trade")
     for i = 0, 450000 do
-        DATA.personal_rights[i].can_trade = true
+        DATA.personal_rights[i].can_trade = false
     end
     print("personal_rights can_build")
     for i = 0, 450000 do
-        DATA.personal_rights[i].can_build = false
+        DATA.personal_rights[i].can_build = true
     end
     print("popularity value")
     for i = 0, 450000 do
-        DATA.popularity[i].value = -4
+        DATA.popularity[i].value = 15
     end
     DATA.save_state()
     DATA.load_state()
@@ -25629,45 +25832,66 @@ function DATA.test_save_load_2()
         test_passed = test_passed and DATA.building[i].type == 19
     end
     for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].subsidy == -18
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].subsidy_last == -4
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].income_mean == 5
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].last_income == 19
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].last_donation_to_owner == -11
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].unused == 10
+    end
+    for i = 0, 200000 do
+        test_passed = test_passed and DATA.building[i].work_ratio == -6
+    end
+    for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 1
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].good == 2
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == -4
+        test_passed = test_passed and DATA.building[i].spent_on_inputs[j].amount == 0
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 12
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].good == 3
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == 19
+        test_passed = test_passed and DATA.building[i].earn_from_outputs[j].amount == -19
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 4
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].good == 14
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == 10
+        test_passed = test_passed and DATA.building[i].amount_of_inputs[j].amount == -12
     end
     end
     for i = 0, 200000 do
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 7
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].good == 16
     end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == -15
+        test_passed = test_passed and DATA.building[i].amount_of_outputs[j].amount == 17
     end
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.employment[i].worker_income == 0
+        test_passed = test_passed and DATA.employment[i].worker_income == 5
     end
     for i = 0, 300000 do
-        test_passed = test_passed and DATA.employment[i].job == 3
+        test_passed = test_passed and DATA.employment[i].job == 15
     end
     for i = 0, 50000 do
-        test_passed = test_passed and DATA.warband_unit[i].type == 0
+        test_passed = test_passed and DATA.warband_unit[i].type == 16
     end
     for i = 0, 15000 do
         test_passed = test_passed and DATA.realm_subject_relation[i].wealth_transfer == false
@@ -25685,13 +25909,13 @@ function DATA.test_save_load_2()
         test_passed = test_passed and DATA.realm_subject_relation[i].local_ruler == false
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.personal_rights[i].can_trade == true
+        test_passed = test_passed and DATA.personal_rights[i].can_trade == false
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.personal_rights[i].can_build == false
+        test_passed = test_passed and DATA.personal_rights[i].can_build == true
     end
     for i = 0, 450000 do
-        test_passed = test_passed and DATA.popularity[i].value == -4
+        test_passed = test_passed and DATA.popularity[i].value == 15
     end
     print("SAVE_LOAD_TEST_2:")
     if test_passed then print("PASSED") else print("ERROR") end
@@ -26335,65 +26559,86 @@ function DATA.test_set_get_2()
     local id = DATA.create_building()
     local fat_id = DATA.fatten_building(id)
     fat_id.type = 1
+    fat_id.subsidy = -15
+    fat_id.subsidy_last = -15
+    fat_id.income_mean = 3
+    fat_id.last_income = -10
+    fat_id.last_donation_to_owner = -1
+    fat_id.unused = -4
+    fat_id.work_ratio = 18
     for j = 0, 7 do
-        DATA.building[id].spent_on_inputs[j].good = 2
+        DATA.building[id].spent_on_inputs[j].good = 6
     end
     for j = 0, 7 do
-        DATA.building[id].spent_on_inputs[j].amount = -15
+        DATA.building[id].spent_on_inputs[j].amount = 18
     end
     for j = 0, 7 do
-        DATA.building[id].earn_from_outputs[j].good = 11
+        DATA.building[id].earn_from_outputs[j].good = 1
     end
     for j = 0, 7 do
-        DATA.building[id].earn_from_outputs[j].amount = -10
+        DATA.building[id].earn_from_outputs[j].amount = 17
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_inputs[j].good = 9
+        DATA.building[id].amount_of_inputs[j].good = 5
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_inputs[j].amount = -4
+        DATA.building[id].amount_of_inputs[j].amount = 7
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_outputs[j].good = 19
+        DATA.building[id].amount_of_outputs[j].good = 20
     end
     for j = 0, 7 do
-        DATA.building[id].amount_of_outputs[j].amount = -7
+        DATA.building[id].amount_of_outputs[j].amount = 5
     end
     local test_passed = true
     test_passed = test_passed and fat_id.type == 1
     if not test_passed then print("type", 1, fat_id.type) end
+    test_passed = test_passed and fat_id.subsidy == -15
+    if not test_passed then print("subsidy", -15, fat_id.subsidy) end
+    test_passed = test_passed and fat_id.subsidy_last == -15
+    if not test_passed then print("subsidy_last", -15, fat_id.subsidy_last) end
+    test_passed = test_passed and fat_id.income_mean == 3
+    if not test_passed then print("income_mean", 3, fat_id.income_mean) end
+    test_passed = test_passed and fat_id.last_income == -10
+    if not test_passed then print("last_income", -10, fat_id.last_income) end
+    test_passed = test_passed and fat_id.last_donation_to_owner == -1
+    if not test_passed then print("last_donation_to_owner", -1, fat_id.last_donation_to_owner) end
+    test_passed = test_passed and fat_id.unused == -4
+    if not test_passed then print("unused", -4, fat_id.unused) end
+    test_passed = test_passed and fat_id.work_ratio == 18
+    if not test_passed then print("work_ratio", 18, fat_id.work_ratio) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].good == 2
+        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].good == 6
     end
-    if not test_passed then print("spent_on_inputs.good", 2, DATA.building[id].spent_on_inputs[0].good) end
+    if not test_passed then print("spent_on_inputs.good", 6, DATA.building[id].spent_on_inputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].amount == -15
+        test_passed = test_passed and DATA.building[id].spent_on_inputs[j].amount == 18
     end
-    if not test_passed then print("spent_on_inputs.amount", -15, DATA.building[id].spent_on_inputs[0].amount) end
+    if not test_passed then print("spent_on_inputs.amount", 18, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].good == 11
+        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].good == 1
     end
-    if not test_passed then print("earn_from_outputs.good", 11, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", 1, DATA.building[id].earn_from_outputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].amount == -10
+        test_passed = test_passed and DATA.building[id].earn_from_outputs[j].amount == 17
     end
-    if not test_passed then print("earn_from_outputs.amount", -10, DATA.building[id].earn_from_outputs[0].amount) end
+    if not test_passed then print("earn_from_outputs.amount", 17, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].good == 9
+        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].good == 5
     end
-    if not test_passed then print("amount_of_inputs.good", 9, DATA.building[id].amount_of_inputs[0].good) end
+    if not test_passed then print("amount_of_inputs.good", 5, DATA.building[id].amount_of_inputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].amount == -4
+        test_passed = test_passed and DATA.building[id].amount_of_inputs[j].amount == 7
     end
-    if not test_passed then print("amount_of_inputs.amount", -4, DATA.building[id].amount_of_inputs[0].amount) end
+    if not test_passed then print("amount_of_inputs.amount", 7, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].good == 19
+        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].good == 20
     end
-    if not test_passed then print("amount_of_outputs.good", 19, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", 20, DATA.building[id].amount_of_outputs[0].good) end
     for j = 0, 7 do
-        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].amount == -7
+        test_passed = test_passed and DATA.building[id].amount_of_outputs[j].amount == 5
     end
-    if not test_passed then print("amount_of_outputs.amount", -7, DATA.building[id].amount_of_outputs[0].amount) end
+    if not test_passed then print("amount_of_outputs.amount", 5, DATA.building[id].amount_of_outputs[0].amount) end
     print("SET_GET_TEST_2_building:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_ownership()

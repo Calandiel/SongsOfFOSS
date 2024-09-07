@@ -1,7 +1,7 @@
 local ui = require "engine.ui";
 local uit = require "game.ui-utils"
 
-local ef = require "game.raws.effects.economic"
+local ef = require "game.raws.effects.economy"
 
 ---comment
 ---@param rect Rect

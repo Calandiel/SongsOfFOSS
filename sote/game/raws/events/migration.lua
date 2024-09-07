@@ -12,7 +12,7 @@ local AI_VALUE          = require "game.raws.values.ai_preferences"
 
 local pv                = require "game.raws.values.political"
 local diplomacy_events  = require "game.raws.effects.diplomacy"
-local economic_effects  = require "game.raws.effects.economic"
+local economic_effects  = require "game.raws.effects.economy"
 local military_effects  = require "game.raws.effects.military"
 local political_effects = require "game.raws.effects.political"
 
@@ -242,7 +242,7 @@ function load()
 				if pop_payment then
 					pop_payment = pop_payment * 0.5
 					local family_payment = pop_payment / 6
-					economic_effects.add_pop_savings(pop, family_payment, economic_effects.reasons.Donation)
+					economic_effects.add_pop_savings(pop, family_payment, ECONOMY_REASON.DONATION)
 				end
 				-- need to set new home province first before transfering so children are pulled along
 				associated_data.origin_province:transfer_home(pop, associated_data.target_province)
@@ -262,7 +262,7 @@ function load()
 			-- give half remaining payment to leader, rest to new realm
 			if pop_payment then
 				pop_payment = pop_payment * 0.5
-				economic_effects.add_pop_savings(expedition_leader, pop_payment, economic_effects.reasons.Donation)
+				economic_effects.add_pop_savings(expedition_leader, pop_payment, ECONOMY_REASON.DONATION)
 			end
 			-- move character to new home
 			associated_data.origin_province:transfer_character(
@@ -291,7 +291,7 @@ function load()
 
 			-- give remaining payment to the new realm
 			if pop_payment then
-				economic_effects.change_treasury(new_realm, pop_payment, economic_effects.reasons.Donation)
+				economic_effects.change_treasury(new_realm, pop_payment, ECONOMY_REASON.DONATION)
 			end
 
 			-- Initialize realm colors
