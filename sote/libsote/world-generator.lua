@@ -126,6 +126,7 @@ local function gen_phase_02()
 	initial_waterbodies()
 	initial_waterflow()
 	glaciers()
+	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
 end
 
 local libsote_cpp = require "libsote.libsote"

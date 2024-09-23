@@ -76,12 +76,12 @@ function world:new(world_size, seed)
 	obj.rock_layer         = allocate_array("rock_layer",         obj.tile_count, "uint16_t")
 	obj.jan_rainfall       = allocate_array("jan_rainfall",       obj.tile_count, "float")
 	obj.jan_temperature    = allocate_array("jan_temperature",    obj.tile_count, "float")
-	obj.jan_humidity	   = allocate_array("jan_humidity",       obj.tile_count, "float")
+	obj.jan_humidity       = allocate_array("jan_humidity",       obj.tile_count, "float")
 	obj.jan_wind_speed     = allocate_array("jan_wind_speed",     obj.tile_count, "float")
 	obj.jan_water_movement = allocate_array("jan_water_movement", obj.tile_count, "float")
 	obj.jul_rainfall       = allocate_array("jul_rainfall",       obj.tile_count, "float")
 	obj.jul_temperature    = allocate_array("jul_temperature",    obj.tile_count, "float")
-	obj.jul_humidity	   = allocate_array("jul_humidity",       obj.tile_count, "float")
+	obj.jul_humidity       = allocate_array("jul_humidity",       obj.tile_count, "float")
 	obj.jul_wind_speed     = allocate_array("jul_wind_speed",     obj.tile_count, "float")
 	obj.jul_water_movement = allocate_array("jul_water_movement", obj.tile_count, "float")
 	obj.water_movement     = allocate_array("water_movement",     obj.tile_count, "float")
@@ -263,6 +263,10 @@ function world:map_hex_coords()
 	end)
 end
 
+function world:get_tile_index(q, r, face)
+	return self.coord[self:_key_from_coord(q, r, face)]
+end
+
 function world:get_hex_coords(ti)
 	local coord = self.coord_by_ti[ti]
 	return coord[1], coord[2], coord[3]
@@ -356,9 +360,13 @@ function world:soil_depth_raw(ti)
 	return self.sand[ti] + self.silt[ti] + self.clay[ti]
 end
 
+function world:get_ice_by_tile(ti)
+	return self.ice[ti], self.ice_age_ice[ti]
+end
+
 function world:get_ice(q, r, face)
-	local index = self.coord[self:_key_from_coord(q, r, face)]
-	return self.ice[index], self.ice_age_ice[index]
+	local ti = self.coord[self:_key_from_coord(q, r, face)]
+	return self:get_ice_by_tile(ti)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -435,7 +443,7 @@ function world:true_elevation(ti)
 	if self.is_land[ti] then -- If land, consider elevation and ice
 		return self:true_elevation_for_waterflow(ti)
 	elseif self:is_tile_waterbody_valid(ti) then -- If lake or ocean, consider water level of the lake + ice
-		return self.waterbodies[self.waterbody_id_by_tile[ti]].waterlevel + self.ice[ti] + 0.0001
+		return self.waterbodies[self.waterbody_id_by_tile[ti]].water_level + self.ice[ti] + 0.0001
 	else
 		return 0
 	end
@@ -458,13 +466,24 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-local wb = require("libsote.hydrology.waterbody")
+local waterbody = require "libsote.hydrology.waterbody"
 
----@return number new waterbody id
-function world:create_new_waterbody()
+---@param wb table waterbody
+---@param ti number 0-based tile index
+function world:add_tile_to_waterbody(wb, ti)
+	wb:add_tile(ti)
+	self.waterbody_id_by_tile[ti] = wb.id
+end
+
+---@param ti number 0-based tile index
+---@return table waterbody
+function world:create_new_waterbody_from_tile(ti)
+	-- no reuse of killed waterbodies for now
 	local id = #self.waterbodies + 1
-	self.waterbodies[id] = wb:new()
-	return id
+	local new_wb = waterbody:new(id)
+	self:add_tile_to_waterbody(new_wb, ti)
+	self.waterbodies[id] = new_wb
+	return new_wb
 end
 
 function world:get_waterbody(q, r, face)
@@ -472,11 +491,12 @@ function world:get_waterbody(q, r, face)
 end
 
 ---@param ti number 0-based index
+---@return table|nil waterbody
 function world:get_waterbody_by_tile(ti)
 	return self.waterbodies[self.waterbody_id_by_tile[ti]]
 end
 
----@param
+---@param ti number 0-based index
 function world:get_waterbody_size(ti)
 	local wb = self:get_waterbody_by_tile(ti)
 	return (wb == nil) and 0 or #wb.tiles
@@ -484,27 +504,47 @@ end
 
 ---@param ti number 0-based index
 function world:is_tile_waterbody_valid(ti)
-	if self.waterbody_id_by_tile[ti] == 0 then return false end
-	return self.waterbodies[self.waterbody_id_by_tile[ti]]:is_valid()
+	local wb_id = self.waterbody_id_by_tile[ti]
+	if wb_id == 0 then return false end
+	local wb = self.waterbodies[wb_id]
+	return wb and wb:is_valid()
 end
 
 ---@param callback fun(waterbody:table)
 function world:for_each_waterbody(callback)
-	for i = 1, #self.waterbodies do
-		callback(self.waterbodies[i])
+	for _, wb in ipairs(self.waterbodies) do
+		if wb and wb:is_valid() then callback(wb) end
 	end
+end
+
+---@param to_wb table waterbody to merge into
+---@param from_wb table waterbody to merge from
+function world:merge_waterbodies(to_wb, from_wb)
+	for _, ti in ipairs(from_wb.tiles) do
+		self:add_tile_to_waterbody(to_wb, ti)
+	end
+	for ti, _ in pairs(from_wb.perimeter) do
+		to_wb:add_to_perimeter(ti)
+	end
+
+	from_wb:kill()
+	-- no reuse of killed waterbodies for now, they are just left in the array
 end
 
 ---------------------------------------------------------------------------------------------------
 
-function world:get_debug_rgba(channel, q, r, face)
-	local index = self.coord[self:_key_from_coord(q, r, face)]
+function world:get_debug_rgba_by_tile(ti, channel)
 	if self.debug_channels and self.debug_channels[channel] then
 		local channel_data = self.debug_channels[channel]
-		return channel_data.r[index], channel_data.g[index], channel_data.b[index], channel_data.a[index]
+		return channel_data.r[ti], channel_data.g[ti], channel_data.b[ti], channel_data.a[ti]
 	else
 		error("Debug channel " .. channel .. " does not exist.")
 	end
+end
+
+function world:get_debug_rgba(channel, q, r, face)
+	local ti = self.coord[self:_key_from_coord(q, r, face)]
+	return self:get_debug_rgba_by_tile(ti, channel)
 end
 
 function world:set_debug_rgba(channel, ti, r, g, b, a)

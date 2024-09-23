@@ -18,11 +18,11 @@ local function clear_temporary_data(world)
 end
 
 local function clear_current_elevation_on_lakes(world)
-	world:for_each_waterbody(function(waterbody)
-		if not waterbody:is_valid() then return end
+	world:for_each_waterbody(function(wb)
+		if not wb:is_valid() then return end
 
-		if waterbody.type == waterbody.TYPES.freshwater_lake or waterbody.type == waterbody.TYPES.saltwater_lake then
-			waterbody.tmp_float_1 = 0
+		if wb.type == wb.TYPES.freshwater_lake or wb.type == wb.TYPES.saltwater_lake then
+			wb.tmp_float_1 = 0
 		end
 	end)
 end
@@ -175,7 +175,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	if not is_land then -- if water tile, check to see if it's a lake. If it is, shunt water to outlet tile
 		local body = world:get_waterbody_by_tile(ti)
 
-		if body.lake_open then -- If it is a non-endhoric waterbody, then pass the water on.
+		if body and body.lake_open then -- If it is a non-endhoric waterbody, then pass the water on.
 			-- is_p2_p1 = true
 			-- p2_p1 = p2_p1 + 1
 			local body_outlet_ti = body.lowest_shore_tile
@@ -183,7 +183,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			world.tmp_float_1[body_outlet_ti] = world.tmp_float_1[body_outlet_ti] + world.tmp_float_1[ti] + world.tmp_float_2[ti]
 			body.tmp_float_1 = body.tmp_float_1 + world.tmp_float_1[ti] + world.tmp_float_2[ti] -- Body temp float represents how much water moved through this body.
 
-		elseif body.type == body.TYPES.saltwater_lake or body.type == body.TYPES.freshwater_lake then
+		elseif body and body.type == body.TYPES.saltwater_lake or body.type == body.TYPES.freshwater_lake then
 			-- is_p2_p2 = true
 			-- p2_p2 = p2_p2 + 1
 			body.tmp_float_1 = body.tmp_float_1 + world.tmp_float_1[ti] + world.tmp_float_2[ti]

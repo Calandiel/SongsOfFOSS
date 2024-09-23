@@ -102,10 +102,11 @@ function wl.load_maps_from(world)
 
 	for _, tile in pairs(WORLD.tiles) do
 		local q, r, face = world:get_tile_coord(tile.tile_id)
+		local ti = world:get_tile_index(q, r, face)
 
-		local is_land = world:get_is_land(q, r, face)
+		local is_land = world.is_land[ti]
 
-		tile.elevation = world:get_elevation(q, r, face)
+		tile.elevation = world.elevation[ti]
 		tile.is_land = is_land
 
 		if is_land then
@@ -118,8 +119,8 @@ function wl.load_maps_from(world)
 
 		------------------------------------------------------------------
 
-		local rock_type = world:get_rock_type(q, r, face)
-		local rock_layer_index = world:get_rock_layer(q, r, face)
+		local rock_type = world.rock_type[ti]
+		local rock_layer_index = world.rock_layer[ti]
 		local rock_layer = rock_layers[rock_type][rock_layer_index]
 
 		if rock_layer ~= nil then
@@ -139,7 +140,7 @@ function wl.load_maps_from(world)
 
 		local waterflow = 0
 		if is_land then
-			waterflow = world:get_water_movement(q, r, face)
+			waterflow = world.water_movement[ti]
 		end
 
 		--tile.is_land = jan_is_land or jul_is_land
@@ -153,7 +154,7 @@ function wl.load_maps_from(world)
 		-- end
 
 		-- ice ------------------------------------------------
-		tile.ice, tile.ice_age_ice = world:get_ice(q, r, face)
+		tile.ice, tile.ice_age_ice = world:get_ice_by_tile(ti)
 	end
 
 	local duration = love.timer.getTime() - start
@@ -235,8 +236,9 @@ function wl.dump_maps_from(world)
 			local lon = ((x + 0.5) / width * 2 - 1) * math.pi -- (x + 0.5) / width * 2 - 1 to align with ich.io sote, no -1 otherwise
 			local lat = ((y + 0.5) / height - 0.5) * math.pi
 			local q, r, face = hexu.latlon_to_hex_coords(lat, lon, world.size)
-			local is_land = world:get_is_land(q, r, face)
-			local elevation = world:get_elevation(q, r, face)
+			local ti = world:get_tile_index(q, r, face)
+			local is_land = world.is_land[ti]
+			local elevation = world.elevation[ti]
 
 			local col_r, col_g, col_b
 
@@ -248,8 +250,8 @@ function wl.dump_maps_from(world)
 
 			-- rocks ---------------------------------------------------------
 			if debug_ms.rocks then
-				local rock_type = world:get_rock_type(q, r, face)
-				local rock_layer_index = world:get_rock_layer(q, r, face)
+				local rock_type = world.rock_type[ti]
+				local rock_layer_index = world.rock_layer[ti]
 				local rock_layer = rock_layers[rock_type][rock_layer_index]
 
 				if rock_layer ~= nil then
@@ -287,14 +289,14 @@ function wl.dump_maps_from(world)
 			if debug_ms.waterflow then
 				col_r, col_g, col_b = 2, 8, 209
 				if is_land then
-					local water_movement = world:get_water_movement(q, r, face)
+					local water_movement = world.water_movement[ti]
 					local rank = gen_water_movement_rank(water_movement)
 					col_r, col_g, col_b = color_from_rank(rank)
 				else
-					local waterbody = world:get_waterbody(q, r, face)
-					if waterbody.type == waterbody.TYPES.freshwater_lake then
+					local waterbody = world:get_waterbody_by_tile(ti)
+					if waterbody and waterbody.type == waterbody.TYPES.freshwater_lake then
 						col_r, col_g, col_b = 15, 239, 255
-					elseif waterbody.type == waterbody.TYPES.saltwater_lake then
+					elseif waterbody and waterbody.type == waterbody.TYPES.saltwater_lake then
 						col_r, col_g, col_b = 30, 125, 255
 					end
 				end
@@ -304,10 +306,10 @@ function wl.dump_maps_from(world)
 
 			-- debug ---------------------------------------------------------
 			if debug_ms.debug then
-				col_r, col_g, col_b, _ = world:get_debug_rgba(1, q, r, face)
+				col_r, col_g, col_b, _ = world:get_debug_rgba_by_tile(ti, 1)
 				image_debug_data_1:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 
-				col_r, col_g, col_b, _ = world:get_debug_rgba(2, q, r, face)
+				col_r, col_g, col_b, _ = world:get_debug_rgba_by_tile(ti, 2)
 				image_debug_data_2:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 				-- local r_blend, g_blend, b_blend, a_blend = world:get_debug_rgba(world.num_debug_channels, q, r, face)
 				-- for channel = world.num_debug_channels - 1, 1, -1 do

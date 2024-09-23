@@ -23,4 +23,9 @@ function oi.waterflow_for_rank_7()
 	return 50000
 end
 
+-- odd thing to do, wiping out water movement that was calculated in 'calculate-waterflow'
+function oi.set_water_movement_for_lakes(world, ti)
+	world.water_movement[ti] = 0
+end
+
 return oi

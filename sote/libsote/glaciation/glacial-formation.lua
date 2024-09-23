@@ -9,11 +9,11 @@ local AGE_TYPES = {
 	game_age = 1
 }
 
--- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local open_issues = require "libsote.glaciation.open-issues"
 local rock_qualities = require "libsote.rock-qualities"
 local rock_types = require "libsote.rock-type".TYPES
 
+-- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[glacial-formation]"
 
@@ -22,7 +22,7 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
-local align_rng = false
+local align_rng = true
 local enable_debug = false
 
 local world
