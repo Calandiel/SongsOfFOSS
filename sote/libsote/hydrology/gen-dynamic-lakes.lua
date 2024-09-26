@@ -3,9 +3,8 @@ local dl = {}
 local world
 
 local open_issues = require "libsote.hydrology.open-issues"
-local waterbody = require "libsote.hydrology.waterbody"
 
-local logger = require("libsote.debug-loggers").get_lakes_logger("d:/temp")
+-- local logger = require("libsote.debug-loggers").get_lakes_logger("d:/temp")
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[gen-dynamic-lakes]"
 
@@ -128,7 +127,7 @@ local function water_flow_from_tile_to_tile()
 		new_wb.water_level = true_elevation_for_waterflow
 		new_wb.type = new_wb.TYPES.saltwater_lake
 
-		logger:log("\tlake " .. new_wb.id .. " created at " .. ti)
+		-- logger:log("\tlake " .. new_wb.id .. " created at " .. ti)
 
 		::continue1::
 	end
@@ -160,12 +159,12 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 	local lowest_shore_ti = wb.lowest_shore_tile
 	local true_elevation_for_waterflow = world:true_elevation_for_waterflow(lowest_shore_ti)
 	local volume_to_fill = (true_elevation_for_waterflow - wb.water_level) * wb:size()
-	logger:log("\t\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. lowest_shore_ti .. ", " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile) .. ") has volume to fill: " .. volume_to_fill .. " and water to disburse: " .. water_to_disburse)
+	-- logger:log("\t\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. lowest_shore_ti .. ", " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile) .. ") has volume to fill: " .. volume_to_fill .. " and water to disburse: " .. water_to_disburse)
 
 	--* If true, simply add water to watervolume
 	if water_to_disburse < volume_to_fill then
 		wb.water_level = wb.water_level + water_to_disburse / wb:size()
-		logger:log("\t\tlake " .. wb.id .. " filled to " .. wb.water_level .. " with 0 water left")
+		-- logger:log("\t\tlake " .. wb.id .. " filled to " .. wb.water_level .. " with 0 water left")
 		return 0
 	end
 
@@ -173,7 +172,7 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 	water_to_disburse = water_to_disburse - volume_to_fill --* Subtract volume that it takes to fill up lake to lowest shore tile
 	wb.water_level = true_elevation_for_waterflow --* Raise water level to the lowest tile
 
-	logger:log("\t\tlake " .. wb.id .. " filled to " .. wb.water_level .. " with " .. water_to_disburse .. " water left")
+	-- logger:log("\t\tlake " .. wb.id .. " filled to " .. wb.water_level .. " with " .. water_to_disburse .. " water left")
 
 	local body_to_kill = nil
 	local has_lower_neigh = false --* This will inform us as to whether we need to add the tile to the lake or drain into this tile
@@ -200,7 +199,7 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* Kill neighbor waterbody and combine it with current waterbody
 	if body_to_kill then
-		logger:log("\t\t\tlake " .. wb.id .. " combining with lake " .. body_to_kill.id)
+		-- logger:log("\t\t\tlake " .. wb.id .. " combining with lake " .. body_to_kill.id)
 		wb.tmp_float_1 = wb.tmp_float_1 + body_to_kill.tmp_float_1
 
 		world:merge_waterbodies(wb, body_to_kill)
@@ -211,12 +210,12 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* Drain lake into shore tile with low neighbor that is not the same waterbody
 	if has_lower_neigh then
-		local log_str = "\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti
+		-- local log_str = "\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti
 		local lsti_wb = world:get_waterbody_by_tile(lowest_shore_ti)
 		if lsti_wb then
-			logger:log(log_str .. " which belongs to lake " .. lsti_wb.id)
-		else
-			logger:log(log_str)
+			-- logger:log(log_str .. " which belongs to lake " .. lsti_wb.id)
+		-- else
+		-- 	logger:log(log_str)
 		end
 
 		wb.lake_open = true
@@ -233,7 +232,7 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* if false, add tile to lake
 	add_lowest_shore_tile_to_waterbody(wb, lowest_shore_ti)
-	logger:log("\t\t\tlake " .. wb.id .. " added tile " .. lowest_shore_ti .. ": " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile))
+	-- logger:log("\t\t\tlake " .. wb.id .. " added tile " .. lowest_shore_ti .. ": " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile))
 
 	return water_to_disburse
 end
@@ -250,7 +249,7 @@ local function resize_lakes()
 		local water_to_disburse = wb.tmp_float_1 / lake_divisor
 		wb.tmp_float_1 = 0
 
-		logger:log("\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile) .. ") has water to disburse: " .. water_to_disburse)
+		-- logger:log("\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile) .. ") has water to disburse: " .. water_to_disburse)
 
 		--* Continue to grow lake until all water is used up
 		while water_to_disburse > 0 do
@@ -287,7 +286,7 @@ local function water_flow_phase()
 	local iter = 0
 
 	while #water_flow_now > 0 do
-		logger:log("iter: " .. iter .. "; water_flow_now: " .. #water_flow_now)
+		-- logger:log("iter: " .. iter .. "; water_flow_now: " .. #water_flow_now)
 
 		water_flow_from_tile_to_tile()
 
@@ -309,9 +308,6 @@ function dl.run(world_obj)
 	world:for_each_tile(function(ti)
 		if world.elevation[ti] == 0 then
 			world.elevation[ti] = world.elevation[ti] + 0.1
-		end
-		if world.water_movement[ti] ~= 0 then
-			logger:log(ti .. " " .. world.water_movement[ti])
 		end
 	end)
 
@@ -338,16 +334,9 @@ function dl.run(world_obj)
 
 	world:for_each_waterbody(function(wb)
 		if not wb:is_valid() then return end
-		logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
+		-- logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
 		for _, ti in ipairs(wb.tiles) do
 			world.is_land[ti] = false
-		end
-	end)
-
-	logger:log("after !!!!!")
-	world:for_each_tile(function(ti)
-		if world.water_movement[ti] ~= 0 then
-			logger:log(ti .. " " .. world.water_movement[ti])
 		end
 	end)
 end
