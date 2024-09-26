@@ -4,12 +4,13 @@ dcp.align_to_sote_coords = true -- this will align hex world storage to match th
 dcp.map_tiles_from_file = true -- this will load cube world tile IDs mapping to hex coordinates from a file, as it's faster than computing them from lat lon
 dcp.use_sote_climate_data = true -- climate model was ported from sote, but with some changes; this will enable import of original sote climate data from a csv file, to aid in debugging/validating port
 
-dcp.save_maps = false -- this will export maps to PNG
+dcp.save_maps = true -- this will export maps to PNG
 dcp.maps_selection = {
 	elevation = false,
 	rocks = false,
 	climate = false,
 	waterflow = true,
+	waterbodies = true,
 	debug = false
 }
 

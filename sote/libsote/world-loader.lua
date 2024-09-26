@@ -95,6 +95,51 @@ end
 -- 	end
 -- end
 
+local colors = {
+	yellow = { 255, 255 * 47 / 51, 255 * 0.0156862754 },
+	green = { 0, 255, 0 },
+	blue = { 0, 0, 255 },
+	cyan = { 0, 255, 255 },
+	red = { 255, 0, 0 },
+	magenta = { 255, 0, 255 }
+}
+
+local function get_waterbody_color(wb)
+	if not wb or not wb:is_valid() then
+		return 0, 0, 0
+	end
+
+	if wb.type == wb.TYPES.wetland then
+		return 128, 128, 128
+	end
+
+	local rem = wb.id % 10
+
+	if rem == 0 then
+		return colors.yellow[1], colors.yellow[2], colors.yellow[3]
+	elseif rem == 1 then
+		return colors.green[1], colors.green[2], colors.green[3]
+	elseif rem == 2 then
+		return colors.blue[1], colors.blue[2], colors.blue[3]
+	elseif rem == 3 then
+		return colors.cyan[1], colors.cyan[2], colors.cyan[3]
+	elseif rem == 4 then
+		return colors.red[1], colors.red[2], colors.red[3]
+	elseif rem == 5 then
+		return colors.magenta[1], colors.magenta[2], colors.magenta[3]
+	elseif rem == 6 then
+		return 255, 111, 15 -- orange
+	elseif rem == 7 then
+		return 145, 0, 105 -- dark purple
+	elseif rem == 8 then
+		return 114, 79, 31 -- brown
+	elseif rem == 9 then
+		return 255, 125, 209 -- pink
+	else
+		return 159, 217, 108 -- green-ish
+	end
+end
+
 local rock_layers = require "libsote.rock-layers"
 
 function wl.load_maps_from(world)
@@ -209,6 +254,7 @@ function wl.dump_maps_from(world)
 	local image_rocks_data
 	local image_jan_rainfall_data
 	local image_jan_waterflow_data
+	local image_waterbodies_data
 	local image_debug_data_1
 	local image_debug_data_2
 
@@ -223,6 +269,9 @@ function wl.dump_maps_from(world)
 	end
 	if debug_ms.waterflow then
 		image_jan_waterflow_data = love.image.newImageData(width, height)
+	end
+	if debug_ms.waterbodies then
+		image_waterbodies_data = love.image.newImageData(width, height)
 	end
 	if debug_ms.debug then
 		image_debug_data_1 = love.image.newImageData(width, height)
@@ -285,6 +334,8 @@ function wl.dump_maps_from(world)
 				image_jan_rainfall_data:setPixel(x, y, col_r, col_g, col_b, 1)
 			end
 
+			local wb = world:get_waterbody_by_tile(ti)
+
 			-- water movement ------------------------------------------------
 			if debug_ms.waterflow then
 				col_r, col_g, col_b = 2, 8, 209
@@ -293,15 +344,20 @@ function wl.dump_maps_from(world)
 					local rank = gen_water_movement_rank(water_movement)
 					col_r, col_g, col_b = color_from_rank(rank)
 				else
-					local waterbody = world:get_waterbody_by_tile(ti)
-					if waterbody and waterbody.type == waterbody.TYPES.freshwater_lake then
+					if wb and wb.type == wb.TYPES.freshwater_lake then
 						col_r, col_g, col_b = 15, 239, 255
-					elseif waterbody and waterbody.type == waterbody.TYPES.saltwater_lake then
+					elseif wb and wb.type == wb.TYPES.saltwater_lake then
 						col_r, col_g, col_b = 30, 125, 255
 					end
 				end
 
 				image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+			end
+
+			-- waterbodies ---------------------------------------------------
+			if debug_ms.waterbodies then
+				col_r, col_g, col_b = get_waterbody_color(wb)
+				image_waterbodies_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 			end
 
 			-- debug ---------------------------------------------------------
@@ -336,6 +392,10 @@ function wl.dump_maps_from(world)
 	if debug_ms.waterflow then
 		local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
 		love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
+	end
+	if debug_ms.waterbodies then
+		local waterbodies_file_data = image_waterbodies_data:encode('png')
+		love.filesystem.write(world.seed .. '_waterbodies.png', waterbodies_file_data)
 	end
 	if debug_ms.debug then
 		local debug_file_data_1 = image_debug_data_1:encode('png')
