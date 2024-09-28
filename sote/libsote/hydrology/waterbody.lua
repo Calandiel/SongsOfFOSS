@@ -57,6 +57,13 @@ function waterbody:for_each_tile(callback)
 	end
 end
 
+---@param callback fun(tile_index:number)
+function waterbody:for_each_tile_in_perimeter(callback)
+	for ti, _ in pairs(self.perimeter) do
+		callback(ti)
+	end
+end
+
 ---@param ti number
 function waterbody:add_to_perimeter(ti)
 	self.perimeter[ti] = true

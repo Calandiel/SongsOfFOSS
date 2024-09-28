@@ -64,10 +64,10 @@ end
 local ffi = require("ffi")
 
 ---@param get_primary fun(i:number):any
----@param get_secondary fun(i:number):any
+---@param get_secondary fun(i:number):any|nil
 ---@param n number
 ---@param desc_primary boolean
----@param desc_secondary boolean
+---@param desc_secondary boolean|nil
 function hs.heap_sort_indices(get_primary, get_secondary, n, desc_primary, desc_secondary)
 	desc_primary = desc_primary or false
 	desc_secondary = desc_secondary or false

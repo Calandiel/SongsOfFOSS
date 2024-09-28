@@ -5,9 +5,9 @@ local world
 local open_issues = require "libsote.hydrology.open-issues"
 
 -- local logger = require("libsote.debug-loggers").get_lakes_logger("d:/temp")
+
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[gen-dynamic-lakes]"
-
 local function run_with_profiling(func, log_txt)
 	prof.run_with_profiling(func, prof_prefix, log_txt)
 end
@@ -341,6 +341,8 @@ function dl.run(world_obj)
 	end)
 end
 
+return dl
+
 --* River Plan ///
 --* Possibly generate wetlands first, so that when rivers flow through them, they can then have an "out tile" similar to a lake. The difference is that you don't
 --* have "standing water" like a lake. Instead, its more like a broad, slow moving, shallow river.
@@ -359,5 +361,3 @@ end
 --* Check all endoric waterbodies, including oceans, seas, and saltwater lakes
 --* Check shoreline of those waterbodies and check for tiles with watermovement reaching a particular threshold.
 --* Build a list and follow the waterflow backward from low elevation to high. Stop once the river forks.
-
-return dl
