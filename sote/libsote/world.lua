@@ -473,6 +473,12 @@ function world:add_tile_to_waterbody(wb, ti)
 end
 
 ---@param ti number 0-based tile index
+---@param wb table waterbody
+function world:reassign_tile_to_waterbody(ti, wb)
+	self.waterbody_id_by_tile[ti] = wb.id
+end
+
+---@param ti number 0-based tile index
 ---@return table waterbody
 function world:create_new_waterbody_from_tile(ti)
 	if #self.killed_waterbodies > 0 then
@@ -491,6 +497,9 @@ function world:create_new_waterbody_from_tile(ti)
 	return new_wb
 end
 
+---@param q number
+---@param r number
+---@param face number
 function world:get_waterbody(q, r, face)
 	return self.waterbodies[self.waterbody_id_by_tile[self.coord[self:_key_from_coord(q, r, face)]]]
 end
