@@ -40,10 +40,9 @@ end
 local fu = require "game.file-utils"
 
 local function override_climate_data()
-	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data_by_elev.csv")
-	-- local logger = require("libsote.debug-loggers").get_climate_logger("d:/temp")
+	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
 
-	wg.world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
+	wg.world:for_each_tile(function(ti, _)
 		local row = climate_generator()
 		if row == nil then
 			error("Not enough rows in climate data")
@@ -57,9 +56,6 @@ local function override_climate_data()
 		wg.world.jul_humidity[ti] = tonumber(row[8])
 		wg.world.jan_wind_speed[ti] = tonumber(row[9])
 		wg.world.jul_wind_speed[ti] = tonumber(row[10])
-
-		-- local log_str = row[1] .. "," .. row[2] .. " --- " .. wg.world.colatitude[ti] .. "," .. wg.world.minus_longitude[ti] .. " --- " .. wg.world:true_elevation_for_waterflow(ti) .. " <-> " .. tonumber(row[11])
-		-- logger:log(log_str)
 	end)
 end
 

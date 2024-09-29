@@ -64,7 +64,7 @@ end
 local ffi = require("ffi")
 
 ---@param get_primary fun(i:number):any
----@param get_secondary fun(i:number):any|nil
+---@param get_secondary nil|fun(i:number):any
 ---@param n number
 ---@param desc_primary boolean
 ---@param desc_secondary boolean|nil

@@ -146,8 +146,7 @@ function wl.load_maps_from(world)
 	local start = love.timer.getTime()
 
 	for _, tile in pairs(WORLD.tiles) do
-		local q, r, face = world:get_tile_coord(tile.tile_id)
-		local ti = world:get_tile_index(q, r, face)
+		local ti = world:get_tile_coord(tile.tile_id)
 
 		local is_land = world.is_land[ti]
 
