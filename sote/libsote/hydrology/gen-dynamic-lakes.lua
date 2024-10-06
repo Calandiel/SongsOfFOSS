@@ -240,8 +240,6 @@ local function resize_lakes()
 	--* Loop through all waterbodies. Check for active, and check for tempWater.
 
 	world:for_each_waterbody(function(wb)
-		-- if not wb:is_valid() then return end -- do we really need this check?
-
 		if wb.tmp_float_1 <= 0 or wb.type == wb.TYPES.ocean then return end
 		--* Only resize lakes and seas
 
@@ -332,8 +330,6 @@ function dl.run(world_obj)
 	run_with_profiling(function() water_flow_phase() end, "water_flow_phase")
 
 	world:for_each_waterbody(function(wb)
-		if not wb:is_valid() then return end
-
 		-- logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
 
 		wb:for_each_tile(function(ti)
