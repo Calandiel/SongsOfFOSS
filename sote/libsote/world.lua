@@ -478,23 +478,42 @@ function world:reassign_tile_to_waterbody(ti, wb)
 	self.waterbody_id_by_tile[ti] = wb.id
 end
 
----@param ti number 0-based tile index
+---@param wb_type waterbody_type
 ---@return table waterbody
-function world:create_new_waterbody_from_tile(ti)
+function world:create_waterbody(wb_type)
 	if #self.killed_waterbodies > 0 then
 		local id = table.remove(self.killed_waterbodies, 1)
 		local wb = self.waterbodies[id]
 		wb.id = id
-		self:add_tile_to_waterbody(wb, ti)
-		self.waterbodies[id] = wb
+		wb.type = wb_type
 		return wb
 	end
 
 	local id = #self.waterbodies + 1
 	local new_wb = waterbody:new(id)
-	self:add_tile_to_waterbody(new_wb, ti)
-	self.waterbodies[id] = new_wb
+	new_wb.type = wb_type
+	table.insert(self.waterbodies, new_wb)
 	return new_wb
+end
+
+---@param ti number 0-based tile index
+---@param wb_type waterbody_type
+---@return table waterbody
+function world:create_waterbody_from_tile(ti, wb_type)
+	local wb = self:create_waterbody(wb_type)
+	self:add_tile_to_waterbody(wb, ti)
+	return wb
+end
+
+---@param wb table waterbody
+function world:kill_waterbody(wb)
+	wb:for_each_tile(function(ti)
+		self.waterbody_id_by_tile[ti] = 0
+	end)
+
+	table.insert(self.killed_waterbodies, wb.id)
+	table.sort(self.killed_waterbodies)
+	wb:kill()
 end
 
 ---@param q number
@@ -527,7 +546,7 @@ end
 ---@param callback fun(waterbody:table)
 function world:for_each_waterbody(callback)
 	for _, wb in ipairs(self.waterbodies) do
-		if wb and wb:is_valid() then callback(wb) end
+		if wb:is_valid() then callback(wb) end
 	end
 end
 

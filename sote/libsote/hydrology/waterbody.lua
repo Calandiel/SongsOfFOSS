@@ -33,13 +33,13 @@ end
 function waterbody:kill()
 	self.id = 0
 	self.tiles = {}
-	self.type = waterbody.TYPES.invalid
-	self.basin_id = 0
-	self.water_level = 0
+	-- self.type = waterbody.TYPES.invalid
+	-- self.basin_id = 0
+	-- self.water_level = 0
 	self.perimeter = {}
-	self.lowest_shore_tile = nil
-	self.lake_open = false
-	self.tmp_float_1 = 0
+	-- self.lowest_shore_tile = nil
+	-- self.lake_open = false
+	-- self.tmp_float_1 = 0
 end
 
 ---@return number

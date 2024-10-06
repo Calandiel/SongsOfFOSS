@@ -22,7 +22,7 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
-local align_rng = false
+local align_rng = true
 local enable_debug = false
 
 local world
@@ -731,6 +731,7 @@ function gf.run(world_obj)
 
 	if enable_debug then
 		world:adjust_debug_channels(2)
+		world:reset_debug_all()
 	end
 
 	world:fill_ffi_array(glacial_seed, false)

@@ -1,5 +1,6 @@
 local giw = {}
 
+local waterbody = require "libsote.hydrology.waterbody"
 local queue = require("engine.queue"):new()
 
 local waterbodies_created = 0
@@ -11,7 +12,7 @@ local function process(tile_index, world)
 
 	-- "no ice" check is skipped for now
 
-	local new_wb = world:create_new_waterbody_from_tile(tile_index)
+	local new_wb = world:create_waterbody_from_tile(tile_index, waterbody.TYPES.ocean) -- everything seems to start out as oceans?
 	waterbodies_created = waterbodies_created + 1
 
 	queue:enqueue(tile_index)

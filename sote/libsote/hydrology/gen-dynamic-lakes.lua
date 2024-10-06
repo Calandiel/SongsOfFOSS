@@ -2,6 +2,7 @@ local dl = {}
 
 local world
 
+local waterbody = require "libsote.hydrology.waterbody"
 local open_issues = require "libsote.hydrology.open-issues"
 
 -- local logger = require("libsote.debug-loggers").get_lakes_logger("d:/temp")
@@ -112,7 +113,7 @@ local function water_flow_from_tile_to_tile()
 		if world:get_waterbody_by_tile(ti) then goto continue1 end
 
 		--* If elevation difference is 0, it can be inferred that we have no tiles lower than the target tile, therefore it should construct a lake.
-		local new_wb = world:create_new_waterbody_from_tile(ti)
+		local new_wb = world:create_waterbody_from_tile(ti, waterbody.TYPES.saltwater_lake)
 
 		--* Mark the tile as water
 		world.is_land[ti] = false
@@ -125,7 +126,6 @@ local function water_flow_from_tile_to_tile()
 		new_wb:set_lowest_shore_tile(world)
 		new_wb.tmp_float_1 = new_wb.tmp_float_1 + water_to_give
 		new_wb.water_level = true_elevation_for_waterflow
-		new_wb.type = new_wb.TYPES.saltwater_lake
 
 		-- logger:log("\tlake " .. new_wb.id .. " created at " .. ti)
 
@@ -333,10 +333,12 @@ function dl.run(world_obj)
 
 	world:for_each_waterbody(function(wb)
 		if not wb:is_valid() then return end
+
 		-- logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
-		for _, ti in ipairs(wb.tiles) do
+
+		wb:for_each_tile(function(ti)
 			world.is_land[ti] = false
-		end
+		end)
 	end)
 end
 
