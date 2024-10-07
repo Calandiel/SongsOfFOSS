@@ -355,13 +355,14 @@ function wg.draw()
 	end
 end
 
+---@type table<string, MapModeEntry
 wg.map_mode_data = {}
 require "game.scenes.game.map-modes".set_up_map_modes(wg)
 
 function wg.refresh_map_mode()
 	print(wg.map_mode)
 	local dat = wg.map_mode_data[wg.map_mode]
-	local func = dat[4]
+	local func = dat.recalculation
 	func() -- set "real color" on tiles
 
 	local pointer_tile_color = require("ffi").cast("uint8_t*", wg.tile_color_image_data:getFFIPointer())
