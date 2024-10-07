@@ -1,6 +1,6 @@
 local gr = {}
 
-local rock_types = require "libsote.rock-type".types
+local rock_types = require "libsote.rock-type".TYPES
 
 local function fix_rock_type(index, world)
 	if world.rock_type[index] == rock_types.no_type and world.is_land[index] then

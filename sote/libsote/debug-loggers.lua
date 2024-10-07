@@ -49,6 +49,9 @@ local loggers = {}
 local latlon_logger = nil
 local neighbors_logger = nil
 local waterflow_logger = nil
+local parent_material_logger = nil
+local glacial_logger = nil
+local climate_logger = nil
 
 local function get_logger(logger_instance, logname, path, unique)
 	if logger_instance == nil then
@@ -68,6 +71,18 @@ end
 
 function loggers.get_waterflow_logger(path)
 	return get_logger(waterflow_logger, "waterflow", path)
+end
+
+function loggers.get_parent_material_logger(path)
+	return get_logger(parent_material_logger, "parent_material", path)
+end
+
+function loggers.get_glacial_logger(path)
+	return get_logger(glacial_logger, "glacial", path)
+end
+
+function loggers.get_climate_logger(path)
+	return get_logger(climate_logger, "climate", path)
 end
 
 return loggers

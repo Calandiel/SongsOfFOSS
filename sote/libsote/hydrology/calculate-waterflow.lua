@@ -1,7 +1,7 @@
 local cwf = {}
 
 ---@enum flow_type
-cwf.types = {
+cwf.TYPES = {
 	january   = 1,
 	july      = 2,
 	current   = 3,
@@ -21,7 +21,7 @@ local function clear_current_elevation_on_lakes(world)
 	world:for_each_waterbody(function(waterbody)
 		if not waterbody:is_valid() then return end
 
-		if waterbody.type == waterbody.types.freshwater_lake or waterbody.type == waterbody.types.saltwater_lake then
+		if waterbody.type == waterbody.TYPES.freshwater_lake or waterbody.type == waterbody.TYPES.saltwater_lake then
 			waterbody.tmp_float_1 = 0
 		end
 	end)
@@ -68,8 +68,12 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	local clay_percent = clay / total_soil
 
 	-- local log_str =  ""
-	-- log_str = log_str .. world.colatitude[ti] .. ", " .. world.minus_longitude[ti] .. "; "
-	-- log_str = log_str .. "te: " .. world:true_elevation(ti) .. "\n"
+	-- log_str = log_str .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; te: " .. world:true_elevation(ti) .. "; "
+	-- if is_land then
+	-- 	log_str = log_str .. "land\n"
+	-- else
+	-- 	log_str = log_str .. "water\n"
+	-- end
 	-- log_str = log_str .. "\tjanr: " .. world.jan_rainfall[ti] .. ", julr: " .. world.jul_rainfall[ti] .. ", m: " .. month .. " --> sr: " .. seasonal_rainfall .. "\n"
 	-- log_str = log_str .. "\tjant: " .. world.jan_temperature[ti] .. ", jult: " .. world.jul_temperature[ti] .. ", m: " .. month .. " --> st: " .. seasonal_temperature .. "\n"
 	-- log_str = log_str .. "\th: " .. seasonal_humidity .. "\n"
@@ -84,20 +88,20 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	if world.ice[ti] > 0 then -- If there is ice on tile, only release water during the warm season
 		-- is_p1_p1 = true
 		-- p1_p1 = p1_p1 + 1
-		if flow_type == cwf.types.january then -- If January temperature is greater than July, move ice along.
+		if flow_type == cwf.TYPES.january then -- If January temperature is greater than July, move ice along.
 			if jan_temperature > jul_temperature then
 				world.tmp_float_2[ti] = jul_rainfall + jan_rainfall -- We add July as well, since July was frozen when the ice accumulated.
 			end
 
-		elseif flow_type == cwf.types.july then
+		elseif flow_type == cwf.TYPES.july then
 			if jul_temperature > jan_temperature then
 				world.tmp_float_2[ti] = jan_rainfall + jul_rainfall
 			end
 
-		elseif flow_type == cwf.types.world_gen then
+		elseif flow_type == cwf.TYPES.world_gen then
 			world.tmp_float_2[ti] = (jan_rainfall + jul_rainfall) / 2
 
-		elseif flow_type == cwf.types.current then
+		elseif flow_type == cwf.TYPES.current then
 			local x = world:is_in_northern_hemisphere(ti) and month or (month + 5) % 12;
 			if x >= month_of_first_melt and x < month_of_first_melt + 6 then
 				world.tmp_float_2[ti] = (250 + math.pow(x, 3)) * 6 * (jan_rainfall + jul_rainfall) * (math.sin(math.pi * (x - month_of_first_melt + 1) / 7) / 946)
@@ -124,13 +128,13 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	else -- If no ice is involved and temp is above 0, release water in all seasons
 		-- is_p1_p4 = true
 		-- p1_p4 = p1_p4 + 1
-		if flow_type == cwf.types.january then
+		if flow_type == cwf.TYPES.january then
 			world.tmp_float_2[ti] = jan_rainfall
 
-		elseif flow_type == cwf.types.july then
+		elseif flow_type == cwf.TYPES.july then
 			world.tmp_float_2[ti] = jul_rainfall
 
-		elseif flow_type == cwf.types.world_gen then
+		elseif flow_type == cwf.TYPES.world_gen then
 			world.tmp_float_2[ti] = (jan_rainfall + jul_rainfall) / 2
 
 		else
@@ -179,7 +183,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			world.tmp_float_1[body_outlet_ti] = world.tmp_float_1[body_outlet_ti] + world.tmp_float_1[ti] + world.tmp_float_2[ti]
 			body.tmp_float_1 = body.tmp_float_1 + world.tmp_float_1[ti] + world.tmp_float_2[ti] -- Body temp float represents how much water moved through this body.
 
-		elseif body.type == body.types.saltwater_lake or body.type == body.types.freshwater_lake then
+		elseif body.type == body.TYPES.saltwater_lake or body.type == body.TYPES.freshwater_lake then
 			-- is_p2_p2 = true
 			-- p2_p2 = p2_p2 + 1
 			body.tmp_float_1 = body.tmp_float_1 + world.tmp_float_1[ti] + world.tmp_float_2[ti]
@@ -334,10 +338,10 @@ local function apply_waterflow(world, flow_type)
 	world:for_each_tile(function(ti)
 		if world.tmp_bool_1[ti] then return end
 
-		if flow_type == cwf.types.january then
+		if flow_type == cwf.TYPES.january then
 			world.jan_water_movement[ti] = world.tmp_float_1[ti]
 
-		elseif flow_type == cwf.types.july then
+		elseif flow_type == cwf.TYPES.july then
 			world.jul_water_movement[ti] = world.tmp_float_1[ti]
 
 		else
@@ -376,7 +380,7 @@ function cwf.run(world, flow_type, month, year)
 
 	-- Run soil moisture calculations if flowType is current.
 	-- Otherwise, we'd run it an odd number of times, because world gen calls this function for july and january.
-	if flow_type == cwf.types.current then
+	if flow_type == cwf.TYPES.current then
 		-- TODO: Port soil moisture calculations here
 	end
 end

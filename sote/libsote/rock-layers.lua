@@ -1,6 +1,6 @@
 local rock_layers = {}
 
-local rock_types = require "libsote.rock-type".types
+local rock_types = require "libsote.rock-type".TYPES
 
 for _, value in pairs(rock_types) do
 	rock_layers[value] = {}

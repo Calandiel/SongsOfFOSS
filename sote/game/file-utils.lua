@@ -7,6 +7,9 @@ function fu.csv_rows(file_path)
 		return
 	end
 
+	-- Read and discard the first line
+	local _ = file:read()
+
 	return coroutine.wrap(function()
 		for line in file:lines() do
 			local values = {}
