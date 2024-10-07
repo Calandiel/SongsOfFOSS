@@ -11,7 +11,7 @@ function dpw.run(world)
 
 		waterbody:build_perimeter(world)
 		waterbody:set_lowest_shore_tile(world)
-		waterbody.waterlevel = 0
+		waterbody.water_level = 0
 	end)
 end
 

@@ -20,7 +20,7 @@ wg.state = wg.states.idle
 wg.message = ""
 wg.world = nil
 
-local use_sote_climate_data = false
+local debug = require "libsote.debug-control-panel"
 
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[worldgen profiling]"
@@ -98,7 +98,7 @@ local function initial_waterflow()
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
 	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
 
-	if use_sote_climate_data then
+	if debug.use_sote_climate_data then
 		table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
 	end
 
@@ -126,6 +126,7 @@ local function gen_phase_02()
 	initial_waterbodies()
 	initial_waterflow()
 	glaciers()
+	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
 end
 
 local libsote_cpp = require "libsote.libsote"

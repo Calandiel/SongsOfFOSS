@@ -271,7 +271,7 @@ function hu.hex_coords_to_latlon(q, r, f, ws)
 	local y = r
 	local z = -(q + r)
 
-	if f == 4 or f == 1 or f == 6 then
+	if f == 4 or f == 1 or f == 6 or f == 16 then
 		y = q
 		z = r
 		x = -(q + r)
@@ -279,10 +279,6 @@ function hu.hex_coords_to_latlon(q, r, f, ws)
 		x = q
 		y = r
 		z = -(q + r)
-	elseif f == 16 then
-		y = q
-		z = r
-		x = -(q + r)
 	elseif f == 5 or f == 8 or f == 12 then
 		z = q
 		x = r

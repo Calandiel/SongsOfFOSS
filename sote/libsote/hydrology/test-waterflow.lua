@@ -72,10 +72,9 @@ local function test_c4(flow_type)
 	world.silt[0] = 334
 	world.clay[0] = 333
 
-	local wb_id = world:create_new_waterbody()
-	local wb = world.waterbodies[wb_id]
+	local wb = world:create_new_waterbody()
 	wb.type = wb.types.freshwater_lake
-	world.waterbody_id_by_tile[0] = wb_id
+	world.waterbody_id_by_tile[0] = wb.id
 
 	waterflow_calc.test_tile(0, world, flow_type, month, year)
 
@@ -120,7 +119,7 @@ end
 
 function tw.test_worldgen_waterflow()
 	-- test_c1(waterflow_calc.TYPES.world_gen) -- not yet reachable
-	test_c2(waterflow_calc.types.world_gen)
+	test_c2(waterflow_calc.TYPES.world_gen)
 	-- test_c3(waterflow_calc.TYPES.world_gen) -- not yet reachable
 	-- c4 seems to depend on neighboring tiles; it is also fairly trivial
 	-- c5 is a dead end path
