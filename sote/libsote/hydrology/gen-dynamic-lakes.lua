@@ -139,7 +139,7 @@ local function add_lowest_shore_tile_to_waterbody(wb, lsti)
 	wb.tmp_float_1 = wb.tmp_float_1 + world.tmp_float_2[lsti] / lake_divisor --* If a tile gets eaten by a lake, we automatically move any water that was in the tile to the lake
 	world.tmp_float_2[lsti] = 0
 
-	world:add_tile_to_waterbody(wb, lsti)
+	world:add_tile_to_waterbody(lsti, wb)
 
 	local true_elevation_for_waterflow = world:true_elevation_for_waterflow(lsti)
 	world:for_each_neighbor(lsti, function(nti)

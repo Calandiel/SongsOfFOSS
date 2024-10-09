@@ -3,10 +3,9 @@ local rivers = {}
 local world
 
 local waterbody = require "libsote.hydrology.waterbody"
--- local open_issues = require "libsote.hydrology.open-issues"
 
-local enable_debug = true
-local logger = require("libsote.debug-loggers").get_rivers_logger("d:/temp")
+local enable_debug = false
+-- local logger = require("libsote.debug-loggers").get_rivers_logger("d:/temp")
 
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[gen-dynamic-lakes]"
@@ -23,26 +22,26 @@ local true_lake
 local true_river
 local fork_count
 
-local function set_waterbodies_to_debug(channel)
-	world:for_each_waterbody(function(wb)
-		wb:for_each_tile(function(ti)
-			if wb.type == wb.TYPES.river then
-				world:set_debug_rgba(channel, ti, 173, 216, 230, 255)
-			elseif wb.type == wb.TYPES.freshwater_lake then
-				world:set_debug_rgba(channel, ti, 0, 255, 0, 255)
-			elseif wb.type == wb.TYPES.saltwater_lake then
-				world:set_debug_rgba(channel, ti, 0, 255, 255, 255)
-			elseif wb.type == wb.TYPES.ocean then
-				world:set_debug_rgba(channel, ti, 0, 0, 255, 255)
-			end
-		end)
-	end)
-end
+-- local function set_waterbodies_to_debug(channel)
+-- 	world:for_each_waterbody(function(wb)
+-- 		wb:for_each_tile(function(ti)
+-- 			if wb.type == wb.TYPES.river then
+-- 				world:set_debug_rgba(channel, ti, 173, 216, 230, 255)
+-- 			elseif wb.type == wb.TYPES.freshwater_lake then
+-- 				world:set_debug_rgba(channel, ti, 0, 255, 0, 255)
+-- 			elseif wb.type == wb.TYPES.saltwater_lake then
+-- 				world:set_debug_rgba(channel, ti, 0, 255, 255, 255)
+-- 			elseif wb.type == wb.TYPES.ocean then
+-- 				world:set_debug_rgba(channel, ti, 0, 0, 255, 255)
+-- 			end
+-- 		end)
+-- 	end)
+-- end
 
 local function construct_start_locations()
 	--* Here we are iterating along the coast of each endoreic lake and ocean to find the start tile of rivers
 	world:for_each_waterbody(function(wb)
-		if wb.type == wb.TYPES.ocean or wb.type == wb.TYPES.saltwater_lake or wb.type == wb.TYPES.freshwater_lake then
+		if wb:is_lake_or_ocean() then
 			wb:for_each_tile_in_perimeter(function(ti)
 				if world.water_movement[ti] >= 6000 then
 					table.insert(initial_candidates, ti)
@@ -78,13 +77,13 @@ local function process_drainage_basins(coast_ti)
 
 				if not world:is_tile_waterbody_valid(nti) then
 					if world.water_movement[nti] > 2000 and world:true_elevation_for_waterflow(nti) > true_elev then
-						world:add_tile_to_waterbody(wb, nti)
+						world:add_tile_to_waterbody(nti, wb)
 						table.insert(new_layer, nti)
 					end
 				elseif nwb.id ~= wb.id and nwb.type == nwb.TYPES.freshwater_lake then --* Freshwater lakes get tiles IDs, but don't get added to the list of tiles in the drainage basin
 					stored_bodies[nti] = nwb
 					world:reassign_tile_to_waterbody(nti, wb)
-					nwb.basin_id = wb.id
+					nwb.basin = wb
 					table.insert(new_layer, nti)
 				else
 					--* ?????
@@ -108,10 +107,10 @@ local function construct_drainage_basins()
 	end
 end
 
-local function build_path_using_waterbodies(ti, wb)
+local function find_path_using_waterbodies(ti, wb)
 	local true_elev = world:true_elevation_for_waterflow(ti)
-	local lowest_elevation = 100000
-	local lowest_elevation_id = -1
+	local lowest_elev = 100000
+	local lowest_nti = -1
 
 	world:for_each_neighbor(ti, function(nti) --* Here we count candidates and determine who has the lowest elevation
 		local nwb = world:get_waterbody_by_tile(nti)
@@ -129,14 +128,14 @@ local function build_path_using_waterbodies(ti, wb)
 		if actual_neigh_elev >= true_elev then return end
 
 		if is_freshwater_lake_with_standing_water then
-			lowest_elevation_id = swb.lowest_shore_tile
-		elseif nwb.id == wb.id and world.water_movement[nti] >= 2000 and lowest_elevation > actual_neigh_elev then
-			lowest_elevation = actual_neigh_elev
-			lowest_elevation_id = nti
+			lowest_nti = swb.lowest_shore_tile
+		elseif nwb.id == wb.id and world.water_movement[nti] >= 2000 and lowest_elev > actual_neigh_elev then
+			lowest_elev = actual_neigh_elev
+			lowest_nti = nti
 		end
 	end)
 
-	return lowest_elevation_id
+	return lowest_nti ~= -1, lowest_nti
 end
 
 local function tag_and_prep_all_tributaries()
@@ -197,13 +196,7 @@ local function tag_and_prep_all_tributaries()
 
 		while found_path do
 			fork_count[ti] = fork_count[ti] + 1
-
-			local lowest_elevation_id = build_path_using_waterbodies(ti, wb)
-			if lowest_elevation_id == -1 then
-				found_path = false
-			else
-				ti = lowest_elevation_id
-			end
+			found_path, ti = find_path_using_waterbodies(ti, wb)
 		end
 
 		::continue1::
@@ -228,10 +221,10 @@ local function kill_old_basins()
 	end)
 end
 
-local function build_path_using_watershed(ti, wb)
+local function find_path_using_watershed(ti, wb)
 	local true_elev = world:true_elevation_for_waterflow(ti)
 	local lowest_elevation = 100000
-	local lowest_elevation_id = -1
+	local lowest_nti = -1
 
 	world:for_each_neighbor(ti, function(nti) --* Here we count candidates and determine who has the lowest elevation. Lowest elevation neighbor will be next tile in the path
 		local actual_neigh_elev = world:true_elevation_for_waterflow(nti) --* Will function as either the elevation of the tile or the water level of the tile (if it is a lake)
@@ -250,43 +243,43 @@ local function build_path_using_watershed(ti, wb)
 
 		if is_freshwater_lake_with_standing_water then
 			--* We need to terminate expansion and start the next tributary on the drain tile
-			lowest_elevation_id = swb.lowest_shore_tile
+			lowest_nti = swb.lowest_shore_tile
 		elseif nwb.type == nwb.TYPES.saltwater_lake or nwb.type == nwb.TYPES.ocean then -- found river end
 			lowest_elevation = actual_neigh_elev
-			lowest_elevation_id = nti
+			lowest_nti = nti
 		elseif nwb.id == wb.id and world.water_movement[nti] >= 2000 and lowest_elevation > actual_neigh_elev then
 			lowest_elevation = actual_neigh_elev
-			lowest_elevation_id = nti
+			lowest_nti = nti
 		end
 	end)
 
-	return lowest_elevation_id
+	return lowest_nti
 end
 
 local function process_tributary(ti, wb, members)
 	true_river[ti] = true --* Set as true river so it can never be counted again as a waterbody member
 	table.insert(members, ti)
 
-	local lowest_elevation_id = build_path_using_watershed(ti, wb)
-	if lowest_elevation_id == -1 then return false, -1 end
+	local lowest_nti = find_path_using_watershed(ti, wb)
+	if lowest_nti == -1 then return false, -1 end
 
 	--* If greater than -1, it implies we actually have a lower neighbor, so therefore we need to check if it is a true river
 
 	--* We also need to check to see if it is part of the same tributary as well.
-	if fork_count[lowest_elevation_id] == fork_count[ti] then return true, lowest_elevation_id end
+	if fork_count[lowest_nti] == fork_count[ti] then return true, lowest_nti end
 
 	--* We need to terminate expansion for this tributary, and construct a waterbody for the tributary using the list we created earlier
 	local new_tributary_wb = world:create_waterbody(waterbody.TYPES.river)
 	new_tributary_wb.tmp_float_1 = 0
 	new_tributary_wb.water_level = 0
 	for _, trib_ti in ipairs(members) do
-		world:add_tile_to_waterbody(new_tributary_wb, trib_ti)
+		world:add_tile_to_waterbody(trib_ti, new_tributary_wb)
 	end
 	while #members > 0 do table.remove(members) end
 
-	if true_river[lowest_elevation_id] then return false, -1 end
+	if true_river[lowest_nti] then return false, -1 end
 
-	return true, lowest_elevation_id
+	return true, lowest_nti
 end
 
 local function split_river_up_into_tributaries()
@@ -310,6 +303,184 @@ local function split_river_up_into_tributaries()
 
 		::continue2::
 	end
+end
+
+local function reassign_proper_tile_waterbody_to_lakes()
+	world:for_each_waterbody(function(wb)
+		if wb.type == wb.TYPES.freshwater_lake then
+			wb:for_each_tile(function(ti)
+				world:reassign_tile_to_waterbody(ti, wb)
+				watershed[ti] = wb
+			end)
+		end
+
+		if wb.type == wb.TYPES.river then
+			local members_under_ice = 0
+			local total_members = wb:size()
+			wb:for_each_tile(function(ti)
+				local ice = world.ice[ti]
+				if ice == 0 then return end
+
+				if ice > 1000 then members_under_ice = members_under_ice + 2
+				elseif ice > 500 then members_under_ice = members_under_ice + 1.75
+				elseif ice > 200 then members_under_ice = members_under_ice + 1.5
+				elseif ice > 100 then members_under_ice = members_under_ice + 1.25
+				elseif ice > 50 then members_under_ice = members_under_ice + 1
+				elseif ice > 25 then members_under_ice = members_under_ice + 0.75
+				else members_under_ice = members_under_ice + 0.51
+				end
+			end)
+			if members_under_ice / total_members > 0.5 then
+				world:kill_waterbody(wb)
+			end
+		end
+	end)
+end
+
+local function connect_all_waterbodies()
+	world:for_each_waterbody(function(wb)
+		if wb.type == wb.TYPES.river then
+			--* Check first tile first to determine whether there are waterbody sources feeding into the current waterbody
+			local first_ti = wb.tiles[1]
+			local first_tile_elev = world:true_elevation_for_waterflow(first_ti)
+			world:for_each_neighbor(first_ti, function(nti)
+				local nwb = world:get_waterbody_by_tile(nti)
+				if not nwb or not nwb:is_valid() then return end
+
+				if world:true_elevation_for_waterflow(nti) > first_tile_elev then
+					wb:add_source(nwb)
+				end
+			end)
+			wb.lake_open = #wb.source > 0 and true or false --* Open means we're getting water from another waterbody and not just the ambient environment
+
+			--* Check last tile to determine the waterbodies that are being fed by the current waterbody. EVERY river should feed somewhere
+			local lowest_elevation = 100000
+			local lowest_wb = nil
+			local last_ti = wb.tiles[#wb.tiles]
+			world:for_each_neighbor(last_ti, function(nti)
+				local nwb = world:get_waterbody_by_tile(nti)
+				if not nwb or not nwb:is_valid() then return end
+
+				local elev_to_check = world:true_elevation_for_waterflow(nti)
+
+				if nwb:is_lake_or_ocean() then
+					elev_to_check = nwb.water_level
+				end
+
+				if elev_to_check < lowest_elevation then
+					lowest_elevation = elev_to_check
+					lowest_wb = nwb
+				end
+			end)
+			if lowest_wb == nil then error("River " .. wb.id .. " does not feed into a waterbody") end
+			wb.drain = lowest_wb
+
+			if wb.drain.type == wb.TYPES.freshwater_lake then
+				local lowest_shore_tile_wb = world:get_waterbody_by_tile(wb.drain.lowest_shore_tile)
+				wb.drain = lowest_shore_tile_wb and lowest_shore_tile_wb:is_valid() and lowest_shore_tile_wb or nil
+			end
+		end
+
+		if wb:is_lake_or_ocean() then
+			--* Receive water from sources
+			wb:for_each_tile_in_perimeter(function(ti)
+				--* Check for higher elevation than waterlevel... check for waterbody ID to make sure it is not zero and not different.
+				if world:true_elevation_for_waterflow(ti) <= wb.water_level then return end
+
+				--* If criteria is met, add as source
+				local nwb = world:get_waterbody_by_tile(ti)
+				if not nwb or not nwb:is_valid() then return end
+
+				wb:add_source(nwb)
+			end)
+		end
+
+		if wb.type == wb.TYPES.freshwater_lake then
+			local lowest_shore_tile_wb = world:get_waterbody_by_tile(wb.lowest_shore_tile)
+			if lowest_shore_tile_wb and lowest_shore_tile_wb:is_valid() then --* If the drain tile is a waterbody...
+				wb.drain = lowest_shore_tile_wb
+				lowest_shore_tile_wb:add_source(wb)
+			else
+				wb.lake_open = false
+				wb.drain = nil
+			end
+
+			if lowest_shore_tile_wb and lowest_shore_tile_wb.id == wb.id then
+				wb.lake_open = false
+				wb.drain = nil
+			end
+		end
+	end)
+end
+
+local function assigning_drainage_basin_value_to_rivers()
+	world:for_each_waterbody(function(wb)
+		if wb.type ~= wb.TYPES.river then return end
+		wb.basin = watershed[wb.tiles[1]]
+	end)
+end
+
+local function construct_wetlands()
+	world:fill_ffi_array(true_river, false)
+
+	--* Identify Wetlands
+	world:for_each_tile(function(ti)
+		local wb = world:get_waterbody_by_tile(ti)
+		if wb and wb:is_valid() then return end
+
+		if world.water_movement[ti] <= 2000 then return end
+
+		local points_to_check = 0
+		world:for_each_neighbor(ti, function(nti)
+			local nwb = world:get_waterbody_by_tile(nti)
+			if nwb and nwb:is_valid() or world.water_movement[nti] > 2000 then
+				points_to_check = points_to_check + 1
+			end
+		end)
+
+		if points_to_check >= 3 then
+			true_river[ti] = true
+		end
+	end)
+
+	--* Construct wetlands as actual waterbodies
+	world:for_each_tile(function(ti)
+		if not true_river[ti] or world.ice[ti] > 0 then return end
+
+		local wb = world:get_waterbody_by_tile(ti)
+		if wb and wb:is_valid() then return end
+
+		--* If elligible wetland but not already assigned to a waterbody
+		wb = world:create_waterbody_from_tile(ti, waterbody.TYPES.wetland)
+		wb.lake_open = true
+
+		local old_layer = {}
+		local new_layer = {}
+
+		table.insert(old_layer, ti)
+		local tiles_to_check = 1
+
+		while tiles_to_check > 0 do
+			for _, expansion_ti in ipairs(old_layer) do
+				world:for_each_neighbor(expansion_ti, function(nti)
+					if not true_river[nti] or world.ice[nti] > 0 then return end
+
+					local nwb = world:get_waterbody_by_tile(nti)
+					if nwb and nwb:is_valid() then return end
+
+					world:add_tile_to_waterbody(nti, wb)
+					table.insert(new_layer, nti)
+				end)
+			end
+
+			old_layer = {}
+			for _, new_ti in ipairs(new_layer) do
+				table.insert(old_layer, new_ti)
+			end
+			new_layer = {}
+			tiles_to_check = #old_layer
+		end
+	end)
 end
 
 function rivers.run(world_obj)
@@ -340,6 +511,10 @@ function rivers.run(world_obj)
 	run_with_profiling(function() tag_and_prep_all_tributaries() end, "tag_and_prep_all_tributaries")
 	run_with_profiling(function() kill_old_basins() end, "kill_old_basins")
 	run_with_profiling(function() split_river_up_into_tributaries() end, "split_river_up_into_tributaries")
+	run_with_profiling(function() reassign_proper_tile_waterbody_to_lakes() end, "reassign_proper_tile_waterbody_to_lakes")
+	run_with_profiling(function() connect_all_waterbodies() end, "connect_all_waterbodies")
+	run_with_profiling(function() assigning_drainage_basin_value_to_rivers() end, "assigning_drainage_basin_value_to_rivers")
+	run_with_profiling(function() construct_wetlands() end, "construct_wetlands")
 end
 
 return rivers

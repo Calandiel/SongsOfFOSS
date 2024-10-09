@@ -23,7 +23,7 @@ local function process(tile_index, world)
 		world:for_each_neighbor(ti, function(nti)
 			if world.is_land[nti] or world:is_tile_waterbody_valid(nti) then return end
 
-			world:add_tile_to_waterbody(new_wb, nti)
+			world:add_tile_to_waterbody(nti, new_wb)
 
 			queue:enqueue(nti)
 		end)

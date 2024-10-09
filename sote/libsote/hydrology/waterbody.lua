@@ -17,11 +17,13 @@ function waterbody:new(id)
 	obj.id = id or 0
 	obj.tiles = {}
 	obj.type = waterbody.TYPES.invalid
-	obj.basin_id = 0
+	obj.basin = nil
 	obj.water_level = 0
 	obj.perimeter = {}
 	obj.lowest_shore_tile = nil
 	obj.lake_open = false
+	obj.source = {}
+	obj.drain = nil
 	obj.tmp_float_1 = 0
 
 	setmetatable(obj, self)
@@ -34,11 +36,13 @@ function waterbody:kill()
 	self.id = 0
 	self.tiles = {}
 	-- self.type = waterbody.TYPES.invalid
-	-- self.basin_id = 0
+	self.basin = nil
 	-- self.water_level = 0
 	self.perimeter = {}
 	-- self.lowest_shore_tile = nil
 	-- self.lake_open = false
+	self.source = {}
+	self.drain = nil
 	-- self.tmp_float_1 = 0
 end
 
@@ -50,6 +54,11 @@ end
 ---@param ti number
 function waterbody:add_tile(ti)
 	table.insert(self.tiles, ti)
+end
+
+---@param wb table
+function waterbody:add_source(wb)
+	table.insert(self.source, wb)
 end
 
 ---@param callback fun(tile_index:number)
@@ -107,6 +116,15 @@ end
 ---@return boolean
 function waterbody:is_valid()
 	return self.id > 0
+end
+
+---@return boolean
+function waterbody:is_lake_or_ocean()
+	return self.type == waterbody.TYPES.freshwater_lake or self.type == waterbody.TYPES.saltwater_lake or self.type == waterbody.TYPES.ocean
+end
+
+function waterbody:is_salty()
+	return self.type == waterbody.TYPES.saltwater_lake or self.type == waterbody.TYPES.ocean
 end
 
 return waterbody

@@ -465,9 +465,9 @@ end
 
 local waterbody = require "libsote.hydrology.waterbody"
 
----@param wb table waterbody
 ---@param ti number 0-based tile index
-function world:add_tile_to_waterbody(wb, ti)
+---@param wb table waterbody
+function world:add_tile_to_waterbody(ti, wb)
 	wb:add_tile(ti)
 	self.waterbody_id_by_tile[ti] = wb.id
 end
@@ -501,7 +501,7 @@ end
 ---@return table waterbody
 function world:create_waterbody_from_tile(ti, wb_type)
 	local wb = self:create_waterbody(wb_type)
-	self:add_tile_to_waterbody(wb, ti)
+	self:add_tile_to_waterbody(ti, wb)
 	return wb
 end
 
@@ -554,7 +554,7 @@ end
 ---@param from_wb table waterbody to merge from
 function world:merge_waterbodies(to_wb, from_wb)
 	for _, ti in ipairs(from_wb.tiles) do
-		self:add_tile_to_waterbody(to_wb, ti)
+		self:add_tile_to_waterbody(ti, to_wb)
 	end
 	for ti, _ in pairs(from_wb.perimeter) do
 		to_wb:add_to_perimeter(ti)
