@@ -731,6 +731,7 @@ function gf.run(world_obj)
 
 	if enable_debug then
 		world:adjust_debug_channels(2)
+		world:reset_debug_all()
 	end
 
 	world:fill_ffi_array(glacial_seed, false)

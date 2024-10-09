@@ -2,12 +2,13 @@ local dl = {}
 
 local world
 
+local waterbody = require "libsote.hydrology.waterbody"
 local open_issues = require "libsote.hydrology.open-issues"
 
 -- local logger = require("libsote.debug-loggers").get_lakes_logger("d:/temp")
+
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[gen-dynamic-lakes]"
-
 local function run_with_profiling(func, log_txt)
 	prof.run_with_profiling(func, prof_prefix, log_txt)
 end
@@ -112,7 +113,7 @@ local function water_flow_from_tile_to_tile()
 		if world:get_waterbody_by_tile(ti) then goto continue1 end
 
 		--* If elevation difference is 0, it can be inferred that we have no tiles lower than the target tile, therefore it should construct a lake.
-		local new_wb = world:create_new_waterbody_from_tile(ti)
+		local new_wb = world:create_waterbody_from_tile(ti, waterbody.TYPES.saltwater_lake)
 
 		--* Mark the tile as water
 		world.is_land[ti] = false
@@ -125,7 +126,6 @@ local function water_flow_from_tile_to_tile()
 		new_wb:set_lowest_shore_tile(world)
 		new_wb.tmp_float_1 = new_wb.tmp_float_1 + water_to_give
 		new_wb.water_level = true_elevation_for_waterflow
-		new_wb.type = new_wb.TYPES.saltwater_lake
 
 		-- logger:log("\tlake " .. new_wb.id .. " created at " .. ti)
 
@@ -139,7 +139,7 @@ local function add_lowest_shore_tile_to_waterbody(wb, lsti)
 	wb.tmp_float_1 = wb.tmp_float_1 + world.tmp_float_2[lsti] / lake_divisor --* If a tile gets eaten by a lake, we automatically move any water that was in the tile to the lake
 	world.tmp_float_2[lsti] = 0
 
-	world:add_tile_to_waterbody(wb, lsti)
+	world:add_tile_to_waterbody(lsti, wb)
 
 	local true_elevation_for_waterflow = world:true_elevation_for_waterflow(lsti)
 	world:for_each_neighbor(lsti, function(nti)
@@ -210,13 +210,12 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* Drain lake into shore tile with low neighbor that is not the same waterbody
 	if has_lower_neigh then
-		-- local log_str = "\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti
 		local lsti_wb = world:get_waterbody_by_tile(lowest_shore_ti)
-		if lsti_wb then
-			-- logger:log(log_str .. " which belongs to lake " .. lsti_wb.id)
+		-- if lsti_wb then
+		-- 	logger:log("\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti .. " which belongs to lake " .. lsti_wb.id)
 		-- else
-		-- 	logger:log(log_str)
-		end
+		-- 	logger:log("\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti)
+		-- end
 
 		wb.lake_open = true
 		wb.type = wb.TYPES.freshwater_lake
@@ -241,8 +240,6 @@ local function resize_lakes()
 	--* Loop through all waterbodies. Check for active, and check for tempWater.
 
 	world:for_each_waterbody(function(wb)
-		-- if not wb:is_valid() then return end -- do we really need this check?
-
 		if wb.tmp_float_1 <= 0 or wb.type == wb.TYPES.ocean then return end
 		--* Only resize lakes and seas
 
@@ -333,13 +330,15 @@ function dl.run(world_obj)
 	run_with_profiling(function() water_flow_phase() end, "water_flow_phase")
 
 	world:for_each_waterbody(function(wb)
-		if not wb:is_valid() then return end
 		-- logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
-		for _, ti in ipairs(wb.tiles) do
+
+		wb:for_each_tile(function(ti)
 			world.is_land[ti] = false
-		end
+		end)
 	end)
 end
+
+return dl
 
 --* River Plan ///
 --* Possibly generate wetlands first, so that when rivers flow through them, they can then have an "out tile" similar to a lake. The difference is that you don't
@@ -359,5 +358,3 @@ end
 --* Check all endoric waterbodies, including oceans, seas, and saltwater lakes
 --* Check shoreline of those waterbodies and check for tiles with watermovement reaching a particular threshold.
 --* Build a list and follow the waterflow backward from low elevation to high. Stop once the river forks.
-
-return dl

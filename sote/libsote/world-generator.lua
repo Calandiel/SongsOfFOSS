@@ -40,10 +40,9 @@ end
 local fu = require "game.file-utils"
 
 local function override_climate_data()
-	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data_by_elev.csv")
-	-- local logger = require("libsote.debug-loggers").get_climate_logger("d:/temp")
+	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
 
-	wg.world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
+	wg.world:for_each_tile(function(ti, _)
 		local row = climate_generator()
 		if row == nil then
 			error("Not enough rows in climate data")
@@ -57,9 +56,6 @@ local function override_climate_data()
 		wg.world.jul_humidity[ti] = tonumber(row[8])
 		wg.world.jan_wind_speed[ti] = tonumber(row[9])
 		wg.world.jul_wind_speed[ti] = tonumber(row[10])
-
-		-- local log_str = row[1] .. "," .. row[2] .. " --- " .. wg.world.colatitude[ti] .. "," .. wg.world.minus_longitude[ti] .. " --- " .. wg.world:true_elevation_for_waterflow(ti) .. " <-> " .. tonumber(row[11])
-		-- logger:log(log_str)
 	end)
 end
 
@@ -127,6 +123,31 @@ local function gen_phase_02()
 	initial_waterflow()
 	glaciers()
 	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
+	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers")
+
+	local ocean_count = 0
+	local freshwater_lake_count = 0
+	local saltwater_lake_count = 0
+	local river_count = 0
+	local wetland_count = 0
+	wg.world:for_each_waterbody(function(wb)
+		if wb.type == wb.TYPES.ocean then
+			ocean_count = ocean_count + 1
+		elseif wb.type == wb.TYPES.freshwater_lake then
+			freshwater_lake_count = freshwater_lake_count + 1
+		elseif wb.type == wb.TYPES.saltwater_lake then
+			saltwater_lake_count = saltwater_lake_count + 1
+		elseif wb.type == wb.TYPES.river then
+			river_count = river_count + 1
+		elseif wb.type == wb.TYPES.wetland then
+			wetland_count = wetland_count + 1
+		end
+	end)
+	print("Ocean count: " .. ocean_count)
+	print("Freshwater lake count: " .. freshwater_lake_count)
+	print("Saltwater lake count: " .. saltwater_lake_count)
+	print("River count: " .. river_count)
+	print("Wetland count: " .. wetland_count)
 end
 
 local libsote_cpp = require "libsote.libsote"

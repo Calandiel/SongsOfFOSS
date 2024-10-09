@@ -19,8 +19,6 @@ end
 
 local function clear_current_elevation_on_lakes(world)
 	world:for_each_waterbody(function(wb)
-		if not wb:is_valid() then return end
-
 		if wb.type == wb.TYPES.freshwater_lake or wb.type == wb.TYPES.saltwater_lake then
 			wb.tmp_float_1 = 0
 		end

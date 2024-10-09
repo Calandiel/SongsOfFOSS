@@ -1,12 +1,5 @@
 local world = {}
 
--- local transform = {
---     -0.86615, 0,       -0.49979, 0,
---     -0.17829, 0.93420,  0.30899, 0,
---      0.46690, 0.35674, -0.80916, 0,
---      0,       0,        0,       1
--- }
-
 local ffi = require("ffi")
 local ffi_mem_tally = 0
 
@@ -53,10 +46,11 @@ function world:new(world_size, seed)
 	obj.tile_count = obj.size * obj.size * 30 + 2
 	print("[world allocation] tile count: " .. obj.tile_count)
 	obj.coord = {}
-	obj.coord_by_tile_id = {} -- tile_id -> { q, r, face }, this is using cube world tile IDs
+	obj.square_to_hex = {} -- square tile id -> hex tile id, so map cube world tiles to hex world tiles
 	obj.coord_by_ti = {}      -- tile index -> { q, r, face }, this is using hex world 0-based tile indices
 	obj.climate_cells = {}
 	obj.waterbodies = {}
+	obj.killed_waterbodies = {}
 
 	obj.neighbors               = allocate_array("neighbors",               obj.tile_count * 6, "int32_t")
 	obj.waterbody_id_by_tile    = allocate_array("waterbody_id_by_tile",    obj.tile_count,     "uint32_t")
@@ -272,13 +266,16 @@ function world:get_hex_coords(ti)
 	return coord[1], coord[2], coord[3]
 end
 
-function world:cache_tile_coord(tile_id, q, r, face)
-	self.coord_by_tile_id[tile_id] = { q, r, face }
+function world:cache_square_ti_by_hex_ti(hex_ti)
+	table.insert(self.square_to_hex, hex_ti)
 end
 
-function world:get_tile_coord(tile_id)
-	local coord = self.coord_by_tile_id[tile_id]
-	return coord[1], coord[2], coord[3]
+function world:cache_square_ti_by_hex_coords(q, r, face)
+	table.insert(self.square_to_hex, self.coord[self:_key_from_coord(q, r, face)])
+end
+
+function world:get_tile_coord(square_ti)
+	return self.square_to_hex[square_ti]
 end
 
 function world:get_raw_colatitude(q, r, face)
@@ -468,24 +465,60 @@ end
 
 local waterbody = require "libsote.hydrology.waterbody"
 
----@param wb table waterbody
 ---@param ti number 0-based tile index
-function world:add_tile_to_waterbody(wb, ti)
+---@param wb table waterbody
+function world:add_tile_to_waterbody(ti, wb)
 	wb:add_tile(ti)
 	self.waterbody_id_by_tile[ti] = wb.id
 end
 
 ---@param ti number 0-based tile index
+---@param wb table waterbody
+function world:reassign_tile_to_waterbody(ti, wb)
+	self.waterbody_id_by_tile[ti] = wb.id
+end
+
+---@param wb_type waterbody_type
 ---@return table waterbody
-function world:create_new_waterbody_from_tile(ti)
-	-- no reuse of killed waterbodies for now
+function world:create_waterbody(wb_type)
+	if #self.killed_waterbodies > 0 then
+		local id = table.remove(self.killed_waterbodies, 1)
+		local wb = self.waterbodies[id]
+		wb.id = id
+		wb.type = wb_type
+		return wb
+	end
+
 	local id = #self.waterbodies + 1
 	local new_wb = waterbody:new(id)
-	self:add_tile_to_waterbody(new_wb, ti)
-	self.waterbodies[id] = new_wb
+	new_wb.type = wb_type
+	table.insert(self.waterbodies, new_wb)
 	return new_wb
 end
 
+---@param ti number 0-based tile index
+---@param wb_type waterbody_type
+---@return table waterbody
+function world:create_waterbody_from_tile(ti, wb_type)
+	local wb = self:create_waterbody(wb_type)
+	self:add_tile_to_waterbody(ti, wb)
+	return wb
+end
+
+---@param wb table waterbody
+function world:kill_waterbody(wb)
+	wb:for_each_tile(function(ti)
+		self.waterbody_id_by_tile[ti] = 0
+	end)
+
+	table.insert(self.killed_waterbodies, wb.id)
+	table.sort(self.killed_waterbodies)
+	wb:kill()
+end
+
+---@param q number
+---@param r number
+---@param face number
 function world:get_waterbody(q, r, face)
 	return self.waterbodies[self.waterbody_id_by_tile[self.coord[self:_key_from_coord(q, r, face)]]]
 end
@@ -513,7 +546,7 @@ end
 ---@param callback fun(waterbody:table)
 function world:for_each_waterbody(callback)
 	for _, wb in ipairs(self.waterbodies) do
-		if wb and wb:is_valid() then callback(wb) end
+		if wb:is_valid() then callback(wb) end
 	end
 end
 
@@ -521,14 +554,15 @@ end
 ---@param from_wb table waterbody to merge from
 function world:merge_waterbodies(to_wb, from_wb)
 	for _, ti in ipairs(from_wb.tiles) do
-		self:add_tile_to_waterbody(to_wb, ti)
+		self:add_tile_to_waterbody(ti, to_wb)
 	end
 	for ti, _ in pairs(from_wb.perimeter) do
 		to_wb:add_to_perimeter(ti)
 	end
 
+	table.insert(self.killed_waterbodies, from_wb.id)
+	table.sort(self.killed_waterbodies)
 	from_wb:kill()
-	-- no reuse of killed waterbodies for now, they are just left in the array
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -686,7 +720,8 @@ end
 function world:sort_by_elevation_for_waterflow()
 	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(
 		function(i) return self:true_elevation_for_waterflow(i) end,
-		function(i) return self.colatitude[i] end,
+		nil,
+		-- function(i) return self.colatitude[i] end,
 		self.tile_count,
 		true, false)
 end
