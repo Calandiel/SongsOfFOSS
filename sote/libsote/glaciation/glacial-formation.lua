@@ -22,7 +22,7 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
-local align_rng = true
+local align_rng = false
 local enable_debug = false
 
 local world
