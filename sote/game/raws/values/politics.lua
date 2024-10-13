@@ -1,6 +1,28 @@
 local province_utils = require "game.entities.province"
 
-PoliticalValues = {}
+local PoliticalValues = {}
+
+---commenting
+---@param province province_id
+---@return pop_id
+function PoliticalValues.province_leader(province)
+    local realm_ownership = DATA.get_realm_provinces_from_province(province)
+    if realm_ownership == INVALID_ID then
+        return INVALID_ID
+    end
+    local realm = DATA.realm_provinces_get_realm(realm_ownership)
+    return PoliticalValues.leader(realm)
+end
+
+---@param realm realm_id
+---@return pop_id
+function PoliticalValues.leader(realm)
+    local leadership = DATA.get_realm_leadership_from_realm(realm)
+    if leadership == INVALID_ID then
+        return INVALID_ID
+    end
+    return DATA.realm_leadership_get_leader(leadership)
+end
 
 ---comment
 ---@param character Character

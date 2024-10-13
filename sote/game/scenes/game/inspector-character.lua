@@ -3,7 +3,7 @@ local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 
 local trade_good = require "game.raws.raws-utils".trade_good
 

@@ -3,7 +3,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui";
 local ut = require "game.ui-utils"
 
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 local ev = require "game.raws.values.economy"
 
 local inspector = {}

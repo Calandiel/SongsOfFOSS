@@ -14,6 +14,9 @@ local function get_min(tab)
 			ret = prov
 		end
 	end
+
+	assert(ret ~= nil)
+
 	tab[ret] = nil
 	return ret, cost
 end
@@ -37,14 +40,20 @@ function pa.pathfind(origin, target, speed_modifier, allowed_provinces)
 		speed_modifier = dummy_speed
 	end
 
+	local origin_center = DATA.province_get_center(origin)
+	local target_center = DATA.province_get_center(target)
 
-	if DATA.tile_get_pathfinding_index(origin.center) ~= DATA.tile_get_pathfinding_index(target.center) then
+	if DATA.tile_get_pathfinding_index(origin_center) ~= DATA.tile_get_pathfinding_index(target_center) then
 		return math.huge, nil
 	end
 
+	---@type table<Province, number>
 	local qq = {} -- maps provinces to their distances
+	---@type table<Province, number>
 	local distance_cache = {}
+	---@type table<Province, boolean>
 	local visited = {}
+	---@type table<Province, Province>
 	local prev = {}
 
 	--[[
@@ -58,6 +67,9 @@ function pa.pathfind(origin, target, speed_modifier, allowed_provinces)
 22
 23     return dist, prev
 	]]
+
+	-- queue size
+	---@type number
 	local q_size = 1
 	qq[origin] = 0
 	distance_cache[origin] = 0
@@ -71,38 +83,52 @@ function pa.pathfind(origin, target, speed_modifier, allowed_provinces)
 		if prov == target then
 			break -- We found the path!
 		end
+		local prov_center = DATA.province_get_center(prov)
+		local prov_movement_cost = DATA.province_get_movement_cost(prov)
 
-		for _, n in pairs(prov.neighbors) do
-			if DATA.tile_get_is_land(n.center) == DATA.tile_get_is_land(prov.center) and allowed_provinces[n] then
-				if visited[n] ~= true then
-					local speed_n = speed_modifier(n)
-					local speed_prov =  speed_modifier(prov)
-					local alt = dist + 0.5 * (n.movement_cost / speed_n + prov.movement_cost / speed_prov)
-					local old_distance = distance_cache[n] or math.huge
+		DATA.for_each_province_neighborhood_from_origin(prov, function (connection)
+			local neigh = DATA.province_neighborhood_get_target(connection)
+			local neigh_center = DATA.province_get_center(neigh)
+			local neigh_movement_cost = DATA.province_get_movement_cost(neigh)
+
+			if DATA.tile_get_is_land(neigh_center) == DATA.tile_get_is_land(prov_center) and allowed_provinces[neigh] then
+				if visited[neigh] ~= true then
+					local speed_n = speed_modifier(neigh)
+					local speed_prov = speed_modifier(prov)
+					local alt = dist + 0.5 * (neigh_movement_cost / speed_n + prov_movement_cost / speed_prov)
+					local old_distance = distance_cache[neigh] or math.huge
 
 					if alt < old_distance then
-						distance_cache[n] = alt
-						prev[n] = prov
-						if qq[n] == nil then
-							qq[n] = alt
+						distance_cache[neigh] = alt
+						prev[neigh] = prov
+						if qq[neigh] == nil then
+							qq[neigh] = alt
+
+							---@type number
 							q_size = q_size + 1
 						else
-							qq[n] = alt
+							qq[neigh] = alt
 						end
 					end
 				end
 			end
-		end
+		end)
 	end
 
 	-- Get the path
+
+	---@type Province[]
 	local path = {}
 	local u = target
-	local total_cost = target.movement_cost / speed_modifier(target)
+	local target_movement_cost = DATA.province_get_movement_cost(target)
+	local total_cost = target_movement_cost / speed_modifier(target)
 	while prev[u] do
 		path[#path + 1] = u
 		u = prev[u]
-		total_cost = total_cost + u.movement_cost / speed_modifier(u)
+		local u_movement_cost = DATA.province_get_movement_cost(u)
+
+		---@type number
+		total_cost = total_cost + u_movement_cost / speed_modifier(u)
 	end
 	--total_cost = total_cost - 0.5 * (origin.movement_cost + target.movement_cost)
 

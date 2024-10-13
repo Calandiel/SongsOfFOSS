@@ -1,0 +1,2 @@
+link many realm realm Represents the home realm of the character
+link one pop pop

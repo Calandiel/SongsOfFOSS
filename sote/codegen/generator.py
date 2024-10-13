@@ -37,6 +37,19 @@ def prefix_to_id_name(prefix: str):
 
     return f'{prefix}_id'
 
+def iterator(name: str):
+    """returns symbol to use in for loops"""
+    return "i"
+
+def assert_type(symbol:str, name: str):
+    """returns symbol with asserted type"""
+    return f"{symbol} --[[@as {name}]]"
+
+def array_index(name: str):
+    """returns symbol to access arrays in for loops"""
+    return f"i --[[@as {prefix_to_id_name(name)}]]"
+
+
 class Atom:
     """
     Represents types which do not have internal structural division
@@ -97,7 +110,7 @@ class Atom:
         if description in REGISTERED_NAMES:
             self.c_type = "uint32_t"
             self.lsp_type = prefix_to_id_name(description)
-            self.dcon_type = prefix_to_id_name(description)
+            self.dcon_type = description
             return
         # print(6)
         if description in REGISTERED_STRUCTS:
@@ -494,17 +507,20 @@ class LinkField(Field):
                     f"    table.insert({self.local_accessor_name()}[value], {arg})\n"\
                     f"end\n"
         else:
-            return  f"function {self.remove_key_func_name()}(old_value)\n" \
+            result= f"function {self.remove_key_func_name()}(old_value)\n" \
                     f"    {self.local_accessor_name()}[old_value] = nil\n"\
                     f"end\n"\
                     f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                     f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                     f"function {self.setter_name()}({arg}, value)\n" \
                     f"    local old_value = {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n"\
-                    f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
+                    f"    local to_delete = {self.local_accessor_name()}[value]\n"
+            result += f"    if to_delete ~= nil then {NAMESPACE}.delete_{self.prefix}(to_delete) end\n"
+            result += f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
                     f"    {self.remove_key_func_name()}(old_value)\n"\
                     f"    {self.local_accessor_name()}[value] = {arg}\n"\
                     f"end\n"
+            return result
 
     def local_accessor_name(self):
         """
@@ -631,15 +647,42 @@ class EntityDescription:
         """
         Generates DataContainer compliant description
         """
-        result =   "object {\n"
+        result = ""
+
+        result += "object {\n"
+
+        # if self.is_relationship:
+        #     result += "relationship {\n"
+        # else:
+        #     result += "object {\n"
+
         result += f"    name {{ {self.name} }}\n"
-        if not self.erasable:
+
+        has_primary_key = False
+        for link in self.links:
+            if not link.can_repeat:
+                has_primary_key = True
+
+        if len(self.links) == 0:
+            has_primary_key = True
+
+        if not self.erasable and has_primary_key:
             result += "    storage_type { contiguous }\n"
         else:
             result += "    storage_type { erasable }\n"
         result += f"    size {{ {self.max_count} }}\n"
         result += "    tag {scenario}\n"
 
+
+        # for link in self.links:
+        #     result += "    link {\n"
+        #     result += "        object { " + link.value.dcon_type + " }\n"
+        #     result += "        name { " + link.name + " }\n"
+        #     if link.can_repeat:
+        #         result += "        type { many }\n"
+        #     else:
+        #         result += "        type { unique }\n"
+        #     result += "    }\n"
 
         # for field in self.fields:
         #     if field.value.c_type:
@@ -758,55 +801,56 @@ class EntityDescription:
         """
         result = ""
         result += f"function {NAMESPACE}.delete_{self.name}(i)\n"
-        if self.is_relationship:
-            for field in self.links:
-                if field.can_repeat:
-                    result += f"    do\n"
-                    result += f"        local old_value = {NAMESPACE}.{self.name}[i].{field.name}\n"
-                    result += f"        {field.remove_key_func_name()}(i, old_value)\n"
-                    result += f"    end\n"
-                else:
-                    result += f"    do\n"
-                    result += f"        local old_value = {NAMESPACE}.{self.name}[i].{field.name}\n"
-                    result += f"        {field.remove_key_func_name()}(old_value)\n"
-                    result += f"    end\n"
-        else:
-            if self.name in REGISTERED_LINKS:
-                for relation in REGISTERED_LINKS[self.name]:
-                    link = REGISTERED_NAMES[relation[0]]
-                    field_name = relation[1]
-                    is_unique = True
-                    target_field = None
-                    for field in link.links:
-                        if field.name == field_name:
-                            # print(relation, field.can_repeat)
-                            if field.can_repeat:
-                                is_unique = False
-                            target_field = field
-                    if target_field is None:
-                        raise RuntimeError(f"link {self.name} {relation} was not found")
-                    result += f"    do\n"
-                    # print(self.name, relation, is_unique)
-                    if is_unique:
-                        result += f"        local to_delete = {target_field.get_from_function()}(i)\n"
-                        result += f"        if to_delete ~= INVALID_ID then\n"
-                        result += f"            {NAMESPACE}.delete_{link.name}(to_delete)\n"
-                        result += f"        end\n"
+        if self.erasable:
+            if self.is_relationship:
+                for field in self.links:
+                    if field.can_repeat:
+                        result += f"    do\n"
+                        result += f"        local old_value = {NAMESPACE}.{self.name}[i].{field.name}\n"
+                        result += f"        {field.remove_key_func_name()}(i, old_value)\n"
+                        result += f"    end\n"
                     else:
-                        result += f"        ---@type {prefix_to_id_name(link.name)}[]\n"
-                        result += f"        local to_delete = {{}}\n"
-                        result += f"        if {target_field.get_from_function()}(i) ~= nil then\n"
-                        result += f"            for _, value in ipairs({target_field.get_from_function()}(i)) do\n"
-                        result +=  "                table.insert(to_delete, value)\n"
-                        result += f"            end\n"
-                        result += f"        end\n"
-                        result += f"        for _, value in ipairs(to_delete) do\n"
-                        result += f"            {NAMESPACE}.delete_{link.name}(value)\n"
-                        result += f"        end\n"
-                    result += f"    end\n"
-        # result += f"    {self.name}_indices_pool[i] = true\n"
-        result += f"    {NAMESPACE}.{self.name}_indices_set[i] = nil\n"
-        result += f"    return DCON.dcon_delete_{self.name}(i - 1)\n"
+                        result += f"    do\n"
+                        result += f"        local old_value = {NAMESPACE}.{self.name}[i].{field.name}\n"
+                        result += f"        {field.remove_key_func_name()}(old_value)\n"
+                        result += f"    end\n"
+            else:
+                if self.name in REGISTERED_LINKS:
+                    for relation in REGISTERED_LINKS[self.name]:
+                        link = REGISTERED_NAMES[relation[0]]
+                        field_name = relation[1]
+                        is_unique = True
+                        target_field = None
+                        for field in link.links:
+                            if field.name == field_name:
+                                # print(relation, field.can_repeat)
+                                if field.can_repeat:
+                                    is_unique = False
+                                target_field = field
+                        if target_field is None:
+                            raise RuntimeError(f"link {self.name} {relation} was not found")
+                        result += f"    do\n"
+                        # print(self.name, relation, is_unique)
+                        if is_unique:
+                            result += f"        local to_delete = {target_field.get_from_function()}(i)\n"
+                            result += f"        if to_delete ~= INVALID_ID then\n"
+                            result += f"            {NAMESPACE}.delete_{link.name}(to_delete)\n"
+                            result += f"        end\n"
+                        else:
+                            result += f"        ---@type {prefix_to_id_name(link.name)}[]\n"
+                            result += f"        local to_delete = {{}}\n"
+                            result += f"        if {target_field.get_from_function()}(i) ~= nil then\n"
+                            result += f"            for _, value in pairs({target_field.get_from_function()}(i)) do\n"
+                            result +=  "                table.insert(to_delete, value)\n"
+                            result += f"            end\n"
+                            result += f"        end\n"
+                            result += f"        for _, value in pairs(to_delete) do\n"
+                            result += f"            {NAMESPACE}.delete_{link.name}(value)\n"
+                            result += f"        end\n"
+                        result += f"    end\n"
+            # result += f"    {self.name}_indices_pool[i] = true\n"
+            result += f"    {NAMESPACE}.{self.name}_indices_set[i] = nil\n"
+            result += f"    return DCON.dcon_delete_{self.name}(i - 1)\n"
         result +=  "end\n"
         return result
 
@@ -817,7 +861,8 @@ class EntityDescription:
         result += f"\n---{self.name}: LSP types---\n"
         #id
         result += f"\n---Unique identificator for {self.name} entity\n"
-        result += f'---@alias {prefix_to_id_name(self.name)} number\n\n'
+        result += f'---@class (exact) {prefix_to_id_name(self.name)} : number\n'
+        result += f'---@field is_{self.name} nil\n\n'
 
         #fat id
         result += f'---@class (exact) fat_{prefix_to_id_name(self.name)}\n'
@@ -865,7 +910,9 @@ class EntityDescription:
                     if field.array_size == 1:
                         result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
                     else:
-                        if not field.value.c_type in REGISTERED_STRUCTS:
+                        if field.index.lsp_type in REGISTERED_ID_NAMES:
+                            result += f'---@field {field.name} table<{field.index.lsp_type}, {field.value.lsp_type}> {field.description}\n'
+                        elif not field.value.c_type in REGISTERED_STRUCTS:
                             result += f'---@field {field.name} {field.value.lsp_type}[] {field.description}\n'
                 else:
                     result += f'---@field {field.name} {field.value.lsp_type}? {field.description}\n'
@@ -895,11 +942,15 @@ class EntityDescription:
                             pass
                         else:
                             if field.index.lsp_type in REGISTERED_ENUMS:
-                                result += f"    for i, value in ipairs(data.{field.name}) do\n"
+                                result += f"    for i, value in pairs(data.{field.name}) do\n"
+                                result += f"        {field.setter_name()}(id, i, value)\n"
+                                result += f"    end\n"
+                            elif field.index.lsp_type in REGISTERED_ID_NAMES:
+                                result += f"    for i, value in pairs(data.{field.name}) do\n"
                                 result += f"        {field.setter_name()}(id, i, value)\n"
                                 result += f"    end\n"
                             else:
-                                result += f"    for i, value in ipairs(data.{field.name}) do\n"
+                                result += f"    for i, value in pairs(data.{field.name}) do\n"
                                 result += f"        {field.setter_name()}(id, i - 1, value)\n"
                                 result += f"    end\n"
                 else:
@@ -950,8 +1001,8 @@ class EntityDescription:
             result += field.array_string(self.max_count)
             result += field.accessor_string()
             if field.can_repeat:
-                result +=   f"for i = 1, {self.max_count} do\n"\
-                            f"    {field.local_accessor_name()}[i] = {{}}\n"\
+                result +=   f"for {iterator(self.name)} = 1, {self.max_count} do\n"\
+                            f"    {field.local_accessor_name()}[{assert_type(iterator(self.name), field.value.lsp_type)}] = {{}}\n"\
                             f"end\n"\
 
         result += f"\n---{self.name}: LUA bindings---\n\n"
@@ -962,30 +1013,39 @@ class EntityDescription:
 
         result += f"---@type table<{prefix_to_id_name(self.name)}, boolean>\n"
         result += f"local {self.name}_indices_pool = ffi.new(\"bool[?]\", {self.max_count})\n"
-        result += f"for i = 1, {self.max_count - 1} do\n    {self.name}_indices_pool[i] = true \nend\n"
+        result += f"for {iterator(self.name)} = 1, {self.max_count - 1} do\n    {self.name}_indices_pool[{array_index(self.name)}] = true \nend\n"
 
         result += f"---@type table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}>\n"
         result += f"{NAMESPACE}.{self.name}_indices_set = {{}}\n"
 
-        result += f"function {NAMESPACE}.create_{self.name}()\n"
-        result += f"    ---@type number\n"
-        result += f"    local i = DCON.dcon_create_{self.name}() + 1\n"
-        # result += f"    for i = 1, {self.max_count - 1} do\n"
-        # result += f"        if {self.name}_indices_pool[i] then\n"
-        # result += f"            {self.name}_indices_pool[i] = false\n"
-        result += f"            {NAMESPACE}.{self.name}_indices_set[i] = i\n"
-        # for field in self.fields:
-        #     if not field.value.default_value is None and not field.value.ignore_in_data_layout:
-        #         result += f"            {field.setter_name()}(i, {field.value.default_value})\n"
-        # result +=  "            return i\n"
-        # result +=  "        end\n"
-        # result +=  "    end\n"
-        # result += f"    error(\"Run out of space for {self.name}\")\n"
-        result += f"    return i\n"
-        result +=  "end\n"
 
-        if self.erasable:
-            result += self.delete_string()
+        if len(self.links) == 0:
+            result += f"---@return {prefix_to_id_name(self.name)}\n"
+            result += f"function {NAMESPACE}.create_{self.name}()\n"
+            result += f"    ---@type {prefix_to_id_name(self.name)}\n"
+            result += f"    local {iterator(self.name)}  = DCON.dcon_create_{self.name}() + 1\n"
+            result += f"    {NAMESPACE}.{self.name}_indices_set[{array_index(self.name)}] = i\n"
+            result += f"    return {array_index(self.name)} \n"
+            result +=  "end\n"
+        else:
+            for link in self.links:
+                result += f"---@param {link.name} {link.value.lsp_type}\n"
+            result += f"---@return {prefix_to_id_name(self.name)}\n"
+            result += f"function {NAMESPACE}.force_create_{self.name}("
+            for link in self.links:
+                result += link.name + ", "
+            result = result[:-2]
+            result += ")\n"
+            result += f"    ---@type {prefix_to_id_name(self.name)}\n"
+            result += f"    local {iterator(self.name)} = DCON.dcon_create_{self.name}() + 1\n"
+            result += f"    {NAMESPACE}.{self.name}_indices_set[{array_index(self.name)}] = i\n"
+            for link in self.links:
+                result += f"    {link.setter_name()}({iterator(self.name)}, {link.name})\n"
+            result += f"    return {array_index(self.name)} \n"
+            result +=  "end\n"
+
+
+        result += self.delete_string()
 
         result += self.for_each()
 
@@ -1289,24 +1349,24 @@ def tests():
             for field in entity.fields:
                 if field.value.c_type:
                     result += f"    print(\"{entity.name} {field.name}\")\n"
-                    result += f"    for i = 0, {entity.max_count} do\n"
+                    result += f"    for {iterator(entity.name)} = 0, {entity.max_count} do\n"
                     if field.value.c_type in REGISTERED_STRUCTS:
                         if field.array_size == 1:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"        {NAMESPACE}.{entity.name}[i].{field.name}.{secondary_field.name} = {generated_value}\n"
+                                result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}.{secondary_field.name} = {generated_value}\n"
                         else:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
                                 result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        {NAMESPACE}.{entity.name}[i].{field.name}[j].{secondary_field.name} = {generated_value}\n"
+                                result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[j].{secondary_field.name} = {generated_value}\n"
                                 result +=  "    end\n"
                     else:
                         if field.array_size == 1:
-                            result += f"        {NAMESPACE}.{entity.name}[i].{field.name} = {field.value.generate_value()}\n"
+                            result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name} = {field.value.generate_value()}\n"
                         else:
                             result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        {NAMESPACE}.{entity.name}[i].{field.name}[j] = {field.value.generate_value()}\n"
+                            result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[{assert_type('j', field.index.lsp_type)}] = {field.value.generate_value()}\n"
                             result +=  "    end\n"
                     result +=  "    end\n"
 
@@ -1330,14 +1390,14 @@ def tests():
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
                                 result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name}[j].{secondary_field.name} == {generated_value}\n"
+                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[j].{secondary_field.name} == {generated_value}\n"
                                 result +=  "    end\n"
                     else:
                         if field.array_size == 1:
                             result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name} == {field.value.generate_value()}\n"
                         else:
                             result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name}[j] == {field.value.generate_value()}\n"
+                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[{assert_type('j', field.index.lsp_type)}] == {field.value.generate_value()}\n"
                             result +=  "    end\n"
                     result +=  "    end\n"
 
@@ -1349,6 +1409,9 @@ def tests():
 
 
         for entity in ENTITY_LIST:
+            if len(entity.links) > 0:
+                continue
+
             result += f"    local id = {NAMESPACE}.create_{entity.name}()\n"
             result += f"    local fat_id = {NAMESPACE}.fatten_{entity.name}(id)\n"
             random.seed(i)
@@ -1370,7 +1433,7 @@ def tests():
                             result += f"    fat_id.{field.name} = {field.value.generate_value()}\n"
                         else:
                             result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        {NAMESPACE}.{entity.name}[id].{field.name}[j] = {field.value.generate_value()}\n"
+                            result += f"        {NAMESPACE}.{entity.name}[id].{field.name}[{assert_type('j', field.index.lsp_type)}] = {field.value.generate_value()}\n"
                             result +=  "    end\n"
             result += "    local test_passed = true\n"
             random.seed(i)
@@ -1418,6 +1481,10 @@ BuildingArchetype = StaticEntityDescription("building_archetype")
 ForageResource = StaticEntityDescription("forage_resource")
 BudgetCategory = StaticEntityDescription("budget_category")
 EconomyReason = StaticEntityDescription("economy_reason")
+PoliticsReason = StaticEntityDescription("politics_reason")
+
+LawTrade = StaticEntityDescription("law_trade")
+LawBuilding = StaticEntityDescription("law_building")
 
 TILES_MAX_COUNT = 500 * 500 * 6
 
@@ -1500,6 +1567,7 @@ RealmTaxCollector = EntityDescription("tax_collector", REALMS_MAX_COUNT * 3, Fal
 RealmPersonalRights = EntityDescription("personal_rights", REALMS_MAX_COUNT * 30, False)
 RealmProvince = EntityDescription("realm_provinces", REALMS_MAX_COUNT * 2, False)
 RealmPopularity = EntityDescription("popularity", REALMS_MAX_COUNT * 30, False)
+RealmPops = EntityDescription("realm_pop", POPS_MAX_COUNT, False)
 
 with open(OUTPUT_PATH, "w", encoding="utf8") as out:
     out.write('local ffi = require("ffi")\n')

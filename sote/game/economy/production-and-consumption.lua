@@ -9,7 +9,7 @@ local tabb = require "engine.table"
 local dbm = require "game.economy.diet-breadth-model"
 local economic_effects = require "game.raws.effects.economy"
 local ev = require "game.raws.values.economy"
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 
 local pro = {}
 
@@ -822,12 +822,12 @@ function pro.run(province)
 			local race = DATA.pop_get_race(pop)
 			local teen_age = DATA.race_get_teen_age(race)
 			local culture = DATA.pop_get_culture(pop)
-			local parent = DATA.pop_get_parent(pop)
+			local parent = PARENT(pop)
 			local unit_of_warband = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
 			local forage_ratio = DATA.pop_get_forage_ratio(pop)
 
 			local parent_present = true
-			if parent then
+			if parent ~= INVALID_ID then
 				local parent_province = DATA.pop_location_get_pop(DATA.get_pop_location_from_pop(parent))
 				if parent_province ~= province then
 					parent_present = false
@@ -1095,10 +1095,10 @@ function pro.run(province)
 						income = income - spent
 
 						DATA.building_inc_amount_of_inputs_amount(building, i, consumed)
-						DATA.building_set_amount_of_inputs_good(building, i, input)
+						DATA.building_set_amount_of_inputs_use(building, i, input)
 
 						DATA.building_inc_spent_on_inputs_amount(building, i, spent)
-						DATA.building_set_spent_on_inputs_good(building, i, input)
+						DATA.building_set_spent_on_inputs_use(building, i, input)
 					end
 				end
 

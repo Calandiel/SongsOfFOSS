@@ -98,7 +98,7 @@ end
 function warband_utils.realm(warband)
 	local leadership = DATA.get_warband_leader_from_warband(warband)
 	if leadership then
-		return DATA.pop_get_realm(DATA.warband_leader_get_leader(leadership))
+		return REALM(DATA.warband_leader_get_leader(leadership))
 	else
 		-- TODO
 		local guard_of = DATA.get_realm_guard_from_guard(warband)
@@ -251,10 +251,9 @@ end
 ---@return integer
 function warband_utils.target_size(warband)
 	local result = 0
-	for i = 1, DATA.unit_type_size - 1 do
-		---@type number
-		result = result + DATA.warband_get_units_target(warband, i)
-	end
+	DATA.for_each_unit_type(function (item)
+		result = result + DATA.warband_get_units_target(warband, item)
+	end)
 
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
 		local warband_membership = DATA.get_warband_unit_from_unit(pop)
@@ -304,12 +303,8 @@ function warband_utils.hire_unit(warband, pop, unit)
 		error("ATTEMPT TO HIRE POP ATTACHED TO WARBAND")
 	end
 
-	local new_membership = DATA.fatten_warband_unit(DATA.create_warband_unit())
-
-	new_membership.unit = pop
+	local new_membership = DATA.fatten_warband_unit(DATA.force_create_warband_unit(pop, warband))
 	new_membership.type = unit
-	new_membership.warband = warband
-
 
 	DATA.warband_inc_units_current(warband, unit, 1)
 	DATA.warband_inc_total_upkeep(warband, DATA.unit_type_get_upkeep(unit))
@@ -360,10 +355,8 @@ function warband_utils.set_character_as_unit(warband, character, unit)
 	local fat_unit = DATA.fatten_unit_type(unit)
 
 	if current_warband == INVALID_ID then
-		local new_membership = DATA.fatten_warband_unit(DATA.create_warband_unit())
+		local new_membership = DATA.fatten_warband_unit(DATA.force_create_warband_unit(character, warband))
 		new_membership.type = unit
-		new_membership.warband = warband
-		new_membership.unit = character
 	else
 		local fat_membership = DATA.fatten_warband_unit(current_warband)
 		local old_warband = DATA.fatten_warband(fat_membership.warband)
@@ -374,7 +367,7 @@ function warband_utils.set_character_as_unit(warband, character, unit)
 		old_warband.total_upkeep = old_warband.total_upkeep - old_unit.upkeep
 		DATA.warband_inc_units_current(old_warband.id, old_unit.id, -1)
 		fat_membership.warband = warband
-		fat_membership.unit = unit
+		fat_membership.type = unit
 	end
 
 	fat_warband.total_upkeep = fat_warband.total_upkeep + fat_unit.upkeep
@@ -417,12 +410,13 @@ end
 ---@param warband warband_id
 ---@return boolean
 function warband_utils.vacant(warband)
-	for i = 0, DATA.unit_type_size do
-		if DATA.warband_get_units_target(warband, i) > DATA.warband_get_units_current(warband, i) then
-			return true
+	local vacant = false
+	DATA.for_each_unit_type(function (item)
+		if DATA.warband_get_units_target(warband, item) > DATA.warband_get_units_current(warband, item) then
+			vacant = true
 		end
-	end
-	return false
+	end)
+	return vacant
 end
 
 ---Returns monthly budget

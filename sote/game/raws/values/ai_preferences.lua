@@ -7,8 +7,9 @@ local pop_utils = require "game.entities.pop".POP
 
 local AiPreferences = {}
 
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 local ev = require "game.raws.values.economy"
+local demography_values = require "game.raws.values.demography"
 
 
 ---comment
@@ -46,7 +47,7 @@ function AiPreferences.saving_goal(character)
 end
 
 function AiPreferences.construction_funds(character)
-	return math.max(0, character.savings - AiPreferences.saving_goal(character))
+	return math.max(0, DATA.pop_get_savings(character) - AiPreferences.saving_goal(character))
 end
 
 ---comment
@@ -258,6 +259,31 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 		-- print('______________________________')
 
 		return base_value
+	end
+end
+
+function AiPreferences.sample_random_canidate(root)
+	local p = PROVINCE(root)
+	assert(p ~= INVALID_ID)
+	local candidate = demography_values.sample_character_from_province(p)
+	if candidate == INVALID_ID then
+		return nil, false
+	end
+	return candidate, true
+end
+
+function AiPreferences.condition_to_sampler(condition)
+	return function (root)
+		local p = PROVINCE(root)
+		assert(p ~= INVALID_ID)
+		local candidate = demography_values.sample_character_from_province(p)
+		if candidate == INVALID_ID then
+			return nil, false
+		end
+		if condition(candidate) then
+			return candidate, true
+		end
+		return nil, false
 	end
 end
 

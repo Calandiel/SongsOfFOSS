@@ -19,8 +19,8 @@ primary_faith Faith
 capitol province_id
 trading_right_cost float
 building_right_cost float
-trading_right_law TradingRightLaw
-building_right_law BuildingRightLaw
+law_trade LAW_TRADE
+law_building LAW_BUILDING
 quests_raid table<province_id,nil|number> reward for raid
 quests_explore table<province_id,nil|number> reward for exploration
 quests_patrol table<province_id,nil|number> reward for patrol

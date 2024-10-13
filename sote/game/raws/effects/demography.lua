@@ -38,10 +38,7 @@ function demo.outlaw_pop(province, pop)
 
 	demo.fire_pop(pop)
 	warband_utils.unregister_military(pop)
-
-	local id = DATA.create_outlaw_location()
-	DATA.outlaw_location_set_location(id, province)
-	DATA.outlaw_location_set_outlaw(id, pop)
+	DATA.force_create_outlaw_location(province, pop)
 
 	local pop_location = DATA.get_pop_location_from_pop(pop)
 	if pop_location then

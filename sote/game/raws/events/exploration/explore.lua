@@ -7,8 +7,8 @@ local text = require "game.raws.events._localisation"
 local economic_values = require "game.raws.values.economy"
 local economic_effects = require "game.raws.effects.economy"
 local economic_triggers = require "game.raws.triggers.economy"
-local political_effects = require "game.raws.effects.political"
-local political_values = require "game.raws.values.political"
+local political_effects = require "game.raws.effects.politics"
+local political_values = require "game.raws.values.politics"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 

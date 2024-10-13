@@ -41,8 +41,13 @@ end
 function prov.Province.get_random_neighbor(province)
 	local neighbors = DATA.get_province_neighborhood_from_origin(province)
 	local s = tabb.size(neighbors)
-	local neighbor = DATA.province_neighborhood_get_target(tabb.nth(neighbors, love.math.random(s)))
-	return neighbor
+	local random_neigh = neighbors[love.math.random(s)]
+	if random_neigh then
+		local neighbor = DATA.province_neighborhood_get_target(random_neigh)
+		return neighbor
+	else
+		return INVALID_ID
+	end
 end
 
 ---Adds a tile to the province. Handles removal from the previous province, if necessary.
@@ -54,14 +59,12 @@ function prov.Province.add_tile(province, tile)
 		DATA.province_set_is_land(province, true)
 	end
 
-	local membership = DATA.tile_province_membership_from_tile[tile]
+	local membership = DATA.get_tile_province_membership_from_tile(tile)
 
-	if membership then
+	if membership ~= INVALID_ID then
 		DATA.tile_province_membership_set_province(membership, province)
 	else
-		local new_membership = DATA.create_tile_province_membership()
-		DATA.tile_province_membership_set_province(new_membership, province)
-		DATA.tile_province_membership_set_tile(new_membership, tile)
+		DATA.force_create_tile_province_membership(province, tile)
 	end
 end
 
@@ -144,9 +147,10 @@ end
 
 ---@param province province_id
 function prov.Province.validate_population(province)
-	for _, pop in pairs(DATA.get_pop_location_from_location(province)) do
-		local check_province = DATA.pop_location_get_pop(pop)
-		if check_province == nil then
+	for _, pop_location in pairs(DATA.get_pop_location_from_location(province)) do
+		local check_province = DATA.pop_location_get_location(pop_location)
+		local pop = DATA.pop_location_get_pop(pop_location)
+		if check_province == INVALID_ID then
 			error("pop_id " .. DATA.pop_get_name(pop) .. " DOESN'T HAVE PROVINCE")
 		end
 		if province ~= check_province then
@@ -154,9 +158,10 @@ function prov.Province.validate_population(province)
 		end
 	end
 
-	for _, pop in pairs(DATA.get_home_from_home(province)) do
-		local home_province = DATA.home_get_home(pop)
-		if home_province == nil then
+	for _, pop_location in pairs(DATA.get_home_from_home(province)) do
+		local home_province = DATA.home_get_home(pop_location)
+		local pop = DATA.home_get_pop(pop_location)
+		if home_province == INVALID_ID then
 			error("pop_id " .. DATA.pop_get_name(pop) .. " DOESN'T HAVE HOME PROVINCE")
 		end
 		if home_province ~= province then
@@ -164,9 +169,10 @@ function prov.Province.validate_population(province)
 		end
 	end
 
-	for _, pop in pairs(DATA.get_character_location_from_location(province)) do
-		local check_province = DATA.character_location_get_location(pop)
-		if province == nil then
+	for _, pop_location in pairs(DATA.get_character_location_from_location(province)) do
+		local check_province = DATA.character_location_get_location(pop_location)
+		local pop = DATA.character_location_get_character(pop_location)
+		if province == INVALID_ID then
 			error("Character " .. DATA.pop_get_name(pop) .. " DOESN'T HAVE PROVINCE")
 		end
 		if province ~= check_province then
@@ -180,7 +186,8 @@ end
 ---@return number
 function prov.Province.population_weight(province)
 	local total = 0
-	for _, pop in pairs(DATA.get_pop_location_from_location(province)) do
+	for _, pop_location in pairs(DATA.get_pop_location_from_location(province)) do
+		local pop = DATA.pop_location_get_pop(pop_location)
 		-- weight is dependent on food needs, which are age dependent
 		local race = DATA.pop_get_race(pop)
 		local age_multiplier = pop_utils.get_age_multiplier(pop)
@@ -210,8 +217,8 @@ end
 function prov.Province.transfer_pop(origin, pop, target)
 	-- print(pop.name, "pop_id", self.name, "-->", target.name)
 	local current_location = DATA.get_pop_location_from_pop(pop)
-	assert(DATA.character_location_get_location(current_location) == origin, "POP ATTEMPTS TO TRAVEL NOT FROM HIS LOCATION")
-	DATA.character_location_set_location(current_location, target)
+	assert(DATA.pop_location_get_location(current_location) == origin, "POP ATTEMPTS TO TRAVEL NOT FROM HIS LOCATION")
+	DATA.pop_location_set_location(current_location, target)
 
 	local relevant_children =
 		tabb.filter_array(
@@ -225,7 +232,7 @@ function prov.Province.transfer_pop(origin, pop, target)
 					return false
 				end
 
-				local home_location = DATA.get_home_from_pop(DATA.get_home_from_pop(child))
+				local home_location = DATA.home_get_home(DATA.get_home_from_pop(child))
 				if home_location ~= origin then
 					return false
 				end
@@ -270,7 +277,7 @@ function prov.Province.transfer_home(origin, pop, target)
 					return false
 				end
 
-				local home_location = DATA.get_home_from_pop(DATA.get_home_from_pop(child))
+				local home_location = DATA.home_get_home(DATA.get_home_from_pop(child))
 				if home_location ~= origin then
 					return false
 				end
@@ -298,7 +305,7 @@ end
 function prov.Province.local_army_size(province)
 	local total = 0
 	DATA.for_each_warband_location_from_location(province, function (item)
-		local warband = DATA.warband_location_get_location(item)
+		local warband = DATA.warband_location_get_warband(item)
 		local status = DATA.warband_get_status(warband)
 		if status == WARBAND_STATUS.PATROL then
 			---@type number
@@ -340,9 +347,7 @@ function prov.Province.employ_pop(province, pop, building)
 	local employment = DATA.get_employment_from_worker(pop)
 	if employment == INVALID_ID then
 		-- no need to update stuff: just create new employment
-		local new_employment = DATA.fatten_employment(DATA.create_employment())
-		new_employment.building = building
-		new_employment.worker = pop
+		local new_employment = DATA.fatten_employment(DATA.force_create_employment(building, pop))
 		new_employment.job = potential_job
 	else
 		local fat = DATA.fatten_employment(employment)
@@ -399,7 +404,8 @@ function prov.Province.research(province, technology)
 
 	--- update technologies which could be potentially unlocked
 	for _, t in pairs(DATA.get_technology_unlock_from_origin(technology)) do
-		if DATA.province_get_technologies_present(province, t) == 1 then
+		local tech = DATA.technology_unlock_get_unlocked(t)
+		if DATA.province_get_technologies_present(province, tech) == 1 then
 			goto continue
 		end
 
@@ -482,7 +488,8 @@ function prov.Province.research(province, technology)
 		if #DATA.get_technology_unlock_from_unlocked(technology) > 0 then
 			local new_ok = true
 			for _, te in pairs(DATA.get_technology_unlock_from_unlocked(technology)) do
-				if DATA.province_get_technologies_present(province, te) == 1 then
+				local required_tech = DATA.technology_unlock_get_origin(te)
+				if DATA.province_get_technologies_present(province, required_tech) == 1 then
 					-- nothing to do, tech present
 				else
 					-- tech missing, this tech cannot be unlocked...
@@ -496,7 +503,7 @@ function prov.Province.research(province, technology)
 		end
 
 		if ok then
-			DATA.province_set_technologies_researchable(province, t, 1)
+			DATA.province_set_technologies_researchable(province, tech, 1)
 		end
 
 		::continue::
@@ -506,10 +513,11 @@ function prov.Province.research(province, technology)
 	-- update buildings
 
 	for _, b in pairs(DATA.get_technology_building_from_technology(technology)) do
+		local building_type = DATA.technology_building_get_unlocked(b)
 		local ok = true
 
 		for i = 0, MAX_REQUIREMENTS_BUILDING_TYPE - 1 do
-			local required_biome = DATA.building_type_get_required_biome(b, i)
+			local required_biome = DATA.building_type_get_required_biome(building_type, i)
 			if required_biome == INVALID_ID then
 				break
 			end
@@ -525,7 +533,7 @@ function prov.Province.research(province, technology)
 		local has_required_resource = true
 
 		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
-			local required_resource = DATA.building_type_get_required_resource(b, i)
+			local required_resource = DATA.building_type_get_required_resource(building_type, i)
 			if required_resource == INVALID_ID then
 				break
 			end
@@ -551,19 +559,20 @@ function prov.Province.research(province, technology)
 		ok = has_required_resource and ok
 
 		if ok then
-			DATA.province_set_buildable_buildings(province, b, 1)
+			DATA.province_set_buildable_buildings(province, building_type, 1)
 		end
 	end
 
 	for _, unit_id in ipairs(DATA.get_technology_unit_from_technology(technology)) do
-		DATA.province_set_unit_types(province, unit_id, 1)
+		local unit_type = DATA.technology_unit_get_unlocked(unit_id)
+		DATA.province_set_unit_types(province, unit_type, 1)
 	end
 
-	for i = 0, DATA.production_method_size - 1 do
+	DATA.for_each_production_method(function (i)
 		DATA.province_inc_throughput_boosts(province, i, DATA.technology_get_throughput_boosts(technology, i))
 		DATA.province_inc_input_efficiency_boosts(province, i, DATA.technology_get_input_efficiency_boosts(technology, i))
 		DATA.province_inc_output_efficiency_boosts(province, i, DATA.technology_get_output_efficiency_boosts(technology, i))
-	end
+	end)
 
 	local realm = prov.Province.realm(province)
 	if WORLD:does_player_see_realm_news(realm) then
@@ -623,13 +632,15 @@ end
 ---@param target_building_type BuildingType
 ---@return boolean
 function prov.Province.building_type_present(province, target_building_type)
-	for bld in pairs(DATA.get_building_location_from_location(province)) do
+	local present = false
+	DATA.for_each_building_location_from_location(province, function (item)
+		local bld = DATA.building_location_get_building(item)
 		local local_bld_type = DATA.building_get_type(bld)
 		if local_bld_type == target_building_type then
-			return true
+			present = true
 		end
-	end
-	return false
+	end)
+	return present
 end
 
 ---@alias BuildingAttemptFailureReason "ok" | "not_enough_funds" | "unique_duplicate" | "missing_local_resources" | "no_permission"
@@ -652,7 +663,8 @@ function prov.Province.can_build(province, funds, building, overseer, public)
 		end
 
 		resource_check_passed = false
-		for _, tile_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
+		for _, tile_membership_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
+			local tile_id = DATA.tile_province_membership_get_tile(tile_membership_id)
 			if DATA.tile_get_resource(tile_id) then
 				if DATA.tile_get_resource(tile_id) == resource then
 					resource_check_passed = true
@@ -699,7 +711,7 @@ function prov.Province.get_dominant_culture(province)
 	local e = {}
 	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
 		local pop_id = DATA.pop_location_get_pop(p)
-		local culture = DATA.pop_get_culture(p)
+		local culture = DATA.pop_get_culture(pop_id)
 		local old = e[culture] or 0
 		e[culture] = old + 1
 	end
@@ -793,9 +805,7 @@ function prov.Province.add_pop(province, pop)
 	if location ~= INVALID_ID then
 		DATA.pop_location_set_location(location, province)
 	else
-		local new_location = DATA.create_pop_location()
-		DATA.pop_location_set_location(new_location, province)
-		DATA.pop_location_set_pop(new_location, pop)
+		DATA.force_create_pop_location(province, pop)
 	end
 end
 
@@ -807,9 +817,7 @@ function prov.Province.add_character(province, character)
 	if location ~= INVALID_ID then
 		DATA.character_location_set_location(location, province)
 	else
-		local new_location = DATA.create_pop_location()
-		DATA.character_location_set_location(new_location, province)
-		DATA.character_location_set_character(new_location, character)
+		DATA.force_create_character_location(province, character)
 	end
 end
 
@@ -821,15 +829,14 @@ function prov.Province.set_home(province, pop)
 	if home ~= INVALID_ID then
 		DATA.home_set_home(home, province)
 	else
-		local new_home = DATA.create_home()
-		DATA.home_set_home(new_home, province)
-		DATA.home_set_pop(new_home, pop)
+		DATA.force_create_home(province, pop)
 	end
 
 	-- as this province is your home, you belong to local realm now
 	local realm = prov.Province.realm(province)
+
 	if realm ~= INVALID_ID then
-		DATA.pop_set_realm(pop, realm)
+		SET_REALM(pop, realm)
 	end
 end
 
@@ -853,7 +860,7 @@ function prov.Province.get_spotting(province)
 	end)
 
 	DATA.for_each_warband_location_from_location(province, function (party)
-		local warband = DATA.warband_location_get_location(party)
+		local warband = DATA.warband_location_get_warband(party)
 		local status = DATA.warband_get_status(warband)
 		if status == WARBAND_STATUS.PATROL then
 			---@type number
@@ -868,14 +875,14 @@ end
 ---@return number
 function prov.Province.get_hiding(province)
 	local hide = 1
-	for t, _ in pairs(DATA.get_tile_province_membership_from_province(province)) do
-		local tile_id = DATA.tile_province_membership_get_tile(t)
+	DATA.for_each_tile_province_membership_from_province(province, function (item)
+		local tile_id = DATA.tile_province_membership_get_tile(item)
 		local grass = DATA.tile_get_grass(tile_id)
 		local shrub = DATA.tile_get_shrub(tile_id)
 		local conifer = DATA.tile_get_conifer(tile_id)
 		local broadleaf = DATA.tile_get_broadleaf(tile_id)
 		hide = hide + 1 + grass + shrub * 2 + conifer * 3 + broadleaf * 5
-	end
+	end)
 	return hide
 end
 
@@ -977,9 +984,7 @@ end
 ---@return warband_id warband
 function prov.Province.new_warband(province)
 	local warband = DATA.create_warband()
-	local location = DATA.fatten_warband_location(DATA.create_warband_location())
-	location.location = province
-	location.warband = warband
+	DATA.force_create_warband_location(province, warband)
 	return warband
 end
 

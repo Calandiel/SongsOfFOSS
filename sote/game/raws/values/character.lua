@@ -1,6 +1,54 @@
-
-
 local character_values = {}
+
+---commenting
+---@param character Character
+---@return boolean
+function character_values.is_traveller(character)
+	for i = 0, MAX_TRAIT_INDEX do
+		local trait = DATA.pop_get_traits(character, i)
+
+		if trait == INVALID_ID then
+			break
+		end
+
+		local traveller = DATA.trait_get_traveller(trait)
+
+		if traveller > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+---commenting
+---@param character Character
+---@return number
+function character_values.admin_score(character)
+	local total = 0
+	for i = 0, MAX_TRAIT_INDEX do
+		local trait = DATA.pop_get_traits(character, i)
+		if trait == INVALID_ID then
+			break
+		end
+		total = total + DATA.trait_get_admin(trait)
+	end
+	return total
+end
+
+---Modifies desired profit of characters
+---@param character Character
+---@return number
+function character_values.profit_desire(character)
+	local total = 0
+	for i = 0, MAX_TRAIT_INDEX do
+		local trait = DATA.pop_get_traits(character, i)
+		if trait == INVALID_ID then
+			break
+		end
+		total = total + DATA.trait_get_greed(trait)
+	end
+	return total
+end
 
 ---Calculates travel speed of given character
 ---@param character Character

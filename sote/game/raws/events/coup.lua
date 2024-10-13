@@ -5,9 +5,9 @@ local economic_effects = require "game.raws.effects.economy"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 local uit = require "game.ui-utils"
-local PoliticalEffects = require "game.raws.effects.political"
+local PoliticalEffects = require "game.raws.effects.politics"
 
-local calculate_power_base = require "game.raws.values.political".power_base
+local calculate_power_base = require "game.raws.values.politics".power_base
 
 
 return function()

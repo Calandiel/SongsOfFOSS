@@ -9,7 +9,7 @@ local tec = require "game.raws.raws-utils".technology
 
 
 local province_utils = require "game.entities.province".Province
-local pe = require "game.raws.effects.political"
+local pe = require "game.raws.effects.politics"
 
 local st = {}
 
@@ -73,22 +73,18 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 
 	do
 		local elite_character = pe.generate_new_noble(r, capitol_id, race_id, faith, culture)
-		local popularity = DATA.create_popularity()
+		local popularity = DATA.force_create_popularity(elite_character, r)
 		local fat_popularity = DATA.fatten_popularity(popularity)
 		fat_popularity.value = DATA.pop_get_age(elite_character) / 10
-		fat_popularity.who = elite_character
-		fat_popularity.where = r
-		pe.transfer_power(r, elite_character, pe.reasons.InitialRuler)
+		pe.transfer_power(r, elite_character, POLITICS_REASON.INITIALRULER)
 	end
 
 	-- spawn nobles
 	for i = 1, pop_to_spawn / 5 + 1 do
 		local contender = pe.generate_new_noble(r, capitol_id, race_id, faith, culture)
-		local popularity = DATA.create_popularity()
+		local popularity = DATA.force_create_popularity(contender, r)
 		local fat_popularity = DATA.fatten_popularity(popularity)
 		fat_popularity.value = DATA.pop_get_age(contender) / 15
-		fat_popularity.who = contender
-		fat_popularity.where = r
 	end
 
 	-- set up capitol
@@ -149,13 +145,10 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 			table.insert(parents, potential_parent_id)
 		end)
 
-		local parent = tabb.random_select_from_set(parents)
+		local parent = tabb.random_select_from_array(parents)
 
 		if parent then
-			local relative = DATA.create_parent_child_relation()
-			local fat_rel = DATA.fatten_parent_child_relation(relative)
-			fat_rel.parent = parent
-			fat_rel.child = child
+			DATA.force_create_parent_child_relation(parent, child)
 		end
 	end)
 

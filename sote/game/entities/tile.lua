@@ -12,7 +12,7 @@ function tile.Tile:new(tile_world_id)
 	local tt = DATA.fatten_tile(tile_dcon_id)
 	tt.world_id = tile_world_id
 
-	WORLD.tile_from_world_id[tile_world_id] = tile_dcon_id
+	WORLD.tile_from_world_id[tile_world_id --[[@as world_tile_id]]] = tile_dcon_id
 
 	tt.is_land = false
 	tt.is_fresh = false
@@ -323,7 +323,7 @@ function tile.get_neighbor(tile_id, neighbor_index)
 	end
 
 	local ret_id = tile.coords_to_index(rx, ry, rf)
-	return ret_id
+	return WORLD.tile_from_world_id[ret_id]
 end
 
 ---Returns an iterator over all neighbors
@@ -446,7 +446,7 @@ function tile.soil_permeability(tile_id)
 end
 
 ---Given a tile ID, returns x/y/f coordinates.
----@param tile_id number
+---@param tile_id tile_id
 ---@return number x
 ---@return number y
 ---@return number f
@@ -465,10 +465,10 @@ end
 ---@param x number
 ---@param y number
 ---@param f number
----@return integer world_tile_id
+---@return world_tile_id world_tile_id
 function tile.coords_to_index(x, y, f)
 	local ws = WORLD.world_size
-	return WORLD.tile_from_world_id[1 + (x + y * ws + f * ws * ws)]
+	return 1 + (x + y * ws + f * ws * ws) --[[@as world_tile_id]]
 end
 
 ---Given a 3d point on the surface of a sphere with radius one, return the tile_id for that point
@@ -494,7 +494,7 @@ function tile.lat_lont_to_index(lat, lon)
 end
 
 ---Given a tile ID, returns latitude [-pi/2, pi/2] and longitude [-pi, pi]
----@param tile_id number
+---@param tile_id tile_id
 ---@return number latitude
 ---@return number longitude
 function tile.get_lat_lon(tile_id)
@@ -504,7 +504,7 @@ function tile.get_lat_lon(tile_id)
 end
 
 ---Returns cartesian coordinates of the tile, on a sphere of radius 1
----@param tile_id number
+---@param tile_id tile_id
 ---@return number x
 ---@return number y
 ---@return number z

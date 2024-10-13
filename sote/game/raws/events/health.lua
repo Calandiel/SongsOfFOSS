@@ -11,7 +11,10 @@ function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 1 / 24,
         trigger = function(self, character)
-            return character.age > character.race.max_age
+            local age = DATA.pop_get_age(character);
+            local race = DATA.pop_get_race(character);
+            local max_age = DATA.race_get_max_age(race)
+            return age > max_age
         end,
         event_text = function(self, character, associated_data)
             return "I am dying..."
@@ -44,18 +47,22 @@ function load()
         ---@param root Character
         ---@param data Character
         function (self, root, data)
-            return "I have a new child named " .. data.name .. ". "
+            local name = DATA.pop_get_name(data)
+            return "I have a new child named " .. name .. ". "
         end,
         ---@param root Character
         ---@param data Character
         function (root, data)
-            return "Truely a wonderful day in " .. root.province.name .. "!"
+            local province = PROVINCE(root)
+            local name = DATA.province_get_name(province);
+            return "Truely a wonderful day in " .. name .. "!"
         end,
         ---@param root Character
         ---@param data Character
         function (root, data)
             local s = "he"
-            if data.female then
+            local female = DATA.pop_get_female(data)
+            if female then
                 s = "she"
             end
             return "May " .. s .. " live a long and prosperous life!"
@@ -63,7 +70,8 @@ function load()
         ---@param root Character
         ---@param data Character
         function(root, data)
-            if not root.successor then
+            local succession = DATA.get_succession_from_successor_of(root)
+            if succession == INVALID_ID then
                 ie.set_successor(root, data)
                 WORLD:emit_immediate_event('succession-set', data, root)
             end

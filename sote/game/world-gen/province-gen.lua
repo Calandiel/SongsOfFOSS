@@ -54,12 +54,10 @@ local function calculate_province_neighbors(province, deep_logs)
 	end
 
 	for _, item in pairs(neigbours_to_connect) do
-		local province_link = DATA.fatten_province_neighborhood(DATA.create_province_neighborhood())
-		if province_link.id % 10000 == 0 then
-			print(province_link.id)
+		local province_link = DATA.force_create_province_neighborhood(province, item)
+		if province_link % 10000 == 0 then
+			print(province_link)
 		end
-		province_link.origin = province
-		province_link.target = item
 	end
 	if deep_logs then
 		print("Neighs: " .. tostring(tabb.size(DATA.get_province_neighborhood_from_origin(province))))

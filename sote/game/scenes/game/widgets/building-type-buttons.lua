@@ -6,7 +6,7 @@ local building_type_tooltip = require "game.raws.building-types".get_tooltip
 
 local economic_effects = require "game.raws.effects.economy"
 local EconomicValues = require "game.raws.values.economy"
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 
 ---comment
 ---@param rect Rect

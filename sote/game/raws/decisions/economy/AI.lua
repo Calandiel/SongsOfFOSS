@@ -1,13 +1,14 @@
 local Decision = require "game.raws.decisions"
 
 local economic_values = require "game.raws.values.economy"
+local pop_utils = require "game.entities.pop".POP
 
 return function ()
 	Decision.Character:new {
 		name = 'buy-something',
 		ui_name = "(AI) Buy some goods",
 		tooltip = function (root, primary_target)
-			if root.busy then
+			if DATA.pop_get_busy(root) then
 				return "You are too busy to consider it."
 			end
 			return "Buy some goods on the local market"
@@ -17,14 +18,14 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 4 ,
 		pretrigger = function(root)
-			if root.busy then return false end
+			if DATA.pop_get_busy(root) then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
-			if root.savings < 5 then
+			if DATA.pop_get_savings(root) < 5 then
 				return false
 			end
-			if (not root.traits[TRAIT.TRADER]) then
+			if not pop_utils.has_trait(root, TRAIT.TRADER) then
 				return false
 			end
 			return true
@@ -36,11 +37,11 @@ return function ()
 			return true
 		end,
 		available = function(root)
-			if root.busy then return false end
+			if DATA.pop_get_busy(root) then return false end
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.traits[TRAIT.TRADER] then
+			if pop_utils.has_trait(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0
@@ -54,7 +55,7 @@ return function ()
 		name = 'update-price-beliefs',
 		ui_name = "(AI) Check local prices",
 		tooltip = function (root, primary_target)
-			if root.busy then
+			if DATA.pop_get_busy(root) then
 				return "You are too busy to consider it."
 			end
 			return "???"
@@ -64,11 +65,11 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 2 ,
 		pretrigger = function(root)
-			if root.busy then return false end
+			if DATA.pop_get_busy(root) then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
-			if (not root.traits[TRAIT.TRADER]) then
+			if not pop_utils.has_trait(root, TRAIT.TRADER) then
 				return false
 			end
 			return true
@@ -80,25 +81,20 @@ return function ()
 			return true
 		end,
 		available = function(root)
-			if root.busy then return false end
+			if DATA.pop_get_busy(root) then return false end
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.traits[TRAIT.TRADER] then
+			if pop_utils.has_trait(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
 			local function update_belief(trade_good)
-				local price = economic_values.get_local_price(root.province, trade_good)
-				if root.price_memory[trade_good] == nil then
-					root.price_memory[trade_good] = price
-				else
-					if WORLD.player_character ~= root then
-						root.price_memory[trade_good] = root.price_memory[trade_good] * (3 / 4) + price * (1 / 4)
-					end
-				end
+				local price = economic_values.get_local_price(PROVINCE(root), trade_good)
+				local prev_belief = DATA.pop_get_price_memory(root, trade_good)
+				DATA.pop_set_price_memory(root, trade_good, prev_belief * 3 / 4 + price / 4)
 			end
 			DATA.for_each_trade_good(update_belief)
 		end
@@ -108,7 +104,7 @@ return function ()
 		name = 'sell-something',
 		ui_name = "(AI) Sell some goods",
 		tooltip = function (root, primary_target)
-			if root.busy then
+			if DATA.pop_get_busy(root) then
 				return "You are too busy to consider it."
 			end
 			return "Sell some goods on the local market"
@@ -118,11 +114,11 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 4,
 		pretrigger = function(root)
-			if root.busy then return false end
+			if DATA.pop_get_busy(root) then return false end
 			if WORLD:is_player(root) then
 				return false
 			end
-			if (not root.traits[TRAIT.TRADER]) then
+			if not pop_utils.has_trait(root, TRAIT.TRADER) then
 				return false
 			end
 			return true
@@ -134,11 +130,11 @@ return function ()
 			return true
 		end,
 		available = function(root)
-			if root.busy then return false end
+			if DATA.pop_get_busy(root) then return false end
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.traits[TRAIT.TRADER] then
+			if pop_utils.has_trait(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0

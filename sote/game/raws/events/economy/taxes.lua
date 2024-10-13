@@ -3,7 +3,7 @@ local text = require "game.raws.events._localisation"
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
 local economic_effects = require "game.raws.effects.economy"
-local political_effects = require "game.raws.effects.political"
+local political_effects = require "game.raws.effects.politics"
 
 
 return function ()

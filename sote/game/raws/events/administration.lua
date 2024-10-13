@@ -5,7 +5,7 @@ local E_ut = require "game.raws.events._utils"
 
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
-local political_effects = require "game.raws.effects.political"
+local political_effects = require "game.raws.effects.politics"
 
 local function load()
 	Event:new {

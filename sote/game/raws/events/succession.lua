@@ -5,14 +5,16 @@ local ut = require "game.ui-utils"
 
 local tabb = require "engine.table"
 
-local pe = require "game.raws.effects.political"
-local pv = require "game.raws.values.political"
+local pe = require "game.raws.effects.politics"
+local pv = require "game.raws.values.politics"
 local ee = require "game.raws.effects.economy"
 local me = require "game.raws.effects.military"
 local ie = require "game.raws.effects.interpersonal"
 local di = require "game.raws.effects.diplomacy"
 
+
 local offices_triggers = require "game.raws.triggers.offices"
+local office_effects = require "game.raws.effects.office"
 
 local function load()
 	Event:new {
@@ -22,208 +24,197 @@ local function load()
 		automatic = false,
 		base_probability = 0,
 		on_trigger = function(self, character, associated_data)
-			local successor = character.successor
+			local succession = DATA.get_succession_from_successor_of(character)
 
-
-
-			-- clear trade rights:
-			ee.abandon_trade_rights(character)
-			ee.abandon_building_rights(character)
-
-			for _, realm in pairs(character.leader_of) do
-				character.leader_of[realm] = nil
-				local capitol = character.realm.capitol
-				local leader = realm.leader
-
-				if realm and character == realm.overseer then
-					pe.remove_overseer(realm)
-				end
-
-				-- succession of realm leadership
-				if leader == character then
-					if not successor then
-						if realm.overseer then
-							successor = realm.overseer
-						else
-							---@type Character?
-							local final_successor = nil
-							-- try to find a local noble
-							for _, pretender in pairs(capitol.characters) do
-								if pretender ~= character and pretender.home_province == realm.capitol then
-									if
-										final_successor == nil
-									then
-										final_successor = pretender
-									elseif
-										pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
-									then
-										final_successor = pretender
-									end
-								end
-							end
-
-							successor = final_successor
-						end
-					end
-
-					if not successor then
-						---@type Character?
-						local final_successor = nil
-						-- attempt to find a realm noble outside capitol
-						for _, pretender in pairs(capitol.home_to) do
-							if pretender ~= character then
-								if
-									final_successor == nil
-									and pretender:is_character()
-								then
-									final_successor = pretender
-								elseif
-									pretender:is_character()
-									and pv.popularity(pretender, realm) > pv.popularity(final_successor, realm)
-								then
-									final_successor = pretender
-								end
-							end
-						end
-
-						successor = final_successor
-					end
-					-- failing to find any realm nobles
-					if not successor then
-						-- attempt to get any local tribe pop
-						successor = tabb.random_select_from_set(tabb.filter(capitol.home_to, function(a)
-							return a.province and a.province == capitol and not a:is_character()
-						end))
-						if successor then
-							pe.grant_nobility(successor, capitol, pe.reasons.NotEnoughNobles)
-						end
-					end
-					if successor then
-						pe.transfer_power(realm, successor, pe.reasons.Succession)
-						WORLD:emit_immediate_event("succession-leader-notification", successor, realm)
-					else
-						-- no pops left: destroy realm
-						di.dissolve_realm_and_clear_diplomacy(realm)
-						realm.leader = nil
-						-- at this point the original realm is extinquished and a new realm rises to fill the vacuum
-						if tabb.size(capitol.all_pops) then
-							-- make new realm for remaining pop
-							local r = require "game.entities.realm".Realm:new()
-							r.capitol = capitol
-							r:add_province(capitol)
-							r:explore(capitol)
-							--attempt to find random local character to fill vaccuum
-							for _, pretender in pairs(capitol.characters) do
-								if pretender ~= character and pretender.home_province == realm.capitol then
-									if
-										successor == nil
-									then
-										successor = pretender
-									elseif
-										pv.popularity(pretender, realm) > pv.popularity(successor, realm)
-									then
-										successor = pretender
-									end
-								end
-							end
-							--failing all else, grab random pop and make noble
-							if not successor then
-								successor = tabb.random_select_from_set(capitol.all_pops)
-
-								if successor then
-									pe.grant_nobility(successor, capitol, pe.reasons.InitialNoble)
-								end
-							end
-							-- use new leader to finish setting up the new realm
-							if successor then
-								pe.transfer_power(r, successor, pe.reasons.InitialRuler)
-								local culture = successor.culture
-								r.primary_race = successor.race
-								r.primary_culture = culture
-								r.primary_faith = successor.faith
-								-- Initialize realm colors
-								r.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.4 - 0.2))))
-								r.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.4 - 0.2))))
-								r.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.4 - 0.2))))
-								r.name = culture.language:get_random_realm_name()
-								capitol.name = culture.language:get_random_province_name()
-								for _, neigh in pairs(capitol.neighbors) do
-									r:explore(neigh)
-								end
-								-- grab whatever similar pops you can and set their home to give the new realm pop
-								for _, v in pairs(tabb.filter(capitol.all_pops, function(a)
-									return a.culture == successor.culture and a.faith == successor.faith and
-										a.race == successor.race
-								end)) do
-									capitol:set_home(v)
-								end
-								WORLD:set_settled_province(capitol)
-							else
-								-- if we can't manage to grab a successor from characters or all_pops
-								-- cancel making a a new realm - shouldn't be possible! just in case
-								pe.dissolve_realm(r)
-							end
-						end
-					end
-				end
+			local successor = INVALID_ID
+			if succession ~= INVALID_ID then
+				successor = DATA.succession_get_successor(succession)
 			end
 
-
-			local realm = character.realm
-			local leader = character.realm.leader
-
-			-- succession of realm overseer
-			if realm and realm.overseer == character then
+			-- we should notify realm leader if his overseer is dead
+			local overseership = DATA.get_realm_overseer_from_overseer(character)
+			if overseership ~= INVALID_ID then
+				local realm = DATA.realm_overseer_get_realm(overseership)
 				pe.remove_overseer(realm)
 
-				if leader then
+				local realm_leader = DATA.get_realm_leadership_from_realm(realm)
+				if realm_leader ~= INVALID_ID then
+					local leader = DATA.realm_leadership_get_leader(realm_leader)
 					WORLD:emit_immediate_event("succession-overseer-death-notification", leader, character)
 				end
 			end
 
-			if realm and offices_triggers.guard_leader(character, realm) then
-				pe.remove_guard_leader(realm)
-				if leader then
-					WORLD:emit_immediate_event("succession-guard-leader-death-notification", leader, character)
+			-- warbands without leader dissolve
+			local leadership = DATA.get_warband_leader_from_leader(character)
+			if leadership ~= INVALID_ID then
+				me.dissolve_warband(character)
+			end
+
+			local commander = DATA.get_warband_commander_from_commander(character)
+			if commander ~= INVALID_ID then
+				local warband = DATA.warband_commander_get_warband(commander)
+				-- check if it was a guard:
+				local guard = DATA.get_realm_guard_from_guard(warband)
+
+				if guard == INVALID_ID then
+					-- TODO: notify leader of the guard
+				else
+					local realm = DATA.realm_guard_get_realm(guard)
+					pe.remove_guard_leader(realm)
+					local realm_leadership = DATA.get_realm_leadership_from_realm(realm)
+					if realm_leadership ~= INVALID_ID then
+						local leader = DATA.realm_leadership_get_leader(realm_leadership)
+						WORLD:emit_immediate_event("succession-guard-leader-death-notification", leader, character)
+					end
 				end
 			end
 
 			-- succession of realm tribute collector
-			if realm and realm.tribute_collectors[character] then
-				pe.remove_tribute_collector(realm, character)
-				if leader then
+			local collector_status = DATA.get_tax_collector_from_collector(character)
+			if collector_status ~= INVALID_ID then
+				office_effects.fire_tax_collector(character)
+				local realm_leadership = DATA.get_realm_leadership_from_realm(REALM(character))
+				if realm_leadership ~= INVALID_ID then
+					local leader = DATA.realm_leadership_get_leader(realm_leadership)
 					WORLD:emit_immediate_event("succession-tribute-collector-death-notification", leader, character)
 				end
 			end
 
-			-- succession of buildings
-			local buildings_successor = character.successor
-			for _, building in pairs(character.owned_buildings) do
-				ee.set_ownership(building, buildings_successor)
-			end
-
-			-- dissolve warbands
-			if character.leading_warband then
-				me.dissolve_warband(character)
-			end
-
-
-			-- succession of wealth
-			local wealth_successor = character.successor
-			if wealth_successor then
-				ee.add_pop_savings(wealth_successor, character.savings, ECONOMY_REASON.INHERITANCE)
-				ee.add_pop_savings(character, -character.savings, ECONOMY_REASON.INHERITANCE)
+			-- succession of buildings and other worldly possessions
+			local inheritance = DATA.pop_get_savings(character)
+			if successor ~= INVALID_ID then
+				DATA.for_each_ownership_from_owner(character, function (item)
+					local building = DATA.ownership_get_building(item)
+					ee.set_ownership(building, successor)
+				end)
+				ee.add_pop_savings(successor, inheritance, ECONOMY_REASON.INHERITANCE)
+				ee.add_pop_savings(character, -inheritance, ECONOMY_REASON.INHERITANCE)
 			else
-				ee.change_local_wealth(character.province, character.savings, ECONOMY_REASON.INHERITANCE)
-				ee.add_pop_savings(character, -character.savings, ECONOMY_REASON.INHERITANCE)
+				ee.change_local_wealth(PROVINCE(character), inheritance, ECONOMY_REASON.INHERITANCE)
+				ee.add_pop_savings(character, -inheritance, ECONOMY_REASON.INHERITANCE)
 			end
 
-			-- loyalty reset
-			ie.remove_all_loyal(character)
+			---@type Realm[]
+			local realms_to_dissolve = {}
 
-			-- clear references to character
-			character.province:remove_character(character)
-			character.home_province:unset_home(character)
+			DATA.for_each_realm_leadership_from_leader(character, function (leadership)
+				local realm = DATA.realm_leadership_get_realm(leadership)
+				local capitol = DATA.realm_get_capitol(realm)
+
+				-- trying to find a successor
+
+				-- first candidate is overseer of the realm
+				if successor == INVALID_ID then
+					local overseership = DATA.get_realm_overseer_from_realm(realm)
+					if overseership ~= INVALID_ID then
+						local overseer = DATA.realm_overseer_get_overseer(overseership)
+						successor = overseer
+					end
+				end
+
+				-- find most popular noble which lives here and currently stays in the province:
+				if successor == INVALID_ID then
+					DATA.for_each_character_location_from_location(capitol, function (character_location)
+						local noble = DATA.character_location_get_character(character_location)
+						if noble == character then
+							return
+						end
+						local home_location = HOME(noble)
+						if home_location ~= capitol then
+							return
+						end
+
+						if successor == INVALID_ID then
+							successor = noble
+						elseif
+							pv.popularity(noble, realm) > pv.popularity(successor, realm)
+						then
+							successor = noble
+						end
+					end)
+				end
+
+				-- find noble again but remove restriction of being in capitol
+				if successor == INVALID_ID then
+					DATA.for_each_home_from_home(capitol, function (character_location)
+						local noble = DATA.home_get_pop(character_location)
+						if not IS_CHARACTER(noble) then
+							return
+						end
+						if noble == character then
+							return
+						end
+
+						if successor == INVALID_ID then
+							successor = noble
+						elseif
+							pv.popularity(noble, realm) > pv.popularity(successor, realm)
+						then
+							successor = noble
+						end
+					end)
+				end
+
+				--- now we checked all local nobles candidates
+				--- it means that there everyone else is a pop
+				--- try to find the oldest local pop to turn into character
+				if successor == INVALID_ID then
+					DATA.for_each_home_from_home(capitol, function (character_location)
+						local pop = DATA.home_get_pop(character_location)
+						if pop == character then
+							return
+						end
+
+						if successor == INVALID_ID then
+							successor = pop
+						elseif
+							DATA.pop_get_age(pop) > DATA.pop_get_age(successor)
+						then
+							successor = pop
+						end
+					end)
+				end
+
+				--- if there is no pop which could become a leader: try to find at least some character here:
+				if successor == INVALID_ID then
+					DATA.for_each_character_location_from_location(capitol, function (character_location)
+						local noble = DATA.character_location_get_character(character_location)
+						if noble == character then
+							return
+						end
+
+						if successor == INVALID_ID then
+							successor = noble
+						elseif
+							pv.popularity(noble, realm) > pv.popularity(successor, realm)
+						then
+							successor = noble
+						end
+					end)
+				end
+
+				if successor == INVALID_ID then
+					-- there are no candidates and province is empty: dissolve the realm
+					table.insert(realms_to_dissolve, realm)
+
+				else
+					-- we found someone
+					if not IS_CHARACTER(successor) then
+						pe.grant_nobility(successor, POLITICS_REASON.NOTENOUGHNOBLES)
+					end
+					-- now we can guarantee that it's a character:
+
+					pe.transfer_power(realm, successor, POLITICS_REASON.SUCCESSION)
+					WORLD:emit_immediate_event("succession-leader-notification", successor, realm)
+				end
+			end)
+
+			for index, realm in ipairs(realms_to_dissolve) do
+				di.dissolve_realm_and_clear_diplomacy(realm)
+			end
+
+			-- delete character
+			DATA.delete_pop(character)
 		end,
 	}
 

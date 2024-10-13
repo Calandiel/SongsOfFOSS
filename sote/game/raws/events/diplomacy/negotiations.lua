@@ -4,7 +4,7 @@ local Event = require "game.raws.events"
 local EventUtils = require "game.raws.events._utils"
 
 local diplomacy_effects = require "game.raws.effects.diplomacy"
-local political_values = require "game.raws.values.political"
+local political_values = require "game.raws.values.politics"
 local economy_values = require "game.raws.values.economy"
 local economy_effects = require "game.raws.effects.economy"
 local economy_triggers = require "game.raws.triggers.economy"

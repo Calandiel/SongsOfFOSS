@@ -263,7 +263,7 @@ function eco_values.projected_income_building_type(province, building_type, race
         * eco_values.race_throughput_multiplier(race, female, building_type)
 
     local input_boost =
-        math.max(0, 1 - DATA.province_get_input_boosts(province, method))
+        math.max(0, 1 - DATA.province_get_input_efficiency_boosts(province, method))
 
     local output_boost =
         (1 + DATA.province_get_output_efficiency_boosts(province, method))
@@ -313,7 +313,7 @@ function eco_values.projected_income(building, race, female, prices, throughput_
         (1 + DATA.province_get_throughput_boosts(province, method))
         * eco_values.race_throughput_multiplier(race, female, building_type)
     local input_boost =
-        math.max(0, 1 - DATA.province_get_input_boosts(province, method))
+        math.max(0, 1 - DATA.province_get_input_efficiency_boosts(province, method))
     local output_boost =
         (1 + DATA.province_get_output_efficiency_boosts(province, method))
         * eco_values.race_output_multiplier(race, female, building_type)

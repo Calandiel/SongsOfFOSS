@@ -5,20 +5,16 @@ female bool
 age uint32_t
 name string
 savings float
-parent pop_id
-loyalty pop_id
 life_needs_satisfaction float from 0 to 1
 basic_needs_satisfaction float from 0 to 1
 need_satisfaction need_satisfaction[20]
 traits TRAIT[10]
-successor pop_id
 inventory float[trade_good]
 price_memory float[trade_good]
 forage_ratio float a number in (0, 1) interval representing a ratio of time pop spends to forage
 work_ratio float a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 busy boolean
 dead boolean
-realm Realm Represents the home realm of the character
 rank CHARACTER_RANK
 former_pop boolean
 dna float[20]

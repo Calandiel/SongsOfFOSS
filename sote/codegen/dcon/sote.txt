@@ -209,6 +209,12 @@ object {
     tag {scenario}
 }
 object {
+    name { realm_pop }
+    storage_type { erasable }
+    size { 300000 }
+    tag {scenario}
+}
+object {
     name { jobtype }
     storage_type { contiguous }
     size { 10 }
@@ -275,6 +281,24 @@ object {
     tag {scenario}
 }
 object {
+    name { politics_reason }
+    storage_type { contiguous }
+    size { 10 }
+    tag {scenario}
+}
+object {
+    name { law_trade }
+    storage_type { contiguous }
+    size { 5 }
+    tag {scenario}
+}
+object {
+    name { law_building }
+    storage_type { contiguous }
+    size { 5 }
+    tag {scenario}
+}
+object {
     name { trade_good }
     storage_type { contiguous }
     size { 100 }
@@ -288,7 +312,7 @@ object {
 }
 object {
     name { use_weight }
-    storage_type { contiguous }
+    storage_type { erasable }
     size { 300 }
     tag {scenario}
 }
@@ -336,7 +360,7 @@ object {
 }
 object {
     name { technology_unlock }
-    storage_type { contiguous }
+    storage_type { erasable }
     size { 800 }
     tag {scenario}
 }

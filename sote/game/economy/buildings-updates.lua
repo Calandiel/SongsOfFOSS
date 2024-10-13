@@ -79,7 +79,7 @@ function bld.run(province)
 		local old_cost = DATA.building_type_get_construction_cost(building_type)
 		if unused > 6 and number_of_candidates > 0 then
 			local _, candidate = tabb.random_select_from_set(candidate_targets_for_replacement)
-			local cost = DATA.building_type_get_construction_cost(candidate.cost)
+			local cost = candidate.cost
 			if old_cost > cost then
 				DATA.building_set_type(building_id, candidate.type)
 			end

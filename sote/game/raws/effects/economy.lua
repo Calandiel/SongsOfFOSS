@@ -5,6 +5,8 @@ local ut = require "game.ui-utils"
 local ev = require "game.raws.values.economy"
 local et = require "game.raws.triggers.economy"
 
+local message_effects = require "game.raws.effects.messages"
+
 local building_utils = require "game.entities.building".Building
 local pop_utils = require "game.entities.pop".POP
 local province_utils = require "game.entities.province".Province
@@ -197,9 +199,7 @@ function EconomicEffects.set_ownership(building, pop)
 
 	local ownership = DATA.get_ownership_from_building(building)
 	if ownership == INVALID_ID then
-		local new_ownership = DATA.create_ownership()
-		DATA.ownership_set_building(new_ownership, building)
-		DATA.ownership_set_owner(new_ownership, pop)
+		DATA.force_create_ownership(building, pop)
 	else
 		DATA.ownership_set_owner(ownership, pop)
 	end
@@ -851,6 +851,9 @@ end
 ---@param realm Realm
 ---@param amount number
 function EconomicEffects.gift_to_tribe(character, realm, amount)
+	if realm == INVALID_ID then
+		return
+	end
 	local savings = DATA.pop_get_savings(character)
 	if savings < amount then
 		return
@@ -865,8 +868,35 @@ function EconomicEffects.gift_to_tribe(character, realm, amount)
 
 	DATA.province_inc_mood(capitol, mood_change)
 	EconomicEffects.gain_popularity(character, realm, mood_change)
+
+	message_effects.on_donation_to_realm(character, realm)
 end
 
+---comment
+---@param character Character
+---@param province Province
+---@param amount number
+function EconomicEffects.gift_to_province(character, province, amount)
+	local savings = DATA.pop_get_savings(character)
+	if savings < amount then
+		return
+	end
+
+	EconomicEffects.add_pop_savings(character, -amount, ECONOMY_REASON.DONATION)
+	EconomicEffects.change_local_wealth(province, amount, ECONOMY_REASON.DONATION)
+
+	local mood_change = amount / (province_utils.local_population(province) + 1) / 100
+
+	DATA.province_inc_mood(province, mood_change)
+	EconomicEffects.gain_popularity(character, PROVINCE_REALM(province), mood_change)
+
+	message_effects.on_donation_to_province(character, province)
+end
+
+---commenting
+---@param character Character
+---@param realm Realm
+---@param amount number
 function EconomicEffects.gain_popularity(character, realm, amount)
 	local popularity = INVALID_ID
 	DATA.for_each_popularity_from_who(character, function (item)
@@ -877,9 +907,7 @@ function EconomicEffects.gain_popularity(character, realm, amount)
 	end)
 
 	if popularity == INVALID_ID then
-		local new = DATA.create_popularity()
-		DATA.popularity_set_who(new, character)
-		DATA.popularity_set_where(new, character)
+		local new = DATA.force_create_popularity(character, realm)
 		DATA.popularity_set_value(new, amount)
 	else
 		DATA.popularity_inc_value(popularity, amount)
@@ -956,12 +984,10 @@ function EconomicEffects.grant_trade_rights(character, realm)
 	end)
 
 	if rights == INVALID_ID then
-		local new = DATA.fatten_personal_rights(DATA.create_personal_rights())
+		local new = DATA.fatten_personal_rights(DATA.force_create_personal_rights(character, realm))
 		new.can_trade = true
-		new.person = character
-		new.realm = realm
 	else
-		DATA.personal_rights_set_can_trade(character, true)
+		DATA.personal_rights_set_can_trade(rights, true)
 	end
 end
 
@@ -978,12 +1004,10 @@ function EconomicEffects.grant_building_rights(character, realm)
 	end)
 
 	if rights == INVALID_ID then
-		local new = DATA.fatten_personal_rights(DATA.create_personal_rights())
+		local new = DATA.fatten_personal_rights(DATA.force_create_personal_rights(character, realm))
 		new.can_build = true
-		new.person = character
-		new.realm = realm
 	else
-		DATA.personal_rights_set_can_build(character, true)
+		DATA.personal_rights_set_can_build(rights, true)
 	end
 end
 

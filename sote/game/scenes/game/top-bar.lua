@@ -2,7 +2,7 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 local ev = require "game.raws.values.economy"
 local economic_effects = require "game.raws.effects.economy"
 

@@ -279,7 +279,7 @@ function rea.run(realm_id)
 	DATA.realm_set_budget_ratio(realm_id, BUDGET_CATEGORY.TRIBUTE, 0)
 	local is_paying_tribute = false
 	DATA.for_each_realm_subject_relation_from_subject(realm_id, function (item)
-		if DATA.realm_subject_relation_get_wealth_transfer(realm_id) then
+		if DATA.realm_subject_relation_get_wealth_transfer(item) then
 			is_paying_tribute = true
 		end
 	end)

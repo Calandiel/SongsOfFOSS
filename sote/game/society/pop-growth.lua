@@ -174,10 +174,7 @@ function pg.growth(province_id)
 			province_utils.add_pop(parent_province, newborn)
 		end
 
-		local parenthood = DATA.create_parent_child_relation()
-		local fat_parenthood = DATA.fatten_parent_child_relation(parenthood)
-		fat_parenthood.parent = pp
-		fat_parenthood.child = newborn
+		DATA.force_create_parent_child_relation(pp, newborn)
 
 		-- set newborn to parents satisfaction
 		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do

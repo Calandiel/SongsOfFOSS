@@ -11,10 +11,10 @@ local ut = require "game.ui-utils"
 
 local AI_VALUE = require "game.raws.values.ai_preferences"
 
-local pv = require "game.raws.values.political"
+local pv = require "game.raws.values.politics"
 local de = require "game.raws.effects.diplomacy"
 local me = require "game.raws.effects.military"
-local pe = require "game.raws.effects.political"
+local pe = require "game.raws.effects.politics"
 local messages = require "game.raws.effects.messages"
 
 

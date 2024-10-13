@@ -155,7 +155,7 @@ function dem.prices()
 		end)
 
 		if WORLD.player_character ~= INVALID_ID then
-			local realm = DATA.pop_get_realm(WORLD.player_character)
+			local realm = REALM(WORLD.player_character)
 			provinces = DATA.realm_get_known_provinces(realm)
 		end
 

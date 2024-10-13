@@ -6,45 +6,48 @@ InterpersonalEffects = {}
 ---@param actor Character
 ---@param target Character
 function InterpersonalEffects.set_loyalty(actor, target)
-    if target.loyalty == actor then
-        target.loyalty = nil
-    end
-    if actor.loyalty ~= target then
-        InterpersonalEffects.remove_loyalty(actor)
-    end
-    actor.loyalty = target
-    target.loyal[actor] = actor
-    if WORLD:does_player_see_realm_news(actor.province.realm) and target ~= nil then
-        WORLD:emit_notification(actor.name .. " is now loyal to " .. target.name .. ".")
-    end
+	--- avoid short (1/2 edges) loops, longer loops are fine
+
+	local loyalty_of_target = DATA.get_loyalty_from_bottom(target)
+	local target_loyal_to = DATA.loyalty_get_top(loyalty_of_target)
+	if target_loyal_to == actor then
+		InterpersonalEffects.remove_loyalty(target)
+	end
+
+	local loyalty = DATA.get_loyalty_from_bottom(actor)
+	if loyalty == INVALID_ID then
+		DATA.force_create_loyalty(actor, target)
+		messages.on_loyalty_new(actor, target)
+	else
+		messages.on_loyalty_shift(actor, DATA.loyalty_get_top(loyalty), target)
+		DATA.loyalty_set_top(loyalty, target)
+	end
 end
 
 ---@param actor Character
 function InterpersonalEffects.remove_loyalty(actor)
-    local target = actor.loyalty
-    if target == nil then
-        return
-    end
+	local loyalty = DATA.get_loyalty_from_bottom(actor)
+	if loyalty == INVALID_ID then
+		return
+	end
 
-    if WORLD:does_player_see_realm_news(actor.realm) and actor.loyalty ~= nil then
-        WORLD:emit_notification(actor.name .. " stopped being loyal to " .. actor.loyalty.name .. ".")
-    end
-    actor.loyalty.loyal[actor] = nil
-    actor.loyalty = nil
+	messages.on_loyalty_removal(actor, DATA.loyalty_get_top(loyalty))
+	DATA.delete_loyalty(loyalty)
 end
 
 ---unset loyalty to target of all actors loyal to them
 ---@param target Character
 function InterpersonalEffects.remove_all_loyal(target)
-    ---@type Character[]
-    local to_remove = {}
-    for _, actor in pairs(target.loyal) do
-        table.insert(to_remove, actor)
-    end
+	---@type loyalty_id[]
+	local to_remove = {}
 
-    for _, actor in pairs(to_remove) do
-        InterpersonalEffects.remove_loyalty(actor)
-    end
+	DATA.for_each_loyalty_from_top(target, function (item)
+		table.insert(to_remove, item)
+	end)
+
+	for _, item in pairs(to_remove) do
+		InterpersonalEffects.remove_loyalty(DATA.loyalty_get_bottom(item))
+	end
 end
 
 
@@ -52,13 +55,15 @@ end
 ---@param character Character
 ---@param target Character
 function InterpersonalEffects.set_successor(character, target)
-    if character.successor then
-        character.successor.successor_of[character] = nil
-    end
+	local succession = DATA.get_succession_from_successor_of(character)
 
-    character.successor = target
-    target.successor_of[character] = character
-    messages.successor_set(character, target)
+	if succession == INVALID_ID then
+		DATA.force_create_succession(character, target)
+	else
+		DATA.succession_set_successor(succession, target)
+	end
+
+	messages.successor_set(character, target)
 end
 
 return InterpersonalEffects

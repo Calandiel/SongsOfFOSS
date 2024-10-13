@@ -1,5 +1,5 @@
 local economy_effects = require "game.raws.effects.economy"
-local politics_effects = require "game.raws.effects.political"
+local politics_effects = require "game.raws.effects.politics"
 
 local effects = {}
 
@@ -66,41 +66,17 @@ function effects.unset_tributary(overlord, tributary)
 	tributary.paying_tribute_to[overlord] = nil
 end
 
----Clears diplomatic relationships of the realms
----@param realm Realm
-function effects.clear_diplomacy(realm)
-	for _, item in pairs(realm.known_provinces) do
-		WORLD.provinces_to_update_on_map[item] = item
-	end
-	WORLD.realms_changed = true
-
-	for _, tributary_realm in pairs(realm.tributaries) do
-		tributary_realm.paying_tribute_to[realm] = nil
-	end
-	for _, overlord_realm in pairs(realm.paying_tribute_to) do
-		overlord_realm.tributaries[realm] = nil
-		overlord_realm.tributary_status[realm] = nil
-	end
-
-	realm.paying_tribute_to = {}
-	realm.tributaries = {}
-end
-
-
 ---Clears realm and its diplomatic status.
 ---Does not handle characters because it's very context-dependent
 ---and it's better to do it separately
 ---@param realm Realm
 function effects.dissolve_realm_and_clear_diplomacy(realm)
-	for _, item in pairs(realm.known_provinces) do
+	for _, item in pairs(DATA.realm_get_known_provinces(realm)) do
 		WORLD.provinces_to_update_on_map[item] = item
 	end
 	WORLD.realms_changed = true
 
-	effects.clear_diplomacy(realm)
 	politics_effects.dissolve_realm(realm)
-
-
 end
 
 return effects

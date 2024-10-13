@@ -14,9 +14,7 @@ function d.load()
 		local retrieved_use_case = retrieve_use_case(use_case)
 		local retrieved_trade_good = retrieve_good(trade_good)
 
-		local use_weight = DATA.create_use_weight()
-		DATA.use_weight_set_trade_good(use_weight, retrieved_trade_good)
-		DATA.use_weight_set_use_case(use_weight, retrieved_use_case)
+		local use_weight = DATA.force_create_use_weight(retrieved_trade_good, retrieved_use_case)
 		DATA.use_weight_set_weight(use_weight, weight)
 	end
 

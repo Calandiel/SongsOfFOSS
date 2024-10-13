@@ -1,30 +1,62 @@
+local province_utils = require "game.entities.province".Province
+
 
 local triggers = {}
+
+---commenting
+---@param realm Realm
+---@return boolean
+function triggers.has_overseer(realm)
+    local overseer = DATA.get_realm_overseer_from_realm(realm)
+    return overseer ~= INVALID_ID
+end
 
 ---checks if character is a valid candidate for overseer
 ---@param character Character
 ---@param realm Realm
 function triggers.valid_overseer(character, realm)
     -- if overseer is already set then noone is valid
-    if realm.overseer                           then return false end
+    if triggers.has_overseer(realm)             then return false end
     -- we can't desigante foreigners to overseer position
-    if character.realm ~= realm                 then return false end
-    if character == realm.leader                then return false end
-
+    if REALM(character) ~= realm                then return false end
+    -- leaders are not eligible to become overseers
+    if character == LEADER(realm)               then return false end
     return true
 end
 
 ---checks if character is a valid candidate for guard leader
 ---@param character Character
 ---@param realm Realm
-function triggers.valid_guard_leader(character, realm)
-    if realm.capitol_guard == nil then return false end
-    if realm.capitol_guard.recruiter then return false end
-    if character.realm ~= realm then return false end
-    if character.leading_warband then return false end
-    if triggers.tribute_collector(character, realm) then return false end
+function triggers.is_warband_officer(character, realm)
+    local is_leader = DATA.get_warband_leader_from_leader(character)
+    local is_commander = DATA.get_warband_commander_from_commander(character)
+    local is_recruiter = DATA.get_warband_recruiter_from_recruiter(character)
+
+    if
+        is_leader == INVALID_ID
+        and is_commander == INVALID_ID
+        and is_recruiter == INVALID_ID
+    then
+        return false
+    end
 
     return true
+end
+
+---commenting
+---@param realm Realm
+---@return boolean
+function triggers.vacant_guard_leader(realm)
+    local guard = DATA.get_realm_guard_from_realm(realm)
+    if guard == INVALID_ID then
+        return false
+    end
+    local warband = DATA.realm_guard_get_guard(guard)
+    local guard_leadership = DATA.get_warband_recruiter_from_warband(warband)
+    if guard_leadership == INVALID_ID then
+        return true
+    end
+    return false
 end
 
 ---checks if character is a valid candidate for overseer
@@ -110,27 +142,23 @@ end
 ---@param province Province
 ---@return boolean
 function triggers.designates_offices(character, province)
-    local realm_target = province.realm
-    local realm = character.realm
+    local realm_target = province_utils.realm(province)
+    local realm = REALM(character)
 
     -- both of them should be associated with the same realm
-    if realm == nil                             then return false end
-    if realm_target == nil                      then return false end
+    if realm == INVALID_ID                      then return false end
+    if realm_target == INVALID_ID               then return false end
     if realm ~= realm_target                    then return false end
 
     -- only leader of the realm can designate offices
-    if realm.leader ~= character                then return false end
-
-    -- we can designate people only in province where we are.
-    if province ~= character.province           then return false end
-
+    if LEADER(realm) ~= character                then return false end
     return true
 end
 
 ---comment
 ---@param root Character
 function triggers.is_ruler(root)
-    if root.rank == ranks.CHIEF then
+    if RANK(root) == CHARACTER_RANK.CHIEF then
         return true
     end
     return false
@@ -142,7 +170,7 @@ end
 ---@return boolean
 function triggers.decides_foreign_policy(character, realm)
     if realm == nil                 then return false end
-    if realm.leader ~= character    then return false end
+    if LEADER(realm) ~= character    then return false end
     return true
 end
 

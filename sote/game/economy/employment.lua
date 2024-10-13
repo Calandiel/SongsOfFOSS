@@ -10,8 +10,8 @@ local method_utils = require "game.raws.production-methods"
 ---@param province province_id
 function emp.run(province)
 	-- Sample random pop and try to employ it
-	---@type table<pop_id, pop_id>
-	local eligible_pops = tabb.filter(
+	---@type pop_id[]
+	local eligible_pops = tabb.filter_array(
 		tabb.map_array(DATA.get_pop_location_from_location(province), DATA.pop_location_get_pop),
 		function (pop)
 			local race = DATA.pop_get_race(pop)
@@ -20,7 +20,7 @@ function emp.run(province)
 		end
 	)
 
-	local pop = tabb.random_select_from_set(eligible_pops)
+	local pop = tabb.random_select_from_array(eligible_pops)
 
 	-- no need to employ anyone in empty province
 	if pop == nil then
@@ -66,7 +66,7 @@ function emp.run(province)
 				if profit < 0.01 and love.math.random() < 0.25 then
 					local _, pop_to_fire = tabb.random_select_from_set(DATA.filter_employment_from_building(building_id, ACCEPT_ALL))
 					if pop_to_fire ~= INVALID_ID then
-						province_utils.fire_pop(province, DATA.employment_get_worker(pop))
+						province_utils.fire_pop(province, DATA.employment_get_worker(pop_to_fire))
 					end
 				end
 			else

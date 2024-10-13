@@ -1,8 +1,13 @@
+--- Helper functions to reduce key presses to type names of common wrappers
+
 ---Returns true if pop is a character
 ---@param pop_id pop_id
 function IS_CHARACTER(pop_id)
 	return DATA.pop_get_rank(pop_id) ~= CHARACTER_RANK.POP
 end
+
+---@class world_tile_id : number
+---@field is_world_tile_id nil
 
 ---Returns province of a pop
 ---@param pop_id pop_id
@@ -22,6 +27,29 @@ function PROVINCE(pop_id)
 	return INVALID_ID
 end
 
+---commenting
+---@param province province_id
+---@return realm_id
+function PROVINCE_REALM(province)
+	local realm_membership = DATA.get_realm_provinces_from_province(province)
+	if realm_membership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.realm_provinces_get_realm(realm_membership)
+end
+
+---commenting
+---@param pop_id Character
+---@return Character
+function LOYAL_TO(pop_id)
+	local loyalty = DATA.get_loyalty_from_bottom(pop_id)
+	if loyalty == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.loyalty_get_top(loyalty)
+end
+
+
 ---Returns province of a pop
 ---@param pop_id pop_id
 ---@return province_id
@@ -36,6 +64,17 @@ function HOME(pop_id)
 	return INVALID_ID
 end
 
+---Returns parent of a pop
+---@param pop_id pop_id
+---@return pop_id
+function PARENT(pop_id)
+	local parenthood = DATA.get_parent_child_relation_from_child(pop_id)
+	if parenthood == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.parent_child_relation_get_parent(parenthood)
+end
+
 function ACCEPT_ALL (item)
 	return true
 end
@@ -43,11 +82,93 @@ end
 ---Returns realm of a pop
 ---@param pop_id pop_id
 function REALM(pop_id)
-	return DATA.pop_get_realm(pop_id)
+	local pop_realm = DATA.get_realm_pop_from_pop(pop_id)
+	if pop_realm == INVALID_ID then
+		return INVALID_ID
+	else
+		return DATA.realm_pop_get_realm(pop_realm)
+	end
+end
+
+function LOCAL_REALM(pop_id)
+	local province = PROVINCE(pop_id)
+	if province == INVALID_ID then
+		return INVALID_ID
+	end
+
+	local realm_membership = DATA.get_realm_provinces_from_province(province)
+
+	if realm_membership == INVALID_ID then
+		return INVALID_ID
+	end
+
+	return DATA.realm_provinces_get_realm(realm_membership)
+end
+
+---Returns realm of a pop
+---@param pop_id pop_id
+---@return boolean
+function BUSY(pop_id)
+	return DATA.pop_get_busy(pop_id)
+end
+
+---@param pop_id pop_id
+---@param realm realm_id
+function SET_REALM(pop_id, realm)
+	local pop_realm = DATA.get_realm_pop_from_pop(pop_id)
+	if pop_realm == INVALID_ID then
+		DATA.force_create_realm_pop(realm, pop_id)
+	else
+		DATA.realm_pop_set_realm(pop_realm, realm)
+	end
+end
+
+---commenting
+---@param realm realm_id
+---@return pop_id
+function LEADER(realm)
+	local leadership = DATA.get_realm_leadership_from_realm(realm)
+	if leadership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.realm_leadership_get_leader(leadership)
+end
+
+---@param pop_id pop_id
+---@return CHARACTER_RANK
+function RANK(pop_id)
+	return DATA.pop_get_rank(pop_id)
+end
+
+---commenting
+---@param realm realm_id
+---@return province_id
+function CAPITOL(realm)
+	return DATA.realm_get_capitol(realm)
+end
+
+---commenting
+---@param realm realm_id
+---@return race_id
+function MAIN_RACE(realm)
+	return DATA.realm_get_primary_race(realm)
+end
+
+---commenting
+---@param pop_id pop_id
+---@return string
+function NAME(pop_id)
+	return DATA.pop_get_name(pop_id)
+end
+
+---commenting
+---@param pop_id pop_id
+---@return race_id
+function RACE(pop_id)
+	return DATA.pop_get_race(pop_id)
 end
 
 --- update these values when you change description in according generator descriptors
-
 
 MAX_TRAIT_INDEX = 19
 MAX_NEED_SATISFACTION_POSITIONS_INDEX = 19

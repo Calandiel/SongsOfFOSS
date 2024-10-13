@@ -6,7 +6,7 @@ last_income float=0
 last_donation_to_owner float=0
 unused float=0
 work_ratio float=1
-spent_on_inputs trade_good_container[8]
+spent_on_inputs use_case_container[8]
 earn_from_outputs trade_good_container[8]
-amount_of_inputs trade_good_container[8]
+amount_of_inputs use_case_container[8]
 amount_of_outputs trade_good_container[8]

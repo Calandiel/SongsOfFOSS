@@ -2,8 +2,9 @@ local tabb = require "engine.table"
 
 local values = require "game.raws.values.ai_preferences"
 local ef = require "game.raws.effects.economy"
-local pe = require "game.raws.effects.political"
+local pe = require "game.raws.effects.politics"
 local province_utils = require "game.entities.province".Province
+local politics_values = require "game.raws.values.politics"
 
 local co = {}
 
@@ -48,7 +49,7 @@ function co.run(realm)
 	local total_decay = (1 - wealth_decay_rate) * budget
 
 	local real_overseer_wage = total_decay * 0.1
-	local overseer = PoliticalValues.overseer(realm)
+	local overseer = politics_values.overseer(realm)
 
 	ef.add_pop_savings(overseer, real_overseer_wage, ECONOMY_REASON.COURT)
 	total_decay = total_decay - real_overseer_wage
@@ -86,7 +87,7 @@ function co.run(realm)
 			end))
 
 			if pop then
-				pe.grant_nobility(pop, province, pe.reasons.PopulationGrowth)
+				pe.grant_nobility(pop, POLITICS_REASON.POPULATIONGROWTH)
 			end
 		end
 	end)

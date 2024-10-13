@@ -13,9 +13,7 @@ function UnitType:new(o)
 	DATA.setup_unit_type(new_id, o)
 
 	local required_tech = o.unlocked_by
-	local fat = DATA.fatten_technology_unit(DATA.create_technology_unit())
-	fat.technology = required_tech
-	fat.unlocked = new_id
+	DATA.force_create_technology_unit(required_tech, new_id)
 
 	if RAWS_MANAGER.unit_types_by_name[o.name] ~= nil then
 		local msg = "Failed to load a unit type (" .. tostring(o.name) .. ")"

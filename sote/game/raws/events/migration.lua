@@ -10,11 +10,11 @@ local event_utils       = require "game.raws.events._utils"
 
 local AI_VALUE          = require "game.raws.values.ai_preferences"
 
-local pv                = require "game.raws.values.political"
+local pv                = require "game.raws.values.politics"
 local diplomacy_events  = require "game.raws.effects.diplomacy"
 local economic_effects  = require "game.raws.effects.economy"
 local military_effects  = require "game.raws.effects.military"
-local political_effects = require "game.raws.effects.political"
+local political_effects = require "game.raws.effects.politics"
 
 local character_values  = require "game.raws.values.character"
 
@@ -196,7 +196,7 @@ function load()
 			-- make new noble no leader character provided
 			if expedition_leader == nil then
 				expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province,
-					political_effects.reasons.ExpeditionLeader)
+					POLITICS_REASON.EXPEDITIONLEADER)
 				if expedition_leader == nil then
 					error("FAILED TO PICK EXPEDITION LEADER IN MIGRATION-COLONIZE")
 					return
@@ -329,7 +329,7 @@ function load()
 			associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name() -- manifest destiny!
 			--end
 
-			political_effects.transfer_power(new_realm, expedition_leader, political_effects.reasons.ExpeditionLeader)
+			political_effects.transfer_power(new_realm, expedition_leader, POLITICS_REASON.EXPEDITIONLEADER)
 
 			-- explore neighbour lands
 			new_realm:explore(new_realm.capitol)

@@ -1,90 +1,78 @@
 local tabb = require "engine.table"
+local messages = require "game.raws.effects.messages"
+
 local Decision = require "game.raws.decisions"
+
 local gift_cost_per_pop = require "game.gifting".gift_cost_per_pop
 local utils = require "game.raws.raws-utils"
-local economic_effects = require "game.raws.effects.economy"
-local MilitaryEffects = require "game.raws.effects.military"
-local PoliticalEffects = require "game.raws.effects.political"
+local realm_utils = require "game.entities.realm".Realm
+local province_utils = require "game.entities.province".Province
 
 local ot = require "game.raws.triggers.offices"
 
+local demography_values = require "game.raws.values.demography"
+local office_values = require "game.raws.values.office"
+local character_values = require "game.raws.values.character"
+local ai = require "game.raws.values.ai_preferences"
+
+local office_effects = require "game.raws.effects.office"
+
+local economy_effects = require "game.raws.effects.economy"
+local military_effects = require "game.raws.effects.military"
+local PoliticalEffects = require "game.raws.effects.politics"
+
+local pretriggers = require "game.raws.triggers.tooltiped_triggers".Pretrigger
+local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
+
+local DESIGNATES_OFFICES_LOCAL = pretriggers.designates_offices_local
+local VALID_OVERSEER = triggers.valid_overseer
+local ORDERS_CAN_REACH_THE_TARGET = triggers.orders_can_reach_target
+local TARGET_IS_TAX_COLLECTOR = triggers.target_is_tax_collector
+local IS_RULER_LOCAL = pretriggers.leader_of_local_territory
+local NO_GUARD_LOCAL = pretriggers.no_guard_at_local_realm
+local GUARD_ESTABLISHED = pretriggers.guard_at_local_realm
+local GUARD_ESTABLISHED_AND_HAS_NO_LEADER = pretriggers.local_guard_exists_and_has_no_officer
 
 local function load()
-	Decision.Character:new {
-		name = 'suggest-to-be-overseer',
-		ui_name = "Hire overseer",
-		tooltip = utils.constant_string("Suggest character to help you with administration of the realm."),
-		sorting = 1,
-		primary_target = 'character',
-		secondary_target = 'none',
-		base_probability = 1 / 12 , -- Once every year on average
-		pretrigger = function(root)
-			if not ot.designates_offices(root, root.province) then return false end
-			return true
+
+	Decision.CharacterCharacter:new_from_trigger_lists(
+		"suggest-to-be-overseer",
+		"Hire overseer",
+		function (root, primary_target)
+			return
+				"Suggest " .. NAME(primary_target)
+				.. " to help you with administration of "
+				.. DATA.realm_get_name(REALM(root)) .. "."
 		end,
-		clickable = function(root, primary_target)
-			if not ot.designates_offices(root, primary_target.province) then return false end
-			if not ot.valid_overseer(primary_target, root.realm)        then return false end
-			return true
-		end,
-		ai_target = function(root)
-			local p = root.province
-			if p == nil             then return nil, false end
-			-- Once you target a province, try selecting a random courtier
-			local s = tabb.size(p.characters)
-			---@type Character
-			local c = tabb.nth(p.characters, love.math.random(s))
-			if c then
-				if c.loyalty == root or c.traits[TRAIT.GOOD_ORGANISER] then
-					return c, true
-				end
-			end
-			return nil, false
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
-			if primary_target.traits[TRAIT.TRADER] then
-				return 0
-			end
-
-			if root.traits[TRAIT.GOOD_ORGANISER] then
-				return 0
-			end
-
-			if root.traits[TRAIT.BAD_ORGANISER] then
-				if primary_target.traits[TRAIT.GOOD_ORGANISER] then
-					return 1
-				end
-				if not primary_target.traits[TRAIT.BAD_ORGANISER] then
-					return 0.8
-				end
-				if primary_target.loyalty == root then
-					return 0.5
-				end
-				return 0
-			end
-
-			if primary_target.traits[TRAIT.GOOD_ORGANISER] then
-				return 0.9
-			end
-			if primary_target.loyalty == root then
-				return 0.5
-			end
-
-			return 0
-		end,
-		effect = function(root, primary_target, secondary_target)
-
-			if WORLD.player_character == root then
-				WORLD:emit_notification("I asked ".. primary_target.name .. " to assist me in administration.")
-			end
-			if WORLD.player_character == primary_target then
-				WORLD:emit_notification("I was asked to assist " .. root.name .. " with administrative tasks.")
-			end
-
+		1 / 12,
+		{
+			DESIGNATES_OFFICES_LOCAL
+		},
+		{
+			VALID_OVERSEER
+		},
+		{
+		},
+		function(root, primary_target, secondary_target)
+			messages.on_overseer_hire_request(root, primary_target)
 			WORLD:emit_immediate_event('request-help-overseer', primary_target, root)
-		end
-	}
+		end,
 
+		function(root, primary_target, secondary_target)
+			if character_values.is_traveller(primary_target) then
+				return 0
+			end
+			local score_difference = character_values.admin_score(primary_target) - character_values.admin_score(root)
+			if score_difference < 0 then
+				return 0
+			end
+			if LOYAL_TO(primary_target) == root then
+				return score_difference + 0.5
+			end
+			return score_difference
+		end,
+		ai.sample_random_canidate
+	)
 
 	Decision.Character:new {
 		name = 'fire-overseer',
@@ -95,31 +83,24 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if not ot.designates_offices(root, root.province) then return false end
+			if not ot.designates_offices(root, PROVINCE(root)) then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			local realm = root.province.realm
+			local realm = REALM(root)
 			if not ot.designates_offices(root, primary_target.province) then return false end
-			if realm and (realm.overseer ~= primary_target) then return false end
+			if office_values.overseer(realm) ~= primary_target then return false end
 			return true
 		end,
 		available = function(root, primary_target)
 			return true
 		end,
 		ai_target = function(root)
-			local p = root.province
-			if p == nil             then return nil, false end
-			-- Once you target a province, try selecting a random courtier
-			local s = tabb.size(p.characters)
-			---@type Character
-			local c = tabb.nth(p.characters, love.math.random(s))
-			if c then
-				if c.loyalty == root or c.traits[TRAIT.GOOD_ORGANISER] then
-					return c, true
-				end
+			local overseer = office_values.overseer(REALM(root))
+			if overseer == INVALID_ID then
+				return nil, false
 			end
-			return nil, false
+			return overseer, true
 		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
@@ -135,7 +116,7 @@ local function load()
 				WORLD:emit_notification("I was fired from overseer position.")
 			end
 
-			PoliticalEffects.remove_overseer(root.province.realm)
+			PoliticalEffects.remove_overseer(REALM(root))
 		end
 	}
 
@@ -148,28 +129,15 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if not ot.designates_offices(root, root.province) then return false end
+			if not ot.designates_offices(root, PROVINCE(root)) then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
 			if not ot.designates_offices(root, primary_target.province) then return false end
-			if not ot.valid_tribute_collector_candidate(primary_target, root.realm)   then return false end
+			if not ot.valid_tribute_collector_candidate(primary_target, REALM(root))   then return false end
 			return true
 		end,
-		ai_target = function(root)
-			local p = root.province
-			if p == nil             then return nil, false end
-			-- Once you target a province, try selecting a random courtier
-			local s = tabb.size(p.characters)
-			---@type Character
-			local c = tabb.nth(p.characters, love.math.random(s))
-			if c then
-				if (c.realm == root.realm) and (not c.traits[TRAIT.TRADER]) and not (root.realm.overseer == c) then
-					return c, true
-				end
-			end
-			return nil, false
-		end,
+		ai.sample_random_canidate,
 		ai_will_do = function(root, primary_target, secondary_target)
 			local loyalty_multiplier = 1
 			if primary_target.loyalty == root then
@@ -180,7 +148,9 @@ local function load()
 				return 0
 			end
 
-			if tabb.size(root.realm.tribute_collectors) < 1 + root.realm.capitol:local_population() / 20 then
+			local realm = REALM(root)
+
+			if office_values.count_collectors(realm) < 1 + province_utils.local_population(CAPITOL(realm)) / 20 then
 				return 0.25 * loyalty_multiplier
 			end
 
@@ -197,165 +167,99 @@ local function load()
 		end
 	}
 
-
-	Decision.Character:new {
-		name = 'fire-tribute-collector',
-		ui_name = "Fire tribute collector.",
-		tooltip = utils.constant_string("Fire character from tribute collector position."),
-		sorting = 1,
-		primary_target = 'character',
-		secondary_target = 'none',
-		base_probability = 1 / 12 , -- Once every year on average
-		pretrigger = function(root)
-			if not ot.designates_offices(root, root.province)     then return false end
-			return true
+	Decision.CharacterCharacter:new_from_trigger_lists(
+		'fire-tribute-collector',
+		"Fire tribute collector.",
+		function (root, primary_target)
+			return "Fire " .. NAME(primary_target) .. " from tribute collector position"
 		end,
-		clickable = function(root, primary_target)
-			local realm = root.province.realm
-
-			if not ot.designates_offices(root, primary_target.province)     then return false end
-			if realm and not realm.tribute_collectors[primary_target]       then return false end
-
-			return true
+		0,
+		{
+			DESIGNATES_OFFICES_LOCAL
+		},
+		{
+			TARGET_IS_TAX_COLLECTOR
+		},
+		{
+			ORDERS_CAN_REACH_THE_TARGET,
+		},
+		function(root, primary_target, secondary_target)
+			messages.on_tax_collector_fired_initiator(root, primary_target)
+			office_effects.fire_tax_collector(primary_target)
 		end,
-		available = function(root, primary_target)
-			return true
-		end,
-		ai_target = function(root)
-			local p = root.province
-			if p == nil             then return nil, false end
-			-- Once you target a province, try selecting a random courtier
-			local s = tabb.size(p.characters)
-			---@type Character
-			local c = tabb.nth(p.characters, love.math.random(s))
-			if c then
-				if c.loyalty == root or c.traits[TRAIT.GOOD_ORGANISER] then
-					return c, true
-				end
-			end
-			return nil, false
-		end,
-		ai_secondary_target = function(root, primary_target)
-			return nil, true
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
+		function(root, primary_target, secondary_target)
 			return 0
 		end,
-		effect = function(root, primary_target, secondary_target)
-			if WORLD.player_character == root then
-				WORLD:emit_notification("I fired ".. primary_target.name .. " from the position of tribute collector.")
-			end
-			if WORLD.player_character == primary_target then
-				WORLD:emit_notification("I was fired from the position of tribute collector.")
-			end
-			PoliticalEffects.remove_tribute_collector(root.province.realm, primary_target)
-		end
-	}
-
-	---@type DecisionCharacter
-	Decision.Character:new {
-		name = 'establish-guard',
-		ui_name = "Establish guard",
-		tooltip = utils.constant_string("Establish guard - a group of warriors devoted to protection of your current capitol."),
-		sorting = 1,
-		primary_target = "none",
-		secondary_target = 'none',
-		base_probability = 1, -- very important decision
-		pretrigger = function(root)
-			if not ot.is_ruler(root) then
-				return false
-			end
-			if root.realm.capitol_guard ~= nil then
-				return false
-			end
-			return true
-		end,
-		clickable = function(root, primary_target)
-			if root.realm.leader ~= root then
-				return false
-			end
-			if root.realm.capitol_guard ~= nil then
-				return false
-			end
-			return true
-		end,
-		available = function(root, primary_target)
-			return true
-		end,
-		ai_secondary_target = function(root, primary_target)
-			return nil, true
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
-			return 1
-		end,
-		effect = function(root, primary_target, secondary_target)
-			MilitaryEffects.gather_guard(root.realm)
-		end
-	}
-
-	Decision.Character:new {
-		name = 'suggest-to-be-guard-leader',
-		ui_name = "Hire guard commander.",
-		tooltip = function(root, primary_target)
-			local base_string = "Suggest character to help you with defense of the realm."
-			if not ot.designates_offices(root, primary_target.province) then
-				base_string = base_string
-					.. "\n You are not allowed to designate offices."
-			end
-			if root.realm.capitol_guard == nil then
-				base_string = base_string
-					.. "\n You need to establish guard first."
-			end
-			if not ot.valid_guard_leader(primary_target, root.realm) then
-				base_string = base_string
-					.. "\n Target is not a valid candidate."
-			end
-			return base_string
-		end,
-		sorting = 1,
-		primary_target = 'character',
-		secondary_target = 'none',
-		base_probability = 1 , -- Once every year on average
-		pretrigger = function(root)
-			if not ot.designates_offices(root, root.realm.capitol) then return false end
-			if root.realm.capitol_guard == nil then return false end
-			if root.realm.capitol_guard.recruiter then return false end
-			return true
-		end,
-		available = function(root, primary_target)
-			if not ot.designates_offices(root, primary_target.province) then return false end
-			if not ot.valid_guard_leader(primary_target, root.realm)    then return false end
-			return true
-		end,
-		ai_target = function(root)
-			local province = root.realm.capitol
-			local character = tabb.random_select_from_set(province.characters)
-			if character then
-				if ot.valid_guard_leader(character, root.realm) then
-					return character, true
-				end
-			end
+		function(root)
 			return nil, false
-		end,
-		ai_will_do = function(root, primary_target, secondary_target)
-			if primary_target.traits[TRAIT.TRADER] then
-				return 0
-			end
+		end
+	)
 
-			return 0.25
+	Decision.Character:new_from_trigger_lists(
+		'establish-guard',
+		"Establish guard",
+		utils.constant_string("Establish guard - a group of warriors devoted to protection of your current capitol."),
+		1,
+		{
+			DESIGNATES_OFFICES_LOCAL,
+			NO_GUARD_LOCAL
+		},
+		{
+		},
+		{
+		},
+		function(root, primary_target, secondary_target)
+			military_effects.gather_guard(province_utils.realm(PROVINCE(root)))
 		end,
-		effect = function(root, primary_target, secondary_target)
+		function(root, primary_target, secondary_target)
+			return 1
+		end
+	)
+
+	Decision.CharacterCharacter:new_from_trigger_lists(
+		'suggest-to-be-guard-leader',
+		"Hire guard commander.",
+		function (root, primary_target)
+			return "Suggest " .. NAME(primary_target) .. " to help you with defense of the realm."
+		end,
+		0.1,
+		{
+			DESIGNATES_OFFICES_LOCAL,
+			GUARD_ESTABLISHED_AND_HAS_NO_LEADER,
+		},
+		{ },
+		{ },
+		function(root, primary_target, secondary_target)
 
 			if WORLD.player_character == root then
-				WORLD:emit_notification("I asked ".. primary_target.name .. " to assist me in defense of the realm.")
+				WORLD:emit_notification("I asked ".. NAME(primary_target) .. " to assist me in defense of the realm.")
 			end
 			if WORLD.player_character == primary_target then
-				WORLD:emit_notification("I was asked to assist " .. root.name .. " with military tasks.")
+				WORLD:emit_notification("I was asked to assist " .. NAME(root) .. " with military tasks.")
 			end
 
 			WORLD:emit_immediate_event('request-help-guard-leader', primary_target, root)
+		end,
+		function(root, primary_target, secondary_target)
+			if character_values.is_traveller(primary_target) then
+				return 0
+			end
+			return 0.25
+		end,
+
+		function(root)
+			local province = PROVINCE(root)
+			local local_realm = LOCAL_REALM(root)
+			local candidate = demography_values.sample_character_from_province(province)
+
+			if candidate ~= INVALID_ID then
+				if ot.valid_guard_leader(candidate, local_realm) then
+					return candidate, true
+				end
+			end
+			return nil, false
 		end
-	}
+	)
 end
 
 return load

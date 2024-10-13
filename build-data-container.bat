@@ -1,0 +1,1 @@
+python sote/codegen/build.py

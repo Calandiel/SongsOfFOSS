@@ -190,7 +190,7 @@ local function is_known(province)
 		return true
 	end
 	local can_set = true
-	local realm = DATA.pop_get_realm(player_character)
+	local realm = REALM(player_character)
 	if realm ~= INVALID_ID then
 		can_set = false
 		if DATA.realm_get_known_provinces(realm)[province] then
@@ -934,7 +934,7 @@ function gam.draw()
 			if character ~= INVALID_ID then
 				local province = PROVINCE(character)
 				if province ~= INVALID_ID then
-					local realm = DATA.pop_get_realm(character)
+					local realm = REALM(character)
 					province_visible = false
 					if DATA.realm_get_known_provinces(realm)[tile.province(tile_id)] then
 						province_visible = true

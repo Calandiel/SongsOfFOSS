@@ -3,7 +3,7 @@ local uit = require "game.ui-utils"
 
 local portait = require "game.scenes.game.widgets.portrait"
 
-local political_values = require "game.raws.values.political"
+local political_values = require "game.raws.values.politics"
 
 
 ---comment

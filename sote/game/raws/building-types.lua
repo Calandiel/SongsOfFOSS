@@ -15,9 +15,7 @@ function BuildingType:new(o)
 	DATA.setup_building_type(new_id, o)
 
 	local required_tech = o.unlocked_by
-	local fat = DATA.fatten_technology_building(DATA.create_technology_building())
-	fat.technology = required_tech
-	fat.unlocked = new_id
+	DATA.force_create_technology_building(required_tech, new_id)
 
 	if RAWS_MANAGER.building_types_by_name[o.name] ~= nil then
 		local msg = "Failed to load a building types (" .. tostring(o.name) .. ")"

@@ -1,6 +1,6 @@
 local ut = require "game.ui-utils"
 
-local political_values = require "game.raws.values.political"
+local political_values = require "game.raws.values.politics"
 
 local text = {}
 

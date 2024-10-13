@@ -17,9 +17,9 @@ function realm_utils.Realm.new()
 	o.g = love.math.random()
 	o.b = love.math.random()
 	o.trading_right_cost = 10
-	o.trading_right_law = require "game.raws.laws.economy".TRADE_RIGHT.NOBLES
+	o.law_trade = LAW_TRADE.LOCALS_ONLY
 	o.building_right_cost = 50
-	o.building_right_law = require "game.raws.laws.economy".BUILDING_RIGHT.NOBLES
+	o.law_building = LAW_BUILDING.LOCALS_ONLY
 	o.known_provinces = {}
 	o.coa_base_r = love.math.random()
 	o.coa_base_g = love.math.random()
@@ -67,13 +67,11 @@ end
 ---@param realm Realm
 ---@param prov Province
 function realm_utils.Realm.add_province(realm, prov)
-	local membeship = DATA.get_realm_provinces_from_province(prov)
-	if membeship ~= INVALID_ID then
-		DATA.realm_provinces_set_realm(membeship, prov)
+	local membership = DATA.get_realm_provinces_from_province(prov)
+	if membership ~= INVALID_ID then
+		DATA.realm_provinces_set_realm(membership, realm)
 	else
-		local new_membership = DATA.fatten_realm_provinces(DATA.create_realm_provinces())
-		new_membership.province = prov
-		new_membership.realm = realm
+		DATA.force_create_realm_provinces(prov, realm)
 	end
 end
 
@@ -89,10 +87,15 @@ end
 
 
 ---@param realm Realm
+---@return province_id
 function realm_utils.Realm.get_random_province(realm)
-	local n = tabb.size(DATA.get_realm_provinces_from_realm(realm))
-	local membership = tabb.nth(DATA.get_realm_provinces_from_realm(realm), love.math.random(n))
-	return DATA.realm_provinces_get_province(membership)
+	local n = #DATA.get_realm_provinces_from_realm(realm)
+	local membership = DATA.get_realm_provinces_from_realm(realm)[love.math.random(n)]
+	if membership then
+		return DATA.realm_provinces_get_province(membership)
+	else
+		return INVALID_ID
+	end
 end
 
 ---Adds warband as potential patrol of province
@@ -206,7 +209,8 @@ function realm_utils.Realm.get_average_needs_satisfaction(realm)
 	local total_population = 0
 	DATA.for_each_realm_provinces_from_realm(realm, function (location)
 		local province = DATA.realm_provinces_get_province(location)
-		DATA.for_each_pop_location_from_location(province, function (pop)
+		DATA.for_each_pop_location_from_location(province, function (item)
+			local pop = DATA.pop_location_get_pop(item)
 			local fat = DATA.fatten_pop(pop)
 			sum = sum + fat.basic_needs_satisfaction + fat.life_needs_satisfaction
 			total_population = total_population + 1
@@ -376,9 +380,7 @@ end
 ---@return Army
 function realm_utils.Realm.raise_local_army(realm, province)
 	local army = DATA.create_army()
-	local ownership = DATA.create_realm_armies()
-	DATA.realm_armies_set_army(ownership, army)
-	DATA.realm_armies_set_realm(ownership, realm)
+	DATA.force_create_realm_armies(realm, army)
 
 	if realm_utils.Realm.size(realm) == 0 then
 		return army
@@ -388,16 +390,12 @@ function realm_utils.Realm.raise_local_army(realm, province)
 		local warband = DATA.warband_location_get_warband(item)
 		local status = DATA.warband_get_status(warband)
 		if status == WARBAND_STATUS.IDLE then
-			local army_membership = DATA.fatten_army_membership(DATA.create_army_membership())
+			DATA.force_create_army_membership(army, warband)
 			realm_utils.Realm.raise_warband(realm, warband)
-			army_membership.army = army
-			army_membership.member = warband
 		end
 		if status == WARBAND_STATUS.PATROL then
-			local army_membership = DATA.fatten_army_membership(DATA.create_army_membership())
+			DATA.force_create_army_membership(army, warband)
 			realm_utils.Realm.raise_warband(realm, warband)
-			army_membership.army = army
-			army_membership.member = warband
 		end
 	end)
 
@@ -410,15 +408,11 @@ end
 function realm_utils.Realm.raise_army(realm, warbands)
 	--print("army")
 	local army = DATA.create_army()
-	local ownership = DATA.create_realm_armies()
-	DATA.realm_armies_set_army(ownership, army)
-	DATA.realm_armies_set_realm(ownership, realm)
+	DATA.force_create_realm_armies(realm, army)
 
 	for _, warband in pairs(warbands) do
-		local army_membership = DATA.fatten_army_membership(DATA.create_army_membership())
+		DATA.force_create_army_membership(army, warband)
 		realm_utils.Realm.raise_warband(realm, warband)
-		army_membership.army = army
-		army_membership.member = warband
 	end
 
 	return army

@@ -9,7 +9,7 @@ local plate_utils      = require "game.entities.plate"
 local utils            = require "game.ui-utils"
 
 local military_effects = require "game.raws.effects.military"
-local political_values = require "game.raws.values.political"
+local political_values = require "game.raws.values.politics"
 
 local tabb             = require "engine.table"
 
@@ -36,7 +36,6 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field province_count number
 ---@field settled_provinces table<province_id, province_id>
 ---@field settled_provinces_by_identifier table<number, table<province_id, province_id>>
----@field realms table<number, Realm>
 ---@field climate_cells table<number, ClimateCell>
 ---@field tile_to_climate_cell table<tile_id, ClimateCell>
 ---@field tile_to_plate table<tile_id, Plate>
@@ -50,7 +49,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
----@field tile_from_world_id tile_id[]
+---@field tile_from_world_id table<world_tile_id, tile_id>
 ---@field realms_changed boolean
 ---@field provinces_to_update_on_map table<province_id, province_id>
 
@@ -85,7 +84,6 @@ function world.World:new()
 	for i = 1, world.ticks_per_month do
 		w.settled_provinces_by_identifier[i] = {}
 	end
-	w.realms = {}
 	w.climate_cells = {}
 
 	w.tile_to_climate_cell = {}
@@ -172,7 +170,7 @@ end
 function world.World:random_tile()
 	local tc = self:tile_count()
 
-	return love.math.random(tc)
+	return self.tile_from_world_id[love.math.random(tc)]
 end
 
 ---Creates and returns a new plate
@@ -294,7 +292,7 @@ function world.World:emit_action(event, root, associated_data, delay, hidden)
 	}
 	-- print('add new action:' .. event)
 	self.deferred_actions_queue:enqueue(action_data)
-	if WORLD:does_player_see_realm_news(DATA.pop_get_realm(root)) and not hidden then
+	if WORLD:does_player_see_realm_news(REALM(root)) and not hidden then
 		self.player_deferred_actions[action_data] = action_data
 	end
 end
@@ -659,9 +657,7 @@ function world.World:tick()
 					-- yearly tick
 					--print("Yearly tick!")
 					local pop_aging = require "game.society.pop-aging"
-					DATA.for_each_province(function (province)
-						pop_aging.age(province)
-					end)
+					pop_aging.age()
 					DATA.for_each_realm(function (realm)
 						DATA.realm_set_budget_tax_collected_this_year(realm, 0)
 					end)
@@ -783,7 +779,7 @@ function world.World:player_realm()
 		return INVALID_ID
 	end
 
-	return DATA.pop_get_realm(self.player_character)
+	return REALM(self.player_character)
 end
 
 ---comment
