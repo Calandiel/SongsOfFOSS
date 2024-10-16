@@ -39,6 +39,13 @@ function PROVINCE_REALM(province)
 end
 
 ---commenting
+---@param pop_id pop_id
+---@return number
+function SAVINGS(pop_id)
+	return DATA.pop_get_savings(pop_id)
+end
+
+---commenting
 ---@param pop_id Character
 ---@return Character
 function LOYAL_TO(pop_id)
@@ -113,6 +120,16 @@ function BUSY(pop_id)
 end
 
 ---@param pop_id pop_id
+function SET_BUSY(pop_id)
+	DATA.pop_set_busy(pop_id, true)
+end
+
+---@param pop_id pop_id
+function UNSET_BUSY(pop_id)
+	DATA.pop_set_busy(pop_id, false)
+end
+
+---@param pop_id pop_id
 ---@param realm realm_id
 function SET_REALM(pop_id, realm)
 	local pop_realm = DATA.get_realm_pop_from_pop(pop_id)
@@ -132,6 +149,50 @@ function LEADER(realm)
 		return INVALID_ID
 	end
 	return DATA.realm_leadership_get_leader(leadership)
+end
+
+---commenting
+---@param realm realm_id
+---@return warband_id
+function GUARD(realm)
+	local guard = DATA.get_realm_guard_from_realm(realm)
+	if guard == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.realm_guard_get_guard(guard)
+end
+
+---commenting
+---@param leader pop_id
+---@return realm_id
+function LEADER_OF(leader)
+	local leadership = DATA.get_realm_leadership_from_leader(leader)
+	if leadership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.realm_leadership_get_warband(leadership)
+end
+
+---commenting
+---@param leader pop_id
+---@return warband_id
+function LEADER_OF_WARBAND(leader)
+	local leadership = DATA.get_warband_leader_from_leader(leader)
+	if leadership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.warband_leader_get_warband(leadership)
+end
+
+---commenting
+---@param leader pop_id
+---@return warband_id
+function RECRUITER_OF_WARBAND(leader)
+	local leadership = DATA.get_warband_recruiter_from_recruiter(leader)
+	if leadership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.warband_recruiter_get_warband(leadership)
 end
 
 ---@param pop_id pop_id
@@ -159,6 +220,20 @@ end
 ---@return string
 function NAME(pop_id)
 	return DATA.pop_get_name(pop_id)
+end
+
+---commenting
+---@param province_id province_id
+---@return string
+function PROVINCE_NAME(province_id)
+	return DATA.province_get_name(province_id)
+end
+
+---commenting
+---@param realm_id realm_id
+---@return string
+function REALM_NAME(realm_id)
+	return DATA.realm_get_name(realm_id)
 end
 
 ---commenting

@@ -22,7 +22,7 @@ function messages.tribute_raid(raider, raid_target, success, att_losses, def_los
 
 	local introduction =
 		"Our neighbor, "
-		.. raider.name
+		.. NAME(raider)
 		.. ", sent warriors to extort tribute from us. "
 	local losses_string = generic_losses_function(att_losses, def_losses)
 
@@ -47,7 +47,7 @@ function messages.tribute_raid_success(realm, tributary)
 		return
 	end
 
-	WORLD:emit_notification("We succeeded! " .. tributary.name .. " now pays tribute to us.")
+	WORLD:emit_notification("We succeeded! " .. REALM_NAME(tributary) .. " now pays tribute to us.")
 end
 
 ---comment

@@ -59,16 +59,42 @@ function triggers.vacant_guard_leader(realm)
     return false
 end
 
+---checks if character is a valid candidate for guard leader
+---assumes that guard position is vacant
+---@param character Character
+---@param realm Realm
+function triggers.valid_guard_leader(character, realm)
+    if REALM(character) ~= realm then return false end
+
+    if DATA.get_warband_leader_from_leader(character) ~= INVALID_ID then return false end
+    if DATA.get_warband_recruiter_from_recruiter(character) ~= INVALID_ID then return false end
+    if DATA.get_warband_commander_from_commander(character) ~= INVALID_ID then return false end
+
+    if triggers.tribute_collector(character, realm) then return false end
+
+    return true
+end
+
 ---checks if character is a valid candidate for overseer
 ---@param character Character
 ---@param realm Realm
 function triggers.valid_tribute_collector_candidate(character, realm)
     -- if character is already a tribute collector then reject
-    if realm.tribute_collectors[character]      then return false end
+
+    local t = DATA.get_tax_collector_from_collector(character)
+    if t ~= INVALID_ID then
+        return false
+    end
+
     -- we can't desigante foreigners to this position
-    if character.realm ~= realm                 then return false end
+    if REALM(character) ~= realm then
+        return false
+    end
+
     -- guard leader has other things to do
-    if triggers.guard_leader(character, realm)  then return false end
+    if triggers.guard_leader(character, realm) then
+        return false
+    end
 
     return true
 end
@@ -77,8 +103,15 @@ end
 ---@param character Character
 ---@param realm Realm
 function triggers.tribute_collector(character, realm)
-    if not realm.tribute_collectors[character]  then return false end
-    if character.realm ~= realm                 then return false end
+    local t = DATA.get_tax_collector_from_collector(character)
+    if t == INVALID_ID then
+        return false
+    end
+
+    local current_realm = DATA.tax_collector_get_realm(t)
+    if current_realm ~= realm then
+        return false
+    end
 
     return true
 end
@@ -89,9 +122,30 @@ end
 function triggers.warband_leader(character, warband)
     -- go through officer posts and check if that of highest filled
 
-    if warband.leader and warband.leader ~= character then return false end
-    if warband.recruiter and warband.recruiter ~= character then return false end
-    if warband.commander and warband.commander ~= character then return false end
+    local l = DATA.get_warband_leader_from_leader(character)
+    local r = DATA.get_warband_recruiter_from_recruiter(character)
+    local c = DATA.get_warband_commander_from_commander(character)
+
+    if l ~= INVALID_ID then
+        local check_warband = DATA.warband_leader_get_warband(l)
+        if check_warband == warband then
+            return true
+        end
+    end
+
+    if r ~= INVALID_ID then
+        local check_warband = DATA.warband_recruiter_get_warband(r)
+        if check_warband == warband then
+            return true
+        end
+    end
+
+    if c ~= INVALID_ID then
+        local check_warband = DATA.warband_commander_get_warband(c)
+        if check_warband == warband then
+            return true
+        end
+    end
 
     return true
 end
@@ -117,19 +171,22 @@ end
 ---@param character Character
 ---@param province Province
 function triggers.valid_patrol_participant(character, province)
-    if character.busy then return false end
-    if province.realm ~= character.realm then return false end
-    if character.province ~= province then return false end
+    if BUSY(character) then return false end
+    if PROVINCE_REALM(province) ~= REALM(character) then return false end
+    if PROVINCE(character) ~= province then return false end
 
     -- sanity checks passed, now check if character leads controls some warband
-    if character.leading_warband then
-        local warband = character.leading_warband
-        if warband and warband.status ~= 'idle' then
+    local leading_warband = DATA.get_warband_leader_from_leader(character)
+    if leading_warband ~= INVALID_ID then
+        local warband = DATA.warband_leader_get_warband(leading_warband)
+        if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
             return false
         end
-    elseif triggers.guard_leader(character, province.realm) then
-        local warband = character.realm.capitol_guard
-        if warband and warband.status ~= 'idle' then
+        return true
+    elseif triggers.guard_leader(character, REALM(character)) then
+        local guard = DATA.get_realm_guard_from_realm(REALM(character))
+        local warband = DATA.realm_guard_get_guard(guard)
+        if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
             return false
         end
         return true

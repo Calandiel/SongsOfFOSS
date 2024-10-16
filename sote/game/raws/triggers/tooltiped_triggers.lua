@@ -36,7 +36,7 @@ Trigger.Pretrigger.not_busy = {
 		return { "You are too busy" }
 	end,
 	condition = function(root)
-		return not root.busy
+		return not BUSY(root)
 	end
 }
 
@@ -74,11 +74,11 @@ Trigger.Pretrigger.leading_idle_warband = {
 		return { "You do not lead any idle party." }
 	end,
 	condition = function(root)
-		local warband = root.leading_warband
-		if warband == nil then
+		local warband = LEADER_OF_WARBAND(root)
+		if warband == INVALID_ID then
 			return false
 		end
-		if warband.status ~= "idle" then
+		if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
 			return false
 		end
 		return true
@@ -91,14 +91,14 @@ Trigger.Pretrigger.leading_idle_guard = {
 		return { "You do not lead idle tribal guard." }
 	end,
 	condition = function(root)
-		local warband = root.recruiter_for_warband
-		if warband == nil then
+		local warband = RECRUITER_OF_WARBAND(root)
+		if warband == INVALID_ID then
 			return false
 		end
-		if warband.status ~= "idle" then
+		if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
 			return false
 		end
-		if root.realm.capitol_guard ~= warband then
+		if GUARD(REALM(root)) ~= warband then
 			return false
 		end
 		return true
@@ -111,7 +111,7 @@ Trigger.Pretrigger.leading_idle_warband_or_guard = {
 		return { "You do not lead any idle party or guard" }
 	end,
 	condition = function(root)
-		return office_triggers.valid_patrol_participant(root, root.province)
+		return office_triggers.valid_patrol_participant(root, PROVINCE(root))
 	end
 }
 
@@ -195,13 +195,13 @@ Trigger.Pretrigger.decision_maker_local = {
 	end,
 	condition = function(root)
 
-		local local_realm = province_utils.realm(PROVINCE(root))
+		local local_realm = LOCAL_REALM(root)
 
 		if local_realm == nil then
 			return false
 		end
 
-		return root.leader_of[local_realm] ~= nil
+		return LEADER(local_realm) == root
 	end
 }
 
@@ -283,7 +283,23 @@ Trigger.Targeted.is_not_in_negotiations = {
 		return { "You are already in negotiations with this target" }
 	end,
 	condition = function(root, primary_target)
-		return root.current_negotiations[primary_target] == nil
+		local result = false
+
+		DATA.for_each_negotiation_from_initiator(root, function (item)
+			local opponent = DATA.negotiation_get_target(item)
+			if opponent == primary_target then
+				result = true
+			end
+		end)
+
+		DATA.for_each_negotiation_from_target(root, function (item)
+			local opponent = DATA.negotiation_get_initiator(item)
+			if opponent == primary_target then
+				result = true
+			end
+		end)
+
+		return result
 	end
 }
 
@@ -369,7 +385,7 @@ function Trigger.Pretrigger.savings_at_least(x)
 			return { "You don't have " .. ut.to_fixed_point2(x) .. MONEY_SYMBOL }
 		end,
 		condition = function(root)
-			return root.savings >= x
+			return SAVINGS(root) >= x
 		end
 	}
 	return result
@@ -381,8 +397,8 @@ Trigger.Targeted.has_no_local_building_permit = {
 		return { "You are not allowed to trade in this province" }
 	end,
 	condition = function(root, primary_target)
-		if primary_target.realm == nil then return false end
-		return not economy_triggers.allowed_to_build(root, primary_target.realm)
+		if PROVINCE_REALM(primary_target) == INVALID_ID then return false end
+		return not economy_triggers.allowed_to_build(root, PROVINCE_REALM(primary_target))
 	end
 }
 

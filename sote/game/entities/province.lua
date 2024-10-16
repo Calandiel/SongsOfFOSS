@@ -198,28 +198,23 @@ function prov.Province.population_weight(province)
 end
 
 --- Transfers a character to the target province
----@param origin province_id
 ---@param character Character
 ---@param target province_id
-function prov.Province.transfer_character(origin, character, target)
+function prov.Province.transfer_character(character, target)
 	-- print(character.name, "CHARACTER", self.name, "-->", target.name)
 	-- validate that origin is really an origin
-
 	local current_location = DATA.get_character_location_from_character(character)
-	assert(DATA.character_location_get_location(current_location) == origin, "CHARACTER ATTEMPTS TO TRAVEL NOT FROM HIS LOCATION")
 	DATA.character_location_set_location(current_location, target)
 end
 
 --- Transfers a pop to the target province
----@param origin province_id
 ---@param pop pop_id
 ---@param target province_id
-function prov.Province.transfer_pop(origin, pop, target)
+function prov.Province.transfer_pop(pop, target)
 	-- print(pop.name, "pop_id", self.name, "-->", target.name)
 	local current_location = DATA.get_pop_location_from_pop(pop)
-	assert(DATA.pop_location_get_location(current_location) == origin, "POP ATTEMPTS TO TRAVEL NOT FROM HIS LOCATION")
+	local origin = DATA.pop_location_get_location(current_location)
 	DATA.pop_location_set_location(current_location, target)
-
 	local relevant_children =
 		tabb.filter_array(
 			tabb.map_array(
@@ -252,7 +247,7 @@ function prov.Province.transfer_pop(origin, pop, target)
 		)
 
 	for _, c in ipairs(relevant_children) do
-		prov.Province.transfer_pop(origin, c, target)
+		prov.Province.transfer_pop(c, target)
 	end
 end
 
