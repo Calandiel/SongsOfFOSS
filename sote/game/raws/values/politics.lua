@@ -1,4 +1,5 @@
 local province_utils = require "game.entities.province"
+local warband_utils = require "game.entities.warband"
 
 local PoliticalValues = {}
 
@@ -32,9 +33,9 @@ function PoliticalValues.power_base(character, province)
     local total = 0
     for k, character_location in pairs(DATA.get_character_location_from_location(province)) do
         local test_character = DATA.character_location_get_character(character_location)
-        local loyal_to = DATA.pop_get_loyalty(test_character)
+        local loyal_to = LOYAL_TO(test_character)
         if (loyal_to == character) or (test_character == character) then
-            local realm = province_utils.realm(province)
+            local realm = PROVINCE_REALM(province)
             if realm then
                 total = total + PoliticalValues.popularity(test_character, realm)
             end
@@ -62,8 +63,12 @@ end
 ---comment
 ---@param realm Realm
 function PoliticalValues.guard_leader(realm)
-    if realm.capitol_guard == nil then return nil end
-    return realm.capitol_guard:active_leader()
+    local capitol_guard = DATA.get_realm_guard_from_realm(realm)
+    if capitol_guard == INVALID_ID then
+        return INVALID_ID
+    end
+
+    return warband_utils.active_leader(DATA.realm_guard_get_guard(capitol_guard))
 end
 
 ---calculates amount of warlods loyal to character and their total army size
@@ -80,15 +85,20 @@ function PoliticalValues.military_strength(character)
     local total_warlords = 0
     local total_army = 0
 
-    for k, character_location in pairs(DATA.get_character_location_from_location(province)) do
-        local test_character = DATA.character_location_get_character(character_location)
-        local loyal_to = DATA.pop_get_loyalty(test_character)
-        local leading_warband = DATA.pop_get_leading_warband(test_character)
-        if (loyal_to == character or test_character == character) and leading_warband then
-            total_warlords = total_warlords + 1
-            total_army = total_army + leading_warband:size()
+    DATA.for_each_character_location_from_location(PROVINCE(character), function (item)
+        local test_character = DATA.character_location_get_character(item)
+        local loyal_to = LOYAL_TO(test_character)
+        local leading_warband = LEADER_OF_WARBAND(test_character)
+
+        if leading_warband == INVALID_ID then
+            return
         end
-    end
+
+        if (loyal_to == character or test_character == character) then
+            total_warlords = total_warlords + 1
+            total_army = total_army + warband_utils.size(leading_warband)
+        end
+    end)
 
     return total_warlords, total_army
 end
@@ -100,15 +110,20 @@ function PoliticalValues.military_strength_ready(character)
     local total_warlords = 0
     local total_army = 0
 
-    for k, character_location in pairs(DATA.get_character_location_from_location(province)) do
-        local test_character = DATA.character_location_get_character(character_location)
-        local loyal_to = DATA.pop_get_loyalty(test_character)
-        local leading_warband = DATA.pop_get_leading_warband(test_character)
-        if (loyal_to == character or test_character == character) and leading_warband and leading_warband.status == 'idle' then
-            total_warlords = total_warlords + 1
-            total_army = total_army + leading_warband:size()
+    DATA.for_each_character_location_from_location(PROVINCE(character), function (item)
+        local test_character = DATA.character_location_get_character(item)
+        local loyal_to = LOYAL_TO(test_character)
+        local leading_warband = LEADER_OF_WARBAND(test_character)
+
+        if leading_warband == INVALID_ID then
+            return
         end
-    end
+
+        if (loyal_to == character or test_character == character) and DATA.warband_get_status(leading_warband) == WARBAND_STATUS.IDLE then
+            total_warlords = total_warlords + 1
+            total_army = total_army + warband_utils.size(leading_warband)
+        end
+    end)
 
     return total_warlords, total_army
 end

@@ -1,29 +1,26 @@
 local tabb = require "engine.table"
-
-local trade_good = require "game.raws.raws-utils".trade_good
-local use_case = require "game.raws.raws-utils".trade_good_use_case
-
 local pop_utils = require "game.entities.pop".POP
-
-local AiPreferences = {}
-
 local pv = require "game.raws.values.politics"
 local ev = require "game.raws.values.economy"
 local demography_values = require "game.raws.values.demography"
+local character_values = require "game.raws.values.character"
 
+local AiPreferences = {}
 
 ---comment
 ---@param character Character
 ---@return number
 function AiPreferences.percieved_inflation(character)
 	local use = CALORIES_USE_CASE
-	local base_price = tabb.accumulate(
-		DATA.use_weight_from_use_case[use],
-		0,
-		function (a, k, v)
-			return a + DATA.trade_good_get_base_price(k) * v
-		end
-	) / math.min(tabb.size(DATA.use_weight_from_use_case[use]), 1)
+	local base_price = 0
+
+	DATA.for_each_use_weight_from_use_case(use, function (item)
+		local weighted_good = DATA.use_weight_get_trade_good(item)
+		local weight = DATA.use_weight_get_weight(item)
+		base_price = base_price + DATA.trade_good_get_base_price(weighted_good) * weight
+	end)
+
+	base_price = base_price / math.min(tabb.size(DATA.use_weight_from_use_case[use]), 1)
 
 	local price = ev.get_local_price_of_use(PROVINCE(character), use)
 	if price == 0 then
@@ -56,12 +53,12 @@ end
 ---@return number
 function AiPreferences.worthy_successor_score(character, candidate)
 	local loyalty_bonus = 0
-	if candidate.loyalty == character then
+	if LOYAL_TO(candidate) == character then
 		loyalty_bonus = 10
 	end
 
 	local score =
-		pv.popularity(candidate, character.realm)
+		pv.popularity(candidate, REALM(character))
 		+ loyalty_bonus
 
 	return score
@@ -72,17 +69,20 @@ end
 function AiPreferences.best_successor(character)
 	---@type Character?
 	local best_candidate = nil
-	for _, candidate in pairs(character.province.characters) do
+	local best_score = 0
+
+	DATA.for_each_character_location_from_location(PROVINCE(character), function (item)
+		local candidate = DATA.character_location_get_character(item)
 		if best_candidate == nil then
 			best_candidate = candidate
 		else
-			local best_score = AiPreferences.worthy_successor_score(character, best_candidate)
 			local score = AiPreferences.worthy_successor_score(character, candidate)
 			if score > best_score then
 				best_candidate = candidate
+				best_score = score
 			end
 		end
-	end
+	end)
 	return best_candidate
 end
 
@@ -90,7 +90,7 @@ end
 ---@param character Character
 ---@return number
 function AiPreferences.loyalty_price(character)
-	local popularity = pv.popularity(character, character.realm)
+	local popularity = pv.popularity(character, REALM(character))
 
 	return AiPreferences.percieved_inflation(character) * (10 + popularity) * 2
 end
@@ -115,16 +115,17 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 		---@type Character
 		character = character
 
-		if income + character.savings < 0 then
+		if income + SAVINGS(character) then
 			return -9999
 		end
 
 		local base_value = income * AiPreferences.money_utility(character)
 
 		if flags.treason then
-			base_value = base_value + character.culture.culture_group.view_on_treason
+			base_value = base_value + DATA.pop_get_culture(character).culture_group.view_on_treason
 		end
-		if flags.treason and character.traits[TRAIT.LOYAL] then
+
+		if flags.treason and pop_utils.has_trait(character, TRAIT.LOYAL) then
 			base_value = base_value - 100
 		end
 
@@ -132,36 +133,24 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 			base_value = base_value - 10
 		end
 
-		if flags.submission and character.traits[TRAIT.AMBITIOUS] then
+		if flags.submission and pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
 			base_value = base_value - 50
 		end
 
-		if flags.ambition and character.traits[TRAIT.AMBITIOUS] then
-			base_value = base_value + 50
+		if flags.ambition then
+			base_value = base_value + 100 * character_values.ambition_score(character)
 		end
 
-		if flags.ambition and character.traits[TRAIT.CONTENT] then
-			base_value = base_value - 10
-		end
-
-		if flags.work and character.traits[TRAIT.LAZY] then
+		if flags.work and pop_utils.has_trait(character, TRAIT.LAZY) then
 			base_value = base_value - 20
 		end
 
-		if flags.work and character.traits[TRAIT.HARDWORKER] then
+		if flags.work and pop_utils.has_trait(character, TRAIT.HARDWORKER) then
 			base_value = base_value + 20
 		end
 
-		if flags.aggression and character.traits[TRAIT.WARLIKE] then
-			base_value = base_value + 20
-		end
-
-		if flags.aggression and character.traits[TRAIT.CONTENT] then
-			base_value = base_value - 20
-		end
-
-		if flags.aggression and character.traits[TRAIT.LAZY] then
-			base_value = base_value - 20
+		if flags.aggression then
+			base_value = base_value + 100 * character_values.aggression_score(character)
 		end
 
 		if flags.power_abuse then
@@ -183,7 +172,7 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 		---@type Character
 		character = character
 
-		if income + character.savings < 0 then
+		if income + SAVINGS(character) < 0 then
 			return -9999
 		end
 		-- print(character.name)
@@ -193,70 +182,48 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 		-- print(base_value)
 
 		if flags.treason then
-			base_value = base_value + character.culture.culture_group.view_on_treason
+			base_value = base_value + DATA.pop_get_culture(character).culture_group.view_on_treason
 		end
 
-		-- print(base_value)
-
-		if flags.treason and character.traits[TRAIT.LOYAL] then
+		if flags.treason and pop_utils.has_trait(character, TRAIT.LOYAL) then
 			base_value = base_value - 100
 		end
 
-		-- print(base_value)
-
-		if flags.help and character.traits[TRAIT.LOYAL] and character.loyalty == associated_data then
+		if flags.help and LOYAL_TO(character) == associated_data then
 			base_value = base_value + 10
+			if pop_utils.has_trait(character, TRAIT.LOYAL) then
+				---@type number
+				base_value = base_value + 10
+			end
 		end
-
-		-- print(base_value)
 
 		if flags.submission then
 			base_value = base_value - 10
 		end
 
-		-- print(base_value)
-
-		if flags.submission and character.traits[TRAIT.AMBITIOUS] then
+		if flags.submission and pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
 			base_value = base_value - 50
 		end
 
-		-- print(base_value)
-
-		if flags.ambition and character.traits[TRAIT.AMBITIOUS] then
-			base_value = base_value + 50
+		if flags.ambition then
+			base_value = base_value + 100 * character_values.ambition_score(character)
 		end
 
-		if flags.ambition and character.traits[TRAIT.CONTENT] then
-			base_value = base_value - 10
-		end
-
-		if flags.work and character.traits[TRAIT.LAZY] then
+		if flags.work and pop_utils.has_trait(character, TRAIT.LAZY) then
 			base_value = base_value - 20
 		end
 
-		if flags.work and character.traits[TRAIT.HARDWORKER] then
+		if flags.work and pop_utils.has_trait(character, TRAIT.HARDWORKER) then
 			base_value = base_value + 20
 		end
 
-		if flags.aggression and character.traits[TRAIT.WARLIKE] then
-			base_value = base_value + 20
-		end
-
-		if flags.aggression and character.traits[TRAIT.CONTENT] then
-			base_value = base_value - 20
-		end
-
-		if flags.aggression and character.traits[TRAIT.LAZY] then
-			base_value = base_value - 20
+		if flags.aggression then
+			base_value = base_value + 100 * character_values.aggression_score(character)
 		end
 
 		if flags.power_abuse then
-			base_value = base_value - 10
+			base_value = base_value - 25
 		end
-
-		-- print(base_value)
-
-		-- print('______________________________')
 
 		return base_value
 	end

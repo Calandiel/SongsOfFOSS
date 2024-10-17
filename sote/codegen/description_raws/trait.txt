@@ -1,4 +1,5 @@
 name string
+ambition float
 greed float
 admin float
 traveller float

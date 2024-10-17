@@ -34,7 +34,7 @@ end
 
 ---Returns a the highest ranking officer
 ---@param warband warband_id
----@return Character? officer
+---@return Character officer
 function warband_utils.active_leader(warband)
 	local leader_link = DATA.get_warband_leader_from_warband(warband)
 	local commander_link = DATA.get_warband_commander_from_warband(warband)
@@ -55,7 +55,7 @@ function warband_utils.active_leader(warband)
 		return commander
 	end
 
-	return nil
+	return INVALID_ID
 end
 
 ---Returns a the lowest ranking officer

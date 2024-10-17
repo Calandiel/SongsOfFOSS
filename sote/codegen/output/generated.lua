@@ -11836,6 +11836,7 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 ---@class (exact) fat_trait_id
 ---@field id trait_id Unique trait id
 ---@field name string 
+---@field ambition number 
 ---@field greed number 
 ---@field admin number 
 ---@field traveller number 
@@ -11845,6 +11846,7 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 ---@field icon string 
 
 ---@class struct_trait
+---@field ambition number 
 ---@field greed number 
 ---@field admin number 
 ---@field traveller number 
@@ -11852,6 +11854,7 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 
 ---@class (exact) trait_id_data_blob_definition
 ---@field name string 
+---@field ambition number 
 ---@field greed number 
 ---@field admin number 
 ---@field traveller number 
@@ -11864,6 +11867,7 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 ---@param data trait_id_data_blob_definition
 function DATA.setup_trait(id, data)
     DATA.trait_set_name(id, data.name)
+    DATA.trait_set_ambition(id, data.ambition)
     DATA.trait_set_greed(id, data.greed)
     DATA.trait_set_admin(id, data.admin)
     DATA.trait_set_traveller(id, data.traveller)
@@ -11875,6 +11879,7 @@ end
 
 ffi.cdef[[
     typedef struct {
+        float ambition;
         float greed;
         float admin;
         float traveller;
@@ -11943,6 +11948,21 @@ end
 ---@param value string valid string
 function DATA.trait_set_name(trait_id, value)
     DATA.trait_name[trait_id] = value
+end
+---@param trait_id trait_id valid trait id
+---@return number ambition 
+function DATA.trait_get_ambition(trait_id)
+    return DATA.trait[trait_id].ambition
+end
+---@param trait_id trait_id valid trait id
+---@param value number valid number
+function DATA.trait_set_ambition(trait_id, value)
+    DATA.trait[trait_id].ambition = value
+end
+---@param trait_id trait_id valid trait id
+---@param value number valid number
+function DATA.trait_inc_ambition(trait_id, value)
+    DATA.trait[trait_id].ambition = DATA.trait[trait_id].ambition + value
 end
 ---@param trait_id trait_id valid trait id
 ---@return number greed 
@@ -12039,6 +12059,7 @@ end
 local fat_trait_id_metatable = {
     __index = function (t,k)
         if (k == "name") then return DATA.trait_get_name(t.id) end
+        if (k == "ambition") then return DATA.trait_get_ambition(t.id) end
         if (k == "greed") then return DATA.trait_get_greed(t.id) end
         if (k == "admin") then return DATA.trait_get_admin(t.id) end
         if (k == "traveller") then return DATA.trait_get_traveller(t.id) end
@@ -12051,6 +12072,10 @@ local fat_trait_id_metatable = {
     __newindex = function (t,k,v)
         if (k == "name") then
             DATA.trait_set_name(t.id, v)
+            return
+        end
+        if (k == "ambition") then
+            DATA.trait_set_ambition(t.id, v)
             return
         end
         if (k == "greed") then
@@ -12107,6 +12132,7 @@ TRAIT = {
 local index_trait
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "AMBITIOUS")
+DATA.trait_set_ambition(index_trait, 1)
 DATA.trait_set_greed(index_trait, 0.05)
 DATA.trait_set_admin(index_trait, 0)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12116,6 +12142,7 @@ DATA.trait_set_full_description(index_trait, "TODO")
 DATA.trait_set_icon(index_trait, "mountaintop.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "CONTENT")
+DATA.trait_set_ambition(index_trait, -0.5)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, 0)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12125,6 +12152,7 @@ DATA.trait_set_full_description(index_trait, "This person has no ambitions: it w
 DATA.trait_set_icon(index_trait, "inner-self.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "LOYAL")
+DATA.trait_set_ambition(index_trait, -0.02)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, 0)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12134,6 +12162,7 @@ DATA.trait_set_full_description(index_trait, "This person rarely betrays people"
 DATA.trait_set_icon(index_trait, "check-mark.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "GREEDY")
+DATA.trait_set_ambition(index_trait, 0)
 DATA.trait_set_greed(index_trait, 0.5)
 DATA.trait_set_admin(index_trait, 0)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12143,6 +12172,7 @@ DATA.trait_set_full_description(index_trait, "Desire for money drives this perso
 DATA.trait_set_icon(index_trait, "receive-money.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "WARLIKE")
+DATA.trait_set_ambition(index_trait, 0.1)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, 0)
 DATA.trait_set_traveller(index_trait, 1)
@@ -12152,6 +12182,7 @@ DATA.trait_set_full_description(index_trait, "TODO")
 DATA.trait_set_icon(index_trait, "barbute.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "BAD_ORGANISER")
+DATA.trait_set_ambition(index_trait, 0)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, -0.2)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12161,6 +12192,7 @@ DATA.trait_set_full_description(index_trait, "TODO")
 DATA.trait_set_icon(index_trait, "shrug.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "GOOD_ORGANISER")
+DATA.trait_set_ambition(index_trait, 0.01)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, 0.2)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12170,6 +12202,7 @@ DATA.trait_set_full_description(index_trait, "TODO")
 DATA.trait_set_icon(index_trait, "pitchfork.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "LAZY")
+DATA.trait_set_ambition(index_trait, -0.5)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, -0.1)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12179,6 +12212,7 @@ DATA.trait_set_full_description(index_trait, "This person prefers to do nothing"
 DATA.trait_set_icon(index_trait, "parmecia.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "HARDWORKER")
+DATA.trait_set_ambition(index_trait, 0.01)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, 0.1)
 DATA.trait_set_traveller(index_trait, 0)
@@ -12188,6 +12222,7 @@ DATA.trait_set_full_description(index_trait, "TODO")
 DATA.trait_set_icon(index_trait, "miner.png")
 index_trait = DATA.create_trait()
 DATA.trait_set_name(index_trait, "TRADER")
+DATA.trait_set_ambition(index_trait, -0.5)
 DATA.trait_set_greed(index_trait, 0.2)
 DATA.trait_set_admin(index_trait, 0.05)
 DATA.trait_set_traveller(index_trait, 1)
