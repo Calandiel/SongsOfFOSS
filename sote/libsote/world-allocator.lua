@@ -1,6 +1,6 @@
 local wa = {}
 
-local icosa_defines = require("sote.libsote.icosa-defines")
+local icosa_defines = require "libsote.icosa-defines"
 
 ---@param size number
 ---@return number

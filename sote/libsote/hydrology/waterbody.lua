@@ -23,7 +23,7 @@ function waterbody:new(id)
 	obj.lowest_shore_tile = nil
 	obj.lake_open = false
 	obj.source = {}
-	obj.drain = nil
+	obj.drain = {}
 	obj.tmp_float_1 = 0
 
 	setmetatable(obj, self)
@@ -42,7 +42,7 @@ function waterbody:kill()
 	-- self.lowest_shore_tile = nil
 	-- self.lake_open = false
 	self.source = {}
-	self.drain = nil
+	self.drain = {}
 	-- self.tmp_float_1 = 0
 end
 
