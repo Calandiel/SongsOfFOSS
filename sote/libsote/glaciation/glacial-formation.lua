@@ -22,7 +22,6 @@ local function run_with_profiling(func, log_txt)
 end
 
 local use_original = true
-local align_rng = false
 local enable_debug = false
 
 local world
@@ -724,7 +723,7 @@ function gf.run(world_obj)
 
 	rng = world.rng
 	local preserved_state = nil
-	if align_rng then
+	if require("libsote.debug-control-panel").glaciation.align_rng then
 		preserved_state = rng:get_state()
 		rng:set_seed(world.seed + 19832)
 	end
