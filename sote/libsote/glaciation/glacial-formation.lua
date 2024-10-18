@@ -11,7 +11,7 @@ local AGE_TYPES = {
 
 local open_issues = require "libsote.glaciation.open-issues"
 local rock_qualities = require "libsote.rock-qualities"
-local rock_types = require "libsote.rock-type".TYPES
+local ROCK_TYPES = require "libsote.rock-type".TYPES
 
 -- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local prof = require "libsote.profiling-helper"
@@ -25,6 +25,7 @@ local use_original = true
 local enable_debug = false
 
 local world
+local rng
 local glacial_seed
 local already_added
 local ice_flow
@@ -35,8 +36,6 @@ local distance_from_edge
 local invasion_ticker
 local silt_storage
 local mineral_storage
-
-local rng
 
 local old_layer = {}
 local new_layer = {}
@@ -292,11 +291,11 @@ local function set_permanent_ice_variables(is_ice_age)
 
 			local volcanic_modifier = 1 --* If volcanic, recent eruptions mean material is refreshed and "resistant" to chemical weathering
 			local rock_type = world.rock_type[ti]
-			if rock_type == rock_types.basic_volcanics then
+			if rock_type == ROCK_TYPES.basic_volcanics then
 				volcanic_modifier = 0.3
-			elseif rock_type == rock_types.mixed_volcanics then
+			elseif rock_type == ROCK_TYPES.mixed_volcanics then
 				volcanic_modifier = 0.5
-			elseif rock_type == rock_types.acid_volcanics then
+			elseif rock_type == ROCK_TYPES.acid_volcanics then
 				volcanic_modifier = 0.65
 			end
 			chemical_weathering = 1 + (chemical_weathering - 1) * volcanic_modifier
@@ -722,8 +721,9 @@ function gf.run(world_obj)
 	mineral_storage = world.tmp_int_4
 
 	rng = world.rng
+	local align_rng = require("libsote.debug-control-panel").glaciation.align_rng
 	local preserved_state = nil
-	if require("libsote.debug-control-panel").glaciation.align_rng then
+	if align_rng then
 		preserved_state = rng:get_state()
 		rng:set_seed(world.seed + 19832)
 	end

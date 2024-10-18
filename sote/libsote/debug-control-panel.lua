@@ -6,7 +6,11 @@ dcp.use_sote_ice_data = true -- this will enable import of original SotE ice dat
 dcp.align_to_sote_coords = dcp.use_sote_climate_data or dcp.use_sote_ice_data -- this will align hex world storage to match the order from original SotE, very useful when debugging/validating port
 
 dcp.glaciation = {
-	align_rng = true -- this will align RNG seed to match original SotE glaciation
+	align_rng = true -- this will align RNG seed to match original SotE seed
+}
+
+dcp.soils = {
+	align_rng = true -- this will align RNG seed to match original SotE seed
 }
 
 dcp.save_maps = false -- this will export maps to PNG

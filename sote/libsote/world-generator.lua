@@ -124,6 +124,7 @@ local function gen_phase_02()
 	glaciers()
 	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
 	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers")
+	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
 
 	local ocean_count = 0
 	local freshwater_lake_count = 0
