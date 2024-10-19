@@ -13,7 +13,7 @@ dcp.soils = {
 	align_rng = true -- this will align RNG seed to match original SotE seed
 }
 
-dcp.save_maps = false -- this will export maps to PNG
+dcp.save_maps = true -- this will export maps to PNG
 dcp.maps_selection = {
 	elevation = false,
 	rocks = false,
@@ -21,7 +21,7 @@ dcp.maps_selection = {
 	waterflow = false,
 	waterbodies = false,
 	watersheds = false,
-	debug1 = false,
+	debug1 = true,
 	debug2 = false
 }
 

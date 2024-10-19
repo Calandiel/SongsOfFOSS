@@ -36,6 +36,7 @@ local distance_from_edge
 local invasion_ticker
 local silt_storage
 local mineral_storage
+local slope_retention_factor_storage
 
 local old_layer = {}
 local new_layer = {}
@@ -631,6 +632,7 @@ local function cull_back_silt_based_on_moisture_and_slope()
 
 		-- original code happily divides by zero if it chances on a flat piece of terrain, so I decided to set the slope_retention_factor to 1 in that case
 		local slope_retention_factor = steepest_face > 0 and math.min(math.pow((10 / steepest_face), 2), 1) or 1
+		slope_retention_factor_storage[ti] = slope_retention_factor
 		local temp_factor = open_issues.calculate_temp_factor_for_retention_mult(world.jan_temperature[ti], world.jul_temperature[ti])
 		local retention_multiplier = math.min(math.pow((true_water_calc / water_normalization_factor), 2) * slope_retention_factor * temp_factor, 1)
 
@@ -719,6 +721,7 @@ function gf.run(world_obj)
 	invasion_ticker = world.tmp_int_2
 	silt_storage = world.tmp_int_3
 	mineral_storage = world.tmp_int_4
+	slope_retention_factor_storage = world.carry_float_1
 
 	rng = world.rng
 	local align_rng = require("libsote.debug-control-panel").glaciation.align_rng
@@ -743,6 +746,7 @@ function gf.run(world_obj)
 	world:fill_ffi_array(invasion_ticker, 0)
 	world:fill_ffi_array(silt_storage, 0)
 	world:fill_ffi_array(mineral_storage, 0)
+	world:fill_ffi_array(slope_retention_factor_storage, 0)
 
 	process_age(AGE_TYPES.ice_age)
 

@@ -123,9 +123,8 @@ local function gen_phase_02()
 	initial_waterflow()
 	glaciers()
 	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
-	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers")
-	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
 
+	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers")
 	local ocean_count = 0
 	local freshwater_lake_count = 0
 	local saltwater_lake_count = 0
@@ -144,11 +143,13 @@ local function gen_phase_02()
 			wetland_count = wetland_count + 1
 		end
 	end)
-	print("Ocean count: " .. ocean_count)
-	print("Freshwater lake count: " .. freshwater_lake_count)
-	print("Saltwater lake count: " .. saltwater_lake_count)
-	print("River count: " .. river_count)
-	print("Wetland count: " .. wetland_count)
+	print("\tOcean count: " .. ocean_count)
+	print("\tFreshwater lake count: " .. freshwater_lake_count)
+	print("\tSaltwater lake count: " .. saltwater_lake_count)
+	print("\tRiver count: " .. river_count)
+	print("\tWetland count: " .. wetland_count)
+
+	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
 end
 
 local libsote_cpp = require "libsote.libsote"

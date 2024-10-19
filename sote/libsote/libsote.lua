@@ -346,10 +346,10 @@ function libsote.worldgen_phase01_coro(seed)
 		error("failed to wait init_world task")
 	end
 
-	local duration = love.timer.getTime() - start
-	print("[worldgen_task]: " .. string.format("%.2f", duration * 1000) .. "ms --------------------------------------")
-
 	log_and_set_msg("World generation finished")
+
+	local duration = love.timer.getTime() - start
+	print("[worldgen_task]: " .. string.format("%.2f", duration * 1000) .. "ms --------------------------------------\n")
 end
 
 function libsote.generate_world(seed)

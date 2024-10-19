@@ -94,4 +94,9 @@ function loggers.get_rivers_logger(path)
 	return get_logger(rivers_logger, "rivers", path)
 end
 
+local soils_logger = nil
+function loggers.get_soils_logger(path)
+	return get_logger(soils_logger, "soils", path)
+end
+
 return loggers
