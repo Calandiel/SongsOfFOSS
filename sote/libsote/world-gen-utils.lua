@@ -47,4 +47,38 @@ function wgu.permiation_calc(tile_sand, tile_silt, tile_clay)
 	return tile_perm / 2.5
 end
 
+---@param tile_sand number
+---@param tile_silt number
+---@param tile_clay number
+---@return number
+function wgu.permiation_calc_dune(tile_sand, tile_silt, tile_clay)
+	local tile_perm = 1
+
+	local total_material = tile_sand + tile_silt + tile_clay
+	local sand_percent = 100 * tile_sand / total_material
+	local silt_percent = 100 * tile_silt / total_material
+	local clay_percent = 100 * tile_clay / total_material
+
+	if silt_percent > 50 then tile_perm = tile_perm * 0.9 end
+	if silt_percent > 70 then tile_perm = tile_perm * 0.9 end
+	if silt_percent > 80 then tile_perm = tile_perm * 0.9 end
+	if silt_percent > 90 then tile_perm = tile_perm * 0.9 end
+
+	if sand_percent > 50 then tile_perm = tile_perm * 0.7 end
+	if sand_percent > 65 then tile_perm = tile_perm * 0.7 end
+	if sand_percent > 80 then tile_perm = tile_perm * 0.7 end
+	if sand_percent > 90 then tile_perm = tile_perm * 0.7 end
+
+	if clay_percent > 50 then tile_perm = tile_perm * 0.8 end
+	if clay_percent > 65 then tile_perm = tile_perm * 0.8 end
+	if clay_percent > 80 then tile_perm = tile_perm * 0.8 end
+	if clay_percent > 90 then tile_perm = tile_perm * 0.8 end
+
+	if silt_percent < 30 then tile_perm = tile_perm * 0.9 end
+	if silt_percent < 20 then tile_perm = tile_perm * 0.9 end
+	if silt_percent < 10 then tile_perm = tile_perm * 0.9 end
+
+	return tile_perm
+end
+
 return wgu

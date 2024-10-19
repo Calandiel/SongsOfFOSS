@@ -11,19 +11,13 @@ local already_checked
 local distance_factor
 local slope_retention_factor
 
-local mixed_volcano_tiles = {}
-local basic_volcano_tiles = {}
-local old_layer = {}
-local new_layer = {}
-local all_influenced = {}
-
 local max_iterations = 35
 local volcano_splooge_tuner = 50 --* How much ash volcanos splooge
 
 local function expand_from_tile(vti, silt_qty, mineral_qty)
-	old_layer = {}
-	new_layer = {}
-	all_influenced = {}
+	local old_layer = {}
+	local new_layer = {}
+	local all_influenced = {}
 
 	table.insert(old_layer, vti)
 	table.insert(all_influenced, vti)
@@ -105,6 +99,9 @@ function gvc.run(world_obj)
 		world:adjust_debug_channels(1)
 		world:reset_debug_all()
 	end
+
+	local mixed_volcano_tiles = {}
+	local basic_volcano_tiles = {}
 
 	--* Generating lists for both types of volcanoes that will participate
 	world:for_each_tile(function(ti)

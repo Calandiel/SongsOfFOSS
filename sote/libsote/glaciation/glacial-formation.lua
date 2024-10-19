@@ -12,6 +12,7 @@ local AGE_TYPES = {
 local open_issues = require "libsote.glaciation.open-issues"
 local rock_qualities = require "libsote.rock-qualities"
 local ROCK_TYPES = require "libsote.rock-type".TYPES
+local wgu = require "libsote.world-gen-utils"
 
 -- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local prof = require "libsote.profiling-helper"
@@ -618,7 +619,7 @@ local function cull_back_silt_based_on_moisture_and_slope()
 		local true_water_calc = 0
 		if world.is_land[ti] then
 			local wind_factor = wind_adjustment_base + wind_adjustment_slope * (1 - math.min(world.jan_wind_speed[ti] / max_wind_factor, max_normalized_wind))
-			local permeability = require("libsote.world-gen-utils").permiation_calc(temp_sand, temp_silt, temp_clay)
+			local permeability = wgu.permiation_calc(temp_sand, temp_silt, temp_clay)
 
 			true_water_calc = (world.jan_rainfall[ti] + world.jul_rainfall[ti]) * wind_factor * permeability
 		end

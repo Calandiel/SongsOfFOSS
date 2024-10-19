@@ -9,6 +9,7 @@ cwf.TYPES = {
 }
 
 local open_issues = require "libsote.hydrology.open-issues"
+local wgu = require "libsote.world-gen-utils"
 
 local function clear_temporary_data(world)
 	world:fill_ffi_array(world.tmp_float_1, 0)
@@ -209,7 +210,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 
 			-- Do we just want to look at temperature at the specific time of month and prevent water loss at that time?
 			-- Or do we want to consider the total range of temperature throughout the year?
-			local winter_depression_factor_result = require("libsote.world-gen-utils").winter_depression_factor(jan_temperature, jul_temperature)
+			local winter_depression_factor_result = wgu.winter_depression_factor(jan_temperature, jul_temperature)
 			local permafrost_factor = 1
 			if seasonal_temperature - winter_depression_factor_result < -10 then -- Less than 0 implies net temperature of tile over year being less than 0, hence presence of some permafrost
 				permafrost_factor = seasonal_temperature - winter_depression_factor_result + 10;

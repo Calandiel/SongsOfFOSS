@@ -59,6 +59,23 @@ local function override_climate_data()
 	end)
 end
 
+local function override_soils_data()
+	local soils_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_soils_data_01.csv")
+
+	wg.world:for_each_tile(function(ti, _)
+		local row = soils_generator()
+		if row == nil then
+			error("Not enough rows in soils data")
+		end
+
+		wg.world.sand[ti] = tonumber(row[1])
+		wg.world.silt[ti] = tonumber(row[2])
+		wg.world.clay[ti] = tonumber(row[3])
+		wg.world.mineral_richness[ti] = tonumber(row[4])
+		wg.world.soil_organics[ti] = tonumber(row[5])
+	end)
+end
+
 local function post_tectonic()
 	run_with_profiling(function() require "libsote.post-tectonic".run(wg.world) end, "post-tectonic")
 end
@@ -150,6 +167,11 @@ local function gen_phase_02()
 	print("\tWetland count: " .. wetland_count)
 
 	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
+
+	if debug.use_sote_soils_data then
+		run_with_profiling(function() override_soils_data() end, "override_soils_data")
+	end
+	run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
 end
 
 local libsote_cpp = require "libsote.libsote"
