@@ -75,11 +75,11 @@ local function roll_traits(character)
 		end
 	end
 
-	if love.math.random() > 0.7 and not pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
+	if love.math.random() > 0.7 and not HAS_TRAIT(character, TRAIT.AMBITIOUS) then
 		pop_utils.add_trait(character, TRAIT.LOYAL)
 	end
 
-	if love.math.random() > 0.7 and not pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
+	if love.math.random() > 0.7 and not HAS_TRAIT(character, TRAIT.AMBITIOUS) then
 		pop_utils.add_trait(character, TRAIT.CONTENT)
 	end
 

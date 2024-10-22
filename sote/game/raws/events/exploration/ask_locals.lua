@@ -4,7 +4,7 @@ local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
 local economic_effects = require "game.raws.effects.economy"
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 return function()
 

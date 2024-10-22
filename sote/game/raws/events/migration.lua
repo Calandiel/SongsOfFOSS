@@ -8,7 +8,7 @@ local Event             = require "game.raws.events"
 local event_utils       = require "game.raws.events._utils"
 
 
-local AI_VALUE          = require "game.raws.values.ai_preferences"
+local AI_VALUE          = require "game.raws.values.ai"
 
 local pv                = require "game.raws.values.politics"
 local diplomacy_events  = require "game.raws.effects.diplomacy"
@@ -34,7 +34,7 @@ function load()
 		name = "migration-merge",
 		automatic = false,
 		on_trigger = function(self, root, associated_data)
-			root.busy = false
+			UNSET_BUSY(root)
 
 			---@type MigrationData
 			associated_data = associated_data
@@ -179,7 +179,7 @@ function load()
 		name = "migration-colonize",
 		automatic = false,
 		on_trigger = function(self, root, associated_data)
-			root.busy = false
+			UNSET_BUSY(root)
 
 			---@type MigrationData
 			associated_data = associated_data
@@ -215,7 +215,7 @@ function load()
 				return family_units, family_count
 			end
 			-- move up to 6 but no more than half the home family units
-			local valid_family_units, _ = valid_home_family_units(root.realm.capitol)
+			local valid_family_units, _ = valid_home_family_units(CAPITOL(REALM(root)))
 			local candidates = 0
 
 			for _, pop in pairs(valid_family_units) do
@@ -803,7 +803,7 @@ function load()
 			local migration_data = {
 				organizer = root,
 				target_province = target,
-				origin_province = root.realm.capitol,
+				origin_province = CAPITOL(REALM(root)),
 				invasion = true
 			}
 

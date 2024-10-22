@@ -96,7 +96,7 @@ local function load()
 			if random_realm_province ~= INVALID_ID then
 				-- Once you target a province, try selecting a random neighbor
 				local neighbor_province = province_utils.get_random_neighbor(random_realm_province)
-				if neighbor_province ~= INVALID_ID then
+				if neighbor_province ~= nil then
 					if not dt.province_controlled_by(neighbor_province, realm) then
 						return pv.province_leader(neighbor_province), true
 					end
@@ -106,10 +106,10 @@ local function load()
 			-- if that still fails, try targetting a random tributaries neighbor
 
 			local random_tributary = diplomacy_values.sample_tributary(realm)
-			if random_tributary ~= INVALID_ID then
+			if random_tributary ~= nil then
 				local random_tributary_province = DATA.realm_get_capitol(random_tributary)
 				local neighbor_province = province_utils.get_random_neighbor(random_tributary_province)
-				if neighbor_province ~= INVALID_ID then
+				if neighbor_province ~= nil then
 					if not dt.province_controlled_by(neighbor_province, realm) then
 						return pv.province_leader(neighbor_province), true
 					end
@@ -129,7 +129,7 @@ local function load()
 			local base = 0
 			local multiplier = 1
 
-			for i = 0, DATA,MAX_TRAIT_INDEX do
+			for i = 0, MAX_TRAIT_INDEX do
 				local trait = DATA.pop_get_traits(root, i)
 				if trait == TRAIT.INVALID then
 					break
@@ -391,7 +391,11 @@ local function load()
 			local realm = REALM(root)
 			local capitol = DATA.realm_get_capitol(realm)
 			local neighbors = DATA.filter_array_province_neighborhood_from_origin(capitol, ACCEPT_ALL)
-			return DATA.province_neighborhood_get_target(tabb.random_select_from_array(neighbors)), true
+			local neighbor = tabb.random_select_from_array(neighbors)
+			if neighbor == nil then
+				return nil, false
+			end
+			return DATA.province_neighborhood_get_target(neighbor), true
 		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
@@ -751,7 +755,7 @@ local function load()
 
 			-- trait based variance
 
-			for i = 0, DATA,MAX_TRAIT_INDEX do
+			for i = 0, MAX_TRAIT_INDEX do
 				local trait = DATA.pop_get_traits(root, i)
 				if trait == TRAIT.INVALID then
 					break

@@ -1,9 +1,16 @@
 local tabb = require "engine.table"
+
 local pop_utils = require "game.entities.pop".POP
+local realm_utils = require "game.entities.realm".Realm
+
+local diplomacy_triggers = require "game.raws.triggers.diplomacy"
+
 local pv = require "game.raws.values.politics"
 local ev = require "game.raws.values.economy"
 local demography_values = require "game.raws.values.demography"
 local character_values = require "game.raws.values.character"
+local diplomacy_values = require "game.raws.values.diplomacy"
+
 
 local AiPreferences = {}
 
@@ -33,7 +40,7 @@ end
 ---@param character Character
 function AiPreferences.money_utility(character)
 	local base = 0.1
-	if pop_utils.has_trait(character, TRAIT.GREEDY) then
+	if HAS_TRAIT(character, TRAIT.GREEDY) then
 		base = 1
 	end
 	return base / AiPreferences.percieved_inflation(character)
@@ -125,7 +132,7 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 			base_value = base_value + DATA.pop_get_culture(character).culture_group.view_on_treason
 		end
 
-		if flags.treason and pop_utils.has_trait(character, TRAIT.LOYAL) then
+		if flags.treason and HAS_TRAIT(character, TRAIT.LOYAL) then
 			base_value = base_value - 100
 		end
 
@@ -133,7 +140,7 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 			base_value = base_value - 10
 		end
 
-		if flags.submission and pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
+		if flags.submission and HAS_TRAIT(character, TRAIT.AMBITIOUS) then
 			base_value = base_value - 50
 		end
 
@@ -141,11 +148,11 @@ function AiPreferences.generic_event_option_untargeted(character, income, flags)
 			base_value = base_value + 100 * character_values.ambition_score(character)
 		end
 
-		if flags.work and pop_utils.has_trait(character, TRAIT.LAZY) then
+		if flags.work and HAS_TRAIT(character, TRAIT.LAZY) then
 			base_value = base_value - 20
 		end
 
-		if flags.work and pop_utils.has_trait(character, TRAIT.HARDWORKER) then
+		if flags.work and HAS_TRAIT(character, TRAIT.HARDWORKER) then
 			base_value = base_value + 20
 		end
 
@@ -185,13 +192,13 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 			base_value = base_value + DATA.pop_get_culture(character).culture_group.view_on_treason
 		end
 
-		if flags.treason and pop_utils.has_trait(character, TRAIT.LOYAL) then
+		if flags.treason and HAS_TRAIT(character, TRAIT.LOYAL) then
 			base_value = base_value - 100
 		end
 
 		if flags.help and LOYAL_TO(character) == associated_data then
 			base_value = base_value + 10
-			if pop_utils.has_trait(character, TRAIT.LOYAL) then
+			if HAS_TRAIT(character, TRAIT.LOYAL) then
 				---@type number
 				base_value = base_value + 10
 			end
@@ -201,7 +208,7 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 			base_value = base_value - 10
 		end
 
-		if flags.submission and pop_utils.has_trait(character, TRAIT.AMBITIOUS) then
+		if flags.submission and HAS_TRAIT(character, TRAIT.AMBITIOUS) then
 			base_value = base_value - 50
 		end
 
@@ -209,11 +216,11 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 			base_value = base_value + 100 * character_values.ambition_score(character)
 		end
 
-		if flags.work and pop_utils.has_trait(character, TRAIT.LAZY) then
+		if flags.work and HAS_TRAIT(character, TRAIT.LAZY) then
 			base_value = base_value - 20
 		end
 
-		if flags.work and pop_utils.has_trait(character, TRAIT.HARDWORKER) then
+		if flags.work and HAS_TRAIT(character, TRAIT.HARDWORKER) then
 			base_value = base_value + 20
 		end
 
@@ -229,11 +236,13 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 	end
 end
 
-function AiPreferences.sample_random_canidate(root)
+---commenting
+---@param root Character
+function AiPreferences.sample_random_candidate(root)
 	local p = PROVINCE(root)
 	assert(p ~= INVALID_ID)
 	local candidate = demography_values.sample_character_from_province(p)
-	if candidate == INVALID_ID then
+	if candidate == nil then
 		return nil, false
 	end
 	return candidate, true
@@ -244,7 +253,7 @@ function AiPreferences.condition_to_sampler(condition)
 		local p = PROVINCE(root)
 		assert(p ~= INVALID_ID)
 		local candidate = demography_values.sample_character_from_province(p)
-		if candidate == INVALID_ID then
+		if candidate == nil then
 			return nil, false
 		end
 		if condition(candidate) then
@@ -252,6 +261,40 @@ function AiPreferences.condition_to_sampler(condition)
 		end
 		return nil, false
 	end
+end
+
+---commenting
+---@param root Character
+---@return Province|nil
+function AiPreferences.sample_raiding_target(root)
+	---@type Province[]
+	local targets = {}
+
+	for _, province in pairs(DATA.realm_get_known_provinces(REALM(root))) do
+		if PROVINCE_REALM(province) == INVALID_ID then
+			goto continue
+		end
+
+		if diplomacy_triggers.pays_tribute_to(REALM(root), PROVINCE_REALM(province)) then
+			goto continue
+		end
+
+		if diplomacy_triggers.pays_tribute_to(PROVINCE_REALM(province), REALM(root)) then
+			goto continue
+		end
+
+		if realm_utils.neighbors_realm(REALM(root), PROVINCE_REALM(province)) then
+			table.insert(targets, province)
+		end
+
+		::continue::
+	end
+
+	for province, reward in pairs(DATA.realm_get_quests_raid(REALM(root))) do
+		table.insert(targets, province)
+	end
+
+	return tabb.random_select_from_array(targets)
 end
 
 return AiPreferences

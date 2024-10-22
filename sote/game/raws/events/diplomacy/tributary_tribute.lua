@@ -42,7 +42,7 @@ return function()
 			---@type TributeCollection
 			associated_data = associated_data
 			economic_effects.return_tribute_home(root, associated_data.origin, associated_data.tribute)
-			root.busy = false
+			UNSET_BUSY(root)
 		end,
 	}
 end

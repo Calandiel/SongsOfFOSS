@@ -37,7 +37,7 @@ end
 
 ---comment
 ---@param province province_id
----@return province_id
+---@return province_id|nil
 function prov.Province.get_random_neighbor(province)
 	local neighbors = DATA.get_province_neighborhood_from_origin(province)
 	local s = tabb.size(neighbors)
@@ -46,7 +46,7 @@ function prov.Province.get_random_neighbor(province)
 		local neighbor = DATA.province_neighborhood_get_target(random_neigh)
 		return neighbor
 	else
-		return INVALID_ID
+		return nil
 	end
 end
 

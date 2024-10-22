@@ -3,7 +3,7 @@ AMBITIOUS;1;0.05;0;0;0.2;ambitious;TODO;mountaintop.png
 CONTENT;-0.5;0;0;0;-0.1;content;This person has no ambitions: it would be hard to persuade them to change occupation;inner-self.png
 LOYAL;-0.02;0;0;0;0;loyal;This person rarely betrays people;check-mark.png
 GREEDY;0;0.5;0;0;0;greedy;Desire for money drives this person's actions;receive-money.png
-WARLIKE;0.1;0;0;1;1;warlike;TODO;barbute.png
+WARLIKE;0.1;0;0;0;1;warlike;TODO;barbute.png
 BAD_ORGANISER;0;0;-0.2;0;0;bad organiser;TODO;shrug.png
 GOOD_ORGANISER;0.01;0;0.2;0;0;good organiser;TODO;pitchfork.png
 LAZY;-0.5;0;-0.1;0;-0.1;lazy;This person prefers to do nothing;parmecia.png

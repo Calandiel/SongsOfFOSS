@@ -284,16 +284,11 @@ function rtab.POP.add_trait(pop, trait)
 	end
 end
 
----adds new trait to character
+---checks trait of character
 ---@param pop pop_id
 ---@param trait TRAIT
 function rtab.POP.has_trait(pop, trait)
-	for i = 0, MAX_TRAIT_INDEX  do
-		if DATA.pop_get_traits(pop, i) == trait then
-			return true
-		end
-	end
-	return false
+	return HAS_TRAIT(pop, trait)
 end
 
 return rtab

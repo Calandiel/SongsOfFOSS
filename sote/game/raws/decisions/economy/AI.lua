@@ -25,7 +25,7 @@ return function ()
 			if DATA.pop_get_savings(root) < 5 then
 				return false
 			end
-			if not pop_utils.has_trait(root, TRAIT.TRADER) then
+			if not HAS_TRAIT(root, TRAIT.TRADER) then
 				return false
 			end
 			return true
@@ -41,7 +41,7 @@ return function ()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if pop_utils.has_trait(root, TRAIT.TRADER) then
+			if HAS_TRAIT(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0
@@ -69,7 +69,7 @@ return function ()
 			if WORLD:is_player(root) then
 				return false
 			end
-			if not pop_utils.has_trait(root, TRAIT.TRADER) then
+			if not HAS_TRAIT(root, TRAIT.TRADER) then
 				return false
 			end
 			return true
@@ -85,7 +85,7 @@ return function ()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if pop_utils.has_trait(root, TRAIT.TRADER) then
+			if HAS_TRAIT(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0
@@ -118,7 +118,7 @@ return function ()
 			if WORLD:is_player(root) then
 				return false
 			end
-			if not pop_utils.has_trait(root, TRAIT.TRADER) then
+			if not HAS_TRAIT(root, TRAIT.TRADER) then
 				return false
 			end
 			return true
@@ -134,7 +134,7 @@ return function ()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if pop_utils.has_trait(root, TRAIT.TRADER) then
+			if HAS_TRAIT(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0

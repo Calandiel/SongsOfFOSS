@@ -1,6 +1,6 @@
 local Event = require "game.raws.events"
 local text = require "game.raws.events._localisation"
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 local economic_effects = require "game.raws.effects.economy"
 local political_effects = require "game.raws.effects.politics"

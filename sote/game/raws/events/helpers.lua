@@ -26,7 +26,7 @@ return function ()
 			return "INVALID_TARGET"
 		end,
 		function (root, associated_data)
-			root.busy = false
+			UNSET_BUSY(root)
 		end
 	)
 end

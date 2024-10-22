@@ -120,6 +120,12 @@ function BUSY(pop_id)
 end
 
 ---@param pop_id pop_id
+---@return number
+function AGE(pop_id)
+	return DATA.pop_get_age(pop_id)
+end
+
+---@param pop_id pop_id
 function SET_BUSY(pop_id)
 	DATA.pop_set_busy(pop_id, true)
 end
@@ -149,6 +155,28 @@ function LEADER(realm)
 		return INVALID_ID
 	end
 	return DATA.realm_leadership_get_leader(leadership)
+end
+
+---commenting
+---@param warband warband_id
+---@return pop_id
+function WARBAND_LEADER(warband)
+	local leadership = DATA.get_warband_leader_from_warband(warband)
+	if leadership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.warband_leader_get_leader(leadership)
+end
+
+---commenting
+---@param warband warband_id
+---@return pop_id
+function WARBAND_COMMANDER(warband)
+	local leadership = DATA.get_warband_commander_from_warband(warband)
+	if leadership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.warband_commander_get_leader(leadership)
 end
 
 ---commenting
@@ -193,6 +221,17 @@ function RECRUITER_OF_WARBAND(leader)
 		return INVALID_ID
 	end
 	return DATA.warband_recruiter_get_warband(leadership)
+end
+
+---commenting
+---@param unit pop_id
+---@return warband_id
+function UNIT_OF(unit)
+	local unitship = DATA.get_warband_unit_from_unit(unit)
+	if unitship == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.warband_unit_get_warband(unitship)
 end
 
 ---@param pop_id pop_id
@@ -241,6 +280,24 @@ end
 ---@return race_id
 function RACE(pop_id)
 	return DATA.pop_get_race(pop_id)
+end
+
+---@param pop_id pop_id
+---@return fat_race_id
+function F_RACE(pop_id)
+	return DATA.fatten_race(RACE(pop_id))
+end
+
+---checks trait of character
+---@param pop pop_id
+---@param trait TRAIT
+function HAS_TRAIT(pop, trait)
+	for i = 0, MAX_TRAIT_INDEX  do
+		if DATA.pop_get_traits(pop, i) == trait then
+			return true
+		end
+	end
+	return false
 end
 
 --- update these values when you change description in according generator descriptors

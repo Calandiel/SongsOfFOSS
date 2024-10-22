@@ -1,10 +1,12 @@
 local ut = require "game.ui-utils"
 
+local warband_utils = require "game.entities.warband"
+
 local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ge = require "game.raws.effects.generic"
 
-local ee = require "game.raws.effects.economy"
+local economy_effects = require "game.raws.effects.economy"
 local ev = require "game.raws.values.economy"
 local et = require "game.raws.triggers.economy"
 
@@ -20,10 +22,10 @@ local function load()
         on_trigger = function (self, root, associated_data)
             ---@type TravelData
             associated_data = associated_data
-            local party = root.leading_warband
-            assert(party ~= nil)
-            party.status = "travelling"
-            party:consume_supplies(associated_data.travel_time)
+            local party = LEADER_OF_WARBAND(root)
+            assert(party ~= INVALID_ID)
+            DATA.warband_set_status(party, WARBAND_STATUS.TRAVELLING)
+            economy_effects.consume_supplies(party, associated_data.travel_time)
             WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
         end
     }
@@ -44,9 +46,9 @@ local function load()
             end
 
             local text =
-                "We plan to " .. action .. " toward " .. associated_data.destination.name .. ". " ..
+                "We plan to " .. action .. " toward " .. PROVINCE_NAME(associated_data.destination) .. ". " ..
                 "We will spend " .. ut.to_fixed_point2(associated_data.travel_time) .. " days. " ..
-                "We have enough supplies to travel for " .. ut.to_fixed_point2(root.leading_warband:days_of_travel()) .. " days."
+                "We have enough supplies to travel for " .. ut.to_fixed_point2(warband_utils.days_of_travel(LEADER_OF_WARBAND(root))) .. " days."
 
             return text
         end,
@@ -96,10 +98,10 @@ local function load()
 
             ge.travel(root, associated_data)
 
-            if root.leading_warband then
+            if LEADER_OF_WARBAND(root) ~= INVALID_ID then
                 root.leading_warband.status = "idle"
             end
-            root.busy = false
+            UNSET_BUSY(root)
 
             if root == WORLD.player_character and OPTIONS["travel-end"] == 0 then
                 WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
@@ -161,7 +163,7 @@ local function load()
                 local bought_amount = math.max(
                     1,
                     (math.floor(
-                        root.savings * 0.25
+                        SAVINGS(root) * 0.25
                         / (known_price + 0.01)
                         * math.random()
                     ))
@@ -176,7 +178,7 @@ local function load()
                         tooltip = "Ai_pref " .. (known_price - price - 0.05) / (known_price + 0.05),
                         viable = function() return true end,
                         outcome = function()
-                            ee.buy(root, trade_good, bought_amount)
+                            economy_effects.buy(root, trade_good, bought_amount)
                         end,
                         ai_preference = function()
                             return (known_price - price - 0.05) / (known_price + 0.05)
@@ -248,7 +250,7 @@ local function load()
                 local good_reserve = 0
 
                 local weight = DATA.get_use_weight(trade_good, CALORIES_USE_CASE)
-                if root.leading_warband and weight then
+                if LEADER_OF_WARBAND(root) ~= INVALID_ID and weight then
                     good_reserve = root.leading_warband:daily_supply_consumption() * 60 / DATA.use_weight_get_weight(weight)
                 end
 
@@ -265,7 +267,7 @@ local function load()
                         tooltip = "AI_pref: " .. (price - known_price) / (known_price + 0.05) * desire_to_get_rid_of_goods - 0.02,
                         viable = function() return true end,
                         outcome = function()
-                            ee.sell(root, trade_good, sold_amount)
+                            economy_effects.sell(root, trade_good, sold_amount)
                         end,
                         ai_preference = function()
                             return (price - known_price) / (known_price + 0.05) * desire_to_get_rid_of_goods - 0.05

@@ -146,9 +146,14 @@ end
 ---Given an array of objects, return a randomly selected value according to uniform distribution
 ---@generic V
 ---@param items V[]
----@return V
+---@return V|nil
 function tab.random_select_from_array(items)
 	local size = #items
+
+	if size == 0 then
+		return nil
+	end
+
 	return items[love.math.random(size)]
 end
 

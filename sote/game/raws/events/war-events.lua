@@ -1,6 +1,6 @@
 local uit = require "game.ui-utils"
 local Event = require "game.raws.events"
-local AiPreferences = require "game.raws.values.ai_preferences"
+local AiPreferences = require "game.raws.values.ai"
 
 local function load()
 
@@ -67,7 +67,7 @@ local function load()
                             base = base + capacity * 8 + 12 * unit.upkeep * AiPreferences.money_utility(root)
                         end
                         -- aggressive characters care more about combat stats
-                        if root.traits[TRAIT.WARLIKE] then
+                        if HAS_TRAIT(root, TRAIT.WARLIKE) then
                             base = base + health + attack + armor
                         end
                         -- weight by unit cultural preference or 1%

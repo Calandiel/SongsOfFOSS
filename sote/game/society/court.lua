@@ -1,6 +1,6 @@
 local tabb = require "engine.table"
 
-local values = require "game.raws.values.ai_preferences"
+local values = require "game.raws.values.ai"
 local ef = require "game.raws.effects.economy"
 local pe = require "game.raws.effects.politics"
 local province_utils = require "game.entities.province".Province

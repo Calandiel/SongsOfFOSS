@@ -13,7 +13,7 @@ function values.sample_tributary(realm)
 	local tributaries = DATA.filter_array_realm_subject_relation_from_overlord(realm, ACCEPT_ALL)
 	local count = #tributaries
 	if count == 0 then
-		return INVALID_ID
+		return nil
 	end
 	return tributaries[love.math.random(count)]
 end

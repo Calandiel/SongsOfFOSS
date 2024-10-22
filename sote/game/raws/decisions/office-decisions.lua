@@ -13,7 +13,7 @@ local ot = require "game.raws.triggers.offices"
 local demography_values = require "game.raws.values.demography"
 local office_values = require "game.raws.values.office"
 local character_values = require "game.raws.values.character"
-local ai = require "game.raws.values.ai_preferences"
+local ai = require "game.raws.values.ai"
 
 local office_effects = require "game.raws.effects.office"
 
@@ -71,7 +71,7 @@ local function load()
 			end
 			return score_difference
 		end,
-		ai.sample_random_canidate
+		ai.sample_random_candidate
 	)
 
 	Decision.Character:new {
@@ -133,11 +133,11 @@ local function load()
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if not ot.designates_offices(root, primary_target.province) then return false end
+			if not ot.designates_offices(root, PROVINCE(primary_target)) then return false end
 			if not ot.valid_tribute_collector_candidate(primary_target, REALM(root))   then return false end
 			return true
 		end,
-		ai.sample_random_canidate,
+		ai.sample_random_candidate,
 		ai_will_do = function(root, primary_target, secondary_target)
 			local loyalty_multiplier = 1
 			if primary_target.loyalty == root then
@@ -252,7 +252,7 @@ local function load()
 			local local_realm = LOCAL_REALM(root)
 			local candidate = demography_values.sample_character_from_province(province)
 
-			if candidate ~= INVALID_ID then
+			if candidate ~= nil then
 				if ot.valid_guard_leader(candidate, local_realm) then
 					return candidate, true
 				end

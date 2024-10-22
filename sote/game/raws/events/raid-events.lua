@@ -9,7 +9,7 @@ local ev = require "game.raws.values.economy"
 local ut = require "game.ui-utils"
 
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 local pv = require "game.raws.values.politics"
 local de = require "game.raws.effects.diplomacy"
@@ -330,7 +330,7 @@ local function load()
 			messages.tribute_raid_success(realm, army.destination.realm)
 			WORLD:emit_event('request-tribute-army-returns-success-notification', root, army)
 
-			root.busy = false
+			UNSET_BUSY(root)
 		end,
 	}
 
@@ -371,7 +371,7 @@ local function load()
 			pe.small_popularity_decrease(realm.leader, realm)
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
-			root.busy = false
+			UNSET_BUSY(root)
 		end,
 	}
 

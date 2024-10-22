@@ -9,7 +9,7 @@ local economy_values = require "game.raws.values.economy"
 local economy_effects = require "game.raws.effects.economy"
 local economy_triggers = require "game.raws.triggers.economy"
 local localisation = require "game.raws.events._localisation"
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 
 

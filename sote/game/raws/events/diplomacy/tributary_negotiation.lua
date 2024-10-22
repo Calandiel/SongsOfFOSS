@@ -7,7 +7,7 @@ local diplomacy_effects = require "game.raws.effects.diplomacy"
 local political_values = require "game.raws.values.politics"
 local economy_values = require "game.raws.values.economy"
 local localisation = require "game.raws.events._localisation"
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 return function ()
 

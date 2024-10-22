@@ -3,7 +3,7 @@ local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local E_ut = require "game.raws.events._utils"
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 local political_effects = require "game.raws.effects.politics"
 

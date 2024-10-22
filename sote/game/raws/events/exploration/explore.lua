@@ -12,7 +12,7 @@ local political_values = require "game.raws.values.politics"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 return function()
 	Event:new {
@@ -353,7 +353,7 @@ return function()
 
 			political_effects.medium_popularity_boost(root, root.realm)
 			root.realm:explore(root.province)
-			root.busy = false
+			UNSET_BUSY(root)
 			root.leading_warband.current_free_time_ratio = 1.0
 		end,
 	}
