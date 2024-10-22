@@ -122,7 +122,7 @@ function text.request_tribute(self, character, associated_data)
 
 	local name = associated_data.name
 	local temp = "him"
-	if associated_data.female then
+	if DATA.pop_get_female(associated_data) then
 		temp = "her"
 	end
 
@@ -347,7 +347,7 @@ end
 ---@param negotiation_data NegotiationData
 ---@return string
 function text.target_accepts(self, character, negotiation_data)
-	return character.name .. " accepted our offer"
+	return NAME(character) .. " accepted our offer"
 end
 
 function text.negotiation_back_down(self, character, negotiation_data)
@@ -359,7 +359,7 @@ end
 ---@param negotiation_data NegotiationData
 ---@return string
 function text.target_declines(self, character, negotiation_data)
-	return character.name .. " declined our offer"
+	return NAME(character) .. " declined our offer"
 end
 
 

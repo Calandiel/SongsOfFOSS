@@ -174,7 +174,7 @@ local function load()
 
 			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
-			local their_warlords, their_power = pv.military_strength(target_realm.leader)
+			local their_warlords, their_power = pv.military_strength(LEADER(target_realm))
 
 			return {
 				{
@@ -187,7 +187,7 @@ local function load()
 						local army = me.gather_loyal_army_attack(character)
 						if army == nil then
 							if character == WORLD.player_character then
-								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
+								WORLD:emit_notification("I had launched the invasion of " .. REALM_NAME(target_realm))
 							end
 						else
 							local function callback(army, travel_time)
@@ -195,7 +195,7 @@ local function load()
 								local data = {
 									raider = character,
 									origin = realm,
-									target = target_realm.capitol,
+									target = CAPITOL(target_realm),
 									travel_time = travel_time,
 									army = army
 								}
@@ -203,16 +203,16 @@ local function load()
 								WORLD:emit_action('request-tribute-attack', character, data, travel_time, true)
 							end
 
-							me.send_army(army, character.province, target_realm.capitol, callback)
+							me.send_army(army, character.province, CAPITOL(target_realm), callback)
 
 							if character == WORLD.player_character then
-								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
+								WORLD:emit_notification("I had launched the invasion of " .. REALM_NAME(target_realm))
 							end
 						end
 					end,
 
 					ai_preference = function()
-						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+						local base_value = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {
 							aggression = true,
 						})()
 
@@ -236,7 +236,7 @@ local function load()
 						WORLD:emit_event('request-tribute-raid', character, target_realm, 10)
 					end,
 					ai_preference = function()
-						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+						local base_value = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {
 							aggression = true,
 						})()
 
@@ -251,11 +251,11 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I decided to not attack " .. target_realm.leader.name)
+							WORLD:emit_notification("I decided to not attack " .. NAME(LEADER(target_realm)))
 						end
-						character.busy = false
+						UNSET_BUSY(character)
 					end,
-					ai_preference = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {})
+					ai_preference = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {})
 				}
 			}
 		end

@@ -16,8 +16,8 @@ function ev.draw(gam)
 		local dat = peek[3]
 
 		-- print(event_string)
-		-- print(character.name)
-		-- print(WORLD.player_character.name)
+		-- print(NAME(character))
+		-- print(WORLD.player_NAME(character))
 
 		if WORLD.player_character == character then
 			local fs = ui.fullscreen()

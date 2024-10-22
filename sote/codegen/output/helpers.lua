@@ -6,6 +6,12 @@ function IS_CHARACTER(pop_id)
 	return DATA.pop_get_rank(pop_id) ~= CHARACTER_RANK.POP
 end
 
+---@param pop_id pop_id
+function DEAD(pop_id)
+	return DATA.pop_get_dead(pop_id)
+end
+
+
 ---@class world_tile_id : number
 ---@field is_world_tile_id nil
 
@@ -280,6 +286,13 @@ end
 ---@return race_id
 function RACE(pop_id)
 	return DATA.pop_get_race(pop_id)
+end
+
+---commenting
+---@param pop_id pop_id
+---@return Culture
+function CULTURE(pop_id)
+	return DATA.pop_get_culture(pop_id)
 end
 
 ---@param pop_id pop_id

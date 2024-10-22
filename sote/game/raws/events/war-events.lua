@@ -2,6 +2,9 @@ local uit = require "game.ui-utils"
 local Event = require "game.raws.events"
 local AiPreferences = require "game.raws.values.ai"
 
+local pop_utils = require "game.entities.pop".POP
+local warband_utils = require "game.entities.warband"
+
 local function load()
 
     Event:new {
@@ -14,9 +17,9 @@ local function load()
         ---@param associated_data Warband
         options = function(self, root, associated_data)
             local options_list = {}
-            local province = root.province
+            local province = PROVINCE(root)
 
-            if province == nil then
+            if province == INVALID_ID then
                 return {
                     {
                         text = "Something is wrong",
@@ -32,46 +35,50 @@ local function load()
             end
 
             -- get all unit types
-            ---@type table<UnitType, UnitType>
-            local unit_types = {}
+            ---@type table<unit_type_id, unit_type_id>
+            local unlocked_unit_types = {}
 
-            for _, unit in pairs(province.unit_types) do
-                unit_types[unit] = unit
-            end
+            DATA.for_each_unit_type(function (item)
+                if DATA.province_get_unit_types(province, item) then
+                    unlocked_unit_types[item] = item
+                end
+            end)
 
-            for _, unit in pairs(associated_data.units) do
-                unit_types[unit] = unit
-            end
+            for _, unit in pairs(unlocked_unit_types) do
 
-            for _, unit in pairs(unit_types) do
-                local health, attack, armor, speed = root:get_strength(unit)
-                local spotting, visibility, supply, capacity = root:get_spotting(unit), root:get_visibility(unit), root:get_supply_use(unit), root:get_supply_capacity(unit)
+                local health, attack, armor, speed = pop_utils.get_strength(root, unit)
+                local spotting = pop_utils.get_spotting(root, unit)
+                local visibility = pop_utils.get_visibility(root, unit)
+                local supply = pop_utils.get_supply_use(root, unit)
+                local capacity = pop_utils.get_supply_capacity(root, unit)
+
+                local fat = DATA.fatten_unit_type(unit)
 
                 ---@type EventOption
                 local option = {
-                    text =  unit.name .. " (" .. uit.to_fixed_point2(unit.base_price) .. MONEY_SYMBOL .. ")",
-                    tooltip = "Price: " .. uit.to_fixed_point2(unit.base_price) .. MONEY_SYMBOL .. " (" .. uit.to_fixed_point2(unit.upkeep) .. MONEY_SYMBOL .. ")\n"
+                    text =  fat.name .. " (" .. uit.to_fixed_point2(fat.base_price) .. MONEY_SYMBOL .. ")",
+                    tooltip = "Price: " .. uit.to_fixed_point2(fat.base_price) .. MONEY_SYMBOL .. " (" .. uit.to_fixed_point2(fat.upkeep) .. MONEY_SYMBOL .. ")\n"
                         .. "Health: " .. uit.to_fixed_point2(health) .. " Attack: " .. uit.to_fixed_point2(attack)
                         .. " Armor: " .. uit.to_fixed_point2(armor) .. " Speed: " .. uit.to_fixed_point2(speed)
                         .. "\nSpotting: " .. uit.to_fixed_point2(spotting) .. " Visibility: " .. uit.to_fixed_point2(visibility)
                         .. " Travel cost: " .. uit.to_fixed_point2(supply) .. " Hauling capacity: " .. uit.to_fixed_point2(capacity),
                     viable = function() return true end,
                     outcome = function()
-                        associated_data:set_commander(root, unit)
+                        warband_utils.set_commander(associated_data, root, unit)
                     end,
                     ai_preference = function()
                         -- TODO FIGURE OUT BETTER WEIGHTING THE FOLLOWING IS A PLACEHOLDER
                         local base = health + attack + armor + speed + spotting + visibility + supply + capacity
                         -- greedy characters care more about upkeep cost (payment) and loot capacity
-                        if root.traits[TRAIT.GREEDY] then
-                            base = base + capacity * 8 + 12 * unit.upkeep * AiPreferences.money_utility(root)
+                        if HAS_TRAIT(root, TRAIT.GREEDY) then
+                            base = base + capacity * 8 + 12 * fat.upkeep * AiPreferences.money_utility(root)
                         end
                         -- aggressive characters care more about combat stats
                         if HAS_TRAIT(root, TRAIT.WARLIKE) then
                             base = base + health + attack + armor
                         end
                         -- weight by unit cultural preference or 1%
-                        local weight = root.culture.traditional_units[unit] or 0.01
+                        local weight = DATA.pop_get_culture(root).traditional_units[unit] or 0.01
                         return base * weight
                     end
                 }
@@ -94,6 +101,7 @@ local function load()
 
     }
 
+    --[[
 	Event:new {
 		name = "war-declaration",
 		event_background_path = "data/gfx/backgrounds/background.png",
@@ -101,7 +109,7 @@ local function load()
 		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
 			---@type Realm
-			local realm = root.province.realm
+			local realm = LOCAL_REALM(root)
 			---@type Realm
 			local agg = associated_data.aggresor
 			if WORLD:does_player_see_realm_news(realm) then
@@ -109,7 +117,7 @@ local function load()
 			end
 		end,
 	}
-
+    --]]
 end
 
 return load

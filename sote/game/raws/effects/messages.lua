@@ -67,7 +67,7 @@ function messages.successor_set(character, successor)
 	end
 
 	WORLD:emit_notification(
-		successor.name .. " was chosen as the successor of " .. character.name .. "."
+		successor.name .. " was chosen as the successor of " .. NAME(character) .. "."
 	)
 end
 

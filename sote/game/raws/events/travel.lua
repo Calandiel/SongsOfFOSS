@@ -7,7 +7,7 @@ local event_utils = require "game.raws.events._utils"
 local ge = require "game.raws.effects.generic"
 
 local economy_effects = require "game.raws.effects.economy"
-local ev = require "game.raws.values.economy"
+local economy_values = require "game.raws.values.economy"
 local et = require "game.raws.triggers.economy"
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
@@ -48,7 +48,7 @@ local function load()
             local text =
                 "We plan to " .. action .. " toward " .. PROVINCE_NAME(associated_data.destination) .. ". " ..
                 "We will spend " .. ut.to_fixed_point2(associated_data.travel_time) .. " days. " ..
-                "We have enough supplies to travel for " .. ut.to_fixed_point2(warband_utils.days_of_travel(LEADER_OF_WARBAND(root))) .. " days."
+                "We have enough supplies to travel for " .. ut.to_fixed_point2(economy_values.days_of_travel(LEADER_OF_WARBAND(root))) .. " days."
 
             return text
         end,
@@ -65,10 +65,10 @@ local function load()
                     return 1
                 end,
                 outcome = function ()
-                    local party = root.leading_warband
-                    assert(party ~= nil)
-                    party.status = "travelling"
-                    party:consume_supplies(associated_data.travel_time)
+                    local party = LEADER_OF_WARBAND(root)
+                    assert(party ~= INVALID_ID)
+                    DATA.warband_set_status(party, WARBAND_STATUS.TRAVELLING)
+                    economy_effects.consume_supplies(party, associated_data.travel_time)
                     WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
                 end,
                 viable =function ()
@@ -92,14 +92,14 @@ local function load()
 			---@type Province
 			associated_data = associated_data
 
-            if root.dead then
+            if DEAD(root) then
                 return
             end
 
             ge.travel(root, associated_data)
 
             if LEADER_OF_WARBAND(root) ~= INVALID_ID then
-                root.leading_warband.status = "idle"
+                DATA.setup_warband_status(LEADER_OF_WARBAND(root), WARBAND_STATUS.IDLE)
             end
             UNSET_BUSY(root)
 
@@ -118,9 +118,9 @@ local function load()
         function (self, root, data)
             ---@type Province
             data = data
-            return "I have arrived at " .. data.name .. ". "
-                .. "This land is controlled by people of " .. data.realm.name .. ". "
-                .. data.realm.leader.race.name .. " " .. data.realm.leader.name .. " rules over them."
+            return "I have arrived at " .. PROVINCE_NAME(data) .. ". "
+                .. "This land is controlled by people of " .. REALM_NAME(PROVINCE_REALM(data)) .. ". "
+                .. F_RACE(LEADER(PROVINCE_REALM(data))).name .. " " .. NAME(LEADER(PROVINCE_REALM(data))) .. " rules over them."
         end,
         function (root, data)
             return "Finally!"
@@ -139,7 +139,7 @@ local function load()
 
         options = function(self, root, associated_data)
             local options_list = {}
-            local province = root.province
+            local province = PROVINCE(root)
 
             if province == nil then
                 return {
@@ -156,9 +156,9 @@ local function load()
                 }
             end
 
-            function generate_option(trade_good)
-                local price = ev.get_local_price(province, trade_good)
-                local known_price = root.price_memory[trade_good] or price
+            local function generate_option(trade_good)
+                local price = economy_values.get_local_price(province, trade_good)
+                local known_price = DATA.pop_get_price_memory(root, trade_good)
 
                 local bought_amount = math.max(
                     1,
@@ -213,7 +213,7 @@ local function load()
 
         options = function(self, root, associated_data)
             local options_list = {}
-            local province = root.province
+            local province = PROVINCE(root)
 
             if province == nil then
                 return {
@@ -231,10 +231,10 @@ local function load()
             end
 
             local function generate_option(trade_good)
-                local price = ev.get_pessimistic_local_price(province, trade_good, 1, true)
-                local known_price = root.price_memory[trade_good] or price
+                local price = economy_values.get_pessimistic_local_price(province, trade_good, 1, true)
+                local known_price = DATA.pop_get_price_memory(root, trade_good)
 
-                local current_amount = root.inventory[trade_good] or 0
+                local current_amount = DATA.pop_get_inventory(root, trade_good)
                 local sold_amount = current_amount
                 local can_sell, _ = et.can_sell(root, trade_good, sold_amount)
 
@@ -249,15 +249,15 @@ local function load()
 
                 local good_reserve = 0
 
-                local weight = DATA.get_use_weight(trade_good, CALORIES_USE_CASE)
-                if LEADER_OF_WARBAND(root) ~= INVALID_ID and weight then
-                    good_reserve = root.leading_warband:daily_supply_consumption() * 60 / DATA.use_weight_get_weight(weight)
+                local weight = USE_WEIGHT[trade_good][CALORIES_USE_CASE]
+                if LEADER_OF_WARBAND(root) ~= INVALID_ID and weight ~= 0 then
+                    good_reserve = warband_utils.daily_supply_consumption(LEADER_OF_WARBAND(root)) * 60 / weight
                 end
 
                 sold_amount = math.max(0, math.min(math.max(1, sold_amount), current_amount - good_reserve))
 
                 can_sell, _ = et.can_sell(root, trade_good, sold_amount)
-                local desire_to_get_rid_of_goods = math.max(1, (root.inventory[trade_good] or 0) / 10)
+                local desire_to_get_rid_of_goods = math.max(1, current_amount / 10)
 
                 if can_sell and sold_amount > 0 then
                     ---@type EventOption

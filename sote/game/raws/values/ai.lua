@@ -182,7 +182,7 @@ function AiPreferences.generic_event_option(character, associated_data, income, 
 		if income + SAVINGS(character) < 0 then
 			return -9999
 		end
-		-- print(character.name)
+		-- print(NAME(character))
 
 		local base_value = income * AiPreferences.money_utility(character)
 

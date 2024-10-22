@@ -16,7 +16,7 @@ local function load()
 
 			local name = associated_data.name
 			local temp = 'his'
-			if associated_data.female then
+			if DATA.pop_get_female(associated_data) then
 				temp = 'her'
 			end
 			return name .. " requested my participation in " .. temp .. " administration. My task would be overseering construction and other public activities. What should I do?"
@@ -52,7 +52,7 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(NAME(character) .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
 							WORLD:emit_notification("I refused to assist " .. associated_data.name)
@@ -103,7 +103,7 @@ local function load()
 
 			local name = associated_data.name
 			local temp = 'his'
-			if associated_data.female then
+			if DATA.pop_get_female(associated_data) then
 				temp = 'her'
 			end
 			return name .. " requested my participation in " .. temp .. " administration. My task would be collection of tribute from our subjects. What is my response?"
@@ -147,7 +147,7 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(NAME(character) .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
 							WORLD:emit_notification("I refused to assist " .. associated_data.name)
@@ -199,7 +199,7 @@ local function load()
 
 			local name = associated_data.name
 			local temp = 'his'
-			if associated_data.female then
+			if DATA.pop_get_female(associated_data) then
 				temp = 'her'
 			end
 			return name .. " requested my participation in " .. temp .. " guard. My task would be patrolling our lands and protecting them from intruders. What should I do?"
@@ -235,7 +235,7 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(NAME(character) .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
 							WORLD:emit_notification("I refused to assist " .. associated_data.name)

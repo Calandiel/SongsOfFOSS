@@ -30,7 +30,7 @@ function window.draw(game)
 
     local realm = game.selected.province.realm
     if realm == nil and player_character then
-        realm = player_character.province.realm
+        realm = LOCAL_REALM(character)
     end
 
     if realm == nil then

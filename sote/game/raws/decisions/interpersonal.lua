@@ -33,7 +33,7 @@ local function load()
 			if primary_target == root then
 				return false
 			end
-			if primary_target.province ~= PROVINCE(root) then
+			if PROVINCE(primary_target) ~= PROVINCE(root) then
 				return false
 			end
 			return true
@@ -69,7 +69,7 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
-			if primary_target.traits[TRAIT.AMBITIOUS] then
+			if HAS_TRAIT(primary_target, TRAIT.AMBITIOUS) then
 				return 0
 			end
 			if HAS_TRAIT(root, TRAIT.CONTENT) then
@@ -132,10 +132,10 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			root = root
-			if primary_target.realm ~= REALM(root)then
+			if REALM(primary_target) ~= REALM(root)then
 				return 0
 			end
-			if primary_target.traits[TRAIT.LAZY] then
+			if HAS_TRAIT(primary_target, TRAIT.LAZY) then
 				return 1/48
 			end
 			return 1/12

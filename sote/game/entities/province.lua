@@ -201,7 +201,7 @@ end
 ---@param character Character
 ---@param target province_id
 function prov.Province.transfer_character(character, target)
-	-- print(character.name, "CHARACTER", self.name, "-->", target.name)
+	-- print(NAME(character), "CHARACTER", self.name, "-->", target.name)
 	-- validate that origin is really an origin
 	local current_location = DATA.get_character_location_from_character(character)
 	DATA.character_location_set_location(current_location, target)

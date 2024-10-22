@@ -25,7 +25,7 @@ return function ()
 						tooltip = "Continue being dead",
 						viable = function() return true end,
 						outcome = function()
-							character.busy = false
+							UNSET_BUSY(character)
 						end,
 						ai_preference = function ()
 							return 1
@@ -56,7 +56,7 @@ return function ()
 						economic_effects.register_income(character.realm, tax * 0.9, ECONOMY_REASON.TAX)
 						economic_effects.add_pop_savings(character, tax * 0.1, ECONOMY_REASON.TAX)
 
-						character.busy = false
+						UNSET_BUSY(character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option_untargeted(character, ai_profit * 0.1, {})
 				},
@@ -76,7 +76,7 @@ return function ()
 						economic_effects.register_income(character.realm, tax / 2 * 0.9, ECONOMY_REASON.TAX)
 						economic_effects.add_pop_savings(character, tax / 2 * 1.1, ECONOMY_REASON.TAX)
 
-						character.busy = false
+						UNSET_BUSY(character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option_untargeted(character, ai_profit * 1.8, {power_abuse = true})
 				}

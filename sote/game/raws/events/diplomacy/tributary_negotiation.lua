@@ -75,7 +75,7 @@ return function ()
 						end
 
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " agreed to pay tribute to my tribe")
+							WORLD:emit_notification(NAME(character) .. " agreed to pay tribute to my tribe")
 						end
 
 						diplomacy_effects.set_tributary(associated_data.realm, character.realm)
@@ -148,7 +148,7 @@ return function ()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to pay tribute to my tribe. Time to teach them a lesson!")
+							WORLD:emit_notification(NAME(character) .. " refused to pay tribute to my tribe. Time to teach them a lesson!")
 						end
 
 						local realm = character.realm

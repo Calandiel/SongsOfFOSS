@@ -59,7 +59,7 @@ local function load()
 				return "Impossible to reach"
 			end
 			local days = pathfinding.hours_to_travel_days(hours)
-			if warband_utils.days_of_travel(warband) < days then
+			if economy_values.days_of_travel(warband) < days then
 				return "Not enough supplies to reach this province."
 			end
 			if status ~= WARBAND_STATUS.IDLE then
@@ -99,7 +99,7 @@ local function load()
 			end
 			local days = pathfinding.hours_to_travel_days(hours)
 
-			if warband_utils.days_of_travel(LEADER_OF_WARBAND(root)) < days then
+			if economy_values.days_of_travel(LEADER_OF_WARBAND(root)) < days then
 				return false
 			end
 
@@ -348,7 +348,7 @@ local function load()
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
 			if LEADER_OF_WARBAND(root) ~= INVALID_ID then
-				if warband_utils.days_of_travel(LEADER_OF_WARBAND(root)) < 15 then
+				if economy_values.days_of_travel(LEADER_OF_WARBAND(root)) < 15 then
 					return 1
 				end
 			end
@@ -393,7 +393,7 @@ local function load()
 				return false
 			end
 
-			if (warband_utils.days_of_travel(LEADER_OF_WARBAND(root)) > 30) then
+			if (economy_values.days_of_travel(LEADER_OF_WARBAND(root)) > 30) then
 				return false
 			end
 
@@ -471,7 +471,7 @@ local function load()
 			end
 
 			if LEADER_OF_WARBAND(root) ~= INVALID_ID then
-				if warband_utils.days_of_travel(LEADER_OF_WARBAND(root)) > 50 then
+				if economy_values.days_of_travel(LEADER_OF_WARBAND(root)) > 50 then
 					return 1
 				end
 			end

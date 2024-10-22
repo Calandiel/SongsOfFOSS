@@ -18,7 +18,7 @@ local dbm              = require "game.economy.diet-breadth-model"
 
 ---@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
 ---@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
----@alias InstantEvent { [1]: string, [2]: POP, [3]: table}
+---@alias InstantEvent { [1]: string, [2]: POP, [3]: table|number}
 ---@alias Notification string
 
 ---@class (exact) World
@@ -237,7 +237,7 @@ end
 ---Schedules an event immediately
 ---@param event string
 ---@param root Character
----@param associated_data table|nil
+---@param associated_data table|nil|number
 function world.World:emit_immediate_event(event, root, associated_data)
 	if root == nil then
 		error("Attempt to call event for nil root")
@@ -307,7 +307,7 @@ local function handle_event(event, target_realm, associated_data)
 	-- if event ~= "sell-goods" and event ~= "buy-goods" then
 	-- 	LOGS:write(
 	-- 		"\n Handling event: " .. event .. "\n" ..
-	-- 		"root: " .. target_realm.name .. "\n" ..
+	-- 		"root: " .. REALM_NAME(target_realm) .. "\n" ..
 	-- 		"realm:" .. target_realm.realm.name .. "\n"
 	-- 	)
 	-- end
@@ -630,7 +630,7 @@ function world.World:tick()
 					local event = RAWS_MANAGER.events_by_name[check[1]]
 					-- LOGS:write(
 					-- 	"\n Handling event: " .. check[1] .. "\n" ..
-					-- 	"root: " .. character.name .. "\n" ..
+					-- 	"root: " .. NAME(character) .. "\n" ..
 					-- 	"realm:" .. character.realm.name .. "\n"
 					-- )
 					event:on_trigger(character, check[3])

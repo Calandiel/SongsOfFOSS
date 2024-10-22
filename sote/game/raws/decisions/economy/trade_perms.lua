@@ -67,7 +67,7 @@ return function ()
 			return 1
 		end,
 		function(root)
-			if DATA.get_savings(root) < 50 then
+			if DATA.pop_get_savings(root) < 50 then
 				return nil, false
 			end
 

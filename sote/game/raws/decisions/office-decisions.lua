@@ -88,7 +88,7 @@ local function load()
 		end,
 		clickable = function(root, primary_target)
 			local realm = REALM(root)
-			if not ot.designates_offices(root, primary_target.province) then return false end
+			if not ot.designates_offices(root, PROVINCE(primary_target)) then return false end
 			if office_values.overseer(realm) ~= primary_target then return false end
 			return true
 		end,

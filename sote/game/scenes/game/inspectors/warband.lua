@@ -317,7 +317,7 @@ function window.draw(gamescene)
 			ib.icon_button_to_realm(gam, character.realm, realm_rect)
 			ib.icon_button_to_character(gam, character, portrait_rect)
 			ib.text_button_to_character(gam, character, button_rect,
-				character.name, character.name .. " is currently " .. office_action .. " this warband.")
+				NAME(character), NAME(character) .. " is currently " .. office_action .. " this warband.")
 
 		else
 			render_icon_panel(portrait_rect, "uncertainty.png", 1, 1, 1, 1)

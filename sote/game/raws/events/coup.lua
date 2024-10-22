@@ -14,10 +14,10 @@ return function()
     Event:new {
         name = "attempt-coup",
         event_text = function(self, character, associated_data)
-            local province = character.province
-            if province == nil then return "No coup target." end
-            local realm = character.province.realm
-            if realm == nil then return "No coup target." end
+            local province = PROVINCE(character)
+            if province == INVALID_ID then return "No coup target." end
+            local realm = LOCAL_REALM(character)
+            if realm == INVALID_ID then return "No coup target." end
             if realm.capitol ~= province then return "No coup target." end
 
             local introduction = "I am going to become a chief of " .. realm.name .. '.'
@@ -67,8 +67,8 @@ return function()
                     }
                 }
             end
-            local realm = character.province.realm
-            if realm == nil then return
+            local realm = LOCAL_REALM(character)
+            if realm == INVALID_ID then return
                 {
                     {
                         text = "No target",

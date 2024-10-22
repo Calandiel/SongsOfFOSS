@@ -24,7 +24,7 @@ return function()
 		trigger = event_utils.constant_false,
 
 		on_trigger = function(self, character, associated_data)
-			local partner = political_values.overseer(character.province.realm)
+			local partner = political_values.overseer(LOCAL_REALM(character))
 
 			if not partner then
 				WORLD:emit_immediate_event("exploration-failed-to-find-help", character, nil)
@@ -121,13 +121,13 @@ return function()
 					text = "I will ask the local ruler for help.",
 					tooltip = "With help, we could proceed much faster",
 					viable = function()
-						if character.province.realm == nil then
+						if LOCAL_REALM(character) == INVALID_ID then
 							return false
 						end
-						return political_values.overseer(character.province.realm) ~= nil
+						return political_values.overseer(LOCAL_REALM(character)) ~= nil
 					end,
 					outcome = function()
-						local partner = political_values.overseer(character.province.realm)
+						local partner = political_values.overseer(LOCAL_REALM(character))
 
 						if not partner then
 							error("Partner is set to null in the exploration preparation event")

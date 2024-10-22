@@ -80,7 +80,7 @@ function window.draw(game)
                 local tooltip = "Amount of "
                     .. name
                     .. " "
-                    .. character.name
+                    .. NAME(character)
                     .. " owns. They think that its price is "
                     .. ut.to_fixed_point2(DATA.pop_get_price_memory(character_id, good))
                 ut.sqrt_number_entry_icon(
@@ -225,19 +225,19 @@ function window.draw(game)
         if character.female then
             ending = "herself"
         end
-        s = s .. "\n " .. character.name .. " is loyal to " .. ending .. "."
+        s = s .. "\n " .. NAME(character) .. " is loyal to " .. ending .. "."
     else
         local loyal_to = DATA.loyalty_get_top(loyalty)
-        s = s .. "\n " .. character.name .. " is loyal to " .. DATA.pop_get_name(loyal_to) .. "."
+        s = s .. "\n " .. NAME(character) .. " is loyal to " .. DATA.pop_get_name(loyal_to) .. "."
     end
 
     -- successor text
     local succession = DATA.get_succession_from_successor_of(character_id)
     if succession ~= INVALID_ID then
         local successor = DATA.succession_get_successor(succession)
-        s = s .. "\n " .. DATA.pop_get_name(successor) .. " is the designated successor of " .. character.name .. "."
+        s = s .. "\n " .. DATA.pop_get_name(successor) .. " is the designated successor of " .. NAME(character) .. "."
     else
-        s = s .. "\n " .. character.name .. " has not designated a successor yet."
+        s = s .. "\n " .. NAME(character) .. " has not designated a successor yet."
     end
 
     ui.panel(description_panel)

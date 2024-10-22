@@ -470,4 +470,5 @@ function warband_utils.unregister_military(pop)
 	end
 end
 
+
 return warband_utils

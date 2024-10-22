@@ -223,7 +223,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Realm
 			associated_data = associated_data
-			return "I have become the chief of " .. associated_data.name
+			return "I have become the chief of " .. REALM_NAME(associated_data)
 		end,
 		function(root, associated_data)
 			return "Sure"
@@ -238,7 +238,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "My overseer " .. associated_data.name .. " had died. "
+			return "My overseer " .. NAME(associated_data) .. " had died. "
 		end,
 		function(root, associated_data)
 			return "I see..."
@@ -246,7 +246,7 @@ local function load()
 		function(root, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "I acknowledge the death of " .. associated_data.name .. "."
+			return "I acknowledge the death of " .. NAME(associated_data) .. "."
 		end
 	)
 
@@ -255,7 +255,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "My guard leader " .. associated_data.name .. " had died. "
+			return "My guard leader " .. NAME(associated_data) .. " had died. "
 		end,
 		function(root, associated_data)
 			return "I see..."
@@ -263,7 +263,7 @@ local function load()
 		function(root, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "I acknowledge the death of " .. associated_data.name .. "."
+			return "I acknowledge the death of " .. NAME(associated_data) .. "."
 		end
 	)
 
@@ -272,7 +272,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "My tribute collector " .. associated_data.name .. " had died. "
+			return "My tribute collector " .. NAME(associated_data) .. " had died. "
 		end,
 		function(root, associated_data)
 			return "I see..."
@@ -280,7 +280,7 @@ local function load()
 		function(root, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "I acknowledge the death of " .. associated_data.name .. "."
+			return "I acknowledge the death of " .. NAME(associated_data) .. "."
 		end
 	)
 
@@ -293,7 +293,7 @@ local function load()
 				.. ut.to_fixed_point2(associated_data.wealth)
 				.. MONEY_SYMBOL
 				.. " from "
-				.. associated_data.character.name
+				.. NAME(associated_data.character)
 				.. "."
 		end,
 		function(root, associated_data)
@@ -302,7 +302,7 @@ local function load()
 		function(root, associated_data)
 			---@type Character
 			associated_data = associated_data
-			return "I accept wealth of " .. associated_data.name .. "."
+			return "I accept wealth of " .. NAME(associated_data) .. "."
 		end
 	)
 
@@ -312,7 +312,7 @@ local function load()
 			---@type Character
 			associated_data = associated_data
 			return "I was designated successor of "
-				.. associated_data.name
+				.. NAME(associated_data)
 				.. "."
 		end,
 		function(root, associated_data)

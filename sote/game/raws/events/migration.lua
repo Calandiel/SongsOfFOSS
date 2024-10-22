@@ -1,8 +1,8 @@
 local tabb              = require "engine.table"
 local path              = require "game.ai.pathfinding"
 
-local province          = require "game.entities.province"
-local realm             = require "game.entities.realm"
+local province_utils    = require "game.entities.province".Province
+local realm_utils       = require "game.entities.realm".Realm
 
 local Event             = require "game.raws.events"
 local event_utils       = require "game.raws.events._utils"
@@ -10,11 +10,12 @@ local event_utils       = require "game.raws.events._utils"
 
 local AI_VALUE          = require "game.raws.values.ai"
 
-local pv                = require "game.raws.values.politics"
-local diplomacy_events  = require "game.raws.effects.diplomacy"
-local economic_effects  = require "game.raws.effects.economy"
-local military_effects  = require "game.raws.effects.military"
-local political_effects = require "game.raws.effects.politics"
+local pv                 = require "game.raws.values.politics"
+local diplomacy_events   = require "game.raws.effects.diplomacy"
+local economic_effects   = require "game.raws.effects.economy"
+local military_effects   = require "game.raws.effects.military"
+local political_effects  = require "game.raws.effects.politics"
+local demography_effects = require "game.raws.effects.demography"
 
 local character_values  = require "game.raws.values.character"
 
@@ -33,6 +34,8 @@ function load()
 	Event:new {
 		name = "migration-merge",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
 			UNSET_BUSY(root)
 
@@ -42,142 +45,156 @@ function load()
 			-- TODO:
 			-- move all this into separate effects
 
-			---@type POP[]
-			local migration_pool_pops = {}
-
-			-- warbands
-			---@type Warband[]
-			local migration_pool_warbands = {}
-
-			-- characters which are currently in this province
-			---@type Character[]
-			local migration_pool_characters = {}
-
-			-- characters which think that this province is their home
-			---@type Character[]
-			local migration_pool_characters_locals = {}
-
-			-- local buildings
-			---@type Building[]
-			local migration_pool_buildings = {}
-
 			---@type Technology[]
 			local migration_pool_technology = {}
 
+			local origin = associated_data.origin_province
+			local target = associated_data.target_province
 
 			-- populate temporary tables
-			for _, pop in pairs(associated_data.origin_province.all_pops) do
-				table.insert(migration_pool_pops, pop)
-			end
-			for _, warband in pairs(associated_data.origin_province.warbands) do
-				table.insert(migration_pool_warbands, warband)
-			end
-			for _, character in pairs(associated_data.origin_province.characters) do
-				table.insert(migration_pool_characters, character)
-			end
-			for _, character in pairs(associated_data.origin_province.home_to) do
-				table.insert(migration_pool_characters_locals, character)
-			end
-			for _, building in pairs(associated_data.origin_province.buildings) do
-				table.insert(migration_pool_buildings, building)
-			end
-			for _, technology in pairs(associated_data.origin_province.technologies_present) do
-				table.insert(migration_pool_technology, technology)
-			end
 
-			-- move pops from origin province
-			for _, pop in pairs(migration_pool_pops) do
-				if not pop.employer or not pop.employer.type.movable then
-					associated_data.origin_province:fire_pop(pop)
+			---@type pop_location_id[]
+			local pop_locations = {}
+			DATA.for_each_pop_location_from_location(origin, function (item)
+				table.insert(pop_locations, item)
+			end)
+			for _, item in pairs(pop_locations) do
+				local pop = DATA.pop_location_get_pop(item)
+				local employment = DATA.get_employment_from_worker(pop)
+				if employment ~= INVALID_ID then
+					local employer = DATA.employment_get_building(employment)
+					local type_of = DATA.building_get_type(employer)
+					local movable = DATA.building_type_get_movable(type_of)
+					if not movable then
+						demography_effects.fire_pop(pop)
+					end
 				end
-				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
+
+				DATA.pop_location_set_location(item, target)
 			end
 
-			-- move warbands
-			for _, warband in pairs(migration_pool_warbands) do
-				associated_data.target_province.warbands[warband] = warband
-				associated_data.origin_province.warbands[warband] = nil
+			---@type warband_location_id[]
+			local warband_locations = {}
+			DATA.for_each_warband_location_from_location(origin, function (item)
+				table.insert(warband_locations, item)
+			end)
+			for _, item in pairs(warband_locations) do
+				DATA.warband_location_set_location(item, target)
 			end
 
-			-- move guest characters
-			for _, character in pairs(migration_pool_characters) do
-				associated_data.origin_province:transfer_character(character, associated_data.target_province)
+			---@type character_location_id[]
+			local character_locations = {}
+			DATA.for_each_character_location_from_location(origin, function (item)
+				table.insert(character_locations, item)
+			end)
+			for _, item in pairs(character_locations) do
+				DATA.character_location_set_location(item, target)
 			end
 
-			-- set new home of characters
-			for _, character in pairs(migration_pool_characters_locals) do
-				associated_data.origin_province:transfer_home(character, associated_data.target_province)
+			---@type home_id[]
+			local homes = {}
+			DATA.for_each_home_from_home(origin, function (item)
+				table.insert(homes, item)
+			end)
+			for _, item in pairs(homes) do
+				DATA.home_set_home(item, target)
 			end
 
-			-- remove ownership of buildings or move them if they are movable
-			for _, building in pairs(migration_pool_buildings) do
-				if building.type.movable then
-					associated_data.origin_province.buildings[building] = nil
-					associated_data.target_province.buildings[building] = building
+			---@type building_location_id[]
+			local building_locations = {}
+			DATA.for_each_building_location_from_location(origin, function (item)
+				table.insert(building_locations, item)
+			end)
+			for _, item in pairs(building_locations) do
+				local building = DATA.building_location_get_building(item)
+				local type_of = DATA.building_get_type(building)
+				local movable = DATA.building_type_get_movable(type_of)
+
+				if movable then
+					DATA.building_location_set_location(item, target)
 				else
 					economic_effects.unset_ownership(building)
 				end
 			end
 
-			-- move technology
-			for _, technology in pairs(migration_pool_technology) do
-				associated_data.origin_province:forget(technology)
-				associated_data.target_province:research(technology)
-			end
+			DATA.for_each_technology(function (item)
+				if DATA.province_get_technologies_present(origin, item) == 1 then
+					province_utils.forget(origin, item)
+					province_utils.research(target, item)
+				end
+			end)
 
 			-- handle realms
-			local target_realm = associated_data.target_province.realm
+			local target_realm = PROVINCE_REALM(target)
 
 			---@type Realm
-			local origin_realm = associated_data.origin_province.realm
-			origin_realm.capitol = associated_data.target_province
+			local origin_realm = PROVINCE_REALM(origin)
+			DATA.realm_set_capitol(origin_realm, target)
 
-			if target_realm then
+			if target_realm ~= INVALID_ID then
 				-- merge all local characters to this realm
 				if associated_data.invasion then
 					-- if it was an invasion, turn local nobles into nobles of invading realm
-					for _, character in pairs(associated_data.target_province.home_to) do
-						if character.realm == target_realm then
-							character.realm = origin_realm
-							character.rank = character_ranks.NOBLE
+
+					---@type realm_pop_id[]
+					local temp = {}
+					DATA.for_each_realm_pop_from_realm(target_realm, function (item)
+						table.insert(temp)
+					end)
+					for _, item in pairs(temp) do
+						DATA.realm_pop_set_realm(item, origin_realm)
+						local pop = DATA.realm_pop_get_pop(item)
+						if DATA.pop_get_rank(pop) == CHARACTER_RANK.CHIEF then
+							DATA.pop_set_rank(pop, CHARACTER_RANK.NOBLE)
 						end
 					end
 
 					-- destroy invaded realm
 					diplomacy_events.dissolve_realm_and_clear_diplomacy(target_realm)
-					origin_realm:add_province(associated_data.target_province)
+					realm_utils.add_province(origin_realm, target)
 				else
-					for _, character in pairs(migration_pool_characters_locals) do
-						character.realm = target_realm
-						character.rank = character_ranks.NOBLE
+					---@type realm_pop_id[]
+					local temp = {}
+					DATA.for_each_realm_pop_from_realm(origin_realm, function (item)
+						table.insert(temp)
+					end)
+					for _, item in pairs(temp) do
+						DATA.realm_pop_set_realm(item, target_realm)
+						local pop = DATA.realm_pop_get_pop(item)
+						if DATA.pop_get_rank(pop) == CHARACTER_RANK.CHIEF then
+							DATA.pop_set_rank(pop, CHARACTER_RANK.NOBLE)
+						end
 					end
+
 					-- destroy merged realm
 					diplomacy_events.dissolve_realm_and_clear_diplomacy(origin_realm)
 				end
 
 				-- remove old province from the realm
-				origin_realm:remove_province(associated_data.origin_province)
+				realm_utils.remove_province(origin_realm, origin)
 			else
 				-- replace old province with new one
-				origin_realm:add_province(associated_data.target_province)
-				origin_realm:remove_province(associated_data.origin_province)
+				realm_utils.add_province(origin_realm, target)
+				realm_utils.remove_province(origin_realm, origin)
 
-				WORLD:set_settled_province(associated_data.target_province)
+				WORLD:set_settled_province(target)
 			end
 
-			WORLD:unset_settled_province(associated_data.origin_province)
+			WORLD:unset_settled_province(origin)
 
-			if associated_data.target_province.name == "<uninhabited>" then
-				associated_data.target_province.name = origin_realm.leader.culture.language:get_random_culture_name()
+			if PROVINCE_NAME(associated_data.target_province) == "<uninhabited>" then
+				DATA.province_set_name(associated_data.target_province, DATA.pop_get_culture(LEADER(origin_realm)).language:get_random_culture_name())
 			end
 
-			origin_realm:explore(origin_realm.capitol)
+			realm_utils.explore(origin_realm, CAPITOL(origin_realm))
 		end
 	}
 
 	Event:new {
 		name = "migration-colonize",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
 			UNSET_BUSY(root)
 
@@ -219,7 +236,7 @@ function load()
 			local candidates = 0
 
 			for _, pop in pairs(valid_family_units) do
-				if (not pop.unit_of_warband) then
+				if UNIT_OF(pop) == INVALID_ID then
 					table.insert(migration_pool_pops, pop)
 					candidates = candidates + 1
 				end
@@ -228,9 +245,11 @@ function load()
 				end
 			end
 
-			for _, technology in pairs(associated_data.origin_province.technologies_present) do
-				table.insert(migration_pool_technology, technology)
-			end
+			DATA.for_each_technology(function (item)
+				if DATA.province_get_technologies_present(associated_data.origin_province, item) == 1 then
+					table.insert(migration_pool_technology, item)
+				end
+			end)
 
 			local pop_payment = associated_data.pop_payment
 			-- move pops from origin province
@@ -325,8 +344,8 @@ function load()
 				WORLD:set_settled_province(associated_data.target_province)
 			end
 
-			--if associated_data.target_province.name == "<uninhabited>" then
-			associated_data.target_province.name = colonizer_realm.primary_culture.language:get_random_culture_name() -- manifest destiny!
+			--if PROVINCE_NAME(associated_data.target_province) == "<uninhabited>" then
+			DATA.province_set_name(associated_data.target_province, DATA.realm_get_primary_culture(colonizer_realm).language:get_random_culture_name()) -- manifest destiny!
 			--end
 
 			political_effects.transfer_power(new_realm, expedition_leader, POLITICS_REASON.EXPEDITIONLEADER)
@@ -341,8 +360,10 @@ function load()
 	Event:new {
 		name = "migration-swap",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
-			local temp_target = province.Province:new(true)
+			local temp_target = province_utils.new(true)
 
 			---@type MigrationData
 			associated_data = associated_data
@@ -381,12 +402,12 @@ function load()
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			local name = associated_data.name
+			local name = NAME(associated_data)
 
 			local population_string =
 				"There are "
-				.. associated_data.realm.capitol:home_population() .. " commoners and "
-				.. associated_data.realm.capitol:home_characters() .. " nobles in total."
+				.. province_utils.home_population(CAPITOL(REALM(associated_data))) .. " commoners and "
+				.. province_utils.home_characters(CAPITOL(REALM(associated_data))) .. " nobles in total."
 
 			return name
 				.. " requested that I allow his people to migrate to my lands."
@@ -405,10 +426,10 @@ function load()
 
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
-					character.realm.capitol,
-					associated_data.realm.capitol,
-					character_values.travel_speed_race(character.realm.primary_race),
-					character.realm.known_provinces
+					CAPITOL(REALM(character)),
+					CAPITOL(REALM(associated_data)),
+					character_values.travel_speed_race(DATA.realm_get_primary_race(REALM(character))),
+					DATA.realm_get_known_provinces(REALM(character))
 				)
 			)
 			if travel_time == math.huge then
@@ -423,18 +444,18 @@ function load()
 					outcome = function()
 						if WORLD.player_character == character then
 							WORLD:emit_notification("I agreed to allow migration of people of " ..
-								associated_data.realm.name .. " into our lands.")
+								REALM_NAME(REALM(associated_data)) .. " into our lands.")
 						end
 
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " allowed us to migrate into their land.")
+							WORLD:emit_notification(NAME(character) .. " allowed us to migrate into their land.")
 						end
 
 						---@type MigrationData
 						local migration_data = {
 							organizer = associated_data,
-							origin_province = associated_data.realm.capitol,
-							target_province = character.realm.capitol,
+							origin_province = CAPITOL(REALM(associated_data)),
+							target_province = CAPITOL(REALM(character)),
 							invasion = false
 						}
 
@@ -442,10 +463,10 @@ function load()
 						WORLD:emit_immediate_event("migration-target-agrees", associated_data, character)
 					end,
 					ai_preference = function()
-						if character.culture == associated_data.culture then
+						if CULTURE(character) == CULTURE(associated_data) then
 							return 1
 						end
-						if character.race == associated_data.race then
+						if RACE(character) == RACE(associated_data) then
 							return 0.5
 						end
 						return 0.25
@@ -461,7 +482,7 @@ function load()
 						end
 
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " has not allowed us to migrate into their land.")
+							WORLD:emit_notification(NAME(character) .. " has not allowed us to migrate into their land.")
 						end
 
 						WORLD:emit_event("migration-target-refuses", associated_data, character, travel_time)
@@ -490,7 +511,7 @@ function load()
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			local name = associated_data.name
+			local name = NAME(associated_data)
 
 			return name
 				.. " refused my request to allow our people to migrate to their lands, but suggested swapping our lands instead."
@@ -507,10 +528,10 @@ function load()
 
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
-					character.realm.capitol,
-					associated_data.realm.capitol,
-					character_values.travel_speed_race(character.realm.primary_race),
-					character.realm.known_provinces
+					CAPITOL(REALM(character)),
+					CAPITOL(REALM(associated_data)),
+					character_values.travel_speed_race(DATA.realm_get_primary_race(REALM(character))),
+					DATA.realm_get_known_provinces(REALM(character))
 				)
 			)
 			if travel_time == math.huge then
@@ -526,8 +547,8 @@ function load()
 						---@type MigrationData
 						local migration_data = {
 							organizer = associated_data,
-							origin_province = associated_data.realm.capitol,
-							target_province = character.realm.capitol,
+							origin_province = CAPITOL(REALM(associated_data)),
+							target_province = CAPITOL(REALM(character)),
 							invasion = false
 						}
 
@@ -543,10 +564,10 @@ function load()
 					tooltip = "Prepare an invasion instead",
 					viable = function() return true end,
 					outcome = function()
-						WORLD:emit_immediate_event("migration-invasion-preparation", character, associated_data.realm)
+						WORLD:emit_immediate_event("migration-invasion-preparation", character, REALM(associated_data))
 					end,
 					ai_preference = function()
-						if character.traits[TRAIT.WARLIKE] then return 2 end
+						if HAS_TRAIT(character, TRAIT.WARLIKE) then return 2 end
 						return 0.25
 					end
 				},
@@ -572,7 +593,7 @@ function load()
 			associated_data = associated_data
 
 			return "After a short negotiation, "
-				.. associated_data.name
+				.. NAME(associated_data)
 				.. " agreed to allow us into their land."
 		end,
 		function(root, associated_data)
@@ -582,7 +603,7 @@ function load()
 			---@type Character
 			associated_data = associated_data
 
-			return "We will merge with the tribe under the leadership of " .. associated_data.name
+			return "We will merge with the tribe under the leadership of " .. NAME(associated_data)
 		end
 	)
 
@@ -591,7 +612,7 @@ function load()
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			local name = associated_data.name
+			local name = NAME(associated_data)
 
 			return name
 				.. " refused my request to allow our people to migrate to their lands."
@@ -608,10 +629,10 @@ function load()
 
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
-					character.realm.capitol,
-					associated_data.realm.capitol,
-					character_values.travel_speed_race(character.realm.primary_race),
-					character.realm.known_provinces
+					CAPITOL(REALM(character)),
+					CAPITOL(REALM(associated_data)),
+					character_values.travel_speed_race(DATA.realm_get_primary_race(REALM(character))),
+					DATA.realm_get_known_provinces(REALM(character))
 				)
 			)
 			if travel_time == math.huge then
@@ -624,7 +645,7 @@ function load()
 					tooltip = "We will not migrate to their lands.",
 					viable = function() return true end,
 					outcome = function()
-						character.busy = false
+						UNSET_BUSY(character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(
 						character,
@@ -661,7 +682,7 @@ function load()
 		event_text = function(self, character, associated_data)
 			---@type Realm
 			associated_data = associated_data
-			local name = associated_data.name
+			local name = REALM_NAME(associated_data)
 
 			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
@@ -702,7 +723,7 @@ function load()
 
 			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
-			local their_warlords, their_power = pv.military_strength(target_realm.leader)
+			local their_warlords, their_power = pv.military_strength(LEADER(target_realm))
 
 			return {
 				{
@@ -710,12 +731,12 @@ function load()
 					tooltip = "Launch the invasion",
 					viable = function() return true end,
 					outcome = function()
-						local realm = character.realm
+						local realm = REALM(character)
 
 						local army = military_effects.gather_loyal_army_attack(character)
 						if army == nil then
 							if character == WORLD.player_character then
-								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
+								WORLD:emit_notification("I had launched the invasion of " .. REALM_NAME(target_realm))
 							end
 						else
 							local function callback(army, travel_time)
@@ -723,7 +744,7 @@ function load()
 								local data = {
 									raider = character,
 									origin = realm,
-									target = target_realm.capitol,
+									target = CAPITOL(target_realm),
 									travel_time = travel_time,
 									army = army
 								}
@@ -731,16 +752,16 @@ function load()
 								WORLD:emit_action('migration-invasion-attack', character, data, travel_time, true)
 							end
 
-							military_effects.send_army(army, character.province, target_realm.capitol, callback)
+							military_effects.send_army(army, PROVINCE(character), CAPITOL(target_realm), callback)
 
 							if character == WORLD.player_character then
-								WORLD:emit_notification("I had launched the invasion of " .. target_realm.name)
+								WORLD:emit_notification("I had launched the invasion of " .. REALM_NAME(target_realm))
 							end
 						end
 					end,
 
 					ai_preference = function()
-						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+						local base_value = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {
 							aggression = true,
 						})()
 
@@ -760,7 +781,7 @@ function load()
 						WORLD:emit_event('migration-invasion-preparation', character, target_realm, 10)
 					end,
 					ai_preference = function()
-						local base_value = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {
+						local base_value = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {
 							aggression = true,
 						})()
 
@@ -774,11 +795,11 @@ function load()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I decided to not attack " .. target_realm.leader.name)
+							WORLD:emit_notification("I decided to not attack " .. NAME(LEADER(target_realm)))
 						end
-						character.busy = false
+						UNSET_BUSY(character)
 					end,
-					ai_preference = AI_VALUE.generic_event_option(character, target_realm.leader, 0, {})
+					ai_preference = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {})
 				}
 			}
 		end
@@ -787,6 +808,8 @@ function load()
 	Event:new {
 		name = "migration-invasion-attack",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
 			---@type AttackData
 			associated_data = associated_data
@@ -834,7 +857,7 @@ function load()
 					end
 				end
 			else
-				raider.busy = false
+				UNSET_BUSY(raider)
 				WORLD:emit_immediate_event("migration-invasion-failure", raider, army)
 			end
 		end,
@@ -859,7 +882,8 @@ function load()
 		function(root, associated_data)
 			---@type Army
 			associated_data = associated_data
-			root.realm:disband_army(associated_data)
+
+			realm_utils.disband_army(REALM(root), associated_data)
 		end
 	)
 
@@ -877,7 +901,8 @@ function load()
 		function(root, associated_data)
 			---@type Army
 			associated_data = associated_data
-			root.realm:disband_army(associated_data)
+
+			realm_utils.disband_army(REALM(root), associated_data)
 		end
 	)
 
@@ -887,7 +912,7 @@ function load()
 			---@type Character
 			associated_data = associated_data
 
-			return "Our realm was invaded! We are subjects of " .. associated_data.name .. " now."
+			return "Our realm was invaded! We are subjects of " .. NAME(associated_data) .. " now."
 		end,
 		function(root, associated_data)
 			return "It's over."
