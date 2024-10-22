@@ -156,7 +156,7 @@ function tb.draw(gam)
 	end
 
 	uit.money_entry_icon(
-		character.savings,
+		SAVINGS(character),
 		rect,
 		"My personal savings")
 
@@ -170,7 +170,7 @@ function tb.draw(gam)
 
 	local days_of_travel = 0
 	if character.leading_warband then
-		days_of_travel = character.leading_warband:days_of_travel()
+		days_of_travel = economy_values.days_of_travel(LEADER_OF_WARBAND(character))
 	end
 	uit.balance_entry_icon(
 		"horizon-road.png",
@@ -182,7 +182,7 @@ function tb.draw(gam)
 
 	uit.balance_entry_icon(
 		"duality-mask.png",
-		pv.popularity(character, character.province.realm),
+		pv.popularity(character, LOCAL_REALM(character)),
 		layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 		"My popularity")
 
@@ -214,7 +214,7 @@ function tb.draw(gam)
 	end
 
 	uit.money_entry_icon(
-		character.province.realm.budget.treasury,
+		DATA.realm_get_budget_treasury(LOCAL_REALM(character)),
 		trt,
 		"Realm treasury")
 
@@ -222,7 +222,7 @@ function tb.draw(gam)
 	DRAW_EFFECTS(trt)
 
 	-- Food
-	local amount = ev.get_local_amount_of_use(character.province, CALORIES_USE_CASE)
+	local amount = ev.get_local_amount_of_use(PROVINCE(character), CALORIES_USE_CASE)
 	uit.sqrt_number_entry_icon(
 		"noodles.png",
 		amount,

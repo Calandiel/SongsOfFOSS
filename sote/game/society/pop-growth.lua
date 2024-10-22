@@ -39,11 +39,11 @@ function pg.growth(province_id)
 	local starvation_check = min_life_need * 2
 	---@type pop_id[]
 	local pops_and_characters = {}
-	DATA.for_each_pop_location(function (item)
+	DATA.for_each_pop_location_from_location(province_id, function (item)
 		local pop = DATA.pop_location_get_pop(item)
 		table.insert(pops_and_characters, pop)
 	end)
-	DATA.for_each_character_location(function (item)
+	DATA.for_each_character_location_from_location(province_id, function (item)
 		local pop = DATA.character_location_get_character(item)
 		table.insert(pops_and_characters, pop)
 	end)

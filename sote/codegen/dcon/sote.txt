@@ -145,13 +145,13 @@ object {
 object {
     name { loyalty }
     storage_type { erasable }
-    size { 10000 }
+    size { 200000 }
     tag {scenario}
 }
 object {
     name { succession }
     storage_type { erasable }
-    size { 10000 }
+    size { 200000 }
     tag {scenario}
 }
 object {

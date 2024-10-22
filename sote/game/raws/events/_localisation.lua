@@ -1,6 +1,7 @@
 local ut = require "game.ui-utils"
 
 local political_values = require "game.raws.values.politics"
+local economy_values = require "game.raws.values.economy"
 
 local text = {}
 
@@ -28,7 +29,7 @@ function text.exploration_progress(self, character, associated_data)
 		.. tostring(math.floor(associated_data._exploration_days_left / character.leading_warband:size()))
 		.. " days."
 		.. " We have enough supplies for "
-		.. ut.to_fixed_point2(character.leading_warband:days_of_travel())
+		.. ut.to_fixed_point2(economy_values.days_of_travel(LEADER_OF_WARBAND(character)))
 		.. " days of exploration"
 end
 
@@ -109,10 +110,10 @@ end
 ---@param associated_data nil
 ---@return string
 function text.tax_collection_1(self, character, associated_data)
-	return "I was collecting taxes on behalf of " .. character.realm.leader.name .. ". " ..
+	return "I was collecting taxes on behalf of " .. NAME(LEADER(REALM(character))) .. ". " ..
 		"I have already collected a sizable amount but I can collect even more taxes and keep them myself." ..
 		" My reputation among our people will suffer even more but as long I am on a good side of "
-		.. character.realm.leader.name .. " it's probably fine."
+		.. NAME(LEADER(REALM(character))) .. " it's probably fine."
 end
 
 

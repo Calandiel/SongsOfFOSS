@@ -4,11 +4,19 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
-local economic_values = require "game.raws.values.economy"
-local economic_effects = require "game.raws.effects.economy"
+
+local province_utils = require "game.entities.province".Province
+local warband_utils = require "game.entities.warband"
+local realm_utils = require "game.entities.realm".Realm
+
 local economic_triggers = require "game.raws.triggers.economy"
-local political_effects = require "game.raws.effects.politics"
+
+local economy_values = require "game.raws.values.economy"
 local political_values = require "game.raws.values.politics"
+
+local economic_effects = require "game.raws.effects.economy"
+local political_effects = require "game.raws.effects.politics"
+
 
 local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 
@@ -40,10 +48,10 @@ return function()
 
 			---@type ExplorationData
 			local exploration_data = {
-				explored_province = character.province,
+				explored_province = PROVINCE(character),
 				explorer = character,
 				last_conversation = conversation,
-				_exploration_days_left = character.province:exploration_days(),
+				_exploration_days_left = province_utils.exploration_days(PROVINCE(character)),
 				_exploration_speed = 1.0
 			}
 
@@ -62,10 +70,10 @@ return function()
 		on_trigger = function(self, character, associated_data)
 			---@type ExplorationData
 			local exploration_data = {
-				explored_province = character.province,
+				explored_province = PROVINCE(character),
 				explorer = character,
 				last_conversation = nil,
-				_exploration_days_left = character.province:exploration_days(),
+				_exploration_days_left = province_utils.exploration_days(PROVINCE(character)),
 				_exploration_speed = 1.5
 			}
 
@@ -77,7 +85,7 @@ return function()
 	event_utils.notification_event(
 		"exploration-failed-to-find-help",
 		function(self, root, associated_data)
-			return "I failed to find any help in the exploration of " .. root.province.name
+			return "I failed to find any help in the exploration of " .. PROVINCE_NAME(PROVINCE(root))
 		end,
 		function(root, associated_data)
 			return "Okay."
@@ -103,10 +111,10 @@ return function()
 					outcome = function()
 						---@type ExplorationData
 						local exploration_data = {
-							explored_province = character.province,
+							explored_province = PROVINCE(character),
 							explorer = character,
 							last_conversation = nil,
-							_exploration_days_left = character.province:exploration_days(),
+							_exploration_days_left = province_utils.exploration_days(PROVINCE(character)),
 							_exploration_speed = 1.5
 						}
 
@@ -142,17 +150,17 @@ return function()
 
 						---@type ExplorationData
 						local exploration_data = {
-							explored_province = character.province,
+							explored_province = PROVINCE(character),
 							explorer = character,
 							last_conversation = conversation,
-							_exploration_days_left = character.province:exploration_days(),
+							_exploration_days_left = province_utils.exploration_days(PROVINCE(character)),
 							_exploration_speed = 1.0
 						}
 
 						WORLD:emit_immediate_event("exploration-help", partner, exploration_data)
 					end,
 					ai_preference = function()
-						if character.savings > 10 then
+						if SAVINGS(character) > 10 then
 							return 1
 						end
 
@@ -182,7 +190,7 @@ return function()
 			---@type ExplorationData
 			associated_data = associated_data
 
-			if character.dead then
+			if DEAD(character) then
 				return {
 					{
 						text = "I am dead",
@@ -199,27 +207,32 @@ return function()
 				}
 			end
 
-			local food_price = economic_values.get_local_price_of_use(associated_data.explored_province, CALORIES_USE_CASE)
+			local food_price = economy_values.get_local_price_of_use(associated_data.explored_province, CALORIES_USE_CASE)
 
 			return {
 				{
 					text = "Continue exploration",
 					tooltip = "I will spend another month on the exploration of this province",
 					viable = function()
-						return character.leading_warband:days_of_travel() >= 30
+						return economy_values.days_of_travel(LEADER_OF_WARBAND(character)) >= 30
 					end,
 					outcome = function()
 						-- some free time to at least get some water...
-						character.leading_warband.current_free_time_ratio = 0.05
+						local free_time = 0.05
+						DATA.warband_set_current_free_time_ratio(LEADER_OF_WARBAND(character), free_time)
 						local days_left = math.min(
-						associated_data._exploration_days_left / character.leading_warband:exploration_speed(), 30)
-						local potential_days = character.leading_warband:days_of_travel()
+						associated_data._exploration_days_left / warband_utils.exploration_speed(LEADER_OF_WARBAND(character)), 30)
+						local potential_days = economy_values.days_of_travel(LEADER_OF_WARBAND(character))
 						local actual_days_spent = math.min(days_left, potential_days)
 
-						character.leading_warband:consume_supplies(actual_days_spent *
-						(1 - character.leading_warband.current_free_time_ratio))
-						associated_data._exploration_days_left = associated_data._exploration_days_left -
-						actual_days_spent * character.leading_warband:exploration_speed()
+						economic_effects.consume_supplies(
+							LEADER_OF_WARBAND(character),
+							actual_days_spent *	(1 - free_time)
+						)
+
+						associated_data._exploration_days_left =
+							associated_data._exploration_days_left
+							- actual_days_spent * warband_utils.exploration_speed(LEADER_OF_WARBAND(character))
 
 						if associated_data._exploration_days_left < 1 then
 							WORLD:emit_event("exploration-result", character, associated_data, actual_days_spent)
@@ -237,19 +250,22 @@ return function()
 					tooltip =
 					"We can't afford to dedicate all our time to exploration. I will let my people forage or work as well.",
 					viable = function()
-						return character.leading_warband:days_of_travel() >= 15
+						return economy_values.days_of_travel(LEADER_OF_WARBAND(character)) >= 15
 					end,
 					outcome = function()
-						character.leading_warband.current_free_time_ratio = 0.5
+						local free_time = 0.5
+						DATA.warband_set_current_free_time_ratio(LEADER_OF_WARBAND(character), free_time)
 						local days_left = math.min(
-						associated_data._exploration_days_left / character.leading_warband:exploration_speed(), 30)
-						local potential_days = character.leading_warband:days_of_travel()
+						associated_data._exploration_days_left / warband_utils.exploration_speed(LEADER_OF_WARBAND(character)), 30)
+						local potential_days = economy_values.days_of_travel(LEADER_OF_WARBAND(character))
 						local actual_days_spent = math.min(days_left, potential_days)
 
-						character.leading_warband:consume_supplies(actual_days_spent *
-						(1 - character.leading_warband.current_free_time_ratio))
+						economic_effects.consume_supplies(
+							LEADER_OF_WARBAND(character),
+							actual_days_spent *	(1 - free_time)
+						)
 						associated_data._exploration_days_left = associated_data._exploration_days_left -
-						actual_days_spent * character.leading_warband:exploration_speed()
+						actual_days_spent * warband_utils.exploration_speed(LEADER_OF_WARBAND(character))
 
 						if associated_data._exploration_days_left < 1 then
 							WORLD:emit_event("exploration-result", character, associated_data, actual_days_spent)
@@ -269,7 +285,7 @@ return function()
 						return true
 					end,
 					outcome = function()
-						character.leading_warband.current_free_time_ratio = 1.0
+						DATA.warband_set_current_free_time_ratio(LEADER_OF_WARBAND(character), 1)
 						WORLD:emit_event("exploration-progress", character, associated_data, 30)
 					end,
 					ai_preference = function()
@@ -281,7 +297,7 @@ return function()
 					text = "Buy supplies for " .. ut.to_fixed_point2(food_price) .. MONEY_SYMBOL,
 					tooltip = "Buy supplies from locals",
 					viable = function()
-						local result, _ = economic_triggers.can_buy_use(character.province, character.savings, CALORIES_USE_CASE, 1)
+						local result, _ = economic_triggers.can_buy_use(PROVINCE(character), SAVINGS(character), CALORIES_USE_CASE, 1)
 						return result
 					end,
 					outcome = function()
@@ -289,7 +305,7 @@ return function()
 						WORLD:emit_immediate_event("exploration-progress", character, associated_data)
 					end,
 					ai_preference = function()
-						local potential_days = character.leading_warband:days_of_travel()
+						local potential_days = economy_values.days_of_travel(LEADER_OF_WARBAND(character))
 						if potential_days < 10 then
 							return 1.2
 						end
@@ -340,21 +356,26 @@ return function()
 	Event:new {
 		name = "explore",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
-			if root.dead then
+			if DEAD(root) then
 				return
 			end
 
-			if root.realm.quests_explore[root.province] then
-				economic_effects.add_pop_savings(root, root.realm.quests_explore[root.province],
-					ECONOMY_REASON.QUEST)
-				root.realm.quests_explore[root.province] = nil
+			if DATA.realm_get_quests_explore(REALM(root))[PROVINCE(root)] then
+				economic_effects.add_pop_savings(
+					root,
+					DATA.realm_get_quests_explore(REALM(root))[PROVINCE(root)],
+					ECONOMY_REASON.QUEST
+				)
+				DATA.realm_get_quests_explore(REALM(root))[PROVINCE(root)] = nil
 			end
 
-			political_effects.medium_popularity_boost(root, root.realm)
-			root.realm:explore(root.province)
+			political_effects.medium_popularity_boost(root, REALM(root))
+			realm_utils.explore(REALM(root), PROVINCE(root))
 			UNSET_BUSY(root)
-			root.leading_warband.current_free_time_ratio = 1.0
+			DATA.warband_set_current_free_time_ratio(LEADER_OF_WARBAND(root), 1)
 		end,
 	}
 end

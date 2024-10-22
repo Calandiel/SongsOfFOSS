@@ -61,7 +61,7 @@ function window.draw(game)
     local coa = ui_panel:subrect(unit * 3 - 2, unit * 3 - 2, unit, unit, "left", "up")
     require "game.scenes.game.widgets.portrait" (portrait, character_id)
 
-    if character.dead then
+    if DEAD(character) then
         return
     end
 
@@ -136,7 +136,7 @@ function window.draw(game)
     ui.left_text(string.title(sex) .. " " .. string.title(DATA.race_get_name(race)), age_panel)
     ui.right_text("Age: " .. character.age, age_panel)
 
-    ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
+    ut.money_entry_icon(SAVINGS(character), wealth_panel, "Personal savings")
 
     local popularity = 0
     local province = PROVINCE(character_id)

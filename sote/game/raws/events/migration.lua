@@ -213,10 +213,19 @@ function load()
 			local expedition_leader = associated_data.leader
 			-- make new noble no leader character provided
 			if expedition_leader == nil then
-				expedition_leader = political_effects.grant_nobility_to_random_pop(associated_data.origin_province,
-					POLITICS_REASON.EXPEDITIONLEADER)
+				expedition_leader = political_effects.grant_nobility_to_random_pop(
+					associated_data.origin_province,
+					POLITICS_REASON.EXPEDITIONLEADER
+				)
 				if expedition_leader == nil then
-					error("FAILED TO PICK EXPEDITION LEADER IN MIGRATION-COLONIZE")
+					local population = 0
+					DATA.for_each_home_from_home(associated_data.origin_province, function (item)
+						population = population + 1
+					end)
+					error(
+						"FAILED TO PICK EXPEDITION LEADER IN MIGRATION-COLONIZE IN PROVINCE WITH POPULATION "
+						.. tostring(population)
+					)
 					return
 				end
 			end

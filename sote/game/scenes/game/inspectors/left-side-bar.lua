@@ -125,7 +125,7 @@ function inspector.draw(gam)
 
                     local character = WORLD.player_character
                     if character and gam.inspector == "market" then
-                        gam.selected.province = character.province
+                        gam.selected.province = PROVINCE(character)
                     end
                 end
             end

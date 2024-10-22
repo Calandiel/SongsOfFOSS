@@ -25,7 +25,7 @@ return function ()
 			associated_data = associated_data
 
 			local treason_flag = false
-			local realm = character.realm
+			local realm = REALM(character)
 
 			-- character assumes that realm will lose money at least for a year
 			local loss_of_money = 0
@@ -36,7 +36,7 @@ return function ()
 			local my_warlords, my_power = political_values.military_strength(character)
 			local their_warlords, their_power = political_values.military_strength(associated_data)
 
-			if realm == nil then
+			if realm == INVALID_ID then
 				return {{
 					text = "I do not belong to any realm",
 					tooltip = "",
@@ -50,13 +50,13 @@ return function ()
 				}}
 			end
 
-			if character.dead and realm.leader then
+			if DEAD(character) then
 				return {{
 					text = "I am dead; it's someone else's problem",
 					tooltip = "",
 					viable = function() return true end,
 					outcome = function()
-						WORLD:emit_immediate_event("request-tribute", realm.leader, associated_data)
+						WORLD:emit_immediate_event("request-tribute", LEADER(realm), associated_data)
 					end,
 					ai_preference = function ()
 						return 1
@@ -71,14 +71,14 @@ return function ()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I agreed to pay tribute to " .. associated_data.name)
+							WORLD:emit_notification("I agreed to pay tribute to " .. NAME(associated_data))
 						end
 
 						if associated_data == WORLD.player_character then
 							WORLD:emit_notification(NAME(character) .. " agreed to pay tribute to my tribe")
 						end
 
-						diplomacy_effects.set_tributary(associated_data.realm, character.realm)
+						diplomacy_effects.set_tributary(REALM(associated_data), REALM(character))
 					end,
 
 					ai_preference = function ()
@@ -97,7 +97,7 @@ return function ()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I refused to pay tribute to " .. associated_data.name)
+							WORLD:emit_notification("I refused to pay tribute to " .. NAME(associated_data))
 						end
 
 						WORLD:emit_event("request-tribute-refusal", associated_data, character, 10)
@@ -120,7 +120,7 @@ return function ()
 		options = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
-			local target_realm = associated_data.realm
+			local target_realm = REALM(associated_data)
 			assert(target_realm)
 
 			-- character assumes that realm will gain money at least for a year
@@ -131,7 +131,7 @@ return function ()
 			local their_warlords, their_power = political_values.military_strength(associated_data)
 
 
-			if character.dead then
+			if DEAD(character) then
 				return {{
 					text = "I am dead; there is nothing I could do.",
 					tooltip = "",
@@ -151,9 +151,9 @@ return function ()
 							WORLD:emit_notification(NAME(character) .. " refused to pay tribute to my tribe. Time to teach them a lesson!")
 						end
 
-						local realm = character.realm
-						realm.prepare_attack_flag = true
-						character.busy = true
+						local realm = REALM(character)
+						DATA.realm_set_prepare_attack_flag(realm, true)
+						SET_BUSY(character)
 
 						WORLD:emit_event("request-tribute-raid", character, target_realm, 10)
 					end,
@@ -174,7 +174,7 @@ return function ()
 					viable = function() return true end,
 					outcome = function()
 						if WORLD.player_character == character then
-							WORLD:emit_notification("I decided to not attack " .. associated_data.name)
+							WORLD:emit_notification("I decided to not attack " .. NAME(associated_data))
 						end
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {})

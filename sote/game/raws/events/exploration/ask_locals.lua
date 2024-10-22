@@ -88,11 +88,11 @@ return function()
 				WORLD:emit_immediate_event("exploration-help-payment-received", partner, associated_data)
 			end
 
-			if price > character.savings then
+			if price > SAVINGS(character) then
 				return {
 					{
 						text = "I do not have enough money",
-						tooltip = "I lack " .. ut.to_fixed_point2(price - character.savings),
+						tooltip = "I lack " .. ut.to_fixed_point2(price - SAVINGS(character)),
 						viable = function() return true end,
 						outcome = outcome_refuse,
 						ai_preference = function() return 1 end

@@ -180,7 +180,7 @@ local function load()
 					return 0
 				end
 
-				return DATA.pop_get_culture(root).traditional_units[DATA.unit_type_get_name(unit)]
+				return DATA.pop_get_culture(root).traditional_units[DATA.unit_type_get_name(unit)] or 0
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = RECRUITER_OF_WARBAND(root)
@@ -246,7 +246,7 @@ local function load()
 					return 0
 				end
 
-				return 1 - DATA.pop_get_culture(root).traditional_units[DATA.unit_type_get_name(unit)]
+				return 1 - (DATA.pop_get_culture(root).traditional_units[DATA.unit_type_get_name(unit)] or 0)
 			end,
 			effect = function(root, primary_target, secondary_target)
 				local warband = RECRUITER_OF_WARBAND(root)

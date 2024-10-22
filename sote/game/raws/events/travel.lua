@@ -99,7 +99,7 @@ local function load()
             ge.travel(root, associated_data)
 
             if LEADER_OF_WARBAND(root) ~= INVALID_ID then
-                DATA.setup_warband_status(LEADER_OF_WARBAND(root), WARBAND_STATUS.IDLE)
+                DATA.warband_set_status(LEADER_OF_WARBAND(root), WARBAND_STATUS.IDLE)
             end
             UNSET_BUSY(root)
 

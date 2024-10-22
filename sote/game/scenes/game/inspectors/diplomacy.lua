@@ -9,15 +9,15 @@ local ut = require "game.ui-utils"
 local function render_realm(gam, rect, realm)
     local portrait_subrect = rect:subrect(0, 0, rect.height, rect.height, "left", "center"):shrink(5)
 
-    require "game.scenes.game.widgets.portrait"(portrait_subrect, realm.leader)
+    require "game.scenes.game.widgets.portrait"(portrait_subrect, LEADER(realm))
 
     local realm_name_rect = rect:subrect(rect.height, 0, rect.width - rect.height, rect.height / 2, "left", "up")
     local leader_name_rect = rect:subrect(rect.height, rect.height / 2, rect.width - rect.height, rect.height / 2, "left", "up")
 
     require "game.scenes.game.widgets.realm-name"(gam, realm, realm_name_rect, "immediate")
-    if ut.text_button(realm.leader.name, leader_name_rect) then
+    if ut.text_button(NAME(LEADER(realm)), leader_name_rect) then
         gam.inspector = "character"
-        gam.selected.character = realm.leader
+        gam.selected.character = LEADER(realm)
     end
 end
 

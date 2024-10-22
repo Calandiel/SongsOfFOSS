@@ -52,6 +52,14 @@ function SAVINGS(pop_id)
 end
 
 ---commenting
+---@param pop_id pop_id
+---@param trade_good trade_good_id
+---@return number
+function INVENTORY(pop_id, trade_good)
+	return DATA.pop_get_inventory(pop_id, trade_good)
+end
+
+---commenting
 ---@param pop_id Character
 ---@return Character
 function LOYAL_TO(pop_id)

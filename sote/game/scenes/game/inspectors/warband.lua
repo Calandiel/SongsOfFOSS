@@ -264,7 +264,7 @@ function window.draw(gamescene)
 			:build()
 
 		local realm = warband:realm()
-		local desc = "warriors from " .. realm.name
+		local desc = "warriors from " .. REALM_NAME(realm)
 		local realm_rect = top_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 		ui.panel(realm_rect)
 		-- warband realm inspector button
@@ -396,8 +396,8 @@ function window.draw(gamescene)
 		leader_rect:shrink(spacing)
 		ui.text("Capitol Guard", leader_rect:subrect(0, 0, leader_rect.width, ut.BASE_HEIGHT, "left", "up"), "center", "center")
 		ib.icon_button_to_realm(gamescene, realm, leader_rect:subrect(0, 0, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, "left", "down"))
-		ib.text_button_to_realm(gamescene, realm, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0, leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "center"), realm.name,
-			"This warband is the capitol guard of " .. realm.name .. ".")
+		ib.text_button_to_realm(gamescene, realm, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0, leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "center"), REALM_NAME(realm),
+			"This warband is the capitol guard of " .. REALM_NAME(realm) .. ".")
 		ib.text_button_to_province(gamescene, province, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0,leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "down"), province.name,
 			"This warband guards the province of " .. province.name .. ".")
 	end

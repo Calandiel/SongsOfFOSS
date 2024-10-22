@@ -18,7 +18,7 @@ return function ()
 		end,
 		options = function(self, character, associated_data)
 
-			if character.dead then
+			if DEAD(character) then
 				return {
 					{
 						text = "I am a dead tax collector...",

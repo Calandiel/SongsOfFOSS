@@ -17,7 +17,9 @@ function PoliticalEffects.dissolve_realm(realm)
 	local guard = DATA.get_realm_guard_from_realm(realm)
 	local warband = DATA.realm_guard_get_guard(guard)
 	local capitol = DATA.realm_get_capitol(realm)
-	DATA.delete_warband(warband)
+	if warband ~= INVALID_ID then
+		DATA.delete_warband(warband)
+	end
 	DATA.delete_realm(realm)
 	WORLD:unset_settled_province(capitol)
 end
@@ -109,7 +111,7 @@ end
 ---@param target Character
 ---@param reason POLITICS_REASON
 function PoliticalEffects.transfer_power(realm, target, reason)
-	-- LOGS:write("realm: " .. realm.name .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
+	-- LOGS:write("realm: " .. REALM_NAME(realm) .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
 	local fat_realm = DATA.fatten_realm(realm)
 	local fat_target = DATA.fatten_pop(target)
 	local leadership = DATA.get_realm_leadership_from_realm(realm)
@@ -152,7 +154,7 @@ end
 ---@param realm Realm
 ---@param overseer Character
 function PoliticalEffects.set_overseer(realm, overseer)
-	-- LOGS:write("realm: " .. realm.name .. "\n new overseer: " .. overseer.name .. "\n")
+	-- LOGS:write("realm: " .. REALM_NAME(realm) .. "\n new overseer: " .. overseer.name .. "\n")
 	local overseership = DATA.get_realm_overseer_from_realm(realm)
 
 	if overseership == INVALID_ID then
@@ -365,7 +367,7 @@ function PoliticalEffects.grant_nobility_to_random_pop(province, reason)
 		return true
 	end))
 
-	if item ~= INVALID_ID then
+	if item ~= nil then
 		PoliticalEffects.grant_nobility(DATA.home_get_pop(item), reason)
 		return DATA.home_get_pop(item)
 	end

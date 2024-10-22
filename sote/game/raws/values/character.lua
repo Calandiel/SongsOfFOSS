@@ -110,11 +110,11 @@ function character_values.travel_speed(character)
 		local river_fast = DATA.race_get_requires_large_river(race)
 		local forest_fast = DATA.race_get_requires_large_forest(race)
 
-		if river_fast and province.on_a_river then
+		if river_fast and DATA.province_get_on_a_river(province) then
 			---@type number
 			race_modifier = race_modifier * 5
 		end
-		if forest_fast and province.on_a_forest then
+		if forest_fast and DATA.province_get_on_a_forest(province) then
 			---@type number
 			race_modifier = race_modifier * 2.5
 		end
@@ -137,11 +137,11 @@ function character_values.travel_speed_race(race)
 		local river_fast = DATA.race_get_requires_large_river(race)
 		local forest_fast = DATA.race_get_requires_large_forest(race)
 
-		if river_fast and province.on_a_river then
+		if river_fast and DATA.province_get_on_a_river(province) then
 			---@type number
 			race_modifier = race_modifier * 5
 		end
-		if forest_fast and province.on_a_forest then
+		if forest_fast and DATA.province_get_on_a_forest(province) then
 			---@type number
 			race_modifier = race_modifier * 2.5
 		end

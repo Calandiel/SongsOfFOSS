@@ -79,7 +79,7 @@ function ev.draw(gam)
 			ui.panel(wealth)
 
 			require "game.scenes.game.widgets.character-name"(name, character)
-			uit.money_entry_icon(character.savings, wealth, "My savings")
+			uit.money_entry_icon(SAVINGS(character), wealth, "My savings")
 
 		else
 			print("We're trying to draw the event screen but the next event isn't meant for the player!")

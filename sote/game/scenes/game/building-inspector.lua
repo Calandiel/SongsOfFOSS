@@ -106,7 +106,7 @@ function re.draw(gam)
 		owner_icon.y = owner_icon.y + ut.BASE_HEIGHT * 2 + 10
 
 		-- next subsity, changing values and destory, only seen by owner (or realm leader if public)
-		if (not building.owner and WORLD.player_character == building.province.realm.leader)
+		if (not building.owner and WORLD.player_character == LEADER(PROVINCE_REALM(building.province)))
 			or (building.owner and WORLD.player_character == building.owner)
 		then
 			owner_button.y = owner_button.y + ut.BASE_HEIGHT + 5
@@ -660,7 +660,7 @@ function re.draw(gam)
 						rect,
 						"Unemploy this character!?",
 						(building.owner and building.owner == character)
-							or (not building.owner and character == building.province.realm.leader)
+							or (not building.owner and character == building.province.LEADER(realm))
 					) then
 						building.province:fire_pop(k)
 					end

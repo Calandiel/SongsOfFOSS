@@ -12,22 +12,45 @@ return function()
 	Event:new {
 		name = "tribute-collection-1",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
 			---@type TributeCollection
 			associated_data = associated_data
 
-			if associated_data.origin.tributaries[associated_data.target] then
-				local status = associated_data.origin.tributary_status[associated_data.target]
+			local can_collect_wealth = false
+			local can_collect_goods = false
 
-				if status.wealth_transfer then
+			local is_subject = false
+
+			local overlord = associated_data.origin
+			local subject = associated_data.target
+
+			DATA.for_each_realm_subject_relation_from_subject(associated_data.target, function (item)
+				local candidate = DATA.realm_subject_relation_get_overlord(item)
+
+				if candidate ~= overlord then
+					return
+				end
+
+				is_subject = true
+
+				can_collect_goods = DATA.realm_subject_relation_get_goods_transfer(item)
+				can_collect_wealth = DATA.realm_subject_relation_get_wealth_transfer(item)
+			end)
+
+			if is_subject then
+				if can_collect_wealth then
 					associated_data.tribute = economic_effects.collect_tribute(root, associated_data.target)
 				end
 
-				if status.goods_transfer then
-					for _, item in pairs(RAWS_MANAGER.trade_goods_list) do
-						local tribute = (associated_data.target.resources[item] or 0) * 0.5
+				if can_collect_goods then
+					DATA.for_each_trade_good(function (item)
+						local tribute = DATA.realm_get_resources(subject, item) * 0.5
 						associated_data.trade_goods_tribute[item] = tribute
-					end
+
+						-- currently is cosmetic, so we do not deduct goods from subject
+					end)
 				end
 			end
 
@@ -38,6 +61,8 @@ return function()
 	Event:new {
 		name = "tribute-collection-2",
 		automatic = false,
+		base_probability = 0,
+		event_background_path = "",
 		on_trigger = function(self, root, associated_data)
 			---@type TributeCollection
 			associated_data = associated_data

@@ -168,7 +168,7 @@ local function load()
 				gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
 			end
 
-			if character.dead then
+			if DEAD(character) then
 				return event_utils.dead_options
 			end
 
@@ -203,7 +203,7 @@ local function load()
 								WORLD:emit_action('request-tribute-attack', character, data, travel_time, true)
 							end
 
-							me.send_army(army, character.province, CAPITOL(target_realm), callback)
+							me.send_army(army, PROVINCE(character), CAPITOL(target_realm), callback)
 
 							if character == WORLD.player_character then
 								WORLD:emit_notification("I had launched the invasion of " .. REALM_NAME(target_realm))
@@ -323,7 +323,7 @@ local function load()
 			end
 
 			realm.capitol.mood = realm.capitol.mood + 0.05
-			pe.small_popularity_boost(realm.leader, realm)
+			pe.small_popularity_boost(LEADER(realm), realm)
 
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
@@ -339,7 +339,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Army
 			local army = associated_data
-			return "We succeeded in enforcing tribute on " .. army.destination.realm.name
+			return "We succeeded in enforcing tribute on " .. NAME(PROVINCE_REALM(army.destination))
 		end,
 		function(root, associated_data)
 			return "Great!"
@@ -368,7 +368,7 @@ local function load()
 			messages.tribute_raid_fail(realm, army.destination.realm)
 
 			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
-			pe.small_popularity_decrease(realm.leader, realm)
+			pe.small_popularity_decrease(LEADER(realm), realm)
 			realm:disband_army(army)
 			realm.prepare_attack_flag = false
 			UNSET_BUSY(root)
@@ -380,7 +380,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Army
 			local army = associated_data
-			return "We failed to enforce tribute on " .. army.destination.realm.name
+			return "We failed to enforce tribute on " .. NAME(PROVINCE_REALM(army.destination))
 		end,
 		function(root, associated_data)
 			return "Whatever. We will succeed next time"
@@ -560,7 +560,7 @@ local function load()
 			if loot ~= loot then
 				error("NAN TREASURY FROM RAID SUCCESS"
 				.. "\n realm: "
-				.. tostring(realm.name)
+				.. tostring(REALM_NAME(realm))
 				.. "\n loot: "
 				.. tostring(loot)
 				.. "\n target: "

@@ -465,7 +465,7 @@ end
 ---@param pop pop_id
 function warband_utils.unregister_military(pop)
 	local unit_of = DATA.get_warband_unit_from_unit(pop)
-	if unit_of then
+	if unit_of ~= INVALID_ID then
 		warband_utils.fire_unit(DATA.warband_unit_get_warband(unit_of), pop)
 	end
 end

@@ -262,20 +262,13 @@ function world.World:emit_immediate_action(event, root, associated_data)
 	end
 
 	local event_data = RAWS_MANAGER.events_by_name[event]
-
-	-- LOGS:write(
-	-- 	"\n Handling event: " .. event .. "\n" ..
-	-- 	"root: " .. root.name .. "\n" ..
-	-- 	"realm:" .. root.realm.name .. "\n"
-	-- )
-
 	event_data:on_trigger(root, associated_data)
 end
 
 ---Schedules an action (actions are events but we execute their "on trigger" instead of showing them and asking AI for reaction)
 ---@param event string
 ---@param root Character
----@param associated_data table?
+---@param associated_data table|number|nil
 ---@param delay number In days
 ---@param hidden boolean
 function world.World:emit_action(event, root, associated_data, delay, hidden)
@@ -308,7 +301,7 @@ local function handle_event(event, target_realm, associated_data)
 	-- 	LOGS:write(
 	-- 		"\n Handling event: " .. event .. "\n" ..
 	-- 		"root: " .. REALM_NAME(target_realm) .. "\n" ..
-	-- 		"realm:" .. target_realm.realm.name .. "\n"
+	-- 		"realm:" .. target_realm.REALM_NAME(realm) .. "\n"
 	-- 	)
 	-- end
 
@@ -631,7 +624,7 @@ function world.World:tick()
 					-- LOGS:write(
 					-- 	"\n Handling event: " .. check[1] .. "\n" ..
 					-- 	"root: " .. NAME(character) .. "\n" ..
-					-- 	"realm:" .. character.realm.name .. "\n"
+					-- 	"realm:" .. character.REALM_NAME(realm) .. "\n"
 					-- )
 					event:on_trigger(character, check[3])
 					--print("ontrig")

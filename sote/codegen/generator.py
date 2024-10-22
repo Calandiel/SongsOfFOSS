@@ -643,6 +643,8 @@ class EntityDescription:
     is_relationship: bool
     erasable: bool
 
+    log_create: bool
+
     def generate_dcon_description(self):
         """
         Generates DataContainer compliant description
@@ -700,6 +702,7 @@ class EntityDescription:
         self.max_count = max_count
         self.fields = []
         self.links = []
+        self.log_create = False
 
         if is_raw:
             self.erasable = False
@@ -801,6 +804,7 @@ class EntityDescription:
         """
         result = ""
         result += f"function {NAMESPACE}.delete_{self.name}(i)\n"
+        result += f"    assert(i ~= INVALID_ID, \" ATTEMPT TO DELETE INVALID OBJECT \")\n"
         if self.erasable:
             if self.is_relationship:
                 for field in self.links:
@@ -1018,13 +1022,21 @@ class EntityDescription:
         result += f"---@type table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}>\n"
         result += f"{NAMESPACE}.{self.name}_indices_set = {{}}\n"
 
+        result += f"---@type number\n"
+        result += f"{NAMESPACE}.{self.name}_objects_count = 0\n"
 
         if len(self.links) == 0:
             result += f"---@return {prefix_to_id_name(self.name)}\n"
             result += f"function {NAMESPACE}.create_{self.name}()\n"
             result += f"    ---@type {prefix_to_id_name(self.name)}\n"
             result += f"    local {iterator(self.name)}  = DCON.dcon_create_{self.name}() + 1\n"
+            result += f"    {NAMESPACE}.{self.name}_objects_count = {NAMESPACE}.{self.name}_objects_count + 1\n"
             result += f"    {NAMESPACE}.{self.name}_indices_set[{array_index(self.name)}] = i\n"
+            if self.log_create:
+                result += f"    print(\" CREATE {self.name} \" .. tostring({NAMESPACE}.{self.name}_objects_count))\n"
+            # result += f"    if i > 0.9 * {self.max_count} then print(\"{self.name} CLOSE TO OVERFLOW\") end \n"
+            # result += f"    if i > 0.99 * {self.max_count} then print(\"{self.name} VERY CLOSE TO OVERFLOW\") end \n"
+            # result += f"    if i > 0.999 * {self.max_count} then print(\"{self.name} VERY VERY CLOSE TO OVERFLOW\") end \n"
             result += f"    return {array_index(self.name)} \n"
             result +=  "end\n"
         else:
@@ -1501,6 +1513,7 @@ Resource = EntityDescription("resource", 300, True)
 ForageContainer = StructDescription("forage_container")
 
 TileDescription = EntityDescription("tile", TILES_MAX_COUNT, False)
+TileDescription.log_create = False
 TileDescription.erasable = False
 ResourcesLocation = StructDescription("resource_location")
 
@@ -1555,8 +1568,8 @@ TileMembership = EntityDescription("tile_province_membership", TILES_MAX_COUNT, 
 ProvinceNeighbourhood = EntityDescription("province_neighborhood", 250000, False)
 
 ParentChild = EntityDescription("parent_child_relation", 900000, False)
-Loyalty = EntityDescription("loyalty", 10000, False)
-Succession = EntityDescription("succession", 10000, False)
+Loyalty = EntityDescription("loyalty", 200000, False)
+Succession = EntityDescription("succession", 200000, False)
 
 RealmArmies = EntityDescription("realm_armies", REALMS_MAX_COUNT, False)
 RealmGuard = EntityDescription("realm_guard", REALMS_MAX_COUNT, False)

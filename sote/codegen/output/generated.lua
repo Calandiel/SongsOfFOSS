@@ -234,14 +234,18 @@ for i = 1, 1499999 do
 end
 ---@type table<tile_id, tile_id>
 DATA.tile_indices_set = {}
+---@type number
+DATA.tile_objects_count = 0
 ---@return tile_id
 function DATA.create_tile()
     ---@type tile_id
     local i  = DCON.dcon_create_tile() + 1
+    DATA.tile_objects_count = DATA.tile_objects_count + 1
     DATA.tile_indices_set[i --[[@as tile_id]]] = i
     return i --[[@as tile_id]] 
 end
 function DATA.delete_tile(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: tile_id) 
 function DATA.for_each_tile(func)
@@ -1030,14 +1034,18 @@ for i = 1, 299999 do
 end
 ---@type table<pop_id, pop_id>
 DATA.pop_indices_set = {}
+---@type number
+DATA.pop_objects_count = 0
 ---@return pop_id
 function DATA.create_pop()
     ---@type pop_id
     local i  = DCON.dcon_create_pop() + 1
+    DATA.pop_objects_count = DATA.pop_objects_count + 1
     DATA.pop_indices_set[i --[[@as pop_id]]] = i
     return i --[[@as pop_id]] 
 end
 function DATA.delete_pop(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         ---@type negotiation_id[]
         local to_delete = {}
@@ -1797,14 +1805,18 @@ for i = 1, 19999 do
 end
 ---@type table<province_id, province_id>
 DATA.province_indices_set = {}
+---@type number
+DATA.province_objects_count = 0
 ---@return province_id
 function DATA.create_province()
     ---@type province_id
     local i  = DCON.dcon_create_province() + 1
+    DATA.province_objects_count = DATA.province_objects_count + 1
     DATA.province_indices_set[i --[[@as province_id]]] = i
     return i --[[@as province_id]] 
 end
 function DATA.delete_province(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         ---@type building_location_id[]
         local to_delete = {}
@@ -2750,14 +2762,18 @@ for i = 1, 4999 do
 end
 ---@type table<army_id, army_id>
 DATA.army_indices_set = {}
+---@type number
+DATA.army_objects_count = 0
 ---@return army_id
 function DATA.create_army()
     ---@type army_id
     local i  = DCON.dcon_create_army() + 1
+    DATA.army_objects_count = DATA.army_objects_count + 1
     DATA.army_indices_set[i --[[@as army_id]]] = i
     return i --[[@as army_id]] 
 end
 function DATA.delete_army(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         ---@type army_membership_id[]
         local to_delete = {}
@@ -2903,14 +2919,18 @@ for i = 1, 19999 do
 end
 ---@type table<warband_id, warband_id>
 DATA.warband_indices_set = {}
+---@type number
+DATA.warband_objects_count = 0
 ---@return warband_id
 function DATA.create_warband()
     ---@type warband_id
     local i  = DCON.dcon_create_warband() + 1
+    DATA.warband_objects_count = DATA.warband_objects_count + 1
     DATA.warband_indices_set[i --[[@as warband_id]]] = i
     return i --[[@as warband_id]] 
 end
 function DATA.delete_warband(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local to_delete = DATA.get_army_membership_from_member(i)
         if to_delete ~= INVALID_ID then
@@ -3411,14 +3431,18 @@ for i = 1, 14999 do
 end
 ---@type table<realm_id, realm_id>
 DATA.realm_indices_set = {}
+---@type number
+DATA.realm_objects_count = 0
 ---@return realm_id
 function DATA.create_realm()
     ---@type realm_id
     local i  = DCON.dcon_create_realm() + 1
+    DATA.realm_objects_count = DATA.realm_objects_count + 1
     DATA.realm_indices_set[i --[[@as realm_id]]] = i
     return i --[[@as realm_id]] 
 end
 function DATA.delete_realm(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         ---@type realm_armies_id[]
         local to_delete = {}
@@ -4583,6 +4607,8 @@ for i = 1, 2499 do
 end
 ---@type table<negotiation_id, negotiation_id>
 DATA.negotiation_indices_set = {}
+---@type number
+DATA.negotiation_objects_count = 0
 ---@param initiator pop_id
 ---@param target pop_id
 ---@return negotiation_id
@@ -4595,6 +4621,7 @@ function DATA.force_create_negotiation(initiator, target)
     return i --[[@as negotiation_id]] 
 end
 function DATA.delete_negotiation(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.negotiation[i].initiator
         __REMOVE_KEY_NEGOTIATION_INITIATOR(i, old_value)
@@ -4854,14 +4881,18 @@ for i = 1, 199999 do
 end
 ---@type table<building_id, building_id>
 DATA.building_indices_set = {}
+---@type number
+DATA.building_objects_count = 0
 ---@return building_id
 function DATA.create_building()
     ---@type building_id
     local i  = DCON.dcon_create_building() + 1
+    DATA.building_objects_count = DATA.building_objects_count + 1
     DATA.building_indices_set[i --[[@as building_id]]] = i
     return i --[[@as building_id]] 
 end
 function DATA.delete_building(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local to_delete = DATA.get_ownership_from_building(i)
         if to_delete ~= INVALID_ID then
@@ -5257,6 +5288,8 @@ for i = 1, 199999 do
 end
 ---@type table<ownership_id, ownership_id>
 DATA.ownership_indices_set = {}
+---@type number
+DATA.ownership_objects_count = 0
 ---@param building building_id
 ---@param owner pop_id
 ---@return ownership_id
@@ -5269,6 +5302,7 @@ function DATA.force_create_ownership(building, owner)
     return i --[[@as ownership_id]] 
 end
 function DATA.delete_ownership(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.ownership[i].building
         __REMOVE_KEY_OWNERSHIP_BUILDING(old_value)
@@ -5472,6 +5506,8 @@ for i = 1, 299999 do
 end
 ---@type table<employment_id, employment_id>
 DATA.employment_indices_set = {}
+---@type number
+DATA.employment_objects_count = 0
 ---@param building building_id
 ---@param worker pop_id
 ---@return employment_id
@@ -5484,6 +5520,7 @@ function DATA.force_create_employment(building, worker)
     return i --[[@as employment_id]] 
 end
 function DATA.delete_employment(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.employment[i].building
         __REMOVE_KEY_EMPLOYMENT_BUILDING(i, old_value)
@@ -5716,6 +5753,8 @@ for i = 1, 199999 do
 end
 ---@type table<building_location_id, building_location_id>
 DATA.building_location_indices_set = {}
+---@type number
+DATA.building_location_objects_count = 0
 ---@param location province_id
 ---@param building building_id
 ---@return building_location_id
@@ -5728,6 +5767,7 @@ function DATA.force_create_building_location(location, building)
     return i --[[@as building_location_id]] 
 end
 function DATA.delete_building_location(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.building_location[i].location
         __REMOVE_KEY_BUILDING_LOCATION_LOCATION(i, old_value)
@@ -5925,6 +5965,8 @@ for i = 1, 9999 do
 end
 ---@type table<army_membership_id, army_membership_id>
 DATA.army_membership_indices_set = {}
+---@type number
+DATA.army_membership_objects_count = 0
 ---@param army army_id
 ---@param member warband_id
 ---@return army_membership_id
@@ -5937,6 +5979,7 @@ function DATA.force_create_army_membership(army, member)
     return i --[[@as army_membership_id]] 
 end
 function DATA.delete_army_membership(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.army_membership[i].army
         __REMOVE_KEY_ARMY_MEMBERSHIP_ARMY(i, old_value)
@@ -6131,6 +6174,8 @@ for i = 1, 9999 do
 end
 ---@type table<warband_leader_id, warband_leader_id>
 DATA.warband_leader_indices_set = {}
+---@type number
+DATA.warband_leader_objects_count = 0
 ---@param leader pop_id
 ---@param warband warband_id
 ---@return warband_leader_id
@@ -6143,6 +6188,7 @@ function DATA.force_create_warband_leader(leader, warband)
     return i --[[@as warband_leader_id]] 
 end
 function DATA.delete_warband_leader(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.warband_leader[i].leader
         __REMOVE_KEY_WARBAND_LEADER_LEADER(old_value)
@@ -6294,6 +6340,8 @@ for i = 1, 9999 do
 end
 ---@type table<warband_recruiter_id, warband_recruiter_id>
 DATA.warband_recruiter_indices_set = {}
+---@type number
+DATA.warband_recruiter_objects_count = 0
 ---@param recruiter pop_id
 ---@param warband warband_id
 ---@return warband_recruiter_id
@@ -6306,6 +6354,7 @@ function DATA.force_create_warband_recruiter(recruiter, warband)
     return i --[[@as warband_recruiter_id]] 
 end
 function DATA.delete_warband_recruiter(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.warband_recruiter[i].recruiter
         __REMOVE_KEY_WARBAND_RECRUITER_RECRUITER(old_value)
@@ -6457,6 +6506,8 @@ for i = 1, 9999 do
 end
 ---@type table<warband_commander_id, warband_commander_id>
 DATA.warband_commander_indices_set = {}
+---@type number
+DATA.warband_commander_objects_count = 0
 ---@param commander pop_id
 ---@param warband warband_id
 ---@return warband_commander_id
@@ -6469,6 +6520,7 @@ function DATA.force_create_warband_commander(commander, warband)
     return i --[[@as warband_commander_id]] 
 end
 function DATA.delete_warband_commander(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.warband_commander[i].commander
         __REMOVE_KEY_WARBAND_COMMANDER_COMMANDER(old_value)
@@ -6623,6 +6675,8 @@ for i = 1, 9999 do
 end
 ---@type table<warband_location_id, warband_location_id>
 DATA.warband_location_indices_set = {}
+---@type number
+DATA.warband_location_objects_count = 0
 ---@param location province_id
 ---@param warband warband_id
 ---@return warband_location_id
@@ -6635,6 +6689,7 @@ function DATA.force_create_warband_location(location, warband)
     return i --[[@as warband_location_id]] 
 end
 function DATA.delete_warband_location(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.warband_location[i].location
         __REMOVE_KEY_WARBAND_LOCATION_LOCATION(i, old_value)
@@ -6835,6 +6890,8 @@ for i = 1, 49999 do
 end
 ---@type table<warband_unit_id, warband_unit_id>
 DATA.warband_unit_indices_set = {}
+---@type number
+DATA.warband_unit_objects_count = 0
 ---@param unit pop_id
 ---@param warband warband_id
 ---@return warband_unit_id
@@ -6847,6 +6904,7 @@ function DATA.force_create_warband_unit(unit, warband)
     return i --[[@as warband_unit_id]] 
 end
 function DATA.delete_warband_unit(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.warband_unit[i].unit
         __REMOVE_KEY_WARBAND_UNIT_UNIT(old_value)
@@ -7059,6 +7117,8 @@ for i = 1, 99999 do
 end
 ---@type table<character_location_id, character_location_id>
 DATA.character_location_indices_set = {}
+---@type number
+DATA.character_location_objects_count = 0
 ---@param location province_id
 ---@param character pop_id
 ---@return character_location_id
@@ -7071,6 +7131,7 @@ function DATA.force_create_character_location(location, character)
     return i --[[@as character_location_id]] 
 end
 function DATA.delete_character_location(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.character_location[i].location
         __REMOVE_KEY_CHARACTER_LOCATION_LOCATION(i, old_value)
@@ -7268,6 +7329,8 @@ for i = 1, 299999 do
 end
 ---@type table<home_id, home_id>
 DATA.home_indices_set = {}
+---@type number
+DATA.home_objects_count = 0
 ---@param home province_id
 ---@param pop pop_id
 ---@return home_id
@@ -7280,6 +7343,7 @@ function DATA.force_create_home(home, pop)
     return i --[[@as home_id]] 
 end
 function DATA.delete_home(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.home[i].home
         __REMOVE_KEY_HOME_HOME(i, old_value)
@@ -7477,6 +7541,8 @@ for i = 1, 299999 do
 end
 ---@type table<pop_location_id, pop_location_id>
 DATA.pop_location_indices_set = {}
+---@type number
+DATA.pop_location_objects_count = 0
 ---@param location province_id
 ---@param pop pop_id
 ---@return pop_location_id
@@ -7489,6 +7555,7 @@ function DATA.force_create_pop_location(location, pop)
     return i --[[@as pop_location_id]] 
 end
 function DATA.delete_pop_location(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.pop_location[i].location
         __REMOVE_KEY_POP_LOCATION_LOCATION(i, old_value)
@@ -7686,6 +7753,8 @@ for i = 1, 299999 do
 end
 ---@type table<outlaw_location_id, outlaw_location_id>
 DATA.outlaw_location_indices_set = {}
+---@type number
+DATA.outlaw_location_objects_count = 0
 ---@param location province_id
 ---@param outlaw pop_id
 ---@return outlaw_location_id
@@ -7698,6 +7767,7 @@ function DATA.force_create_outlaw_location(location, outlaw)
     return i --[[@as outlaw_location_id]] 
 end
 function DATA.delete_outlaw_location(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.outlaw_location[i].location
         __REMOVE_KEY_OUTLAW_LOCATION_LOCATION(i, old_value)
@@ -7895,6 +7965,8 @@ for i = 1, 1499999 do
 end
 ---@type table<tile_province_membership_id, tile_province_membership_id>
 DATA.tile_province_membership_indices_set = {}
+---@type number
+DATA.tile_province_membership_objects_count = 0
 ---@param province province_id
 ---@param tile tile_id
 ---@return tile_province_membership_id
@@ -7907,6 +7979,7 @@ function DATA.force_create_tile_province_membership(province, tile)
     return i --[[@as tile_province_membership_id]] 
 end
 function DATA.delete_tile_province_membership(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.tile_province_membership[i].province
         __REMOVE_KEY_TILE_PROVINCE_MEMBERSHIP_PROVINCE(i, old_value)
@@ -8107,6 +8180,8 @@ for i = 1, 249999 do
 end
 ---@type table<province_neighborhood_id, province_neighborhood_id>
 DATA.province_neighborhood_indices_set = {}
+---@type number
+DATA.province_neighborhood_objects_count = 0
 ---@param origin province_id
 ---@param target province_id
 ---@return province_neighborhood_id
@@ -8119,6 +8194,7 @@ function DATA.force_create_province_neighborhood(origin, target)
     return i --[[@as province_neighborhood_id]] 
 end
 function DATA.delete_province_neighborhood(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.province_neighborhood[i].origin
         __REMOVE_KEY_PROVINCE_NEIGHBORHOOD_ORIGIN(i, old_value)
@@ -8359,6 +8435,8 @@ for i = 1, 899999 do
 end
 ---@type table<parent_child_relation_id, parent_child_relation_id>
 DATA.parent_child_relation_indices_set = {}
+---@type number
+DATA.parent_child_relation_objects_count = 0
 ---@param parent pop_id
 ---@param child pop_id
 ---@return parent_child_relation_id
@@ -8371,6 +8449,7 @@ function DATA.force_create_parent_child_relation(parent, child)
     return i --[[@as parent_child_relation_id]] 
 end
 function DATA.delete_parent_child_relation(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.parent_child_relation[i].parent
         __REMOVE_KEY_PARENT_CHILD_RELATION_PARENT(i, old_value)
@@ -8547,12 +8626,12 @@ void dcon_loyalty_resize(uint32_t sz);
 
 ---loyalty: FFI arrays---
 ---@type nil
-DATA.loyalty_calloc = ffi.C.calloc(1, ffi.sizeof("loyalty") * 10001)
+DATA.loyalty_calloc = ffi.C.calloc(1, ffi.sizeof("loyalty") * 200001)
 ---@type table<loyalty_id, struct_loyalty>
 DATA.loyalty = ffi.cast("loyalty*", DATA.loyalty_calloc)
 ---@type table<pop_id, loyalty_id[]>>
 DATA.loyalty_from_top= {}
-for i = 1, 10000 do
+for i = 1, 200000 do
     DATA.loyalty_from_top[i --[[@as pop_id]]] = {}
 end
 ---@type table<pop_id, loyalty_id>
@@ -8560,14 +8639,16 @@ DATA.loyalty_from_bottom= {}
 
 ---loyalty: LUA bindings---
 
-DATA.loyalty_size = 10000
+DATA.loyalty_size = 200000
 ---@type table<loyalty_id, boolean>
-local loyalty_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local loyalty_indices_pool = ffi.new("bool[?]", 200000)
+for i = 1, 199999 do
     loyalty_indices_pool[i --[[@as loyalty_id]]] = true 
 end
 ---@type table<loyalty_id, loyalty_id>
 DATA.loyalty_indices_set = {}
+---@type number
+DATA.loyalty_objects_count = 0
 ---@param top pop_id
 ---@param bottom pop_id
 ---@return loyalty_id
@@ -8580,6 +8661,7 @@ function DATA.force_create_loyalty(top, bottom)
     return i --[[@as loyalty_id]] 
 end
 function DATA.delete_loyalty(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.loyalty[i].top
         __REMOVE_KEY_LOYALTY_TOP(i, old_value)
@@ -8756,27 +8838,29 @@ void dcon_succession_resize(uint32_t sz);
 
 ---succession: FFI arrays---
 ---@type nil
-DATA.succession_calloc = ffi.C.calloc(1, ffi.sizeof("succession") * 10001)
+DATA.succession_calloc = ffi.C.calloc(1, ffi.sizeof("succession") * 200001)
 ---@type table<succession_id, struct_succession>
 DATA.succession = ffi.cast("succession*", DATA.succession_calloc)
 ---@type table<pop_id, succession_id>
 DATA.succession_from_successor_of= {}
 ---@type table<pop_id, succession_id[]>>
 DATA.succession_from_successor= {}
-for i = 1, 10000 do
+for i = 1, 200000 do
     DATA.succession_from_successor[i --[[@as pop_id]]] = {}
 end
 
 ---succession: LUA bindings---
 
-DATA.succession_size = 10000
+DATA.succession_size = 200000
 ---@type table<succession_id, boolean>
-local succession_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local succession_indices_pool = ffi.new("bool[?]", 200000)
+for i = 1, 199999 do
     succession_indices_pool[i --[[@as succession_id]]] = true 
 end
 ---@type table<succession_id, succession_id>
 DATA.succession_indices_set = {}
+---@type number
+DATA.succession_objects_count = 0
 ---@param successor_of pop_id
 ---@param successor pop_id
 ---@return succession_id
@@ -8789,6 +8873,7 @@ function DATA.force_create_succession(successor_of, successor)
     return i --[[@as succession_id]] 
 end
 function DATA.delete_succession(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.succession[i].successor_of
         __REMOVE_KEY_SUCCESSION_SUCCESSOR_OF(old_value)
@@ -8986,6 +9071,8 @@ for i = 1, 14999 do
 end
 ---@type table<realm_armies_id, realm_armies_id>
 DATA.realm_armies_indices_set = {}
+---@type number
+DATA.realm_armies_objects_count = 0
 ---@param realm realm_id
 ---@param army army_id
 ---@return realm_armies_id
@@ -8998,6 +9085,7 @@ function DATA.force_create_realm_armies(realm, army)
     return i --[[@as realm_armies_id]] 
 end
 function DATA.delete_realm_armies(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_armies[i].realm
         __REMOVE_KEY_REALM_ARMIES_REALM(i, old_value)
@@ -9192,6 +9280,8 @@ for i = 1, 14999 do
 end
 ---@type table<realm_guard_id, realm_guard_id>
 DATA.realm_guard_indices_set = {}
+---@type number
+DATA.realm_guard_objects_count = 0
 ---@param guard warband_id
 ---@param realm realm_id
 ---@return realm_guard_id
@@ -9204,6 +9294,7 @@ function DATA.force_create_realm_guard(guard, realm)
     return i --[[@as realm_guard_id]] 
 end
 function DATA.delete_realm_guard(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_guard[i].guard
         __REMOVE_KEY_REALM_GUARD_GUARD(old_value)
@@ -9355,6 +9446,8 @@ for i = 1, 14999 do
 end
 ---@type table<realm_overseer_id, realm_overseer_id>
 DATA.realm_overseer_indices_set = {}
+---@type number
+DATA.realm_overseer_objects_count = 0
 ---@param overseer pop_id
 ---@param realm realm_id
 ---@return realm_overseer_id
@@ -9367,6 +9460,7 @@ function DATA.force_create_realm_overseer(overseer, realm)
     return i --[[@as realm_overseer_id]] 
 end
 function DATA.delete_realm_overseer(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_overseer[i].overseer
         __REMOVE_KEY_REALM_OVERSEER_OVERSEER(old_value)
@@ -9521,6 +9615,8 @@ for i = 1, 14999 do
 end
 ---@type table<realm_leadership_id, realm_leadership_id>
 DATA.realm_leadership_indices_set = {}
+---@type number
+DATA.realm_leadership_objects_count = 0
 ---@param leader pop_id
 ---@param realm realm_id
 ---@return realm_leadership_id
@@ -9533,6 +9629,7 @@ function DATA.force_create_realm_leadership(leader, realm)
     return i --[[@as realm_leadership_id]] 
 end
 function DATA.delete_realm_leadership(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_leadership[i].leader
         __REMOVE_KEY_REALM_LEADERSHIP_LEADER(i, old_value)
@@ -9748,6 +9845,8 @@ for i = 1, 14999 do
 end
 ---@type table<realm_subject_relation_id, realm_subject_relation_id>
 DATA.realm_subject_relation_indices_set = {}
+---@type number
+DATA.realm_subject_relation_objects_count = 0
 ---@param overlord realm_id
 ---@param subject realm_id
 ---@return realm_subject_relation_id
@@ -9760,6 +9859,7 @@ function DATA.force_create_realm_subject_relation(overlord, subject)
     return i --[[@as realm_subject_relation_id]] 
 end
 function DATA.delete_realm_subject_relation(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_subject_relation[i].overlord
         __REMOVE_KEY_REALM_SUBJECT_RELATION_OVERLORD(i, old_value)
@@ -10075,6 +10175,8 @@ for i = 1, 44999 do
 end
 ---@type table<tax_collector_id, tax_collector_id>
 DATA.tax_collector_indices_set = {}
+---@type number
+DATA.tax_collector_objects_count = 0
 ---@param collector pop_id
 ---@param realm realm_id
 ---@return tax_collector_id
@@ -10087,6 +10189,7 @@ function DATA.force_create_tax_collector(collector, realm)
     return i --[[@as tax_collector_id]] 
 end
 function DATA.delete_tax_collector(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.tax_collector[i].collector
         __REMOVE_KEY_TAX_COLLECTOR_COLLECTOR(old_value)
@@ -10293,6 +10396,8 @@ for i = 1, 449999 do
 end
 ---@type table<personal_rights_id, personal_rights_id>
 DATA.personal_rights_indices_set = {}
+---@type number
+DATA.personal_rights_objects_count = 0
 ---@param person pop_id
 ---@param realm realm_id
 ---@return personal_rights_id
@@ -10305,6 +10410,7 @@ function DATA.force_create_personal_rights(person, realm)
     return i --[[@as personal_rights_id]] 
 end
 function DATA.delete_personal_rights(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.personal_rights[i].person
         __REMOVE_KEY_PERSONAL_RIGHTS_PERSON(i, old_value)
@@ -10575,6 +10681,8 @@ for i = 1, 29999 do
 end
 ---@type table<realm_provinces_id, realm_provinces_id>
 DATA.realm_provinces_indices_set = {}
+---@type number
+DATA.realm_provinces_objects_count = 0
 ---@param province province_id
 ---@param realm realm_id
 ---@return realm_provinces_id
@@ -10587,6 +10695,7 @@ function DATA.force_create_realm_provinces(province, realm)
     return i --[[@as realm_provinces_id]] 
 end
 function DATA.delete_realm_provinces(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_provinces[i].province
         __REMOVE_KEY_REALM_PROVINCES_PROVINCE(old_value)
@@ -10790,6 +10899,8 @@ for i = 1, 449999 do
 end
 ---@type table<popularity_id, popularity_id>
 DATA.popularity_indices_set = {}
+---@type number
+DATA.popularity_objects_count = 0
 ---@param who pop_id
 ---@param where realm_id
 ---@return popularity_id
@@ -10802,6 +10913,7 @@ function DATA.force_create_popularity(who, where)
     return i --[[@as popularity_id]] 
 end
 function DATA.delete_popularity(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.popularity[i].who
         __REMOVE_KEY_POPULARITY_WHO(i, old_value)
@@ -11062,6 +11174,8 @@ for i = 1, 299999 do
 end
 ---@type table<realm_pop_id, realm_pop_id>
 DATA.realm_pop_indices_set = {}
+---@type number
+DATA.realm_pop_objects_count = 0
 ---@param realm realm_id
 ---@param pop pop_id
 ---@return realm_pop_id
@@ -11074,6 +11188,7 @@ function DATA.force_create_realm_pop(realm, pop)
     return i --[[@as realm_pop_id]] 
 end
 function DATA.delete_realm_pop(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
         local old_value = DATA.realm_pop[i].realm
         __REMOVE_KEY_REALM_POP_REALM(i, old_value)
@@ -11273,14 +11388,18 @@ for i = 1, 9 do
 end
 ---@type table<jobtype_id, jobtype_id>
 DATA.jobtype_indices_set = {}
+---@type number
+DATA.jobtype_objects_count = 0
 ---@return jobtype_id
 function DATA.create_jobtype()
     ---@type jobtype_id
     local i  = DCON.dcon_create_jobtype() + 1
+    DATA.jobtype_objects_count = DATA.jobtype_objects_count + 1
     DATA.jobtype_indices_set[i --[[@as jobtype_id]]] = i
     return i --[[@as jobtype_id]] 
 end
 function DATA.delete_jobtype(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: jobtype_id) 
 function DATA.for_each_jobtype(func)
@@ -11461,14 +11580,18 @@ for i = 1, 8 do
 end
 ---@type table<need_id, need_id>
 DATA.need_indices_set = {}
+---@type number
+DATA.need_objects_count = 0
 ---@return need_id
 function DATA.create_need()
     ---@type need_id
     local i  = DCON.dcon_create_need() + 1
+    DATA.need_objects_count = DATA.need_objects_count + 1
     DATA.need_indices_set[i --[[@as need_id]]] = i
     return i --[[@as need_id]] 
 end
 function DATA.delete_need(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: need_id) 
 function DATA.for_each_need(func)
@@ -11735,14 +11858,18 @@ for i = 1, 4 do
 end
 ---@type table<character_rank_id, character_rank_id>
 DATA.character_rank_indices_set = {}
+---@type number
+DATA.character_rank_objects_count = 0
 ---@return character_rank_id
 function DATA.create_character_rank()
     ---@type character_rank_id
     local i  = DCON.dcon_create_character_rank() + 1
+    DATA.character_rank_objects_count = DATA.character_rank_objects_count + 1
     DATA.character_rank_indices_set[i --[[@as character_rank_id]]] = i
     return i --[[@as character_rank_id]] 
 end
 function DATA.delete_character_rank(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: character_rank_id) 
 function DATA.for_each_character_rank(func)
@@ -11913,14 +12040,18 @@ for i = 1, 11 do
 end
 ---@type table<trait_id, trait_id>
 DATA.trait_indices_set = {}
+---@type number
+DATA.trait_objects_count = 0
 ---@return trait_id
 function DATA.create_trait()
     ---@type trait_id
     local i  = DCON.dcon_create_trait() + 1
+    DATA.trait_objects_count = DATA.trait_objects_count + 1
     DATA.trait_indices_set[i --[[@as trait_id]]] = i
     return i --[[@as trait_id]] 
 end
 function DATA.delete_trait(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: trait_id) 
 function DATA.for_each_trait(func)
@@ -12175,7 +12306,7 @@ DATA.trait_set_name(index_trait, "WARLIKE")
 DATA.trait_set_ambition(index_trait, 0.1)
 DATA.trait_set_greed(index_trait, 0)
 DATA.trait_set_admin(index_trait, 0)
-DATA.trait_set_traveller(index_trait, 1)
+DATA.trait_set_traveller(index_trait, 0)
 DATA.trait_set_aggression(index_trait, 1)
 DATA.trait_set_short_description(index_trait, "warlike")
 DATA.trait_set_full_description(index_trait, "TODO")
@@ -12279,14 +12410,18 @@ for i = 1, 4 do
 end
 ---@type table<trade_good_category_id, trade_good_category_id>
 DATA.trade_good_category_indices_set = {}
+---@type number
+DATA.trade_good_category_objects_count = 0
 ---@return trade_good_category_id
 function DATA.create_trade_good_category()
     ---@type trade_good_category_id
     local i  = DCON.dcon_create_trade_good_category() + 1
+    DATA.trade_good_category_objects_count = DATA.trade_good_category_objects_count + 1
     DATA.trade_good_category_indices_set[i --[[@as trade_good_category_id]]] = i
     return i --[[@as trade_good_category_id]] 
 end
 function DATA.delete_trade_good_category(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: trade_good_category_id) 
 function DATA.for_each_trade_good_category(func)
@@ -12399,14 +12534,18 @@ for i = 1, 9 do
 end
 ---@type table<warband_status_id, warband_status_id>
 DATA.warband_status_indices_set = {}
+---@type number
+DATA.warband_status_objects_count = 0
 ---@return warband_status_id
 function DATA.create_warband_status()
     ---@type warband_status_id
     local i  = DCON.dcon_create_warband_status() + 1
+    DATA.warband_status_objects_count = DATA.warband_status_objects_count + 1
     DATA.warband_status_indices_set[i --[[@as warband_status_id]]] = i
     return i --[[@as warband_status_id]] 
 end
 function DATA.delete_warband_status(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: warband_status_id) 
 function DATA.for_each_warband_status(func)
@@ -12534,14 +12673,18 @@ for i = 1, 3 do
 end
 ---@type table<warband_stance_id, warband_stance_id>
 DATA.warband_stance_indices_set = {}
+---@type number
+DATA.warband_stance_objects_count = 0
 ---@return warband_stance_id
 function DATA.create_warband_stance()
     ---@type warband_stance_id
     local i  = DCON.dcon_create_warband_stance() + 1
+    DATA.warband_stance_objects_count = DATA.warband_stance_objects_count + 1
     DATA.warband_stance_indices_set[i --[[@as warband_stance_id]]] = i
     return i --[[@as warband_stance_id]] 
 end
 function DATA.delete_warband_stance(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: warband_stance_id) 
 function DATA.for_each_warband_stance(func)
@@ -12651,14 +12794,18 @@ for i = 1, 6 do
 end
 ---@type table<building_archetype_id, building_archetype_id>
 DATA.building_archetype_indices_set = {}
+---@type number
+DATA.building_archetype_objects_count = 0
 ---@return building_archetype_id
 function DATA.create_building_archetype()
     ---@type building_archetype_id
     local i  = DCON.dcon_create_building_archetype() + 1
+    DATA.building_archetype_objects_count = DATA.building_archetype_objects_count + 1
     DATA.building_archetype_indices_set[i --[[@as building_archetype_id]]] = i
     return i --[[@as building_archetype_id]] 
 end
 function DATA.delete_building_archetype(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: building_archetype_id) 
 function DATA.for_each_building_archetype(func)
@@ -12792,14 +12939,18 @@ for i = 1, 9 do
 end
 ---@type table<forage_resource_id, forage_resource_id>
 DATA.forage_resource_indices_set = {}
+---@type number
+DATA.forage_resource_objects_count = 0
 ---@return forage_resource_id
 function DATA.create_forage_resource()
     ---@type forage_resource_id
     local i  = DCON.dcon_create_forage_resource() + 1
+    DATA.forage_resource_objects_count = DATA.forage_resource_objects_count + 1
     DATA.forage_resource_indices_set[i --[[@as forage_resource_id]]] = i
     return i --[[@as forage_resource_id]] 
 end
 function DATA.delete_forage_resource(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: forage_resource_id) 
 function DATA.for_each_forage_resource(func)
@@ -12996,14 +13147,18 @@ for i = 1, 6 do
 end
 ---@type table<budget_category_id, budget_category_id>
 DATA.budget_category_indices_set = {}
+---@type number
+DATA.budget_category_objects_count = 0
 ---@return budget_category_id
 function DATA.create_budget_category()
     ---@type budget_category_id
     local i  = DCON.dcon_create_budget_category() + 1
+    DATA.budget_category_objects_count = DATA.budget_category_objects_count + 1
     DATA.budget_category_indices_set[i --[[@as budget_category_id]]] = i
     return i --[[@as budget_category_id]] 
 end
 function DATA.delete_budget_category(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: budget_category_id) 
 function DATA.for_each_budget_category(func)
@@ -13127,14 +13282,18 @@ for i = 1, 37 do
 end
 ---@type table<economy_reason_id, economy_reason_id>
 DATA.economy_reason_indices_set = {}
+---@type number
+DATA.economy_reason_objects_count = 0
 ---@return economy_reason_id
 function DATA.create_economy_reason()
     ---@type economy_reason_id
     local i  = DCON.dcon_create_economy_reason() + 1
+    DATA.economy_reason_objects_count = DATA.economy_reason_objects_count + 1
     DATA.economy_reason_indices_set[i --[[@as economy_reason_id]]] = i
     return i --[[@as economy_reason_id]] 
 end
 function DATA.delete_economy_reason(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: economy_reason_id) 
 function DATA.for_each_economy_reason(func)
@@ -13402,14 +13561,18 @@ for i = 1, 9 do
 end
 ---@type table<politics_reason_id, politics_reason_id>
 DATA.politics_reason_indices_set = {}
+---@type number
+DATA.politics_reason_objects_count = 0
 ---@return politics_reason_id
 function DATA.create_politics_reason()
     ---@type politics_reason_id
     local i  = DCON.dcon_create_politics_reason() + 1
+    DATA.politics_reason_objects_count = DATA.politics_reason_objects_count + 1
     DATA.politics_reason_indices_set[i --[[@as politics_reason_id]]] = i
     return i --[[@as politics_reason_id]] 
 end
 function DATA.delete_politics_reason(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: politics_reason_id) 
 function DATA.for_each_politics_reason(func)
@@ -13560,14 +13723,18 @@ for i = 1, 4 do
 end
 ---@type table<law_trade_id, law_trade_id>
 DATA.law_trade_indices_set = {}
+---@type number
+DATA.law_trade_objects_count = 0
 ---@return law_trade_id
 function DATA.create_law_trade()
     ---@type law_trade_id
     local i  = DCON.dcon_create_law_trade() + 1
+    DATA.law_trade_objects_count = DATA.law_trade_objects_count + 1
     DATA.law_trade_indices_set[i --[[@as law_trade_id]]] = i
     return i --[[@as law_trade_id]] 
 end
 function DATA.delete_law_trade(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: law_trade_id) 
 function DATA.for_each_law_trade(func)
@@ -13680,14 +13847,18 @@ for i = 1, 4 do
 end
 ---@type table<law_building_id, law_building_id>
 DATA.law_building_indices_set = {}
+---@type number
+DATA.law_building_objects_count = 0
 ---@return law_building_id
 function DATA.create_law_building()
     ---@type law_building_id
     local i  = DCON.dcon_create_law_building() + 1
+    DATA.law_building_objects_count = DATA.law_building_objects_count + 1
     DATA.law_building_indices_set[i --[[@as law_building_id]]] = i
     return i --[[@as law_building_id]] 
 end
 function DATA.delete_law_building(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: law_building_id) 
 function DATA.for_each_law_building(func)
@@ -13838,14 +14009,18 @@ for i = 1, 99 do
 end
 ---@type table<trade_good_id, trade_good_id>
 DATA.trade_good_indices_set = {}
+---@type number
+DATA.trade_good_objects_count = 0
 ---@return trade_good_id
 function DATA.create_trade_good()
     ---@type trade_good_id
     local i  = DCON.dcon_create_trade_good() + 1
+    DATA.trade_good_objects_count = DATA.trade_good_objects_count + 1
     DATA.trade_good_indices_set[i --[[@as trade_good_id]]] = i
     return i --[[@as trade_good_id]] 
 end
 function DATA.delete_trade_good(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: trade_good_id) 
 function DATA.for_each_trade_good(func)
@@ -14094,14 +14269,18 @@ for i = 1, 99 do
 end
 ---@type table<use_case_id, use_case_id>
 DATA.use_case_indices_set = {}
+---@type number
+DATA.use_case_objects_count = 0
 ---@return use_case_id
 function DATA.create_use_case()
     ---@type use_case_id
     local i  = DCON.dcon_create_use_case() + 1
+    DATA.use_case_objects_count = DATA.use_case_objects_count + 1
     DATA.use_case_indices_set[i --[[@as use_case_id]]] = i
     return i --[[@as use_case_id]] 
 end
 function DATA.delete_use_case(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: use_case_id) 
 function DATA.for_each_use_case(func)
@@ -14308,6 +14487,8 @@ for i = 1, 299 do
 end
 ---@type table<use_weight_id, use_weight_id>
 DATA.use_weight_indices_set = {}
+---@type number
+DATA.use_weight_objects_count = 0
 ---@param trade_good trade_good_id
 ---@param use_case use_case_id
 ---@return use_weight_id
@@ -14320,6 +14501,7 @@ function DATA.force_create_use_weight(trade_good, use_case)
     return i --[[@as use_weight_id]] 
 end
 function DATA.delete_use_weight(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: use_weight_id) 
 function DATA.for_each_use_weight(func)
@@ -14878,14 +15060,18 @@ for i = 1, 99 do
 end
 ---@type table<biome_id, biome_id>
 DATA.biome_indices_set = {}
+---@type number
+DATA.biome_objects_count = 0
 ---@return biome_id
 function DATA.create_biome()
     ---@type biome_id
     local i  = DCON.dcon_create_biome() + 1
+    DATA.biome_objects_count = DATA.biome_objects_count + 1
     DATA.biome_indices_set[i --[[@as biome_id]]] = i
     return i --[[@as biome_id]] 
 end
 function DATA.delete_biome(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: biome_id) 
 function DATA.for_each_biome(func)
@@ -15913,14 +16099,18 @@ for i = 1, 149 do
 end
 ---@type table<bedrock_id, bedrock_id>
 DATA.bedrock_indices_set = {}
+---@type number
+DATA.bedrock_objects_count = 0
 ---@return bedrock_id
 function DATA.create_bedrock()
     ---@type bedrock_id
     local i  = DCON.dcon_create_bedrock() + 1
+    DATA.bedrock_objects_count = DATA.bedrock_objects_count + 1
     DATA.bedrock_indices_set[i --[[@as bedrock_id]]] = i
     return i --[[@as bedrock_id]] 
 end
 function DATA.delete_bedrock(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: bedrock_id) 
 function DATA.for_each_bedrock(func)
@@ -16518,14 +16708,18 @@ for i = 1, 299 do
 end
 ---@type table<resource_id, resource_id>
 DATA.resource_indices_set = {}
+---@type number
+DATA.resource_objects_count = 0
 ---@return resource_id
 function DATA.create_resource()
     ---@type resource_id
     local i  = DCON.dcon_create_resource() + 1
+    DATA.resource_objects_count = DATA.resource_objects_count + 1
     DATA.resource_indices_set[i --[[@as resource_id]]] = i
     return i --[[@as resource_id]] 
 end
 function DATA.delete_resource(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: resource_id) 
 function DATA.for_each_resource(func)
@@ -17022,14 +17216,18 @@ for i = 1, 19 do
 end
 ---@type table<unit_type_id, unit_type_id>
 DATA.unit_type_indices_set = {}
+---@type number
+DATA.unit_type_objects_count = 0
 ---@return unit_type_id
 function DATA.create_unit_type()
     ---@type unit_type_id
     local i  = DCON.dcon_create_unit_type() + 1
+    DATA.unit_type_objects_count = DATA.unit_type_objects_count + 1
     DATA.unit_type_indices_set[i --[[@as unit_type_id]]] = i
     return i --[[@as unit_type_id]] 
 end
 function DATA.delete_unit_type(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: unit_type_id) 
 function DATA.for_each_unit_type(func)
@@ -17514,14 +17712,18 @@ for i = 1, 249 do
 end
 ---@type table<job_id, job_id>
 DATA.job_indices_set = {}
+---@type number
+DATA.job_objects_count = 0
 ---@return job_id
 function DATA.create_job()
     ---@type job_id
     local i  = DCON.dcon_create_job() + 1
+    DATA.job_objects_count = DATA.job_objects_count + 1
     DATA.job_indices_set[i --[[@as job_id]]] = i
     return i --[[@as job_id]] 
 end
 function DATA.delete_job(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: job_id) 
 function DATA.for_each_job(func)
@@ -17882,14 +18084,18 @@ for i = 1, 249 do
 end
 ---@type table<production_method_id, production_method_id>
 DATA.production_method_indices_set = {}
+---@type number
+DATA.production_method_objects_count = 0
 ---@return production_method_id
 function DATA.create_production_method()
     ---@type production_method_id
     local i  = DCON.dcon_create_production_method() + 1
+    DATA.production_method_objects_count = DATA.production_method_objects_count + 1
     DATA.production_method_indices_set[i --[[@as production_method_id]]] = i
     return i --[[@as production_method_id]] 
 end
 function DATA.delete_production_method(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: production_method_id) 
 function DATA.for_each_production_method(func)
@@ -18585,14 +18791,18 @@ for i = 1, 399 do
 end
 ---@type table<technology_id, technology_id>
 DATA.technology_indices_set = {}
+---@type number
+DATA.technology_objects_count = 0
 ---@return technology_id
 function DATA.create_technology()
     ---@type technology_id
     local i  = DCON.dcon_create_technology() + 1
+    DATA.technology_objects_count = DATA.technology_objects_count + 1
     DATA.technology_indices_set[i --[[@as technology_id]]] = i
     return i --[[@as technology_id]] 
 end
 function DATA.delete_technology(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: technology_id) 
 function DATA.for_each_technology(func)
@@ -18925,6 +19135,8 @@ for i = 1, 799 do
 end
 ---@type table<technology_unlock_id, technology_unlock_id>
 DATA.technology_unlock_indices_set = {}
+---@type number
+DATA.technology_unlock_objects_count = 0
 ---@param origin technology_id
 ---@param unlocked technology_id
 ---@return technology_unlock_id
@@ -18937,6 +19149,7 @@ function DATA.force_create_technology_unlock(origin, unlocked)
     return i --[[@as technology_unlock_id]] 
 end
 function DATA.delete_technology_unlock(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: technology_unlock_id) 
 function DATA.for_each_technology_unlock(func)
@@ -19261,14 +19474,18 @@ for i = 1, 249 do
 end
 ---@type table<building_type_id, building_type_id>
 DATA.building_type_indices_set = {}
+---@type number
+DATA.building_type_objects_count = 0
 ---@return building_type_id
 function DATA.create_building_type()
     ---@type building_type_id
     local i  = DCON.dcon_create_building_type() + 1
+    DATA.building_type_objects_count = DATA.building_type_objects_count + 1
     DATA.building_type_indices_set[i --[[@as building_type_id]]] = i
     return i --[[@as building_type_id]] 
 end
 function DATA.delete_building_type(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: building_type_id) 
 function DATA.for_each_building_type(func)
@@ -19633,6 +19850,8 @@ for i = 1, 399 do
 end
 ---@type table<technology_building_id, technology_building_id>
 DATA.technology_building_indices_set = {}
+---@type number
+DATA.technology_building_objects_count = 0
 ---@param technology technology_id
 ---@param unlocked building_type_id
 ---@return technology_building_id
@@ -19645,6 +19864,7 @@ function DATA.force_create_technology_building(technology, unlocked)
     return i --[[@as technology_building_id]] 
 end
 function DATA.delete_technology_building(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: technology_building_id) 
 function DATA.for_each_technology_building(func)
@@ -19839,6 +20059,8 @@ for i = 1, 399 do
 end
 ---@type table<technology_unit_id, technology_unit_id>
 DATA.technology_unit_indices_set = {}
+---@type number
+DATA.technology_unit_objects_count = 0
 ---@param technology technology_id
 ---@param unlocked unit_type_id
 ---@return technology_unit_id
@@ -19851,6 +20073,7 @@ function DATA.force_create_technology_unit(technology, unlocked)
     return i --[[@as technology_unit_id]] 
 end
 function DATA.delete_technology_unit(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: technology_unit_id) 
 function DATA.for_each_technology_unit(func)
@@ -20195,14 +20418,18 @@ for i = 1, 14 do
 end
 ---@type table<race_id, race_id>
 DATA.race_indices_set = {}
+---@type number
+DATA.race_objects_count = 0
 ---@return race_id
 function DATA.create_race()
     ---@type race_id
     local i  = DCON.dcon_create_race() + 1
+    DATA.race_objects_count = DATA.race_objects_count + 1
     DATA.race_indices_set[i --[[@as race_id]]] = i
     return i --[[@as race_id]] 
 end
 function DATA.delete_race(i)
+    assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
 ---@param func fun(item: race_id) 
 function DATA.for_each_race(func)
@@ -20920,8 +21147,8 @@ function DATA.save_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("tile_province_membership") * 1500000
     total_ffi_size = total_ffi_size + ffi.sizeof("province_neighborhood") * 250000
     total_ffi_size = total_ffi_size + ffi.sizeof("parent_child_relation") * 900000
-    total_ffi_size = total_ffi_size + ffi.sizeof("loyalty") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("succession") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("loyalty") * 200000
+    total_ffi_size = total_ffi_size + ffi.sizeof("succession") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_armies") * 15000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_guard") * 15000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_overseer") * 15000
@@ -21005,10 +21232,10 @@ function DATA.save_state()
     current_shift = ffi.sizeof("parent_child_relation") * 900000
     ffi.copy(current_buffer + current_offset, DATA.parent_child_relation, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("loyalty") * 10000
+    current_shift = ffi.sizeof("loyalty") * 200000
     ffi.copy(current_buffer + current_offset, DATA.loyalty, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("succession") * 10000
+    current_shift = ffi.sizeof("succession") * 200000
     ffi.copy(current_buffer + current_offset, DATA.succession, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("realm_armies") * 15000
@@ -21074,8 +21301,8 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("tile_province_membership") * 1500000
     total_ffi_size = total_ffi_size + ffi.sizeof("province_neighborhood") * 250000
     total_ffi_size = total_ffi_size + ffi.sizeof("parent_child_relation") * 900000
-    total_ffi_size = total_ffi_size + ffi.sizeof("loyalty") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("succession") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("loyalty") * 200000
+    total_ffi_size = total_ffi_size + ffi.sizeof("succession") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_armies") * 15000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_guard") * 15000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_overseer") * 15000
@@ -21158,10 +21385,10 @@ function DATA.load_state()
     current_shift = ffi.sizeof("parent_child_relation") * 900000
     ffi.copy(DATA.parent_child_relation, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("loyalty") * 10000
+    current_shift = ffi.sizeof("loyalty") * 200000
     ffi.copy(DATA.loyalty, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("succession") * 10000
+    current_shift = ffi.sizeof("succession") * 200000
     ffi.copy(DATA.succession, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("realm_armies") * 15000

@@ -57,7 +57,7 @@ function re.draw(gam)
 
 		-- COA
 		uit.coa(realm, panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up"))
-		ui.left_text(realm.name,
+		ui.left_text(REALM_NAME(realm),
 			panel:subrect(uit.BASE_HEIGHT + 5, 0, 10 * uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up"))
 
 		local ui_panel = panel:subrect(5, uit.BASE_HEIGHT * 2, panel.width - 10, panel.height - 10 - uit.BASE_HEIGHT * 2,
@@ -65,7 +65,7 @@ function re.draw(gam)
 		gam.realm_inspector_tab = gam.realm_inspector_tab or "GEN"
 
 		local treasury_tab = nil
-		if WORLD.player_character == realm.leader then
+		if WORLD.player_character == LEADER(realm) then
 			treasury_tab = {
 				text = "TRE",
 				tooltip = "Realm treasury",

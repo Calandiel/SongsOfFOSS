@@ -69,7 +69,7 @@ function utils.option_stop(text, tooltip, ai_preference, root)
 			UNSET_BUSY(root)
 
 			if LEADER_OF_WARBAND(root) ~= INVALID_ID then
-				root.leading_warband.current_free_time_ratio = 1.0
+				DATA.warband_set_current_free_time_ratio(LEADER_OF_WARBAND(root), 1.0)
 			end
 		end
 	}

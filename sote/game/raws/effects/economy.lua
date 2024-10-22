@@ -780,7 +780,7 @@ function EconomicEffects.realm_buy_use(realm, use, amount)
 	EconomicEffects.change_treasury(realm, -spendings, ECONOMY_REASON.TRADE)
 
 	if WORLD:does_player_see_province_news(province) then
-		WORLD:emit_notification(realm.name .. " bought " .. amount .. " " .. use .. " for " .. ut.to_fixed_point2(spendings) .. MONEY_SYMBOL .. ".")
+		WORLD:emit_notification(REALM_NAME(realm) .. " bought " .. amount .. " " .. use .. " for " .. ut.to_fixed_point2(spendings) .. MONEY_SYMBOL .. ".")
 	end
 end
 --]]

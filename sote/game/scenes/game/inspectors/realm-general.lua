@@ -16,7 +16,7 @@ local function info(rect, realm, gam)
         local panel_rect = rect:subrect(0, uit.BASE_HEIGHT, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", "up")
 
         -- leader info
-        local leader = realm.leader
+        local leader = LEADER(realm)
         if leader then
             local portrait_rect = panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 4, uit.BASE_HEIGHT * 4, "left", "up")
             portait(portrait_rect, leader)
@@ -28,13 +28,13 @@ local function info(rect, realm, gam)
 
             portrait_rect.x = portrait_rect.x + uit.BASE_HEIGHT * 5
             portrait_rect.width = portrait_rect.width + uit.BASE_HEIGHT * 5
-            uit.data_entry("Leader: ", realm.leader.name, portrait_rect)
+            uit.data_entry("Leader: ", NAME(LEADER(realm)), portrait_rect)
             panel_rect.y = panel_rect.y + uit.BASE_HEIGHT * 4
         end
 
 
         -- general info
-        uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect, realm.name
+        uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect, REALM_NAME(realm)
             .. " follows the customs of " .. realm.primary_culture.name .. ".\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(realm.primary_culture))
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
         uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
