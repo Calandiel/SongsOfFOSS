@@ -1002,7 +1002,7 @@ function gam.draw()
 
 			local center = DATA.province_get_center(province)
 
-			-- if not province.realm then
+			-- if not PROVINCE_REALM(province) then
 			-- 	return
 			-- end
 

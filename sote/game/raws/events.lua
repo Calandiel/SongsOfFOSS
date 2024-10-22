@@ -3,10 +3,10 @@
 ---@field automatic boolean Automatic events are rolled each month on every root in the game
 ---@field base_probability number For automatic events, controlls the base chance for an event to occur
 ---@field trigger? fun(self:Event, root:Character):boolean A closure that returns whether or not an event will trigger
----@field on_trigger? fun(self:Event, root:Character, associated_data:table|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
----@field event_text? fun(self:Event, root:Character, associated_data:table|nil):string Text to display with the event, for the player.
+---@field on_trigger? fun(self:Event, root:Character, associated_data:table|number|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
+---@field event_text? fun(self:Event, root:Character, associated_data:table|number|nil):string Text to display with the event, for the player.
 ---@field event_background_path string
----@field options? fun(self:Event, root:Character, associated_data:table|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
+---@field options? fun(self:Event, root:Character, associated_data:table|number|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
 
 
 ---@class (exact) Event
@@ -16,10 +16,10 @@
 ---@field automatic boolean Automatic events are rolled each month on every root in the game
 ---@field base_probability number For automatic events, controlls the base chance for an event to occur
 ---@field trigger fun(self:Event, root:Character):boolean A closure that returns whether or not an event will trigger
----@field on_trigger fun(self:Event, root:Character, associated_data:table|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
----@field event_text fun(self:Event, root:Character, associated_data:table|nil):string Text to display with the event, for the player.
+---@field on_trigger fun(self:Event, root:Character, associated_data:table|number|nil) A function responsible for enqueuing itself in the event queue (if necessary). It's called after an event is triggered by the automatic event system (but NOT when the event is enqueued...). Associated data is set to something only if it's called by an emited action!
+---@field event_text fun(self:Event, root:Character, associated_data:table|number|nil):string Text to display with the event, for the player.
 ---@field event_background_path string
----@field options fun(self:Event, root:Character, associated_data:table|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
+---@field options fun(self:Event, root:Character, associated_data:table|number|nil):table<number,EventOption> Returns options. Keep in mind that it has to return at least one viable option. Otherwise the game will crash.
 
 ---@class (exact) EventOption
 ---@field text string

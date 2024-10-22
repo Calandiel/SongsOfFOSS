@@ -305,7 +305,7 @@ end
 ---@param pop pop_id
 ---@param reason POLITICS_REASON
 function PoliticalEffects.grant_nobility(pop, reason)
-	-- LOGS:write("realm: " .. province.realm.name .. "\n new noble: " .. pop.name .. "\n" .. "reason: " .. reason .. "\n")
+	-- LOGS:write("realm: " .. REALM_NAME(PROVINCE_REALM(province)) .. "\n new noble: " .. pop.name .. "\n" .. "reason: " .. reason .. "\n")
 
 	-- print(pop.name, "becomes noble")
 

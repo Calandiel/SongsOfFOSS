@@ -276,7 +276,7 @@ local function load()
 			local army = associated_data.army
 
 			local province = target
-			local realm = province.realm
+			local realm = PROVINCE_REALM(province)
 
 			if not realm then
 				-- The province doesn't have a realm
@@ -295,7 +295,7 @@ local function load()
 			realm:disband_army(def) -- disband the army after battle
 
 			-- Message handling
-			messages.tribute_raid(raider, province.realm, attack_succeed, attack_losses, def_losses)
+			messages.tribute_raid(raider, PROVINCE_REALM(province), attack_succeed, attack_losses, def_losses)
 
 			-- setting tributary
 			if attack_succeed then
@@ -410,7 +410,7 @@ local function load()
 			local success = true
 			local losses = 0
 			local province = target
-			local realm = province.realm
+			local realm = PROVINCE_REALM(province)
 
 			if (not raider.dead) and (realm) and (province:army_spot_test(army)) then
 				-- The army was spotted!

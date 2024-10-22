@@ -3,6 +3,7 @@ local path              = require "game.ai.pathfinding"
 
 local province_utils    = require "game.entities.province".Province
 local realm_utils       = require "game.entities.realm".Realm
+local army_utils 		= require "game.entities.army"
 
 local Event             = require "game.raws.events"
 local event_utils       = require "game.raws.events._utils"
@@ -225,9 +226,22 @@ function load()
 			---@return table<POP, POP> valid_family_units
 			---@return integer  valid_family_count
 			local function valid_home_family_units(province)
-				local family_units = tabb.filter(province.all_pops, function (a)
-					return a.home_province == province and a.age >= a.race.teen_age and a.age < a.race.middle_age
+				local family_units = {}
+
+				DATA.for_each_pop_location_from_location(province, function (item)
+					local pop = DATA.pop_location_get_pop(item)
+					local home = DATA.get_home_from_pop(pop)
+					local home_province = DATA.home_get_home(home)
+					local race = F_RACE(pop)
+					if
+						home_province == province
+						and AGE(pop) >= race.teen_age
+						and AGE(pop) < race.middle_age
+					then
+						table.insert(family_units, pop)
+					end
 				end)
+
 				local family_count = tabb.size(family_units)
 				return family_units, family_count
 			end
@@ -254,93 +268,108 @@ function load()
 			local pop_payment = associated_data.pop_payment
 			-- move pops from origin province
 			for _, pop in pairs(migration_pool_pops) do
-				if not pop.employer or not pop.employer.type.movable then
-					associated_data.origin_province:fire_pop(pop)
-				end
+				demography_effects.fire_pop(pop)
+
 				-- give half payment to migrating pop, keep other half for leader and realm
 				if pop_payment then
 					pop_payment = pop_payment * 0.5
 					local family_payment = pop_payment / 6
 					economic_effects.add_pop_savings(pop, family_payment, ECONOMY_REASON.DONATION)
 				end
+
 				-- need to set new home province first before transfering so children are pulled along
-				associated_data.origin_province:transfer_home(pop, associated_data.target_province)
-				associated_data.origin_province:transfer_pop(pop, associated_data.target_province)
+				province_utils.transfer_home(associated_data.origin_province, pop, associated_data.target_province)
+				province_utils.transfer_pop(pop, associated_data.target_province)
 			end
 
 			--disolve warband to return warriors to home province before transfering character
-			if expedition_leader.leading_warband then
-				require "game.raws.effects.military".dissolve_warband(root)
+			if LEADER_OF_WARBAND(expedition_leader) then
+				require "game.raws.effects.military".dissolve_warband(expedition_leader)
 			end
 
 			-- set new home of character
-			associated_data.origin_province:transfer_home(
+
+			province_utils.transfer_home(
+				associated_data.origin_province,
 				expedition_leader,
 				associated_data.target_province
 			)
+
 			-- give half remaining payment to leader, rest to new realm
 			if pop_payment then
+				---@type number
 				pop_payment = pop_payment * 0.5
 				economic_effects.add_pop_savings(expedition_leader, pop_payment, ECONOMY_REASON.DONATION)
 			end
 			-- move character to new home
-			associated_data.origin_province:transfer_character(
+			province_utils.transfer_character(
 				expedition_leader,
 				associated_data.target_province
 			)
 
 			-- move technology
+
 			for _, technology in pairs(migration_pool_technology) do
-				associated_data.target_province:research(technology)
+				province_utils.research(associated_data.target_province, technology)
 			end
 
 			-- handle realms
-			local target_realm = associated_data.target_province.realm
+			local target_realm = PROVINCE_REALM(associated_data.target_province)
 
 			---@type Realm
-			local colonizer_realm = associated_data.origin_province.realm
+			local colonizer_realm = PROVINCE_REALM(associated_data.origin_province)
 
 			-- create new realm
 			-- TODO: MOVE TO SEPARATE FUNCTION WHEN THE NEED WILL ARISE
-			local new_realm = realm.Realm:new()
-			new_realm.capitol = associated_data.target_province
-			new_realm.primary_race = colonizer_realm.primary_race
-			new_realm.primary_culture = colonizer_realm.primary_culture
-			new_realm.primary_faith = colonizer_realm.primary_faith
+			local new_realm = realm_utils.new()
+
+			DATA.realm_set_capitol(new_realm, associated_data.target_province)
+			DATA.realm_set_primary_race(new_realm, DATA.realm_get_primary_race(colonizer_realm))
+			DATA.realm_set_primary_culture(new_realm, DATA.realm_get_primary_culture(colonizer_realm))
+			DATA.realm_set_primary_culture(new_realm, DATA.realm_get_primary_culture(colonizer_realm))
 
 			-- give remaining payment to the new realm
 			if pop_payment then
 				economic_effects.change_treasury(new_realm, pop_payment, ECONOMY_REASON.DONATION)
 			end
 
-			-- Initialize realm colors
-			new_realm.r = math.max(0, math.min(1, (colonizer_realm.primary_culture.r + (love.math.random() * 0.4 - 0.2))))
-			new_realm.g = math.max(0, math.min(1, (colonizer_realm.primary_culture.g + (love.math.random() * 0.4 - 0.2))))
-			new_realm.b = math.max(0, math.min(1, (colonizer_realm.primary_culture.b + (love.math.random() * 0.4 - 0.2))))
+			local fat = DATA.fatten_realm(new_realm)
+			local fat_col = DATA.fatten_realm(colonizer_realm)
 
-			new_realm.name = colonizer_realm.primary_culture.language:get_random_realm_name()
-			new_realm:explore(associated_data.target_province)
+			-- Initialize realm colors
+			fat.r = math.max(0, math.min(1, (fat_col.primary_culture.r + (love.math.random() * 0.4 - 0.2))))
+			fat.g = math.max(0, math.min(1, (fat_col.primary_culture.g + (love.math.random() * 0.4 - 0.2))))
+			fat.b = math.max(0, math.min(1, (fat_col.primary_culture.b + (love.math.random() * 0.4 - 0.2))))
+
+			fat.name = fat_col.primary_culture.language:get_random_realm_name()
+
+			realm_utils.explore(new_realm, associated_data.target_province)
 
 			-- set new realm of expedition leader
-			expedition_leader.realm = new_realm
+			DATA.force_create_realm_pop(new_realm, expedition_leader)
 
 			-- Mark the province as settled for processing...
 
-			if target_realm then
-				-- if it was an invasion, turn local nobles into nobles of invading realm
-				for _, character in pairs(associated_data.target_province.home_to) do
-					if character.realm == target_realm then
-						character.realm = new_realm
-						character.rank = character_ranks.NOBLE
+			if target_realm ~= INVALID_ID then
+				---@type realm_pop_id[]
+				local temp = {}
+				DATA.for_each_realm_pop_from_realm(target_realm, function (item)
+					table.insert(temp)
+				end)
+				for _, item in pairs(temp) do
+					DATA.realm_pop_set_realm(item, new_realm)
+					local pop = DATA.realm_pop_get_pop(item)
+					if DATA.pop_get_rank(pop) == CHARACTER_RANK.CHIEF then
+						DATA.pop_set_rank(pop, CHARACTER_RANK.NOBLE)
 					end
 				end
 
 				-- destroy invaded realm
 				diplomacy_events.dissolve_realm_and_clear_diplomacy(target_realm)
-				new_realm:add_province(associated_data.target_province)
+				realm_utils.add_province(new_realm, associated_data.target_province)
 			else
 				-- replace old province with new one
-				new_realm:add_province(associated_data.target_province)
+				realm_utils.add_province(new_realm, associated_data.target_province)
 				WORLD:set_settled_province(associated_data.target_province)
 			end
 
@@ -351,8 +380,7 @@ function load()
 			political_effects.transfer_power(new_realm, expedition_leader, POLITICS_REASON.EXPEDITIONLEADER)
 
 			-- explore neighbour lands
-			new_realm:explore(new_realm.capitol)
-
+			realm_utils.explore(new_realm, CAPITOL(new_realm))
 			diplomacy_events.set_tributary(colonizer_realm, new_realm)
 		end
 	}
@@ -662,7 +690,7 @@ function load()
 					viable = function() return true end,
 					outcome = function()
 						print('Escalation')
-						WORLD:emit_immediate_event("migration-invasion-preparation", character, associated_data.realm)
+						WORLD:emit_immediate_event("migration-invasion-preparation", character, REALM(associated_data))
 					end,
 					ai_preference = AI_VALUE.generic_event_option(
 						character,
@@ -686,7 +714,7 @@ function load()
 
 			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
-			local their_warlords, their_power = pv.military_strength(associated_data.leader)
+			local their_warlords, their_power = pv.military_strength(LEADER(associated_data))
 
 			local strength_estimation_string =
 				"On my side there are "
@@ -820,7 +848,7 @@ function load()
 			local army = associated_data.army
 
 			local province = target
-			local realm = province.realm
+			local realm = PROVINCE_REALM(province)
 
 			---@type MigrationData
 			local migration_data = {
@@ -840,22 +868,25 @@ function load()
 
 			-- spot test
 			-- it's an open attack, so our visibility is multiplied by 10
-			local spot_test = province:army_spot_test(army, 10)
+			local spot_test = province_utils.army_spot_test(province, army, 10)
 
 			-- First, raise the defending army.
-			local def = realm:raise_local_army(province)
-			local attack_succeed, attack_losses, def_losses = army:attack(province, spot_test, def)
-			realm:disband_army(def) -- disband the army after battle
+			local def = realm_utils.raise_local_army(realm, province)
+			local attack_succeed, attack_losses, def_losses = military_effects.attack(army, def, spot_test)
+			realm_utils.disband_army(realm, def) -- disband the army after battle
 
 			-- migrating
 			if attack_succeed then
 				WORLD:emit_action("migration-merge", raider, migration_data, travel_time, true)
 				WORLD:emit_immediate_event("migration-invasion-success", raider, army)
-				for _, character in pairs(target.home_to) do
-					if character:is_character() then
-						WORLD:emit_immediate_event("migration-invasion-success-target", character, raider)
+
+				DATA.for_each_home_from_home(target, function (item)
+					local pop = DATA.home_get_pop(item)
+
+					if IS_CHARACTER(pop) then
+						WORLD:emit_immediate_event("migration-invasion-success-target", pop, raider)
 					end
-				end
+				end)
 			else
 				UNSET_BUSY(raider)
 				WORLD:emit_immediate_event("migration-invasion-failure", raider, army)
