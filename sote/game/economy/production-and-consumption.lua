@@ -668,7 +668,7 @@ function pro.run(province)
 
 	--			print("    " .. " case: " .. case .." spendings: " .. spendings .. " consumed: " .. consumed)
 				local consumed_before_buyment = family_unit_satisfaction_data[index]
-				family_unit_satisfaction_data[index].consumed = consumed_before_buyment + consumed
+				family_unit_satisfaction_data[index].consumed = consumed_before_buyment.consumed + consumed
 
 				total_expense = total_expense + spendings
 
@@ -775,7 +775,7 @@ function pro.run(province)
 		-- for next month determine if it should forage more or less
 		local forage_ratio = DATA.pop_get_forage_ratio(pop_id)
 		if low_life_need == true then -- any single life need use cases below 50%
-			if DATA.pop_get_employer(pop_id) ~= nil then
+			if DATA.get_employment_from_worker(pop_id) ~= INVALID_ID then
 				---@type number
 				forage_ratio = math.min(1 - MINIMAL_WORKING_RATIO, forage_ratio * 1.15)
 			else
@@ -822,6 +822,7 @@ function pro.run(province)
 			local race = DATA.pop_get_race(pop)
 			local teen_age = DATA.race_get_teen_age(race)
 			local culture = DATA.pop_get_culture(pop)
+			assert(culture ~= nil, tostring(pop))
 			local parent = PARENT(pop)
 			local unit_of_warband = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
 			local forage_ratio = DATA.pop_get_forage_ratio(pop)

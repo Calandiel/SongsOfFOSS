@@ -379,7 +379,7 @@ function EconomicEffects.change_local_stockpile(province, good, x)
 		)
 	end
 
-	DATA.province_set_local_storage(province, good, current_stockpile + x)
+	DATA.province_set_local_storage(province, good, math.max(0, current_stockpile + x))
 
 end
 

@@ -11,6 +11,13 @@ rtab.POP = {}
 function rtab.POP.new(race, faith, culture, female, age)
 	local r = DATA.fatten_pop(DATA.create_pop())
 
+	assert(faith ~= nil)
+	assert(culture ~= nil)
+
+	r.rank = CHARACTER_RANK.POP
+
+	assert(race ~= INVALID_ID)
+
 	r.race = race
 	r.faith = faith
 	r.culture = culture
@@ -25,13 +32,19 @@ function rtab.POP.new(race, faith, culture, female, age)
 	for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local need = DATA.race_get_male_needs_need(race, index)
 
-		DATA.pop_set_need_satisfaction_demanded(r.id, index, 0)
+		if need == NEED.INVALID then
+			break
+		end
+
 		DATA.pop_set_need_satisfaction_need(r.id, index, need)
+		DATA.pop_set_need_satisfaction_use_case(r.id, index, DATA.race_get_male_needs_use_case(race, index))
 		local required = DATA.race_get_male_needs_required(race, index)
 		if female then
 			required = DATA.race_get_female_needs_required(race, index)
 		end
 		DATA.pop_set_need_satisfaction_consumed(r.id, index, 0)
+		DATA.pop_set_need_satisfaction_demanded(r.id, index, required)
+		assert(required > 0, DATA.race_get_name(race) .. " " .. DATA.need_get_name(need))
 		if DATA.need_get_life_need(need) then
 			DATA.pop_set_need_satisfaction_consumed(r.id, index, required * 0.5)
 			total_consumed = total_consumed + required * 0.5
@@ -116,6 +129,10 @@ function rtab.POP.update_satisfaction(pop_id)
 	local basic_satisfaction = (total_consumed + life_consumed) / (total_demanded + life_demanded)
 	DATA.pop_set_life_needs_satisfaction(pop_id, life_satisfaction)
 	DATA.pop_set_basic_needs_satisfaction(pop_id, basic_satisfaction)
+
+	-- local s = tostring(life_consumed) .. " " .. tostring(life_demanded) .. " " .. tostring(total_consumed + life_consumed) .. " " .. tostring(total_demanded + life_demanded)
+	assert(life_satisfaction == life_satisfaction)
+	assert(basic_satisfaction == basic_satisfaction)
 	return life_satisfaction, basic_satisfaction
 end
 

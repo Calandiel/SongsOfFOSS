@@ -96,9 +96,12 @@ local function load()
 			if random_realm_province ~= INVALID_ID then
 				-- Once you target a province, try selecting a random neighbor
 				local neighbor_province = province_utils.get_random_neighbor(random_realm_province)
+
 				if neighbor_province ~= nil then
-					if not dt.province_controlled_by(neighbor_province, realm) then
-						return pv.province_leader(neighbor_province), true
+					if PROVINCE_REALM(neighbor_province) ~= INVALID_ID then
+						if not dt.province_controlled_by(neighbor_province, realm) then
+							return pv.province_leader(neighbor_province), true
+						end
 					end
 				end
 			end
@@ -109,7 +112,7 @@ local function load()
 			if random_tributary ~= nil then
 				local random_tributary_province = DATA.realm_get_capitol(random_tributary)
 				local neighbor_province = province_utils.get_random_neighbor(random_tributary_province)
-				if neighbor_province ~= nil then
+				if neighbor_province ~= nil and PROVINCE_REALM(neighbor_province) ~= INVALID_ID then
 					if not dt.province_controlled_by(neighbor_province, realm) then
 						return pv.province_leader(neighbor_province), true
 					end
@@ -825,6 +828,12 @@ local function load()
 				colonisation_cost * 6
 				* realm_utils.get_average_needs_satisfaction(realm)
 				* economical.get_local_price_of_use(capitol, CALORIES_USE_CASE)
+
+			assert(pop_payment == pop_payment,
+				tostring(colonisation_cost) .. " "
+				.. tostring(realm_utils.get_average_needs_satisfaction(realm)) .. " "
+				.. tostring(economical.get_local_price_of_use(capitol, CALORIES_USE_CASE))
+			)
 
 			local calorie_price_expectation = economical.get_local_price_of_use(capitol, CALORIES_USE_CASE)
 

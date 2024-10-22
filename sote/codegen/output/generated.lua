@@ -244,6 +244,7 @@ function DATA.create_tile()
     DATA.tile_indices_set[i --[[@as tile_id]]] = i
     return i --[[@as tile_id]] 
 end
+---@param i tile_id
 function DATA.delete_tile(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -1044,6 +1045,7 @@ function DATA.create_pop()
     DATA.pop_indices_set[i --[[@as pop_id]]] = i
     return i --[[@as pop_id]] 
 end
+---@param i pop_id
 function DATA.delete_pop(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -1815,6 +1817,7 @@ function DATA.create_province()
     DATA.province_indices_set[i --[[@as province_id]]] = i
     return i --[[@as province_id]] 
 end
+---@param i province_id
 function DATA.delete_province(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -2772,6 +2775,7 @@ function DATA.create_army()
     DATA.army_indices_set[i --[[@as army_id]]] = i
     return i --[[@as army_id]] 
 end
+---@param i army_id
 function DATA.delete_army(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -2905,16 +2909,16 @@ DATA.warband_name= {}
 ---@type (Realm?)[]
 DATA.warband_guard_of= {}
 ---@type nil
-DATA.warband_calloc = ffi.C.calloc(1, ffi.sizeof("warband") * 20001)
+DATA.warband_calloc = ffi.C.calloc(1, ffi.sizeof("warband") * 50001)
 ---@type table<warband_id, struct_warband>
 DATA.warband = ffi.cast("warband*", DATA.warband_calloc)
 
 ---warband: LUA bindings---
 
-DATA.warband_size = 20000
+DATA.warband_size = 50000
 ---@type table<warband_id, boolean>
-local warband_indices_pool = ffi.new("bool[?]", 20000)
-for i = 1, 19999 do
+local warband_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
     warband_indices_pool[i --[[@as warband_id]]] = true 
 end
 ---@type table<warband_id, warband_id>
@@ -2929,6 +2933,7 @@ function DATA.create_warband()
     DATA.warband_indices_set[i --[[@as warband_id]]] = i
     return i --[[@as warband_id]] 
 end
+---@param i warband_id
 function DATA.delete_warband(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -3441,6 +3446,7 @@ function DATA.create_realm()
     DATA.realm_indices_set[i --[[@as realm_id]]] = i
     return i --[[@as realm_id]] 
 end
+---@param i realm_id
 function DATA.delete_realm(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -4620,6 +4626,7 @@ function DATA.force_create_negotiation(initiator, target)
     DATA.negotiation_set_target(i, target)
     return i --[[@as negotiation_id]] 
 end
+---@param i negotiation_id
 function DATA.delete_negotiation(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -4891,6 +4898,7 @@ function DATA.create_building()
     DATA.building_indices_set[i --[[@as building_id]]] = i
     return i --[[@as building_id]] 
 end
+---@param i building_id
 function DATA.delete_building(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -5301,6 +5309,7 @@ function DATA.force_create_ownership(building, owner)
     DATA.ownership_set_owner(i, owner)
     return i --[[@as ownership_id]] 
 end
+---@param i ownership_id
 function DATA.delete_ownership(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -5519,6 +5528,7 @@ function DATA.force_create_employment(building, worker)
     DATA.employment_set_worker(i, worker)
     return i --[[@as employment_id]] 
 end
+---@param i employment_id
 function DATA.delete_employment(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -5766,6 +5776,7 @@ function DATA.force_create_building_location(location, building)
     DATA.building_location_set_building(i, building)
     return i --[[@as building_location_id]] 
 end
+---@param i building_location_id
 function DATA.delete_building_location(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -5944,12 +5955,12 @@ void dcon_army_membership_resize(uint32_t sz);
 
 ---army_membership: FFI arrays---
 ---@type nil
-DATA.army_membership_calloc = ffi.C.calloc(1, ffi.sizeof("army_membership") * 10001)
+DATA.army_membership_calloc = ffi.C.calloc(1, ffi.sizeof("army_membership") * 50001)
 ---@type table<army_membership_id, struct_army_membership>
 DATA.army_membership = ffi.cast("army_membership*", DATA.army_membership_calloc)
 ---@type table<army_id, army_membership_id[]>>
 DATA.army_membership_from_army= {}
-for i = 1, 10000 do
+for i = 1, 50000 do
     DATA.army_membership_from_army[i --[[@as army_id]]] = {}
 end
 ---@type table<warband_id, army_membership_id>
@@ -5957,10 +5968,10 @@ DATA.army_membership_from_member= {}
 
 ---army_membership: LUA bindings---
 
-DATA.army_membership_size = 10000
+DATA.army_membership_size = 50000
 ---@type table<army_membership_id, boolean>
-local army_membership_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local army_membership_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
     army_membership_indices_pool[i --[[@as army_membership_id]]] = true 
 end
 ---@type table<army_membership_id, army_membership_id>
@@ -5978,6 +5989,7 @@ function DATA.force_create_army_membership(army, member)
     DATA.army_membership_set_member(i, member)
     return i --[[@as army_membership_id]] 
 end
+---@param i army_membership_id
 function DATA.delete_army_membership(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -6156,7 +6168,7 @@ void dcon_warband_leader_resize(uint32_t sz);
 
 ---warband_leader: FFI arrays---
 ---@type nil
-DATA.warband_leader_calloc = ffi.C.calloc(1, ffi.sizeof("warband_leader") * 10001)
+DATA.warband_leader_calloc = ffi.C.calloc(1, ffi.sizeof("warband_leader") * 50001)
 ---@type table<warband_leader_id, struct_warband_leader>
 DATA.warband_leader = ffi.cast("warband_leader*", DATA.warband_leader_calloc)
 ---@type table<pop_id, warband_leader_id>
@@ -6166,10 +6178,10 @@ DATA.warband_leader_from_warband= {}
 
 ---warband_leader: LUA bindings---
 
-DATA.warband_leader_size = 10000
+DATA.warband_leader_size = 50000
 ---@type table<warband_leader_id, boolean>
-local warband_leader_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local warband_leader_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
     warband_leader_indices_pool[i --[[@as warband_leader_id]]] = true 
 end
 ---@type table<warband_leader_id, warband_leader_id>
@@ -6187,6 +6199,7 @@ function DATA.force_create_warband_leader(leader, warband)
     DATA.warband_leader_set_warband(i, warband)
     return i --[[@as warband_leader_id]] 
 end
+---@param i warband_leader_id
 function DATA.delete_warband_leader(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -6322,7 +6335,7 @@ void dcon_warband_recruiter_resize(uint32_t sz);
 
 ---warband_recruiter: FFI arrays---
 ---@type nil
-DATA.warband_recruiter_calloc = ffi.C.calloc(1, ffi.sizeof("warband_recruiter") * 10001)
+DATA.warband_recruiter_calloc = ffi.C.calloc(1, ffi.sizeof("warband_recruiter") * 50001)
 ---@type table<warband_recruiter_id, struct_warband_recruiter>
 DATA.warband_recruiter = ffi.cast("warband_recruiter*", DATA.warband_recruiter_calloc)
 ---@type table<pop_id, warband_recruiter_id>
@@ -6332,10 +6345,10 @@ DATA.warband_recruiter_from_warband= {}
 
 ---warband_recruiter: LUA bindings---
 
-DATA.warband_recruiter_size = 10000
+DATA.warband_recruiter_size = 50000
 ---@type table<warband_recruiter_id, boolean>
-local warband_recruiter_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local warband_recruiter_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
     warband_recruiter_indices_pool[i --[[@as warband_recruiter_id]]] = true 
 end
 ---@type table<warband_recruiter_id, warband_recruiter_id>
@@ -6353,6 +6366,7 @@ function DATA.force_create_warband_recruiter(recruiter, warband)
     DATA.warband_recruiter_set_warband(i, warband)
     return i --[[@as warband_recruiter_id]] 
 end
+---@param i warband_recruiter_id
 function DATA.delete_warband_recruiter(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -6488,7 +6502,7 @@ void dcon_warband_commander_resize(uint32_t sz);
 
 ---warband_commander: FFI arrays---
 ---@type nil
-DATA.warband_commander_calloc = ffi.C.calloc(1, ffi.sizeof("warband_commander") * 10001)
+DATA.warband_commander_calloc = ffi.C.calloc(1, ffi.sizeof("warband_commander") * 50001)
 ---@type table<warband_commander_id, struct_warband_commander>
 DATA.warband_commander = ffi.cast("warband_commander*", DATA.warband_commander_calloc)
 ---@type table<pop_id, warband_commander_id>
@@ -6498,10 +6512,10 @@ DATA.warband_commander_from_warband= {}
 
 ---warband_commander: LUA bindings---
 
-DATA.warband_commander_size = 10000
+DATA.warband_commander_size = 50000
 ---@type table<warband_commander_id, boolean>
-local warband_commander_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local warband_commander_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
     warband_commander_indices_pool[i --[[@as warband_commander_id]]] = true 
 end
 ---@type table<warband_commander_id, warband_commander_id>
@@ -6519,6 +6533,7 @@ function DATA.force_create_warband_commander(commander, warband)
     DATA.warband_commander_set_warband(i, warband)
     return i --[[@as warband_commander_id]] 
 end
+---@param i warband_commander_id
 function DATA.delete_warband_commander(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -6654,12 +6669,12 @@ void dcon_warband_location_resize(uint32_t sz);
 
 ---warband_location: FFI arrays---
 ---@type nil
-DATA.warband_location_calloc = ffi.C.calloc(1, ffi.sizeof("warband_location") * 10001)
+DATA.warband_location_calloc = ffi.C.calloc(1, ffi.sizeof("warband_location") * 50001)
 ---@type table<warband_location_id, struct_warband_location>
 DATA.warband_location = ffi.cast("warband_location*", DATA.warband_location_calloc)
 ---@type table<province_id, warband_location_id[]>>
 DATA.warband_location_from_location= {}
-for i = 1, 10000 do
+for i = 1, 50000 do
     DATA.warband_location_from_location[i --[[@as province_id]]] = {}
 end
 ---@type table<warband_id, warband_location_id>
@@ -6667,10 +6682,10 @@ DATA.warband_location_from_warband= {}
 
 ---warband_location: LUA bindings---
 
-DATA.warband_location_size = 10000
+DATA.warband_location_size = 50000
 ---@type table<warband_location_id, boolean>
-local warband_location_indices_pool = ffi.new("bool[?]", 10000)
-for i = 1, 9999 do
+local warband_location_indices_pool = ffi.new("bool[?]", 50000)
+for i = 1, 49999 do
     warband_location_indices_pool[i --[[@as warband_location_id]]] = true 
 end
 ---@type table<warband_location_id, warband_location_id>
@@ -6688,6 +6703,7 @@ function DATA.force_create_warband_location(location, warband)
     DATA.warband_location_set_warband(i, warband)
     return i --[[@as warband_location_id]] 
 end
+---@param i warband_location_id
 function DATA.delete_warband_location(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -6903,6 +6919,7 @@ function DATA.force_create_warband_unit(unit, warband)
     DATA.warband_unit_set_warband(i, warband)
     return i --[[@as warband_unit_id]] 
 end
+---@param i warband_unit_id
 function DATA.delete_warband_unit(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -7130,6 +7147,7 @@ function DATA.force_create_character_location(location, character)
     DATA.character_location_set_character(i, character)
     return i --[[@as character_location_id]] 
 end
+---@param i character_location_id
 function DATA.delete_character_location(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -7342,6 +7360,7 @@ function DATA.force_create_home(home, pop)
     DATA.home_set_pop(i, pop)
     return i --[[@as home_id]] 
 end
+---@param i home_id
 function DATA.delete_home(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -7554,6 +7573,7 @@ function DATA.force_create_pop_location(location, pop)
     DATA.pop_location_set_pop(i, pop)
     return i --[[@as pop_location_id]] 
 end
+---@param i pop_location_id
 function DATA.delete_pop_location(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -7766,6 +7786,7 @@ function DATA.force_create_outlaw_location(location, outlaw)
     DATA.outlaw_location_set_outlaw(i, outlaw)
     return i --[[@as outlaw_location_id]] 
 end
+---@param i outlaw_location_id
 function DATA.delete_outlaw_location(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -7978,6 +7999,7 @@ function DATA.force_create_tile_province_membership(province, tile)
     DATA.tile_province_membership_set_tile(i, tile)
     return i --[[@as tile_province_membership_id]] 
 end
+---@param i tile_province_membership_id
 function DATA.delete_tile_province_membership(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -8193,6 +8215,7 @@ function DATA.force_create_province_neighborhood(origin, target)
     DATA.province_neighborhood_set_target(i, target)
     return i --[[@as province_neighborhood_id]] 
 end
+---@param i province_neighborhood_id
 function DATA.delete_province_neighborhood(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -8448,6 +8471,7 @@ function DATA.force_create_parent_child_relation(parent, child)
     DATA.parent_child_relation_set_child(i, child)
     return i --[[@as parent_child_relation_id]] 
 end
+---@param i parent_child_relation_id
 function DATA.delete_parent_child_relation(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -8660,6 +8684,7 @@ function DATA.force_create_loyalty(top, bottom)
     DATA.loyalty_set_bottom(i, bottom)
     return i --[[@as loyalty_id]] 
 end
+---@param i loyalty_id
 function DATA.delete_loyalty(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -8872,6 +8897,7 @@ function DATA.force_create_succession(successor_of, successor)
     DATA.succession_set_successor(i, successor)
     return i --[[@as succession_id]] 
 end
+---@param i succession_id
 function DATA.delete_succession(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -9084,6 +9110,7 @@ function DATA.force_create_realm_armies(realm, army)
     DATA.realm_armies_set_army(i, army)
     return i --[[@as realm_armies_id]] 
 end
+---@param i realm_armies_id
 function DATA.delete_realm_armies(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -9293,6 +9320,7 @@ function DATA.force_create_realm_guard(guard, realm)
     DATA.realm_guard_set_realm(i, realm)
     return i --[[@as realm_guard_id]] 
 end
+---@param i realm_guard_id
 function DATA.delete_realm_guard(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -9459,6 +9487,7 @@ function DATA.force_create_realm_overseer(overseer, realm)
     DATA.realm_overseer_set_realm(i, realm)
     return i --[[@as realm_overseer_id]] 
 end
+---@param i realm_overseer_id
 function DATA.delete_realm_overseer(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -9628,6 +9657,7 @@ function DATA.force_create_realm_leadership(leader, realm)
     DATA.realm_leadership_set_realm(i, realm)
     return i --[[@as realm_leadership_id]] 
 end
+---@param i realm_leadership_id
 function DATA.delete_realm_leadership(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -9858,6 +9888,7 @@ function DATA.force_create_realm_subject_relation(overlord, subject)
     DATA.realm_subject_relation_set_subject(i, subject)
     return i --[[@as realm_subject_relation_id]] 
 end
+---@param i realm_subject_relation_id
 function DATA.delete_realm_subject_relation(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -10188,6 +10219,7 @@ function DATA.force_create_tax_collector(collector, realm)
     DATA.tax_collector_set_realm(i, realm)
     return i --[[@as tax_collector_id]] 
 end
+---@param i tax_collector_id
 function DATA.delete_tax_collector(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -10409,6 +10441,7 @@ function DATA.force_create_personal_rights(person, realm)
     DATA.personal_rights_set_realm(i, realm)
     return i --[[@as personal_rights_id]] 
 end
+---@param i personal_rights_id
 function DATA.delete_personal_rights(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -10694,6 +10727,7 @@ function DATA.force_create_realm_provinces(province, realm)
     DATA.realm_provinces_set_realm(i, realm)
     return i --[[@as realm_provinces_id]] 
 end
+---@param i realm_provinces_id
 function DATA.delete_realm_provinces(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -10912,6 +10946,7 @@ function DATA.force_create_popularity(who, where)
     DATA.popularity_set_where(i, where)
     return i --[[@as popularity_id]] 
 end
+---@param i popularity_id
 function DATA.delete_popularity(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -11187,6 +11222,7 @@ function DATA.force_create_realm_pop(realm, pop)
     DATA.realm_pop_set_pop(i, pop)
     return i --[[@as realm_pop_id]] 
 end
+---@param i realm_pop_id
 function DATA.delete_realm_pop(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
     do
@@ -11398,6 +11434,7 @@ function DATA.create_jobtype()
     DATA.jobtype_indices_set[i --[[@as jobtype_id]]] = i
     return i --[[@as jobtype_id]] 
 end
+---@param i jobtype_id
 function DATA.delete_jobtype(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -11590,6 +11627,7 @@ function DATA.create_need()
     DATA.need_indices_set[i --[[@as need_id]]] = i
     return i --[[@as need_id]] 
 end
+---@param i need_id
 function DATA.delete_need(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -11868,6 +11906,7 @@ function DATA.create_character_rank()
     DATA.character_rank_indices_set[i --[[@as character_rank_id]]] = i
     return i --[[@as character_rank_id]] 
 end
+---@param i character_rank_id
 function DATA.delete_character_rank(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -12050,6 +12089,7 @@ function DATA.create_trait()
     DATA.trait_indices_set[i --[[@as trait_id]]] = i
     return i --[[@as trait_id]] 
 end
+---@param i trait_id
 function DATA.delete_trait(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -12420,6 +12460,7 @@ function DATA.create_trade_good_category()
     DATA.trade_good_category_indices_set[i --[[@as trade_good_category_id]]] = i
     return i --[[@as trade_good_category_id]] 
 end
+---@param i trade_good_category_id
 function DATA.delete_trade_good_category(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -12544,6 +12585,7 @@ function DATA.create_warband_status()
     DATA.warband_status_indices_set[i --[[@as warband_status_id]]] = i
     return i --[[@as warband_status_id]] 
 end
+---@param i warband_status_id
 function DATA.delete_warband_status(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -12683,6 +12725,7 @@ function DATA.create_warband_stance()
     DATA.warband_stance_indices_set[i --[[@as warband_stance_id]]] = i
     return i --[[@as warband_stance_id]] 
 end
+---@param i warband_stance_id
 function DATA.delete_warband_stance(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -12804,6 +12847,7 @@ function DATA.create_building_archetype()
     DATA.building_archetype_indices_set[i --[[@as building_archetype_id]]] = i
     return i --[[@as building_archetype_id]] 
 end
+---@param i building_archetype_id
 function DATA.delete_building_archetype(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -12949,6 +12993,7 @@ function DATA.create_forage_resource()
     DATA.forage_resource_indices_set[i --[[@as forage_resource_id]]] = i
     return i --[[@as forage_resource_id]] 
 end
+---@param i forage_resource_id
 function DATA.delete_forage_resource(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -13157,6 +13202,7 @@ function DATA.create_budget_category()
     DATA.budget_category_indices_set[i --[[@as budget_category_id]]] = i
     return i --[[@as budget_category_id]] 
 end
+---@param i budget_category_id
 function DATA.delete_budget_category(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -13292,6 +13338,7 @@ function DATA.create_economy_reason()
     DATA.economy_reason_indices_set[i --[[@as economy_reason_id]]] = i
     return i --[[@as economy_reason_id]] 
 end
+---@param i economy_reason_id
 function DATA.delete_economy_reason(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -13571,6 +13618,7 @@ function DATA.create_politics_reason()
     DATA.politics_reason_indices_set[i --[[@as politics_reason_id]]] = i
     return i --[[@as politics_reason_id]] 
 end
+---@param i politics_reason_id
 function DATA.delete_politics_reason(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -13733,6 +13781,7 @@ function DATA.create_law_trade()
     DATA.law_trade_indices_set[i --[[@as law_trade_id]]] = i
     return i --[[@as law_trade_id]] 
 end
+---@param i law_trade_id
 function DATA.delete_law_trade(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -13857,6 +13906,7 @@ function DATA.create_law_building()
     DATA.law_building_indices_set[i --[[@as law_building_id]]] = i
     return i --[[@as law_building_id]] 
 end
+---@param i law_building_id
 function DATA.delete_law_building(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -14019,6 +14069,7 @@ function DATA.create_trade_good()
     DATA.trade_good_indices_set[i --[[@as trade_good_id]]] = i
     return i --[[@as trade_good_id]] 
 end
+---@param i trade_good_id
 function DATA.delete_trade_good(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -14279,6 +14330,7 @@ function DATA.create_use_case()
     DATA.use_case_indices_set[i --[[@as use_case_id]]] = i
     return i --[[@as use_case_id]] 
 end
+---@param i use_case_id
 function DATA.delete_use_case(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -14500,6 +14552,7 @@ function DATA.force_create_use_weight(trade_good, use_case)
     DATA.use_weight_set_use_case(i, use_case)
     return i --[[@as use_weight_id]] 
 end
+---@param i use_weight_id
 function DATA.delete_use_weight(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -15070,6 +15123,7 @@ function DATA.create_biome()
     DATA.biome_indices_set[i --[[@as biome_id]]] = i
     return i --[[@as biome_id]] 
 end
+---@param i biome_id
 function DATA.delete_biome(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -16109,6 +16163,7 @@ function DATA.create_bedrock()
     DATA.bedrock_indices_set[i --[[@as bedrock_id]]] = i
     return i --[[@as bedrock_id]] 
 end
+---@param i bedrock_id
 function DATA.delete_bedrock(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -16718,6 +16773,7 @@ function DATA.create_resource()
     DATA.resource_indices_set[i --[[@as resource_id]]] = i
     return i --[[@as resource_id]] 
 end
+---@param i resource_id
 function DATA.delete_resource(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -17226,6 +17282,7 @@ function DATA.create_unit_type()
     DATA.unit_type_indices_set[i --[[@as unit_type_id]]] = i
     return i --[[@as unit_type_id]] 
 end
+---@param i unit_type_id
 function DATA.delete_unit_type(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -17722,6 +17779,7 @@ function DATA.create_job()
     DATA.job_indices_set[i --[[@as job_id]]] = i
     return i --[[@as job_id]] 
 end
+---@param i job_id
 function DATA.delete_job(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -18094,6 +18152,7 @@ function DATA.create_production_method()
     DATA.production_method_indices_set[i --[[@as production_method_id]]] = i
     return i --[[@as production_method_id]] 
 end
+---@param i production_method_id
 function DATA.delete_production_method(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -18801,6 +18860,7 @@ function DATA.create_technology()
     DATA.technology_indices_set[i --[[@as technology_id]]] = i
     return i --[[@as technology_id]] 
 end
+---@param i technology_id
 function DATA.delete_technology(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -19148,6 +19208,7 @@ function DATA.force_create_technology_unlock(origin, unlocked)
     DATA.technology_unlock_set_unlocked(i, unlocked)
     return i --[[@as technology_unlock_id]] 
 end
+---@param i technology_unlock_id
 function DATA.delete_technology_unlock(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -19484,6 +19545,7 @@ function DATA.create_building_type()
     DATA.building_type_indices_set[i --[[@as building_type_id]]] = i
     return i --[[@as building_type_id]] 
 end
+---@param i building_type_id
 function DATA.delete_building_type(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -19863,6 +19925,7 @@ function DATA.force_create_technology_building(technology, unlocked)
     DATA.technology_building_set_unlocked(i, unlocked)
     return i --[[@as technology_building_id]] 
 end
+---@param i technology_building_id
 function DATA.delete_technology_building(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -20072,6 +20135,7 @@ function DATA.force_create_technology_unit(technology, unlocked)
     DATA.technology_unit_set_unlocked(i, unlocked)
     return i --[[@as technology_unit_id]] 
 end
+---@param i technology_unit_id
 function DATA.delete_technology_unit(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -20428,6 +20492,7 @@ function DATA.create_race()
     DATA.race_indices_set[i --[[@as race_id]]] = i
     return i --[[@as race_id]] 
 end
+---@param i race_id
 function DATA.delete_race(i)
     assert(i ~= INVALID_ID, " ATTEMPT TO DELETE INVALID OBJECT ")
 end
@@ -21127,18 +21192,18 @@ function DATA.save_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 20000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 20000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm") * 15000
     total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 2500
     total_ffi_size = total_ffi_size + ffi.sizeof("building") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("ownership") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("employment") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("building_location") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband_unit") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("character_location") * 100000
     total_ffi_size = total_ffi_size + ffi.sizeof("home") * 300000
@@ -21172,7 +21237,7 @@ function DATA.save_state()
     current_shift = ffi.sizeof("army") * 5000
     ffi.copy(current_buffer + current_offset, DATA.army, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband") * 20000
+    current_shift = ffi.sizeof("warband") * 50000
     ffi.copy(current_buffer + current_offset, DATA.warband, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("realm") * 15000
@@ -21193,19 +21258,19 @@ function DATA.save_state()
     current_shift = ffi.sizeof("building_location") * 200000
     ffi.copy(current_buffer + current_offset, DATA.building_location, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("army_membership") * 10000
+    current_shift = ffi.sizeof("army_membership") * 50000
     ffi.copy(current_buffer + current_offset, DATA.army_membership, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_leader") * 10000
+    current_shift = ffi.sizeof("warband_leader") * 50000
     ffi.copy(current_buffer + current_offset, DATA.warband_leader, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_recruiter") * 10000
+    current_shift = ffi.sizeof("warband_recruiter") * 50000
     ffi.copy(current_buffer + current_offset, DATA.warband_recruiter, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_commander") * 10000
+    current_shift = ffi.sizeof("warband_commander") * 50000
     ffi.copy(current_buffer + current_offset, DATA.warband_commander, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_location") * 10000
+    current_shift = ffi.sizeof("warband_location") * 50000
     ffi.copy(current_buffer + current_offset, DATA.warband_location, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("warband_unit") * 50000
@@ -21281,18 +21346,18 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 20000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 20000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm") * 15000
     total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 2500
     total_ffi_size = total_ffi_size + ffi.sizeof("building") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("ownership") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("employment") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("building_location") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 10000
+    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 50000
+    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband_unit") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("character_location") * 100000
     total_ffi_size = total_ffi_size + ffi.sizeof("home") * 300000
@@ -21325,7 +21390,7 @@ function DATA.load_state()
     current_shift = ffi.sizeof("army") * 5000
     ffi.copy(DATA.army, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband") * 20000
+    current_shift = ffi.sizeof("warband") * 50000
     ffi.copy(DATA.warband, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("realm") * 15000
@@ -21346,19 +21411,19 @@ function DATA.load_state()
     current_shift = ffi.sizeof("building_location") * 200000
     ffi.copy(DATA.building_location, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("army_membership") * 10000
+    current_shift = ffi.sizeof("army_membership") * 50000
     ffi.copy(DATA.army_membership, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_leader") * 10000
+    current_shift = ffi.sizeof("warband_leader") * 50000
     ffi.copy(DATA.warband_leader, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_recruiter") * 10000
+    current_shift = ffi.sizeof("warband_recruiter") * 50000
     ffi.copy(DATA.warband_recruiter, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_commander") * 10000
+    current_shift = ffi.sizeof("warband_commander") * 50000
     ffi.copy(DATA.warband_commander, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_location") * 10000
+    current_shift = ffi.sizeof("warband_location") * 50000
     ffi.copy(DATA.warband_location, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("warband_unit") * 50000
@@ -21827,51 +21892,51 @@ function DATA.test_save_load_0()
         DATA.army[i --[[@as army_id]]].destination = 2
     end
     print("warband units_current")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         DATA.warband[i --[[@as warband_id]]].units_current[j --[[@as unit_type_id]]] = -12
     end
     end
     print("warband units_target")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         DATA.warband[i --[[@as warband_id]]].units_target[j --[[@as unit_type_id]]] = -11
     end
     end
     print("warband status")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].status = 0
     end
     print("warband idle_stance")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].idle_stance = 0
     end
     print("warband current_free_time_ratio")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].current_free_time_ratio = 14
     end
     print("warband treasury")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].treasury = 5
     end
     print("warband total_upkeep")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].total_upkeep = 13
     end
     print("warband predicted_upkeep")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].predicted_upkeep = -3
     end
     print("warband supplies")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].supplies = 13
     end
     print("warband supplies_target_days")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].supplies_target_days = -5
     end
     print("warband morale")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].morale = -7
     end
     print("realm budget_change")
@@ -22491,41 +22556,41 @@ function DATA.test_save_load_0()
     for i = 0, 5000 do
         test_passed = test_passed and DATA.army[i].destination == 2
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.warband[i --[[@as warband_id]]].units_current[j --[[@as unit_type_id]]] == -12
     end
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.warband[i --[[@as warband_id]]].units_target[j --[[@as unit_type_id]]] == -11
     end
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].status == 0
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].idle_stance == 0
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 14
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].treasury == 5
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].total_upkeep == 13
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].predicted_upkeep == -3
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].supplies == 13
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].supplies_target_days == -5
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].morale == -7
     end
     for i = 0, 15000 do
@@ -23884,51 +23949,51 @@ function DATA.test_save_load_1()
         DATA.army[i --[[@as army_id]]].destination = 0
     end
     print("warband units_current")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         DATA.warband[i --[[@as warband_id]]].units_current[j --[[@as unit_type_id]]] = -8
     end
     end
     print("warband units_target")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         DATA.warband[i --[[@as warband_id]]].units_target[j --[[@as unit_type_id]]] = 14
     end
     end
     print("warband status")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].status = 8
     end
     print("warband idle_stance")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].idle_stance = 0
     end
     print("warband current_free_time_ratio")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].current_free_time_ratio = 5
     end
     print("warband treasury")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].treasury = 12
     end
     print("warband total_upkeep")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].total_upkeep = 2
     end
     print("warband predicted_upkeep")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].predicted_upkeep = 16
     end
     print("warband supplies")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].supplies = 2
     end
     print("warband supplies_target_days")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].supplies_target_days = 9
     end
     print("warband morale")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].morale = -3
     end
     print("realm budget_change")
@@ -24548,41 +24613,41 @@ function DATA.test_save_load_1()
     for i = 0, 5000 do
         test_passed = test_passed and DATA.army[i].destination == 0
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.warband[i --[[@as warband_id]]].units_current[j --[[@as unit_type_id]]] == -8
     end
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.warband[i --[[@as warband_id]]].units_target[j --[[@as unit_type_id]]] == 14
     end
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].status == 8
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].idle_stance == 0
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 5
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].treasury == 12
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].total_upkeep == 2
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].predicted_upkeep == 16
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].supplies == 2
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].supplies_target_days == 9
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].morale == -3
     end
     for i = 0, 15000 do
@@ -25941,51 +26006,51 @@ function DATA.test_save_load_2()
         DATA.army[i --[[@as army_id]]].destination = 10
     end
     print("warband units_current")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         DATA.warband[i --[[@as warband_id]]].units_current[j --[[@as unit_type_id]]] = -20
     end
     end
     print("warband units_target")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         DATA.warband[i --[[@as warband_id]]].units_target[j --[[@as unit_type_id]]] = -8
     end
     end
     print("warband status")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].status = 1
     end
     print("warband idle_stance")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].idle_stance = 0
     end
     print("warband current_free_time_ratio")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].current_free_time_ratio = 16
     end
     print("warband treasury")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].treasury = -17
     end
     print("warband total_upkeep")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].total_upkeep = -3
     end
     print("warband predicted_upkeep")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].predicted_upkeep = 17
     end
     print("warband supplies")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].supplies = -6
     end
     print("warband supplies_target_days")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].supplies_target_days = -14
     end
     print("warband morale")
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         DATA.warband[i --[[@as warband_id]]].morale = 13
     end
     print("realm budget_change")
@@ -26605,41 +26670,41 @@ function DATA.test_save_load_2()
     for i = 0, 5000 do
         test_passed = test_passed and DATA.army[i].destination == 10
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.warband[i --[[@as warband_id]]].units_current[j --[[@as unit_type_id]]] == -20
     end
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
     for j = 0, 19 do
         test_passed = test_passed and DATA.warband[i --[[@as warband_id]]].units_target[j --[[@as unit_type_id]]] == -8
     end
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].status == 1
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].idle_stance == 0
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].current_free_time_ratio == 16
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].treasury == -17
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].total_upkeep == -3
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].predicted_upkeep == 17
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].supplies == -6
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].supplies_target_days == -14
     end
-    for i = 0, 20000 do
+    for i = 0, 50000 do
         test_passed = test_passed and DATA.warband[i].morale == 13
     end
     for i = 0, 15000 do

@@ -222,9 +222,20 @@ function load()
 					DATA.for_each_home_from_home(associated_data.origin_province, function (item)
 						population = population + 1
 					end)
+
+					local characters = 0
+					DATA.for_each_character_location_from_location(associated_data.origin_province, function (item)
+						characters = characters + 1
+					end)
+
+					local pops = 0
+					DATA.for_each_pop_location_from_location(associated_data.origin_province, function (item)
+						pops = pops + 1
+					end)
+
 					error(
 						"FAILED TO PICK EXPEDITION LEADER IN MIGRATION-COLONIZE IN PROVINCE WITH POPULATION "
-						.. tostring(population)
+						.. tostring(population) .. " " .. tostring(characters) .. " " .. tostring(pops)
 					)
 					return
 				end

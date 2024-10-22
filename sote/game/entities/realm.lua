@@ -206,7 +206,7 @@ end
 ---@return number
 function realm_utils.Realm.get_average_needs_satisfaction(realm)
 	local sum = 0
-	local total_population = 0
+	local total_population = 1
 	DATA.for_each_realm_provinces_from_realm(realm, function (location)
 		local province = DATA.realm_provinces_get_province(location)
 		DATA.for_each_pop_location_from_location(province, function (item)

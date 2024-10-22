@@ -219,9 +219,8 @@ end
 ---@param associated_data table|nil
 ---@param delay number|nil In days
 function world.World:emit_event(event, root, associated_data, delay)
-	if root == nil then
-		error("Attempt to call event for nil root")
-	end
+	assert(root ~= INVALID_ID, "Attempt to call event for invalid root")
+	assert(root ~= nil, "Attempt to call event for nil root")
 
 	if delay then
 		self.deferred_events_queue:enqueue({
@@ -239,9 +238,8 @@ end
 ---@param root Character
 ---@param associated_data table|nil|number
 function world.World:emit_immediate_event(event, root, associated_data)
-	if root == nil then
-		error("Attempt to call event for nil root")
-	end
+	assert(root ~= INVALID_ID, "Attempt to call event for invalid root")
+	assert(root ~= nil, "Attempt to call event for nil root")
 
 	if root == self.player_character then
 		print('player event: ', event)
@@ -344,6 +342,7 @@ end
 ---@param dat any
 ---@return boolean
 function world.World:event_tick(eve, root, dat)
+	assert(root ~= INVALID_ID)
 	if WORLD.player_character == root then
 		-- This is a player event!
 		-- print("player event options: ", eve)

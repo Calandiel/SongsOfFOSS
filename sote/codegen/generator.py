@@ -803,6 +803,7 @@ class EntityDescription:
         Generates function responsible for deletion of an object
         """
         result = ""
+        result += f"---@param i {prefix_to_id_name(self.name)}\n"
         result += f"function {NAMESPACE}.delete_{self.name}(i)\n"
         result += f"    assert(i ~= INVALID_ID, \" ATTEMPT TO DELETE INVALID OBJECT \")\n"
         if self.erasable:
@@ -1542,7 +1543,7 @@ REALMS_MAX_COUNT = 15000
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
 Province = EntityDescription("province", 20000, False)
 Army = EntityDescription("army", 5000, False)
-Warband = EntityDescription("warband", 20000, False)
+Warband = EntityDescription("warband", 50000, False)
 Realm = EntityDescription("realm", REALMS_MAX_COUNT, False)
 
 Negotiations = EntityDescription("negotiation", 2500, False)
@@ -1552,11 +1553,11 @@ BuildingOwnership = EntityDescription("ownership", 200000, False)
 Employment = EntityDescription("employment", 300000, False)
 BuildingLocation = EntityDescription("building_location", 200000, False)
 
-ArmyMembership = EntityDescription("army_membership", 10000, False)
-WarbandLeader = EntityDescription("warband_leader", 10000, False)
-WarbandRecruiter = EntityDescription("warband_recruiter", 10000, False)
-WarbandCommander = EntityDescription("warband_commander", 10000, False)
-WarbandLocation = EntityDescription("warband_location", 10000, False)
+ArmyMembership = EntityDescription("army_membership", 50000, False)
+WarbandLeader = EntityDescription("warband_leader", 50000, False)
+WarbandRecruiter = EntityDescription("warband_recruiter", 50000, False)
+WarbandCommander = EntityDescription("warband_commander", 50000, False)
+WarbandLocation = EntityDescription("warband_location", 50000, False)
 WarbandUnit = EntityDescription("warband_unit", 50000, False)
 
 CharacterLocation = EntityDescription("character_location", 100000, False)

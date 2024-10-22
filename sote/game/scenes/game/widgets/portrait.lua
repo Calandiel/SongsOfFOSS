@@ -6,6 +6,7 @@ local ut = require "game.ui-utils"
 ---@param character_id Character
 return function(rect, character_id)
     local character = DATA.fatten_pop(character_id)
+
     local race = DATA.fatten_race(character.race)
 
     local style = ui.style.panel_outline
@@ -87,6 +88,8 @@ return function(rect, character_id)
             ui.image_ith(ASSETS.portraits[portrait.folder][layer], dna_per_layer[i], subrect)
         end
     else
+        assert(race.icon ~= nil, "race " .. character.race .. " icon is nil")
+        assert(ASSETS.icons[race.icon] ~= nil, "race " .. race.name .. " icon " .. race.icon .. " is missing ")
         ui.image(ASSETS.icons[race.icon], subrect)
     end
 

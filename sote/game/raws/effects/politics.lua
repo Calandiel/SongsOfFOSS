@@ -226,7 +226,7 @@ function PoliticalEffects.remove_overseer(realm)
 	local overseer = DATA.realm_overseer_get_overseer(overseership)
 	local fat_overseer = DATA.fatten_pop(overseer)
 
-	DATA.delete_realm_overseer(overseer)
+	DATA.delete_realm_overseer(overseership)
 
 	if overseer ~= INVALID_ID then
 		PoliticalEffects.medium_popularity_decrease(overseer, realm)

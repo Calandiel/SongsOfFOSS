@@ -54,6 +54,8 @@ function Race:new(o)
 	for i = 1, math.max(#male_needs, #female_needs) do
 		assert(male_needs[i].need == female_needs[i].need)
 		assert(male_needs[i].use_case == female_needs[i].use_case)
+		assert(male_needs[i].required > 0)
+		assert(female_needs[i].required > 0)
 
 		local need = male_needs[i].need
 		local use_case = male_needs[i].use_case
