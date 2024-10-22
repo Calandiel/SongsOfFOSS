@@ -1,7 +1,7 @@
 local waterbody = {}
 
 ---@enum waterbody_type
-waterbody.types = {
+waterbody.TYPES = {
 	ocean           = 0,
 	sea             = 1,
 	saltwater_lake  = 2,
@@ -11,60 +11,93 @@ waterbody.types = {
 	invalid         = 6
 }
 
-function waterbody:new()
+function waterbody:new(id)
 	local obj = {}
-	setmetatable(obj, self)
-	self.__index = self
 
-	obj.id = nil
+	obj.id = id or 0
 	obj.tiles = {}
-	obj.type = waterbody.types.invalid
-	obj.waterlevel = 0
+	obj.type = waterbody.TYPES.invalid
+	obj.water_level = 0
 	obj.perimeter = {}
 	obj.lowest_shore_tile = nil
 	obj.lake_open = false
 	obj.tmp_float_1 = 0
 
+	setmetatable(obj, self)
+	self.__index = self
+
 	return obj
+end
+
+function waterbody:kill()
+	self.id = 0
+	self.tiles = {}
+	self.type = waterbody.TYPES.invalid
+	self.water_level = 0
+	self.perimeter = {}
+	self.lowest_shore_tile = nil
+	self.lake_open = false
+	self.tmp_float_1 = 0
+end
+
+---@return number
+function waterbody:size()
+	return #self.tiles
+end
+
+---@param ti number
+function waterbody:add_tile(ti)
+	table.insert(self.tiles, ti)
 end
 
 ---@param callback fun(tile_index:number)
 function waterbody:for_each_tile(callback)
-	for _, ti in pairs(self.tiles) do
+	for _, ti in ipairs(self.tiles) do
 		callback(ti)
 	end
 end
 
+---@param ti number
+function waterbody:add_to_perimeter(ti)
+	self.perimeter[ti] = true
+end
+
+---@param ti number
+function waterbody:remove_from_perimeter(ti)
+	self.perimeter[ti] = nil
+end
+
+---@param world table
 function waterbody:build_perimeter(world)
-	for k, _ in pairs(self.perimeter) do self.perimeter[k] = nil end
+	self.perimeter = {}
 
 	self:for_each_tile(function(ti)
 		world:for_each_neighbor(ti, function(nti)
 			if not world.is_land[nti] then return end
 
-			self.perimeter[nti] = true
+			self:add_to_perimeter(nti)
 		end)
 	end)
 end
 
+---@param world table
 function waterbody:set_lowest_shore_tile(world)
 	self.lowest_shore_tile = nil
 
 	local lowest_elev = 100000;
 	for ti, _ in pairs(self.perimeter) do
-		local true_elev_for_waterflow = world:true_elevation(ti) -- perimeter tiles are always land tiles
+		local true_elev_for_waterflow = world:true_elevation_for_waterflow(ti) -- perimeter tiles are always land tiles
 
-		if true_elev_for_waterflow < lowest_elev then
+		if lowest_elev > true_elev_for_waterflow  then
 			self.lowest_shore_tile = ti
 			lowest_elev = true_elev_for_waterflow
 		end
 	end
-
-	-- print(" Lowest shore tile: " .. self.lowest_shore_tile .. " Elev: " .. lowest_elev)
 end
 
+---@return boolean
 function waterbody:is_valid()
-	return self.id ~= nil
+	return self.id > 0
 end
 
 return waterbody

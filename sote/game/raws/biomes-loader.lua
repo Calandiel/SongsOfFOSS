@@ -61,6 +61,7 @@ function ll.load()
 	local scrubland_threshold = 0.4
 
 	local tropical_threshold = 18.0 -- minimum winter temperature
+	local warm_forest_threshold = 9.0
 	local desert_threshold = 0.35
 	local moderate_desert_threshold = 0.7
 	local sprase_desert_threshold = 0.35
@@ -101,6 +102,16 @@ function ll.load()
 		maximum_conifer_fraction = 0.25,
 	}
 	Biome:new {
+		name = "warm-dry-broadleaf-forest",
+		r = 8 / 255,
+		g = 104 / 255,
+		b = 0 / 255,
+		minimum_trees = forest_threshold,
+		minimum_winter_temperature = warm_forest_threshold,
+		maximum_conifer_fraction = 0.25,
+		maximum_available_water = 5,
+	}
+	Biome:new {
 		name = "wet-jungle",
 		r = 5 / 255,
 		g = 70 / 255,
@@ -111,6 +122,17 @@ function ll.load()
 		minimum_available_water = 100,
 	}
 	Biome:new {
+		name = "jungle",
+		r = 6 / 255,
+		g = 85 / 255,
+		b = 0 / 255,
+		minimum_trees = forest_threshold,
+		maximum_conifer_fraction = 0.25,
+		minimum_winter_temperature = tropical_threshold,
+		minimum_available_water = 5,
+		maximum_available_water = 100,
+	}
+	Biome:new {
 		name = "dry-jungle",
 		r = 8 / 255,
 		g = 104 / 255,
@@ -118,7 +140,7 @@ function ll.load()
 		minimum_trees = forest_threshold,
 		maximum_conifer_fraction = 0.25,
 		minimum_winter_temperature = tropical_threshold,
-		maximum_available_water = 100,
+		maximum_available_water = 5,
 	}
 	----------------Woodlands------------------
 	Biome:new {
@@ -153,6 +175,30 @@ function ll.load()
 		maximum_summer_temperature = arctic_threshold
 	}
 	Biome:new {
+		name = "warm-wet-broadleaf-woodland",
+		r = 45 / 255,
+		g = 90 / 255,
+		b = 20 / 255,
+		minimum_trees = woodland_threshold,
+		maximum_trees = forest_threshold,
+		maximum_conifer_fraction = 0.25,
+		maximum_dead_land = 0.6,
+		minimum_winter_temperature = warm_forest_threshold,
+		minimum_available_water = 5,
+	}
+	Biome:new {
+		name = "warm-dry-broadleaf-woodland",
+		r = 55 / 255,
+		g = 100 / 255,
+		b = 0 / 255,
+		minimum_trees = woodland_threshold,
+		maximum_trees = forest_threshold,
+		maximum_conifer_fraction = 0.25,
+		maximum_dead_land = 0.6,
+		minimum_winter_temperature = warm_forest_threshold,
+		maximum_available_water = 5,
+	}
+	Biome:new {
 		name = "broadleaf-woodland",
 		r = 45 / 255,
 		g = 90 / 255,
@@ -162,6 +208,7 @@ function ll.load()
 		maximum_conifer_fraction = 0.25,
 		maximum_dead_land = 0.6,
 	}
+
 	----------------Savannas------------------
 	--- Savannas are grass dominant
 	--- scrubland is shrub dominant
@@ -241,6 +288,24 @@ function ll.load()
 		minimum_slope = 40,
 	}
 	Biome:new {
+		name = "barren-mountainside-low-altitude",
+		r = 128 / 255,
+		g = 107 / 255,
+		b = 92 / 255,
+		minimum_dead_land = severe_desert_threshold,
+		minimum_slope = 40,
+		maximum_elevation = 1000
+	}
+	Biome:new {
+		name = "barren-mountainside-high-altitude",
+		r = 128 / 255,
+		g = 107 / 255,
+		b = 92 / 255,
+		minimum_dead_land = severe_desert_threshold,
+		minimum_slope = 40,
+		minimum_elevation = 1800
+	}
+	Biome:new {
 		-- this is the default biome so we don't want any checks
 		name = "rocky-wasteland",
 		r = 108 / 255,
@@ -307,13 +372,33 @@ function ll.load()
 		minimum_slope = 40,
 	}
 	Biome:new {
+		name = "rugged-mountainside-low-altitude",
+		r = 173 / 255,
+		g = 136 / 255,
+		b = 109 / 255,
+		minimum_dead_land = sparse_desert_threshold,
+		maximum_dead_land = severe_desert_threshold,
+		minimum_slope = 40,
+		maximum_elevation = 1000
+	}
+	Biome:new {
 		name = "mountainside-scrub",
 		r = 196 / 255,
 		g = 134 / 255,
 		b = 90 / 255,
 		minimum_dead_land = moderate_desert_threshold,
-		maximum_dead_land = severe_desert_threshold,
+		maximum_dead_land = sparse_desert_threshold,
 		minimum_slope = 40,
+	}
+	Biome:new {
+		name = "mountainside-scrub-low-altitude",
+		r = 196 / 255,
+		g = 134 / 255,
+		b = 90 / 255,
+		minimum_dead_land = moderate_desert_threshold,
+		maximum_dead_land = sparse_desert_threshold,
+		minimum_slope = 40,
+		maximum_elevation = 1000
 	}
 
 	Biome:new {
@@ -351,12 +436,16 @@ function ll.load()
 		RAWS_MANAGER.biomes_by_name["glaciated-sea"],
 		RAWS_MANAGER.biomes_by_name["coniferous-forest"],
 		RAWS_MANAGER.biomes_by_name["broadleaf-forest"],
+		RAWS_MANAGER.biomes_by_name["warm-dry-broadleaf-forest"],
 		RAWS_MANAGER.biomes_by_name["mixed-forest"],
 		RAWS_MANAGER.biomes_by_name["wet-jungle"],
+		RAWS_MANAGER.biomes_by_name["jungle"],
 		RAWS_MANAGER.biomes_by_name["dry-jungle"],
 		RAWS_MANAGER.biomes_by_name["taiga"],
 		RAWS_MANAGER.biomes_by_name["coniferous-woodland"],
 		RAWS_MANAGER.biomes_by_name["broadleaf-woodland"],
+		RAWS_MANAGER.biomes_by_name["warm-wet-broadleaf-woodland"],
+		RAWS_MANAGER.biomes_by_name["warm-dry-broadleaf-woodland"],
 		RAWS_MANAGER.biomes_by_name["mixed-woodland"],
 		RAWS_MANAGER.biomes_by_name["woodland-taiga"],
 		RAWS_MANAGER.biomes_by_name["savanna"],
@@ -366,13 +455,17 @@ function ll.load()
 		RAWS_MANAGER.biomes_by_name["mixed-scrubland"],
 		RAWS_MANAGER.biomes_by_name["grassland"],
 		RAWS_MANAGER.biomes_by_name["barren-mountainside"],
+		RAWS_MANAGER.biomes_by_name["barren-mountainside-low-altitude"],
+		RAWS_MANAGER.biomes_by_name["barren-mountainside-high-altitude"],
 		RAWS_MANAGER.biomes_by_name["barren-desert"],
 		RAWS_MANAGER.biomes_by_name["sand-dunes"],
 		RAWS_MANAGER.biomes_by_name["badlands"],
 		RAWS_MANAGER.biomes_by_name["xeric-desert"],
 		RAWS_MANAGER.biomes_by_name["xeric-shrubland"],
 		RAWS_MANAGER.biomes_by_name["rugged-mountainside"],
+		RAWS_MANAGER.biomes_by_name["rugged-mountainside-low-altitude"],
 		RAWS_MANAGER.biomes_by_name["mountainside-scrub"],
+		RAWS_MANAGER.biomes_by_name["mountainside-scrub-low-altitude"],
 		RAWS_MANAGER.biomes_by_name["bog"],
 		RAWS_MANAGER.biomes_by_name["marsh"],
 		RAWS_MANAGER.biomes_by_name["swamp"],

@@ -21,22 +21,22 @@ local vec3 = cpml.vec3
 
 --- Calculates the barycentric coordinates of a point with respect to a triangle.
 -- @param vec3 p The point.
--- @param vec3 v1 The first vertex of the triangle.
--- @param vec3 v2 The second vertex of the triangle.
--- @param vec3 v3 The third vertex of the triangle.
+-- @param vec3 a The first vertex of the triangle.
+-- @param vec3 b The second vertex of the triangle.
+-- @param vec3 c The third vertex of the triangle.
 -- @return number u The first barycentric coordinate.
 -- @return number v The second barycentric coordinate.
 -- @return number w The third barycentric coordinate.
-function ma.barycentric_coordinates(p, v1, v2, v3)
-	local vec0 = v2 - v1
-	local vec1 = v3 - v1
-	local vec2 = p - v1
-	local d00 = vec3.dot(vec0, vec0)
-	local d01 = vec3.dot(vec0, vec1)
-	local d11 = vec3.dot(vec1, vec1)
-	local d20 = vec3.dot(vec2, vec0)
-	local d21 = vec3.dot(vec2, vec1)
-	local denom = (d00 * d11) - (d01 * d01)
+function ma.barycentric_coordinates(p, a, b, c)
+	local v0 = b - a
+	local v1 = c - a
+	local v2 = p - a
+	local d00 = vec3.dot(v0, v0)
+	local d01 = vec3.dot(v0, v1)
+	local d11 = vec3.dot(v1, v1)
+	local d20 = vec3.dot(v2, v0)
+	local d21 = vec3.dot(v2, v1)
+	local denom = d00 * d11 - d01 * d01
 	local v = (d11 * d20 - d01 * d21) / denom
 	local w = (d00 * d21 - d01 * d20) / denom
 	local u = 1.0 - v - w
@@ -50,6 +50,13 @@ local default_fmt = "%.7f"
 -- @return string
 function ma.num_to_string(n, fmt)
 	return string.format(fmt or default_fmt, n)
+end
+
+-- @param vec2 v
+-- @param string fmt
+-- @return string
+function ma.vec2_to_string(v, fmt)
+	return "(" .. string.format(fmt or default_fmt, v.x) .. ", " .. string.format(fmt or default_fmt, v.y) .. ")"
 end
 
 -- @param vec3 v

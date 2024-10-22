@@ -22,6 +22,16 @@ local HUMIDITY_DISTANCE_TO_SEA_FACTOR = 0.25
 local HUMIDITY_RAINFALL_DIVISOR = 350.0
 local HUMIDITY_TEMPERATURE_DIVISOR = 50.0
 
+local WIND_SPEED_ELEVATION_CAP = 4500.0
+local WIND_SPEED_LATITUDE_DIVISOR = 40.0
+local WIND_SPEED_DISTANCE_TO_SEA_FACTOR = 1.0
+local WIND_SPEED_RAIN_SHADOW_FACTOR = 3.0
+local WIND_SPEED_ELEVATION_FACTOR = 8.0
+local WIND_SPEED_LATITUDE_FACTOR = 1.0
+local WIND_SPEED_CONTINENTALITY_FACTOR = 1.0
+local WIND_SPEED_HADLEY_FACTOR = 5.0
+local WIND_SPEED_MULTIPLIED_DISTANCE_AND_LATITUDE_FACTOR = 2.0
+
 local function simulate_climate()
 	--print("A")
 	local ut = require "game.climate.utils"
@@ -227,11 +237,39 @@ local function simulate_climate()
 		cell.july_temperature = jul_temp_base
 		--print("G")
 
+		--* Higher when plants are present,
+		--* Higher when rainfalls are higher,
+		--* Smaller when temperatures are high
+		--* Higher near coasts
 		local dist_factor = 1.0 - math.min(cell.distance_to_sea / HUMIDITY_DISTANCE_TO_SEA_DIVISOR, 1.0)
 		local fff = HUMIDITY_DISTANCE_TO_SEA_FACTOR
 
 		cell.january_humidity = fff * dist_factor + (1.0 - fff) * math.max(cell.january_rainfall / HUMIDITY_RAINFALL_DIVISOR, math.min(1.0, 1.0 - cell.january_temperature / HUMIDITY_TEMPERATURE_DIVISOR))
 		cell.july_humidity = fff * dist_factor + (1.0 - fff) * math.max(cell.july_rainfall / HUMIDITY_RAINFALL_DIVISOR, math.min(1.0, 1.0 - cell.july_temperature / HUMIDITY_TEMPERATURE_DIVISOR))
+
+		--* Higher close to coasts
+		--* Lowered by high roughness and high vegetation
+		--* Almost nothing under itcz
+		--* Smaller with continentality
+		local elevation_factor = math.max(math.min(cell.elevation, WIND_SPEED_ELEVATION_CAP), 0.0) / WIND_SPEED_ELEVATION_CAP
+		elevation_factor = elevation_factor * elevation_factor
+
+		local lat_factor = math.min(1.0, math.abs(lat / WIND_SPEED_LATITUDE_DIVISOR))
+
+		local base_wind = dist_factor * WIND_SPEED_DISTANCE_TO_SEA_FACTOR
+			+ (1.0 - rain_shadow_drying_impact_multiplier) * WIND_SPEED_RAIN_SHADOW_FACTOR
+			+ elevation_factor * WIND_SPEED_ELEVATION_FACTOR
+			+ lat_factor * WIND_SPEED_LATITUDE_FACTOR
+			+ cell.true_continentality * WIND_SPEED_CONTINENTALITY_FACTOR
+			+ hadley_influence * WIND_SPEED_HADLEY_FACTOR
+			+ dist_factor * lat_factor * WIND_SPEED_MULTIPLIED_DISTANCE_AND_LATITUDE_FACTOR
+
+		--* Lack of ITCZ = wind
+		local itcz_factor = 1.0 - 0.9 * (itcz_jan_influence + itcz_jul_influence) / 2.0
+		itcz_factor = itcz_factor * itcz_factor
+
+		cell.january_wind_speed = base_wind * itcz_factor
+		cell.july_wind_speed = base_wind * itcz_factor
 	end
 end
 

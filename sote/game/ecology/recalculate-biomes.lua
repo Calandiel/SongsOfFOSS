@@ -1,6 +1,12 @@
 local re = {}
 
 function re.run()
+	---@type table<string, number>
+	local tiles_per_biome = {}
+
+	for _, b in pairs(RAWS_MANAGER.biomes_load_order) do
+		tiles_per_biome[b.name] = 0
+	end
 
 	for _, t in pairs(WORLD.tiles) do
 		local slopeiness = 0
@@ -101,6 +107,13 @@ function re.run()
 
 			::continue::
 		end
+
+		tiles_per_biome[t.biome.name] = tiles_per_biome[t.biome.name] + 1
+	end
+
+	print("BIOMES STATS")
+	for _, b in pairs(RAWS_MANAGER.biomes_load_order) do
+		print(string.format("%-50s , %010d", b.name , tiles_per_biome[b.name]))
 	end
 end
 

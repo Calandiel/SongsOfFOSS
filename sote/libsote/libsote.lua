@@ -69,20 +69,20 @@ local sote_params = {
 ---@enum sote_tasks
 local sote_tasks = {
 	init_world = 1,
-	clean_up = 6
+	clean_up   = 6
 }
 
 ---@enum sote_vals
 local sote_vals = {
-	latitude = 40,      -- Colatitude
-	longitude = 41,     -- MinusLongitude
-	elevation = 1,      -- Elevation
-	-- water_movement = 20, -- skipped?
-	rugosity = 43,      -- Hilliness
-	rock_type = 35,     -- RockType (needs some translation)
-	volcanic_activity = 5, -- VolcanicActivity
+	latitude          = 40, -- Colatitude
+	longitude         = 41, -- MinusLongitude
+	elevation         =  1, -- Elevation
+	-- water_movement    = 20, -- skipped?
+	rugosity          = 43, -- Hilliness
+	rock_type         = 35, -- RockType (needs some translation)
+	volcanic_activity =  5, -- VolcanicActivity
 	-- IsLand: computed from elevation
-	plate = 15,
+	plate             = 15,
 }
 
 local function log_info(msg)
@@ -98,6 +98,26 @@ libsote.message = nil
 local function log_and_set_msg(msg)
 	log_info(msg)
 	libsote.message = msg
+end
+
+local function remap_coords_from_sote(world)
+	world.coord = {}
+
+	for row in require("game.file-utils").csv_rows("d:\\temp\\sote_tilettes.csv") do
+		local face = tonumber(row[1])
+		local q = tonumber(row[2])
+		local r = tonumber(row[3])
+		local ti = tonumber(row[4])
+
+		world:_remap_tile(q, r, face + 1, ti)
+	end
+
+	for row in require("game.file-utils").csv_rows("d:\\temp\\sote_world_coord.csv") do
+		local tile_id = tonumber(row[1])
+		local neighbor_indices = { tonumber(row[5]), tonumber(row[6]), tonumber(row[7]), tonumber(row[8]), tonumber(row[9]), tonumber(row[10]) }
+
+		world:_remap_neighbors(tile_id, neighbor_indices)
+	end
 end
 
 libsote.allocated_memory = nil
@@ -298,6 +318,8 @@ local current_msg = ""
 function libsote.worldgen_phase01_coro(seed)
 	set_sote_params(seed)
 
+	local start = love.timer.getTime()
+
 	start_worldgen_task()
 
 	coroutine.yield()
@@ -324,6 +346,9 @@ function libsote.worldgen_phase01_coro(seed)
 		error("failed to wait init_world task")
 	end
 
+	local duration = love.timer.getTime() - start
+	print("[worldgen_task]: " .. string.format("%.2f", duration * 1000) .. "ms --------------------------------------")
+
 	log_and_set_msg("World generation finished")
 end
 
@@ -334,12 +359,14 @@ function libsote.generate_world(seed)
 	local start = love.timer.getTime()
 	local world = require("libsote.world-allocator").allocate(world_size, seed)
 	local duration = love.timer.getTime() - start
-	print("[worldgen profiling] allocated Goldberg polyhedron world: " .. tostring(duration * 1000) .. "ms")
+	print("[worldgen profiling] allocated Goldberg polyhedron world: " .. string.format("%.2f", duration * 1000) .. "ms")
 
 	if not world then
 		log_and_set_msg("World allocation failed")
 		return nil
 	end
+
+	if require("libsote.debug-control-panel").align_to_sote_coords then remap_coords_from_sote(world) end
 
 	local err_msg = ffi.new("char[256]")
 	local float_val = ffi.new("float[1]")
