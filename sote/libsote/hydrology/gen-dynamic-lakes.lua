@@ -210,7 +210,7 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* Drain lake into shore tile with low neighbor that is not the same waterbody
 	if has_lower_neigh then
-		local lsti_wb = world:get_waterbody_by_tile(lowest_shore_ti)
+		-- local lsti_wb = world:get_waterbody_by_tile(lowest_shore_ti)
 		-- if lsti_wb then
 		-- 	logger:log("\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti .. " which belongs to lake " .. lsti_wb.id)
 		-- else

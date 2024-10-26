@@ -11,8 +11,8 @@ local already_checked
 local distance_factor
 local slope_retention_factor
 
-local max_iterations = 35
-local volcano_splooge_tuner = 50 --* How much ash volcanos splooge
+local MAX_ITERATIONS = 35
+local VOLCANO_SPLOOGE_TUNER = 50 --* How much ash volcanos splooge
 
 local function expand_from_tile(vti, silt_qty, mineral_qty)
 	local old_layer = {}
@@ -22,7 +22,7 @@ local function expand_from_tile(vti, silt_qty, mineral_qty)
 	table.insert(old_layer, vti)
 	table.insert(all_influenced, vti)
 
-	local expansion_iterations = max_iterations
+	local expansion_iterations = MAX_ITERATIONS
 
 	--* Phase where we expand outward and calculate all influenced tiles
 	while expansion_iterations > 0 do
@@ -60,7 +60,7 @@ local function expand_from_tile(vti, silt_qty, mineral_qty)
 		local distance_multiplier = 100 * distance_factor[ti] / 35
 		distance_factor[ti] = 0
 
-		local local_silt_produced = (silt_qty * volcano_splooge_tuner * distance_multiplier * slope_retention_factor[ti]) / 100; --* Actual silt produced here. Will also be used to inform volume of mineral nutrient
+		local local_silt_produced = (silt_qty * VOLCANO_SPLOOGE_TUNER * distance_multiplier * slope_retention_factor[ti]) / 100; --* Actual silt produced here. Will also be used to inform volume of mineral nutrient
 
 		world.silt[ti] = world.silt[ti] + math.floor(local_silt_produced)
 		world.mineral_richness[ti] = world.mineral_richness[ti] + math.floor(mineral_qty * local_silt_produced)
@@ -80,16 +80,13 @@ end
 
 function gvc.run(world_obj)
 	world = world_obj
+	rng = world.rng
 	already_checked = world.tmp_bool_1
 	distance_factor = world.tmp_int_1
 	slope_retention_factor = world.carry_float_1
 
-	rng = world.rng
-	local align_rng = require("libsote.debug-control-panel").soils.align_rng
-	local preserved_state = nil
-	if align_rng then
-		preserved_state = rng:get_state()
-		rng:set_seed(world.seed + 19832)
+	if require("libsote.debug-control-panel").soils.align_rng then
+		rng = require("libsote.randomness"):new(world.seed + 19832)
 	end
 
 	world:fill_ffi_array(already_checked, false)
@@ -116,10 +113,6 @@ function gvc.run(world_obj)
 
 	gen_volcanic_silt(mixed_volcano_tiles, 2, rq.mineral_nutrients(ROCK_TYPES.mixed_volcanics) / 100)
 	gen_volcanic_silt(basic_volcano_tiles, 1, rq.mineral_nutrients(ROCK_TYPES.basic_volcanics) / 100)
-
-	if align_rng then
-		rng:set_state(preserved_state)
-	end
 end
 
 return gvc
