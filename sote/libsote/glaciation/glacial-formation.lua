@@ -17,6 +17,7 @@ local wgu = require "libsote.world-gen-utils"
 -- local logger = require("libsote.debug-loggers").get_glacial_logger("d:/temp")
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[glacial-formation]"
+local align_rng = require("libsote.debug-control-panel").glaciation.align_rng
 
 local function run_with_profiling(func, log_txt)
 	prof.run_with_profiling(func, prof_prefix, log_txt)
@@ -79,8 +80,7 @@ local function create_glacial_start_locations(is_ice_age)
 	end)
 
 	-- world:for_each_tile(function(ti)
-	-- 	if not glacial_seed[ti] then return end
-	-- 	logger:log(ti)
+	-- 	logger:log(ti .. ": " .. tostring(glacial_seed[ti]) .. ", " .. ice_flow[ti])
 	-- end)
 end
 
@@ -169,6 +169,11 @@ local function calculate_initial_ice_depth()
 
 		open_issues.calculate_initial_ice_depth(ti, ice_flow, distance_from_edge)
 	end)
+
+	-- world:for_each_tile(function(ti)
+	-- 	if not glacial_seed[ti] then return end
+	-- 	logger:log(ti .. ": " .. math.floor(ice_flow[ti]))
+	-- end)
 end
 
 local function sort_glacial_seeds()
@@ -212,9 +217,10 @@ local function process_ice_expansion(ti, boost_ice)
 
 	local ultimate_elevation = open_issues.true_elevation(world, ti) + ice_flow[ti]
 
-	-- local rn = rng:random_int_max(world:neighbors_count(ti))
-	-- world:for_each_neighbor_starting_at(ti, rn, function(nti)
-	world:for_each_neighbor_random_start(ti, function(nti)
+	-- if align_rng then error("don't forget to align random neigh picking") end
+	local rn = rng:random_int_max(world:neighbors_count(ti))
+	world:for_each_neighbor_starting_at(ti, rn, function(nti)
+	-- world:for_each_neighbor_random_start(ti, function(nti)
 		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
 		if ultimate_elevation <= neigh_ultimate_elev then return end
 
@@ -545,6 +551,7 @@ local function construct_glacial_melt_provinces_and_disperse_silt(is_ice_age)
 
 		::continue2::
 	end
+	-- logger:log("cp1")
 
 	-- world:for_each_tile(function(ti)
 	-- 	if silt_storage[ti] == 0 and mineral_storage[ti] == 0 then return end
@@ -612,6 +619,16 @@ local function cull_back_silt_based_on_moisture_and_slope()
 	-- local max_mineral = 0
 
 	world:for_each_tile(function(ti)
+		local steepest_face = 0
+		world:for_each_neighbor(ti, function(nti)
+			local elev_diff = open_issues.true_elevation(world, ti) - open_issues.true_elevation(world, nti)
+			if elev_diff <= 0 then return end
+			steepest_face = math.max(steepest_face, elev_diff)
+		end)
+		-- original code happily divides by zero if it chances on a flat piece of terrain, so I decided to set the slope_retention_factor to 1 in that case
+		local slope_retention_factor = steepest_face > 0 and math.min(math.pow((10 / steepest_face), 2), 1) or 1
+		slope_retention_factor_storage[ti] = slope_retention_factor
+
 		if silt_storage[ti] <= 0 then return end
 
 		local temp_sand, temp_silt, temp_clay, _, _, _ = rock_qualities.get_characteristics_for_rock(world.rock_type[ti], 0, 0, 0, 0, 0, 0)
@@ -624,16 +641,6 @@ local function cull_back_silt_based_on_moisture_and_slope()
 			true_water_calc = (world.jan_rainfall[ti] + world.jul_rainfall[ti]) * wind_factor * permeability
 		end
 
-		local steepest_face = 0
-		world:for_each_neighbor(ti, function(nti)
-			local elev_diff = open_issues.true_elevation(world, ti) - open_issues.true_elevation(world, nti)
-			if elev_diff <= 0 then return end
-			steepest_face = math.max(steepest_face, elev_diff)
-		end)
-
-		-- original code happily divides by zero if it chances on a flat piece of terrain, so I decided to set the slope_retention_factor to 1 in that case
-		local slope_retention_factor = steepest_face > 0 and math.min(math.pow((10 / steepest_face), 2), 1) or 1
-		slope_retention_factor_storage[ti] = slope_retention_factor
 		local temp_factor = open_issues.calculate_temp_factor_for_retention_mult(world.jan_temperature[ti], world.jul_temperature[ti])
 		local retention_multiplier = math.min(math.pow((true_water_calc / water_normalization_factor), 2) * slope_retention_factor * temp_factor, 1)
 
@@ -712,6 +719,7 @@ function gf.run(world_obj)
 	-- 2024.07.07: Above comment might not be relevant. Waterbodies are already defined by gen-initial-waterbodies and we will attempt to use them here instead of re-generating them.
 
 	world = world_obj
+	rng = world.rng
 	glacial_seed = world.tmp_bool_1
 	already_added = world.tmp_bool_2
 	ice_flow = world.tmp_float_2
@@ -724,12 +732,9 @@ function gf.run(world_obj)
 	mineral_storage = world.tmp_int_4
 	slope_retention_factor_storage = world.carry_float_1
 
-	rng = world.rng
-	local align_rng = require("libsote.debug-control-panel").glaciation.align_rng
-	local preserved_state = nil
 	if align_rng then
-		preserved_state = rng:get_state()
-		rng:set_seed(world.seed + 19832)
+		rng = require("libsote.randomness"):new(world.seed + 19832)
+		print("Using aligned RNG for glaciation")
 	end
 
 	if enable_debug then
@@ -760,10 +765,6 @@ function gf.run(world_obj)
 	run_with_profiling(function() cull_back_silt_based_on_moisture_and_slope() end, "cull_back_silt_based_on_moisture_and_slope")                           -- #15
 	--* Dispose of Lists                                                                                                                                    -- #16
 	run_with_profiling(function() assign_ice_biomes_and_set_variables() end, "assign_ice_biomes_and_set_variables")                                         -- #17
-
-	if align_rng then
-		rng:set_state(preserved_state)
-	end
 end
 
 return gf
