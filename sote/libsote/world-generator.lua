@@ -40,10 +40,10 @@ end
 local fu = require "game.file-utils"
 
 local function override_climate_data()
-	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_climate_data.csv")
 
 	wg.world:for_each_tile(function(ti, _)
-		local row = climate_generator()
+		local row = generator()
 		if row == nil then
 			error("Not enough rows in climate data")
 		end
@@ -59,11 +59,38 @@ local function override_climate_data()
 	end)
 end
 
-local function override_soils_data()
-	local soils_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_soils_data_01.csv")
+local function override_water_movement_data()
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_climate_data.csv")
 
 	wg.world:for_each_tile(function(ti, _)
-		local row = soils_generator()
+		local row = generator()
+		if row == nil then
+			error("Not enough rows in climate data")
+		end
+
+		wg.world.water_movement[ti] = tonumber(row[12])
+	end)
+end
+
+local function override_glacial_data()
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_glacial_data.csv")
+
+	wg.world:for_each_tile(function(ti, _)
+		local row = generator()
+		if row == nil then
+			error("Not enough rows in climate data")
+		end
+
+		wg.world.ice[ti] = tonumber(row[2])
+		wg.world.ice_age_ice[ti] = tonumber(row[3])
+	end)
+end
+
+local function override_soils_data()
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_soils_data_01.csv")
+
+	wg.world:for_each_tile(function(ti, _)
+		local row = generator()
 		if row == nil then
 			error("Not enough rows in soils data")
 		end
@@ -73,6 +100,7 @@ local function override_soils_data()
 		wg.world.clay[ti] = tonumber(row[3])
 		wg.world.mineral_richness[ti] = tonumber(row[4])
 		wg.world.soil_organics[ti] = tonumber(row[5])
+		wg.world.is_land[ti] = tonumber(row[6]) == 1
 	end)
 end
 
@@ -170,6 +198,9 @@ local function gen_phase_02()
 
 	if debug.use_sote_soils_data then
 		run_with_profiling(function() override_soils_data() end, "override_soils_data")
+	end
+	if debug.use_sote_water_movement then
+		run_with_profiling(function() override_water_movement_data() end, "override_waterflow_data")
 	end
 	run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
 end
