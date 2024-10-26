@@ -15,12 +15,15 @@ local method_utils = require "game.raws.production-methods"
 ---Employs pops in the province.
 ---@param province province_id
 function bld.run(province)
+	---#logging LOGS:write("province building " .. tostring(province).."\n")
+	---#logging LOGS:flush()
+
     -- destroy unused building
 	---@type Building[]
 	local to_destroy = {}
 	DATA.for_each_building_location_from_location(province, function (item)
 		local building_id = DATA.building_location_get_building(item)
-		local building_type = DATA.building_get_type(building_id)
+		local building_type = DATA.building_get_current_type(building_id)
 		local production_method = DATA.building_type_get_production_method(building_type)
 		local workers = building_utils.amount_of_workers(building_id)
 		local max_amount_of_workers = method_utils.total_jobs(production_method)
@@ -73,7 +76,7 @@ function bld.run(province)
 	-- update building type of buildings:
 	DATA.for_each_building_location_from_location(province, function (item)
 		local building_id = DATA.building_location_get_building(item)
-		local building_type = DATA.building_get_type(building_id)
+		local building_type = DATA.building_get_current_type(building_id)
 		local production_method = DATA.building_type_get_production_method(building_type)
 		local unused = DATA.building_get_unused(building_id)
 		local old_cost = DATA.building_type_get_construction_cost(building_type)

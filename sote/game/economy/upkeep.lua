@@ -7,6 +7,9 @@ local upk = {}
 ---Runs upkeep on buildings in a province and destroys buildings if upkeep needs aren't met!
 ---@param province_id province_id
 function upk.run(province_id)
+	---#logging LOGS:write("province upkeep " .. tostring(province_id).."\n")
+	---#logging LOGS:flush()
+
 	local province = DATA.fatten_province(province_id)
 	province.local_building_upkeep = 0
 
@@ -23,7 +26,7 @@ function upk.run(province_id)
 	for _, building_location in pairs(DATA.get_building_location_from_location(province_id)) do
 		local building = DATA.building_location_get_building(building_location)
 		local fat = DATA.fatten_building(building)
-		local building_type = fat.type
+		local building_type = fat.current_type
 		local fat_type = DATA.fatten_building_type(building_type)
 
 		local up = fat_type.upkeep

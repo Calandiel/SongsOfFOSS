@@ -20,14 +20,16 @@ local AiPreferences = {}
 function AiPreferences.percieved_inflation(character)
 	local use = CALORIES_USE_CASE
 	local base_price = 0
+	local count = 0
 
 	DATA.for_each_use_weight_from_use_case(use, function (item)
 		local weighted_good = DATA.use_weight_get_trade_good(item)
 		local weight = DATA.use_weight_get_weight(item)
 		base_price = base_price + DATA.trade_good_get_base_price(weighted_good) * weight
+		count = count + 1
 	end)
 
-	base_price = base_price / math.min(tabb.size(DATA.use_weight_from_use_case[use]), 1)
+	base_price = base_price / math.max(count, 1)
 
 	local price = ev.get_local_price_of_use(PROVINCE(character), use)
 	if price == 0 then

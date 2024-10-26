@@ -19,6 +19,9 @@ local function load()
             local options_list = {}
             local province = PROVINCE(root)
 
+            ---#logging LOGS:write("pick-commander-unit " .. tostring(root) .. " " .. tostring(province).. "\n")
+            ---#logging LOGS:flush()
+
             if province == INVALID_ID then
                 return {
                     {
@@ -34,15 +37,20 @@ local function load()
                 }
             end
 
+            ---#logging LOGS:write("pick-commander-unit retrieve unlocked units\n")
+            ---#logging LOGS:flush()
             -- get all unit types
             ---@type table<unit_type_id, unit_type_id>
             local unlocked_unit_types = {}
 
             DATA.for_each_unit_type(function (item)
-                if DATA.province_get_unit_types(province, item) then
+                if DATA.province_get_unit_types(province, item) == 1 then
                     unlocked_unit_types[item] = item
                 end
             end)
+
+            ---#logging LOGS:write("pick-commander-unit generate options\n")
+            ---#logging LOGS:flush()
 
             for _, unit in pairs(unlocked_unit_types) do
 
@@ -95,6 +103,9 @@ local function load()
                 end
             }
             table.insert(options_list, nothing_option)
+
+            ---#logging LOGS:write("pick-commander-unit there are " .. tostring(#options_list) .. " options\n")
+            ---#logging LOGS:flush()
 
             return options_list
         end

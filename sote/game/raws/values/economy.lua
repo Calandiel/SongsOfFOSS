@@ -44,7 +44,7 @@ function eco_values.building_cost(building_type, overseer, public)
     if overseer == INVALID_ID then
         cost_multiplier = 2
     else
-        for i = 0, MAX_TRAIT_INDEX do
+        for i = 1, MAX_TRAIT_INDEX do
             local trait = DATA.pop_get_traits(overseer, i)
 
             if trait == 0 then
@@ -82,7 +82,7 @@ end
 ---@return number min_price
 local function soft_max_data_for_use(province, use)
     local min_price = nil
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = eco_values.get_local_price(province, trade_good)
         if min_price == nil then
@@ -90,14 +90,14 @@ local function soft_max_data_for_use(province, use)
         elseif min_price > price then
             min_price = price
         end
-    end
+    end)
 
     local sum = 0
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = eco_values.get_local_price(province, trade_good)
         sum = sum + math.exp(-price + min_price)
-    end
+    end)
 
     return sum, min_price
 end
@@ -114,14 +114,14 @@ function eco_values.get_local_price_of_use(province, use)
 
     -- calculate cost
     local total_cost = 0
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local weight = DATA.use_weight_get_weight(weight_id)
         local price = eco_values.get_local_price(province, trade_good)
         local prob_density = math.exp(-price + min_price) / sum_of_exponents
         local bought = 1 / weight * prob_density
         total_cost = total_cost + bought * price
-    end
+    end)
 
     return total_cost
 end
@@ -135,7 +135,7 @@ function eco_values.get_local_price_of_use_with_prices(province, use, prices)
     -- calculate min of prices:
     local min_price = nil
 
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = prices[trade_good]
         if min_price == nil then
@@ -143,30 +143,30 @@ function eco_values.get_local_price_of_use_with_prices(province, use, prices)
         else
             min_price = math.min(prices[trade_good], min_price)
         end
-    end
+    end)
 
     -- calculate sum of exponents
     local sum_of_exponents = 0
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = prices[trade_good]
         sum_of_exponents = sum_of_exponents + math.exp(
             -price + min_price
         )
-    end
+    end)
 
     sum_of_exponents = sum_of_exponents
 
     -- calculate cost
     local total_cost = 0
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local price = prices[trade_good]
         local weight = DATA.use_weight_get_weight(weight_id)
         local prob_density = math.exp(-price + min_price) / sum_of_exponents
         local bought = 1 / weight * prob_density
         total_cost = total_cost + bought * price
-    end
+    end)
 
     return total_cost
 end
@@ -225,7 +225,7 @@ function eco_values.projected_income_building_type_unknown_pop(province, buildin
     local method = DATA.building_type_get_production_method(building_type)
     local shortage_modifier = eco_values.estimate_shortage(province, method)
     local income = 0
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local input = DATA.production_method_get_inputs_use(method, i)
         if input == INVALID_ID then
             break
@@ -236,7 +236,7 @@ function eco_values.projected_income_building_type_unknown_pop(province, buildin
         income = income - amount * price
     end
 
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local output = DATA.production_method_get_outputs_good(method, i)
         if output == INVALID_ID then
             break
@@ -270,7 +270,7 @@ function eco_values.projected_income_building_type(province, building_type, race
         * eco_values.race_output_multiplier(race, female, building_type)
 
     local income = 0
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local input = DATA.production_method_get_inputs_use(method, i)
         if input == INVALID_ID then
             break
@@ -281,7 +281,7 @@ function eco_values.projected_income_building_type(province, building_type, race
         income = income - amount * price
     end
 
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local output = DATA.production_method_get_outputs_good(method, i)
         if output == INVALID_ID then
             break
@@ -306,7 +306,7 @@ end
 ---@return number income, number input_boost, number output_boost, number throughput_boost
 function eco_values.projected_income(building, race, female, prices, throughput_multiplier)
     local province = DATA.building_location_get_location(DATA.get_building_location_from_building(building))
-    local building_type = DATA.building_get_type(building)
+    local building_type = DATA.building_get_current_type(building)
     local method = DATA.building_type_get_production_method(building_type)
 
     local throughput_boost =
@@ -319,7 +319,7 @@ function eco_values.projected_income(building, race, female, prices, throughput_
         * eco_values.race_output_multiplier(race, female, building_type)
 
     local income = 0
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local input = DATA.production_method_get_inputs_use(method, i)
         if input == INVALID_ID then
             break
@@ -331,7 +331,7 @@ function eco_values.projected_income(building, race, female, prices, throughput_
         income = income - amount * price
     end
 
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local output = DATA.production_method_get_outputs_good(method, i)
         if output == INVALID_ID then
             break
@@ -357,7 +357,7 @@ function eco_values.available_use(province, use)
     -- calculate total amount available for this distribution
     local available_use = 0
     -- use is divided between
-    for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
         local trade_good = DATA.use_weight_get_trade_good(weight_id)
         local weight = DATA.use_weight_get_weight(weight_id)
 
@@ -371,7 +371,7 @@ function eco_values.available_use(province, use)
 
 
         available_use = available_use + upped_bound
-    end
+    end)
 
     return available_use
 end
@@ -395,7 +395,7 @@ end
 ---@param method production_method_id
 function eco_values.estimate_shortage(province, method)
     local input_satisfaction = 1
-    for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
         local input = DATA.production_method_get_inputs_use(method, i)
         if input == INVALID_ID then
             break
@@ -426,7 +426,7 @@ end
 ---@param use_case use_case_id
 ---@return number
 function eco_values.available_use_case_from_inventory(pop, use_case)
-	local supply = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
+	local supply = tabb.accumulate(DATA.get_use_weight_from_use_case(use_case), 0, function(a, _, weight_id)
 		local good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_in_inventory = DATA.pop_get_inventory(pop, good)

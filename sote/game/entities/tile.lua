@@ -144,6 +144,19 @@ function tile.average_waterflow(tile_id)
 	return (DATA.tile_get_january_waterflow(tile_id) + DATA.tile_get_july_waterflow(tile_id)) / 2
 end
 
+---Updates climate data
+---@param tile_id tile_id
+function tile.update_climate_data(tile_id)
+	local lat, lon = tile.latlon(tile_id)
+	local r_ja, t_ja, r_ju, t_ju = require "game.climate.utils".get_climate_data(lat, lon, DATA.tile_get_elevation(tile_id))
+
+	DATA.tile_set_january_rain(tile_id, r_ja)
+	DATA.tile_set_january_temperature(tile_id, t_ja)
+
+	DATA.tile_set_july_rain(tile_id, r_ju)
+	DATA.tile_set_july_temperature(tile_id, t_ju)
+end
+
 ---Returns climate data
 ---@param tile_id tile_id
 ---@return number january_rainfall
@@ -151,8 +164,10 @@ end
 ---@return number july_rainfall
 ---@return number july_temperature
 function tile.get_climate_data(tile_id)
-	local lat, lon = tile.latlon(tile_id)
-	return require "game.climate.utils".get_climate_data(lat, lon, DATA.tile_get_elevation(tile_id))
+	return DATA.tile_get_january_rain(tile_id),
+		DATA.tile_get_january_temperature(tile_id),
+		DATA.tile_get_july_rain(tile_id),
+		DATA.tile_get_july_temperature(tile_id)
 end
 
 ---@alias neighbourID

@@ -7,6 +7,7 @@ local tile      = require "game.entities.tile"
 
 local tec = require "game.raws.raws-utils".technology
 
+local politics_values = require "game.raws.values.politics"
 
 local province_utils = require "game.entities.province".Province
 local pe = require "game.raws.effects.politics"
@@ -20,7 +21,10 @@ local st = {}
 ---@param culture Culture
 ---@param faith Faith
 local function make_new_realm(capitol_id, race_id, culture, faith)
+	-- print("new realm")
+
 	local r = realm_utils.new()
+
 	local fat = DATA.fatten_realm(r)
 	fat.capitol = capitol_id
 	realm_utils.add_province(r, capitol_id)
@@ -232,6 +236,7 @@ function st.run()
 	-- print(civs)
 	for _ = 1, civs do
 		for _, r in ipairs(order) do
+			-- print("spawn" .. DATA.race_get_name(r))
 			-- First, find a land province that isn't owned by any realm...
 			local sampled_tile = WORLD:random_tile()
 			local prov = tile.province(sampled_tile)

@@ -1,16 +1,56 @@
 local tile = require "game.entities.tile"
 local re = {}
 
+function re.run_fast()
+	DATA.for_each_tile(function (t)
+		local elevation = DATA.tile_get_elevation(t)
+		local slope = 0
+		for n in tile.iter_neighbors(t) do
+			local n_elevation = DATA.tile_get_elevation(n)
+			slope = slope + math.abs(n_elevation - elevation)
+		end
+		slope = slope / 4
+		DATA.tile_set_slope(t, slope)
+	end)
+
+
+	for _, b_id in pairs(RAWS_MANAGER.biomes_load_order) do
+		DCON.apply_biome(b_id - 1)
+	end
+
+	---@type table<biome_id, number>
+	local tiles_per_biome = {}
+	DATA.for_each_tile(function (item)
+		local biome = DATA.tile_get_biome(item)
+		tiles_per_biome[biome] = (tiles_per_biome[biome] or 0) + 1
+	end)
+
+	for _, b_id in pairs(RAWS_MANAGER.biomes_load_order) do
+		print(DATA.biome_get_name(b_id) .. ";" .. tostring(tiles_per_biome[b_id] or 0))
+	end
+end
+
 function re.run()
 	DATA.for_each_tile(function (t)
 		local elevation = DATA.tile_get_elevation(t)
-
-		local slopeiness = 0
+		local slope = 0
 		for n in tile.iter_neighbors(t) do
 			local n_elevation = DATA.tile_get_elevation(n)
-			slopeiness = slopeiness + math.abs(n_elevation - elevation)
+			slope = slope + math.abs(n_elevation - elevation)
 		end
-		slopeiness = slopeiness / 4
+		slope = slope / 4
+		DATA.tile_set_slope(t, slope)
+	end)
+
+	DATA.for_each_tile(function (t)
+		local elevation = DATA.tile_get_elevation(t)
+
+		local slope = 0
+		for n in tile.iter_neighbors(t) do
+			local n_elevation = DATA.tile_get_elevation(n)
+			slope = slope + math.abs(n_elevation - elevation)
+		end
+		slope = slope / 4
 
 		local is_land = DATA.tile_get_is_land(t)
 		local has_marsh = DATA.tile_get_has_marsh(t)
@@ -28,11 +68,11 @@ function re.run()
 		for _, b_id in pairs(RAWS_MANAGER.biomes_load_order) do
 			local b = DATA.fatten_biome(b_id)
 
-			if slopeiness < b.minimum_slope or slopeiness > b.maximum_slope then
+			if slope < b.minimum_slope or slope > b.maximum_slope then
 				goto continue
 			end
 
-			if b.aquatic ~= not is_land then
+			if b.aquatic == is_land then
 				goto continue
 			end
 			if b.marsh ~= has_marsh then
@@ -45,7 +85,11 @@ function re.run()
 				goto continue
 			end
 			-- climate checks
-			local r_ja, t_ja, r_ju, t_ju = tile.get_climate_data(t)
+			local t_ja = DATA.tile_get_january_temperature(t)
+			local t_ju = DATA.tile_get_july_temperature(t)
+			local r_ja = DATA.tile_get_january_rain(t)
+			local r_ju = DATA.tile_get_july_rain(t)
+
 			local rain = (r_ja + r_ju) / 2
 			if rain < b.minimum_rain or rain > b.maximum_rain then
 				goto continue

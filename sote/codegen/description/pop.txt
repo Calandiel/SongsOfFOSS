@@ -9,8 +9,9 @@ life_needs_satisfaction float from 0 to 1
 basic_needs_satisfaction float from 0 to 1
 need_satisfaction need_satisfaction[20]
 traits TRAIT[10]
-inventory float[trade_good]
-price_memory float[trade_good]
+inventory float[trade_good_id]
+price_memory float[trade_good_id]
+pending_economy_income float
 forage_ratio float a number in (0, 1) interval representing a ratio of time pop spends to forage
 work_ratio float a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
 busy boolean

@@ -78,7 +78,7 @@ Trigger.Pretrigger.leading_idle_warband = {
 		if warband == INVALID_ID then
 			return false
 		end
-		if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
+		if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then
 			return false
 		end
 		return true
@@ -95,7 +95,7 @@ Trigger.Pretrigger.leading_idle_guard = {
 		if warband == INVALID_ID then
 			return false
 		end
-		if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
+		if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then
 			return false
 		end
 		if GUARD(REALM(root)) ~= warband then

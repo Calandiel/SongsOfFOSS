@@ -105,11 +105,12 @@ local function demography(provinces, ui_panel, collapsed)
             DATA.for_each_pop_location_from_location(province, function (item)
                 local pop = DATA.pop_location_get_pop(item)
                 local employment = DATA.get_employment_from_worker(pop)
+                local employer = DATA.employment_get_building(employment)
+                local job = DATA.employment_get_job(employment)
                 local age = DATA.pop_get_age(pop)
                 local race = DATA.pop_get_race(pop)
                 local teen_age = DATA.race_get_teen_age(race)
-                if employment ~= INVALID_ID then
-                    local job = DATA.employment_get_job(employment)
+                if employer ~= INVALID_ID then
                     if counts[job] then
                         counts[job] = counts[job] + 1
                     else
@@ -118,7 +119,8 @@ local function demography(provinces, ui_panel, collapsed)
                 else
                     if age > teen_age then
                         local warband_membership = DATA.get_warband_unit_from_unit(pop)
-                        if warband_membership ~= INVALID_ID then
+                        local warband = DATA.warband_unit_get_warband(warband_membership)
+                        if warband ~= INVALID_ID then
                             counts[WARRIORS] = counts[WARRIORS] + 1
                         else
                             counts[UNEMPLOYED] = counts[UNEMPLOYED] + 1
@@ -135,6 +137,7 @@ local function demography(provinces, ui_panel, collapsed)
         for job, count in pairs(counts) do
             local fat = DATA.fatten_job(job)
             local description = fat.description
+            assert(description ~= nil, "job " .. tostring(job) .. " has no description")
             entries[#entries + 1] = {
                 weight = count,
                 tooltip = description .. " (" .. count .. ")",

@@ -24,7 +24,7 @@ local function load()
             associated_data = associated_data
             local party = LEADER_OF_WARBAND(root)
             assert(party ~= INVALID_ID)
-            DATA.warband_set_status(party, WARBAND_STATUS.TRAVELLING)
+            DATA.warband_set_current_status(party, WARBAND_STATUS.TRAVELLING)
             economy_effects.consume_supplies(party, associated_data.travel_time)
             WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
         end
@@ -67,7 +67,7 @@ local function load()
                 outcome = function ()
                     local party = LEADER_OF_WARBAND(root)
                     assert(party ~= INVALID_ID)
-                    DATA.warband_set_status(party, WARBAND_STATUS.TRAVELLING)
+                    DATA.warband_set_current_status(party, WARBAND_STATUS.TRAVELLING)
                     economy_effects.consume_supplies(party, associated_data.travel_time)
                     WORLD:emit_action("travel", root, associated_data.destination, associated_data.travel_time, true)
                 end,
@@ -99,7 +99,7 @@ local function load()
             ge.travel(root, associated_data)
 
             if LEADER_OF_WARBAND(root) ~= INVALID_ID then
-                DATA.warband_set_status(LEADER_OF_WARBAND(root), WARBAND_STATUS.IDLE)
+                DATA.warband_set_current_status(LEADER_OF_WARBAND(root), WARBAND_STATUS.IDLE)
             end
             UNSET_BUSY(root)
 

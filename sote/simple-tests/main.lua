@@ -1,7 +1,7 @@
 return function ()
 	--require "sote.simple-tests.queue"
 
-	DATA.test_save_load_0()
+	-- DATA.test_save_load_0()
 	-- require "sote.codegen.output.generated".test_save_load_1()
 	-- require "sote.codegen.output.generated".test_save_load_2()
 

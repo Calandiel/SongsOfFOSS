@@ -90,8 +90,8 @@ function PROFILER.clear(self)
 	end
 end
 
--- LOGS = love.filesystem.newFile("logs.txt")
--- LOGS:open("w")
+LOGS = love.filesystem.newFile("logs.txt")
+LOGS:open("w")
 
 --- this constant is used in vegetation growth
 --- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
@@ -106,7 +106,8 @@ local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
 
-local lovetest = require "test/lovetest"
+local lovetest = require "test.lovetest"
+
 
 function love.load(args)
 	tab.print(args)

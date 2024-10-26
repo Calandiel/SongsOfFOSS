@@ -1,2 +1,2 @@
-good trade_good
+good trade_good_id
 amount float

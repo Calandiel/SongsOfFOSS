@@ -8,7 +8,7 @@ local values = {}
 ---@return Character|nil
 function values.sample_character_from_province(province_id)
 	local characters = tabb.map_array(
-		DATA.filter_character_location_from_location(province_id, ACCEPT_ALL),
+		DATA.filter_array_character_location_from_location(province_id, ACCEPT_ALL),
 		DATA.character_location_get_character
 	)
 

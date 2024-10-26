@@ -62,9 +62,9 @@ function load()
 			for _, item in pairs(pop_locations) do
 				local pop = DATA.pop_location_get_pop(item)
 				local employment = DATA.get_employment_from_worker(pop)
-				if employment ~= INVALID_ID then
+				if DATA.employment_get_building(employment) ~= INVALID_ID then
 					local employer = DATA.employment_get_building(employment)
-					local type_of = DATA.building_get_type(employer)
+					local type_of = DATA.building_get_current_type(employer)
 					local movable = DATA.building_type_get_movable(type_of)
 					if not movable then
 						demography_effects.fire_pop(pop)
@@ -108,7 +108,7 @@ function load()
 			end)
 			for _, item in pairs(building_locations) do
 				local building = DATA.building_location_get_building(item)
-				local type_of = DATA.building_get_type(building)
+				local type_of = DATA.building_get_current_type(building)
 				local movable = DATA.building_type_get_movable(type_of)
 
 				if movable then

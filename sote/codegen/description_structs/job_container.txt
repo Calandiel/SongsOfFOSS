@@ -1,2 +1,2 @@
-job job
+job job_id
 amount uint32_t

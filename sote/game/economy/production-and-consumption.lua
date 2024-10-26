@@ -108,27 +108,42 @@ end
 ---@return number expectation price expectation
 local function get_price_expectation_use_case(use)
 	local total_exp = 0
-	for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+	DATA.for_each_use_weight_from_use_case(use, function (weight_id)
 		local trade_good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
 		total_exp = total_exp + market_data[trade_good].feature / weight
-	end
+	end)
 
 	-- price expectation:
 	local price_expectation = 0
-	for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+	DATA.for_each_use_weight_from_use_case(use, function (weight_id)
 		local trade_good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
 		price_expectation = math.max(0.0001, price_expectation + market_data[trade_good].price * market_data[trade_good].feature / total_exp / weight)
-	end
+	end)
 
 	return total_exp, price_expectation
 end
 
+function pro.run_fast()
+	DATA.for_each_province(function (item)
+		DATA.province_set_infrastructure_efficiency(item, province_utils.get_infrastructure_efficiency(item));
+	end)
+
+	DCON.update_economy()
+
+	DATA.for_each_pop(function (item)
+		local pending = DATA.pop_get_pending_economy_income(item);
+		economic_effects.add_pop_savings(item, pending, ECONOMY_REASON.TRADE)
+	end)
+end
 
 ---Runs production on a single province!
 ---@param province province_id
 function pro.run(province)
+	---#logging LOGS:write("province production " .. tostring(province).."\n")
+	---#logging LOGS:flush()
+
 	total_realm_donations = 0
 	total_local_donations = 0
 	total_trade_donations = 0
@@ -191,7 +206,7 @@ function pro.run(province)
 		local building = DATA.building_location_get_building(location)
 		local fat_building = DATA.fatten_building(building)
 
-		for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD -1 do
+		for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD -1 do
 			DATA.building_set_amount_of_inputs_amount(building, i, 0)
 			DATA.building_set_amount_of_outputs_amount(building, i, 0)
 			DATA.building_set_amount_of_inputs_good(building, i, INVALID_ID)
@@ -322,7 +337,7 @@ function pro.run(province)
 			foraged_goods[item] = 0
 		end)
 
-		for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX do
+		for i = 1, MAX_RESOURCES_IN_PROVINCE_INDEX do
 			local forage_case = DATA.province_get_foragers_targets_forage(province, i)
 			if forage_case == FORAGE_RESOURCE.INVALID then
 				break
@@ -377,10 +392,10 @@ function pro.run(province)
 	local function available_goods_for_use(use)
 		local total_available = 0
 
-		for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+		DATA.for_each_use_weight_from_use_case(use, function (weight_id)
 			local trade_good = DATA.use_weight_get_trade_good(weight_id)
 			total_available = total_available + market_data[trade_good].available
-		end
+		end)
 
 		return total_available
 	end
@@ -404,7 +419,7 @@ function pro.run(province)
 		local total_bought = 0
 		local spendings = 0
 
-		for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+		DATA.for_each_use_weight_from_use_case(use, function (weight_id)
 			local trade_good = DATA.use_weight_get_trade_good(weight_id)
 			local weight = DATA.use_weight_get_weight(weight_id)
 
@@ -449,7 +464,7 @@ function pro.run(province)
 
 			spendings = spendings + record_consumption(trade_good, consumed_amount)
 			record_demand(trade_good, demanded_amount)
-		end
+		end)
 		if spendings > savings + 0.01
 			or total_bought > amount + 0.01
 		then
@@ -501,7 +516,7 @@ function pro.run(province)
 		local family_unit_satisfaction_data = {}
 
 		-- reset data
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			cottaging_time_per_entry[index] = 0
 			cottaging_use_per_entry[index] = 0
 			market_cost_per_entry[index] = 0
@@ -509,9 +524,9 @@ function pro.run(province)
 		end
 
 		-- collect needs of a parent
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, index)
-			if use_case == 0 then
+			if use_case == INVALID_ID then
 				break
 			end
 			local need = DATA.pop_get_need_satisfaction_need(pop_id, index)
@@ -520,19 +535,36 @@ function pro.run(province)
 		end
 
 		-- collect children's needs
-		for _, relation_id in pairs(DATA.parent_child_relation_from_parent[pop_id]) do
+		DATA.for_each_parent_child_relation_from_parent(pop_id, function (relation_id)
 			local child = DATA.parent_child_relation_get_child(relation_id)
 
-			for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+
+			for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 				local use_case = DATA.pop_get_need_satisfaction_use_case(child, index)
-				if use_case == 0 then
+				if use_case == INVALID_ID then
 					break
 				end
 
+				local need = DATA.pop_get_need_satisfaction_need(child, index)
+
 				local demanded = DATA.pop_get_need_satisfaction_demanded(child, index)
+				assert(
+					family_unit_satisfaction_data[index] ~= nil,
+					tostring(index)
+					.. " "
+					.. DATA.race_get_name(DATA.pop_get_race(child))
+					.. " "
+					.. tostring(DATA.pop_get_female(child))
+					.. " "
+					.. DATA.race_get_name(DATA.pop_get_race(pop_id))
+					.. " "
+					.. tostring(DATA.pop_get_female(pop_id))
+					.. " "
+					.. DATA.need_get_name(need) .. " " .. DATA.use_case_get_name(use_case)
+				)
 				family_unit_satisfaction_data[index].demanded = family_unit_satisfaction_data[index].demanded + demanded
 			end
-		end
+		end)
 
 	--	print("  TOTAL FAMILY UNIT NEEDS:")
 	--	for need, cases in pairs(family_unit_needs) do
@@ -555,7 +587,7 @@ function pro.run(province)
 			consumed_foraged_goods[good] = 0
 		end
 
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, index)
 			if use_case == 0 then
 				break
@@ -618,7 +650,7 @@ function pro.run(province)
 		local savings_required_to_buy_all_needs = 0
 
 		-- induce additional demand and calculate market costs and total cost
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, index)
 			if use_case == 0 then
 				break
@@ -654,7 +686,7 @@ function pro.run(province)
 		end
 
 		-- use estimation above to complete calculation of budget distribution
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, index)
 			if use_case == 0 then
 				break
@@ -708,7 +740,7 @@ function pro.run(province)
 
 		local low_life_need, high_life_need = false, true
 
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, index)
 			if use_case == 0 then
 				break
@@ -735,10 +767,10 @@ function pro.run(province)
 			DATA.pop_set_need_satisfaction_consumed(pop_id, index, satisfaction_ratio * demanded_by_pop)
 		end
 
-		for _, relation_id in pairs(DATA.parent_child_relation_from_parent[pop_id]) do
+		DATA.for_each_parent_child_relation_from_parent(pop_id, function (relation_id)
 			local child = DATA.parent_child_relation_get_child(relation_id)
 
-			for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+			for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 				local use_case = DATA.pop_get_need_satisfaction_use_case(child, index)
 				if use_case == 0 then
 					break
@@ -766,7 +798,7 @@ function pro.run(province)
 			end
 
 			pop_utils.update_satisfaction(child)
-		end
+		end)
 
 		-- adjust pop savings
 		economic_effects.add_pop_savings(pop_id, income, ECONOMY_REASON.FORAGE)
@@ -775,7 +807,7 @@ function pro.run(province)
 		-- for next month determine if it should forage more or less
 		local forage_ratio = DATA.pop_get_forage_ratio(pop_id)
 		if low_life_need == true then -- any single life need use cases below 50%
-			if DATA.get_employment_from_worker(pop_id) ~= INVALID_ID then
+			if DATA.employment_get_building(DATA.get_employment_from_worker(pop_id)) ~= INVALID_ID then
 				---@type number
 				forage_ratio = math.min(1 - MINIMAL_WORKING_RATIO, forage_ratio * 1.15)
 			else
@@ -874,7 +906,7 @@ function pro.run(province)
 					foragers_increase = foragers_increase * age / teen_age
 				elseif unit_of_warband ~= INVALID_ID then
 					local fat_warband = DATA.fatten_warband(unit_of_warband)
-					if fat_warband.status == WARBAND_STATUS.IDLE and fat_warband.idle_stance == WARBAND_STANCE.FORAGE then
+					if fat_warband.current_status == WARBAND_STATUS.IDLE and fat_warband.idle_stance == WARBAND_STANCE.FORAGE then
 						local weight = foragers_increase * fat_warband.current_free_time_ratio * 0.25
 						foragers_count = foragers_count + weight
 						---@type number
@@ -892,7 +924,7 @@ function pro.run(province)
 			-- recalculate pop needs
 			-- TODO solve starvation from travling/raiding/patroling instead of reducing consumption, replace with warband supplies?
 			local consumption_percentage = 0
-			if unit_of_warband ~= INVALID_ID and DATA.warband_get_status(unit_of_warband) == WARBAND_STATUS.IDLE then
+			if unit_of_warband ~= INVALID_ID and DATA.warband_get_current_status(unit_of_warband) == WARBAND_STATUS.IDLE then
 				consumption_percentage = 0.9
 			end
 
@@ -900,7 +932,7 @@ function pro.run(province)
 			containers_satisfaction[pop] = 0
 
 			-- recalculate foraging efficiency from tools and containers
-			for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+			for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop, index)
 				if use_case == 0 then
 					break
@@ -952,7 +984,9 @@ function pro.run(province)
 
 		-- populate job efficiency
 		for tag, value in pairs(JOBTYPE) do
-			pop_job_efficiency[value] = pop_utils.job_efficiency(pop, value)
+			if value ~= JOBTYPE.INVALID then
+				pop_job_efficiency[value] = pop_utils.job_efficiency(pop, value)
+			end
 		end
 		local race_weight = DATA.race_get_carrying_capacity_weight(race)
 		pop_view[zero].foraging_efficiency = race_weight * (1 + tools_satisfaction[pop])
@@ -968,7 +1002,7 @@ function pro.run(province)
 
 		local free_time_of_pop = 1;
 		-- Drafted pops work only when warband is "idle"
-		if (unit_of_warband == INVALID_ID) or (DATA.warband_get_status(unit_of_warband) == "idle") then
+		if (unit_of_warband == INVALID_ID) or (DATA.warband_get_current_status(unit_of_warband) == "idle") then
 			-- if pop is in the warband,
 			if unit_of_warband ~= INVALID_ID then
 				local fat_warband = DATA.fatten_warband(unit_of_warband)
@@ -984,7 +1018,7 @@ function pro.run(province)
 
 			PROFILER:start_timer('production-building-update')
 			if building ~= INVALID_ID then
-				local building_type = DATA.building_get_type(building)
+				local building_type = DATA.building_get_current_type(building)
 				local production_method = DATA.building_type_get_production_method(building_type)
 				local fat_method = DATA.fatten_production_method(production_method)
 
@@ -1011,7 +1045,7 @@ function pro.run(province)
 				-- expected input satisfaction
 				local input_satisfaction = 1
 
-				for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+				for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 					local amount = DATA.production_method_get_inputs_amount(production_method, i)
 					local input = DATA.production_method_get_inputs_use(production_method, i)
 
@@ -1082,7 +1116,7 @@ function pro.run(province)
 				local production_budget = DATA.pop_get_savings(pop) / 2
 
 				if efficiency > 0 then
-					for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+					for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 						local amount = DATA.production_method_get_inputs_amount(production_method, i)
 						local input = DATA.production_method_get_inputs_use(production_method, i)
 
@@ -1103,7 +1137,7 @@ function pro.run(province)
 					end
 				end
 
-				for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+				for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 					local amount = DATA.production_method_get_outputs_amount(production_method, i)
 					local output = DATA.production_method_get_outputs_good(production_method, i)
 
@@ -1257,11 +1291,11 @@ function pro.run(province)
 	into array of trade goods data. Disabling it for now
 	for _, bld_location in pairs(DATA.get_building_location_from_location(province)) do
 		local building = DATA.building_location_get_building(bld_location)
-		local building_type = DATA.building_get_type(building)
+		local building_type = DATA.building_get_current_type(building)
 		local production_method = DATA.building_type_get_production_method(building_type)
 		local has_jobs = false
 
-		for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+		for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 			local job = DATA.production_method_get_jobs_job(production_method, i)
 			if job == INVALID_ID then
 				break
@@ -1274,7 +1308,7 @@ function pro.run(province)
 		if not has_jobs then
 			-- If a building has no jobs, it always works!
 			local efficiency = 1
-			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+			for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 				local amount = DATA.production_method_get_inputs_amount(production_method, i)
 				local input = DATA.production_method_get_inputs_use(production_method, i)
 				if input == INVALID_ID then
@@ -1285,7 +1319,7 @@ function pro.run(province)
 				record_demand(input, amount)
 			end
 
-			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+			for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 				local amount = DATA.production_method_get_outputs_amount(production_method, i)
 				local output = DATA.production_method_get_outputs_good(production_method, i)
 				if output == INVALID_ID then

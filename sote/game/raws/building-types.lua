@@ -42,7 +42,7 @@ function BuildingType.get_tooltip(building_type)
 			local new_string = ""
 			local job_found = false
 			new_string = new_string .. "\n\nJobs: "
-			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+			for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
 				local job = DATA.production_method_get_jobs_job(prod_method, i)
 				if job == INVALID_ID then
 					break
@@ -62,7 +62,7 @@ function BuildingType.get_tooltip(building_type)
 			local new_string = ""
 			local found = false
 			new_string = new_string .. "\n\nInputs: "
-			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+			for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
 				local use = DATA.production_method_get_inputs_use(prod_method, i)
 				if use == INVALID_ID then
 					break
@@ -82,7 +82,7 @@ function BuildingType.get_tooltip(building_type)
 			local new_string = ""
 			local found = false
 			new_string = new_string .. "\n\nOutputs: "
-			for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+			for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
 				local good = DATA.production_method_get_outputs_good(prod_method, i)
 				if good == INVALID_ID then
 					break

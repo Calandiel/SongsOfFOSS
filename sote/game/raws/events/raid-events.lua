@@ -3,15 +3,19 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 
 local realm_entity = require "game.entities.realm"
+local warband_utils = require "game.entities.warband"
+local province_utils = require "game.entities.province".Province
+local realm_utils = require "game.entities.realm".Realm
+local army_utils = require "game.entities.army"
 
-local economic_effects = require "game.raws.effects.economy"
-local ev = require "game.raws.values.economy"
 local ut = require "game.ui-utils"
 
 
+local ev = require "game.raws.values.economy"
 local AI_VALUE = require "game.raws.values.ai"
-
 local pv = require "game.raws.values.politics"
+
+local economic_effects = require "game.raws.effects.economy"
 local de = require "game.raws.effects.diplomacy"
 local me = require "game.raws.effects.military"
 local pe = require "game.raws.effects.politics"
@@ -72,37 +76,38 @@ local function load()
 			associated_data = associated_data
 			local realm_leader = associated_data.defender
 
-			associated_data.target.mood = associated_data.target.mood + 0.025
-			if WORLD:does_player_see_realm_news(associated_data.target.realm) then
+			DATA.province_inc_mood(associated_data.target, 0.025)
+			if WORLD:does_player_see_realm_news(PROVINCE_REALM(associated_data.target)) then
 				WORLD:emit_notification("Several of our warbands had finished patrolling " ..
-				associated_data.target.name .. ". Local people feel safety")
+				PROVINCE_NAME(associated_data.target) .. ". Local people feel safety")
 			end
 
 			local total_patrol_size = 0
 			for _, w in pairs(associated_data.patrol) do
-				w.status = 'idle'
-				total_patrol_size = total_patrol_size + w:size()
+				DATA.warband_set_current_status(w, WARBAND_STATUS.IDLE)
+				local size = warband_utils.size(w)
+				total_patrol_size = total_patrol_size + size
 			end
 			if total_patrol_size > 0 then
 				local reward = 0
-				if root.realm.quests_patrol[associated_data.target] then
-					reward = math.min(root.realm.quests_patrol[associated_data.target] or 0, total_patrol_size)
+				local max_reward =  DATA.realm_get_quests_patrol(REALM(root))[associated_data.target]
+				if max_reward then
+					reward = math.min(max_reward, total_patrol_size)
+					DATA.realm_get_quests_patrol(REALM(root))[associated_data.target] = max_reward - reward
 				end
-				root.realm.quests_patrol[associated_data.target] = (root.realm.quests_patrol[associated_data.target] or 0) -
-				reward
 
 				for _, w in pairs(associated_data.patrol) do
-					w.treasury = w.treasury + reward * w:size() / total_patrol_size
-					if w.treasury ~= w.treasury then
-						error("NAN TREASURY FROM PATROL SUCCESS"
+					local size = warband_utils.size(w)
+					DATA.warband_inc_treasury(w, reward * size / total_patrol_size)
+					assert(DATA.warband_get_treasury(w) == DATA.warband_get_treasury(w),
+						"NAN TREASURY FROM PATROL SUCCESS"
 							.. "\n reward: "
 							.. tostring(reward)
 							.. "\n size: "
-							.. tostring(w:size())
+							.. tostring(size)
 							.. "\n total_patrol_size: "
 							.. tostring(total_patrol_size)
-						)
-					end
+					)
 				end
 			end
 		end
@@ -114,11 +119,11 @@ local function load()
 		event_text = function(self, character, associated_data)
 			---@type Realm
 			associated_data = associated_data
-			local name = associated_data.name
+			local name = REALM_NAME(associated_data)
 
 			local my_warlords, my_power = pv.military_strength(character)
 			local my_warlords_ready, my_power_ready = pv.military_strength_ready(character)
-			local their_warlords, their_power = pv.military_strength(associated_data.leader)
+			local their_warlords, their_power = pv.military_strength(LEADER(associated_data))
 
 			local strength_estimation_string =
 				"On my side there are "
@@ -182,7 +187,7 @@ local function load()
 					tooltip = "Launch the invasion",
 					viable = function() return true end,
 					outcome = function()
-						local realm = character.realm
+						local realm = REALM(character)
 
 						local army = me.gather_loyal_army_attack(character)
 						if army == nil then
@@ -278,7 +283,7 @@ local function load()
 			local province = target
 			local realm = PROVINCE_REALM(province)
 
-			if not realm then
+			if realm == INVALID_ID then
 				-- The province doesn't have a realm
 				return
 			end
@@ -287,19 +292,19 @@ local function load()
 
 			-- spot test
 			-- it's an open attack, so our visibility is multiplied by 10
-			local spot_test = province:army_spot_test(army, 10)
+			local spot_test = province_utils.army_spot_test(province, army, 10)
 
 			-- First, raise the defending army.
-			local def = realm:raise_local_army(province)
-			local attack_succeed, attack_losses, def_losses = army:attack(province, spot_test, def)
-			realm:disband_army(def) -- disband the army after battle
+			local def = realm_utils.raise_local_army(realm, province)
+			local attack_succeed, attack_losses, def_losses = me.attack(army, def, spot_test)
+			realm_utils.disband_army(realm, def) -- disband the army after battle
 
 			-- Message handling
 			messages.tribute_raid(raider, PROVINCE_REALM(province), attack_succeed, attack_losses, def_losses)
 
 			-- setting tributary
 			if attack_succeed then
-				de.set_tributary(raider.realm, target.realm)
+				de.set_tributary(REALM(raider), PROVINCE_REALM(target))
 				WORLD:emit_action("request-tribute-army-returns-success", raider, army, travel_time, true)
 			else
 				WORLD:emit_action("request-tribute-army-returns-fail", raider, army, travel_time, true)
@@ -313,7 +318,7 @@ local function load()
 		automatic = false,
 		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
-			local realm = root.realm
+			local realm = REALM(root)
 
 			---@type Army
 			local army = associated_data
@@ -322,12 +327,12 @@ local function load()
 				return
 			end
 
-			realm.capitol.mood = realm.capitol.mood + 0.05
+			DATA.province_inc_mood(CAPITOL(realm), 0.05)
 			pe.small_popularity_boost(LEADER(realm), realm)
 
-			realm:disband_army(army)
-			realm.prepare_attack_flag = false
-			messages.tribute_raid_success(realm, army.destination.realm)
+			realm_utils.disband_army(realm, army)
+			DATA.realm_set_prepare_attack_flag(realm, false)
+			messages.tribute_raid_success(realm, PROVINCE_REALM(DATA.army_get_destination(army)))
 			WORLD:emit_event('request-tribute-army-returns-success-notification', root, army)
 
 			UNSET_BUSY(root)
@@ -339,7 +344,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Army
 			local army = associated_data
-			return "We succeeded in enforcing tribute on " .. NAME(PROVINCE_REALM(army.destination))
+			return "We succeeded in enforcing tribute on " .. REALM_NAME(PROVINCE_REALM(DATA.army_get_destination(army)))
 		end,
 		function(root, associated_data)
 			return "Great!"
@@ -355,22 +360,24 @@ local function load()
 		automatic = false,
 		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
-			local realm = root.realm
+			local realm = REALM(root)
 
 			---@type Army
 			local army = associated_data
 
-			if realm == nil or not realm.exists then
+			if realm == INVALID_ID or not DATA.realm_get_exists(realm) then
 				return
 			end
 
 			WORLD:emit_event("request-tribute-army-returns-fail-notification", root, army)
-			messages.tribute_raid_fail(realm, army.destination.realm)
+			messages.tribute_raid_fail(realm, PROVINCE_REALM(DATA.army_get_destination(army)))
 
-			realm.capitol.mood = math.max(0, realm.capitol.mood - 0.05)
+			local mood = DATA.province_get_mood(CAPITOL(realm))
+			DATA.province_set_mood(CAPITOL(realm), math.max(0, mood - 0.05))
 			pe.small_popularity_decrease(LEADER(realm), realm)
-			realm:disband_army(army)
-			realm.prepare_attack_flag = false
+
+			realm_utils.disband_army(realm, army)
+			DATA.realm_set_prepare_attack_flag(realm, false)
 			UNSET_BUSY(root)
 		end,
 	}
@@ -380,7 +387,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Army
 			local army = associated_data
-			return "We failed to enforce tribute on " .. NAME(PROVINCE_REALM(army.destination))
+			return "We failed to enforce tribute on " .. REALM_NAME(PROVINCE_REALM(DATA.army_get_destination(army)))
 		end,
 		function(root, associated_data)
 			return "Whatever. We will succeed next time"
@@ -412,28 +419,28 @@ local function load()
 			local province = target
 			local realm = PROVINCE_REALM(province)
 
-			if (not raider.dead) and (realm) and (province:army_spot_test(army)) then
+			if (not DEAD(raider)) and (realm ~= INVALID_ID) and province_utils.army_spot_test(province, army) then
 				-- The army was spotted!
-				if (love.math.random() < 0.5) and (province:local_army_size() > 0) then
+				if (love.math.random() < 0.5) and (province_utils.local_army_size(province) > 0) then
 					-- Let's just return and do nothing
 					success = false
 					if realm and WORLD:does_player_see_realm_news(realm) then
 						WORLD:emit_notification("Our neighbor, " ..
-							raider.name .. ", sent warriors to raid us but they were spotted and returned home.")
+							NAME(raider) .. ", sent warriors to raid us but they were spotted and returned home.")
 					end
 					retreat = true
 				else
 					-- Battle time!
 					-- First, raise the defending army.
-					local def = realm:raise_local_army(province)
-					local attack_succeed, attack_losses, def_losses = army:attack(province, true, def)
-					realm:disband_army(def) -- disband the army after battle
+					local def = realm_utils.raise_local_army(realm, province)
+					local attack_succeed, attack_losses, def_losses = me.attack(army, def, true)
+					realm_utils.disband_army(realm, def) -- disband the army after battle
 					losses = attack_losses
 					if attack_succeed then
 						success = true
 						if WORLD:does_player_see_realm_news(realm) then
 							WORLD:emit_notification("Our neighbor, " ..
-								raider.name ..
+								NAME(raider) ..
 								", sent warriors to raid us. We lost " ..
 								tostring(def_losses) ..
 								" warriors and our enemies lost " ..
@@ -443,7 +450,7 @@ local function load()
 						success = false
 						if WORLD:does_player_see_realm_news(realm) then
 							WORLD:emit_notification("Our neighbor, " ..
-								raider.name ..
+								NAME(raider) ..
 								", sent warriors to raid us. We lost " ..
 								tostring(def_losses) ..
 								" warriors and our enemies lost " ..
@@ -453,7 +460,7 @@ local function load()
 				end
 			else
 				-- The army wasn't spotted. Nothing to do!
-				if raider.dead then
+				if DEAD(raider) then
 					success = false
 				else
 					success = true
@@ -462,8 +469,8 @@ local function load()
 			if success then
 				-- The army wasn't spotted!
 				-- Therefore, it's a sure success.
-				local max_loot = army:loot_capacity()
-				local real_loot = math.min(max_loot, province.local_wealth)
+				local max_loot = army_utils.loot_capacity(army)
+				local real_loot = math.min(max_loot, DATA.province_get_local_wealth(province))
 				economic_effects.change_local_wealth(province, -real_loot, ECONOMY_REASON.RAID)
 				if realm and max_loot > real_loot then
 					local leftover = max_loot - real_loot
@@ -480,25 +487,30 @@ local function load()
 						.. "\n real_loot: "
 						.. tostring(real_loot)
 						.. "\n province.local_wealt: "
-						.. tostring(province.local_wealth)
+						.. tostring(DATA.province_get_local_wealth(province))
 					)
 				end
 
-				local mood_swing = real_loot / (province:local_population() + 1)
-				province.mood = province.mood - mood_swing
-				if realm then
-					raider.popularity[realm] = (raider.popularity[realm] or 0) - mood_swing * 2
+				pe.mood_shift_from_wealth_shift(province, -real_loot)
+				if realm ~= INVALID_ID then
+					pe.popularity_shift_scaled_with_wealth(raider, realm, -real_loot)
 				end
 
 				---@type RaidResultSuccess
-				local success_data = { army = army, target = target, loot = real_loot, losses = losses, raider = raider, origin =
-				origin }
+				local success_data = {
+					army = army,
+					target = target,
+					loot = real_loot,
+					losses = losses,
+					raider = raider,
+					origin = origin
+				}
 				WORLD:emit_action("covert-raid-success", raider,
 					success_data,
 					travel_time, true)
 				if WORLD:does_player_see_realm_news(realm) then
 					WORLD:emit_notification("An unknown adversary raided our province " ..
-						province.name ..
+						PROVINCE_NAME(province) ..
 						" and stole " .. ut.to_fixed_point2(real_loot) .. MONEY_SYMBOL .. " worth of goods!")
 				end
 			else
@@ -534,11 +546,11 @@ local function load()
 			local losses = associated_data.losses
 			local army = associated_data.army
 
-			realm:disband_army(army)
-			realm.capitol.mood = realm.capitol.mood - 0.025
+			realm_utils.disband_army(realm, army)
+			pe.mood_minor_decrease(CAPITOL(realm))
 			if WORLD:does_player_see_realm_news(realm) then
-				WORLD:emit_notification("Raid attempt of " .. raider.name .. " in " ..
-					target.name .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
+				WORLD:emit_notification("Raid attempt of " .. NAME(raider) .. " in " ..
+					PROVINCE_NAME(target) .. " failed. " .. tostring(losses) .. " warriors died. People are upset.")
 			end
 		end,
 	}
@@ -564,41 +576,39 @@ local function load()
 				.. "\n loot: "
 				.. tostring(loot)
 				.. "\n target: "
-				.. tostring(target.name)
+				.. tostring(PROVINCE_NAME(target))
 				.. "\n losses: "
 				.. tostring(losses)
 				.. "\n army: "
-				.. tostring(tabb.size(army.warbands))
+				.. tostring(tabb.size(DATA.get_army_membership_from_army(army)))
 			)
 			end
 
-			local warbands = realm:disband_army(army)
+			local warbands = realm_utils.disband_army(realm, army)
 
-			local mood_swing = loot / (realm.capitol:local_population() + 1) / 2
-
-			-- improve mood in a province
-			realm.capitol.mood = realm.capitol.mood + mood_swing
+			pe.mood_shift_from_wealth_shift(CAPITOL(realm), loot)
 
 			-- popularity to raid participants
 			local num_of_warbands = 0
 			for _, w in pairs(warbands) do
-				if w.leader then
-					pe.change_popularity(w.leader, realm, mood_swing / tabb.size(warbands))
+				if WARBAND_LEADER(w) ~= INVALID_ID then
+					pe.popularity_shift_scaled_with_wealth(WARBAND_LEADER(w), realm, loot / tabb.size(warbands))
 					num_of_warbands = num_of_warbands + 1
 				end
 			end
 
-			local quest_reward = math.min(loot * 0.5, realm.quests_raid[target] or 0)
-			realm.quests_raid[target] = (realm.quests_raid[target] or 0) - quest_reward
+			local max_reward = DATA.realm_get_quests_raid(realm)[target] or 0
+			local quest_reward = math.min(loot * 0.5, max_reward)
+			DATA.realm_get_quests_raid(realm)[target] = max_reward - quest_reward
 
 			-- save total loot for future
 			local total_loot = loot
 
 			-- pay quest rewards to warband leaders
 			for _, w in pairs(warbands) do
-				if w.leader then
+				if WARBAND_LEADER(w) ~= INVALID_ID then
 					economic_effects.add_pop_savings(
-						w.leader,
+						WARBAND_LEADER(w),
 						quest_reward / num_of_warbands,
 						ECONOMY_REASON.QUEST
 					)
@@ -607,8 +617,8 @@ local function load()
 
 			-- half of loot goes to warbands
 			for _, w in pairs(warbands) do
-				w.treasury = w.treasury + loot * 0.5 / num_of_warbands
-				if w.treasury ~= w.treasury then
+				DATA.warband_inc_treasury(w, loot * 0.5 / num_of_warbands)
+				if DATA.warband_get_treasury(w) ~= DATA.warband_get_treasury(w) then
 					error("NAN TREASURY FROM RAID SUCCESS"
 					.. "\n loot: "
 					.. tostring(loot)
@@ -620,10 +630,10 @@ local function load()
 			loot = loot - loot * 0.5
 
 			-- pay the remaining half of loot to local population
-			economic_effects.change_local_wealth(realm.capitol, loot, ECONOMY_REASON.RAID)
+			economic_effects.change_local_wealth(CAPITOL(realm), loot, ECONOMY_REASON.RAID)
 
 			if WORLD:does_player_see_realm_news(realm) then
-				WORLD:emit_notification("Our raid in " .. target.name .. " succeeded. Warriors brought home " ..
+				WORLD:emit_notification("Our raid in " .. PROVINCE_NAME(target) .. " succeeded. Warriors brought home " ..
 					ut.to_fixed_point2(total_loot) .. MONEY_SYMBOL .. " worth of loot. " ..
 					' Warband leaders were additionally rewarded with ' ..
 					ut.to_fixed_point2(quest_reward) .. MONEY_SYMBOL .. '. '
@@ -644,12 +654,12 @@ local function load()
 
 			local army = associated_data.army
 			local target = associated_data.target
-			realm.capitol.mood = realm.capitol.mood - 0.025
+			pe.mood_minor_decrease(CAPITOL(realm))
 
-			realm:disband_army(army)
+			realm_utils.disband_army(realm, army)
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
-					target.name .. " failed. We were spotted but our warriors returned home safely")
+					PROVINCE_NAME(target) .. " failed. We were spotted but our warriors returned home safely")
 			end
 		end,
 	}

@@ -1,2 +1,2 @@
-resource resource
-location tile
+resource resource_id
+location tile_id

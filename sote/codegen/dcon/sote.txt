@@ -1,218 +1,1428 @@
+include{"sote_types.hpp"}
 object {
     name { tile }
     storage_type { contiguous }
     size { 1500000 }
     tag {scenario}
+    property{
+        name { world_id }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { is_land }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { is_fresh }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { is_border }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { elevation }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { slope }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { grass }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { shrub }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { conifer }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { broadleaf }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { ideal_grass }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { ideal_shrub }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { ideal_conifer }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { ideal_broadleaf }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { silt }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { clay }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { sand }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { soil_minerals }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { soil_organics }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { january_waterflow }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { january_rain }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { january_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { july_waterflow }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { july_rain }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { july_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { waterlevel }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { has_river }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { has_marsh }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { ice }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { ice_age_ice }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { debug_r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { debug_g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { debug_b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { real_r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { real_g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { real_b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { pathfinding_index }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { resource }
+        type { resource_id }
+        tag { scenario }
+    }
+    property{
+        name { bedrock }
+        type { bedrock_id }
+        tag { scenario }
+    }
+    property{
+        name { biome }
+        type { biome_id }
+        tag { scenario }
+    }
 }
 object {
     name { pop }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
+    property{
+        name { race }
+        type { race_id }
+        tag { scenario }
+    }
+    property{
+        name { female }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { age }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { savings }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { life_needs_satisfaction }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { basic_needs_satisfaction }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { need_satisfaction }
+        type { array{uint32_t}{base_types::need_satisfaction} }
+        tag { scenario }
+    }
+    property{
+        name { traits }
+        type { array{uint32_t}{uint8_t} }
+        tag { scenario }
+    }
+    property{
+        name { inventory }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { price_memory }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { pending_economy_income }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { forage_ratio }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { work_ratio }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { rank }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { dna }
+        type { array{uint32_t}{float} }
+        tag { scenario }
+    }
 }
 object {
     name { province }
     storage_type { erasable }
     size { 20000 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { is_land }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { province_id }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { size }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { hydration }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { movement_cost }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { center }
+        type { tile_id }
+        tag { scenario }
+    }
+    property{
+        name { infrastructure_needed }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { infrastructure }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { infrastructure_investment }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { infrastructure_efficiency }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { technologies_present }
+        type { array{technology_id}{uint8_t} }
+        tag { scenario }
+    }
+    property{
+        name { technologies_researchable }
+        type { array{technology_id}{uint8_t} }
+        tag { scenario }
+    }
+    property{
+        name { buildable_buildings }
+        type { array{building_type_id}{uint8_t} }
+        tag { scenario }
+    }
+    property{
+        name { local_production }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { temp_buffer_0 }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_consumption }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_demand }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_satisfaction }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { temp_buffer_use_0 }
+        type { array{use_case_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { temp_buffer_use_grad }
+        type { array{use_case_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_use_satisfaction }
+        type { array{use_case_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_use_buffer_demand }
+        type { array{use_case_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_use_buffer_supply }
+        type { array{use_case_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_use_buffer_cost }
+        type { array{use_case_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_storage }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_prices }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { local_wealth }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { trade_wealth }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { local_income }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { local_building_upkeep }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { foragers }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { foragers_water }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { foragers_limit }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { foragers_targets }
+        type { array{uint32_t}{base_types::forage_container} }
+        tag { scenario }
+    }
+    property{
+        name { local_resources }
+        type { array{uint32_t}{base_types::resource_location} }
+        tag { scenario }
+    }
+    property{
+        name { mood }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { unit_types }
+        type { array{unit_type_id}{uint8_t} }
+        tag { scenario }
+    }
+    property{
+        name { throughput_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { input_efficiency_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { output_efficiency_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { on_a_river }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { on_a_forest }
+        type { bitfield }
+        tag { scenario }
+    }
 }
 object {
     name { army }
     storage_type { erasable }
     size { 5000 }
     tag {scenario}
+    property{
+        name { destination }
+        type { province_id }
+        tag { scenario }
+    }
 }
 object {
     name { warband }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    property{
+        name { units_current }
+        type { array{unit_type_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { units_target }
+        type { array{unit_type_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { current_status }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { idle_stance }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { current_free_time_ratio }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { treasury }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { total_upkeep }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { predicted_upkeep }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { supplies }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { supplies_target_days }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { morale }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { realm }
     storage_type { erasable }
     size { 15000 }
     tag {scenario}
+    property{
+        name { budget_change }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { budget_saved_change }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { budget_spending_by_category }
+        type { array{uint8_t}{float} }
+        tag { scenario }
+    }
+    property{
+        name { budget_income_by_category }
+        type { array{uint8_t}{float} }
+        tag { scenario }
+    }
+    property{
+        name { budget_treasury_change_by_category }
+        type { array{uint8_t}{float} }
+        tag { scenario }
+    }
+    property{
+        name { budget_treasury }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { budget_treasury_target }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { budget }
+        type { array{uint8_t}{base_types::budget_per_category_data} }
+        tag { scenario }
+    }
+    property{
+        name { budget_tax_target }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { budget_tax_collected_this_year }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { primary_race }
+        type { race_id }
+        tag { scenario }
+    }
+    property{
+        name { capitol }
+        type { province_id }
+        tag { scenario }
+    }
+    property{
+        name { trading_right_cost }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { building_right_cost }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { law_trade }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { law_building }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { prepare_attack_flag }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { coa_base_r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_base_g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_base_b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_background_r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_background_g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_background_b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_foreground_r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_foreground_g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_foreground_b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_emblem_r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_emblem_g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_emblem_b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { coa_background_image }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { coa_foreground_image }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { coa_emblem_image }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { resources }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { production }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { bought }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { sold }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { expected_food_consumption }
+        type { float }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { negotiation }
     storage_type { erasable }
     size { 2500 }
     tag {scenario}
+    link {
+        object { pop }
+        name { initiator }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { target }
+        type { many }
+        index_storage{array}
+    }
 }
 object {
     name { building }
     storage_type { erasable }
     size { 200000 }
     tag {scenario}
+    property{
+        name { current_type }
+        type { building_type_id }
+        tag { scenario }
+    }
+    property{
+        name { savings }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { subsidy }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { subsidy_last }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { income_mean }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { last_income }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { last_donation_to_owner }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { unused }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { work_ratio }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { production_scale }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { spent_on_inputs }
+        type { array{uint32_t}{base_types::use_case_container} }
+        tag { scenario }
+    }
+    property{
+        name { earn_from_outputs }
+        type { array{uint32_t}{base_types::trade_good_container} }
+        tag { scenario }
+    }
+    property{
+        name { amount_of_inputs }
+        type { array{uint32_t}{base_types::use_case_container} }
+        tag { scenario }
+    }
+    property{
+        name { amount_of_outputs }
+        type { array{uint32_t}{base_types::trade_good_container} }
+        tag { scenario }
+    }
+    property{
+        name { inventory }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { ownership }
     storage_type { erasable }
     size { 200000 }
     tag {scenario}
+    link {
+        object { building }
+        name { building }
+        type { unique }
+    }
+    link {
+        object { pop }
+        name { owner }
+        type { many }
+        index_storage{array}
+    }
 }
-object {
+relationship {
     name { employment }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
+    link {
+        object { building }
+        name { building }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { worker }
+        type { unique }
+    }
+    property{
+        name { worker_income }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { job }
+        type { job_id }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { building_location }
     storage_type { erasable }
     size { 200000 }
     tag {scenario}
+    link {
+        object { province }
+        name { location }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { building }
+        name { building }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { army_membership }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    link {
+        object { army }
+        name { army }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { warband }
+        name { member }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { warband_leader }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { leader }
+        type { unique }
+    }
+    link {
+        object { warband }
+        name { warband }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { warband_recruiter }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { recruiter }
+        type { unique }
+    }
+    link {
+        object { warband }
+        name { warband }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { warband_commander }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { commander }
+        type { unique }
+    }
+    link {
+        object { warband }
+        name { warband }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { warband_location }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    link {
+        object { province }
+        name { location }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { warband }
+        name { warband }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { warband_unit }
     storage_type { erasable }
     size { 50000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { unit }
+        type { unique }
+    }
+    link {
+        object { warband }
+        name { warband }
+        type { many }
+        index_storage{array}
+    }
+    property{
+        name { type }
+        type { unit_type_id }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { character_location }
     storage_type { erasable }
     size { 100000 }
     tag {scenario}
+    link {
+        object { province }
+        name { location }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { character }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { home }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
+    link {
+        object { province }
+        name { home }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { pop }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { pop_location }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
+    link {
+        object { province }
+        name { location }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { pop }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { outlaw_location }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
+    link {
+        object { province }
+        name { location }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { outlaw }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { tile_province_membership }
     storage_type { erasable }
     size { 1500000 }
     tag {scenario}
+    link {
+        object { province }
+        name { province }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { tile }
+        name { tile }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { province_neighborhood }
     storage_type { erasable }
     size { 250000 }
     tag {scenario}
+    link {
+        object { province }
+        name { origin }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { province }
+        name { target }
+        type { many }
+        index_storage{array}
+    }
 }
-object {
+relationship {
     name { parent_child_relation }
     storage_type { erasable }
     size { 900000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { parent }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { child }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { loyalty }
     storage_type { erasable }
     size { 200000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { top }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { bottom }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { succession }
     storage_type { erasable }
     size { 200000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { successor_of }
+        type { unique }
+    }
+    link {
+        object { pop }
+        name { successor }
+        type { many }
+        index_storage{array}
+    }
 }
-object {
+relationship {
     name { realm_armies }
     storage_type { erasable }
     size { 15000 }
     tag {scenario}
+    link {
+        object { realm }
+        name { realm }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { army }
+        name { army }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { realm_guard }
     storage_type { erasable }
     size { 15000 }
     tag {scenario}
+    link {
+        object { warband }
+        name { guard }
+        type { unique }
+    }
+    link {
+        object { realm }
+        name { realm }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { realm_overseer }
     storage_type { erasable }
     size { 15000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { overseer }
+        type { unique }
+    }
+    link {
+        object { realm }
+        name { realm }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { realm_leadership }
     storage_type { erasable }
     size { 15000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { leader }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { realm }
+        name { realm }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { realm_subject_relation }
     storage_type { erasable }
     size { 15000 }
     tag {scenario}
+    link {
+        object { realm }
+        name { overlord }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { realm }
+        name { subject }
+        type { many }
+        index_storage{array}
+    }
+    property{
+        name { wealth_transfer }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { goods_transfer }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { warriors_contribution }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { protection }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { local_ruler }
+        type { bitfield }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { tax_collector }
     storage_type { erasable }
     size { 45000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { collector }
+        type { unique }
+    }
+    link {
+        object { realm }
+        name { realm }
+        type { many }
+        index_storage{array}
+    }
 }
-object {
+relationship {
     name { personal_rights }
     storage_type { erasable }
     size { 450000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { person }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { realm }
+        name { realm }
+        type { many }
+        index_storage{array}
+    }
+    property{
+        name { can_trade }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { can_build }
+        type { bitfield }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { realm_provinces }
     storage_type { erasable }
     size { 30000 }
     tag {scenario}
+    link {
+        object { province }
+        name { province }
+        type { unique }
+    }
+    link {
+        object { realm }
+        name { realm }
+        type { many }
+        index_storage{array}
+    }
 }
-object {
+relationship {
     name { popularity }
     storage_type { erasable }
     size { 450000 }
     tag {scenario}
+    link {
+        object { pop }
+        name { who }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { realm }
+        name { where }
+        type { many }
+        index_storage{array}
+    }
+    property{
+        name { value }
+        type { float }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { realm_pop }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
+    link {
+        object { realm }
+        name { realm }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { pop }
+        name { pop }
+        type { unique }
+    }
 }
 object {
     name { jobtype }
@@ -225,6 +1435,36 @@ object {
     storage_type { contiguous }
     size { 9 }
     tag {scenario}
+    property{
+        name { age_independent }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { life_need }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { tool }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { container }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { time_to_satisfy }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { job_to_satisfy }
+        type { uint8_t }
+        tag { scenario }
+    }
 }
 object {
     name { character_rank }
@@ -237,6 +1477,31 @@ object {
     storage_type { contiguous }
     size { 12 }
     tag {scenario}
+    property{
+        name { ambition }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { greed }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { admin }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { traveller }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { aggression }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { trade_good_category }
@@ -267,6 +1532,11 @@ object {
     storage_type { contiguous }
     size { 10 }
     tag {scenario}
+    property{
+        name { handle }
+        type { uint8_t }
+        tag { scenario }
+    }
 }
 object {
     name { budget_category }
@@ -303,88 +1573,1014 @@ object {
     storage_type { contiguous }
     size { 100 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { belongs_to_category }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { base_price }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { use_case }
     storage_type { contiguous }
     size { 100 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { use_weight }
     storage_type { erasable }
     size { 300 }
     tag {scenario}
+    link {
+        object { trade_good }
+        name { trade_good }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { use_case }
+        name { use_case }
+        type { many }
+        index_storage{array}
+    }
+    property{
+        name { weight }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { biome }
     storage_type { contiguous }
     size { 100 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { aquatic }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { marsh }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { icy }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { minimum_slope }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_slope }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_elevation }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_elevation }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_summer_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_summer_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_winter_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_winter_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_rain }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_rain }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_available_water }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_available_water }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_trees }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_trees }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_grass }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_grass }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_shrubs }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_shrubs }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_conifer_fraction }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_conifer_fraction }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_dead_land }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_dead_land }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_soil_depth }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_soil_depth }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_soil_richness }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_soil_richness }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_sand }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_sand }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_clay }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_clay }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_silt }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_silt }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { bedrock }
     storage_type { contiguous }
     size { 150 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { color_id }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
+        name { sand }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { silt }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { clay }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { organics }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minerals }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { weathering }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { grain_size }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { acidity }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { igneous_extrusive }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { igneous_intrusive }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { sedimentary }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { clastic }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { evaporative }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { metamorphic_marble }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { metamorphic_slate }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { oceanic }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { sedimentary_ocean_deep }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { sedimentary_ocean_shallow }
+        type { bitfield }
+        tag { scenario }
+    }
 }
 object {
     name { resource }
     storage_type { contiguous }
     size { 300 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { required_biome }
+        type { array{uint32_t}{biome_id} }
+        tag { scenario }
+    }
+    property{
+        name { required_bedrock }
+        type { array{uint32_t}{bedrock_id} }
+        tag { scenario }
+    }
+    property{
+        name { base_frequency }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_trees }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_trees }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_elevation }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { maximum_elevation }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { unit_type }
     storage_type { contiguous }
     size { 20 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { base_price }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { upkeep }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { supply_used }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { trade_good_requirements }
+        type { array{uint32_t}{base_types::trade_good_container} }
+        tag { scenario }
+    }
+    property{
+        name { base_health }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { base_attack }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { base_armor }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { speed }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { foraging }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { bonuses }
+        type { array{unit_type_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { supply_capacity }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { spotting }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { visibility }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { job }
     storage_type { contiguous }
     size { 250 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { production_method }
     storage_type { contiguous }
     size { 250 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { job_type }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { jobs }
+        type { array{uint32_t}{base_types::job_container} }
+        tag { scenario }
+    }
+    property{
+        name { inputs }
+        type { array{uint32_t}{base_types::use_case_container} }
+        tag { scenario }
+    }
+    property{
+        name { outputs }
+        type { array{uint32_t}{base_types::trade_good_container} }
+        tag { scenario }
+    }
+    property{
+        name { foraging }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { hydration }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { nature_yield_dependence }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { forest_dependence }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { crop }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { temperature_ideal_min }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { temperature_ideal_max }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { temperature_extreme_min }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { temperature_extreme_max }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { rainfall_ideal_min }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { rainfall_ideal_max }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { rainfall_extreme_min }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { rainfall_extreme_max }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { clay_ideal_min }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { clay_ideal_max }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { clay_extreme_min }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { clay_extreme_max }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { technology }
     storage_type { contiguous }
     size { 400 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { research_cost }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { required_biome }
+        type { array{uint32_t}{biome_id} }
+        tag { scenario }
+    }
+    property{
+        name { required_resource }
+        type { array{uint32_t}{resource_id} }
+        tag { scenario }
+    }
+    property{
+        name { associated_job }
+        type { job_id }
+        tag { scenario }
+    }
+    property{
+        name { throughput_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { input_efficiency_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { output_efficiency_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { technology_unlock }
     storage_type { erasable }
     size { 800 }
     tag {scenario}
+    link {
+        object { technology }
+        name { origin }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { technology }
+        name { unlocked }
+        type { many }
+        index_storage{array}
+    }
 }
 object {
     name { building_type }
     storage_type { contiguous }
     size { 250 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { production_method }
+        type { production_method_id }
+        tag { scenario }
+    }
+    property{
+        name { archetype }
+        type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { unlocked_by }
+        type { technology_id }
+        tag { scenario }
+    }
+    property{
+        name { construction_cost }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { upkeep }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { required_biome }
+        type { array{uint32_t}{biome_id} }
+        tag { scenario }
+    }
+    property{
+        name { required_resource }
+        type { array{uint32_t}{resource_id} }
+        tag { scenario }
+    }
+    property{
+        name { unique }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { movable }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { government }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { needed_infrastructure }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { spotting }
+        type { float }
+        tag { scenario }
+    }
 }
-object {
+relationship {
     name { technology_building }
     storage_type { contiguous }
     size { 400 }
     tag {scenario}
+    link {
+        object { technology }
+        name { technology }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { building_type }
+        name { unlocked }
+        type { unique }
+    }
 }
-object {
+relationship {
     name { technology_unit }
     storage_type { contiguous }
     size { 400 }
     tag {scenario}
+    link {
+        object { technology }
+        name { technology }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { unit_type }
+        name { unlocked }
+        type { unique }
+    }
 }
 object {
     name { race }
     storage_type { contiguous }
     size { 15 }
     tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { carrying_capacity_weight }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { fecundity }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { spotting }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { visibility }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { males_per_hundred_females }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { child_age }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { teen_age }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { adult_age }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { middle_age }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { elder_age }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { max_age }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_comfortable_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_absolute_temperature }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { minimum_comfortable_elevation }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { female_body_size }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { male_body_size }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { female_efficiency }
+        type { array{uint8_t}{float} }
+        tag { scenario }
+    }
+    property{
+        name { male_efficiency }
+        type { array{uint8_t}{float} }
+        tag { scenario }
+    }
+    property{
+        name { female_infrastructure_needs }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { male_infrastructure_needs }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { female_needs }
+        type { array{uint32_t}{base_types::need_definition} }
+        tag { scenario }
+    }
+    property{
+        name { male_needs }
+        type { array{uint32_t}{base_types::need_definition} }
+        tag { scenario }
+    }
+    property{
+        name { requires_large_river }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { requires_large_forest }
+        type { bitfield }
+        tag { scenario }
+    }
 }

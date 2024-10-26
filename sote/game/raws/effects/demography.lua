@@ -16,7 +16,7 @@ end
 ---@param pop pop_id
 function demo.fire_pop(pop)
 	local employment = DATA.get_employment_from_worker(pop)
-	if employment ~= INVALID_ID then
+	if DATA.employment_get_building(employment) ~= INVALID_ID then
 		DATA.delete_employment(employment)
 		local building = DATA.employment_get_building(employment)
 		if #DATA.get_employment_from_building(building) == 0 then

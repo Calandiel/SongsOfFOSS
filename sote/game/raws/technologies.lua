@@ -46,7 +46,7 @@ function Technology.get_tooltip(technology)
 		local requires = false
 		local string = ""
 		string = string .. "\n Required biome: "
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local thing = DATA.technology_get_required_biome(technology, i)
 			if thing == INVALID_ID then
 				break
@@ -65,7 +65,7 @@ function Technology.get_tooltip(technology)
 		local requires = false
 		local string = ""
 		string = string .. "\n Required race: "
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local thing = DATA.technology_get_required_race(technology, i)
 			if thing == INVALID_ID then
 				break
@@ -84,7 +84,7 @@ function Technology.get_tooltip(technology)
 		local requires = false
 		local string = ""
 		string = string .. "\n Required resource: "
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local thing = DATA.technology_get_required_resource(technology, i)
 			if thing == INVALID_ID then
 				break

@@ -51,6 +51,9 @@ function Race:new(o)
 
 	--- check that they are consistent:
 
+	print("needs")
+	print(o.name)
+
 	for i = 1, math.max(#male_needs, #female_needs) do
 		assert(male_needs[i].need == female_needs[i].need)
 		assert(male_needs[i].use_case == female_needs[i].use_case)
@@ -60,12 +63,14 @@ function Race:new(o)
 		local need = male_needs[i].need
 		local use_case = male_needs[i].use_case
 
-		print(need, use_case)
+		print(i - 1, need, use_case)
 
 		DATA.race_set_male_needs_need(r, i - 1, need)
 		DATA.race_set_female_needs_need(r, i - 1, need)
+
 		DATA.race_set_male_needs_use_case(r, i - 1, use_case)
 		DATA.race_set_female_needs_use_case(r, i - 1, use_case)
+
 		DATA.race_set_male_needs_required(r, i - 1, male_needs[i].required)
 		DATA.race_set_female_needs_required(r, i - 1, female_needs[i].required)
 	end

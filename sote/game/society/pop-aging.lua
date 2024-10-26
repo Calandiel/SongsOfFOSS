@@ -9,9 +9,9 @@ function pg.age()
 		local teen_age = DATA.race_get_teen_age(race)
 
 		if DATA.pop_get_age(item) >= teen_age then
-			local parent = DATA.get_parent_child_relation_from_child(item)
+			local parent = DATA.parent_child_relation_get_parent(DATA.get_parent_child_relation_from_child(item))
 			if parent ~= INVALID_ID then
-				DATA.delete_parent_child_relation(parent)
+				DATA.delete_parent_child_relation(DATA.get_parent_child_relation_from_child(item))
 			end
 		end
 	end)

@@ -87,7 +87,7 @@ function re.draw(gam)
 					---@type table<trade_good_id, number>
 					local goods = {}
 					for good, amount in pairs(realm.resources) do
-						local category = DATA.trade_good_get_category(good)
+						local category = DATA.trade_good_get_belongs_to_category(good)
 						if category == "good" then
 							goods[good] = amount
 						end
@@ -122,7 +122,7 @@ function re.draw(gam)
 					---@type table<trade_good_id, number>
 					local goods = {}
 					for good, amount in pairs(realm.production) do
-						if DATA.trade_good_get_category(good) == "capacity" then
+						if DATA.trade_good_get_belongs_to_category(good) == "capacity" then
 							goods[good] = amount
 						end
 					end

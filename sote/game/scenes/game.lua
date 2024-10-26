@@ -968,7 +968,7 @@ function gam.draw()
 			to_draw = to_draw - 1
 			local td = qq:dequeue()
 
-			for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+			for i = 1, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
 				local res = DATA.province_get_local_resources_resource(td, i)
 				if res == INVALID_ID then
 					break

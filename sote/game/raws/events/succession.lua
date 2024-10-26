@@ -24,29 +24,24 @@ local function load()
 		automatic = false,
 		base_probability = 0,
 		on_trigger = function(self, character, associated_data)
-			local succession = DATA.get_succession_from_successor_of(character)
+			assert(DCON.dcon_pop_is_valid(character - 1))
 
-			local successor = INVALID_ID
-			if succession ~= INVALID_ID then
-				successor = DATA.succession_get_successor(succession)
-			end
+			local successor = DATA.succession_get_successor(DATA.get_succession_from_successor_of(character))
 
 			-- we should notify realm leader if his overseer is dead
-			local overseership = DATA.get_realm_overseer_from_overseer(character)
-			if overseership ~= INVALID_ID then
-				local realm = DATA.realm_overseer_get_realm(overseership)
-				pe.remove_overseer(realm)
+			local overseers_realm = DATA.realm_overseer_get_realm(DATA.get_realm_overseer_from_overseer(character))
+			if overseers_realm ~= INVALID_ID then
+				pe.remove_overseer(overseers_realm)
 
-				local realm_leader = DATA.get_realm_leadership_from_realm(realm)
+				local realm_leader = DATA.realm_leadership_get_leader(DATA.get_realm_leadership_from_realm(overseers_realm))
 				if realm_leader ~= INVALID_ID then
-					local leader = DATA.realm_leadership_get_leader(realm_leader)
-					WORLD:emit_immediate_event("succession-overseer-death-notification", leader, character)
+					WORLD:emit_immediate_event("succession-overseer-death-notification", realm_leader, character)
 				end
 			end
 
 			-- warbands without leader dissolve
-			local leadership = DATA.get_warband_leader_from_leader(character)
-			if leadership ~= INVALID_ID then
+			local leads_warband = DATA.warband_leader_get_warband(DATA.get_warband_leader_from_leader(character))
+			if leads_warband ~= INVALID_ID then
 				me.dissolve_warband(character)
 			end
 
@@ -54,23 +49,21 @@ local function load()
 			if commander ~= INVALID_ID then
 				local warband = DATA.warband_commander_get_warband(commander)
 				-- check if it was a guard:
-				local guard = DATA.get_realm_guard_from_guard(warband)
+				local guarded_realm = DATA.realm_guard_get_realm(DATA.get_realm_guard_from_guard(warband))
 
-				if guard == INVALID_ID then
+				if guarded_realm == INVALID_ID then
 					-- TODO: notify leader of the guard
 				else
-					local realm = DATA.realm_guard_get_realm(guard)
-					pe.remove_guard_leader(realm)
-					local realm_leadership = DATA.get_realm_leadership_from_realm(realm)
-					if realm_leadership ~= INVALID_ID then
-						local leader = DATA.realm_leadership_get_leader(realm_leadership)
+					pe.remove_guard_leader(guarded_realm)
+					local leader = DATA.realm_leadership_get_leader(DATA.get_realm_leadership_from_realm(guarded_realm))
+					if leader ~= INVALID_ID then
 						WORLD:emit_immediate_event("succession-guard-leader-death-notification", leader, character)
 					end
 				end
 			end
 
 			-- succession of realm tribute collector
-			local collector_status = DATA.get_tax_collector_from_collector(character)
+			local collector_status = DATA.tax_collector_get_realm(DATA.get_tax_collector_from_collector(character))
 			if collector_status ~= INVALID_ID then
 				office_effects.fire_tax_collector(character)
 				local realm_leadership = DATA.get_realm_leadership_from_realm(REALM(character))

@@ -181,6 +181,8 @@ end
 
 ---@param realm Realm
 function co.run(realm)
+	---#logging LOGS:write("construction " .. tostring(realm) .."\n")
+	---#logging LOGS:flush()
 	local base_tick_spending = DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.EDUCATION)
 
 	local excess = base_tick_spending -- Treat monthly education investments as an indicator of "free" income

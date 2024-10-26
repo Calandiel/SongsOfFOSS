@@ -3,6 +3,7 @@ is_land bool
 is_fresh bool
 is_border bool
 elevation float
+slope float
 grass float
 shrub float
 conifer float
@@ -17,7 +18,11 @@ sand float
 soil_minerals float
 soil_organics float
 january_waterflow float
+january_rain float
+january_temperature float
 july_waterflow float
+july_rain float
+july_temperature float
 waterlevel float
 has_river bool
 has_marsh bool

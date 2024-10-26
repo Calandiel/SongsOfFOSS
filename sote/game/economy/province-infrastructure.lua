@@ -5,6 +5,9 @@ local r = {}
 ---
 ---@param province province_id
 function r.run(province)
+	---#logging LOGS:write("province infrastructure " .. tostring(province).."\n")
+	---#logging LOGS:flush()
+
 	-- First, calculate infrastructure needs
 	local inf = 0
 	local fat_province = DATA.fatten_province(province)
@@ -27,7 +30,7 @@ function r.run(province)
 	-- From buildings
 	DATA.for_each_building_location(function (item)
 		local building = DATA.building_location_get_building(item)
-		local building_type = DATA.building_get_type(building)
+		local building_type = DATA.building_get_current_type(building)
 		local infrastructure_needs = DATA.building_type_get_needed_infrastructure(building_type)
 		---@type number
 		inf = inf + infrastructure_needs

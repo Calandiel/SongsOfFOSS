@@ -723,9 +723,9 @@ function window.draw(gamescene)
 	-- warband status
 	ut.generic_string_field(
 		"shrug.png",
-		warband.status,
+		warband.current_status,
 		status_rect:subrect(0, 0, status_rect.width, ut.BASE_HEIGHT, "left", "up"),
-		"This warband is currently " .. warband.status ..  ".",
+		"This warband is currently " .. warband.current_status ..  ".",
 		ut.NAME_MODE.ICON,
 		true)
 
@@ -838,10 +838,10 @@ function window.draw(gamescene)
 
 		-- spotting and visibility
 		local status = ""
-		if warband.status == "idle" then
+		if warband.current_status == "idle" then
 			status = "\n - While the warband is idle, this bonus is multiplied by 5."
 		end
-		if warband.status == "patrol" then
+		if warband.current_status == "patrol" then
 			status = "\n - While the warband is on patrol, this bonus is multiplied by 10."
 		end
 		local unit_spotting = tabb.accumulate(warband.units, 0, function (a, k, v)

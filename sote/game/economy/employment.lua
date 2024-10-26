@@ -9,6 +9,8 @@ local method_utils = require "game.raws.production-methods"
 ---Employs pops in the province.
 ---@param province province_id
 function emp.run(province)
+	---#logging LOGS:write("province employment " .. tostring(province).."\n")
+	---#logging LOGS:flush()
 	-- Sample random pop and try to employ it
 	---@type pop_id[]
 	local eligible_pops = tabb.filter_array(
@@ -47,7 +49,7 @@ function emp.run(province)
 	DATA.for_each_building_location_from_location(province, function (item)
 		local building_id = DATA.building_location_get_building(item)
 		local building = DATA.fatten_building(building_id)
-		local building_type = DATA.building_get_type(building_id)
+		local building_type = DATA.building_get_current_type(building_id)
 		local production_method = DATA.building_type_get_production_method(building_type)
 		local workers = building_utils.amount_of_workers(building_id)
 		local max_workers = method_utils.total_jobs(production_method)
@@ -148,7 +150,7 @@ function emp.run(province)
 	-- end
 
 	if DATA.pop_get_age(pop) > DATA.race_get_teen_age(DATA.pop_get_race(pop)) then
-		if DATA.pop_get_job(pop) then
+		if DATA.employment_get_building(DATA.get_employment_from_worker(pop)) == INVALID_ID then
 			-- pop is not employed
 			-- employ him
 			province_utils.employ_pop(province, pop, hire_building)

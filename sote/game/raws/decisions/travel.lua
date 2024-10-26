@@ -49,7 +49,7 @@ local function load()
 		ui_name = "Travel",
 		tooltip = function(root, primary_target)
 			local warband = LEADER_OF_WARBAND(root)
-			local status = DATA.warband_get_status(warband)
+			local status = DATA.warband_get_current_status(warband)
 
 			if warband == INVALID_ID then
 				return "You have to gather a party and supplies in order to travel."

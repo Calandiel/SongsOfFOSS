@@ -6,6 +6,8 @@ local tr = {}
 
 ---@param realm Realm
 function tr.run(realm)
+	---#logging LOGS:write("treasury " .. tostring(realm).."\n")
+	---#logging LOGS:flush()
 	-- for now ai will be pretty static
 	-- it would be nice to tie it to external threats/conditions
 
@@ -41,7 +43,7 @@ function tr.run(realm)
 
 	if leader ~= INVALID_ID then
 		-- if ruler is gready, he doubles the tax
-		for i = 0, MAX_TRAIT_INDEX do
+		for i = 1, MAX_TRAIT_INDEX do
 			local trait = DATA.pop_get_traits(leader, i)
 
 			if trait == 0 then

@@ -31,9 +31,8 @@ local function render_name(rect, k, v)
     end)
 
     local has_parent = DATA.get_parent_child_relation_from_child(v)
-
-    if has_parent ~= INVALID_ID then
-        local parent = DATA.parent_child_relation_get_parent(has_parent)
+    local parent = DATA.parent_child_relation_get_parent(has_parent)
+    if parent ~= INVALID_ID then
         name = name .. " [" .. DATA.pop_get_name(parent) .. "]"
     end
     if children > 0 then
@@ -47,20 +46,22 @@ end
 ---@return string
 local function pop_display_occupation(pop)
     local occupation = DATA.get_employment_from_worker(pop)
-    if occupation == INVALID_ID then
+    local job = DATA.employment_get_job(occupation)
+    local employer = DATA.employment_get_building(occupation)
+    if employer == INVALID_ID then
         local age = DATA.pop_get_age(pop)
         local race = DATA.pop_get_race(pop)
         local teen_age = DATA.race_get_teen_age(race)
         if age < teen_age then
             return "child"
         end
-        local unit_of = DATA.get_warband_unit_from_unit(pop)
+        local unit_of = UNIT_OF(pop)
         if unit_of == INVALID_ID then
             return "unemployed"
         end
         return "warrior"
     end
-    return DATA.job_get_name(DATA.employment_get_job(occupation))
+    return DATA.job_get_name(job)
 end
 
 local function pop_sex(pop)
@@ -197,7 +198,7 @@ return function(rect, base_unit, province)
 
                     local needs_tooltip = ""
 
-                    for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+                    for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
                         local use_case = DATA.pop_get_need_satisfaction_use_case(v, index)
                         if use_case == 0 then
                             break

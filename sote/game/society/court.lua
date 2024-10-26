@@ -10,6 +10,8 @@ local co = {}
 
 ---@param realm Realm
 function co.run(realm)
+	---#logging LOGS:write("court " .. tostring(realm).."\n")
+	---#logging LOGS:flush()
 	-- First, calculate court needs
 	---@type number
 	local con = 0

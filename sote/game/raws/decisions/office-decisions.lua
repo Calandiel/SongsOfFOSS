@@ -137,7 +137,7 @@ local function load()
 			if not ot.valid_tribute_collector_candidate(primary_target, REALM(root))   then return false end
 			return true
 		end,
-		ai.sample_random_candidate,
+		ai_target = ai.sample_random_candidate,
 		ai_will_do = function(root, primary_target, secondary_target)
 			local loyalty_multiplier = 1
 			if primary_target.loyalty == root then

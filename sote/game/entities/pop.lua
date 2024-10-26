@@ -29,7 +29,11 @@ function rtab.POP.new(race, faith, culture, female, age)
 
 	local total_consumed, total_demanded = 0, 0
 
-	for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+	-- DATA.for_each_trade_good(function (item)
+	-- 	DATA.pop_inc_inventory(r.id, item, 100)
+	-- end)
+
+	for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local need = DATA.race_get_male_needs_need(race, index)
 
 		if need == NEED.INVALID then
@@ -38,6 +42,7 @@ function rtab.POP.new(race, faith, culture, female, age)
 
 		DATA.pop_set_need_satisfaction_need(r.id, index, need)
 		DATA.pop_set_need_satisfaction_use_case(r.id, index, DATA.race_get_male_needs_use_case(race, index))
+
 		local required = DATA.race_get_male_needs_required(race, index)
 		if female then
 			required = DATA.race_get_female_needs_required(race, index)
@@ -106,7 +111,7 @@ end
 function rtab.POP.update_satisfaction(pop_id)
 	local total_consumed, total_demanded = 0, 0
 	local life_consumed, life_demanded = 0, 0
-	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+	for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local use_case = DATA.pop_get_need_satisfaction_use_case(pop_id, i)
 		if use_case == INVALID_ID then
 			break
@@ -168,7 +173,7 @@ end
 ---@param use_case use_case_id
 ---@return number
 function rtab.POP.calculate_need_use_case_satisfaction(pop, need, use_case)
-	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+	for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		if DATA.pop_get_need_satisfaction_use_case(pop, i) == 0 then
 			break
 		end
@@ -293,7 +298,7 @@ end
 ---@param pop pop_id
 ---@param trait TRAIT
 function rtab.POP.add_trait(pop, trait)
-	for i = 0, MAX_TRAIT_INDEX  do
+	for i = 1, MAX_TRAIT_INDEX  do
 		if DATA.pop_get_traits(pop, i) == TRAIT.INVALID then
 			DATA.pop_set_traits(pop, i, trait)
 			return

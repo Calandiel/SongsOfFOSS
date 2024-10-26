@@ -7,7 +7,7 @@ local character_values = {}
 ---@param character Character
 ---@return boolean
 function character_values.is_traveller(character)
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(character, i)
 
 		if trait == INVALID_ID then
@@ -28,7 +28,7 @@ end
 ---@return number
 function character_values.admin_score(character)
 	local total = 0
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(character, i)
 		if trait == INVALID_ID then
 			break
@@ -43,7 +43,7 @@ end
 ---@return number
 function character_values.ambition_score(character)
 	local total = 0
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(character, i)
 		if trait == INVALID_ID then
 			break
@@ -58,7 +58,7 @@ end
 ---@return number
 function character_values.aggression_score(character)
 	local total = 0
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(character, i)
 		if trait == INVALID_ID then
 			break
@@ -73,7 +73,7 @@ end
 ---@return number
 function character_values.profit_desire(character)
 	local total = 0
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(character, i)
 		if trait == INVALID_ID then
 			break

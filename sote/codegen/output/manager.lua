@@ -11,6 +11,9 @@ assert(DCON, "FAILED_TO_LOAD_DLL")
 
 ffi.cdef[[
     void* calloc( size_t num, size_t size );
+    void update_vegetation(float);
+    void update_economy();
+    void apply_biome(int32_t);
 ]]
 
 

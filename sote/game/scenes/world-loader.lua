@@ -126,290 +126,368 @@ function wl.load_default()
 	coroutine.yield()
 
 	-- After we create the empty world, we can fill it with data...
-	print("Loading tectonics map...")
-	local tect = love.image.newImageData("default/tectonics.png")
-	---@type table<number, Plate>
-	local found_plates = {}
-	DATA.for_each_tile(function (tile_id)
-		local r, g, b = read_pixel(tile_id, tect)
+	do
+		print("Loading tectonics map...")
+		local time = love.timer.getTime()
+		local tect = love.image.newImageData("default/tectonics.png")
+		---@type table<number, Plate>
+		local found_plates = {}
+		DATA.for_each_tile(function (tile_id)
+			local r, g, b = read_pixel(tile_id, tect)
 
-		---@type number
-		local pixel_id = require "game.color".rgb_to_id(r, g, b)
-		if found_plates[pixel_id] == nil then
-			-- Unknown plate! Create a new one!
-			print("New plate: ", r, g, b)
-			local plate = plate.Plate:new()
-			found_plates[pixel_id] = plate
-		end
-		found_plates[pixel_id]:add_tile(tile_id)
-	end)
-	print("Tectonic map loaded!")
-	coroutine.yield()
-	coroutine.yield()
-
-	print("Loading hydrology maps...")
-	local hydro_jan = love.image.newImageData("default/waterflow-january.png")
-	local hydro_jul = love.image.newImageData("default/waterflow-july.png")
-	DATA.for_each_tile(function (tile_id)
-		local jan_r, jan_g, jan_b = read_pixel(tile_id, hydro_jan)
-		local jul_r, jul_g, jul_b = read_pixel(tile_id, hydro_jul)
-		jan_r, jan_g, jan_b = color.to_255(jan_r, jan_g, jan_b)
-		jul_r, jul_g, jul_b = color.to_255(jul_r, jul_g, jul_b)
-
-		local process_pixel = function(r, g, b)
-			if color.equals(r, g, b, 30, 125, 255) then
-				-- salty lake
-				return false, false, 0
-			elseif color.equals(r, g, b, 15, 239, 255) then
-				-- freshwater lake
-				return false, true, 0
-			elseif color.equals(r, g, b, 2, 8, 209) then
-				-- ocean
-				return false, false, 0
-			elseif color.equals(r, g, b, 129, 9, 9) then
-				-- no water, red
-				return true, false, 0
-			elseif color.equals(r, g, b, 244, 17, 17) then
-				return true, false, 800
-			elseif color.equals(r, g, b, 255, 132, 17) then
-				return true, false, 2000
-			elseif color.equals(r, g, b, 250, 250, 10) then
-				return true, false, 5259
-			elseif color.equals(r, g, b, 28, 255, 122) then
-				return true, false, 11250
-			elseif color.equals(r, g, b, 15, 175, 255) then
-				return true, false, 20000
-			elseif color.equals(r, g, b, 24, 77, 249) then
-				return true, false, 30000
-			else
-				local msg = "Unknown waterflow color: " .. tostring(r) .. ", " .. tostring(g) ", " .. tostring(b)
-				print(msg)
-				error(msg)
+			---@type number
+			local pixel_id = require "game.color".rgb_to_id(r, g, b)
+			if found_plates[pixel_id] == nil then
+				-- Unknown plate! Create a new one!
+				print("New plate: ", r, g, b)
+				local plate = plate.Plate:new()
+				found_plates[pixel_id] = plate
 			end
-			--- Returns "is land", "is fresh", "waterflow"
-			return true, true, 0
-		end
-		local jan_is_land, jan_is_fresh, jan_waterflow = process_pixel(jan_r, jan_g, jan_b)
-		local jul_is_land, jul_is_fresh, jul_waterflow = process_pixel(jul_r, jul_g, jul_b)
+			found_plates[pixel_id]:add_tile(tile_id)
+		end)
+		print("Tectonic map loaded!")
+		print(love.timer.getTime() - time)
+	end
 
-		DATA.tile_set_is_land(tile_id, jan_is_land or jul_is_land)
-		DATA.tile_set_is_fresh(tile_id, jan_is_fresh or jul_is_fresh)
-		DATA.tile_set_january_waterflow(tile_id, jan_waterflow)
-		DATA.tile_set_january_waterflow(tile_id, jul_waterflow)
-		DATA.tile_set_waterlevel(tile_id, 0) -- loaded tiles have a watertable of 0!
-		local waterflow = (jan_waterflow + jul_waterflow) / 2
-		if waterflow > 2500.0 then
-			DATA.tile_set_has_river(tile_id, true)
-		end
-	end)
+	coroutine.yield()
+	coroutine.yield()
+
+	do
+		local time = love.timer.getTime()
+		print("Loading hydrology maps...")
+		local hydro_jan = love.image.newImageData("default/waterflow-january.png")
+		local hydro_jul = love.image.newImageData("default/waterflow-july.png")
+		DATA.for_each_tile(function (tile_id)
+			local jan_r, jan_g, jan_b = read_pixel(tile_id, hydro_jan)
+			local jul_r, jul_g, jul_b = read_pixel(tile_id, hydro_jul)
+			jan_r, jan_g, jan_b = color.to_255(jan_r, jan_g, jan_b)
+			jul_r, jul_g, jul_b = color.to_255(jul_r, jul_g, jul_b)
+
+			local process_pixel = function(r, g, b)
+				if color.equals(r, g, b, 30, 125, 255) then
+					-- salty lake
+					return false, false, 0
+				elseif color.equals(r, g, b, 15, 239, 255) then
+					-- freshwater lake
+					return false, true, 0
+				elseif color.equals(r, g, b, 2, 8, 209) then
+					-- ocean
+					return false, false, 0
+				elseif color.equals(r, g, b, 129, 9, 9) then
+					-- no water, red
+					return true, false, 0
+				elseif color.equals(r, g, b, 244, 17, 17) then
+					return true, false, 800
+				elseif color.equals(r, g, b, 255, 132, 17) then
+					return true, false, 2000
+				elseif color.equals(r, g, b, 250, 250, 10) then
+					return true, false, 5259
+				elseif color.equals(r, g, b, 28, 255, 122) then
+					return true, false, 11250
+				elseif color.equals(r, g, b, 15, 175, 255) then
+					return true, false, 20000
+				elseif color.equals(r, g, b, 24, 77, 249) then
+					return true, false, 30000
+				else
+					local msg = "Unknown waterflow color: " .. tostring(r) .. ", " .. tostring(g) ", " .. tostring(b)
+					print(msg)
+					error(msg)
+				end
+				--- Returns "is land", "is fresh", "waterflow"
+				return true, true, 0
+			end
+			local jan_is_land, jan_is_fresh, jan_waterflow = process_pixel(jan_r, jan_g, jan_b)
+			local jul_is_land, jul_is_fresh, jul_waterflow = process_pixel(jul_r, jul_g, jul_b)
+
+			DATA.tile_set_is_land(tile_id, jan_is_land or jul_is_land)
+			DATA.tile_set_is_fresh(tile_id, jan_is_fresh or jul_is_fresh)
+			DATA.tile_set_january_waterflow(tile_id, jan_waterflow)
+			DATA.tile_set_january_waterflow(tile_id, jul_waterflow)
+			DATA.tile_set_waterlevel(tile_id, 0) -- loaded tiles have a watertable of 0!
+			local waterflow = (jan_waterflow + jul_waterflow) / 2
+			if waterflow > 2500.0 then
+				DATA.tile_set_has_river(tile_id, true)
+			end
+		end)
+		print(love.timer.getTime() - time)
+	end
 	print("Hydrology maps loaded!")
 	coroutine.yield()
 	coroutine.yield()
 
-	print("Loading heightmap...")
-	local height = love.image.newImageData("default/heightmap.png")
-	DATA.for_each_tile(function (tile_id)
-		local r, g, b = read_pixel(tile_id, height)
-		r, g, b = color.to_255(r, g, b)
+	do
+		print("Loading heightmap...")
+		local time = love.timer.getTime()
+		local height = love.image.newImageData("default/heightmap.png")
+		DATA.for_each_tile(function (tile_id)
+			local r, g, b = read_pixel(tile_id, height)
+			r, g, b = color.to_255(r, g, b)
 
-		local sea_level = 94
-		local elev = r - sea_level
-		if elev < 0 then
-			elev = elev / sea_level * 8000
-		else
-			elev = elev / (255 - sea_level) * 8000
-		end
+			local sea_level = 94
+			local elev = r - sea_level
+			if elev < 0 then
+				elev = elev / sea_level * 8000
+			else
+				elev = elev / (255 - sea_level) * 8000
+			end
 
-		DATA.tile_set_elevation(tile_id, elev)
-	end)
-	print("Heightmap loaded!")
+			DATA.tile_set_elevation(tile_id, elev)
+		end)
+		print("Heightmap loaded!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
 
 	print("Correcting elevation...")
-	DATA.for_each_tile(function (tile_id)
-		local elevation = DATA.tile_get_elevation(tile_id)
-		if DATA.tile_get_is_land(tile_id) then
-			DATA.tile_set_elevation(tile_id, math.max(1, elevation))
-			DATA.tile_set_waterlevel(tile_id, 0)
-			tile.waterlevel = 0
-		else
-			DATA.tile_set_elevation(tile_id, math.min(-1, elevation))
-			DATA.tile_set_waterlevel(tile_id, 0)
-		end
-	end)
-	print("Elevation corrected!")
+	do
+		local time = love.timer.getTime()
+		DATA.for_each_tile(function (tile_id)
+			local elevation = DATA.tile_get_elevation(tile_id)
+			if DATA.tile_get_is_land(tile_id) then
+				DATA.tile_set_elevation(tile_id, math.max(1, elevation))
+				DATA.tile_set_waterlevel(tile_id, 0)
+				tile.waterlevel = 0
+			else
+				DATA.tile_set_elevation(tile_id, math.min(-1, elevation))
+				DATA.tile_set_waterlevel(tile_id, 0)
+			end
+		end)
+		print("Elevation corrected!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
 
 	print("Loading soils...")
-	local depth = love.image.newImageData("default/soil-depth.png")
-	local organics = love.image.newImageData("default/soil-organics.png")
-	local minerals = love.image.newImageData("default/soil-minerals.png")
-	local texture = love.image.newImageData("default/soil-texture.png")
-	local col_utils = require "game.color"
-	DATA.for_each_tile(function (tile_id)
-		local depth_r, depth_g, depth_b = read_pixel(tile_id, depth)
-		local organics_r, organics_g, organics_b = read_pixel(tile_id, organics)
-		local minerals_r, minerals_g, minerals_b = read_pixel(tile_id, minerals)
-		local texture_r, texture_g, texture_b = read_pixel(tile_id, texture)
+	do
+		local time = love.timer.getTime()
+		local depth = love.image.newImageData("default/soil-depth.png")
+		local organics = love.image.newImageData("default/soil-organics.png")
+		local minerals = love.image.newImageData("default/soil-minerals.png")
+		local texture = love.image.newImageData("default/soil-texture.png")
+		local col_utils = require "game.color"
+		DATA.for_each_tile(function (tile_id)
+			local depth_r, depth_g, depth_b = read_pixel(tile_id, depth)
+			local organics_r, organics_g, organics_b = read_pixel(tile_id, organics)
+			local minerals_r, minerals_g, minerals_b = read_pixel(tile_id, minerals)
+			local texture_r, texture_g, texture_b = read_pixel(tile_id, texture)
 
-		local total = texture_r + texture_g + texture_b
-		if total == 0 then
-			total = 0.001 -- prevent NaNs from division by 0!
-		end
-		local sand = texture_r / total
-		local silt = texture_g / total
-		local clay = texture_b / total
+			local total = texture_r + texture_g + texture_b
+			if total == 0 then
+				total = 0.001 -- prevent NaNs from division by 0!
+			end
+			local sand = texture_r / total
+			local silt = texture_g / total
+			local clay = texture_b / total
 
-		local hue_depth, _, _ = col_utils.rgb_to_hsv(depth_r, depth_g, depth_b)
-		local depth = math.min(hue_depth, 235.0) / 235.0 * 10.0
+			local hue_depth, _, _ = col_utils.rgb_to_hsv(depth_r, depth_g, depth_b)
+			local depth = math.min(hue_depth, 235.0) / 235.0 * 10.0
 
-		DATA.tile_set_sand(tile_id, sand * depth)
-		DATA.tile_set_silt(tile_id, silt * depth)
-		DATA.tile_set_clay(tile_id, clay * depth)
-		if depth == 0 then
-			DATA.tile_set_soil_minerals(tile_id, 0)
-			DATA.tile_set_soil_organics(tile_id, 0)
-		else
-			local hue_organics, _, _ = col_utils.rgb_to_hsv(organics_r, organics_g, organics_b)
-			DATA.tile_set_soil_organics(tile_id, math.min(hue_organics, 235.0) / 235.0)
-			local hue_minerals, _, _ = col_utils.rgb_to_hsv(minerals_r, minerals_g, minerals_b)
-			DATA.tile_set_soil_minerals(tile_id, math.min(hue_minerals, 235.0) / 235.0)
-		end
-	end)
-	print("Soils loaded!")
-	coroutine.yield()
-	coroutine.yield()
-
-	print("Loading ice...")
-	local ice = love.image.newImageData("default/ice.png")
-	local ice_age_ice = love.image.newImageData("default/ice-age-ice.png")
-	local get_ice = function(r, g, b)
-		if g == 1.0 and b == 1.0 then
-			local rr = r * 255.0
-			if rr == 210.0 then return 10.0
-			elseif rr == 225.0 then return 25.0
-			elseif rr == 240.0 then return 40.0
-			else return 0.0 end
-		else return 0.0 end
+			DATA.tile_set_sand(tile_id, sand * depth)
+			DATA.tile_set_silt(tile_id, silt * depth)
+			DATA.tile_set_clay(tile_id, clay * depth)
+			if depth == 0 then
+				DATA.tile_set_soil_minerals(tile_id, 0)
+				DATA.tile_set_soil_organics(tile_id, 0)
+			else
+				local hue_organics, _, _ = col_utils.rgb_to_hsv(organics_r, organics_g, organics_b)
+				DATA.tile_set_soil_organics(tile_id, math.min(hue_organics, 235.0) / 235.0)
+				local hue_minerals, _, _ = col_utils.rgb_to_hsv(minerals_r, minerals_g, minerals_b)
+				DATA.tile_set_soil_minerals(tile_id, math.min(hue_minerals, 235.0) / 235.0)
+			end
+		end)
+		print("Soils loaded!")
+		print(love.timer.getTime() - time)
 	end
-	DATA.for_each_tile(function (tile_id)
-		local r, g, b = read_pixel(tile_id, ice)
-		DATA.tile_set_ice(tile_id, get_ice(r, g, b))
-		r, g, b = read_pixel(tile_id, ice)
-		DATA.tile_set_ice_age_ice(tile_id, get_ice(r, g, b))
-	end)
-	print("Ice loaded!")
+	coroutine.yield()
+	coroutine.yield()
+	do
+		local time = love.timer.getTime()
+		print("Loading ice...")
+		local ice = love.image.newImageData("default/ice.png")
+		local ice_age_ice = love.image.newImageData("default/ice-age-ice.png")
+		local get_ice = function(r, g, b)
+			if g == 1.0 and b == 1.0 then
+				local rr = r * 255.0
+				if rr == 210.0 then return 10.0
+				elseif rr == 225.0 then return 25.0
+				elseif rr == 240.0 then return 40.0
+				else return 0.0 end
+			else return 0.0 end
+		end
+		DATA.for_each_tile(function (tile_id)
+			local r, g, b = read_pixel(tile_id, ice)
+			DATA.tile_set_ice(tile_id, get_ice(r, g, b))
+			r, g, b = read_pixel(tile_id, ice)
+			DATA.tile_set_ice_age_ice(tile_id, get_ice(r, g, b))
+		end)
+		print("Ice loaded!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
 
-	print("Loading rocks")
-	local rocks = love.image.newImageData("default/rocks.png")
-	local color_utils = require "game.color"
-	DATA.for_each_tile(function (tile_id)
-		local r, g, b = read_pixel(tile_id, rocks)
-		local id = color_utils.rgb_to_id(r, g, b)
-		if RAWS_MANAGER.bedrocks_by_color_id[id] ~= nil then
-			DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_color_id[id])
-		else
-			DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_name['limestone'])
-		end
-	end)
+	do
+		local time = love.timer.getTime()
+		print("Loading rocks")
+		local rocks = love.image.newImageData("default/rocks.png")
+		local color_utils = require "game.color"
+		DATA.for_each_tile(function (tile_id)
+			local r, g, b = read_pixel(tile_id, rocks)
+			local id = color_utils.rgb_to_id(r, g, b)
+			if RAWS_MANAGER.bedrocks_by_color_id[id] ~= nil then
+				DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_color_id[id])
+			else
+				DATA.tile_set_bedrock(tile_id, RAWS_MANAGER.bedrocks_by_name['limestone'])
+			end
+		end)
+		print("Rocks loaded!")
+		print(love.timer.getTime() - time)
+	end
+
 	coroutine.yield()
 	coroutine.yield()
-	print("Rocks loaded!")
 
 	---[[
-	print("Generating climate...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.climate.climate-simulation".run()
-	coroutine.yield()
-	coroutine.yield()
-	print("Climate generated!")
+	do
+		local time = love.timer.getTime()
+		print("Generating climate...")
+		require "game.climate.climate-simulation".run()
 
-	print("Generating plants...")
-	coroutine.yield()
-	coroutine.yield()
-	require "game.ecology.plant-simulation".run()
-	coroutine.yield()
-	coroutine.yield()
-	print("Plants generated!")
+		DATA.for_each_tile(function (item)
+			tile.update_climate_data(item)
+		end)
 
-	print("Generating biomes...")
+		print("Climate generated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	require "game.ecology.recalculate-biomes".run()
+
 	coroutine.yield()
 	coroutine.yield()
-	print("Biomes generated!")
+	do
+		local time = love.timer.getTime()
+		print("Generating plants...")
+		require "game.ecology.plant-simulation".run()
+		print("Plants generated!")
+		print(love.timer.getTime() - time)
+	end
+	coroutine.yield()
+	coroutine.yield()
+
+	coroutine.yield()
+	coroutine.yield()
+	do
+		local time = love.timer.getTime()
+		print("Generating biomes...")
+		require "game.ecology.recalculate-biomes".run_fast()
+		print("Biomes generated!")
+		print(love.timer.getTime() - time)
+	end
+	coroutine.yield()
+	coroutine.yield()
 
 	--]]
-	print("Generating provinces...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.province-gen".run()
+	do
+		local time = love.timer.getTime()
+		print("Generating provinces...")
+		require "game.world-gen.province-gen".run()
+		print("Provinces generated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Provinces generated!")
 
-	print("Generating resources...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.resource-gen".run()
+	do
+		local time = love.timer.getTime()
+		print("Generating resources...")
+		require "game.world-gen.resource-gen".run()
+		print("Resources generated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Resources generated!")
 
 	---[[
-	print("Calculating provincial movement costs...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.province-movement-cost".run()
+	do
+		local time = love.timer.getTime()
+		print("Calculating provincial movement costs...")
+		require "game.world-gen.province-movement-cost".run()
+		print("Provincial movement costs calculated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Provincial movement costs calculated!")
 
-	print("Recalculating provincial hydration...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.province-hydration".run()
+	do
+		local time = love.timer.getTime()
+		print("Recalculating provincial hydration...")
+		require "game.world-gen.province-hydration".run()
+		print("Provincial hydration recalculated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Provincial hydration recalculated!")
 
-	print("Calculating pathfinding indices")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.determine-pathfinding-index".determine()
+	do
+		local time = love.timer.getTime()
+		print("Calculating pathfinding indices")
+		require "game.world-gen.determine-pathfinding-index".determine()
+		print("Pathfinding indices calculated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Pathfinding indices calculated!")
 
-	print("Calculating carrying capacities...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.ecology.carrying-capacity".calculate()
+	do
+		local time = love.timer.getTime()
+		print("Calculating carrying capacities...")
+		require "game.ecology.carrying-capacity".calculate()
+		print("Carrying capacities calculated!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Carrying capacities calculated!")
 
-	print("Spawning tribes...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.spawn-tribes".run()
+	do
+		local time = love.timer.getTime()
+		print("Spawning tribes...")
+		require "game.world-gen.spawn-tribes".run()
+		print("Tribes spawned!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Tribes spawned!")
 
-	print("Initializing education...")
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.initialize_education".run()
+	do
+		local time = love.timer.getTime()
+		print("Initializing education...")
+		require "game.world-gen.initialize_education".run()
+		print("Education initialized!")
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
-	print("Education initialized!")
 
 
 	print("All maps loaded!")
@@ -443,31 +521,55 @@ function wl.generate()
 	wl.message = "Generating climate..."
 	coroutine.yield()
 	coroutine.yield()
-	require "game.climate.climate-simulation".run()
+	do
+		local time = love.timer.getTime()
+		require "game.climate.climate-simulation".run()
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
+
 	wl.message = "Generating plants..."
 	coroutine.yield()
 	coroutine.yield()
-	require "game.ecology.plant-simulation".run()
+	do
+		local time = love.timer.getTime()
+		require "game.ecology.plant-simulation".run()
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
+
 	wl.message = "Generating biomes..."
 	coroutine.yield()
 	coroutine.yield()
-	require "game.ecology.recalculate-biomes".run()
+	do
+		local time = love.timer.getTime()
+		require "game.ecology.recalculate-biomes".run()
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
+
 	wl.message = "Calculating pathfinding indices"
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.determine-pathfinding-index".determine()
+	do
+		local time = love.timer.getTime()
+		require "game.world-gen.determine-pathfinding-index".determine()
+		print(love.timer.getTime() - time)
+	end
 	coroutine.yield()
 	coroutine.yield()
+
 	wl.message = "Generating resources..."
 	coroutine.yield()
 	coroutine.yield()
-	require "game.world-gen.resource-gen".run()
+	do
+		local time = love.timer.getTime()
+		require "game.world-gen.resource-gen".run()
+		print(love.timer.getTime() - time)
+	end
 end
 
 function wl.load_save()

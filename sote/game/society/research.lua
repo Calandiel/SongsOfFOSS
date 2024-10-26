@@ -33,6 +33,9 @@ end
 ---Handles tech research per province.
 ---@param province Province
 function re.run(province)
+	---#logging LOGS:write("province research " .. tostring(province).."\n")
+	---#logging LOGS:flush()
+
 	local realm = province_utils.realm(province)
 
 	local perc = realm_utils.get_education_efficiency(realm)

@@ -57,7 +57,7 @@ end
 ---@return number
 function ProductionMethod.total_jobs(method)
 	local amount = 0
-	for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+	for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
 		local job = DATA.production_method_get_jobs_job(method, i)
 		if job == INVALID_ID then
 			break
@@ -81,7 +81,8 @@ function ProductionMethod.get_efficiency(method, province)
 	end
 
 	local total_efficiency = 0
-	for _, tile_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
+	DATA.for_each_tile_province_membership_from_province(province, function (item)
+		local tile_id = DATA.tile_province_membership_get_tile(item)
 		local crop_yield = 1
 		if fat_method.crop then
 			local jan_rain, jan_temp, jul_rain, jul_temp = tile_utils.get_climate_data(tile_id)
@@ -127,7 +128,7 @@ function ProductionMethod.get_efficiency(method, province)
 			end
 		end
 		total_efficiency = total_efficiency + crop_yield * soil_efficiency
-	end
+	end)
 	local nature_yield = 1
 	if fat_method.foraging then
 		nature_yield = nature_yield * dbm.foraging_efficiency(fat_province.foragers_limit, fat_province.foragers)

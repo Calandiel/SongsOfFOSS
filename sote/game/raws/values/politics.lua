@@ -49,13 +49,13 @@ end
 ---@param realm Realm
 ---@return Character
 function PoliticalValues.overseer(realm)
-    local overseer = DATA.get_realm_overseer_from_realm(realm)
-    local leader = DATA.get_realm_leadership_from_realm(realm)
+    local overseer = DATA.realm_overseer_get_overseer(DATA.get_realm_overseer_from_realm(realm))
+    local leader = DATA.realm_leadership_get_leader(DATA.get_realm_leadership_from_realm(realm))
     if overseer ~= INVALID_ID then
-        return DATA.realm_overseer_get_overseer(overseer)
+        return overseer
     end
     if leader ~= INVALID_ID then
-        return DATA.realm_leadership_get_leader(leader)
+        return leader
     end
     error("NO OVERSEER")
 end
@@ -119,7 +119,7 @@ function PoliticalValues.military_strength_ready(character)
             return
         end
 
-        if (loyal_to == character or test_character == character) and DATA.warband_get_status(leading_warband) == WARBAND_STATUS.IDLE then
+        if (loyal_to == character or test_character == character) and DATA.warband_get_current_status(leading_warband) == WARBAND_STATUS.IDLE then
             total_warlords = total_warlords + 1
             total_army = total_army + warband_utils.size(leading_warband)
         end

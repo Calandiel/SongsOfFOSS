@@ -103,14 +103,14 @@ end
 ---@param prov Province
 ---@param warband Warband
 function realm_utils.Realm.add_patrol(realm, prov, warband)
-	if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then return end
+	if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then return end
 	if DATA.realm_get_patrols(realm)[prov] then
 		DATA.realm_get_patrols(realm)[prov][warband] = warband
 	else
 		DATA.realm_get_patrols(realm)[prov]  = {}
 		DATA.realm_get_patrols(realm)[prov][warband] = warband
 	end
-	DATA.warband_set_status(warband, WARBAND_STATUS.PREPARING_PATROL)
+	DATA.warband_set_current_status(warband, WARBAND_STATUS.PREPARING_PATROL)
 end
 
 ---Removes warband as potential patrol of province
@@ -120,7 +120,7 @@ end
 function realm_utils.Realm.remove_patrol(realm, prov, warband)
 	if DATA.realm_get_patrols(realm)[prov] then
 		DATA.realm_get_patrols(realm)[prov][warband] = nil
-		DATA.warband_set_status(warband, WARBAND_STATUS.IDLE)
+		DATA.warband_set_current_status(warband, WARBAND_STATUS.IDLE)
 	end
 end
 
@@ -388,7 +388,7 @@ function realm_utils.Realm.raise_local_army(realm, province)
 
 	DATA.for_each_warband_location_from_location(province, function (item)
 		local warband = DATA.warband_location_get_warband(item)
-		local status = DATA.warband_get_status(warband)
+		local status = DATA.warband_get_current_status(warband)
 		if status == WARBAND_STATUS.IDLE then
 			DATA.force_create_army_membership(army, warband)
 			realm_utils.Realm.raise_warband(realm, warband)

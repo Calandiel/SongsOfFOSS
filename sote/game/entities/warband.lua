@@ -154,7 +154,7 @@ function warband_utils.spotting(warband)
 		end
 	end
 
-	local status = DATA.warband_get_status(warband)
+	local status = DATA.warband_get_current_status(warband)
 
 	if status == WARBAND_STATUS.IDLE then
 		result = result * 5
@@ -331,8 +331,6 @@ end
 ---@param character Character
 ---@param unit unit_type_id
 function warband_utils.set_commander(warband, character, unit)
-	warband_utils.unset_commander(warband)
-
 	warband_utils.set_character_as_unit(warband, character, unit)
 end
 
@@ -350,28 +348,52 @@ end
 ---@param character Character
 ---@param unit unit_type_id
 function warband_utils.set_character_as_unit(warband, character, unit)
-	local current_warband = DATA.get_warband_unit_from_unit(character)
+	---#logging LOGS:write("set character as a unit \n")
+	---#logging LOGS:flush()
+	local current_unit = DATA.get_warband_unit_from_unit(character)
+	local current_warband = DATA.warband_unit_get_warband(current_unit)
+
 	local fat_warband = DATA.fatten_warband(warband)
 	local fat_unit = DATA.fatten_unit_type(unit)
 
+	local new_upkeep = DATA.unit_type_get_upkeep(unit)
+
 	if current_warband == INVALID_ID then
+		---#logging LOGS:write("no current warband\n")
+		---#logging LOGS:flush()
+
 		local new_membership = DATA.fatten_warband_unit(DATA.force_create_warband_unit(character, warband))
 		new_membership.type = unit
+	elseif current_warband ~= warband then
+		---#logging LOGS:write("there is current warband but it's different\n")
+		---#logging LOGS:flush()
+
+		local current_type = DATA.warband_unit_get_type(current_unit)
+		local current_upkeep = DATA.unit_type_get_upkeep(current_type)
+
+		DATA.warband_inc_units_current(current_warband, unit, -1)
+		DATA.warband_inc_total_upkeep(current_warband, -current_upkeep)
+
+		DATA.warband_unit_set_warband(current_unit, warband)
+		DATA.warband_unit_set_type(current_unit, unit)
 	else
-		local fat_membership = DATA.fatten_warband_unit(current_warband)
-		local old_warband = DATA.fatten_warband(fat_membership.warband)
-		if old_warband.id == warband then
-			return
-		end
-		local old_unit = DATA.fatten_unit_type(fat_membership.type)
-		old_warband.total_upkeep = old_warband.total_upkeep - old_unit.upkeep
-		DATA.warband_inc_units_current(old_warband.id, old_unit.id, -1)
-		fat_membership.warband = warband
-		fat_membership.type = unit
+		---#logging LOGS:write("there is current warband and it's the same\n")
+		---#logging LOGS:flush()
+
+		local current_type = DATA.warband_unit_get_type(current_unit)
+		local current_upkeep = DATA.unit_type_get_upkeep(current_type)
+
+		DATA.warband_inc_units_current(current_warband, unit, -1)
+		DATA.warband_inc_total_upkeep(current_warband, -current_upkeep)
+
+		DATA.warband_unit_set_type(current_unit, unit)
 	end
 
 	fat_warband.total_upkeep = fat_warband.total_upkeep + fat_unit.upkeep
 	DATA.warband_inc_units_current(warband, unit, 1)
+
+	---#logging LOGS:write("taking up command was successful\n")
+	---#logging LOGS:flush()
 end
 
 ---Handles pop firing logic on warband's side
@@ -465,9 +487,12 @@ end
 ---@param pop pop_id
 function warband_utils.unregister_military(pop)
 	local unit_of = DATA.get_warband_unit_from_unit(pop)
-	if unit_of ~= INVALID_ID then
-		warband_utils.fire_unit(DATA.warband_unit_get_warband(unit_of), pop)
+	local warband = DATA.warband_unit_get_warband(unit_of)
+	if warband == INVALID_ID then
+		return
 	end
+
+	warband_utils.fire_unit(warband, pop)
 end
 
 

@@ -17,6 +17,9 @@ prov.Province.__index = prov.Province
 function prov.Province.new(fake_flag)
 	local o = DATA.fatten_province(DATA.create_province())
 
+
+	-- print("add province:", o.id)
+
 	o.name = "<uninhabited>"
 
 	local r, g, b = col.hsv_to_rgb(
@@ -54,6 +57,8 @@ end
 ---@param province province_id
 ---@param tile tile_id
 function prov.Province.add_tile(province, tile)
+	-- print("add tile:", province, tile)
+
 	--- easiest way to handle it, i guess
 	if DATA.tile_get_is_land(tile) then
 		DATA.province_set_is_land(province, true)
@@ -66,6 +71,26 @@ function prov.Province.add_tile(province, tile)
 	else
 		DATA.force_create_tile_province_membership(province, tile)
 	end
+
+	-- sanity check
+	-- local belongs2 = DATA.tile_province_membership_get_province(DATA.get_tile_province_membership_from_tile(tile)) == province
+	-- assert(belongs2, membership)
+
+	-- if membership ~= INVALID_ID then
+	-- 	local c1 = DATA.get_tile_province_membership_from_tile(tile)
+	-- 	assert(c1 == membership, tostring(c1) .. " " .. tostring(membership).. " " .. tostring(tile))
+	-- end
+
+	-- local belongs = false
+	-- DATA.for_each_tile_province_membership_from_province(province, function (item)
+	-- 	local check = DATA.tile_province_membership_get_tile(item)
+	-- 	assert(DATA.tile_province_membership_get_province(DATA.get_tile_province_membership_from_tile(check)) == province)
+	-- 	print("???")
+	-- 	if tile == check then
+	-- 		belongs = true
+	-- 	end
+	-- end)
+	-- assert(belongs, membership)
 end
 
 ---@param province province_id
@@ -237,7 +262,7 @@ function prov.Province.transfer_pop(pop, target)
 					return false
 				end
 
-				local employer = DATA.get_employment_from_worker(child)
+				local employer = DATA.employment_get_building(DATA.get_employment_from_worker(child))
 				if employer ~= INVALID_ID then
 					return false
 				end
@@ -282,7 +307,7 @@ function prov.Province.transfer_home(origin, pop, target)
 					return false
 				end
 
-				local employer = DATA.get_employment_from_worker(child)
+				local employer = DATA.employment_get_building(DATA.get_employment_from_worker(child))
 				if employer ~= INVALID_ID then
 					return false
 				end
@@ -301,7 +326,7 @@ function prov.Province.local_army_size(province)
 	local total = 0
 	DATA.for_each_warband_location_from_location(province, function (item)
 		local warband = DATA.warband_location_get_warband(item)
-		local status = DATA.warband_get_status(warband)
+		local status = DATA.warband_get_current_status(warband)
 		if status == WARBAND_STATUS.PATROL then
 			---@type number
 			total = total + warband_utils.size(warband)
@@ -338,9 +363,8 @@ function prov.Province.employ_pop(province, pop, building)
 	end
 	-- Now that we know that the job is needed, employ the pop!
 	-- ... but fire them first to update the previous building if needed
-
 	local employment = DATA.get_employment_from_worker(pop)
-	if employment == INVALID_ID then
+	if DATA.employment_get_building(employment) == INVALID_ID then
 		-- no need to update stuff: just create new employment
 		local new_employment = DATA.fatten_employment(DATA.force_create_employment(building, pop))
 		new_employment.job = potential_job
@@ -366,10 +390,10 @@ end
 ---@param building building_id
 ---@return job_id?
 function prov.Province.potential_job(province, building)
-	local btype = DATA.building_get_type(building)
+	local btype = DATA.building_get_current_type(building)
 	local method = DATA.building_type_get_production_method(btype)
 
-	for i = 0, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
+	for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
 		local job = DATA.production_method_get_jobs_job(method, i)
 		if job == INVALID_ID then
 			break
@@ -409,14 +433,14 @@ function prov.Province.research(province, technology)
 
 		local has_required_resource = true
 
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local required_resource = DATA.technology_get_required_resource(technology, i)
 			if required_resource == INVALID_ID then
 				break
 			end
 			has_required_resource = false
 
-			for j = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+			for j = 1, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
 				local resource = DATA.province_get_local_resources_resource(province, j)
 				if resource == INVALID_ID then
 					break
@@ -437,7 +461,7 @@ function prov.Province.research(province, technology)
 
 		local has_required_race = true
 
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local required_race = DATA.technology_get_required_race(technology, i)
 			if required_race == INVALID_ID then
 				break
@@ -459,7 +483,7 @@ function prov.Province.research(province, technology)
 
 		local has_required_biome = true
 
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local required_biome = DATA.technology_get_required_biome(technology, i)
 			if required_biome == INVALID_ID then
 				break
@@ -511,7 +535,7 @@ function prov.Province.research(province, technology)
 		local building_type = DATA.technology_building_get_unlocked(b)
 		local ok = true
 
-		for i = 0, MAX_REQUIREMENTS_BUILDING_TYPE - 1 do
+		for i = 1, MAX_REQUIREMENTS_BUILDING_TYPE - 1 do
 			local required_biome = DATA.building_type_get_required_biome(building_type, i)
 			if required_biome == INVALID_ID then
 				break
@@ -527,14 +551,14 @@ function prov.Province.research(province, technology)
 
 		local has_required_resource = true
 
-		for i = 0, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
+		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
 			local required_resource = DATA.building_type_get_required_resource(building_type, i)
 			if required_resource == INVALID_ID then
 				break
 			end
 			has_required_resource = false
 
-			for j = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+			for j = 1, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
 				local resource = DATA.province_get_local_resources_resource(province, j)
 				if resource == INVALID_ID then
 					break
@@ -630,7 +654,7 @@ function prov.Province.building_type_present(province, target_building_type)
 	local present = false
 	DATA.for_each_building_location_from_location(province, function (item)
 		local bld = DATA.building_location_get_building(item)
-		local local_bld_type = DATA.building_get_type(bld)
+		local local_bld_type = DATA.building_get_current_type(bld)
 		if local_bld_type == target_building_type then
 			present = true
 		end
@@ -651,7 +675,7 @@ end
 function prov.Province.can_build(province, funds, building, overseer, public)
 	local resource_check_passed = true
 
-	for i = 0, MAX_REQUIREMENTS_BUILDING_TYPE do
+	for i = 1, MAX_REQUIREMENTS_BUILDING_TYPE do
 		local resource = DATA.building_type_get_required_resource(building, i)
 		if resource == INVALID_ID then
 			goto RESOURCE_CHECK_ENDED
@@ -848,7 +872,7 @@ function prov.Province.get_spotting(province)
 
 	DATA.for_each_building_location_from_location(province, function (location)
 		local building = DATA.building_location_get_building(location)
-		local btype = DATA.building_get_type(building)
+		local btype = DATA.building_get_current_type(building)
 		local spotting = DATA.building_type_get_spotting(btype)
 		---@type number
 		s = s + spotting
@@ -856,7 +880,7 @@ function prov.Province.get_spotting(province)
 
 	DATA.for_each_warband_location_from_location(province, function (party)
 		local warband = DATA.warband_location_get_warband(party)
-		local status = DATA.warband_get_status(warband)
+		local status = DATA.warband_get_current_status(warband)
 		if status == WARBAND_STATUS.PATROL then
 			---@type number
 			s = s + warband_utils.spotting(warband)
@@ -937,7 +961,7 @@ function prov.Province.get_job_ratios(province)
 		local pop_id = DATA.pop_location_get_pop(p)
 
 		local employment = DATA.get_employment_from_worker(pop_id)
-		if employment ~= INVALID_ID then
+		if DATA.employment_get_building(employment) ~= INVALID_ID then
 			local job = DATA.employment_get_job(employment)
 			local old = r[job] or 0
 			r[job] = old + 1
@@ -963,9 +987,9 @@ function prov.Province.get_unemployment(province)
 
 		local unit_of = DATA.get_warband_unit_from_unit(pop_id)
 		local employment = DATA.get_employment_from_worker(pop_id)
-		if employment ~= INVALID_ID then
+		if DATA.employment_get_building(employment) ~= INVALID_ID then
 
-		elseif unit_of ~= INVALID_ID then
+		elseif DATA.warband_unit_get_warband(unit_of) ~= INVALID_ID then
 
 		else
 			u = u + 1

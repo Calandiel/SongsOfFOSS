@@ -952,7 +952,7 @@ end
 function ut.render_pop_satsifaction(rect, pop)
 	local needs_tooltip = "Forage Ratio: " .. ut.to_fixed_point2(DATA.pop_get_forage_ratio(pop)) .. "%, Work Ratio: " .. ut.to_fixed_point2(DATA.pop_get_work_ratio(pop)) .. "%"
 
-	for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+	for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local use_case = DATA.pop_get_need_satisfaction_use_case(pop, index)
 		if use_case == 0 then
 			break

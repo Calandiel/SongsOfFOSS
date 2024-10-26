@@ -111,7 +111,7 @@ end
 ---@param target Character
 ---@param reason POLITICS_REASON
 function PoliticalEffects.transfer_power(realm, target, reason)
-	-- LOGS:write("realm: " .. REALM_NAME(realm) .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
+	-- ---#logging LOGS:write("realm: " .. REALM_NAME(realm) .. "\n new leader: " .. target.name .. "\n" .. "reason: " .. reason .. "\n")
 	local fat_realm = DATA.fatten_realm(realm)
 	local fat_target = DATA.fatten_pop(target)
 	local leadership = DATA.get_realm_leadership_from_realm(realm)
@@ -154,7 +154,7 @@ end
 ---@param realm Realm
 ---@param overseer Character
 function PoliticalEffects.set_overseer(realm, overseer)
-	-- LOGS:write("realm: " .. REALM_NAME(realm) .. "\n new overseer: " .. overseer.name .. "\n")
+	-- ---#logging LOGS:write("realm: " .. REALM_NAME(realm) .. "\n new overseer: " .. overseer.name .. "\n")
 	local overseership = DATA.get_realm_overseer_from_realm(realm)
 
 	if overseership == INVALID_ID then
@@ -303,11 +303,20 @@ function PoliticalEffects.huge_popularity_decrease(character, realm)
 	PoliticalEffects.change_popularity(character, realm, -1)
 end
 
+---comment
+---@param character Character
+---@param realm Realm
+---@param wealth number
+function PoliticalEffects.popularity_shift_scaled_with_wealth(character, realm, wealth)
+	local population = province_utils.local_population(CAPITOL(realm))
+	PoliticalEffects.change_popularity(character, realm, wealth / (population + 1))
+end
+
 ---current pop province must be equal to the province where he is promoted
 ---@param pop pop_id
 ---@param reason POLITICS_REASON
 function PoliticalEffects.grant_nobility(pop, reason)
-	-- LOGS:write("realm: " .. REALM_NAME(PROVINCE_REALM(province)) .. "\n new noble: " .. pop.name .. "\n" .. "reason: " .. reason .. "\n")
+	-- ---#logging LOGS:write("realm: " .. REALM_NAME(PROVINCE_REALM(province)) .. "\n new noble: " .. pop.name .. "\n" .. "reason: " .. reason .. "\n")
 
 	-- print(pop.name, "becomes noble")
 
@@ -321,9 +330,9 @@ function PoliticalEffects.grant_nobility(pop, reason)
 	DATA.for_each_parent_child_relation_from_parent(pop, function (item)
 		table.insert(links_to_break, item)
 	end)
-	local parent = DATA.get_parent_child_relation_from_child(pop)
+	local parent = DATA.parent_child_relation_get_parent(DATA.get_parent_child_relation_from_child(pop))
 	if parent ~= INVALID_ID then
-		table.insert(links_to_break, parent)
+		table.insert(links_to_break, DATA.get_parent_child_relation_from_child(pop))
 	end
 	for _, item in pairs(links_to_break) do
 		DATA.delete_parent_child_relation(item)
@@ -349,6 +358,58 @@ function PoliticalEffects.grant_nobility(pop, reason)
 			NAME(pop) .. " was granted nobility due to reason: " .. DATA.politics_reason_get_description(reason)
 		)
 	end
+end
+
+---commenting
+---@param province Province
+---@param x number
+function PoliticalEffects.mood_shift(province, x)
+	local mood = DATA.province_get_mood(province)
+	DATA.province_set_mood(province, math.max(0, mood + x))
+end
+
+---commenting
+---@param province Province
+function PoliticalEffects.mood_minor_increase(province)
+	PoliticalEffects.mood_shift(province, 0.025)
+end
+
+---commenting
+---@param province Province
+function PoliticalEffects.mood_medium_increase(province)
+	PoliticalEffects.mood_shift(province, 0.5)
+end
+
+---commenting
+---@param province Province
+function PoliticalEffects.mood_major_increase(province)
+	PoliticalEffects.mood_shift(province, 0.1)
+end
+
+---commenting
+---@param province Province
+function PoliticalEffects.mood_minor_decrease(province)
+	PoliticalEffects.mood_shift(province, -0.025)
+end
+
+---commenting
+---@param province Province
+function PoliticalEffects.mood_medium_decrease(province)
+	PoliticalEffects.mood_shift(province, -0.5)
+end
+
+---commenting
+---@param province Province
+function PoliticalEffects.mood_major_decrease(province)
+	PoliticalEffects.mood_shift(province, -0.1)
+end
+
+---comment
+---@param province Province
+---@param wealth number
+function PoliticalEffects.mood_shift_from_wealth_shift(province, wealth)
+	local per_pop_wealth = wealth / (province_utils.local_population(province) + 1)
+	PoliticalEffects.mood_shift(province, per_pop_wealth)
 end
 
 ---comment

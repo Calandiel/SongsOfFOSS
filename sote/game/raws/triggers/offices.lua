@@ -179,14 +179,14 @@ function triggers.valid_patrol_participant(character, province)
     local leading_warband = DATA.get_warband_leader_from_leader(character)
     if leading_warband ~= INVALID_ID then
         local warband = DATA.warband_leader_get_warband(leading_warband)
-        if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
+        if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then
             return false
         end
         return true
     elseif triggers.guard_leader(character, REALM(character)) then
         local guard = DATA.get_realm_guard_from_realm(REALM(character))
         local warband = DATA.realm_guard_get_guard(guard)
-        if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
+        if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then
             return false
         end
         return true

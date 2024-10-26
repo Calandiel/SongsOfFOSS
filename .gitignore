@@ -3,6 +3,9 @@ sote/.vscode
 .idea
 *.zip
 
+.clangd
+compile_commands.json
+
 token.txt
 seed.txt
 sote/seed.txt

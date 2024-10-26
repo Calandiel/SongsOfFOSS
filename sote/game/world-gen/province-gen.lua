@@ -329,13 +329,6 @@ function pro.run()
 		local new_province = pp.Province.new()
 		local fat_province = DATA.fatten_province(new_province)
 		fat_province.center = tile_id
-		-- new_province:add_tile(tile)
-		-- for n in tile.iter_neighbors(tile_id) do
-		-- 	if DATA.tile_get_is_land(n) == DATA.tile_get_is_land(tile_id) then
-		-- 		new_province:add_tile(n)
-		-- 		queue:enqueue(n)
-		-- 	end
-		-- end
 		coastal_recursion(tile_id, 60, new_province)
 	end
 
@@ -353,15 +346,12 @@ function pro.run()
 			if failsafe > WORLD:tile_count() / 2 then break end
 		end
 
-		local new_province = pp.Province.new()
-		local fat_province = DATA.fatten_province(new_province)
-		fat_province.center = tile_id
-		pp.Province.add_tile(new_province, tile_id)
-		for n in tile.iter_neighbors(tile_id) do
-			if DATA.tile_get_is_land(n) == DATA.tile_get_is_land(tile_id) then
-				pp.Province.add_tile(new_province, n)
-				queue:enqueue(n)
-			end
+		if tile.province(tile_id) == INVALID_ID then
+			local new_province = pp.Province.new()
+			local fat_province = DATA.fatten_province(new_province)
+			fat_province.center = tile_id
+			pp.Province.add_tile(new_province, tile_id)
+			queue:enqueue(tile_id)
 		end
 	end
 	fill_out(true)
@@ -374,11 +364,14 @@ function pro.run()
 		while DATA.tile_get_is_land(tile_id) or tile.province(tile_id) ~= INVALID_ID do
 			tile_id = WORLD:random_tile()
 		end
-		local new_province = pp.Province.new()
-		local fat_province = DATA.fatten_province(new_province)
-		fat_province.center = tile_id
-		pp.Province.add_tile(new_province, tile_id)
-		queue:enqueue(tile_id)
+
+		if tile.province(tile_id) == INVALID_ID then
+			local new_province = pp.Province.new()
+			local fat_province = DATA.fatten_province(new_province)
+			fat_province.center = tile_id
+			pp.Province.add_tile(new_province, tile_id)
+			queue:enqueue(tile_id)
+		end
 	end
 	fill_out(false)
 
@@ -395,6 +388,58 @@ function pro.run()
 		end
 	end)
 
+	do
+		print("removing empty provinces")
+
+		local old_count = 0
+		---@type province_id[]
+		local to_wipe = {}
+		DATA.for_each_province(function (item)
+			if #DATA.get_tile_province_membership_from_province(item) == 0 then
+				table.insert(to_wipe, item)
+			end
+			old_count = old_count + 1
+		end)
+
+		for _, item in pairs(to_wipe) do
+			DATA.delete_province(item)
+		end
+
+		local province_count = 0
+
+		DATA.for_each_province(function (item)
+			province_count = province_count + 1
+		end)
+
+		print("provinces left: ", province_count,  " out of ", old_count)
+	end
+
+	do
+		print("removing empty provinces")
+
+		local old_count = 0
+		---@type province_id[]
+		local to_wipe = {}
+		DATA.for_each_province(function (item)
+			if #DATA.get_tile_province_membership_from_province(item) == 0 then
+				table.insert(to_wipe, item)
+			end
+			old_count = old_count + 1
+		end)
+
+		for _, item in pairs(to_wipe) do
+			DATA.delete_province(item)
+		end
+
+		local province_count = 0
+
+		DATA.for_each_province(function (item)
+			province_count = province_count + 1
+		end)
+
+		print("provinces left: ", province_count,  " out of ", old_count)
+	end
+
 	local function recalculate_provincial_centers()
 		DATA.for_each_province(function (province)
 			local N = 20
@@ -404,6 +449,7 @@ function pro.run()
 
 			for i = 1, N do
 				local membership = tabb.random_select_from_array(DATA.get_tile_province_membership_from_province(province))
+				assert(membership ~= nil, "EMPTY PROVINCE! ID: " .. tostring(province) .. " tile count: " .. tostring(#DATA.get_tile_province_membership_from_province(province)))
 				table.insert(sample, DATA.tile_province_membership_get_tile(membership))
 			end
 

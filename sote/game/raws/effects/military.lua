@@ -122,7 +122,7 @@ function MilitaryEffects.patrol(root, primary_target)
 
 	for _, warband in pairs(patrol) do
 		realm_utils.remove_patrol(root, primary_target, warband)
-		DATA.warband_set_status(warband, WARBAND_STATUS.PATROL)
+		DATA.warband_set_current_status(warband, WARBAND_STATUS.PATROL)
 	end
 
 	---@type PatrolData
@@ -166,7 +166,7 @@ function MilitaryEffects.covert_raid(root, primary_target)
 			math.floor(travel_time + 0.5) .. " days. We can expect to hear back from them in " .. math.floor(travel_time * 2 + 0.5) .. " days.")
 	end
 
-	DATA.warband_set_status(warband, WARBAND_STATUS.RAIDING)
+	DATA.warband_set_current_status(warband, WARBAND_STATUS.RAIDING)
 
 	---@type RaidData
 	local raid_data = {
@@ -202,7 +202,7 @@ function MilitaryEffects.send_army(army, origin, target, callback)
 
 	DATA.for_each_army_membership_from_army(army, function (item)
 		local warband = DATA.army_membership_get_member(item)
-		DATA.warband_set_status(warband, WARBAND_STATUS.ATTACKING)
+		DATA.warband_set_current_status(warband, WARBAND_STATUS.ATTACKING)
 	end)
 
 	callback(army, travel_time)
@@ -226,7 +226,7 @@ function MilitaryEffects.gather_loyal_army_attack(character)
 		local loyal_to = LOYAL_TO(leader)
 
 		if
-			DATA.warband_get_status(warband) == WARBAND_STATUS.IDLE
+			DATA.warband_get_current_status(warband) == WARBAND_STATUS.IDLE
 			and (
 				(leader == character)
 				or

@@ -71,7 +71,11 @@ function gen.run()
 		--local organics = tile.soil_organics
 		local minerals = DATA.tile_get_soil_minerals(tile_id)
 
-		local jan_rain, jan_temp, jul_rain, jul_temp = tile.get_climate_data(tile_id)
+		local jan_temp = DATA.tile_get_january_temperature(tile_id)
+		local jul_temp = DATA.tile_get_july_temperature(tile_id)
+		local jan_rain = DATA.tile_get_january_rain(tile_id)
+		local jul_rain = DATA.tile_get_july_rain(tile_id)
+
 		--print(tostring(jan_temp) .. " , " .. tostring(jul_temp))
 		local annual_average_temp = (jan_temp + jul_temp) / 2
 		local adjusted_annual_temperature = annual_average_temp - permafrost_threshold

@@ -132,7 +132,7 @@ local function load()
 			local base = 0
 			local multiplier = 1
 
-			for i = 0, MAX_TRAIT_INDEX do
+			for i = 1, MAX_TRAIT_INDEX do
 				local trait = DATA.pop_get_traits(root, i)
 				if trait == TRAIT.INVALID then
 					break
@@ -518,7 +518,7 @@ local function load()
 			local male_ratio = DATA.race_get_males_per_hundred_females(race)
 			local savings = DATA.pop_get_savings(root)
 
-			for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+			for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 				local need = DATA.race_get_male_needs_need(race, i)
 				if need == NEED.INVALID then
 					break
@@ -655,7 +655,7 @@ local function load()
 			local male_ratio = DATA.race_get_males_per_hundred_females(race)
 			local savings = DATA.pop_get_savings(root)
 
-			for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+			for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 				local need = DATA.race_get_male_needs_need(race, i)
 				if need == NEED.INVALID then
 					break
@@ -758,7 +758,7 @@ local function load()
 
 			-- trait based variance
 
-			for i = 0, MAX_TRAIT_INDEX do
+			for i = 1, MAX_TRAIT_INDEX do
 				local trait = DATA.pop_get_traits(root, i)
 				if trait == TRAIT.INVALID then
 					break
@@ -801,7 +801,7 @@ local function load()
 			local male_ratio = DATA.race_get_males_per_hundred_females(race)
 			local savings = DATA.pop_get_savings(root)
 
-			for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+			for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 				local need = DATA.race_get_male_needs_need(race, i)
 				if need == NEED.INVALID then
 					break

@@ -13,6 +13,15 @@ local political_values = require "game.raws.values.politics"
 
 local tabb             = require "engine.table"
 
+local employ = require "game.economy.employment"
+local building_update = require "game.economy.buildings-updates"
+local production = require "game.economy.production-and-consumption"
+local wealth_decay = require "game.economy.wealth-decay"
+local upkeep = require "game.economy.upkeep"
+local infrastructure = require "game.economy.province-infrastructure"
+local research = require "game.society.research"
+local recruit = require "game.society.recruitment"
+
 
 local dbm              = require "game.economy.diet-breadth-model"
 
@@ -219,6 +228,9 @@ end
 ---@param associated_data table|nil
 ---@param delay number|nil In days
 function world.World:emit_event(event, root, associated_data, delay)
+	---#logging LOGS:write("emit event " .. event .. "\n")
+	---#logging LOGS:flush()
+
 	assert(root ~= INVALID_ID, "Attempt to call event for invalid root")
 	assert(root ~= nil, "Attempt to call event for nil root")
 
@@ -296,7 +308,7 @@ local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
 
 	-- if event ~= "sell-goods" and event ~= "buy-goods" then
-	-- 	LOGS:write(
+	-- 	---#logging LOGS:write(
 	-- 		"\n Handling event: " .. event .. "\n" ..
 	-- 		"root: " .. REALM_NAME(target_realm) .. "\n" ..
 	-- 		"realm:" .. target_realm.REALM_NAME(realm) .. "\n"
@@ -313,6 +325,7 @@ local function handle_event(event, target_realm, associated_data)
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
 	local best = opts[1]
 	local best_am = nil
+	---#logging LOGS:write("choosing option")
 	for _, o in pairs(opts) do
 		---@type EventOption
 		local oo = o
@@ -330,6 +343,8 @@ local function handle_event(event, target_realm, associated_data)
 			end
 		end
 	end
+	---#logging LOGS:write("implementing option " .. best.text .. "\n")
+	---#logging LOGS:flush()
 	if best.viable() then
 		assert(best.outcome, "Option of event " .. event .. " doesn't have outcome")
 		best.outcome()
@@ -342,6 +357,9 @@ end
 ---@param dat any
 ---@return boolean
 function world.World:event_tick(eve, root, dat)
+	---#logging LOGS:write("event tick " .. eve .. " " .. tostring(root) .. "\n")
+	---#logging LOGS:flush()
+
 	assert(root ~= INVALID_ID)
 	if WORLD.player_character == root then
 		-- This is a player event!
@@ -349,6 +367,9 @@ function world.World:event_tick(eve, root, dat)
 		WORLD.pending_player_event_reaction = true
 		return true
 	else
+		---#logging LOGS:write("event tick AI \n")
+		---#logging LOGS:flush()
+
 		WORLD.events_queue:dequeue()
 		handle_event(eve, root, dat)
 		local dead = DATA.pop_get_dead(root)
@@ -391,6 +412,20 @@ function world.World:tick()
 	WORLD.sub_hourly_tick = WORLD.sub_hourly_tick + 1
 	WORLD.current_tick_in_month = WORLD.current_tick_in_month + 1
 
+	if WORLD.current_tick_in_month == 1 then
+		PROFILER:start_timer("vegetation")
+
+		DCON.update_vegetation(VEGETATION_GROWTH)
+
+		PROFILER:end_timer("vegetation")
+
+		PROFILER:start_timer("production")
+
+		production.run_fast()
+
+		PROFILER:end_timer("production")
+	end
+
 	if WORLD.settled_provinces_by_identifier[WORLD.current_tick_in_month] ~= nil then
 
 		-- Monthly tick per realm
@@ -398,7 +433,9 @@ function world.World:tick()
 
 		local t = love.timer.getTime()
 
-		PROFILER:start_timer("vegetation")
+		-- print("vegetation")
+
+		PROFILER:start_timer("dbm")
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
@@ -406,22 +443,6 @@ function world.World:tick()
 
 			for _, tile_membership in pairs(DATA.get_tile_province_membership_from_province(settled_province)) do
 				local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
-				DATA.tile[tile_id].conifer =
-					DATA.tile[tile_id].conifer * (1 - VEGETATION_GROWTH)
-					+ DATA.tile[tile_id].ideal_conifer * VEGETATION_GROWTH
-
-				DATA.tile[tile_id].broadleaf =
-					DATA.tile[tile_id].broadleaf * (1 - VEGETATION_GROWTH)
-					+ DATA.tile[tile_id].ideal_broadleaf * VEGETATION_GROWTH
-
-				DATA.tile[tile_id].shrub =
-					DATA.tile[tile_id].shrub * (1 - VEGETATION_GROWTH)
-					+ DATA.tile[tile_id].ideal_shrub * VEGETATION_GROWTH
-
-				DATA.tile[tile_id].grass =
-					DATA.tile[tile_id].grass * (1 - VEGETATION_GROWTH)
-					+ DATA.tile[tile_id].ideal_grass * VEGETATION_GROWTH
-
 				-- collecting tile foraging production
 				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile_id)
 			end
@@ -433,7 +454,9 @@ function world.World:tick()
 			end
 		end
 
-		PROFILER:end_timer("vegetation")
+		PROFILER:end_timer("dbm")
+
+		-- print("realm pre update")
 
 		-- "Realm" pre-update
 		local realm_economic_update = require "game.economy.realm-economic-update"
@@ -455,16 +478,8 @@ function world.World:tick()
 			ta[province] = nil
 		end
 
-
 		-- "Province" update
-		local employ = require "game.economy.employment"
-		local building_update = require "game.economy.buildings-updates"
-		local production = require "game.economy.production-and-consumption"
-		local wealth_decay = require "game.economy.wealth-decay"
-		local upkeep = require "game.economy.upkeep"
-		local infrastructure = require "game.economy.province-infrastructure"
-		local research = require "game.society.research"
-		local recruit = require "game.society.recruitment"
+
 		for _, settled_province in pairs(ta) do
 			--print("employ")
 			PROFILER:start_timer("employ")
@@ -475,9 +490,9 @@ function world.World:tick()
 			building_update.run(settled_province)
 			PROFILER:end_timer("buildings")
 
-			PROFILER:start_timer("production")
-			production.run(settled_province)
-			PROFILER:end_timer("production")
+			-- PROFILER:start_timer("production")
+			-- production.run(settled_province)
+			-- PROFILER:end_timer("production")
 
 			PROFILER:start_timer("province")
 			upkeep.run(settled_province)
@@ -497,6 +512,7 @@ function world.World:tick()
 			--print("done")
 		end
 
+
 		-- "Realm" update
 		-- local decide = require "game.ai.decide"
 		local events = require "game.ai.events"
@@ -507,7 +523,7 @@ function world.World:tick()
 			local realm = province_utils.realm(settled_province)
 			assert(realm ~= INVALID_ID)
 			local overseer = political_values.overseer(realm)
-			assert(overseer ~= INVALID_ID)
+			assert(overseer ~= INVALID_ID, province_utils.local_population(settled_province))
 			local capitol = DATA.realm_get_capitol(realm)
 
 			if realm ~= nil and capitol == settled_province then
@@ -569,6 +585,7 @@ function world.World:tick()
 
 		PROFILER:start_timer("decisions")
 
+
 		for _, settled_province in pairs(ta) do
 			DATA.for_each_character_location_from_location(settled_province, function (item)
 				local character = DATA.character_location_get_character(item)
@@ -578,11 +595,16 @@ function world.World:tick()
 			end)
 		end
 
-		PROFILER:end_timer("decisions")
+		---#logging LOGS:write("decisions end\n")
+		---#logging LOGS:flush()
 
+		PROFILER:end_timer("decisions")
 	end
 
 	-- print('simulation update')
+
+	---#logging LOGS:write("scripted events updates\n")
+	---#logging LOGS:flush()
 
 	if WORLD.sub_hourly_tick == world.ticks_per_hour then
 		WORLD.sub_hourly_tick = 0
@@ -595,6 +617,9 @@ function world.World:tick()
 			-- daily tick
 
 			PROFILER:start_timer("events_queue")
+
+			---#logging LOGS:write("events\n")
+			---#logging LOGS:flush()
 
 			-- events
 			local l = WORLD.deferred_events_queue:length()
@@ -611,6 +636,9 @@ function world.World:tick()
 				end
 			end
 
+			---#logging LOGS:write("actions\n")
+			---#logging LOGS:flush()
+
 			-- actionas
 			local l = WORLD.deferred_actions_queue:length()
 			for i = 1, l do
@@ -620,11 +648,11 @@ function world.World:tick()
 				if check[4] <= 0 then
 					local character = check[2]
 					local event = RAWS_MANAGER.events_by_name[check[1]]
-					-- LOGS:write(
-					-- 	"\n Handling event: " .. check[1] .. "\n" ..
-					-- 	"root: " .. NAME(character) .. "\n" ..
-					-- 	"realm:" .. character.REALM_NAME(realm) .. "\n"
+					---#logging LOGS:write(
+						-- "\n Handling action: " .. check[1] .. "\n" ..
+						-- "root: " .. NAME(character) .. "\n"
 					-- )
+					---#logging LOGS:flush()
 					event:on_trigger(character, check[3])
 					--print("ontrig")
 					self.player_deferred_actions[check] = nil
@@ -648,12 +676,19 @@ function world.World:tick()
 					WORLD.year = WORLD.year + 1
 					-- yearly tick
 					--print("Yearly tick!")
+
+					---#logging LOGS:write("aging\n")
+					---#logging LOGS:flush()
+
 					local pop_aging = require "game.society.pop-aging"
 					pop_aging.age()
 					DATA.for_each_realm(function (realm)
 						DATA.realm_set_budget_tax_collected_this_year(realm, 0)
 					end)
 				end
+
+				---#logging LOGS:write("month end\n")
+				---#logging LOGS:flush()
 
 				--print("Monthly tick end, refreshing")
 				if OPTIONS.update_map then
@@ -663,6 +698,9 @@ function world.World:tick()
 			end
 		end
 		--print("tick end")
+
+		---#logging LOGS:write("tick end\n")
+		---#logging LOGS:flush()
 	end
 
 	PROFILER:end_timer("tick")

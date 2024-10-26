@@ -207,7 +207,7 @@ function EconomicEffects.set_ownership(building, pop)
 	local province = building_utils.province(building)
 
 	if pop and WORLD:does_player_see_province_news(province) then
-		local building_type = DATA.building_get_type(building)
+		local building_type = DATA.building_get_current_type(building)
 		local name_building = DATA.building_type_get_name(building_type)
 		local pop_name = DATA.pop_get_name(pop)
 
@@ -233,7 +233,7 @@ function EconomicEffects.unset_ownership(building)
 	DATA.delete_ownership(ownership)
 
 	if WORLD:does_player_see_province_news(province) then
-		local building_type = DATA.building_get_type(building)
+		local building_type = DATA.building_get_current_type(building)
 		local name_building = DATA.building_type_get_name(building_type)
 		local pop_name = DATA.pop_get_name(owner)
 
@@ -320,7 +320,7 @@ end
 function EconomicEffects.return_tribute_home(collector, realm, tribute)
 	local payment_multiplier = 0.1
 
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(collector, i)
 		if trait == TRAIT.GREEDY then
 			payment_multiplier = payment_multiplier * 5
@@ -480,7 +480,7 @@ function EconomicEffects.consume_use_case_from_inventory(pop, use_case, amount)
 			.. "\n amount = "
 			.. tostring(amount))
 	end
-	local consumed = tabb.accumulate(DATA.use_weight_from_use_case[use_case], 0, function(a, _, weight_id)
+	local consumed = tabb.accumulate(DATA.get_use_weight_from_use_case(use_case), 0, function(a, _, weight_id)
 		local good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_in_inventory = DATA.pop_get_inventory(pop, good)
@@ -561,7 +561,7 @@ function EconomicEffects.character_buy_use(character, use, amount)
 
 	---@type {good: trade_good_id, weight: number, price: number, available: number}[]
 	local goods = {}
-	for _, weight_id in pairs(DATA.use_weight_from_use_case[use]) do
+	DATA.for_each_use_weight_from_use_case(use, function (weight_id)
 		local good = DATA.use_weight_get_trade_good(weight_id)
 		local weight = DATA.use_weight_get_weight(weight_id)
 		local good_price = ev.get_local_price(province, good)
@@ -575,7 +575,7 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		if goods_available > 0 then
 			goods[#goods + 1] = { good = good, weight = weight, price = good_price, available = goods_available }
 		end
-	end
+	end)
 	for _, values in pairs(goods) do
 		local good_use_amount = values.available * values.weight
 		local goods_available_weight = math.max(good_use_amount / use_available, 0)
@@ -946,7 +946,7 @@ function EconomicEffects.collect_tax(character)
 	local total_tax = 0
 	local tax_collection_ability = 0.05
 
-	for i = 0, MAX_TRAIT_INDEX do
+	for i = 1, MAX_TRAIT_INDEX do
 		local trait = DATA.pop_get_traits(character, i)
 		if trait == INVALID_ID then
 			break

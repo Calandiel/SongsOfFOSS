@@ -13,7 +13,7 @@ base_attack float=5
 base_armor float=1
 speed float=1
 foraging float=0.1 how much food does this unit forage from the local province?
-bonuses float[unit_type]
+bonuses float[unit_type_id]
 supply_capacity float=5 how much food can this unit carry
 unlocked_by #technology_id
 spotting float=1

@@ -216,7 +216,7 @@ function dbm.cultural_food_needs(race)
 	---@type table<use_case_id, number>
 	local food_needs = {}
 
-	for i = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+	for i = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local need = DATA.race_get_male_needs_need(race, i)
 		local use_case = DATA.race_get_male_needs_use_case(race, i)
 		if (need == NEED.FOOD) then
@@ -275,7 +275,7 @@ local function forage_targets_for_a_given_use_case(race, province, use_case, nee
 	---@type TargetResourceTable[]
 	local data_per_forage_target = {}
 
-	for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX do
+	for i = 1, MAX_RESOURCES_IN_PROVINCE_INDEX do
 		local forage_case = DATA.province_get_foragers_targets_forage(province, i)
 		local required_job =  DATA.forage_resource_get_handle(forage_case)
 		local amount = DATA.province_get_foragers_targets_amount(province, i)

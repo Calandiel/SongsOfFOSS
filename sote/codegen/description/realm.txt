@@ -42,8 +42,8 @@ coa_emblem_b float
 coa_background_image uint32_t
 coa_foreground_image uint32_t
 coa_emblem_image uint32_t
-resources float[trade_good] Currently stockpiled resources
-production float[trade_good] A "balance" of resource creation
-bought float[trade_good]
-sold float[trade_good]
+resources float[trade_good_id] Currently stockpiled resources
+production float[trade_good_id] A "balance" of resource creation
+bought float[trade_good_id]
+sold float[trade_good_id]
 expected_food_consumption float

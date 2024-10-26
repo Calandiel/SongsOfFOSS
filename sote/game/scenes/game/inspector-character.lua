@@ -61,7 +61,7 @@ function window.draw(game)
     local coa = ui_panel:subrect(unit * 3 - 2, unit * 3 - 2, unit, unit, "left", "up")
     require "game.scenes.game.widgets.portrait" (portrait, character_id)
 
-    if DEAD(character) then
+    if character.dead then
         return
     end
 
@@ -80,7 +80,7 @@ function window.draw(game)
                 local tooltip = "Amount of "
                     .. name
                     .. " "
-                    .. NAME(character)
+                    .. character.name
                     .. " owns. They think that its price is "
                     .. ut.to_fixed_point2(DATA.pop_get_price_memory(character_id, good))
                 ut.sqrt_number_entry_icon(
@@ -136,7 +136,7 @@ function window.draw(game)
     ui.left_text(string.title(sex) .. " " .. string.title(DATA.race_get_name(race)), age_panel)
     ui.right_text("Age: " .. character.age, age_panel)
 
-    ut.money_entry_icon(SAVINGS(character), wealth_panel, "Personal savings")
+    ut.money_entry_icon(character.savings, wealth_panel, "Personal savings")
 
     local popularity = 0
     local province = PROVINCE(character_id)
@@ -225,19 +225,19 @@ function window.draw(game)
         if character.female then
             ending = "herself"
         end
-        s = s .. "\n " .. NAME(character) .. " is loyal to " .. ending .. "."
+        s = s .. "\n " .. character.name .. " is loyal to " .. ending .. "."
     else
         local loyal_to = DATA.loyalty_get_top(loyalty)
-        s = s .. "\n " .. NAME(character) .. " is loyal to " .. DATA.pop_get_name(loyal_to) .. "."
+        s = s .. "\n " .. character.name .. " is loyal to " .. DATA.pop_get_name(loyal_to) .. "."
     end
 
     -- successor text
     local succession = DATA.get_succession_from_successor_of(character_id)
     if succession ~= INVALID_ID then
         local successor = DATA.succession_get_successor(succession)
-        s = s .. "\n " .. DATA.pop_get_name(successor) .. " is the designated successor of " .. NAME(character) .. "."
+        s = s .. "\n " .. DATA.pop_get_name(successor) .. " is the designated successor of " .. character.name .. "."
     else
-        s = s .. "\n " .. NAME(character) .. " has not designated a successor yet."
+        s = s .. "\n " .. character.name .. " has not designated a successor yet."
     end
 
     ui.panel(description_panel)
@@ -248,7 +248,7 @@ function window.draw(game)
     local traits = {}
     local trait_count = 0
 
-    for i = 0, MAX_TRAIT_INDEX do
+    for i = 1, MAX_TRAIT_INDEX do
         local trait = DATA.pop_get_traits(character_id, i)
         if trait == TRAIT.INVALID then
             break
@@ -335,7 +335,7 @@ function window.draw(game)
     local tab_layout = ui.layout_builder():position(character_tab.x, character_tab.y):horizontal():build()
     character_list_tab = ut.tabs(character_list_tab, tab_layout, tabs, 1, ut.BASE_HEIGHT * 4)
 
-    ut.coa(character.realm, coa)
+    ut.coa(REALM(character.id), coa)
 end
 
 return window

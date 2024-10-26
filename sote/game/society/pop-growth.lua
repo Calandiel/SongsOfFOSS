@@ -11,6 +11,9 @@ local demography_effects = require "game.raws.effects.demography"
 ---Runs natural growth and decay on a single province.
 ---@param province_id Province
 function pg.growth(province_id)
+	---#logging LOGS:write("province growth " .. tostring(province_id).."\n")
+	---#logging LOGS:flush()
+
 	local province = DATA.fatten_province(province_id)
 
 	-- First, get the carrying capacity...
@@ -53,9 +56,10 @@ function pg.growth(province_id)
 	local eligible_to_breed = {}
 
 	for _, pop in ipairs(pops_and_characters) do
+		assert(DCON.dcon_pop_is_valid(pop - 1), tostring(pop))
 		local age_adjusted_starvation_check = starvation_check / pop_utils.get_age_multiplier(pop)
 		local min_life_satisfaction = 3
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pop, index)
 			if use_case == 0 then
 				break
@@ -124,10 +128,14 @@ function pg.growth(province_id)
 
 	-- Kill old pops...
 	for _, pp in pairs(to_remove) do
-		if IS_CHARACTER(pp) then
-			WORLD:emit_immediate_event("death", pp, province_id)
-		else
-			demography_effects.kill_pop(pp)
+		-- there might be some repeats?
+		-- do not delete pop twice
+		if DCON.dcon_pop_is_valid(pp - 1) then
+			if IS_CHARACTER(pp) then
+				WORLD:emit_immediate_event("death", pp, province_id)
+			else
+				demography_effects.kill_pop(pp)
+			end
 		end
 	end
 
@@ -177,7 +185,7 @@ function pg.growth(province_id)
 		DATA.force_create_parent_child_relation(pp, newborn)
 
 		-- set newborn to parents satisfaction
-		for index = 0, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 			local use_case = DATA.pop_get_need_satisfaction_use_case(pp, index)
 			if use_case == 0 then
 				break

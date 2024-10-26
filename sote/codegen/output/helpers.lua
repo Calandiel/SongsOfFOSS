@@ -20,14 +20,14 @@ end
 ---@return province_id
 function PROVINCE(pop_id)
 	-- assume that pop has location?
-	local location_pop = DATA.get_pop_location_from_pop(pop_id)
-	local location_character = DATA.get_character_location_from_character(pop_id)
+	local location_pop = DATA.pop_location_get_location(DATA.get_pop_location_from_pop(pop_id))
+	local location_character = DATA.character_location_get_location(DATA.get_character_location_from_character(pop_id))
 
 	if location_pop ~= INVALID_ID then
-		return DATA.pop_location_get_location(location_pop)
+		return location_pop
 	end
 	if location_character ~= INVALID_ID then
-		return DATA.character_location_get_location(location_character)
+		return location_character
 	end
 
 	return INVALID_ID
@@ -38,9 +38,6 @@ end
 ---@return realm_id
 function PROVINCE_REALM(province)
 	local realm_membership = DATA.get_realm_provinces_from_province(province)
-	if realm_membership == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.realm_provinces_get_realm(realm_membership)
 end
 
@@ -64,9 +61,6 @@ end
 ---@return Character
 function LOYAL_TO(pop_id)
 	local loyalty = DATA.get_loyalty_from_bottom(pop_id)
-	if loyalty == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.loyalty_get_top(loyalty)
 end
 
@@ -77,12 +71,7 @@ end
 function HOME(pop_id)
 	-- assume that pop has location?
 	local location_pop = DATA.get_home_from_pop(pop_id)
-
-	if location_pop ~= INVALID_ID then
-		return DATA.home_get_home(location_pop)
-	end
-
-	return INVALID_ID
+	return DATA.home_get_home(location_pop)
 end
 
 ---Returns parent of a pop
@@ -90,9 +79,6 @@ end
 ---@return pop_id
 function PARENT(pop_id)
 	local parenthood = DATA.get_parent_child_relation_from_child(pop_id)
-	if parenthood == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.parent_child_relation_get_parent(parenthood)
 end
 
@@ -104,25 +90,12 @@ end
 ---@param pop_id pop_id
 function REALM(pop_id)
 	local pop_realm = DATA.get_realm_pop_from_pop(pop_id)
-	if pop_realm == INVALID_ID then
-		return INVALID_ID
-	else
-		return DATA.realm_pop_get_realm(pop_realm)
-	end
+	return DATA.realm_pop_get_realm(pop_realm)
 end
 
 function LOCAL_REALM(pop_id)
 	local province = PROVINCE(pop_id)
-	if province == INVALID_ID then
-		return INVALID_ID
-	end
-
 	local realm_membership = DATA.get_realm_provinces_from_province(province)
-
-	if realm_membership == INVALID_ID then
-		return INVALID_ID
-	end
-
 	return DATA.realm_provinces_get_realm(realm_membership)
 end
 
@@ -165,9 +138,6 @@ end
 ---@return pop_id
 function LEADER(realm)
 	local leadership = DATA.get_realm_leadership_from_realm(realm)
-	if leadership == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.realm_leadership_get_leader(leadership)
 end
 
@@ -176,9 +146,6 @@ end
 ---@return pop_id
 function WARBAND_LEADER(warband)
 	local leadership = DATA.get_warband_leader_from_warband(warband)
-	if leadership == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.warband_leader_get_leader(leadership)
 end
 
@@ -187,10 +154,7 @@ end
 ---@return pop_id
 function WARBAND_COMMANDER(warband)
 	local leadership = DATA.get_warband_commander_from_warband(warband)
-	if leadership == INVALID_ID then
-		return INVALID_ID
-	end
-	return DATA.warband_commander_get_leader(leadership)
+	return DATA.warband_commander_get_commander(leadership)
 end
 
 ---commenting
@@ -198,9 +162,6 @@ end
 ---@return warband_id
 function GUARD(realm)
 	local guard = DATA.get_realm_guard_from_realm(realm)
-	if guard == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.realm_guard_get_guard(guard)
 end
 
@@ -209,9 +170,6 @@ end
 ---@return realm_id
 function LEADER_OF(leader)
 	local leadership = DATA.get_realm_leadership_from_leader(leader)
-	if leadership == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.realm_leadership_get_warband(leadership)
 end
 
@@ -220,9 +178,6 @@ end
 ---@return warband_id
 function LEADER_OF_WARBAND(leader)
 	local leadership = DATA.get_warband_leader_from_leader(leader)
-	if leadership == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.warband_leader_get_warband(leadership)
 end
 
@@ -231,9 +186,6 @@ end
 ---@return warband_id
 function RECRUITER_OF_WARBAND(leader)
 	local leadership = DATA.get_warband_recruiter_from_recruiter(leader)
-	if leadership == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.warband_recruiter_get_warband(leadership)
 end
 
@@ -242,9 +194,6 @@ end
 ---@return warband_id
 function UNIT_OF(unit)
 	local unitship = DATA.get_warband_unit_from_unit(unit)
-	if unitship == INVALID_ID then
-		return INVALID_ID
-	end
 	return DATA.warband_unit_get_warband(unitship)
 end
 
@@ -313,7 +262,7 @@ end
 ---@param pop pop_id
 ---@param trait TRAIT
 function HAS_TRAIT(pop, trait)
-	for i = 0, MAX_TRAIT_INDEX  do
+	for i = 1, MAX_TRAIT_INDEX  do
 		if DATA.pop_get_traits(pop, i) == trait then
 			return true
 		end
@@ -323,7 +272,7 @@ end
 
 --- update these values when you change description in according generator descriptors
 
-MAX_TRAIT_INDEX = 19
+MAX_TRAIT_INDEX = 10
 MAX_NEED_SATISFACTION_POSITIONS_INDEX = 19
 MAX_RESOURCES_IN_PROVINCE_INDEX = 24
 MAX_REQUIREMENTS_TECHNOLOGY = 20
@@ -356,6 +305,14 @@ function RECALCULATE_WEIGHTS_TABLE()
 
 	DATA.for_each_use_weight(function (use_weight)
 		local fat = DATA.fatten_use_weight(use_weight)
+		assert(
+			fat.trade_good ~= INVALID_ID,
+			tostring(use_weight).. " " ..tostring(fat.trade_good).." " ..tostring( DATA.use_weight_get_trade_good(use_weight))
+		)
+		assert(
+			fat.use_case ~= INVALID_ID,
+			tostring(use_weight).." " ..tostring(fat.use_case).." " ..tostring(DATA.use_weight_get_use_case(use_weight))
+		)
 		USE_WEIGHT[fat.trade_good][fat.use_case] = fat.weight
 	end)
 end

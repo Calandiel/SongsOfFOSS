@@ -4,5 +4,5 @@ description string
 r float
 g float
 b float
-category TRADE_GOOD_CATEGORY=TRADE_GOOD_CATEGORY.GOOD
+belongs_to_category TRADE_GOOD_CATEGORY
 base_price float

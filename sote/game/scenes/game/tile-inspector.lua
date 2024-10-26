@@ -473,7 +473,7 @@ local function trade_widget(gam, tile_id, panel)
 
 	local province_size = DATA.province_get_size(province_id)
 
-	for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+	for i = 1, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
 		local forage_case = DATA.province_get_foragers_targets_forage(province_id, i)
 
 		if forage_case == FORAGE_RESOURCE.INVALID then
@@ -523,7 +523,7 @@ local function trade_widget(gam, tile_id, panel)
 	local resource_tooltip = "There is no special resource on this tile."
 	local resource_icon = "uncertainty.png"
 	local has_resource = false
-	for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+	for i = 1, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
 		local resource = DATA.province_get_local_resources_resource(province_id, i)
 		if resource == INVALID_ID then
 			break
@@ -883,7 +883,7 @@ local function buildings_view_tab(gam, tile_id, rect)
 		local size = 0
 		DATA.for_each_building_location_from_location(province_id, function (item)
 			local building = DATA.building_location_get_building(item)
-			local building_type = DATA.building_get_type(building)
+			local building_type = DATA.building_get_current_type(building)
 			if stacks[building_type] == nil then
 				stacks[building_type] = 1
 				size = size + 1
@@ -927,7 +927,7 @@ local function buildings_view_tab(gam, tile_id, rect)
 			if number > 0 and number <= amount then
 				---@type Building
 				local building = DATA.building_location_get_building(tabb.nth(buildings, number))
-				local building_type = DATA.building_get_type(building)
+				local building_type = DATA.building_get_current_type(building)
 				local icon = DATA.building_type_get_icon(building_type)
 				local description = DATA.building_type_get_description(building_type)
 				local owner = DATA.get_ownership_from_building(building)

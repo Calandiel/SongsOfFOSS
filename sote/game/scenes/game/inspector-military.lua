@@ -28,9 +28,9 @@ end
 function window.draw(game)
     local player_character = WORLD.player_character
 
-    local realm = game.selected.province.realm
-    if realm == nil and player_character then
-        realm = LOCAL_REALM(character)
+    local realm = PROVINCE_REALM(game.selected.province)
+    if realm == INVALID_ID and player_character ~= INVALID_ID then
+        realm = LOCAL_REALM(player_character)
     end
 
     if realm == nil then
@@ -78,7 +78,7 @@ function window.draw(game)
 
             r.width = width_unit
             r.x = x + width_unit * 2
-            ui.centered_text(warband.status, r)
+            ui.centered_text(warband.current_status, r)
 
             r.x = x + width_unit * 3
             ui.left_text("units: ", r)

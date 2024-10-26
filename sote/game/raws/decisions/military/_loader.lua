@@ -353,7 +353,7 @@ return function ()
 			if warband == INVALID_ID then
 				return "You are not a leader of a warband."
 			end
-			if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
+			if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then
 				return "Your warband is busy."
 			end
 			if PROVINCE_REALM(primary_target) == INVALID_ID then
@@ -384,7 +384,7 @@ return function ()
 			if warband == INVALID_ID then
 				return false
 			end
-			if DATA.warband_get_status(warband) ~= WARBAND_STATUS.IDLE then
+			if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then
 				return false
 			end
 			return true

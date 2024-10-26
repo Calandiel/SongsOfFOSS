@@ -25,7 +25,7 @@ DESCRIPTION_STATIC_PATH = "./sote/codegen/description_static"
 DESCRIPTION_STRUCTS_PATH = "./sote/codegen/description_structs"
 OUTPUT_PATH = "./sote/codegen/output/generated.lua"
 DCON_DESC_PATH = "./sote/codegen/dcon/sote.txt"
-CPP_COMMON_TYPES_PATH = "./sote/codegen/dcon/common_types.hpp"
+CPP_COMMON_TYPES_PATH = "./sote/codegen/dcon/sote_types.hpp"
 NAMESPACE = "DATA"
 SAVE_FILE_NAME_LUA = "gamestatesave.bitserbeaver"
 SAVE_FILE_NAME_FFI = "gamestatesave.binbeaver"
@@ -58,6 +58,7 @@ class Atom:
     lsp_type: str
     dcon_type: str
     default_value: typing.Union[None, str]
+    description: str
     generated_during_runtime: bool
     ignore_in_data_layout: bool
 
@@ -66,6 +67,8 @@ class Atom:
         #     print(description)
         self.ignore_in_data_layout = False
         self.generated_during_runtime = False
+
+        self.description = description
 
         if description.startswith('@'):
             self.generated_during_runtime = True
@@ -86,7 +89,8 @@ class Atom:
         if description in REGISTERED_ENUMS:
             self.c_type = "uint8_t"
             self.lsp_type = description
-            self.dcon_type = "base_types::" + description
+            # self.dcon_type = "base_types::" + description
+            self.dcon_type = "uint8_t"
             return
         # print(2)
         if description in ["uint32_t", "int32_t", "float", "uint16_t", "uint8_t"]:
@@ -203,6 +207,30 @@ class Field:
         """
         return f"{NAMESPACE}.{self.prefix}_set_{self.name}"
 
+    def dcon_setter_name(self):
+        """
+        Returns a name of a setter
+        """
+        return f"dcon_{self.prefix}_set_{self.name}"
+
+    def dcon_getter_name(self):
+        """
+        Returns a name of a setter
+        """
+        return f"dcon_{self.prefix}_get_{self.name}"
+
+    def dcon_range_getter_name(self):
+        """
+        Returns a name of a setter
+        """
+        return f"dcon_{self.value.description}_get_range_{self.prefix}_as_{self.name}"
+
+    def dcon_index_getter_name(self):
+        """
+        Returns a name of a setter
+        """
+        return f"dcon_{self.value.description}_get_index_{self.prefix}_as_{self.name}"
+
     def increment_name(self):
         """
         Returns a name of a incrementer
@@ -217,6 +245,11 @@ class Field:
             return ""
 
         arg = prefix_to_id_name(self.prefix)
+
+        adjust_value = ""
+        if self.value.lsp_type in REGISTERED_ID_NAMES:
+            adjust_value = " + 1"
+
         if self.value.c_type:
             if self.array_size == 1:
                 if self.value.c_type in REGISTERED_STRUCTS:
@@ -227,13 +260,13 @@ class Field:
                         f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@return {field.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}_{field.name}({arg})\n" \
-                        f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name}\n" \
+                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1)[0].{field.name}{adjust_value}\n" \
                         f"end\n"
                     return result
                 return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@return {self.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}({arg})\n" \
-                        f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n" \
+                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1){adjust_value}\n" \
                         f"end\n"
             else:
                 if self.value.c_type in REGISTERED_STRUCTS:
@@ -245,16 +278,16 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid\n" \
                         f"---@return {field.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}_{field.name}({arg}, index)\n" \
-                        f"    if {NAMESPACE}.{self.prefix}[{arg}].{self.name} == nil then return 0 end\n" \
-                        f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name}\n" \
+                        f"    assert(index ~= 0)\n"\
+                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, index - 1)[0].{field.name}{adjust_value}\n" \
                         f"end\n"
                     return result
                 return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@param index {self.index.lsp_type} valid\n" \
                         f"---@return {self.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}({arg}, index)\n" \
-                        f"    if {NAMESPACE}.{self.prefix}[{arg}].{self.name} == nil then return 0 end\n" \
-                        f"    return {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index]\n" \
+                        f"    assert(index ~= 0)\n"\
+                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, index - 1){adjust_value}\n" \
                         f"end\n"
         else:
             if self.array_size > 1:
@@ -290,30 +323,42 @@ class Field:
                         f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
                         f"function {self.setter_name()}_{field.name}({arg}, value)\n" \
-                        f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name} = value\n" \
+                        f"    DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1)[0].{field.name} = value\n"\
                         f"end\n"
                         if field.value.lsp_type == "number":
                             result += \
                             f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                             f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
                             f"function {self.increment_name()}_{field.name}({arg}, value)\n" \
-                            f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name} = {NAMESPACE}.{self.prefix}[{arg}].{self.name}.{field.name} + value\n" \
+                            f"    ---@type number\n"\
+                            f"    local current = DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1)[0].{field.name}\n" \
+                            f"    DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1)[0].{field.name} = current + value\n"\
                             f"end\n"
                     return result
 
-                result =f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
-                        f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
-                        f"function {self.setter_name()}({arg}, value)\n" \
-                        f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
-                        f"end\n"
+                if self.value.lsp_type in REGISTERED_ID_NAMES:
+                    result =f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                            f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
+                            f"function {self.setter_name()}({arg}, value)\n" \
+                            f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, value - 1)\n"\
+                            f"end\n"
+                else:
+                    result =f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+                            f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
+                            f"function {self.setter_name()}({arg}, value)\n" \
+                            f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, value)\n"\
+                            f"end\n"
                 if self.value.lsp_type == "number":
                     result +=   f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                                 f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                                 f"function {self.increment_name()}({arg}, value)\n" \
-                                f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = {NAMESPACE}.{self.prefix}[{arg}].{self.name} + value\n" \
+                                f"    ---@type number\n"\
+                                f"    local current = DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1)\n" \
+                                f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, current + value)\n"\
                                 f"end\n"
                 return result
             else:
+                index = "index - 1"
                 if self.value.c_type in REGISTERED_STRUCTS:
                     result = ""
                     struct = REGISTERED_STRUCTS[self.value.c_type]
@@ -323,28 +368,32 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid index\n" \
                         f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
                         f"function {self.setter_name()}_{field.name}({arg}, index, value)\n" \
-                        f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name} = value\n" \
+                        f"    DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, {index})[0].{field.name} = value\n"\
                         f"end\n"
                         if field.value.lsp_type == "number":
                             result += f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                             f"---@param index {self.index.lsp_type} valid index\n" \
                             f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
                             f"function {self.increment_name()}_{field.name}({arg}, index, value)\n" \
-                            f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name} = {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index].{field.name} + value\n" \
+                            f"    ---@type number\n"\
+                            f"    local current = DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, {index})[0].{field.name}\n" \
+                            f"    DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, {index})[0].{field.name} = current + value\n"\
                             f"end\n"
                     return result
                 result =f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@param index {self.index.lsp_type} valid index\n" \
                         f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"function {self.setter_name()}({arg}, index, value)\n" \
-                        f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index] = value\n" \
+                        f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, {index}, value)\n"\
                         f"end\n"
                 if self.value.lsp_type == "number":
                     result +=f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                         f"---@param index {self.index.lsp_type} valid index\n" \
                         f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"function {self.increment_name()}({arg}, index, value)\n" \
-                        f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index] = {NAMESPACE}.{self.prefix}[{arg}].{self.name}[index] + value\n" \
+                        f"    ---@type number\n"\
+                        f"    local current = DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, {index})\n" \
+                        f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, {index}, current + value)\n"\
                         f"end\n"
                 return result
         else:
@@ -380,6 +429,31 @@ class Field:
         if self.value.ignore_in_data_layout:
             return ""
         if self.value.c_type:
+            if self.value.lsp_type in REGISTERED_ENUMS:
+                if self.array_size == 1:
+                    return f"        {self.value.lsp_type} {self.name};\n"
+                else:
+                    return f"        {self.value.lsp_type} {self.name}[{self.array_size}];\n"
+            elif self.value.lsp_type in REGISTERED_ID_NAMES:
+                if self.array_size == 1:
+                    return f"        dcon::{self.value.dcon_type} {self.name};\n"
+                else:
+                    return f"        dcon::{self.value.dcon_type} {self.name}[{self.array_size}];\n"
+            else:
+                if self.array_size == 1:
+                    return f"        {self.value.c_type} {self.name};\n"
+                else:
+                    return f"        {self.value.c_type} {self.name}[{self.array_size}];\n"
+
+        return ""
+
+    def c_struct_field(self):
+        """
+        Generates struct field for table
+        """
+        if self.value.ignore_in_data_layout:
+            return ""
+        if self.value.c_type:
             if self.array_size == 1:
                 return f"        {self.value.c_type} {self.name};\n"
             else:
@@ -409,43 +483,64 @@ class LinkField(Field):
         # declaration = f'{self.local_var_name()}'
         # return lsp_table_type + declaration + '= {}\n'
 
-    def local_accessor_symbol(self):
-        """
-        Generates symbol for accessor of relation from this field
-        """
-        return f'{self.prefix}_from_{self.name}'
-
     def get_from_function(self):
         """
         Generates name for accessor function of relation from this field
         """
         return f"{NAMESPACE}.get_{self.prefix}_from_{self.name}"
 
+    def dcon_getter_from_name(self):
+        """
+        Returns a name of a setter
+        """
+        return f"dcon_{self.value.description}_get_{self.prefix}_as_{self.name}"
+
     def lua_getter(self):
-        result = super().lua_getter()
+        # result = super().lua_getter()
         arg = self.name
+
+        result = ""
+        result +=   f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.value.lsp_type}\n" \
+                    f"---@return {self.value.lsp_type} Data retrieved from {self.prefix} \n" \
+                    f"function {self.getter_name()}({arg})\n" \
+                    f"    return DCON.{self.dcon_getter_name()}({arg} - 1) + 1\n"\
+                    f"end\n"
+
+
         if self.can_repeat:
             result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"---@return {prefix_to_id_name(self.prefix)}[] An array of {self.prefix} \n" \
-                        f"function {NAMESPACE}.get_{self.prefix}_from_{self.name}({arg})\n" \
-                        f"    return {self.local_accessor_name()}[{arg}]\n"\
+                        f"function {NAMESPACE}.get_{self.prefix}_from_{self.name}({self.name})\n" \
+                        f"    local result = {{}}\n" \
+                        f"    {NAMESPACE}.for_each_{self.prefix}_from_{self.name}({self.name}, function(item) \n" \
+                        f"        table.insert(result, item)\n" \
+                        f"    end)\n" \
+                        f"    return result\n"\
                         f"end\n"
             result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"---@param func fun(item: {prefix_to_id_name(self.prefix)}) valid {self.value.lsp_type}\n" \
                         f"function {NAMESPACE}.for_each_{self.prefix}_from_{self.name}({arg}, func)\n" \
-                        f"    if {self.local_accessor_name()}[{arg}] == nil then return end\n"\
-                        f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do func(item) end\n"\
+                        f"    ---@type number\n"\
+                        f"    local range = DCON.{self.dcon_range_getter_name()}({arg} - 1)\n"\
+                        f"    for i = 0, range - 1 do\n"\
+                        f"        ---@type {prefix_to_id_name(self.prefix)}\n"\
+                        f"        local accessed_element = DCON.{self.dcon_index_getter_name()}({arg} - 1, i) + 1\n"\
+                        f"        if DCON.dcon_{self.prefix}_is_valid(accessed_element - 1) then func(accessed_element) end\n"\
+                        f"    end\n"\
                         f"end\n"
             result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n"
             result +=   f"---@param func fun(item: {prefix_to_id_name(self.prefix)}):boolean \n"
-            result +=   f"---@return table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
+            result +=   f"---@return {prefix_to_id_name(self.prefix)}[]\n"
             result +=   f"function {NAMESPACE}.filter_array_{self.prefix}_from_{self.name}({arg}, func)\n"
             result +=   f"    ---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
-            result +=    "    local t = {}\n"
-            result +=   f"    if {self.local_accessor_name()}[{arg}] == nil then return t end\n"
-            result +=   f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do\n"
-            result +=    "        if func(item) then table.insert(t, item) end\n"
-            result +=    "    end\n"
+            result +=   f"    local t = {{}}\n" \
+                        f"    ---@type number\n"\
+                        f"    local range = DCON.{self.dcon_range_getter_name()}({arg} - 1)\n"\
+                        f"    for i = 0, range - 1 do\n"\
+                        f"        ---@type {prefix_to_id_name(self.prefix)}\n"\
+                        f"        local accessed_element = DCON.{self.dcon_index_getter_name()}({arg} - 1, i) + 1\n"\
+                        f"        if DCON.dcon_{self.prefix}_is_valid(accessed_element - 1) and func(accessed_element) then table.insert(t, accessed_element) end\n"\
+                        f"    end\n"
             result +=    "    return t\n"
             result +=    "end\n"
             result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n"
@@ -453,98 +548,35 @@ class LinkField(Field):
             result +=   f"---@return table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
             result +=   f"function {NAMESPACE}.filter_{self.prefix}_from_{self.name}({arg}, func)\n"
             result +=   f"    ---@type table<{prefix_to_id_name(self.prefix)}, {prefix_to_id_name(self.prefix)}> \n"
-            result +=    "    local t = {}\n"
-            result +=   f"    if {self.local_accessor_name()}[{arg}] == nil then return t end\n"
-            result +=   f"    for _, item in pairs({self.local_accessor_name()}[{arg}]) do\n"
-            result +=    "        if func(item) then t[item] = item end\n"
-            result +=    "    end\n"
+            result +=   f"    local t = {{}}\n" \
+                        f"    ---@type number\n"\
+                        f"    local range = DCON.{self.dcon_range_getter_name()}({arg} - 1)\n"\
+                        f"    for i = 0, range - 1 do\n"\
+                        f"        ---@type {prefix_to_id_name(self.prefix)}\n"\
+                        f"        local accessed_element = DCON.{self.dcon_index_getter_name()}({arg} - 1, i) + 1\n"\
+                        f"        if DCON.dcon_{self.prefix}_is_valid(accessed_element - 1) and func(accessed_element) then t[accessed_element] = accessed_element end\n"\
+                        f"    end\n"
             result +=    "    return t\n"
             result +=    "end\n"
         else:
             result +=   f"---@param {arg} {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"---@return {prefix_to_id_name(self.prefix)} {self.prefix} \n" \
                         f"function {self.get_from_function()}({arg})\n" \
-                        f"    if {self.local_accessor_name()}[{arg}] == nil then return 0 end\n"\
-                        f"    return {self.local_accessor_name()}[{arg}]\n"\
+                        f"    return DCON.{self.dcon_getter_from_name()}({arg} - 1) + 1\n" \
                         f"end\n"
         return result
-
-    def remove_key_func_name(self):
-        """
-        Returns a name of function which removes key from additional tables
-        """
-        s = f"__remove_key_{self.prefix}_{self.name}"
-        return s.upper()
 
     def lua_setter(self):
         """
         Returns a string with setter binding
         """
         arg = prefix_to_id_name(self.prefix)
-        if self.can_repeat:
-            return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
-                    f"---@param old_value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
-                    f"function {self.remove_key_func_name()}({arg}, old_value)\n" \
-                    f"    local found_key = nil\n"\
-                    f"    if {self.local_accessor_name()}[old_value] == nil then\n        {self.local_accessor_name()}[old_value] = {{}}\n        return\n    end\n" \
-                    f"    for key, value in pairs({self.local_accessor_name()}[old_value]) do\n"\
-                    f"        if value == {arg} then\n"\
-                    f"            found_key = key\n"\
-                    f"            break\n"\
-                    f"        end\n"\
-                    f"    end\n"\
-                    f"    if found_key ~= nil then\n"\
-                    f"        table.remove({self.local_accessor_name()}[old_value], found_key)\n"\
-                    f"    end\n"\
-                    f"end\n"\
-                    f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
+
+        return      f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
                     f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                     f"function {self.setter_name()}({arg}, value)\n" \
-                    f"    local old_value = {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n"\
-                    f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
-                    f"    {self.remove_key_func_name()}({arg}, old_value)\n"\
-                    f"    if {self.local_accessor_name()}[value] == nil then {self.local_accessor_name()}[value] = {{}} end\n"\
-                    f"    table.insert({self.local_accessor_name()}[value], {arg})\n"\
+                    f"    DCON.{self.dcon_setter_name()}({arg} - 1, value - 1)\n"\
                     f"end\n"
-        else:
-            result= f"function {self.remove_key_func_name()}(old_value)\n" \
-                    f"    {self.local_accessor_name()}[old_value] = nil\n"\
-                    f"end\n"\
-                    f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
-                    f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
-                    f"function {self.setter_name()}({arg}, value)\n" \
-                    f"    local old_value = {NAMESPACE}.{self.prefix}[{arg}].{self.name}\n"\
-                    f"    local to_delete = {self.local_accessor_name()}[value]\n"
-            result += f"    if to_delete ~= nil then {NAMESPACE}.delete_{self.prefix}(to_delete) end\n"
-            result += f"    {NAMESPACE}.{self.prefix}[{arg}].{self.name} = value\n" \
-                    f"    {self.remove_key_func_name()}(old_value)\n"\
-                    f"    {self.local_accessor_name()}[value] = {arg}\n"\
-                    f"end\n"
-            return result
-
-    def local_accessor_name(self):
-        """
-        Returns a name of local variable responsible for pointer
-        to array with accessor to the object from linked object
-        """
-        return f'{NAMESPACE}.{self.prefix}_from_{self.name}'
-
-    def accessor_string(self):
-        """
-        String to access the link or links from an object
-        """
-
-        if self.can_repeat:
-            lsp_table_type = f'---@type table<{self.value.lsp_type}, {prefix_to_id_name(self.prefix)}[]>>\n'
-            declaration = f'{self.local_accessor_name()}'
-            return lsp_table_type + declaration + '= {}\n'
-
-        lsp_table_type = f'---@type table<{self.value.lsp_type}, {prefix_to_id_name(self.prefix)}>\n'
-        declaration = f'{self.local_accessor_name()}'
-        return lsp_table_type + declaration + '= {}\n'
-
-    # def access_link_string(self):
-
 
 
 class EntityField(Field):
@@ -599,7 +631,7 @@ class StructDescription:
         result = ""
         result += "    typedef struct {\n"
         for field in self.fields:
-            result += field.struct_field()
+            result += field.c_struct_field()
         result +=f"    }} {self.name};\n"
         return result
 
@@ -651,12 +683,12 @@ class EntityDescription:
         """
         result = ""
 
-        result += "object {\n"
+        # result += "object {\n"
 
-        # if self.is_relationship:
-        #     result += "relationship {\n"
-        # else:
-        #     result += "object {\n"
+        if self.is_relationship:
+            result += "relationship {\n"
+        else:
+            result += "object {\n"
 
         result += f"    name {{ {self.name} }}\n"
 
@@ -675,24 +707,32 @@ class EntityDescription:
         result += f"    size {{ {self.max_count} }}\n"
         result += "    tag {scenario}\n"
 
+        # block
 
-        # for link in self.links:
-        #     result += "    link {\n"
-        #     result += "        object { " + link.value.dcon_type + " }\n"
-        #     result += "        name { " + link.name + " }\n"
-        #     if link.can_repeat:
-        #         result += "        type { many }\n"
-        #     else:
-        #         result += "        type { unique }\n"
-        #     result += "    }\n"
+        for link in self.links:
+            result += "    link {\n"
+            result += "        object { " + link.value.dcon_type + " }\n"
+            result += "        name { " + link.name + " }\n"
+            if link.can_repeat:
+                result += "        type { many }\n"
+                result += "        index_storage{array}\n"
+            else:
+                result += "        type { unique }\n"
+            result += "    }\n"
 
-        # for field in self.fields:
-        #     if field.value.c_type:
-        #         result +=  "    property{\n"
-        #         result += f"        name = {{ {field.name} }}\n"
-        #         result += f"        type = {{ {field.value.dcon_type} }}\n"
-        #         result +=  "        tag = { scenario }\n"
-        #         result +=  "    }\n"
+        for field in self.fields:
+            if field.value.c_type:
+                result +=  "    property{\n"
+                result += f"        name {{ {field.name} }}\n"
+                if field.array_size == 1:
+                    result += f"        type {{ {field.value.dcon_type} }}\n"
+                else:
+                    if field.index.c_type != field.index.dcon_type:
+                        result += f"        type {{ array{{{field.index.dcon_type}}}{{{field.value.dcon_type}}} }}\n"
+                    else:
+                        result += f"        type {{ array{{{field.index.c_type}}}{{{field.value.dcon_type}}} }}\n"
+                result +=  "        tag { scenario }\n"
+                result +=  "    }\n"
 
         result += "}\n"
         return result
@@ -763,8 +803,8 @@ class EntityDescription:
                             if raw_array_size in REGISTERED_ENUMS:
                                 array_size = REGISTERED_ENUMS[raw_array_size].max_count
                                 array_index = raw_array_size
-                            elif raw_array_size in REGISTERED_NAMES:
-                                array_size = REGISTERED_NAMES[raw_array_size].max_count
+                            elif raw_array_size in REGISTERED_ID_NAMES:
+                                array_size = REGISTERED_NAMES[raw_array_size[:-3]].max_count
                                 array_index = raw_array_size
                             else:
                                 raise RuntimeError(f"INVALID PROPERTY {name} IN {self.name}")
@@ -781,18 +821,28 @@ class EntityDescription:
         result = ""
         result += f"---@param func fun(item: {prefix_to_id_name(self.name)}) \n"
         result += f"function {NAMESPACE}.for_each_{self.name}(func)\n"
-        result += f"    for _, item in pairs({NAMESPACE}.{self.name}_indices_set) do\n"
-        result +=  "        func(item)\n"
-        result +=  "    end\n"
+        result += f"    ---@type number\n"
+        result += f"    local range = DCON.dcon_{self.name}_size()\n"
+        result += f"    for i = 0, range - 1 do\n"
+        if self.erasable:
+            result += f"        if DCON.dcon_{self.name}_is_valid(i) then func({assert_type('i + 1', prefix_to_id_name(self.name))}) end\n"
+        else:
+            result += f"        func({assert_type('i + 1', prefix_to_id_name(self.name))})\n"
+        result += f"    end\n"
         result +=  "end\n"
         result += f"---@param func fun(item: {prefix_to_id_name(self.name)}):boolean \n"
         result += f"---@return table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}> \n"
         result += f"function {NAMESPACE}.filter_{self.name}(func)\n"
         result += f"    ---@type table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}> \n"
         result +=  "    local t = {}\n"
-        result += f"    for _, item in pairs({NAMESPACE}.{self.name}_indices_set) do\n"
-        result +=  "        if func(item) then t[item] = item end\n"
-        result +=  "    end\n"
+        result += f"    ---@type number\n"
+        result += f"    local range = DCON.dcon_{self.name}_size()\n"
+        result += f"    for i = 0, range - 1 do\n"
+        if self.erasable:
+            result += f"        if DCON.dcon_{self.name}_is_valid(i) and func({assert_type('i + 1', prefix_to_id_name(self.name))}) then t[{assert_type('i + 1', prefix_to_id_name(self.name))}] = t[{assert_type('i + 1', prefix_to_id_name(self.name))}] end\n"
+        else:
+            result += f"        if func({assert_type('i + 1', prefix_to_id_name(self.name))}) then t[{assert_type('i + 1', prefix_to_id_name(self.name))}] = t[{assert_type('i + 1', prefix_to_id_name(self.name))}] end\n"
+        result += f"    end\n"
         result +=  "    return t\n"
         result +=  "end\n"
         return result
@@ -803,60 +853,12 @@ class EntityDescription:
         Generates function responsible for deletion of an object
         """
         result = ""
-        result += f"---@param i {prefix_to_id_name(self.name)}\n"
-        result += f"function {NAMESPACE}.delete_{self.name}(i)\n"
-        result += f"    assert(i ~= INVALID_ID, \" ATTEMPT TO DELETE INVALID OBJECT \")\n"
         if self.erasable:
-            if self.is_relationship:
-                for field in self.links:
-                    if field.can_repeat:
-                        result += f"    do\n"
-                        result += f"        local old_value = {NAMESPACE}.{self.name}[i].{field.name}\n"
-                        result += f"        {field.remove_key_func_name()}(i, old_value)\n"
-                        result += f"    end\n"
-                    else:
-                        result += f"    do\n"
-                        result += f"        local old_value = {NAMESPACE}.{self.name}[i].{field.name}\n"
-                        result += f"        {field.remove_key_func_name()}(old_value)\n"
-                        result += f"    end\n"
-            else:
-                if self.name in REGISTERED_LINKS:
-                    for relation in REGISTERED_LINKS[self.name]:
-                        link = REGISTERED_NAMES[relation[0]]
-                        field_name = relation[1]
-                        is_unique = True
-                        target_field = None
-                        for field in link.links:
-                            if field.name == field_name:
-                                # print(relation, field.can_repeat)
-                                if field.can_repeat:
-                                    is_unique = False
-                                target_field = field
-                        if target_field is None:
-                            raise RuntimeError(f"link {self.name} {relation} was not found")
-                        result += f"    do\n"
-                        # print(self.name, relation, is_unique)
-                        if is_unique:
-                            result += f"        local to_delete = {target_field.get_from_function()}(i)\n"
-                            result += f"        if to_delete ~= INVALID_ID then\n"
-                            result += f"            {NAMESPACE}.delete_{link.name}(to_delete)\n"
-                            result += f"        end\n"
-                        else:
-                            result += f"        ---@type {prefix_to_id_name(link.name)}[]\n"
-                            result += f"        local to_delete = {{}}\n"
-                            result += f"        if {target_field.get_from_function()}(i) ~= nil then\n"
-                            result += f"            for _, value in pairs({target_field.get_from_function()}(i)) do\n"
-                            result +=  "                table.insert(to_delete, value)\n"
-                            result += f"            end\n"
-                            result += f"        end\n"
-                            result += f"        for _, value in pairs(to_delete) do\n"
-                            result += f"            {NAMESPACE}.delete_{link.name}(value)\n"
-                            result += f"        end\n"
-                        result += f"    end\n"
-            # result += f"    {self.name}_indices_pool[i] = true\n"
-            result += f"    {NAMESPACE}.{self.name}_indices_set[i] = nil\n"
+            result += f"---@param i {prefix_to_id_name(self.name)}\n"
+            result += f"function {NAMESPACE}.delete_{self.name}(i)\n"
+            result += f"    assert(DCON.dcon_{self.name}_is_valid(i - 1), \" ATTEMPT TO DELETE INVALID OBJECT \")\n"
             result += f"    return DCON.dcon_delete_{self.name}(i - 1)\n"
-        result +=  "end\n"
+            result +=  "end\n"
         return result
 
 
@@ -890,9 +892,9 @@ class EntityDescription:
                     result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
                 else:
                     result += f'---@field {field.name} table<{field.index.lsp_type}, {field.value.lsp_type}> {field.description}\n'
-        for field in self.links:
-            if field.value.c_type:
-                result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+        # for field in self.links:
+        #     if field.value.c_type:
+        #         result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
 
         result += "\n"
 
@@ -922,8 +924,8 @@ class EntityDescription:
                 else:
                     result += f'---@field {field.name} {field.value.lsp_type}? {field.description}\n'
 
-            for field in self.links:
-                result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
+            # for field in self.links:
+            #     result += f'---@field {field.name} {field.value.lsp_type} {field.description}\n'
 
             # setup function to avoid loops over all key-value pairs
             result += f"---Sets values of {self.name} for given id\n"
@@ -971,17 +973,51 @@ class EntityDescription:
 
         # struct declaration
         result += "ffi.cdef[[\n"
-        result += "    typedef struct {\n"
-        for field in self.fields:
-            result += field.struct_field()
-        for field in self.links:
-            result += field.struct_field()
-        result += f"    }} {self.name};\n"
+        # result += "    typedef struct {\n"
+        # for field in self.fields:
+            # result += field.struct_field()
+        # for field in self.links:
+        #     result += field.struct_field()
+        # result += f"    }} {self.name};\n"
         # declare dcon functions:
+        for field in self.fields:
+            if field.value.c_type:
+                if field.array_size == 1:
+                    if field.value.c_type in REGISTERED_STRUCTS:
+                        result += f"{field.value.c_type}* dcon_{self.name}_get_{field.name}(int32_t);\n"
+                    else:
+                        result += f"void dcon_{self.name}_set_{field.name}(int32_t, {field.value.c_type});\n"
+                        result += f"{field.value.c_type} dcon_{self.name}_get_{field.name}(int32_t);\n"
+                else:
+                    result += f"void dcon_{self.name}_resize_{field.name}(uint32_t);\n"
+                    if field.value.c_type in REGISTERED_STRUCTS:
+                        result += f"{field.value.c_type}* dcon_{self.name}_get_{field.name}(int32_t, int32_t);\n"
+                    else:
+                        result += f"void dcon_{self.name}_set_{field.name}(int32_t, int32_t, {field.value.c_type});\n"
+                        result += f"{field.value.c_type} dcon_{self.name}_get_{field.name}(int32_t, int32_t);\n"
         if self.erasable:
             result += f"void dcon_delete_{self.name}(int32_t j);\n"
-        result += f"int32_t dcon_create_{self.name}();\n"
+        if self.is_relationship:
+            result += f"int32_t dcon_force_create_{self.name}("
+            for link in self.links:
+                result += "int32_t " + link.name + ", "
+            result = result[:-2]
+            result += ");\n"
+
+            for link in self.links:
+                result += f"void {link.dcon_setter_name()}(int32_t, int32_t);\n"
+                result += f"int32_t {link.dcon_getter_name()}(int32_t);\n"
+                if link.can_repeat:
+                    result += f"int32_t {link.dcon_range_getter_name()}(int32_t);\n"
+                    result += f"int32_t {link.dcon_index_getter_name()}(int32_t, int32_t);\n"
+                else:
+                    result += f"int32_t {link.dcon_getter_from_name()}(int32_t);\n"
+        else:
+            result += f"int32_t dcon_create_{self.name}();\n"
+
+        result += f"bool dcon_{self.name}_is_valid(int32_t);\n"
         result += f"void dcon_{self.name}_resize(uint32_t sz);\n"
+        result += f"uint32_t dcon_{self.name}_size();\n"
         result += "]]\n"
 
         # arrays
@@ -997,18 +1033,13 @@ class EntityDescription:
         # DCON
         # result += f"DCON.dcon_{self.name}_resize({self.max_count - 2})\n"
         # AOS
-        result +=  "---@type nil\n"
-        result += f"{NAMESPACE}.{self.name}_calloc = ffi.C.calloc(1, ffi.sizeof(\"{self.name}\") * {self.max_count + 1})\n"
-        result += f"---@type table<{prefix_to_id_name(self.name)}, struct_{self.name}>\n"
-        result += f"{NAMESPACE}.{self.name} = ffi.cast(\"{self.name}*\", {NAMESPACE}.{self.name}_calloc)\n"
+        # result +=  "---@type nil\n"
+        # result += f"{NAMESPACE}.{self.name}_calloc = ffi.C.calloc(1, ffi.sizeof(\"{self.name}\") * {self.max_count + 1})\n"
+        # result += f"---@type table<{prefix_to_id_name(self.name)}, struct_{self.name}>\n"
+        # result += f"{NAMESPACE}.{self.name} = ffi.cast(\"{self.name}*\", {NAMESPACE}.{self.name}_calloc)\n"
 
-        for field in self.links:
-            result += field.array_string(self.max_count)
-            result += field.accessor_string()
-            if field.can_repeat:
-                result +=   f"for {iterator(self.name)} = 1, {self.max_count} do\n"\
-                            f"    {field.local_accessor_name()}[{assert_type(iterator(self.name), field.value.lsp_type)}] = {{}}\n"\
-                            f"end\n"\
+        # for field in self.links:
+        #     result += field.array_string(self.max_count)
 
         result += f"\n---{self.name}: LUA bindings---\n\n"
 
@@ -1016,28 +1047,16 @@ class EntityDescription:
 
         result += f"{NAMESPACE}.{self.name}_size = {self.max_count}\n"
 
-        result += f"---@type table<{prefix_to_id_name(self.name)}, boolean>\n"
-        result += f"local {self.name}_indices_pool = ffi.new(\"bool[?]\", {self.max_count})\n"
-        result += f"for {iterator(self.name)} = 1, {self.max_count - 1} do\n    {self.name}_indices_pool[{array_index(self.name)}] = true \nend\n"
-
-        result += f"---@type table<{prefix_to_id_name(self.name)}, {prefix_to_id_name(self.name)}>\n"
-        result += f"{NAMESPACE}.{self.name}_indices_set = {{}}\n"
-
-        result += f"---@type number\n"
-        result += f"{NAMESPACE}.{self.name}_objects_count = 0\n"
+        for field in self.fields:
+            if field.value.c_type:
+                if field.array_size != 1:
+                    result += f"DCON.dcon_{self.name}_resize_{field.name}({field.array_size + 1})\n"
 
         if len(self.links) == 0:
             result += f"---@return {prefix_to_id_name(self.name)}\n"
             result += f"function {NAMESPACE}.create_{self.name}()\n"
             result += f"    ---@type {prefix_to_id_name(self.name)}\n"
             result += f"    local {iterator(self.name)}  = DCON.dcon_create_{self.name}() + 1\n"
-            result += f"    {NAMESPACE}.{self.name}_objects_count = {NAMESPACE}.{self.name}_objects_count + 1\n"
-            result += f"    {NAMESPACE}.{self.name}_indices_set[{array_index(self.name)}] = i\n"
-            if self.log_create:
-                result += f"    print(\" CREATE {self.name} \" .. tostring({NAMESPACE}.{self.name}_objects_count))\n"
-            # result += f"    if i > 0.9 * {self.max_count} then print(\"{self.name} CLOSE TO OVERFLOW\") end \n"
-            # result += f"    if i > 0.99 * {self.max_count} then print(\"{self.name} VERY CLOSE TO OVERFLOW\") end \n"
-            # result += f"    if i > 0.999 * {self.max_count} then print(\"{self.name} VERY VERY CLOSE TO OVERFLOW\") end \n"
             result += f"    return {array_index(self.name)} \n"
             result +=  "end\n"
         else:
@@ -1050,10 +1069,13 @@ class EntityDescription:
             result = result[:-2]
             result += ")\n"
             result += f"    ---@type {prefix_to_id_name(self.name)}\n"
-            result += f"    local {iterator(self.name)} = DCON.dcon_create_{self.name}() + 1\n"
-            result += f"    {NAMESPACE}.{self.name}_indices_set[{array_index(self.name)}] = i\n"
+            result += f"    local {iterator(self.name)} = DCON.dcon_force_create_{self.name}("
             for link in self.links:
-                result += f"    {link.setter_name()}({iterator(self.name)}, {link.name})\n"
+                result += link.name + " - 1, "
+            result = result[:-2]
+            result += ") + 1\n"
+            # for link in self.links:
+            #     result += f"    {link.setter_name()}({iterator(self.name)}, {link.name})\n"
             result += f"    return {array_index(self.name)} \n"
             result +=  "end\n"
 
@@ -1069,61 +1091,9 @@ class EntityDescription:
             result += field.lua_bindings()
         for field in self.links:
             result += field.lua_bindings()
-
         result += "\n"
 
-        if self.is_relationship:
-            pass
-            # table for relationship
-
-
-            # result += "---@type "
-            # for item in self.links:
-            #     result += f"table<{item.value.lsp_type}, "
-            # result += f"{prefix_to_id_name(self.name)}"
-            # for item in self.links:
-            #     result += ">"
-            # result += f"\n{NAMESPACE}.relation_{self.name} = {{}}\n"
-
-
-            # # getter for relationship:
-            # result += f"function {NAMESPACE}.get_{self.name}("
-            # for item in self.links[:-1]:
-            #     result += f"{item.name}, "
-            # result += f"{self.links[-1].name})\n"
-            # scope = f"{NAMESPACE}.relation_{self.name}"
-            # for item in self.links:
-            #     result += f"    if {scope}[{item.name}] == nil then return 0 end\n"
-            #     scope = scope + f"[{item.name}]"
-            # result += f"    return {scope}\n"
-            # result += "end\n"
-
-            # # setter for relationship
-            # result += f"function {NAMESPACE}.set_{self.name}("
-            # for item in self.links[:-1]:
-            #     result += f"{item.name}, "
-            # result += f"{self.links[-1].name})\n"
-            # scope = f"{NAMESPACE}.relation_{self.name}"
-            # for item in self.links[:-1]:
-            #     result += f"    if {scope}[{item.name}] == nil then {scope}[{item.name}] = {{}} end\n"
-            #     scope = scope + f"[{item.name}]"
-            # result += f"    if {scope}[{self.links[-1].name}] ~= nil then error(\"ATTEMPT TO CREATE ALREADY EXISTING RELATIONSHIP\") end\n"
-            # result += f"    local new_id = {NAMESPACE}.create_{self.name}()\n"
-            # result += f"    {scope}[{self.links[-1].name}] = new_id\n"
-            # for item in self.links:
-            #     result += f"    {item.setter_name()}(new_id, {item.name})\n"
-            #     if item.can_repeat:
-            #         result += f"    if {item.local_accessor_name()}[{item.name}] == nil then {item.local_accessor_name()}[{item.name}] = {{}} end\n"
-            #         result += f"    table.insert({item.local_accessor_name()}[{item.name}], new_id)\n"
-            #     else:
-            #         result += f"    {item.local_accessor_name()}[{item.name}] = new_id\n"
-            # result +=  "    return new_id\n"
-            # result += "end\n"
-
-
-        result += "\n"
         #metatable
-
         result += f"local fat_{prefix_to_id_name(self.name)}_metatable = {{\n"
 
         result += "    __index = function (t,k)\n"
@@ -1192,6 +1162,23 @@ class StaticEntityDescription(EntityDescription):
                 self.data.append(splitted_line)
                 self.max_count += 1
 
+    def cpp_struct_string(self):
+        """
+        Generates c++ declaration of enum
+        """
+
+        result = ""
+        result += f"enum class {self.name.upper()} : uint8_t "
+        result += "{\n"
+        i = 0
+        result += f"    INVALID = {i},\n"
+        for row in self.data:
+            i += 1
+            result += f"    {row[0].upper()} = {i},\n"
+        result += "};\n"
+
+        return result
+
     def __str__(self) -> str:
         result = super().__str__()
         # generate enum:
@@ -1251,46 +1238,32 @@ def save_state():
     And another one for lua tables -- slow
     """
     result = f"function {NAMESPACE}.save_state()\n"
-    # result += "    local current_lua_state = {}\n"
-
-    # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if not field.is_ctype:
-    #             result += f"    current_lua_state.{field.array_name()} = {field.local_var_name()}\n"
-
-    # result += f"\n    bitser.dumpLoveFile(\"{SAVE_FILE_NAME_LUA}\", current_lua_state)\n\n"
-
-    result += "    local current_offset = 0\n"
-    result += "    local current_shift = 0\n"
-    result += "    local total_ffi_size = 0\n"
-
+    result += "    local current_lua_state = {}\n"
 
     for entity in ENTITY_LIST:
-        result += f'    total_ffi_size = total_ffi_size + ffi.sizeof("{entity.name}") * {entity.max_count}\n'
+        for field in entity.fields:
+            if not field.value.c_type:
+                result += f"    current_lua_state.{field.array_name()} = {field.local_var_name()}\n"
 
-    result += "    local current_buffer = ffi.new(\"uint8_t[?]\", total_ffi_size)\n"
+    result += f"\n    bitser.dumpLoveFile(\"{SAVE_FILE_NAME_LUA}\", current_lua_state)\n\n"
 
-    for entity in ENTITY_LIST:
-        result +=   f'    current_shift = ffi.sizeof("{entity.name}") * {entity.max_count}\n'
-        result +=   f'    ffi.copy(current_buffer + current_offset,' \
-                            f" {NAMESPACE}.{entity.name}, current_shift)\n"
-        result +=    "    current_offset = current_offset + current_shift\n"
-
-    # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if field.is_ctype:
-    #             result += f'    total_ffi_size = total_ffi_size + ffi.sizeof("{field.type}") * {entity.max_count}\n'
+    # result += "    local current_offset = 0\n"
+    # result += "    local current_shift = 0\n"
+    # result += "    local total_ffi_size = 0\n"
 
 
     # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if field.is_ctype:
-    #             result += f'    current_shift = ffi.sizeof("{field.type}") * {entity.max_count}\n'
-    #             result +=   f'    ffi.copy(current_buffer + current_offset,' \
-    #                         f" {field.local_var_name()}, current_shift)\n"
-    #             result += "    current_offset = current_offset + current_shift\n"
+    #     result += f'    total_ffi_size = total_ffi_size + ffi.sizeof("{entity.name}") * {entity.max_count}\n'
 
-    result += f"    assert(love.filesystem.write(\"{SAVE_FILE_NAME_FFI}\", ffi.string(current_buffer, total_ffi_size)))\n"
+    # result += "    local current_buffer = ffi.new(\"uint8_t[?]\", total_ffi_size)\n"
+
+    # for entity in ENTITY_LIST:
+    #     result +=   f'    current_shift = ffi.sizeof("{entity.name}") * {entity.max_count}\n'
+    #     result +=   f'    ffi.copy(current_buffer + current_offset,' \
+    #                         f" {NAMESPACE}.{entity.name}, current_shift)\n"
+    #     result +=    "    current_offset = current_offset + current_shift\n"
+
+    # result += f"    assert(love.filesystem.write(\"{SAVE_FILE_NAME_FFI}\", ffi.string(current_buffer, total_ffi_size)))\n"
 
     result += "end\n"
     return result
@@ -1354,69 +1327,69 @@ def tests():
     """
     result = ""
     for i in range(3):
-        result += f"function {NAMESPACE}.test_save_load_{i}()\n"
+        # result += f"function {NAMESPACE}.test_save_load_{i}()\n"
 
-        # generate data
-        random.seed(i)
-        for entity in ENTITY_LIST:
-            for field in entity.fields:
-                if field.value.c_type:
-                    result += f"    print(\"{entity.name} {field.name}\")\n"
-                    result += f"    for {iterator(entity.name)} = 0, {entity.max_count} do\n"
-                    if field.value.c_type in REGISTERED_STRUCTS:
-                        if field.array_size == 1:
-                            for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
-                                generated_value = secondary_field.value.generate_value()
-                                result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}.{secondary_field.name} = {generated_value}\n"
-                        else:
-                            for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
-                                generated_value = secondary_field.value.generate_value()
-                                result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[j].{secondary_field.name} = {generated_value}\n"
-                                result +=  "    end\n"
-                    else:
-                        if field.array_size == 1:
-                            result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name} = {field.value.generate_value()}\n"
-                        else:
-                            result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[{assert_type('j', field.index.lsp_type)}] = {field.value.generate_value()}\n"
-                            result +=  "    end\n"
-                    result +=  "    end\n"
+        # # generate data
+        # random.seed(i)
+        # for entity in ENTITY_LIST:
+        #     for field in entity.fields:
+        #         if field.value.c_type:
+        #             result += f"    print(\"{entity.name} {field.name}\")\n"
+        #             result += f"    for {iterator(entity.name)} = 0, {entity.max_count} do\n"
+        #             if field.value.c_type in REGISTERED_STRUCTS:
+        #                 if field.array_size == 1:
+        #                     for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
+        #                         generated_value = secondary_field.value.generate_value()
+        #                         result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}.{secondary_field.name} = {generated_value}\n"
+        #                 else:
+        #                     for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
+        #                         generated_value = secondary_field.value.generate_value()
+        #                         result += f"    for j = 0, {field.array_size - 1} do\n"
+        #                         result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[j].{secondary_field.name} = {generated_value}\n"
+        #                         result +=  "    end\n"
+        #             else:
+        #                 if field.array_size == 1:
+        #                     result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name} = {field.value.generate_value()}\n"
+        #                 else:
+        #                     result += f"    for j = 0, {field.array_size - 1} do\n"
+        #                     result += f"        {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[{assert_type('j', field.index.lsp_type)}] = {field.value.generate_value()}\n"
+        #                     result +=  "    end\n"
+        #             result +=  "    end\n"
 
-        # checks
-        result += f"    {NAMESPACE}.save_state()\n"
-        result += f"    {NAMESPACE}.load_state()\n"
+        # # checks
+        # result += f"    {NAMESPACE}.save_state()\n"
+        # result += f"    {NAMESPACE}.load_state()\n"
 
-        result +=  "    local test_passed = true\n"
+        # result +=  "    local test_passed = true\n"
 
-        random.seed(i)
-        for entity in ENTITY_LIST:
-            for field in entity.fields:
-                if field.value.c_type:
-                    result += f"    for i = 0, {entity.max_count} do\n"
-                    if field.value.c_type in REGISTERED_STRUCTS:
-                        if field.array_size == 1:
-                            for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
-                                generated_value = secondary_field.value.generate_value()
-                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name}.{secondary_field.name} == {generated_value}\n"
-                        else:
-                            for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
-                                generated_value = secondary_field.value.generate_value()
-                                result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[j].{secondary_field.name} == {generated_value}\n"
-                                result +=  "    end\n"
-                    else:
-                        if field.array_size == 1:
-                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name} == {field.value.generate_value()}\n"
-                        else:
-                            result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[{assert_type('j', field.index.lsp_type)}] == {field.value.generate_value()}\n"
-                            result +=  "    end\n"
-                    result +=  "    end\n"
+        # random.seed(i)
+        # for entity in ENTITY_LIST:
+        #     for field in entity.fields:
+        #         if field.value.c_type:
+        #             result += f"    for i = 0, {entity.max_count} do\n"
+        #             if field.value.c_type in REGISTERED_STRUCTS:
+        #                 if field.array_size == 1:
+        #                     for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
+        #                         generated_value = secondary_field.value.generate_value()
+        #                         result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name}.{secondary_field.name} == {generated_value}\n"
+        #                 else:
+        #                     for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
+        #                         generated_value = secondary_field.value.generate_value()
+        #                         result += f"    for j = 0, {field.array_size - 1} do\n"
+        #                         result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[j].{secondary_field.name} == {generated_value}\n"
+        #                         result +=  "    end\n"
+        #             else:
+        #                 if field.array_size == 1:
+        #                     result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[i].{field.name} == {field.value.generate_value()}\n"
+        #                 else:
+        #                     result += f"    for j = 0, {field.array_size - 1} do\n"
+        #                     result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[{array_index(entity.name)}].{field.name}[{assert_type('j', field.index.lsp_type)}] == {field.value.generate_value()}\n"
+        #                     result +=  "    end\n"
+        #             result +=  "    end\n"
 
-        result += f"    print(\"SAVE_LOAD_TEST_{i}:\")\n"
-        result +=  "    if test_passed then print(\"PASSED\") else print(\"ERROR\") end\n"
-        result += "end\n"
+        # result += f"    print(\"SAVE_LOAD_TEST_{i}:\")\n"
+        # result +=  "    if test_passed then print(\"PASSED\") else print(\"ERROR\") end\n"
+        # result += "end\n"
 
         result += f"function {NAMESPACE}.test_set_get_{i}()\n"
 
@@ -1434,19 +1407,19 @@ def tests():
                         if field.array_size == 1:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"    {NAMESPACE}.{entity.name}[id].{field.name}.{secondary_field.name} = {generated_value}\n"
+                                result += f"    {NAMESPACE}.{entity.name}_set_{field.name}_{secondary_field.name}(id, {generated_value})\n"
                         else:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        {NAMESPACE}.{entity.name}[id].{field.name}[j].{secondary_field.name} = {generated_value}\n"
+                                result += f"    for j = 1, {field.array_size} do\n"
+                                result += f"        {NAMESPACE}.{entity.name}_set_{field.name}_{secondary_field.name}(id, j, {generated_value})\n"
                                 result +=  "    end\n"
                     else:
                         if field.array_size == 1:
                             result += f"    fat_id.{field.name} = {field.value.generate_value()}\n"
                         else:
-                            result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        {NAMESPACE}.{entity.name}[id].{field.name}[{assert_type('j', field.index.lsp_type)}] = {field.value.generate_value()}\n"
+                            result += f"    for j = 1, {field.array_size} do\n"
+                            result += f"        {NAMESPACE}.{entity.name}_set_{field.name}(id, {assert_type('j', field.index.lsp_type)},  {field.value.generate_value()})"
                             result +=  "    end\n"
             result += "    local test_passed = true\n"
             random.seed(i)
@@ -1456,13 +1429,13 @@ def tests():
                         if field.array_size == 1:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"    test_passed = test_passed and {NAMESPACE}.{entity.name}[id].{field.name}.{secondary_field.name} == {generated_value}\n"
+                                result += f"    test_passed = test_passed and {NAMESPACE}.{entity.name}_get_{field.name}_{secondary_field.name}(id) == {generated_value}\n"
                                 result += f"    if not test_passed then print(\"{field.name}.{secondary_field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[id].{field.name}[0].{secondary_field.name}) end\n"
                         else:
                             for secondary_field in REGISTERED_STRUCTS[field.value.c_type].fields:
                                 generated_value = secondary_field.value.generate_value()
-                                result += f"    for j = 0, {field.array_size - 1} do\n"
-                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[id].{field.name}[j].{secondary_field.name} == {generated_value}\n"
+                                result += f"    for j = 1, {field.array_size} do\n"
+                                result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}_get_{field.name}_{secondary_field.name}(id, j) == {generated_value}\n"
                                 result +=  "    end\n"
                                 result += f"    if not test_passed then print(\"{field.name}.{secondary_field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[id].{field.name}[0].{secondary_field.name}) end\n"
                     else:
@@ -1472,8 +1445,8 @@ def tests():
                             result += f"    if not test_passed then print(\"{field.name}\", {generated_value}, fat_id.{field.name}) end\n"
                         else:
                             generated_value = field.value.generate_value()
-                            result += f"    for j = 0, {field.array_size - 1} do\n"
-                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}[id].{field.name}[j] == {generated_value}\n"
+                            result += f"    for j = 1, {field.array_size} do\n"
+                            result += f"        test_passed = test_passed and {NAMESPACE}.{entity.name}_get_{field.name}(id, {assert_type('j', field.index.lsp_type)}) == {generated_value}\n"
                             result +=  "    end\n"
                             result += f"    if not test_passed then print(\"{field.name}\", {generated_value}, {NAMESPACE}.{entity.name}[id].{field.name}[0]) end\n"
 
@@ -1609,14 +1582,22 @@ with open(OUTPUT_PATH, "w", encoding="utf8") as out:
 
 
 with open(DCON_DESC_PATH, "w", encoding="utf8") as out:
+
+    out.write('include{"sote_types.hpp"}\n')
     for entity_description in ENTITY_LIST:
         out.write(entity_description.generate_dcon_description())
     for entity_description in RAWS_LIST:
         out.write(entity_description.generate_dcon_description())
 
 with open(CPP_COMMON_TYPES_PATH, "w", encoding="utf8") as out:
+    out.write("#pragma once\n")
     out.write("namespace base_types {\n")
+
+    for struct in REGISTERED_ENUMS.values():
+        out.write(struct.cpp_struct_string())
+        out.write("\n")
     for struct in STRUCTS_LIST:
         out.write(struct.cpp_struct_string())
         out.write("\n")
+
     out.write("}")

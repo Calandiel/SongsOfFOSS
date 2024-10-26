@@ -21,7 +21,7 @@ function ge.run()
 			end
 			do
 				local ok = true
-				for i = 0, MAX_REQUIREMENTS_RESOURCE - 1 do
+				for i = 1, MAX_REQUIREMENTS_RESOURCE do
 					local requirement = DATA.resource_get_required_bedrock(res_id, i)
 					if requirement == INVALID_ID then
 						break
@@ -39,7 +39,7 @@ function ge.run()
 
 			do
 				local ok = true
-				for i = 0, MAX_REQUIREMENTS_RESOURCE - 1 do
+				for i = 1, MAX_REQUIREMENTS_RESOURCE do
 					local requirement = DATA.resource_get_required_biome(res_id, i)
 					if requirement == INVALID_ID then
 						break
@@ -89,7 +89,7 @@ function ge.run()
 			local res = DATA.tile_get_resource(tile_id)
 			if res ~= INVALID_ID then
 				-- add resource to province
-				for i = 0, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
+				for i = 1, MAX_RESOURCES_IN_PROVINCE_INDEX - 1 do
 					local ith_resource = DATA.province_get_local_resources_resource(province, i)
 					if ith_resource == INVALID_ID then
 						DATA.province_set_local_resources_location(province, i, tile_id)

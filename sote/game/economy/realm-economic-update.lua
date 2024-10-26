@@ -12,7 +12,6 @@ local use_case = require "game.raws.raws-utils".trade_good_use_case
 
 ---@param realm Realm
 function rea.prerun(realm)
-	local fat = DATA.fatten_realm(realm)
 	DATA.for_each_economy_reason(function (item)
 		DATA.realm_set_budget_spending_by_category(realm, item, 0)
 		DATA.realm_set_budget_income_by_category(realm, item, 0)
@@ -22,7 +21,11 @@ end
 
 ---@param realm_id Realm
 function rea.run(realm_id)
-	local realm = DATA.fatten_realm(realm_id)
+	---#logging LOGS:write("realm economy " .. tostring(realm_id).."\n")
+	---#logging LOGS:flush()
+
+	---#logging LOGS:write("reset realm economy data\n")
+	---#logging LOGS:flush()
 
 	DATA.for_each_trade_good(function (item)
 		DATA.realm_set_production(realm_id, item, 0)
@@ -30,7 +33,10 @@ function rea.run(realm_id)
 		DATA.realm_set_sold(realm_id, item, 0)
 	end)
 
-	realm.expected_food_consumption = 0
+	---#logging LOGS:write("prepare some constants\n")
+	---#logging LOGS:flush()
+
+	DATA.realm_set_expected_food_consumption(realm_id, 0)
 
 	local PROVINCE_TO_REALM_STOCKPILE = 0.05
 	local REALM_TO_PROVINCE_STOCKPILE = 0.05
@@ -41,6 +47,9 @@ function rea.run(realm_id)
 
 	local provinces_count = 0
 
+	---#logging LOGS:write("update stockpiles with production\n")
+	---#logging LOGS:flush()
+
 	-- Loop over all provinces in the realm and "add" their good balances to get our balance.
 	DATA.for_each_realm_provinces_from_realm(realm_id, function (item)
 		provinces_count = provinces_count + 1
@@ -50,7 +59,7 @@ function rea.run(realm_id)
 			DATA.realm_inc_production(realm_id, trade_good, amount)
 			DATA.realm_inc_sold(realm_id, trade_good, amount)
 
-			local category = DATA.trade_good_get_category(trade_good)
+			local category = DATA.trade_good_get_belongs_to_category(trade_good)
 			if category == TRADE_GOOD_CATEGORY.GOOD then
 				economic_effects.change_local_stockpile(province, trade_good, amount)
 			end
@@ -61,22 +70,14 @@ function rea.run(realm_id)
 			DATA.realm_inc_production(realm_id, trade_good, -amount)
 			DATA.realm_inc_bought(realm_id, trade_good, amount)
 
-			local category = DATA.trade_good_get_category(trade_good)
+			local category = DATA.trade_good_get_belongs_to_category(trade_good)
 			if category == TRADE_GOOD_CATEGORY.GOOD then
 				economic_effects.change_local_stockpile(province, trade_good, -amount)
 			end
 
 			local weight = USE_WEIGHT[trade_good][use_case("calories")]
-			realm.expected_food_consumption = realm.expected_food_consumption + weight * amount
+			DATA.realm_inc_expected_food_consumption(realm_id, weight * amount)
 		end)
-	end)
-
-	-- Handle stockpiles of trade goods in realm
-	DATA.for_each_trade_good(function (trade_good)
-		if DATA.trade_good_get_category(trade_good) == TRADE_GOOD_CATEGORY.GOOD then
-			local old = DATA.realm_get_resources(realm_id, trade_good)
-			DATA.realm_set_resources(realm_id, trade_good, old * 0.99)
-		end
 	end)
 
 	-- Stockpiles' waste in provinces
@@ -86,6 +87,8 @@ function rea.run(realm_id)
 		local province_id = DATA.realm_provinces_get_province(item)
 		local province = DATA.fatten_province(province_id)
 
+		---#logging LOGS:write("count neighbors\n")
+		---#logging LOGS:flush()
 
 		-- diffuse wealth
 		local neighbor_count = 0
@@ -97,6 +100,8 @@ function rea.run(realm_id)
 			end
 		end)
 
+		---#logging LOGS:write("share wealth\n")
+		---#logging LOGS:flush()
 
 		if neighbor_count > 0 then
 			local sharing_trade_wealth = province.trade_wealth * NEIGHBOURS_WEALTH_SHARING / neighbor_count
@@ -124,9 +129,12 @@ function rea.run(realm_id)
 			end)
 		end
 
+		---#logging LOGS:write("share goods\n")
+		---#logging LOGS:flush()
+
 		if neighbor_count > 0 then
 			DATA.for_each_trade_good(function (trade_good)
-				local category = DATA.trade_good_get_category(trade_good)
+				local category = DATA.trade_good_get_belongs_to_category(trade_good)
 				if category == TRADE_GOOD_CATEGORY.GOOD then
 					-- share some goods and wealth with neighbours
 					-- actual goal is to smooth out economy in space a bit
@@ -148,8 +156,11 @@ function rea.run(realm_id)
 			end)
 		end
 
+		---#logging LOGS:write("decay goods province\n")
+		---#logging LOGS:flush()
+
 		DATA.for_each_trade_good(function (trade_good)
-			local category = DATA.trade_good_get_category(trade_good)
+			local category = DATA.trade_good_get_belongs_to_category(trade_good)
 			if category == TRADE_GOOD_CATEGORY.GOOD then
 				-- decay local stockpiles
 				economic_effects.decay_local_stockpile(province_id, trade_good)
@@ -157,9 +168,13 @@ function rea.run(realm_id)
 		end)
 	end)
 
+
+	---#logging LOGS:write("decay goods realm \n")
+	---#logging LOGS:flush()
+
 	-- decay realm stockpiles
 	DATA.for_each_trade_good(function (trade_good)
-		local category = DATA.trade_good_get_category(trade_good)
+		local category = DATA.trade_good_get_belongs_to_category(trade_good)
 		if category == TRADE_GOOD_CATEGORY.GOOD then
 			local amount = DATA.realm_get_resources(realm_id, trade_good)
 			DATA.realm_set_resources(realm_id, trade_good, amount * 0.95)
@@ -262,8 +277,13 @@ function rea.run(realm_id)
 	-- ## ACTIVE MONTHLY SPENDING ##
 	-- #############################
 
+	---#logging LOGS:write("realm monthly spendings \n")
+	---#logging LOGS:flush()
+
 	-- calculate wealth we are able to siphon from treasury
-	local treasury_siphon = realm.budget_treasury_target - realm.budget_treasury
+	local treasury_target = DATA.realm_get_budget_treasury_target(realm_id)
+	local treasury = DATA.realm_get_budget_treasury(realm_id)
+	local treasury_siphon = treasury_target - treasury
 	-- if it's negative, then we have excess money in treasury! can invest into montly budget
 	if treasury_siphon < 0 then
 		economic_effects.register_income(realm_id, -treasury_siphon, ECONOMY_REASON.TREASURY)
@@ -273,9 +293,13 @@ function rea.run(realm_id)
 	-- otherwise, we have to siphon wealth from our monthly income
 
 	--- distribute income to budget categories
-	local last_change = realm.budget_change
+	local last_change = DATA.realm_get_budget_change(realm_id)
 
 	-- update tribute ratio
+
+	---#logging LOGS:write("update tribute \n")
+	---#logging LOGS:flush()
+
 	DATA.realm_set_budget_ratio(realm_id, BUDGET_CATEGORY.TRIBUTE, 0)
 	local is_paying_tribute = false
 	DATA.for_each_realm_subject_relation_from_subject(realm_id, function (item)
@@ -288,6 +312,9 @@ function rea.run(realm_id)
 		DATA.realm_set_budget_ratio(realm_id, BUDGET_CATEGORY.TRIBUTE, 0.1)
 	end
 
+	---#logging LOGS:write("update budget \n")
+	---#logging LOGS:flush()
+
 	local total_ratio = 0
 	DATA.for_each_budget_category(function (item)
 		total_ratio = total_ratio + DATA.realm_get_budget_ratio(realm_id, item)
@@ -299,6 +326,9 @@ function rea.run(realm_id)
 		local ratio = DATA.realm_get_budget_ratio(realm_id, item)
 		DATA.realm_inc_budget_to_be_invested(realm_id, item, last_change * ratio)
 	end)
+
+	---#logging LOGS:write("update investments \n")
+	---#logging LOGS:flush()
 
 	-- send/siphon the rest to/from treasury
 	local treasury_investment = last_change * treasury_ratio
@@ -336,15 +366,21 @@ function rea.run(realm_id)
 	-- #######################
 	-- ## Military spending ##
 	-- #######################
+
+	---#logging LOGS:write("military spendings \n")
+	---#logging LOGS:flush()
+
 	DATA.for_each_realm_provinces_from_realm(realm_id, function (item)
 		local province_id = DATA.realm_provinces_get_province(item)
 
 		DATA.for_each_warband_location_from_location(province_id, function (location)
 			local warband_id = DATA.warband_location_get_warband(location)
-			local warband = DATA.fatten_warband(warband_id)
+			local treasury = DATA.warband_get_treasury(warband_id)
+			local total_upkeep = DATA.warband_get_total_upkeep(warband_id)
 
-			if warband.treasury > warband.total_upkeep then
-				warband.treasury = warband.treasury - warband.total_upkeep
+
+			if treasury > total_upkeep then
+				DATA.warband_inc_treasury(warband_id, -total_upkeep)
 				DATA.for_each_warband_unit_from_warband(warband_id, function (unit)
 					local unit_type = DATA.warband_unit_get_type(unit)
 					local upkeep = DATA.unit_type_get_upkeep(unit_type)
@@ -359,13 +395,12 @@ function rea.run(realm_id)
 
 	-- spend and set military budget target based on capitol guard
 	local military_upkeep = 0.0
-	local guard = DATA.get_realm_guard_from_realm(realm_id)
+	local guard = GUARD(realm_id)
 	if guard ~= INVALID_ID then
-		local warband = DATA.realm_guard_get_guard(guard)
-		military_upkeep = warband_utils.predict_upkeep(warband)
+		military_upkeep = warband_utils.predict_upkeep(guard)
 		local budget = DATA.realm_get_budget_budget(realm_id, BUDGET_CATEGORY.MILITARY)
 		local spendings = budget / 12
-		DATA.warband_inc_treasury(warband, spendings)
+		DATA.warband_inc_treasury(guard, spendings)
 		DATA.realm_inc_budget_budget(realm_id, BUDGET_CATEGORY.MILITARY, -spendings)
 	end
 	DATA.realm_set_budget_target(realm_id, BUDGET_CATEGORY.MILITARY, military_upkeep * 12)
@@ -383,6 +418,10 @@ function rea.run(realm_id)
 	-- #######################
 	-- ## 		Tribute 	##
 	-- #######################
+
+	---#logging LOGS:write("prepare tribute \n")
+	---#logging LOGS:flush()
+
 	local tribute_collected = DATA.realm_get_budget_budget(realm_id, BUDGET_CATEGORY.TRIBUTE)
 	local tribute_collected_this_update = DATA.realm_get_budget_to_be_invested(realm_id, BUDGET_CATEGORY.TRIBUTE)
 	DATA.realm_set_budget_budget(
@@ -394,6 +433,9 @@ function rea.run(realm_id)
 
 
 	-- "wealth decay" -- to prevent the AI from accidentally overstockpiling so much that the numbers overflow...
+	---#logging LOGS:write("decay wealth \n")
+	---#logging LOGS:flush()
+
 	local treasury = DATA.realm_get_budget_treasury(realm_id)
 	local treasure_waste = treasury * 0.001
 	economic_effects.register_spendings(realm_id, treasure_waste, ECONOMY_REASON.WASTE)

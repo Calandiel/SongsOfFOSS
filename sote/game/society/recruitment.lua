@@ -7,6 +7,9 @@ local demography_effects = require "game.raws.effects.demography"
 ---Runs recruitment logic on a province, matching pops to needed units
 ---@param province Province
 function rec.run(province)
+	---#logging LOGS:write("province recruit " .. tostring(province).."\n")
+	---#logging LOGS:flush()
+
 	-- province:validate_population()
 	local warbands = DATA.filter_warband_location_from_location(province, ACCEPT_ALL)
 
@@ -55,7 +58,7 @@ function rec.run(province)
 				local employment = DATA.get_employment_from_worker(pop)
 				local pop_salary = DATA.pop_get_savings(pop) / 12
 
-				if employment ~= INVALID_ID then
+				if DATA.employment_get_building(employment) ~= INVALID_ID then
 					local last_income = DATA.employment_get_worker_income(employment)
 					pop_salary = pop_salary + last_income
 				end
