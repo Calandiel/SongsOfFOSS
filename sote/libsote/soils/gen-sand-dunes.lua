@@ -13,7 +13,6 @@ local true_dune
 local potential_dune
 local dune_terminated
 local true_water
-local permeability
 local silt_stash
 local mineral_stash
 local tag_num
@@ -167,6 +166,8 @@ local function process_dune_source(dune, expansion_iterations)
 	local new_layer = {}
 	local all_influenced = {}
 
+	-- local eruption_rand = rng:random()
+	-- local etid = dune[math.floor(eruption_rand * #dune) + 1]
 	local eruption_rand = rng:random_int_max(#dune) + 1
 	local etid = dune[eruption_rand]
 	table.insert(old_layer, etid)
@@ -284,7 +285,6 @@ function gsd.run(world_obj)
 	potential_dune = world.tmp_bool_2
 	dune_terminated = world.tmp_bool_3
 	true_water = world.tmp_float_2
-	permeability = world.tmp_float_3
 	silt_stash = world.tmp_float_4
 	mineral_stash = world.tmp_float_5
 	tag_num = world.tmp_int_1
@@ -298,7 +298,6 @@ function gsd.run(world_obj)
 	world:fill_ffi_array(potential_dune, false)
 	world:fill_ffi_array(dune_terminated, false)
 	world:fill_ffi_array(true_water, 0)
-	world:fill_ffi_array(permeability, 0)
 	world:fill_ffi_array(silt_stash, 0)
 	world:fill_ffi_array(mineral_stash, 0)
 	world:fill_ffi_array(tag_num, 0)
@@ -324,9 +323,9 @@ function gsd.run(world_obj)
 		local true_water_calc = world.jan_rainfall[ti] + world.jul_rainfall[ti] + water_movement_contribution
 		local wind_factor = world.jan_wind_speed[ti] --*+ world.jul_wind_speed[ti]
 		wind_factor = math.min(25, wind_factor)
-		wind_factor = ((1 - wind_factor / 25) * 0.65) + 0.35
-		permeability[ti] = wgu.permiation_calc_dune(world.sand[ti], world.silt[ti], world.clay[ti])
-		true_water[ti] = true_water_calc * permeability[ti] * wind_factor
+		wind_factor = (1 - wind_factor / 25) * 0.65 + 0.35
+		local permeability = wgu.permiation_calc_dune(world.sand[ti], world.silt[ti], world.clay[ti])
+		true_water[ti] = true_water_calc * permeability * wind_factor
 
 		if true_water[ti] > 40 then return end
 
@@ -361,10 +360,11 @@ function gsd.run(world_obj)
 
 	--* Iterate through all pertinent tiles and add silt and minerals
 	world:for_each_tile(function(ti)
-		if silt_stash[ti] > 0 then
-			world.silt[ti] = world.silt[ti] + math.floor(silt_stash[ti])
-			world.mineral_richness[ti] = world.mineral_richness[ti] + math.floor(mineral_stash[ti])
-		end
+		if not world.is_land[ti] then return end
+
+		world.silt[ti] = world.silt[ti] + math.floor(silt_stash[ti])
+		world.mineral_richness[ti] = world.mineral_richness[ti] + math.floor(mineral_stash[ti])
+		-- logger:log(ti .. ": " .. world.silt[ti] .. " " .. world.mineral_richness[ti])
 	end)
 end
 

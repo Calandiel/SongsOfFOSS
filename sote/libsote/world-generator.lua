@@ -203,6 +203,7 @@ local function gen_phase_02()
 		run_with_profiling(function() override_water_movement_data() end, "override_waterflow_data")
 	end
 	run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
+	run_with_profiling(function() require "libsote.soils.thinning-silts".run(wg.world) end, "thinning_silts")
 end
 
 local libsote_cpp = require "libsote.libsote"
