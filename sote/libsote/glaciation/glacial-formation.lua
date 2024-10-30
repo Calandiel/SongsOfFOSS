@@ -217,10 +217,10 @@ local function process_ice_expansion(ti, boost_ice)
 
 	local ultimate_elevation = open_issues.true_elevation(world, ti) + ice_flow[ti]
 
-	-- if align_rng then error("don't forget to align random neigh picking") end
-	local rn = rng:random_int_max(world:neighbors_count(ti))
-	world:for_each_neighbor_starting_at(ti, rn, function(nti)
-	-- world:for_each_neighbor_random_start(ti, function(nti)
+	if align_rng then error("don't forget to align random neigh picking") end
+	-- local rn = rng:random_int_max(world:neighbors_count(ti))
+	-- world:for_each_neighbor_starting_at(ti, rn, function(nti)
+	world:for_each_neighbor_random_start(ti, function(nti)
 		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
 		if ultimate_elevation <= neigh_ultimate_elev then return end
 
