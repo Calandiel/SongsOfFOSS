@@ -40,7 +40,7 @@ end
 local fu = require "game.file-utils"
 
 local function override_climate_data()
-	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_climate_data.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_climate_data.csv")
 
 	wg.world:for_each_tile(function(ti, _)
 		local row = generator()
@@ -60,7 +60,7 @@ local function override_climate_data()
 end
 
 local function override_water_movement_data()
-	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_climate_data.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_climate_data.csv")
 
 	wg.world:for_each_tile(function(ti, _)
 		local row = generator()
@@ -73,7 +73,7 @@ local function override_water_movement_data()
 end
 
 local function override_glacial_data()
-	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_glacial_data.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_glacial_data.csv")
 
 	wg.world:for_each_tile(function(ti, _)
 		local row = generator()
@@ -87,7 +87,7 @@ local function override_glacial_data()
 end
 
 local function override_soils_data()
-	local generator = fu.csv_rows("d:\\temp\\sote\\" .. debug.fixed_seed .. "\\sote_soils_data_01.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_01.csv")
 
 	wg.world:for_each_tile(function(ti, _)
 		local row = generator()
