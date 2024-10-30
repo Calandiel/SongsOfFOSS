@@ -1,10 +1,14 @@
 local tabb = require "engine.table"
 
+---@class technology_blob_extended : technology_id_data_blob_definition
+---@field unlocked_by technology_id[]
+
+
 local Technology = {}
 
 ---Creates a new technology
 ---commenting
----@param o technology_id_data_blob_definition
+---@param o technology_blob_extended
 ---@return technology_id
 function Technology:new(o)
 	if RAWS_MANAGER.do_logging then
@@ -13,6 +17,10 @@ function Technology:new(o)
 
 	local new_id = DATA.create_technology()
 	DATA.setup_technology(new_id, o)
+
+	for _, item in pairs(o.unlocked_by) do
+		DATA.force_create_technology_unlock(item, new_id)
+	end
 
 	if ASSETS.icons[o.icon] == nil then
 		print("Missing icon: " .. o.icon)

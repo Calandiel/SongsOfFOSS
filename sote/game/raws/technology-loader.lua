@@ -656,6 +656,7 @@ function d.load()
 		g = 0,
 		b = 1,
 		-- unlocked_decisions = { dec("gender-bender"), },
+		unlocked_by = {},
 		research_cost = 1,
 		required_biome = {},
 		required_resource = {},

@@ -36,16 +36,13 @@ local function construction_in_province(province, funds, excess, owner, overseer
 	end
 
 
-	local random_pop_location = tabb.random_select_from_set(DATA.filter_pop_location_from_location(province, ACCEPT_ALL))
+	local random_pop = demography_values.sample_non_character_pop_from_province(province)
 
 	-- if pop is nil, then buildings are the last thing we need
-	if random_pop_location == nil then
+	if random_pop == nil then
 		return funds
 	end
 
-	local random_pop = DATA.pop_location_get_pop(random_pop_location)
-
-	local random_pop = demography_values.sample_character_from_province
 
 	-- calculate time to get back your investments
 	---@type table<BuildingType, number>

@@ -410,17 +410,21 @@ function prov.Province.potential_job(province, building)
 end
 
 ---@param province province_id
----@param technology Technology
-function prov.Province.research(province, technology)
-	DATA.province_set_technologies_present(province, technology, 1)
-	DATA.province_set_technologies_researchable(province, technology, 0)
+---@param researched_technology Technology
+function prov.Province.research(province, researched_technology)
+	DATA.province_set_technologies_present(province, researched_technology, 1)
+	DATA.province_set_technologies_researchable(province, researched_technology, 0)
+
+	-- print("unlock " .. DATA.technology_get_name(researched_technology))
 
 	--- update technologies which could be potentially unlocked
-	for _, t in pairs(DATA.get_technology_unlock_from_origin(technology)) do
-		local tech = DATA.technology_unlock_get_unlocked(t)
-		if DATA.province_get_technologies_present(province, tech) == 1 then
+	for _, t in pairs(DATA.get_technology_unlock_from_origin(researched_technology)) do
+		local potential_technology = DATA.technology_unlock_get_unlocked(t)
+		if DATA.province_get_technologies_present(province, potential_technology) == 1 then
 			goto continue
 		end
+
+		-- print("test for technology unlock " .. DATA.technology_get_name(potential_technology))
 
 		--print(t.name)
 		local ok = true
@@ -428,7 +432,7 @@ function prov.Province.research(province, technology)
 		local has_required_resource = true
 
 		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
-			local required_resource = DATA.technology_get_required_resource(technology, i)
+			local required_resource = DATA.technology_get_required_resource(potential_technology, i)
 			if required_resource == INVALID_ID then
 				break
 			end
@@ -456,7 +460,7 @@ function prov.Province.research(province, technology)
 		local has_required_race = true
 
 		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
-			local required_race = DATA.technology_get_required_race(technology, i)
+			local required_race = DATA.technology_get_required_race(potential_technology, i)
 			if required_race == INVALID_ID then
 				break
 			end
@@ -478,7 +482,7 @@ function prov.Province.research(province, technology)
 		local has_required_biome = true
 
 		for i = 1, MAX_REQUIREMENTS_TECHNOLOGY - 1 do
-			local required_biome = DATA.technology_get_required_biome(technology, i)
+			local required_biome = DATA.technology_get_required_biome(potential_technology, i)
 			if required_biome == INVALID_ID then
 				break
 			end
@@ -498,9 +502,9 @@ function prov.Province.research(province, technology)
 		ok = ok and has_required_biome
 
 
-		if #DATA.get_technology_unlock_from_unlocked(technology) > 0 then
+		if #DATA.get_technology_unlock_from_unlocked(potential_technology) > 0 then
 			local new_ok = true
-			for _, te in pairs(DATA.get_technology_unlock_from_unlocked(technology)) do
+			for _, te in pairs(DATA.get_technology_unlock_from_unlocked(potential_technology)) do
 				local required_tech = DATA.technology_unlock_get_origin(te)
 				if DATA.province_get_technologies_present(province, required_tech) == 1 then
 					-- nothing to do, tech present
@@ -515,8 +519,10 @@ function prov.Province.research(province, technology)
 			end
 		end
 
+		-- print(ok)
+
 		if ok then
-			DATA.province_set_technologies_researchable(province, tech, 1)
+			DATA.province_set_technologies_researchable(province, potential_technology, 1)
 		end
 
 		::continue::
@@ -525,7 +531,7 @@ function prov.Province.research(province, technology)
 
 	-- update buildings
 
-	for _, b in pairs(DATA.get_technology_building_from_technology(technology)) do
+	for _, b in pairs(DATA.get_technology_building_from_technology(researched_technology)) do
 		local building_type = DATA.technology_building_get_unlocked(b)
 		local ok = true
 
@@ -576,20 +582,20 @@ function prov.Province.research(province, technology)
 		end
 	end
 
-	for _, unit_id in ipairs(DATA.get_technology_unit_from_technology(technology)) do
+	for _, unit_id in ipairs(DATA.get_technology_unit_from_technology(researched_technology)) do
 		local unit_type = DATA.technology_unit_get_unlocked(unit_id)
 		DATA.province_set_unit_types(province, unit_type, 1)
 	end
 
 	DATA.for_each_production_method(function (i)
-		DATA.province_inc_throughput_boosts(province, i, DATA.technology_get_throughput_boosts(technology, i))
-		DATA.province_inc_input_efficiency_boosts(province, i, DATA.technology_get_input_efficiency_boosts(technology, i))
-		DATA.province_inc_output_efficiency_boosts(province, i, DATA.technology_get_output_efficiency_boosts(technology, i))
+		DATA.province_inc_throughput_boosts(province, i, DATA.technology_get_throughput_boosts(researched_technology, i))
+		DATA.province_inc_input_efficiency_boosts(province, i, DATA.technology_get_input_efficiency_boosts(researched_technology, i))
+		DATA.province_inc_output_efficiency_boosts(province, i, DATA.technology_get_output_efficiency_boosts(researched_technology, i))
 	end)
 
 	local realm = prov.Province.realm(province)
 	if WORLD:does_player_see_realm_news(realm) then
-		WORLD:emit_notification("Technology unlocked: " .. DATA.technology_get_name(technology))
+		WORLD:emit_notification("Technology unlocked: " .. DATA.technology_get_name(researched_technology))
 	end
 end
 
