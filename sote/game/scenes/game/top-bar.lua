@@ -2,13 +2,11 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 
-local pv = require "game.raws.values.politics"
-local ev = require "game.raws.values.economy"
-local economic_effects = require "game.raws.effects.economy"
+local realm_utils = require "game.entities.realm".Realm
+local province_utils = require "game.entities.province".Province
 
-local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
-
-
+local politics_values = require "game.raws.values.politics"
+local economy_values = require "game.raws.values.economy"
 
 local tb = {}
 
@@ -85,7 +83,7 @@ function DRAW_EFFECTS(parent_rect)
 			ui.right_text(uit.to_fixed_point2(effect.amount) .. MONEY_SYMBOL, new_rect)
 
 			new_rect.x = parent_rect.x - parent_rect.width
-			ui.left_text(effect.reason, new_rect)
+			ui.left_text(DATA.economy_reason_get_description(effect.reason), new_rect)
 			love.graphics.setColor(r, g, b, a)
 		end
 	end
@@ -144,7 +142,7 @@ function tb.draw(gam)
 		:build()
 
 	local name_rect = layout:next(7 * uit.BASE_HEIGHT, uit.BASE_HEIGHT)
-	if uit.text_button(WORLD.player_NAME(character), name_rect) then
+	if uit.text_button(NAME(character), name_rect) then
 		gam.selected.character = WORLD.player_character
 		gam.inspector = "character"
 	end
@@ -161,7 +159,7 @@ function tb.draw(gam)
 		"My personal savings")
 
 
-	local amount = economic_effects.available_use_case_from_inventory(character.inventory, CALORIES_USE_CASE)
+	local amount = economy_values.available_use_case_from_inventory(character, CALORIES_USE_CASE)
 	uit.sqrt_number_entry_icon(
 		"sliced-bread.png",
 		amount,
@@ -169,7 +167,7 @@ function tb.draw(gam)
 		"Food in my inventory")
 
 	local days_of_travel = 0
-	if character.leading_warband then
+	if LEADER_OF_WARBAND(character) ~= INVALID_ID then
 		days_of_travel = economy_values.days_of_travel(LEADER_OF_WARBAND(character))
 	end
 	uit.balance_entry_icon(
@@ -182,7 +180,7 @@ function tb.draw(gam)
 
 	uit.balance_entry_icon(
 		"duality-mask.png",
-		pv.popularity(character, LOCAL_REALM(character)),
+		politics_values.popularity(character, LOCAL_REALM(character)),
 		layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT),
 		"My popularity")
 
@@ -222,7 +220,7 @@ function tb.draw(gam)
 	DRAW_EFFECTS(trt)
 
 	-- Food
-	local amount = ev.get_local_amount_of_use(PROVINCE(character), CALORIES_USE_CASE)
+	local amount = economy_values.get_local_amount_of_use(PROVINCE(character), CALORIES_USE_CASE)
 	uit.sqrt_number_entry_icon(
 		"noodles.png",
 		amount,
@@ -230,35 +228,36 @@ function tb.draw(gam)
 		"Purchasable local calories")
 
 	-- Technology
-	local amount = character.province.realm:get_education_efficiency()
+	local amount = realm_utils.get_education_efficiency(LOCAL_REALM(character))
 	local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 	local trs =
 	"Current ability to research new technologies. When it's under 100%, technologies will be slowly forgotten, when above 100% they will be researched. Controlled largely through treasury spending on research and education but in most states the bulk of the contribution will come from POPs in the realm instead."
 	uit.generic_number_field("erlenmeyer.png", amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 
 	-- Happiness
-	local amount = character.province.realm:get_average_mood()
+	local amount = realm_utils.get_average_mood(LOCAL_REALM(character))
 	local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 	local trs =
 	"Average mood (happiness) of population in our realm. Happy pops contribute more voluntarily to our treasury, whereas unhappy ones contribute less."
 	uit.balance_entry_icon("duality-mask.png", amount, tr, trs)
 
 	-- Quality of life
-	local amount = character.province.realm:get_average_needs_satisfaction()
+	local amount = realm_utils.get_average_needs_satisfaction(LOCAL_REALM(character))
 	local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 	local trs = "Average quality of life of population in our realm. Pops which do not starve do not die."
 	uit.generic_number_field("duality-mask.png", amount, tr, trs, uit.NUMBER_MODE.PERCENTAGE, uit.NAME_MODE.ICON)
 
 	-- POP
-	local amount = character.province.realm:get_total_population()
+	local amount = realm_utils.get_total_population(LOCAL_REALM(character))
 	local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 	local trs = "Current population of our realm."
 	uit.data_entry_icon("minions.png", tostring(math.floor(amount)), tr, trs)
 
 	-- Army size
-	local amount = character.province.realm:get_realm_military()
-	local target = character.province.realm:get_realm_military_target() +
-	character.province.realm:get_realm_active_army_size()
+	local amount = realm_utils.get_realm_military(LOCAL_REALM(character))
+	local target = realm_utils.get_realm_military_target(LOCAL_REALM(character))+
+		realm_utils.get_realm_active_army_size(LOCAL_REALM(character))
+
 	local tr = layout:next(uit.BASE_HEIGHT * 3, uit.BASE_HEIGHT)
 	local trs = "Size of our realms armies."
 	uit.data_entry_icon("barbute.png", tostring(math.floor(amount)) .. " / " .. tostring(math.floor(target)), tr, trs)
@@ -272,20 +271,33 @@ function tb.draw(gam)
 	---@type Alert[]
 	local alerts = {}
 
-	if character.age > character.race.elder_age then
+	local race = F_RACE(character);
+
+	if AGE(character) > race.elder_age then
 		table.insert(alerts, {
 			["icon"] = "tombstone.png",
-			["tooltip"] = "You have reached elder age age will make a death roll of " .. uit.to_fixed_point2((character.race.max_age - character.age) / (character.race.max_age - character.race.elder_age) * character.race.fecundity / 12 / 7).. "% each month. This chance increases each year you continue to live.",
+			["tooltip"] = "You have reached elder age age will make a death roll of " .. uit.to_fixed_point2((race.max_age - AGE(character)) / (race.max_age - race.elder_age) * race.fecundity / 12 / 7).. "% each month. This chance increases each year you continue to live.",
 		})
 	end
 
-	local min_food_satsfaction = tabb.accumulate(character.need_satisfaction[NEED.FOOD], 1, function (a, k, v)
-		local ratio = v.consumed / v.demanded
-		if ratio < a then
-			return ratio
+	local min_food_satsfaction = 1
+
+	for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+		local need = DATA.pop_get_need_satisfaction_need(character, index)
+		if need ~= NEED.FOOD then
+			break
 		end
-		return a
-	end)
+
+		local demanded = DATA.pop_get_need_satisfaction_demanded(character, index)
+		local consumed = DATA.pop_get_need_satisfaction_consumed(character, index)
+
+		local ratio = consumed / demanded
+
+		if min_food_satsfaction > ratio then
+			min_food_satsfaction = ratio
+		end
+	end
+
 	if min_food_satsfaction < 0.2 then
 		table.insert(alerts, {
 			["icon"] = "sliced-bread.png",
@@ -294,7 +306,7 @@ function tb.draw(gam)
 		})
 	end
 
-	if character.province:get_unemployment() > 5 then
+	if province_utils.get_unemployment(PROVINCE(character)) > 5 then
 		table.insert(alerts, {
 			["icon"] = "miner.png",
 			["tooltip"] =
@@ -302,15 +314,15 @@ function tb.draw(gam)
 		})
 	end
 
-	if character.province.mood < 1 then
+	if DATA.province_get_mood(PROVINCE(character)) < 1 then
 		table.insert(alerts, {
 			["icon"] = "despair.png",
 			["tooltip"] = "Our people are unhappy. Gift money to your population or raid other realms.",
 		})
 	end
 
-	if character.rank == RANKS.CHIEF then
-		if character.province:get_infrastructure_efficiency() < 0.9 then
+	if DATA.pop_get_rank(character) == CHARACTER_RANK.CHIEF then
+		if province_utils.get_infrastructure_efficiency(PROVINCE(character)) < 0.9 then
 			table.insert(alerts, {
 				["icon"] = "horizon-road.png",
 				["tooltip"] =
@@ -318,7 +330,7 @@ function tb.draw(gam)
 			})
 		end
 
-		if character.realm:get_education_efficiency() < 0.9 then
+		if realm_utils.get_education_efficiency(REALM(character)) < 0.9 then
 			table.insert(alerts, {
 				["icon"] = "erlenmeyer.png",
 				["tooltip"] =

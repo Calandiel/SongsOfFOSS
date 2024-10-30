@@ -45,12 +45,17 @@ function window.draw(game)
     panel.y = panel.y + base_unit
     panel.height = panel.height - base_unit
 
+    local characters = tabb.map_array(
+        DATA.get_character_location_from_location(province),
+        DATA.character_location_get_character
+    )
+
     ---comment
     ---@param index number
     ---@param rect Rect
     local function render_character(index, rect)
         ---@type Character
-        local character = tabb.nth(province.characters, index)
+        local character = characters[index]
         if character == nil then return end
 
         local portrait_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
@@ -62,7 +67,7 @@ function window.draw(game)
         name(rect, character)
 
         rect.x = rect.x + rect.width
-        ui.left_text(character.age .. " year old " .. character.race.name, rect)
+        ui.left_text(AGE(character) .. " year old " .. F_RACE(character).name, rect)
 
         rect.x = rect.x + rect.width - rect.height
         rect.width = rect.height
@@ -73,7 +78,14 @@ function window.draw(game)
         end
     end
 
-    window.scroll = uit.scrollview(panel, render_character, base_unit * 2, tabb.size(province.characters), base_unit, window.scroll)
+    window.scroll = uit.scrollview(
+        panel,
+        render_character,
+        base_unit * 2,
+        #characters,
+        base_unit,
+        window.scroll
+    )
 end
 
 return window

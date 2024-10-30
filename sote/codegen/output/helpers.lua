@@ -93,6 +93,8 @@ function REALM(pop_id)
 	return DATA.realm_pop_get_realm(pop_realm)
 end
 
+---Returns local realm of a pop
+---@param pop_id pop_id
 function LOCAL_REALM(pop_id)
 	local province = PROVINCE(pop_id)
 	local realm_membership = DATA.get_realm_provinces_from_province(province)
