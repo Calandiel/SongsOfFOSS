@@ -23,11 +23,11 @@ function PROVINCE(pop_id)
 	local location_pop = DATA.pop_location_get_location(DATA.get_pop_location_from_pop(pop_id))
 	local location_character = DATA.character_location_get_location(DATA.get_character_location_from_character(pop_id))
 
-	if location_pop ~= INVALID_ID then
-		return location_pop
-	end
 	if location_character ~= INVALID_ID then
 		return location_character
+	end
+	if location_pop ~= INVALID_ID then
+		return location_pop
 	end
 
 	return INVALID_ID

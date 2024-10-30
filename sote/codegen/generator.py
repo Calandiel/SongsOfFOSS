@@ -106,13 +106,13 @@ class Atom:
             return
         # print(4)
         if description in REGISTERED_ID_NAMES:
-            self.c_type = "uint32_t"
+            self.c_type = "int32_t"
             self.lsp_type = description
             self.dcon_type = description
             return
         # print(5)
         if description in REGISTERED_NAMES:
-            self.c_type = "uint32_t"
+            self.c_type = "int32_t"
             self.lsp_type = prefix_to_id_name(description)
             self.dcon_type = description
             return
@@ -436,9 +436,9 @@ class Field:
                     return f"        {self.value.lsp_type} {self.name}[{self.array_size}];\n"
             elif self.value.lsp_type in REGISTERED_ID_NAMES:
                 if self.array_size == 1:
-                    return f"        dcon::{self.value.dcon_type} {self.name};\n"
+                    return f"        {self.value.c_type} {self.name};\n"
                 else:
-                    return f"        dcon::{self.value.dcon_type} {self.name}[{self.array_size}];\n"
+                    return f"        {self.value.c_type} {self.name}[{self.array_size}];\n"
             else:
                 if self.array_size == 1:
                     return f"        {self.value.c_type} {self.name};\n"
@@ -839,7 +839,7 @@ class EntityDescription:
         result += f"    local range = DCON.dcon_{self.name}_size()\n"
         result += f"    for i = 0, range - 1 do\n"
         if self.erasable:
-            result += f"        if DCON.dcon_{self.name}_is_valid(i) and func({assert_type('i + 1', prefix_to_id_name(self.name))}) then t[{assert_type('i + 1', prefix_to_id_name(self.name))}] = t[{assert_type('i + 1', prefix_to_id_name(self.name))}] end\n"
+            result += f"        if DCON.dcon_{self.name}_is_valid(i) and func({assert_type('i + 1', prefix_to_id_name(self.name))}) then t[{assert_type('i + 1', prefix_to_id_name(self.name))}] = {assert_type('i + 1', prefix_to_id_name(self.name))} end\n"
         else:
             result += f"        if func({assert_type('i + 1', prefix_to_id_name(self.name))}) then t[{assert_type('i + 1', prefix_to_id_name(self.name))}] = t[{assert_type('i + 1', prefix_to_id_name(self.name))}] end\n"
         result += f"    end\n"
@@ -856,7 +856,7 @@ class EntityDescription:
         if self.erasable:
             result += f"---@param i {prefix_to_id_name(self.name)}\n"
             result += f"function {NAMESPACE}.delete_{self.name}(i)\n"
-            result += f"    assert(DCON.dcon_{self.name}_is_valid(i - 1), \" ATTEMPT TO DELETE INVALID OBJECT \")\n"
+            result += f"    assert(DCON.dcon_{self.name}_is_valid(i - 1), \" ATTEMPT TO DELETE INVALID OBJECT \" .. tostring(i))\n"
             result += f"    return DCON.dcon_delete_{self.name}(i - 1)\n"
             result +=  "end\n"
         return result
@@ -958,7 +958,7 @@ class EntityDescription:
                                 result += f"    end\n"
                             else:
                                 result += f"    for i, value in pairs(data.{field.name}) do\n"
-                                result += f"        {field.setter_name()}(id, i - 1, value)\n"
+                                result += f"        {field.setter_name()}(id, i, value)\n"
                                 result += f"    end\n"
                 else:
                     result += f"    if data.{field.name} ~= nil then\n"
@@ -1519,7 +1519,7 @@ Army = EntityDescription("army", 5000, False)
 Warband = EntityDescription("warband", 50000, False)
 Realm = EntityDescription("realm", REALMS_MAX_COUNT, False)
 
-Negotiations = EntityDescription("negotiation", 2500, False)
+Negotiations = EntityDescription("negotiation", 45000, False)
 
 Building = EntityDescription("building", 200000, False)
 BuildingOwnership = EntityDescription("ownership", 200000, False)

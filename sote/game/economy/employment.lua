@@ -16,6 +16,9 @@ function emp.run(province)
 	local eligible_pops = tabb.filter_array(
 		tabb.map_array(DATA.get_pop_location_from_location(province), DATA.pop_location_get_pop),
 		function (pop)
+			if IS_CHARACTER(pop) then
+				return false
+			end
 			local race = DATA.pop_get_race(pop)
 			local teen_age = DATA.race_get_teen_age(race)
 			return (DATA.pop_get_age(pop) > teen_age) and (DATA.pop_get_work_ratio(pop) > 0.02)

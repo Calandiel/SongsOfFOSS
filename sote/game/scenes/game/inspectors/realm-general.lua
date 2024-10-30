@@ -34,12 +34,12 @@ local function info(rect, realm, gam)
 
 
         -- general info
-        uit.data_entry("Culture: ", realm.primary_culture.name, panel_rect, REALM_NAME(realm)
-            .. " follows the customs of " .. realm.primary_culture.name .. ".\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(realm.primary_culture))
+        uit.data_entry("Culture: ", DATA.realm_get_primary_culture(realm).name, panel_rect, REALM_NAME(realm)
+            .. " follows the customs of " .. DATA.realm_get_primary_culture(realm).name .. ".\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.realm_get_primary_culture(realm)))
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-        uit.data_entry("Faith: ", realm.primary_faith.name, panel_rect)
+        uit.data_entry("Faith: ", DATA.realm_get_primary_faith(realm).name, panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
-        uit.data_entry("Race: ", realm.primary_race.name, panel_rect)
+        uit.data_entry("Race: ", DATA.race_get_name(DATA.realm_get_primary_race(realm)), panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- major offices:
@@ -48,8 +48,8 @@ local function info(rect, realm, gam)
 
         local overseer = political_values.overseer(realm)
         local overseer_name = "Vacant"
-        if overseer then
-            overseer_name = overseer.name
+        if overseer ~= INVALID_ID then
+            overseer_name = NAME(overseer)
         end
         if uit.text_button(overseer_name, panel_rect, "", overseer ~= nil) then
             gam.selected.character = overseer
@@ -62,8 +62,8 @@ local function info(rect, realm, gam)
 
         local guard_leader = political_values.guard_leader(realm)
         local guard_leader_name = "Vacant"
-        if guard_leader then
-            guard_leader_name = guard_leader.name
+        if guard_leader ~= INVALID_ID then
+            guard_leader_name = NAME(guard_leader)
         end
         if uit.text_button(guard_leader_name, panel_rect, "", guard_leader ~= nil) then
             gam.selected.character = guard_leader

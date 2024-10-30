@@ -11,7 +11,7 @@ function effects.travel(character, province)
 	---@type Province
 	local initial_province = PROVINCE(character)
 
-	province_utils.transfer_character(character, province)
+	province_utils.transfer_pop(character, province)
 
 	local leader_of = DATA.get_warband_leader_from_leader(character)
 

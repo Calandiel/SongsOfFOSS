@@ -299,7 +299,7 @@ local function realm_widget(gam, tile_id, panel)
 			ASSETS.icons["frog-prince.png"],
 			buttons_grid:next(UI_STYLE.square_button_large, UI_STYLE.square_button_large),
 			"Take control over character from this country",
-			player == nil
+			player == INVALID_ID
 		) then
 		-- gam.refresh_map_mode()
 		gam.inspector = "characters"
@@ -1063,8 +1063,7 @@ local function technology_tab(gam, tile_id, panel)
 						re.researchable_technologies_scrollbar = re.researchable_technologies_scrollbar or 0
 						re.researchable_technologies_scrollbar = uit.scrollview(rect, function(number, rect)
 								if number > 0 then
-									---@type Technology
-									local tech = tabb.nth(technologies_potential, number)
+									local tech = technologies_potential[number]
 									require "game.scenes.game.widgets.technology" (tech, rect, gam)
 								end
 							end,

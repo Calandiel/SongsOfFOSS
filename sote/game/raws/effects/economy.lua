@@ -367,7 +367,7 @@ function EconomicEffects.change_local_stockpile(province, good, x)
 			"INVALID LOCAL STOCKPILE CHANGE"
 			.. "\n change = "
 			.. tostring(x)
-			.. "\n province.local_storage[ ['" .. DATA.trade_good_get_name(good) .. "'] = "
+			.. "\n province.local_storage ['" .. DATA.trade_good_get_name(good) .. "'] = "
 			.. tostring(current_stockpile)
 		)
 	end
@@ -404,6 +404,8 @@ function EconomicEffects.buy(character, good, amount)
 	-- can_buy validates province
 
 	local province = DATA.character_location_get_location(DATA.get_character_location_from_character(character))
+
+	assert(DATA.province_get_local_storage(province, good) >= amount, "ATTEMPT TO BUY MORE GOODS THAN THERE IS IN A PROVINCE")
 
 	local price = ev.get_local_price(province, good)
 

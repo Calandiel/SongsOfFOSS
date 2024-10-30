@@ -105,7 +105,7 @@ function triggers.can_buy(character, good, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
     end
 
-    if province then
+    if PROVINCE ~= INVALID_ID then
         if DATA.province_get_local_storage(province, good) < amount then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.LOCAL_GOODS_IS_TOO_LOW)

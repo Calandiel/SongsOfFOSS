@@ -341,8 +341,8 @@ function PoliticalEffects.grant_nobility(pop, reason)
 	demography_effects.fire_pop(pop)
 	warband_utils.unregister_military(pop)
 
-	local pop_location = DATA.get_pop_location_from_pop(pop)
-	DATA.delete_pop_location(pop_location)
+	-- local pop_location = DATA.get_pop_location_from_pop(pop)
+	-- DATA.delete_pop_location(pop_location)
 
 	province_utils.add_character(province, pop)
 	province_utils.set_home(province, pop)
@@ -462,6 +462,7 @@ function PoliticalEffects.generate_new_noble(realm, province, race, faith, cultu
 	roll_traits(character)
 	SET_REALM(character, realm)
 	province_utils.add_character(province, character)
+	province_utils.add_pop(province, character)
 	province_utils.set_home(province, character)
 
 	return character

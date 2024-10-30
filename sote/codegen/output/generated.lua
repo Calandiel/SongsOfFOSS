@@ -6,10 +6,10 @@ local bitser = require("engine.bitser")
 
 DATA = {}
 ---@class struct_budget_per_category_data
----@field ratio number
----@field budget number
----@field to_be_invested number
----@field target number
+---@field ratio number 
+---@field budget number 
+---@field to_be_invested number 
+---@field target number 
 ffi.cdef[[
     typedef struct {
         float ratio;
@@ -19,75 +19,75 @@ ffi.cdef[[
     } budget_per_category_data;
 ]]
 ---@class struct_trade_good_container
----@field good trade_good_id
----@field amount number
+---@field good trade_good_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
-        uint32_t good;
+        int32_t good;
         float amount;
     } trade_good_container;
 ]]
 ---@class struct_use_case_container
----@field use use_case_id
----@field amount number
+---@field use use_case_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
-        uint32_t use;
+        int32_t use;
         float amount;
     } use_case_container;
 ]]
 ---@class struct_forage_container
----@field output_good trade_good_id
----@field output_value number
----@field amount number
----@field forage FORAGE_RESOURCE
+---@field output_good trade_good_id 
+---@field output_value number 
+---@field amount number 
+---@field forage FORAGE_RESOURCE 
 ffi.cdef[[
     typedef struct {
-        uint32_t output_good;
+        int32_t output_good;
         float output_value;
         float amount;
         uint8_t forage;
     } forage_container;
 ]]
 ---@class struct_resource_location
----@field resource resource_id
----@field location tile_id
+---@field resource resource_id 
+---@field location tile_id 
 ffi.cdef[[
     typedef struct {
-        uint32_t resource;
-        uint32_t location;
+        int32_t resource;
+        int32_t location;
     } resource_location;
 ]]
 ---@class struct_need_satisfaction
----@field need NEED
----@field use_case use_case_id
----@field consumed number
----@field demanded number
+---@field need NEED 
+---@field use_case use_case_id 
+---@field consumed number 
+---@field demanded number 
 ffi.cdef[[
     typedef struct {
         uint8_t need;
-        uint32_t use_case;
+        int32_t use_case;
         float consumed;
         float demanded;
     } need_satisfaction;
 ]]
 ---@class struct_need_definition
----@field need NEED
----@field use_case use_case_id
----@field required number
+---@field need NEED 
+---@field use_case use_case_id 
+---@field required number 
 ffi.cdef[[
     typedef struct {
         uint8_t need;
-        uint32_t use_case;
+        int32_t use_case;
         float required;
     } need_definition;
 ]]
 ---@class struct_job_container
----@field job job_id
----@field amount number
+---@field job job_id 
+---@field amount number 
 ffi.cdef[[
     typedef struct {
-        uint32_t job;
+        int32_t job;
         uint32_t amount;
     } job_container;
 ]]
@@ -102,88 +102,88 @@ ffi.cdef[[
 
 ---@class (exact) fat_tile_id
 ---@field id tile_id Unique tile id
----@field world_id number
----@field is_land boolean
----@field is_fresh boolean
----@field is_border boolean
----@field elevation number
----@field slope number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field january_rain number
----@field january_temperature number
----@field july_waterflow number
----@field july_rain number
----@field july_temperature number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
+---@field world_id number 
+---@field is_land boolean 
+---@field is_fresh boolean 
+---@field is_border boolean 
+---@field elevation number 
+---@field slope number 
+---@field grass number 
+---@field shrub number 
+---@field conifer number 
+---@field broadleaf number 
+---@field ideal_grass number 
+---@field ideal_shrub number 
+---@field ideal_conifer number 
+---@field ideal_broadleaf number 
+---@field silt number 
+---@field clay number 
+---@field sand number 
+---@field soil_minerals number 
+---@field soil_organics number 
+---@field january_waterflow number 
+---@field january_rain number 
+---@field january_temperature number 
+---@field july_waterflow number 
+---@field july_rain number 
+---@field july_temperature number 
+---@field waterlevel number 
+---@field has_river boolean 
+---@field has_marsh boolean 
+---@field ice number 
+---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource resource_id
----@field bedrock bedrock_id
----@field biome biome_id
+---@field pathfinding_index number 
+---@field resource resource_id 
+---@field bedrock bedrock_id 
+---@field biome biome_id 
 
 ---@class struct_tile
----@field world_id number
----@field is_land boolean
----@field is_fresh boolean
----@field is_border boolean
----@field elevation number
----@field slope number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field january_rain number
----@field january_temperature number
----@field july_waterflow number
----@field july_rain number
----@field july_temperature number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
+---@field world_id number 
+---@field is_land boolean 
+---@field is_fresh boolean 
+---@field is_border boolean 
+---@field elevation number 
+---@field slope number 
+---@field grass number 
+---@field shrub number 
+---@field conifer number 
+---@field broadleaf number 
+---@field ideal_grass number 
+---@field ideal_shrub number 
+---@field ideal_conifer number 
+---@field ideal_broadleaf number 
+---@field silt number 
+---@field clay number 
+---@field sand number 
+---@field soil_minerals number 
+---@field soil_organics number 
+---@field january_waterflow number 
+---@field january_rain number 
+---@field january_temperature number 
+---@field july_waterflow number 
+---@field july_rain number 
+---@field july_temperature number 
+---@field waterlevel number 
+---@field has_river boolean 
+---@field has_marsh boolean 
+---@field ice number 
+---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
 ---@field debug_g number between 0 and 1, as per Love2Ds convention...
 ---@field debug_b number between 0 and 1, as per Love2Ds convention...
 ---@field real_r number between 0 and 1, as per Love2Ds convention...
 ---@field real_g number between 0 and 1, as per Love2Ds convention...
 ---@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource resource_id
----@field bedrock bedrock_id
----@field biome biome_id
+---@field pathfinding_index number 
+---@field resource resource_id 
+---@field bedrock bedrock_id 
+---@field biome biome_id 
 
 
 ffi.cdef[[
@@ -261,12 +261,12 @@ void dcon_tile_set_real_b(int32_t, float);
 float dcon_tile_get_real_b(int32_t);
 void dcon_tile_set_pathfinding_index(int32_t, uint32_t);
 uint32_t dcon_tile_get_pathfinding_index(int32_t);
-void dcon_tile_set_resource(int32_t, uint32_t);
-uint32_t dcon_tile_get_resource(int32_t);
-void dcon_tile_set_bedrock(int32_t, uint32_t);
-uint32_t dcon_tile_get_bedrock(int32_t);
-void dcon_tile_set_biome(int32_t, uint32_t);
-uint32_t dcon_tile_get_biome(int32_t);
+void dcon_tile_set_resource(int32_t, int32_t);
+int32_t dcon_tile_get_resource(int32_t);
+void dcon_tile_set_bedrock(int32_t, int32_t);
+int32_t dcon_tile_get_bedrock(int32_t);
+void dcon_tile_set_biome(int32_t, int32_t);
+int32_t dcon_tile_get_biome(int32_t);
 int32_t dcon_create_tile();
 bool dcon_tile_is_valid(int32_t);
 void dcon_tile_resize(uint32_t sz);
@@ -282,9 +282,9 @@ DATA.tile_size = 1500000
 function DATA.create_tile()
     ---@type tile_id
     local i  = DCON.dcon_create_tile() + 1
-    return i --[[@as tile_id]]
+    return i --[[@as tile_id]] 
 end
----@param func fun(item: tile_id)
+---@param func fun(item: tile_id) 
 function DATA.for_each_tile(func)
     ---@type number
     local range = DCON.dcon_tile_size()
@@ -292,10 +292,10 @@ function DATA.for_each_tile(func)
         func(i + 1 --[[@as tile_id]])
     end
 end
----@param func fun(item: tile_id):boolean
----@return table<tile_id, tile_id>
+---@param func fun(item: tile_id):boolean 
+---@return table<tile_id, tile_id> 
 function DATA.filter_tile(func)
-    ---@type table<tile_id, tile_id>
+    ---@type table<tile_id, tile_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_tile_size()
@@ -306,7 +306,7 @@ function DATA.filter_tile(func)
 end
 
 ---@param tile_id tile_id valid tile id
----@return number world_id
+---@return number world_id 
 function DATA.tile_get_world_id(tile_id)
     return DCON.dcon_tile_get_world_id(tile_id - 1)
 end
@@ -323,7 +323,7 @@ function DATA.tile_inc_world_id(tile_id, value)
     DCON.dcon_tile_set_world_id(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_land
+---@return boolean is_land 
 function DATA.tile_get_is_land(tile_id)
     return DCON.dcon_tile_get_is_land(tile_id - 1)
 end
@@ -333,7 +333,7 @@ function DATA.tile_set_is_land(tile_id, value)
     DCON.dcon_tile_set_is_land(tile_id - 1, value)
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_fresh
+---@return boolean is_fresh 
 function DATA.tile_get_is_fresh(tile_id)
     return DCON.dcon_tile_get_is_fresh(tile_id - 1)
 end
@@ -343,7 +343,7 @@ function DATA.tile_set_is_fresh(tile_id, value)
     DCON.dcon_tile_set_is_fresh(tile_id - 1, value)
 end
 ---@param tile_id tile_id valid tile id
----@return boolean is_border
+---@return boolean is_border 
 function DATA.tile_get_is_border(tile_id)
     return DCON.dcon_tile_get_is_border(tile_id - 1)
 end
@@ -353,7 +353,7 @@ function DATA.tile_set_is_border(tile_id, value)
     DCON.dcon_tile_set_is_border(tile_id - 1, value)
 end
 ---@param tile_id tile_id valid tile id
----@return number elevation
+---@return number elevation 
 function DATA.tile_get_elevation(tile_id)
     return DCON.dcon_tile_get_elevation(tile_id - 1)
 end
@@ -370,7 +370,7 @@ function DATA.tile_inc_elevation(tile_id, value)
     DCON.dcon_tile_set_elevation(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number slope
+---@return number slope 
 function DATA.tile_get_slope(tile_id)
     return DCON.dcon_tile_get_slope(tile_id - 1)
 end
@@ -387,7 +387,7 @@ function DATA.tile_inc_slope(tile_id, value)
     DCON.dcon_tile_set_slope(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number grass
+---@return number grass 
 function DATA.tile_get_grass(tile_id)
     return DCON.dcon_tile_get_grass(tile_id - 1)
 end
@@ -404,7 +404,7 @@ function DATA.tile_inc_grass(tile_id, value)
     DCON.dcon_tile_set_grass(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number shrub
+---@return number shrub 
 function DATA.tile_get_shrub(tile_id)
     return DCON.dcon_tile_get_shrub(tile_id - 1)
 end
@@ -421,7 +421,7 @@ function DATA.tile_inc_shrub(tile_id, value)
     DCON.dcon_tile_set_shrub(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number conifer
+---@return number conifer 
 function DATA.tile_get_conifer(tile_id)
     return DCON.dcon_tile_get_conifer(tile_id - 1)
 end
@@ -438,7 +438,7 @@ function DATA.tile_inc_conifer(tile_id, value)
     DCON.dcon_tile_set_conifer(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number broadleaf
+---@return number broadleaf 
 function DATA.tile_get_broadleaf(tile_id)
     return DCON.dcon_tile_get_broadleaf(tile_id - 1)
 end
@@ -455,7 +455,7 @@ function DATA.tile_inc_broadleaf(tile_id, value)
     DCON.dcon_tile_set_broadleaf(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_grass
+---@return number ideal_grass 
 function DATA.tile_get_ideal_grass(tile_id)
     return DCON.dcon_tile_get_ideal_grass(tile_id - 1)
 end
@@ -472,7 +472,7 @@ function DATA.tile_inc_ideal_grass(tile_id, value)
     DCON.dcon_tile_set_ideal_grass(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_shrub
+---@return number ideal_shrub 
 function DATA.tile_get_ideal_shrub(tile_id)
     return DCON.dcon_tile_get_ideal_shrub(tile_id - 1)
 end
@@ -489,7 +489,7 @@ function DATA.tile_inc_ideal_shrub(tile_id, value)
     DCON.dcon_tile_set_ideal_shrub(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_conifer
+---@return number ideal_conifer 
 function DATA.tile_get_ideal_conifer(tile_id)
     return DCON.dcon_tile_get_ideal_conifer(tile_id - 1)
 end
@@ -506,7 +506,7 @@ function DATA.tile_inc_ideal_conifer(tile_id, value)
     DCON.dcon_tile_set_ideal_conifer(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number ideal_broadleaf
+---@return number ideal_broadleaf 
 function DATA.tile_get_ideal_broadleaf(tile_id)
     return DCON.dcon_tile_get_ideal_broadleaf(tile_id - 1)
 end
@@ -523,7 +523,7 @@ function DATA.tile_inc_ideal_broadleaf(tile_id, value)
     DCON.dcon_tile_set_ideal_broadleaf(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number silt
+---@return number silt 
 function DATA.tile_get_silt(tile_id)
     return DCON.dcon_tile_get_silt(tile_id - 1)
 end
@@ -540,7 +540,7 @@ function DATA.tile_inc_silt(tile_id, value)
     DCON.dcon_tile_set_silt(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number clay
+---@return number clay 
 function DATA.tile_get_clay(tile_id)
     return DCON.dcon_tile_get_clay(tile_id - 1)
 end
@@ -557,7 +557,7 @@ function DATA.tile_inc_clay(tile_id, value)
     DCON.dcon_tile_set_clay(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number sand
+---@return number sand 
 function DATA.tile_get_sand(tile_id)
     return DCON.dcon_tile_get_sand(tile_id - 1)
 end
@@ -574,7 +574,7 @@ function DATA.tile_inc_sand(tile_id, value)
     DCON.dcon_tile_set_sand(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number soil_minerals
+---@return number soil_minerals 
 function DATA.tile_get_soil_minerals(tile_id)
     return DCON.dcon_tile_get_soil_minerals(tile_id - 1)
 end
@@ -591,7 +591,7 @@ function DATA.tile_inc_soil_minerals(tile_id, value)
     DCON.dcon_tile_set_soil_minerals(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number soil_organics
+---@return number soil_organics 
 function DATA.tile_get_soil_organics(tile_id)
     return DCON.dcon_tile_get_soil_organics(tile_id - 1)
 end
@@ -608,7 +608,7 @@ function DATA.tile_inc_soil_organics(tile_id, value)
     DCON.dcon_tile_set_soil_organics(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number january_waterflow
+---@return number january_waterflow 
 function DATA.tile_get_january_waterflow(tile_id)
     return DCON.dcon_tile_get_january_waterflow(tile_id - 1)
 end
@@ -625,7 +625,7 @@ function DATA.tile_inc_january_waterflow(tile_id, value)
     DCON.dcon_tile_set_january_waterflow(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number january_rain
+---@return number january_rain 
 function DATA.tile_get_january_rain(tile_id)
     return DCON.dcon_tile_get_january_rain(tile_id - 1)
 end
@@ -642,7 +642,7 @@ function DATA.tile_inc_january_rain(tile_id, value)
     DCON.dcon_tile_set_january_rain(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number january_temperature
+---@return number january_temperature 
 function DATA.tile_get_january_temperature(tile_id)
     return DCON.dcon_tile_get_january_temperature(tile_id - 1)
 end
@@ -659,7 +659,7 @@ function DATA.tile_inc_january_temperature(tile_id, value)
     DCON.dcon_tile_set_january_temperature(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number july_waterflow
+---@return number july_waterflow 
 function DATA.tile_get_july_waterflow(tile_id)
     return DCON.dcon_tile_get_july_waterflow(tile_id - 1)
 end
@@ -676,7 +676,7 @@ function DATA.tile_inc_july_waterflow(tile_id, value)
     DCON.dcon_tile_set_july_waterflow(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number july_rain
+---@return number july_rain 
 function DATA.tile_get_july_rain(tile_id)
     return DCON.dcon_tile_get_july_rain(tile_id - 1)
 end
@@ -693,7 +693,7 @@ function DATA.tile_inc_july_rain(tile_id, value)
     DCON.dcon_tile_set_july_rain(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number july_temperature
+---@return number july_temperature 
 function DATA.tile_get_july_temperature(tile_id)
     return DCON.dcon_tile_get_july_temperature(tile_id - 1)
 end
@@ -710,7 +710,7 @@ function DATA.tile_inc_july_temperature(tile_id, value)
     DCON.dcon_tile_set_july_temperature(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number waterlevel
+---@return number waterlevel 
 function DATA.tile_get_waterlevel(tile_id)
     return DCON.dcon_tile_get_waterlevel(tile_id - 1)
 end
@@ -727,7 +727,7 @@ function DATA.tile_inc_waterlevel(tile_id, value)
     DCON.dcon_tile_set_waterlevel(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_river
+---@return boolean has_river 
 function DATA.tile_get_has_river(tile_id)
     return DCON.dcon_tile_get_has_river(tile_id - 1)
 end
@@ -737,7 +737,7 @@ function DATA.tile_set_has_river(tile_id, value)
     DCON.dcon_tile_set_has_river(tile_id - 1, value)
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_marsh
+---@return boolean has_marsh 
 function DATA.tile_get_has_marsh(tile_id)
     return DCON.dcon_tile_get_has_marsh(tile_id - 1)
 end
@@ -747,7 +747,7 @@ function DATA.tile_set_has_marsh(tile_id, value)
     DCON.dcon_tile_set_has_marsh(tile_id - 1, value)
 end
 ---@param tile_id tile_id valid tile id
----@return number ice
+---@return number ice 
 function DATA.tile_get_ice(tile_id)
     return DCON.dcon_tile_get_ice(tile_id - 1)
 end
@@ -764,7 +764,7 @@ function DATA.tile_inc_ice(tile_id, value)
     DCON.dcon_tile_set_ice(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number ice_age_ice
+---@return number ice_age_ice 
 function DATA.tile_get_ice_age_ice(tile_id)
     return DCON.dcon_tile_get_ice_age_ice(tile_id - 1)
 end
@@ -883,7 +883,7 @@ function DATA.tile_inc_real_b(tile_id, value)
     DCON.dcon_tile_set_real_b(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return number pathfinding_index
+---@return number pathfinding_index 
 function DATA.tile_get_pathfinding_index(tile_id)
     return DCON.dcon_tile_get_pathfinding_index(tile_id - 1)
 end
@@ -900,7 +900,7 @@ function DATA.tile_inc_pathfinding_index(tile_id, value)
     DCON.dcon_tile_set_pathfinding_index(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return resource_id resource
+---@return resource_id resource 
 function DATA.tile_get_resource(tile_id)
     return DCON.dcon_tile_get_resource(tile_id - 1) + 1
 end
@@ -910,7 +910,7 @@ function DATA.tile_set_resource(tile_id, value)
     DCON.dcon_tile_set_resource(tile_id - 1, value - 1)
 end
 ---@param tile_id tile_id valid tile id
----@return bedrock_id bedrock
+---@return bedrock_id bedrock 
 function DATA.tile_get_bedrock(tile_id)
     return DCON.dcon_tile_get_bedrock(tile_id - 1) + 1
 end
@@ -920,7 +920,7 @@ function DATA.tile_set_bedrock(tile_id, value)
     DCON.dcon_tile_set_bedrock(tile_id - 1, value - 1)
 end
 ---@param tile_id tile_id valid tile id
----@return biome_id biome
+---@return biome_id biome 
 function DATA.tile_get_biome(tile_id)
     return DCON.dcon_tile_get_biome(tile_id - 1) + 1
 end
@@ -1155,44 +1155,44 @@ end
 
 ---@class (exact) fat_pop_id
 ---@field id pop_id Unique pop id
----@field race race_id
----@field faith Faith
----@field culture Culture
----@field female boolean
----@field age number
----@field name string
----@field savings number
+---@field race race_id 
+---@field faith Faith 
+---@field culture Culture 
+---@field female boolean 
+---@field age number 
+---@field name string 
+---@field savings number 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field pending_economy_income number
+---@field pending_economy_income number 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field busy boolean
----@field dead boolean
----@field rank CHARACTER_RANK
----@field former_pop boolean
+---@field busy boolean 
+---@field dead boolean 
+---@field rank CHARACTER_RANK 
+---@field former_pop boolean 
 
 ---@class struct_pop
----@field race race_id
----@field female boolean
----@field age number
----@field savings number
+---@field race race_id 
+---@field female boolean 
+---@field age number 
+---@field savings number 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field need_satisfaction table<number, struct_need_satisfaction>
----@field traits table<number, TRAIT>
----@field inventory table<trade_good_id, number>
----@field price_memory table<trade_good_id, number>
----@field pending_economy_income number
+---@field need_satisfaction table<number, struct_need_satisfaction> 
+---@field traits table<number, TRAIT> 
+---@field inventory table<trade_good_id, number> 
+---@field price_memory table<trade_good_id, number> 
+---@field pending_economy_income number 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
----@field rank CHARACTER_RANK
----@field dna table<number, number>
+---@field rank CHARACTER_RANK 
+---@field dna table<number, number> 
 
 
 ffi.cdef[[
-void dcon_pop_set_race(int32_t, uint32_t);
-uint32_t dcon_pop_get_race(int32_t);
+void dcon_pop_set_race(int32_t, int32_t);
+int32_t dcon_pop_get_race(int32_t);
 void dcon_pop_set_female(int32_t, bool);
 bool dcon_pop_get_female(int32_t);
 void dcon_pop_set_age(int32_t, uint32_t);
@@ -1258,14 +1258,14 @@ DCON.dcon_pop_resize_dna(21)
 function DATA.create_pop()
     ---@type pop_id
     local i  = DCON.dcon_create_pop() + 1
-    return i --[[@as pop_id]]
+    return i --[[@as pop_id]] 
 end
 ---@param i pop_id
 function DATA.delete_pop(i)
-    assert(DCON.dcon_pop_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_pop_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_pop(i - 1)
 end
----@param func fun(item: pop_id)
+---@param func fun(item: pop_id) 
 function DATA.for_each_pop(func)
     ---@type number
     local range = DCON.dcon_pop_size()
@@ -1273,21 +1273,21 @@ function DATA.for_each_pop(func)
         if DCON.dcon_pop_is_valid(i) then func(i + 1 --[[@as pop_id]]) end
     end
 end
----@param func fun(item: pop_id):boolean
----@return table<pop_id, pop_id>
+---@param func fun(item: pop_id):boolean 
+---@return table<pop_id, pop_id> 
 function DATA.filter_pop(func)
-    ---@type table<pop_id, pop_id>
+    ---@type table<pop_id, pop_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_size()
     for i = 0, range - 1 do
-        if DCON.dcon_pop_is_valid(i) and func(i + 1 --[[@as pop_id]]) then t[i + 1 --[[@as pop_id]]] = t[i + 1 --[[@as pop_id]]] end
+        if DCON.dcon_pop_is_valid(i) and func(i + 1 --[[@as pop_id]]) then t[i + 1 --[[@as pop_id]]] = i + 1 --[[@as pop_id]] end
     end
     return t
 end
 
 ---@param pop_id pop_id valid pop id
----@return race_id race
+---@return race_id race 
 function DATA.pop_get_race(pop_id)
     return DCON.dcon_pop_get_race(pop_id - 1) + 1
 end
@@ -1297,7 +1297,7 @@ function DATA.pop_set_race(pop_id, value)
     DCON.dcon_pop_set_race(pop_id - 1, value - 1)
 end
 ---@param pop_id pop_id valid pop id
----@return Faith faith
+---@return Faith faith 
 function DATA.pop_get_faith(pop_id)
     return DATA.pop_faith[pop_id]
 end
@@ -1307,7 +1307,7 @@ function DATA.pop_set_faith(pop_id, value)
     DATA.pop_faith[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Culture culture
+---@return Culture culture 
 function DATA.pop_get_culture(pop_id)
     return DATA.pop_culture[pop_id]
 end
@@ -1317,7 +1317,7 @@ function DATA.pop_set_culture(pop_id, value)
     DATA.pop_culture[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean female
+---@return boolean female 
 function DATA.pop_get_female(pop_id)
     return DCON.dcon_pop_get_female(pop_id - 1)
 end
@@ -1327,7 +1327,7 @@ function DATA.pop_set_female(pop_id, value)
     DCON.dcon_pop_set_female(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
----@return number age
+---@return number age 
 function DATA.pop_get_age(pop_id)
     return DCON.dcon_pop_get_age(pop_id - 1)
 end
@@ -1344,7 +1344,7 @@ function DATA.pop_inc_age(pop_id, value)
     DCON.dcon_pop_set_age(pop_id - 1, current + value)
 end
 ---@param pop_id pop_id valid pop id
----@return string name
+---@return string name 
 function DATA.pop_get_name(pop_id)
     return DATA.pop_name[pop_id]
 end
@@ -1354,7 +1354,7 @@ function DATA.pop_set_name(pop_id, value)
     DATA.pop_name[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return number savings
+---@return number savings 
 function DATA.pop_get_savings(pop_id)
     return DCON.dcon_pop_get_savings(pop_id - 1)
 end
@@ -1406,28 +1406,28 @@ function DATA.pop_inc_basic_needs_satisfaction(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return NEED need_satisfaction
+---@return NEED need_satisfaction 
 function DATA.pop_get_need_satisfaction_need(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_need_satisfaction(pop_id - 1, index - 1)[0].need
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return use_case_id need_satisfaction
+---@return use_case_id need_satisfaction 
 function DATA.pop_get_need_satisfaction_use_case(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_need_satisfaction(pop_id - 1, index - 1)[0].use_case
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number need_satisfaction
+---@return number need_satisfaction 
 function DATA.pop_get_need_satisfaction_consumed(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_need_satisfaction(pop_id - 1, index - 1)[0].consumed
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number need_satisfaction
+---@return number need_satisfaction 
 function DATA.pop_get_need_satisfaction_demanded(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_need_satisfaction(pop_id - 1, index - 1)[0].demanded
@@ -1474,7 +1474,7 @@ function DATA.pop_inc_need_satisfaction_demanded(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return TRAIT traits
+---@return TRAIT traits 
 function DATA.pop_get_traits(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_traits(pop_id - 1, index - 1)
@@ -1487,7 +1487,7 @@ function DATA.pop_set_traits(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
----@return number inventory
+---@return number inventory 
 function DATA.pop_get_inventory(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_inventory(pop_id - 1, index - 1)
@@ -1508,7 +1508,7 @@ function DATA.pop_inc_inventory(pop_id, index, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
----@return number price_memory
+---@return number price_memory 
 function DATA.pop_get_price_memory(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_price_memory(pop_id - 1, index - 1)
@@ -1528,7 +1528,7 @@ function DATA.pop_inc_price_memory(pop_id, index, value)
     DCON.dcon_pop_set_price_memory(pop_id - 1, index - 1, current + value)
 end
 ---@param pop_id pop_id valid pop id
----@return number pending_economy_income
+---@return number pending_economy_income 
 function DATA.pop_get_pending_economy_income(pop_id)
     return DCON.dcon_pop_get_pending_economy_income(pop_id - 1)
 end
@@ -1579,7 +1579,7 @@ function DATA.pop_inc_work_ratio(pop_id, value)
     DCON.dcon_pop_set_work_ratio(pop_id - 1, current + value)
 end
 ---@param pop_id pop_id valid pop id
----@return boolean busy
+---@return boolean busy 
 function DATA.pop_get_busy(pop_id)
     return DATA.pop_busy[pop_id]
 end
@@ -1589,7 +1589,7 @@ function DATA.pop_set_busy(pop_id, value)
     DATA.pop_busy[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return boolean dead
+---@return boolean dead 
 function DATA.pop_get_dead(pop_id)
     return DATA.pop_dead[pop_id]
 end
@@ -1599,7 +1599,7 @@ function DATA.pop_set_dead(pop_id, value)
     DATA.pop_dead[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return CHARACTER_RANK rank
+---@return CHARACTER_RANK rank 
 function DATA.pop_get_rank(pop_id)
     return DCON.dcon_pop_get_rank(pop_id - 1)
 end
@@ -1609,7 +1609,7 @@ function DATA.pop_set_rank(pop_id, value)
     DCON.dcon_pop_set_rank(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
----@return boolean former_pop
+---@return boolean former_pop 
 function DATA.pop_get_former_pop(pop_id)
     return DATA.pop_former_pop[pop_id]
 end
@@ -1620,7 +1620,7 @@ function DATA.pop_set_former_pop(pop_id, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
----@return number dna
+---@return number dna 
 function DATA.pop_get_dna(pop_id, index)
     assert(index ~= 0)
     return DCON.dcon_pop_get_dna(pop_id - 1, index - 1)
@@ -1745,77 +1745,77 @@ end
 
 ---@class (exact) fat_province_id
 ---@field id province_id Unique province id
----@field name string
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field is_land boolean 
+---@field province_id number 
+---@field size number 
 ---@field hydration number Number of humans that can live of off this provinces innate water
----@field movement_cost number
+---@field movement_cost number 
 ---@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field infrastructure_efficiency number
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
+---@field infrastructure_needed number 
+---@field infrastructure number 
+---@field infrastructure_investment number 
+---@field infrastructure_efficiency number 
+---@field local_wealth number 
+---@field trade_wealth number 
+---@field local_income number 
+---@field local_building_upkeep number 
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
 ---@field mood number how local population thinks about the state
----@field on_a_river boolean
----@field on_a_forest boolean
+---@field on_a_river boolean 
+---@field on_a_forest boolean 
 
 ---@class struct_province
----@field r number
----@field g number
----@field b number
----@field is_land boolean
----@field province_id number
----@field size number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field is_land boolean 
+---@field province_id number 
+---@field size number 
 ---@field hydration number Number of humans that can live of off this provinces innate water
----@field movement_cost number
+---@field movement_cost number 
 ---@field center tile_id The tile which contains this province's settlement, if there is any.
----@field infrastructure_needed number
----@field infrastructure number
----@field infrastructure_investment number
----@field infrastructure_efficiency number
----@field technologies_present table<technology_id, number>
----@field technologies_researchable table<technology_id, number>
----@field buildable_buildings table<building_type_id, number>
----@field local_production table<trade_good_id, number>
----@field temp_buffer_0 table<trade_good_id, number>
----@field local_consumption table<trade_good_id, number>
----@field local_demand table<trade_good_id, number>
----@field local_satisfaction table<trade_good_id, number>
----@field temp_buffer_use_0 table<use_case_id, number>
----@field temp_buffer_use_grad table<use_case_id, number>
----@field local_use_satisfaction table<use_case_id, number>
----@field local_use_buffer_demand table<use_case_id, number>
----@field local_use_buffer_supply table<use_case_id, number>
----@field local_use_buffer_cost table<use_case_id, number>
----@field local_storage table<trade_good_id, number>
----@field local_prices table<trade_good_id, number>
----@field local_wealth number
----@field trade_wealth number
----@field local_income number
----@field local_building_upkeep number
+---@field infrastructure_needed number 
+---@field infrastructure number 
+---@field infrastructure_investment number 
+---@field infrastructure_efficiency number 
+---@field technologies_present table<technology_id, number> 
+---@field technologies_researchable table<technology_id, number> 
+---@field buildable_buildings table<building_type_id, number> 
+---@field local_production table<trade_good_id, number> 
+---@field temp_buffer_0 table<trade_good_id, number> 
+---@field local_consumption table<trade_good_id, number> 
+---@field local_demand table<trade_good_id, number> 
+---@field local_satisfaction table<trade_good_id, number> 
+---@field temp_buffer_use_0 table<use_case_id, number> 
+---@field temp_buffer_use_grad table<use_case_id, number> 
+---@field local_use_satisfaction table<use_case_id, number> 
+---@field local_use_buffer_demand table<use_case_id, number> 
+---@field local_use_buffer_supply table<use_case_id, number> 
+---@field local_use_buffer_cost table<use_case_id, number> 
+---@field local_storage table<trade_good_id, number> 
+---@field local_prices table<trade_good_id, number> 
+---@field local_wealth number 
+---@field trade_wealth number 
+---@field local_income number 
+---@field local_building_upkeep number 
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
----@field foragers_targets table<number, struct_forage_container>
+---@field foragers_targets table<number, struct_forage_container> 
 ---@field local_resources table<number, struct_resource_location> An array of local resources and their positions
 ---@field mood number how local population thinks about the state
----@field unit_types table<unit_type_id, number>
----@field throughput_boosts table<production_method_id, number>
----@field input_efficiency_boosts table<production_method_id, number>
----@field output_efficiency_boosts table<production_method_id, number>
----@field on_a_river boolean
----@field on_a_forest boolean
+---@field unit_types table<unit_type_id, number> 
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
+---@field on_a_river boolean 
+---@field on_a_forest boolean 
 
 
 ffi.cdef[[
@@ -1835,8 +1835,8 @@ void dcon_province_set_hydration(int32_t, float);
 float dcon_province_get_hydration(int32_t);
 void dcon_province_set_movement_cost(int32_t, float);
 float dcon_province_get_movement_cost(int32_t);
-void dcon_province_set_center(int32_t, uint32_t);
-uint32_t dcon_province_get_center(int32_t);
+void dcon_province_set_center(int32_t, int32_t);
+int32_t dcon_province_get_center(int32_t);
 void dcon_province_set_infrastructure_needed(int32_t, float);
 float dcon_province_get_infrastructure_needed(int32_t);
 void dcon_province_set_infrastructure(int32_t, float);
@@ -1969,14 +1969,14 @@ DCON.dcon_province_resize_output_efficiency_boosts(251)
 function DATA.create_province()
     ---@type province_id
     local i  = DCON.dcon_create_province() + 1
-    return i --[[@as province_id]]
+    return i --[[@as province_id]] 
 end
 ---@param i province_id
 function DATA.delete_province(i)
-    assert(DCON.dcon_province_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_province_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_province(i - 1)
 end
----@param func fun(item: province_id)
+---@param func fun(item: province_id) 
 function DATA.for_each_province(func)
     ---@type number
     local range = DCON.dcon_province_size()
@@ -1984,21 +1984,21 @@ function DATA.for_each_province(func)
         if DCON.dcon_province_is_valid(i) then func(i + 1 --[[@as province_id]]) end
     end
 end
----@param func fun(item: province_id):boolean
----@return table<province_id, province_id>
+---@param func fun(item: province_id):boolean 
+---@return table<province_id, province_id> 
 function DATA.filter_province(func)
-    ---@type table<province_id, province_id>
+    ---@type table<province_id, province_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_size()
     for i = 0, range - 1 do
-        if DCON.dcon_province_is_valid(i) and func(i + 1 --[[@as province_id]]) then t[i + 1 --[[@as province_id]]] = t[i + 1 --[[@as province_id]]] end
+        if DCON.dcon_province_is_valid(i) and func(i + 1 --[[@as province_id]]) then t[i + 1 --[[@as province_id]]] = i + 1 --[[@as province_id]] end
     end
     return t
 end
 
 ---@param province_id province_id valid province id
----@return string name
+---@return string name 
 function DATA.province_get_name(province_id)
     return DATA.province_name[province_id]
 end
@@ -2008,7 +2008,7 @@ function DATA.province_set_name(province_id, value)
     DATA.province_name[province_id] = value
 end
 ---@param province_id province_id valid province id
----@return number r
+---@return number r 
 function DATA.province_get_r(province_id)
     return DCON.dcon_province_get_r(province_id - 1)
 end
@@ -2025,7 +2025,7 @@ function DATA.province_inc_r(province_id, value)
     DCON.dcon_province_set_r(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number g
+---@return number g 
 function DATA.province_get_g(province_id)
     return DCON.dcon_province_get_g(province_id - 1)
 end
@@ -2042,7 +2042,7 @@ function DATA.province_inc_g(province_id, value)
     DCON.dcon_province_set_g(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number b
+---@return number b 
 function DATA.province_get_b(province_id)
     return DCON.dcon_province_get_b(province_id - 1)
 end
@@ -2059,7 +2059,7 @@ function DATA.province_inc_b(province_id, value)
     DCON.dcon_province_set_b(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return boolean is_land
+---@return boolean is_land 
 function DATA.province_get_is_land(province_id)
     return DCON.dcon_province_get_is_land(province_id - 1)
 end
@@ -2069,7 +2069,7 @@ function DATA.province_set_is_land(province_id, value)
     DCON.dcon_province_set_is_land(province_id - 1, value)
 end
 ---@param province_id province_id valid province id
----@return number province_id
+---@return number province_id 
 function DATA.province_get_province_id(province_id)
     return DCON.dcon_province_get_province_id(province_id - 1)
 end
@@ -2086,7 +2086,7 @@ function DATA.province_inc_province_id(province_id, value)
     DCON.dcon_province_set_province_id(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number size
+---@return number size 
 function DATA.province_get_size(province_id)
     return DCON.dcon_province_get_size(province_id - 1)
 end
@@ -2120,7 +2120,7 @@ function DATA.province_inc_hydration(province_id, value)
     DCON.dcon_province_set_hydration(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number movement_cost
+---@return number movement_cost 
 function DATA.province_get_movement_cost(province_id)
     return DCON.dcon_province_get_movement_cost(province_id - 1)
 end
@@ -2147,7 +2147,7 @@ function DATA.province_set_center(province_id, value)
     DCON.dcon_province_set_center(province_id - 1, value - 1)
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_needed
+---@return number infrastructure_needed 
 function DATA.province_get_infrastructure_needed(province_id)
     return DCON.dcon_province_get_infrastructure_needed(province_id - 1)
 end
@@ -2164,7 +2164,7 @@ function DATA.province_inc_infrastructure_needed(province_id, value)
     DCON.dcon_province_set_infrastructure_needed(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number infrastructure
+---@return number infrastructure 
 function DATA.province_get_infrastructure(province_id)
     return DCON.dcon_province_get_infrastructure(province_id - 1)
 end
@@ -2181,7 +2181,7 @@ function DATA.province_inc_infrastructure(province_id, value)
     DCON.dcon_province_set_infrastructure(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_investment
+---@return number infrastructure_investment 
 function DATA.province_get_infrastructure_investment(province_id)
     return DCON.dcon_province_get_infrastructure_investment(province_id - 1)
 end
@@ -2198,7 +2198,7 @@ function DATA.province_inc_infrastructure_investment(province_id, value)
     DCON.dcon_province_set_infrastructure_investment(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number infrastructure_efficiency
+---@return number infrastructure_efficiency 
 function DATA.province_get_infrastructure_efficiency(province_id)
     return DCON.dcon_province_get_infrastructure_efficiency(province_id - 1)
 end
@@ -2216,7 +2216,7 @@ function DATA.province_inc_infrastructure_efficiency(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index technology_id valid
----@return number technologies_present
+---@return number technologies_present 
 function DATA.province_get_technologies_present(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_technologies_present(province_id - 1, index - 1)
@@ -2237,7 +2237,7 @@ function DATA.province_inc_technologies_present(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index technology_id valid
----@return number technologies_researchable
+---@return number technologies_researchable 
 function DATA.province_get_technologies_researchable(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_technologies_researchable(province_id - 1, index - 1)
@@ -2258,7 +2258,7 @@ function DATA.province_inc_technologies_researchable(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index building_type_id valid
----@return number buildable_buildings
+---@return number buildable_buildings 
 function DATA.province_get_buildable_buildings(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_buildable_buildings(province_id - 1, index - 1)
@@ -2279,7 +2279,7 @@ function DATA.province_inc_buildable_buildings(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_production
+---@return number local_production 
 function DATA.province_get_local_production(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_production(province_id - 1, index - 1)
@@ -2300,7 +2300,7 @@ function DATA.province_inc_local_production(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number temp_buffer_0
+---@return number temp_buffer_0 
 function DATA.province_get_temp_buffer_0(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_temp_buffer_0(province_id - 1, index - 1)
@@ -2321,7 +2321,7 @@ function DATA.province_inc_temp_buffer_0(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_consumption
+---@return number local_consumption 
 function DATA.province_get_local_consumption(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_consumption(province_id - 1, index - 1)
@@ -2342,7 +2342,7 @@ function DATA.province_inc_local_consumption(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_demand
+---@return number local_demand 
 function DATA.province_get_local_demand(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_demand(province_id - 1, index - 1)
@@ -2363,7 +2363,7 @@ function DATA.province_inc_local_demand(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_satisfaction
+---@return number local_satisfaction 
 function DATA.province_get_local_satisfaction(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_satisfaction(province_id - 1, index - 1)
@@ -2384,7 +2384,7 @@ function DATA.province_inc_local_satisfaction(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index use_case_id valid
----@return number temp_buffer_use_0
+---@return number temp_buffer_use_0 
 function DATA.province_get_temp_buffer_use_0(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_temp_buffer_use_0(province_id - 1, index - 1)
@@ -2405,7 +2405,7 @@ function DATA.province_inc_temp_buffer_use_0(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index use_case_id valid
----@return number temp_buffer_use_grad
+---@return number temp_buffer_use_grad 
 function DATA.province_get_temp_buffer_use_grad(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_temp_buffer_use_grad(province_id - 1, index - 1)
@@ -2426,7 +2426,7 @@ function DATA.province_inc_temp_buffer_use_grad(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index use_case_id valid
----@return number local_use_satisfaction
+---@return number local_use_satisfaction 
 function DATA.province_get_local_use_satisfaction(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_use_satisfaction(province_id - 1, index - 1)
@@ -2447,7 +2447,7 @@ function DATA.province_inc_local_use_satisfaction(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index use_case_id valid
----@return number local_use_buffer_demand
+---@return number local_use_buffer_demand 
 function DATA.province_get_local_use_buffer_demand(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_use_buffer_demand(province_id - 1, index - 1)
@@ -2468,7 +2468,7 @@ function DATA.province_inc_local_use_buffer_demand(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index use_case_id valid
----@return number local_use_buffer_supply
+---@return number local_use_buffer_supply 
 function DATA.province_get_local_use_buffer_supply(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_use_buffer_supply(province_id - 1, index - 1)
@@ -2489,7 +2489,7 @@ function DATA.province_inc_local_use_buffer_supply(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index use_case_id valid
----@return number local_use_buffer_cost
+---@return number local_use_buffer_cost 
 function DATA.province_get_local_use_buffer_cost(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_use_buffer_cost(province_id - 1, index - 1)
@@ -2510,7 +2510,7 @@ function DATA.province_inc_local_use_buffer_cost(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_storage
+---@return number local_storage 
 function DATA.province_get_local_storage(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_storage(province_id - 1, index - 1)
@@ -2531,7 +2531,7 @@ function DATA.province_inc_local_storage(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index trade_good_id valid
----@return number local_prices
+---@return number local_prices 
 function DATA.province_get_local_prices(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_local_prices(province_id - 1, index - 1)
@@ -2551,7 +2551,7 @@ function DATA.province_inc_local_prices(province_id, index, value)
     DCON.dcon_province_set_local_prices(province_id - 1, index - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number local_wealth
+---@return number local_wealth 
 function DATA.province_get_local_wealth(province_id)
     return DCON.dcon_province_get_local_wealth(province_id - 1)
 end
@@ -2568,7 +2568,7 @@ function DATA.province_inc_local_wealth(province_id, value)
     DCON.dcon_province_set_local_wealth(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number trade_wealth
+---@return number trade_wealth 
 function DATA.province_get_trade_wealth(province_id)
     return DCON.dcon_province_get_trade_wealth(province_id - 1)
 end
@@ -2585,7 +2585,7 @@ function DATA.province_inc_trade_wealth(province_id, value)
     DCON.dcon_province_set_trade_wealth(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number local_income
+---@return number local_income 
 function DATA.province_get_local_income(province_id)
     return DCON.dcon_province_get_local_income(province_id - 1)
 end
@@ -2602,7 +2602,7 @@ function DATA.province_inc_local_income(province_id, value)
     DCON.dcon_province_set_local_income(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return number local_building_upkeep
+---@return number local_building_upkeep 
 function DATA.province_get_local_building_upkeep(province_id)
     return DCON.dcon_province_get_local_building_upkeep(province_id - 1)
 end
@@ -2671,28 +2671,28 @@ function DATA.province_inc_foragers_limit(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return trade_good_id foragers_targets
+---@return trade_good_id foragers_targets 
 function DATA.province_get_foragers_targets_output_good(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_foragers_targets(province_id - 1, index - 1)[0].output_good
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return number foragers_targets
+---@return number foragers_targets 
 function DATA.province_get_foragers_targets_output_value(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_foragers_targets(province_id - 1, index - 1)[0].output_value
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return number foragers_targets
+---@return number foragers_targets 
 function DATA.province_get_foragers_targets_amount(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_foragers_targets(province_id - 1, index - 1)[0].amount
 end
 ---@param province_id province_id valid province id
 ---@param index number valid
----@return FORAGE_RESOURCE foragers_targets
+---@return FORAGE_RESOURCE foragers_targets 
 function DATA.province_get_foragers_targets_forage(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_foragers_targets(province_id - 1, index - 1)[0].forage
@@ -2782,7 +2782,7 @@ function DATA.province_inc_mood(province_id, value)
 end
 ---@param province_id province_id valid province id
 ---@param index unit_type_id valid
----@return number unit_types
+---@return number unit_types 
 function DATA.province_get_unit_types(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_unit_types(province_id - 1, index - 1)
@@ -2803,7 +2803,7 @@ function DATA.province_inc_unit_types(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
----@return number throughput_boosts
+---@return number throughput_boosts 
 function DATA.province_get_throughput_boosts(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_throughput_boosts(province_id - 1, index - 1)
@@ -2824,7 +2824,7 @@ function DATA.province_inc_throughput_boosts(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
----@return number input_efficiency_boosts
+---@return number input_efficiency_boosts 
 function DATA.province_get_input_efficiency_boosts(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_input_efficiency_boosts(province_id - 1, index - 1)
@@ -2845,7 +2845,7 @@ function DATA.province_inc_input_efficiency_boosts(province_id, index, value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
----@return number output_efficiency_boosts
+---@return number output_efficiency_boosts 
 function DATA.province_get_output_efficiency_boosts(province_id, index)
     assert(index ~= 0)
     return DCON.dcon_province_get_output_efficiency_boosts(province_id - 1, index - 1)
@@ -2865,7 +2865,7 @@ function DATA.province_inc_output_efficiency_boosts(province_id, index, value)
     DCON.dcon_province_set_output_efficiency_boosts(province_id - 1, index - 1, current + value)
 end
 ---@param province_id province_id valid province id
----@return boolean on_a_river
+---@return boolean on_a_river 
 function DATA.province_get_on_a_river(province_id)
     return DCON.dcon_province_get_on_a_river(province_id - 1)
 end
@@ -2875,7 +2875,7 @@ function DATA.province_set_on_a_river(province_id, value)
     DCON.dcon_province_set_on_a_river(province_id - 1, value)
 end
 ---@param province_id province_id valid province id
----@return boolean on_a_forest
+---@return boolean on_a_forest 
 function DATA.province_get_on_a_forest(province_id)
     return DCON.dcon_province_get_on_a_forest(province_id - 1)
 end
@@ -3030,15 +3030,15 @@ end
 
 ---@class (exact) fat_army_id
 ---@field id army_id Unique army id
----@field destination province_id
+---@field destination province_id 
 
 ---@class struct_army
----@field destination province_id
+---@field destination province_id 
 
 
 ffi.cdef[[
-void dcon_army_set_destination(int32_t, uint32_t);
-uint32_t dcon_army_get_destination(int32_t);
+void dcon_army_set_destination(int32_t, int32_t);
+int32_t dcon_army_get_destination(int32_t);
 void dcon_delete_army(int32_t j);
 int32_t dcon_create_army();
 bool dcon_army_is_valid(int32_t);
@@ -3055,14 +3055,14 @@ DATA.army_size = 5000
 function DATA.create_army()
     ---@type army_id
     local i  = DCON.dcon_create_army() + 1
-    return i --[[@as army_id]]
+    return i --[[@as army_id]] 
 end
 ---@param i army_id
 function DATA.delete_army(i)
-    assert(DCON.dcon_army_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_army_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_army(i - 1)
 end
----@param func fun(item: army_id)
+---@param func fun(item: army_id) 
 function DATA.for_each_army(func)
     ---@type number
     local range = DCON.dcon_army_size()
@@ -3070,21 +3070,21 @@ function DATA.for_each_army(func)
         if DCON.dcon_army_is_valid(i) then func(i + 1 --[[@as army_id]]) end
     end
 end
----@param func fun(item: army_id):boolean
----@return table<army_id, army_id>
+---@param func fun(item: army_id):boolean 
+---@return table<army_id, army_id> 
 function DATA.filter_army(func)
-    ---@type table<army_id, army_id>
+    ---@type table<army_id, army_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_army_size()
     for i = 0, range - 1 do
-        if DCON.dcon_army_is_valid(i) and func(i + 1 --[[@as army_id]]) then t[i + 1 --[[@as army_id]]] = t[i + 1 --[[@as army_id]]] end
+        if DCON.dcon_army_is_valid(i) and func(i + 1 --[[@as army_id]]) then t[i + 1 --[[@as army_id]]] = i + 1 --[[@as army_id]] end
     end
     return t
 end
 
 ---@param army_id army_id valid army id
----@return province_id destination
+---@return province_id destination 
 function DATA.army_get_destination(army_id)
     return DCON.dcon_army_get_destination(army_id - 1) + 1
 end
@@ -3124,30 +3124,30 @@ end
 
 ---@class (exact) fat_warband_id
 ---@field id warband_id Unique warband id
----@field name string
----@field guard_of Realm?
----@field current_status WARBAND_STATUS
----@field idle_stance WARBAND_STANCE
+---@field name string 
+---@field guard_of Realm? 
+---@field current_status WARBAND_STATUS 
+---@field idle_stance WARBAND_STANCE 
 ---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field treasury number
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
+---@field treasury number 
+---@field total_upkeep number 
+---@field predicted_upkeep number 
+---@field supplies number 
+---@field supplies_target_days number 
+---@field morale number 
 
 ---@class struct_warband
 ---@field units_current table<unit_type_id, number> Current distribution of units in the warband
 ---@field units_target table<unit_type_id, number> Units to recruit
----@field current_status WARBAND_STATUS
----@field idle_stance WARBAND_STANCE
+---@field current_status WARBAND_STATUS 
+---@field idle_stance WARBAND_STANCE 
 ---@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field treasury number
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
+---@field treasury number 
+---@field total_upkeep number 
+---@field predicted_upkeep number 
+---@field supplies number 
+---@field supplies_target_days number 
+---@field morale number 
 
 
 ffi.cdef[[
@@ -3197,14 +3197,14 @@ DCON.dcon_warband_resize_units_target(21)
 function DATA.create_warband()
     ---@type warband_id
     local i  = DCON.dcon_create_warband() + 1
-    return i --[[@as warband_id]]
+    return i --[[@as warband_id]] 
 end
 ---@param i warband_id
 function DATA.delete_warband(i)
-    assert(DCON.dcon_warband_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_warband_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_warband(i - 1)
 end
----@param func fun(item: warband_id)
+---@param func fun(item: warband_id) 
 function DATA.for_each_warband(func)
     ---@type number
     local range = DCON.dcon_warband_size()
@@ -3212,21 +3212,21 @@ function DATA.for_each_warband(func)
         if DCON.dcon_warband_is_valid(i) then func(i + 1 --[[@as warband_id]]) end
     end
 end
----@param func fun(item: warband_id):boolean
----@return table<warband_id, warband_id>
+---@param func fun(item: warband_id):boolean 
+---@return table<warband_id, warband_id> 
 function DATA.filter_warband(func)
-    ---@type table<warband_id, warband_id>
+    ---@type table<warband_id, warband_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_size()
     for i = 0, range - 1 do
-        if DCON.dcon_warband_is_valid(i) and func(i + 1 --[[@as warband_id]]) then t[i + 1 --[[@as warband_id]]] = t[i + 1 --[[@as warband_id]]] end
+        if DCON.dcon_warband_is_valid(i) and func(i + 1 --[[@as warband_id]]) then t[i + 1 --[[@as warband_id]]] = i + 1 --[[@as warband_id]] end
     end
     return t
 end
 
 ---@param warband_id warband_id valid warband id
----@return string name
+---@return string name 
 function DATA.warband_get_name(warband_id)
     return DATA.warband_name[warband_id]
 end
@@ -3236,7 +3236,7 @@ function DATA.warband_set_name(warband_id, value)
     DATA.warband_name[warband_id] = value
 end
 ---@param warband_id warband_id valid warband id
----@return Realm? guard_of
+---@return Realm? guard_of 
 function DATA.warband_get_guard_of(warband_id)
     return DATA.warband_guard_of[warband_id]
 end
@@ -3288,7 +3288,7 @@ function DATA.warband_inc_units_target(warband_id, index, value)
     DCON.dcon_warband_set_units_target(warband_id - 1, index - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return WARBAND_STATUS current_status
+---@return WARBAND_STATUS current_status 
 function DATA.warband_get_current_status(warband_id)
     return DCON.dcon_warband_get_current_status(warband_id - 1)
 end
@@ -3298,7 +3298,7 @@ function DATA.warband_set_current_status(warband_id, value)
     DCON.dcon_warband_set_current_status(warband_id - 1, value)
 end
 ---@param warband_id warband_id valid warband id
----@return WARBAND_STANCE idle_stance
+---@return WARBAND_STANCE idle_stance 
 function DATA.warband_get_idle_stance(warband_id)
     return DCON.dcon_warband_get_idle_stance(warband_id - 1)
 end
@@ -3325,7 +3325,7 @@ function DATA.warband_inc_current_free_time_ratio(warband_id, value)
     DCON.dcon_warband_set_current_free_time_ratio(warband_id - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return number treasury
+---@return number treasury 
 function DATA.warband_get_treasury(warband_id)
     return DCON.dcon_warband_get_treasury(warband_id - 1)
 end
@@ -3342,7 +3342,7 @@ function DATA.warband_inc_treasury(warband_id, value)
     DCON.dcon_warband_set_treasury(warband_id - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return number total_upkeep
+---@return number total_upkeep 
 function DATA.warband_get_total_upkeep(warband_id)
     return DCON.dcon_warband_get_total_upkeep(warband_id - 1)
 end
@@ -3359,7 +3359,7 @@ function DATA.warband_inc_total_upkeep(warband_id, value)
     DCON.dcon_warband_set_total_upkeep(warband_id - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return number predicted_upkeep
+---@return number predicted_upkeep 
 function DATA.warband_get_predicted_upkeep(warband_id)
     return DCON.dcon_warband_get_predicted_upkeep(warband_id - 1)
 end
@@ -3376,7 +3376,7 @@ function DATA.warband_inc_predicted_upkeep(warband_id, value)
     DCON.dcon_warband_set_predicted_upkeep(warband_id - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return number supplies
+---@return number supplies 
 function DATA.warband_get_supplies(warband_id)
     return DCON.dcon_warband_get_supplies(warband_id - 1)
 end
@@ -3393,7 +3393,7 @@ function DATA.warband_inc_supplies(warband_id, value)
     DCON.dcon_warband_set_supplies(warband_id - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return number supplies_target_days
+---@return number supplies_target_days 
 function DATA.warband_get_supplies_target_days(warband_id)
     return DCON.dcon_warband_get_supplies_target_days(warband_id - 1)
 end
@@ -3410,7 +3410,7 @@ function DATA.warband_inc_supplies_target_days(warband_id, value)
     DCON.dcon_warband_set_supplies_target_days(warband_id - 1, current + value)
 end
 ---@param warband_id warband_id valid warband id
----@return number morale
+---@return number morale 
 function DATA.warband_get_morale(warband_id)
     return DCON.dcon_warband_get_morale(warband_id - 1)
 end
@@ -3507,89 +3507,89 @@ end
 
 ---@class (exact) fat_realm_id
 ---@field id realm_id Unique realm id
----@field exists boolean
----@field name string
----@field budget_change number
----@field budget_saved_change number
----@field budget_treasury number
----@field budget_treasury_target number
----@field budget_tax_target number
----@field budget_tax_collected_this_year number
----@field r number
----@field g number
----@field b number
----@field primary_race race_id
----@field primary_culture Culture
----@field primary_faith Faith
----@field capitol province_id
----@field trading_right_cost number
----@field building_right_cost number
----@field law_trade LAW_TRADE
----@field law_building LAW_BUILDING
+---@field exists boolean 
+---@field name string 
+---@field budget_change number 
+---@field budget_saved_change number 
+---@field budget_treasury number 
+---@field budget_treasury_target number 
+---@field budget_tax_target number 
+---@field budget_tax_collected_this_year number 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field primary_race race_id 
+---@field primary_culture Culture 
+---@field primary_faith Faith 
+---@field capitol province_id 
+---@field trading_right_cost number 
+---@field building_right_cost number 
+---@field law_trade LAW_TRADE 
+---@field law_building LAW_BUILDING 
 ---@field quests_raid table<province_id,nil|number> reward for raid
 ---@field quests_explore table<province_id,nil|number> reward for exploration
 ---@field quests_patrol table<province_id,nil|number> reward for patrol
----@field patrols table<province_id,table<warband_id,warband_id>>
----@field prepare_attack_flag boolean
+---@field patrols table<province_id,table<warband_id,warband_id>> 
+---@field prepare_attack_flag boolean 
 ---@field known_provinces table<province_id,province_id> For terra incognita.
----@field coa_base_r number
----@field coa_base_g number
----@field coa_base_b number
----@field coa_background_r number
----@field coa_background_g number
----@field coa_background_b number
----@field coa_foreground_r number
----@field coa_foreground_g number
----@field coa_foreground_b number
----@field coa_emblem_r number
----@field coa_emblem_g number
----@field coa_emblem_b number
----@field coa_background_image number
----@field coa_foreground_image number
----@field coa_emblem_image number
----@field expected_food_consumption number
+---@field coa_base_r number 
+---@field coa_base_g number 
+---@field coa_base_b number 
+---@field coa_background_r number 
+---@field coa_background_g number 
+---@field coa_background_b number 
+---@field coa_foreground_r number 
+---@field coa_foreground_g number 
+---@field coa_foreground_b number 
+---@field coa_emblem_r number 
+---@field coa_emblem_g number 
+---@field coa_emblem_b number 
+---@field coa_background_image number 
+---@field coa_foreground_image number 
+---@field coa_emblem_image number 
+---@field expected_food_consumption number 
 
 ---@class struct_realm
----@field budget_change number
----@field budget_saved_change number
----@field budget_spending_by_category table<ECONOMY_REASON, number>
----@field budget_income_by_category table<ECONOMY_REASON, number>
----@field budget_treasury_change_by_category table<ECONOMY_REASON, number>
----@field budget_treasury number
----@field budget_treasury_target number
----@field budget table<BUDGET_CATEGORY, struct_budget_per_category_data>
----@field budget_tax_target number
----@field budget_tax_collected_this_year number
----@field r number
----@field g number
----@field b number
----@field primary_race race_id
----@field capitol province_id
----@field trading_right_cost number
----@field building_right_cost number
----@field law_trade LAW_TRADE
----@field law_building LAW_BUILDING
----@field prepare_attack_flag boolean
----@field coa_base_r number
----@field coa_base_g number
----@field coa_base_b number
----@field coa_background_r number
----@field coa_background_g number
----@field coa_background_b number
----@field coa_foreground_r number
----@field coa_foreground_g number
----@field coa_foreground_b number
----@field coa_emblem_r number
----@field coa_emblem_g number
----@field coa_emblem_b number
----@field coa_background_image number
----@field coa_foreground_image number
----@field coa_emblem_image number
+---@field budget_change number 
+---@field budget_saved_change number 
+---@field budget_spending_by_category table<ECONOMY_REASON, number> 
+---@field budget_income_by_category table<ECONOMY_REASON, number> 
+---@field budget_treasury_change_by_category table<ECONOMY_REASON, number> 
+---@field budget_treasury number 
+---@field budget_treasury_target number 
+---@field budget table<BUDGET_CATEGORY, struct_budget_per_category_data> 
+---@field budget_tax_target number 
+---@field budget_tax_collected_this_year number 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field primary_race race_id 
+---@field capitol province_id 
+---@field trading_right_cost number 
+---@field building_right_cost number 
+---@field law_trade LAW_TRADE 
+---@field law_building LAW_BUILDING 
+---@field prepare_attack_flag boolean 
+---@field coa_base_r number 
+---@field coa_base_g number 
+---@field coa_base_b number 
+---@field coa_background_r number 
+---@field coa_background_g number 
+---@field coa_background_b number 
+---@field coa_foreground_r number 
+---@field coa_foreground_g number 
+---@field coa_foreground_b number 
+---@field coa_emblem_r number 
+---@field coa_emblem_g number 
+---@field coa_emblem_b number 
+---@field coa_background_image number 
+---@field coa_foreground_image number 
+---@field coa_emblem_image number 
 ---@field resources table<trade_good_id, number> Currently stockpiled resources
 ---@field production table<trade_good_id, number> A "balance" of resource creation
----@field bought table<trade_good_id, number>
----@field sold table<trade_good_id, number>
----@field expected_food_consumption number
+---@field bought table<trade_good_id, number> 
+---@field sold table<trade_good_id, number> 
+---@field expected_food_consumption number 
 
 
 ffi.cdef[[
@@ -3622,10 +3622,10 @@ void dcon_realm_set_g(int32_t, float);
 float dcon_realm_get_g(int32_t);
 void dcon_realm_set_b(int32_t, float);
 float dcon_realm_get_b(int32_t);
-void dcon_realm_set_primary_race(int32_t, uint32_t);
-uint32_t dcon_realm_get_primary_race(int32_t);
-void dcon_realm_set_capitol(int32_t, uint32_t);
-uint32_t dcon_realm_get_capitol(int32_t);
+void dcon_realm_set_primary_race(int32_t, int32_t);
+int32_t dcon_realm_get_primary_race(int32_t);
+void dcon_realm_set_capitol(int32_t, int32_t);
+int32_t dcon_realm_get_capitol(int32_t);
 void dcon_realm_set_trading_right_cost(int32_t, float);
 float dcon_realm_get_trading_right_cost(int32_t);
 void dcon_realm_set_building_right_cost(int32_t, float);
@@ -3722,14 +3722,14 @@ DCON.dcon_realm_resize_sold(101)
 function DATA.create_realm()
     ---@type realm_id
     local i  = DCON.dcon_create_realm() + 1
-    return i --[[@as realm_id]]
+    return i --[[@as realm_id]] 
 end
 ---@param i realm_id
 function DATA.delete_realm(i)
-    assert(DCON.dcon_realm_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm(i - 1)
 end
----@param func fun(item: realm_id)
+---@param func fun(item: realm_id) 
 function DATA.for_each_realm(func)
     ---@type number
     local range = DCON.dcon_realm_size()
@@ -3737,21 +3737,21 @@ function DATA.for_each_realm(func)
         if DCON.dcon_realm_is_valid(i) then func(i + 1 --[[@as realm_id]]) end
     end
 end
----@param func fun(item: realm_id):boolean
----@return table<realm_id, realm_id>
+---@param func fun(item: realm_id):boolean 
+---@return table<realm_id, realm_id> 
 function DATA.filter_realm(func)
-    ---@type table<realm_id, realm_id>
+    ---@type table<realm_id, realm_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_is_valid(i) and func(i + 1 --[[@as realm_id]]) then t[i + 1 --[[@as realm_id]]] = t[i + 1 --[[@as realm_id]]] end
+        if DCON.dcon_realm_is_valid(i) and func(i + 1 --[[@as realm_id]]) then t[i + 1 --[[@as realm_id]]] = i + 1 --[[@as realm_id]] end
     end
     return t
 end
 
 ---@param realm_id realm_id valid realm id
----@return boolean exists
+---@return boolean exists 
 function DATA.realm_get_exists(realm_id)
     return DATA.realm_exists[realm_id]
 end
@@ -3761,7 +3761,7 @@ function DATA.realm_set_exists(realm_id, value)
     DATA.realm_exists[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return string name
+---@return string name 
 function DATA.realm_get_name(realm_id)
     return DATA.realm_name[realm_id]
 end
@@ -3771,7 +3771,7 @@ function DATA.realm_set_name(realm_id, value)
     DATA.realm_name[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_change
+---@return number budget_change 
 function DATA.realm_get_budget_change(realm_id)
     return DCON.dcon_realm_get_budget_change(realm_id - 1)
 end
@@ -3788,7 +3788,7 @@ function DATA.realm_inc_budget_change(realm_id, value)
     DCON.dcon_realm_set_budget_change(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_saved_change
+---@return number budget_saved_change 
 function DATA.realm_get_budget_saved_change(realm_id)
     return DCON.dcon_realm_get_budget_saved_change(realm_id - 1)
 end
@@ -3806,7 +3806,7 @@ function DATA.realm_inc_budget_saved_change(realm_id, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
----@return number budget_spending_by_category
+---@return number budget_spending_by_category 
 function DATA.realm_get_budget_spending_by_category(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget_spending_by_category(realm_id - 1, index - 1)
@@ -3827,7 +3827,7 @@ function DATA.realm_inc_budget_spending_by_category(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
----@return number budget_income_by_category
+---@return number budget_income_by_category 
 function DATA.realm_get_budget_income_by_category(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget_income_by_category(realm_id - 1, index - 1)
@@ -3848,7 +3848,7 @@ function DATA.realm_inc_budget_income_by_category(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
----@return number budget_treasury_change_by_category
+---@return number budget_treasury_change_by_category 
 function DATA.realm_get_budget_treasury_change_by_category(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget_treasury_change_by_category(realm_id - 1, index - 1)
@@ -3868,7 +3868,7 @@ function DATA.realm_inc_budget_treasury_change_by_category(realm_id, index, valu
     DCON.dcon_realm_set_budget_treasury_change_by_category(realm_id - 1, index - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_treasury
+---@return number budget_treasury 
 function DATA.realm_get_budget_treasury(realm_id)
     return DCON.dcon_realm_get_budget_treasury(realm_id - 1)
 end
@@ -3885,7 +3885,7 @@ function DATA.realm_inc_budget_treasury(realm_id, value)
     DCON.dcon_realm_set_budget_treasury(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_treasury_target
+---@return number budget_treasury_target 
 function DATA.realm_get_budget_treasury_target(realm_id)
     return DCON.dcon_realm_get_budget_treasury_target(realm_id - 1)
 end
@@ -3903,28 +3903,28 @@ function DATA.realm_inc_budget_treasury_target(realm_id, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_ratio(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].ratio
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_budget(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].budget
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_to_be_invested(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].to_be_invested
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
----@return number budget
+---@return number budget 
 function DATA.realm_get_budget_target(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].target
@@ -3986,7 +3986,7 @@ function DATA.realm_inc_budget_target(realm_id, index, value)
     DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].target = current + value
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_tax_target
+---@return number budget_tax_target 
 function DATA.realm_get_budget_tax_target(realm_id)
     return DCON.dcon_realm_get_budget_tax_target(realm_id - 1)
 end
@@ -4003,7 +4003,7 @@ function DATA.realm_inc_budget_tax_target(realm_id, value)
     DCON.dcon_realm_set_budget_tax_target(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number budget_tax_collected_this_year
+---@return number budget_tax_collected_this_year 
 function DATA.realm_get_budget_tax_collected_this_year(realm_id)
     return DCON.dcon_realm_get_budget_tax_collected_this_year(realm_id - 1)
 end
@@ -4020,7 +4020,7 @@ function DATA.realm_inc_budget_tax_collected_this_year(realm_id, value)
     DCON.dcon_realm_set_budget_tax_collected_this_year(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number r
+---@return number r 
 function DATA.realm_get_r(realm_id)
     return DCON.dcon_realm_get_r(realm_id - 1)
 end
@@ -4037,7 +4037,7 @@ function DATA.realm_inc_r(realm_id, value)
     DCON.dcon_realm_set_r(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number g
+---@return number g 
 function DATA.realm_get_g(realm_id)
     return DCON.dcon_realm_get_g(realm_id - 1)
 end
@@ -4054,7 +4054,7 @@ function DATA.realm_inc_g(realm_id, value)
     DCON.dcon_realm_set_g(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number b
+---@return number b 
 function DATA.realm_get_b(realm_id)
     return DCON.dcon_realm_get_b(realm_id - 1)
 end
@@ -4071,7 +4071,7 @@ function DATA.realm_inc_b(realm_id, value)
     DCON.dcon_realm_set_b(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return race_id primary_race
+---@return race_id primary_race 
 function DATA.realm_get_primary_race(realm_id)
     return DCON.dcon_realm_get_primary_race(realm_id - 1) + 1
 end
@@ -4081,7 +4081,7 @@ function DATA.realm_set_primary_race(realm_id, value)
     DCON.dcon_realm_set_primary_race(realm_id - 1, value - 1)
 end
 ---@param realm_id realm_id valid realm id
----@return Culture primary_culture
+---@return Culture primary_culture 
 function DATA.realm_get_primary_culture(realm_id)
     return DATA.realm_primary_culture[realm_id]
 end
@@ -4091,7 +4091,7 @@ function DATA.realm_set_primary_culture(realm_id, value)
     DATA.realm_primary_culture[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return Faith primary_faith
+---@return Faith primary_faith 
 function DATA.realm_get_primary_faith(realm_id)
     return DATA.realm_primary_faith[realm_id]
 end
@@ -4101,7 +4101,7 @@ function DATA.realm_set_primary_faith(realm_id, value)
     DATA.realm_primary_faith[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return province_id capitol
+---@return province_id capitol 
 function DATA.realm_get_capitol(realm_id)
     return DCON.dcon_realm_get_capitol(realm_id - 1) + 1
 end
@@ -4111,7 +4111,7 @@ function DATA.realm_set_capitol(realm_id, value)
     DCON.dcon_realm_set_capitol(realm_id - 1, value - 1)
 end
 ---@param realm_id realm_id valid realm id
----@return number trading_right_cost
+---@return number trading_right_cost 
 function DATA.realm_get_trading_right_cost(realm_id)
     return DCON.dcon_realm_get_trading_right_cost(realm_id - 1)
 end
@@ -4128,7 +4128,7 @@ function DATA.realm_inc_trading_right_cost(realm_id, value)
     DCON.dcon_realm_set_trading_right_cost(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number building_right_cost
+---@return number building_right_cost 
 function DATA.realm_get_building_right_cost(realm_id)
     return DCON.dcon_realm_get_building_right_cost(realm_id - 1)
 end
@@ -4145,7 +4145,7 @@ function DATA.realm_inc_building_right_cost(realm_id, value)
     DCON.dcon_realm_set_building_right_cost(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return LAW_TRADE law_trade
+---@return LAW_TRADE law_trade 
 function DATA.realm_get_law_trade(realm_id)
     return DCON.dcon_realm_get_law_trade(realm_id - 1)
 end
@@ -4155,7 +4155,7 @@ function DATA.realm_set_law_trade(realm_id, value)
     DCON.dcon_realm_set_law_trade(realm_id - 1, value)
 end
 ---@param realm_id realm_id valid realm id
----@return LAW_BUILDING law_building
+---@return LAW_BUILDING law_building 
 function DATA.realm_get_law_building(realm_id)
     return DCON.dcon_realm_get_law_building(realm_id - 1)
 end
@@ -4195,7 +4195,7 @@ function DATA.realm_set_quests_patrol(realm_id, value)
     DATA.realm_quests_patrol[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return table<province_id,table<warband_id,warband_id>> patrols
+---@return table<province_id,table<warband_id,warband_id>> patrols 
 function DATA.realm_get_patrols(realm_id)
     return DATA.realm_patrols[realm_id]
 end
@@ -4205,7 +4205,7 @@ function DATA.realm_set_patrols(realm_id, value)
     DATA.realm_patrols[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return boolean prepare_attack_flag
+---@return boolean prepare_attack_flag 
 function DATA.realm_get_prepare_attack_flag(realm_id)
     return DCON.dcon_realm_get_prepare_attack_flag(realm_id - 1)
 end
@@ -4225,7 +4225,7 @@ function DATA.realm_set_known_provinces(realm_id, value)
     DATA.realm_known_provinces[realm_id] = value
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_base_r
+---@return number coa_base_r 
 function DATA.realm_get_coa_base_r(realm_id)
     return DCON.dcon_realm_get_coa_base_r(realm_id - 1)
 end
@@ -4242,7 +4242,7 @@ function DATA.realm_inc_coa_base_r(realm_id, value)
     DCON.dcon_realm_set_coa_base_r(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_base_g
+---@return number coa_base_g 
 function DATA.realm_get_coa_base_g(realm_id)
     return DCON.dcon_realm_get_coa_base_g(realm_id - 1)
 end
@@ -4259,7 +4259,7 @@ function DATA.realm_inc_coa_base_g(realm_id, value)
     DCON.dcon_realm_set_coa_base_g(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_base_b
+---@return number coa_base_b 
 function DATA.realm_get_coa_base_b(realm_id)
     return DCON.dcon_realm_get_coa_base_b(realm_id - 1)
 end
@@ -4276,7 +4276,7 @@ function DATA.realm_inc_coa_base_b(realm_id, value)
     DCON.dcon_realm_set_coa_base_b(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_r
+---@return number coa_background_r 
 function DATA.realm_get_coa_background_r(realm_id)
     return DCON.dcon_realm_get_coa_background_r(realm_id - 1)
 end
@@ -4293,7 +4293,7 @@ function DATA.realm_inc_coa_background_r(realm_id, value)
     DCON.dcon_realm_set_coa_background_r(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_g
+---@return number coa_background_g 
 function DATA.realm_get_coa_background_g(realm_id)
     return DCON.dcon_realm_get_coa_background_g(realm_id - 1)
 end
@@ -4310,7 +4310,7 @@ function DATA.realm_inc_coa_background_g(realm_id, value)
     DCON.dcon_realm_set_coa_background_g(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_b
+---@return number coa_background_b 
 function DATA.realm_get_coa_background_b(realm_id)
     return DCON.dcon_realm_get_coa_background_b(realm_id - 1)
 end
@@ -4327,7 +4327,7 @@ function DATA.realm_inc_coa_background_b(realm_id, value)
     DCON.dcon_realm_set_coa_background_b(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_r
+---@return number coa_foreground_r 
 function DATA.realm_get_coa_foreground_r(realm_id)
     return DCON.dcon_realm_get_coa_foreground_r(realm_id - 1)
 end
@@ -4344,7 +4344,7 @@ function DATA.realm_inc_coa_foreground_r(realm_id, value)
     DCON.dcon_realm_set_coa_foreground_r(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_g
+---@return number coa_foreground_g 
 function DATA.realm_get_coa_foreground_g(realm_id)
     return DCON.dcon_realm_get_coa_foreground_g(realm_id - 1)
 end
@@ -4361,7 +4361,7 @@ function DATA.realm_inc_coa_foreground_g(realm_id, value)
     DCON.dcon_realm_set_coa_foreground_g(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_b
+---@return number coa_foreground_b 
 function DATA.realm_get_coa_foreground_b(realm_id)
     return DCON.dcon_realm_get_coa_foreground_b(realm_id - 1)
 end
@@ -4378,7 +4378,7 @@ function DATA.realm_inc_coa_foreground_b(realm_id, value)
     DCON.dcon_realm_set_coa_foreground_b(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_r
+---@return number coa_emblem_r 
 function DATA.realm_get_coa_emblem_r(realm_id)
     return DCON.dcon_realm_get_coa_emblem_r(realm_id - 1)
 end
@@ -4395,7 +4395,7 @@ function DATA.realm_inc_coa_emblem_r(realm_id, value)
     DCON.dcon_realm_set_coa_emblem_r(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_g
+---@return number coa_emblem_g 
 function DATA.realm_get_coa_emblem_g(realm_id)
     return DCON.dcon_realm_get_coa_emblem_g(realm_id - 1)
 end
@@ -4412,7 +4412,7 @@ function DATA.realm_inc_coa_emblem_g(realm_id, value)
     DCON.dcon_realm_set_coa_emblem_g(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_b
+---@return number coa_emblem_b 
 function DATA.realm_get_coa_emblem_b(realm_id)
     return DCON.dcon_realm_get_coa_emblem_b(realm_id - 1)
 end
@@ -4429,7 +4429,7 @@ function DATA.realm_inc_coa_emblem_b(realm_id, value)
     DCON.dcon_realm_set_coa_emblem_b(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_background_image
+---@return number coa_background_image 
 function DATA.realm_get_coa_background_image(realm_id)
     return DCON.dcon_realm_get_coa_background_image(realm_id - 1)
 end
@@ -4446,7 +4446,7 @@ function DATA.realm_inc_coa_background_image(realm_id, value)
     DCON.dcon_realm_set_coa_background_image(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_foreground_image
+---@return number coa_foreground_image 
 function DATA.realm_get_coa_foreground_image(realm_id)
     return DCON.dcon_realm_get_coa_foreground_image(realm_id - 1)
 end
@@ -4463,7 +4463,7 @@ function DATA.realm_inc_coa_foreground_image(realm_id, value)
     DCON.dcon_realm_set_coa_foreground_image(realm_id - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number coa_emblem_image
+---@return number coa_emblem_image 
 function DATA.realm_get_coa_emblem_image(realm_id)
     return DCON.dcon_realm_get_coa_emblem_image(realm_id - 1)
 end
@@ -4523,7 +4523,7 @@ function DATA.realm_inc_production(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index trade_good_id valid
----@return number bought
+---@return number bought 
 function DATA.realm_get_bought(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_bought(realm_id - 1, index - 1)
@@ -4544,7 +4544,7 @@ function DATA.realm_inc_bought(realm_id, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index trade_good_id valid
----@return number sold
+---@return number sold 
 function DATA.realm_get_sold(realm_id, index)
     assert(index ~= 0)
     return DCON.dcon_realm_get_sold(realm_id - 1, index - 1)
@@ -4564,7 +4564,7 @@ function DATA.realm_inc_sold(realm_id, index, value)
     DCON.dcon_realm_set_sold(realm_id - 1, index - 1, current + value)
 end
 ---@param realm_id realm_id valid realm id
----@return number expected_food_consumption
+---@return number expected_food_consumption 
 function DATA.realm_get_expected_food_consumption(realm_id)
     return DCON.dcon_realm_get_expected_food_consumption(realm_id - 1)
 end
@@ -4811,8 +4811,8 @@ end
 
 ---@class (exact) fat_negotiation_id
 ---@field id negotiation_id Unique negotiation id
----@field initiator pop_id
----@field target pop_id
+---@field initiator pop_id 
+---@field target pop_id 
 
 ---@class struct_negotiation
 
@@ -4837,21 +4837,21 @@ uint32_t dcon_negotiation_size();
 
 ---negotiation: LUA bindings---
 
-DATA.negotiation_size = 2500
+DATA.negotiation_size = 45000
 ---@param initiator pop_id
 ---@param target pop_id
 ---@return negotiation_id
 function DATA.force_create_negotiation(initiator, target)
     ---@type negotiation_id
     local i = DCON.dcon_force_create_negotiation(initiator - 1, target - 1) + 1
-    return i --[[@as negotiation_id]]
+    return i --[[@as negotiation_id]] 
 end
 ---@param i negotiation_id
 function DATA.delete_negotiation(i)
-    assert(DCON.dcon_negotiation_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_negotiation_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_negotiation(i - 1)
 end
----@param func fun(item: negotiation_id)
+---@param func fun(item: negotiation_id) 
 function DATA.for_each_negotiation(func)
     ---@type number
     local range = DCON.dcon_negotiation_size()
@@ -4859,29 +4859,29 @@ function DATA.for_each_negotiation(func)
         if DCON.dcon_negotiation_is_valid(i) then func(i + 1 --[[@as negotiation_id]]) end
     end
 end
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_negotiation(func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_negotiation_size()
     for i = 0, range - 1 do
-        if DCON.dcon_negotiation_is_valid(i) and func(i + 1 --[[@as negotiation_id]]) then t[i + 1 --[[@as negotiation_id]]] = t[i + 1 --[[@as negotiation_id]]] end
+        if DCON.dcon_negotiation_is_valid(i) and func(i + 1 --[[@as negotiation_id]]) then t[i + 1 --[[@as negotiation_id]]] = i + 1 --[[@as negotiation_id]] end
     end
     return t
 end
 
 ---@param initiator negotiation_id valid pop_id
----@return pop_id Data retrieved from negotiation
+---@return pop_id Data retrieved from negotiation 
 function DATA.negotiation_get_initiator(initiator)
     return DCON.dcon_negotiation_get_initiator(initiator - 1) + 1
 end
 ---@param initiator pop_id valid pop_id
----@return negotiation_id[] An array of negotiation
+---@return negotiation_id[] An array of negotiation 
 function DATA.get_negotiation_from_initiator(initiator)
     local result = {}
-    DATA.for_each_negotiation_from_initiator(initiator, function(item)
+    DATA.for_each_negotiation_from_initiator(initiator, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -4898,10 +4898,10 @@ function DATA.for_each_negotiation_from_initiator(initiator, func)
     end
 end
 ---@param initiator pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
+---@param func fun(item: negotiation_id):boolean 
 ---@return negotiation_id[]
 function DATA.filter_array_negotiation_from_initiator(initiator, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_negotiation_as_initiator(initiator - 1)
@@ -4913,10 +4913,10 @@ function DATA.filter_array_negotiation_from_initiator(initiator, func)
     return t
 end
 ---@param initiator pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_negotiation_from_initiator(initiator, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_negotiation_as_initiator(initiator - 1)
@@ -4933,15 +4933,15 @@ function DATA.negotiation_set_initiator(negotiation_id, value)
     DCON.dcon_negotiation_set_initiator(negotiation_id - 1, value - 1)
 end
 ---@param target negotiation_id valid pop_id
----@return pop_id Data retrieved from negotiation
+---@return pop_id Data retrieved from negotiation 
 function DATA.negotiation_get_target(target)
     return DCON.dcon_negotiation_get_target(target - 1) + 1
 end
 ---@param target pop_id valid pop_id
----@return negotiation_id[] An array of negotiation
+---@return negotiation_id[] An array of negotiation 
 function DATA.get_negotiation_from_target(target)
     local result = {}
-    DATA.for_each_negotiation_from_target(target, function(item)
+    DATA.for_each_negotiation_from_target(target, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -4958,10 +4958,10 @@ function DATA.for_each_negotiation_from_target(target, func)
     end
 end
 ---@param target pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
+---@param func fun(item: negotiation_id):boolean 
 ---@return negotiation_id[]
 function DATA.filter_array_negotiation_from_target(target, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_negotiation_as_target(target - 1)
@@ -4973,10 +4973,10 @@ function DATA.filter_array_negotiation_from_target(target, func)
     return t
 end
 ---@param target pop_id valid pop_id
----@param func fun(item: negotiation_id):boolean
----@return table<negotiation_id, negotiation_id>
+---@param func fun(item: negotiation_id):boolean 
+---@return table<negotiation_id, negotiation_id> 
 function DATA.filter_negotiation_from_target(target, func)
-    ---@type table<negotiation_id, negotiation_id>
+    ---@type table<negotiation_id, negotiation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_negotiation_as_target(target - 1)
@@ -5028,38 +5028,38 @@ end
 
 ---@class (exact) fat_building_id
 ---@field id building_id Unique building id
----@field current_type building_type_id
----@field savings number
----@field subsidy number
----@field subsidy_last number
----@field income_mean number
----@field last_income number
----@field last_donation_to_owner number
----@field unused number
----@field work_ratio number
----@field production_scale number
+---@field current_type building_type_id 
+---@field savings number 
+---@field subsidy number 
+---@field subsidy_last number 
+---@field income_mean number 
+---@field last_income number 
+---@field last_donation_to_owner number 
+---@field unused number 
+---@field work_ratio number 
+---@field production_scale number 
 
 ---@class struct_building
----@field current_type building_type_id
----@field savings number
----@field subsidy number
----@field subsidy_last number
----@field income_mean number
----@field last_income number
----@field last_donation_to_owner number
----@field unused number
----@field work_ratio number
----@field production_scale number
----@field spent_on_inputs table<number, struct_use_case_container>
----@field earn_from_outputs table<number, struct_trade_good_container>
----@field amount_of_inputs table<number, struct_use_case_container>
----@field amount_of_outputs table<number, struct_trade_good_container>
----@field inventory table<trade_good_id, number>
+---@field current_type building_type_id 
+---@field savings number 
+---@field subsidy number 
+---@field subsidy_last number 
+---@field income_mean number 
+---@field last_income number 
+---@field last_donation_to_owner number 
+---@field unused number 
+---@field work_ratio number 
+---@field production_scale number 
+---@field spent_on_inputs table<number, struct_use_case_container> 
+---@field earn_from_outputs table<number, struct_trade_good_container> 
+---@field amount_of_inputs table<number, struct_use_case_container> 
+---@field amount_of_outputs table<number, struct_trade_good_container> 
+---@field inventory table<trade_good_id, number> 
 
 
 ffi.cdef[[
-void dcon_building_set_current_type(int32_t, uint32_t);
-uint32_t dcon_building_get_current_type(int32_t);
+void dcon_building_set_current_type(int32_t, int32_t);
+int32_t dcon_building_get_current_type(int32_t);
 void dcon_building_set_savings(int32_t, float);
 float dcon_building_get_savings(int32_t);
 void dcon_building_set_subsidy(int32_t, float);
@@ -5110,14 +5110,14 @@ DCON.dcon_building_resize_inventory(101)
 function DATA.create_building()
     ---@type building_id
     local i  = DCON.dcon_create_building() + 1
-    return i --[[@as building_id]]
+    return i --[[@as building_id]] 
 end
 ---@param i building_id
 function DATA.delete_building(i)
-    assert(DCON.dcon_building_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_building_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_building(i - 1)
 end
----@param func fun(item: building_id)
+---@param func fun(item: building_id) 
 function DATA.for_each_building(func)
     ---@type number
     local range = DCON.dcon_building_size()
@@ -5125,21 +5125,21 @@ function DATA.for_each_building(func)
         if DCON.dcon_building_is_valid(i) then func(i + 1 --[[@as building_id]]) end
     end
 end
----@param func fun(item: building_id):boolean
----@return table<building_id, building_id>
+---@param func fun(item: building_id):boolean 
+---@return table<building_id, building_id> 
 function DATA.filter_building(func)
-    ---@type table<building_id, building_id>
+    ---@type table<building_id, building_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_building_size()
     for i = 0, range - 1 do
-        if DCON.dcon_building_is_valid(i) and func(i + 1 --[[@as building_id]]) then t[i + 1 --[[@as building_id]]] = t[i + 1 --[[@as building_id]]] end
+        if DCON.dcon_building_is_valid(i) and func(i + 1 --[[@as building_id]]) then t[i + 1 --[[@as building_id]]] = i + 1 --[[@as building_id]] end
     end
     return t
 end
 
 ---@param building_id building_id valid building id
----@return building_type_id current_type
+---@return building_type_id current_type 
 function DATA.building_get_current_type(building_id)
     return DCON.dcon_building_get_current_type(building_id - 1) + 1
 end
@@ -5149,7 +5149,7 @@ function DATA.building_set_current_type(building_id, value)
     DCON.dcon_building_set_current_type(building_id - 1, value - 1)
 end
 ---@param building_id building_id valid building id
----@return number savings
+---@return number savings 
 function DATA.building_get_savings(building_id)
     return DCON.dcon_building_get_savings(building_id - 1)
 end
@@ -5166,7 +5166,7 @@ function DATA.building_inc_savings(building_id, value)
     DCON.dcon_building_set_savings(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number subsidy
+---@return number subsidy 
 function DATA.building_get_subsidy(building_id)
     return DCON.dcon_building_get_subsidy(building_id - 1)
 end
@@ -5183,7 +5183,7 @@ function DATA.building_inc_subsidy(building_id, value)
     DCON.dcon_building_set_subsidy(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number subsidy_last
+---@return number subsidy_last 
 function DATA.building_get_subsidy_last(building_id)
     return DCON.dcon_building_get_subsidy_last(building_id - 1)
 end
@@ -5200,7 +5200,7 @@ function DATA.building_inc_subsidy_last(building_id, value)
     DCON.dcon_building_set_subsidy_last(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number income_mean
+---@return number income_mean 
 function DATA.building_get_income_mean(building_id)
     return DCON.dcon_building_get_income_mean(building_id - 1)
 end
@@ -5217,7 +5217,7 @@ function DATA.building_inc_income_mean(building_id, value)
     DCON.dcon_building_set_income_mean(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number last_income
+---@return number last_income 
 function DATA.building_get_last_income(building_id)
     return DCON.dcon_building_get_last_income(building_id - 1)
 end
@@ -5234,7 +5234,7 @@ function DATA.building_inc_last_income(building_id, value)
     DCON.dcon_building_set_last_income(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number last_donation_to_owner
+---@return number last_donation_to_owner 
 function DATA.building_get_last_donation_to_owner(building_id)
     return DCON.dcon_building_get_last_donation_to_owner(building_id - 1)
 end
@@ -5251,7 +5251,7 @@ function DATA.building_inc_last_donation_to_owner(building_id, value)
     DCON.dcon_building_set_last_donation_to_owner(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number unused
+---@return number unused 
 function DATA.building_get_unused(building_id)
     return DCON.dcon_building_get_unused(building_id - 1)
 end
@@ -5268,7 +5268,7 @@ function DATA.building_inc_unused(building_id, value)
     DCON.dcon_building_set_unused(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number work_ratio
+---@return number work_ratio 
 function DATA.building_get_work_ratio(building_id)
     return DCON.dcon_building_get_work_ratio(building_id - 1)
 end
@@ -5285,7 +5285,7 @@ function DATA.building_inc_work_ratio(building_id, value)
     DCON.dcon_building_set_work_ratio(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
----@return number production_scale
+---@return number production_scale 
 function DATA.building_get_production_scale(building_id)
     return DCON.dcon_building_get_production_scale(building_id - 1)
 end
@@ -5303,14 +5303,14 @@ function DATA.building_inc_production_scale(building_id, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return use_case_id spent_on_inputs
+---@return use_case_id spent_on_inputs 
 function DATA.building_get_spent_on_inputs_use(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_spent_on_inputs(building_id - 1, index - 1)[0].use
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number spent_on_inputs
+---@return number spent_on_inputs 
 function DATA.building_get_spent_on_inputs_amount(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_spent_on_inputs(building_id - 1, index - 1)[0].amount
@@ -5337,14 +5337,14 @@ function DATA.building_inc_spent_on_inputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return trade_good_id earn_from_outputs
+---@return trade_good_id earn_from_outputs 
 function DATA.building_get_earn_from_outputs_good(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_earn_from_outputs(building_id - 1, index - 1)[0].good
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number earn_from_outputs
+---@return number earn_from_outputs 
 function DATA.building_get_earn_from_outputs_amount(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_earn_from_outputs(building_id - 1, index - 1)[0].amount
@@ -5371,14 +5371,14 @@ function DATA.building_inc_earn_from_outputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return use_case_id amount_of_inputs
+---@return use_case_id amount_of_inputs 
 function DATA.building_get_amount_of_inputs_use(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_amount_of_inputs(building_id - 1, index - 1)[0].use
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number amount_of_inputs
+---@return number amount_of_inputs 
 function DATA.building_get_amount_of_inputs_amount(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_amount_of_inputs(building_id - 1, index - 1)[0].amount
@@ -5405,14 +5405,14 @@ function DATA.building_inc_amount_of_inputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return trade_good_id amount_of_outputs
+---@return trade_good_id amount_of_outputs 
 function DATA.building_get_amount_of_outputs_good(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_amount_of_outputs(building_id - 1, index - 1)[0].good
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
----@return number amount_of_outputs
+---@return number amount_of_outputs 
 function DATA.building_get_amount_of_outputs_amount(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_amount_of_outputs(building_id - 1, index - 1)[0].amount
@@ -5439,7 +5439,7 @@ function DATA.building_inc_amount_of_outputs_amount(building_id, index, value)
 end
 ---@param building_id building_id valid building id
 ---@param index trade_good_id valid
----@return number inventory
+---@return number inventory 
 function DATA.building_get_inventory(building_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_get_inventory(building_id - 1, index - 1)
@@ -5534,8 +5534,8 @@ end
 
 ---@class (exact) fat_ownership_id
 ---@field id ownership_id Unique ownership id
----@field building building_id
----@field owner pop_id
+---@field building building_id 
+---@field owner pop_id 
 
 ---@class struct_ownership
 
@@ -5566,14 +5566,14 @@ DATA.ownership_size = 200000
 function DATA.force_create_ownership(building, owner)
     ---@type ownership_id
     local i = DCON.dcon_force_create_ownership(building - 1, owner - 1) + 1
-    return i --[[@as ownership_id]]
+    return i --[[@as ownership_id]] 
 end
 ---@param i ownership_id
 function DATA.delete_ownership(i)
-    assert(DCON.dcon_ownership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_ownership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_ownership(i - 1)
 end
----@param func fun(item: ownership_id)
+---@param func fun(item: ownership_id) 
 function DATA.for_each_ownership(func)
     ---@type number
     local range = DCON.dcon_ownership_size()
@@ -5581,26 +5581,26 @@ function DATA.for_each_ownership(func)
         if DCON.dcon_ownership_is_valid(i) then func(i + 1 --[[@as ownership_id]]) end
     end
 end
----@param func fun(item: ownership_id):boolean
----@return table<ownership_id, ownership_id>
+---@param func fun(item: ownership_id):boolean 
+---@return table<ownership_id, ownership_id> 
 function DATA.filter_ownership(func)
-    ---@type table<ownership_id, ownership_id>
+    ---@type table<ownership_id, ownership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_ownership_size()
     for i = 0, range - 1 do
-        if DCON.dcon_ownership_is_valid(i) and func(i + 1 --[[@as ownership_id]]) then t[i + 1 --[[@as ownership_id]]] = t[i + 1 --[[@as ownership_id]]] end
+        if DCON.dcon_ownership_is_valid(i) and func(i + 1 --[[@as ownership_id]]) then t[i + 1 --[[@as ownership_id]]] = i + 1 --[[@as ownership_id]] end
     end
     return t
 end
 
 ---@param building ownership_id valid building_id
----@return building_id Data retrieved from ownership
+---@return building_id Data retrieved from ownership 
 function DATA.ownership_get_building(building)
     return DCON.dcon_ownership_get_building(building - 1) + 1
 end
 ---@param building building_id valid building_id
----@return ownership_id ownership
+---@return ownership_id ownership 
 function DATA.get_ownership_from_building(building)
     return DCON.dcon_building_get_ownership_as_building(building - 1) + 1
 end
@@ -5610,15 +5610,15 @@ function DATA.ownership_set_building(ownership_id, value)
     DCON.dcon_ownership_set_building(ownership_id - 1, value - 1)
 end
 ---@param owner ownership_id valid pop_id
----@return pop_id Data retrieved from ownership
+---@return pop_id Data retrieved from ownership 
 function DATA.ownership_get_owner(owner)
     return DCON.dcon_ownership_get_owner(owner - 1) + 1
 end
 ---@param owner pop_id valid pop_id
----@return ownership_id[] An array of ownership
+---@return ownership_id[] An array of ownership 
 function DATA.get_ownership_from_owner(owner)
     local result = {}
-    DATA.for_each_ownership_from_owner(owner, function(item)
+    DATA.for_each_ownership_from_owner(owner, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -5635,10 +5635,10 @@ function DATA.for_each_ownership_from_owner(owner, func)
     end
 end
 ---@param owner pop_id valid pop_id
----@param func fun(item: ownership_id):boolean
+---@param func fun(item: ownership_id):boolean 
 ---@return ownership_id[]
 function DATA.filter_array_ownership_from_owner(owner, func)
-    ---@type table<ownership_id, ownership_id>
+    ---@type table<ownership_id, ownership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_ownership_as_owner(owner - 1)
@@ -5650,10 +5650,10 @@ function DATA.filter_array_ownership_from_owner(owner, func)
     return t
 end
 ---@param owner pop_id valid pop_id
----@param func fun(item: ownership_id):boolean
----@return table<ownership_id, ownership_id>
+---@param func fun(item: ownership_id):boolean 
+---@return table<ownership_id, ownership_id> 
 function DATA.filter_ownership_from_owner(owner, func)
-    ---@type table<ownership_id, ownership_id>
+    ---@type table<ownership_id, ownership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_ownership_as_owner(owner - 1)
@@ -5705,21 +5705,21 @@ end
 
 ---@class (exact) fat_employment_id
 ---@field id employment_id Unique employment id
----@field worker_income number
----@field job job_id
----@field building building_id
----@field worker pop_id
+---@field worker_income number 
+---@field job job_id 
+---@field building building_id 
+---@field worker pop_id 
 
 ---@class struct_employment
----@field worker_income number
----@field job job_id
+---@field worker_income number 
+---@field job job_id 
 
 
 ffi.cdef[[
 void dcon_employment_set_worker_income(int32_t, float);
 float dcon_employment_get_worker_income(int32_t);
-void dcon_employment_set_job(int32_t, uint32_t);
-uint32_t dcon_employment_get_job(int32_t);
+void dcon_employment_set_job(int32_t, int32_t);
+int32_t dcon_employment_get_job(int32_t);
 void dcon_delete_employment(int32_t j);
 int32_t dcon_force_create_employment(int32_t building, int32_t worker);
 void dcon_employment_set_building(int32_t, int32_t);
@@ -5745,14 +5745,14 @@ DATA.employment_size = 300000
 function DATA.force_create_employment(building, worker)
     ---@type employment_id
     local i = DCON.dcon_force_create_employment(building - 1, worker - 1) + 1
-    return i --[[@as employment_id]]
+    return i --[[@as employment_id]] 
 end
 ---@param i employment_id
 function DATA.delete_employment(i)
-    assert(DCON.dcon_employment_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_employment_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_employment(i - 1)
 end
----@param func fun(item: employment_id)
+---@param func fun(item: employment_id) 
 function DATA.for_each_employment(func)
     ---@type number
     local range = DCON.dcon_employment_size()
@@ -5760,21 +5760,21 @@ function DATA.for_each_employment(func)
         if DCON.dcon_employment_is_valid(i) then func(i + 1 --[[@as employment_id]]) end
     end
 end
----@param func fun(item: employment_id):boolean
----@return table<employment_id, employment_id>
+---@param func fun(item: employment_id):boolean 
+---@return table<employment_id, employment_id> 
 function DATA.filter_employment(func)
-    ---@type table<employment_id, employment_id>
+    ---@type table<employment_id, employment_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_employment_size()
     for i = 0, range - 1 do
-        if DCON.dcon_employment_is_valid(i) and func(i + 1 --[[@as employment_id]]) then t[i + 1 --[[@as employment_id]]] = t[i + 1 --[[@as employment_id]]] end
+        if DCON.dcon_employment_is_valid(i) and func(i + 1 --[[@as employment_id]]) then t[i + 1 --[[@as employment_id]]] = i + 1 --[[@as employment_id]] end
     end
     return t
 end
 
 ---@param employment_id employment_id valid employment id
----@return number worker_income
+---@return number worker_income 
 function DATA.employment_get_worker_income(employment_id)
     return DCON.dcon_employment_get_worker_income(employment_id - 1)
 end
@@ -5791,7 +5791,7 @@ function DATA.employment_inc_worker_income(employment_id, value)
     DCON.dcon_employment_set_worker_income(employment_id - 1, current + value)
 end
 ---@param employment_id employment_id valid employment id
----@return job_id job
+---@return job_id job 
 function DATA.employment_get_job(employment_id)
     return DCON.dcon_employment_get_job(employment_id - 1) + 1
 end
@@ -5801,15 +5801,15 @@ function DATA.employment_set_job(employment_id, value)
     DCON.dcon_employment_set_job(employment_id - 1, value - 1)
 end
 ---@param building employment_id valid building_id
----@return building_id Data retrieved from employment
+---@return building_id Data retrieved from employment 
 function DATA.employment_get_building(building)
     return DCON.dcon_employment_get_building(building - 1) + 1
 end
 ---@param building building_id valid building_id
----@return employment_id[] An array of employment
+---@return employment_id[] An array of employment 
 function DATA.get_employment_from_building(building)
     local result = {}
-    DATA.for_each_employment_from_building(building, function(item)
+    DATA.for_each_employment_from_building(building, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -5826,10 +5826,10 @@ function DATA.for_each_employment_from_building(building, func)
     end
 end
 ---@param building building_id valid building_id
----@param func fun(item: employment_id):boolean
+---@param func fun(item: employment_id):boolean 
 ---@return employment_id[]
 function DATA.filter_array_employment_from_building(building, func)
-    ---@type table<employment_id, employment_id>
+    ---@type table<employment_id, employment_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_building_get_range_employment_as_building(building - 1)
@@ -5841,10 +5841,10 @@ function DATA.filter_array_employment_from_building(building, func)
     return t
 end
 ---@param building building_id valid building_id
----@param func fun(item: employment_id):boolean
----@return table<employment_id, employment_id>
+---@param func fun(item: employment_id):boolean 
+---@return table<employment_id, employment_id> 
 function DATA.filter_employment_from_building(building, func)
-    ---@type table<employment_id, employment_id>
+    ---@type table<employment_id, employment_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_building_get_range_employment_as_building(building - 1)
@@ -5861,12 +5861,12 @@ function DATA.employment_set_building(employment_id, value)
     DCON.dcon_employment_set_building(employment_id - 1, value - 1)
 end
 ---@param worker employment_id valid pop_id
----@return pop_id Data retrieved from employment
+---@return pop_id Data retrieved from employment 
 function DATA.employment_get_worker(worker)
     return DCON.dcon_employment_get_worker(worker - 1) + 1
 end
 ---@param worker pop_id valid pop_id
----@return employment_id employment
+---@return employment_id employment 
 function DATA.get_employment_from_worker(worker)
     return DCON.dcon_pop_get_employment_as_worker(worker - 1) + 1
 end
@@ -5922,7 +5922,7 @@ end
 ---@class (exact) fat_building_location_id
 ---@field id building_location_id Unique building_location id
 ---@field location province_id location of the building
----@field building building_id
+---@field building building_id 
 
 ---@class struct_building_location
 
@@ -5953,14 +5953,14 @@ DATA.building_location_size = 200000
 function DATA.force_create_building_location(location, building)
     ---@type building_location_id
     local i = DCON.dcon_force_create_building_location(location - 1, building - 1) + 1
-    return i --[[@as building_location_id]]
+    return i --[[@as building_location_id]] 
 end
 ---@param i building_location_id
 function DATA.delete_building_location(i)
-    assert(DCON.dcon_building_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_building_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_building_location(i - 1)
 end
----@param func fun(item: building_location_id)
+---@param func fun(item: building_location_id) 
 function DATA.for_each_building_location(func)
     ---@type number
     local range = DCON.dcon_building_location_size()
@@ -5968,29 +5968,29 @@ function DATA.for_each_building_location(func)
         if DCON.dcon_building_location_is_valid(i) then func(i + 1 --[[@as building_location_id]]) end
     end
 end
----@param func fun(item: building_location_id):boolean
----@return table<building_location_id, building_location_id>
+---@param func fun(item: building_location_id):boolean 
+---@return table<building_location_id, building_location_id> 
 function DATA.filter_building_location(func)
-    ---@type table<building_location_id, building_location_id>
+    ---@type table<building_location_id, building_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_building_location_size()
     for i = 0, range - 1 do
-        if DCON.dcon_building_location_is_valid(i) and func(i + 1 --[[@as building_location_id]]) then t[i + 1 --[[@as building_location_id]]] = t[i + 1 --[[@as building_location_id]]] end
+        if DCON.dcon_building_location_is_valid(i) and func(i + 1 --[[@as building_location_id]]) then t[i + 1 --[[@as building_location_id]]] = i + 1 --[[@as building_location_id]] end
     end
     return t
 end
 
 ---@param location building_location_id valid province_id
----@return province_id Data retrieved from building_location
+---@return province_id Data retrieved from building_location 
 function DATA.building_location_get_location(location)
     return DCON.dcon_building_location_get_location(location - 1) + 1
 end
 ---@param location province_id valid province_id
----@return building_location_id[] An array of building_location
+---@return building_location_id[] An array of building_location 
 function DATA.get_building_location_from_location(location)
     local result = {}
-    DATA.for_each_building_location_from_location(location, function(item)
+    DATA.for_each_building_location_from_location(location, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -6007,10 +6007,10 @@ function DATA.for_each_building_location_from_location(location, func)
     end
 end
 ---@param location province_id valid province_id
----@param func fun(item: building_location_id):boolean
+---@param func fun(item: building_location_id):boolean 
 ---@return building_location_id[]
 function DATA.filter_array_building_location_from_location(location, func)
-    ---@type table<building_location_id, building_location_id>
+    ---@type table<building_location_id, building_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_building_location_as_location(location - 1)
@@ -6022,10 +6022,10 @@ function DATA.filter_array_building_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: building_location_id):boolean
----@return table<building_location_id, building_location_id>
+---@param func fun(item: building_location_id):boolean 
+---@return table<building_location_id, building_location_id> 
 function DATA.filter_building_location_from_location(location, func)
-    ---@type table<building_location_id, building_location_id>
+    ---@type table<building_location_id, building_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_building_location_as_location(location - 1)
@@ -6042,12 +6042,12 @@ function DATA.building_location_set_location(building_location_id, value)
     DCON.dcon_building_location_set_location(building_location_id - 1, value - 1)
 end
 ---@param building building_location_id valid building_id
----@return building_id Data retrieved from building_location
+---@return building_id Data retrieved from building_location 
 function DATA.building_location_get_building(building)
     return DCON.dcon_building_location_get_building(building - 1) + 1
 end
 ---@param building building_id valid building_id
----@return building_location_id building_location
+---@return building_location_id building_location 
 function DATA.get_building_location_from_building(building)
     return DCON.dcon_building_get_building_location_as_building(building - 1) + 1
 end
@@ -6092,7 +6092,7 @@ end
 
 ---@class (exact) fat_army_membership_id
 ---@field id army_membership_id Unique army_membership id
----@field army army_id
+---@field army army_id 
 ---@field member warband_id part of army
 
 ---@class struct_army_membership
@@ -6124,14 +6124,14 @@ DATA.army_membership_size = 50000
 function DATA.force_create_army_membership(army, member)
     ---@type army_membership_id
     local i = DCON.dcon_force_create_army_membership(army - 1, member - 1) + 1
-    return i --[[@as army_membership_id]]
+    return i --[[@as army_membership_id]] 
 end
 ---@param i army_membership_id
 function DATA.delete_army_membership(i)
-    assert(DCON.dcon_army_membership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_army_membership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_army_membership(i - 1)
 end
----@param func fun(item: army_membership_id)
+---@param func fun(item: army_membership_id) 
 function DATA.for_each_army_membership(func)
     ---@type number
     local range = DCON.dcon_army_membership_size()
@@ -6139,29 +6139,29 @@ function DATA.for_each_army_membership(func)
         if DCON.dcon_army_membership_is_valid(i) then func(i + 1 --[[@as army_membership_id]]) end
     end
 end
----@param func fun(item: army_membership_id):boolean
----@return table<army_membership_id, army_membership_id>
+---@param func fun(item: army_membership_id):boolean 
+---@return table<army_membership_id, army_membership_id> 
 function DATA.filter_army_membership(func)
-    ---@type table<army_membership_id, army_membership_id>
+    ---@type table<army_membership_id, army_membership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_army_membership_size()
     for i = 0, range - 1 do
-        if DCON.dcon_army_membership_is_valid(i) and func(i + 1 --[[@as army_membership_id]]) then t[i + 1 --[[@as army_membership_id]]] = t[i + 1 --[[@as army_membership_id]]] end
+        if DCON.dcon_army_membership_is_valid(i) and func(i + 1 --[[@as army_membership_id]]) then t[i + 1 --[[@as army_membership_id]]] = i + 1 --[[@as army_membership_id]] end
     end
     return t
 end
 
 ---@param army army_membership_id valid army_id
----@return army_id Data retrieved from army_membership
+---@return army_id Data retrieved from army_membership 
 function DATA.army_membership_get_army(army)
     return DCON.dcon_army_membership_get_army(army - 1) + 1
 end
 ---@param army army_id valid army_id
----@return army_membership_id[] An array of army_membership
+---@return army_membership_id[] An array of army_membership 
 function DATA.get_army_membership_from_army(army)
     local result = {}
-    DATA.for_each_army_membership_from_army(army, function(item)
+    DATA.for_each_army_membership_from_army(army, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -6178,10 +6178,10 @@ function DATA.for_each_army_membership_from_army(army, func)
     end
 end
 ---@param army army_id valid army_id
----@param func fun(item: army_membership_id):boolean
+---@param func fun(item: army_membership_id):boolean 
 ---@return army_membership_id[]
 function DATA.filter_array_army_membership_from_army(army, func)
-    ---@type table<army_membership_id, army_membership_id>
+    ---@type table<army_membership_id, army_membership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_army_get_range_army_membership_as_army(army - 1)
@@ -6193,10 +6193,10 @@ function DATA.filter_array_army_membership_from_army(army, func)
     return t
 end
 ---@param army army_id valid army_id
----@param func fun(item: army_membership_id):boolean
----@return table<army_membership_id, army_membership_id>
+---@param func fun(item: army_membership_id):boolean 
+---@return table<army_membership_id, army_membership_id> 
 function DATA.filter_army_membership_from_army(army, func)
-    ---@type table<army_membership_id, army_membership_id>
+    ---@type table<army_membership_id, army_membership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_army_get_range_army_membership_as_army(army - 1)
@@ -6213,12 +6213,12 @@ function DATA.army_membership_set_army(army_membership_id, value)
     DCON.dcon_army_membership_set_army(army_membership_id - 1, value - 1)
 end
 ---@param member army_membership_id valid warband_id
----@return warband_id Data retrieved from army_membership
+---@return warband_id Data retrieved from army_membership 
 function DATA.army_membership_get_member(member)
     return DCON.dcon_army_membership_get_member(member - 1) + 1
 end
 ---@param member warband_id valid warband_id
----@return army_membership_id army_membership
+---@return army_membership_id army_membership 
 function DATA.get_army_membership_from_member(member)
     return DCON.dcon_warband_get_army_membership_as_member(member - 1) + 1
 end
@@ -6263,8 +6263,8 @@ end
 
 ---@class (exact) fat_warband_leader_id
 ---@field id warband_leader_id Unique warband_leader id
----@field leader pop_id
----@field warband warband_id
+---@field leader pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_leader
 
@@ -6294,14 +6294,14 @@ DATA.warband_leader_size = 50000
 function DATA.force_create_warband_leader(leader, warband)
     ---@type warband_leader_id
     local i = DCON.dcon_force_create_warband_leader(leader - 1, warband - 1) + 1
-    return i --[[@as warband_leader_id]]
+    return i --[[@as warband_leader_id]] 
 end
 ---@param i warband_leader_id
 function DATA.delete_warband_leader(i)
-    assert(DCON.dcon_warband_leader_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_warband_leader_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_warband_leader(i - 1)
 end
----@param func fun(item: warband_leader_id)
+---@param func fun(item: warband_leader_id) 
 function DATA.for_each_warband_leader(func)
     ---@type number
     local range = DCON.dcon_warband_leader_size()
@@ -6309,26 +6309,26 @@ function DATA.for_each_warband_leader(func)
         if DCON.dcon_warband_leader_is_valid(i) then func(i + 1 --[[@as warband_leader_id]]) end
     end
 end
----@param func fun(item: warband_leader_id):boolean
----@return table<warband_leader_id, warband_leader_id>
+---@param func fun(item: warband_leader_id):boolean 
+---@return table<warband_leader_id, warband_leader_id> 
 function DATA.filter_warband_leader(func)
-    ---@type table<warband_leader_id, warband_leader_id>
+    ---@type table<warband_leader_id, warband_leader_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_leader_size()
     for i = 0, range - 1 do
-        if DCON.dcon_warband_leader_is_valid(i) and func(i + 1 --[[@as warband_leader_id]]) then t[i + 1 --[[@as warband_leader_id]]] = t[i + 1 --[[@as warband_leader_id]]] end
+        if DCON.dcon_warband_leader_is_valid(i) and func(i + 1 --[[@as warband_leader_id]]) then t[i + 1 --[[@as warband_leader_id]]] = i + 1 --[[@as warband_leader_id]] end
     end
     return t
 end
 
 ---@param leader warband_leader_id valid pop_id
----@return pop_id Data retrieved from warband_leader
+---@return pop_id Data retrieved from warband_leader 
 function DATA.warband_leader_get_leader(leader)
     return DCON.dcon_warband_leader_get_leader(leader - 1) + 1
 end
 ---@param leader pop_id valid pop_id
----@return warband_leader_id warband_leader
+---@return warband_leader_id warband_leader 
 function DATA.get_warband_leader_from_leader(leader)
     return DCON.dcon_pop_get_warband_leader_as_leader(leader - 1) + 1
 end
@@ -6338,12 +6338,12 @@ function DATA.warband_leader_set_leader(warband_leader_id, value)
     DCON.dcon_warband_leader_set_leader(warband_leader_id - 1, value - 1)
 end
 ---@param warband warband_leader_id valid warband_id
----@return warband_id Data retrieved from warband_leader
+---@return warband_id Data retrieved from warband_leader 
 function DATA.warband_leader_get_warband(warband)
     return DCON.dcon_warband_leader_get_warband(warband - 1) + 1
 end
 ---@param warband warband_id valid warband_id
----@return warband_leader_id warband_leader
+---@return warband_leader_id warband_leader 
 function DATA.get_warband_leader_from_warband(warband)
     return DCON.dcon_warband_get_warband_leader_as_warband(warband - 1) + 1
 end
@@ -6388,8 +6388,8 @@ end
 
 ---@class (exact) fat_warband_recruiter_id
 ---@field id warband_recruiter_id Unique warband_recruiter id
----@field recruiter pop_id
----@field warband warband_id
+---@field recruiter pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_recruiter
 
@@ -6419,14 +6419,14 @@ DATA.warband_recruiter_size = 50000
 function DATA.force_create_warband_recruiter(recruiter, warband)
     ---@type warband_recruiter_id
     local i = DCON.dcon_force_create_warband_recruiter(recruiter - 1, warband - 1) + 1
-    return i --[[@as warband_recruiter_id]]
+    return i --[[@as warband_recruiter_id]] 
 end
 ---@param i warband_recruiter_id
 function DATA.delete_warband_recruiter(i)
-    assert(DCON.dcon_warband_recruiter_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_warband_recruiter_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_warband_recruiter(i - 1)
 end
----@param func fun(item: warband_recruiter_id)
+---@param func fun(item: warband_recruiter_id) 
 function DATA.for_each_warband_recruiter(func)
     ---@type number
     local range = DCON.dcon_warband_recruiter_size()
@@ -6434,26 +6434,26 @@ function DATA.for_each_warband_recruiter(func)
         if DCON.dcon_warband_recruiter_is_valid(i) then func(i + 1 --[[@as warband_recruiter_id]]) end
     end
 end
----@param func fun(item: warband_recruiter_id):boolean
----@return table<warband_recruiter_id, warband_recruiter_id>
+---@param func fun(item: warband_recruiter_id):boolean 
+---@return table<warband_recruiter_id, warband_recruiter_id> 
 function DATA.filter_warband_recruiter(func)
-    ---@type table<warband_recruiter_id, warband_recruiter_id>
+    ---@type table<warband_recruiter_id, warband_recruiter_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_recruiter_size()
     for i = 0, range - 1 do
-        if DCON.dcon_warband_recruiter_is_valid(i) and func(i + 1 --[[@as warband_recruiter_id]]) then t[i + 1 --[[@as warband_recruiter_id]]] = t[i + 1 --[[@as warband_recruiter_id]]] end
+        if DCON.dcon_warband_recruiter_is_valid(i) and func(i + 1 --[[@as warband_recruiter_id]]) then t[i + 1 --[[@as warband_recruiter_id]]] = i + 1 --[[@as warband_recruiter_id]] end
     end
     return t
 end
 
 ---@param recruiter warband_recruiter_id valid pop_id
----@return pop_id Data retrieved from warband_recruiter
+---@return pop_id Data retrieved from warband_recruiter 
 function DATA.warband_recruiter_get_recruiter(recruiter)
     return DCON.dcon_warband_recruiter_get_recruiter(recruiter - 1) + 1
 end
 ---@param recruiter pop_id valid pop_id
----@return warband_recruiter_id warband_recruiter
+---@return warband_recruiter_id warband_recruiter 
 function DATA.get_warband_recruiter_from_recruiter(recruiter)
     return DCON.dcon_pop_get_warband_recruiter_as_recruiter(recruiter - 1) + 1
 end
@@ -6463,12 +6463,12 @@ function DATA.warband_recruiter_set_recruiter(warband_recruiter_id, value)
     DCON.dcon_warband_recruiter_set_recruiter(warband_recruiter_id - 1, value - 1)
 end
 ---@param warband warband_recruiter_id valid warband_id
----@return warband_id Data retrieved from warband_recruiter
+---@return warband_id Data retrieved from warband_recruiter 
 function DATA.warband_recruiter_get_warband(warband)
     return DCON.dcon_warband_recruiter_get_warband(warband - 1) + 1
 end
 ---@param warband warband_id valid warband_id
----@return warband_recruiter_id warband_recruiter
+---@return warband_recruiter_id warband_recruiter 
 function DATA.get_warband_recruiter_from_warband(warband)
     return DCON.dcon_warband_get_warband_recruiter_as_warband(warband - 1) + 1
 end
@@ -6513,8 +6513,8 @@ end
 
 ---@class (exact) fat_warband_commander_id
 ---@field id warband_commander_id Unique warband_commander id
----@field commander pop_id
----@field warband warband_id
+---@field commander pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_commander
 
@@ -6544,14 +6544,14 @@ DATA.warband_commander_size = 50000
 function DATA.force_create_warband_commander(commander, warband)
     ---@type warband_commander_id
     local i = DCON.dcon_force_create_warband_commander(commander - 1, warband - 1) + 1
-    return i --[[@as warband_commander_id]]
+    return i --[[@as warband_commander_id]] 
 end
 ---@param i warband_commander_id
 function DATA.delete_warband_commander(i)
-    assert(DCON.dcon_warband_commander_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_warband_commander_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_warband_commander(i - 1)
 end
----@param func fun(item: warband_commander_id)
+---@param func fun(item: warband_commander_id) 
 function DATA.for_each_warband_commander(func)
     ---@type number
     local range = DCON.dcon_warband_commander_size()
@@ -6559,26 +6559,26 @@ function DATA.for_each_warband_commander(func)
         if DCON.dcon_warband_commander_is_valid(i) then func(i + 1 --[[@as warband_commander_id]]) end
     end
 end
----@param func fun(item: warband_commander_id):boolean
----@return table<warband_commander_id, warband_commander_id>
+---@param func fun(item: warband_commander_id):boolean 
+---@return table<warband_commander_id, warband_commander_id> 
 function DATA.filter_warband_commander(func)
-    ---@type table<warband_commander_id, warband_commander_id>
+    ---@type table<warband_commander_id, warband_commander_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_commander_size()
     for i = 0, range - 1 do
-        if DCON.dcon_warband_commander_is_valid(i) and func(i + 1 --[[@as warband_commander_id]]) then t[i + 1 --[[@as warband_commander_id]]] = t[i + 1 --[[@as warband_commander_id]]] end
+        if DCON.dcon_warband_commander_is_valid(i) and func(i + 1 --[[@as warband_commander_id]]) then t[i + 1 --[[@as warband_commander_id]]] = i + 1 --[[@as warband_commander_id]] end
     end
     return t
 end
 
 ---@param commander warband_commander_id valid pop_id
----@return pop_id Data retrieved from warband_commander
+---@return pop_id Data retrieved from warband_commander 
 function DATA.warband_commander_get_commander(commander)
     return DCON.dcon_warband_commander_get_commander(commander - 1) + 1
 end
 ---@param commander pop_id valid pop_id
----@return warband_commander_id warband_commander
+---@return warband_commander_id warband_commander 
 function DATA.get_warband_commander_from_commander(commander)
     return DCON.dcon_pop_get_warband_commander_as_commander(commander - 1) + 1
 end
@@ -6588,12 +6588,12 @@ function DATA.warband_commander_set_commander(warband_commander_id, value)
     DCON.dcon_warband_commander_set_commander(warband_commander_id - 1, value - 1)
 end
 ---@param warband warband_commander_id valid warband_id
----@return warband_id Data retrieved from warband_commander
+---@return warband_id Data retrieved from warband_commander 
 function DATA.warband_commander_get_warband(warband)
     return DCON.dcon_warband_commander_get_warband(warband - 1) + 1
 end
 ---@param warband warband_id valid warband_id
----@return warband_commander_id warband_commander
+---@return warband_commander_id warband_commander 
 function DATA.get_warband_commander_from_warband(warband)
     return DCON.dcon_warband_get_warband_commander_as_warband(warband - 1) + 1
 end
@@ -6639,7 +6639,7 @@ end
 ---@class (exact) fat_warband_location_id
 ---@field id warband_location_id Unique warband_location id
 ---@field location province_id location of warband
----@field warband warband_id
+---@field warband warband_id 
 
 ---@class struct_warband_location
 
@@ -6670,14 +6670,14 @@ DATA.warband_location_size = 50000
 function DATA.force_create_warband_location(location, warband)
     ---@type warband_location_id
     local i = DCON.dcon_force_create_warband_location(location - 1, warband - 1) + 1
-    return i --[[@as warband_location_id]]
+    return i --[[@as warband_location_id]] 
 end
 ---@param i warband_location_id
 function DATA.delete_warband_location(i)
-    assert(DCON.dcon_warband_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_warband_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_warband_location(i - 1)
 end
----@param func fun(item: warband_location_id)
+---@param func fun(item: warband_location_id) 
 function DATA.for_each_warband_location(func)
     ---@type number
     local range = DCON.dcon_warband_location_size()
@@ -6685,29 +6685,29 @@ function DATA.for_each_warband_location(func)
         if DCON.dcon_warband_location_is_valid(i) then func(i + 1 --[[@as warband_location_id]]) end
     end
 end
----@param func fun(item: warband_location_id):boolean
----@return table<warband_location_id, warband_location_id>
+---@param func fun(item: warband_location_id):boolean 
+---@return table<warband_location_id, warband_location_id> 
 function DATA.filter_warband_location(func)
-    ---@type table<warband_location_id, warband_location_id>
+    ---@type table<warband_location_id, warband_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_location_size()
     for i = 0, range - 1 do
-        if DCON.dcon_warband_location_is_valid(i) and func(i + 1 --[[@as warband_location_id]]) then t[i + 1 --[[@as warband_location_id]]] = t[i + 1 --[[@as warband_location_id]]] end
+        if DCON.dcon_warband_location_is_valid(i) and func(i + 1 --[[@as warband_location_id]]) then t[i + 1 --[[@as warband_location_id]]] = i + 1 --[[@as warband_location_id]] end
     end
     return t
 end
 
 ---@param location warband_location_id valid province_id
----@return province_id Data retrieved from warband_location
+---@return province_id Data retrieved from warband_location 
 function DATA.warband_location_get_location(location)
     return DCON.dcon_warband_location_get_location(location - 1) + 1
 end
 ---@param location province_id valid province_id
----@return warband_location_id[] An array of warband_location
+---@return warband_location_id[] An array of warband_location 
 function DATA.get_warband_location_from_location(location)
     local result = {}
-    DATA.for_each_warband_location_from_location(location, function(item)
+    DATA.for_each_warband_location_from_location(location, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -6724,10 +6724,10 @@ function DATA.for_each_warband_location_from_location(location, func)
     end
 end
 ---@param location province_id valid province_id
----@param func fun(item: warband_location_id):boolean
+---@param func fun(item: warband_location_id):boolean 
 ---@return warband_location_id[]
 function DATA.filter_array_warband_location_from_location(location, func)
-    ---@type table<warband_location_id, warband_location_id>
+    ---@type table<warband_location_id, warband_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_warband_location_as_location(location - 1)
@@ -6739,10 +6739,10 @@ function DATA.filter_array_warband_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: warband_location_id):boolean
----@return table<warband_location_id, warband_location_id>
+---@param func fun(item: warband_location_id):boolean 
+---@return table<warband_location_id, warband_location_id> 
 function DATA.filter_warband_location_from_location(location, func)
-    ---@type table<warband_location_id, warband_location_id>
+    ---@type table<warband_location_id, warband_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_warband_location_as_location(location - 1)
@@ -6759,12 +6759,12 @@ function DATA.warband_location_set_location(warband_location_id, value)
     DCON.dcon_warband_location_set_location(warband_location_id - 1, value - 1)
 end
 ---@param warband warband_location_id valid warband_id
----@return warband_id Data retrieved from warband_location
+---@return warband_id Data retrieved from warband_location 
 function DATA.warband_location_get_warband(warband)
     return DCON.dcon_warband_location_get_warband(warband - 1) + 1
 end
 ---@param warband warband_id valid warband_id
----@return warband_location_id warband_location
+---@return warband_location_id warband_location 
 function DATA.get_warband_location_from_warband(warband)
     return DCON.dcon_warband_get_warband_location_as_warband(warband - 1) + 1
 end
@@ -6810,16 +6810,16 @@ end
 ---@class (exact) fat_warband_unit_id
 ---@field id warband_unit_id Unique warband_unit id
 ---@field type unit_type_id Current unit type
----@field unit pop_id
----@field warband warband_id
+---@field unit pop_id 
+---@field warband warband_id 
 
 ---@class struct_warband_unit
 ---@field type unit_type_id Current unit type
 
 
 ffi.cdef[[
-void dcon_warband_unit_set_type(int32_t, uint32_t);
-uint32_t dcon_warband_unit_get_type(int32_t);
+void dcon_warband_unit_set_type(int32_t, int32_t);
+int32_t dcon_warband_unit_get_type(int32_t);
 void dcon_delete_warband_unit(int32_t j);
 int32_t dcon_force_create_warband_unit(int32_t unit, int32_t warband);
 void dcon_warband_unit_set_unit(int32_t, int32_t);
@@ -6845,14 +6845,14 @@ DATA.warband_unit_size = 50000
 function DATA.force_create_warband_unit(unit, warband)
     ---@type warband_unit_id
     local i = DCON.dcon_force_create_warband_unit(unit - 1, warband - 1) + 1
-    return i --[[@as warband_unit_id]]
+    return i --[[@as warband_unit_id]] 
 end
 ---@param i warband_unit_id
 function DATA.delete_warband_unit(i)
-    assert(DCON.dcon_warband_unit_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_warband_unit_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_warband_unit(i - 1)
 end
----@param func fun(item: warband_unit_id)
+---@param func fun(item: warband_unit_id) 
 function DATA.for_each_warband_unit(func)
     ---@type number
     local range = DCON.dcon_warband_unit_size()
@@ -6860,15 +6860,15 @@ function DATA.for_each_warband_unit(func)
         if DCON.dcon_warband_unit_is_valid(i) then func(i + 1 --[[@as warband_unit_id]]) end
     end
 end
----@param func fun(item: warband_unit_id):boolean
----@return table<warband_unit_id, warband_unit_id>
+---@param func fun(item: warband_unit_id):boolean 
+---@return table<warband_unit_id, warband_unit_id> 
 function DATA.filter_warband_unit(func)
-    ---@type table<warband_unit_id, warband_unit_id>
+    ---@type table<warband_unit_id, warband_unit_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_unit_size()
     for i = 0, range - 1 do
-        if DCON.dcon_warband_unit_is_valid(i) and func(i + 1 --[[@as warband_unit_id]]) then t[i + 1 --[[@as warband_unit_id]]] = t[i + 1 --[[@as warband_unit_id]]] end
+        if DCON.dcon_warband_unit_is_valid(i) and func(i + 1 --[[@as warband_unit_id]]) then t[i + 1 --[[@as warband_unit_id]]] = i + 1 --[[@as warband_unit_id]] end
     end
     return t
 end
@@ -6884,12 +6884,12 @@ function DATA.warband_unit_set_type(warband_unit_id, value)
     DCON.dcon_warband_unit_set_type(warband_unit_id - 1, value - 1)
 end
 ---@param unit warband_unit_id valid pop_id
----@return pop_id Data retrieved from warband_unit
+---@return pop_id Data retrieved from warband_unit 
 function DATA.warband_unit_get_unit(unit)
     return DCON.dcon_warband_unit_get_unit(unit - 1) + 1
 end
 ---@param unit pop_id valid pop_id
----@return warband_unit_id warband_unit
+---@return warband_unit_id warband_unit 
 function DATA.get_warband_unit_from_unit(unit)
     return DCON.dcon_pop_get_warband_unit_as_unit(unit - 1) + 1
 end
@@ -6899,15 +6899,15 @@ function DATA.warband_unit_set_unit(warband_unit_id, value)
     DCON.dcon_warband_unit_set_unit(warband_unit_id - 1, value - 1)
 end
 ---@param warband warband_unit_id valid warband_id
----@return warband_id Data retrieved from warband_unit
+---@return warband_id Data retrieved from warband_unit 
 function DATA.warband_unit_get_warband(warband)
     return DCON.dcon_warband_unit_get_warband(warband - 1) + 1
 end
 ---@param warband warband_id valid warband_id
----@return warband_unit_id[] An array of warband_unit
+---@return warband_unit_id[] An array of warband_unit 
 function DATA.get_warband_unit_from_warband(warband)
     local result = {}
-    DATA.for_each_warband_unit_from_warband(warband, function(item)
+    DATA.for_each_warband_unit_from_warband(warband, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -6924,10 +6924,10 @@ function DATA.for_each_warband_unit_from_warband(warband, func)
     end
 end
 ---@param warband warband_id valid warband_id
----@param func fun(item: warband_unit_id):boolean
+---@param func fun(item: warband_unit_id):boolean 
 ---@return warband_unit_id[]
 function DATA.filter_array_warband_unit_from_warband(warband, func)
-    ---@type table<warband_unit_id, warband_unit_id>
+    ---@type table<warband_unit_id, warband_unit_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_get_range_warband_unit_as_warband(warband - 1)
@@ -6939,10 +6939,10 @@ function DATA.filter_array_warband_unit_from_warband(warband, func)
     return t
 end
 ---@param warband warband_id valid warband_id
----@param func fun(item: warband_unit_id):boolean
----@return table<warband_unit_id, warband_unit_id>
+---@param func fun(item: warband_unit_id):boolean 
+---@return table<warband_unit_id, warband_unit_id> 
 function DATA.filter_warband_unit_from_warband(warband, func)
-    ---@type table<warband_unit_id, warband_unit_id>
+    ---@type table<warband_unit_id, warband_unit_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_get_range_warband_unit_as_warband(warband - 1)
@@ -7000,7 +7000,7 @@ end
 ---@class (exact) fat_character_location_id
 ---@field id character_location_id Unique character_location id
 ---@field location province_id location of character
----@field character pop_id
+---@field character pop_id 
 
 ---@class struct_character_location
 
@@ -7031,14 +7031,14 @@ DATA.character_location_size = 100000
 function DATA.force_create_character_location(location, character)
     ---@type character_location_id
     local i = DCON.dcon_force_create_character_location(location - 1, character - 1) + 1
-    return i --[[@as character_location_id]]
+    return i --[[@as character_location_id]] 
 end
 ---@param i character_location_id
 function DATA.delete_character_location(i)
-    assert(DCON.dcon_character_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_character_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_character_location(i - 1)
 end
----@param func fun(item: character_location_id)
+---@param func fun(item: character_location_id) 
 function DATA.for_each_character_location(func)
     ---@type number
     local range = DCON.dcon_character_location_size()
@@ -7046,29 +7046,29 @@ function DATA.for_each_character_location(func)
         if DCON.dcon_character_location_is_valid(i) then func(i + 1 --[[@as character_location_id]]) end
     end
 end
----@param func fun(item: character_location_id):boolean
----@return table<character_location_id, character_location_id>
+---@param func fun(item: character_location_id):boolean 
+---@return table<character_location_id, character_location_id> 
 function DATA.filter_character_location(func)
-    ---@type table<character_location_id, character_location_id>
+    ---@type table<character_location_id, character_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_character_location_size()
     for i = 0, range - 1 do
-        if DCON.dcon_character_location_is_valid(i) and func(i + 1 --[[@as character_location_id]]) then t[i + 1 --[[@as character_location_id]]] = t[i + 1 --[[@as character_location_id]]] end
+        if DCON.dcon_character_location_is_valid(i) and func(i + 1 --[[@as character_location_id]]) then t[i + 1 --[[@as character_location_id]]] = i + 1 --[[@as character_location_id]] end
     end
     return t
 end
 
 ---@param location character_location_id valid province_id
----@return province_id Data retrieved from character_location
+---@return province_id Data retrieved from character_location 
 function DATA.character_location_get_location(location)
     return DCON.dcon_character_location_get_location(location - 1) + 1
 end
 ---@param location province_id valid province_id
----@return character_location_id[] An array of character_location
+---@return character_location_id[] An array of character_location 
 function DATA.get_character_location_from_location(location)
     local result = {}
-    DATA.for_each_character_location_from_location(location, function(item)
+    DATA.for_each_character_location_from_location(location, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -7085,10 +7085,10 @@ function DATA.for_each_character_location_from_location(location, func)
     end
 end
 ---@param location province_id valid province_id
----@param func fun(item: character_location_id):boolean
+---@param func fun(item: character_location_id):boolean 
 ---@return character_location_id[]
 function DATA.filter_array_character_location_from_location(location, func)
-    ---@type table<character_location_id, character_location_id>
+    ---@type table<character_location_id, character_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_character_location_as_location(location - 1)
@@ -7100,10 +7100,10 @@ function DATA.filter_array_character_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: character_location_id):boolean
----@return table<character_location_id, character_location_id>
+---@param func fun(item: character_location_id):boolean 
+---@return table<character_location_id, character_location_id> 
 function DATA.filter_character_location_from_location(location, func)
-    ---@type table<character_location_id, character_location_id>
+    ---@type table<character_location_id, character_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_character_location_as_location(location - 1)
@@ -7120,12 +7120,12 @@ function DATA.character_location_set_location(character_location_id, value)
     DCON.dcon_character_location_set_location(character_location_id - 1, value - 1)
 end
 ---@param character character_location_id valid pop_id
----@return pop_id Data retrieved from character_location
+---@return pop_id Data retrieved from character_location 
 function DATA.character_location_get_character(character)
     return DCON.dcon_character_location_get_character(character - 1) + 1
 end
 ---@param character pop_id valid pop_id
----@return character_location_id character_location
+---@return character_location_id character_location 
 function DATA.get_character_location_from_character(character)
     return DCON.dcon_pop_get_character_location_as_character(character - 1) + 1
 end
@@ -7202,14 +7202,14 @@ DATA.home_size = 300000
 function DATA.force_create_home(home, pop)
     ---@type home_id
     local i = DCON.dcon_force_create_home(home - 1, pop - 1) + 1
-    return i --[[@as home_id]]
+    return i --[[@as home_id]] 
 end
 ---@param i home_id
 function DATA.delete_home(i)
-    assert(DCON.dcon_home_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_home_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_home(i - 1)
 end
----@param func fun(item: home_id)
+---@param func fun(item: home_id) 
 function DATA.for_each_home(func)
     ---@type number
     local range = DCON.dcon_home_size()
@@ -7217,29 +7217,29 @@ function DATA.for_each_home(func)
         if DCON.dcon_home_is_valid(i) then func(i + 1 --[[@as home_id]]) end
     end
 end
----@param func fun(item: home_id):boolean
----@return table<home_id, home_id>
+---@param func fun(item: home_id):boolean 
+---@return table<home_id, home_id> 
 function DATA.filter_home(func)
-    ---@type table<home_id, home_id>
+    ---@type table<home_id, home_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_home_size()
     for i = 0, range - 1 do
-        if DCON.dcon_home_is_valid(i) and func(i + 1 --[[@as home_id]]) then t[i + 1 --[[@as home_id]]] = t[i + 1 --[[@as home_id]]] end
+        if DCON.dcon_home_is_valid(i) and func(i + 1 --[[@as home_id]]) then t[i + 1 --[[@as home_id]]] = i + 1 --[[@as home_id]] end
     end
     return t
 end
 
 ---@param home home_id valid province_id
----@return province_id Data retrieved from home
+---@return province_id Data retrieved from home 
 function DATA.home_get_home(home)
     return DCON.dcon_home_get_home(home - 1) + 1
 end
 ---@param home province_id valid province_id
----@return home_id[] An array of home
+---@return home_id[] An array of home 
 function DATA.get_home_from_home(home)
     local result = {}
-    DATA.for_each_home_from_home(home, function(item)
+    DATA.for_each_home_from_home(home, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -7256,10 +7256,10 @@ function DATA.for_each_home_from_home(home, func)
     end
 end
 ---@param home province_id valid province_id
----@param func fun(item: home_id):boolean
+---@param func fun(item: home_id):boolean 
 ---@return home_id[]
 function DATA.filter_array_home_from_home(home, func)
-    ---@type table<home_id, home_id>
+    ---@type table<home_id, home_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_home_as_home(home - 1)
@@ -7271,10 +7271,10 @@ function DATA.filter_array_home_from_home(home, func)
     return t
 end
 ---@param home province_id valid province_id
----@param func fun(item: home_id):boolean
----@return table<home_id, home_id>
+---@param func fun(item: home_id):boolean 
+---@return table<home_id, home_id> 
 function DATA.filter_home_from_home(home, func)
-    ---@type table<home_id, home_id>
+    ---@type table<home_id, home_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_home_as_home(home - 1)
@@ -7291,12 +7291,12 @@ function DATA.home_set_home(home_id, value)
     DCON.dcon_home_set_home(home_id - 1, value - 1)
 end
 ---@param pop home_id valid pop_id
----@return pop_id Data retrieved from home
+---@return pop_id Data retrieved from home 
 function DATA.home_get_pop(pop)
     return DCON.dcon_home_get_pop(pop - 1) + 1
 end
 ---@param pop pop_id valid pop_id
----@return home_id home
+---@return home_id home 
 function DATA.get_home_from_pop(pop)
     return DCON.dcon_pop_get_home_as_pop(pop - 1) + 1
 end
@@ -7342,7 +7342,7 @@ end
 ---@class (exact) fat_pop_location_id
 ---@field id pop_location_id Unique pop_location id
 ---@field location province_id location of pop
----@field pop pop_id
+---@field pop pop_id 
 
 ---@class struct_pop_location
 
@@ -7373,14 +7373,14 @@ DATA.pop_location_size = 300000
 function DATA.force_create_pop_location(location, pop)
     ---@type pop_location_id
     local i = DCON.dcon_force_create_pop_location(location - 1, pop - 1) + 1
-    return i --[[@as pop_location_id]]
+    return i --[[@as pop_location_id]] 
 end
 ---@param i pop_location_id
 function DATA.delete_pop_location(i)
-    assert(DCON.dcon_pop_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_pop_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_pop_location(i - 1)
 end
----@param func fun(item: pop_location_id)
+---@param func fun(item: pop_location_id) 
 function DATA.for_each_pop_location(func)
     ---@type number
     local range = DCON.dcon_pop_location_size()
@@ -7388,29 +7388,29 @@ function DATA.for_each_pop_location(func)
         if DCON.dcon_pop_location_is_valid(i) then func(i + 1 --[[@as pop_location_id]]) end
     end
 end
----@param func fun(item: pop_location_id):boolean
----@return table<pop_location_id, pop_location_id>
+---@param func fun(item: pop_location_id):boolean 
+---@return table<pop_location_id, pop_location_id> 
 function DATA.filter_pop_location(func)
-    ---@type table<pop_location_id, pop_location_id>
+    ---@type table<pop_location_id, pop_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_location_size()
     for i = 0, range - 1 do
-        if DCON.dcon_pop_location_is_valid(i) and func(i + 1 --[[@as pop_location_id]]) then t[i + 1 --[[@as pop_location_id]]] = t[i + 1 --[[@as pop_location_id]]] end
+        if DCON.dcon_pop_location_is_valid(i) and func(i + 1 --[[@as pop_location_id]]) then t[i + 1 --[[@as pop_location_id]]] = i + 1 --[[@as pop_location_id]] end
     end
     return t
 end
 
 ---@param location pop_location_id valid province_id
----@return province_id Data retrieved from pop_location
+---@return province_id Data retrieved from pop_location 
 function DATA.pop_location_get_location(location)
     return DCON.dcon_pop_location_get_location(location - 1) + 1
 end
 ---@param location province_id valid province_id
----@return pop_location_id[] An array of pop_location
+---@return pop_location_id[] An array of pop_location 
 function DATA.get_pop_location_from_location(location)
     local result = {}
-    DATA.for_each_pop_location_from_location(location, function(item)
+    DATA.for_each_pop_location_from_location(location, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -7427,10 +7427,10 @@ function DATA.for_each_pop_location_from_location(location, func)
     end
 end
 ---@param location province_id valid province_id
----@param func fun(item: pop_location_id):boolean
+---@param func fun(item: pop_location_id):boolean 
 ---@return pop_location_id[]
 function DATA.filter_array_pop_location_from_location(location, func)
-    ---@type table<pop_location_id, pop_location_id>
+    ---@type table<pop_location_id, pop_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_pop_location_as_location(location - 1)
@@ -7442,10 +7442,10 @@ function DATA.filter_array_pop_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: pop_location_id):boolean
----@return table<pop_location_id, pop_location_id>
+---@param func fun(item: pop_location_id):boolean 
+---@return table<pop_location_id, pop_location_id> 
 function DATA.filter_pop_location_from_location(location, func)
-    ---@type table<pop_location_id, pop_location_id>
+    ---@type table<pop_location_id, pop_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_pop_location_as_location(location - 1)
@@ -7462,12 +7462,12 @@ function DATA.pop_location_set_location(pop_location_id, value)
     DCON.dcon_pop_location_set_location(pop_location_id - 1, value - 1)
 end
 ---@param pop pop_location_id valid pop_id
----@return pop_id Data retrieved from pop_location
+---@return pop_id Data retrieved from pop_location 
 function DATA.pop_location_get_pop(pop)
     return DCON.dcon_pop_location_get_pop(pop - 1) + 1
 end
 ---@param pop pop_id valid pop_id
----@return pop_location_id pop_location
+---@return pop_location_id pop_location 
 function DATA.get_pop_location_from_pop(pop)
     return DCON.dcon_pop_get_pop_location_as_pop(pop - 1) + 1
 end
@@ -7513,7 +7513,7 @@ end
 ---@class (exact) fat_outlaw_location_id
 ---@field id outlaw_location_id Unique outlaw_location id
 ---@field location province_id location of the outlaw
----@field outlaw pop_id
+---@field outlaw pop_id 
 
 ---@class struct_outlaw_location
 
@@ -7544,14 +7544,14 @@ DATA.outlaw_location_size = 300000
 function DATA.force_create_outlaw_location(location, outlaw)
     ---@type outlaw_location_id
     local i = DCON.dcon_force_create_outlaw_location(location - 1, outlaw - 1) + 1
-    return i --[[@as outlaw_location_id]]
+    return i --[[@as outlaw_location_id]] 
 end
 ---@param i outlaw_location_id
 function DATA.delete_outlaw_location(i)
-    assert(DCON.dcon_outlaw_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_outlaw_location_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_outlaw_location(i - 1)
 end
----@param func fun(item: outlaw_location_id)
+---@param func fun(item: outlaw_location_id) 
 function DATA.for_each_outlaw_location(func)
     ---@type number
     local range = DCON.dcon_outlaw_location_size()
@@ -7559,29 +7559,29 @@ function DATA.for_each_outlaw_location(func)
         if DCON.dcon_outlaw_location_is_valid(i) then func(i + 1 --[[@as outlaw_location_id]]) end
     end
 end
----@param func fun(item: outlaw_location_id):boolean
----@return table<outlaw_location_id, outlaw_location_id>
+---@param func fun(item: outlaw_location_id):boolean 
+---@return table<outlaw_location_id, outlaw_location_id> 
 function DATA.filter_outlaw_location(func)
-    ---@type table<outlaw_location_id, outlaw_location_id>
+    ---@type table<outlaw_location_id, outlaw_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_outlaw_location_size()
     for i = 0, range - 1 do
-        if DCON.dcon_outlaw_location_is_valid(i) and func(i + 1 --[[@as outlaw_location_id]]) then t[i + 1 --[[@as outlaw_location_id]]] = t[i + 1 --[[@as outlaw_location_id]]] end
+        if DCON.dcon_outlaw_location_is_valid(i) and func(i + 1 --[[@as outlaw_location_id]]) then t[i + 1 --[[@as outlaw_location_id]]] = i + 1 --[[@as outlaw_location_id]] end
     end
     return t
 end
 
 ---@param location outlaw_location_id valid province_id
----@return province_id Data retrieved from outlaw_location
+---@return province_id Data retrieved from outlaw_location 
 function DATA.outlaw_location_get_location(location)
     return DCON.dcon_outlaw_location_get_location(location - 1) + 1
 end
 ---@param location province_id valid province_id
----@return outlaw_location_id[] An array of outlaw_location
+---@return outlaw_location_id[] An array of outlaw_location 
 function DATA.get_outlaw_location_from_location(location)
     local result = {}
-    DATA.for_each_outlaw_location_from_location(location, function(item)
+    DATA.for_each_outlaw_location_from_location(location, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -7598,10 +7598,10 @@ function DATA.for_each_outlaw_location_from_location(location, func)
     end
 end
 ---@param location province_id valid province_id
----@param func fun(item: outlaw_location_id):boolean
+---@param func fun(item: outlaw_location_id):boolean 
 ---@return outlaw_location_id[]
 function DATA.filter_array_outlaw_location_from_location(location, func)
-    ---@type table<outlaw_location_id, outlaw_location_id>
+    ---@type table<outlaw_location_id, outlaw_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_outlaw_location_as_location(location - 1)
@@ -7613,10 +7613,10 @@ function DATA.filter_array_outlaw_location_from_location(location, func)
     return t
 end
 ---@param location province_id valid province_id
----@param func fun(item: outlaw_location_id):boolean
----@return table<outlaw_location_id, outlaw_location_id>
+---@param func fun(item: outlaw_location_id):boolean 
+---@return table<outlaw_location_id, outlaw_location_id> 
 function DATA.filter_outlaw_location_from_location(location, func)
-    ---@type table<outlaw_location_id, outlaw_location_id>
+    ---@type table<outlaw_location_id, outlaw_location_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_outlaw_location_as_location(location - 1)
@@ -7633,12 +7633,12 @@ function DATA.outlaw_location_set_location(outlaw_location_id, value)
     DCON.dcon_outlaw_location_set_location(outlaw_location_id - 1, value - 1)
 end
 ---@param outlaw outlaw_location_id valid pop_id
----@return pop_id Data retrieved from outlaw_location
+---@return pop_id Data retrieved from outlaw_location 
 function DATA.outlaw_location_get_outlaw(outlaw)
     return DCON.dcon_outlaw_location_get_outlaw(outlaw - 1) + 1
 end
 ---@param outlaw pop_id valid pop_id
----@return outlaw_location_id outlaw_location
+---@return outlaw_location_id outlaw_location 
 function DATA.get_outlaw_location_from_outlaw(outlaw)
     return DCON.dcon_pop_get_outlaw_location_as_outlaw(outlaw - 1) + 1
 end
@@ -7683,8 +7683,8 @@ end
 
 ---@class (exact) fat_tile_province_membership_id
 ---@field id tile_province_membership_id Unique tile_province_membership id
----@field province province_id
----@field tile tile_id
+---@field province province_id 
+---@field tile tile_id 
 
 ---@class struct_tile_province_membership
 
@@ -7715,14 +7715,14 @@ DATA.tile_province_membership_size = 1500000
 function DATA.force_create_tile_province_membership(province, tile)
     ---@type tile_province_membership_id
     local i = DCON.dcon_force_create_tile_province_membership(province - 1, tile - 1) + 1
-    return i --[[@as tile_province_membership_id]]
+    return i --[[@as tile_province_membership_id]] 
 end
 ---@param i tile_province_membership_id
 function DATA.delete_tile_province_membership(i)
-    assert(DCON.dcon_tile_province_membership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_tile_province_membership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_tile_province_membership(i - 1)
 end
----@param func fun(item: tile_province_membership_id)
+---@param func fun(item: tile_province_membership_id) 
 function DATA.for_each_tile_province_membership(func)
     ---@type number
     local range = DCON.dcon_tile_province_membership_size()
@@ -7730,29 +7730,29 @@ function DATA.for_each_tile_province_membership(func)
         if DCON.dcon_tile_province_membership_is_valid(i) then func(i + 1 --[[@as tile_province_membership_id]]) end
     end
 end
----@param func fun(item: tile_province_membership_id):boolean
----@return table<tile_province_membership_id, tile_province_membership_id>
+---@param func fun(item: tile_province_membership_id):boolean 
+---@return table<tile_province_membership_id, tile_province_membership_id> 
 function DATA.filter_tile_province_membership(func)
-    ---@type table<tile_province_membership_id, tile_province_membership_id>
+    ---@type table<tile_province_membership_id, tile_province_membership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_tile_province_membership_size()
     for i = 0, range - 1 do
-        if DCON.dcon_tile_province_membership_is_valid(i) and func(i + 1 --[[@as tile_province_membership_id]]) then t[i + 1 --[[@as tile_province_membership_id]]] = t[i + 1 --[[@as tile_province_membership_id]]] end
+        if DCON.dcon_tile_province_membership_is_valid(i) and func(i + 1 --[[@as tile_province_membership_id]]) then t[i + 1 --[[@as tile_province_membership_id]]] = i + 1 --[[@as tile_province_membership_id]] end
     end
     return t
 end
 
 ---@param province tile_province_membership_id valid province_id
----@return province_id Data retrieved from tile_province_membership
+---@return province_id Data retrieved from tile_province_membership 
 function DATA.tile_province_membership_get_province(province)
     return DCON.dcon_tile_province_membership_get_province(province - 1) + 1
 end
 ---@param province province_id valid province_id
----@return tile_province_membership_id[] An array of tile_province_membership
+---@return tile_province_membership_id[] An array of tile_province_membership 
 function DATA.get_tile_province_membership_from_province(province)
     local result = {}
-    DATA.for_each_tile_province_membership_from_province(province, function(item)
+    DATA.for_each_tile_province_membership_from_province(province, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -7769,10 +7769,10 @@ function DATA.for_each_tile_province_membership_from_province(province, func)
     end
 end
 ---@param province province_id valid province_id
----@param func fun(item: tile_province_membership_id):boolean
+---@param func fun(item: tile_province_membership_id):boolean 
 ---@return tile_province_membership_id[]
 function DATA.filter_array_tile_province_membership_from_province(province, func)
-    ---@type table<tile_province_membership_id, tile_province_membership_id>
+    ---@type table<tile_province_membership_id, tile_province_membership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_tile_province_membership_as_province(province - 1)
@@ -7784,10 +7784,10 @@ function DATA.filter_array_tile_province_membership_from_province(province, func
     return t
 end
 ---@param province province_id valid province_id
----@param func fun(item: tile_province_membership_id):boolean
----@return table<tile_province_membership_id, tile_province_membership_id>
+---@param func fun(item: tile_province_membership_id):boolean 
+---@return table<tile_province_membership_id, tile_province_membership_id> 
 function DATA.filter_tile_province_membership_from_province(province, func)
-    ---@type table<tile_province_membership_id, tile_province_membership_id>
+    ---@type table<tile_province_membership_id, tile_province_membership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_tile_province_membership_as_province(province - 1)
@@ -7804,12 +7804,12 @@ function DATA.tile_province_membership_set_province(tile_province_membership_id,
     DCON.dcon_tile_province_membership_set_province(tile_province_membership_id - 1, value - 1)
 end
 ---@param tile tile_province_membership_id valid tile_id
----@return tile_id Data retrieved from tile_province_membership
+---@return tile_id Data retrieved from tile_province_membership 
 function DATA.tile_province_membership_get_tile(tile)
     return DCON.dcon_tile_province_membership_get_tile(tile - 1) + 1
 end
 ---@param tile tile_id valid tile_id
----@return tile_province_membership_id tile_province_membership
+---@return tile_province_membership_id tile_province_membership 
 function DATA.get_tile_province_membership_from_tile(tile)
     return DCON.dcon_tile_get_tile_province_membership_as_tile(tile - 1) + 1
 end
@@ -7854,8 +7854,8 @@ end
 
 ---@class (exact) fat_province_neighborhood_id
 ---@field id province_neighborhood_id Unique province_neighborhood id
----@field origin province_id
----@field target province_id
+---@field origin province_id 
+---@field target province_id 
 
 ---@class struct_province_neighborhood
 
@@ -7887,14 +7887,14 @@ DATA.province_neighborhood_size = 250000
 function DATA.force_create_province_neighborhood(origin, target)
     ---@type province_neighborhood_id
     local i = DCON.dcon_force_create_province_neighborhood(origin - 1, target - 1) + 1
-    return i --[[@as province_neighborhood_id]]
+    return i --[[@as province_neighborhood_id]] 
 end
 ---@param i province_neighborhood_id
 function DATA.delete_province_neighborhood(i)
-    assert(DCON.dcon_province_neighborhood_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_province_neighborhood_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_province_neighborhood(i - 1)
 end
----@param func fun(item: province_neighborhood_id)
+---@param func fun(item: province_neighborhood_id) 
 function DATA.for_each_province_neighborhood(func)
     ---@type number
     local range = DCON.dcon_province_neighborhood_size()
@@ -7902,29 +7902,29 @@ function DATA.for_each_province_neighborhood(func)
         if DCON.dcon_province_neighborhood_is_valid(i) then func(i + 1 --[[@as province_neighborhood_id]]) end
     end
 end
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_province_neighborhood(func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_neighborhood_size()
     for i = 0, range - 1 do
-        if DCON.dcon_province_neighborhood_is_valid(i) and func(i + 1 --[[@as province_neighborhood_id]]) then t[i + 1 --[[@as province_neighborhood_id]]] = t[i + 1 --[[@as province_neighborhood_id]]] end
+        if DCON.dcon_province_neighborhood_is_valid(i) and func(i + 1 --[[@as province_neighborhood_id]]) then t[i + 1 --[[@as province_neighborhood_id]]] = i + 1 --[[@as province_neighborhood_id]] end
     end
     return t
 end
 
 ---@param origin province_neighborhood_id valid province_id
----@return province_id Data retrieved from province_neighborhood
+---@return province_id Data retrieved from province_neighborhood 
 function DATA.province_neighborhood_get_origin(origin)
     return DCON.dcon_province_neighborhood_get_origin(origin - 1) + 1
 end
 ---@param origin province_id valid province_id
----@return province_neighborhood_id[] An array of province_neighborhood
+---@return province_neighborhood_id[] An array of province_neighborhood 
 function DATA.get_province_neighborhood_from_origin(origin)
     local result = {}
-    DATA.for_each_province_neighborhood_from_origin(origin, function(item)
+    DATA.for_each_province_neighborhood_from_origin(origin, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -7941,10 +7941,10 @@ function DATA.for_each_province_neighborhood_from_origin(origin, func)
     end
 end
 ---@param origin province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
+---@param func fun(item: province_neighborhood_id):boolean 
 ---@return province_neighborhood_id[]
 function DATA.filter_array_province_neighborhood_from_origin(origin, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_province_neighborhood_as_origin(origin - 1)
@@ -7956,10 +7956,10 @@ function DATA.filter_array_province_neighborhood_from_origin(origin, func)
     return t
 end
 ---@param origin province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_province_neighborhood_from_origin(origin, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_province_neighborhood_as_origin(origin - 1)
@@ -7976,15 +7976,15 @@ function DATA.province_neighborhood_set_origin(province_neighborhood_id, value)
     DCON.dcon_province_neighborhood_set_origin(province_neighborhood_id - 1, value - 1)
 end
 ---@param target province_neighborhood_id valid province_id
----@return province_id Data retrieved from province_neighborhood
+---@return province_id Data retrieved from province_neighborhood 
 function DATA.province_neighborhood_get_target(target)
     return DCON.dcon_province_neighborhood_get_target(target - 1) + 1
 end
 ---@param target province_id valid province_id
----@return province_neighborhood_id[] An array of province_neighborhood
+---@return province_neighborhood_id[] An array of province_neighborhood 
 function DATA.get_province_neighborhood_from_target(target)
     local result = {}
-    DATA.for_each_province_neighborhood_from_target(target, function(item)
+    DATA.for_each_province_neighborhood_from_target(target, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -8001,10 +8001,10 @@ function DATA.for_each_province_neighborhood_from_target(target, func)
     end
 end
 ---@param target province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
+---@param func fun(item: province_neighborhood_id):boolean 
 ---@return province_neighborhood_id[]
 function DATA.filter_array_province_neighborhood_from_target(target, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_province_neighborhood_as_target(target - 1)
@@ -8016,10 +8016,10 @@ function DATA.filter_array_province_neighborhood_from_target(target, func)
     return t
 end
 ---@param target province_id valid province_id
----@param func fun(item: province_neighborhood_id):boolean
----@return table<province_neighborhood_id, province_neighborhood_id>
+---@param func fun(item: province_neighborhood_id):boolean 
+---@return table<province_neighborhood_id, province_neighborhood_id> 
 function DATA.filter_province_neighborhood_from_target(target, func)
-    ---@type table<province_neighborhood_id, province_neighborhood_id>
+    ---@type table<province_neighborhood_id, province_neighborhood_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_province_get_range_province_neighborhood_as_target(target - 1)
@@ -8071,8 +8071,8 @@ end
 
 ---@class (exact) fat_parent_child_relation_id
 ---@field id parent_child_relation_id Unique parent_child_relation id
----@field parent pop_id
----@field child pop_id
+---@field parent pop_id 
+---@field child pop_id 
 
 ---@class struct_parent_child_relation
 
@@ -8103,14 +8103,14 @@ DATA.parent_child_relation_size = 900000
 function DATA.force_create_parent_child_relation(parent, child)
     ---@type parent_child_relation_id
     local i = DCON.dcon_force_create_parent_child_relation(parent - 1, child - 1) + 1
-    return i --[[@as parent_child_relation_id]]
+    return i --[[@as parent_child_relation_id]] 
 end
 ---@param i parent_child_relation_id
 function DATA.delete_parent_child_relation(i)
-    assert(DCON.dcon_parent_child_relation_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_parent_child_relation_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_parent_child_relation(i - 1)
 end
----@param func fun(item: parent_child_relation_id)
+---@param func fun(item: parent_child_relation_id) 
 function DATA.for_each_parent_child_relation(func)
     ---@type number
     local range = DCON.dcon_parent_child_relation_size()
@@ -8118,29 +8118,29 @@ function DATA.for_each_parent_child_relation(func)
         if DCON.dcon_parent_child_relation_is_valid(i) then func(i + 1 --[[@as parent_child_relation_id]]) end
     end
 end
----@param func fun(item: parent_child_relation_id):boolean
----@return table<parent_child_relation_id, parent_child_relation_id>
+---@param func fun(item: parent_child_relation_id):boolean 
+---@return table<parent_child_relation_id, parent_child_relation_id> 
 function DATA.filter_parent_child_relation(func)
-    ---@type table<parent_child_relation_id, parent_child_relation_id>
+    ---@type table<parent_child_relation_id, parent_child_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_parent_child_relation_size()
     for i = 0, range - 1 do
-        if DCON.dcon_parent_child_relation_is_valid(i) and func(i + 1 --[[@as parent_child_relation_id]]) then t[i + 1 --[[@as parent_child_relation_id]]] = t[i + 1 --[[@as parent_child_relation_id]]] end
+        if DCON.dcon_parent_child_relation_is_valid(i) and func(i + 1 --[[@as parent_child_relation_id]]) then t[i + 1 --[[@as parent_child_relation_id]]] = i + 1 --[[@as parent_child_relation_id]] end
     end
     return t
 end
 
 ---@param parent parent_child_relation_id valid pop_id
----@return pop_id Data retrieved from parent_child_relation
+---@return pop_id Data retrieved from parent_child_relation 
 function DATA.parent_child_relation_get_parent(parent)
     return DCON.dcon_parent_child_relation_get_parent(parent - 1) + 1
 end
 ---@param parent pop_id valid pop_id
----@return parent_child_relation_id[] An array of parent_child_relation
+---@return parent_child_relation_id[] An array of parent_child_relation 
 function DATA.get_parent_child_relation_from_parent(parent)
     local result = {}
-    DATA.for_each_parent_child_relation_from_parent(parent, function(item)
+    DATA.for_each_parent_child_relation_from_parent(parent, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -8157,10 +8157,10 @@ function DATA.for_each_parent_child_relation_from_parent(parent, func)
     end
 end
 ---@param parent pop_id valid pop_id
----@param func fun(item: parent_child_relation_id):boolean
+---@param func fun(item: parent_child_relation_id):boolean 
 ---@return parent_child_relation_id[]
 function DATA.filter_array_parent_child_relation_from_parent(parent, func)
-    ---@type table<parent_child_relation_id, parent_child_relation_id>
+    ---@type table<parent_child_relation_id, parent_child_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_parent_child_relation_as_parent(parent - 1)
@@ -8172,10 +8172,10 @@ function DATA.filter_array_parent_child_relation_from_parent(parent, func)
     return t
 end
 ---@param parent pop_id valid pop_id
----@param func fun(item: parent_child_relation_id):boolean
----@return table<parent_child_relation_id, parent_child_relation_id>
+---@param func fun(item: parent_child_relation_id):boolean 
+---@return table<parent_child_relation_id, parent_child_relation_id> 
 function DATA.filter_parent_child_relation_from_parent(parent, func)
-    ---@type table<parent_child_relation_id, parent_child_relation_id>
+    ---@type table<parent_child_relation_id, parent_child_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_parent_child_relation_as_parent(parent - 1)
@@ -8192,12 +8192,12 @@ function DATA.parent_child_relation_set_parent(parent_child_relation_id, value)
     DCON.dcon_parent_child_relation_set_parent(parent_child_relation_id - 1, value - 1)
 end
 ---@param child parent_child_relation_id valid pop_id
----@return pop_id Data retrieved from parent_child_relation
+---@return pop_id Data retrieved from parent_child_relation 
 function DATA.parent_child_relation_get_child(child)
     return DCON.dcon_parent_child_relation_get_child(child - 1) + 1
 end
 ---@param child pop_id valid pop_id
----@return parent_child_relation_id parent_child_relation
+---@return parent_child_relation_id parent_child_relation 
 function DATA.get_parent_child_relation_from_child(child)
     return DCON.dcon_pop_get_parent_child_relation_as_child(child - 1) + 1
 end
@@ -8242,8 +8242,8 @@ end
 
 ---@class (exact) fat_loyalty_id
 ---@field id loyalty_id Unique loyalty id
----@field top pop_id
----@field bottom pop_id
+---@field top pop_id 
+---@field bottom pop_id 
 
 ---@class struct_loyalty
 
@@ -8274,14 +8274,14 @@ DATA.loyalty_size = 200000
 function DATA.force_create_loyalty(top, bottom)
     ---@type loyalty_id
     local i = DCON.dcon_force_create_loyalty(top - 1, bottom - 1) + 1
-    return i --[[@as loyalty_id]]
+    return i --[[@as loyalty_id]] 
 end
 ---@param i loyalty_id
 function DATA.delete_loyalty(i)
-    assert(DCON.dcon_loyalty_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_loyalty_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_loyalty(i - 1)
 end
----@param func fun(item: loyalty_id)
+---@param func fun(item: loyalty_id) 
 function DATA.for_each_loyalty(func)
     ---@type number
     local range = DCON.dcon_loyalty_size()
@@ -8289,29 +8289,29 @@ function DATA.for_each_loyalty(func)
         if DCON.dcon_loyalty_is_valid(i) then func(i + 1 --[[@as loyalty_id]]) end
     end
 end
----@param func fun(item: loyalty_id):boolean
----@return table<loyalty_id, loyalty_id>
+---@param func fun(item: loyalty_id):boolean 
+---@return table<loyalty_id, loyalty_id> 
 function DATA.filter_loyalty(func)
-    ---@type table<loyalty_id, loyalty_id>
+    ---@type table<loyalty_id, loyalty_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_loyalty_size()
     for i = 0, range - 1 do
-        if DCON.dcon_loyalty_is_valid(i) and func(i + 1 --[[@as loyalty_id]]) then t[i + 1 --[[@as loyalty_id]]] = t[i + 1 --[[@as loyalty_id]]] end
+        if DCON.dcon_loyalty_is_valid(i) and func(i + 1 --[[@as loyalty_id]]) then t[i + 1 --[[@as loyalty_id]]] = i + 1 --[[@as loyalty_id]] end
     end
     return t
 end
 
 ---@param top loyalty_id valid pop_id
----@return pop_id Data retrieved from loyalty
+---@return pop_id Data retrieved from loyalty 
 function DATA.loyalty_get_top(top)
     return DCON.dcon_loyalty_get_top(top - 1) + 1
 end
 ---@param top pop_id valid pop_id
----@return loyalty_id[] An array of loyalty
+---@return loyalty_id[] An array of loyalty 
 function DATA.get_loyalty_from_top(top)
     local result = {}
-    DATA.for_each_loyalty_from_top(top, function(item)
+    DATA.for_each_loyalty_from_top(top, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -8328,10 +8328,10 @@ function DATA.for_each_loyalty_from_top(top, func)
     end
 end
 ---@param top pop_id valid pop_id
----@param func fun(item: loyalty_id):boolean
+---@param func fun(item: loyalty_id):boolean 
 ---@return loyalty_id[]
 function DATA.filter_array_loyalty_from_top(top, func)
-    ---@type table<loyalty_id, loyalty_id>
+    ---@type table<loyalty_id, loyalty_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_loyalty_as_top(top - 1)
@@ -8343,10 +8343,10 @@ function DATA.filter_array_loyalty_from_top(top, func)
     return t
 end
 ---@param top pop_id valid pop_id
----@param func fun(item: loyalty_id):boolean
----@return table<loyalty_id, loyalty_id>
+---@param func fun(item: loyalty_id):boolean 
+---@return table<loyalty_id, loyalty_id> 
 function DATA.filter_loyalty_from_top(top, func)
-    ---@type table<loyalty_id, loyalty_id>
+    ---@type table<loyalty_id, loyalty_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_loyalty_as_top(top - 1)
@@ -8363,12 +8363,12 @@ function DATA.loyalty_set_top(loyalty_id, value)
     DCON.dcon_loyalty_set_top(loyalty_id - 1, value - 1)
 end
 ---@param bottom loyalty_id valid pop_id
----@return pop_id Data retrieved from loyalty
+---@return pop_id Data retrieved from loyalty 
 function DATA.loyalty_get_bottom(bottom)
     return DCON.dcon_loyalty_get_bottom(bottom - 1) + 1
 end
 ---@param bottom pop_id valid pop_id
----@return loyalty_id loyalty
+---@return loyalty_id loyalty 
 function DATA.get_loyalty_from_bottom(bottom)
     return DCON.dcon_pop_get_loyalty_as_bottom(bottom - 1) + 1
 end
@@ -8413,8 +8413,8 @@ end
 
 ---@class (exact) fat_succession_id
 ---@field id succession_id Unique succession id
----@field successor_of pop_id
----@field successor pop_id
+---@field successor_of pop_id 
+---@field successor pop_id 
 
 ---@class struct_succession
 
@@ -8445,14 +8445,14 @@ DATA.succession_size = 200000
 function DATA.force_create_succession(successor_of, successor)
     ---@type succession_id
     local i = DCON.dcon_force_create_succession(successor_of - 1, successor - 1) + 1
-    return i --[[@as succession_id]]
+    return i --[[@as succession_id]] 
 end
 ---@param i succession_id
 function DATA.delete_succession(i)
-    assert(DCON.dcon_succession_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_succession_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_succession(i - 1)
 end
----@param func fun(item: succession_id)
+---@param func fun(item: succession_id) 
 function DATA.for_each_succession(func)
     ---@type number
     local range = DCON.dcon_succession_size()
@@ -8460,26 +8460,26 @@ function DATA.for_each_succession(func)
         if DCON.dcon_succession_is_valid(i) then func(i + 1 --[[@as succession_id]]) end
     end
 end
----@param func fun(item: succession_id):boolean
----@return table<succession_id, succession_id>
+---@param func fun(item: succession_id):boolean 
+---@return table<succession_id, succession_id> 
 function DATA.filter_succession(func)
-    ---@type table<succession_id, succession_id>
+    ---@type table<succession_id, succession_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_succession_size()
     for i = 0, range - 1 do
-        if DCON.dcon_succession_is_valid(i) and func(i + 1 --[[@as succession_id]]) then t[i + 1 --[[@as succession_id]]] = t[i + 1 --[[@as succession_id]]] end
+        if DCON.dcon_succession_is_valid(i) and func(i + 1 --[[@as succession_id]]) then t[i + 1 --[[@as succession_id]]] = i + 1 --[[@as succession_id]] end
     end
     return t
 end
 
 ---@param successor_of succession_id valid pop_id
----@return pop_id Data retrieved from succession
+---@return pop_id Data retrieved from succession 
 function DATA.succession_get_successor_of(successor_of)
     return DCON.dcon_succession_get_successor_of(successor_of - 1) + 1
 end
 ---@param successor_of pop_id valid pop_id
----@return succession_id succession
+---@return succession_id succession 
 function DATA.get_succession_from_successor_of(successor_of)
     return DCON.dcon_pop_get_succession_as_successor_of(successor_of - 1) + 1
 end
@@ -8489,15 +8489,15 @@ function DATA.succession_set_successor_of(succession_id, value)
     DCON.dcon_succession_set_successor_of(succession_id - 1, value - 1)
 end
 ---@param successor succession_id valid pop_id
----@return pop_id Data retrieved from succession
+---@return pop_id Data retrieved from succession 
 function DATA.succession_get_successor(successor)
     return DCON.dcon_succession_get_successor(successor - 1) + 1
 end
 ---@param successor pop_id valid pop_id
----@return succession_id[] An array of succession
+---@return succession_id[] An array of succession 
 function DATA.get_succession_from_successor(successor)
     local result = {}
-    DATA.for_each_succession_from_successor(successor, function(item)
+    DATA.for_each_succession_from_successor(successor, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -8514,10 +8514,10 @@ function DATA.for_each_succession_from_successor(successor, func)
     end
 end
 ---@param successor pop_id valid pop_id
----@param func fun(item: succession_id):boolean
+---@param func fun(item: succession_id):boolean 
 ---@return succession_id[]
 function DATA.filter_array_succession_from_successor(successor, func)
-    ---@type table<succession_id, succession_id>
+    ---@type table<succession_id, succession_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_succession_as_successor(successor - 1)
@@ -8529,10 +8529,10 @@ function DATA.filter_array_succession_from_successor(successor, func)
     return t
 end
 ---@param successor pop_id valid pop_id
----@param func fun(item: succession_id):boolean
----@return table<succession_id, succession_id>
+---@param func fun(item: succession_id):boolean 
+---@return table<succession_id, succession_id> 
 function DATA.filter_succession_from_successor(successor, func)
-    ---@type table<succession_id, succession_id>
+    ---@type table<succession_id, succession_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_succession_as_successor(successor - 1)
@@ -8584,8 +8584,8 @@ end
 
 ---@class (exact) fat_realm_armies_id
 ---@field id realm_armies_id Unique realm_armies id
----@field realm realm_id
----@field army army_id
+---@field realm realm_id 
+---@field army army_id 
 
 ---@class struct_realm_armies
 
@@ -8616,14 +8616,14 @@ DATA.realm_armies_size = 15000
 function DATA.force_create_realm_armies(realm, army)
     ---@type realm_armies_id
     local i = DCON.dcon_force_create_realm_armies(realm - 1, army - 1) + 1
-    return i --[[@as realm_armies_id]]
+    return i --[[@as realm_armies_id]] 
 end
 ---@param i realm_armies_id
 function DATA.delete_realm_armies(i)
-    assert(DCON.dcon_realm_armies_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_armies_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_armies(i - 1)
 end
----@param func fun(item: realm_armies_id)
+---@param func fun(item: realm_armies_id) 
 function DATA.for_each_realm_armies(func)
     ---@type number
     local range = DCON.dcon_realm_armies_size()
@@ -8631,29 +8631,29 @@ function DATA.for_each_realm_armies(func)
         if DCON.dcon_realm_armies_is_valid(i) then func(i + 1 --[[@as realm_armies_id]]) end
     end
 end
----@param func fun(item: realm_armies_id):boolean
----@return table<realm_armies_id, realm_armies_id>
+---@param func fun(item: realm_armies_id):boolean 
+---@return table<realm_armies_id, realm_armies_id> 
 function DATA.filter_realm_armies(func)
-    ---@type table<realm_armies_id, realm_armies_id>
+    ---@type table<realm_armies_id, realm_armies_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_armies_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_armies_is_valid(i) and func(i + 1 --[[@as realm_armies_id]]) then t[i + 1 --[[@as realm_armies_id]]] = t[i + 1 --[[@as realm_armies_id]]] end
+        if DCON.dcon_realm_armies_is_valid(i) and func(i + 1 --[[@as realm_armies_id]]) then t[i + 1 --[[@as realm_armies_id]]] = i + 1 --[[@as realm_armies_id]] end
     end
     return t
 end
 
 ---@param realm realm_armies_id valid realm_id
----@return realm_id Data retrieved from realm_armies
+---@return realm_id Data retrieved from realm_armies 
 function DATA.realm_armies_get_realm(realm)
     return DCON.dcon_realm_armies_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return realm_armies_id[] An array of realm_armies
+---@return realm_armies_id[] An array of realm_armies 
 function DATA.get_realm_armies_from_realm(realm)
     local result = {}
-    DATA.for_each_realm_armies_from_realm(realm, function(item)
+    DATA.for_each_realm_armies_from_realm(realm, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -8670,10 +8670,10 @@ function DATA.for_each_realm_armies_from_realm(realm, func)
     end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_armies_id):boolean
+---@param func fun(item: realm_armies_id):boolean 
 ---@return realm_armies_id[]
 function DATA.filter_array_realm_armies_from_realm(realm, func)
-    ---@type table<realm_armies_id, realm_armies_id>
+    ---@type table<realm_armies_id, realm_armies_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_armies_as_realm(realm - 1)
@@ -8685,10 +8685,10 @@ function DATA.filter_array_realm_armies_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_armies_id):boolean
----@return table<realm_armies_id, realm_armies_id>
+---@param func fun(item: realm_armies_id):boolean 
+---@return table<realm_armies_id, realm_armies_id> 
 function DATA.filter_realm_armies_from_realm(realm, func)
-    ---@type table<realm_armies_id, realm_armies_id>
+    ---@type table<realm_armies_id, realm_armies_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_armies_as_realm(realm - 1)
@@ -8705,12 +8705,12 @@ function DATA.realm_armies_set_realm(realm_armies_id, value)
     DCON.dcon_realm_armies_set_realm(realm_armies_id - 1, value - 1)
 end
 ---@param army realm_armies_id valid army_id
----@return army_id Data retrieved from realm_armies
+---@return army_id Data retrieved from realm_armies 
 function DATA.realm_armies_get_army(army)
     return DCON.dcon_realm_armies_get_army(army - 1) + 1
 end
 ---@param army army_id valid army_id
----@return realm_armies_id realm_armies
+---@return realm_armies_id realm_armies 
 function DATA.get_realm_armies_from_army(army)
     return DCON.dcon_army_get_realm_armies_as_army(army - 1) + 1
 end
@@ -8755,8 +8755,8 @@ end
 
 ---@class (exact) fat_realm_guard_id
 ---@field id realm_guard_id Unique realm_guard id
----@field guard warband_id
----@field realm realm_id
+---@field guard warband_id 
+---@field realm realm_id 
 
 ---@class struct_realm_guard
 
@@ -8786,14 +8786,14 @@ DATA.realm_guard_size = 15000
 function DATA.force_create_realm_guard(guard, realm)
     ---@type realm_guard_id
     local i = DCON.dcon_force_create_realm_guard(guard - 1, realm - 1) + 1
-    return i --[[@as realm_guard_id]]
+    return i --[[@as realm_guard_id]] 
 end
 ---@param i realm_guard_id
 function DATA.delete_realm_guard(i)
-    assert(DCON.dcon_realm_guard_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_guard_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_guard(i - 1)
 end
----@param func fun(item: realm_guard_id)
+---@param func fun(item: realm_guard_id) 
 function DATA.for_each_realm_guard(func)
     ---@type number
     local range = DCON.dcon_realm_guard_size()
@@ -8801,26 +8801,26 @@ function DATA.for_each_realm_guard(func)
         if DCON.dcon_realm_guard_is_valid(i) then func(i + 1 --[[@as realm_guard_id]]) end
     end
 end
----@param func fun(item: realm_guard_id):boolean
----@return table<realm_guard_id, realm_guard_id>
+---@param func fun(item: realm_guard_id):boolean 
+---@return table<realm_guard_id, realm_guard_id> 
 function DATA.filter_realm_guard(func)
-    ---@type table<realm_guard_id, realm_guard_id>
+    ---@type table<realm_guard_id, realm_guard_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_guard_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_guard_is_valid(i) and func(i + 1 --[[@as realm_guard_id]]) then t[i + 1 --[[@as realm_guard_id]]] = t[i + 1 --[[@as realm_guard_id]]] end
+        if DCON.dcon_realm_guard_is_valid(i) and func(i + 1 --[[@as realm_guard_id]]) then t[i + 1 --[[@as realm_guard_id]]] = i + 1 --[[@as realm_guard_id]] end
     end
     return t
 end
 
 ---@param guard realm_guard_id valid warband_id
----@return warband_id Data retrieved from realm_guard
+---@return warband_id Data retrieved from realm_guard 
 function DATA.realm_guard_get_guard(guard)
     return DCON.dcon_realm_guard_get_guard(guard - 1) + 1
 end
 ---@param guard warband_id valid warband_id
----@return realm_guard_id realm_guard
+---@return realm_guard_id realm_guard 
 function DATA.get_realm_guard_from_guard(guard)
     return DCON.dcon_warband_get_realm_guard_as_guard(guard - 1) + 1
 end
@@ -8830,12 +8830,12 @@ function DATA.realm_guard_set_guard(realm_guard_id, value)
     DCON.dcon_realm_guard_set_guard(realm_guard_id - 1, value - 1)
 end
 ---@param realm realm_guard_id valid realm_id
----@return realm_id Data retrieved from realm_guard
+---@return realm_id Data retrieved from realm_guard 
 function DATA.realm_guard_get_realm(realm)
     return DCON.dcon_realm_guard_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return realm_guard_id realm_guard
+---@return realm_guard_id realm_guard 
 function DATA.get_realm_guard_from_realm(realm)
     return DCON.dcon_realm_get_realm_guard_as_realm(realm - 1) + 1
 end
@@ -8880,8 +8880,8 @@ end
 
 ---@class (exact) fat_realm_overseer_id
 ---@field id realm_overseer_id Unique realm_overseer id
----@field overseer pop_id
----@field realm realm_id
+---@field overseer pop_id 
+---@field realm realm_id 
 
 ---@class struct_realm_overseer
 
@@ -8911,14 +8911,14 @@ DATA.realm_overseer_size = 15000
 function DATA.force_create_realm_overseer(overseer, realm)
     ---@type realm_overseer_id
     local i = DCON.dcon_force_create_realm_overseer(overseer - 1, realm - 1) + 1
-    return i --[[@as realm_overseer_id]]
+    return i --[[@as realm_overseer_id]] 
 end
 ---@param i realm_overseer_id
 function DATA.delete_realm_overseer(i)
-    assert(DCON.dcon_realm_overseer_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_overseer_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_overseer(i - 1)
 end
----@param func fun(item: realm_overseer_id)
+---@param func fun(item: realm_overseer_id) 
 function DATA.for_each_realm_overseer(func)
     ---@type number
     local range = DCON.dcon_realm_overseer_size()
@@ -8926,26 +8926,26 @@ function DATA.for_each_realm_overseer(func)
         if DCON.dcon_realm_overseer_is_valid(i) then func(i + 1 --[[@as realm_overseer_id]]) end
     end
 end
----@param func fun(item: realm_overseer_id):boolean
----@return table<realm_overseer_id, realm_overseer_id>
+---@param func fun(item: realm_overseer_id):boolean 
+---@return table<realm_overseer_id, realm_overseer_id> 
 function DATA.filter_realm_overseer(func)
-    ---@type table<realm_overseer_id, realm_overseer_id>
+    ---@type table<realm_overseer_id, realm_overseer_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_overseer_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_overseer_is_valid(i) and func(i + 1 --[[@as realm_overseer_id]]) then t[i + 1 --[[@as realm_overseer_id]]] = t[i + 1 --[[@as realm_overseer_id]]] end
+        if DCON.dcon_realm_overseer_is_valid(i) and func(i + 1 --[[@as realm_overseer_id]]) then t[i + 1 --[[@as realm_overseer_id]]] = i + 1 --[[@as realm_overseer_id]] end
     end
     return t
 end
 
 ---@param overseer realm_overseer_id valid pop_id
----@return pop_id Data retrieved from realm_overseer
+---@return pop_id Data retrieved from realm_overseer 
 function DATA.realm_overseer_get_overseer(overseer)
     return DCON.dcon_realm_overseer_get_overseer(overseer - 1) + 1
 end
 ---@param overseer pop_id valid pop_id
----@return realm_overseer_id realm_overseer
+---@return realm_overseer_id realm_overseer 
 function DATA.get_realm_overseer_from_overseer(overseer)
     return DCON.dcon_pop_get_realm_overseer_as_overseer(overseer - 1) + 1
 end
@@ -8955,12 +8955,12 @@ function DATA.realm_overseer_set_overseer(realm_overseer_id, value)
     DCON.dcon_realm_overseer_set_overseer(realm_overseer_id - 1, value - 1)
 end
 ---@param realm realm_overseer_id valid realm_id
----@return realm_id Data retrieved from realm_overseer
+---@return realm_id Data retrieved from realm_overseer 
 function DATA.realm_overseer_get_realm(realm)
     return DCON.dcon_realm_overseer_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return realm_overseer_id realm_overseer
+---@return realm_overseer_id realm_overseer 
 function DATA.get_realm_overseer_from_realm(realm)
     return DCON.dcon_realm_get_realm_overseer_as_realm(realm - 1) + 1
 end
@@ -9005,8 +9005,8 @@ end
 
 ---@class (exact) fat_realm_leadership_id
 ---@field id realm_leadership_id Unique realm_leadership id
----@field leader pop_id
----@field realm realm_id
+---@field leader pop_id 
+---@field realm realm_id 
 
 ---@class struct_realm_leadership
 
@@ -9037,14 +9037,14 @@ DATA.realm_leadership_size = 15000
 function DATA.force_create_realm_leadership(leader, realm)
     ---@type realm_leadership_id
     local i = DCON.dcon_force_create_realm_leadership(leader - 1, realm - 1) + 1
-    return i --[[@as realm_leadership_id]]
+    return i --[[@as realm_leadership_id]] 
 end
 ---@param i realm_leadership_id
 function DATA.delete_realm_leadership(i)
-    assert(DCON.dcon_realm_leadership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_leadership_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_leadership(i - 1)
 end
----@param func fun(item: realm_leadership_id)
+---@param func fun(item: realm_leadership_id) 
 function DATA.for_each_realm_leadership(func)
     ---@type number
     local range = DCON.dcon_realm_leadership_size()
@@ -9052,29 +9052,29 @@ function DATA.for_each_realm_leadership(func)
         if DCON.dcon_realm_leadership_is_valid(i) then func(i + 1 --[[@as realm_leadership_id]]) end
     end
 end
----@param func fun(item: realm_leadership_id):boolean
----@return table<realm_leadership_id, realm_leadership_id>
+---@param func fun(item: realm_leadership_id):boolean 
+---@return table<realm_leadership_id, realm_leadership_id> 
 function DATA.filter_realm_leadership(func)
-    ---@type table<realm_leadership_id, realm_leadership_id>
+    ---@type table<realm_leadership_id, realm_leadership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_leadership_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_leadership_is_valid(i) and func(i + 1 --[[@as realm_leadership_id]]) then t[i + 1 --[[@as realm_leadership_id]]] = t[i + 1 --[[@as realm_leadership_id]]] end
+        if DCON.dcon_realm_leadership_is_valid(i) and func(i + 1 --[[@as realm_leadership_id]]) then t[i + 1 --[[@as realm_leadership_id]]] = i + 1 --[[@as realm_leadership_id]] end
     end
     return t
 end
 
 ---@param leader realm_leadership_id valid pop_id
----@return pop_id Data retrieved from realm_leadership
+---@return pop_id Data retrieved from realm_leadership 
 function DATA.realm_leadership_get_leader(leader)
     return DCON.dcon_realm_leadership_get_leader(leader - 1) + 1
 end
 ---@param leader pop_id valid pop_id
----@return realm_leadership_id[] An array of realm_leadership
+---@return realm_leadership_id[] An array of realm_leadership 
 function DATA.get_realm_leadership_from_leader(leader)
     local result = {}
-    DATA.for_each_realm_leadership_from_leader(leader, function(item)
+    DATA.for_each_realm_leadership_from_leader(leader, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -9091,10 +9091,10 @@ function DATA.for_each_realm_leadership_from_leader(leader, func)
     end
 end
 ---@param leader pop_id valid pop_id
----@param func fun(item: realm_leadership_id):boolean
+---@param func fun(item: realm_leadership_id):boolean 
 ---@return realm_leadership_id[]
 function DATA.filter_array_realm_leadership_from_leader(leader, func)
-    ---@type table<realm_leadership_id, realm_leadership_id>
+    ---@type table<realm_leadership_id, realm_leadership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_realm_leadership_as_leader(leader - 1)
@@ -9106,10 +9106,10 @@ function DATA.filter_array_realm_leadership_from_leader(leader, func)
     return t
 end
 ---@param leader pop_id valid pop_id
----@param func fun(item: realm_leadership_id):boolean
----@return table<realm_leadership_id, realm_leadership_id>
+---@param func fun(item: realm_leadership_id):boolean 
+---@return table<realm_leadership_id, realm_leadership_id> 
 function DATA.filter_realm_leadership_from_leader(leader, func)
-    ---@type table<realm_leadership_id, realm_leadership_id>
+    ---@type table<realm_leadership_id, realm_leadership_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_realm_leadership_as_leader(leader - 1)
@@ -9126,12 +9126,12 @@ function DATA.realm_leadership_set_leader(realm_leadership_id, value)
     DCON.dcon_realm_leadership_set_leader(realm_leadership_id - 1, value - 1)
 end
 ---@param realm realm_leadership_id valid realm_id
----@return realm_id Data retrieved from realm_leadership
+---@return realm_id Data retrieved from realm_leadership 
 function DATA.realm_leadership_get_realm(realm)
     return DCON.dcon_realm_leadership_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return realm_leadership_id realm_leadership
+---@return realm_leadership_id realm_leadership 
 function DATA.get_realm_leadership_from_realm(realm)
     return DCON.dcon_realm_get_realm_leadership_as_realm(realm - 1) + 1
 end
@@ -9176,20 +9176,20 @@ end
 
 ---@class (exact) fat_realm_subject_relation_id
 ---@field id realm_subject_relation_id Unique realm_subject_relation id
----@field wealth_transfer boolean
----@field goods_transfer boolean
----@field warriors_contribution boolean
----@field protection boolean
----@field local_ruler boolean
----@field overlord realm_id
----@field subject realm_id
+---@field wealth_transfer boolean 
+---@field goods_transfer boolean 
+---@field warriors_contribution boolean 
+---@field protection boolean 
+---@field local_ruler boolean 
+---@field overlord realm_id 
+---@field subject realm_id 
 
 ---@class struct_realm_subject_relation
----@field wealth_transfer boolean
----@field goods_transfer boolean
----@field warriors_contribution boolean
----@field protection boolean
----@field local_ruler boolean
+---@field wealth_transfer boolean 
+---@field goods_transfer boolean 
+---@field warriors_contribution boolean 
+---@field protection boolean 
+---@field local_ruler boolean 
 
 
 ffi.cdef[[
@@ -9229,14 +9229,14 @@ DATA.realm_subject_relation_size = 15000
 function DATA.force_create_realm_subject_relation(overlord, subject)
     ---@type realm_subject_relation_id
     local i = DCON.dcon_force_create_realm_subject_relation(overlord - 1, subject - 1) + 1
-    return i --[[@as realm_subject_relation_id]]
+    return i --[[@as realm_subject_relation_id]] 
 end
 ---@param i realm_subject_relation_id
 function DATA.delete_realm_subject_relation(i)
-    assert(DCON.dcon_realm_subject_relation_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_subject_relation_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_subject_relation(i - 1)
 end
----@param func fun(item: realm_subject_relation_id)
+---@param func fun(item: realm_subject_relation_id) 
 function DATA.for_each_realm_subject_relation(func)
     ---@type number
     local range = DCON.dcon_realm_subject_relation_size()
@@ -9244,21 +9244,21 @@ function DATA.for_each_realm_subject_relation(func)
         if DCON.dcon_realm_subject_relation_is_valid(i) then func(i + 1 --[[@as realm_subject_relation_id]]) end
     end
 end
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_realm_subject_relation(func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_subject_relation_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_subject_relation_is_valid(i) and func(i + 1 --[[@as realm_subject_relation_id]]) then t[i + 1 --[[@as realm_subject_relation_id]]] = t[i + 1 --[[@as realm_subject_relation_id]]] end
+        if DCON.dcon_realm_subject_relation_is_valid(i) and func(i + 1 --[[@as realm_subject_relation_id]]) then t[i + 1 --[[@as realm_subject_relation_id]]] = i + 1 --[[@as realm_subject_relation_id]] end
     end
     return t
 end
 
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean wealth_transfer
+---@return boolean wealth_transfer 
 function DATA.realm_subject_relation_get_wealth_transfer(realm_subject_relation_id)
     return DCON.dcon_realm_subject_relation_get_wealth_transfer(realm_subject_relation_id - 1)
 end
@@ -9268,7 +9268,7 @@ function DATA.realm_subject_relation_set_wealth_transfer(realm_subject_relation_
     DCON.dcon_realm_subject_relation_set_wealth_transfer(realm_subject_relation_id - 1, value)
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean goods_transfer
+---@return boolean goods_transfer 
 function DATA.realm_subject_relation_get_goods_transfer(realm_subject_relation_id)
     return DCON.dcon_realm_subject_relation_get_goods_transfer(realm_subject_relation_id - 1)
 end
@@ -9278,7 +9278,7 @@ function DATA.realm_subject_relation_set_goods_transfer(realm_subject_relation_i
     DCON.dcon_realm_subject_relation_set_goods_transfer(realm_subject_relation_id - 1, value)
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean warriors_contribution
+---@return boolean warriors_contribution 
 function DATA.realm_subject_relation_get_warriors_contribution(realm_subject_relation_id)
     return DCON.dcon_realm_subject_relation_get_warriors_contribution(realm_subject_relation_id - 1)
 end
@@ -9288,7 +9288,7 @@ function DATA.realm_subject_relation_set_warriors_contribution(realm_subject_rel
     DCON.dcon_realm_subject_relation_set_warriors_contribution(realm_subject_relation_id - 1, value)
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean protection
+---@return boolean protection 
 function DATA.realm_subject_relation_get_protection(realm_subject_relation_id)
     return DCON.dcon_realm_subject_relation_get_protection(realm_subject_relation_id - 1)
 end
@@ -9298,7 +9298,7 @@ function DATA.realm_subject_relation_set_protection(realm_subject_relation_id, v
     DCON.dcon_realm_subject_relation_set_protection(realm_subject_relation_id - 1, value)
 end
 ---@param realm_subject_relation_id realm_subject_relation_id valid realm_subject_relation id
----@return boolean local_ruler
+---@return boolean local_ruler 
 function DATA.realm_subject_relation_get_local_ruler(realm_subject_relation_id)
     return DCON.dcon_realm_subject_relation_get_local_ruler(realm_subject_relation_id - 1)
 end
@@ -9308,15 +9308,15 @@ function DATA.realm_subject_relation_set_local_ruler(realm_subject_relation_id, 
     DCON.dcon_realm_subject_relation_set_local_ruler(realm_subject_relation_id - 1, value)
 end
 ---@param overlord realm_subject_relation_id valid realm_id
----@return realm_id Data retrieved from realm_subject_relation
+---@return realm_id Data retrieved from realm_subject_relation 
 function DATA.realm_subject_relation_get_overlord(overlord)
     return DCON.dcon_realm_subject_relation_get_overlord(overlord - 1) + 1
 end
 ---@param overlord realm_id valid realm_id
----@return realm_subject_relation_id[] An array of realm_subject_relation
+---@return realm_subject_relation_id[] An array of realm_subject_relation 
 function DATA.get_realm_subject_relation_from_overlord(overlord)
     local result = {}
-    DATA.for_each_realm_subject_relation_from_overlord(overlord, function(item)
+    DATA.for_each_realm_subject_relation_from_overlord(overlord, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -9333,10 +9333,10 @@ function DATA.for_each_realm_subject_relation_from_overlord(overlord, func)
     end
 end
 ---@param overlord realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
+---@param func fun(item: realm_subject_relation_id):boolean 
 ---@return realm_subject_relation_id[]
 function DATA.filter_array_realm_subject_relation_from_overlord(overlord, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_subject_relation_as_overlord(overlord - 1)
@@ -9348,10 +9348,10 @@ function DATA.filter_array_realm_subject_relation_from_overlord(overlord, func)
     return t
 end
 ---@param overlord realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_realm_subject_relation_from_overlord(overlord, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_subject_relation_as_overlord(overlord - 1)
@@ -9368,15 +9368,15 @@ function DATA.realm_subject_relation_set_overlord(realm_subject_relation_id, val
     DCON.dcon_realm_subject_relation_set_overlord(realm_subject_relation_id - 1, value - 1)
 end
 ---@param subject realm_subject_relation_id valid realm_id
----@return realm_id Data retrieved from realm_subject_relation
+---@return realm_id Data retrieved from realm_subject_relation 
 function DATA.realm_subject_relation_get_subject(subject)
     return DCON.dcon_realm_subject_relation_get_subject(subject - 1) + 1
 end
 ---@param subject realm_id valid realm_id
----@return realm_subject_relation_id[] An array of realm_subject_relation
+---@return realm_subject_relation_id[] An array of realm_subject_relation 
 function DATA.get_realm_subject_relation_from_subject(subject)
     local result = {}
-    DATA.for_each_realm_subject_relation_from_subject(subject, function(item)
+    DATA.for_each_realm_subject_relation_from_subject(subject, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -9393,10 +9393,10 @@ function DATA.for_each_realm_subject_relation_from_subject(subject, func)
     end
 end
 ---@param subject realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
+---@param func fun(item: realm_subject_relation_id):boolean 
 ---@return realm_subject_relation_id[]
 function DATA.filter_array_realm_subject_relation_from_subject(subject, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_subject_relation_as_subject(subject - 1)
@@ -9408,10 +9408,10 @@ function DATA.filter_array_realm_subject_relation_from_subject(subject, func)
     return t
 end
 ---@param subject realm_id valid realm_id
----@param func fun(item: realm_subject_relation_id):boolean
----@return table<realm_subject_relation_id, realm_subject_relation_id>
+---@param func fun(item: realm_subject_relation_id):boolean 
+---@return table<realm_subject_relation_id, realm_subject_relation_id> 
 function DATA.filter_realm_subject_relation_from_subject(subject, func)
-    ---@type table<realm_subject_relation_id, realm_subject_relation_id>
+    ---@type table<realm_subject_relation_id, realm_subject_relation_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_subject_relation_as_subject(subject - 1)
@@ -9488,8 +9488,8 @@ end
 
 ---@class (exact) fat_tax_collector_id
 ---@field id tax_collector_id Unique tax_collector id
----@field collector pop_id
----@field realm realm_id
+---@field collector pop_id 
+---@field realm realm_id 
 
 ---@class struct_tax_collector
 
@@ -9520,14 +9520,14 @@ DATA.tax_collector_size = 45000
 function DATA.force_create_tax_collector(collector, realm)
     ---@type tax_collector_id
     local i = DCON.dcon_force_create_tax_collector(collector - 1, realm - 1) + 1
-    return i --[[@as tax_collector_id]]
+    return i --[[@as tax_collector_id]] 
 end
 ---@param i tax_collector_id
 function DATA.delete_tax_collector(i)
-    assert(DCON.dcon_tax_collector_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_tax_collector_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_tax_collector(i - 1)
 end
----@param func fun(item: tax_collector_id)
+---@param func fun(item: tax_collector_id) 
 function DATA.for_each_tax_collector(func)
     ---@type number
     local range = DCON.dcon_tax_collector_size()
@@ -9535,26 +9535,26 @@ function DATA.for_each_tax_collector(func)
         if DCON.dcon_tax_collector_is_valid(i) then func(i + 1 --[[@as tax_collector_id]]) end
     end
 end
----@param func fun(item: tax_collector_id):boolean
----@return table<tax_collector_id, tax_collector_id>
+---@param func fun(item: tax_collector_id):boolean 
+---@return table<tax_collector_id, tax_collector_id> 
 function DATA.filter_tax_collector(func)
-    ---@type table<tax_collector_id, tax_collector_id>
+    ---@type table<tax_collector_id, tax_collector_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_tax_collector_size()
     for i = 0, range - 1 do
-        if DCON.dcon_tax_collector_is_valid(i) and func(i + 1 --[[@as tax_collector_id]]) then t[i + 1 --[[@as tax_collector_id]]] = t[i + 1 --[[@as tax_collector_id]]] end
+        if DCON.dcon_tax_collector_is_valid(i) and func(i + 1 --[[@as tax_collector_id]]) then t[i + 1 --[[@as tax_collector_id]]] = i + 1 --[[@as tax_collector_id]] end
     end
     return t
 end
 
 ---@param collector tax_collector_id valid pop_id
----@return pop_id Data retrieved from tax_collector
+---@return pop_id Data retrieved from tax_collector 
 function DATA.tax_collector_get_collector(collector)
     return DCON.dcon_tax_collector_get_collector(collector - 1) + 1
 end
 ---@param collector pop_id valid pop_id
----@return tax_collector_id tax_collector
+---@return tax_collector_id tax_collector 
 function DATA.get_tax_collector_from_collector(collector)
     return DCON.dcon_pop_get_tax_collector_as_collector(collector - 1) + 1
 end
@@ -9564,15 +9564,15 @@ function DATA.tax_collector_set_collector(tax_collector_id, value)
     DCON.dcon_tax_collector_set_collector(tax_collector_id - 1, value - 1)
 end
 ---@param realm tax_collector_id valid realm_id
----@return realm_id Data retrieved from tax_collector
+---@return realm_id Data retrieved from tax_collector 
 function DATA.tax_collector_get_realm(realm)
     return DCON.dcon_tax_collector_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return tax_collector_id[] An array of tax_collector
+---@return tax_collector_id[] An array of tax_collector 
 function DATA.get_tax_collector_from_realm(realm)
     local result = {}
-    DATA.for_each_tax_collector_from_realm(realm, function(item)
+    DATA.for_each_tax_collector_from_realm(realm, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -9589,10 +9589,10 @@ function DATA.for_each_tax_collector_from_realm(realm, func)
     end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: tax_collector_id):boolean
+---@param func fun(item: tax_collector_id):boolean 
 ---@return tax_collector_id[]
 function DATA.filter_array_tax_collector_from_realm(realm, func)
-    ---@type table<tax_collector_id, tax_collector_id>
+    ---@type table<tax_collector_id, tax_collector_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_tax_collector_as_realm(realm - 1)
@@ -9604,10 +9604,10 @@ function DATA.filter_array_tax_collector_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: tax_collector_id):boolean
----@return table<tax_collector_id, tax_collector_id>
+---@param func fun(item: tax_collector_id):boolean 
+---@return table<tax_collector_id, tax_collector_id> 
 function DATA.filter_tax_collector_from_realm(realm, func)
-    ---@type table<tax_collector_id, tax_collector_id>
+    ---@type table<tax_collector_id, tax_collector_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_tax_collector_as_realm(realm - 1)
@@ -9659,14 +9659,14 @@ end
 
 ---@class (exact) fat_personal_rights_id
 ---@field id personal_rights_id Unique personal_rights id
----@field can_trade boolean
----@field can_build boolean
----@field person pop_id
----@field realm realm_id
+---@field can_trade boolean 
+---@field can_build boolean 
+---@field person pop_id 
+---@field realm realm_id 
 
 ---@class struct_personal_rights
----@field can_trade boolean
----@field can_build boolean
+---@field can_trade boolean 
+---@field can_build boolean 
 
 
 ffi.cdef[[
@@ -9700,14 +9700,14 @@ DATA.personal_rights_size = 450000
 function DATA.force_create_personal_rights(person, realm)
     ---@type personal_rights_id
     local i = DCON.dcon_force_create_personal_rights(person - 1, realm - 1) + 1
-    return i --[[@as personal_rights_id]]
+    return i --[[@as personal_rights_id]] 
 end
 ---@param i personal_rights_id
 function DATA.delete_personal_rights(i)
-    assert(DCON.dcon_personal_rights_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_personal_rights_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_personal_rights(i - 1)
 end
----@param func fun(item: personal_rights_id)
+---@param func fun(item: personal_rights_id) 
 function DATA.for_each_personal_rights(func)
     ---@type number
     local range = DCON.dcon_personal_rights_size()
@@ -9715,21 +9715,21 @@ function DATA.for_each_personal_rights(func)
         if DCON.dcon_personal_rights_is_valid(i) then func(i + 1 --[[@as personal_rights_id]]) end
     end
 end
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_personal_rights(func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_personal_rights_size()
     for i = 0, range - 1 do
-        if DCON.dcon_personal_rights_is_valid(i) and func(i + 1 --[[@as personal_rights_id]]) then t[i + 1 --[[@as personal_rights_id]]] = t[i + 1 --[[@as personal_rights_id]]] end
+        if DCON.dcon_personal_rights_is_valid(i) and func(i + 1 --[[@as personal_rights_id]]) then t[i + 1 --[[@as personal_rights_id]]] = i + 1 --[[@as personal_rights_id]] end
     end
     return t
 end
 
 ---@param personal_rights_id personal_rights_id valid personal_rights id
----@return boolean can_trade
+---@return boolean can_trade 
 function DATA.personal_rights_get_can_trade(personal_rights_id)
     return DCON.dcon_personal_rights_get_can_trade(personal_rights_id - 1)
 end
@@ -9739,7 +9739,7 @@ function DATA.personal_rights_set_can_trade(personal_rights_id, value)
     DCON.dcon_personal_rights_set_can_trade(personal_rights_id - 1, value)
 end
 ---@param personal_rights_id personal_rights_id valid personal_rights id
----@return boolean can_build
+---@return boolean can_build 
 function DATA.personal_rights_get_can_build(personal_rights_id)
     return DCON.dcon_personal_rights_get_can_build(personal_rights_id - 1)
 end
@@ -9749,15 +9749,15 @@ function DATA.personal_rights_set_can_build(personal_rights_id, value)
     DCON.dcon_personal_rights_set_can_build(personal_rights_id - 1, value)
 end
 ---@param person personal_rights_id valid pop_id
----@return pop_id Data retrieved from personal_rights
+---@return pop_id Data retrieved from personal_rights 
 function DATA.personal_rights_get_person(person)
     return DCON.dcon_personal_rights_get_person(person - 1) + 1
 end
 ---@param person pop_id valid pop_id
----@return personal_rights_id[] An array of personal_rights
+---@return personal_rights_id[] An array of personal_rights 
 function DATA.get_personal_rights_from_person(person)
     local result = {}
-    DATA.for_each_personal_rights_from_person(person, function(item)
+    DATA.for_each_personal_rights_from_person(person, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -9774,10 +9774,10 @@ function DATA.for_each_personal_rights_from_person(person, func)
     end
 end
 ---@param person pop_id valid pop_id
----@param func fun(item: personal_rights_id):boolean
+---@param func fun(item: personal_rights_id):boolean 
 ---@return personal_rights_id[]
 function DATA.filter_array_personal_rights_from_person(person, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_personal_rights_as_person(person - 1)
@@ -9789,10 +9789,10 @@ function DATA.filter_array_personal_rights_from_person(person, func)
     return t
 end
 ---@param person pop_id valid pop_id
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_personal_rights_from_person(person, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_personal_rights_as_person(person - 1)
@@ -9809,15 +9809,15 @@ function DATA.personal_rights_set_person(personal_rights_id, value)
     DCON.dcon_personal_rights_set_person(personal_rights_id - 1, value - 1)
 end
 ---@param realm personal_rights_id valid realm_id
----@return realm_id Data retrieved from personal_rights
+---@return realm_id Data retrieved from personal_rights 
 function DATA.personal_rights_get_realm(realm)
     return DCON.dcon_personal_rights_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return personal_rights_id[] An array of personal_rights
+---@return personal_rights_id[] An array of personal_rights 
 function DATA.get_personal_rights_from_realm(realm)
     local result = {}
-    DATA.for_each_personal_rights_from_realm(realm, function(item)
+    DATA.for_each_personal_rights_from_realm(realm, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -9834,10 +9834,10 @@ function DATA.for_each_personal_rights_from_realm(realm, func)
     end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: personal_rights_id):boolean
+---@param func fun(item: personal_rights_id):boolean 
 ---@return personal_rights_id[]
 function DATA.filter_array_personal_rights_from_realm(realm, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_personal_rights_as_realm(realm - 1)
@@ -9849,10 +9849,10 @@ function DATA.filter_array_personal_rights_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: personal_rights_id):boolean
----@return table<personal_rights_id, personal_rights_id>
+---@param func fun(item: personal_rights_id):boolean 
+---@return table<personal_rights_id, personal_rights_id> 
 function DATA.filter_personal_rights_from_realm(realm, func)
-    ---@type table<personal_rights_id, personal_rights_id>
+    ---@type table<personal_rights_id, personal_rights_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_personal_rights_as_realm(realm - 1)
@@ -9914,8 +9914,8 @@ end
 
 ---@class (exact) fat_realm_provinces_id
 ---@field id realm_provinces_id Unique realm_provinces id
----@field province province_id
----@field realm realm_id
+---@field province province_id 
+---@field realm realm_id 
 
 ---@class struct_realm_provinces
 
@@ -9946,14 +9946,14 @@ DATA.realm_provinces_size = 30000
 function DATA.force_create_realm_provinces(province, realm)
     ---@type realm_provinces_id
     local i = DCON.dcon_force_create_realm_provinces(province - 1, realm - 1) + 1
-    return i --[[@as realm_provinces_id]]
+    return i --[[@as realm_provinces_id]] 
 end
 ---@param i realm_provinces_id
 function DATA.delete_realm_provinces(i)
-    assert(DCON.dcon_realm_provinces_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_provinces_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_provinces(i - 1)
 end
----@param func fun(item: realm_provinces_id)
+---@param func fun(item: realm_provinces_id) 
 function DATA.for_each_realm_provinces(func)
     ---@type number
     local range = DCON.dcon_realm_provinces_size()
@@ -9961,26 +9961,26 @@ function DATA.for_each_realm_provinces(func)
         if DCON.dcon_realm_provinces_is_valid(i) then func(i + 1 --[[@as realm_provinces_id]]) end
     end
 end
----@param func fun(item: realm_provinces_id):boolean
----@return table<realm_provinces_id, realm_provinces_id>
+---@param func fun(item: realm_provinces_id):boolean 
+---@return table<realm_provinces_id, realm_provinces_id> 
 function DATA.filter_realm_provinces(func)
-    ---@type table<realm_provinces_id, realm_provinces_id>
+    ---@type table<realm_provinces_id, realm_provinces_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_provinces_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_provinces_is_valid(i) and func(i + 1 --[[@as realm_provinces_id]]) then t[i + 1 --[[@as realm_provinces_id]]] = t[i + 1 --[[@as realm_provinces_id]]] end
+        if DCON.dcon_realm_provinces_is_valid(i) and func(i + 1 --[[@as realm_provinces_id]]) then t[i + 1 --[[@as realm_provinces_id]]] = i + 1 --[[@as realm_provinces_id]] end
     end
     return t
 end
 
 ---@param province realm_provinces_id valid province_id
----@return province_id Data retrieved from realm_provinces
+---@return province_id Data retrieved from realm_provinces 
 function DATA.realm_provinces_get_province(province)
     return DCON.dcon_realm_provinces_get_province(province - 1) + 1
 end
 ---@param province province_id valid province_id
----@return realm_provinces_id realm_provinces
+---@return realm_provinces_id realm_provinces 
 function DATA.get_realm_provinces_from_province(province)
     return DCON.dcon_province_get_realm_provinces_as_province(province - 1) + 1
 end
@@ -9990,15 +9990,15 @@ function DATA.realm_provinces_set_province(realm_provinces_id, value)
     DCON.dcon_realm_provinces_set_province(realm_provinces_id - 1, value - 1)
 end
 ---@param realm realm_provinces_id valid realm_id
----@return realm_id Data retrieved from realm_provinces
+---@return realm_id Data retrieved from realm_provinces 
 function DATA.realm_provinces_get_realm(realm)
     return DCON.dcon_realm_provinces_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return realm_provinces_id[] An array of realm_provinces
+---@return realm_provinces_id[] An array of realm_provinces 
 function DATA.get_realm_provinces_from_realm(realm)
     local result = {}
-    DATA.for_each_realm_provinces_from_realm(realm, function(item)
+    DATA.for_each_realm_provinces_from_realm(realm, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -10015,10 +10015,10 @@ function DATA.for_each_realm_provinces_from_realm(realm, func)
     end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_provinces_id):boolean
+---@param func fun(item: realm_provinces_id):boolean 
 ---@return realm_provinces_id[]
 function DATA.filter_array_realm_provinces_from_realm(realm, func)
-    ---@type table<realm_provinces_id, realm_provinces_id>
+    ---@type table<realm_provinces_id, realm_provinces_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_provinces_as_realm(realm - 1)
@@ -10030,10 +10030,10 @@ function DATA.filter_array_realm_provinces_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_provinces_id):boolean
----@return table<realm_provinces_id, realm_provinces_id>
+---@param func fun(item: realm_provinces_id):boolean 
+---@return table<realm_provinces_id, realm_provinces_id> 
 function DATA.filter_realm_provinces_from_realm(realm, func)
-    ---@type table<realm_provinces_id, realm_provinces_id>
+    ---@type table<realm_provinces_id, realm_provinces_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_provinces_as_realm(realm - 1)
@@ -10086,7 +10086,7 @@ end
 ---@class (exact) fat_popularity_id
 ---@field id popularity_id Unique popularity id
 ---@field value number efficiency of this relation
----@field who pop_id
+---@field who pop_id 
 ---@field where realm_id popularity where
 
 ---@class struct_popularity
@@ -10122,14 +10122,14 @@ DATA.popularity_size = 450000
 function DATA.force_create_popularity(who, where)
     ---@type popularity_id
     local i = DCON.dcon_force_create_popularity(who - 1, where - 1) + 1
-    return i --[[@as popularity_id]]
+    return i --[[@as popularity_id]] 
 end
 ---@param i popularity_id
 function DATA.delete_popularity(i)
-    assert(DCON.dcon_popularity_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_popularity_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_popularity(i - 1)
 end
----@param func fun(item: popularity_id)
+---@param func fun(item: popularity_id) 
 function DATA.for_each_popularity(func)
     ---@type number
     local range = DCON.dcon_popularity_size()
@@ -10137,15 +10137,15 @@ function DATA.for_each_popularity(func)
         if DCON.dcon_popularity_is_valid(i) then func(i + 1 --[[@as popularity_id]]) end
     end
 end
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_popularity(func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_popularity_size()
     for i = 0, range - 1 do
-        if DCON.dcon_popularity_is_valid(i) and func(i + 1 --[[@as popularity_id]]) then t[i + 1 --[[@as popularity_id]]] = t[i + 1 --[[@as popularity_id]]] end
+        if DCON.dcon_popularity_is_valid(i) and func(i + 1 --[[@as popularity_id]]) then t[i + 1 --[[@as popularity_id]]] = i + 1 --[[@as popularity_id]] end
     end
     return t
 end
@@ -10168,15 +10168,15 @@ function DATA.popularity_inc_value(popularity_id, value)
     DCON.dcon_popularity_set_value(popularity_id - 1, current + value)
 end
 ---@param who popularity_id valid pop_id
----@return pop_id Data retrieved from popularity
+---@return pop_id Data retrieved from popularity 
 function DATA.popularity_get_who(who)
     return DCON.dcon_popularity_get_who(who - 1) + 1
 end
 ---@param who pop_id valid pop_id
----@return popularity_id[] An array of popularity
+---@return popularity_id[] An array of popularity 
 function DATA.get_popularity_from_who(who)
     local result = {}
-    DATA.for_each_popularity_from_who(who, function(item)
+    DATA.for_each_popularity_from_who(who, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -10193,10 +10193,10 @@ function DATA.for_each_popularity_from_who(who, func)
     end
 end
 ---@param who pop_id valid pop_id
----@param func fun(item: popularity_id):boolean
+---@param func fun(item: popularity_id):boolean 
 ---@return popularity_id[]
 function DATA.filter_array_popularity_from_who(who, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_popularity_as_who(who - 1)
@@ -10208,10 +10208,10 @@ function DATA.filter_array_popularity_from_who(who, func)
     return t
 end
 ---@param who pop_id valid pop_id
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_popularity_from_who(who, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_pop_get_range_popularity_as_who(who - 1)
@@ -10228,15 +10228,15 @@ function DATA.popularity_set_who(popularity_id, value)
     DCON.dcon_popularity_set_who(popularity_id - 1, value - 1)
 end
 ---@param where popularity_id valid realm_id
----@return realm_id Data retrieved from popularity
+---@return realm_id Data retrieved from popularity 
 function DATA.popularity_get_where(where)
     return DCON.dcon_popularity_get_where(where - 1) + 1
 end
 ---@param where realm_id valid realm_id
----@return popularity_id[] An array of popularity
+---@return popularity_id[] An array of popularity 
 function DATA.get_popularity_from_where(where)
     local result = {}
-    DATA.for_each_popularity_from_where(where, function(item)
+    DATA.for_each_popularity_from_where(where, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -10253,10 +10253,10 @@ function DATA.for_each_popularity_from_where(where, func)
     end
 end
 ---@param where realm_id valid realm_id
----@param func fun(item: popularity_id):boolean
+---@param func fun(item: popularity_id):boolean 
 ---@return popularity_id[]
 function DATA.filter_array_popularity_from_where(where, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_popularity_as_where(where - 1)
@@ -10268,10 +10268,10 @@ function DATA.filter_array_popularity_from_where(where, func)
     return t
 end
 ---@param where realm_id valid realm_id
----@param func fun(item: popularity_id):boolean
----@return table<popularity_id, popularity_id>
+---@param func fun(item: popularity_id):boolean 
+---@return table<popularity_id, popularity_id> 
 function DATA.filter_popularity_from_where(where, func)
-    ---@type table<popularity_id, popularity_id>
+    ---@type table<popularity_id, popularity_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_popularity_as_where(where - 1)
@@ -10329,7 +10329,7 @@ end
 ---@class (exact) fat_realm_pop_id
 ---@field id realm_pop_id Unique realm_pop id
 ---@field realm realm_id Represents the home realm of the character
----@field pop pop_id
+---@field pop pop_id 
 
 ---@class struct_realm_pop
 
@@ -10360,14 +10360,14 @@ DATA.realm_pop_size = 300000
 function DATA.force_create_realm_pop(realm, pop)
     ---@type realm_pop_id
     local i = DCON.dcon_force_create_realm_pop(realm - 1, pop - 1) + 1
-    return i --[[@as realm_pop_id]]
+    return i --[[@as realm_pop_id]] 
 end
 ---@param i realm_pop_id
 function DATA.delete_realm_pop(i)
-    assert(DCON.dcon_realm_pop_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT ")
+    assert(DCON.dcon_realm_pop_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
     return DCON.dcon_delete_realm_pop(i - 1)
 end
----@param func fun(item: realm_pop_id)
+---@param func fun(item: realm_pop_id) 
 function DATA.for_each_realm_pop(func)
     ---@type number
     local range = DCON.dcon_realm_pop_size()
@@ -10375,29 +10375,29 @@ function DATA.for_each_realm_pop(func)
         if DCON.dcon_realm_pop_is_valid(i) then func(i + 1 --[[@as realm_pop_id]]) end
     end
 end
----@param func fun(item: realm_pop_id):boolean
----@return table<realm_pop_id, realm_pop_id>
+---@param func fun(item: realm_pop_id):boolean 
+---@return table<realm_pop_id, realm_pop_id> 
 function DATA.filter_realm_pop(func)
-    ---@type table<realm_pop_id, realm_pop_id>
+    ---@type table<realm_pop_id, realm_pop_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_pop_size()
     for i = 0, range - 1 do
-        if DCON.dcon_realm_pop_is_valid(i) and func(i + 1 --[[@as realm_pop_id]]) then t[i + 1 --[[@as realm_pop_id]]] = t[i + 1 --[[@as realm_pop_id]]] end
+        if DCON.dcon_realm_pop_is_valid(i) and func(i + 1 --[[@as realm_pop_id]]) then t[i + 1 --[[@as realm_pop_id]]] = i + 1 --[[@as realm_pop_id]] end
     end
     return t
 end
 
 ---@param realm realm_pop_id valid realm_id
----@return realm_id Data retrieved from realm_pop
+---@return realm_id Data retrieved from realm_pop 
 function DATA.realm_pop_get_realm(realm)
     return DCON.dcon_realm_pop_get_realm(realm - 1) + 1
 end
 ---@param realm realm_id valid realm_id
----@return realm_pop_id[] An array of realm_pop
+---@return realm_pop_id[] An array of realm_pop 
 function DATA.get_realm_pop_from_realm(realm)
     local result = {}
-    DATA.for_each_realm_pop_from_realm(realm, function(item)
+    DATA.for_each_realm_pop_from_realm(realm, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -10414,10 +10414,10 @@ function DATA.for_each_realm_pop_from_realm(realm, func)
     end
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_pop_id):boolean
+---@param func fun(item: realm_pop_id):boolean 
 ---@return realm_pop_id[]
 function DATA.filter_array_realm_pop_from_realm(realm, func)
-    ---@type table<realm_pop_id, realm_pop_id>
+    ---@type table<realm_pop_id, realm_pop_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_pop_as_realm(realm - 1)
@@ -10429,10 +10429,10 @@ function DATA.filter_array_realm_pop_from_realm(realm, func)
     return t
 end
 ---@param realm realm_id valid realm_id
----@param func fun(item: realm_pop_id):boolean
----@return table<realm_pop_id, realm_pop_id>
+---@param func fun(item: realm_pop_id):boolean 
+---@return table<realm_pop_id, realm_pop_id> 
 function DATA.filter_realm_pop_from_realm(realm, func)
-    ---@type table<realm_pop_id, realm_pop_id>
+    ---@type table<realm_pop_id, realm_pop_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_realm_get_range_realm_pop_as_realm(realm - 1)
@@ -10449,12 +10449,12 @@ function DATA.realm_pop_set_realm(realm_pop_id, value)
     DCON.dcon_realm_pop_set_realm(realm_pop_id - 1, value - 1)
 end
 ---@param pop realm_pop_id valid pop_id
----@return pop_id Data retrieved from realm_pop
+---@return pop_id Data retrieved from realm_pop 
 function DATA.realm_pop_get_pop(pop)
     return DCON.dcon_realm_pop_get_pop(pop - 1) + 1
 end
 ---@param pop pop_id valid pop_id
----@return realm_pop_id realm_pop
+---@return realm_pop_id realm_pop 
 function DATA.get_realm_pop_from_pop(pop)
     return DCON.dcon_pop_get_realm_pop_as_pop(pop - 1) + 1
 end
@@ -10499,14 +10499,14 @@ end
 
 ---@class (exact) fat_jobtype_id
 ---@field id jobtype_id Unique jobtype id
----@field name string
----@field action_word string
+---@field name string 
+---@field action_word string 
 
 ---@class struct_jobtype
 
 ---@class (exact) jobtype_id_data_blob_definition
----@field name string
----@field action_word string
+---@field name string 
+---@field action_word string 
 ---Sets values of jobtype for given id
 ---@param id jobtype_id
 ---@param data jobtype_id_data_blob_definition
@@ -10535,9 +10535,9 @@ DATA.jobtype_size = 10
 function DATA.create_jobtype()
     ---@type jobtype_id
     local i  = DCON.dcon_create_jobtype() + 1
-    return i --[[@as jobtype_id]]
+    return i --[[@as jobtype_id]] 
 end
----@param func fun(item: jobtype_id)
+---@param func fun(item: jobtype_id) 
 function DATA.for_each_jobtype(func)
     ---@type number
     local range = DCON.dcon_jobtype_size()
@@ -10545,10 +10545,10 @@ function DATA.for_each_jobtype(func)
         func(i + 1 --[[@as jobtype_id]])
     end
 end
----@param func fun(item: jobtype_id):boolean
----@return table<jobtype_id, jobtype_id>
+---@param func fun(item: jobtype_id):boolean 
+---@return table<jobtype_id, jobtype_id> 
 function DATA.filter_jobtype(func)
-    ---@type table<jobtype_id, jobtype_id>
+    ---@type table<jobtype_id, jobtype_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_jobtype_size()
@@ -10559,7 +10559,7 @@ function DATA.filter_jobtype(func)
 end
 
 ---@param jobtype_id jobtype_id valid jobtype id
----@return string name
+---@return string name 
 function DATA.jobtype_get_name(jobtype_id)
     return DATA.jobtype_name[jobtype_id]
 end
@@ -10569,7 +10569,7 @@ function DATA.jobtype_set_name(jobtype_id, value)
     DATA.jobtype_name[jobtype_id] = value
 end
 ---@param jobtype_id jobtype_id valid jobtype id
----@return string action_word
+---@return string action_word 
 function DATA.jobtype_get_action_word(jobtype_id)
     return DATA.jobtype_action_word[jobtype_id]
 end
@@ -10651,26 +10651,26 @@ DATA.jobtype_set_action_word(index_jobtype, "hunting")
 
 ---@class (exact) fat_need_id
 ---@field id need_id Unique need id
----@field name string
----@field age_independent boolean
----@field life_need boolean
+---@field name string 
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
 ---@class struct_need
----@field age_independent boolean
----@field life_need boolean
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
 ---@field job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own
 
 ---@class (exact) need_id_data_blob_definition
----@field name string
----@field age_independent boolean
----@field life_need boolean
+---@field name string 
+---@field age_independent boolean 
+---@field life_need boolean 
 ---@field tool boolean can we use satisfaction of this need in calculations related to production
 ---@field container boolean can we use satisfaction of this need in calculations related to gathering
 ---@field time_to_satisfy number Represents amount of time a pop should spend to satisfy a unit of this need.
@@ -10718,9 +10718,9 @@ DATA.need_size = 9
 function DATA.create_need()
     ---@type need_id
     local i  = DCON.dcon_create_need() + 1
-    return i --[[@as need_id]]
+    return i --[[@as need_id]] 
 end
----@param func fun(item: need_id)
+---@param func fun(item: need_id) 
 function DATA.for_each_need(func)
     ---@type number
     local range = DCON.dcon_need_size()
@@ -10728,10 +10728,10 @@ function DATA.for_each_need(func)
         func(i + 1 --[[@as need_id]])
     end
 end
----@param func fun(item: need_id):boolean
----@return table<need_id, need_id>
+---@param func fun(item: need_id):boolean 
+---@return table<need_id, need_id> 
 function DATA.filter_need(func)
-    ---@type table<need_id, need_id>
+    ---@type table<need_id, need_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_need_size()
@@ -10742,7 +10742,7 @@ function DATA.filter_need(func)
 end
 
 ---@param need_id need_id valid need id
----@return string name
+---@return string name 
 function DATA.need_get_name(need_id)
     return DATA.need_name[need_id]
 end
@@ -10752,7 +10752,7 @@ function DATA.need_set_name(need_id, value)
     DATA.need_name[need_id] = value
 end
 ---@param need_id need_id valid need id
----@return boolean age_independent
+---@return boolean age_independent 
 function DATA.need_get_age_independent(need_id)
     return DCON.dcon_need_get_age_independent(need_id - 1)
 end
@@ -10762,7 +10762,7 @@ function DATA.need_set_age_independent(need_id, value)
     DCON.dcon_need_set_age_independent(need_id - 1, value)
 end
 ---@param need_id need_id valid need id
----@return boolean life_need
+---@return boolean life_need 
 function DATA.need_get_life_need(need_id)
     return DCON.dcon_need_get_life_need(need_id - 1)
 end
@@ -10947,14 +10947,14 @@ DATA.need_set_job_to_satisfy(index_need, JOBTYPE.ARTISAN)
 
 ---@class (exact) fat_character_rank_id
 ---@field id character_rank_id Unique character_rank id
----@field name string
----@field localisation string
+---@field name string 
+---@field localisation string 
 
 ---@class struct_character_rank
 
 ---@class (exact) character_rank_id_data_blob_definition
----@field name string
----@field localisation string
+---@field name string 
+---@field localisation string 
 ---Sets values of character_rank for given id
 ---@param id character_rank_id
 ---@param data character_rank_id_data_blob_definition
@@ -10983,9 +10983,9 @@ DATA.character_rank_size = 5
 function DATA.create_character_rank()
     ---@type character_rank_id
     local i  = DCON.dcon_create_character_rank() + 1
-    return i --[[@as character_rank_id]]
+    return i --[[@as character_rank_id]] 
 end
----@param func fun(item: character_rank_id)
+---@param func fun(item: character_rank_id) 
 function DATA.for_each_character_rank(func)
     ---@type number
     local range = DCON.dcon_character_rank_size()
@@ -10993,10 +10993,10 @@ function DATA.for_each_character_rank(func)
         func(i + 1 --[[@as character_rank_id]])
     end
 end
----@param func fun(item: character_rank_id):boolean
----@return table<character_rank_id, character_rank_id>
+---@param func fun(item: character_rank_id):boolean 
+---@return table<character_rank_id, character_rank_id> 
 function DATA.filter_character_rank(func)
-    ---@type table<character_rank_id, character_rank_id>
+    ---@type table<character_rank_id, character_rank_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_character_rank_size()
@@ -11007,7 +11007,7 @@ function DATA.filter_character_rank(func)
 end
 
 ---@param character_rank_id character_rank_id valid character_rank id
----@return string name
+---@return string name 
 function DATA.character_rank_get_name(character_rank_id)
     return DATA.character_rank_name[character_rank_id]
 end
@@ -11017,7 +11017,7 @@ function DATA.character_rank_set_name(character_rank_id, value)
     DATA.character_rank_name[character_rank_id] = value
 end
 ---@param character_rank_id character_rank_id valid character_rank id
----@return string localisation
+---@return string localisation 
 function DATA.character_rank_get_localisation(character_rank_id)
     return DATA.character_rank_localisation[character_rank_id]
 end
@@ -11079,33 +11079,33 @@ DATA.character_rank_set_localisation(index_character_rank, "Chief")
 
 ---@class (exact) fat_trait_id
 ---@field id trait_id Unique trait id
----@field name string
----@field ambition number
----@field greed number
----@field admin number
----@field traveller number
----@field aggression number
----@field short_description string
----@field full_description string
----@field icon string
+---@field name string 
+---@field ambition number 
+---@field greed number 
+---@field admin number 
+---@field traveller number 
+---@field aggression number 
+---@field short_description string 
+---@field full_description string 
+---@field icon string 
 
 ---@class struct_trait
----@field ambition number
----@field greed number
----@field admin number
----@field traveller number
----@field aggression number
+---@field ambition number 
+---@field greed number 
+---@field admin number 
+---@field traveller number 
+---@field aggression number 
 
 ---@class (exact) trait_id_data_blob_definition
----@field name string
----@field ambition number
----@field greed number
----@field admin number
----@field traveller number
----@field aggression number
----@field short_description string
----@field full_description string
----@field icon string
+---@field name string 
+---@field ambition number 
+---@field greed number 
+---@field admin number 
+---@field traveller number 
+---@field aggression number 
+---@field short_description string 
+---@field full_description string 
+---@field icon string 
 ---Sets values of trait for given id
 ---@param id trait_id
 ---@param data trait_id_data_blob_definition
@@ -11155,9 +11155,9 @@ DATA.trait_size = 12
 function DATA.create_trait()
     ---@type trait_id
     local i  = DCON.dcon_create_trait() + 1
-    return i --[[@as trait_id]]
+    return i --[[@as trait_id]] 
 end
----@param func fun(item: trait_id)
+---@param func fun(item: trait_id) 
 function DATA.for_each_trait(func)
     ---@type number
     local range = DCON.dcon_trait_size()
@@ -11165,10 +11165,10 @@ function DATA.for_each_trait(func)
         func(i + 1 --[[@as trait_id]])
     end
 end
----@param func fun(item: trait_id):boolean
----@return table<trait_id, trait_id>
+---@param func fun(item: trait_id):boolean 
+---@return table<trait_id, trait_id> 
 function DATA.filter_trait(func)
-    ---@type table<trait_id, trait_id>
+    ---@type table<trait_id, trait_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_trait_size()
@@ -11179,7 +11179,7 @@ function DATA.filter_trait(func)
 end
 
 ---@param trait_id trait_id valid trait id
----@return string name
+---@return string name 
 function DATA.trait_get_name(trait_id)
     return DATA.trait_name[trait_id]
 end
@@ -11189,7 +11189,7 @@ function DATA.trait_set_name(trait_id, value)
     DATA.trait_name[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return number ambition
+---@return number ambition 
 function DATA.trait_get_ambition(trait_id)
     return DCON.dcon_trait_get_ambition(trait_id - 1)
 end
@@ -11206,7 +11206,7 @@ function DATA.trait_inc_ambition(trait_id, value)
     DCON.dcon_trait_set_ambition(trait_id - 1, current + value)
 end
 ---@param trait_id trait_id valid trait id
----@return number greed
+---@return number greed 
 function DATA.trait_get_greed(trait_id)
     return DCON.dcon_trait_get_greed(trait_id - 1)
 end
@@ -11223,7 +11223,7 @@ function DATA.trait_inc_greed(trait_id, value)
     DCON.dcon_trait_set_greed(trait_id - 1, current + value)
 end
 ---@param trait_id trait_id valid trait id
----@return number admin
+---@return number admin 
 function DATA.trait_get_admin(trait_id)
     return DCON.dcon_trait_get_admin(trait_id - 1)
 end
@@ -11240,7 +11240,7 @@ function DATA.trait_inc_admin(trait_id, value)
     DCON.dcon_trait_set_admin(trait_id - 1, current + value)
 end
 ---@param trait_id trait_id valid trait id
----@return number traveller
+---@return number traveller 
 function DATA.trait_get_traveller(trait_id)
     return DCON.dcon_trait_get_traveller(trait_id - 1)
 end
@@ -11257,7 +11257,7 @@ function DATA.trait_inc_traveller(trait_id, value)
     DCON.dcon_trait_set_traveller(trait_id - 1, current + value)
 end
 ---@param trait_id trait_id valid trait id
----@return number aggression
+---@return number aggression 
 function DATA.trait_get_aggression(trait_id)
     return DCON.dcon_trait_get_aggression(trait_id - 1)
 end
@@ -11274,7 +11274,7 @@ function DATA.trait_inc_aggression(trait_id, value)
     DCON.dcon_trait_set_aggression(trait_id - 1, current + value)
 end
 ---@param trait_id trait_id valid trait id
----@return string short_description
+---@return string short_description 
 function DATA.trait_get_short_description(trait_id)
     return DATA.trait_short_description[trait_id]
 end
@@ -11284,7 +11284,7 @@ function DATA.trait_set_short_description(trait_id, value)
     DATA.trait_short_description[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string full_description
+---@return string full_description 
 function DATA.trait_get_full_description(trait_id)
     return DATA.trait_full_description[trait_id]
 end
@@ -11294,7 +11294,7 @@ function DATA.trait_set_full_description(trait_id, value)
     DATA.trait_full_description[trait_id] = value
 end
 ---@param trait_id trait_id valid trait id
----@return string icon
+---@return string icon 
 function DATA.trait_get_icon(trait_id)
     return DATA.trait_icon[trait_id]
 end
@@ -11489,12 +11489,12 @@ DATA.trait_set_icon(index_trait, "scales.png")
 
 ---@class (exact) fat_trade_good_category_id
 ---@field id trade_good_category_id Unique trade_good_category id
----@field name string
+---@field name string 
 
 ---@class struct_trade_good_category
 
 ---@class (exact) trade_good_category_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of trade_good_category for given id
 ---@param id trade_good_category_id
 ---@param data trade_good_category_id_data_blob_definition
@@ -11520,9 +11520,9 @@ DATA.trade_good_category_size = 5
 function DATA.create_trade_good_category()
     ---@type trade_good_category_id
     local i  = DCON.dcon_create_trade_good_category() + 1
-    return i --[[@as trade_good_category_id]]
+    return i --[[@as trade_good_category_id]] 
 end
----@param func fun(item: trade_good_category_id)
+---@param func fun(item: trade_good_category_id) 
 function DATA.for_each_trade_good_category(func)
     ---@type number
     local range = DCON.dcon_trade_good_category_size()
@@ -11530,10 +11530,10 @@ function DATA.for_each_trade_good_category(func)
         func(i + 1 --[[@as trade_good_category_id]])
     end
 end
----@param func fun(item: trade_good_category_id):boolean
----@return table<trade_good_category_id, trade_good_category_id>
+---@param func fun(item: trade_good_category_id):boolean 
+---@return table<trade_good_category_id, trade_good_category_id> 
 function DATA.filter_trade_good_category(func)
-    ---@type table<trade_good_category_id, trade_good_category_id>
+    ---@type table<trade_good_category_id, trade_good_category_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_trade_good_category_size()
@@ -11544,7 +11544,7 @@ function DATA.filter_trade_good_category(func)
 end
 
 ---@param trade_good_category_id trade_good_category_id valid trade_good_category id
----@return string name
+---@return string name 
 function DATA.trade_good_category_get_name(trade_good_category_id)
     return DATA.trade_good_category_name[trade_good_category_id]
 end
@@ -11598,12 +11598,12 @@ DATA.trade_good_category_set_name(index_trade_good_category, "capacity")
 
 ---@class (exact) fat_warband_status_id
 ---@field id warband_status_id Unique warband_status id
----@field name string
+---@field name string 
 
 ---@class struct_warband_status
 
 ---@class (exact) warband_status_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of warband_status for given id
 ---@param id warband_status_id
 ---@param data warband_status_id_data_blob_definition
@@ -11629,9 +11629,9 @@ DATA.warband_status_size = 10
 function DATA.create_warband_status()
     ---@type warband_status_id
     local i  = DCON.dcon_create_warband_status() + 1
-    return i --[[@as warband_status_id]]
+    return i --[[@as warband_status_id]] 
 end
----@param func fun(item: warband_status_id)
+---@param func fun(item: warband_status_id) 
 function DATA.for_each_warband_status(func)
     ---@type number
     local range = DCON.dcon_warband_status_size()
@@ -11639,10 +11639,10 @@ function DATA.for_each_warband_status(func)
         func(i + 1 --[[@as warband_status_id]])
     end
 end
----@param func fun(item: warband_status_id):boolean
----@return table<warband_status_id, warband_status_id>
+---@param func fun(item: warband_status_id):boolean 
+---@return table<warband_status_id, warband_status_id> 
 function DATA.filter_warband_status(func)
-    ---@type table<warband_status_id, warband_status_id>
+    ---@type table<warband_status_id, warband_status_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_status_size()
@@ -11653,7 +11653,7 @@ function DATA.filter_warband_status(func)
 end
 
 ---@param warband_status_id warband_status_id valid warband_status id
----@return string name
+---@return string name 
 function DATA.warband_status_get_name(warband_status_id)
     return DATA.warband_status_name[warband_status_id]
 end
@@ -11722,12 +11722,12 @@ DATA.warband_status_set_name(index_warband_status, "off_duty")
 
 ---@class (exact) fat_warband_stance_id
 ---@field id warband_stance_id Unique warband_stance id
----@field name string
+---@field name string 
 
 ---@class struct_warband_stance
 
 ---@class (exact) warband_stance_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of warband_stance for given id
 ---@param id warband_stance_id
 ---@param data warband_stance_id_data_blob_definition
@@ -11753,9 +11753,9 @@ DATA.warband_stance_size = 4
 function DATA.create_warband_stance()
     ---@type warband_stance_id
     local i  = DCON.dcon_create_warband_stance() + 1
-    return i --[[@as warband_stance_id]]
+    return i --[[@as warband_stance_id]] 
 end
----@param func fun(item: warband_stance_id)
+---@param func fun(item: warband_stance_id) 
 function DATA.for_each_warband_stance(func)
     ---@type number
     local range = DCON.dcon_warband_stance_size()
@@ -11763,10 +11763,10 @@ function DATA.for_each_warband_stance(func)
         func(i + 1 --[[@as warband_stance_id]])
     end
 end
----@param func fun(item: warband_stance_id):boolean
----@return table<warband_stance_id, warband_stance_id>
+---@param func fun(item: warband_stance_id):boolean 
+---@return table<warband_stance_id, warband_stance_id> 
 function DATA.filter_warband_stance(func)
-    ---@type table<warband_stance_id, warband_stance_id>
+    ---@type table<warband_stance_id, warband_stance_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_warband_stance_size()
@@ -11777,7 +11777,7 @@ function DATA.filter_warband_stance(func)
 end
 
 ---@param warband_stance_id warband_stance_id valid warband_stance id
----@return string name
+---@return string name 
 function DATA.warband_stance_get_name(warband_stance_id)
     return DATA.warband_stance_name[warband_stance_id]
 end
@@ -11828,12 +11828,12 @@ DATA.warband_stance_set_name(index_warband_stance, "forage")
 
 ---@class (exact) fat_building_archetype_id
 ---@field id building_archetype_id Unique building_archetype id
----@field name string
+---@field name string 
 
 ---@class struct_building_archetype
 
 ---@class (exact) building_archetype_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of building_archetype for given id
 ---@param id building_archetype_id
 ---@param data building_archetype_id_data_blob_definition
@@ -11859,9 +11859,9 @@ DATA.building_archetype_size = 7
 function DATA.create_building_archetype()
     ---@type building_archetype_id
     local i  = DCON.dcon_create_building_archetype() + 1
-    return i --[[@as building_archetype_id]]
+    return i --[[@as building_archetype_id]] 
 end
----@param func fun(item: building_archetype_id)
+---@param func fun(item: building_archetype_id) 
 function DATA.for_each_building_archetype(func)
     ---@type number
     local range = DCON.dcon_building_archetype_size()
@@ -11869,10 +11869,10 @@ function DATA.for_each_building_archetype(func)
         func(i + 1 --[[@as building_archetype_id]])
     end
 end
----@param func fun(item: building_archetype_id):boolean
----@return table<building_archetype_id, building_archetype_id>
+---@param func fun(item: building_archetype_id):boolean 
+---@return table<building_archetype_id, building_archetype_id> 
 function DATA.filter_building_archetype(func)
-    ---@type table<building_archetype_id, building_archetype_id>
+    ---@type table<building_archetype_id, building_archetype_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_building_archetype_size()
@@ -11883,7 +11883,7 @@ function DATA.filter_building_archetype(func)
 end
 
 ---@param building_archetype_id building_archetype_id valid building_archetype id
----@return string name
+---@return string name 
 function DATA.building_archetype_get_name(building_archetype_id)
     return DATA.building_archetype_name[building_archetype_id]
 end
@@ -11943,19 +11943,19 @@ DATA.building_archetype_set_name(index_building_archetype, "DEFENSE")
 
 ---@class (exact) fat_forage_resource_id
 ---@field id forage_resource_id Unique forage_resource id
----@field name string
----@field description string
----@field icon string
----@field handle JOBTYPE
+---@field name string 
+---@field description string 
+---@field icon string 
+---@field handle JOBTYPE 
 
 ---@class struct_forage_resource
----@field handle JOBTYPE
+---@field handle JOBTYPE 
 
 ---@class (exact) forage_resource_id_data_blob_definition
----@field name string
----@field description string
----@field icon string
----@field handle JOBTYPE
+---@field name string 
+---@field description string 
+---@field icon string 
+---@field handle JOBTYPE 
 ---Sets values of forage_resource for given id
 ---@param id forage_resource_id
 ---@param data forage_resource_id_data_blob_definition
@@ -11990,9 +11990,9 @@ DATA.forage_resource_size = 10
 function DATA.create_forage_resource()
     ---@type forage_resource_id
     local i  = DCON.dcon_create_forage_resource() + 1
-    return i --[[@as forage_resource_id]]
+    return i --[[@as forage_resource_id]] 
 end
----@param func fun(item: forage_resource_id)
+---@param func fun(item: forage_resource_id) 
 function DATA.for_each_forage_resource(func)
     ---@type number
     local range = DCON.dcon_forage_resource_size()
@@ -12000,10 +12000,10 @@ function DATA.for_each_forage_resource(func)
         func(i + 1 --[[@as forage_resource_id]])
     end
 end
----@param func fun(item: forage_resource_id):boolean
----@return table<forage_resource_id, forage_resource_id>
+---@param func fun(item: forage_resource_id):boolean 
+---@return table<forage_resource_id, forage_resource_id> 
 function DATA.filter_forage_resource(func)
-    ---@type table<forage_resource_id, forage_resource_id>
+    ---@type table<forage_resource_id, forage_resource_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_forage_resource_size()
@@ -12014,7 +12014,7 @@ function DATA.filter_forage_resource(func)
 end
 
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return string name
+---@return string name 
 function DATA.forage_resource_get_name(forage_resource_id)
     return DATA.forage_resource_name[forage_resource_id]
 end
@@ -12024,7 +12024,7 @@ function DATA.forage_resource_set_name(forage_resource_id, value)
     DATA.forage_resource_name[forage_resource_id] = value
 end
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return string description
+---@return string description 
 function DATA.forage_resource_get_description(forage_resource_id)
     return DATA.forage_resource_description[forage_resource_id]
 end
@@ -12034,7 +12034,7 @@ function DATA.forage_resource_set_description(forage_resource_id, value)
     DATA.forage_resource_description[forage_resource_id] = value
 end
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return string icon
+---@return string icon 
 function DATA.forage_resource_get_icon(forage_resource_id)
     return DATA.forage_resource_icon[forage_resource_id]
 end
@@ -12044,7 +12044,7 @@ function DATA.forage_resource_set_icon(forage_resource_id, value)
     DATA.forage_resource_icon[forage_resource_id] = value
 end
 ---@param forage_resource_id forage_resource_id valid forage_resource id
----@return JOBTYPE handle
+---@return JOBTYPE handle 
 function DATA.forage_resource_get_handle(forage_resource_id)
     return DCON.dcon_forage_resource_get_handle(forage_resource_id - 1)
 end
@@ -12152,12 +12152,12 @@ DATA.forage_resource_set_handle(index_forage_resource, JOBTYPE.ARTISAN)
 
 ---@class (exact) fat_budget_category_id
 ---@field id budget_category_id Unique budget_category id
----@field name string
+---@field name string 
 
 ---@class struct_budget_category
 
 ---@class (exact) budget_category_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of budget_category for given id
 ---@param id budget_category_id
 ---@param data budget_category_id_data_blob_definition
@@ -12183,9 +12183,9 @@ DATA.budget_category_size = 7
 function DATA.create_budget_category()
     ---@type budget_category_id
     local i  = DCON.dcon_create_budget_category() + 1
-    return i --[[@as budget_category_id]]
+    return i --[[@as budget_category_id]] 
 end
----@param func fun(item: budget_category_id)
+---@param func fun(item: budget_category_id) 
 function DATA.for_each_budget_category(func)
     ---@type number
     local range = DCON.dcon_budget_category_size()
@@ -12193,10 +12193,10 @@ function DATA.for_each_budget_category(func)
         func(i + 1 --[[@as budget_category_id]])
     end
 end
----@param func fun(item: budget_category_id):boolean
----@return table<budget_category_id, budget_category_id>
+---@param func fun(item: budget_category_id):boolean 
+---@return table<budget_category_id, budget_category_id> 
 function DATA.filter_budget_category(func)
-    ---@type table<budget_category_id, budget_category_id>
+    ---@type table<budget_category_id, budget_category_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_budget_category_size()
@@ -12207,7 +12207,7 @@ function DATA.filter_budget_category(func)
 end
 
 ---@param budget_category_id budget_category_id valid budget_category id
----@return string name
+---@return string name 
 function DATA.budget_category_get_name(budget_category_id)
     return DATA.budget_category_name[budget_category_id]
 end
@@ -12267,14 +12267,14 @@ DATA.budget_category_set_name(index_budget_category, "tribute")
 
 ---@class (exact) fat_economy_reason_id
 ---@field id economy_reason_id Unique economy_reason id
----@field name string
----@field description string
+---@field name string 
+---@field description string 
 
 ---@class struct_economy_reason
 
 ---@class (exact) economy_reason_id_data_blob_definition
----@field name string
----@field description string
+---@field name string 
+---@field description string 
 ---Sets values of economy_reason for given id
 ---@param id economy_reason_id
 ---@param data economy_reason_id_data_blob_definition
@@ -12303,9 +12303,9 @@ DATA.economy_reason_size = 38
 function DATA.create_economy_reason()
     ---@type economy_reason_id
     local i  = DCON.dcon_create_economy_reason() + 1
-    return i --[[@as economy_reason_id]]
+    return i --[[@as economy_reason_id]] 
 end
----@param func fun(item: economy_reason_id)
+---@param func fun(item: economy_reason_id) 
 function DATA.for_each_economy_reason(func)
     ---@type number
     local range = DCON.dcon_economy_reason_size()
@@ -12313,10 +12313,10 @@ function DATA.for_each_economy_reason(func)
         func(i + 1 --[[@as economy_reason_id]])
     end
 end
----@param func fun(item: economy_reason_id):boolean
----@return table<economy_reason_id, economy_reason_id>
+---@param func fun(item: economy_reason_id):boolean 
+---@return table<economy_reason_id, economy_reason_id> 
 function DATA.filter_economy_reason(func)
-    ---@type table<economy_reason_id, economy_reason_id>
+    ---@type table<economy_reason_id, economy_reason_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_economy_reason_size()
@@ -12327,7 +12327,7 @@ function DATA.filter_economy_reason(func)
 end
 
 ---@param economy_reason_id economy_reason_id valid economy_reason id
----@return string name
+---@return string name 
 function DATA.economy_reason_get_name(economy_reason_id)
     return DATA.economy_reason_name[economy_reason_id]
 end
@@ -12337,7 +12337,7 @@ function DATA.economy_reason_set_name(economy_reason_id, value)
     DATA.economy_reason_name[economy_reason_id] = value
 end
 ---@param economy_reason_id economy_reason_id valid economy_reason id
----@return string description
+---@return string description 
 function DATA.economy_reason_get_description(economy_reason_id)
     return DATA.economy_reason_description[economy_reason_id]
 end
@@ -12531,14 +12531,14 @@ DATA.economy_reason_set_description(index_economy_reason, "Negotiations")
 
 ---@class (exact) fat_politics_reason_id
 ---@field id politics_reason_id Unique politics_reason id
----@field name string
----@field description string
+---@field name string 
+---@field description string 
 
 ---@class struct_politics_reason
 
 ---@class (exact) politics_reason_id_data_blob_definition
----@field name string
----@field description string
+---@field name string 
+---@field description string 
 ---Sets values of politics_reason for given id
 ---@param id politics_reason_id
 ---@param data politics_reason_id_data_blob_definition
@@ -12567,9 +12567,9 @@ DATA.politics_reason_size = 10
 function DATA.create_politics_reason()
     ---@type politics_reason_id
     local i  = DCON.dcon_create_politics_reason() + 1
-    return i --[[@as politics_reason_id]]
+    return i --[[@as politics_reason_id]] 
 end
----@param func fun(item: politics_reason_id)
+---@param func fun(item: politics_reason_id) 
 function DATA.for_each_politics_reason(func)
     ---@type number
     local range = DCON.dcon_politics_reason_size()
@@ -12577,10 +12577,10 @@ function DATA.for_each_politics_reason(func)
         func(i + 1 --[[@as politics_reason_id]])
     end
 end
----@param func fun(item: politics_reason_id):boolean
----@return table<politics_reason_id, politics_reason_id>
+---@param func fun(item: politics_reason_id):boolean 
+---@return table<politics_reason_id, politics_reason_id> 
 function DATA.filter_politics_reason(func)
-    ---@type table<politics_reason_id, politics_reason_id>
+    ---@type table<politics_reason_id, politics_reason_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_politics_reason_size()
@@ -12591,7 +12591,7 @@ function DATA.filter_politics_reason(func)
 end
 
 ---@param politics_reason_id politics_reason_id valid politics_reason id
----@return string name
+---@return string name 
 function DATA.politics_reason_get_name(politics_reason_id)
     return DATA.politics_reason_name[politics_reason_id]
 end
@@ -12601,7 +12601,7 @@ function DATA.politics_reason_set_name(politics_reason_id, value)
     DATA.politics_reason_name[politics_reason_id] = value
 end
 ---@param politics_reason_id politics_reason_id valid politics_reason id
----@return string description
+---@return string description 
 function DATA.politics_reason_get_description(politics_reason_id)
     return DATA.politics_reason_description[politics_reason_id]
 end
@@ -12683,12 +12683,12 @@ DATA.politics_reason_set_description(index_politics_reason, "Other")
 
 ---@class (exact) fat_law_trade_id
 ---@field id law_trade_id Unique law_trade id
----@field name string
+---@field name string 
 
 ---@class struct_law_trade
 
 ---@class (exact) law_trade_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of law_trade for given id
 ---@param id law_trade_id
 ---@param data law_trade_id_data_blob_definition
@@ -12714,9 +12714,9 @@ DATA.law_trade_size = 5
 function DATA.create_law_trade()
     ---@type law_trade_id
     local i  = DCON.dcon_create_law_trade() + 1
-    return i --[[@as law_trade_id]]
+    return i --[[@as law_trade_id]] 
 end
----@param func fun(item: law_trade_id)
+---@param func fun(item: law_trade_id) 
 function DATA.for_each_law_trade(func)
     ---@type number
     local range = DCON.dcon_law_trade_size()
@@ -12724,10 +12724,10 @@ function DATA.for_each_law_trade(func)
         func(i + 1 --[[@as law_trade_id]])
     end
 end
----@param func fun(item: law_trade_id):boolean
----@return table<law_trade_id, law_trade_id>
+---@param func fun(item: law_trade_id):boolean 
+---@return table<law_trade_id, law_trade_id> 
 function DATA.filter_law_trade(func)
-    ---@type table<law_trade_id, law_trade_id>
+    ---@type table<law_trade_id, law_trade_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_law_trade_size()
@@ -12738,7 +12738,7 @@ function DATA.filter_law_trade(func)
 end
 
 ---@param law_trade_id law_trade_id valid law_trade id
----@return string name
+---@return string name 
 function DATA.law_trade_get_name(law_trade_id)
     return DATA.law_trade_name[law_trade_id]
 end
@@ -12792,12 +12792,12 @@ DATA.law_trade_set_name(index_law_trade, "PERMISSION_ONLY")
 
 ---@class (exact) fat_law_building_id
 ---@field id law_building_id Unique law_building id
----@field name string
+---@field name string 
 
 ---@class struct_law_building
 
 ---@class (exact) law_building_id_data_blob_definition
----@field name string
+---@field name string 
 ---Sets values of law_building for given id
 ---@param id law_building_id
 ---@param data law_building_id_data_blob_definition
@@ -12823,9 +12823,9 @@ DATA.law_building_size = 5
 function DATA.create_law_building()
     ---@type law_building_id
     local i  = DCON.dcon_create_law_building() + 1
-    return i --[[@as law_building_id]]
+    return i --[[@as law_building_id]] 
 end
----@param func fun(item: law_building_id)
+---@param func fun(item: law_building_id) 
 function DATA.for_each_law_building(func)
     ---@type number
     local range = DCON.dcon_law_building_size()
@@ -12833,10 +12833,10 @@ function DATA.for_each_law_building(func)
         func(i + 1 --[[@as law_building_id]])
     end
 end
----@param func fun(item: law_building_id):boolean
----@return table<law_building_id, law_building_id>
+---@param func fun(item: law_building_id):boolean 
+---@return table<law_building_id, law_building_id> 
 function DATA.filter_law_building(func)
-    ---@type table<law_building_id, law_building_id>
+    ---@type table<law_building_id, law_building_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_law_building_size()
@@ -12847,7 +12847,7 @@ function DATA.filter_law_building(func)
 end
 
 ---@param law_building_id law_building_id valid law_building id
----@return string name
+---@return string name 
 function DATA.law_building_get_name(law_building_id)
     return DATA.law_building_name[law_building_id]
 end
@@ -12901,31 +12901,31 @@ DATA.law_building_set_name(index_law_building, "PERMISSION_ONLY")
 
 ---@class (exact) fat_trade_good_id
 ---@field id trade_good_id Unique trade_good id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field belongs_to_category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field belongs_to_category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 
 ---@class struct_trade_good
----@field r number
----@field g number
----@field b number
----@field belongs_to_category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field belongs_to_category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 
 ---@class (exact) trade_good_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field belongs_to_category TRADE_GOOD_CATEGORY
----@field base_price number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field belongs_to_category TRADE_GOOD_CATEGORY 
+---@field base_price number 
 ---Sets values of trade_good for given id
 ---@param id trade_good_id
 ---@param data trade_good_id_data_blob_definition
@@ -12972,9 +12972,9 @@ DATA.trade_good_size = 100
 function DATA.create_trade_good()
     ---@type trade_good_id
     local i  = DCON.dcon_create_trade_good() + 1
-    return i --[[@as trade_good_id]]
+    return i --[[@as trade_good_id]] 
 end
----@param func fun(item: trade_good_id)
+---@param func fun(item: trade_good_id) 
 function DATA.for_each_trade_good(func)
     ---@type number
     local range = DCON.dcon_trade_good_size()
@@ -12982,10 +12982,10 @@ function DATA.for_each_trade_good(func)
         func(i + 1 --[[@as trade_good_id]])
     end
 end
----@param func fun(item: trade_good_id):boolean
----@return table<trade_good_id, trade_good_id>
+---@param func fun(item: trade_good_id):boolean 
+---@return table<trade_good_id, trade_good_id> 
 function DATA.filter_trade_good(func)
-    ---@type table<trade_good_id, trade_good_id>
+    ---@type table<trade_good_id, trade_good_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_trade_good_size()
@@ -12996,7 +12996,7 @@ function DATA.filter_trade_good(func)
 end
 
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string name
+---@return string name 
 function DATA.trade_good_get_name(trade_good_id)
     return DATA.trade_good_name[trade_good_id]
 end
@@ -13006,7 +13006,7 @@ function DATA.trade_good_set_name(trade_good_id, value)
     DATA.trade_good_name[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string icon
+---@return string icon 
 function DATA.trade_good_get_icon(trade_good_id)
     return DATA.trade_good_icon[trade_good_id]
 end
@@ -13016,7 +13016,7 @@ function DATA.trade_good_set_icon(trade_good_id, value)
     DATA.trade_good_icon[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return string description
+---@return string description 
 function DATA.trade_good_get_description(trade_good_id)
     return DATA.trade_good_description[trade_good_id]
 end
@@ -13026,7 +13026,7 @@ function DATA.trade_good_set_description(trade_good_id, value)
     DATA.trade_good_description[trade_good_id] = value
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number r
+---@return number r 
 function DATA.trade_good_get_r(trade_good_id)
     return DCON.dcon_trade_good_get_r(trade_good_id - 1)
 end
@@ -13043,7 +13043,7 @@ function DATA.trade_good_inc_r(trade_good_id, value)
     DCON.dcon_trade_good_set_r(trade_good_id - 1, current + value)
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number g
+---@return number g 
 function DATA.trade_good_get_g(trade_good_id)
     return DCON.dcon_trade_good_get_g(trade_good_id - 1)
 end
@@ -13060,7 +13060,7 @@ function DATA.trade_good_inc_g(trade_good_id, value)
     DCON.dcon_trade_good_set_g(trade_good_id - 1, current + value)
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number b
+---@return number b 
 function DATA.trade_good_get_b(trade_good_id)
     return DCON.dcon_trade_good_get_b(trade_good_id - 1)
 end
@@ -13077,7 +13077,7 @@ function DATA.trade_good_inc_b(trade_good_id, value)
     DCON.dcon_trade_good_set_b(trade_good_id - 1, current + value)
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return TRADE_GOOD_CATEGORY belongs_to_category
+---@return TRADE_GOOD_CATEGORY belongs_to_category 
 function DATA.trade_good_get_belongs_to_category(trade_good_id)
     return DCON.dcon_trade_good_get_belongs_to_category(trade_good_id - 1)
 end
@@ -13087,7 +13087,7 @@ function DATA.trade_good_set_belongs_to_category(trade_good_id, value)
     DCON.dcon_trade_good_set_belongs_to_category(trade_good_id - 1, value)
 end
 ---@param trade_good_id trade_good_id valid trade_good id
----@return number base_price
+---@return number base_price 
 function DATA.trade_good_get_base_price(trade_good_id)
     return DCON.dcon_trade_good_get_base_price(trade_good_id - 1)
 end
@@ -13169,25 +13169,25 @@ end
 
 ---@class (exact) fat_use_case_id
 ---@field id use_case_id Unique use_case id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class struct_use_case
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class (exact) use_case_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---Sets values of use_case for given id
 ---@param id use_case_id
 ---@param data use_case_id_data_blob_definition
@@ -13228,9 +13228,9 @@ DATA.use_case_size = 100
 function DATA.create_use_case()
     ---@type use_case_id
     local i  = DCON.dcon_create_use_case() + 1
-    return i --[[@as use_case_id]]
+    return i --[[@as use_case_id]] 
 end
----@param func fun(item: use_case_id)
+---@param func fun(item: use_case_id) 
 function DATA.for_each_use_case(func)
     ---@type number
     local range = DCON.dcon_use_case_size()
@@ -13238,10 +13238,10 @@ function DATA.for_each_use_case(func)
         func(i + 1 --[[@as use_case_id]])
     end
 end
----@param func fun(item: use_case_id):boolean
----@return table<use_case_id, use_case_id>
+---@param func fun(item: use_case_id):boolean 
+---@return table<use_case_id, use_case_id> 
 function DATA.filter_use_case(func)
-    ---@type table<use_case_id, use_case_id>
+    ---@type table<use_case_id, use_case_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_use_case_size()
@@ -13252,7 +13252,7 @@ function DATA.filter_use_case(func)
 end
 
 ---@param use_case_id use_case_id valid use_case id
----@return string name
+---@return string name 
 function DATA.use_case_get_name(use_case_id)
     return DATA.use_case_name[use_case_id]
 end
@@ -13262,7 +13262,7 @@ function DATA.use_case_set_name(use_case_id, value)
     DATA.use_case_name[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return string icon
+---@return string icon 
 function DATA.use_case_get_icon(use_case_id)
     return DATA.use_case_icon[use_case_id]
 end
@@ -13272,7 +13272,7 @@ function DATA.use_case_set_icon(use_case_id, value)
     DATA.use_case_icon[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return string description
+---@return string description 
 function DATA.use_case_get_description(use_case_id)
     return DATA.use_case_description[use_case_id]
 end
@@ -13282,7 +13282,7 @@ function DATA.use_case_set_description(use_case_id, value)
     DATA.use_case_description[use_case_id] = value
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number r
+---@return number r 
 function DATA.use_case_get_r(use_case_id)
     return DCON.dcon_use_case_get_r(use_case_id - 1)
 end
@@ -13299,7 +13299,7 @@ function DATA.use_case_inc_r(use_case_id, value)
     DCON.dcon_use_case_set_r(use_case_id - 1, current + value)
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number g
+---@return number g 
 function DATA.use_case_get_g(use_case_id)
     return DCON.dcon_use_case_get_g(use_case_id - 1)
 end
@@ -13316,7 +13316,7 @@ function DATA.use_case_inc_g(use_case_id, value)
     DCON.dcon_use_case_set_g(use_case_id - 1, current + value)
 end
 ---@param use_case_id use_case_id valid use_case id
----@return number b
+---@return number b 
 function DATA.use_case_get_b(use_case_id)
     return DCON.dcon_use_case_get_b(use_case_id - 1)
 end
@@ -13432,9 +13432,9 @@ DATA.use_weight_size = 300
 function DATA.force_create_use_weight(trade_good, use_case)
     ---@type use_weight_id
     local i = DCON.dcon_force_create_use_weight(trade_good - 1, use_case - 1) + 1
-    return i --[[@as use_weight_id]]
+    return i --[[@as use_weight_id]] 
 end
----@param func fun(item: use_weight_id)
+---@param func fun(item: use_weight_id) 
 function DATA.for_each_use_weight(func)
     ---@type number
     local range = DCON.dcon_use_weight_size()
@@ -13442,10 +13442,10 @@ function DATA.for_each_use_weight(func)
         func(i + 1 --[[@as use_weight_id]])
     end
 end
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_use_weight(func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_use_weight_size()
@@ -13473,15 +13473,15 @@ function DATA.use_weight_inc_weight(use_weight_id, value)
     DCON.dcon_use_weight_set_weight(use_weight_id - 1, current + value)
 end
 ---@param trade_good use_weight_id valid trade_good_id
----@return trade_good_id Data retrieved from use_weight
+---@return trade_good_id Data retrieved from use_weight 
 function DATA.use_weight_get_trade_good(trade_good)
     return DCON.dcon_use_weight_get_trade_good(trade_good - 1) + 1
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@return use_weight_id[] An array of use_weight
+---@return use_weight_id[] An array of use_weight 
 function DATA.get_use_weight_from_trade_good(trade_good)
     local result = {}
-    DATA.for_each_use_weight_from_trade_good(trade_good, function(item)
+    DATA.for_each_use_weight_from_trade_good(trade_good, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -13498,10 +13498,10 @@ function DATA.for_each_use_weight_from_trade_good(trade_good, func)
     end
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@param func fun(item: use_weight_id):boolean
+---@param func fun(item: use_weight_id):boolean 
 ---@return use_weight_id[]
 function DATA.filter_array_use_weight_from_trade_good(trade_good, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_trade_good_get_range_use_weight_as_trade_good(trade_good - 1)
@@ -13513,10 +13513,10 @@ function DATA.filter_array_use_weight_from_trade_good(trade_good, func)
     return t
 end
 ---@param trade_good trade_good_id valid trade_good_id
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_use_weight_from_trade_good(trade_good, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_trade_good_get_range_use_weight_as_trade_good(trade_good - 1)
@@ -13533,15 +13533,15 @@ function DATA.use_weight_set_trade_good(use_weight_id, value)
     DCON.dcon_use_weight_set_trade_good(use_weight_id - 1, value - 1)
 end
 ---@param use_case use_weight_id valid use_case_id
----@return use_case_id Data retrieved from use_weight
+---@return use_case_id Data retrieved from use_weight 
 function DATA.use_weight_get_use_case(use_case)
     return DCON.dcon_use_weight_get_use_case(use_case - 1) + 1
 end
 ---@param use_case use_case_id valid use_case_id
----@return use_weight_id[] An array of use_weight
+---@return use_weight_id[] An array of use_weight 
 function DATA.get_use_weight_from_use_case(use_case)
     local result = {}
-    DATA.for_each_use_weight_from_use_case(use_case, function(item)
+    DATA.for_each_use_weight_from_use_case(use_case, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -13558,10 +13558,10 @@ function DATA.for_each_use_weight_from_use_case(use_case, func)
     end
 end
 ---@param use_case use_case_id valid use_case_id
----@param func fun(item: use_weight_id):boolean
+---@param func fun(item: use_weight_id):boolean 
 ---@return use_weight_id[]
 function DATA.filter_array_use_weight_from_use_case(use_case, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_use_case_get_range_use_weight_as_use_case(use_case - 1)
@@ -13573,10 +13573,10 @@ function DATA.filter_array_use_weight_from_use_case(use_case, func)
     return t
 end
 ---@param use_case use_case_id valid use_case_id
----@param func fun(item: use_weight_id):boolean
----@return table<use_weight_id, use_weight_id>
+---@param func fun(item: use_weight_id):boolean 
+---@return table<use_weight_id, use_weight_id> 
 function DATA.filter_use_weight_from_use_case(use_case, func)
-    ---@type table<use_weight_id, use_weight_id>
+    ---@type table<use_weight_id, use_weight_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_use_case_get_range_use_weight_as_use_case(use_case - 1)
@@ -13633,13 +13633,13 @@ end
 
 ---@class (exact) fat_biome_id
 ---@field id biome_id Unique biome id
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean 
+---@field marsh boolean 
+---@field icy boolean 
 ---@field minimum_slope number m
 ---@field maximum_slope number m
 ---@field minimum_elevation number m
@@ -13676,12 +13676,12 @@ end
 ---@field maximum_silt number %
 
 ---@class struct_biome
----@field r number
----@field g number
----@field b number
----@field aquatic boolean
----@field marsh boolean
----@field icy boolean
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean 
+---@field marsh boolean 
+---@field icy boolean 
 ---@field minimum_slope number m
 ---@field maximum_slope number m
 ---@field minimum_elevation number m
@@ -13718,13 +13718,13 @@ end
 ---@field maximum_silt number %
 
 ---@class (exact) biome_id_data_blob_definition
----@field name string
----@field r number
----@field g number
----@field b number
----@field aquatic boolean?
----@field marsh boolean?
----@field icy boolean?
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field aquatic boolean? 
+---@field marsh boolean? 
+---@field icy boolean? 
 ---@field minimum_slope number? m
 ---@field maximum_slope number? m
 ---@field minimum_elevation number? m
@@ -14015,9 +14015,9 @@ DATA.biome_size = 100
 function DATA.create_biome()
     ---@type biome_id
     local i  = DCON.dcon_create_biome() + 1
-    return i --[[@as biome_id]]
+    return i --[[@as biome_id]] 
 end
----@param func fun(item: biome_id)
+---@param func fun(item: biome_id) 
 function DATA.for_each_biome(func)
     ---@type number
     local range = DCON.dcon_biome_size()
@@ -14025,10 +14025,10 @@ function DATA.for_each_biome(func)
         func(i + 1 --[[@as biome_id]])
     end
 end
----@param func fun(item: biome_id):boolean
----@return table<biome_id, biome_id>
+---@param func fun(item: biome_id):boolean 
+---@return table<biome_id, biome_id> 
 function DATA.filter_biome(func)
-    ---@type table<biome_id, biome_id>
+    ---@type table<biome_id, biome_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_biome_size()
@@ -14039,7 +14039,7 @@ function DATA.filter_biome(func)
 end
 
 ---@param biome_id biome_id valid biome id
----@return string name
+---@return string name 
 function DATA.biome_get_name(biome_id)
     return DATA.biome_name[biome_id]
 end
@@ -14049,7 +14049,7 @@ function DATA.biome_set_name(biome_id, value)
     DATA.biome_name[biome_id] = value
 end
 ---@param biome_id biome_id valid biome id
----@return number r
+---@return number r 
 function DATA.biome_get_r(biome_id)
     return DCON.dcon_biome_get_r(biome_id - 1)
 end
@@ -14066,7 +14066,7 @@ function DATA.biome_inc_r(biome_id, value)
     DCON.dcon_biome_set_r(biome_id - 1, current + value)
 end
 ---@param biome_id biome_id valid biome id
----@return number g
+---@return number g 
 function DATA.biome_get_g(biome_id)
     return DCON.dcon_biome_get_g(biome_id - 1)
 end
@@ -14083,7 +14083,7 @@ function DATA.biome_inc_g(biome_id, value)
     DCON.dcon_biome_set_g(biome_id - 1, current + value)
 end
 ---@param biome_id biome_id valid biome id
----@return number b
+---@return number b 
 function DATA.biome_get_b(biome_id)
     return DCON.dcon_biome_get_b(biome_id - 1)
 end
@@ -14100,7 +14100,7 @@ function DATA.biome_inc_b(biome_id, value)
     DCON.dcon_biome_set_b(biome_id - 1, current + value)
 end
 ---@param biome_id biome_id valid biome id
----@return boolean aquatic
+---@return boolean aquatic 
 function DATA.biome_get_aquatic(biome_id)
     return DCON.dcon_biome_get_aquatic(biome_id - 1)
 end
@@ -14110,7 +14110,7 @@ function DATA.biome_set_aquatic(biome_id, value)
     DCON.dcon_biome_set_aquatic(biome_id - 1, value)
 end
 ---@param biome_id biome_id valid biome id
----@return boolean marsh
+---@return boolean marsh 
 function DATA.biome_get_marsh(biome_id)
     return DCON.dcon_biome_get_marsh(biome_id - 1)
 end
@@ -14120,7 +14120,7 @@ function DATA.biome_set_marsh(biome_id, value)
     DCON.dcon_biome_set_marsh(biome_id - 1, value)
 end
 ---@param biome_id biome_id valid biome id
----@return boolean icy
+---@return boolean icy 
 function DATA.biome_get_icy(biome_id)
     return DCON.dcon_biome_get_icy(biome_id - 1)
 end
@@ -14938,77 +14938,77 @@ end
 
 ---@class (exact) fat_bedrock_id
 ---@field id bedrock_id Unique bedrock id
----@field name string
----@field r number
----@field g number
----@field b number
----@field color_id number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number
----@field acidity number
----@field igneous_extrusive boolean
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field color_id number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number 
+---@field acidity number 
+---@field igneous_extrusive boolean 
+---@field igneous_intrusive boolean 
+---@field sedimentary boolean 
+---@field clastic boolean 
+---@field evaporative boolean 
+---@field metamorphic_marble boolean 
+---@field metamorphic_slate boolean 
+---@field oceanic boolean 
+---@field sedimentary_ocean_deep boolean 
+---@field sedimentary_ocean_shallow boolean 
 
 ---@class struct_bedrock
----@field r number
----@field g number
----@field b number
----@field color_id number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number
----@field acidity number
----@field igneous_extrusive boolean
----@field igneous_intrusive boolean
----@field sedimentary boolean
----@field clastic boolean
----@field evaporative boolean
----@field metamorphic_marble boolean
----@field metamorphic_slate boolean
----@field oceanic boolean
----@field sedimentary_ocean_deep boolean
----@field sedimentary_ocean_shallow boolean
+---@field r number 
+---@field g number 
+---@field b number 
+---@field color_id number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number 
+---@field acidity number 
+---@field igneous_extrusive boolean 
+---@field igneous_intrusive boolean 
+---@field sedimentary boolean 
+---@field clastic boolean 
+---@field evaporative boolean 
+---@field metamorphic_marble boolean 
+---@field metamorphic_slate boolean 
+---@field oceanic boolean 
+---@field sedimentary_ocean_deep boolean 
+---@field sedimentary_ocean_shallow boolean 
 
 ---@class (exact) bedrock_id_data_blob_definition
----@field name string
----@field r number
----@field g number
----@field b number
----@field sand number
----@field silt number
----@field clay number
----@field organics number
----@field minerals number
----@field weathering number
----@field grain_size number?
----@field acidity number?
----@field igneous_extrusive boolean?
----@field igneous_intrusive boolean?
----@field sedimentary boolean?
----@field clastic boolean?
----@field evaporative boolean?
----@field metamorphic_marble boolean?
----@field metamorphic_slate boolean?
----@field oceanic boolean?
----@field sedimentary_ocean_deep boolean?
----@field sedimentary_ocean_shallow boolean?
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field sand number 
+---@field silt number 
+---@field clay number 
+---@field organics number 
+---@field minerals number 
+---@field weathering number 
+---@field grain_size number? 
+---@field acidity number? 
+---@field igneous_extrusive boolean? 
+---@field igneous_intrusive boolean? 
+---@field sedimentary boolean? 
+---@field clastic boolean? 
+---@field evaporative boolean? 
+---@field metamorphic_marble boolean? 
+---@field metamorphic_slate boolean? 
+---@field oceanic boolean? 
+---@field sedimentary_ocean_deep boolean? 
+---@field sedimentary_ocean_shallow boolean? 
 ---Sets values of bedrock for given id
 ---@param id bedrock_id
 ---@param data bedrock_id_data_blob_definition
@@ -15135,9 +15135,9 @@ DATA.bedrock_size = 150
 function DATA.create_bedrock()
     ---@type bedrock_id
     local i  = DCON.dcon_create_bedrock() + 1
-    return i --[[@as bedrock_id]]
+    return i --[[@as bedrock_id]] 
 end
----@param func fun(item: bedrock_id)
+---@param func fun(item: bedrock_id) 
 function DATA.for_each_bedrock(func)
     ---@type number
     local range = DCON.dcon_bedrock_size()
@@ -15145,10 +15145,10 @@ function DATA.for_each_bedrock(func)
         func(i + 1 --[[@as bedrock_id]])
     end
 end
----@param func fun(item: bedrock_id):boolean
----@return table<bedrock_id, bedrock_id>
+---@param func fun(item: bedrock_id):boolean 
+---@return table<bedrock_id, bedrock_id> 
 function DATA.filter_bedrock(func)
-    ---@type table<bedrock_id, bedrock_id>
+    ---@type table<bedrock_id, bedrock_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_bedrock_size()
@@ -15159,7 +15159,7 @@ function DATA.filter_bedrock(func)
 end
 
 ---@param bedrock_id bedrock_id valid bedrock id
----@return string name
+---@return string name 
 function DATA.bedrock_get_name(bedrock_id)
     return DATA.bedrock_name[bedrock_id]
 end
@@ -15169,7 +15169,7 @@ function DATA.bedrock_set_name(bedrock_id, value)
     DATA.bedrock_name[bedrock_id] = value
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number r
+---@return number r 
 function DATA.bedrock_get_r(bedrock_id)
     return DCON.dcon_bedrock_get_r(bedrock_id - 1)
 end
@@ -15186,7 +15186,7 @@ function DATA.bedrock_inc_r(bedrock_id, value)
     DCON.dcon_bedrock_set_r(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number g
+---@return number g 
 function DATA.bedrock_get_g(bedrock_id)
     return DCON.dcon_bedrock_get_g(bedrock_id - 1)
 end
@@ -15203,7 +15203,7 @@ function DATA.bedrock_inc_g(bedrock_id, value)
     DCON.dcon_bedrock_set_g(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number b
+---@return number b 
 function DATA.bedrock_get_b(bedrock_id)
     return DCON.dcon_bedrock_get_b(bedrock_id - 1)
 end
@@ -15220,7 +15220,7 @@ function DATA.bedrock_inc_b(bedrock_id, value)
     DCON.dcon_bedrock_set_b(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number color_id
+---@return number color_id 
 function DATA.bedrock_get_color_id(bedrock_id)
     return DCON.dcon_bedrock_get_color_id(bedrock_id - 1)
 end
@@ -15237,7 +15237,7 @@ function DATA.bedrock_inc_color_id(bedrock_id, value)
     DCON.dcon_bedrock_set_color_id(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number sand
+---@return number sand 
 function DATA.bedrock_get_sand(bedrock_id)
     return DCON.dcon_bedrock_get_sand(bedrock_id - 1)
 end
@@ -15254,7 +15254,7 @@ function DATA.bedrock_inc_sand(bedrock_id, value)
     DCON.dcon_bedrock_set_sand(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number silt
+---@return number silt 
 function DATA.bedrock_get_silt(bedrock_id)
     return DCON.dcon_bedrock_get_silt(bedrock_id - 1)
 end
@@ -15271,7 +15271,7 @@ function DATA.bedrock_inc_silt(bedrock_id, value)
     DCON.dcon_bedrock_set_silt(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number clay
+---@return number clay 
 function DATA.bedrock_get_clay(bedrock_id)
     return DCON.dcon_bedrock_get_clay(bedrock_id - 1)
 end
@@ -15288,7 +15288,7 @@ function DATA.bedrock_inc_clay(bedrock_id, value)
     DCON.dcon_bedrock_set_clay(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number organics
+---@return number organics 
 function DATA.bedrock_get_organics(bedrock_id)
     return DCON.dcon_bedrock_get_organics(bedrock_id - 1)
 end
@@ -15305,7 +15305,7 @@ function DATA.bedrock_inc_organics(bedrock_id, value)
     DCON.dcon_bedrock_set_organics(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number minerals
+---@return number minerals 
 function DATA.bedrock_get_minerals(bedrock_id)
     return DCON.dcon_bedrock_get_minerals(bedrock_id - 1)
 end
@@ -15322,7 +15322,7 @@ function DATA.bedrock_inc_minerals(bedrock_id, value)
     DCON.dcon_bedrock_set_minerals(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number weathering
+---@return number weathering 
 function DATA.bedrock_get_weathering(bedrock_id)
     return DCON.dcon_bedrock_get_weathering(bedrock_id - 1)
 end
@@ -15339,7 +15339,7 @@ function DATA.bedrock_inc_weathering(bedrock_id, value)
     DCON.dcon_bedrock_set_weathering(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number grain_size
+---@return number grain_size 
 function DATA.bedrock_get_grain_size(bedrock_id)
     return DCON.dcon_bedrock_get_grain_size(bedrock_id - 1)
 end
@@ -15356,7 +15356,7 @@ function DATA.bedrock_inc_grain_size(bedrock_id, value)
     DCON.dcon_bedrock_set_grain_size(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return number acidity
+---@return number acidity 
 function DATA.bedrock_get_acidity(bedrock_id)
     return DCON.dcon_bedrock_get_acidity(bedrock_id - 1)
 end
@@ -15373,7 +15373,7 @@ function DATA.bedrock_inc_acidity(bedrock_id, value)
     DCON.dcon_bedrock_set_acidity(bedrock_id - 1, current + value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_extrusive
+---@return boolean igneous_extrusive 
 function DATA.bedrock_get_igneous_extrusive(bedrock_id)
     return DCON.dcon_bedrock_get_igneous_extrusive(bedrock_id - 1)
 end
@@ -15383,7 +15383,7 @@ function DATA.bedrock_set_igneous_extrusive(bedrock_id, value)
     DCON.dcon_bedrock_set_igneous_extrusive(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean igneous_intrusive
+---@return boolean igneous_intrusive 
 function DATA.bedrock_get_igneous_intrusive(bedrock_id)
     return DCON.dcon_bedrock_get_igneous_intrusive(bedrock_id - 1)
 end
@@ -15393,7 +15393,7 @@ function DATA.bedrock_set_igneous_intrusive(bedrock_id, value)
     DCON.dcon_bedrock_set_igneous_intrusive(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary
+---@return boolean sedimentary 
 function DATA.bedrock_get_sedimentary(bedrock_id)
     return DCON.dcon_bedrock_get_sedimentary(bedrock_id - 1)
 end
@@ -15403,7 +15403,7 @@ function DATA.bedrock_set_sedimentary(bedrock_id, value)
     DCON.dcon_bedrock_set_sedimentary(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean clastic
+---@return boolean clastic 
 function DATA.bedrock_get_clastic(bedrock_id)
     return DCON.dcon_bedrock_get_clastic(bedrock_id - 1)
 end
@@ -15413,7 +15413,7 @@ function DATA.bedrock_set_clastic(bedrock_id, value)
     DCON.dcon_bedrock_set_clastic(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean evaporative
+---@return boolean evaporative 
 function DATA.bedrock_get_evaporative(bedrock_id)
     return DCON.dcon_bedrock_get_evaporative(bedrock_id - 1)
 end
@@ -15423,7 +15423,7 @@ function DATA.bedrock_set_evaporative(bedrock_id, value)
     DCON.dcon_bedrock_set_evaporative(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean metamorphic_marble
+---@return boolean metamorphic_marble 
 function DATA.bedrock_get_metamorphic_marble(bedrock_id)
     return DCON.dcon_bedrock_get_metamorphic_marble(bedrock_id - 1)
 end
@@ -15433,7 +15433,7 @@ function DATA.bedrock_set_metamorphic_marble(bedrock_id, value)
     DCON.dcon_bedrock_set_metamorphic_marble(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean metamorphic_slate
+---@return boolean metamorphic_slate 
 function DATA.bedrock_get_metamorphic_slate(bedrock_id)
     return DCON.dcon_bedrock_get_metamorphic_slate(bedrock_id - 1)
 end
@@ -15443,7 +15443,7 @@ function DATA.bedrock_set_metamorphic_slate(bedrock_id, value)
     DCON.dcon_bedrock_set_metamorphic_slate(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean oceanic
+---@return boolean oceanic 
 function DATA.bedrock_get_oceanic(bedrock_id)
     return DCON.dcon_bedrock_get_oceanic(bedrock_id - 1)
 end
@@ -15453,7 +15453,7 @@ function DATA.bedrock_set_oceanic(bedrock_id, value)
     DCON.dcon_bedrock_set_oceanic(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary_ocean_deep
+---@return boolean sedimentary_ocean_deep 
 function DATA.bedrock_get_sedimentary_ocean_deep(bedrock_id)
     return DCON.dcon_bedrock_get_sedimentary_ocean_deep(bedrock_id - 1)
 end
@@ -15463,7 +15463,7 @@ function DATA.bedrock_set_sedimentary_ocean_deep(bedrock_id, value)
     DCON.dcon_bedrock_set_sedimentary_ocean_deep(bedrock_id - 1, value)
 end
 ---@param bedrock_id bedrock_id valid bedrock id
----@return boolean sedimentary_ocean_shallow
+---@return boolean sedimentary_ocean_shallow 
 function DATA.bedrock_get_sedimentary_ocean_shallow(bedrock_id)
     return DCON.dcon_bedrock_get_sedimentary_ocean_shallow(bedrock_id - 1)
 end
@@ -15613,52 +15613,52 @@ end
 
 ---@class (exact) fat_resource_id
 ---@field id resource_id Unique resource id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field base_frequency number number of tiles per which this resource is spawned
----@field coastal boolean
----@field land boolean
----@field water boolean
+---@field coastal boolean 
+---@field land boolean 
+---@field water boolean 
 ---@field ice_age boolean requires presence of ice age ice
----@field minimum_trees number
----@field maximum_trees number
----@field minimum_elevation number
----@field maximum_elevation number
+---@field minimum_trees number 
+---@field maximum_trees number 
+---@field minimum_elevation number 
+---@field maximum_elevation number 
 
 ---@class struct_resource
----@field r number
----@field g number
----@field b number
----@field required_biome table<number, biome_id>
----@field required_bedrock table<number, bedrock_id>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field required_biome table<number, biome_id> 
+---@field required_bedrock table<number, bedrock_id> 
 ---@field base_frequency number number of tiles per which this resource is spawned
----@field minimum_trees number
----@field maximum_trees number
----@field minimum_elevation number
----@field maximum_elevation number
+---@field minimum_trees number 
+---@field maximum_trees number 
+---@field minimum_elevation number 
+---@field maximum_elevation number 
 
 ---@class (exact) resource_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field required_biome biome_id[]
----@field required_bedrock bedrock_id[]
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field required_biome biome_id[] 
+---@field required_bedrock bedrock_id[] 
 ---@field base_frequency number? number of tiles per which this resource is spawned
----@field coastal boolean?
----@field land boolean?
----@field water boolean?
+---@field coastal boolean? 
+---@field land boolean? 
+---@field water boolean? 
 ---@field ice_age boolean? requires presence of ice age ice
----@field minimum_trees number?
----@field maximum_trees number?
----@field minimum_elevation number?
----@field maximum_elevation number?
+---@field minimum_trees number? 
+---@field maximum_trees number? 
+---@field minimum_elevation number? 
+---@field maximum_elevation number? 
 ---Sets values of resource for given id
 ---@param id resource_id
 ---@param data resource_id_data_blob_definition
@@ -15679,10 +15679,10 @@ function DATA.setup_resource(id, data)
     DATA.resource_set_g(id, data.g)
     DATA.resource_set_b(id, data.b)
     for i, value in pairs(data.required_biome) do
-        DATA.resource_set_required_biome(id, i - 1, value)
+        DATA.resource_set_required_biome(id, i, value)
     end
     for i, value in pairs(data.required_bedrock) do
-        DATA.resource_set_required_bedrock(id, i - 1, value)
+        DATA.resource_set_required_bedrock(id, i, value)
     end
     if data.base_frequency ~= nil then
         DATA.resource_set_base_frequency(id, data.base_frequency)
@@ -15721,11 +15721,11 @@ float dcon_resource_get_g(int32_t);
 void dcon_resource_set_b(int32_t, float);
 float dcon_resource_get_b(int32_t);
 void dcon_resource_resize_required_biome(uint32_t);
-void dcon_resource_set_required_biome(int32_t, int32_t, uint32_t);
-uint32_t dcon_resource_get_required_biome(int32_t, int32_t);
+void dcon_resource_set_required_biome(int32_t, int32_t, int32_t);
+int32_t dcon_resource_get_required_biome(int32_t, int32_t);
 void dcon_resource_resize_required_bedrock(uint32_t);
-void dcon_resource_set_required_bedrock(int32_t, int32_t, uint32_t);
-uint32_t dcon_resource_get_required_bedrock(int32_t, int32_t);
+void dcon_resource_set_required_bedrock(int32_t, int32_t, int32_t);
+int32_t dcon_resource_get_required_bedrock(int32_t, int32_t);
 void dcon_resource_set_base_frequency(int32_t, float);
 float dcon_resource_get_base_frequency(int32_t);
 void dcon_resource_set_minimum_trees(int32_t, float);
@@ -15767,9 +15767,9 @@ DCON.dcon_resource_resize_required_bedrock(21)
 function DATA.create_resource()
     ---@type resource_id
     local i  = DCON.dcon_create_resource() + 1
-    return i --[[@as resource_id]]
+    return i --[[@as resource_id]] 
 end
----@param func fun(item: resource_id)
+---@param func fun(item: resource_id) 
 function DATA.for_each_resource(func)
     ---@type number
     local range = DCON.dcon_resource_size()
@@ -15777,10 +15777,10 @@ function DATA.for_each_resource(func)
         func(i + 1 --[[@as resource_id]])
     end
 end
----@param func fun(item: resource_id):boolean
----@return table<resource_id, resource_id>
+---@param func fun(item: resource_id):boolean 
+---@return table<resource_id, resource_id> 
 function DATA.filter_resource(func)
-    ---@type table<resource_id, resource_id>
+    ---@type table<resource_id, resource_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_resource_size()
@@ -15791,7 +15791,7 @@ function DATA.filter_resource(func)
 end
 
 ---@param resource_id resource_id valid resource id
----@return string name
+---@return string name 
 function DATA.resource_get_name(resource_id)
     return DATA.resource_name[resource_id]
 end
@@ -15801,7 +15801,7 @@ function DATA.resource_set_name(resource_id, value)
     DATA.resource_name[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return string icon
+---@return string icon 
 function DATA.resource_get_icon(resource_id)
     return DATA.resource_icon[resource_id]
 end
@@ -15811,7 +15811,7 @@ function DATA.resource_set_icon(resource_id, value)
     DATA.resource_icon[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return string description
+---@return string description 
 function DATA.resource_get_description(resource_id)
     return DATA.resource_description[resource_id]
 end
@@ -15821,7 +15821,7 @@ function DATA.resource_set_description(resource_id, value)
     DATA.resource_description[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return number r
+---@return number r 
 function DATA.resource_get_r(resource_id)
     return DCON.dcon_resource_get_r(resource_id - 1)
 end
@@ -15838,7 +15838,7 @@ function DATA.resource_inc_r(resource_id, value)
     DCON.dcon_resource_set_r(resource_id - 1, current + value)
 end
 ---@param resource_id resource_id valid resource id
----@return number g
+---@return number g 
 function DATA.resource_get_g(resource_id)
     return DCON.dcon_resource_get_g(resource_id - 1)
 end
@@ -15855,7 +15855,7 @@ function DATA.resource_inc_g(resource_id, value)
     DCON.dcon_resource_set_g(resource_id - 1, current + value)
 end
 ---@param resource_id resource_id valid resource id
----@return number b
+---@return number b 
 function DATA.resource_get_b(resource_id)
     return DCON.dcon_resource_get_b(resource_id - 1)
 end
@@ -15873,7 +15873,7 @@ function DATA.resource_inc_b(resource_id, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.resource_get_required_biome(resource_id, index)
     assert(index ~= 0)
     return DCON.dcon_resource_get_required_biome(resource_id - 1, index - 1) + 1
@@ -15886,7 +15886,7 @@ function DATA.resource_set_required_biome(resource_id, index, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
----@return bedrock_id required_bedrock
+---@return bedrock_id required_bedrock 
 function DATA.resource_get_required_bedrock(resource_id, index)
     assert(index ~= 0)
     return DCON.dcon_resource_get_required_bedrock(resource_id - 1, index - 1) + 1
@@ -15915,7 +15915,7 @@ function DATA.resource_inc_base_frequency(resource_id, value)
     DCON.dcon_resource_set_base_frequency(resource_id - 1, current + value)
 end
 ---@param resource_id resource_id valid resource id
----@return boolean coastal
+---@return boolean coastal 
 function DATA.resource_get_coastal(resource_id)
     return DATA.resource_coastal[resource_id]
 end
@@ -15925,7 +15925,7 @@ function DATA.resource_set_coastal(resource_id, value)
     DATA.resource_coastal[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean land
+---@return boolean land 
 function DATA.resource_get_land(resource_id)
     return DATA.resource_land[resource_id]
 end
@@ -15935,7 +15935,7 @@ function DATA.resource_set_land(resource_id, value)
     DATA.resource_land[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return boolean water
+---@return boolean water 
 function DATA.resource_get_water(resource_id)
     return DATA.resource_water[resource_id]
 end
@@ -15955,7 +15955,7 @@ function DATA.resource_set_ice_age(resource_id, value)
     DATA.resource_ice_age[resource_id] = value
 end
 ---@param resource_id resource_id valid resource id
----@return number minimum_trees
+---@return number minimum_trees 
 function DATA.resource_get_minimum_trees(resource_id)
     return DCON.dcon_resource_get_minimum_trees(resource_id - 1)
 end
@@ -15972,7 +15972,7 @@ function DATA.resource_inc_minimum_trees(resource_id, value)
     DCON.dcon_resource_set_minimum_trees(resource_id - 1, current + value)
 end
 ---@param resource_id resource_id valid resource id
----@return number maximum_trees
+---@return number maximum_trees 
 function DATA.resource_get_maximum_trees(resource_id)
     return DCON.dcon_resource_get_maximum_trees(resource_id - 1)
 end
@@ -15989,7 +15989,7 @@ function DATA.resource_inc_maximum_trees(resource_id, value)
     DCON.dcon_resource_set_maximum_trees(resource_id - 1, current + value)
 end
 ---@param resource_id resource_id valid resource id
----@return number minimum_elevation
+---@return number minimum_elevation 
 function DATA.resource_get_minimum_elevation(resource_id)
     return DCON.dcon_resource_get_minimum_elevation(resource_id - 1)
 end
@@ -16006,7 +16006,7 @@ function DATA.resource_inc_minimum_elevation(resource_id, value)
     DCON.dcon_resource_set_minimum_elevation(resource_id - 1, current + value)
 end
 ---@param resource_id resource_id valid resource id
----@return number maximum_elevation
+---@return number maximum_elevation 
 function DATA.resource_get_maximum_elevation(resource_id)
     return DCON.dcon_resource_get_maximum_elevation(resource_id - 1)
 end
@@ -16123,62 +16123,62 @@ end
 
 ---@class (exact) fat_unit_type_id
 ---@field id unit_type_id Unique unit_type id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field base_price number
----@field upkeep number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number 
+---@field upkeep number 
 ---@field supply_used number how much food does this unit consume each month
----@field base_health number
----@field base_attack number
----@field base_armor number
----@field speed number
+---@field base_health number 
+---@field base_attack number 
+---@field base_armor number 
+---@field speed number 
 ---@field foraging number how much food does this unit forage from the local province?
 ---@field supply_capacity number how much food can this unit carry
----@field spotting number
----@field visibility number
+---@field spotting number 
+---@field visibility number 
 
 ---@class struct_unit_type
----@field r number
----@field g number
----@field b number
----@field base_price number
----@field upkeep number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number 
+---@field upkeep number 
 ---@field supply_used number how much food does this unit consume each month
----@field trade_good_requirements table<number, struct_trade_good_container>
----@field base_health number
----@field base_attack number
----@field base_armor number
----@field speed number
+---@field trade_good_requirements table<number, struct_trade_good_container> 
+---@field base_health number 
+---@field base_attack number 
+---@field base_armor number 
+---@field speed number 
 ---@field foraging number how much food does this unit forage from the local province?
----@field bonuses table<unit_type_id, number>
+---@field bonuses table<unit_type_id, number> 
 ---@field supply_capacity number how much food can this unit carry
----@field spotting number
----@field visibility number
+---@field spotting number 
+---@field visibility number 
 
 ---@class (exact) unit_type_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field base_price number?
----@field upkeep number?
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field base_price number? 
+---@field upkeep number? 
 ---@field supply_used number? how much food does this unit consume each month
----@field base_health number?
----@field base_attack number?
----@field base_armor number?
----@field speed number?
+---@field base_health number? 
+---@field base_attack number? 
+---@field base_armor number? 
+---@field speed number? 
 ---@field foraging number? how much food does this unit forage from the local province?
----@field bonuses table<unit_type_id, number>
+---@field bonuses table<unit_type_id, number> 
 ---@field supply_capacity number? how much food can this unit carry
----@field unlocked_by technology_id
----@field spotting number?
----@field visibility number?
+---@field unlocked_by technology_id 
+---@field spotting number? 
+---@field visibility number? 
 ---Sets values of unit_type for given id
 ---@param id unit_type_id
 ---@param data unit_type_id_data_blob_definition
@@ -16295,9 +16295,9 @@ DCON.dcon_unit_type_resize_bonuses(21)
 function DATA.create_unit_type()
     ---@type unit_type_id
     local i  = DCON.dcon_create_unit_type() + 1
-    return i --[[@as unit_type_id]]
+    return i --[[@as unit_type_id]] 
 end
----@param func fun(item: unit_type_id)
+---@param func fun(item: unit_type_id) 
 function DATA.for_each_unit_type(func)
     ---@type number
     local range = DCON.dcon_unit_type_size()
@@ -16305,10 +16305,10 @@ function DATA.for_each_unit_type(func)
         func(i + 1 --[[@as unit_type_id]])
     end
 end
----@param func fun(item: unit_type_id):boolean
----@return table<unit_type_id, unit_type_id>
+---@param func fun(item: unit_type_id):boolean 
+---@return table<unit_type_id, unit_type_id> 
 function DATA.filter_unit_type(func)
-    ---@type table<unit_type_id, unit_type_id>
+    ---@type table<unit_type_id, unit_type_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_unit_type_size()
@@ -16319,7 +16319,7 @@ function DATA.filter_unit_type(func)
 end
 
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string name
+---@return string name 
 function DATA.unit_type_get_name(unit_type_id)
     return DATA.unit_type_name[unit_type_id]
 end
@@ -16329,7 +16329,7 @@ function DATA.unit_type_set_name(unit_type_id, value)
     DATA.unit_type_name[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string icon
+---@return string icon 
 function DATA.unit_type_get_icon(unit_type_id)
     return DATA.unit_type_icon[unit_type_id]
 end
@@ -16339,7 +16339,7 @@ function DATA.unit_type_set_icon(unit_type_id, value)
     DATA.unit_type_icon[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return string description
+---@return string description 
 function DATA.unit_type_get_description(unit_type_id)
     return DATA.unit_type_description[unit_type_id]
 end
@@ -16349,7 +16349,7 @@ function DATA.unit_type_set_description(unit_type_id, value)
     DATA.unit_type_description[unit_type_id] = value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number r
+---@return number r 
 function DATA.unit_type_get_r(unit_type_id)
     return DCON.dcon_unit_type_get_r(unit_type_id - 1)
 end
@@ -16366,7 +16366,7 @@ function DATA.unit_type_inc_r(unit_type_id, value)
     DCON.dcon_unit_type_set_r(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number g
+---@return number g 
 function DATA.unit_type_get_g(unit_type_id)
     return DCON.dcon_unit_type_get_g(unit_type_id - 1)
 end
@@ -16383,7 +16383,7 @@ function DATA.unit_type_inc_g(unit_type_id, value)
     DCON.dcon_unit_type_set_g(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number b
+---@return number b 
 function DATA.unit_type_get_b(unit_type_id)
     return DCON.dcon_unit_type_get_b(unit_type_id - 1)
 end
@@ -16400,7 +16400,7 @@ function DATA.unit_type_inc_b(unit_type_id, value)
     DCON.dcon_unit_type_set_b(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_price
+---@return number base_price 
 function DATA.unit_type_get_base_price(unit_type_id)
     return DCON.dcon_unit_type_get_base_price(unit_type_id - 1)
 end
@@ -16417,7 +16417,7 @@ function DATA.unit_type_inc_base_price(unit_type_id, value)
     DCON.dcon_unit_type_set_base_price(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number upkeep
+---@return number upkeep 
 function DATA.unit_type_get_upkeep(unit_type_id)
     return DCON.dcon_unit_type_get_upkeep(unit_type_id - 1)
 end
@@ -16452,14 +16452,14 @@ function DATA.unit_type_inc_supply_used(unit_type_id, value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
----@return trade_good_id trade_good_requirements
+---@return trade_good_id trade_good_requirements 
 function DATA.unit_type_get_trade_good_requirements_good(unit_type_id, index)
     assert(index ~= 0)
     return DCON.dcon_unit_type_get_trade_good_requirements(unit_type_id - 1, index - 1)[0].good
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index number valid
----@return number trade_good_requirements
+---@return number trade_good_requirements 
 function DATA.unit_type_get_trade_good_requirements_amount(unit_type_id, index)
     assert(index ~= 0)
     return DCON.dcon_unit_type_get_trade_good_requirements(unit_type_id - 1, index - 1)[0].amount
@@ -16485,7 +16485,7 @@ function DATA.unit_type_inc_trade_good_requirements_amount(unit_type_id, index, 
     DCON.dcon_unit_type_get_trade_good_requirements(unit_type_id - 1, index - 1)[0].amount = current + value
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_health
+---@return number base_health 
 function DATA.unit_type_get_base_health(unit_type_id)
     return DCON.dcon_unit_type_get_base_health(unit_type_id - 1)
 end
@@ -16502,7 +16502,7 @@ function DATA.unit_type_inc_base_health(unit_type_id, value)
     DCON.dcon_unit_type_set_base_health(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_attack
+---@return number base_attack 
 function DATA.unit_type_get_base_attack(unit_type_id)
     return DCON.dcon_unit_type_get_base_attack(unit_type_id - 1)
 end
@@ -16519,7 +16519,7 @@ function DATA.unit_type_inc_base_attack(unit_type_id, value)
     DCON.dcon_unit_type_set_base_attack(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number base_armor
+---@return number base_armor 
 function DATA.unit_type_get_base_armor(unit_type_id)
     return DCON.dcon_unit_type_get_base_armor(unit_type_id - 1)
 end
@@ -16536,7 +16536,7 @@ function DATA.unit_type_inc_base_armor(unit_type_id, value)
     DCON.dcon_unit_type_set_base_armor(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number speed
+---@return number speed 
 function DATA.unit_type_get_speed(unit_type_id)
     return DCON.dcon_unit_type_get_speed(unit_type_id - 1)
 end
@@ -16571,7 +16571,7 @@ function DATA.unit_type_inc_foraging(unit_type_id, value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
 ---@param index unit_type_id valid
----@return number bonuses
+---@return number bonuses 
 function DATA.unit_type_get_bonuses(unit_type_id, index)
     assert(index ~= 0)
     return DCON.dcon_unit_type_get_bonuses(unit_type_id - 1, index - 1)
@@ -16608,7 +16608,7 @@ function DATA.unit_type_inc_supply_capacity(unit_type_id, value)
     DCON.dcon_unit_type_set_supply_capacity(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number spotting
+---@return number spotting 
 function DATA.unit_type_get_spotting(unit_type_id)
     return DCON.dcon_unit_type_get_spotting(unit_type_id - 1)
 end
@@ -16625,7 +16625,7 @@ function DATA.unit_type_inc_spotting(unit_type_id, value)
     DCON.dcon_unit_type_set_spotting(unit_type_id - 1, current + value)
 end
 ---@param unit_type_id unit_type_id valid unit_type id
----@return number visibility
+---@return number visibility 
 function DATA.unit_type_get_visibility(unit_type_id)
     return DCON.dcon_unit_type_get_visibility(unit_type_id - 1)
 end
@@ -16752,25 +16752,25 @@ end
 
 ---@class (exact) fat_job_id
 ---@field id job_id Unique job id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class struct_job
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 
 ---@class (exact) job_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---Sets values of job for given id
 ---@param id job_id
 ---@param data job_id_data_blob_definition
@@ -16811,9 +16811,9 @@ DATA.job_size = 250
 function DATA.create_job()
     ---@type job_id
     local i  = DCON.dcon_create_job() + 1
-    return i --[[@as job_id]]
+    return i --[[@as job_id]] 
 end
----@param func fun(item: job_id)
+---@param func fun(item: job_id) 
 function DATA.for_each_job(func)
     ---@type number
     local range = DCON.dcon_job_size()
@@ -16821,10 +16821,10 @@ function DATA.for_each_job(func)
         func(i + 1 --[[@as job_id]])
     end
 end
----@param func fun(item: job_id):boolean
----@return table<job_id, job_id>
+---@param func fun(item: job_id):boolean 
+---@return table<job_id, job_id> 
 function DATA.filter_job(func)
-    ---@type table<job_id, job_id>
+    ---@type table<job_id, job_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_job_size()
@@ -16835,7 +16835,7 @@ function DATA.filter_job(func)
 end
 
 ---@param job_id job_id valid job id
----@return string name
+---@return string name 
 function DATA.job_get_name(job_id)
     return DATA.job_name[job_id]
 end
@@ -16845,7 +16845,7 @@ function DATA.job_set_name(job_id, value)
     DATA.job_name[job_id] = value
 end
 ---@param job_id job_id valid job id
----@return string icon
+---@return string icon 
 function DATA.job_get_icon(job_id)
     return DATA.job_icon[job_id]
 end
@@ -16855,7 +16855,7 @@ function DATA.job_set_icon(job_id, value)
     DATA.job_icon[job_id] = value
 end
 ---@param job_id job_id valid job id
----@return string description
+---@return string description 
 function DATA.job_get_description(job_id)
     return DATA.job_description[job_id]
 end
@@ -16865,7 +16865,7 @@ function DATA.job_set_description(job_id, value)
     DATA.job_description[job_id] = value
 end
 ---@param job_id job_id valid job id
----@return number r
+---@return number r 
 function DATA.job_get_r(job_id)
     return DCON.dcon_job_get_r(job_id - 1)
 end
@@ -16882,7 +16882,7 @@ function DATA.job_inc_r(job_id, value)
     DCON.dcon_job_set_r(job_id - 1, current + value)
 end
 ---@param job_id job_id valid job id
----@return number g
+---@return number g 
 function DATA.job_get_g(job_id)
     return DCON.dcon_job_get_g(job_id - 1)
 end
@@ -16899,7 +16899,7 @@ function DATA.job_inc_g(job_id, value)
     DCON.dcon_job_set_g(job_id - 1, current + value)
 end
 ---@param job_id job_id valid job id
----@return number b
+---@return number b 
 function DATA.job_get_b(job_id)
     return DCON.dcon_job_get_b(job_id - 1)
 end
@@ -16971,82 +16971,82 @@ end
 
 ---@class (exact) fat_production_method_id
 ---@field id production_method_id Unique production_method id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field job_type JOBTYPE
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
 ---@field foraging boolean If true, worktime counts towards the foragers count
 ---@field hydration boolean If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number Set to 1 if building consumes local forests
 ---@field crop boolean If true, the building will periodically change its yield for a season.
----@field temperature_ideal_min number
----@field temperature_ideal_max number
----@field temperature_extreme_min number
----@field temperature_extreme_max number
----@field rainfall_ideal_min number
----@field rainfall_ideal_max number
----@field rainfall_extreme_min number
----@field rainfall_extreme_max number
----@field clay_ideal_min number
----@field clay_ideal_max number
----@field clay_extreme_min number
----@field clay_extreme_max number
+---@field temperature_ideal_min number 
+---@field temperature_ideal_max number 
+---@field temperature_extreme_min number 
+---@field temperature_extreme_max number 
+---@field rainfall_ideal_min number 
+---@field rainfall_ideal_max number 
+---@field rainfall_extreme_min number 
+---@field rainfall_extreme_max number 
+---@field clay_ideal_min number 
+---@field clay_ideal_max number 
+---@field clay_extreme_min number 
+---@field clay_extreme_max number 
 
 ---@class struct_production_method
----@field r number
----@field g number
----@field b number
----@field job_type JOBTYPE
----@field jobs table<number, struct_job_container>
----@field inputs table<number, struct_use_case_container>
----@field outputs table<number, struct_trade_good_container>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
+---@field jobs table<number, struct_job_container> 
+---@field inputs table<number, struct_use_case_container> 
+---@field outputs table<number, struct_trade_good_container> 
 ---@field foraging boolean If true, worktime counts towards the foragers count
 ---@field hydration boolean If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number Set to 1 if building consumes local forests
 ---@field crop boolean If true, the building will periodically change its yield for a season.
----@field temperature_ideal_min number
----@field temperature_ideal_max number
----@field temperature_extreme_min number
----@field temperature_extreme_max number
----@field rainfall_ideal_min number
----@field rainfall_ideal_max number
----@field rainfall_extreme_min number
----@field rainfall_extreme_max number
----@field clay_ideal_min number
----@field clay_ideal_max number
----@field clay_extreme_min number
----@field clay_extreme_max number
+---@field temperature_ideal_min number 
+---@field temperature_ideal_max number 
+---@field temperature_extreme_min number 
+---@field temperature_extreme_max number 
+---@field rainfall_ideal_min number 
+---@field rainfall_ideal_max number 
+---@field rainfall_extreme_min number 
+---@field rainfall_extreme_max number 
+---@field clay_ideal_min number 
+---@field clay_ideal_max number 
+---@field clay_extreme_min number 
+---@field clay_extreme_max number 
 
 ---@class (exact) production_method_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field job_type JOBTYPE
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field job_type JOBTYPE 
 ---@field foraging boolean? If true, worktime counts towards the foragers count
 ---@field hydration boolean? If true, worktime counts towards the foragers_water count
 ---@field nature_yield_dependence number? How much does the local flora and fauna impact this buildings yield? Defaults to 0
 ---@field forest_dependence number? Set to 1 if building consumes local forests
 ---@field crop boolean? If true, the building will periodically change its yield for a season.
----@field temperature_ideal_min number?
----@field temperature_ideal_max number?
----@field temperature_extreme_min number?
----@field temperature_extreme_max number?
----@field rainfall_ideal_min number?
----@field rainfall_ideal_max number?
----@field rainfall_extreme_min number?
----@field rainfall_extreme_max number?
----@field clay_ideal_min number?
----@field clay_ideal_max number?
----@field clay_extreme_min number?
----@field clay_extreme_max number?
+---@field temperature_ideal_min number? 
+---@field temperature_ideal_max number? 
+---@field temperature_extreme_min number? 
+---@field temperature_extreme_max number? 
+---@field rainfall_ideal_min number? 
+---@field rainfall_ideal_max number? 
+---@field rainfall_extreme_min number? 
+---@field rainfall_extreme_max number? 
+---@field clay_ideal_min number? 
+---@field clay_ideal_max number? 
+---@field clay_extreme_min number? 
+---@field clay_extreme_max number? 
 ---Sets values of production_method for given id
 ---@param id production_method_id
 ---@param data production_method_id_data_blob_definition
@@ -17201,9 +17201,9 @@ DCON.dcon_production_method_resize_outputs(9)
 function DATA.create_production_method()
     ---@type production_method_id
     local i  = DCON.dcon_create_production_method() + 1
-    return i --[[@as production_method_id]]
+    return i --[[@as production_method_id]] 
 end
----@param func fun(item: production_method_id)
+---@param func fun(item: production_method_id) 
 function DATA.for_each_production_method(func)
     ---@type number
     local range = DCON.dcon_production_method_size()
@@ -17211,10 +17211,10 @@ function DATA.for_each_production_method(func)
         func(i + 1 --[[@as production_method_id]])
     end
 end
----@param func fun(item: production_method_id):boolean
----@return table<production_method_id, production_method_id>
+---@param func fun(item: production_method_id):boolean 
+---@return table<production_method_id, production_method_id> 
 function DATA.filter_production_method(func)
-    ---@type table<production_method_id, production_method_id>
+    ---@type table<production_method_id, production_method_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_production_method_size()
@@ -17225,7 +17225,7 @@ function DATA.filter_production_method(func)
 end
 
 ---@param production_method_id production_method_id valid production_method id
----@return string name
+---@return string name 
 function DATA.production_method_get_name(production_method_id)
     return DATA.production_method_name[production_method_id]
 end
@@ -17235,7 +17235,7 @@ function DATA.production_method_set_name(production_method_id, value)
     DATA.production_method_name[production_method_id] = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return string icon
+---@return string icon 
 function DATA.production_method_get_icon(production_method_id)
     return DATA.production_method_icon[production_method_id]
 end
@@ -17245,7 +17245,7 @@ function DATA.production_method_set_icon(production_method_id, value)
     DATA.production_method_icon[production_method_id] = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return string description
+---@return string description 
 function DATA.production_method_get_description(production_method_id)
     return DATA.production_method_description[production_method_id]
 end
@@ -17255,7 +17255,7 @@ function DATA.production_method_set_description(production_method_id, value)
     DATA.production_method_description[production_method_id] = value
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number r
+---@return number r 
 function DATA.production_method_get_r(production_method_id)
     return DCON.dcon_production_method_get_r(production_method_id - 1)
 end
@@ -17272,7 +17272,7 @@ function DATA.production_method_inc_r(production_method_id, value)
     DCON.dcon_production_method_set_r(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number g
+---@return number g 
 function DATA.production_method_get_g(production_method_id)
     return DCON.dcon_production_method_get_g(production_method_id - 1)
 end
@@ -17289,7 +17289,7 @@ function DATA.production_method_inc_g(production_method_id, value)
     DCON.dcon_production_method_set_g(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number b
+---@return number b 
 function DATA.production_method_get_b(production_method_id)
     return DCON.dcon_production_method_get_b(production_method_id - 1)
 end
@@ -17306,7 +17306,7 @@ function DATA.production_method_inc_b(production_method_id, value)
     DCON.dcon_production_method_set_b(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return JOBTYPE job_type
+---@return JOBTYPE job_type 
 function DATA.production_method_get_job_type(production_method_id)
     return DCON.dcon_production_method_get_job_type(production_method_id - 1)
 end
@@ -17317,14 +17317,14 @@ function DATA.production_method_set_job_type(production_method_id, value)
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return job_id jobs
+---@return job_id jobs 
 function DATA.production_method_get_jobs_job(production_method_id, index)
     assert(index ~= 0)
     return DCON.dcon_production_method_get_jobs(production_method_id - 1, index - 1)[0].job
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return number jobs
+---@return number jobs 
 function DATA.production_method_get_jobs_amount(production_method_id, index)
     assert(index ~= 0)
     return DCON.dcon_production_method_get_jobs(production_method_id - 1, index - 1)[0].amount
@@ -17351,14 +17351,14 @@ function DATA.production_method_inc_jobs_amount(production_method_id, index, val
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return use_case_id inputs
+---@return use_case_id inputs 
 function DATA.production_method_get_inputs_use(production_method_id, index)
     assert(index ~= 0)
     return DCON.dcon_production_method_get_inputs(production_method_id - 1, index - 1)[0].use
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return number inputs
+---@return number inputs 
 function DATA.production_method_get_inputs_amount(production_method_id, index)
     assert(index ~= 0)
     return DCON.dcon_production_method_get_inputs(production_method_id - 1, index - 1)[0].amount
@@ -17385,14 +17385,14 @@ function DATA.production_method_inc_inputs_amount(production_method_id, index, v
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return trade_good_id outputs
+---@return trade_good_id outputs 
 function DATA.production_method_get_outputs_good(production_method_id, index)
     assert(index ~= 0)
     return DCON.dcon_production_method_get_outputs(production_method_id - 1, index - 1)[0].good
 end
 ---@param production_method_id production_method_id valid production_method id
 ---@param index number valid
----@return number outputs
+---@return number outputs 
 function DATA.production_method_get_outputs_amount(production_method_id, index)
     assert(index ~= 0)
     return DCON.dcon_production_method_get_outputs(production_method_id - 1, index - 1)[0].amount
@@ -17482,7 +17482,7 @@ function DATA.production_method_set_crop(production_method_id, value)
     DCON.dcon_production_method_set_crop(production_method_id - 1, value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_ideal_min
+---@return number temperature_ideal_min 
 function DATA.production_method_get_temperature_ideal_min(production_method_id)
     return DCON.dcon_production_method_get_temperature_ideal_min(production_method_id - 1)
 end
@@ -17499,7 +17499,7 @@ function DATA.production_method_inc_temperature_ideal_min(production_method_id, 
     DCON.dcon_production_method_set_temperature_ideal_min(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_ideal_max
+---@return number temperature_ideal_max 
 function DATA.production_method_get_temperature_ideal_max(production_method_id)
     return DCON.dcon_production_method_get_temperature_ideal_max(production_method_id - 1)
 end
@@ -17516,7 +17516,7 @@ function DATA.production_method_inc_temperature_ideal_max(production_method_id, 
     DCON.dcon_production_method_set_temperature_ideal_max(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_extreme_min
+---@return number temperature_extreme_min 
 function DATA.production_method_get_temperature_extreme_min(production_method_id)
     return DCON.dcon_production_method_get_temperature_extreme_min(production_method_id - 1)
 end
@@ -17533,7 +17533,7 @@ function DATA.production_method_inc_temperature_extreme_min(production_method_id
     DCON.dcon_production_method_set_temperature_extreme_min(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number temperature_extreme_max
+---@return number temperature_extreme_max 
 function DATA.production_method_get_temperature_extreme_max(production_method_id)
     return DCON.dcon_production_method_get_temperature_extreme_max(production_method_id - 1)
 end
@@ -17550,7 +17550,7 @@ function DATA.production_method_inc_temperature_extreme_max(production_method_id
     DCON.dcon_production_method_set_temperature_extreme_max(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_ideal_min
+---@return number rainfall_ideal_min 
 function DATA.production_method_get_rainfall_ideal_min(production_method_id)
     return DCON.dcon_production_method_get_rainfall_ideal_min(production_method_id - 1)
 end
@@ -17567,7 +17567,7 @@ function DATA.production_method_inc_rainfall_ideal_min(production_method_id, val
     DCON.dcon_production_method_set_rainfall_ideal_min(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_ideal_max
+---@return number rainfall_ideal_max 
 function DATA.production_method_get_rainfall_ideal_max(production_method_id)
     return DCON.dcon_production_method_get_rainfall_ideal_max(production_method_id - 1)
 end
@@ -17584,7 +17584,7 @@ function DATA.production_method_inc_rainfall_ideal_max(production_method_id, val
     DCON.dcon_production_method_set_rainfall_ideal_max(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_extreme_min
+---@return number rainfall_extreme_min 
 function DATA.production_method_get_rainfall_extreme_min(production_method_id)
     return DCON.dcon_production_method_get_rainfall_extreme_min(production_method_id - 1)
 end
@@ -17601,7 +17601,7 @@ function DATA.production_method_inc_rainfall_extreme_min(production_method_id, v
     DCON.dcon_production_method_set_rainfall_extreme_min(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number rainfall_extreme_max
+---@return number rainfall_extreme_max 
 function DATA.production_method_get_rainfall_extreme_max(production_method_id)
     return DCON.dcon_production_method_get_rainfall_extreme_max(production_method_id - 1)
 end
@@ -17618,7 +17618,7 @@ function DATA.production_method_inc_rainfall_extreme_max(production_method_id, v
     DCON.dcon_production_method_set_rainfall_extreme_max(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_ideal_min
+---@return number clay_ideal_min 
 function DATA.production_method_get_clay_ideal_min(production_method_id)
     return DCON.dcon_production_method_get_clay_ideal_min(production_method_id - 1)
 end
@@ -17635,7 +17635,7 @@ function DATA.production_method_inc_clay_ideal_min(production_method_id, value)
     DCON.dcon_production_method_set_clay_ideal_min(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_ideal_max
+---@return number clay_ideal_max 
 function DATA.production_method_get_clay_ideal_max(production_method_id)
     return DCON.dcon_production_method_get_clay_ideal_max(production_method_id - 1)
 end
@@ -17652,7 +17652,7 @@ function DATA.production_method_inc_clay_ideal_max(production_method_id, value)
     DCON.dcon_production_method_set_clay_ideal_max(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_extreme_min
+---@return number clay_extreme_min 
 function DATA.production_method_get_clay_extreme_min(production_method_id)
     return DCON.dcon_production_method_get_clay_extreme_min(production_method_id - 1)
 end
@@ -17669,7 +17669,7 @@ function DATA.production_method_inc_clay_extreme_min(production_method_id, value
     DCON.dcon_production_method_set_clay_extreme_min(production_method_id - 1, current + value)
 end
 ---@param production_method_id production_method_id valid production_method id
----@return number clay_extreme_max
+---@return number clay_extreme_max 
 function DATA.production_method_get_clay_extreme_max(production_method_id)
     return DCON.dcon_production_method_get_clay_extreme_max(production_method_id - 1)
 end
@@ -17831,42 +17831,42 @@ end
 
 ---@class (exact) fat_technology_id
 ---@field id technology_id Unique technology id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
 ---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
 
 ---@class struct_technology
----@field r number
----@field g number
----@field b number
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
----@field required_biome table<number, biome_id>
----@field required_resource table<number, resource_id>
+---@field required_biome table<number, biome_id> 
+---@field required_resource table<number, resource_id> 
 ---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
----@field throughput_boosts table<production_method_id, number>
----@field input_efficiency_boosts table<production_method_id, number>
----@field output_efficiency_boosts table<production_method_id, number>
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
 
 ---@class (exact) technology_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
 ---@field research_cost number Amount of research points (education_endowment) per pop needed for the technology
----@field required_biome biome_id[]
----@field required_race race_id[]
----@field required_resource resource_id[]
+---@field required_biome biome_id[] 
+---@field required_race race_id[] 
+---@field required_resource resource_id[] 
 ---@field associated_job job_id The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
----@field throughput_boosts table<production_method_id, number>
----@field input_efficiency_boosts table<production_method_id, number>
----@field output_efficiency_boosts table<production_method_id, number>
+---@field throughput_boosts table<production_method_id, number> 
+---@field input_efficiency_boosts table<production_method_id, number> 
+---@field output_efficiency_boosts table<production_method_id, number> 
 ---Sets values of technology for given id
 ---@param id technology_id
 ---@param data technology_id_data_blob_definition
@@ -17879,13 +17879,13 @@ function DATA.setup_technology(id, data)
     DATA.technology_set_b(id, data.b)
     DATA.technology_set_research_cost(id, data.research_cost)
     for i, value in pairs(data.required_biome) do
-        DATA.technology_set_required_biome(id, i - 1, value)
+        DATA.technology_set_required_biome(id, i, value)
     end
     for i, value in pairs(data.required_race) do
-        DATA.technology_set_required_race(id, i - 1, value)
+        DATA.technology_set_required_race(id, i, value)
     end
     for i, value in pairs(data.required_resource) do
-        DATA.technology_set_required_resource(id, i - 1, value)
+        DATA.technology_set_required_resource(id, i, value)
     end
     DATA.technology_set_associated_job(id, data.associated_job)
     for i, value in pairs(data.throughput_boosts) do
@@ -17909,13 +17909,13 @@ float dcon_technology_get_b(int32_t);
 void dcon_technology_set_research_cost(int32_t, float);
 float dcon_technology_get_research_cost(int32_t);
 void dcon_technology_resize_required_biome(uint32_t);
-void dcon_technology_set_required_biome(int32_t, int32_t, uint32_t);
-uint32_t dcon_technology_get_required_biome(int32_t, int32_t);
+void dcon_technology_set_required_biome(int32_t, int32_t, int32_t);
+int32_t dcon_technology_get_required_biome(int32_t, int32_t);
 void dcon_technology_resize_required_resource(uint32_t);
-void dcon_technology_set_required_resource(int32_t, int32_t, uint32_t);
-uint32_t dcon_technology_get_required_resource(int32_t, int32_t);
-void dcon_technology_set_associated_job(int32_t, uint32_t);
-uint32_t dcon_technology_get_associated_job(int32_t);
+void dcon_technology_set_required_resource(int32_t, int32_t, int32_t);
+int32_t dcon_technology_get_required_resource(int32_t, int32_t);
+void dcon_technology_set_associated_job(int32_t, int32_t);
+int32_t dcon_technology_get_associated_job(int32_t);
 void dcon_technology_resize_throughput_boosts(uint32_t);
 void dcon_technology_set_throughput_boosts(int32_t, int32_t, float);
 float dcon_technology_get_throughput_boosts(int32_t, int32_t);
@@ -17953,9 +17953,9 @@ DCON.dcon_technology_resize_output_efficiency_boosts(251)
 function DATA.create_technology()
     ---@type technology_id
     local i  = DCON.dcon_create_technology() + 1
-    return i --[[@as technology_id]]
+    return i --[[@as technology_id]] 
 end
----@param func fun(item: technology_id)
+---@param func fun(item: technology_id) 
 function DATA.for_each_technology(func)
     ---@type number
     local range = DCON.dcon_technology_size()
@@ -17963,10 +17963,10 @@ function DATA.for_each_technology(func)
         func(i + 1 --[[@as technology_id]])
     end
 end
----@param func fun(item: technology_id):boolean
----@return table<technology_id, technology_id>
+---@param func fun(item: technology_id):boolean 
+---@return table<technology_id, technology_id> 
 function DATA.filter_technology(func)
-    ---@type table<technology_id, technology_id>
+    ---@type table<technology_id, technology_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_size()
@@ -17977,7 +17977,7 @@ function DATA.filter_technology(func)
 end
 
 ---@param technology_id technology_id valid technology id
----@return string name
+---@return string name 
 function DATA.technology_get_name(technology_id)
     return DATA.technology_name[technology_id]
 end
@@ -17987,7 +17987,7 @@ function DATA.technology_set_name(technology_id, value)
     DATA.technology_name[technology_id] = value
 end
 ---@param technology_id technology_id valid technology id
----@return string icon
+---@return string icon 
 function DATA.technology_get_icon(technology_id)
     return DATA.technology_icon[technology_id]
 end
@@ -17997,7 +17997,7 @@ function DATA.technology_set_icon(technology_id, value)
     DATA.technology_icon[technology_id] = value
 end
 ---@param technology_id technology_id valid technology id
----@return string description
+---@return string description 
 function DATA.technology_get_description(technology_id)
     return DATA.technology_description[technology_id]
 end
@@ -18007,7 +18007,7 @@ function DATA.technology_set_description(technology_id, value)
     DATA.technology_description[technology_id] = value
 end
 ---@param technology_id technology_id valid technology id
----@return number r
+---@return number r 
 function DATA.technology_get_r(technology_id)
     return DCON.dcon_technology_get_r(technology_id - 1)
 end
@@ -18024,7 +18024,7 @@ function DATA.technology_inc_r(technology_id, value)
     DCON.dcon_technology_set_r(technology_id - 1, current + value)
 end
 ---@param technology_id technology_id valid technology id
----@return number g
+---@return number g 
 function DATA.technology_get_g(technology_id)
     return DCON.dcon_technology_get_g(technology_id - 1)
 end
@@ -18041,7 +18041,7 @@ function DATA.technology_inc_g(technology_id, value)
     DCON.dcon_technology_set_g(technology_id - 1, current + value)
 end
 ---@param technology_id technology_id valid technology id
----@return number b
+---@return number b 
 function DATA.technology_get_b(technology_id)
     return DCON.dcon_technology_get_b(technology_id - 1)
 end
@@ -18076,7 +18076,7 @@ function DATA.technology_inc_research_cost(technology_id, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.technology_get_required_biome(technology_id, index)
     assert(index ~= 0)
     return DCON.dcon_technology_get_required_biome(technology_id - 1, index - 1) + 1
@@ -18089,7 +18089,7 @@ function DATA.technology_set_required_biome(technology_id, index, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
----@return race_id required_race
+---@return race_id required_race 
 function DATA.technology_get_required_race(technology_id, index)
     if DATA.technology_required_race[technology_id] == nil then return 0 end
     return DATA.technology_required_race[technology_id][index]
@@ -18102,7 +18102,7 @@ function DATA.technology_set_required_race(technology_id, index, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
----@return resource_id required_resource
+---@return resource_id required_resource 
 function DATA.technology_get_required_resource(technology_id, index)
     assert(index ~= 0)
     return DCON.dcon_technology_get_required_resource(technology_id - 1, index - 1) + 1
@@ -18125,7 +18125,7 @@ function DATA.technology_set_associated_job(technology_id, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index production_method_id valid
----@return number throughput_boosts
+---@return number throughput_boosts 
 function DATA.technology_get_throughput_boosts(technology_id, index)
     assert(index ~= 0)
     return DCON.dcon_technology_get_throughput_boosts(technology_id - 1, index - 1)
@@ -18146,7 +18146,7 @@ function DATA.technology_inc_throughput_boosts(technology_id, index, value)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index production_method_id valid
----@return number input_efficiency_boosts
+---@return number input_efficiency_boosts 
 function DATA.technology_get_input_efficiency_boosts(technology_id, index)
     assert(index ~= 0)
     return DCON.dcon_technology_get_input_efficiency_boosts(technology_id - 1, index - 1)
@@ -18167,7 +18167,7 @@ function DATA.technology_inc_input_efficiency_boosts(technology_id, index, value
 end
 ---@param technology_id technology_id valid technology id
 ---@param index production_method_id valid
----@return number output_efficiency_boosts
+---@return number output_efficiency_boosts 
 function DATA.technology_get_output_efficiency_boosts(technology_id, index)
     assert(index ~= 0)
     return DCON.dcon_technology_get_output_efficiency_boosts(technology_id - 1, index - 1)
@@ -18252,8 +18252,8 @@ end
 
 ---@class (exact) fat_technology_unlock_id
 ---@field id technology_unlock_id Unique technology_unlock id
----@field origin technology_id
----@field unlocked technology_id
+---@field origin technology_id 
+---@field unlocked technology_id 
 
 ---@class struct_technology_unlock
 
@@ -18290,9 +18290,9 @@ DATA.technology_unlock_size = 800
 function DATA.force_create_technology_unlock(origin, unlocked)
     ---@type technology_unlock_id
     local i = DCON.dcon_force_create_technology_unlock(origin - 1, unlocked - 1) + 1
-    return i --[[@as technology_unlock_id]]
+    return i --[[@as technology_unlock_id]] 
 end
----@param func fun(item: technology_unlock_id)
+---@param func fun(item: technology_unlock_id) 
 function DATA.for_each_technology_unlock(func)
     ---@type number
     local range = DCON.dcon_technology_unlock_size()
@@ -18300,10 +18300,10 @@ function DATA.for_each_technology_unlock(func)
         func(i + 1 --[[@as technology_unlock_id]])
     end
 end
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_technology_unlock(func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_unlock_size()
@@ -18314,15 +18314,15 @@ function DATA.filter_technology_unlock(func)
 end
 
 ---@param origin technology_unlock_id valid technology_id
----@return technology_id Data retrieved from technology_unlock
+---@return technology_id Data retrieved from technology_unlock 
 function DATA.technology_unlock_get_origin(origin)
     return DCON.dcon_technology_unlock_get_origin(origin - 1) + 1
 end
 ---@param origin technology_id valid technology_id
----@return technology_unlock_id[] An array of technology_unlock
+---@return technology_unlock_id[] An array of technology_unlock 
 function DATA.get_technology_unlock_from_origin(origin)
     local result = {}
-    DATA.for_each_technology_unlock_from_origin(origin, function(item)
+    DATA.for_each_technology_unlock_from_origin(origin, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -18339,10 +18339,10 @@ function DATA.for_each_technology_unlock_from_origin(origin, func)
     end
 end
 ---@param origin technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
+---@param func fun(item: technology_unlock_id):boolean 
 ---@return technology_unlock_id[]
 function DATA.filter_array_technology_unlock_from_origin(origin, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_unlock_as_origin(origin - 1)
@@ -18354,10 +18354,10 @@ function DATA.filter_array_technology_unlock_from_origin(origin, func)
     return t
 end
 ---@param origin technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_technology_unlock_from_origin(origin, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_unlock_as_origin(origin - 1)
@@ -18374,15 +18374,15 @@ function DATA.technology_unlock_set_origin(technology_unlock_id, value)
     DCON.dcon_technology_unlock_set_origin(technology_unlock_id - 1, value - 1)
 end
 ---@param unlocked technology_unlock_id valid technology_id
----@return technology_id Data retrieved from technology_unlock
+---@return technology_id Data retrieved from technology_unlock 
 function DATA.technology_unlock_get_unlocked(unlocked)
     return DCON.dcon_technology_unlock_get_unlocked(unlocked - 1) + 1
 end
 ---@param unlocked technology_id valid technology_id
----@return technology_unlock_id[] An array of technology_unlock
+---@return technology_unlock_id[] An array of technology_unlock 
 function DATA.get_technology_unlock_from_unlocked(unlocked)
     local result = {}
-    DATA.for_each_technology_unlock_from_unlocked(unlocked, function(item)
+    DATA.for_each_technology_unlock_from_unlocked(unlocked, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -18399,10 +18399,10 @@ function DATA.for_each_technology_unlock_from_unlocked(unlocked, func)
     end
 end
 ---@param unlocked technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
+---@param func fun(item: technology_unlock_id):boolean 
 ---@return technology_unlock_id[]
 function DATA.filter_array_technology_unlock_from_unlocked(unlocked, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_unlock_as_unlocked(unlocked - 1)
@@ -18414,10 +18414,10 @@ function DATA.filter_array_technology_unlock_from_unlocked(unlocked, func)
     return t
 end
 ---@param unlocked technology_id valid technology_id
----@param func fun(item: technology_unlock_id):boolean
----@return table<technology_unlock_id, technology_unlock_id>
+---@param func fun(item: technology_unlock_id):boolean 
+---@return table<technology_unlock_id, technology_unlock_id> 
 function DATA.filter_technology_unlock_from_unlocked(unlocked, func)
-    ---@type table<technology_unlock_id, technology_unlock_id>
+    ---@type table<technology_unlock_id, technology_unlock_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_unlock_as_unlocked(unlocked - 1)
@@ -18469,54 +18469,54 @@ end
 
 ---@class (exact) fat_building_type_id
 ---@field id building_type_id Unique building_type id
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field production_method production_method_id
----@field construction_cost number
----@field upkeep number
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field construction_cost number 
+---@field upkeep number 
 ---@field unique boolean only one per province!
 ---@field movable boolean is it possible to migrate with this building?
 ---@field government boolean only the government can build this building!
----@field needed_infrastructure number
+---@field needed_infrastructure number 
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 
 ---@class struct_building_type
----@field r number
----@field g number
----@field b number
----@field production_method production_method_id
----@field construction_cost number
----@field upkeep number
----@field required_biome table<number, biome_id>
----@field required_resource table<number, resource_id>
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field construction_cost number 
+---@field upkeep number 
+---@field required_biome table<number, biome_id> 
+---@field required_resource table<number, resource_id> 
 ---@field unique boolean only one per province!
 ---@field movable boolean is it possible to migrate with this building?
 ---@field government boolean only the government can build this building!
----@field needed_infrastructure number
+---@field needed_infrastructure number 
 ---@field spotting number The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 
 ---@class (exact) building_type_id_data_blob_definition
----@field name string
----@field icon string
----@field description string
----@field r number
----@field g number
----@field b number
----@field production_method production_method_id
----@field archetype BUILDING_ARCHETYPE
----@field unlocked_by technology_id
----@field construction_cost number
----@field upkeep number?
----@field required_biome biome_id[]
----@field required_resource resource_id[]
+---@field name string 
+---@field icon string 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field production_method production_method_id 
+---@field archetype BUILDING_ARCHETYPE 
+---@field unlocked_by technology_id 
+---@field construction_cost number 
+---@field upkeep number? 
+---@field required_biome biome_id[] 
+---@field required_resource resource_id[] 
 ---@field unique boolean? only one per province!
 ---@field movable boolean? is it possible to migrate with this building?
 ---@field government boolean? only the government can build this building!
----@field needed_infrastructure number?
+---@field needed_infrastructure number? 
 ---@field spotting number? The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.
 ---Sets values of building_type for given id
 ---@param id building_type_id
@@ -18540,10 +18540,10 @@ function DATA.setup_building_type(id, data)
         DATA.building_type_set_upkeep(id, data.upkeep)
     end
     for i, value in pairs(data.required_biome) do
-        DATA.building_type_set_required_biome(id, i - 1, value)
+        DATA.building_type_set_required_biome(id, i, value)
     end
     for i, value in pairs(data.required_resource) do
-        DATA.building_type_set_required_resource(id, i - 1, value)
+        DATA.building_type_set_required_resource(id, i, value)
     end
     if data.unique ~= nil then
         DATA.building_type_set_unique(id, data.unique)
@@ -18569,22 +18569,22 @@ void dcon_building_type_set_g(int32_t, float);
 float dcon_building_type_get_g(int32_t);
 void dcon_building_type_set_b(int32_t, float);
 float dcon_building_type_get_b(int32_t);
-void dcon_building_type_set_production_method(int32_t, uint32_t);
-uint32_t dcon_building_type_get_production_method(int32_t);
+void dcon_building_type_set_production_method(int32_t, int32_t);
+int32_t dcon_building_type_get_production_method(int32_t);
 void dcon_building_type_set_archetype(int32_t, uint8_t);
 uint8_t dcon_building_type_get_archetype(int32_t);
-void dcon_building_type_set_unlocked_by(int32_t, uint32_t);
-uint32_t dcon_building_type_get_unlocked_by(int32_t);
+void dcon_building_type_set_unlocked_by(int32_t, int32_t);
+int32_t dcon_building_type_get_unlocked_by(int32_t);
 void dcon_building_type_set_construction_cost(int32_t, float);
 float dcon_building_type_get_construction_cost(int32_t);
 void dcon_building_type_set_upkeep(int32_t, float);
 float dcon_building_type_get_upkeep(int32_t);
 void dcon_building_type_resize_required_biome(uint32_t);
-void dcon_building_type_set_required_biome(int32_t, int32_t, uint32_t);
-uint32_t dcon_building_type_get_required_biome(int32_t, int32_t);
+void dcon_building_type_set_required_biome(int32_t, int32_t, int32_t);
+int32_t dcon_building_type_get_required_biome(int32_t, int32_t);
 void dcon_building_type_resize_required_resource(uint32_t);
-void dcon_building_type_set_required_resource(int32_t, int32_t, uint32_t);
-uint32_t dcon_building_type_get_required_resource(int32_t, int32_t);
+void dcon_building_type_set_required_resource(int32_t, int32_t, int32_t);
+int32_t dcon_building_type_get_required_resource(int32_t, int32_t);
 void dcon_building_type_set_unique(int32_t, bool);
 bool dcon_building_type_get_unique(int32_t);
 void dcon_building_type_set_movable(int32_t, bool);
@@ -18618,9 +18618,9 @@ DCON.dcon_building_type_resize_required_resource(21)
 function DATA.create_building_type()
     ---@type building_type_id
     local i  = DCON.dcon_create_building_type() + 1
-    return i --[[@as building_type_id]]
+    return i --[[@as building_type_id]] 
 end
----@param func fun(item: building_type_id)
+---@param func fun(item: building_type_id) 
 function DATA.for_each_building_type(func)
     ---@type number
     local range = DCON.dcon_building_type_size()
@@ -18628,10 +18628,10 @@ function DATA.for_each_building_type(func)
         func(i + 1 --[[@as building_type_id]])
     end
 end
----@param func fun(item: building_type_id):boolean
----@return table<building_type_id, building_type_id>
+---@param func fun(item: building_type_id):boolean 
+---@return table<building_type_id, building_type_id> 
 function DATA.filter_building_type(func)
-    ---@type table<building_type_id, building_type_id>
+    ---@type table<building_type_id, building_type_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_building_type_size()
@@ -18642,7 +18642,7 @@ function DATA.filter_building_type(func)
 end
 
 ---@param building_type_id building_type_id valid building_type id
----@return string name
+---@return string name 
 function DATA.building_type_get_name(building_type_id)
     return DATA.building_type_name[building_type_id]
 end
@@ -18652,7 +18652,7 @@ function DATA.building_type_set_name(building_type_id, value)
     DATA.building_type_name[building_type_id] = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return string icon
+---@return string icon 
 function DATA.building_type_get_icon(building_type_id)
     return DATA.building_type_icon[building_type_id]
 end
@@ -18662,7 +18662,7 @@ function DATA.building_type_set_icon(building_type_id, value)
     DATA.building_type_icon[building_type_id] = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return string description
+---@return string description 
 function DATA.building_type_get_description(building_type_id)
     return DATA.building_type_description[building_type_id]
 end
@@ -18672,7 +18672,7 @@ function DATA.building_type_set_description(building_type_id, value)
     DATA.building_type_description[building_type_id] = value
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number r
+---@return number r 
 function DATA.building_type_get_r(building_type_id)
     return DCON.dcon_building_type_get_r(building_type_id - 1)
 end
@@ -18689,7 +18689,7 @@ function DATA.building_type_inc_r(building_type_id, value)
     DCON.dcon_building_type_set_r(building_type_id - 1, current + value)
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number g
+---@return number g 
 function DATA.building_type_get_g(building_type_id)
     return DCON.dcon_building_type_get_g(building_type_id - 1)
 end
@@ -18706,7 +18706,7 @@ function DATA.building_type_inc_g(building_type_id, value)
     DCON.dcon_building_type_set_g(building_type_id - 1, current + value)
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number b
+---@return number b 
 function DATA.building_type_get_b(building_type_id)
     return DCON.dcon_building_type_get_b(building_type_id - 1)
 end
@@ -18723,7 +18723,7 @@ function DATA.building_type_inc_b(building_type_id, value)
     DCON.dcon_building_type_set_b(building_type_id - 1, current + value)
 end
 ---@param building_type_id building_type_id valid building_type id
----@return production_method_id production_method
+---@return production_method_id production_method 
 function DATA.building_type_get_production_method(building_type_id)
     return DCON.dcon_building_type_get_production_method(building_type_id - 1) + 1
 end
@@ -18733,7 +18733,7 @@ function DATA.building_type_set_production_method(building_type_id, value)
     DCON.dcon_building_type_set_production_method(building_type_id - 1, value - 1)
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number construction_cost
+---@return number construction_cost 
 function DATA.building_type_get_construction_cost(building_type_id)
     return DCON.dcon_building_type_get_construction_cost(building_type_id - 1)
 end
@@ -18750,7 +18750,7 @@ function DATA.building_type_inc_construction_cost(building_type_id, value)
     DCON.dcon_building_type_set_construction_cost(building_type_id - 1, current + value)
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number upkeep
+---@return number upkeep 
 function DATA.building_type_get_upkeep(building_type_id)
     return DCON.dcon_building_type_get_upkeep(building_type_id - 1)
 end
@@ -18768,7 +18768,7 @@ function DATA.building_type_inc_upkeep(building_type_id, value)
 end
 ---@param building_type_id building_type_id valid building_type id
 ---@param index number valid
----@return biome_id required_biome
+---@return biome_id required_biome 
 function DATA.building_type_get_required_biome(building_type_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_type_get_required_biome(building_type_id - 1, index - 1) + 1
@@ -18781,7 +18781,7 @@ function DATA.building_type_set_required_biome(building_type_id, index, value)
 end
 ---@param building_type_id building_type_id valid building_type id
 ---@param index number valid
----@return resource_id required_resource
+---@return resource_id required_resource 
 function DATA.building_type_get_required_resource(building_type_id, index)
     assert(index ~= 0)
     return DCON.dcon_building_type_get_required_resource(building_type_id - 1, index - 1) + 1
@@ -18823,7 +18823,7 @@ function DATA.building_type_set_government(building_type_id, value)
     DCON.dcon_building_type_set_government(building_type_id - 1, value)
 end
 ---@param building_type_id building_type_id valid building_type id
----@return number needed_infrastructure
+---@return number needed_infrastructure 
 function DATA.building_type_get_needed_infrastructure(building_type_id)
     return DCON.dcon_building_type_get_needed_infrastructure(building_type_id - 1)
 end
@@ -18952,8 +18952,8 @@ end
 
 ---@class (exact) fat_technology_building_id
 ---@field id technology_building_id Unique technology_building id
----@field technology technology_id
----@field unlocked building_type_id
+---@field technology technology_id 
+---@field unlocked building_type_id 
 
 ---@class struct_technology_building
 
@@ -18989,9 +18989,9 @@ DATA.technology_building_size = 400
 function DATA.force_create_technology_building(technology, unlocked)
     ---@type technology_building_id
     local i = DCON.dcon_force_create_technology_building(technology - 1, unlocked - 1) + 1
-    return i --[[@as technology_building_id]]
+    return i --[[@as technology_building_id]] 
 end
----@param func fun(item: technology_building_id)
+---@param func fun(item: technology_building_id) 
 function DATA.for_each_technology_building(func)
     ---@type number
     local range = DCON.dcon_technology_building_size()
@@ -18999,10 +18999,10 @@ function DATA.for_each_technology_building(func)
         func(i + 1 --[[@as technology_building_id]])
     end
 end
----@param func fun(item: technology_building_id):boolean
----@return table<technology_building_id, technology_building_id>
+---@param func fun(item: technology_building_id):boolean 
+---@return table<technology_building_id, technology_building_id> 
 function DATA.filter_technology_building(func)
-    ---@type table<technology_building_id, technology_building_id>
+    ---@type table<technology_building_id, technology_building_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_building_size()
@@ -19013,15 +19013,15 @@ function DATA.filter_technology_building(func)
 end
 
 ---@param technology technology_building_id valid technology_id
----@return technology_id Data retrieved from technology_building
+---@return technology_id Data retrieved from technology_building 
 function DATA.technology_building_get_technology(technology)
     return DCON.dcon_technology_building_get_technology(technology - 1) + 1
 end
 ---@param technology technology_id valid technology_id
----@return technology_building_id[] An array of technology_building
+---@return technology_building_id[] An array of technology_building 
 function DATA.get_technology_building_from_technology(technology)
     local result = {}
-    DATA.for_each_technology_building_from_technology(technology, function(item)
+    DATA.for_each_technology_building_from_technology(technology, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -19038,10 +19038,10 @@ function DATA.for_each_technology_building_from_technology(technology, func)
     end
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_building_id):boolean
+---@param func fun(item: technology_building_id):boolean 
 ---@return technology_building_id[]
 function DATA.filter_array_technology_building_from_technology(technology, func)
-    ---@type table<technology_building_id, technology_building_id>
+    ---@type table<technology_building_id, technology_building_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_building_as_technology(technology - 1)
@@ -19053,10 +19053,10 @@ function DATA.filter_array_technology_building_from_technology(technology, func)
     return t
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_building_id):boolean
----@return table<technology_building_id, technology_building_id>
+---@param func fun(item: technology_building_id):boolean 
+---@return table<technology_building_id, technology_building_id> 
 function DATA.filter_technology_building_from_technology(technology, func)
-    ---@type table<technology_building_id, technology_building_id>
+    ---@type table<technology_building_id, technology_building_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_building_as_technology(technology - 1)
@@ -19073,12 +19073,12 @@ function DATA.technology_building_set_technology(technology_building_id, value)
     DCON.dcon_technology_building_set_technology(technology_building_id - 1, value - 1)
 end
 ---@param unlocked technology_building_id valid building_type_id
----@return building_type_id Data retrieved from technology_building
+---@return building_type_id Data retrieved from technology_building 
 function DATA.technology_building_get_unlocked(unlocked)
     return DCON.dcon_technology_building_get_unlocked(unlocked - 1) + 1
 end
 ---@param unlocked building_type_id valid building_type_id
----@return technology_building_id technology_building
+---@return technology_building_id technology_building 
 function DATA.get_technology_building_from_unlocked(unlocked)
     return DCON.dcon_building_type_get_technology_building_as_unlocked(unlocked - 1) + 1
 end
@@ -19123,8 +19123,8 @@ end
 
 ---@class (exact) fat_technology_unit_id
 ---@field id technology_unit_id Unique technology_unit id
----@field technology technology_id
----@field unlocked unit_type_id
+---@field technology technology_id 
+---@field unlocked unit_type_id 
 
 ---@class struct_technology_unit
 
@@ -19160,9 +19160,9 @@ DATA.technology_unit_size = 400
 function DATA.force_create_technology_unit(technology, unlocked)
     ---@type technology_unit_id
     local i = DCON.dcon_force_create_technology_unit(technology - 1, unlocked - 1) + 1
-    return i --[[@as technology_unit_id]]
+    return i --[[@as technology_unit_id]] 
 end
----@param func fun(item: technology_unit_id)
+---@param func fun(item: technology_unit_id) 
 function DATA.for_each_technology_unit(func)
     ---@type number
     local range = DCON.dcon_technology_unit_size()
@@ -19170,10 +19170,10 @@ function DATA.for_each_technology_unit(func)
         func(i + 1 --[[@as technology_unit_id]])
     end
 end
----@param func fun(item: technology_unit_id):boolean
----@return table<technology_unit_id, technology_unit_id>
+---@param func fun(item: technology_unit_id):boolean 
+---@return table<technology_unit_id, technology_unit_id> 
 function DATA.filter_technology_unit(func)
-    ---@type table<technology_unit_id, technology_unit_id>
+    ---@type table<technology_unit_id, technology_unit_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_unit_size()
@@ -19184,15 +19184,15 @@ function DATA.filter_technology_unit(func)
 end
 
 ---@param technology technology_unit_id valid technology_id
----@return technology_id Data retrieved from technology_unit
+---@return technology_id Data retrieved from technology_unit 
 function DATA.technology_unit_get_technology(technology)
     return DCON.dcon_technology_unit_get_technology(technology - 1) + 1
 end
 ---@param technology technology_id valid technology_id
----@return technology_unit_id[] An array of technology_unit
+---@return technology_unit_id[] An array of technology_unit 
 function DATA.get_technology_unit_from_technology(technology)
     local result = {}
-    DATA.for_each_technology_unit_from_technology(technology, function(item)
+    DATA.for_each_technology_unit_from_technology(technology, function(item) 
         table.insert(result, item)
     end)
     return result
@@ -19209,10 +19209,10 @@ function DATA.for_each_technology_unit_from_technology(technology, func)
     end
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_unit_id):boolean
+---@param func fun(item: technology_unit_id):boolean 
 ---@return technology_unit_id[]
 function DATA.filter_array_technology_unit_from_technology(technology, func)
-    ---@type table<technology_unit_id, technology_unit_id>
+    ---@type table<technology_unit_id, technology_unit_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_unit_as_technology(technology - 1)
@@ -19224,10 +19224,10 @@ function DATA.filter_array_technology_unit_from_technology(technology, func)
     return t
 end
 ---@param technology technology_id valid technology_id
----@param func fun(item: technology_unit_id):boolean
----@return table<technology_unit_id, technology_unit_id>
+---@param func fun(item: technology_unit_id):boolean 
+---@return table<technology_unit_id, technology_unit_id> 
 function DATA.filter_technology_unit_from_technology(technology, func)
-    ---@type table<technology_unit_id, technology_unit_id>
+    ---@type table<technology_unit_id, technology_unit_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_technology_get_range_technology_unit_as_technology(technology - 1)
@@ -19244,12 +19244,12 @@ function DATA.technology_unit_set_technology(technology_unit_id, value)
     DCON.dcon_technology_unit_set_technology(technology_unit_id - 1, value - 1)
 end
 ---@param unlocked technology_unit_id valid unit_type_id
----@return unit_type_id Data retrieved from technology_unit
+---@return unit_type_id Data retrieved from technology_unit 
 function DATA.technology_unit_get_unlocked(unlocked)
     return DCON.dcon_technology_unit_get_unlocked(unlocked - 1) + 1
 end
 ---@param unlocked unit_type_id valid unit_type_id
----@return technology_unit_id technology_unit
+---@return technology_unit_id technology_unit 
 function DATA.get_technology_unit_from_unlocked(unlocked)
     return DCON.dcon_unit_type_get_technology_unit_as_unlocked(unlocked - 1) + 1
 end
@@ -19294,95 +19294,95 @@ end
 
 ---@class (exact) fat_race_id
 ---@field id race_id Unique race id
----@field name string
----@field icon string
----@field female_portrait nil|PortraitSet
----@field male_portrait nil|PortraitSet
----@field description string
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
+---@field name string 
+---@field icon string 
+---@field female_portrait nil|PortraitSet 
+---@field male_portrait nil|PortraitSet 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
 ---@field spotting number How good is this unit at scouting
 ---@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field male_body_size number
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field requires_large_river boolean
----@field requires_large_forest boolean
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field requires_large_river boolean 
+---@field requires_large_forest boolean 
 
 ---@class struct_race
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
 ---@field spotting number How good is this unit at scouting
 ---@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number
----@field female_body_size number
----@field male_body_size number
----@field female_efficiency table<JOBTYPE, number>
----@field male_efficiency table<JOBTYPE, number>
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field female_needs table<number, struct_need_definition>
----@field male_needs table<number, struct_need_definition>
----@field requires_large_river boolean
----@field requires_large_forest boolean
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_efficiency table<JOBTYPE, number> 
+---@field male_efficiency table<JOBTYPE, number> 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field female_needs table<number, struct_need_definition> 
+---@field male_needs table<number, struct_need_definition> 
+---@field requires_large_river boolean 
+---@field requires_large_forest boolean 
 
 ---@class (exact) race_id_data_blob_definition
----@field name string
----@field icon string
----@field female_portrait nil|PortraitSet
----@field male_portrait nil|PortraitSet
----@field description string
----@field r number
----@field g number
----@field b number
----@field carrying_capacity_weight number
----@field fecundity number
+---@field name string 
+---@field icon string 
+---@field female_portrait nil|PortraitSet 
+---@field male_portrait nil|PortraitSet 
+---@field description string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field carrying_capacity_weight number 
+---@field fecundity number 
 ---@field spotting number How good is this unit at scouting
 ---@field visibility number How visible is this unit in battles
----@field males_per_hundred_females number
----@field child_age number
----@field teen_age number
----@field adult_age number
----@field middle_age number
----@field elder_age number
----@field max_age number
----@field minimum_comfortable_temperature number
----@field minimum_absolute_temperature number
----@field minimum_comfortable_elevation number?
----@field female_body_size number
----@field male_body_size number
----@field female_efficiency number[]
----@field male_efficiency number[]
----@field female_infrastructure_needs number
----@field male_infrastructure_needs number
----@field requires_large_river boolean?
----@field requires_large_forest boolean?
+---@field males_per_hundred_females number 
+---@field child_age number 
+---@field teen_age number 
+---@field adult_age number 
+---@field middle_age number 
+---@field elder_age number 
+---@field max_age number 
+---@field minimum_comfortable_temperature number 
+---@field minimum_absolute_temperature number 
+---@field minimum_comfortable_elevation number? 
+---@field female_body_size number 
+---@field male_body_size number 
+---@field female_efficiency number[] 
+---@field male_efficiency number[] 
+---@field female_infrastructure_needs number 
+---@field male_infrastructure_needs number 
+---@field requires_large_river boolean? 
+---@field requires_large_forest boolean? 
 ---Sets values of race for given id
 ---@param id race_id
 ---@param data race_id_data_blob_definition
@@ -19518,9 +19518,9 @@ DCON.dcon_race_resize_male_needs(21)
 function DATA.create_race()
     ---@type race_id
     local i  = DCON.dcon_create_race() + 1
-    return i --[[@as race_id]]
+    return i --[[@as race_id]] 
 end
----@param func fun(item: race_id)
+---@param func fun(item: race_id) 
 function DATA.for_each_race(func)
     ---@type number
     local range = DCON.dcon_race_size()
@@ -19528,10 +19528,10 @@ function DATA.for_each_race(func)
         func(i + 1 --[[@as race_id]])
     end
 end
----@param func fun(item: race_id):boolean
----@return table<race_id, race_id>
+---@param func fun(item: race_id):boolean 
+---@return table<race_id, race_id> 
 function DATA.filter_race(func)
-    ---@type table<race_id, race_id>
+    ---@type table<race_id, race_id> 
     local t = {}
     ---@type number
     local range = DCON.dcon_race_size()
@@ -19542,7 +19542,7 @@ function DATA.filter_race(func)
 end
 
 ---@param race_id race_id valid race id
----@return string name
+---@return string name 
 function DATA.race_get_name(race_id)
     return DATA.race_name[race_id]
 end
@@ -19552,7 +19552,7 @@ function DATA.race_set_name(race_id, value)
     DATA.race_name[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return string icon
+---@return string icon 
 function DATA.race_get_icon(race_id)
     return DATA.race_icon[race_id]
 end
@@ -19562,7 +19562,7 @@ function DATA.race_set_icon(race_id, value)
     DATA.race_icon[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return nil|PortraitSet female_portrait
+---@return nil|PortraitSet female_portrait 
 function DATA.race_get_female_portrait(race_id)
     return DATA.race_female_portrait[race_id]
 end
@@ -19572,7 +19572,7 @@ function DATA.race_set_female_portrait(race_id, value)
     DATA.race_female_portrait[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return nil|PortraitSet male_portrait
+---@return nil|PortraitSet male_portrait 
 function DATA.race_get_male_portrait(race_id)
     return DATA.race_male_portrait[race_id]
 end
@@ -19582,7 +19582,7 @@ function DATA.race_set_male_portrait(race_id, value)
     DATA.race_male_portrait[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return string description
+---@return string description 
 function DATA.race_get_description(race_id)
     return DATA.race_description[race_id]
 end
@@ -19592,7 +19592,7 @@ function DATA.race_set_description(race_id, value)
     DATA.race_description[race_id] = value
 end
 ---@param race_id race_id valid race id
----@return number r
+---@return number r 
 function DATA.race_get_r(race_id)
     return DCON.dcon_race_get_r(race_id - 1)
 end
@@ -19609,7 +19609,7 @@ function DATA.race_inc_r(race_id, value)
     DCON.dcon_race_set_r(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number g
+---@return number g 
 function DATA.race_get_g(race_id)
     return DCON.dcon_race_get_g(race_id - 1)
 end
@@ -19626,7 +19626,7 @@ function DATA.race_inc_g(race_id, value)
     DCON.dcon_race_set_g(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number b
+---@return number b 
 function DATA.race_get_b(race_id)
     return DCON.dcon_race_get_b(race_id - 1)
 end
@@ -19643,7 +19643,7 @@ function DATA.race_inc_b(race_id, value)
     DCON.dcon_race_set_b(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number carrying_capacity_weight
+---@return number carrying_capacity_weight 
 function DATA.race_get_carrying_capacity_weight(race_id)
     return DCON.dcon_race_get_carrying_capacity_weight(race_id - 1)
 end
@@ -19660,7 +19660,7 @@ function DATA.race_inc_carrying_capacity_weight(race_id, value)
     DCON.dcon_race_set_carrying_capacity_weight(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number fecundity
+---@return number fecundity 
 function DATA.race_get_fecundity(race_id)
     return DCON.dcon_race_get_fecundity(race_id - 1)
 end
@@ -19711,7 +19711,7 @@ function DATA.race_inc_visibility(race_id, value)
     DCON.dcon_race_set_visibility(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number males_per_hundred_females
+---@return number males_per_hundred_females 
 function DATA.race_get_males_per_hundred_females(race_id)
     return DCON.dcon_race_get_males_per_hundred_females(race_id - 1)
 end
@@ -19728,7 +19728,7 @@ function DATA.race_inc_males_per_hundred_females(race_id, value)
     DCON.dcon_race_set_males_per_hundred_females(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number child_age
+---@return number child_age 
 function DATA.race_get_child_age(race_id)
     return DCON.dcon_race_get_child_age(race_id - 1)
 end
@@ -19745,7 +19745,7 @@ function DATA.race_inc_child_age(race_id, value)
     DCON.dcon_race_set_child_age(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number teen_age
+---@return number teen_age 
 function DATA.race_get_teen_age(race_id)
     return DCON.dcon_race_get_teen_age(race_id - 1)
 end
@@ -19762,7 +19762,7 @@ function DATA.race_inc_teen_age(race_id, value)
     DCON.dcon_race_set_teen_age(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number adult_age
+---@return number adult_age 
 function DATA.race_get_adult_age(race_id)
     return DCON.dcon_race_get_adult_age(race_id - 1)
 end
@@ -19779,7 +19779,7 @@ function DATA.race_inc_adult_age(race_id, value)
     DCON.dcon_race_set_adult_age(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number middle_age
+---@return number middle_age 
 function DATA.race_get_middle_age(race_id)
     return DCON.dcon_race_get_middle_age(race_id - 1)
 end
@@ -19796,7 +19796,7 @@ function DATA.race_inc_middle_age(race_id, value)
     DCON.dcon_race_set_middle_age(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number elder_age
+---@return number elder_age 
 function DATA.race_get_elder_age(race_id)
     return DCON.dcon_race_get_elder_age(race_id - 1)
 end
@@ -19813,7 +19813,7 @@ function DATA.race_inc_elder_age(race_id, value)
     DCON.dcon_race_set_elder_age(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number max_age
+---@return number max_age 
 function DATA.race_get_max_age(race_id)
     return DCON.dcon_race_get_max_age(race_id - 1)
 end
@@ -19830,7 +19830,7 @@ function DATA.race_inc_max_age(race_id, value)
     DCON.dcon_race_set_max_age(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number minimum_comfortable_temperature
+---@return number minimum_comfortable_temperature 
 function DATA.race_get_minimum_comfortable_temperature(race_id)
     return DCON.dcon_race_get_minimum_comfortable_temperature(race_id - 1)
 end
@@ -19847,7 +19847,7 @@ function DATA.race_inc_minimum_comfortable_temperature(race_id, value)
     DCON.dcon_race_set_minimum_comfortable_temperature(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number minimum_absolute_temperature
+---@return number minimum_absolute_temperature 
 function DATA.race_get_minimum_absolute_temperature(race_id)
     return DCON.dcon_race_get_minimum_absolute_temperature(race_id - 1)
 end
@@ -19864,7 +19864,7 @@ function DATA.race_inc_minimum_absolute_temperature(race_id, value)
     DCON.dcon_race_set_minimum_absolute_temperature(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number minimum_comfortable_elevation
+---@return number minimum_comfortable_elevation 
 function DATA.race_get_minimum_comfortable_elevation(race_id)
     return DCON.dcon_race_get_minimum_comfortable_elevation(race_id - 1)
 end
@@ -19881,7 +19881,7 @@ function DATA.race_inc_minimum_comfortable_elevation(race_id, value)
     DCON.dcon_race_set_minimum_comfortable_elevation(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number female_body_size
+---@return number female_body_size 
 function DATA.race_get_female_body_size(race_id)
     return DCON.dcon_race_get_female_body_size(race_id - 1)
 end
@@ -19898,7 +19898,7 @@ function DATA.race_inc_female_body_size(race_id, value)
     DCON.dcon_race_set_female_body_size(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number male_body_size
+---@return number male_body_size 
 function DATA.race_get_male_body_size(race_id)
     return DCON.dcon_race_get_male_body_size(race_id - 1)
 end
@@ -19916,7 +19916,7 @@ function DATA.race_inc_male_body_size(race_id, value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
----@return number female_efficiency
+---@return number female_efficiency 
 function DATA.race_get_female_efficiency(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_female_efficiency(race_id - 1, index - 1)
@@ -19937,7 +19937,7 @@ function DATA.race_inc_female_efficiency(race_id, index, value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
----@return number male_efficiency
+---@return number male_efficiency 
 function DATA.race_get_male_efficiency(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_male_efficiency(race_id - 1, index - 1)
@@ -19957,7 +19957,7 @@ function DATA.race_inc_male_efficiency(race_id, index, value)
     DCON.dcon_race_set_male_efficiency(race_id - 1, index - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number female_infrastructure_needs
+---@return number female_infrastructure_needs 
 function DATA.race_get_female_infrastructure_needs(race_id)
     return DCON.dcon_race_get_female_infrastructure_needs(race_id - 1)
 end
@@ -19974,7 +19974,7 @@ function DATA.race_inc_female_infrastructure_needs(race_id, value)
     DCON.dcon_race_set_female_infrastructure_needs(race_id - 1, current + value)
 end
 ---@param race_id race_id valid race id
----@return number male_infrastructure_needs
+---@return number male_infrastructure_needs 
 function DATA.race_get_male_infrastructure_needs(race_id)
     return DCON.dcon_race_get_male_infrastructure_needs(race_id - 1)
 end
@@ -19992,21 +19992,21 @@ function DATA.race_inc_male_infrastructure_needs(race_id, value)
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return NEED female_needs
+---@return NEED female_needs 
 function DATA.race_get_female_needs_need(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_female_needs(race_id - 1, index - 1)[0].need
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return use_case_id female_needs
+---@return use_case_id female_needs 
 function DATA.race_get_female_needs_use_case(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_female_needs(race_id - 1, index - 1)[0].use_case
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return number female_needs
+---@return number female_needs 
 function DATA.race_get_female_needs_required(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_female_needs(race_id - 1, index - 1)[0].required
@@ -20039,21 +20039,21 @@ function DATA.race_inc_female_needs_required(race_id, index, value)
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return NEED male_needs
+---@return NEED male_needs 
 function DATA.race_get_male_needs_need(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_male_needs(race_id - 1, index - 1)[0].need
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return use_case_id male_needs
+---@return use_case_id male_needs 
 function DATA.race_get_male_needs_use_case(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_male_needs(race_id - 1, index - 1)[0].use_case
 end
 ---@param race_id race_id valid race id
 ---@param index number valid
----@return number male_needs
+---@return number male_needs 
 function DATA.race_get_male_needs_required(race_id, index)
     assert(index ~= 0)
     return DCON.dcon_race_get_male_needs(race_id - 1, index - 1)[0].required
@@ -20085,7 +20085,7 @@ function DATA.race_inc_male_needs_required(race_id, index, value)
     DCON.dcon_race_get_male_needs(race_id - 1, index - 1)[0].required = current + value
 end
 ---@param race_id race_id valid race id
----@return boolean requires_large_river
+---@return boolean requires_large_river 
 function DATA.race_get_requires_large_river(race_id)
     return DCON.dcon_race_get_requires_large_river(race_id - 1)
 end
@@ -20095,7 +20095,7 @@ function DATA.race_set_requires_large_river(race_id, value)
     DCON.dcon_race_set_requires_large_river(race_id - 1, value)
 end
 ---@param race_id race_id valid race id
----@return boolean requires_large_forest
+---@return boolean requires_large_forest 
 function DATA.race_get_requires_large_forest(race_id)
     return DCON.dcon_race_get_requires_large_forest(race_id - 1)
 end
@@ -20298,7 +20298,7 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
     total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 50000
     total_ffi_size = total_ffi_size + ffi.sizeof("realm") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 2500
+    total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 45000
     total_ffi_size = total_ffi_size + ffi.sizeof("building") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("ownership") * 200000
     total_ffi_size = total_ffi_size + ffi.sizeof("employment") * 300000
@@ -20346,7 +20346,7 @@ function DATA.load_state()
     current_shift = ffi.sizeof("realm") * 15000
     ffi.copy(DATA.realm, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("negotiation") * 2500
+    current_shift = ffi.sizeof("negotiation") * 45000
     ffi.copy(DATA.negotiation, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("building") * 200000
@@ -20477,9 +20477,9 @@ function DATA.test_set_get_0()
     fat_id.real_g = 15
     fat_id.real_b = 10
     fat_id.pathfinding_index = 14
-    fat_id.resource = 16
-    fat_id.bedrock = 8
-    fat_id.biome = 1
+    fat_id.resource = 13
+    fat_id.bedrock = -4
+    fat_id.biome = -17
     local test_passed = true
     test_passed = test_passed and fat_id.world_id == 12
     if not test_passed then print("world_id", 12, fat_id.world_id) end
@@ -20555,17 +20555,17 @@ function DATA.test_set_get_0()
     if not test_passed then print("real_b", 10, fat_id.real_b) end
     test_passed = test_passed and fat_id.pathfinding_index == 14
     if not test_passed then print("pathfinding_index", 14, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.resource == 16
-    if not test_passed then print("resource", 16, fat_id.resource) end
-    test_passed = test_passed and fat_id.bedrock == 8
-    if not test_passed then print("bedrock", 8, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == 1
-    if not test_passed then print("biome", 1, fat_id.biome) end
+    test_passed = test_passed and fat_id.resource == 13
+    if not test_passed then print("resource", 13, fat_id.resource) end
+    test_passed = test_passed and fat_id.bedrock == -4
+    if not test_passed then print("bedrock", -4, fat_id.bedrock) end
+    test_passed = test_passed and fat_id.biome == -17
+    if not test_passed then print("biome", -17, fat_id.biome) end
     print("SET_GET_TEST_0_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
-    fat_id.race = 12
+    fat_id.race = 4
     fat_id.female = false
     fat_id.age = 1
     fat_id.savings = -4
@@ -20575,7 +20575,7 @@ function DATA.test_set_get_0()
         DATA.pop_set_need_satisfaction_need(id, j, 6)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 9)
+        DATA.pop_set_need_satisfaction_use_case(id, j, -1)
     end
     for j = 1, 20 do
         DATA.pop_set_need_satisfaction_consumed(id, j, 10)
@@ -20596,8 +20596,8 @@ function DATA.test_set_get_0()
     for j = 1, 20 do
         DATA.pop_set_dna(id, j --[[@as number]],  19)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.race == 12
-    if not test_passed then print("race", 12, fat_id.race) end
+    test_passed = test_passed and fat_id.race == 4
+    if not test_passed then print("race", 4, fat_id.race) end
     test_passed = test_passed and fat_id.female == false
     if not test_passed then print("female", false, fat_id.female) end
     test_passed = test_passed and fat_id.age == 1
@@ -20613,9 +20613,9 @@ function DATA.test_set_get_0()
     end
     if not test_passed then print("need_satisfaction.need", 6, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 9
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == -1
     end
-    if not test_passed then print("need_satisfaction.use_case", 9, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", -1, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
         test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 10
     end
@@ -20660,7 +20660,7 @@ function DATA.test_set_get_0()
     fat_id.size = 11
     fat_id.hydration = 5
     fat_id.movement_cost = -1
-    fat_id.center = 15
+    fat_id.center = 10
     fat_id.infrastructure_needed = 2
     fat_id.infrastructure = 17
     fat_id.infrastructure_investment = -7
@@ -20705,7 +20705,7 @@ function DATA.test_set_get_0()
     fat_id.foragers_water = -7
     fat_id.foragers_limit = 15
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_good(id, j, 15)
+        DATA.province_set_foragers_targets_output_good(id, j, 10)
     end
     for j = 1, 25 do
         DATA.province_set_foragers_targets_output_value(id, j, 8)
@@ -20717,10 +20717,10 @@ function DATA.test_set_get_0()
         DATA.province_set_foragers_targets_forage(id, j, 4)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_resource(id, j, 1)
+        DATA.province_set_local_resources_resource(id, j, -17)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_location(id, j, 17)
+        DATA.province_set_local_resources_location(id, j, 15)
     end
     fat_id.mood = -20
     for j = 1, 20 do
@@ -20750,8 +20750,8 @@ function DATA.test_set_get_0()
     if not test_passed then print("hydration", 5, fat_id.hydration) end
     test_passed = test_passed and fat_id.movement_cost == -1
     if not test_passed then print("movement_cost", -1, fat_id.movement_cost) end
-    test_passed = test_passed and fat_id.center == 15
-    if not test_passed then print("center", 15, fat_id.center) end
+    test_passed = test_passed and fat_id.center == 10
+    if not test_passed then print("center", 10, fat_id.center) end
     test_passed = test_passed and fat_id.infrastructure_needed == 2
     if not test_passed then print("infrastructure_needed", 2, fat_id.infrastructure_needed) end
     test_passed = test_passed and fat_id.infrastructure == 17
@@ -20839,9 +20839,9 @@ function DATA.test_set_get_0()
     test_passed = test_passed and fat_id.foragers_limit == 15
     if not test_passed then print("foragers_limit", 15, fat_id.foragers_limit) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 15
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 10
     end
-    if not test_passed then print("foragers_targets.output_good", 15, DATA.province[id].foragers_targets[0].output_good) end
+    if not test_passed then print("foragers_targets.output_good", 10, DATA.province[id].foragers_targets[0].output_good) end
     for j = 1, 25 do
         test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 8
     end
@@ -20855,13 +20855,13 @@ function DATA.test_set_get_0()
     end
     if not test_passed then print("foragers_targets.forage", 4, DATA.province[id].foragers_targets[0].forage) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 1
+        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == -17
     end
-    if not test_passed then print("local_resources.resource", 1, DATA.province[id].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", -17, DATA.province[id].local_resources[0].resource) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 17
+        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 15
     end
-    if not test_passed then print("local_resources.location", 17, DATA.province[id].local_resources[0].location) end
+    if not test_passed then print("local_resources.location", 15, DATA.province[id].local_resources[0].location) end
     test_passed = test_passed and fat_id.mood == -20
     if not test_passed then print("mood", -20, fat_id.mood) end
     for j = 1, 20 do
@@ -20888,10 +20888,10 @@ function DATA.test_set_get_0()
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_army()
     local fat_id = DATA.fatten_army(id)
-    fat_id.destination = 12
+    fat_id.destination = 4
     local test_passed = true
-    test_passed = test_passed and fat_id.destination == 12
-    if not test_passed then print("destination", 12, fat_id.destination) end
+    test_passed = test_passed and fat_id.destination == 4
+    if not test_passed then print("destination", 4, fat_id.destination) end
     print("SET_GET_TEST_0_army:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_warband()
@@ -20967,7 +20967,7 @@ function DATA.test_set_get_0()
     fat_id.r = -12
     fat_id.g = -2
     fat_id.b = -12
-    fat_id.primary_race = 3
+    fat_id.primary_race = -14
     fat_id.capitol = 19
     fat_id.trading_right_cost = -4
     fat_id.building_right_cost = 14
@@ -21045,8 +21045,8 @@ function DATA.test_set_get_0()
     if not test_passed then print("g", -2, fat_id.g) end
     test_passed = test_passed and fat_id.b == -12
     if not test_passed then print("b", -12, fat_id.b) end
-    test_passed = test_passed and fat_id.primary_race == 3
-    if not test_passed then print("primary_race", 3, fat_id.primary_race) end
+    test_passed = test_passed and fat_id.primary_race == -14
+    if not test_passed then print("primary_race", -14, fat_id.primary_race) end
     test_passed = test_passed and fat_id.capitol == 19
     if not test_passed then print("capitol", 19, fat_id.capitol) end
     test_passed = test_passed and fat_id.trading_right_cost == -4
@@ -21111,7 +21111,7 @@ function DATA.test_set_get_0()
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_building()
     local fat_id = DATA.fatten_building(id)
-    fat_id.current_type = 12
+    fat_id.current_type = 4
     fat_id.savings = 6
     fat_id.subsidy = -18
     fat_id.subsidy_last = -4
@@ -21122,25 +21122,25 @@ function DATA.test_set_get_0()
     fat_id.work_ratio = 10
     fat_id.production_scale = 2
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_use(id, j, 18)
+        DATA.building_set_spent_on_inputs_use(id, j, 17)
     end
     for j = 1, 8 do
         DATA.building_set_spent_on_inputs_amount(id, j, -7)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_good(id, j, 16)
+        DATA.building_set_earn_from_outputs_good(id, j, 12)
     end
     for j = 1, 8 do
         DATA.building_set_earn_from_outputs_amount(id, j, -12)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_use(id, j, 9)
+        DATA.building_set_amount_of_inputs_use(id, j, -2)
     end
     for j = 1, 8 do
         DATA.building_set_amount_of_inputs_amount(id, j, -12)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_good(id, j, 3)
+        DATA.building_set_amount_of_outputs_good(id, j, -14)
     end
     for j = 1, 8 do
         DATA.building_set_amount_of_outputs_amount(id, j, 19)
@@ -21148,8 +21148,8 @@ function DATA.test_set_get_0()
     for j = 1, 100 do
         DATA.building_set_inventory(id, j --[[@as trade_good_id]],  -4)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.current_type == 12
-    if not test_passed then print("current_type", 12, fat_id.current_type) end
+    test_passed = test_passed and fat_id.current_type == 4
+    if not test_passed then print("current_type", 4, fat_id.current_type) end
     test_passed = test_passed and fat_id.savings == 6
     if not test_passed then print("savings", 6, fat_id.savings) end
     test_passed = test_passed and fat_id.subsidy == -18
@@ -21169,33 +21169,33 @@ function DATA.test_set_get_0()
     test_passed = test_passed and fat_id.production_scale == 2
     if not test_passed then print("production_scale", 2, fat_id.production_scale) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == 18
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == 17
     end
-    if not test_passed then print("spent_on_inputs.use", 18, DATA.building[id].spent_on_inputs[0].use) end
+    if not test_passed then print("spent_on_inputs.use", 17, DATA.building[id].spent_on_inputs[0].use) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == -7
     end
     if not test_passed then print("spent_on_inputs.amount", -7, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 16
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 12
     end
-    if not test_passed then print("earn_from_outputs.good", 16, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", 12, DATA.building[id].earn_from_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == -12
     end
     if not test_passed then print("earn_from_outputs.amount", -12, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == 9
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == -2
     end
-    if not test_passed then print("amount_of_inputs.use", 9, DATA.building[id].amount_of_inputs[0].use) end
+    if not test_passed then print("amount_of_inputs.use", -2, DATA.building[id].amount_of_inputs[0].use) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == -12
     end
     if not test_passed then print("amount_of_inputs.amount", -12, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == 3
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == -14
     end
-    if not test_passed then print("amount_of_outputs.good", 3, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", -14, DATA.building[id].amount_of_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 19
     end
@@ -21247,9 +21247,9 @@ function DATA.test_set_get_1()
     fat_id.real_g = 11
     fat_id.real_b = 15
     fat_id.pathfinding_index = 7
-    fat_id.resource = 11
-    fat_id.bedrock = 7
-    fat_id.biome = 7
+    fat_id.resource = 2
+    fat_id.bedrock = -6
+    fat_id.biome = -6
     local test_passed = true
     test_passed = test_passed and fat_id.world_id == 4
     if not test_passed then print("world_id", 4, fat_id.world_id) end
@@ -21325,17 +21325,17 @@ function DATA.test_set_get_1()
     if not test_passed then print("real_b", 15, fat_id.real_b) end
     test_passed = test_passed and fat_id.pathfinding_index == 7
     if not test_passed then print("pathfinding_index", 7, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.resource == 11
-    if not test_passed then print("resource", 11, fat_id.resource) end
-    test_passed = test_passed and fat_id.bedrock == 7
-    if not test_passed then print("bedrock", 7, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == 7
-    if not test_passed then print("biome", 7, fat_id.biome) end
+    test_passed = test_passed and fat_id.resource == 2
+    if not test_passed then print("resource", 2, fat_id.resource) end
+    test_passed = test_passed and fat_id.bedrock == -6
+    if not test_passed then print("bedrock", -6, fat_id.bedrock) end
+    test_passed = test_passed and fat_id.biome == -6
+    if not test_passed then print("biome", -6, fat_id.biome) end
     print("SET_GET_TEST_1_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
-    fat_id.race = 4
+    fat_id.race = -12
     fat_id.female = true
     fat_id.age = 8
     fat_id.savings = -13
@@ -21345,29 +21345,29 @@ function DATA.test_set_get_1()
         DATA.pop_set_need_satisfaction_need(id, j, 7)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 20)
+        DATA.pop_set_need_satisfaction_use_case(id, j, 4)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, 4)
+        DATA.pop_set_need_satisfaction_consumed(id, j, -7)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, -7)
+        DATA.pop_set_need_satisfaction_demanded(id, j, -14)
     end
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  1)    end
+        DATA.pop_set_traits(id, j --[[@as number]],  7)    end
     for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  11)    end
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -19)    end
     for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  -19)    end
-    fat_id.pending_economy_income = 4
-    fat_id.forage_ratio = 7
-    fat_id.work_ratio = 18
-    fat_id.rank = 0
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  4)    end
+    fat_id.pending_economy_income = 7
+    fat_id.forage_ratio = 18
+    fat_id.work_ratio = -20
+    fat_id.rank = 3
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  8)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  -3)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.race == 4
-    if not test_passed then print("race", 4, fat_id.race) end
+    test_passed = test_passed and fat_id.race == -12
+    if not test_passed then print("race", -12, fat_id.race) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 8
@@ -21383,41 +21383,41 @@ function DATA.test_set_get_1()
     end
     if not test_passed then print("need_satisfaction.need", 7, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 20
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 4
     end
-    if not test_passed then print("need_satisfaction.use_case", 20, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 4, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 4
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -7
     end
-    if not test_passed then print("need_satisfaction.consumed", 4, DATA.pop[id].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -7, DATA.pop[id].need_satisfaction[0].consumed) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -7
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -14
     end
-    if not test_passed then print("need_satisfaction.demanded", -7, DATA.pop[id].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", -14, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 1
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 7
     end
-    if not test_passed then print("traits", 1, DATA.pop[id].traits[0]) end
+    if not test_passed then print("traits", 7, DATA.pop[id].traits[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 11
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -19
     end
-    if not test_passed then print("inventory", 11, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", -19, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == -19
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 4
     end
-    if not test_passed then print("price_memory", -19, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == 4
-    if not test_passed then print("pending_economy_income", 4, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 7
-    if not test_passed then print("forage_ratio", 7, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 18
-    if not test_passed then print("work_ratio", 18, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 0
-    if not test_passed then print("rank", 0, fat_id.rank) end
+    if not test_passed then print("price_memory", 4, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.pending_economy_income == 7
+    if not test_passed then print("pending_economy_income", 7, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == 18
+    if not test_passed then print("forage_ratio", 18, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == -20
+    if not test_passed then print("work_ratio", -20, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.rank == 3
+    if not test_passed then print("rank", 3, fat_id.rank) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 8
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -3
     end
-    if not test_passed then print("dna", 8, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", -3, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_1_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -21430,79 +21430,79 @@ function DATA.test_set_get_1()
     fat_id.size = 11
     fat_id.hydration = 8
     fat_id.movement_cost = 10
-    fat_id.center = 20
-    fat_id.infrastructure_needed = 4
-    fat_id.infrastructure = -7
-    fat_id.infrastructure_investment = -14
-    fat_id.infrastructure_efficiency = 11
+    fat_id.center = 4
+    fat_id.infrastructure_needed = -7
+    fat_id.infrastructure = -14
+    fat_id.infrastructure_investment = 11
+    fat_id.infrastructure_efficiency = -19
     for j = 1, 400 do
-        DATA.province_set_technologies_present(id, j --[[@as technology_id]],  0)    end
+        DATA.province_set_technologies_present(id, j --[[@as technology_id]],  12)    end
     for j = 1, 400 do
-        DATA.province_set_technologies_researchable(id, j --[[@as technology_id]],  12)    end
+        DATA.province_set_technologies_researchable(id, j --[[@as technology_id]],  13)    end
     for j = 1, 250 do
-        DATA.province_set_buildable_buildings(id, j --[[@as building_type_id]],  13)    end
+        DATA.province_set_buildable_buildings(id, j --[[@as building_type_id]],  19)    end
     for j = 1, 100 do
-        DATA.province_set_local_production(id, j --[[@as trade_good_id]],  18)    end
+        DATA.province_set_local_production(id, j --[[@as trade_good_id]],  -20)    end
     for j = 1, 100 do
-        DATA.province_set_temp_buffer_0(id, j --[[@as trade_good_id]],  -20)    end
+        DATA.province_set_temp_buffer_0(id, j --[[@as trade_good_id]],  8)    end
     for j = 1, 100 do
-        DATA.province_set_local_consumption(id, j --[[@as trade_good_id]],  8)    end
+        DATA.province_set_local_consumption(id, j --[[@as trade_good_id]],  -3)    end
     for j = 1, 100 do
-        DATA.province_set_local_demand(id, j --[[@as trade_good_id]],  -3)    end
+        DATA.province_set_local_demand(id, j --[[@as trade_good_id]],  -6)    end
     for j = 1, 100 do
-        DATA.province_set_local_satisfaction(id, j --[[@as trade_good_id]],  -6)    end
+        DATA.province_set_local_satisfaction(id, j --[[@as trade_good_id]],  17)    end
     for j = 1, 100 do
-        DATA.province_set_temp_buffer_use_0(id, j --[[@as use_case_id]],  17)    end
+        DATA.province_set_temp_buffer_use_0(id, j --[[@as use_case_id]],  -14)    end
     for j = 1, 100 do
-        DATA.province_set_temp_buffer_use_grad(id, j --[[@as use_case_id]],  -14)    end
+        DATA.province_set_temp_buffer_use_grad(id, j --[[@as use_case_id]],  0)    end
     for j = 1, 100 do
-        DATA.province_set_local_use_satisfaction(id, j --[[@as use_case_id]],  0)    end
+        DATA.province_set_local_use_satisfaction(id, j --[[@as use_case_id]],  -19)    end
     for j = 1, 100 do
         DATA.province_set_local_use_buffer_demand(id, j --[[@as use_case_id]],  -19)    end
     for j = 1, 100 do
         DATA.province_set_local_use_buffer_supply(id, j --[[@as use_case_id]],  -19)    end
     for j = 1, 100 do
-        DATA.province_set_local_use_buffer_cost(id, j --[[@as use_case_id]],  -19)    end
+        DATA.province_set_local_use_buffer_cost(id, j --[[@as use_case_id]],  14)    end
     for j = 1, 100 do
-        DATA.province_set_local_storage(id, j --[[@as trade_good_id]],  14)    end
+        DATA.province_set_local_storage(id, j --[[@as trade_good_id]],  -20)    end
     for j = 1, 100 do
-        DATA.province_set_local_prices(id, j --[[@as trade_good_id]],  -20)    end
-    fat_id.local_wealth = 4
-    fat_id.trade_wealth = -7
-    fat_id.local_income = 7
-    fat_id.local_building_upkeep = -19
-    fat_id.foragers = 13
-    fat_id.foragers_water = -6
-    fat_id.foragers_limit = 8
+        DATA.province_set_local_prices(id, j --[[@as trade_good_id]],  4)    end
+    fat_id.local_wealth = -7
+    fat_id.trade_wealth = 7
+    fat_id.local_income = -19
+    fat_id.local_building_upkeep = 13
+    fat_id.foragers = -6
+    fat_id.foragers_water = 8
+    fat_id.foragers_limit = 11
     for j = 1, 25 do
         DATA.province_set_foragers_targets_output_good(id, j, 15)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_value(id, j, 15)
+        DATA.province_set_foragers_targets_output_value(id, j, -6)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_amount(id, j, -6)
+        DATA.province_set_foragers_targets_amount(id, j, 2)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_forage(id, j, 5)
+        DATA.province_set_foragers_targets_forage(id, j, 3)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_resource(id, j, 7)
+        DATA.province_set_local_resources_resource(id, j, -6)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_location(id, j, 7)
+        DATA.province_set_local_resources_location(id, j, 9)
     end
-    fat_id.mood = 9
+    fat_id.mood = -2
     for j = 1, 20 do
-        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  9)    end
+        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  0)    end
     for j = 1, 250 do
-        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  -19)    end
+        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  6)    end
     for j = 1, 250 do
-        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  6)    end
+        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  15)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  15)    end
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  -14)    end
     fat_id.on_a_river = true
-    fat_id.on_a_forest = true
+    fat_id.on_a_forest = false
     local test_passed = true
     test_passed = test_passed and fat_id.r == -12
     if not test_passed then print("r", -12, fat_id.r) end
@@ -21520,60 +21520,60 @@ function DATA.test_set_get_1()
     if not test_passed then print("hydration", 8, fat_id.hydration) end
     test_passed = test_passed and fat_id.movement_cost == 10
     if not test_passed then print("movement_cost", 10, fat_id.movement_cost) end
-    test_passed = test_passed and fat_id.center == 20
-    if not test_passed then print("center", 20, fat_id.center) end
-    test_passed = test_passed and fat_id.infrastructure_needed == 4
-    if not test_passed then print("infrastructure_needed", 4, fat_id.infrastructure_needed) end
-    test_passed = test_passed and fat_id.infrastructure == -7
-    if not test_passed then print("infrastructure", -7, fat_id.infrastructure) end
-    test_passed = test_passed and fat_id.infrastructure_investment == -14
-    if not test_passed then print("infrastructure_investment", -14, fat_id.infrastructure_investment) end
-    test_passed = test_passed and fat_id.infrastructure_efficiency == 11
-    if not test_passed then print("infrastructure_efficiency", 11, fat_id.infrastructure_efficiency) end
+    test_passed = test_passed and fat_id.center == 4
+    if not test_passed then print("center", 4, fat_id.center) end
+    test_passed = test_passed and fat_id.infrastructure_needed == -7
+    if not test_passed then print("infrastructure_needed", -7, fat_id.infrastructure_needed) end
+    test_passed = test_passed and fat_id.infrastructure == -14
+    if not test_passed then print("infrastructure", -14, fat_id.infrastructure) end
+    test_passed = test_passed and fat_id.infrastructure_investment == 11
+    if not test_passed then print("infrastructure_investment", 11, fat_id.infrastructure_investment) end
+    test_passed = test_passed and fat_id.infrastructure_efficiency == -19
+    if not test_passed then print("infrastructure_efficiency", -19, fat_id.infrastructure_efficiency) end
     for j = 1, 400 do
-        test_passed = test_passed and DATA.province_get_technologies_present(id, j --[[@as technology_id]]) == 0
+        test_passed = test_passed and DATA.province_get_technologies_present(id, j --[[@as technology_id]]) == 12
     end
-    if not test_passed then print("technologies_present", 0, DATA.province[id].technologies_present[0]) end
+    if not test_passed then print("technologies_present", 12, DATA.province[id].technologies_present[0]) end
     for j = 1, 400 do
-        test_passed = test_passed and DATA.province_get_technologies_researchable(id, j --[[@as technology_id]]) == 12
+        test_passed = test_passed and DATA.province_get_technologies_researchable(id, j --[[@as technology_id]]) == 13
     end
-    if not test_passed then print("technologies_researchable", 12, DATA.province[id].technologies_researchable[0]) end
+    if not test_passed then print("technologies_researchable", 13, DATA.province[id].technologies_researchable[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_buildable_buildings(id, j --[[@as building_type_id]]) == 13
+        test_passed = test_passed and DATA.province_get_buildable_buildings(id, j --[[@as building_type_id]]) == 19
     end
-    if not test_passed then print("buildable_buildings", 13, DATA.province[id].buildable_buildings[0]) end
+    if not test_passed then print("buildable_buildings", 19, DATA.province[id].buildable_buildings[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_production(id, j --[[@as trade_good_id]]) == 18
+        test_passed = test_passed and DATA.province_get_local_production(id, j --[[@as trade_good_id]]) == -20
     end
-    if not test_passed then print("local_production", 18, DATA.province[id].local_production[0]) end
+    if not test_passed then print("local_production", -20, DATA.province[id].local_production[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_temp_buffer_0(id, j --[[@as trade_good_id]]) == -20
+        test_passed = test_passed and DATA.province_get_temp_buffer_0(id, j --[[@as trade_good_id]]) == 8
     end
-    if not test_passed then print("temp_buffer_0", -20, DATA.province[id].temp_buffer_0[0]) end
+    if not test_passed then print("temp_buffer_0", 8, DATA.province[id].temp_buffer_0[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_consumption(id, j --[[@as trade_good_id]]) == 8
+        test_passed = test_passed and DATA.province_get_local_consumption(id, j --[[@as trade_good_id]]) == -3
     end
-    if not test_passed then print("local_consumption", 8, DATA.province[id].local_consumption[0]) end
+    if not test_passed then print("local_consumption", -3, DATA.province[id].local_consumption[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_demand(id, j --[[@as trade_good_id]]) == -3
+        test_passed = test_passed and DATA.province_get_local_demand(id, j --[[@as trade_good_id]]) == -6
     end
-    if not test_passed then print("local_demand", -3, DATA.province[id].local_demand[0]) end
+    if not test_passed then print("local_demand", -6, DATA.province[id].local_demand[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_satisfaction(id, j --[[@as trade_good_id]]) == -6
+        test_passed = test_passed and DATA.province_get_local_satisfaction(id, j --[[@as trade_good_id]]) == 17
     end
-    if not test_passed then print("local_satisfaction", -6, DATA.province[id].local_satisfaction[0]) end
+    if not test_passed then print("local_satisfaction", 17, DATA.province[id].local_satisfaction[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_temp_buffer_use_0(id, j --[[@as use_case_id]]) == 17
+        test_passed = test_passed and DATA.province_get_temp_buffer_use_0(id, j --[[@as use_case_id]]) == -14
     end
-    if not test_passed then print("temp_buffer_use_0", 17, DATA.province[id].temp_buffer_use_0[0]) end
+    if not test_passed then print("temp_buffer_use_0", -14, DATA.province[id].temp_buffer_use_0[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_temp_buffer_use_grad(id, j --[[@as use_case_id]]) == -14
+        test_passed = test_passed and DATA.province_get_temp_buffer_use_grad(id, j --[[@as use_case_id]]) == 0
     end
-    if not test_passed then print("temp_buffer_use_grad", -14, DATA.province[id].temp_buffer_use_grad[0]) end
+    if not test_passed then print("temp_buffer_use_grad", 0, DATA.province[id].temp_buffer_use_grad[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_use_satisfaction(id, j --[[@as use_case_id]]) == 0
+        test_passed = test_passed and DATA.province_get_local_use_satisfaction(id, j --[[@as use_case_id]]) == -19
     end
-    if not test_passed then print("local_use_satisfaction", 0, DATA.province[id].local_use_satisfaction[0]) end
+    if not test_passed then print("local_use_satisfaction", -19, DATA.province[id].local_use_satisfaction[0]) end
     for j = 1, 100 do
         test_passed = test_passed and DATA.province_get_local_use_buffer_demand(id, j --[[@as use_case_id]]) == -19
     end
@@ -21583,85 +21583,85 @@ function DATA.test_set_get_1()
     end
     if not test_passed then print("local_use_buffer_supply", -19, DATA.province[id].local_use_buffer_supply[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_use_buffer_cost(id, j --[[@as use_case_id]]) == -19
+        test_passed = test_passed and DATA.province_get_local_use_buffer_cost(id, j --[[@as use_case_id]]) == 14
     end
-    if not test_passed then print("local_use_buffer_cost", -19, DATA.province[id].local_use_buffer_cost[0]) end
+    if not test_passed then print("local_use_buffer_cost", 14, DATA.province[id].local_use_buffer_cost[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_storage(id, j --[[@as trade_good_id]]) == 14
+        test_passed = test_passed and DATA.province_get_local_storage(id, j --[[@as trade_good_id]]) == -20
     end
-    if not test_passed then print("local_storage", 14, DATA.province[id].local_storage[0]) end
+    if not test_passed then print("local_storage", -20, DATA.province[id].local_storage[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.province_get_local_prices(id, j --[[@as trade_good_id]]) == -20
+        test_passed = test_passed and DATA.province_get_local_prices(id, j --[[@as trade_good_id]]) == 4
     end
-    if not test_passed then print("local_prices", -20, DATA.province[id].local_prices[0]) end
-    test_passed = test_passed and fat_id.local_wealth == 4
-    if not test_passed then print("local_wealth", 4, fat_id.local_wealth) end
-    test_passed = test_passed and fat_id.trade_wealth == -7
-    if not test_passed then print("trade_wealth", -7, fat_id.trade_wealth) end
-    test_passed = test_passed and fat_id.local_income == 7
-    if not test_passed then print("local_income", 7, fat_id.local_income) end
-    test_passed = test_passed and fat_id.local_building_upkeep == -19
-    if not test_passed then print("local_building_upkeep", -19, fat_id.local_building_upkeep) end
-    test_passed = test_passed and fat_id.foragers == 13
-    if not test_passed then print("foragers", 13, fat_id.foragers) end
-    test_passed = test_passed and fat_id.foragers_water == -6
-    if not test_passed then print("foragers_water", -6, fat_id.foragers_water) end
-    test_passed = test_passed and fat_id.foragers_limit == 8
-    if not test_passed then print("foragers_limit", 8, fat_id.foragers_limit) end
+    if not test_passed then print("local_prices", 4, DATA.province[id].local_prices[0]) end
+    test_passed = test_passed and fat_id.local_wealth == -7
+    if not test_passed then print("local_wealth", -7, fat_id.local_wealth) end
+    test_passed = test_passed and fat_id.trade_wealth == 7
+    if not test_passed then print("trade_wealth", 7, fat_id.trade_wealth) end
+    test_passed = test_passed and fat_id.local_income == -19
+    if not test_passed then print("local_income", -19, fat_id.local_income) end
+    test_passed = test_passed and fat_id.local_building_upkeep == 13
+    if not test_passed then print("local_building_upkeep", 13, fat_id.local_building_upkeep) end
+    test_passed = test_passed and fat_id.foragers == -6
+    if not test_passed then print("foragers", -6, fat_id.foragers) end
+    test_passed = test_passed and fat_id.foragers_water == 8
+    if not test_passed then print("foragers_water", 8, fat_id.foragers_water) end
+    test_passed = test_passed and fat_id.foragers_limit == 11
+    if not test_passed then print("foragers_limit", 11, fat_id.foragers_limit) end
     for j = 1, 25 do
         test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 15
     end
     if not test_passed then print("foragers_targets.output_good", 15, DATA.province[id].foragers_targets[0].output_good) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 15
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == -6
     end
-    if not test_passed then print("foragers_targets.output_value", 15, DATA.province[id].foragers_targets[0].output_value) end
+    if not test_passed then print("foragers_targets.output_value", -6, DATA.province[id].foragers_targets[0].output_value) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == -6
+        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == 2
     end
-    if not test_passed then print("foragers_targets.amount", -6, DATA.province[id].foragers_targets[0].amount) end
+    if not test_passed then print("foragers_targets.amount", 2, DATA.province[id].foragers_targets[0].amount) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 5
+        test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 3
     end
-    if not test_passed then print("foragers_targets.forage", 5, DATA.province[id].foragers_targets[0].forage) end
+    if not test_passed then print("foragers_targets.forage", 3, DATA.province[id].foragers_targets[0].forage) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 7
+        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == -6
     end
-    if not test_passed then print("local_resources.resource", 7, DATA.province[id].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", -6, DATA.province[id].local_resources[0].resource) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 7
+        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 9
     end
-    if not test_passed then print("local_resources.location", 7, DATA.province[id].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == 9
-    if not test_passed then print("mood", 9, fat_id.mood) end
+    if not test_passed then print("local_resources.location", 9, DATA.province[id].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == -2
+    if not test_passed then print("mood", -2, fat_id.mood) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 9
+        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 0
     end
-    if not test_passed then print("unit_types", 9, DATA.province[id].unit_types[0]) end
+    if not test_passed then print("unit_types", 0, DATA.province[id].unit_types[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == -19
+        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == 6
     end
-    if not test_passed then print("throughput_boosts", -19, DATA.province[id].throughput_boosts[0]) end
+    if not test_passed then print("throughput_boosts", 6, DATA.province[id].throughput_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == 6
+        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == 15
     end
-    if not test_passed then print("input_efficiency_boosts", 6, DATA.province[id].input_efficiency_boosts[0]) end
+    if not test_passed then print("input_efficiency_boosts", 15, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 15
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == -14
     end
-    if not test_passed then print("output_efficiency_boosts", 15, DATA.province[id].output_efficiency_boosts[0]) end
+    if not test_passed then print("output_efficiency_boosts", -14, DATA.province[id].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == true
     if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
-    test_passed = test_passed and fat_id.on_a_forest == true
-    if not test_passed then print("on_a_forest", true, fat_id.on_a_forest) end
+    test_passed = test_passed and fat_id.on_a_forest == false
+    if not test_passed then print("on_a_forest", false, fat_id.on_a_forest) end
     print("SET_GET_TEST_1_province:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_army()
     local fat_id = DATA.fatten_army(id)
-    fat_id.destination = 4
+    fat_id.destination = -12
     local test_passed = true
-    test_passed = test_passed and fat_id.destination == 4
-    if not test_passed then print("destination", 4, fat_id.destination) end
+    test_passed = test_passed and fat_id.destination == -12
+    if not test_passed then print("destination", -12, fat_id.destination) end
     print("SET_GET_TEST_1_army:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_warband()
@@ -21737,8 +21737,8 @@ function DATA.test_set_get_1()
     fat_id.r = 4
     fat_id.g = 7
     fat_id.b = 18
-    fat_id.primary_race = 0
-    fat_id.capitol = 14
+    fat_id.primary_race = -20
+    fat_id.capitol = 8
     fat_id.trading_right_cost = -3
     fat_id.building_right_cost = -6
     fat_id.law_trade = 0
@@ -21815,10 +21815,10 @@ function DATA.test_set_get_1()
     if not test_passed then print("g", 7, fat_id.g) end
     test_passed = test_passed and fat_id.b == 18
     if not test_passed then print("b", 18, fat_id.b) end
-    test_passed = test_passed and fat_id.primary_race == 0
-    if not test_passed then print("primary_race", 0, fat_id.primary_race) end
-    test_passed = test_passed and fat_id.capitol == 14
-    if not test_passed then print("capitol", 14, fat_id.capitol) end
+    test_passed = test_passed and fat_id.primary_race == -20
+    if not test_passed then print("primary_race", -20, fat_id.primary_race) end
+    test_passed = test_passed and fat_id.capitol == 8
+    if not test_passed then print("capitol", 8, fat_id.capitol) end
     test_passed = test_passed and fat_id.trading_right_cost == -3
     if not test_passed then print("trading_right_cost", -3, fat_id.trading_right_cost) end
     test_passed = test_passed and fat_id.building_right_cost == -6
@@ -21881,7 +21881,7 @@ function DATA.test_set_get_1()
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_building()
     local fat_id = DATA.fatten_building(id)
-    fat_id.current_type = 4
+    fat_id.current_type = -12
     fat_id.savings = 16
     fat_id.subsidy = -16
     fat_id.subsidy_last = -4
@@ -21892,25 +21892,25 @@ function DATA.test_set_get_1()
     fat_id.work_ratio = 4
     fat_id.production_scale = -7
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_use(id, j, 3)
+        DATA.building_set_spent_on_inputs_use(id, j, -14)
     end
     for j = 1, 8 do
         DATA.building_set_spent_on_inputs_amount(id, j, 11)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_good(id, j, 0)
+        DATA.building_set_earn_from_outputs_good(id, j, -19)
     end
     for j = 1, 8 do
         DATA.building_set_earn_from_outputs_amount(id, j, 4)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_use(id, j, 13)
+        DATA.building_set_amount_of_inputs_use(id, j, 7)
     end
     for j = 1, 8 do
         DATA.building_set_amount_of_inputs_amount(id, j, 18)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_good(id, j, 0)
+        DATA.building_set_amount_of_outputs_good(id, j, -20)
     end
     for j = 1, 8 do
         DATA.building_set_amount_of_outputs_amount(id, j, 8)
@@ -21918,8 +21918,8 @@ function DATA.test_set_get_1()
     for j = 1, 100 do
         DATA.building_set_inventory(id, j --[[@as trade_good_id]],  -3)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.current_type == 4
-    if not test_passed then print("current_type", 4, fat_id.current_type) end
+    test_passed = test_passed and fat_id.current_type == -12
+    if not test_passed then print("current_type", -12, fat_id.current_type) end
     test_passed = test_passed and fat_id.savings == 16
     if not test_passed then print("savings", 16, fat_id.savings) end
     test_passed = test_passed and fat_id.subsidy == -16
@@ -21939,33 +21939,33 @@ function DATA.test_set_get_1()
     test_passed = test_passed and fat_id.production_scale == -7
     if not test_passed then print("production_scale", -7, fat_id.production_scale) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == 3
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == -14
     end
-    if not test_passed then print("spent_on_inputs.use", 3, DATA.building[id].spent_on_inputs[0].use) end
+    if not test_passed then print("spent_on_inputs.use", -14, DATA.building[id].spent_on_inputs[0].use) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == 11
     end
     if not test_passed then print("spent_on_inputs.amount", 11, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 0
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == -19
     end
-    if not test_passed then print("earn_from_outputs.good", 0, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", -19, DATA.building[id].earn_from_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == 4
     end
     if not test_passed then print("earn_from_outputs.amount", 4, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == 13
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == 7
     end
-    if not test_passed then print("amount_of_inputs.use", 13, DATA.building[id].amount_of_inputs[0].use) end
+    if not test_passed then print("amount_of_inputs.use", 7, DATA.building[id].amount_of_inputs[0].use) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == 18
     end
     if not test_passed then print("amount_of_inputs.amount", 18, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == 0
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == -20
     end
-    if not test_passed then print("amount_of_outputs.good", 0, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", -20, DATA.building[id].amount_of_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 8
     end
@@ -22017,9 +22017,9 @@ function DATA.test_set_get_2()
     fat_id.real_g = -6
     fat_id.real_b = -19
     fat_id.pathfinding_index = 5
-    fat_id.resource = 10
-    fat_id.bedrock = 5
-    fat_id.biome = 4
+    fat_id.resource = 0
+    fat_id.bedrock = -9
+    fat_id.biome = -12
     local test_passed = true
     test_passed = test_passed and fat_id.world_id == 1
     if not test_passed then print("world_id", 1, fat_id.world_id) end
@@ -22095,17 +22095,17 @@ function DATA.test_set_get_2()
     if not test_passed then print("real_b", -19, fat_id.real_b) end
     test_passed = test_passed and fat_id.pathfinding_index == 5
     if not test_passed then print("pathfinding_index", 5, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.resource == 10
-    if not test_passed then print("resource", 10, fat_id.resource) end
-    test_passed = test_passed and fat_id.bedrock == 5
-    if not test_passed then print("bedrock", 5, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == 4
-    if not test_passed then print("biome", 4, fat_id.biome) end
+    test_passed = test_passed and fat_id.resource == 0
+    if not test_passed then print("resource", 0, fat_id.resource) end
+    test_passed = test_passed and fat_id.bedrock == -9
+    if not test_passed then print("bedrock", -9, fat_id.bedrock) end
+    test_passed = test_passed and fat_id.biome == -12
+    if not test_passed then print("biome", -12, fat_id.biome) end
     print("SET_GET_TEST_2_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
-    fat_id.race = 1
+    fat_id.race = -17
     fat_id.female = true
     fat_id.age = 2
     fat_id.savings = 3
@@ -22115,7 +22115,7 @@ function DATA.test_set_get_2()
         DATA.pop_set_need_satisfaction_need(id, j, 4)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 19)
+        DATA.pop_set_need_satisfaction_use_case(id, j, 18)
     end
     for j = 1, 20 do
         DATA.pop_set_need_satisfaction_consumed(id, j, -7)
@@ -22136,8 +22136,8 @@ function DATA.test_set_get_2()
     for j = 1, 20 do
         DATA.pop_set_dna(id, j --[[@as number]],  14)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.race == 1
-    if not test_passed then print("race", 1, fat_id.race) end
+    test_passed = test_passed and fat_id.race == -17
+    if not test_passed then print("race", -17, fat_id.race) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 2
@@ -22153,9 +22153,9 @@ function DATA.test_set_get_2()
     end
     if not test_passed then print("need_satisfaction.need", 4, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 19
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 18
     end
-    if not test_passed then print("need_satisfaction.use_case", 19, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
         test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -7
     end
@@ -22200,7 +22200,7 @@ function DATA.test_set_get_2()
     fat_id.size = -1
     fat_id.hydration = -4
     fat_id.movement_cost = 18
-    fat_id.center = 6
+    fat_id.center = -7
     fat_id.infrastructure_needed = 18
     fat_id.infrastructure = -18
     fat_id.infrastructure_investment = 17
@@ -22245,7 +22245,7 @@ function DATA.test_set_get_2()
     fat_id.foragers_water = -6
     fat_id.foragers_limit = -19
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_good(id, j, 5)
+        DATA.province_set_foragers_targets_output_good(id, j, -9)
     end
     for j = 1, 25 do
         DATA.province_set_foragers_targets_output_value(id, j, 0)
@@ -22257,10 +22257,10 @@ function DATA.test_set_get_2()
         DATA.province_set_foragers_targets_forage(id, j, 2)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_resource(id, j, 16)
+        DATA.province_set_local_resources_resource(id, j, 12)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_location(id, j, 16)
+        DATA.province_set_local_resources_location(id, j, 12)
     end
     fat_id.mood = 3
     for j = 1, 20 do
@@ -22290,8 +22290,8 @@ function DATA.test_set_get_2()
     if not test_passed then print("hydration", -4, fat_id.hydration) end
     test_passed = test_passed and fat_id.movement_cost == 18
     if not test_passed then print("movement_cost", 18, fat_id.movement_cost) end
-    test_passed = test_passed and fat_id.center == 6
-    if not test_passed then print("center", 6, fat_id.center) end
+    test_passed = test_passed and fat_id.center == -7
+    if not test_passed then print("center", -7, fat_id.center) end
     test_passed = test_passed and fat_id.infrastructure_needed == 18
     if not test_passed then print("infrastructure_needed", 18, fat_id.infrastructure_needed) end
     test_passed = test_passed and fat_id.infrastructure == -18
@@ -22379,9 +22379,9 @@ function DATA.test_set_get_2()
     test_passed = test_passed and fat_id.foragers_limit == -19
     if not test_passed then print("foragers_limit", -19, fat_id.foragers_limit) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 5
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == -9
     end
-    if not test_passed then print("foragers_targets.output_good", 5, DATA.province[id].foragers_targets[0].output_good) end
+    if not test_passed then print("foragers_targets.output_good", -9, DATA.province[id].foragers_targets[0].output_good) end
     for j = 1, 25 do
         test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 0
     end
@@ -22395,13 +22395,13 @@ function DATA.test_set_get_2()
     end
     if not test_passed then print("foragers_targets.forage", 2, DATA.province[id].foragers_targets[0].forage) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 16
+        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 12
     end
-    if not test_passed then print("local_resources.resource", 16, DATA.province[id].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 12, DATA.province[id].local_resources[0].resource) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 16
+        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 12
     end
-    if not test_passed then print("local_resources.location", 16, DATA.province[id].local_resources[0].location) end
+    if not test_passed then print("local_resources.location", 12, DATA.province[id].local_resources[0].location) end
     test_passed = test_passed and fat_id.mood == 3
     if not test_passed then print("mood", 3, fat_id.mood) end
     for j = 1, 20 do
@@ -22428,10 +22428,10 @@ function DATA.test_set_get_2()
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_army()
     local fat_id = DATA.fatten_army(id)
-    fat_id.destination = 1
+    fat_id.destination = -17
     local test_passed = true
-    test_passed = test_passed and fat_id.destination == 1
-    if not test_passed then print("destination", 1, fat_id.destination) end
+    test_passed = test_passed and fat_id.destination == -17
+    if not test_passed then print("destination", -17, fat_id.destination) end
     print("SET_GET_TEST_2_army:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_warband()
@@ -22507,8 +22507,8 @@ function DATA.test_set_get_2()
     fat_id.r = 7
     fat_id.g = 20
     fat_id.b = 5
-    fat_id.primary_race = 16
-    fat_id.capitol = 11
+    fat_id.primary_race = 12
+    fat_id.capitol = 3
     fat_id.trading_right_cost = 14
     fat_id.building_right_cost = 8
     fat_id.law_trade = 2
@@ -22585,10 +22585,10 @@ function DATA.test_set_get_2()
     if not test_passed then print("g", 20, fat_id.g) end
     test_passed = test_passed and fat_id.b == 5
     if not test_passed then print("b", 5, fat_id.b) end
-    test_passed = test_passed and fat_id.primary_race == 16
-    if not test_passed then print("primary_race", 16, fat_id.primary_race) end
-    test_passed = test_passed and fat_id.capitol == 11
-    if not test_passed then print("capitol", 11, fat_id.capitol) end
+    test_passed = test_passed and fat_id.primary_race == 12
+    if not test_passed then print("primary_race", 12, fat_id.primary_race) end
+    test_passed = test_passed and fat_id.capitol == 3
+    if not test_passed then print("capitol", 3, fat_id.capitol) end
     test_passed = test_passed and fat_id.trading_right_cost == 14
     if not test_passed then print("trading_right_cost", 14, fat_id.trading_right_cost) end
     test_passed = test_passed and fat_id.building_right_cost == 8
@@ -22651,7 +22651,7 @@ function DATA.test_set_get_2()
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_building()
     local fat_id = DATA.fatten_building(id)
-    fat_id.current_type = 1
+    fat_id.current_type = -17
     fat_id.savings = -15
     fat_id.subsidy = -15
     fat_id.subsidy_last = 3
@@ -22662,13 +22662,13 @@ function DATA.test_set_get_2()
     fat_id.work_ratio = -7
     fat_id.production_scale = 18
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_use(id, j, 1)
+        DATA.building_set_spent_on_inputs_use(id, j, -18)
     end
     for j = 1, 8 do
         DATA.building_set_spent_on_inputs_amount(id, j, 17)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_good(id, j, 5)
+        DATA.building_set_earn_from_outputs_good(id, j, -10)
     end
     for j = 1, 8 do
         DATA.building_set_earn_from_outputs_amount(id, j, 7)
@@ -22680,7 +22680,7 @@ function DATA.test_set_get_2()
         DATA.building_set_amount_of_inputs_amount(id, j, 5)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_good(id, j, 16)
+        DATA.building_set_amount_of_outputs_good(id, j, 12)
     end
     for j = 1, 8 do
         DATA.building_set_amount_of_outputs_amount(id, j, 3)
@@ -22688,8 +22688,8 @@ function DATA.test_set_get_2()
     for j = 1, 100 do
         DATA.building_set_inventory(id, j --[[@as trade_good_id]],  14)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.current_type == 1
-    if not test_passed then print("current_type", 1, fat_id.current_type) end
+    test_passed = test_passed and fat_id.current_type == -17
+    if not test_passed then print("current_type", -17, fat_id.current_type) end
     test_passed = test_passed and fat_id.savings == -15
     if not test_passed then print("savings", -15, fat_id.savings) end
     test_passed = test_passed and fat_id.subsidy == -15
@@ -22709,17 +22709,17 @@ function DATA.test_set_get_2()
     test_passed = test_passed and fat_id.production_scale == 18
     if not test_passed then print("production_scale", 18, fat_id.production_scale) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == 1
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == -18
     end
-    if not test_passed then print("spent_on_inputs.use", 1, DATA.building[id].spent_on_inputs[0].use) end
+    if not test_passed then print("spent_on_inputs.use", -18, DATA.building[id].spent_on_inputs[0].use) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == 17
     end
     if not test_passed then print("spent_on_inputs.amount", 17, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 5
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == -10
     end
-    if not test_passed then print("earn_from_outputs.good", 5, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", -10, DATA.building[id].earn_from_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == 7
     end
@@ -22733,9 +22733,9 @@ function DATA.test_set_get_2()
     end
     if not test_passed then print("amount_of_inputs.amount", 5, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == 16
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == 12
     end
-    if not test_passed then print("amount_of_outputs.good", 16, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", 12, DATA.building[id].amount_of_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 3
     end

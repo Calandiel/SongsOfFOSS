@@ -10,6 +10,11 @@ function realm_utils.Realm.new()
 	local realm_id = DATA.create_realm()
 	local o = DATA.fatten_realm(realm_id)
 
+	DATA.realm_set_quests_explore(realm_id, {})
+	DATA.realm_set_quests_patrol(realm_id, {})
+	DATA.realm_set_quests_raid(realm_id, {})
+	DATA.realm_set_patrols(realm_id, {})
+
 	-- print("new realm")
 
 	o.name = "<realm>"
@@ -370,7 +375,10 @@ function realm_utils.Realm.raise_warband(realm, warband)
 		-- print(pop.name, "raised from province")
 		local location = DATA.get_pop_location_from_pop(pop)
 		local province = DATA.pop_location_get_location(location)
-		province_utils.take_away_pop(province, pop)
+
+		if not IS_CHARACTER(pop) then
+			province_utils.take_away_pop(province, pop)
+		end
 	end)
 end
 
@@ -439,13 +447,15 @@ function realm_utils.Realm.disband_army(realm, army)
 		for _, pop in pairs(to_return) do
 			local pop_location = DATA.get_pop_location_from_pop(pop)
 			local province = DATA.pop_location_get_location(pop_location)
-			province_utils.return_pop_from_army(province, pop)
+			if not IS_CHARACTER(pop) then
+				province_utils.return_pop_from_army(province, pop)
+			end
 		end
 
 		-- if warband was patrolling, keep the patrol status
 		local fat = DATA.fatten_warband(warband)
-		if fat.status ~= WARBAND_STATUS.PATROL then
-			fat.status = WARBAND_STATUS.IDLE
+		if fat.current_status ~= WARBAND_STATUS.PATROL then
+			fat.current_status = WARBAND_STATUS.IDLE
 		end
 
 		warbands[warband] = warband

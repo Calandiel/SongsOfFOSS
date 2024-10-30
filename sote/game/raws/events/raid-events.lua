@@ -72,6 +72,8 @@ local function load()
 		automatic = false,
 		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
+
+
 			---@type PatrolData
 			associated_data = associated_data
 			local realm_leader = associated_data.defender
@@ -90,10 +92,16 @@ local function load()
 			end
 			if total_patrol_size > 0 then
 				local reward = 0
-				local max_reward =  DATA.realm_get_quests_patrol(REALM(root))[associated_data.target]
+
+				print(DATA.realm_get_quests_patrol(REALM(root)))
+				print(REALM(root))
+				print(associated_data)
+				print(associated_data.target)
+
+				local max_reward = DATA.realm_get_quests_patrol(associated_data.origin)[associated_data.target]
 				if max_reward then
 					reward = math.min(max_reward, total_patrol_size)
-					DATA.realm_get_quests_patrol(REALM(root))[associated_data.target] = max_reward - reward
+					DATA.realm_get_quests_patrol(associated_data.origin)[associated_data.target] = max_reward - reward
 				end
 
 				for _, w in pairs(associated_data.patrol) do

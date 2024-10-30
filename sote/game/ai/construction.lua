@@ -1,8 +1,9 @@
 local tabb = require "engine.table"
+local province_utils = require "game.entities.province".Province
 local ai = require "game.raws.values.ai"
 local eco_values = require "game.raws.values.economy"
+local demography_values = require "game.raws.values.demography"
 local economy_effects = require "game.raws.effects.economy"
-local province_utils = require "game.entities.province".Province
 local pv = require "game.raws.values.politics"
 
 local co = {}
@@ -38,11 +39,13 @@ local function construction_in_province(province, funds, excess, owner, overseer
 	local random_pop_location = tabb.random_select_from_set(DATA.filter_pop_location_from_location(province, ACCEPT_ALL))
 
 	-- if pop is nil, then buildings are the last thing we need
-	if random_pop_location == INVALID_ID then
+	if random_pop_location == nil then
 		return funds
 	end
 
 	local random_pop = DATA.pop_location_get_pop(random_pop_location)
+
+	local random_pop = demography_values.sample_character_from_province
 
 	-- calculate time to get back your investments
 	---@type table<BuildingType, number>

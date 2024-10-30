@@ -322,7 +322,7 @@ function load()
 				economic_effects.add_pop_savings(expedition_leader, pop_payment, ECONOMY_REASON.DONATION)
 			end
 			-- move character to new home
-			province_utils.transfer_character(
+			province_utils.transfer_pop(
 				expedition_leader,
 				associated_data.target_province
 			)

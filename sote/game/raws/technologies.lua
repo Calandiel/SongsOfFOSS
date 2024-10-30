@@ -51,6 +51,8 @@ function Technology.get_tooltip(technology)
 			if thing == INVALID_ID then
 				break
 			end
+			print(technology_data.description)
+			print(thing)
 			local name = DATA.biome_get_name(thing)
 			string = string .. name .. ", "
 			requires = true
@@ -104,7 +106,7 @@ function Technology.get_tooltip(technology)
 		local string = ""
 		string = string .. "\n Unlocked buildings: "
 		for _, item in ipairs(DATA.get_technology_building_from_technology(technology)) do
-			local name = DATA.building_type_get_description(item)
+			local name = DATA.building_type_get_description(DATA.technology_building_get_unlocked(item))
 			string = string .. name .. ", "
 			requires = true
 		end
@@ -119,7 +121,7 @@ function Technology.get_tooltip(technology)
 		local string = ""
 		string = string .. "\n Unlocked units: "
 		for _, item in ipairs(DATA.get_technology_unit_from_technology(technology)) do
-			local name = DATA.unit_type_get_name(item)
+			local name = DATA.unit_type_get_name(DATA.technology_unit_get_unlocked(item))
 			string = string .. name .. ", "
 			requires = true
 		end
@@ -135,7 +137,7 @@ function Technology.get_tooltip(technology)
 		string = string .. "\n Unlocked technology paths: "
 		local thing = DATA.get_technology_unlock_from_origin(technology)
 		for _, i in ipairs(thing) do
-			local name = DATA.technology_get_name(i)
+			local name = DATA.technology_get_name(DATA.technology_unlock_get_unlocked(i))
 			string = string .. name .. ", "
 			requires = true
 		end
@@ -151,7 +153,7 @@ function Technology.get_tooltip(technology)
 		string = string .. "\n Unlocked by: "
 		local thing = DATA.get_technology_unlock_from_unlocked(technology)
 		for _, i in ipairs(thing) do
-			local name = DATA.technology_get_name(i)
+			local name = DATA.technology_get_name(DATA.technology_unlock_get_origin(i))
 			string = string .. name .. ", "
 			requires = true
 		end

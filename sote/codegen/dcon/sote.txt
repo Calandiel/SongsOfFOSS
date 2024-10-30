@@ -798,7 +798,7 @@ object {
 relationship {
     name { negotiation }
     storage_type { erasable }
-    size { 2500 }
+    size { 45000 }
     tag {scenario}
     link {
         object { pop }

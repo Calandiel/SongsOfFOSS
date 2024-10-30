@@ -35,6 +35,7 @@ function rtab.POP.new(race, faith, culture, female, age)
 
 	for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
 		local need = DATA.race_get_male_needs_need(race, index)
+		-- print(index, need, DATA.race_get_male_needs_use_case(race, index), DATA.race_get_male_needs_required(race, index))
 
 		if need == NEED.INVALID then
 			break

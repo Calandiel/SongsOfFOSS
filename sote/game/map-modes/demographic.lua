@@ -149,15 +149,24 @@ function dem.prices()
 		local total = 0
 		local mean = 0
 
+		print("calculate prices map mode")
+
 		---@type table<number, Province> | table<Province, Province>
 		local provinces = DATA.filter_province(function (item)
 			return true
 		end)
 
+		print("Province_count", tabb.size(provinces))
+
+		print("WORLD.player_character", WORLD.player_character)
+
 		if WORLD.player_character ~= INVALID_ID then
 			local realm = REALM(WORLD.player_character)
 			provinces = DATA.realm_get_known_provinces(realm)
 		end
+
+		print("Province_count", tabb.size(provinces))
+
 
 		for _, province in pairs(provinces) do
 			if province_utils.realm(province) ~= INVALID_ID then

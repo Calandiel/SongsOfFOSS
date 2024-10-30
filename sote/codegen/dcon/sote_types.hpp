@@ -173,42 +173,42 @@ enum class LAW_BUILDING : uint8_t {
     };
 
     struct trade_good_container {
-        dcon::trade_good_id good;
+        int32_t good;
         float amount;
     };
 
     struct use_case_container {
-        dcon::use_case_id use;
+        int32_t use;
         float amount;
     };
 
     struct forage_container {
-        dcon::trade_good_id output_good;
+        int32_t output_good;
         float output_value;
         float amount;
         FORAGE_RESOURCE forage;
     };
 
     struct resource_location {
-        dcon::resource_id resource;
-        dcon::tile_id location;
+        int32_t resource;
+        int32_t location;
     };
 
     struct need_satisfaction {
         NEED need;
-        dcon::use_case_id use_case;
+        int32_t use_case;
         float consumed;
         float demanded;
     };
 
     struct need_definition {
         NEED need;
-        dcon::use_case_id use_case;
+        int32_t use_case;
         float required;
     };
 
     struct job_container {
-        dcon::job_id job;
+        int32_t job;
         uint32_t amount;
     };
 

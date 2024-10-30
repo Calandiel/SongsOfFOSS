@@ -222,20 +222,14 @@ function prov.Province.population_weight(province)
 	return total
 end
 
---- Transfers a character to the target province
----@param character Character
----@param target province_id
-function prov.Province.transfer_character(character, target)
-	-- print(NAME(character), "CHARACTER", self.name, "-->", target.name)
-	-- validate that origin is really an origin
-	local current_location = DATA.get_character_location_from_character(character)
-	DATA.character_location_set_location(current_location, target)
-end
-
 --- Transfers a pop to the target province
 ---@param pop pop_id
 ---@param target province_id
 function prov.Province.transfer_pop(pop, target)
+	if IS_CHARACTER(pop) then
+		local current_location = DATA.get_character_location_from_character(pop)
+		DATA.character_location_set_location(current_location, target)
+	end
 	-- print(pop.name, "pop_id", self.name, "-->", target.name)
 	local current_location = DATA.get_pop_location_from_pop(pop)
 	local origin = DATA.pop_location_get_location(current_location)
@@ -348,7 +342,7 @@ end
 ---@param province province_id
 ---@param pop pop_id
 function prov.Province.return_pop_from_army(province, pop)
-	prov.Province.add_guest_pop(province, pop)
+	prov.Province.add_pop(province, pop)
 end
 
 
@@ -809,35 +803,21 @@ end
 ---@param province province_id
 ---@return realm_id
 function prov.Province.realm(province)
-	local data = DATA.get_realm_provinces_from_province(province)
-	if data == INVALID_ID then
-		return INVALID_ID
-	end
-	return DATA.realm_provinces_get_realm(data)
+	return PROVINCE_REALM(province)
 end
 
 ---Adds pop as a guest of this province. Preserves old home of a pop.
 ---@param province province_id
 ---@param pop pop_id
 function prov.Province.add_pop(province, pop)
-	local location = DATA.get_pop_location_from_pop(pop)
-	if location ~= INVALID_ID then
-		DATA.pop_location_set_location(location, province)
-	else
-		DATA.force_create_pop_location(province, pop)
-	end
+	DATA.force_create_pop_location(province, pop)
 end
 
 ---Adds a character to the province
 ---@param province province_id
 ---@param character Character
 function prov.Province.add_character(province, character)
-	local location = DATA.get_character_location_from_character(character)
-	if location ~= INVALID_ID then
-		DATA.character_location_set_location(location, province)
-	else
-		DATA.force_create_character_location(province, character)
-	end
+	DATA.force_create_character_location(province, character)
 end
 
 ---Sets province as pop's home

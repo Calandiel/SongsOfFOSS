@@ -34,16 +34,18 @@ local function diplomacy(gam, realm, ui_panel)
         local overlords_rect = ui_panel:subrect(0, UI_STYLE.table_header_height, ui_panel.width / 2, ui_panel.height - UI_STYLE.table_header_height, "left", "up")
 
         ui.centered_text("We are paying tribute to: ", overlords_label)
+
+        local overlords = DATA.get_realm_subject_relation_from_subject(realm)
+
         slider_overlords = ut.scrollview(
             overlords_rect,
             function(i, rect)
                 if i > 0 then
-                    local overlord = tabb.nth(realm.paying_tribute_to, i)
-                    render_realm(gam, rect, overlord)
+                    render_realm(gam, rect, DATA.realm_subject_relation_get_overlord(overlords[i]))
                 end
             end,
             UI_STYLE.scrollable_list_widget_item_height,
-            tabb.size(realm.paying_tribute_to),
+            #overlords,
             UI_STYLE.slider_width,
             slider_overlords
         )
@@ -52,16 +54,19 @@ local function diplomacy(gam, realm, ui_panel)
         local tributaries_rect = ui_panel:subrect(ui_panel.width / 2, UI_STYLE.table_header_height, ui_panel.width / 2, ui_panel.height - UI_STYLE.table_header_height, "left", "up")
 
         ui.centered_text("We are receiving tribute from: ", tributaries_label)
+
+        local subjects = DATA.get_realm_subject_relation_from_overlord(realm)
+
         slider_tributaries = ut.scrollview(
             tributaries_rect,
             function(i, rect)
                 if i > 0 then
-                    local tributary = tabb.nth(realm.tributaries, i)
+                    local tributary = DATA.realm_subject_relation_get_subject(subjects[i])
                     render_realm(gam, rect, tributary)
                 end
             end,
             UI_STYLE.scrollable_list_widget_item_height,
-            tabb.size(realm.tributaries),
+            #subjects,
             UI_STYLE.slider_width,
             slider_tributaries
         )

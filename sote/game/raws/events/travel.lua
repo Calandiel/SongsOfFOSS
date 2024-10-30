@@ -169,6 +169,8 @@ local function load()
                     ))
                 )
 
+                bought_amount = math.min(bought_amount, DATA.province_get_local_storage(province, trade_good))
+
                 local can_buy, _ = et.can_buy(root, trade_good, bought_amount)
                 if can_buy then
                     ---@type EventOption
