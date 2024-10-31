@@ -6,6 +6,8 @@ local province_utils = require "game.entities.province".Province
 local building_utils = require "game.entities.building".Building
 local method_utils = require "game.raws.production-methods"
 
+local demography_effects = require "game.raws.effects.demography"
+
 ---Employs pops in the province.
 ---@param province province_id
 function emp.run(province)
@@ -71,7 +73,7 @@ function emp.run(province)
 				if profit < 0.01 and love.math.random() < 0.25 then
 					local _, pop_to_fire = tabb.random_select_from_set(DATA.filter_employment_from_building(building_id, ACCEPT_ALL))
 					if pop_to_fire ~= INVALID_ID then
-						province_utils.fire_pop(province, DATA.employment_get_worker(pop_to_fire))
+						demography_effects.fire_pop(DATA.employment_get_worker(pop_to_fire))
 					end
 				end
 			else

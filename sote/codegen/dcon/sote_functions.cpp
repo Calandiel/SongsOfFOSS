@@ -361,6 +361,7 @@ void building_produce() {
 
 		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
 			base_types::use_case_container input = state.production_method_get_inputs(production_method, i);
+			if (input.use == 0) break;
 
 			auto have_to_satisfy = input.amount * current_power;
 
@@ -436,10 +437,13 @@ void building_produce() {
 			assert(current_power >= 0.f);
 			assert(true_min_input >= 0.f);
 
+			std::cout << "output: " << good.index() << " amount: " << output.amount << " power " << current_power << " min_input " << true_min_input << "\n";
+
 			state.building_set_inventory(ids, good, inventory + output.amount * current_power * true_min_input);
 
 			base_types::trade_good_container& stats = state.building_get_amount_of_outputs(ids, i);
 			stats.amount = true_min_input * current_power * output.amount;
+			stats.good = output.good;
 		}
 	});
 }
@@ -533,6 +537,8 @@ void buildings_sell() {
 			state.building_set_inventory(building, trade_good, inventory * 0.9f);
 			record_production(province, trade_good, inventory * 0.1f);
 		});
+
+		std::cout << "income: " << income << " \n";
 		state.building_set_savings(building, state.building_get_savings(building) + income);
 	});
 }
@@ -856,6 +862,51 @@ void buildings_buy() {
 	});
 }
 
+constexpr inline float WORKERS_SHARE = 0.25f;
+constexpr inline float OWNER_SHARE = 0.5f;
+
+constexpr inline float LEFTOVERS_SHARE = 1.f - WORKERS_SHARE - OWNER_SHARE;
+
+void building_pay() {
+	state.for_each_building([&](auto ids) {
+		state.building_set_production_scale(ids, 1.f);
+
+		auto savings = state.building_get_savings(ids);
+
+		auto donation = savings * OWNER_SHARE;
+		auto wage_budget = savings * WORKERS_SHARE;
+
+		state.building_set_last_donation_to_owner(ids, donation);
+		auto owner = state.building_get_owner_from_ownership(ids);
+		auto subsidy = state.building_get_subsidy(ids);
+
+		if (owner) {
+			state.pop_get_pending_economy_income(owner) += donation - subsidy;
+		} else {
+			auto location = state.building_get_location_from_building_location(ids);
+			state.province_get_local_wealth(location) += donation;
+		}
+
+
+		float total_work_time = 0.f;
+		state.building_for_each_employment(ids, [&](auto employment){
+			total_work_time += state.pop_get_work_ratio(state.employment_get_worker(employment));
+		});
+
+		state.building_for_each_employment(ids, [&](auto employment){
+			auto pop = state.employment_get_worker(employment);
+			auto work_ratio = state.pop_get_work_ratio(pop);
+
+			state.pop_get_pending_economy_income(pop) += wage_budget * work_ratio / total_work_time;
+		});
+
+		state.building_get_savings(ids) *= LEFTOVERS_SHARE;
+		if (owner) {
+			state.building_get_savings(ids) += subsidy;
+		}
+	});
+}
+
 void update_economy() {
 	auto eps = 0.001;
 
@@ -946,5 +997,6 @@ void update_economy() {
 		});
 	});
 
+	building_pay();
 	pops_update_stats();
 }

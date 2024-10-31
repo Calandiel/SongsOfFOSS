@@ -164,6 +164,13 @@ function WARBAND_LEADER(warband)
 	return DATA.warband_leader_get_leader(leadership)
 end
 
+---@param warband warband_id
+---@return pop_id
+function WARBAND_RECRUITER(warband)
+	local leadership = DATA.get_warband_recruiter_from_warband(warband)
+	return DATA.warband_recruiter_get_recruiter(leadership)
+end
+
 ---commenting
 ---@param warband warband_id
 ---@return pop_id

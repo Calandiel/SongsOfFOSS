@@ -6,7 +6,11 @@ local ut = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 local list_widget = require "game.scenes.game.widgets.list-widget"
 
-local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
+local pop_utils = require "game.entities.pop".POP
+local warband_utils = require "game.entities.warband"
+
+local pop_values = require "game.raws.values.pop"
+local economy_values = require "game.raws.values.economy"
 
 local economic_effects = require "game.raws.effects.economy"
 
@@ -32,106 +36,115 @@ end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType?
+---@param v unit_type_id
 local function render_unit_icon (rect, k, v)
-	if v then
-		render_icon_panel(rect, v.icon, v.r, v.g, v.b, 1)
+	if v ~= INVALID_ID then
+		local fat = DATA.fatten_unit_type(v)
+		render_icon_panel(rect, fat.icon, fat.r, fat.g, fat.b, 1)
 	else
-		render_icon_panel(rect, k.race.icon, k.race.r, k.race.g, k.race.b, 1)
+		local fat = F_RACE(k)
+		render_icon_panel(rect, fat.icon, fat.r, fat.g, fat.b, 1)
 	end
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v unit_type_id
 local function render_unit_health (rect, k, v)
-	local base, stat = v.base_health, k:get_health(v)
+	local base = DATA.unit_type_get_base_health(v)
+	local stat = pop_utils.get_health(k, v)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
 	end
 	ut.generic_number_field(
 		"plus.png",
 		stat,
 		rect,
-		k.name .. " has " .. ut.to_fixed_point2(stat) .. " health."
-			.. "\n - As a "  ..  v.name .. ", " .. k.name .. " has a base health of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." size of " .. ut.to_fixed_point2(k:size()) .. ".",
+		NAME(k)
+		.. " has "
+		.. ut.to_fixed_point2(stat)
+		.. " health."
+		.. "\n - As a "  ..  DATA.unit_type_get_name(v) .. ", "
+		.. NAME(k) .. " has a base health of " .. ut.to_fixed_point2(base) .. "."
+		.. "\n - Being a " .. female.. " " .. DATA.race_get_name(RACE(k))
+		.. " modifies this by " .. her .." size of " .. ut.to_fixed_point2(pop_utils.size(k)) .. ".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v unit_type_id
 local function render_unit_attack (rect, k, v)
-	local base, stat = v.base_attack, k:get_attack(v)
-	local job = k:job_efficiency(job_types.WARRIOR)
+	local base = DATA.unit_type_get_base_attack(v)
+	local stat = pop_utils.get_attack(k, v)
+	local job = pop_utils.job_efficiency(k, JOBTYPE.WARRIOR)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
 	end
 	ut.generic_number_field(
 		"stone-axe.png",
 		stat,
 		rect,
-		k.name .. " has " .. ut.to_fixed_point2(stat) .. " attack."
-			.. "\n - As a " ..  v.name .. ", " .. k.name .. " has a base attack of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." racial warrior efficiency of " .. ut.to_fixed_point2(job * 100) .. "%.",
+		NAME(k) .. " has " .. ut.to_fixed_point2(stat) .. " attack."
+			.. "\n - As a " ..  DATA.unit_type_get_name(v) .. ", " .. NAME(k) .. " has a base attack of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. DATA.race_get_name(RACE(k)) .. " modifies this by " .. her .." racial warrior efficiency of " .. ut.to_fixed_point2(job * 100) .. "%.",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType
+---@param v unit_type_id
 local function render_unit_armor (rect, k, v)
-	local base, stat = v.base_armor, k:get_armor(v)
+	local base, stat = DATA.unit_type_get_base_armor(v), pop_utils.get_armor(k, v)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
 	end
 	ut.generic_number_field(
 		"round-shield.png",
 		stat,
 		rect,
-		k.name .. " has " .. ut.to_fixed_point2(stat) .. " armor."
-			.. "\n - As a " ..  v.name .. ", " .. k.name .. " has a base armor of " .. ut.to_fixed_point2(base) .. ".",
+		NAME(k) .. " has " .. ut.to_fixed_point2(stat) .. " armor."
+			.. "\n - As a " ..  DATA.unit_type_get_name(v) .. ", " .. NAME(k) .. " has a base armor of " .. ut.to_fixed_point2(base) .. ".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType?
+---@param v unit_type_id
 local function render_unit_speed (rect, k, v)
-	local base, stat = (v and v.speed or 1), k:get_speed(v)
+	local base, stat = ((v ~= INVALID_ID) and DATA.unit_type_get_speed(v) or 1), pop_utils.get_speed(k, v)
 	ut.generic_number_field(
 		"fast-forward-button.png",
 		stat,
 		rect,
-		k.name .. " has a speed of " .. ut.to_fixed_point2(stat) .. "."
-		.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base speed of " .. ut.to_fixed_point2(base) .. ".",
+		NAME(k) .. " has a speed of " .. ut.to_fixed_point2(stat) .. "."
+		.. "\n - As a " ..  ((v ~= INVALID_ID) and DATA.unit_type_get_name(v) or "noncombatant") .. ", " .. NAME(k) .. " has a base speed of " .. ut.to_fixed_point2(base) .. ".",
 		ut.NUMBER_MODE.PERCENTAGE,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType?
+---@param v unit_type_id
 local function render_unit_spotting (rect, k, v)
-	local base, stat = (v and v.spotting or 1), k:get_spotting(v)
+	local base, stat = ((v ~= INVALID_ID) and DATA.unit_type_get_spotting(v) or 1), pop_utils.get_spotting(k, v)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
 	end
 	ut.generic_number_field(
 		"magnifying-glass.png",
 		stat,
 		rect,
-		k.name .. " has a spotting bonus of " .. ut.to_fixed_point2(stat) .. "."
-			.. "\n - As a " .. (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base spotting bonus of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." racial spotting of " .. ut.to_fixed_point2(k.race.spotting * 100)
+		NAME(k) .. " has a spotting bonus of " .. ut.to_fixed_point2(stat) .. "."
+			.. "\n - As a " .. ((v ~= INVALID_ID) and DATA.unit_type_get_name(v) or "noncombatant") .. ", " .. NAME(k) .. " has a base spotting bonus of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. DATA.race_get_name(RACE(k)) .. " modifies this by " .. her .." racial spotting of " .. ut.to_fixed_point2(F_RACE(k).spotting * 100)
 			.. "%.",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
@@ -139,43 +152,42 @@ end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType?
+---@param v unit_type_id
 local function render_unit_visibility (rect, k, v)
-	local base, stat = (v and v.visibility or 1), k:get_visibility(v)
+	local base, stat = ((v ~= INVALID_ID) and DATA.unit_type_get_visibility(v) or 1), pop_utils.get_visibility(k, v)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
 	end
 	ut.generic_number_field(
 		"high-grass.png",
 		stat,
 		rect,
-		k.name .. " has a visibility of " .. ut.to_fixed_point2(stat) .. "."
-			.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base visibility of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " modifies this by " .. her .." racial visibility of " .. ut.to_fixed_point2(k.race.visibility * 100)
-			.. "% and a size of " .. ut.to_fixed_point2(k:size()) ..".",
+		NAME(k) .. " has a visibility of " .. ut.to_fixed_point2(stat) .. "."
+			.. "\n - As a " ..  ((v ~= INVALID_ID) and DATA.unit_type_get_name(v) or "noncombatant") .. ", " .. NAME(k) .. " has a base visibility of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. DATA.race_get_name(RACE(k)) .. " modifies this by " .. her .." racial visibility of " .. ut.to_fixed_point2(F_RACE(k).visibility * 100)
+			.. "% and a size of " .. ut.to_fixed_point2(pop_utils.size(k)) ..".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType?
+---@param v unit_type_id
 local function render_unit_supply_use (rect, k, v)
-	local base, stat = (v and v.supply_useds or 0) / 30, k:get_supply_use(v)
-	local food_need = k.race.male_needs[NEED.FOOD][CALORIES_USE_CASE]
+	local base, stat = ((v ~= INVALID_ID) and DATA.unit_type_get_supply_used(v) or 0) / 30, pop_utils.get_supply_use(k, v)
+	local food_need = pop_values.calories_food_need(k)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
-		food_need = k.race.female_needs[NEED.FOOD][CALORIES_USE_CASE]
 	end
 	ut.generic_number_field(
 		"sliced-bread.png",
 		stat,
 		rect,
-		k.name .. " uses " .. ut.to_fixed_point2(stat) .. " units of food per day of traveling."
-			.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base daily supply use of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " adds " .. her .. " daily racial food consumption of "
+		NAME(k) .. " uses " .. ut.to_fixed_point2(stat) .. " units of food per day of traveling."
+			.. "\n - As a " ..  ((v ~= INVALID_ID) and DATA.unit_type_get_name(v) or "noncombatant") .. ", " .. NAME(k) .. " has a base daily supply use of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. DATA.race_get_name(RACE(k)) .. " adds " .. her .. " daily racial food consumption of "
 			.. ut.to_fixed_point2(food_need / 30).. " units per day.",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
@@ -183,21 +195,21 @@ end
 
 ---@param rect Rect
 ---@param k POP
----@param v UnitType?
+---@param v unit_type_id
 local function render_unit_hauling (rect, k, v)
-	local base, stat = (v and v.supply_capacity or 0) / 4, k:get_supply_capacity(v)
-	local job = k:job_efficiency(job_types.HAULING)
+	local base, stat = ((v ~= INVALID_ID) and DATA.unit_type_get_supply_capacity(v) or 0) / 4, pop_utils.get_supply_capacity(k, v)
+	local job = pop_utils.job_efficiency(k, JOBTYPE.HAULING)
 	local female, her = "male", "his"
-	if k.female then
+	if DATA.pop_get_female(k) then
 		female, her = "female", "her"
 	end
 	ut.generic_number_field(
 		"cardboard-box.png",
 		stat,
 		rect,
-		k.name .. " has a hauling capacity of " .. ut.to_fixed_point2(stat) .. "."
-			.. "\n - As a " ..  (v and v.name or "noncombatant") .. ", " .. k.name .. " has a base of " .. ut.to_fixed_point2(base) .. "."
-			.. "\n - Being a " .. female.. " " .. k.race.name .. " adds " .. her .." racial hauling job efficiency of " .. ut.to_fixed_point2(job) .. ".",
+		NAME(k) .. " has a hauling capacity of " .. ut.to_fixed_point2(stat) .. "."
+			.. "\n - As a " ..  ((v ~= INVALID_ID) and DATA.unit_type_get_name(v) or "noncombatant") .. ", " .. NAME(k) .. " has a base of " .. ut.to_fixed_point2(base) .. "."
+			.. "\n - Being a " .. female.. " " .. DATA.race_get_name(RACE(k)) .. " adds " .. her .." racial hauling job efficiency of " .. ut.to_fixed_point2(job) .. ".",
 		ut.NUMBER_MODE.NUMBER,
 		ut.NAME_MODE.ICON)
 end
@@ -240,13 +252,13 @@ function window.draw(gamescene)
 	local panel = window.rect()
 
 	local warband = gamescene.selected.warband
-	if player_character and not warband then
-		if player_character.leading_warband then
-			warband = player_character.leading_warband
-		elseif player_character.recruiter_for_warband then
-			warband = player_character.recruiter_for_warband
-		elseif player_character.unit_of_warband then
-			warband = player_character.unit_of_warband
+	if (player_character  ~= INVALID_ID) and not warband then
+		if LEADER_OF_WARBAND(player_character) ~= INVALID_ID then
+			warband = LEADER_OF_WARBAND(player_character)
+		elseif RECRUITER_OF_WARBAND(player_character) ~= INVALID_ID then
+			warband = RECRUITER_OF_WARBAND(player_character)
+		elseif UNIT_OF(player_character) ~= INVALID_ID then
+			warband = UNIT_OF(player_character)
 		end
 	end
 	if not warband then
@@ -263,14 +275,14 @@ function window.draw(gamescene)
 			:spacing(spacing)
 			:build()
 
-		local realm = warband:realm()
+		local realm = warband_utils.realm(warband)
 		local desc = "warriors from " .. REALM_NAME(realm)
 		local realm_rect = top_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT)
 		ui.panel(realm_rect)
 		-- warband realm inspector button
 		ib.icon_button_to_realm(gamescene, realm, realm_rect)
 		-- warband name
-		ui.centered_text(warband.name .. ", " .. desc, top_bar_layout:next(rect.width - (ut.BASE_HEIGHT + spacing) * 2, ut.BASE_HEIGHT))
+		ui.centered_text(DATA.warband_get_name(warband) .. ", " .. desc, top_bar_layout:next(rect.width - (ut.BASE_HEIGHT + spacing) * 2, ut.BASE_HEIGHT))
 		-- close button
 		ib.icon_button_to_close(gamescene, top_bar_layout:next(ut.BASE_HEIGHT, ut.BASE_HEIGHT))
 	end
@@ -314,7 +326,7 @@ function window.draw(gamescene)
 			ui.panel(bottom_rect, 1, true)
 		end
 		if character then
-			ib.icon_button_to_realm(gam, character.realm, realm_rect)
+			ib.icon_button_to_realm(gam, REALM(character), realm_rect)
 			ib.icon_button_to_character(gam, character, portrait_rect)
 			ib.text_button_to_character(gam, character, button_rect,
 				NAME(character), NAME(character) .. " is currently " .. office_action .. " this warband.")
@@ -325,17 +337,21 @@ function window.draw(gamescene)
 		end
 	end
 
+	---commenting
+	---@param rect Rect
+	---@param character Character
 	local function render_character_unit_name(rect, character)
 			if character then
 			local unit_name = "officer"
 			local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
 			local text_rect = rect:subrect(0, 0, rect.width - rect.height, rect.height, "right", "center")
-			local unit_type = warband.units[character]
-			if unit_type then
-				unit_name = unit_type.name
+			local unit_type = DATA.warband_unit_get_type(DATA.get_warband_unit_from_unit(character))
+			if unit_type ~= INVALID_ID then
+				unit_name = DATA.unit_type_get_name(unit_type)
 				render_unit_icon(icon_rect, character, unit_type)
 			else
-				render_icon_panel(icon_rect, character.race.icon, character.race.r, character.race.g, character.race.b, 1)
+				local race = F_RACE(character)
+				render_icon_panel(icon_rect, race.icon, race.r, race.g, race.b, 1)
 			end
 			ui.text_panel(unit_name, text_rect)
 		else
@@ -353,7 +369,7 @@ function window.draw(gamescene)
 				:position(rect.x, rect.y)
 				:build()
 			-- draw using functions if a unit
-			local unit = warband.units[character]
+			local unit = DATA.warband_unit_get_type(DATA.get_warband_unit_from_unit(character))
 			-- declare variables and intialize as a male noncombatant character
 			render_unit_speed(layout:next(width_fraction, rect.height), character, unit)
 			render_unit_spotting(layout:next(width_fraction, rect.height), character, unit)
@@ -383,23 +399,29 @@ function window.draw(gamescene)
 
 	-- leader officer panel
 	local leader_rect = leader_layout:next(ut.BASE_HEIGHT * 14 + spacing * 2, ut.BASE_HEIGHT * 3 + spacing * 2)
-	local realm = warband.guard_of
+	local leader = WARBAND_LEADER(warband)
+	local guarding_realm = DATA.realm_guard_get_realm(DATA.get_realm_guard_from_guard(warband))
+	local leader_of_guarded_realm = LEADER(guarding_realm)
+	local recruiter = WARBAND_RECRUITER(warband)
+	local commander = WARBAND_COMMANDER(warband)
+	local upkeep = DATA.warband_get_total_upkeep(warband)
+
 	local recruiter_title = "Recruiter"
 	local recruiter_adjective = "recruiting"
-	if warband.leader then
-		draw_office_panel(gamescene, leader_rect, "Leader", "leading", warband.leader, render_character_unit_name, render_character_unit_stat)
-	elseif realm then -- if no leader then guard, draw realm icon and name
-		local province = realm.capitol
+	if leader ~= INVALID_ID then
+		draw_office_panel(gamescene, leader_rect, "Leader", "leading", leader, render_character_unit_name, render_character_unit_stat)
+	elseif guarding_realm ~= INVALID_ID then -- if no leader then guard, draw realm icon and name
+		local province = CAPITOL(guarding_realm)
 		recruiter_title = "Captain"
 		recruiter_adjective = "leading"
 		ui.panel(leader_rect)
 		leader_rect:shrink(spacing)
 		ui.text("Capitol Guard", leader_rect:subrect(0, 0, leader_rect.width, ut.BASE_HEIGHT, "left", "up"), "center", "center")
-		ib.icon_button_to_realm(gamescene, realm, leader_rect:subrect(0, 0, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, "left", "down"))
-		ib.text_button_to_realm(gamescene, realm, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0, leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "center"), REALM_NAME(realm),
-			"This warband is the capitol guard of " .. REALM_NAME(realm) .. ".")
-		ib.text_button_to_province(gamescene, province, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0,leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "down"), province.name,
-			"This warband guards the province of " .. province.name .. ".")
+		ib.icon_button_to_realm(gamescene, guarding_realm, leader_rect:subrect(0, 0, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, "left", "down"))
+		ib.text_button_to_realm(gamescene, guarding_realm, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0, leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "center"), REALM_NAME(guarding_realm),
+			"This warband is the capitol guard of " .. REALM_NAME(guarding_realm) .. ".")
+		ib.text_button_to_province(gamescene, province, leader_rect:subrect(ut.BASE_HEIGHT * 2, 0,leader_rect.width - ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT, "left", "down"), PROVINCE_NAME(province),
+			"This warband guards the province of " .. PROVINCE_NAME(province) .. ".")
 	end
 
 	-- SUPPLIES AND TREASURY PANELS
@@ -409,14 +431,14 @@ function window.draw(gamescene)
 	local function draw_treasury_panel(rect)
 		-- leaders can take and give, other warband characters can only give
 		local can_take_money, can_gift_money = false, false
-		if player_character then
+		if player_character ~= INVALID_ID then
 			-- leaders can give and take
-			if warband.leader and warband.leader == player_character then
+			if leader == player_character then
 				can_take_money, can_gift_money = true, true
 			-- other members of warbands can gift
-			elseif (warband.guard_of and warband.guard_of.leader == player_character)
-				or (warband.recruiter and warband.recruiter == player_character)
-				or (warband == player_character.unit_of_warband)
+			elseif (leader_of_guarded_realm == player_character)
+				or (recruiter == player_character)
+				or (warband == UNIT_OF(player_character))
 			then
 				can_gift_money = true
 			end
@@ -441,9 +463,9 @@ function window.draw(gamescene)
 			if x > 0 then
 				tooltip = "Give "
 				preposition = 'to'
-				amount = math.min(amount, (player_character and player_character.savings) or 0)
+				amount = math.min(amount, ((player_character  ~= INVALID_ID) and SAVINGS(player_character)) or 0)
 			elseif x < 0 then
-				amount = math.max(amount, -warband.treasury)
+				amount = math.max(amount, -DATA.warband_get_treasury(warband))
 			end
 
 			if can_take_money or can_gift_money and x > 0 then
@@ -473,24 +495,24 @@ function window.draw(gamescene)
 			end
 		end
 
-		local treasury = warband.treasury
-		local upkeep = warband:predict_upkeep()
+		local treasury = DATA.warband_get_treasury(warband)
+		local upkeep = warband_utils.predict_upkeep(warband)
 
 		local months_of_upkeep = 9999
 		if upkeep > 0 then
 			months_of_upkeep = math.ceil(treasury / upkeep)
 		end
 
-		ut.money_entry_icon(warband.treasury, rect:subrect(0, 0, half_width, rect_height, "center", "center"),
-			"This warband currently has " .. ut.to_fixed_point2(warband.treasury) .. MONEY_SYMBOL .. " in its treasury.")
+		ut.money_entry_icon(DATA.warband_get_treasury(warband), rect:subrect(0, 0, half_width, rect_height, "center", "center"),
+			"This warband currently has " .. ut.to_fixed_point2(DATA.warband_get_treasury(warband)) .. MONEY_SYMBOL .. " in its treasury.")
 		gift_to_treasury_target(rect:subrect(0, 0, fourth_width, rect_height, "left", "center"), -1)
 		gift_to_treasury_target(rect:subrect(0, 0, fourth_width, rect_height, "right", "center"), 1)
 
 		ut.generic_number_field(
 			"two-coins.png",
-			warband.total_upkeep,
+			upkeep,
 			rect:subrect(0, 0, third_width, rect_height, "left", "down"),
-			"The warband currently to costs " .. ut.to_fixed_point2(-warband.total_upkeep) .. MONEY_SYMBOL .. " each month.",
+			"The warband currently to costs " .. ut.to_fixed_point2(-upkeep) .. MONEY_SYMBOL .. " each month.",
 			ut.NUMBER_MODE.BALANCE,
 			ut.NAME_MODE.ICON,
 			true,
@@ -531,32 +553,32 @@ function window.draw(gamescene)
 		ui.text("Supplies", rect:subrect(0, 0, rect_width, rect_height / 3, "center", "up"), "center", "up")
 
 		local permission = false
-		if (player_character and player_character == warband.leader)
-			or (player_character and player_character == warband.recruiter)
+		if ((player_character  ~= INVALID_ID) and player_character == leader)
+			or ((player_character  ~= INVALID_ID) and player_character == recruiter)
 		then
 			permission = true
 		end
 
 
-		---@param x WarbandIdleStance
+		---@param x WARBAND_STANCE
 		local function set_stance(rect, x)
-			local text = "Order your party to " .. x .. "."
+			local text = "Order your party to " .. DATA.warband_stance_get_name(x) .. "."
 			if permission == false then
 				text = "You do not control this warband!"
 			end
 			if ut.text_button(
-				x,
+				DATA.warband_stance_get_name(x),
 				rect,
 				text,
 				permission,
-				warband.idle_stance == x
+				DATA.warband_get_idle_stance(warband) == x
 			) then
-				warband.idle_stance = x
+				DATA.warband_set_idle_stance(warband, x)
 			end
 		end
 
 		-- supplies / day
-		local daily_supply_consumption = warband:daily_supply_consumption()
+		local daily_supply_consumption = warband_utils.daily_supply_consumption(warband)
 		ut.generic_number_field(
 			"sliced-bread.png",
 			daily_supply_consumption,
@@ -566,7 +588,7 @@ function window.draw(gamescene)
 			ut.NAME_MODE.ICON
 		)
 		-- days of travel time
-		local days_of_supply_consumption = warband:days_of_travel()
+		local days_of_supply_consumption = economy_values.days_of_travel(warband)
 		ut.generic_number_field(
 			"horizon-road.png",
 			days_of_supply_consumption,
@@ -578,14 +600,14 @@ function window.draw(gamescene)
 			ut.NAME_MODE.ICON
 		)
 		-- work button
-		set_stance(rect:subrect(0, 0, rect_width / 2, rect_height / 3, "right", "center"), "work")
+		set_stance(rect:subrect(0, 0, rect_width / 2, rect_height / 3, "right", "center"), WARBAND_STANCE.WORK)
 		-- forage button
-		set_stance(rect:subrect(0, 0, rect_width / 2, rect_height / 3, "right", "down"), "forage")
+		set_stance(rect:subrect(0, 0, rect_width / 2, rect_height / 3, "right", "down"), WARBAND_STANCE.FORAGE)
 	end
 	local supplies_rect = leader_layout:next(ut.BASE_HEIGHT * 9 + spacing, ut.BASE_HEIGHT * 3 + spacing * 2)
 	draw_supplies_panel(supplies_rect)
 
-	local location = warband:location()
+	local location = warband_utils.location(warband)
 
 	---@param rect Rect
 	local function draw_location_panel(rect)
@@ -597,12 +619,12 @@ function window.draw(gamescene)
 		local province_name_rect = rect:subrect(0, 0, rect.width, ut.BASE_HEIGHT, "right", "down")
 		local province_realm = nil
 		ib.text_button_to_province(gamescene, location, province_name_rect,
-			location.name, "The warband is currently in the province of " .. location.name .. ".")
-		province_realm = location.realm
-		if province_realm then
+			PROVINCE_NAME(location), "The warband is currently in the province of " .. PROVINCE_NAME(location) .. ".")
+		province_realm = PROVINCE_REALM(location)
+		if province_realm ~= INVALID_ID then
 			ib.icon_button_to_realm(gamescene, province_realm, realm_icon_rect)
 			ib.text_button_to_realm(gamescene, province_realm, realm_text_rect,
-				province_realm.name, "The warband is currently in a province belonging " .. province_realm.name .. ".")
+				REALM_NAME(province_realm), "The warband is currently in a province belonging " .. REALM_NAME(province_realm) .. ".")
 		else
 			ut.render_icon_panel(realm_icon_rect, "uncertainty.png", 1, 1, 1, 1)
 			ut.text_button("no realm", realm_text_rect, "The provincec the warband is currently in is claimed by no one.")
@@ -623,18 +645,18 @@ function window.draw(gamescene)
 		:build()
 
 	local recruiter_rect = recruiter_layout:next(ut.BASE_HEIGHT * 14 + spacing * 2, ut.BASE_HEIGHT * 3 + spacing * 2)
-	draw_office_panel(gamescene, recruiter_rect, recruiter_title, recruiter_adjective .. " for", warband.recruiter, render_character_unit_name, render_character_unit_stat)
+	draw_office_panel(gamescene, recruiter_rect, recruiter_title, recruiter_adjective .. " for", recruiter, render_character_unit_name, render_character_unit_stat)
 
 	--- draws row with comander and stats (if there is one)
 	---@param rect Rect
 	local function draw_commander_panel(rect)
 
 		-- draw commander name and portrait and stats
-		draw_office_panel(gamescene, rect, "Commander", "commanding", warband.commander, render_character_unit_name,
+		draw_office_panel(gamescene, rect, "Commander", "commanding", commander, render_character_unit_name,
 		function (rect, character)
-			if character then
+			if character ~= INVALID_ID then
 				local layout_width = rect.width / 8
-				local unit = warband.units[character]
+				local unit = DATA.warband_unit_get_type(DATA.get_warband_unit_from_unit(character))
 				local strength_layout = ui.layout_builder()
 					:horizontal()
 					:position(rect.x, rect.y)
@@ -653,14 +675,14 @@ function window.draw(gamescene)
 				-- check if player is eligable to control the warband and draw button to fire
 				local control_warband = false
 				local text = "Fire commander of this warband."
-				if player_character then
-					if player_character == warband.commander then
+				if player_character ~= INVALID_ID then
+					if player_character == commander then
 						text = "Step down from commanding this warband."
 					end
-					if player_character == warband.leader then
+					if player_character == leader then
 						control_warband = true
-					elseif player_character == warband.recruiter then
-						if warband.leader then
+					elseif player_character == recruiter then
+						if leader ~= INVALID_ID then
 							text = "You need to ask permission from the warband leader!"
 						else
 							control_warband = true
@@ -682,11 +704,11 @@ function window.draw(gamescene)
 				-- check if player is eligable to be commander and draw button to take over
 				local control_warband = false
 				local text = "Take command of this warband."
-				if player_character then
-					if player_character == warband.leader then
+				if player_character ~= INVALID_ID then
+					if player_character == leader then
 						control_warband = true
-					elseif player_character == warband.recruiter then
-						if warband.leader then
+					elseif player_character == recruiter then
+						if leader ~= INVALID_ID then
 							text = "You need to ask permission from the warband leader!"
 						else
 							control_warband = true
@@ -705,10 +727,6 @@ function window.draw(gamescene)
 				end
 			end
 		end)
-
-		local commander = warband.commander
-		if commander then
-		end
 	end
 	local commander_rect = recruiter_layout:next(ut.BASE_HEIGHT * 24 + spacing * 2, ut.BASE_HEIGHT * 3 + spacing * 2)
 	draw_commander_panel(commander_rect)
@@ -723,18 +741,18 @@ function window.draw(gamescene)
 	-- warband status
 	ut.generic_string_field(
 		"shrug.png",
-		warband.current_status,
+		DATA.warband_status_get_name(DATA.warband_get_current_status(warband)),
 		status_rect:subrect(0, 0, status_rect.width, ut.BASE_HEIGHT, "left", "up"),
-		"This warband is currently " .. warband.current_status ..  ".",
+		"This warband is currently " .. DATA.warband_status_get_name(DATA.warband_get_current_status(warband)) ..  ".",
 		ut.NAME_MODE.ICON,
 		true)
 
 	-- work time ratio
 	ut.generic_number_field(
 		"chart.png",
-		warband.current_free_time_ratio,
+		DATA.warband_get_current_free_time_ratio(warband),
 		status_rect:subrect(0, 0, status_rect.width, ut.BASE_HEIGHT, "left", "center"),
-		"Warriors in this warband are free for " .. ut.to_fixed_point2(warband.current_free_time_ratio * 100) .. "% of their time.",
+		"Warriors in this warband are free for " .. ut.to_fixed_point2(DATA.warband_get_current_free_time_ratio(warband) * 100) .. "% of their time.",
 		ut.NUMBER_MODE.PERCENTAGE,
 		ut.NAME_MODE.ICON
 	)
@@ -742,15 +760,16 @@ function window.draw(gamescene)
 	-- warband morale
 	ut.generic_number_field(
 		"musical-notes.png",
-		warband.morale,
+		DATA.warband_get_morale(warband),
 		status_rect:subrect(0, 0, status_rect.width, ut.BASE_HEIGHT, "left", "down"),
-		"This warband is currently at " .. ut.to_fixed_point2(warband.morale * 100) .. "% morale.",
+		"This warband is currently at " .. ut.to_fixed_point2(DATA.warband_get_morale(warband) * 100) .. "% morale.",
 		ut.NUMBER_MODE.PERCENTAGE,
 		ut.NAME_MODE.ICON)
 
 	-- warband count and target
-	local count = warband:war_size()
-	local target_count = warband:target_size()
+	local count = warband_utils.war_size(warband)
+	local total_count = warband_utils.size(warband)
+	local target_count = warband_utils.target_size(warband)
 	local warband_count = count .. " / " .. target_count
 	local target_plural = "s"
 	if target_count == 1 then
@@ -768,13 +787,13 @@ function window.draw(gamescene)
 	---@param rect Rect
 	local function draw_strength_panel(rect)
 		-- warband count and target and strength calculations
-		local total_health, total_attack, total_armor, _, count = warband:total_strength()
+		local total_health, total_attack, total_armor, _, count = warband_utils.total_strength(warband)
 		local plural = "s"
 		if count == 1 then
 			plural = ""
 		end
 
-		local noncombatants = warband:size() - warband:war_size()
+		local noncombatants = total_count - count
 		local non_plural = "s"
 		if noncombatants == 1 then
 			non_plural = ""
@@ -782,7 +801,7 @@ function window.draw(gamescene)
 
 		-- WARBAND STRENGTH
 		local avg_health, avg_armor, avg_attack  = math.max(total_health / count, 0), math.max(total_armor / count, 0), math.max(total_attack / count, 0)
-		local total_speed, avg_speed = warband:speed()
+		local total_speed, avg_speed = warband_utils.speed(warband)
 
 		local strength_width = ut.BASE_HEIGHT * 3
 		local strength_height = ut.BASE_HEIGHT
@@ -838,20 +857,23 @@ function window.draw(gamescene)
 
 		-- spotting and visibility
 		local status = ""
-		if warband.current_status == "idle" then
+		if DATA.warband_get_current_status(warband) == WARBAND_STATUS.IDLE then
 			status = "\n - While the warband is idle, this bonus is multiplied by 5."
 		end
-		if warband.current_status == "patrol" then
+		if DATA.warband_get_current_status(warband) ==  WARBAND_STATUS.PATROL then
 			status = "\n - While the warband is on patrol, this bonus is multiplied by 10."
 		end
-		local unit_spotting = tabb.accumulate(warband.units, 0, function (a, k, v)
-			return a + k:get_spotting(v)
+		local unit_spotting = 0
+		DATA.for_each_warband_unit_from_warband(warband, function (item)
+			local unit_type = DATA.warband_unit_get_type(item)
+			local pop = DATA.warband_unit_get_unit(item)
+			unit_spotting = unit_spotting + pop_utils.get_spotting(pop, unit_type)
 		end)
-		if warband.recruiter and warband.recruiter ~= warband.commander then
-			unit_spotting = unit_spotting + warband.recruiter.race.spotting
+		if recruiter ~= INVALID_ID and recruiter ~= commander then
+			unit_spotting = unit_spotting + F_RACE(recruiter).spotting
 		end
-		if warband.leader and warband.leader ~= warband.recruiter and warband.leader ~= warband.commander then
-			unit_spotting = unit_spotting + warband.leader.race.spotting
+		if leader ~= INVALID_ID and leader ~= recruiter and leader ~= commander then
+			unit_spotting = unit_spotting + F_RACE(leader).spotting
 		end
 		ut.generic_number_field(
 			"magnifying-glass.png",
@@ -862,7 +884,7 @@ function window.draw(gamescene)
 				.. " This is weighted against opposing visibility for spotting other warbands and armies." .. status,
 			ut.NUMBER_MODE.NUMBER,
 			ut.NAME_MODE.ICON)
-		local visibility = warband:visibility()
+		local visibility = warband_utils.visibility(warband)
 		ut.generic_number_field(
 			"high-grass.png",
 			visibility,
@@ -874,7 +896,7 @@ function window.draw(gamescene)
 			ut.NAME_MODE.ICON)
 
 		-- supply cost and loot capacity
-		local supply_use = warband:daily_supply_consumption()
+		local supply_use = warband_utils.daily_supply_consumption(warband)
 		ut.generic_number_field(
 			"sliced-bread.png",
 			supply_use,
@@ -884,7 +906,7 @@ function window.draw(gamescene)
 			ut.NUMBER_MODE.NUMBER,
 			ut.NAME_MODE.ICON
 		)
-		local loot_capacity = warband:loot_capacity()
+		local loot_capacity = warband_utils.loot_capacity(warband)
 		ut.generic_number_field(
 			"cardboard-box.png",
 			loot_capacity,
@@ -911,16 +933,22 @@ function window.draw(gamescene)
 	local function draw_recruit_panel(rect)
 
 		-- UNIT TYPE RECRUIT PANEL
-		---@type table<UnitType, UnitType>
+		---@type table<unit_type_id, unit_type_id>
 		local unit_types = {}
 
-		for _, unit in pairs(location.unit_types) do
-			unit_types[unit] = unit
-		end
+		DATA.for_each_unit_type(function (item)
+			if DATA.province_get_unit_types(location, item) == 1 then
+				unit_types[item] = item
+			end
+		end)
 
-		for _, unit in pairs(warband.units) do
-			unit_types[unit] = unit
-		end
+		DATA.for_each_warband_unit(function (item)
+			local unit_type = DATA.warband_unit_get_type(item)
+			if unit_type ~= INVALID_ID then
+				unit_types[unit_type] = unit_type
+			end
+		end)
+
 		unit_list_state = list_widget(
 			rect,
 			unit_types,
@@ -929,30 +957,30 @@ function window.draw(gamescene)
 					header = ".",
 					render_closure = render_unit_icon,
 					width = icon_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.icon
+						return DATA.unit_type_get_icon(v)
 					end
 				},
 				{
 					header = "name",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
-						ui.text(v.name, rect, "center", "center")
+						ui.text(DATA.unit_type_get_name(v), rect, "center", "center")
 					end,
 					width = name_width - stat_width * 2 - icon_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.name
+						return DATA.unit_type_get_name(v)
 					end
 				},
 				{
 					header = "upkeep",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"receive-money.png",
-							v.upkeep,
+							DATA.unit_type_get_upkeep(v),
 							rect,
 							"The base monthly upkeep price for this unit type.",
 							ut.NUMBER_MODE.MONEY,
@@ -960,188 +988,195 @@ function window.draw(gamescene)
 							true)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.upkeep
+						return DATA.unit_type_get_upkeep(v)
 					end
 				},
 				{
 					header = "cost",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"coins.png",
-							v.base_price,
+							DATA.unit_type_get_base_price(v),
 							rect,
 							"The base hiring cost of this unit type.",
 							ut.NUMBER_MODE.MONEY,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.base_price
+						return DATA.unit_type_get_base_price(v)
 					end
 				},
 				{
 					header = "health",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"plus.png",
-							v.base_health,
+							DATA.unit_type_get_base_health(v),
 							rect,
 							"The base value of health this unit type has.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.base_health
+						return DATA.unit_type_get_base_health(v)
 					end
 				},
 				{
 					header = "attack",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"stone-axe.png",
-							v.base_attack,
+							DATA.unit_type_get_base_attack(v),
 							rect,
 							"The base attack strength of this unit type.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.base_attack
+						return DATA.unit_type_get_base_attack(v)
 					end
 				},
 				{
 					header = "armor",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"round-shield.png",
-							v.base_armor,
+							DATA.unit_type_get_base_armor(v),
 							rect,
 							"The base value for this unit type's armor.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.base_armor
+						return DATA.unit_type_get_base_armor(v)
 					end
 				},
 				{
 					header = "speed",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"fast-forward-button.png",
-							v.speed,
+							DATA.unit_type_get_speed(v),
 							rect,
 							"How fast this unit type moves.",
 							ut.NUMBER_MODE.PERCENTAGE,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.speed
+						return DATA.unit_type_get_speed(v)
 					end
 				},
 				{
 					header = "spotting",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"magnifying-glass.png",
-							v.visibility,
+							DATA.unit_type_get_visibility(v),
 							rect,
 							"How good this unit type is at spotting. Affects the chance of this warband spotting other warbands and armies.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.spotting
+						return DATA.unit_type_get_spotting(v)
 					end
 				},
 				{
 					header = "visibility",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"high-grass.png",
-							v.visibility,
+							DATA.unit_type_get_visibility(v),
 							rect,
 							"How easy it is to spot this unit type. Affects the chance of warbands and armies being spotted.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.visibility
+						return DATA.unit_type_get_visibility(v)
 					end
 				},
 				{
 					header = "supply",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"sliced-bread.png",
-							v.supply_useds / 30,
+							DATA.unit_type_get_supply_used(v) / 30,
 							rect,
 							"Base supply used by unit type per day. Affects how much food the unit spends when traveling.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.supply_useds / 30
+						return DATA.unit_type_get_supply_used(v) / 30
 					end
 				},
 				{
 					header = "hauling",
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.generic_number_field(
 							"cardboard-box.png",
-							v.supply_capacity / 4,
+							DATA.unit_type_get_supply_capacity(v) / 4,
 							rect,
 							"Base carrying capacity of unit type. Affects how much is looted when raiding.",
 							ut.NUMBER_MODE.NUMBER,
 							ut.NAME_MODE.ICON)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.supply_capacity / 4
+						return DATA.unit_type_get_supply_capacity(v) / 4
 					end
 				},
 				{
 					header = "target",
-					---@param v UnitType
+					---@param rect Rect
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
-						local can_recruit = player_character and (warband == player_character.leading_warband
-							or warband == player_character.recruiter_for_warband)
+						local can_recruit = false
+						if (player_character == INVALID_ID) then
 
-						local target = warband.units_target[v] or 0
-						local current = warband.units_current[v] or 0
+						elseif warband == LEADER_OF_WARBAND(player_character) then
+							can_recruit = true
+						elseif warband == RECRUITER_OF_WARBAND(player_character) then
+							can_recruit = true
+						end
+
+						local target = DATA.warband_get_units_target(warband, v)
+						local current = DATA.warband_get_units_current(warband, v)
 
 						local dec_but = rect:subrect(0,0, rect.height, rect.height, "left", "center")
 						if can_recruit then
 							if target > 0 then
 								if ut.icon_button(ASSETS.icons['minus.png'], dec_but, "Decrease the number of units to recrut by one.") then
-									warband.units_target[v] = math.max(0, target - 1)
+									DATA.warband_set_units_target(warband, v, math.max(0, target - 1))
 								end
 							else
 								ut.icon_button(ASSETS.icons['minus.png'], dec_but, "No unit to disband!", false)
@@ -1151,14 +1186,14 @@ function window.draw(gamescene)
 						ui.centered_text(tostring(current) .. '/' .. tostring(target), rect:subrect(0, 0, rect.width - 2 * rect.height, rect.height, "center", "center"))
 
 
-						local current_budget = warband:monthly_budget()
-						local target_budget = warband:predict_upkeep()
+						local current_budget = warband_utils.monthly_budget(warband)
+						local target_budget = warband_utils.predict_upkeep(warband)
 
 						local inc_but = rect:subrect(0,0, rect.height, rect.height, "right", "center")
 						if can_recruit then
-							if current_budget > target_budget + v.upkeep then
+							if current_budget > target_budget + DATA.unit_type_get_upkeep(v) then
 								if ut.icon_button(ASSETS.icons['plus.png'], inc_but, "Increase the number of units to recrut by one.") then
-									warband.units_target[v] = math.max(0, target + 1)
+									DATA.warband_set_units_target(warband, v, math.max(0, target + 1))
 								end
 							else
 								ut.icon_button(ASSETS.icons['plus.png'], inc_but, "Not enough military funding!", false)
@@ -1166,7 +1201,7 @@ function window.draw(gamescene)
 						end
 					end,
 					width = end_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
 						return warband.units_current[v] or 0
 					end
@@ -1180,27 +1215,36 @@ function window.draw(gamescene)
 	---@param rect Rect
 	local function draw_warrior_panel(rect)
 
+		---@type table<POP, unit_type_id>
+		local units = {}
+
+		DATA.for_each_warband_unit_from_warband(warband, function (item)
+			local unit_type = DATA.warband_unit_get_type(item)
+			local pop = DATA.warband_unit_get_unit(item)
+			units[pop] = unit_type
+		end)
+
 		-- CURRENT WARRIORS PANEL
 		type_list_state = list_widget(
 			rect,
-			warband.units,
+			units,
 			{
 				{
 					header = ".",
 					render_closure = render_unit_icon,
 					width = icon_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return v.name
+						return DATA.unit_type_get_name(v)
 					end
 				},
 				{
 					header = ".",
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
-						if k:is_character() then
+						if IS_CHARACTER(k) then
 							ib.icon_button_to_character(gamescene, k, rect)
 						else
 							require "game.scenes.game.widgets.portrait"(rect, k)
@@ -1208,75 +1252,75 @@ function window.draw(gamescene)
 					end,
 					width = icon_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k.race.name
+						return DATA.race_get_name(RACE(k))
 					end
 				},
 				{
 					header = "name",
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
-						ui.text(k.name, rect, "center", "center")
+						ui.text(NAME(k), rect, "center", "center")
 					end,
 					width = name_width - stat_width - icon_width * 5.5,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k.name
+						return NAME(k)
 					end
 				},
 				{
 					header = "sex",
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						local f = "m"
-						if k.female then
+						if DATA.pop_get_female(k) then
 							f = "f"
 						end
 						ui.text(f, rect, "center", "center")
 					end,
 					width = icon_width * 1.5,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return tostring(k.female)
+						return tostring(DATA.pop_get_female(k))
 					end
 				},
 				{
 					header = "age",
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
-						ui.text(tostring(k.age), rect, "center", "center")
+						ui.text(tostring(AGE(k)), rect, "center", "center")
 					end,
 					width = icon_width * 2,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k.age
+						return AGE(k)
 					end
 				},
 				{
 					header = "savings",
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						ut.money_entry(
 							"",
-							k.savings,
+							SAVINGS(k),
 							rect,
 							"Savings of this character. "
 							.. "Characters spend them on buying food and other commodities."
 						)
 					end,
 					width = stat_width,
-					---@param v UnitType
+					---@param v unit_type_id
 					---@param k POP
 					value = function (k, v)
-						return k.savings
+						return SAVINGS(k)
 					end
 				},
 				{
@@ -1284,9 +1328,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_health,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_health(v)
+						return pop_utils.get_health(k, v)
 					end
 				},
 				{
@@ -1294,9 +1338,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_attack,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_attack(v)
+						return pop_utils.get_attack(k, v)
 					end
 				},
 				{
@@ -1304,9 +1348,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_armor,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_armor(v)
+						return pop_utils.get_armor(k, v)
 					end
 				},
 				{
@@ -1314,9 +1358,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_speed,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_speed(v)
+						return pop_utils.get_speed(k, v)
 					end
 				},
 				{
@@ -1324,9 +1368,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_spotting,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_spotting(v)
+						return pop_utils.get_spotting(k, v)
 					end
 				},
 				{
@@ -1334,9 +1378,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_visibility,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_visibility(v)
+						return pop_utils.get_visibility(k, v)
 					end
 				},
 				{
@@ -1344,9 +1388,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_supply_use,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k:get_supply_use(v) / 30
+						return pop_utils.get_supply_use(k, v) / 30
 					end
 				},
 				{
@@ -1354,9 +1398,9 @@ function window.draw(gamescene)
 					render_closure = render_unit_hauling,
 					width = stat_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return  k:get_supply_capacity(v)
+						return  pop_utils.get_supply_capacity(k, v)
 					end
 				},
 				{
@@ -1364,27 +1408,34 @@ function window.draw(gamescene)
 					render_closure = ut.render_pop_satsifaction,
 					width = end_width - icon_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k.basic_needs_satisfaction
+						return DATA.pop_get_basic_needs_satisfaction(k)
 					end
 				},
 				{
 					header = "X",
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					render_closure = function (rect, k, v)
 						local icon = ASSETS.icons["cancel.png"]
 						local text = "You do not have any control over this warband."
-						local can_recruit = player_character and (warband == player_character.leading_warband
-							or warband == player_character.recruiter_for_warband)
+						local can_recruit = false
+						if (player_character == INVALID_ID) then
+
+						elseif warband == LEADER_OF_WARBAND(player_character) then
+							can_recruit = true
+						elseif warband == RECRUITER_OF_WARBAND(player_character) then
+							can_recruit = true
+						end
+
 						if can_recruit then
 							text = "Unrecruit this warrior!?"
 						end
-						if player_character then
+						if player_character ~= INVALID_ID then
 							if ut.icon_button(icon, rect, text, can_recruit) then
 								-- check if trying to fire commander first
-								if warband.commander and warband.commander == k then
+								if commander ~= INVALID_ID and commander == k then
 									warband:unset_commander()
 								else
 									warband:fire_unit(k)
@@ -1394,9 +1445,9 @@ function window.draw(gamescene)
 					end,
 					width = icon_width,
 					---@param k POP
-					---@param v UnitType
+					---@param v unit_type_id
 					value = function (k, v)
-						return k.name
+						return NAME(k)
 					end
 				},
 			},
