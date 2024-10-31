@@ -215,7 +215,7 @@ function window.draw(game)
     -- character description
     local s = ""
 
-    local loyalty = DATA.get_loyalty_from_bottom(character_id)
+    local loyalty = LOYAL_TO(character.id)
 
     -- loyalty text
     if loyalty == INVALID_ID then
@@ -225,15 +225,13 @@ function window.draw(game)
         end
         s = s .. "\n " .. character.name .. " is loyal to " .. ending .. "."
     else
-        local loyal_to = DATA.loyalty_get_top(loyalty)
-        s = s .. "\n " .. character.name .. " is loyal to " .. DATA.pop_get_name(loyal_to) .. "."
+        s = s .. "\n " .. character.name .. " is loyal to " .. DATA.pop_get_name(loyalty) .. "."
     end
 
     -- successor text
-    local succession = DATA.get_succession_from_successor_of(character_id)
+    local succession = DATA.succession_get_successor(DATA.get_succession_from_successor_of(character_id))
     if succession ~= INVALID_ID then
-        local successor = DATA.succession_get_successor(succession)
-        s = s .. "\n " .. DATA.pop_get_name(successor) .. " is the designated successor of " .. character.name .. "."
+        s = s .. "\n " .. DATA.pop_get_name(succession) .. " is the designated successor of " .. character.name .. "."
     else
         s = s .. "\n " .. character.name .. " has not designated a successor yet."
     end
@@ -280,11 +278,11 @@ function window.draw(game)
     ui.centered_text("Decisions:", decisions_label_panel)
 
     -- First, we need to check if the player is controlling a realm
-    if WORLD.player_character then
+    if WORLD.player_character ~= INVALID_ID then
         selected_decision, decision_target_primary, decision_target_secondary = require "game.scenes.game.widgets.decision-selection-character"(
             decisions_panel,
             "character",
-            character,
+            character.id,
             selected_decision
         )
     else
