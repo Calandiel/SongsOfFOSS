@@ -59,12 +59,12 @@ function gbb.run(world)
 			world.silt[ti] = world.silt[ti] + math.floor(silt_quantity[ti])
 			world.clay[ti] = world.clay[ti] + math.floor(clay_quantity[ti])
 			world.mineral_richness[ti] = world.mineral_richness[ti] + math.floor(mineral_quantity[ti])
-
-			sand_quantity[ti] = 0
-			silt_quantity[ti] = 0
-			clay_quantity[ti] = 0
-			mineral_quantity[ti] = 0
 		end)
+
+		world:fill_ffi_array(clay_quantity, 0)
+		world:fill_ffi_array(silt_quantity, 0)
+		world:fill_ffi_array(sand_quantity, 0)
+		world:fill_ffi_array(mineral_quantity, 0)
 	end
 end
 
