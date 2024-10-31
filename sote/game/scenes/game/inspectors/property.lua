@@ -4,11 +4,8 @@ local ui = require "engine.ui";
 local ut = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
-local trade_good = require "game.raws.raws-utils".trade_good
+local production_method_utils = require "game.raws.production-methods"
 
-local use_case = require "game.raws.raws-utils".trade_good_use_case
-
-local economy_values = require "game.raws.values.economy"
 local economy_effects = require "game.raws.effects.economy"
 
 local inspector = {}
@@ -136,6 +133,7 @@ function inspector.draw(gamescene)
         },
         {
             header = "subsidy",
+            ---@param rect Rect
             ---@param v Building
             render_closure = function (rect, k, v)
                 local dec_rect = rect:subrect(0, 0, base_unit, base_unit, "left", "up")
@@ -179,91 +177,78 @@ function inspector.draw(gamescene)
         },
         {
             header = "inputs",
+            ---@param rect Rect
+            ---@param k any
             ---@param v Building
             render_closure = function(rect, k, v)
                 local input_rect = rect:subrect(0, 0, rect.height * 3, rect.height, "left", "up")
-
-                local total_cost = 0
-                local tooltip = ""
-
-                for key, value in pairs(v.amount_of_inputs) do
-                    local good = use_case(key)
-                    ut.generic_number_field(
-                        good.icon,
-                        -value,
-                        input_rect,
-                        nil,
-                        ut.NUMBER_MODE.BALANCE,
-                        ut.NAME_MODE.ICON,
-                        true,
-                        false
-                    )
-                    if value > 0 then
-                        tooltip = tooltip .. ut.to_fixed_point2(value) .. " (" ..  ut.to_fixed_point2(v.spent_on_inputs[key] or 0) .. MONEY_SYMBOL .. "). "
+                local total_spent = 0
+                for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+                    local input = DATA.building_get_spent_on_inputs_use(v, i)
+                    if input == INVALID_ID then
+                        break
                     end
 
-                    total_cost = total_cost + (v.spent_on_inputs[key] or 0)
-                    if total_cost > 0 then tooltip = "Total consumed: " .. tooltip .. " " end
-
-                    input_rect.x = input_rect.x + input_rect.width
+                    total_spent = total_spent + DATA.building_get_spent_on_inputs_use(v, i)
                 end
-                ui.tooltip(tooltip .. " All inputs cost a total of " .. ut.to_fixed_point2(total_cost) .. MONEY_SYMBOL, rect)
+                ut.balance_entry(
+                    "",
+                    total_spent,
+                    input_rect
+                )
             end,
             width = base_unit * 9,
             ---@param v Building
             value = function(k, v)
 
-                local total_estimated_cost = 0
+                local total_spent = 0
+                for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+                    local input = DATA.building_get_spent_on_inputs_use(v, i)
+                    if input == INVALID_ID then
+                        break
+                    end
 
-                for key, value in pairs(v.spent_on_inputs) do
-                    total_estimated_cost = total_estimated_cost + value
+                    total_spent = total_spent + DATA.building_get_spent_on_inputs_use(v, i)
                 end
 
-                return total_estimated_cost
+                return total_spent
             end
         },
         {
             header = "outputs",
             ---@param v Building
             render_closure = function(rect, k, v)
-                local output_rect = rect:subrect(0, 0, rect.height * 3, rect.height, "left", "up")
-
+                local input_rect = rect:subrect(0, 0, rect.height * 3, rect.height, "left", "up")
                 local total_earn = 0
-                local tooltip = ""
-
-                for key, value in pairs(v.amount_of_outputs) do
-                    local good = trade_good(key)
-                    ut.generic_number_field(
-                        good.icon,
-                        value,
-                        output_rect,
-                        nil,
-                        ut.NUMBER_MODE.BALANCE,
-                        ut.NAME_MODE.ICON,
-                        nil,
-                        false
-                    )
-                    if value > 0 then
-                        tooltip = tooltip .. ut.to_fixed_point2(value) .. " (" ..  ut.to_fixed_point2(v.earn_from_outputs[key] or 0) .. MONEY_SYMBOL .. "). "
+                for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+                    local output = DATA.building_get_earn_from_outputs_good(v, i)
+                    if output == INVALID_ID then
+                        break
                     end
 
-                    total_earn = total_earn + (v.earn_from_outputs[key] or 0)
-                    if total_earn > 0 then tooltip = "Total produced: " .. tooltip .. " " end
-                    output_rect.x = output_rect.x + output_rect.width
+                    total_earn = total_earn + DATA.building_get_earn_from_outputs_amount(v, i)
                 end
-                ui.tooltip(tooltip .. "All outputs earned a total of " .. ut.to_fixed_point2(total_earn) .. MONEY_SYMBOL, rect)
+                ut.balance_entry(
+                    "",
+                    total_earn,
+                    input_rect
+                )
             end,
             width = base_unit * 9,
             ---@param v Building
             value = function(k, v)
 
-                local total_estimated_cost = 0
+                local total_earn = 0
+                for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD do
+                    local output = DATA.building_get_earn_from_outputs_good(v, i)
+                    if output == INVALID_ID then
+                        break
+                    end
 
-                for key, value in pairs(v.earn_from_outputs) do
-                    total_estimated_cost = total_estimated_cost + value
+                    total_earn = total_earn + DATA.building_get_earn_from_outputs_amount(v, i)
                 end
 
-                return total_estimated_cost
+                return total_earn
             end
         },
         {
@@ -273,7 +258,7 @@ function inspector.draw(gamescene)
             value = function(k, v)
                 ---@type Building
                 v = v
-                return v.province.name
+                return PROVINCE_NAME(BUILDING_PROVINCE(v))
             end
         },
         {
@@ -281,8 +266,8 @@ function inspector.draw(gamescene)
             ---@param v Building
             render_closure = function(rect, k, v)
 
-                local employed = tabb.size(v.workers)
-                local total_needed = v.type.production_method:total_jobs()
+                local employed = #DATA.get_employment_from_building(v)
+                local total_needed =  production_method_utils.total_jobs(DATA.building_type_get_production_method(DATA.building_get_current_type(v)))
 
                 ut.data_entry(
                     "",
@@ -294,7 +279,7 @@ function inspector.draw(gamescene)
             value = function(k, v)
             ---@type Building
                 v = v
-                return tabb.size(v.workers)
+                return #DATA.get_employment_from_building(v)
             end
         },
         {
@@ -309,7 +294,7 @@ function inspector.draw(gamescene)
             value = function(k, v)
                 ---@type Building
                 v = v
-                return v.type.description
+                return DATA.building_type_get_description(DATA.building_get_current_type(v))
             end,
             active = true
         },
@@ -320,10 +305,10 @@ function inspector.draw(gamescene)
 
     local player = WORLD.player_character
 
-    if player then
-        for key, value in pairs(player.owned_buildings) do
-            table.insert(buildings_data, value)
-        end
+    if player ~= INVALID_ID then
+        DATA.for_each_ownership_from_owner(player, function (item)
+            table.insert(buildings_data, DATA.ownership_get_building(item))
+        end)
     end
 
     ut.table(rect, buildings_data, columns, state)
