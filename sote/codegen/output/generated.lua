@@ -12420,7 +12420,7 @@ DATA.economy_reason_set_name(index_economy_reason, "Welfare")
 DATA.economy_reason_set_description(index_economy_reason, "Welfare")
 index_economy_reason = DATA.create_economy_reason()
 DATA.economy_reason_set_name(index_economy_reason, "Raid")
-DATA.economy_reason_set_description(index_economy_reason, "Eaid")
+DATA.economy_reason_set_description(index_economy_reason, "Raid")
 index_economy_reason = DATA.create_economy_reason()
 DATA.economy_reason_set_name(index_economy_reason, "Donation")
 DATA.economy_reason_set_description(index_economy_reason, "Donation")
@@ -15882,7 +15882,7 @@ end
 ---@param index number valid index
 ---@param value biome_id valid biome_id
 function DATA.resource_set_required_biome(resource_id, index, value)
-    DCON.dcon_resource_set_required_biome(resource_id - 1, index - 1, value)
+    DCON.dcon_resource_set_required_biome(resource_id - 1, index - 1, value - 1)
 end
 ---@param resource_id resource_id valid resource id
 ---@param index number valid
@@ -15895,7 +15895,7 @@ end
 ---@param index number valid index
 ---@param value bedrock_id valid bedrock_id
 function DATA.resource_set_required_bedrock(resource_id, index, value)
-    DCON.dcon_resource_set_required_bedrock(resource_id - 1, index - 1, value)
+    DCON.dcon_resource_set_required_bedrock(resource_id - 1, index - 1, value - 1)
 end
 ---@param resource_id resource_id valid resource id
 ---@return number base_frequency number of tiles per which this resource is spawned
@@ -18085,7 +18085,7 @@ end
 ---@param index number valid index
 ---@param value biome_id valid biome_id
 function DATA.technology_set_required_biome(technology_id, index, value)
-    DCON.dcon_technology_set_required_biome(technology_id - 1, index - 1, value)
+    DCON.dcon_technology_set_required_biome(technology_id - 1, index - 1, value - 1)
 end
 ---@param technology_id technology_id valid technology id
 ---@param index number valid
@@ -18111,7 +18111,7 @@ end
 ---@param index number valid index
 ---@param value resource_id valid resource_id
 function DATA.technology_set_required_resource(technology_id, index, value)
-    DCON.dcon_technology_set_required_resource(technology_id - 1, index - 1, value)
+    DCON.dcon_technology_set_required_resource(technology_id - 1, index - 1, value - 1)
 end
 ---@param technology_id technology_id valid technology id
 ---@return job_id associated_job The job that is needed to perform this research. Without it, the research odds will be significantly lower. We'll be using this to make technology implicitly tied to player decisions
@@ -18777,7 +18777,7 @@ end
 ---@param index number valid index
 ---@param value biome_id valid biome_id
 function DATA.building_type_set_required_biome(building_type_id, index, value)
-    DCON.dcon_building_type_set_required_biome(building_type_id - 1, index - 1, value)
+    DCON.dcon_building_type_set_required_biome(building_type_id - 1, index - 1, value - 1)
 end
 ---@param building_type_id building_type_id valid building_type id
 ---@param index number valid
@@ -18790,7 +18790,7 @@ end
 ---@param index number valid index
 ---@param value resource_id valid resource_id
 function DATA.building_type_set_required_resource(building_type_id, index, value)
-    DCON.dcon_building_type_set_required_resource(building_type_id - 1, index - 1, value)
+    DCON.dcon_building_type_set_required_resource(building_type_id - 1, index - 1, value - 1)
 end
 ---@param building_type_id building_type_id valid building_type id
 ---@return boolean unique only one per province!

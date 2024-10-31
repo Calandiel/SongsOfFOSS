@@ -1385,7 +1385,7 @@ function gam.draw()
 	local tile_data_viewable = true
 	if gam.clicked_tile_id ~= INVALID_ID then
 		if WORLD.player_character ~= INVALID_ID then
-			local realm = WORLD:player_province()
+			local realm = WORLD:player_realm()
 			local province = WORLD:player_province()
 			local pro = tile.province(gam.clicked_tile_id)
 			if realm then
@@ -2465,7 +2465,8 @@ function gam._refresh_map_mode(async_flag)
 		DATA.for_each_province(function (province)
 			-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 			local can_set = is_known(province)
-			DATA.for_each_tile_province_membership_from_province(province, function (tile_id)
+			DATA.for_each_tile_province_membership_from_province(province, function (tile_membership_id)
+				local tile_id = DATA.tile_province_membership_get_tile(tile_membership_id)
 				gam.map_update_progress = gam.map_update_progress + 1
 
 				if async_flag and gam.map_update_progress % 1000 == 0 then

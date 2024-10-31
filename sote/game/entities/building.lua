@@ -6,7 +6,7 @@ bld.Building = {}
 ---@return building_id
 function bld.Building.new(province, building_type)
 	local new_id = DATA.create_building()
-	DATA.building_set_type(new_id, building_type)
+	DATA.building_set_current_type(new_id, building_type)
 	DATA.force_create_building_location(province, new_id)
 	return new_id
 end

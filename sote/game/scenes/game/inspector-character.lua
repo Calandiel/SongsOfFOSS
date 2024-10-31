@@ -168,26 +168,24 @@ function window.draw(game)
     end
 
     local warband_panel = location_panel:subrect(0, unit * 2, location_panel.width, location_panel.height, "left", "up")
-    local warband = INVALID_ID
-    local leader_of = DATA.get_warband_leader_from_leader(character_id)
-    local commander_of = DATA.get_warband_commander_from_commander(character_id)
-    local recruiter_of = DATA.get_warband_recruiter_from_recruiter(character_id)
-    local unit_of = DATA.get_warband_unit_from_unit(character_id)
+    local warband = DATA.warband_leader_get_warband(DATA.get_warband_leader_from_leader(character_id))
+    local commander_of = DATA.warband_commander_get_warband(DATA.get_warband_commander_from_commander(character_id))
+    local recruiter_of = DATA.warband_recruiter_get_warband(DATA.get_warband_recruiter_from_recruiter(character_id))
+    local unit_of = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(character_id))
 
-    if leader_of ~= INVALID_ID then
-        warband = DATA.warband_leader_get_warband(leader_of)
+    if warband ~= INVALID_ID then
         local name = DATA.warband_get_name(warband)
         ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a leader of " .. name .. ".")
     elseif commander_of ~= INVALID_ID then
-        warband = DATA.warband_commander_get_warband(commander_of)
+        warband = commander_of
         local name = DATA.warband_get_name(warband)
         ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a commander of " .. name .. ".")
     elseif recruiter_of ~= INVALID_ID then
-        warband = DATA.warband_recruiter_get_warband(recruiter_of)
+        warband = recruiter_of
         local name = DATA.warband_get_name(warband)
         ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a recruiter of " .. name .. ".")
     elseif unit_of ~= INVALID_ID then
-        warband = DATA.warband_unit_get_warband(unit_of)
+        warband = unit_of
         local name = DATA.warband_get_name(warband)
         ib.text_button_to_warband(game, warband, warband_panel, name, "This character is a unit of " .. name .. ".")
     else

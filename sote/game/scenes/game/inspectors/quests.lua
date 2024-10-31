@@ -83,11 +83,11 @@ local columns = {
 	{
 		header = "Target",
 		render_closure = function(rect, k, v)
-			ui.left_text(v.target.name, rect)
+			ui.left_text(PROVINCE_NAME(v.target), rect)
 		end,
 		width = unit * 6,
 		value = function(k, v)
-			return v.target.name
+			return PROVINCE_NAME(v.target)
 		end
 	},
 	{
@@ -111,19 +111,22 @@ local columns = {
 			---@type string
 			local tooltip = "Add reward to this quest: " .. tostring(REWARD_AMOUNT) .. ". \n"
 
-			local can_invest = player_character.savings > REWARD_AMOUNT
+			local can_invest = SAVINGS(player_character) > REWARD_AMOUNT
+
+			local realm = REALM(player_character)
+
 
 			if ut.money_button("", REWARD_AMOUNT, rect, tooltip, can_invest) then
 				if v.quest_type == "explore" then
-					player_character.realm.quests_explore[v.target] = player_character.realm.quests_explore[v.target] +
+					DATA.realm_get_quests_explore(realm)[v.target] = DATA.realm_get_quests_explore(realm)[v.target] +
 					REWARD_AMOUNT
 				end
 				if v.quest_type == "raid" then
-					player_character.realm.quests_raid[v.target] = player_character.realm.quests_raid[v.target] +
+					DATA.realm_get_quests_raid(realm)[v.target] = DATA.realm_get_quests_raid(realm)[v.target] +
 					REWARD_AMOUNT
 				end
 				if v.quest_type == "patrol" then
-					player_character.realm.quests_patrol[v.target] = player_character.realm.quests_patrol[v.target] +
+					DATA.realm_get_quests_patrol(realm)[v.target] = DATA.realm_get_quests_patrol(realm)[v.target] +
 					REWARD_AMOUNT
 				end
 
@@ -178,8 +181,10 @@ function window.draw(game)
 		REWARD_AMOUNT = 1
 	end
 
+	local realm = REALM(character)
+
 	local index = 0
-	for target, reward in pairs(character.realm.quests_explore) do
+	for target, reward in pairs(DATA.realm_get_quests_explore(realm)) do
 		if reward > 0 then
 			data_blob[tostring(index)] = {
 				reward = reward,
@@ -189,7 +194,7 @@ function window.draw(game)
 		end
 		index = index + 1
 	end
-	for target, reward in pairs(character.realm.quests_raid) do
+	for target, reward in pairs(DATA.realm_get_quests_raid(realm)) do
 		if reward > 0 then
 			data_blob[tostring(index)] = {
 				reward = reward,
@@ -199,7 +204,7 @@ function window.draw(game)
 		end
 		index = index + 1
 	end
-	for target, reward in pairs(character.realm.quests_patrol) do
+	for target, reward in pairs(DATA.realm_get_quests_patrol(realm)) do
 		if reward > 0 then
 			data_blob[tostring(index)] = {
 				reward = reward,

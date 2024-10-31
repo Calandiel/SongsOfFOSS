@@ -34,6 +34,13 @@ function PROVINCE(pop_id)
 end
 
 ---commenting
+---@param building_id building_id
+---@return province_id
+function BUILDING_PROVINCE(building_id)
+	return DATA.building_location_get_location(DATA.get_building_location_from_building(building_id))
+end
+
+---commenting
 ---@param province province_id
 ---@return realm_id
 function PROVINCE_REALM(province)

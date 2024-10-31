@@ -682,13 +682,14 @@ function prov.Province.can_build(province, funds, building, overseer, public)
 		end
 
 		resource_check_passed = false
+		-- print("check for resource")
+		-- print("required res is " .. resource)
 		for _, tile_membership_id in pairs(DATA.get_tile_province_membership_from_province(province)) do
 			local tile_id = DATA.tile_province_membership_get_tile(tile_membership_id)
-			if DATA.tile_get_resource(tile_id) then
-				if DATA.tile_get_resource(tile_id) == resource then
-					resource_check_passed = true
-					goto RESOURCE_CHECK_ENDED
-				end
+			-- print(DATA.tile_get_resource(tile_id))
+			if DATA.tile_get_resource(tile_id) == resource then
+				resource_check_passed = true
+				goto RESOURCE_CHECK_ENDED
 			end
 		end
 	end

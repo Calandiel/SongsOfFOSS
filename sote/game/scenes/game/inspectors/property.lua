@@ -70,7 +70,13 @@ function inspector.draw(gamescene)
     ---@param k any
     ---@param v Building
     local function render_province(rect, k, v)
-        ib.text_button_to_province(gamescene, v.province, rect, v.province.name, "This building is location in " .. v.province.name .. ".")
+        ib.text_button_to_province(
+            gamescene,
+            BUILDING_PROVINCE(v),
+            rect,
+            PROVINCE_NAME(BUILDING_PROVINCE(v)),
+            "This building is location in " .. PROVINCE_NAME(BUILDING_PROVINCE(v)) .. "."
+        )
     end
 
     ui.panel(rect)
@@ -90,12 +96,12 @@ function inspector.draw(gamescene)
             header = ".",
             ---@param v Building
             render_closure = function(rect, k, v)
-                ui.image(ASSETS.get_icon(v.type.icon), rect)
+                ui.image(ASSETS.get_icon(DATA.building_type_get_icon(DATA.building_get_current_type(v))), rect)
             end,
             width = base_unit * 1,
             ---@param v Building
             value = function(k, v)
-                return v.type.description
+                return DATA.building_type_get_description(DATA.building_get_current_type(v))
             end
         },
         {
@@ -106,7 +112,7 @@ function inspector.draw(gamescene)
             width = base_unit * 6,
             ---@param v Building
             value = function(k, v)
-                return v.type.description
+                return DATA.building_type_get_description(DATA.building_get_current_type(v))
             end
         },
         {
@@ -115,7 +121,7 @@ function inspector.draw(gamescene)
             render_closure = function(rect, k, v)
                 ut.money_entry(
                     "",
-                    v.last_donation_to_owner,
+                    DATA.building_get_last_donation_to_owner(v),
                     rect,
                     "Your share is "
                     .. ut.to_fixed_point2(DISPLAY_INCOME_OWNER_RATIO)
@@ -125,7 +131,7 @@ function inspector.draw(gamescene)
             width = base_unit * 3,
             ---@param v Building
             value = function(k, v)
-                return v.last_donation_to_owner
+                return DATA.building_get_last_donation_to_owner(v)
             end
         },
         {
@@ -141,21 +147,21 @@ function inspector.draw(gamescene)
                     "Decrease next month's subsidies by ".. ut.to_fixed_point2(-BUILDING_SUBSIDY_AMOUNT).." per worker."
                     .. "\nPress Ctrl and/or Shift to modify amount."
                 ) then
-                    v.subsidy = v.subsidy - BUILDING_SUBSIDY_AMOUNT
+                    DATA.building_inc_subsidy(v, -BUILDING_SUBSIDY_AMOUNT)
                 end
                 if ut.icon_button(ASSETS.icons["plus.png"], inc_rect,
                     "Increase next month's subsidies by " .. ut.to_fixed_point2(BUILDING_SUBSIDY_AMOUNT) .. " per worker."
                     .. "\nPress Ctrl and/or Shift to modify amount."
                 ) then
-                    v.subsidy = v.subsidy + BUILDING_SUBSIDY_AMOUNT
+                    DATA.building_inc_subsidy(v, BUILDING_SUBSIDY_AMOUNT)
                 end
 
-                ut.money_entry("", v.subsidy, value_rect, "Current subsidy per worker. Paid monthly to attract workers.", true)
+                ut.money_entry("", DATA.building_get_subsidy(v), value_rect, "Current subsidy per worker. Paid monthly to attract workers.", true)
             end,
             width = base_unit * 5,
             ---@param v Building
             value = function (k, v)
-                return v.subsidy
+                return DATA.building_get_subsidy(v)
             end,
             active = true
         },
@@ -163,12 +169,12 @@ function inspector.draw(gamescene)
             header = "income",
             ---@param v Building
             render_closure = function(rect, k, v)
-                ut.money_entry("", v.last_income, rect)
+                ut.money_entry("", DATA.building_get_last_income(v), rect)
             end,
             width = base_unit * 3,
             ---@param v Building
             value = function(k, v)
-                return v.last_income
+                return DATA.building_get_last_income(v)
             end
         },
         {

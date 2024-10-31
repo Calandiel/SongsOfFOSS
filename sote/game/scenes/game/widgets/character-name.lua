@@ -12,20 +12,19 @@ local function name(rect, character_id)
     local title = DATA.pop_get_name(character_id) .. "\n"
     if realm ~= INVALID_ID then
 
-        local overseer = DATA.get_realm_overseer_from_overseer(character_id)
-        if overseer ~= INVALID_ID then
+        local overseer_of = DATA.realm_overseer_get_realm(DATA.get_realm_overseer_from_overseer(character_id))
+        if overseer_of ~= INVALID_ID then
             title = title .. " Overseer,"
         end
 
-        local collector = DATA.get_tax_collector_from_collector(character_id)
-        if collector ~= INVALID_ID then
+        local collector_of = DATA.tax_collector_get_realm(DATA.get_tax_collector_from_collector(character_id))
+        if collector_of ~= INVALID_ID then
             title = title .. " Tribute Collector,"
         end
 
-        local guard = DATA.get_realm_guard_from_realm(realm)
+        local guard = DATA.realm_guard_get_guard(DATA.get_realm_guard_from_realm(realm))
         if (guard ~= INVALID_ID) then
-            local warband = DATA.realm_guard_get_guard(guard)
-            local recruiter_rel = DATA.get_warband_recruiter_from_warband(warband)
+            local recruiter_rel = DATA.get_warband_recruiter_from_warband(guard)
             local recruiter = DATA.warband_recruiter_get_recruiter(recruiter_rel)
             if character_id == recruiter then
                 title = title .. " Protector,"

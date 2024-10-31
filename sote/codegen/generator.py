@@ -359,6 +359,11 @@ class Field:
                 return result
             else:
                 index = "index - 1"
+
+                value_suffix = ""
+                if self.value.lsp_type in REGISTERED_ID_NAMES:
+                    value_suffix = " - 1"
+
                 if self.value.c_type in REGISTERED_STRUCTS:
                     result = ""
                     struct = REGISTERED_STRUCTS[self.value.c_type]
@@ -368,7 +373,7 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid index\n" \
                         f"---@param value {field.value.lsp_type} valid {field.value.lsp_type}\n" \
                         f"function {self.setter_name()}_{field.name}({arg}, index, value)\n" \
-                        f"    DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, {index})[0].{field.name} = value\n"\
+                        f"    DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, {index})[0].{field.name} = value{value_suffix}\n"\
                         f"end\n"
                         if field.value.lsp_type == "number":
                             result += f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
@@ -384,7 +389,7 @@ class Field:
                         f"---@param index {self.index.lsp_type} valid index\n" \
                         f"---@param value {self.value.lsp_type} valid {self.value.lsp_type}\n" \
                         f"function {self.setter_name()}({arg}, index, value)\n" \
-                        f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, {index}, value)\n"\
+                        f"    DCON.dcon_{self.prefix}_set_{self.name}({arg} - 1, {index}, value{value_suffix})\n"\
                         f"end\n"
                 if self.value.lsp_type == "number":
                     result +=f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
