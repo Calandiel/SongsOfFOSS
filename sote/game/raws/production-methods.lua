@@ -20,7 +20,7 @@ function ProductionMethod:new(o)
 	local new_id = DATA.create_production_method()
 	DATA.setup_production_method(new_id, o)
 
-	local job_index = 0
+	local job_index = 1
 	DATA.for_each_job(function (item)
 		if o.jobs[item] == nil then
 			return
@@ -30,14 +30,14 @@ function ProductionMethod:new(o)
 		job_index = job_index + 1
 	end)
 
-	local input_index = 0
+	local input_index = 1
 	for use_case, amount in pairs(o.inputs) do
 		DATA.production_method_set_inputs_amount(new_id, input_index, amount)
 		DATA.production_method_set_inputs_use(new_id, input_index, use_case)
 		input_index = input_index + 1
 	end
 
-	local output_index = 0
+	local output_index = 1
 	for good, amount in pairs(o.outputs) do
 		DATA.production_method_set_outputs_amount(new_id, input_index, amount)
 		DATA.production_method_set_outputs_good(new_id, input_index, good)

@@ -2,6 +2,7 @@ local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
 local tile_utils = require "game.entities.tile"
+local province_utils = require "game.entities.province".Province
 
 local ev = require "game.raws.values.economy"
 local ee = require "game.raws.effects.economy"
@@ -22,41 +23,46 @@ local function macrobuilder(gam, tile_id, rect, x, y, size)
 		return
 	end
 	local province = tile_utils.province(tile_id)
-	if player_character.province ~= province then
+	if PROVINCE(player_character) ~= province then
 		return
 	end
 	---@type BuildingType
 	local building_type = gam.selected.macrobuilder_building_type
 
-	if building_type then
+	if building_type ~= INVALID_ID then
 		local public_flag = false
-		local funds = player_character.savings
-		---@type Character | nil
+		local funds = SAVINGS(player_character)
+		---@type Character
 		local owner = player_character
-		---@type Character | nil
+		---@type Character
 		local overseer = player_character
 
+		local realm = PROVINCE_REALM(province)
+
 		if gam.macrobuilder_public_mode then
-			overseer = pv.overseer(province.realm)
+			overseer = pv.overseer(realm)
 			public_flag = true
-			funds = player_character.realm.budget.treasury
-			owner = nil
+			funds = DATA.realm_get_budget_treasury(REALM(player_character))
+			owner = INVALID_ID
 		end
 
-		if not province:can_build(9999, building_type, overseer, public_flag) then
+		if not province_utils.can_build(province, 9999, building_type, overseer, public_flag) then
 			return
 		end
 
-		local icon = building_type.icon
-		local name = building_type.name
+		local icon = DATA.building_type_get_icon(building_type)
+		local name = DATA.building_type_get_name(building_type)
 
 		local amount = 0
 
-		for _, building in pairs(province.buildings) do
-			if building.type == building_type then
+
+		DATA.for_each_building_location_from_location(province, function (item)
+			local building = DATA.building_location_get_building(item)
+			local btype = DATA.building_get_current_type(building)
+			if btype == building_type then
 				amount = amount + 1
 			end
-		end
+		end)
 
 		local unit = size * 1.5
 

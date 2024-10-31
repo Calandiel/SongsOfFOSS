@@ -103,8 +103,9 @@ function inspector.draw(gamescene)
         },
         {
             header = "name",
+            ---@param v Building
             render_closure = function(rect, k, v)
-                ib.text_button_to_building(gamescene, v, rect, v.type.name)
+                ib.text_button_to_building(gamescene, v, rect, DATA.building_type_get_description(DATA.building_get_current_type(v)))
             end,
             width = base_unit * 6,
             ---@param v Building

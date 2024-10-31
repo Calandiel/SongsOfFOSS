@@ -30,7 +30,7 @@ local function init_state(base_unit)
 end
 
 
----@class ItemData
+---@class (exact) ItemData
 ---@field name string
 ---@field item trade_good_id
 ---@field r number
@@ -53,7 +53,7 @@ end
 ---@param gam GameScene
 ---@return function
 return function(province, ui_panel, base_unit, gam)
-    ---@type TableColumn[]
+    ---@type TableColumn<ItemData>[]
     local columns = {
         {
             header = ".",
@@ -241,6 +241,10 @@ return function(province, ui_panel, base_unit, gam)
         },
         {
             header = "Buy " .. TRADE_AMOUNT,
+            ---commenting
+            ---@param rect Rect
+            ---@param k any
+            ---@param v ItemData
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
                 if player_character == INVALID_ID then
@@ -255,14 +259,14 @@ return function(province, ui_panel, base_unit, gam)
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
-                local can_buy, reasons = et.can_buy(player_character, v.tag, TRADE_AMOUNT)
+                local can_buy, reasons = et.can_buy(player_character, v.item, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
                     ---@type string
                     tooltip = tooltip .. reason .. "\n"
                 end
 
                 if ut.text_button("+", rect, tooltip, can_buy and valid_province) then
-                    ef.buy(player_character, v.tag, TRADE_AMOUNT)
+                    ef.buy(player_character, v.item, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
@@ -275,6 +279,9 @@ return function(province, ui_panel, base_unit, gam)
         },
         {
             header = "Sell " .. TRADE_AMOUNT,
+            ---@param rect Rect
+            ---@param k any
+            ---@param v ItemData
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
                 if player_character == INVALID_ID then
@@ -289,14 +296,14 @@ return function(province, ui_panel, base_unit, gam)
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
-                local can_buy, reasons = et.can_sell(player_character, v.tag, TRADE_AMOUNT)
+                local can_buy, reasons = et.can_sell(player_character, v.item, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
                     ---@type string
                     tooltip = tooltip .. reason .. "\n"
                 end
 
                 if ut.text_button("-", rect, tooltip, can_buy and valid_province) then
-                    ef.sell(player_character, v.tag, TRADE_AMOUNT)
+                    ef.sell(player_character, v.item, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
@@ -377,7 +384,6 @@ return function(province, ui_panel, base_unit, gam)
             then
                 local good = DATA.fatten_trade_good(good_id)
                 data_blob[good_name] = {
-                    data = good,
                     name = good.description,
                     icon = good.icon,
                     item = good.id,

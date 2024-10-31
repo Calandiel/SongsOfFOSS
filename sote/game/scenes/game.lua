@@ -171,7 +171,7 @@ local tile_inspectors = {
 ---@field realm Realm?
 ---@field building_type BuildingType?
 ---@field building Building?
----@field macrobuilder_building_type BuildingType?
+---@field macrobuilder_building_type BuildingType
 ---@field war War?
 ---@field warband Warband?
 ---@field decision DecisionCharacter?
@@ -181,7 +181,8 @@ local tile_inspectors = {
 
 gam.selected = {
 	character = INVALID_ID,
-	tile = INVALID_ID
+	tile = INVALID_ID,
+	macrobuilder_building_type = INVALID_ID
 }
 
 local function is_known(province)
