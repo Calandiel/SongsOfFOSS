@@ -3,6 +3,9 @@ local ui = require "engine.ui"
 local uit = require "game.ui-utils"
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
+local realm_utils = require "game.entities.realm".Realm
+local warband_utils = require "game.entities.warband"
+
 local window = {}
 
 local slider_warbands = 0
@@ -52,7 +55,7 @@ function window.draw(game)
 
     -- substance
     ui_panel.y = ui_panel.y + uit.BASE_HEIGHT
-    local warbands = realm:get_warbands()
+    local warbands = realm_utils.get_warbands(realm)
     slider_warbands = uit.scrollview(ui_panel, function(i, rect)
         if i > 0 then
             local realm_icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "up")
@@ -67,22 +70,25 @@ function window.draw(game)
             r.width = width_unit * 2
             ---@type Warband
             local warband = warbands[i]
-            if warband.leader then
-                ib.icon_button_to_character(game, warband.leader, realm_icon_rect)
+            local leader = WARBAND_LEADER(warband)
+            local warband_realm = warband_utils.realm(warband)
+
+            if leader ~= INVALID_ID then
+                ib.icon_button_to_character(game, leader, realm_icon_rect)
             else
-                ib.icon_button_to_realm(game, warband:realm(), realm_icon_rect)
+                ib.icon_button_to_realm(game, warband_realm, realm_icon_rect)
             end
 
             ib.text_button_to_warband(game, warband, r,
-                warband.name)
+                DATA.warband_get_name(warband))
 
             r.width = width_unit
             r.x = x + width_unit * 2
-            ui.centered_text(warband.current_status, r)
+            ui.centered_text(DATA.warband_status_get_name(DATA.warband_get_current_status(warband)), r)
 
             r.x = x + width_unit * 3
             ui.left_text("units: ", r)
-            ui.right_text(warband:war_size() .. " / " .. warband:target_size() .. " (" .. warband:size() .. ") ", r)
+            ui.right_text(warband_utils.war_size(warband) .. " / " .. warband_utils.target_size(warband) .. " (" .. warband_utils.size(warband) .. ") ", r)
         end
     end, uit.BASE_HEIGHT, tabb.size(warbands), uit.BASE_HEIGHT, slider_warbands)
 end

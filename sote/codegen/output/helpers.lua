@@ -89,6 +89,12 @@ function PARENT(pop_id)
 	return DATA.parent_child_relation_get_parent(parenthood)
 end
 
+---commenting
+---@param building_id building_id
+function OWNER(building_id)
+	return DATA.ownership_get_owner(DATA.get_ownership_from_building(building_id))
+end
+
 function ACCEPT_ALL (item)
 	return true
 end
