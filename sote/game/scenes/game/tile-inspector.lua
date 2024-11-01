@@ -491,7 +491,7 @@ local function trade_widget(gam, tile_id, panel)
 		local output_value = DATA.province_get_foragers_targets_output_value(province_id, i)
 
 		---@type number
-		local search_time = province_size
+		local search_time = province_size / amount
 		local efficiency = dbm.mean_race_job_efficiency(HUMAN, required_job)
 		local handle_time = amount / efficiency
 
@@ -506,7 +506,7 @@ local function trade_widget(gam, tile_id, panel)
 			DATA.forage_resource_get_icon(forage_case),
 			amount,
 			layout:next(unit * 3.5, unit * 1),
-			"The average adult human can expect to collect " .. uit.to_fixed_point2(amount / total_time) .. " units of "
+			"The average adult human can expect to collect " .. uit.to_fixed_point2(1 / total_time) .. " units of "
 				.. name .. " " .. action
 				.. " for it full time from the total " .. uit.to_fixed_point2(amount)
 				.. " spread over of the province's " .. uit.to_fixed_point2(province.size)

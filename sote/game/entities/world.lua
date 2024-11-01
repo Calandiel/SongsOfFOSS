@@ -439,15 +439,9 @@ function world.World:tick()
 
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
-			local accumulate = {net_pp = 0, fruit = 0, seeds = 0, wood = 0, shell = 0, fish = 0, game = 0, fungi = 0}
-
-			for _, tile_membership in pairs(DATA.get_tile_province_membership_from_province(settled_province)) do
-				local tile_id = DATA.tile_province_membership_get_tile(tile_membership)
-				-- collecting tile foraging production
-				accumulate = dbm.accumulate_foraging_production(accumulate, _, tile_id)
-			end
 			-- update targets from accumulated foraging data
-			dbm.set_foraging_targets(settled_province, accumulate)
+			local amounts = dbm.total_foraging_amounts(settled_province)
+			dbm.set_foraging_targets(settled_province, amounts)
 			local weight = WORLD.current_tick_in_month % 10
 			if (weight == WORLD.month and weight == (WORLD.year % 12)) then
 				dbm.cultural_foragable_targets(settled_province)

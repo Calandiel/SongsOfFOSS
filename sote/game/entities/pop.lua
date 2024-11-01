@@ -4,7 +4,7 @@ rtab.POP = {}
 ---Creates a new POP
 ---@param race race_id
 ---@param faith Faith
----@param culture Culture
+---@param culture culture_id
 ---@param female boolean
 ---@param age number
 ---@return pop_id
@@ -24,7 +24,7 @@ function rtab.POP.new(race, faith, culture, female, age)
 	r.female = female
 	r.age = age
 
-	r.name = culture.language:get_random_name()
+	r.name = DATA.culture_get_language(culture):get_random_name()
 	r.busy                     = false
 
 	local total_consumed, total_demanded = 0, 0

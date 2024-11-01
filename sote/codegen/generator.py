@@ -1518,6 +1518,8 @@ Race = EntityDescription("race", 15, True)
 POPS_MAX_COUNT = 300000
 REALMS_MAX_COUNT = 15000
 
+Culture = EntityDescription("culture", 10000, False)
+
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
 Province = EntityDescription("province", 20000, False)
 Army = EntityDescription("army", 5000, False)

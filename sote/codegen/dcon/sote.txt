@@ -206,6 +206,42 @@ object {
     }
 }
 object {
+    name { culture }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { traditional_units }
+        type { array{unit_type_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { traditional_militarization }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { traditional_forager_targets }
+        type { array{uint8_t}{float} }
+        tag { scenario }
+    }
+}
+object {
     name { pop }
     storage_type { erasable }
     size { 300000 }
@@ -213,6 +249,11 @@ object {
     property{
         name { race }
         type { race_id }
+        tag { scenario }
+    }
+    property{
+        name { culture }
+        type { culture_id }
         tag { scenario }
     }
     property{
@@ -662,6 +703,11 @@ object {
     property{
         name { primary_race }
         type { race_id }
+        tag { scenario }
+    }
+    property{
+        name { primary_culture }
+        type { culture_id }
         tag { scenario }
     }
     property{

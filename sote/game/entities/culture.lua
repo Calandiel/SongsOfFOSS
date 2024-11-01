@@ -9,18 +9,6 @@ local cl = {}
 ---@field language Language
 ---@field view_on_treason number
 
----@class (exact) Culture
----@field __index Culture
----@field name string
----@field r number
----@field g number
----@field b number
----@field language Language
----@field culture_group CultureGroup
----@field traditional_units table<string, number> -- Defines "traditional" ratios for units recruited from this culture.
----@field traditional_militarization number A fraction of the society that cultures will try to put in military
----@field traditional_forager_targets table<FORAGE_RESOURCE, number> a culture's prefered foraging targets
-
 ---@class CultureGroup
 cl.CultureGroup = {}
 cl.CultureGroup.__index = cl.CultureGroup
@@ -41,26 +29,23 @@ function cl.CultureGroup:new()
 	return o
 end
 
----@class Culture
 cl.Culture = {}
 cl.Culture.__index = cl.Culture
 ---@param group CultureGroup
----@return Culture
+---@return culture_id
 function cl.Culture:new(group)
-	---@type Culture
-	local o = {}
+	local id = DATA.create_culture()
 
-	o.r = group.r
-	o.g = group.g
-	o.b = group.b
-	o.culture_group = group
-	o.language = group.language
-	o.name = o.language:get_random_culture_name()
-	o.traditional_units = {}
-	o.traditional_militarization = 0.1
+	DATA.culture_set_r(id, group.r)
+	DATA.culture_set_g(id, group.g)
+	DATA.culture_set_b(id, group.b)
 
-	setmetatable(o, cl.Culture)
-	return o
+	DATA.culture_set_culture_group(id, group)
+	DATA.culture_set_language(id, group.language)
+
+	DATA.culture_set_name(id, group.language:get_random_culture_name())
+
+	return id
 end
 
 return cl

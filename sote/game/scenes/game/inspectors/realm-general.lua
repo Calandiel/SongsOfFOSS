@@ -34,8 +34,8 @@ local function info(rect, realm, gam)
 
 
         -- general info
-        uit.data_entry("Culture: ", DATA.realm_get_primary_culture(realm).name, panel_rect, REALM_NAME(realm)
-            .. " follows the customs of " .. DATA.realm_get_primary_culture(realm).name .. ".\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.realm_get_primary_culture(realm)))
+        uit.data_entry("Culture: ", DATA.culture_get_name(DATA.realm_get_primary_culture(realm)), panel_rect, REALM_NAME(realm)
+            .. " follows the customs of " .. DATA.culture_get_name(DATA.realm_get_primary_culture(realm)) .. ".\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.realm_get_primary_culture(realm)))
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
         uit.data_entry("Faith: ", DATA.realm_get_primary_faith(realm).name, panel_rect)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT

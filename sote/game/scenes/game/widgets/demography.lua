@@ -40,7 +40,7 @@ local function demography(provinces, ui_panel, collapsed)
     end
 
     local function graph_cultures(rect)
-        ---@type table<Culture, number>
+        ---@type table<culture_id, number>
         local counts = {}
         for _, province in pairs(provinces) do
             DATA.for_each_pop_location_from_location(province, function (item)
@@ -56,10 +56,10 @@ local function demography(provinces, ui_panel, collapsed)
         for culture, count in pairs(counts) do
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = culture.name .. " (" .. count .. ")\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(culture),
-                r = culture.r,
-                g = culture.g,
-                b = culture.b,
+                tooltip = DATA.culture_get_name(culture) .. " (" .. count .. ")\n" .. require "game.economy.diet-breadth-model".culture_target_tooltip(culture),
+                r = DATA.culture_get_r(culture),
+                g = DATA.culture_get_g(culture),
+                b = DATA.culture_get_b(culture),
             }
         end
 

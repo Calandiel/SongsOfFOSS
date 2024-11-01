@@ -18,7 +18,7 @@ local st = {}
 ---Makes a new realm, one province large.
 ---@param capitol_id Province
 ---@param race_id race_id
----@param culture Culture
+---@param culture culture_id
 ---@param faith Faith
 local function make_new_realm(capitol_id, race_id, culture, faith)
 	-- print("new realm")
@@ -38,11 +38,11 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	fat.primary_faith = faith
 
 	-- Initialize realm colors
-	fat.r = math.max(0, math.min(1, (culture.r + (love.math.random() * 0.4 - 0.2))))
-	fat.g = math.max(0, math.min(1, (culture.g + (love.math.random() * 0.4 - 0.2))))
-	fat.b = math.max(0, math.min(1, (culture.b + (love.math.random() * 0.4 - 0.2))))
+	fat.r = math.max(0, math.min(1, (DATA.culture_get_r(culture) + (love.math.random() * 0.4 - 0.2))))
+	fat.g = math.max(0, math.min(1, (DATA.culture_get_g(culture) + (love.math.random() * 0.4 - 0.2))))
+	fat.b = math.max(0, math.min(1, (DATA.culture_get_b(culture) + (love.math.random() * 0.4 - 0.2))))
 
-	fat.name = culture.language:get_random_realm_name()
+	fat.name = DATA.culture_get_language(culture):get_random_realm_name()
 
 
 	--[[
@@ -92,7 +92,7 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	end
 
 	-- set up capitol
-	capitol.name = culture.language:get_random_province_name()
+	capitol.name = DATA.culture_get_language(culture):get_random_province_name()
 	province_utils.research(capitol_id, tec('paleolithic-knowledge')) -- initialize technology...
 
 	-- give some stuff to capitol
@@ -129,7 +129,11 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	DATA.for_each_pop_location_from_location(capitol_id, function (item)
 		local child = DATA.pop_location_get_pop(item)
 		local fat_child = DATA.fatten_pop(child)
-		if fat_child.age < race.teen_age then
+
+		if fat_child.age > race.teen_age then
+			return
+		end
+		if IS_CHARACTER(child) then
 			return
 		end
 
@@ -228,7 +232,7 @@ function st.run()
 	local civs = 500 / tabb.size(order) -- one per race...
 
 
-	---@type table<Culture, province_id[]>
+	---@type table<culture_id, province_id[]>
 	local provinces_per_cultures = {}
 
 	print("Spawn starting races")
@@ -252,19 +256,20 @@ function st.run()
 			local culture = cult.Culture:new(cg)
 
 			local max_unit_weight = 0
-			---@type table<string, number>
+			---@type table<unit_type_id, number>
 			local weights = {}
-			for unit_name, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
+			for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
 				if DATA.get_technology_unit_from_unlocked(unit) == RAWS_MANAGER.technologies_by_name['paleolithic-knowledge'] then
 					local v = love.math.random()
 					max_unit_weight = max_unit_weight + v
-					weights[unit_name] = v
+					weights[unit] = v
 				end
 			end
 			for unit, weight in pairs(weights) do
-				culture.traditional_units[unit] = weight / max_unit_weight
+				DATA.culture_set_traditional_units(culture, unit, weight / max_unit_weight)
 			end
-			culture.traditional_militarization = 0.05 + 0.1 * love.math.random()
+
+			DATA.culture_set_traditional_militarization(culture, 0.05 + 0.1 * love.math.random())
 
 			local rg = rel.Religion:new(culture)
 			local faith = rel.Faith:new(rg, culture)
@@ -365,9 +370,8 @@ function st.run()
 
 		DATA.for_each_forage_resource(function (i)
 			total_weights[i] = total_weights[i] / total_population
+			DATA.culture_set_traditional_forager_targets(culture, i, total_weights[i])
 		end)
-
-		culture.traditional_forager_targets = total_weights
 	end
 
 	local realms = 0

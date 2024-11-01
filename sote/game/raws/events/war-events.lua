@@ -86,7 +86,8 @@ local function load()
                             base = base + health + attack + armor
                         end
                         -- weight by unit cultural preference or 1%
-                        local weight = DATA.pop_get_culture(root).traditional_units[unit] or 0.01
+                        local culture = DATA.pop_get_culture(root)
+                        local weight = DATA.culture_get_traditional_units(culture, unit) + 0.01
                         return base * weight
                     end
                 }

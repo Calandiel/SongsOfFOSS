@@ -1,6 +1,6 @@
 race race_id
 faith Faith
-culture Culture
+culture culture_id
 female bool
 age uint32_t
 name string

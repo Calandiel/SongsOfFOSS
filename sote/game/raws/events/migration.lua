@@ -184,7 +184,7 @@ function load()
 			WORLD:unset_settled_province(origin)
 
 			if PROVINCE_NAME(associated_data.target_province) == "<uninhabited>" then
-				DATA.province_set_name(associated_data.target_province, DATA.pop_get_culture(LEADER(origin_realm)).language:get_random_culture_name())
+				DATA.province_set_name(associated_data.target_province, DATA.culture_get_language(DATA.pop_get_culture(LEADER(origin_realm))):get_random_culture_name())
 			end
 
 			realm_utils.explore(origin_realm, CAPITOL(origin_realm))
@@ -357,11 +357,11 @@ function load()
 			local fat_col = DATA.fatten_realm(colonizer_realm)
 
 			-- Initialize realm colors
-			fat.r = math.max(0, math.min(1, (fat_col.primary_culture.r + (love.math.random() * 0.4 - 0.2))))
-			fat.g = math.max(0, math.min(1, (fat_col.primary_culture.g + (love.math.random() * 0.4 - 0.2))))
-			fat.b = math.max(0, math.min(1, (fat_col.primary_culture.b + (love.math.random() * 0.4 - 0.2))))
+			fat.r = math.max(0, math.min(1, (DATA.culture_get_r(fat_col.primary_culture) + (love.math.random() * 0.4 - 0.2))))
+			fat.g = math.max(0, math.min(1, (DATA.culture_get_g(fat_col.primary_culture) + (love.math.random() * 0.4 - 0.2))))
+			fat.b = math.max(0, math.min(1, (DATA.culture_get_b(fat_col.primary_culture) + (love.math.random() * 0.4 - 0.2))))
 
-			fat.name = fat_col.primary_culture.language:get_random_realm_name()
+			fat.name = DATA.culture_get_language(fat_col.primary_culture):get_random_realm_name()
 
 			realm_utils.explore(new_realm, associated_data.target_province)
 
@@ -394,7 +394,7 @@ function load()
 			end
 
 			--if PROVINCE_NAME(associated_data.target_province) == "<uninhabited>" then
-			DATA.province_set_name(associated_data.target_province, DATA.realm_get_primary_culture(colonizer_realm).language:get_random_culture_name()) -- manifest destiny!
+			DATA.province_set_name(associated_data.target_province, DATA.culture_get_language(DATA.realm_get_primary_culture(colonizer_realm)):get_random_culture_name()) -- manifest destiny!
 			--end
 
 			political_effects.transfer_power(new_realm, expedition_leader, POLITICS_REASON.EXPEDITIONLEADER)

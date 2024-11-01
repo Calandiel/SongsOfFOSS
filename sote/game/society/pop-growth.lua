@@ -205,7 +205,7 @@ function pg.growth(province_id)
 				economic_effects.add_pop_savings(newborn, donation, ECONOMY_REASON.DONATION)
 			end
 		end
-		pop_utils.update_satisfaction(newborn)
+		-- pop_utils.update_satisfaction(newborn)
 
 
 		if character then

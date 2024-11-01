@@ -1144,6 +1144,291 @@ function DATA.fatten_tile(id)
     local result = {id = id}
     setmetatable(result, fat_tile_id_metatable)    return result
 end
+----------culture----------
+
+
+---culture: LSP types---
+
+---Unique identificator for culture entity
+---@class (exact) culture_id : number
+---@field is_culture nil
+
+---@class (exact) fat_culture_id
+---@field id culture_id Unique culture id
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field language Language 
+---@field culture_group CultureGroup 
+---@field traditional_militarization number A fraction of the society that cultures will try to put in military
+
+---@class struct_culture
+---@field r number 
+---@field g number 
+---@field b number 
+---@field traditional_units table<unit_type_id, number> -- Defines "traditional" ratios for units recruited from this culture.
+---@field traditional_militarization number A fraction of the society that cultures will try to put in military
+---@field traditional_forager_targets table<FORAGE_RESOURCE, number> a culture's prefered foraging targets
+
+
+ffi.cdef[[
+void dcon_culture_set_r(int32_t, float);
+float dcon_culture_get_r(int32_t);
+void dcon_culture_set_g(int32_t, float);
+float dcon_culture_get_g(int32_t);
+void dcon_culture_set_b(int32_t, float);
+float dcon_culture_get_b(int32_t);
+void dcon_culture_resize_traditional_units(uint32_t);
+void dcon_culture_set_traditional_units(int32_t, int32_t, float);
+float dcon_culture_get_traditional_units(int32_t, int32_t);
+void dcon_culture_set_traditional_militarization(int32_t, float);
+float dcon_culture_get_traditional_militarization(int32_t);
+void dcon_culture_resize_traditional_forager_targets(uint32_t);
+void dcon_culture_set_traditional_forager_targets(int32_t, int32_t, float);
+float dcon_culture_get_traditional_forager_targets(int32_t, int32_t);
+void dcon_delete_culture(int32_t j);
+int32_t dcon_create_culture();
+bool dcon_culture_is_valid(int32_t);
+void dcon_culture_resize(uint32_t sz);
+uint32_t dcon_culture_size();
+]]
+
+---culture: FFI arrays---
+---@type (string)[]
+DATA.culture_name= {}
+---@type (Language)[]
+DATA.culture_language= {}
+---@type (CultureGroup)[]
+DATA.culture_culture_group= {}
+
+---culture: LUA bindings---
+
+DATA.culture_size = 10000
+DCON.dcon_culture_resize_traditional_units(21)
+DCON.dcon_culture_resize_traditional_forager_targets(11)
+---@return culture_id
+function DATA.create_culture()
+    ---@type culture_id
+    local i  = DCON.dcon_create_culture() + 1
+    return i --[[@as culture_id]] 
+end
+---@param i culture_id
+function DATA.delete_culture(i)
+    assert(DCON.dcon_culture_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_culture(i - 1)
+end
+---@param func fun(item: culture_id) 
+function DATA.for_each_culture(func)
+    ---@type number
+    local range = DCON.dcon_culture_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_culture_is_valid(i) then func(i + 1 --[[@as culture_id]]) end
+    end
+end
+---@param func fun(item: culture_id):boolean 
+---@return table<culture_id, culture_id> 
+function DATA.filter_culture(func)
+    ---@type table<culture_id, culture_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_culture_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_culture_is_valid(i) and func(i + 1 --[[@as culture_id]]) then t[i + 1 --[[@as culture_id]]] = i + 1 --[[@as culture_id]] end
+    end
+    return t
+end
+
+---@param culture_id culture_id valid culture id
+---@return string name 
+function DATA.culture_get_name(culture_id)
+    return DATA.culture_name[culture_id]
+end
+---@param culture_id culture_id valid culture id
+---@param value string valid string
+function DATA.culture_set_name(culture_id, value)
+    DATA.culture_name[culture_id] = value
+end
+---@param culture_id culture_id valid culture id
+---@return number r 
+function DATA.culture_get_r(culture_id)
+    return DCON.dcon_culture_get_r(culture_id - 1)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_set_r(culture_id, value)
+    DCON.dcon_culture_set_r(culture_id - 1, value)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_inc_r(culture_id, value)
+    ---@type number
+    local current = DCON.dcon_culture_get_r(culture_id - 1)
+    DCON.dcon_culture_set_r(culture_id - 1, current + value)
+end
+---@param culture_id culture_id valid culture id
+---@return number g 
+function DATA.culture_get_g(culture_id)
+    return DCON.dcon_culture_get_g(culture_id - 1)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_set_g(culture_id, value)
+    DCON.dcon_culture_set_g(culture_id - 1, value)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_inc_g(culture_id, value)
+    ---@type number
+    local current = DCON.dcon_culture_get_g(culture_id - 1)
+    DCON.dcon_culture_set_g(culture_id - 1, current + value)
+end
+---@param culture_id culture_id valid culture id
+---@return number b 
+function DATA.culture_get_b(culture_id)
+    return DCON.dcon_culture_get_b(culture_id - 1)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_set_b(culture_id, value)
+    DCON.dcon_culture_set_b(culture_id - 1, value)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_inc_b(culture_id, value)
+    ---@type number
+    local current = DCON.dcon_culture_get_b(culture_id - 1)
+    DCON.dcon_culture_set_b(culture_id - 1, current + value)
+end
+---@param culture_id culture_id valid culture id
+---@return Language language 
+function DATA.culture_get_language(culture_id)
+    return DATA.culture_language[culture_id]
+end
+---@param culture_id culture_id valid culture id
+---@param value Language valid Language
+function DATA.culture_set_language(culture_id, value)
+    DATA.culture_language[culture_id] = value
+end
+---@param culture_id culture_id valid culture id
+---@return CultureGroup culture_group 
+function DATA.culture_get_culture_group(culture_id)
+    return DATA.culture_culture_group[culture_id]
+end
+---@param culture_id culture_id valid culture id
+---@param value CultureGroup valid CultureGroup
+function DATA.culture_set_culture_group(culture_id, value)
+    DATA.culture_culture_group[culture_id] = value
+end
+---@param culture_id culture_id valid culture id
+---@param index unit_type_id valid
+---@return number traditional_units -- Defines "traditional" ratios for units recruited from this culture.
+function DATA.culture_get_traditional_units(culture_id, index)
+    assert(index ~= 0)
+    return DCON.dcon_culture_get_traditional_units(culture_id - 1, index - 1)
+end
+---@param culture_id culture_id valid culture id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.culture_set_traditional_units(culture_id, index, value)
+    DCON.dcon_culture_set_traditional_units(culture_id - 1, index - 1, value)
+end
+---@param culture_id culture_id valid culture id
+---@param index unit_type_id valid index
+---@param value number valid number
+function DATA.culture_inc_traditional_units(culture_id, index, value)
+    ---@type number
+    local current = DCON.dcon_culture_get_traditional_units(culture_id - 1, index - 1)
+    DCON.dcon_culture_set_traditional_units(culture_id - 1, index - 1, current + value)
+end
+---@param culture_id culture_id valid culture id
+---@return number traditional_militarization A fraction of the society that cultures will try to put in military
+function DATA.culture_get_traditional_militarization(culture_id)
+    return DCON.dcon_culture_get_traditional_militarization(culture_id - 1)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_set_traditional_militarization(culture_id, value)
+    DCON.dcon_culture_set_traditional_militarization(culture_id - 1, value)
+end
+---@param culture_id culture_id valid culture id
+---@param value number valid number
+function DATA.culture_inc_traditional_militarization(culture_id, value)
+    ---@type number
+    local current = DCON.dcon_culture_get_traditional_militarization(culture_id - 1)
+    DCON.dcon_culture_set_traditional_militarization(culture_id - 1, current + value)
+end
+---@param culture_id culture_id valid culture id
+---@param index FORAGE_RESOURCE valid
+---@return number traditional_forager_targets a culture's prefered foraging targets
+function DATA.culture_get_traditional_forager_targets(culture_id, index)
+    assert(index ~= 0)
+    return DCON.dcon_culture_get_traditional_forager_targets(culture_id - 1, index - 1)
+end
+---@param culture_id culture_id valid culture id
+---@param index FORAGE_RESOURCE valid index
+---@param value number valid number
+function DATA.culture_set_traditional_forager_targets(culture_id, index, value)
+    DCON.dcon_culture_set_traditional_forager_targets(culture_id - 1, index - 1, value)
+end
+---@param culture_id culture_id valid culture id
+---@param index FORAGE_RESOURCE valid index
+---@param value number valid number
+function DATA.culture_inc_traditional_forager_targets(culture_id, index, value)
+    ---@type number
+    local current = DCON.dcon_culture_get_traditional_forager_targets(culture_id - 1, index - 1)
+    DCON.dcon_culture_set_traditional_forager_targets(culture_id - 1, index - 1, current + value)
+end
+
+local fat_culture_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.culture_get_name(t.id) end
+        if (k == "r") then return DATA.culture_get_r(t.id) end
+        if (k == "g") then return DATA.culture_get_g(t.id) end
+        if (k == "b") then return DATA.culture_get_b(t.id) end
+        if (k == "language") then return DATA.culture_get_language(t.id) end
+        if (k == "culture_group") then return DATA.culture_get_culture_group(t.id) end
+        if (k == "traditional_militarization") then return DATA.culture_get_traditional_militarization(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.culture_set_name(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.culture_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.culture_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.culture_set_b(t.id, v)
+            return
+        end
+        if (k == "language") then
+            DATA.culture_set_language(t.id, v)
+            return
+        end
+        if (k == "culture_group") then
+            DATA.culture_set_culture_group(t.id, v)
+            return
+        end
+        if (k == "traditional_militarization") then
+            DATA.culture_set_traditional_militarization(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id culture_id
+---@return fat_culture_id fat_id
+function DATA.fatten_culture(id)
+    local result = {id = id}
+    setmetatable(result, fat_culture_id_metatable)    return result
+end
 ----------pop----------
 
 
@@ -1157,7 +1442,7 @@ end
 ---@field id pop_id Unique pop id
 ---@field race race_id 
 ---@field faith Faith 
----@field culture Culture 
+---@field culture culture_id 
 ---@field female boolean 
 ---@field age number 
 ---@field name string 
@@ -1174,6 +1459,7 @@ end
 
 ---@class struct_pop
 ---@field race race_id 
+---@field culture culture_id 
 ---@field female boolean 
 ---@field age number 
 ---@field savings number 
@@ -1193,6 +1479,8 @@ end
 ffi.cdef[[
 void dcon_pop_set_race(int32_t, int32_t);
 int32_t dcon_pop_get_race(int32_t);
+void dcon_pop_set_culture(int32_t, int32_t);
+int32_t dcon_pop_get_culture(int32_t);
 void dcon_pop_set_female(int32_t, bool);
 bool dcon_pop_get_female(int32_t);
 void dcon_pop_set_age(int32_t, uint32_t);
@@ -1235,8 +1523,6 @@ uint32_t dcon_pop_size();
 ---pop: FFI arrays---
 ---@type (Faith)[]
 DATA.pop_faith= {}
----@type (Culture)[]
-DATA.pop_culture= {}
 ---@type (string)[]
 DATA.pop_name= {}
 ---@type (boolean)[]
@@ -1307,14 +1593,14 @@ function DATA.pop_set_faith(pop_id, value)
     DATA.pop_faith[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return Culture culture 
+---@return culture_id culture 
 function DATA.pop_get_culture(pop_id)
-    return DATA.pop_culture[pop_id]
+    return DCON.dcon_pop_get_culture(pop_id - 1) + 1
 end
 ---@param pop_id pop_id valid pop id
----@param value Culture valid Culture
+---@param value culture_id valid culture_id
 function DATA.pop_set_culture(pop_id, value)
-    DATA.pop_culture[pop_id] = value
+    DCON.dcon_pop_set_culture(pop_id - 1, value - 1)
 end
 ---@param pop_id pop_id valid pop id
 ---@return boolean female 
@@ -3519,7 +3805,7 @@ end
 ---@field g number 
 ---@field b number 
 ---@field primary_race race_id 
----@field primary_culture Culture 
+---@field primary_culture culture_id 
 ---@field primary_faith Faith 
 ---@field capitol province_id 
 ---@field trading_right_cost number 
@@ -3564,6 +3850,7 @@ end
 ---@field g number 
 ---@field b number 
 ---@field primary_race race_id 
+---@field primary_culture culture_id 
 ---@field capitol province_id 
 ---@field trading_right_cost number 
 ---@field building_right_cost number 
@@ -3624,6 +3911,8 @@ void dcon_realm_set_b(int32_t, float);
 float dcon_realm_get_b(int32_t);
 void dcon_realm_set_primary_race(int32_t, int32_t);
 int32_t dcon_realm_get_primary_race(int32_t);
+void dcon_realm_set_primary_culture(int32_t, int32_t);
+int32_t dcon_realm_get_primary_culture(int32_t);
 void dcon_realm_set_capitol(int32_t, int32_t);
 int32_t dcon_realm_get_capitol(int32_t);
 void dcon_realm_set_trading_right_cost(int32_t, float);
@@ -3692,8 +3981,6 @@ uint32_t dcon_realm_size();
 DATA.realm_exists= {}
 ---@type (string)[]
 DATA.realm_name= {}
----@type (Culture)[]
-DATA.realm_primary_culture= {}
 ---@type (Faith)[]
 DATA.realm_primary_faith= {}
 ---@type (table<province_id,nil|number>)[]
@@ -4081,14 +4368,14 @@ function DATA.realm_set_primary_race(realm_id, value)
     DCON.dcon_realm_set_primary_race(realm_id - 1, value - 1)
 end
 ---@param realm_id realm_id valid realm id
----@return Culture primary_culture 
+---@return culture_id primary_culture 
 function DATA.realm_get_primary_culture(realm_id)
-    return DATA.realm_primary_culture[realm_id]
+    return DCON.dcon_realm_get_primary_culture(realm_id - 1) + 1
 end
 ---@param realm_id realm_id valid realm id
----@param value Culture valid Culture
+---@param value culture_id valid culture_id
 function DATA.realm_set_primary_culture(realm_id, value)
-    DATA.realm_primary_culture[realm_id] = value
+    DCON.dcon_realm_set_primary_culture(realm_id - 1, value - 1)
 end
 ---@param realm_id realm_id valid realm id
 ---@return Faith primary_faith 
@@ -20263,8 +20550,10 @@ end
 
 function DATA.save_state()
     local current_lua_state = {}
+    current_lua_state.culture_name = DATA.culture_name
+    current_lua_state.culture_language = DATA.culture_language
+    current_lua_state.culture_culture_group = DATA.culture_culture_group
     current_lua_state.pop_faith = DATA.pop_faith
-    current_lua_state.pop_culture = DATA.pop_culture
     current_lua_state.pop_name = DATA.pop_name
     current_lua_state.pop_busy = DATA.pop_busy
     current_lua_state.pop_dead = DATA.pop_dead
@@ -20274,7 +20563,6 @@ function DATA.save_state()
     current_lua_state.warband_guard_of = DATA.warband_guard_of
     current_lua_state.realm_exists = DATA.realm_exists
     current_lua_state.realm_name = DATA.realm_name
-    current_lua_state.realm_primary_culture = DATA.realm_primary_culture
     current_lua_state.realm_primary_faith = DATA.realm_primary_faith
     current_lua_state.realm_quests_raid = DATA.realm_quests_raid
     current_lua_state.realm_quests_explore = DATA.realm_quests_explore
@@ -20293,6 +20581,7 @@ function DATA.load_state()
     local current_shift = 0
     local total_ffi_size = 0
     total_ffi_size = total_ffi_size + ffi.sizeof("tile") * 1500000
+    total_ffi_size = total_ffi_size + ffi.sizeof("culture") * 10000
     total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
     total_ffi_size = total_ffi_size + ffi.sizeof("province") * 20000
     total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
@@ -20330,6 +20619,9 @@ function DATA.load_state()
     total_ffi_size = total_ffi_size + ffi.sizeof("realm_pop") * 300000
     current_shift = ffi.sizeof("tile") * 1500000
     ffi.copy(DATA.tile, data + current_offset, current_shift)
+    current_offset = current_offset + current_shift
+    current_shift = ffi.sizeof("culture") * 10000
+    ffi.copy(DATA.culture, data + current_offset, current_shift)
     current_offset = current_offset + current_shift
     current_shift = ffi.sizeof("pop") * 300000
     ffi.copy(DATA.pop, data + current_offset, current_shift)
@@ -20563,91 +20855,123 @@ function DATA.test_set_get_0()
     if not test_passed then print("biome", -17, fat_id.biome) end
     print("SET_GET_TEST_0_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_culture()
+    local fat_id = DATA.fatten_culture(id)
+    fat_id.r = 4
+    fat_id.g = 6
+    fat_id.b = -18
+    for j = 1, 20 do
+        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  -4)    end
+    fat_id.traditional_militarization = 12
+    for j = 1, 10 do
+        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  11)    end
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == 4
+    if not test_passed then print("r", 4, fat_id.r) end
+    test_passed = test_passed and fat_id.g == 6
+    if not test_passed then print("g", 6, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -18
+    if not test_passed then print("b", -18, fat_id.b) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == -4
+    end
+    if not test_passed then print("traditional_units", -4, DATA.culture[id].traditional_units[0]) end
+    test_passed = test_passed and fat_id.traditional_militarization == 12
+    if not test_passed then print("traditional_militarization", 12, fat_id.traditional_militarization) end
+    for j = 1, 10 do
+        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == 11
+    end
+    if not test_passed then print("traditional_forager_targets", 11, DATA.culture[id].traditional_forager_targets[0]) end
+    print("SET_GET_TEST_0_culture:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
     fat_id.race = 4
-    fat_id.female = false
-    fat_id.age = 1
-    fat_id.savings = -4
-    fat_id.life_needs_satisfaction = 12
-    fat_id.basic_needs_satisfaction = 11
+    fat_id.culture = 6
+    fat_id.female = true
+    fat_id.age = 8
+    fat_id.savings = 12
+    fat_id.life_needs_satisfaction = 11
+    fat_id.basic_needs_satisfaction = 5
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 6)
+        DATA.pop_set_need_satisfaction_need(id, j, 4)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, -1)
+        DATA.pop_set_need_satisfaction_use_case(id, j, 10)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, 10)
+        DATA.pop_set_need_satisfaction_consumed(id, j, 2)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, 2)
+        DATA.pop_set_need_satisfaction_demanded(id, j, 17)
     end
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  9)    end
+        DATA.pop_set_traits(id, j --[[@as number]],  3)    end
     for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -7)    end
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  12)    end
     for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  12)    end
-    fat_id.pending_economy_income = -12
-    fat_id.forage_ratio = -2
-    fat_id.work_ratio = -12
-    fat_id.rank = 0
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  -12)    end
+    fat_id.pending_economy_income = -2
+    fat_id.forage_ratio = -12
+    fat_id.work_ratio = -14
+    fat_id.rank = 2
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  19)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  14)    end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 4
     if not test_passed then print("race", 4, fat_id.race) end
-    test_passed = test_passed and fat_id.female == false
-    if not test_passed then print("female", false, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 1
-    if not test_passed then print("age", 1, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -4
-    if not test_passed then print("savings", -4, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 12
-    if not test_passed then print("life_needs_satisfaction", 12, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 11
-    if not test_passed then print("basic_needs_satisfaction", 11, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.culture == 6
+    if not test_passed then print("culture", 6, fat_id.culture) end
+    test_passed = test_passed and fat_id.female == true
+    if not test_passed then print("female", true, fat_id.female) end
+    test_passed = test_passed and fat_id.age == 8
+    if not test_passed then print("age", 8, fat_id.age) end
+    test_passed = test_passed and fat_id.savings == 12
+    if not test_passed then print("savings", 12, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 11
+    if not test_passed then print("life_needs_satisfaction", 11, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 5
+    if not test_passed then print("basic_needs_satisfaction", 5, fat_id.basic_needs_satisfaction) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 6
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 4
     end
-    if not test_passed then print("need_satisfaction.need", 6, DATA.pop[id].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 4, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == -1
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 10
     end
-    if not test_passed then print("need_satisfaction.use_case", -1, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 10, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 10
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 2
     end
-    if not test_passed then print("need_satisfaction.consumed", 10, DATA.pop[id].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", 2, DATA.pop[id].need_satisfaction[0].consumed) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 2
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 17
     end
-    if not test_passed then print("need_satisfaction.demanded", 2, DATA.pop[id].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 17, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 9
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 3
     end
-    if not test_passed then print("traits", 9, DATA.pop[id].traits[0]) end
+    if not test_passed then print("traits", 3, DATA.pop[id].traits[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -7
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 12
     end
-    if not test_passed then print("inventory", -7, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", 12, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 12
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == -12
     end
-    if not test_passed then print("price_memory", 12, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == -12
-    if not test_passed then print("pending_economy_income", -12, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == -2
-    if not test_passed then print("forage_ratio", -2, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -12
-    if not test_passed then print("work_ratio", -12, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 0
-    if not test_passed then print("rank", 0, fat_id.rank) end
+    if not test_passed then print("price_memory", -12, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.pending_economy_income == -2
+    if not test_passed then print("pending_economy_income", -2, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == -12
+    if not test_passed then print("forage_ratio", -12, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == -14
+    if not test_passed then print("work_ratio", -14, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.rank == 2
+    if not test_passed then print("rank", 2, fat_id.rank) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 19
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 14
     end
-    if not test_passed then print("dna", 19, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 14, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_0_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -20968,9 +21292,10 @@ function DATA.test_set_get_0()
     fat_id.g = -2
     fat_id.b = -12
     fat_id.primary_race = -14
-    fat_id.capitol = 19
-    fat_id.trading_right_cost = -4
-    fat_id.building_right_cost = 14
+    fat_id.primary_culture = 19
+    fat_id.capitol = -4
+    fat_id.trading_right_cost = 14
+    fat_id.building_right_cost = 18
     fat_id.law_trade = 1
     fat_id.law_building = 2
     fat_id.prepare_attack_flag = true
@@ -21047,12 +21372,14 @@ function DATA.test_set_get_0()
     if not test_passed then print("b", -12, fat_id.b) end
     test_passed = test_passed and fat_id.primary_race == -14
     if not test_passed then print("primary_race", -14, fat_id.primary_race) end
-    test_passed = test_passed and fat_id.capitol == 19
-    if not test_passed then print("capitol", 19, fat_id.capitol) end
-    test_passed = test_passed and fat_id.trading_right_cost == -4
-    if not test_passed then print("trading_right_cost", -4, fat_id.trading_right_cost) end
-    test_passed = test_passed and fat_id.building_right_cost == 14
-    if not test_passed then print("building_right_cost", 14, fat_id.building_right_cost) end
+    test_passed = test_passed and fat_id.primary_culture == 19
+    if not test_passed then print("primary_culture", 19, fat_id.primary_culture) end
+    test_passed = test_passed and fat_id.capitol == -4
+    if not test_passed then print("capitol", -4, fat_id.capitol) end
+    test_passed = test_passed and fat_id.trading_right_cost == 14
+    if not test_passed then print("trading_right_cost", 14, fat_id.trading_right_cost) end
+    test_passed = test_passed and fat_id.building_right_cost == 18
+    if not test_passed then print("building_right_cost", 18, fat_id.building_right_cost) end
     test_passed = test_passed and fat_id.law_trade == 1
     if not test_passed then print("law_trade", 1, fat_id.law_trade) end
     test_passed = test_passed and fat_id.law_building == 2
@@ -21333,9 +21660,39 @@ function DATA.test_set_get_1()
     if not test_passed then print("biome", -6, fat_id.biome) end
     print("SET_GET_TEST_1_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_culture()
+    local fat_id = DATA.fatten_culture(id)
+    fat_id.r = -12
+    fat_id.g = 16
+    fat_id.b = -16
+    for j = 1, 20 do
+        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  -4)    end
+    fat_id.traditional_militarization = -13
+    for j = 1, 10 do
+        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  11)    end
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == -12
+    if not test_passed then print("r", -12, fat_id.r) end
+    test_passed = test_passed and fat_id.g == 16
+    if not test_passed then print("g", 16, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -16
+    if not test_passed then print("b", -16, fat_id.b) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == -4
+    end
+    if not test_passed then print("traditional_units", -4, DATA.culture[id].traditional_units[0]) end
+    test_passed = test_passed and fat_id.traditional_militarization == -13
+    if not test_passed then print("traditional_militarization", -13, fat_id.traditional_militarization) end
+    for j = 1, 10 do
+        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == 11
+    end
+    if not test_passed then print("traditional_forager_targets", 11, DATA.culture[id].traditional_forager_targets[0]) end
+    print("SET_GET_TEST_1_culture:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
     fat_id.race = -12
+    fat_id.culture = 16
     fat_id.female = true
     fat_id.age = 8
     fat_id.savings = -13
@@ -21368,6 +21725,8 @@ function DATA.test_set_get_1()
     local test_passed = true
     test_passed = test_passed and fat_id.race == -12
     if not test_passed then print("race", -12, fat_id.race) end
+    test_passed = test_passed and fat_id.culture == 16
+    if not test_passed then print("culture", 16, fat_id.culture) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
     test_passed = test_passed and fat_id.age == 8
@@ -21738,9 +22097,10 @@ function DATA.test_set_get_1()
     fat_id.g = 7
     fat_id.b = 18
     fat_id.primary_race = -20
-    fat_id.capitol = 8
-    fat_id.trading_right_cost = -3
-    fat_id.building_right_cost = -6
+    fat_id.primary_culture = 8
+    fat_id.capitol = -3
+    fat_id.trading_right_cost = -6
+    fat_id.building_right_cost = 17
     fat_id.law_trade = 0
     fat_id.law_building = 2
     fat_id.prepare_attack_flag = true
@@ -21817,12 +22177,14 @@ function DATA.test_set_get_1()
     if not test_passed then print("b", 18, fat_id.b) end
     test_passed = test_passed and fat_id.primary_race == -20
     if not test_passed then print("primary_race", -20, fat_id.primary_race) end
-    test_passed = test_passed and fat_id.capitol == 8
-    if not test_passed then print("capitol", 8, fat_id.capitol) end
-    test_passed = test_passed and fat_id.trading_right_cost == -3
-    if not test_passed then print("trading_right_cost", -3, fat_id.trading_right_cost) end
-    test_passed = test_passed and fat_id.building_right_cost == -6
-    if not test_passed then print("building_right_cost", -6, fat_id.building_right_cost) end
+    test_passed = test_passed and fat_id.primary_culture == 8
+    if not test_passed then print("primary_culture", 8, fat_id.primary_culture) end
+    test_passed = test_passed and fat_id.capitol == -3
+    if not test_passed then print("capitol", -3, fat_id.capitol) end
+    test_passed = test_passed and fat_id.trading_right_cost == -6
+    if not test_passed then print("trading_right_cost", -6, fat_id.trading_right_cost) end
+    test_passed = test_passed and fat_id.building_right_cost == 17
+    if not test_passed then print("building_right_cost", 17, fat_id.building_right_cost) end
     test_passed = test_passed and fat_id.law_trade == 0
     if not test_passed then print("law_trade", 0, fat_id.law_trade) end
     test_passed = test_passed and fat_id.law_building == 2
@@ -22103,85 +22465,117 @@ function DATA.test_set_get_2()
     if not test_passed then print("biome", -12, fat_id.biome) end
     print("SET_GET_TEST_2_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_culture()
+    local fat_id = DATA.fatten_culture(id)
+    fat_id.r = -17
+    fat_id.g = -15
+    fat_id.b = -15
+    for j = 1, 20 do
+        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  3)    end
+    fat_id.traditional_militarization = -10
+    for j = 1, 10 do
+        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  -1)    end
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == -17
+    if not test_passed then print("r", -17, fat_id.r) end
+    test_passed = test_passed and fat_id.g == -15
+    if not test_passed then print("g", -15, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -15
+    if not test_passed then print("b", -15, fat_id.b) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == 3
+    end
+    if not test_passed then print("traditional_units", 3, DATA.culture[id].traditional_units[0]) end
+    test_passed = test_passed and fat_id.traditional_militarization == -10
+    if not test_passed then print("traditional_militarization", -10, fat_id.traditional_militarization) end
+    for j = 1, 10 do
+        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == -1
+    end
+    if not test_passed then print("traditional_forager_targets", -1, DATA.culture[id].traditional_forager_targets[0]) end
+    print("SET_GET_TEST_2_culture:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
     fat_id.race = -17
+    fat_id.culture = -15
     fat_id.female = true
-    fat_id.age = 2
-    fat_id.savings = 3
-    fat_id.life_needs_satisfaction = -10
-    fat_id.basic_needs_satisfaction = -1
+    fat_id.age = 11
+    fat_id.savings = -10
+    fat_id.life_needs_satisfaction = -1
+    fat_id.basic_needs_satisfaction = -4
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 4)
+        DATA.pop_set_need_satisfaction_need(id, j, 3)
     end
     for j = 1, 20 do
         DATA.pop_set_need_satisfaction_use_case(id, j, 18)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, -7)
+        DATA.pop_set_need_satisfaction_consumed(id, j, -18)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, 18)
+        DATA.pop_set_need_satisfaction_demanded(id, j, 17)
     end
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  0)    end
+        DATA.pop_set_traits(id, j --[[@as number]],  10)    end
     for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  17)    end
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -10)    end
     for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  -10)    end
-    fat_id.pending_economy_income = 7
-    fat_id.forage_ratio = 20
-    fat_id.work_ratio = 5
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  7)    end
+    fat_id.pending_economy_income = 20
+    fat_id.forage_ratio = 5
+    fat_id.work_ratio = 12
     fat_id.rank = 2
     for j = 1, 20 do
         DATA.pop_set_dna(id, j --[[@as number]],  14)    end
     local test_passed = true
     test_passed = test_passed and fat_id.race == -17
     if not test_passed then print("race", -17, fat_id.race) end
+    test_passed = test_passed and fat_id.culture == -15
+    if not test_passed then print("culture", -15, fat_id.culture) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 2
-    if not test_passed then print("age", 2, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == 3
-    if not test_passed then print("savings", 3, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == -10
-    if not test_passed then print("life_needs_satisfaction", -10, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == -1
-    if not test_passed then print("basic_needs_satisfaction", -1, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.age == 11
+    if not test_passed then print("age", 11, fat_id.age) end
+    test_passed = test_passed and fat_id.savings == -10
+    if not test_passed then print("savings", -10, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == -1
+    if not test_passed then print("life_needs_satisfaction", -1, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == -4
+    if not test_passed then print("basic_needs_satisfaction", -4, fat_id.basic_needs_satisfaction) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 4
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 3
     end
-    if not test_passed then print("need_satisfaction.need", 4, DATA.pop[id].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
         test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 18
     end
     if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -7
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -18
     end
-    if not test_passed then print("need_satisfaction.consumed", -7, DATA.pop[id].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -18, DATA.pop[id].need_satisfaction[0].consumed) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 18
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 17
     end
-    if not test_passed then print("need_satisfaction.demanded", 18, DATA.pop[id].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 17, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 0
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 10
     end
-    if not test_passed then print("traits", 0, DATA.pop[id].traits[0]) end
+    if not test_passed then print("traits", 10, DATA.pop[id].traits[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 17
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -10
     end
-    if not test_passed then print("inventory", 17, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", -10, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == -10
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 7
     end
-    if not test_passed then print("price_memory", -10, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == 7
-    if not test_passed then print("pending_economy_income", 7, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 20
-    if not test_passed then print("forage_ratio", 20, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 5
-    if not test_passed then print("work_ratio", 5, fat_id.work_ratio) end
+    if not test_passed then print("price_memory", 7, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.pending_economy_income == 20
+    if not test_passed then print("pending_economy_income", 20, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == 5
+    if not test_passed then print("forage_ratio", 5, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 12
+    if not test_passed then print("work_ratio", 12, fat_id.work_ratio) end
     test_passed = test_passed and fat_id.rank == 2
     if not test_passed then print("rank", 2, fat_id.rank) end
     for j = 1, 20 do
@@ -22508,9 +22902,10 @@ function DATA.test_set_get_2()
     fat_id.g = 20
     fat_id.b = 5
     fat_id.primary_race = 12
-    fat_id.capitol = 3
-    fat_id.trading_right_cost = 14
-    fat_id.building_right_cost = 8
+    fat_id.primary_culture = 3
+    fat_id.capitol = 14
+    fat_id.trading_right_cost = 8
+    fat_id.building_right_cost = 12
     fat_id.law_trade = 2
     fat_id.law_building = 0
     fat_id.prepare_attack_flag = true
@@ -22587,12 +22982,14 @@ function DATA.test_set_get_2()
     if not test_passed then print("b", 5, fat_id.b) end
     test_passed = test_passed and fat_id.primary_race == 12
     if not test_passed then print("primary_race", 12, fat_id.primary_race) end
-    test_passed = test_passed and fat_id.capitol == 3
-    if not test_passed then print("capitol", 3, fat_id.capitol) end
-    test_passed = test_passed and fat_id.trading_right_cost == 14
-    if not test_passed then print("trading_right_cost", 14, fat_id.trading_right_cost) end
-    test_passed = test_passed and fat_id.building_right_cost == 8
-    if not test_passed then print("building_right_cost", 8, fat_id.building_right_cost) end
+    test_passed = test_passed and fat_id.primary_culture == 3
+    if not test_passed then print("primary_culture", 3, fat_id.primary_culture) end
+    test_passed = test_passed and fat_id.capitol == 14
+    if not test_passed then print("capitol", 14, fat_id.capitol) end
+    test_passed = test_passed and fat_id.trading_right_cost == 8
+    if not test_passed then print("trading_right_cost", 8, fat_id.trading_right_cost) end
+    test_passed = test_passed and fat_id.building_right_cost == 12
+    if not test_passed then print("building_right_cost", 12, fat_id.building_right_cost) end
     test_passed = test_passed and fat_id.law_trade == 2
     if not test_passed then print("law_trade", 2, fat_id.law_trade) end
     test_passed = test_passed and fat_id.law_building == 0

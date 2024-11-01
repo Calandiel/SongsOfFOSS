@@ -441,7 +441,7 @@ end
 ---@param province Province
 ---@param race Race
 ---@param faith Faith
----@param culture Culture
+---@param culture culture_id
 ---@return Character
 function PoliticalEffects.generate_new_noble(realm, province, race, faith, culture)
 	local fat_race = DATA.fatten_race(race)

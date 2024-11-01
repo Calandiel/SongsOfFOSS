@@ -21,7 +21,7 @@ local cl = {}
 ---@class Religion
 cl.Religion = {}
 cl.Religion.__index = cl.Religion
----@param culture Culture
+---@param culture culture_id
 ---@return Religion
 function cl.Religion:new(culture)
 	local o = {}
@@ -29,7 +29,7 @@ function cl.Religion:new(culture)
 	o.r = love.math.random()
 	o.g = love.math.random()
 	o.b = love.math.random()
-	o.name = culture.language:get_random_faith_name()
+	o.name = DATA.culture_get_language(culture):get_random_faith_name()
 
 	setmetatable(o, cl.Religion)
 	return o
@@ -39,7 +39,7 @@ end
 cl.Faith = {}
 cl.Faith.__index = cl.Faith
 ---@param religion Religion
----@param culture Culture
+---@param culture culture_id
 ---@return Faith
 function cl.Faith:new(religion, culture)
 	---@type Faith
@@ -49,7 +49,7 @@ function cl.Faith:new(religion, culture)
 	o.g = religion.g
 	o.b = religion.b
 	o.religion = religion
-	o.name = culture.language:get_random_faith_name()
+	o.name = DATA.culture_get_language(culture):get_random_faith_name()
 	o.burial_rites = 'burial'
 
 	setmetatable(o, cl.Faith)

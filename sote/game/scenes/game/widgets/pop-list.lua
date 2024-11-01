@@ -111,15 +111,15 @@ return function(rect, base_unit, province)
             {
                 header = "culture",
                 render_closure = function (rect, k, v)
-                    ui.centered_text(DATA.pop_get_culture(v).name, rect)
-                    ui.tooltip("This character follows the customs of " .. DATA.pop_get_culture(v).name .. "."
+                    ui.centered_text(DATA.culture_get_name(DATA.pop_get_culture(v)), rect)
+                    ui.tooltip("This character follows the customs of " .. DATA.culture_get_name(DATA.pop_get_culture(v)) .. "."
                         .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.pop_get_culture(v)), rect)
                 end,
                 width = 4,
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return DATA.pop_get_culture(v).name
+                    return DATA.culture_get_name(DATA.pop_get_culture(v))
                 end
             },
             {

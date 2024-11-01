@@ -5,7 +5,43 @@
 #include "sote_functions.hpp"
 #include "lua_objs.hpp"
 
+float age_multiplier(dcon::pop_id pop) {
+	auto age_multiplier = 1.f;
+	auto age = state.pop_get_age(pop);
+	auto race = state.pop_get_race(pop);
 
+	auto child_age = state.race_get_child_age(race);
+	auto teen_age = state.race_get_teen_age(race);
+	auto adult_age = state.race_get_adult_age(race);
+	auto middle_age = state.race_get_middle_age(race);
+	auto elder_age = state.race_get_elder_age(race);
+	auto max_age = state.race_get_max_age(race);
+
+	if (age < child_age) {
+		age_multiplier = 0.25;
+	} else if (age < teen_age) {
+		age_multiplier = 0.5;
+	} else if (age < adult_age) {
+		age_multiplier = 0.75;
+	} else if (age < middle_age) {
+		age_multiplier = 1;
+	} else if (age < elder_age) {
+		age_multiplier = 0.95;
+	} else if (age < max_age) {
+		age_multiplier = 0.9;
+	}
+	return age_multiplier;
+}
+
+float job_efficiency(dcon::pop_id pop, uint8_t jobtype) {
+	auto female = state.pop_get_female(pop);
+	auto race = state.pop_get_race(pop);
+	auto multiplier = age_multiplier(pop);
+	if (female) {
+		return state.race_get_female_efficiency(race, jobtype) * multiplier;
+	}
+	return state.race_get_male_efficiency(race, jobtype) * multiplier;
+}
 
 void update_vegetation(float speed) {
 	state.execute_serial_over_tile([speed](auto ids) {
@@ -312,9 +348,8 @@ void pops_produce() {
 
 	state.for_each_pop([&](auto ids) {
 		auto province = state.pop_get_location_from_pop_location(ids);
-		if (!province) {
-			province = state.pop_get_location_from_pop_location(ids);
-		}
+
+		auto size = state.province_get_size(province);
 
 		auto forage_time = state.pop_get_forage_ratio(ids);
 
@@ -323,7 +358,11 @@ void pops_produce() {
 		for (uint32_t i = 0; i < state.province_get_foragers_targets_size(); i++){
 			base_types::forage_container& forage_case = state.province_get_foragers_targets(province, i);
 
-			auto output = dcon::trade_good_id{dcon::trade_good_id::value_base_t(forage_case.output_good - 1)};
+			auto output = dcon::trade_good_id{int32_t(forage_case.output_good - 1)};
+
+			if (!output) {
+				break;
+			}
 
 			auto current = state.pop_get_inventory(ids, output);
 
@@ -334,13 +373,40 @@ void pops_produce() {
 			assert(forage_case.amount >= 0.f);
 			assert(forage_time >= 0.f);
 
+			auto culture = state.pop_get_culture(ids);
+			auto cultural_priority = state.culture_get_traditional_forager_targets(culture, i);
+
+			dcon::forage_resource_id resource {(dcon::forage_resource_id::value_base_t)(forage_case.forage)};
+			auto amount = forage_case.amount;
+
+			if (amount == 0) {
+				continue;
+			}
+
+			auto output_value = forage_case.output_value;
+			auto efficiency = job_efficiency(ids, state.forage_resource_get_handle(resource));
+
+			auto speed = 1.f;
+			// time to find a resource
+			auto search_time_per_unit = size / amount / speed;
+
+			// time to gather the resource when it's found
+			auto handle_time_per_unit = amount / efficiency;
+
+			//time required to gather and find one unit of resource
+			auto total_time_per_unit = search_time_per_unit + handle_time_per_unit;
+
+			// how many units of goods one unit of resource yields
+			auto output_per_unit = forage_case.output_value;
+
 			state.pop_set_inventory(
 				ids,
 				output,
 				current
-				+ forage_case.output_value
-				* forage_case.amount
+				+ output_per_unit
+				/ total_time_per_unit
 				* forage_time
+				* cultural_priority
 			);
 		}
 	});
@@ -356,6 +422,7 @@ void building_produce() {
 		auto building_type = state.building_get_current_type(ids);
 		auto production_method = state.building_type_get_production_method(building_type);
 		auto current_power = state.building_get_production_scale(ids);
+		auto province = state.building_get_location_from_building_location(ids);
 
 		auto min_input = 1.f;
 
@@ -444,6 +511,10 @@ void building_produce() {
 			base_types::trade_good_container& stats = state.building_get_amount_of_outputs(ids, i);
 			stats.amount = true_min_input * current_power * output.amount;
 			stats.good = output.good;
+
+			base_types::trade_good_container& stats_earning = state.building_get_earn_from_outputs(ids, i);
+			stats_earning.good = output.good;
+			stats_earning.amount = stats.amount * state.province_get_local_prices(province, good);
 		}
 	});
 }
@@ -465,8 +536,9 @@ void pops_consume() {
 
 			auto demanded = need.demanded;
 
-			state.pop_for_each_parent_child_relation_as_parent(pop, [&](auto children) {
-				base_types::need_satisfaction& need_child = state.pop_get_need_satisfaction(pop, i);
+			state.pop_for_each_parent_child_relation_as_parent(pop, [&](auto child_rel) {
+				auto child = state.parent_child_relation_get_child(child_rel);
+				base_types::need_satisfaction& need_child = state.pop_get_need_satisfaction(child, i);
 				demanded = demanded + need_child.demanded;
 			});
 
@@ -495,8 +567,9 @@ void pops_consume() {
 
 			need.consumed = need.demanded * satisfaction;
 			// std::cout << need.consumed << " " << need.demanded;
-			state.pop_for_each_parent_child_relation_as_parent(pop, [&](auto children) {
-				base_types::need_satisfaction& need_child = state.pop_get_need_satisfaction(pop, i);
+			state.pop_for_each_parent_child_relation_as_parent(pop, [&](auto child_rel) {
+				auto child = state.parent_child_relation_get_child(child_rel);
+				base_types::need_satisfaction& need_child = state.pop_get_need_satisfaction(child, i);
 				need_child.consumed = need.demanded * satisfaction;
 			});
 		}
@@ -722,7 +795,8 @@ void pops_buy() {
 
 		auto scale = 0.f;
 		if (total_cost > 0.f) {
-			scale = std::min(1.f, budget / total_cost);
+			// buy a lot if price is low
+			scale = std::min(100.f, budget / total_cost);
 		}
 
 		for (uint32_t i = 0; i < state.pop_get_need_satisfaction_size(); i++) {
@@ -790,8 +864,8 @@ void pops_update_stats() {
 			}
 		}
 
-		auto life_satisfaction = total_life_demanded / total_life_demanded;
-		auto basic_satisfaction = (total_basic_consumed + total_life_demanded) / (total_basic_demanded + total_life_demanded);
+		auto life_satisfaction = total_life_consumed / total_life_demanded;
+		auto basic_satisfaction = (total_basic_consumed + total_life_consumed) / (total_basic_demanded + total_life_demanded);
 		state.pop_set_life_needs_satisfaction(pop, life_satisfaction);
 		state.pop_set_basic_needs_satisfaction(pop, basic_satisfaction);
 	});
@@ -837,6 +911,9 @@ void buildings_buy() {
 			base_types::use_case_container& input = state.production_method_get_inputs(production_method, i);
 			if(input.use == 0) break;
 			auto use = dcon::use_case_id{dcon::use_case_id::value_base_t(input.use - 1)};
+
+			auto total_amount = 0.f;
+			auto total_cost = 0.f;
 			state.use_case_for_each_use_weight_as_use_case(use, [&](auto weight_id){
 				auto weight = state.use_weight_get_weight(weight_id);
 				auto trade_good = state.use_weight_get_trade_good(weight_id);
@@ -857,7 +934,18 @@ void buildings_buy() {
 					std::max(0.f, state.building_get_savings(building)
 					- demand * demand_satisfaction * price * POP_BUY_PRICE_MULTIPLIER)
 				);
+
+				total_cost += demand * demand_satisfaction * price * POP_BUY_PRICE_MULTIPLIER;
+				total_amount += demand * demand_satisfaction;
 			});
+
+			base_types::use_case_container stats = state.building_get_amount_of_inputs(building, i);
+			stats.use = input.use;
+			stats.amount = total_amount;
+
+			base_types::use_case_container stats_spent = state.building_get_amount_of_inputs(building, i);
+			stats.use = input.use;
+			stats.amount = total_cost;
 		};
 	});
 }
@@ -867,7 +955,7 @@ constexpr inline float OWNER_SHARE = 0.5f;
 
 constexpr inline float LEFTOVERS_SHARE = 1.f - WORKERS_SHARE - OWNER_SHARE;
 
-void building_pay() {
+void buildings_pay() {
 	state.for_each_building([&](auto ids) {
 		state.building_set_production_scale(ids, 1.f);
 
@@ -897,7 +985,10 @@ void building_pay() {
 			auto pop = state.employment_get_worker(employment);
 			auto work_ratio = state.pop_get_work_ratio(pop);
 
-			state.pop_get_pending_economy_income(pop) += wage_budget * work_ratio / total_work_time;
+			auto share = wage_budget * work_ratio / total_work_time;
+
+			state.pop_get_pending_economy_income(pop) += share;
+			state.employment_set_worker_income(employment, share);
 		});
 
 		state.building_get_savings(ids) *= LEFTOVERS_SHARE;
@@ -997,6 +1088,6 @@ void update_economy() {
 		});
 	});
 
-	building_pay();
+	buildings_pay();
 	pops_update_stats();
 }
