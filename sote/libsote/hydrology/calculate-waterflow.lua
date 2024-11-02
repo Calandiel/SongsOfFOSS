@@ -269,21 +269,27 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			world.tmp_float_1[ti] = world.tmp_float_1[ti] - evaporation_volume
 		end
 
+		local num_neighs = world:neighbors_count(ti)
+
 		local total_elevation_difference = 0
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, num_neighs - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+
 			if world.tmp_bool_1[nti] then
 				local elev_diff = world:true_elevation(ti) - world:true_elevation(nti)
 				total_elevation_difference = total_elevation_difference + elev_diff
 			end
-		end)
-		world:for_each_neighbor(ti, function(nti)
+		end
+		for i = 0, num_neighs - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+
 			if world.tmp_bool_1[nti] then
 				if total_elevation_difference == 0 then error("Total elevation difference is 0!") end
 
 				local elev_diff = world:true_elevation(ti) - world:true_elevation(nti)
 				world.tmp_float_1[nti] = world.tmp_float_1[nti] + (elev_diff / total_elevation_difference) * world.tmp_float_1[ti]
 			end
-		end)
+		end
 	end
 
 	-- case_str = ""

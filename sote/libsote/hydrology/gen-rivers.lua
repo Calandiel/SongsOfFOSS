@@ -8,7 +8,7 @@ local enable_debug = false
 -- local logger = require("libsote.debug-loggers").get_rivers_logger("d:/temp")
 
 local prof = require "libsote.profiling-helper"
-local prof_prefix = "[gen-dynamic-lakes]"
+local prof_prefix = "[gen-rivers]"
 local function run_with_profiling(func, log_txt)
 	prof.run_with_profiling(func, prof_prefix, log_txt)
 end

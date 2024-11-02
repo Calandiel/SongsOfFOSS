@@ -728,12 +728,12 @@ function world:sort_by_elevation_for_waterflow()
 		true, false)
 end
 
----@param callback fun(tile_index:number, world:table)
-function world:for_each_tile_by_elevation_for_waterflow(callback)
-	for ti = 0, self.tile_count - 1 do
-		callback(self.tiles_by_elevation_for_waterflow[ti], self)
-	end
-end
+-- ---@param callback fun(tile_index:number, world:table)
+-- function world:for_each_tile_by_elevation_for_waterflow(callback)
+-- 	for ti = 0, self.tile_count - 1 do
+-- 		callback(self.tiles_by_elevation_for_waterflow[ti], self)
+-- 	end
+-- end
 
 ---------------------------------------------------------------------------------------------------
 

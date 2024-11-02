@@ -20,13 +20,14 @@ local function process(tile_index, world)
 	while not queue:is_empty() do
 		local ti = queue:dequeue()
 
-		world:for_each_neighbor(ti, function(nti)
-			if world.is_land[nti] or world:is_tile_waterbody_valid(nti) then return end
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local nti = world.neighbors[ti * 6 + i]
 
-			world:add_tile_to_waterbody(nti, new_wb)
-
-			queue:enqueue(nti)
-		end)
+			if not world.is_land[nti] and not world:is_tile_waterbody_valid(nti) then
+				world:add_tile_to_waterbody(nti, new_wb)
+				queue:enqueue(nti)
+			end
+		end
 	end
 end
 

@@ -34,11 +34,11 @@ local function trimmed_dune(dune)
 
 			local dune_neighbors = 0
 
-			world:for_each_neighbor(ti, function(nti)
-				if true_dune[nti] then
+			for i = 0, world:neighbors_count(ti) - 1 do
+				if true_dune[world.neighbors[ti * 6 + i]] then
 					dune_neighbors = dune_neighbors + 1
 				end
-			end)
+			end
 
 			if dune_neighbors < 2 then --* If only 1 neighbor, you get chopped off the dune
 				dune_terminated[ti] = true
@@ -178,18 +178,19 @@ local function process_dune_source(dune, expansion_iterations)
 		expansion_iterations = expansion_iterations - 1
 
 		for _, ti in ipairs(old_layer) do
-			world:for_each_neighbor(ti, function(nti)
-				if tag_num[nti] > 0 then return end
+			for i = 0, world:neighbors_count(ti) - 1 do
+				local nti = world.neighbors[ti * 6 + i]
 
-				if rng:random() >= 0.5 then
-					table.insert(new_layer, ti)
-					return
+				if tag_num[nti] == 0 then
+					if rng:random() < 0.5 then
+						table.insert(new_layer, nti)
+						table.insert(all_influenced, nti)
+						tag_num[nti] = expansion_iterations
+					else
+						table.insert(new_layer, ti)
+					end
 				end
-
-				table.insert(new_layer, nti)
-				table.insert(all_influenced, nti)
-				tag_num[nti] = expansion_iterations
-			end)
+			end
 		end
 
 		old_layer = {}
@@ -219,13 +220,15 @@ local function process_dune_tile(dti)
 	--* Continue to "build" the dune for as long as it takes to run out of elligible tiles
 	while #old_layer > 0 do
 		for _, ti in ipairs(old_layer) do
-			world:for_each_neighbor(ti, function(nti)
-				if true_dune[nti] or not potential_dune[nti] then return end
+			for i = 0, world:neighbors_count(ti) - 1 do
+				local nti = world.neighbors[ti * 6 + i]
 
-				table.insert(new_layer, nti)
-				table.insert(temp_dune, nti)
-				true_dune[nti] = true
-			end)
+				if not true_dune[nti] and potential_dune[nti] then
+					table.insert(new_layer, nti)
+					table.insert(temp_dune, nti)
+					true_dune[nti] = true
+				end
+			end
 		end
 
 		old_layer = {}
@@ -332,10 +335,10 @@ function gsd.run(world_obj)
 		--* calculate composite
 		local average_slope = 0
 		local elev = world.elevation[ti]
-		world:for_each_neighbor(ti, function(nti) --* Get average slope. Is used to exclude sand dune locations
-			local elev_diff = math.abs(elev - world.elevation[nti])
+		for i = 0, world:neighbors_count(ti) - 1 do --* Get average slope. Is used to exclude sand dune locations
+			local elev_diff = math.abs(elev - world.elevation[world.neighbors[ti * 6 + i]])
 			average_slope = average_slope + elev_diff
-		end)
+		end
 		average_slope = average_slope / world:neighbors_count(ti)
 
 		local sand_percent = (world.sand[ti] * 100) / (world.sand[ti] + world.silt[ti] + world.clay[ti]) --* Calculate percentage of sand as soil texture

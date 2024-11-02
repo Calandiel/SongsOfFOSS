@@ -8,8 +8,7 @@ local function fix_elevation(world)
 	world:for_each_tile(function(ti)
 		local elevation = world.elevation[ti]
 
-		local num_neighs = world:neighbors_count(ti)
-		for i = 0, num_neighs - 1 do
+		for i = 0, world:neighbors_count(ti) - 1 do
 			local nti = world.neighbors[ti * 6 + i]
 			local neighbor_elevation = world.elevation[nti]
 

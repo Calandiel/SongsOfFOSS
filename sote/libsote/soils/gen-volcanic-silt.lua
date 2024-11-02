@@ -29,19 +29,20 @@ local function expand_from_tile(vti, silt_qty, mineral_qty)
 		expansion_iterations = expansion_iterations - 1
 
 		for _, ti in ipairs(old_layer) do
-			world:for_each_neighbor(ti, function(nti)
-				if already_checked[nti] then return end
+			for i = 0, world:neighbors_count(ti) - 1 do
+				local nti = world.neighbors[ti * 6 + i]
 
-				if rng:random_int_max(100) >= 50 then
-					table.insert(new_layer, ti)
-					return
+				if not already_checked[nti] then
+					if rng:random_int_max(100) < 50 then
+						table.insert(new_layer, nti)
+						table.insert(all_influenced, nti)
+						already_checked[nti] = true
+						distance_factor[nti] = expansion_iterations
+					else
+						table.insert(new_layer, ti)
+					end
 				end
-
-				table.insert(new_layer, nti)
-				table.insert(all_influenced, nti)
-				already_checked[nti] = true
-				distance_factor[nti] = expansion_iterations
-			end)
+			end
 		end
 
 		old_layer = {}
