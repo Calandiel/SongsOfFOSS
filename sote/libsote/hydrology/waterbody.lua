@@ -90,11 +90,12 @@ function waterbody:build_perimeter(world)
 	self.perimeter = {}
 
 	self:for_each_tile(function(ti)
-		world:for_each_neighbor(ti, function(nti)
-			if not world.is_land[nti] then return end
-
-			self:add_to_perimeter(nti)
-		end)
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+			if world.is_land[nti] then
+				self:add_to_perimeter(nti)
+			end
+		end
 	end)
 end
 

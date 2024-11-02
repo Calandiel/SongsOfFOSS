@@ -72,7 +72,8 @@ local function process_drainage_basins(coast_ti)
 		for _, ti in ipairs(old_layer) do
 			local true_elev = world:true_elevation_for_waterflow(ti)
 
-			world:for_each_neighbor(ti, function(nti)
+			for i = 0, world:neighbors_count(ti) - 1 do
+				local nti = world.neighbors[ti * 6 + i]
 				local nwb = world:get_waterbody_by_tile(nti)
 
 				if not world:is_tile_waterbody_valid(nti) then
@@ -88,7 +89,7 @@ local function process_drainage_basins(coast_ti)
 				else
 					--* ?????
 				end
-			end)
+			end
 		end
 
 		old_layer = {}
@@ -112,9 +113,10 @@ local function find_path_using_waterbodies(ti, wb)
 	local lowest_elev = 100000
 	local lowest_nti = -1
 
-	world:for_each_neighbor(ti, function(nti) --* Here we count candidates and determine who has the lowest elevation
+	for i = 0, world:neighbors_count(ti) - 1 do --* Here we count candidates and determine who has the lowest elevation
+		local nti = world.neighbors[ti * 6 + i]
 		local nwb = world:get_waterbody_by_tile(nti)
-		if not nwb or not nwb:is_valid() then return end
+		if not nwb or not nwb:is_valid() then goto cont_loop1 end
 
 		local actual_neigh_elev = world:true_elevation_for_waterflow(nti)
 
@@ -125,7 +127,7 @@ local function find_path_using_waterbodies(ti, wb)
 			actual_neigh_elev = swb.water_level
 		end
 
-		if actual_neigh_elev >= true_elev then return end
+		if actual_neigh_elev >= true_elev then goto cont_loop1 end
 
 		if is_freshwater_lake_with_standing_water then
 			lowest_nti = swb.lowest_shore_tile
@@ -133,7 +135,9 @@ local function find_path_using_waterbodies(ti, wb)
 			lowest_elev = actual_neigh_elev
 			lowest_nti = nti
 		end
-	end)
+
+		::cont_loop1::
+	end
 
 	return lowest_nti ~= -1, lowest_nti
 end
@@ -149,14 +153,17 @@ local function tag_and_prep_all_tributaries()
 		if not wb or not wb:is_valid() then return end
 
 		local ellibigle_candidate = true
-		world:for_each_neighbor(ti, function(nti) --* Determine elligible candidates for headwaters
+		for i = 0, world:neighbors_count(ti) - 1 do --* Determine elligible candidates for headwaters
+			local nti = world.neighbors[ti * 6 + i]
 			local nwb = world:get_waterbody_by_tile(nti)
-			if not nwb or not nwb:is_valid() then return end
+			if not nwb or not nwb:is_valid() then goto cont_loop2 end
 
 			if nwb.id == wb.id and world.water_movement[nti] >= 6000 and world:true_elevation_for_waterflow(nti) > world:true_elevation_for_waterflow(ti) then
 				ellibigle_candidate = false
 			end
-		end)
+
+			::cont_loop2::
+		end
 
 		if ellibigle_candidate then
 			table.insert(initial_candidates, ti)
@@ -226,7 +233,9 @@ local function find_path_using_watershed(ti, wb)
 	local lowest_elevation = 100000
 	local lowest_nti = -1
 
-	world:for_each_neighbor(ti, function(nti) --* Here we count candidates and determine who has the lowest elevation. Lowest elevation neighbor will be next tile in the path
+	for i = 0, world:neighbors_count(ti) - 1 do --* Here we count candidates and determine who has the lowest elevation. Lowest elevation neighbor will be next tile in the path
+		local nti = world.neighbors[ti * 6 + i]
+
 		local actual_neigh_elev = world:true_elevation_for_waterflow(nti) --* Will function as either the elevation of the tile or the water level of the tile (if it is a lake)
 
 		local is_freshwater_lake_with_standing_water = false
@@ -236,10 +245,10 @@ local function find_path_using_watershed(ti, wb)
 			actual_neigh_elev = swb.water_level
 		end
 
-		if actual_neigh_elev >= true_elev then return end
+		if actual_neigh_elev >= true_elev then goto cont_loop3 end
 
 		local nwb = swb or watershed[nti] or world:get_waterbody_by_tile(nti)
-		if not nwb then return end
+		if not nwb then goto cont_loop3 end
 
 		if is_freshwater_lake_with_standing_water then
 			--* We need to terminate expansion and start the next tributary on the drain tile
@@ -251,7 +260,9 @@ local function find_path_using_watershed(ti, wb)
 			lowest_elevation = actual_neigh_elev
 			lowest_nti = nti
 		end
-	end)
+
+		::cont_loop3::
+	end
 
 	return lowest_nti
 end
@@ -343,23 +354,27 @@ local function connect_all_waterbodies()
 			--* Check first tile first to determine whether there are waterbody sources feeding into the current waterbody
 			local first_ti = wb.tiles[1]
 			local first_tile_elev = world:true_elevation_for_waterflow(first_ti)
-			world:for_each_neighbor(first_ti, function(nti)
+			for i = 0, world:neighbors_count(first_ti) - 1 do
+				local nti = world.neighbors[first_ti * 6 + i]
 				local nwb = world:get_waterbody_by_tile(nti)
-				if not nwb or not nwb:is_valid() then return end
+				if not nwb or not nwb:is_valid() then goto cont_loop4 end
 
 				if world:true_elevation_for_waterflow(nti) > first_tile_elev then
 					wb:add_source(nwb)
 				end
-			end)
+
+				::cont_loop4::
+			end
 			wb.lake_open = #wb.source > 0 and true or false --* Open means we're getting water from another waterbody and not just the ambient environment
 
 			--* Check last tile to determine the waterbodies that are being fed by the current waterbody. EVERY river should feed somewhere
 			local lowest_elevation = 100000
 			local lowest_wb = nil
 			local last_ti = wb.tiles[#wb.tiles]
-			world:for_each_neighbor(last_ti, function(nti)
+			for i = 0, world:neighbors_count(last_ti) - 1 do
+				local nti = world.neighbors[last_ti * 6 + i]
 				local nwb = world:get_waterbody_by_tile(nti)
-				if not nwb or not nwb:is_valid() then return end
+				if not nwb or not nwb:is_valid() then goto cont_loop5 end
 
 				local elev_to_check = world:true_elevation_for_waterflow(nti)
 
@@ -371,7 +386,9 @@ local function connect_all_waterbodies()
 					lowest_elevation = elev_to_check
 					lowest_wb = nwb
 				end
-			end)
+
+				::cont_loop5::
+			end
 			if lowest_wb == nil then error("River " .. wb.id .. " does not feed into a waterbody") end
 			wb.drain = lowest_wb
 
@@ -431,12 +448,13 @@ local function construct_wetlands()
 		if world.water_movement[ti] <= 2000 then return end
 
 		local points_to_check = 0
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local nti = world.neighbors[ti * 6 + i]
 			local nwb = world:get_waterbody_by_tile(nti)
 			if nwb and nwb:is_valid() or world.water_movement[nti] > 2000 then
 				points_to_check = points_to_check + 1
 			end
-		end)
+		end
 
 		if points_to_check >= 3 then
 			true_river[ti] = true
@@ -462,15 +480,19 @@ local function construct_wetlands()
 
 		while tiles_to_check > 0 do
 			for _, expansion_ti in ipairs(old_layer) do
-				world:for_each_neighbor(expansion_ti, function(nti)
-					if not true_river[nti] or world.ice[nti] > 0 then return end
+				for i = 0, world:neighbors_count(expansion_ti) - 1 do
+					local nti = world.neighbors[expansion_ti * 6 + i]
+
+					if not true_river[nti] or world.ice[nti] > 0 then goto cont_loop6 end
 
 					local nwb = world:get_waterbody_by_tile(nti)
-					if nwb and nwb:is_valid() then return end
+					if nwb and nwb:is_valid() then goto cont_loop6 end
 
 					world:add_tile_to_waterbody(nti, wb)
 					table.insert(new_layer, nti)
-				end)
+
+					::cont_loop6::
+				end
 			end
 
 			old_layer = {}
