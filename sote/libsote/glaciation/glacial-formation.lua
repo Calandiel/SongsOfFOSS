@@ -91,10 +91,13 @@ local function find_glacial_perimeter()
 		if glacial_seed[ti] then return end
 
 		local has_seed_neighbour = false
-		world:for_each_neighbor(ti, function(nti)
-			if not glacial_seed[nti] then return end
-			has_seed_neighbour = true
-		end)
+		for i = 0, world:neighbors_count(ti) - 1 do
+			if glacial_seed[world.neighbors[ti * 6 + i]] then
+				has_seed_neighbour = true
+				goto exit_loop1
+			end
+		end
+		::exit_loop1::
 
 		if has_seed_neighbour then
 			table.insert(old_layer, ti)
@@ -124,8 +127,10 @@ local function find_distance_of_each_glacier_tile_from_edge()
 		for _, ti in ipairs(old_layer) do
 			local attacked_neighbor = false
 
-			world:for_each_neighbor(ti, function(nti)
-				if not glacial_seed[nti] or distance_from_edge[nti] > 0 then return end
+			for i = 0, world:neighbors_count(ti) - 1 do
+				local nti = world.neighbors[ti * 6 + i]
+
+				if not glacial_seed[nti] or distance_from_edge[nti] > 0 then goto cont_loop1 end
 
 				attacked_neighbor = true
 
@@ -138,7 +143,9 @@ local function find_distance_of_each_glacier_tile_from_edge()
 					table.insert(new_layer, nti)
 					distance_from_edge[nti] = expansion_ticker
 				end
-			end)
+
+				::cont_loop1::
+			end
 
 			if attacked_neighbor then
 				table.insert(new_layer, ti)
@@ -217,12 +224,14 @@ local function process_ice_expansion(ti, boost_ice)
 
 	local ultimate_elevation = open_issues.true_elevation(world, ti) + ice_flow[ti]
 
-	if align_rng then error("don't forget to align random neigh picking") end
-	-- local rn = rng:random_int_max(world:neighbors_count(ti))
-	-- world:for_each_neighbor_starting_at(ti, rn, function(nti)
-	world:for_each_neighbor_random_start(ti, function(nti)
+	local num_neighs = world:neighbors_count(ti)
+	local rn = rng:random_int_max(num_neighs)
+	for i = 0, num_neighs - 1 do
+		local j = (rn + i) % num_neighs
+		local nti = world.neighbors[ti * 6 + j]
+
 		local neigh_ultimate_elev = open_issues.true_elevation(world, nti) + ice_flow[nti]
-		if ultimate_elevation <= neigh_ultimate_elev then return end
+		if ultimate_elevation <= neigh_ultimate_elev then goto cont_loop2 end
 
 		local elevation_diff = ultimate_elevation - neigh_ultimate_elev
 		local ice_available = ice_flow[ti] / 3
@@ -243,7 +252,7 @@ local function process_ice_expansion(ti, boost_ice)
 
 		-- max_ice = math.max(ice_flow[nti], max_ice)
 
-		if glacial_seed[nti] then return end
+		if glacial_seed[nti] then goto cont_loop2 end
 
 		glacial_seed[nti] = true
 
@@ -251,7 +260,9 @@ local function process_ice_expansion(ti, boost_ice)
 		--   1. we are adding to the table we are iterating over (is it safe or not?)
 		--   2. the table is sorted by distance, so we are changing the order of the table
 		table.insert(sorted_glacial_seeds, nti) -- is it safe or not? seems fine, I have verified that the added elements are processed
-	end)
+
+		::cont_loop2::
+	end
 end
 
 local function ice_expansion_loops(is_ice_age)
@@ -400,14 +411,13 @@ local function create_melt_province(ti)
 	--* Here we expand out the province until we either have no tiles to add or we run out of "turns"
 	while default_province_size > 0 and tiles_up > 0 do
 		for _, expand_ti in ipairs(old_layer) do
-			world:for_each_neighbor(expand_ti, function(nti)
-				if already_added[nti] or not glacial_seed[nti] then return end
-
-				--* If not already a province, then add
-
-				table.insert(new_layer, nti)
-				already_added[nti] = true
-			end)
+			for i = 0, world:neighbors_count(expand_ti) - 1 do
+				local nti = world.neighbors[expand_ti * 6 + i]
+				if not already_added[nti] and glacial_seed[nti] then --* If not already a province, then add
+					table.insert(new_layer, nti)
+					already_added[nti] = true
+				end
+			end
 		end
 
 		default_province_size = default_province_size - 1
@@ -432,7 +442,9 @@ local function identify_edge_tiles_and_update_province_status(melt_province, is_
 	for _, ti in ipairs(melt_province) do
 		local on_edge = false
 
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+
 			local is_ice_free = is_ice_age and world.ice_age_ice[nti] == 0 or not is_ice_age and world.ice[nti] == 0
 			if is_ice_free then
 				kill_province = false
@@ -443,7 +455,7 @@ local function identify_edge_tiles_and_update_province_status(melt_province, is_
 			if not glacial_seed[nti] then
 				on_edge = true
 			end
-		end)
+		end
 
 		if on_edge then
 			perimeter_size = perimeter_size + 1
@@ -457,9 +469,12 @@ local function expand_melt_province(is_ice_age, expansion_tick)
 	new_layer = {}
 
 	for _, ti in ipairs(old_layer) do
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+
 			-- original code has some dead code that seems to want to use the ice to decide whether to skip or not
-			if already_added[nti] then return end
+
+			if already_added[nti] then goto cont_loop3 end
 
 			local rn = rng:random_int_max(100)
 			local neighbor_contributes = false
@@ -474,7 +489,9 @@ local function expand_melt_province(is_ice_age, expansion_tick)
 			else
 				table.insert(new_layer, ti)
 			end
-		end)
+
+			::cont_loop3::
+		end
 	end
 
 	old_layer = {}
@@ -620,11 +637,12 @@ local function cull_back_silt_based_on_moisture_and_slope()
 
 	world:for_each_tile(function(ti)
 		local steepest_face = 0
-		world:for_each_neighbor(ti, function(nti)
-			local elev_diff = open_issues.true_elevation(world, ti) - open_issues.true_elevation(world, nti)
-			if elev_diff <= 0 then return end
-			steepest_face = math.max(steepest_face, elev_diff)
-		end)
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local elev_diff = open_issues.true_elevation(world, ti) - open_issues.true_elevation(world, world.neighbors[ti * 6 + i])
+			if elev_diff > 0 then
+				steepest_face = math.max(steepest_face, elev_diff)
+			end
+		end
 		-- original code happily divides by zero if it chances on a flat piece of terrain, so I decided to set the slope_retention_factor to 1 in that case
 		local slope_retention_factor = steepest_face > 0 and math.min(math.pow((10 / steepest_face), 2), 1) or 1
 		slope_retention_factor_storage[ti] = slope_retention_factor
@@ -765,6 +783,10 @@ function gf.run(world_obj)
 	run_with_profiling(function() cull_back_silt_based_on_moisture_and_slope() end, "cull_back_silt_based_on_moisture_and_slope")                           -- #15
 	--* Dispose of Lists                                                                                                                                    -- #16
 	run_with_profiling(function() assign_ice_biomes_and_set_variables() end, "assign_ice_biomes_and_set_variables")                                         -- #17
+
+	-- world:for_each_tile(function(ti)
+	-- 	logger:log(ti .. ": " .. world.ice[ti] .. ", " .. world.ice_age_ice[ti] .. ", " .. world.silt[ti] .. ", " .. world.mineral_richness[ti])
+	-- end)
 end
 
 return gf

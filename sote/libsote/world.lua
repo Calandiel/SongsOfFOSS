@@ -205,35 +205,35 @@ function world:neighbors_count(index)
 	return self.neighbors[index * 6 + 5] == -1 and 5 or 6
 end
 
----@param index number 0-based index
----@param callback fun(neighbor_tile_index:number)
-function world:for_each_neighbor(index, callback)
-	local neighbor_count = self:neighbors_count(index)
-	index = index * 6
+-- ---@param index number 0-based index
+-- ---@param callback fun(neighbor_tile_index:number)
+-- function world:for_each_neighbor(index, callback)
+-- 	local neighbor_count = self:neighbors_count(index)
+-- 	index = index * 6
 
-	for i = 0, neighbor_count - 1 do
-		callback(self.neighbors[index + i])
-	end
-end
+-- 	for i = 0, neighbor_count - 1 do
+-- 		callback(self.neighbors[index + i])
+-- 	end
+-- end
 
----@param index number 0-based index
----@param start number 0-based start index
----@param callback fun(neighbor_tile_index:number)
-function world:for_each_neighbor_starting_at(index, start, callback)
-	local neighbor_count = self:neighbors_count(index)
-	index = index * 6
-	for i = 0, neighbor_count - 1 do
-		local j = (start + i) % neighbor_count
-		callback(self.neighbors[index + j])
-	end
-end
+-- ---@param index number 0-based index
+-- ---@param start number 0-based start index
+-- ---@param callback fun(neighbor_tile_index:number)
+-- function world:for_each_neighbor_starting_at(index, start, callback)
+-- 	local neighbor_count = self:neighbors_count(index)
+-- 	index = index * 6
+-- 	for i = 0, neighbor_count - 1 do
+-- 		local j = (start + i) % neighbor_count
+-- 		callback(self.neighbors[index + j])
+-- 	end
+-- end
 
----@param index number 0-based index
----@param callback fun(neighbor_tile_index:number)
-function world:for_each_neighbor_random_start(index, callback)
-	local start = self.rng:random_int_max(self:neighbors_count(index))
-	self:for_each_neighbor_starting_at(index, start, callback)
-end
+-- ---@param index number 0-based index
+-- ---@param callback fun(neighbor_tile_index:number)
+-- function world:for_each_neighbor_random_start(index, callback)
+-- 	local start = self.rng:random_int_max(self:neighbors_count(index))
+-- 	self:for_each_neighbor_starting_at(index, start, callback)
+-- end
 
 -- function world:_set_latlon(index, colatitude, minus_longitude)
 -- 	self.colatitude[index] = colatitude
