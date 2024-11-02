@@ -491,9 +491,9 @@ local function trade_widget(gam, tile_id, panel)
 		local output_value = DATA.province_get_foragers_targets_output_value(province_id, i)
 
 		---@type number
-		local search_time = province_size / amount
+		local search_time = province_size / amount / 10
 		local efficiency = dbm.mean_race_job_efficiency(HUMAN, required_job)
-		local handle_time = amount / efficiency
+		local handle_time = 1 / efficiency
 
 		local total_time = search_time + handle_time
 

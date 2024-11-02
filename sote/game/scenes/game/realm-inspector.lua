@@ -365,7 +365,9 @@ function re.draw(gam)
 								},
 								{
 									header = "satisfac.",
-									render_closure = uit.render_pop_satsifaction,
+									render_closure = function (rect, k, v)
+										uit.render_pop_satsifaction(rect, v)
+									end,
 									width = 2,
 									value = function(k, v)
 										return DATA.pop_get_basic_needs_satisfaction(v)

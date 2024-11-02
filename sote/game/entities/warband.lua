@@ -3,10 +3,6 @@ local pop_utils = require "game.entities.pop".POP
 
 local warband_utils = {}
 
-function warband_utils.new()
-	return DATA.create_warband()
-end
-
 ---Returns a list of all officers
 ---@param warband warband_id
 ---@return table<Character, Character> officers

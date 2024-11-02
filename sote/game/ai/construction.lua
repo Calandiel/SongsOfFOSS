@@ -15,7 +15,7 @@ local co = {}
 ---@param overseer pop_id
 ---@return number
 local function construction_in_province(province, funds, excess, owner, overseer)
-	if funds < 50 then
+	if funds < 100 then
 		return funds
 	end
 
@@ -86,24 +86,34 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		end
 	end)
 
+
+	local race = DATA.pop_get_race(owner)
+	local max_age = DATA.race_get_max_age(race)
+
+	if max_age / 2 * 12 < min_time then
+		return funds
+	end
+
+	-- print("min time to pay back")
+	-- print(min_time)
+
 	-- set weigths based on predicted profits
 	---@type table<BuildingType, number>
 	local exp_feature = {}
 	local sum_of_exponents = 0
 	DATA.for_each_building_type(function (building_type)
+		-- print(building_type)
 		if DATA.province_get_buildable_buildings(province, building_type) == 0 then
 			return
 		end
+		-- print("potential yes")
 
 		local time = time_per_building_type[building_type]
+		-- print("time ", time)
 
 		local feature = nil
 
 		-- do not consider buildings with expected time to return investments over half of your life...
-
-		local race = DATA.pop_get_race(owner)
-		local max_age = DATA.race_get_max_age(race)
-
 		if max_age / 2 * 12 > time then
 			feature = -time + min_time
 		end
@@ -131,10 +141,19 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		end
 	end)
 
+	-- print("weights ")
+	-- tabb.print(exp_feature)
+
 	---@type number
 	local total_weight = sum_of_exponents
 
-	if total_weight > 0 then
+	if total_weight == 0 then
+		return funds
+	end
+
+	-- print("total weight ", total_weight)
+
+	do
 		local w = love.math.random() * total_weight
 		local acc = 0
 		---@type BuildingType
@@ -147,15 +166,18 @@ local function construction_in_province(province, funds, excess, owner, overseer
 
 			---@type number
 			acc = acc + exp_feature[building_type]
-			if acc >= w and building_type == INVALID_ID then
+
+			if acc >= w and to_build == INVALID_ID then
 				to_build = building_type
 			end
 		end)
+
 
 		-- if there's nothing to build, do not build
 		if to_build == INVALID_ID then
 			return funds
 		end
+
 
 		local is_gov = DATA.building_type_get_government(to_build)
 
@@ -163,6 +185,7 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		if is_gov and owner ~= INVALID_ID then
 			return funds
 		end
+
 
 		-- Only build if there are unemployed pops...
 		-- Actually let's build anyway, because simulation is much more robust now

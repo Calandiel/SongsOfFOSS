@@ -184,7 +184,9 @@ return function(rect, base_unit, province)
             },
             {
                 header = "satisfac.",
-                render_closure = ut.render_pop_satsifaction,
+                render_closure = function (rect, k, v)
+                    ut.render_pop_satsifaction(rect, v)
+                end,
                 width = 2,
                 value = function (k, v)
                     return DATA.pop_get_basic_needs_satisfaction(v)

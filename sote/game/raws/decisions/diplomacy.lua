@@ -600,20 +600,22 @@ local function load()
 		pretrigger = function(root)
 			-- need at least so many family units to migrate
 			local realm = REALM(root)
-			local capitol = CAPITOL(realm)
-			local province = PROVINCE(root)
 			local age = DATA.pop_get_age(root)
 			local race = RACE(root)
 			local teen_age = DATA.race_get_teen_age(race)
 
-			local valid_family_units, valid_family_count = valid_home_family_units(capitol)
 			-- makes sure characters wanting to lead an expepedition are 'adults'
 			if (not ot.decides_foreign_policy(root, realm)) or age < teen_age then
 				return false
 			end
+
+			local province = PROVINCE(root)
+			local capitol = CAPITOL(realm)
 			if province ~= capitol then
 				return false
 			end
+
+			local valid_family_units, valid_family_count = valid_home_family_units(capitol)
 			if valid_family_count < 11 then
 				return false
 			end
@@ -621,10 +623,10 @@ local function load()
 		end,
 		clickable = function(root, primary_target)
 			-- need at least so many family units to migrate
-			local _, valid_family_count, _ = valid_home_family_units(CAPITOL(REALM(root)))
 			if not DATA.province_get_is_land(primary_target) then
 				return false
 			end
+			local _, valid_family_count, _ = valid_home_family_units(CAPITOL(REALM(root)))
 			if valid_family_count < 11 then
 				return false
 			end
@@ -720,15 +722,15 @@ local function load()
 			local race = RACE(root)
 			local teen_age = DATA.race_get_teen_age(race)
 
-
-			-- need at least so many family units to migrate
-			local _, valid_family_count = valid_home_family_units(capitol)
-			--- don't let children start new realms unless leader
 			if (not ot.decides_foreign_policy(root, realm))
 				or age < teen_age
 			then
 				return 0
 			end
+
+			-- need at least so many family units to migrate
+			local _, valid_family_count = valid_home_family_units(capitol)
+			--- don't let children start new realms unless leader
 			-- will only try to colonize if it can get all 6 families
 			if valid_family_count < 11 then
 				return 0

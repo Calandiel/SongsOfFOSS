@@ -84,6 +84,7 @@ function window.draw(game)
 
             r.width = width_unit
             r.x = x + width_unit * 2
+
             ui.centered_text(DATA.warband_status_get_name(DATA.warband_get_current_status(warband)), r)
 
             r.x = x + width_unit * 3

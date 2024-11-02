@@ -593,7 +593,7 @@ function window.draw(gamescene)
 			"horizon-road.png",
 			days_of_supply_consumption,
 			rect:subrect(0, 0, rect_width / 2, rect_height / 3, "left", "down"),
-			"With " .. ut.to_fixed_point2(warband:get_supply_available()) .. " units of food available,"
+			"With " .. ut.to_fixed_point2(warband_utils.get_supply_available(warband)) .. " units of food available,"
 				.. " this warband has enough supplies for " .. ut.to_fixed_point2(days_of_supply_consumption) .. " days of travel"
 				.. " while using " .. ut.to_fixed_point2(daily_supply_consumption) .. " units each day.",
 			ut.NUMBER_MODE.NUMBER,
@@ -694,7 +694,7 @@ function window.draw(gamescene)
 						rect:subrect(0, -ut.BASE_HEIGHT, ut.BASE_HEIGHT , ut.BASE_HEIGHT, "right", "up"),
 						text, control_warband
 					) then
-						warband:unset_commander()
+						warband_utils.unset_commander(warband)
 					end
 				else
 					render_icon_panel(rect:subrect(ut.BASE_HEIGHT * 2, -ut.BASE_HEIGHT, ut.BASE_HEIGHT, ut.BASE_HEIGHT, "left", "up"), "cancel.png", 1, 1, 1, 1)
@@ -877,7 +877,7 @@ function window.draw(gamescene)
 		end
 		ut.generic_number_field(
 			"magnifying-glass.png",
-			warband:spotting(),
+			warband_utils.spotting(warband),
 			strength_layout:next(strength_width, strength_height),
 			"This warband has normal spotting bonus of " .. ut.to_fixed_point2(unit_spotting)
 				.. " from " .. count .. " warrior" .. plural .. " and " .. noncombatants .. " noncombatant" .. non_plural .. "."
@@ -1436,9 +1436,9 @@ function window.draw(gamescene)
 							if ut.icon_button(icon, rect, text, can_recruit) then
 								-- check if trying to fire commander first
 								if commander ~= INVALID_ID and commander == k then
-									warband:unset_commander()
+									warband_utils.unset_commander(warband)
 								else
-									warband:fire_unit(k)
+									warband_utils.fire_unit(warband, k)
 								end
 							end
 						end

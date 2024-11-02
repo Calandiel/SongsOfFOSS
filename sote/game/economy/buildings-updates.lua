@@ -47,7 +47,6 @@ function bld.run(province)
 
 	---@type CandidateBuilding[]
 	local candidate_targets_for_replacement = {}
-	local number_of_candidates = {}
 	DATA.for_each_building_type(function (candidate)
 		if DATA.province_get_buildable_buildings(province, candidate) == 0 then
 			return
@@ -72,6 +71,8 @@ function bld.run(province)
 
 		table.insert(candidate_targets_for_replacement, data)
 	end)
+
+	local number_of_candidates = #candidate_targets_for_replacement
 
 	-- update building type of buildings:
 	DATA.for_each_building_location_from_location(province, function (item)

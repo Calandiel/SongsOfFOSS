@@ -92,12 +92,6 @@ local function load()
 			end
 			if total_patrol_size > 0 then
 				local reward = 0
-
-				print(DATA.realm_get_quests_patrol(REALM(root)))
-				print(REALM(root))
-				print(associated_data)
-				print(associated_data.target)
-
 				local max_reward = DATA.realm_get_quests_patrol(associated_data.origin)[associated_data.target]
 				if max_reward then
 					reward = math.min(max_reward, total_patrol_size)

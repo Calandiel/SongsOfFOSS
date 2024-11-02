@@ -991,6 +991,8 @@ end
 function prov.Province.new_warband(province)
 	local warband = DATA.create_warband()
 	DATA.force_create_warband_location(province, warband)
+	DATA.warband_set_current_status(warband, WARBAND_STATUS.IDLE)
+	DATA.warband_set_idle_stance(warband, WARBAND_STANCE.FORAGE)
 	return warband
 end
 

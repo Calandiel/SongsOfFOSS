@@ -381,6 +381,7 @@ return function(province, ui_panel, base_unit, gam)
                 or good_supply > 0
                 or good_consumption > 0
                 or local_storage > 0
+                or good_demand > 0
             then
                 local good = DATA.fatten_trade_good(good_id)
                 data_blob[good_name] = {

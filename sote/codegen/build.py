@@ -3,6 +3,7 @@ Handles build of DataContainer:
 https://github.com/schombert/DataContainer
 """
 import os
+import time
 import subprocess
 from pathlib import Path
 from shutil import copyfile, move
@@ -98,6 +99,8 @@ if os.name == 'nt':
         additional_functions_src_destination,
         "-o", "dcon.dll",
     ], check=True, shell=True)
+
+    time.sleep(0.1)
 
     dll_folder = dll_folder.joinpath("win")
     move("./dcon.dll", dll_folder.joinpath("dcon.dll"))

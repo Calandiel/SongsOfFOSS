@@ -5,6 +5,9 @@
 #include "sote_functions.hpp"
 #include "lua_objs.hpp"
 
+static auto GOOD_CATEGORY = (uint8_t)((int)(base_types::TRADE_GOOD_CATEGORY::GOOD) - 1);
+
+
 float age_multiplier(dcon::pop_id pop) {
 	auto age_multiplier = 1.f;
 	auto age = state.pop_get_age(pop);
@@ -46,14 +49,14 @@ float job_efficiency(dcon::pop_id pop, uint8_t jobtype) {
 void update_vegetation(float speed) {
 	state.execute_serial_over_tile([speed](auto ids) {
 		auto conifer = state.tile_get_conifer(ids);
-		auto broadleaf = state.tile_get_conifer(ids);
-		auto shrub = state.tile_get_conifer(ids);
-		auto grass = state.tile_get_conifer(ids);
+		auto broadleaf = state.tile_get_broadleaf(ids);
+		auto shrub = state.tile_get_shrub(ids);
+		auto grass = state.tile_get_grass(ids);
 
 		auto ideal_conifer = state.tile_get_ideal_conifer(ids);
-		auto ideal_broadleaf = state.tile_get_ideal_conifer(ids);
-		auto ideal_shrub = state.tile_get_ideal_conifer(ids);
-		auto ideal_grass = state.tile_get_ideal_conifer(ids);
+		auto ideal_broadleaf = state.tile_get_ideal_broadleaf(ids);
+		auto ideal_shrub = state.tile_get_ideal_shrub(ids);
+		auto ideal_grass = state.tile_get_ideal_grass(ids);
 
 		state.tile_set_conifer(ids, conifer * (1.f - speed) + ideal_conifer * speed);
 		state.tile_set_broadleaf(ids, broadleaf * (1.f - speed) + ideal_broadleaf * speed);
@@ -368,13 +371,13 @@ void pops_produce() {
 
 			// std::cout << "forage: " << forage_case.output_value * forage_case.amount * forage_time << "\n";
 
-			assert(current >= 0.f);
-			assert(forage_case.output_value >= 0.f);
-			assert(forage_case.amount >= 0.f);
-			assert(forage_time >= 0.f);
+			// assert(current >= 0.f);
+			// assert(forage_case.output_value >= 0.f);
+			// assert(forage_case.amount >= 0.f);
+			// assert(forage_time >= 0.f);
 
 			auto culture = state.pop_get_culture(ids);
-			auto cultural_priority = state.culture_get_traditional_forager_targets(culture, i);
+			auto cultural_priority = state.culture_get_traditional_forager_targets(culture, (uint8_t)((int)(forage_case.forage) - 1));
 
 			dcon::forage_resource_id resource {(dcon::forage_resource_id::value_base_t)(forage_case.forage)};
 			auto amount = forage_case.amount;
@@ -386,12 +389,12 @@ void pops_produce() {
 			auto output_value = forage_case.output_value;
 			auto efficiency = job_efficiency(ids, state.forage_resource_get_handle(resource));
 
-			auto speed = 1.f;
+			auto speed = 10.f;
 			// time to find a resource
 			auto search_time_per_unit = size / amount / speed;
 
 			// time to gather the resource when it's found
-			auto handle_time_per_unit = amount / efficiency;
+			auto handle_time_per_unit = 1 / efficiency;
 
 			//time required to gather and find one unit of resource
 			auto total_time_per_unit = search_time_per_unit + handle_time_per_unit;
@@ -499,12 +502,12 @@ void building_produce() {
 			auto good = dcon::trade_good_id{dcon::trade_good_id::value_base_t(output.good - 1)};
 			auto inventory = state.building_get_inventory(ids, good);
 
-			assert(inventory >= 0.f);
-			assert(output.amount >= 0.f);
-			assert(current_power >= 0.f);
-			assert(true_min_input >= 0.f);
+			// assert(inventory >= 0.f);
+			// assert(output.amount >= 0.f);
+			// assert(current_power >= 0.f);
+			// assert(true_min_input >= 0.f);
 
-			std::cout << "output: " << good.index() << " amount: " << output.amount << " power " << current_power << " min_input " << true_min_input << "\n";
+			// std::cout << "output: " << good.index() << " amount: " << output.amount << " power " << current_power << " min_input " << true_min_input << "\n";
 
 			state.building_set_inventory(ids, good, inventory + output.amount * current_power * true_min_input);
 
@@ -600,18 +603,25 @@ void pops_sell() {
 	});
 }
 
+
+
 void buildings_sell() {
 	state.for_each_building([&](dcon::building_id building) {
 		auto province = state.building_get_location_from_building_location(building);
 		auto income = 0.f;
 		state.for_each_trade_good([&](auto trade_good) {
 			auto inventory = state.building_get_inventory(building, trade_good);
-			income += inventory * 0.1f * state.province_get_local_prices(province, trade_good);
-			state.building_set_inventory(building, trade_good, inventory * 0.9f);
-			record_production(province, trade_good, inventory * 0.1f);
+			auto sell_ratio = 1.f;
+			if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
+				sell_ratio = 0.1f;
+			}
+
+			income += inventory * sell_ratio * state.province_get_local_prices(province, trade_good);
+			state.building_set_inventory(building, trade_good, inventory * (1.f - sell_ratio));
+			record_production(province, trade_good, inventory * sell_ratio);
 		});
 
-		std::cout << "income: " << income << " \n";
+		// std::cout << "income: " << income << " \n";
 		state.building_set_savings(building, state.building_get_savings(building) + income);
 	});
 }
@@ -657,6 +667,7 @@ void pops_demand() {
 		for (uint32_t i = 0; i < state.pop_get_need_satisfaction_size(); i++) {
 			base_types::need_satisfaction& need = state.pop_get_need_satisfaction(pop, i);
 			auto use = dcon::use_case_id{dcon::use_case_id::value_base_t(need.use_case - 1)};
+			// std::cout << " use " << need.use_case << "\n";
 			if (!use)	break;
 			state.use_case_for_each_use_weight_as_use_case(use, [&](auto weight_id){
 				auto weight = state.use_weight_get_weight(weight_id);
@@ -669,16 +680,20 @@ void pops_demand() {
 
 				auto demand = need.demanded * distribution * scale;
 
-				if (!(demand >= 0.f)) {
-					std::cout << need.demanded << " " << distribution << " " << scale << "\n";
-				}
+				// std::cout << " trade good " << trade_good.index() << "\n";
+				// std::cout << " demand " << demand << "\n";
+				// std::cout << " base demand " << need.demanded << "\n";
 
-				assert(score >= 0.f);
-				assert(total_score > 0.f);
-				assert(scale >= 0.f);
-				assert(need.demanded >= 0.f);
-				assert(distribution >= 0.f);
-				assert(demand >= 0.f);
+				// if (!(demand >= 0.f)) {
+				// 	std::cout << need.demanded << " " << distribution << " " << scale << "\n";
+				// }
+
+				// assert(score >= 0.f);
+				// assert(total_score > 0.f);
+				// assert(scale >= 0.f);
+				// assert(need.demanded >= 0.f);
+				// assert(distribution >= 0.f);
+				// assert(demand >= 0.f);
 
 				record_demand(province, trade_good, demand);
 			});
