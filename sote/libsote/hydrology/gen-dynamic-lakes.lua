@@ -349,9 +349,9 @@ function dl.run(world_obj)
 	world:for_each_waterbody(function(wb)
 		-- logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
 
-		wb:for_each_tile(function(ti)
+		for _, ti in ipairs(wb.tiles) do
 			world.is_land[ti] = false
-		end)
+		end
 	end)
 end
 

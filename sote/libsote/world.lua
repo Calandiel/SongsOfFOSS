@@ -509,9 +509,9 @@ end
 
 ---@param wb table waterbody
 function world:kill_waterbody(wb)
-	wb:for_each_tile(function(ti)
+	for _, ti in ipairs(wb.tiles) do
 		self.waterbody_id_by_tile[ti] = 0
-	end)
+	end
 
 	table.insert(self.killed_waterbodies, wb.id)
 	table.sort(self.killed_waterbodies)

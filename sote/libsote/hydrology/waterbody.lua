@@ -61,19 +61,19 @@ function waterbody:add_source(wb)
 	table.insert(self.source, wb)
 end
 
----@param callback fun(tile_index:number)
-function waterbody:for_each_tile(callback)
-	for _, ti in ipairs(self.tiles) do
-		callback(ti)
-	end
-end
+-- ---@param callback fun(tile_index:number)
+-- function waterbody:for_each_tile(callback)
+-- 	for _, ti in ipairs(self.tiles) do
+-- 		callback(ti)
+-- 	end
+-- end
 
----@param callback fun(tile_index:number)
-function waterbody:for_each_tile_in_perimeter(callback)
-	for ti, _ in pairs(self.perimeter) do
-		callback(ti)
-	end
-end
+-- ---@param callback fun(tile_index:number)
+-- function waterbody:for_each_tile_in_perimeter(callback)
+-- 	for ti, _ in pairs(self.perimeter) do
+-- 		callback(ti)
+-- 	end
+-- end
 
 ---@param ti number
 function waterbody:add_to_perimeter(ti)
@@ -89,14 +89,14 @@ end
 function waterbody:build_perimeter(world)
 	self.perimeter = {}
 
-	self:for_each_tile(function(ti)
+	for _, ti in ipairs(self.tiles) do
 		for i = 0, world:neighbors_count(ti) - 1 do
 			local nti = world.neighbors[ti * 6 + i]
 			if world.is_land[nti] then
 				self:add_to_perimeter(nti)
 			end
 		end
-	end)
+	end
 end
 
 ---@param world table

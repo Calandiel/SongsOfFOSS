@@ -42,17 +42,17 @@ local function construct_start_locations()
 	--* Here we are iterating along the coast of each endoreic lake and ocean to find the start tile of rivers
 	world:for_each_waterbody(function(wb)
 		if wb:is_lake_or_ocean() then
-			wb:for_each_tile_in_perimeter(function(ti)
+			for ti, _ in pairs(wb.perimeter) do
 				if world.water_movement[ti] >= 6000 then
 					table.insert(initial_candidates, ti)
 				end
-			end)
+			end
 		end
 
 		--* Setting all tiles inside of a waterbody to 0 watermovement since they are now submerged
-		wb:for_each_tile(function(ti)
+		for _, ti in ipairs(wb.tiles) do
 			world.water_movement[ti] = 0
-		end)
+		end
 	end)
 end
 
@@ -213,15 +213,15 @@ end
 local function kill_old_basins()
 	world:for_each_waterbody(function(wb) --* Kill old drainage basin rivers and convert their members to a logic variable
 		if wb.type == wb.TYPES.river then --* Kill old rivers
-			wb:for_each_tile(function(ti)
+			for _, ti in ipairs(wb.tiles) do
 				watershed[ti] = wb
-			end)
+			end
 			world:kill_waterbody(wb)
 		elseif wb.type == wb.TYPES.ocean or wb.type == wb.TYPES.saltwater_lake then --* Prep standing water body variables for next phase
-			wb:for_each_tile(function(ti)
+			for _, ti in ipairs(wb.tiles) do
 				fork_count[ti] = 1000000
 				true_river[ti] = true
-			end)
+			end
 		else
 			--* ???
 		end
@@ -319,18 +319,18 @@ end
 local function reassign_proper_tile_waterbody_to_lakes()
 	world:for_each_waterbody(function(wb)
 		if wb.type == wb.TYPES.freshwater_lake then
-			wb:for_each_tile(function(ti)
+			for _, ti in ipairs(wb.tiles) do
 				world:reassign_tile_to_waterbody(ti, wb)
 				watershed[ti] = wb
-			end)
+			end
 		end
 
 		if wb.type == wb.TYPES.river then
 			local members_under_ice = 0
 			local total_members = wb:size()
-			wb:for_each_tile(function(ti)
+			for _, ti in ipairs(wb.tiles) do
 				local ice = world.ice[ti]
-				if ice == 0 then return end
+				if ice == 0 then goto cont_loop1 end
 
 				if ice > 1000 then members_under_ice = members_under_ice + 2
 				elseif ice > 500 then members_under_ice = members_under_ice + 1.75
@@ -340,7 +340,9 @@ local function reassign_proper_tile_waterbody_to_lakes()
 				elseif ice > 25 then members_under_ice = members_under_ice + 0.75
 				else members_under_ice = members_under_ice + 0.51
 				end
-			end)
+
+				::cont_loop1::
+			end
 			if members_under_ice / total_members > 0.5 then
 				world:kill_waterbody(wb)
 			end
@@ -400,16 +402,18 @@ local function connect_all_waterbodies()
 
 		if wb:is_lake_or_ocean() then
 			--* Receive water from sources
-			wb:for_each_tile_in_perimeter(function(ti)
+			for ti, _ in pairs(wb.perimeter) do
 				--* Check for higher elevation than waterlevel... check for waterbody ID to make sure it is not zero and not different.
 				if world:true_elevation_for_waterflow(ti) <= wb.water_level then return end
 
 				--* If criteria is met, add as source
 				local nwb = world:get_waterbody_by_tile(ti)
-				if not nwb or not nwb:is_valid() then return end
+				if not nwb or not nwb:is_valid() then goto cont_loop2 end
 
 				wb:add_source(nwb)
-			end)
+
+				::cont_loop2::
+			end
 		end
 
 		if wb.type == wb.TYPES.freshwater_lake then
