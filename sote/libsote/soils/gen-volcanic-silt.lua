@@ -33,7 +33,7 @@ local function expand_from_tile(vti, silt_qty, mineral_qty)
 				local nti = world.neighbors[ti * 6 + i]
 
 				if not already_checked[nti] then
-					if rng:random_int_max(100) < 50 then
+					if rng:random() < 0.5 then
 						table.insert(new_layer, nti)
 						table.insert(all_influenced, nti)
 						already_checked[nti] = true
