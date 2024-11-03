@@ -12,7 +12,7 @@ function ts.run(world)
 		wind_factor = math.min(25, wind_factor)
 		wind_factor = (1 - wind_factor / 25) * 0.65 + 0.35
 		local permeability = wgu.permiation_calc(world.sand[ti], world.silt[ti], world.clay[ti])
-		true_water_calc = true_water_calc * permeability * wind_factor
+		true_water_calc = true_water_calc * wind_factor * permeability
 
 		local new_silt = world.silt[ti]
 
