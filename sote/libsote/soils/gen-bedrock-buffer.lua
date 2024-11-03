@@ -8,10 +8,10 @@ local sand_quantity
 local mineral_quantity
 
 function gbb.run(world)
-	clay_quantity = world.tmp_float_1
-	silt_quantity = world.tmp_float_2
-	sand_quantity = world.tmp_float_3
-	mineral_quantity = world.tmp_float_4
+	clay_quantity = world.tmp_int_1
+	silt_quantity = world.tmp_int_2
+	sand_quantity = world.tmp_int_3
+	mineral_quantity = world.tmp_int_4
 
 	world:fill_ffi_array(clay_quantity, 0)
 	world:fill_ffi_array(silt_quantity, 0)
@@ -25,24 +25,27 @@ function gbb.run(world)
 	--* ---At the very, very, very end of the process, iterate through all land tiles in the world divide all values by "tiles tagged" variable to
 	--* furnish us with final quantity
 
-	local land_tiles = {}
-	world:for_each_tile(function(ti)
-		if not world.is_land[ti] then return end
-		table.insert(land_tiles, ti)
-	end)
+	-- local land_tiles = {}
+	-- world:for_each_tile(function(ti)
+	-- 	if not world.is_land[ti] then return end
+	-- 	table.insert(land_tiles, ti)
+	-- end)
 
 	local tiles_to_expand = 100 --* How far each tile will share its material. Has diminishing effect the further out you go.
 
 	while tiles_to_expand > 0 do
 		tiles_to_expand = tiles_to_expand - 1
 
-		for _, ti in ipairs(land_tiles) do
+		for ti = 0, world.tile_count - 1 do
+		-- for _, ti in ipairs(land_tiles) do
+			if not world.is_land[ti] then goto continue1 end
+
 			local num_neighs = world:neighbors_count(ti)
 
-			local sand_to_contribute = world.sand[ti] / (num_neighs + 1)
-			local silt_to_contribute = world.silt[ti] / (num_neighs + 1)
-			local clay_to_contribute = world.clay[ti] / (num_neighs + 1)
-			local mineral_to_contribute = world.mineral_richness[ti] / (num_neighs + 1)
+			local sand_to_contribute = math.floor(world.sand[ti] / (num_neighs + 1))
+			local silt_to_contribute = math.floor(world.silt[ti] / (num_neighs + 1))
+			local clay_to_contribute = math.floor(world.clay[ti] / (num_neighs + 1))
+			local mineral_to_contribute = math.floor(world.mineral_richness[ti] / (num_neighs + 1))
 			-- logger:log(ti .. ": " .. sand_to_contribute .. " " .. silt_to_contribute .. " " .. clay_to_contribute .. " " .. mineral_to_contribute)
 
 			for i = 0, num_neighs - 1 do
@@ -54,25 +57,37 @@ function gbb.run(world)
 					clay_quantity[nti] = clay_quantity[nti] + clay_to_contribute
 					mineral_quantity[nti] = mineral_quantity[nti] + mineral_to_contribute
 
-					world.sand[ti] = world.sand[ti] - math.floor(sand_to_contribute)
-					world.silt[ti] = world.silt[ti] - math.floor(silt_to_contribute)
-					world.clay[ti] = world.clay[ti] - math.floor(clay_to_contribute)
-					world.mineral_richness[ti] = world.mineral_richness[ti] - math.floor(mineral_to_contribute)
+					world.sand[ti] = world.sand[ti] - sand_to_contribute
+					world.silt[ti] = world.silt[ti] - silt_to_contribute
+					world.clay[ti] = world.clay[ti] - clay_to_contribute
+					world.mineral_richness[ti] = world.mineral_richness[ti] - mineral_to_contribute
 				end
 			end
+
+			::continue1::
 		end
 
-		for _, ti in ipairs(land_tiles) do
-			world.sand[ti] = world.sand[ti] + math.floor(sand_quantity[ti])
-			world.silt[ti] = world.silt[ti] + math.floor(silt_quantity[ti])
-			world.clay[ti] = world.clay[ti] + math.floor(clay_quantity[ti])
-			world.mineral_richness[ti] = world.mineral_richness[ti] + math.floor(mineral_quantity[ti])
+		for ti = 0, world.tile_count - 1 do
+		-- for _, ti in ipairs(land_tiles) do
+			if not world.is_land[ti] then goto continue2 end
+
+			world.sand[ti] = world.sand[ti] + sand_quantity[ti]
+			world.silt[ti] = world.silt[ti] + silt_quantity[ti]
+			world.clay[ti] = world.clay[ti] + clay_quantity[ti]
+			world.mineral_richness[ti] = world.mineral_richness[ti] + mineral_quantity[ti]
+
+			sand_quantity[ti] = 0
+			silt_quantity[ti] = 0
+			clay_quantity[ti] = 0
+			mineral_quantity[ti] = 0
+
+			::continue2::
 		end
 
-		world:fill_ffi_array(clay_quantity, 0)
-		world:fill_ffi_array(silt_quantity, 0)
-		world:fill_ffi_array(sand_quantity, 0)
-		world:fill_ffi_array(mineral_quantity, 0)
+		-- world:fill_ffi_array(clay_quantity, 0)
+		-- world:fill_ffi_array(silt_quantity, 0)
+		-- world:fill_ffi_array(sand_quantity, 0)
+		-- world:fill_ffi_array(mineral_quantity, 0)
 	end
 
 	-- world:for_each_tile(function(ti)
