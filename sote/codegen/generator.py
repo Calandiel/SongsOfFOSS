@@ -679,7 +679,7 @@ class EntityDescription:
     is_raws: bool
     is_relationship: bool
     erasable: bool
-
+    index_storage: str
     log_create: bool
 
     def generate_dcon_description(self):
@@ -720,7 +720,7 @@ class EntityDescription:
             result += "        name { " + link.name + " }\n"
             if link.can_repeat:
                 result += "        type { many }\n"
-                result += "        index_storage{array}\n"
+                result += f"        index_storage{{{self.index_storage}}}\n"
             else:
                 result += "        type { unique }\n"
             result += "    }\n"
@@ -757,6 +757,7 @@ class EntityDescription:
         load_path = ""
 
         self.is_raws = is_raw
+        self.index_storage = "array"
 
         print("REGISTER ID: " + prefix_to_id_name(self.name))
         REGISTERED_ID_NAMES[prefix_to_id_name(self.name)] = True
@@ -1223,11 +1224,11 @@ def auxiliary_types():
 
     result = "\n"
 
-    # result += "---@class LuaDataBlob\n"
-    # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if not field.is_ctype:
-    #             result += f"---@field {field.array_name()} ({field.lsp_type})[]\n"
+    result += "---@class LuaDataBlob\n"
+    for entity in ENTITY_LIST:
+        for field in entity.fields:
+            if not field.value.c_type:
+                result += f"---@field {field.array_name()} ({field.value.lsp_type})[]\n"
 
     result += "\n"
 
@@ -1244,83 +1245,46 @@ def save_state():
     """
     result = f"function {NAMESPACE}.save_state()\n"
     result += "    local current_lua_state = {}\n"
+    result += "    current_lua_state.WORLD = WORLD\n"
 
     for entity in ENTITY_LIST:
         for field in entity.fields:
             if not field.value.c_type:
                 result += f"    current_lua_state.{field.array_name()} = {field.local_var_name()}\n"
+    for entity in RAWS_LIST:
+        for field in entity.fields:
+            if not field.value.c_type:
+                result += f"    current_lua_state.{field.array_name()} = {field.local_var_name()}\n"
 
-    result += f"\n    bitser.dumpLoveFile(\"{SAVE_FILE_NAME_LUA}\", current_lua_state)\n\n"
-
-    # result += "    local current_offset = 0\n"
-    # result += "    local current_shift = 0\n"
-    # result += "    local total_ffi_size = 0\n"
-
-
-    # for entity in ENTITY_LIST:
-    #     result += f'    total_ffi_size = total_ffi_size + ffi.sizeof("{entity.name}") * {entity.max_count}\n'
-
-    # result += "    local current_buffer = ffi.new(\"uint8_t[?]\", total_ffi_size)\n"
-
-    # for entity in ENTITY_LIST:
-    #     result +=   f'    current_shift = ffi.sizeof("{entity.name}") * {entity.max_count}\n'
-    #     result +=   f'    ffi.copy(current_buffer + current_offset,' \
-    #                         f" {NAMESPACE}.{entity.name}, current_shift)\n"
-    #     result +=    "    current_offset = current_offset + current_shift\n"
-
-    # result += f"    assert(love.filesystem.write(\"{SAVE_FILE_NAME_FFI}\", ffi.string(current_buffer, total_ffi_size)))\n"
+    result += f"\n    local buf_enc = buffer.new()\n"
+    result += "love.filesystem.write(\"gamestatesave.bitserbeaver\", buf_enc:reset():encode(current_lua_state):get())\n"
 
     result += "end\n"
     return result
 
 def load_state():
     """
-    Generates routine which saves state in two files:\n
-    One for c arrays -- fast\n
-    And another one for lua tables -- slow
+    Generates routine which saves lua state:\n
     """
     result = f"function {NAMESPACE}.load_state()\n"
-    # result += "    ---@type LuaDataBlob|nil\n"
-    # result += f"    local loaded_lua_state = bitser.loadLoveFile(\"{SAVE_FILE_NAME_LUA}\")\n"
-    # result += "    assert(loaded_lua_state)\n"
+    result += "    local buf_dec = buffer.new()\n"
+    result += "    local serializedData, error = love.filesystem.newFileData(\"gamestatesave.bitserbeaver\")\n"
+    result += "    assert(serializedData, error)\n"
+    result += "    ---@type LuaDataBlob|nil\n"
+    result += "    local loaded_lua_state = buf_dec:set(serializedData:getString()):decode()\n"
+    result += "    assert(loaded_lua_state)\n"
 
-    # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if not field.is_ctype:
-    #             result += f"    for key, value in pairs(loaded_lua_state.{field.array_name()}) do\n"
-    #             result += f"        {field.local_var_name()}[key] = value\n"
-    #             result += "    end\n"
-
-    result +=f"    local data_love, error = love.filesystem.newFileData(\"{SAVE_FILE_NAME_FFI}\")\n"
-    result += "    assert(data_love, error)\n"
-    result += "    local data = ffi.cast(\"uint8_t*\", data_love:getPointer())\n"
-    result += "    local current_offset = 0\n"
-    result += "    local current_shift = 0\n"
-    result += "    local total_ffi_size = 0\n"
+    result += "    WORLD = loaded_lua_state.WORLD\n"
 
     for entity in ENTITY_LIST:
-        result += f'    total_ffi_size = total_ffi_size + ffi.sizeof("{entity.name}") * {entity.max_count}\n'
+        for field in entity.fields:
+            if not field.value.c_type:
+                result += f"    {field.local_var_name()} = loaded_lua_state.{field.array_name()}\n"
+    for entity in RAWS_LIST:
+        for field in entity.fields:
+            if not field.value.c_type:
+                result += f"    {field.local_var_name()} = loaded_lua_state.{field.array_name()}\n"
 
-    for entity in ENTITY_LIST:
-        result += f'    current_shift = ffi.sizeof("{entity.name}") * {entity.max_count}\n'
-        result += f'    ffi.copy({NAMESPACE}.{entity.name},' \
-                    " data + current_offset, current_shift)\n"
-        result +=  "    current_offset = current_offset + current_shift\n"
-
-    # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if field.is_ctype:
-    #             result += f'    total_ffi_size = total_ffi_size + ffi.sizeof("{field.type}") * {entity.max_count}\n'
-
-    # # result += "    local current_buffer = ffi.new(\"uint8_t[?]\", total_ffi_size)\n"
-
-    # for entity in ENTITY_LIST:
-    #     for field in entity.fields:
-    #         if field.is_ctype:
-    #             result += f'    current_shift = ffi.sizeof("{field.type}") * {entity.max_count}\n'
-    #             result +=   f'    ffi.copy({field.local_var_name()},' \
-    #                         " data + current_offset, current_shift)\n"
-    #             result += "    current_offset = current_offset + current_shift\n"
 
     result += "end\n"
     return result
@@ -1496,6 +1460,10 @@ TileDescription.log_create = False
 TileDescription.erasable = False
 ResourcesLocation = StructDescription("resource_location")
 
+Plate = EntityDescription("plate", 50, False)
+PlateTiles = EntityDescription("plate_tiles", TILES_MAX_COUNT + 20, False)
+PlateTiles.index_storage = "std_vector"
+
 UnitType = EntityDescription("unit_type", 20, True)
 
 Satisfaction = StructDescription("need_satisfaction")
@@ -1569,7 +1537,7 @@ with open(OUTPUT_PATH, "w", encoding="utf8") as out:
                 '    void* calloc( size_t num, size_t size );\n'\
                 ']]\n'
     )
-    out.write('local bitser = require("engine.bitser")\n')
+    out.write('local buffer = require("string.buffer")\n')
     out.write("\n")
     out.write(f'{NAMESPACE} = {{}}\n')
     for struct_description in STRUCTS_LIST:
@@ -1591,6 +1559,7 @@ with open(OUTPUT_PATH, "w", encoding="utf8") as out:
 with open(DCON_DESC_PATH, "w", encoding="utf8") as out:
 
     out.write('include{"sote_types.hpp"}\n')
+    out.write('load_save{name{everything}}\n')
     for entity_description in ENTITY_LIST:
         out.write(entity_description.generate_dcon_description())
     for entity_description in RAWS_LIST:

@@ -199,7 +199,7 @@ function window.draw(game)
     ui.left_text("Warband: ", warband_panel)
 
 
-    ut.data_entry("", character.culture.name, culture_panel, "This character follows the customs of " .. character.culture.name .. "." .. require "game.economy.diet-breadth-model".culture_target_tooltip(character.culture))
+    ut.data_entry("", DATA.culture_get_name(character.culture), culture_panel, "This character follows the customs of " .. character.culture.name .. "." .. require "game.economy.diet-breadth-model".culture_target_tooltip(character.culture))
 
     local faith_panel = culture_panel:subrect(0, unit * 2, culture_panel.width, culture_panel.height, "left", "up")
     ut.data_entry("", character.faith.name, faith_panel, "This character is a practitioner of " .. character.faith.name .. ".")

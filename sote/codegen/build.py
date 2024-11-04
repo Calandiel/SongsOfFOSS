@@ -87,6 +87,7 @@ for file in os.listdir(common_include):
 dll_folder = codegen_path.joinpath("dll")
 if os.name == 'nt':
     print("compiling dll")
+    now = time.time()
     subprocess.run([ \
         "clang++",
         "-O3",
@@ -99,6 +100,10 @@ if os.name == 'nt':
         additional_functions_src_destination,
         "-o", "dcon.dll",
     ], check=True, shell=True)
+
+
+    print("compilation completed")
+    print("it took " + str(time.time() - now) + " seconds")
 
     time.sleep(0.1)
 

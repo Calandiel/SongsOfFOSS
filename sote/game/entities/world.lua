@@ -41,13 +41,11 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field month number
 ---@field year number
 ---@field world_size number
----@field plates table<number, Plate>
 ---@field province_count number
 ---@field settled_provinces table<province_id, province_id>
 ---@field settled_provinces_by_identifier table<number, table<province_id, province_id>>
 ---@field climate_cells table<number, ClimateCell>
 ---@field tile_to_climate_cell table<tile_id, ClimateCell>
----@field tile_to_plate table<tile_id, Plate>
 ---@field climate_grid_size number number of climate grid cells along a grid edge
 ---@field entity_counter number -- a global counter for entities...
 ---@field notification_queue Queue<Notification>
@@ -58,13 +56,40 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
----@field tile_from_world_id table<world_tile_id, tile_id>
 ---@field realms_changed boolean
 ---@field provinces_to_update_on_map table<province_id, province_id>
 
 ---@class World
 world.World            = {}
 world.World.__index    = world.World
+
+---commenting
+---@param w World
+function world.reset_metatable(w)
+	setmetatable(w, world.World)
+	for _, item in pairs(w.climate_cells) do
+		setmetatable(item, require "game.entities.climate-cell".ClimateCell)
+	end
+
+	local Queue = require "engine.queue"
+
+	setmetatable(w.notification_queue, Queue)
+	setmetatable(w.events_queue, Queue)
+	setmetatable(w.deferred_events_queue, Queue)
+	setmetatable(w.deferred_actions_queue, Queue)
+	setmetatable(w.player_deferred_actions, Queue)
+	setmetatable(w.treasury_effects, Queue)
+	setmetatable(w.old_treasury_effects, Queue)
+
+	---@param container Queue
+	---@param meta table
+	local function reset_container_metatable(container, meta)
+		for _, item in pairs(container) do
+			setmetatable(item, meta)
+		end
+	end
+end
+
 
 
 ---Returns a new World object
@@ -73,7 +98,6 @@ function world.World:new()
 	---@type World
 	local w = {}
 
-	w.tile_from_world_id = {}
 	---@type World|nil
 	WORLD = w
 
@@ -86,17 +110,12 @@ function world.World:new()
 
 	w.player_character = INVALID_ID
 
-	w.plates = {}
 	w.settled_provinces = {}
 	w.province_count = 0
 	w.settled_provinces_by_identifier = {}
-	for i = 1, world.ticks_per_month do
-		w.settled_provinces_by_identifier[i] = {}
-	end
-	w.climate_cells = {}
 
+	w.climate_cells = {}
 	w.tile_to_climate_cell = {}
-	w.tile_to_plate = {}
 
 	w.entity_counter = 2
 	w.world_size = ws
@@ -152,6 +171,9 @@ function world.World:set_settled_province(province)
 	lon = lon / 2
 	local world_sections = world.ticks_per_hour * 24 * 30
 	local timz = math.ceil(math.min(world_sections, math.max(0.001, lon * world_sections)))
+	if self.settled_provinces_by_identifier[timz] == nil then
+		self.settled_provinces_by_identifier[timz] = {}
+	end
 	self.settled_provinces_by_identifier[timz][province] = province
 end
 
@@ -179,11 +201,11 @@ end
 function world.World:random_tile()
 	local tc = self:tile_count()
 
-	return self.tile_from_world_id[love.math.random(tc)]
+	return TILE_FROM_WORLD_ID[love.math.random(tc)]
 end
 
 ---Creates and returns a new plate
----@return Plate
+---@return plate_id
 function world.World:new_plate()
 	return plate_utils.Plate:new()
 end
@@ -192,34 +214,6 @@ end
 function world.empty()
 	print("World allocated!")
 	world.World:new()
-end
-
--- ---Given a file, saves the world
--- ---@param file string
--- function world.save(file)
--- 	--love.filesystem.newFile(file)
--- 	print("Saving?" .. file)
--- 	local bs = require "engine.bitser"
--- 	print("Processing starts...")
--- 	bs.dumpLoveFile(file, WORLD) -- when it crashes its just a stack overflow due to province neighbors
--- 	print("Processing ends!")
--- end
-
----Given a file, loads the world and assigns it to the WORLD global
----@param file any
-function world.load(file)
-	WORLD_PROGRESS.total = 0
-	WORLD_PROGRESS.max = 6 * DEFINES.world_size * DEFINES.world_size
-	WORLD_PROGRESS.is_loading = true
-
-	local bs = require "engine.bitser"
-	---@type World|nil
-	WORLD = bs.loadLoveFile(file, WORLD_PROGRESS)
-
-	OPTIONS = require "game.options".load()
-	require "game.options".verify()
-
-	WORLD_PROGRESS.is_loading = false
 end
 
 ---Schedules an event
@@ -307,19 +301,17 @@ end
 local function handle_event(event, target_realm, associated_data)
 	-- Handle the event here
 
-	-- if event ~= "sell-goods" and event ~= "buy-goods" then
-	-- 	---#logging LOGS:write(
-	-- 		"\n Handling event: " .. event .. "\n" ..
-	-- 		"root: " .. REALM_NAME(target_realm) .. "\n" ..
-	-- 		"realm:" .. target_realm.REALM_NAME(realm) .. "\n"
-	-- 	)
-	-- end
+	LOGS:write(
+		"\n Handling event: " .. event .. "\n" ..
+		"root: " .. NAME(target_realm) .. "\n"
+	)
 
+	-- assert(PROVINCE(target_realm) ~= INVALID_ID, "INVALID PROVINCE")
 	if RAWS_MANAGER.events_by_name[event] == nil then
 		error(event .. " is not a valid event!")
 	end
 
-	assert(target_realm ~= nil, "CHARACTER DOES NOT EXIST")
+	assert(target_realm ~= INVALID_ID, "CHARACTER DOES NOT EXIST")
 
 	-- First, find the best option
 	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)

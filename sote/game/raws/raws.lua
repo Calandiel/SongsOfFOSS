@@ -2,7 +2,22 @@ print("Loading raws...")
 
 ---A special function that sets up "raws" on the world
 -- @param do_logging boolean|nil
-return function(do_logging)
+return function(do_logging, load_save)
+	if load_save then
+		if do_logging then
+			print('decisions')
+		end
+		require "game.raws.decisions-loader".load()
+
+		if do_logging then
+			print('events')
+		end
+		require "game.raws.events-loader".load()
+
+		print('raws done')
+		return
+	end
+
 	RAWS_MANAGER = require "game.entities.raws_manager":new()
 	if do_logging ~= nil then
 		RAWS_MANAGER.do_logging = do_logging

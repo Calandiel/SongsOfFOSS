@@ -130,9 +130,11 @@ function wl.load_default()
 		print("Loading tectonics map...")
 		local time = love.timer.getTime()
 		local tect = love.image.newImageData("default/tectonics.png")
-		---@type table<number, Plate>
+		---@type table<number, plate_id>
 		local found_plates = {}
 		DATA.for_each_tile(function (tile_id)
+			LOGS:write("reading tile " .. tostring(tile_id) .. " plate info\n")
+			LOGS:flush()
 			local r, g, b = read_pixel(tile_id, tect)
 
 			---@type number
@@ -140,10 +142,9 @@ function wl.load_default()
 			if found_plates[pixel_id] == nil then
 				-- Unknown plate! Create a new one!
 				print("New plate: ", r, g, b)
-				local plate = plate.Plate:new()
-				found_plates[pixel_id] = plate
+				found_plates[pixel_id] = plate.Plate:new()
 			end
-			found_plates[pixel_id]:add_tile(tile_id)
+			plate.Plate.add_tile(found_plates[pixel_id], tile_id)
 		end)
 		print("Tectonic map loaded!")
 		print(love.timer.getTime() - time)
@@ -588,14 +589,18 @@ function wl.load_save()
 	coroutine.yield()
 	world.empty()
 
-	print('loading raws')
-	require "game.raws.raws" ()
+	-- print('loading raws')
+	-- require "game.raws.raws" ()
 
-	print("Loading: " .. tostring(DEFINES.world_to_load))
-	loader_error = "World file: " .. tostring(DEFINES.world_to_load) .. " does not exist!"
+	LOAD_GAME_STATE()
+	assert(WORLD)
+	require "game.entities.world".reset_metatable(WORLD)
+	require "game.raws.raws"(true, true)
 
-	DATA.load_state()
-	require "game.scenes.bitser-world-loading"()
+	print("loading options")
+	OPTIONS = require "game.options".load()
+	require "game.options".verify()
+	WORLD_PROGRESS.is_loading = false
 
 	if WORLD == nil then
 		return nil

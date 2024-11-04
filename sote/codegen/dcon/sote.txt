@@ -1,4 +1,5 @@
 include{"sote_types.hpp"}
+load_save{name{everything}}
 object {
     name { tile }
     storage_type { contiguous }
@@ -206,6 +207,59 @@ object {
     }
 }
 object {
+    name { plate }
+    storage_type { erasable }
+    size { 50 }
+    tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { speed }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { direction }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { expansion_rate }
+        type { float }
+        tag { scenario }
+    }
+}
+relationship {
+    name { plate_tiles }
+    storage_type { erasable }
+    size { 1500020 }
+    tag {scenario}
+    link {
+        object { plate }
+        name { plate }
+        type { many }
+        index_storage{std_vector}
+    }
+    link {
+        object { tile }
+        name { tile }
+        type { unique }
+    }
+}
+object {
     name { culture }
     storage_type { erasable }
     size { 10000 }
@@ -317,8 +371,23 @@ object {
         tag { scenario }
     }
     property{
+        name { busy }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { dead }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
         name { rank }
         type { uint8_t }
+        tag { scenario }
+    }
+    property{
+        name { former_pop }
+        type { bitfield }
         tag { scenario }
     }
     property{

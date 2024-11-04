@@ -290,14 +290,6 @@ function gam.debug_ui()
 	if ui.text_button("Debug", ui.rect(10, 10 + 60 * 3, 50, 50)) then
 		gam.update_map_mode("debug")
 	end
-	if ui.text_button("Take\nsnapshot", ui.rect(10 + 60, 10, 75, 50)) then
-		world.save("cache.snapshot")
-		gam.refresh_map_mode()
-	end
-	if ui.text_button("Load\nsnapshot", ui.rect(10 + 60 + 85, 10, 75, 50)) then
-		world.load("cache.snapshot")
-		gam.refresh_map_mode()
-	end
 end
 
 ---Initializes the planet mesh and does some other, similar setup
@@ -961,7 +953,7 @@ function gam.draw()
 		local qq = require "engine.queue":new()
 		local to_draw = flood_fill
 		local world_id = tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)
-		local center_tile = WORLD.tile_from_world_id[world_id]
+		local center_tile = TILE_FROM_WORLD_ID[world_id]
 		local prov = tile.province(center_tile)
 		visited[prov] = prov
 		qq:enqueue(prov)
@@ -1099,7 +1091,7 @@ function gam.draw()
 			local qq = require "engine.queue":new()
 			local to_draw = flood_fill
 			local index = tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)
-			local center_tile = WORLD.tile_from_world_id[index]
+			local center_tile = TILE_FROM_WORLD_ID[index]
 
 			local prov = tile.province(center_tile)
 			visited[prov] = prov

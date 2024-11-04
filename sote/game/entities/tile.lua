@@ -12,7 +12,7 @@ function tile.Tile:new(tile_world_id)
 	local tt = DATA.fatten_tile(tile_dcon_id)
 	tt.world_id = tile_world_id
 
-	WORLD.tile_from_world_id[tile_world_id --[[@as world_tile_id]]] = tile_dcon_id
+	TILE_FROM_WORLD_ID[tile_world_id --[[@as world_tile_id]]] = tile_dcon_id
 
 	tt.is_land = false
 	tt.is_fresh = false
@@ -75,14 +75,9 @@ end
 
 ---@param id tile_id
 function tile.plate(id)
-	return WORLD.tile_to_plate[id]
+	return DATA.plate_tiles_get_plate(DATA.get_plate_tiles_from_tile(id))
 end
 
----@param id tile_id
----@param plate Plate
-function tile.set_plate(id, plate)
-	WORLD.tile_to_plate[id] = plate
-end
 
 ---Sets this tile's debug color
 ---@param tile_id tile_id
@@ -338,7 +333,7 @@ function tile.get_neighbor(tile_id, neighbor_index)
 	end
 
 	local ret_id = tile.coords_to_index(rx, ry, rf)
-	return WORLD.tile_from_world_id[ret_id]
+	return TILE_FROM_WORLD_ID[ret_id]
 end
 
 ---Returns an iterator over all neighbors
@@ -490,7 +485,7 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@return number
+---@return world_tile_id
 function tile.cart_to_index(x, y, z)
 	local fx, fy, ff = cube.pos_to_cube(x, y, z)
 	local ws = WORLD.world_size

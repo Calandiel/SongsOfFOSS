@@ -1,5 +1,153 @@
 --- Helper functions to reduce key presses to type names of common wrappers
 
+---@type table<world_tile_id, tile_id>
+TILE_FROM_WORLD_ID = {}
+
+function REGENERATE_RAWS()
+	local w = {}
+
+	---@type table<string, building_type_id>
+	w.building_types_by_name = {}
+	DATA.for_each_building_type(function (item)
+		print(item, DATA.building_type_get_name(item))
+		w.building_types_by_name[DATA.building_type_get_name(item)] = item
+	end)
+
+	---@type table<string, biome_id>
+	w.biomes_by_name = {}
+	DATA.for_each_biome(function (item)
+		w.biomes_by_name[DATA.biome_get_name(item)] = item
+	end)
+
+	w.biomes_load_order = {
+		w.biomes_by_name["rocky-wasteland"],
+		w.biomes_by_name["tundra"],
+		w.biomes_by_name["abyssal-plains"],
+		w.biomes_by_name["continental-shelf"],
+		w.biomes_by_name["trench"],
+		w.biomes_by_name["glacier"],
+		w.biomes_by_name["glaciated-sea"],
+		w.biomes_by_name["coniferous-forest"],
+		w.biomes_by_name["broadleaf-forest"],
+		w.biomes_by_name["mixed-forest"],
+		w.biomes_by_name["wet-jungle"],
+		w.biomes_by_name["dry-jungle"],
+		w.biomes_by_name["taiga"],
+		w.biomes_by_name["coniferous-woodland"],
+		w.biomes_by_name["broadleaf-woodland"],
+		w.biomes_by_name["mixed-woodland"],
+		w.biomes_by_name["woodland-taiga"],
+		w.biomes_by_name["savanna"],
+		w.biomes_by_name["shrubland"],
+		w.biomes_by_name["woody-scrubland"],
+		w.biomes_by_name["grassy-scrubland"],
+		w.biomes_by_name["mixed-scrubland"],
+		w.biomes_by_name["grassland"],
+		w.biomes_by_name["barren-mountainside"],
+		w.biomes_by_name["barren-desert"],
+		w.biomes_by_name["sand-dunes"],
+		w.biomes_by_name["badlands"],
+		w.biomes_by_name["xeric-desert"],
+		w.biomes_by_name["xeric-shrubland"],
+		w.biomes_by_name["rugged-mountainside"],
+		w.biomes_by_name["mountainside-scrub"],
+		w.biomes_by_name["bog"],
+		w.biomes_by_name["marsh"],
+		w.biomes_by_name["swamp"],
+	}
+
+	---@type table<string, bedrock_id>
+	w.bedrocks_by_name = {}
+	DATA.for_each_bedrock(function (item)
+		w.bedrocks_by_name[DATA.bedrock_get_name(item)] = item
+	end)
+
+	---@type table<number, bedrock_id>
+	w.bedrocks_by_color_id = {}
+	DATA.for_each_bedrock(function (item)
+		w.bedrocks_by_color_id[DATA.bedrock_get_color_id(item)] = item
+	end)
+
+	-- not in datacontainer currently
+
+	w.biogeographic_realms_by_name = {}
+	w.biogeographic_realms_by_color = {}
+
+	---@type table<string, race_id>
+	w.races_by_name = {}
+	DATA.for_each_race(function (item)
+		w.races_by_name[DATA.race_get_name(item)] = item
+	end)
+
+	HUMAN = w.races_by_name["human"]
+
+	---@type table<string, trade_good_id>
+	w.trade_goods_by_name = {}
+	DATA.for_each_trade_good(function (item)
+		w.trade_goods_by_name[DATA.trade_good_get_name(item)] = item
+	end)
+
+	---@type table<string, use_case_id>
+	w.use_cases_by_name = {}
+	DATA.for_each_use_case(function (item)
+		w.use_cases_by_name[DATA.use_case_get_name(item)] = item
+	end)
+
+	WATER_USE_CASE = w.use_cases_by_name["water"]
+	CALORIES_USE_CASE = w.use_cases_by_name["calories"]
+	CONTAINERS_USE_CASE = w.use_cases_by_name["containers"]
+	TOOLS_LIKE_USE_CASE = w.use_cases_by_name["tools-like"]
+
+	---@type table<string, job_id>
+	w.jobs_by_name = {}
+	DATA.for_each_job(function (item)
+		w.jobs_by_name[DATA.job_get_name(item)] = item
+	end)
+
+	UNEMPLOYED = w.jobs_by_name["Unemployed"]
+	WARRIORS = w.jobs_by_name["Warriors"]
+	CHILDREN = w.jobs_by_name["Children"]
+
+	---@type table<string, technology_id>
+	w.technologies_by_name = {}
+	DATA.for_each_technology(function (item)
+		w.technologies_by_name[DATA.technology_get_name(item)] = item
+	end)
+
+	---@type table<string, production_method_id>
+	w.production_methods_by_name = {}
+	DATA.for_each_production_method(function (item)
+		w.production_methods_by_name[DATA.production_method_get_name(item)] = item
+	end)
+
+	---@type table<string, resource_id>
+	w.resources_by_name = {}
+	DATA.for_each_resource(function (item)
+		w.resources_by_name[DATA.resource_get_name(item)] = item
+	end)
+
+	---@type table<string, unit_type_id>
+	w.unit_types_by_name = {}
+	DATA.for_each_unit_type(function (item)
+		w.unit_types_by_name[DATA.unit_type_get_name(item)] = item
+	end)
+
+	--- loaded separately
+
+	w.decisions_by_name = {}
+	w.decisions_characters_by_name = {}
+	w.events_by_name = {}
+
+	---@type RawsManager
+	RAWS_MANAGER = w
+end
+
+function RESTORE_UNSAVED_TILES_DATA()
+	DATA.for_each_tile(function (item)
+		TILE_FROM_WORLD_ID[DATA.tile_get_world_id(item) --[[@as world_tile_id]]] = item
+	end)
+end
+
 ---Returns true if pop is a character
 ---@param pop_id pop_id
 function IS_CHARACTER(pop_id)

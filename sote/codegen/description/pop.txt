@@ -14,8 +14,8 @@ price_memory float[trade_good_id]
 pending_economy_income float
 forage_ratio float a number in (0, 1) interval representing a ratio of time pop spends to forage
 work_ratio float a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
-busy boolean
-dead boolean
+busy bool
+dead bool
 rank CHARACTER_RANK
-former_pop boolean
+former_pop bool
 dna float[20]

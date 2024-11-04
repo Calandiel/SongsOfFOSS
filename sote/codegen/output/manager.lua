@@ -14,8 +14,26 @@ ffi.cdef[[
     void update_vegetation(float);
     void update_economy();
     void apply_biome(int32_t);
+    void dcon_everything_write_file(char const* name);
+    void dcon_everything_read_file(char const* name);
 ]]
 
 
 DATA = require "codegen.output.generated"
 require "codegen.output.helpers"
+
+local state_save_path = love.filesystem.getSaveDirectory() .. "_sote_save.binbeaver"
+function SAVE_GAME_STATE()
+    DCON.dcon_everything_write_file(state_save_path)
+    DATA.save_state()
+end
+function LOAD_GAME_STATE()
+    print("loading dll state")
+    DCON.dcon_everything_read_file(state_save_path)
+    print("loading lua state")
+    DATA.load_state()
+    print("state loaded")
+    RESTORE_UNSAVED_TILES_DATA()
+    REGENERATE_RAWS()
+    RECALCULATE_WEIGHTS_TABLE()
+end

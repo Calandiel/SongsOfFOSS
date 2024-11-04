@@ -5,8 +5,12 @@
 #include "sote_functions.hpp"
 #include "lua_objs.hpp"
 
-static auto GOOD_CATEGORY = (uint8_t)((int)(base_types::TRADE_GOOD_CATEGORY::GOOD) - 1);
 
+// void save_to_file() {
+// 	state.make_s
+// }
+
+static auto GOOD_CATEGORY = (uint8_t)((int)(base_types::TRADE_GOOD_CATEGORY::GOOD) - 1);
 
 float age_multiplier(dcon::pop_id pop) {
 	auto age_multiplier = 1.f;
@@ -361,7 +365,7 @@ void pops_produce() {
 		for (uint32_t i = 0; i < state.province_get_foragers_targets_size(); i++){
 			base_types::forage_container& forage_case = state.province_get_foragers_targets(province, i);
 
-			auto output = dcon::trade_good_id{int32_t(forage_case.output_good - 1)};
+			auto output = dcon::trade_good_id{dcon::trade_good_id::value_base_t(int32_t(forage_case.output_good - 1))};
 
 			if (!output) {
 				break;

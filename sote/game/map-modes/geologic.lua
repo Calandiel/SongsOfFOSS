@@ -20,11 +20,10 @@ function geo.plates()
 	DATA.for_each_tile(function (tile_id)
 		local local_plate = tile.plate(tile_id)
 
-		if local_plate then
-			local r, g, b = local_plate.r, local_plate.g, local_plate.b
-			tile.set_real_color(tile_id,r, g, b)
+		if local_plate ~= INVALID_ID then
+			tile.set_real_color(tile_id, DATA.plate_get_r(local_plate), DATA.plate_get_g(local_plate), DATA.plate_get_b(local_plate))
 		else
-			tile.set_real_color(tile_id,0.1, 0.1, 0.1)
+			tile.set_real_color(tile_id, 0.1, 0.1, 0.1)
 		end
 	end)
 end
@@ -32,10 +31,10 @@ end
 function geo.rocks()
 	DATA.for_each_tile(function (tile_id)
 		local local_bedrock = DATA.tile_get_bedrock(tile_id)
-		if local_bedrock then
-			local r = DATA.bedrock[local_bedrock].r
-			local g = DATA.bedrock[local_bedrock].g
-			local b = DATA.bedrock[local_bedrock].b
+		if local_bedrock ~= INVALID_ID then
+			local r = DATA.bedrock_get_r(local_bedrock)
+			local g = DATA.bedrock_get_g(local_bedrock)
+			local b = DATA.bedrock_get_b(local_bedrock)
 			tile.set_real_color(tile_id, r, g, b)
 		else
 			tile.set_real_color(tile_id, 0.1, 0.1, 0.1)

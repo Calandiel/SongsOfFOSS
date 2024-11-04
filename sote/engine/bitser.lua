@@ -130,6 +130,9 @@ local function Buffer_read_string(len)
 end
 
 local function Buffer_read_raw(data, len)
+	LOGS:write("copying save buffer to data\n")
+	LOGS:write("start: \t \t " .. tostring(buf_pos) .. "/" .. tostring(buf_size) .. "\t")
+	LOGS:write("len: \t \t ".. tostring(len) .. "\n")
 	ffi.copy(data, buf + buf_pos, len)
 	buf_pos = buf_pos + len
 	return data
@@ -203,7 +206,7 @@ local function get_classname(value)
 		or class_name_registry[value.__class])       -- Moonscript class
 end
 
-local function write_table(value, seen, tiles_counter)
+local function write_table(value, seen, tables_counter)
 	-- print("write_table")
 	---@type Queue<BitserCallback>
 	local callback_queue = require "engine.queue":new()
@@ -301,7 +304,7 @@ local types = {
 ---@param value any
 ---@param seen any
 ---@return Queue<BitserCallback>
-serialize_value = function(value, seen, tiles_counter)
+serialize_value = function(value, seen, tables_counter)
 	--print(value)
 	if seen[value] then
 		local ref = seen[value]
@@ -344,7 +347,7 @@ serialize_value = function(value, seen, tiles_counter)
 	-- end
 	local res = (types[t] or
 		error("cannot serialize type " .. t)
-	)(value, seen, tiles_counter)
+	)(value, seen, tables_counter)
 
 	if res == nil then
 		return require "engine.queue":new()
@@ -357,7 +360,7 @@ local function serialize(value)
 	---@type Queue<Queue<BitserCallback>>
 	local callback_stack = require "engine.queue":new()
 
-	Buffer_makeBuffer(65536 * 64) --4096)
+	Buffer_makeBuffer(64 * 8388608) --4096)
 	local seen = { [SEEN_LEN] = 0 }
 	print("Value serialization...")
 	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
@@ -387,7 +390,7 @@ local function serialize_async(value)
 	---@type Queue<Queue<BitserCallback>>
 	local callback_stack = require "engine.queue":new()
 
-	Buffer_makeBuffer(65536 * 64) --4096)
+	Buffer_makeBuffer(64 * 8388608) --4096)
 	local seen = { [SEEN_LEN] = 0 }
 	print("Value serialization...")
 	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
@@ -507,23 +510,56 @@ end
 ---comment
 ---@param table_reader TableReader
 ---@param value any
-local function TableReaderApplyValue(table_reader, value)
+local function TableReaderApplyValue(table_reader, value, verbose)
 	-- print(value)
 	if table_reader.current_mode == 'await array value' then
+		if verbose then
+			LOGS:write("array value detected: \t ")
+			LOGS:write(tostring(value))
+			LOGS:write("\n")
+			LOGS:flush()
+		end
+
+		if verbose then
+			LOGS:write("update_index\t")
+			LOGS:flush()
+		end
 		table_reader.current_array_index = table_reader.current_array_index + 1
+		if verbose then
+			LOGS:write("set table at index to value\t")
+			LOGS:flush()
+		end
 		table_reader.data[table_reader.current_array_index] = value
+		if verbose then
+			LOGS:write("reset table mode\n")
+			LOGS:flush()
+		end
 		table_reader.current_mode = nil
 		return
 	end
 
 	if table_reader.current_mode == 'await dict key' then
+		if verbose then
+			LOGS:write("key detected: \t ")
+			LOGS:write(tostring(value))
+			LOGS:write("\n")
+			LOGS:flush()
+		end
 		table_reader.current_key = value
 		table_reader.current_mode = "await dict value"
 		return
 	end
 
 	if table_reader.current_mode == 'await dict value' then
-		-- print(table_reader.current_key, value)
+		if verbose then
+			LOGS:write("value detected: \t ")
+			LOGS:write(value)
+			LOGS:write("\n")
+			LOGS:write("table[" .. tostring(table_reader.current_key) .. "] = \t ")
+			LOGS:write(tostring(value))
+			LOGS:write("\n")
+			LOGS:flush()
+		end
 		table_reader.data[table_reader.current_key] = value
 		table_reader.current_dict_index = table_reader.current_dict_index + 1
 		table_reader.current_mode = nil
@@ -531,33 +567,37 @@ local function TableReaderApplyValue(table_reader, value)
 	end
 end
 
-local function deserialize(seen)
+local function deserialize(seen, verbose)
 	local queue         = require "engine.queue":new()
 	---@type Queue<TableReader>
 	local tables_queue  = require "engine.queue":new()
-	local tiles_counter = 0
-	local tiles_yielded = false
 	while true do
-		if not tiles_yielded and tiles_counter % 10000 == 0 then
-			coroutine.yield("tiles count", tiles_counter)
-			tiles_yielded = true
-		end
-		-- print(tables_queue:length())
 		local current_table = tables_queue:peek()
 
-		-- if current_table ~= nil then
-		-- 	print("\t" .. tostring(current_table.classname) ..
-		-- 	"\t \t" .. tostring(current_table.current_array_index) .. "/" .. tostring(current_table.array_length) ..
-		-- 	"\t" .. tostring(current_table.current_dict_index) .. "/" .. tostring(current_table.dict_length) ..
-		-- 	"\t" .. tostring(current_table.current_mode))
-		-- end
+		if verbose and  current_table ~= nil then
+			LOGS:write("\t" .. tostring(current_table.current_key) ..
+			"\t \t" .. tostring(current_table.current_array_index) .. "/" .. tostring(current_table.array_length) ..
+			"\t" .. tostring(current_table.current_dict_index) .. "/" .. tostring(current_table.dict_length) ..
+			"\t" .. tostring(current_table.current_mode))
+			LOGS:write("\n")
+			LOGS:flush()
+		end
 
 		if current_table == nil
 			or current_table.current_mode == 'await array value'
 			or current_table.current_mode == 'await dict key'
-			or current_table.current_mode == 'await dict value' then
+			or current_table.current_mode == 'await dict value'
+		then
+
 			local t = Buffer_read_byte()
-			-- print(t)
+			if (verbose) then
+				LOGS:write(t)
+				LOGS:write("\t")
+				LOGS:write(tostring(current_table))
+				LOGS:write("\n")
+				LOGS:flush()
+			end
+
 			if current_table == nil then
 				if t == 240 then
 					-- table
@@ -598,8 +638,13 @@ local function deserialize(seen)
 				--small resource
 				TableReaderApplyValue(current_table, add_to_seen(resource_registry[Buffer_read_string(t - 224)], seen))
 			elseif t == 240 then
-				-- print('table detected')
-				-- table
+				if verbose then
+					LOGS:write('table detected ')
+					LOGS:write("\t")
+					LOGS:write(tostring(current_table.current_key))
+					LOGS:write("\n")
+					LOGS:flush()
+				end
 				local v = add_to_seen({}, seen)
 				tables_queue:enqueue_front({
 					data = v,
@@ -639,7 +684,7 @@ local function deserialize(seen)
 				TableReaderApplyValue(current_table, add_to_seen(Buffer_read_string(read_number(seen)), seen))
 			elseif t == 245 then
 				--long int
-				TableReaderApplyValue(current_table, Buffer_read_data("int32_t[1]", 4)[0])
+				TableReaderApplyValue(current_table, Buffer_read_data("int32_t[1]", 4)[0], verbose)
 			elseif t == 246 then
 				--double
 				TableReaderApplyValue(current_table, Buffer_read_data("double[1]", 8)[0])
@@ -696,15 +741,19 @@ local function deserialize(seen)
 			if tables_queue:length() <= 0 then
 				print('table is final, returning it ' .. tostring(current_table.data))
 				if current_table.classname then
+					print("there is a classname")
 					if current_table.classkey then
 						current_table.data[current_table.classkey] = current_table.class
 					end
 					coroutine.yield("finished", current_table.deserializer(current_table.data, current_table.class))
-					return
+					return "finished", current_table.deserializer(current_table.data, current_table.class)
 				else
-					-- print(current_table.data)
+					print("no classname")
+					for k, v in pairs(current_table.data) do
+						print(k, v)
+					end
 					coroutine.yield("finished", current_table.data)
-					return
+					return "finished", current_table.data
 				end
 			else
 				if current_table.classname then
@@ -722,102 +771,6 @@ local function deserialize(seen)
 				end
 			end
 		end
-	end
-end
-
-
----
----@param seen any
----@return any
-local function deserialize_value(seen)
-	local t = Buffer_read_byte()
-	if t < 128 then
-		--small int
-		return t - 27
-	elseif t < 192 then
-		--small reference
-		return seen[t - 127]
-	elseif t < 224 then
-		--small string
-		return add_to_seen(Buffer_read_string(t - 192), seen)
-	elseif t < 240 then
-		--small resource
-		return add_to_seen(resource_registry[Buffer_read_string(t - 224)], seen)
-	elseif t == 240 then
-		--table
-		local v = add_to_seen({}, seen)
-		local len = deserialize_value(seen)
-		for i = 1, len do
-			v[i] = deserialize_value(seen)
-		end
-		len = deserialize_value(seen)
-		for _ = 1, len do
-			local key = deserialize_value(seen)
-			v[key] = deserialize_value(seen)
-		end
-		return v
-	elseif t == 241 then
-		--long resource
-		local idx = reserve_seen(seen)
-		local value = resource_registry[deserialize_value(seen)]
-		seen[idx] = value
-		return value
-	elseif t == 242 then
-		--instance
-		local instance = add_to_seen({}, seen)
-		local classname = deserialize_value(seen)
-		-- print(classname)
-		local class = class_registry[classname]
-		local classkey = classkey_registry[classname]
-		local deserializer = class_deserialize_registry[classname]
-		local len = deserialize_value(seen)
-		for i = 1, len do
-			instance[i] = deserialize_value(seen)
-		end
-		len = deserialize_value(seen)
-		for _ = 1, len do
-			local key = deserialize_value(seen)
-			instance[key] = deserialize_value(seen)
-		end
-		if classkey then
-			instance[classkey] = class
-		end
-		return deserializer(instance, class)
-	elseif t == 243 then
-		--reference
-		return seen[deserialize_value(seen) + 1]
-	elseif t == 244 then
-		--long string
-		return add_to_seen(Buffer_read_string(deserialize_value(seen)), seen)
-	elseif t == 245 then
-		--long int
-		return Buffer_read_data("int32_t[1]", 4)[0]
-	elseif t == 246 then
-		--double
-		return Buffer_read_data("double[1]", 8)[0]
-	elseif t == 247 then
-		--nil
-		return nil
-	elseif t == 248 then
-		--false
-		return false
-	elseif t == 249 then
-		--true
-		return true
-	elseif t == 250 then
-		--short int
-		return Buffer_read_data("int16_t[1]", 2)[0]
-	elseif t == 251 then
-		--ctype
-		return ffi.typeof(deserialize_value(seen))
-	elseif t == 252 then
-		local ctype = deserialize_value(seen)
-		local len = deserialize_value(seen)
-		local read_into = ffi.typeof('$[1]', ctype)()
-		Buffer_read_raw(read_into, len)
-		return ctype(read_into[0])
-	else
-		error("unsupported serialized type " .. t)
 	end
 end
 
@@ -862,46 +815,34 @@ return {
 		assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
 		-- assert(love.filesystem.write(fname, ffi.string(buf, buf_pos)))
 	end,
-	loadLoveFile = function(fname, progress_table)
-		local serializedData, error = love.filesystem.newFileData(fname)
-		assert(serializedData, error)
-		Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
-
-		-- local value = deserialize_value({})
-		local loading_coroutine = coroutine.create(function()
-			local value = deserialize({})
-			return value
-		end)
-		while true do
-			local co_status, loading_status, data = coroutine.resume(loading_coroutine)
-			-- print(co_status, loading_status, data)
-
-			if loading_status == "finished" then
-				print('loading completed')
-				-- print(data)
-				-- coroutine.yield("finished")
-				return data
-			end
-			if loading_status == 'tiles count' and progress_table ~= nil then
-				progress_table.total = data
-				-- coroutine.yield("in process")
-				-- print(loading_status, data)
-			end
+	loadLoveFile = function(fname, verbose)
+		if verbose == nil then
+			verbose = false
 		end
 
+		print("open file")
+		local serializedData, error = love.filesystem.newFileData(fname)
+		assert(serializedData, error)
 
+		print("create buffer")
+		Buffer_newDataReader(serializedData:getFFIPointer(), serializedData:getSize())
 
-		-- local value = deserialize({})
-		-- serializedData needs to not be collected early in a tail-call
-		-- so make sure deserialize_value returns before loadLoveFile does
-		-- return value
+		local loading_callback = function()
+			local loading_status, data = deserialize({}, verbose)
+			return data
+		end
+
+		print("load")
+		while true do
+			return loading_callback()
+		end
 	end,
 	loadLoveFile_async = function(fname, progress_table)
 		local serializedData, error = love.filesystem.newFileData(fname)
 		assert(serializedData, error)
-		Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
+		Buffer_newDataReader(serializedData:getFFIPointer(), serializedData:getSize())
 		local loading_coroutine = coroutine.create(function()
-			local value = deserialize({})
+			local value = deserialize({}, false)
 			return value
 		end)
 		while true do
@@ -916,20 +857,6 @@ return {
 				coroutine.yield("in process")
 			end
 		end
-	end,
-	loadData = function(data, size)
-		if size == 0 then
-			error('cannot load value from empty data')
-		end
-		Buffer_newDataReader(data, size)
-		return deserialize_value({})
-	end,
-	loads = function(str)
-		if #str == 0 then
-			error('cannot load value from empty string')
-		end
-		Buffer_newReader(str)
-		return deserialize_value({})
 	end,
 	register = function(name, resource)
 		assert(not resource_registry[name], name .. " already registered")

@@ -43,7 +43,6 @@ function window.draw(game)
 			layout:next(rect.width, base_unit),
 			"Load"
 	) then
-		-- world.load("quicksave.binbeaver")
 		DEFINES = require "game.defines".init()
 		DEFINES.world_gen = false
 		DEFINES.world_to_load = "quicksave.binbeaver"

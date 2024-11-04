@@ -106,6 +106,16 @@ local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
 
+bs.registerClass("BiogeographicRealm", require "game.raws.biogeographic-realms")
+bs.registerClass("Biome", require "game.raws.biomes")
+-- Entities
+bs.registerClass("ClimateCell", require "game.entities.climate-cell".ClimateCell)
+bs.registerClass("CultureGroup", require "game.entities.culture".CultureGroup)
+bs.registerClass("Language", require "game.entities.language".Language)
+bs.registerClass("Religion", require "game.entities.religion".Religion)
+bs.registerClass("Faith", require "game.entities.religion".Faith)
+bs.registerClass("World", require "game.entities.world".World)
+
 local lovetest = require "test.lovetest"
 
 

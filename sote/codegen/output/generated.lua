@@ -2,7 +2,7 @@ local ffi = require("ffi")
 ffi.cdef[[
     void* calloc( size_t num, size_t size );
 ]]
-local bitser = require("engine.bitser")
+local buffer = require("string.buffer")
 
 DATA = {}
 ---@class struct_budget_per_category_data
@@ -1144,6 +1144,516 @@ function DATA.fatten_tile(id)
     local result = {id = id}
     setmetatable(result, fat_tile_id_metatable)    return result
 end
+----------plate----------
+
+
+---plate: LSP types---
+
+---Unique identificator for plate entity
+---@class (exact) plate_id : number
+---@field is_plate nil
+
+---@class (exact) fat_plate_id
+---@field id plate_id Unique plate id
+---@field r number 
+---@field g number 
+---@field b number 
+---@field speed number 
+---@field direction number 
+---@field expansion_rate number 
+---@field done_expanding boolean 
+---@field current_tiles table<number,tile_id> 
+---@field next_tiles table<number,tile_id> 
+---@field plate_neighbors table<number,plate_id> 
+---@field plate_edge table<number,tile_id> 
+---@field plate_boundaries table<number,tile_id> 
+
+---@class struct_plate
+---@field r number 
+---@field g number 
+---@field b number 
+---@field speed number 
+---@field direction number 
+---@field expansion_rate number 
+
+
+ffi.cdef[[
+void dcon_plate_set_r(int32_t, float);
+float dcon_plate_get_r(int32_t);
+void dcon_plate_set_g(int32_t, float);
+float dcon_plate_get_g(int32_t);
+void dcon_plate_set_b(int32_t, float);
+float dcon_plate_get_b(int32_t);
+void dcon_plate_set_speed(int32_t, float);
+float dcon_plate_get_speed(int32_t);
+void dcon_plate_set_direction(int32_t, float);
+float dcon_plate_get_direction(int32_t);
+void dcon_plate_set_expansion_rate(int32_t, float);
+float dcon_plate_get_expansion_rate(int32_t);
+void dcon_delete_plate(int32_t j);
+int32_t dcon_create_plate();
+bool dcon_plate_is_valid(int32_t);
+void dcon_plate_resize(uint32_t sz);
+uint32_t dcon_plate_size();
+]]
+
+---plate: FFI arrays---
+---@type (boolean)[]
+DATA.plate_done_expanding= {}
+---@type (table<number,tile_id>)[]
+DATA.plate_current_tiles= {}
+---@type (table<number,tile_id>)[]
+DATA.plate_next_tiles= {}
+---@type (table<number,plate_id>)[]
+DATA.plate_plate_neighbors= {}
+---@type (table<number,tile_id>)[]
+DATA.plate_plate_edge= {}
+---@type (table<number,tile_id>)[]
+DATA.plate_plate_boundaries= {}
+
+---plate: LUA bindings---
+
+DATA.plate_size = 50
+---@return plate_id
+function DATA.create_plate()
+    ---@type plate_id
+    local i  = DCON.dcon_create_plate() + 1
+    return i --[[@as plate_id]] 
+end
+---@param i plate_id
+function DATA.delete_plate(i)
+    assert(DCON.dcon_plate_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_plate(i - 1)
+end
+---@param func fun(item: plate_id) 
+function DATA.for_each_plate(func)
+    ---@type number
+    local range = DCON.dcon_plate_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_plate_is_valid(i) then func(i + 1 --[[@as plate_id]]) end
+    end
+end
+---@param func fun(item: plate_id):boolean 
+---@return table<plate_id, plate_id> 
+function DATA.filter_plate(func)
+    ---@type table<plate_id, plate_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_plate_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_plate_is_valid(i) and func(i + 1 --[[@as plate_id]]) then t[i + 1 --[[@as plate_id]]] = i + 1 --[[@as plate_id]] end
+    end
+    return t
+end
+
+---@param plate_id plate_id valid plate id
+---@return number r 
+function DATA.plate_get_r(plate_id)
+    return DCON.dcon_plate_get_r(plate_id - 1)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_set_r(plate_id, value)
+    DCON.dcon_plate_set_r(plate_id - 1, value)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_inc_r(plate_id, value)
+    ---@type number
+    local current = DCON.dcon_plate_get_r(plate_id - 1)
+    DCON.dcon_plate_set_r(plate_id - 1, current + value)
+end
+---@param plate_id plate_id valid plate id
+---@return number g 
+function DATA.plate_get_g(plate_id)
+    return DCON.dcon_plate_get_g(plate_id - 1)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_set_g(plate_id, value)
+    DCON.dcon_plate_set_g(plate_id - 1, value)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_inc_g(plate_id, value)
+    ---@type number
+    local current = DCON.dcon_plate_get_g(plate_id - 1)
+    DCON.dcon_plate_set_g(plate_id - 1, current + value)
+end
+---@param plate_id plate_id valid plate id
+---@return number b 
+function DATA.plate_get_b(plate_id)
+    return DCON.dcon_plate_get_b(plate_id - 1)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_set_b(plate_id, value)
+    DCON.dcon_plate_set_b(plate_id - 1, value)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_inc_b(plate_id, value)
+    ---@type number
+    local current = DCON.dcon_plate_get_b(plate_id - 1)
+    DCON.dcon_plate_set_b(plate_id - 1, current + value)
+end
+---@param plate_id plate_id valid plate id
+---@return number speed 
+function DATA.plate_get_speed(plate_id)
+    return DCON.dcon_plate_get_speed(plate_id - 1)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_set_speed(plate_id, value)
+    DCON.dcon_plate_set_speed(plate_id - 1, value)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_inc_speed(plate_id, value)
+    ---@type number
+    local current = DCON.dcon_plate_get_speed(plate_id - 1)
+    DCON.dcon_plate_set_speed(plate_id - 1, current + value)
+end
+---@param plate_id plate_id valid plate id
+---@return number direction 
+function DATA.plate_get_direction(plate_id)
+    return DCON.dcon_plate_get_direction(plate_id - 1)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_set_direction(plate_id, value)
+    DCON.dcon_plate_set_direction(plate_id - 1, value)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_inc_direction(plate_id, value)
+    ---@type number
+    local current = DCON.dcon_plate_get_direction(plate_id - 1)
+    DCON.dcon_plate_set_direction(plate_id - 1, current + value)
+end
+---@param plate_id plate_id valid plate id
+---@return number expansion_rate 
+function DATA.plate_get_expansion_rate(plate_id)
+    return DCON.dcon_plate_get_expansion_rate(plate_id - 1)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_set_expansion_rate(plate_id, value)
+    DCON.dcon_plate_set_expansion_rate(plate_id - 1, value)
+end
+---@param plate_id plate_id valid plate id
+---@param value number valid number
+function DATA.plate_inc_expansion_rate(plate_id, value)
+    ---@type number
+    local current = DCON.dcon_plate_get_expansion_rate(plate_id - 1)
+    DCON.dcon_plate_set_expansion_rate(plate_id - 1, current + value)
+end
+---@param plate_id plate_id valid plate id
+---@return boolean done_expanding 
+function DATA.plate_get_done_expanding(plate_id)
+    return DATA.plate_done_expanding[plate_id]
+end
+---@param plate_id plate_id valid plate id
+---@param value boolean valid boolean
+function DATA.plate_set_done_expanding(plate_id, value)
+    DATA.plate_done_expanding[plate_id] = value
+end
+---@param plate_id plate_id valid plate id
+---@return table<number,tile_id> current_tiles 
+function DATA.plate_get_current_tiles(plate_id)
+    return DATA.plate_current_tiles[plate_id]
+end
+---@param plate_id plate_id valid plate id
+---@param value table<number,tile_id> valid table<number,tile_id>
+function DATA.plate_set_current_tiles(plate_id, value)
+    DATA.plate_current_tiles[plate_id] = value
+end
+---@param plate_id plate_id valid plate id
+---@return table<number,tile_id> next_tiles 
+function DATA.plate_get_next_tiles(plate_id)
+    return DATA.plate_next_tiles[plate_id]
+end
+---@param plate_id plate_id valid plate id
+---@param value table<number,tile_id> valid table<number,tile_id>
+function DATA.plate_set_next_tiles(plate_id, value)
+    DATA.plate_next_tiles[plate_id] = value
+end
+---@param plate_id plate_id valid plate id
+---@return table<number,plate_id> plate_neighbors 
+function DATA.plate_get_plate_neighbors(plate_id)
+    return DATA.plate_plate_neighbors[plate_id]
+end
+---@param plate_id plate_id valid plate id
+---@param value table<number,plate_id> valid table<number,plate_id>
+function DATA.plate_set_plate_neighbors(plate_id, value)
+    DATA.plate_plate_neighbors[plate_id] = value
+end
+---@param plate_id plate_id valid plate id
+---@return table<number,tile_id> plate_edge 
+function DATA.plate_get_plate_edge(plate_id)
+    return DATA.plate_plate_edge[plate_id]
+end
+---@param plate_id plate_id valid plate id
+---@param value table<number,tile_id> valid table<number,tile_id>
+function DATA.plate_set_plate_edge(plate_id, value)
+    DATA.plate_plate_edge[plate_id] = value
+end
+---@param plate_id plate_id valid plate id
+---@return table<number,tile_id> plate_boundaries 
+function DATA.plate_get_plate_boundaries(plate_id)
+    return DATA.plate_plate_boundaries[plate_id]
+end
+---@param plate_id plate_id valid plate id
+---@param value table<number,tile_id> valid table<number,tile_id>
+function DATA.plate_set_plate_boundaries(plate_id, value)
+    DATA.plate_plate_boundaries[plate_id] = value
+end
+
+local fat_plate_id_metatable = {
+    __index = function (t,k)
+        if (k == "r") then return DATA.plate_get_r(t.id) end
+        if (k == "g") then return DATA.plate_get_g(t.id) end
+        if (k == "b") then return DATA.plate_get_b(t.id) end
+        if (k == "speed") then return DATA.plate_get_speed(t.id) end
+        if (k == "direction") then return DATA.plate_get_direction(t.id) end
+        if (k == "expansion_rate") then return DATA.plate_get_expansion_rate(t.id) end
+        if (k == "done_expanding") then return DATA.plate_get_done_expanding(t.id) end
+        if (k == "current_tiles") then return DATA.plate_get_current_tiles(t.id) end
+        if (k == "next_tiles") then return DATA.plate_get_next_tiles(t.id) end
+        if (k == "plate_neighbors") then return DATA.plate_get_plate_neighbors(t.id) end
+        if (k == "plate_edge") then return DATA.plate_get_plate_edge(t.id) end
+        if (k == "plate_boundaries") then return DATA.plate_get_plate_boundaries(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "r") then
+            DATA.plate_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.plate_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.plate_set_b(t.id, v)
+            return
+        end
+        if (k == "speed") then
+            DATA.plate_set_speed(t.id, v)
+            return
+        end
+        if (k == "direction") then
+            DATA.plate_set_direction(t.id, v)
+            return
+        end
+        if (k == "expansion_rate") then
+            DATA.plate_set_expansion_rate(t.id, v)
+            return
+        end
+        if (k == "done_expanding") then
+            DATA.plate_set_done_expanding(t.id, v)
+            return
+        end
+        if (k == "current_tiles") then
+            DATA.plate_set_current_tiles(t.id, v)
+            return
+        end
+        if (k == "next_tiles") then
+            DATA.plate_set_next_tiles(t.id, v)
+            return
+        end
+        if (k == "plate_neighbors") then
+            DATA.plate_set_plate_neighbors(t.id, v)
+            return
+        end
+        if (k == "plate_edge") then
+            DATA.plate_set_plate_edge(t.id, v)
+            return
+        end
+        if (k == "plate_boundaries") then
+            DATA.plate_set_plate_boundaries(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id plate_id
+---@return fat_plate_id fat_id
+function DATA.fatten_plate(id)
+    local result = {id = id}
+    setmetatable(result, fat_plate_id_metatable)    return result
+end
+----------plate_tiles----------
+
+
+---plate_tiles: LSP types---
+
+---Unique identificator for plate_tiles entity
+---@class (exact) plate_tiles_id : number
+---@field is_plate_tiles nil
+
+---@class (exact) fat_plate_tiles_id
+---@field id plate_tiles_id Unique plate_tiles id
+---@field plate plate_id 
+---@field tile tile_id 
+
+---@class struct_plate_tiles
+
+
+ffi.cdef[[
+void dcon_delete_plate_tiles(int32_t j);
+int32_t dcon_force_create_plate_tiles(int32_t plate, int32_t tile);
+void dcon_plate_tiles_set_plate(int32_t, int32_t);
+int32_t dcon_plate_tiles_get_plate(int32_t);
+int32_t dcon_plate_get_range_plate_tiles_as_plate(int32_t);
+int32_t dcon_plate_get_index_plate_tiles_as_plate(int32_t, int32_t);
+void dcon_plate_tiles_set_tile(int32_t, int32_t);
+int32_t dcon_plate_tiles_get_tile(int32_t);
+int32_t dcon_tile_get_plate_tiles_as_tile(int32_t);
+bool dcon_plate_tiles_is_valid(int32_t);
+void dcon_plate_tiles_resize(uint32_t sz);
+uint32_t dcon_plate_tiles_size();
+]]
+
+---plate_tiles: FFI arrays---
+
+---plate_tiles: LUA bindings---
+
+DATA.plate_tiles_size = 1500020
+---@param plate plate_id
+---@param tile tile_id
+---@return plate_tiles_id
+function DATA.force_create_plate_tiles(plate, tile)
+    ---@type plate_tiles_id
+    local i = DCON.dcon_force_create_plate_tiles(plate - 1, tile - 1) + 1
+    return i --[[@as plate_tiles_id]] 
+end
+---@param i plate_tiles_id
+function DATA.delete_plate_tiles(i)
+    assert(DCON.dcon_plate_tiles_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_plate_tiles(i - 1)
+end
+---@param func fun(item: plate_tiles_id) 
+function DATA.for_each_plate_tiles(func)
+    ---@type number
+    local range = DCON.dcon_plate_tiles_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_plate_tiles_is_valid(i) then func(i + 1 --[[@as plate_tiles_id]]) end
+    end
+end
+---@param func fun(item: plate_tiles_id):boolean 
+---@return table<plate_tiles_id, plate_tiles_id> 
+function DATA.filter_plate_tiles(func)
+    ---@type table<plate_tiles_id, plate_tiles_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_plate_tiles_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_plate_tiles_is_valid(i) and func(i + 1 --[[@as plate_tiles_id]]) then t[i + 1 --[[@as plate_tiles_id]]] = i + 1 --[[@as plate_tiles_id]] end
+    end
+    return t
+end
+
+---@param plate plate_tiles_id valid plate_id
+---@return plate_id Data retrieved from plate_tiles 
+function DATA.plate_tiles_get_plate(plate)
+    return DCON.dcon_plate_tiles_get_plate(plate - 1) + 1
+end
+---@param plate plate_id valid plate_id
+---@return plate_tiles_id[] An array of plate_tiles 
+function DATA.get_plate_tiles_from_plate(plate)
+    local result = {}
+    DATA.for_each_plate_tiles_from_plate(plate, function(item) 
+        table.insert(result, item)
+    end)
+    return result
+end
+---@param plate plate_id valid plate_id
+---@param func fun(item: plate_tiles_id) valid plate_id
+function DATA.for_each_plate_tiles_from_plate(plate, func)
+    ---@type number
+    local range = DCON.dcon_plate_get_range_plate_tiles_as_plate(plate - 1)
+    for i = 0, range - 1 do
+        ---@type plate_tiles_id
+        local accessed_element = DCON.dcon_plate_get_index_plate_tiles_as_plate(plate - 1, i) + 1
+        if DCON.dcon_plate_tiles_is_valid(accessed_element - 1) then func(accessed_element) end
+    end
+end
+---@param plate plate_id valid plate_id
+---@param func fun(item: plate_tiles_id):boolean 
+---@return plate_tiles_id[]
+function DATA.filter_array_plate_tiles_from_plate(plate, func)
+    ---@type table<plate_tiles_id, plate_tiles_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_plate_get_range_plate_tiles_as_plate(plate - 1)
+    for i = 0, range - 1 do
+        ---@type plate_tiles_id
+        local accessed_element = DCON.dcon_plate_get_index_plate_tiles_as_plate(plate - 1, i) + 1
+        if DCON.dcon_plate_tiles_is_valid(accessed_element - 1) and func(accessed_element) then table.insert(t, accessed_element) end
+    end
+    return t
+end
+---@param plate plate_id valid plate_id
+---@param func fun(item: plate_tiles_id):boolean 
+---@return table<plate_tiles_id, plate_tiles_id> 
+function DATA.filter_plate_tiles_from_plate(plate, func)
+    ---@type table<plate_tiles_id, plate_tiles_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_plate_get_range_plate_tiles_as_plate(plate - 1)
+    for i = 0, range - 1 do
+        ---@type plate_tiles_id
+        local accessed_element = DCON.dcon_plate_get_index_plate_tiles_as_plate(plate - 1, i) + 1
+        if DCON.dcon_plate_tiles_is_valid(accessed_element - 1) and func(accessed_element) then t[accessed_element] = accessed_element end
+    end
+    return t
+end
+---@param plate_tiles_id plate_tiles_id valid plate_tiles id
+---@param value plate_id valid plate_id
+function DATA.plate_tiles_set_plate(plate_tiles_id, value)
+    DCON.dcon_plate_tiles_set_plate(plate_tiles_id - 1, value - 1)
+end
+---@param tile plate_tiles_id valid tile_id
+---@return tile_id Data retrieved from plate_tiles 
+function DATA.plate_tiles_get_tile(tile)
+    return DCON.dcon_plate_tiles_get_tile(tile - 1) + 1
+end
+---@param tile tile_id valid tile_id
+---@return plate_tiles_id plate_tiles 
+function DATA.get_plate_tiles_from_tile(tile)
+    return DCON.dcon_tile_get_plate_tiles_as_tile(tile - 1) + 1
+end
+---@param plate_tiles_id plate_tiles_id valid plate_tiles id
+---@param value tile_id valid tile_id
+function DATA.plate_tiles_set_tile(plate_tiles_id, value)
+    DCON.dcon_plate_tiles_set_tile(plate_tiles_id - 1, value - 1)
+end
+
+local fat_plate_tiles_id_metatable = {
+    __index = function (t,k)
+        if (k == "plate") then return DATA.plate_tiles_get_plate(t.id) end
+        if (k == "tile") then return DATA.plate_tiles_get_tile(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "plate") then
+            DATA.plate_tiles_set_plate(t.id, v)
+            return
+        end
+        if (k == "tile") then
+            DATA.plate_tiles_set_tile(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id plate_tiles_id
+---@return fat_plate_tiles_id fat_id
+function DATA.fatten_plate_tiles(id)
+    local result = {id = id}
+    setmetatable(result, fat_plate_tiles_id_metatable)    return result
+end
 ----------culture----------
 
 
@@ -1472,7 +1982,10 @@ end
 ---@field pending_economy_income number 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
+---@field busy boolean 
+---@field dead boolean 
 ---@field rank CHARACTER_RANK 
+---@field former_pop boolean 
 ---@field dna table<number, number> 
 
 
@@ -1508,8 +2021,14 @@ void dcon_pop_set_forage_ratio(int32_t, float);
 float dcon_pop_get_forage_ratio(int32_t);
 void dcon_pop_set_work_ratio(int32_t, float);
 float dcon_pop_get_work_ratio(int32_t);
+void dcon_pop_set_busy(int32_t, bool);
+bool dcon_pop_get_busy(int32_t);
+void dcon_pop_set_dead(int32_t, bool);
+bool dcon_pop_get_dead(int32_t);
 void dcon_pop_set_rank(int32_t, uint8_t);
 uint8_t dcon_pop_get_rank(int32_t);
+void dcon_pop_set_former_pop(int32_t, bool);
+bool dcon_pop_get_former_pop(int32_t);
 void dcon_pop_resize_dna(uint32_t);
 void dcon_pop_set_dna(int32_t, int32_t, float);
 float dcon_pop_get_dna(int32_t, int32_t);
@@ -1525,12 +2044,6 @@ uint32_t dcon_pop_size();
 DATA.pop_faith= {}
 ---@type (string)[]
 DATA.pop_name= {}
----@type (boolean)[]
-DATA.pop_busy= {}
----@type (boolean)[]
-DATA.pop_dead= {}
----@type (boolean)[]
-DATA.pop_former_pop= {}
 
 ---pop: LUA bindings---
 
@@ -1867,22 +2380,22 @@ end
 ---@param pop_id pop_id valid pop id
 ---@return boolean busy 
 function DATA.pop_get_busy(pop_id)
-    return DATA.pop_busy[pop_id]
+    return DCON.dcon_pop_get_busy(pop_id - 1)
 end
 ---@param pop_id pop_id valid pop id
 ---@param value boolean valid boolean
 function DATA.pop_set_busy(pop_id, value)
-    DATA.pop_busy[pop_id] = value
+    DCON.dcon_pop_set_busy(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@return boolean dead 
 function DATA.pop_get_dead(pop_id)
-    return DATA.pop_dead[pop_id]
+    return DCON.dcon_pop_get_dead(pop_id - 1)
 end
 ---@param pop_id pop_id valid pop id
 ---@param value boolean valid boolean
 function DATA.pop_set_dead(pop_id, value)
-    DATA.pop_dead[pop_id] = value
+    DCON.dcon_pop_set_dead(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@return CHARACTER_RANK rank 
@@ -1897,12 +2410,12 @@ end
 ---@param pop_id pop_id valid pop id
 ---@return boolean former_pop 
 function DATA.pop_get_former_pop(pop_id)
-    return DATA.pop_former_pop[pop_id]
+    return DCON.dcon_pop_get_former_pop(pop_id - 1)
 end
 ---@param pop_id pop_id valid pop id
 ---@param value boolean valid boolean
 function DATA.pop_set_former_pop(pop_id, value)
-    DATA.pop_former_pop[pop_id] = value
+    DCON.dcon_pop_set_former_pop(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
@@ -20547,17 +21060,44 @@ function DATA.fatten_race(id)
     setmetatable(result, fat_race_id_metatable)    return result
 end
 
+---@class LuaDataBlob
+---@field plate_done_expanding (boolean)[]
+---@field plate_current_tiles (table<number,tile_id>)[]
+---@field plate_next_tiles (table<number,tile_id>)[]
+---@field plate_plate_neighbors (table<number,plate_id>)[]
+---@field plate_plate_edge (table<number,tile_id>)[]
+---@field plate_plate_boundaries (table<number,tile_id>)[]
+---@field culture_name (string)[]
+---@field culture_language (Language)[]
+---@field culture_culture_group (CultureGroup)[]
+---@field pop_faith (Faith)[]
+---@field pop_name (string)[]
+---@field province_name (string)[]
+---@field warband_name (string)[]
+---@field warband_guard_of (Realm?)[]
+---@field realm_exists (boolean)[]
+---@field realm_name (string)[]
+---@field realm_primary_faith (Faith)[]
+---@field realm_quests_raid (table<province_id,nil|number>)[]
+---@field realm_quests_explore (table<province_id,nil|number>)[]
+---@field realm_quests_patrol (table<province_id,nil|number>)[]
+---@field realm_patrols (table<province_id,table<warband_id,warband_id>>)[]
+---@field realm_known_provinces (table<province_id,province_id>)[]
 
 function DATA.save_state()
     local current_lua_state = {}
+    current_lua_state.WORLD = WORLD
+    current_lua_state.plate_done_expanding = DATA.plate_done_expanding
+    current_lua_state.plate_current_tiles = DATA.plate_current_tiles
+    current_lua_state.plate_next_tiles = DATA.plate_next_tiles
+    current_lua_state.plate_plate_neighbors = DATA.plate_plate_neighbors
+    current_lua_state.plate_plate_edge = DATA.plate_plate_edge
+    current_lua_state.plate_plate_boundaries = DATA.plate_plate_boundaries
     current_lua_state.culture_name = DATA.culture_name
     current_lua_state.culture_language = DATA.culture_language
     current_lua_state.culture_culture_group = DATA.culture_culture_group
     current_lua_state.pop_faith = DATA.pop_faith
     current_lua_state.pop_name = DATA.pop_name
-    current_lua_state.pop_busy = DATA.pop_busy
-    current_lua_state.pop_dead = DATA.pop_dead
-    current_lua_state.pop_former_pop = DATA.pop_former_pop
     current_lua_state.province_name = DATA.province_name
     current_lua_state.warband_name = DATA.warband_name
     current_lua_state.warband_guard_of = DATA.warband_guard_of
@@ -20569,165 +21109,160 @@ function DATA.save_state()
     current_lua_state.realm_quests_patrol = DATA.realm_quests_patrol
     current_lua_state.realm_patrols = DATA.realm_patrols
     current_lua_state.realm_known_provinces = DATA.realm_known_provinces
+    current_lua_state.jobtype_name = DATA.jobtype_name
+    current_lua_state.jobtype_action_word = DATA.jobtype_action_word
+    current_lua_state.need_name = DATA.need_name
+    current_lua_state.character_rank_name = DATA.character_rank_name
+    current_lua_state.character_rank_localisation = DATA.character_rank_localisation
+    current_lua_state.trait_name = DATA.trait_name
+    current_lua_state.trait_short_description = DATA.trait_short_description
+    current_lua_state.trait_full_description = DATA.trait_full_description
+    current_lua_state.trait_icon = DATA.trait_icon
+    current_lua_state.trade_good_category_name = DATA.trade_good_category_name
+    current_lua_state.warband_status_name = DATA.warband_status_name
+    current_lua_state.warband_stance_name = DATA.warband_stance_name
+    current_lua_state.building_archetype_name = DATA.building_archetype_name
+    current_lua_state.forage_resource_name = DATA.forage_resource_name
+    current_lua_state.forage_resource_description = DATA.forage_resource_description
+    current_lua_state.forage_resource_icon = DATA.forage_resource_icon
+    current_lua_state.budget_category_name = DATA.budget_category_name
+    current_lua_state.economy_reason_name = DATA.economy_reason_name
+    current_lua_state.economy_reason_description = DATA.economy_reason_description
+    current_lua_state.politics_reason_name = DATA.politics_reason_name
+    current_lua_state.politics_reason_description = DATA.politics_reason_description
+    current_lua_state.law_trade_name = DATA.law_trade_name
+    current_lua_state.law_building_name = DATA.law_building_name
+    current_lua_state.trade_good_name = DATA.trade_good_name
+    current_lua_state.trade_good_icon = DATA.trade_good_icon
+    current_lua_state.trade_good_description = DATA.trade_good_description
+    current_lua_state.use_case_name = DATA.use_case_name
+    current_lua_state.use_case_icon = DATA.use_case_icon
+    current_lua_state.use_case_description = DATA.use_case_description
+    current_lua_state.biome_name = DATA.biome_name
+    current_lua_state.bedrock_name = DATA.bedrock_name
+    current_lua_state.resource_name = DATA.resource_name
+    current_lua_state.resource_icon = DATA.resource_icon
+    current_lua_state.resource_description = DATA.resource_description
+    current_lua_state.resource_coastal = DATA.resource_coastal
+    current_lua_state.resource_land = DATA.resource_land
+    current_lua_state.resource_water = DATA.resource_water
+    current_lua_state.resource_ice_age = DATA.resource_ice_age
+    current_lua_state.unit_type_name = DATA.unit_type_name
+    current_lua_state.unit_type_icon = DATA.unit_type_icon
+    current_lua_state.unit_type_description = DATA.unit_type_description
+    current_lua_state.unit_type_unlocked_by = DATA.unit_type_unlocked_by
+    current_lua_state.job_name = DATA.job_name
+    current_lua_state.job_icon = DATA.job_icon
+    current_lua_state.job_description = DATA.job_description
+    current_lua_state.production_method_name = DATA.production_method_name
+    current_lua_state.production_method_icon = DATA.production_method_icon
+    current_lua_state.production_method_description = DATA.production_method_description
+    current_lua_state.technology_name = DATA.technology_name
+    current_lua_state.technology_icon = DATA.technology_icon
+    current_lua_state.technology_description = DATA.technology_description
+    current_lua_state.technology_required_race = DATA.technology_required_race
+    current_lua_state.building_type_name = DATA.building_type_name
+    current_lua_state.building_type_icon = DATA.building_type_icon
+    current_lua_state.building_type_description = DATA.building_type_description
+    current_lua_state.race_name = DATA.race_name
+    current_lua_state.race_icon = DATA.race_icon
+    current_lua_state.race_female_portrait = DATA.race_female_portrait
+    current_lua_state.race_male_portrait = DATA.race_male_portrait
+    current_lua_state.race_description = DATA.race_description
 
-    bitser.dumpLoveFile("gamestatesave.bitserbeaver", current_lua_state)
-
+    local buf_enc = buffer.new()
+love.filesystem.write("gamestatesave.bitserbeaver", buf_enc:reset():encode(current_lua_state):get())
 end
 function DATA.load_state()
-    local data_love, error = love.filesystem.newFileData("gamestatesave.binbeaver")
-    assert(data_love, error)
-    local data = ffi.cast("uint8_t*", data_love:getPointer())
-    local current_offset = 0
-    local current_shift = 0
-    local total_ffi_size = 0
-    total_ffi_size = total_ffi_size + ffi.sizeof("tile") * 1500000
-    total_ffi_size = total_ffi_size + ffi.sizeof("culture") * 10000
-    total_ffi_size = total_ffi_size + ffi.sizeof("pop") * 300000
-    total_ffi_size = total_ffi_size + ffi.sizeof("province") * 20000
-    total_ffi_size = total_ffi_size + ffi.sizeof("army") * 5000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("negotiation") * 45000
-    total_ffi_size = total_ffi_size + ffi.sizeof("building") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("ownership") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("employment") * 300000
-    total_ffi_size = total_ffi_size + ffi.sizeof("building_location") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("army_membership") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_leader") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_recruiter") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_commander") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_location") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("warband_unit") * 50000
-    total_ffi_size = total_ffi_size + ffi.sizeof("character_location") * 100000
-    total_ffi_size = total_ffi_size + ffi.sizeof("home") * 300000
-    total_ffi_size = total_ffi_size + ffi.sizeof("pop_location") * 300000
-    total_ffi_size = total_ffi_size + ffi.sizeof("outlaw_location") * 300000
-    total_ffi_size = total_ffi_size + ffi.sizeof("tile_province_membership") * 1500000
-    total_ffi_size = total_ffi_size + ffi.sizeof("province_neighborhood") * 250000
-    total_ffi_size = total_ffi_size + ffi.sizeof("parent_child_relation") * 900000
-    total_ffi_size = total_ffi_size + ffi.sizeof("loyalty") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("succession") * 200000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_armies") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_guard") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_overseer") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_leadership") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_subject_relation") * 15000
-    total_ffi_size = total_ffi_size + ffi.sizeof("tax_collector") * 45000
-    total_ffi_size = total_ffi_size + ffi.sizeof("personal_rights") * 450000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_provinces") * 30000
-    total_ffi_size = total_ffi_size + ffi.sizeof("popularity") * 450000
-    total_ffi_size = total_ffi_size + ffi.sizeof("realm_pop") * 300000
-    current_shift = ffi.sizeof("tile") * 1500000
-    ffi.copy(DATA.tile, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("culture") * 10000
-    ffi.copy(DATA.culture, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("pop") * 300000
-    ffi.copy(DATA.pop, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("province") * 20000
-    ffi.copy(DATA.province, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("army") * 5000
-    ffi.copy(DATA.army, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband") * 50000
-    ffi.copy(DATA.warband, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm") * 15000
-    ffi.copy(DATA.realm, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("negotiation") * 45000
-    ffi.copy(DATA.negotiation, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("building") * 200000
-    ffi.copy(DATA.building, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("ownership") * 200000
-    ffi.copy(DATA.ownership, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("employment") * 300000
-    ffi.copy(DATA.employment, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("building_location") * 200000
-    ffi.copy(DATA.building_location, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("army_membership") * 50000
-    ffi.copy(DATA.army_membership, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_leader") * 50000
-    ffi.copy(DATA.warband_leader, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_recruiter") * 50000
-    ffi.copy(DATA.warband_recruiter, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_commander") * 50000
-    ffi.copy(DATA.warband_commander, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_location") * 50000
-    ffi.copy(DATA.warband_location, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("warband_unit") * 50000
-    ffi.copy(DATA.warband_unit, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("character_location") * 100000
-    ffi.copy(DATA.character_location, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("home") * 300000
-    ffi.copy(DATA.home, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("pop_location") * 300000
-    ffi.copy(DATA.pop_location, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("outlaw_location") * 300000
-    ffi.copy(DATA.outlaw_location, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("tile_province_membership") * 1500000
-    ffi.copy(DATA.tile_province_membership, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("province_neighborhood") * 250000
-    ffi.copy(DATA.province_neighborhood, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("parent_child_relation") * 900000
-    ffi.copy(DATA.parent_child_relation, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("loyalty") * 200000
-    ffi.copy(DATA.loyalty, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("succession") * 200000
-    ffi.copy(DATA.succession, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_armies") * 15000
-    ffi.copy(DATA.realm_armies, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_guard") * 15000
-    ffi.copy(DATA.realm_guard, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_overseer") * 15000
-    ffi.copy(DATA.realm_overseer, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_leadership") * 15000
-    ffi.copy(DATA.realm_leadership, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_subject_relation") * 15000
-    ffi.copy(DATA.realm_subject_relation, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("tax_collector") * 45000
-    ffi.copy(DATA.tax_collector, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("personal_rights") * 450000
-    ffi.copy(DATA.personal_rights, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_provinces") * 30000
-    ffi.copy(DATA.realm_provinces, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("popularity") * 450000
-    ffi.copy(DATA.popularity, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
-    current_shift = ffi.sizeof("realm_pop") * 300000
-    ffi.copy(DATA.realm_pop, data + current_offset, current_shift)
-    current_offset = current_offset + current_shift
+    local buf_dec = buffer.new()
+    local serializedData, error = love.filesystem.newFileData("gamestatesave.bitserbeaver")
+    assert(serializedData, error)
+    ---@type LuaDataBlob|nil
+    local loaded_lua_state = buf_dec:set(serializedData:getString()):decode()
+    assert(loaded_lua_state)
+    WORLD = loaded_lua_state.WORLD
+    DATA.plate_done_expanding = loaded_lua_state.plate_done_expanding
+    DATA.plate_current_tiles = loaded_lua_state.plate_current_tiles
+    DATA.plate_next_tiles = loaded_lua_state.plate_next_tiles
+    DATA.plate_plate_neighbors = loaded_lua_state.plate_plate_neighbors
+    DATA.plate_plate_edge = loaded_lua_state.plate_plate_edge
+    DATA.plate_plate_boundaries = loaded_lua_state.plate_plate_boundaries
+    DATA.culture_name = loaded_lua_state.culture_name
+    DATA.culture_language = loaded_lua_state.culture_language
+    DATA.culture_culture_group = loaded_lua_state.culture_culture_group
+    DATA.pop_faith = loaded_lua_state.pop_faith
+    DATA.pop_name = loaded_lua_state.pop_name
+    DATA.province_name = loaded_lua_state.province_name
+    DATA.warband_name = loaded_lua_state.warband_name
+    DATA.warband_guard_of = loaded_lua_state.warband_guard_of
+    DATA.realm_exists = loaded_lua_state.realm_exists
+    DATA.realm_name = loaded_lua_state.realm_name
+    DATA.realm_primary_faith = loaded_lua_state.realm_primary_faith
+    DATA.realm_quests_raid = loaded_lua_state.realm_quests_raid
+    DATA.realm_quests_explore = loaded_lua_state.realm_quests_explore
+    DATA.realm_quests_patrol = loaded_lua_state.realm_quests_patrol
+    DATA.realm_patrols = loaded_lua_state.realm_patrols
+    DATA.realm_known_provinces = loaded_lua_state.realm_known_provinces
+    DATA.jobtype_name = loaded_lua_state.jobtype_name
+    DATA.jobtype_action_word = loaded_lua_state.jobtype_action_word
+    DATA.need_name = loaded_lua_state.need_name
+    DATA.character_rank_name = loaded_lua_state.character_rank_name
+    DATA.character_rank_localisation = loaded_lua_state.character_rank_localisation
+    DATA.trait_name = loaded_lua_state.trait_name
+    DATA.trait_short_description = loaded_lua_state.trait_short_description
+    DATA.trait_full_description = loaded_lua_state.trait_full_description
+    DATA.trait_icon = loaded_lua_state.trait_icon
+    DATA.trade_good_category_name = loaded_lua_state.trade_good_category_name
+    DATA.warband_status_name = loaded_lua_state.warband_status_name
+    DATA.warband_stance_name = loaded_lua_state.warband_stance_name
+    DATA.building_archetype_name = loaded_lua_state.building_archetype_name
+    DATA.forage_resource_name = loaded_lua_state.forage_resource_name
+    DATA.forage_resource_description = loaded_lua_state.forage_resource_description
+    DATA.forage_resource_icon = loaded_lua_state.forage_resource_icon
+    DATA.budget_category_name = loaded_lua_state.budget_category_name
+    DATA.economy_reason_name = loaded_lua_state.economy_reason_name
+    DATA.economy_reason_description = loaded_lua_state.economy_reason_description
+    DATA.politics_reason_name = loaded_lua_state.politics_reason_name
+    DATA.politics_reason_description = loaded_lua_state.politics_reason_description
+    DATA.law_trade_name = loaded_lua_state.law_trade_name
+    DATA.law_building_name = loaded_lua_state.law_building_name
+    DATA.trade_good_name = loaded_lua_state.trade_good_name
+    DATA.trade_good_icon = loaded_lua_state.trade_good_icon
+    DATA.trade_good_description = loaded_lua_state.trade_good_description
+    DATA.use_case_name = loaded_lua_state.use_case_name
+    DATA.use_case_icon = loaded_lua_state.use_case_icon
+    DATA.use_case_description = loaded_lua_state.use_case_description
+    DATA.biome_name = loaded_lua_state.biome_name
+    DATA.bedrock_name = loaded_lua_state.bedrock_name
+    DATA.resource_name = loaded_lua_state.resource_name
+    DATA.resource_icon = loaded_lua_state.resource_icon
+    DATA.resource_description = loaded_lua_state.resource_description
+    DATA.resource_coastal = loaded_lua_state.resource_coastal
+    DATA.resource_land = loaded_lua_state.resource_land
+    DATA.resource_water = loaded_lua_state.resource_water
+    DATA.resource_ice_age = loaded_lua_state.resource_ice_age
+    DATA.unit_type_name = loaded_lua_state.unit_type_name
+    DATA.unit_type_icon = loaded_lua_state.unit_type_icon
+    DATA.unit_type_description = loaded_lua_state.unit_type_description
+    DATA.unit_type_unlocked_by = loaded_lua_state.unit_type_unlocked_by
+    DATA.job_name = loaded_lua_state.job_name
+    DATA.job_icon = loaded_lua_state.job_icon
+    DATA.job_description = loaded_lua_state.job_description
+    DATA.production_method_name = loaded_lua_state.production_method_name
+    DATA.production_method_icon = loaded_lua_state.production_method_icon
+    DATA.production_method_description = loaded_lua_state.production_method_description
+    DATA.technology_name = loaded_lua_state.technology_name
+    DATA.technology_icon = loaded_lua_state.technology_icon
+    DATA.technology_description = loaded_lua_state.technology_description
+    DATA.technology_required_race = loaded_lua_state.technology_required_race
+    DATA.building_type_name = loaded_lua_state.building_type_name
+    DATA.building_type_icon = loaded_lua_state.building_type_icon
+    DATA.building_type_description = loaded_lua_state.building_type_description
+    DATA.race_name = loaded_lua_state.race_name
+    DATA.race_icon = loaded_lua_state.race_icon
+    DATA.race_female_portrait = loaded_lua_state.race_female_portrait
+    DATA.race_male_portrait = loaded_lua_state.race_male_portrait
+    DATA.race_description = loaded_lua_state.race_description
 end
 function DATA.test_set_get_0()
     local id = DATA.create_tile()
@@ -20855,6 +21390,29 @@ function DATA.test_set_get_0()
     if not test_passed then print("biome", -17, fat_id.biome) end
     print("SET_GET_TEST_0_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_plate()
+    local fat_id = DATA.fatten_plate(id)
+    fat_id.r = 4
+    fat_id.g = 6
+    fat_id.b = -18
+    fat_id.speed = -4
+    fat_id.direction = 12
+    fat_id.expansion_rate = 11
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == 4
+    if not test_passed then print("r", 4, fat_id.r) end
+    test_passed = test_passed and fat_id.g == 6
+    if not test_passed then print("g", 6, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -18
+    if not test_passed then print("b", -18, fat_id.b) end
+    test_passed = test_passed and fat_id.speed == -4
+    if not test_passed then print("speed", -4, fat_id.speed) end
+    test_passed = test_passed and fat_id.direction == 12
+    if not test_passed then print("direction", 12, fat_id.direction) end
+    test_passed = test_passed and fat_id.expansion_rate == 11
+    if not test_passed then print("expansion_rate", 11, fat_id.expansion_rate) end
+    print("SET_GET_TEST_0_plate:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_culture()
     local fat_id = DATA.fatten_culture(id)
     fat_id.r = 4
@@ -20914,9 +21472,12 @@ function DATA.test_set_get_0()
     fat_id.pending_economy_income = -2
     fat_id.forage_ratio = -12
     fat_id.work_ratio = -14
+    fat_id.busy = false
+    fat_id.dead = true
     fat_id.rank = 2
+    fat_id.former_pop = true
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  14)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  -16)    end
     local test_passed = true
     test_passed = test_passed and fat_id.race == 4
     if not test_passed then print("race", 4, fat_id.race) end
@@ -20966,12 +21527,18 @@ function DATA.test_set_get_0()
     if not test_passed then print("forage_ratio", -12, fat_id.forage_ratio) end
     test_passed = test_passed and fat_id.work_ratio == -14
     if not test_passed then print("work_ratio", -14, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.busy == false
+    if not test_passed then print("busy", false, fat_id.busy) end
+    test_passed = test_passed and fat_id.dead == true
+    if not test_passed then print("dead", true, fat_id.dead) end
     test_passed = test_passed and fat_id.rank == 2
     if not test_passed then print("rank", 2, fat_id.rank) end
+    test_passed = test_passed and fat_id.former_pop == true
+    if not test_passed then print("former_pop", true, fat_id.former_pop) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 14
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -16
     end
-    if not test_passed then print("dna", 14, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", -16, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_0_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -21660,6 +22227,29 @@ function DATA.test_set_get_1()
     if not test_passed then print("biome", -6, fat_id.biome) end
     print("SET_GET_TEST_1_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_plate()
+    local fat_id = DATA.fatten_plate(id)
+    fat_id.r = -12
+    fat_id.g = 16
+    fat_id.b = -16
+    fat_id.speed = -4
+    fat_id.direction = -13
+    fat_id.expansion_rate = 11
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == -12
+    if not test_passed then print("r", -12, fat_id.r) end
+    test_passed = test_passed and fat_id.g == 16
+    if not test_passed then print("g", 16, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -16
+    if not test_passed then print("b", -16, fat_id.b) end
+    test_passed = test_passed and fat_id.speed == -4
+    if not test_passed then print("speed", -4, fat_id.speed) end
+    test_passed = test_passed and fat_id.direction == -13
+    if not test_passed then print("direction", -13, fat_id.direction) end
+    test_passed = test_passed and fat_id.expansion_rate == 11
+    if not test_passed then print("expansion_rate", 11, fat_id.expansion_rate) end
+    print("SET_GET_TEST_1_plate:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_culture()
     local fat_id = DATA.fatten_culture(id)
     fat_id.r = -12
@@ -21719,9 +22309,12 @@ function DATA.test_set_get_1()
     fat_id.pending_economy_income = 7
     fat_id.forage_ratio = 18
     fat_id.work_ratio = -20
-    fat_id.rank = 3
+    fat_id.busy = false
+    fat_id.dead = false
+    fat_id.rank = 1
+    fat_id.former_pop = true
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  -3)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  0)    end
     local test_passed = true
     test_passed = test_passed and fat_id.race == -12
     if not test_passed then print("race", -12, fat_id.race) end
@@ -21771,12 +22364,18 @@ function DATA.test_set_get_1()
     if not test_passed then print("forage_ratio", 18, fat_id.forage_ratio) end
     test_passed = test_passed and fat_id.work_ratio == -20
     if not test_passed then print("work_ratio", -20, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.rank == 3
-    if not test_passed then print("rank", 3, fat_id.rank) end
+    test_passed = test_passed and fat_id.busy == false
+    if not test_passed then print("busy", false, fat_id.busy) end
+    test_passed = test_passed and fat_id.dead == false
+    if not test_passed then print("dead", false, fat_id.dead) end
+    test_passed = test_passed and fat_id.rank == 1
+    if not test_passed then print("rank", 1, fat_id.rank) end
+    test_passed = test_passed and fat_id.former_pop == true
+    if not test_passed then print("former_pop", true, fat_id.former_pop) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -3
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 0
     end
-    if not test_passed then print("dna", -3, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 0, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_1_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -22465,6 +23064,29 @@ function DATA.test_set_get_2()
     if not test_passed then print("biome", -12, fat_id.biome) end
     print("SET_GET_TEST_2_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_plate()
+    local fat_id = DATA.fatten_plate(id)
+    fat_id.r = -17
+    fat_id.g = -15
+    fat_id.b = -15
+    fat_id.speed = 3
+    fat_id.direction = -10
+    fat_id.expansion_rate = -1
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == -17
+    if not test_passed then print("r", -17, fat_id.r) end
+    test_passed = test_passed and fat_id.g == -15
+    if not test_passed then print("g", -15, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -15
+    if not test_passed then print("b", -15, fat_id.b) end
+    test_passed = test_passed and fat_id.speed == 3
+    if not test_passed then print("speed", 3, fat_id.speed) end
+    test_passed = test_passed and fat_id.direction == -10
+    if not test_passed then print("direction", -10, fat_id.direction) end
+    test_passed = test_passed and fat_id.expansion_rate == -1
+    if not test_passed then print("expansion_rate", -1, fat_id.expansion_rate) end
+    print("SET_GET_TEST_2_plate:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_culture()
     local fat_id = DATA.fatten_culture(id)
     fat_id.r = -17
@@ -22524,9 +23146,12 @@ function DATA.test_set_get_2()
     fat_id.pending_economy_income = 20
     fat_id.forage_ratio = 5
     fat_id.work_ratio = 12
+    fat_id.busy = false
+    fat_id.dead = false
     fat_id.rank = 2
+    fat_id.former_pop = true
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  14)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  -19)    end
     local test_passed = true
     test_passed = test_passed and fat_id.race == -17
     if not test_passed then print("race", -17, fat_id.race) end
@@ -22576,12 +23201,18 @@ function DATA.test_set_get_2()
     if not test_passed then print("forage_ratio", 5, fat_id.forage_ratio) end
     test_passed = test_passed and fat_id.work_ratio == 12
     if not test_passed then print("work_ratio", 12, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.busy == false
+    if not test_passed then print("busy", false, fat_id.busy) end
+    test_passed = test_passed and fat_id.dead == false
+    if not test_passed then print("dead", false, fat_id.dead) end
     test_passed = test_passed and fat_id.rank == 2
     if not test_passed then print("rank", 2, fat_id.rank) end
+    test_passed = test_passed and fat_id.former_pop == true
+    if not test_passed then print("former_pop", true, fat_id.former_pop) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 14
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -19
     end
-    if not test_passed then print("dna", 14, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", -19, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_2_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
