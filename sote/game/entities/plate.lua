@@ -26,9 +26,6 @@ end
 ---@param plate_id plate_id
 ---@param tile_id tile_id ID of the tile to add!
 function plate.Plate.add_tile(plate_id, tile_id)
-	LOGS:write("new tile plate link ")
-	LOGS:write(tostring(plate_id) .. " " .. tostring(tile_id) .. "\n")
-	LOGS:flush()
 	DATA.force_create_plate_tiles(plate_id, tile_id)
 end
 

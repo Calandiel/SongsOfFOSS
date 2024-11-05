@@ -25,6 +25,9 @@ return function()
 
 	Event:new {
 		name = "exploration-help",
+		fallback = function(self, associated_data)
+
+		end,
 		event_text = text.exploration_ask_locals_local,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
@@ -70,6 +73,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			---@type ExplorationData
 			associated_data = associated_data
@@ -126,6 +132,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			---@type ExplorationData
 			associated_data = associated_data

@@ -23,6 +23,8 @@ function utils.notification_event(name, text, option_name, tooltip, effect)
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
 		trigger = function(self, character)
 			return false
 		end,

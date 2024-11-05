@@ -16,6 +16,7 @@ function load()
             local max_age = DATA.race_get_max_age(race)
             return age > max_age
         end,
+        fallback = function(self, associated_data) end,
         event_text = function(self, character, associated_data)
             return "I am dying..."
         end,

@@ -67,7 +67,7 @@ local function demography(provinces, ui_panel, collapsed)
     end
 
     local function graph_faiths(rect)
-        ---@type table<Faith, number>
+        ---@type table<faith_id, number>
         local counts = {}
         for _, province in pairs(provinces) do
             DATA.for_each_pop_location_from_location(province, function (item)
@@ -81,12 +81,13 @@ local function demography(provinces, ui_panel, collapsed)
         ---@type Entry[]
         local entries = {}
         for faith, count in pairs(counts) do
+            local fat = DATA.fatten_faith(faith)
             entries[#entries + 1] = {
                 weight = count,
-                tooltip = faith.name .. " (" .. count .. ")",
-                r = faith.r,
-                g = faith.g,
-                b = faith.b,
+                tooltip = fat.name .. " (" .. count .. ")",
+                r = fat.r,
+                g = fat.g,
+                b = fat.b,
             }
         end
 

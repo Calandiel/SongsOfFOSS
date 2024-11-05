@@ -30,7 +30,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
 
+		end,
 		on_trigger = function(self, character, associated_data)
 			local partner = political_values.overseer(LOCAL_REALM(character))
 
@@ -66,7 +68,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
 
+		end,
 		on_trigger = function(self, character, associated_data)
 			---@type ExplorationData
 			local exploration_data = {
@@ -102,6 +106,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			return {
 				{
@@ -186,26 +193,12 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			---@type ExplorationData
 			associated_data = associated_data
-
-			if DEAD(character) then
-				return {
-					{
-						text = "I am dead",
-						tooltip = "I will remain dead",
-						viable = function()
-							return true
-						end,
-						outcome = function()
-						end,
-						ai_preference = function()
-							return 1
-						end
-					},
-				}
-			end
 
 			local food_price = economy_values.get_local_price_of_use(associated_data.explored_province, CALORIES_USE_CASE)
 
@@ -331,6 +324,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			---@type ExplorationData
 			associated_data = associated_data
@@ -358,11 +354,10 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
-		on_trigger = function(self, root, associated_data)
-			if DEAD(root) then
-				return
-			end
+		fallback = function(self, associated_data)
 
+		end,
+		on_trigger = function(self, root, associated_data)
 			if DATA.realm_get_quests_explore(REALM(root))[PROVINCE(root)] then
 				economic_effects.add_pop_savings(
 					root,

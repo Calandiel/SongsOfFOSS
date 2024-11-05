@@ -17,6 +17,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -50,19 +53,6 @@ return function ()
 				}}
 			end
 
-			if DEAD(character) then
-				return {{
-					text = "I am dead; it's someone else's problem",
-					tooltip = "",
-					viable = function() return true end,
-					outcome = function()
-						WORLD:emit_immediate_event("request-tribute", LEADER(realm), associated_data)
-					end,
-					ai_preference = function ()
-						return 1
-					end
-				}}
-			end
 
 			return {
 				{
@@ -114,6 +104,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -129,17 +122,6 @@ return function ()
 			gain_of_money = economy_values.potential_monthly_tribute_size(target_realm) * 12
 			local my_warlords, my_power = political_values.military_strength(character)
 			local their_warlords, their_power = political_values.military_strength(associated_data)
-
-
-			if DEAD(character) then
-				return {{
-					text = "I am dead; there is nothing I could do.",
-					tooltip = "",
-					viable = function() return true end,
-					outcome = function () end,
-					ai_preference = function() return 1 end
-				}}
-			end
 
 			return {
 				{

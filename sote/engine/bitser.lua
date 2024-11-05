@@ -130,9 +130,6 @@ local function Buffer_read_string(len)
 end
 
 local function Buffer_read_raw(data, len)
-	LOGS:write("copying save buffer to data\n")
-	LOGS:write("start: \t \t " .. tostring(buf_pos) .. "/" .. tostring(buf_size) .. "\t")
-	LOGS:write("len: \t \t ".. tostring(len) .. "\n")
 	ffi.copy(data, buf + buf_pos, len)
 	buf_pos = buf_pos + len
 	return data

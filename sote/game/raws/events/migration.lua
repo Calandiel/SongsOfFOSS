@@ -4,6 +4,7 @@ local path              = require "game.ai.pathfinding"
 local province_utils    = require "game.entities.province".Province
 local realm_utils       = require "game.entities.realm".Realm
 local army_utils 		= require "game.entities.army"
+local language_utils    = require "game.entities.language".Language
 
 local Event             = require "game.raws.events"
 local event_utils       = require "game.raws.events._utils"
@@ -37,6 +38,8 @@ function load()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
+		fallback = function (self, associated_data)
+        end,
 		on_trigger = function(self, root, associated_data)
 			UNSET_BUSY(root)
 
@@ -184,7 +187,7 @@ function load()
 			WORLD:unset_settled_province(origin)
 
 			if PROVINCE_NAME(associated_data.target_province) == "<uninhabited>" then
-				DATA.province_set_name(associated_data.target_province, DATA.culture_get_language(DATA.pop_get_culture(LEADER(origin_realm))):get_random_culture_name())
+				DATA.province_set_name(associated_data.target_province, language_utils.get_random_culture_name(DATA.culture_get_language(DATA.pop_get_culture(LEADER(origin_realm)))))
 			end
 
 			realm_utils.explore(origin_realm, CAPITOL(origin_realm))
@@ -196,6 +199,8 @@ function load()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
+		fallback = function (self, associated_data)
+        end,
 		on_trigger = function(self, root, associated_data)
 			UNSET_BUSY(root)
 
@@ -394,7 +399,7 @@ function load()
 			end
 
 			--if PROVINCE_NAME(associated_data.target_province) == "<uninhabited>" then
-			DATA.province_set_name(associated_data.target_province, DATA.culture_get_language(DATA.realm_get_primary_culture(colonizer_realm)):get_random_culture_name()) -- manifest destiny!
+			DATA.province_set_name(associated_data.target_province, language_utils.get_random_culture_name(DATA.culture_get_language(DATA.realm_get_primary_culture(colonizer_realm)))) -- manifest destiny!
 			--end
 
 			political_effects.transfer_power(new_realm, expedition_leader, POLITICS_REASON.EXPEDITIONLEADER)
@@ -410,6 +415,8 @@ function load()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
+		fallback = function (self, associated_data)
+        end,
 		on_trigger = function(self, root, associated_data)
 			local temp_target = province_utils.new(true)
 
@@ -465,6 +472,8 @@ function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -567,6 +576,8 @@ function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -657,6 +668,8 @@ function load()
 
 	Event:new {
 		name = "migration-target-refuses",
+		fallback = function (self, associated_data)
+        end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
@@ -727,6 +740,7 @@ function load()
 
 	Event:new {
 		name = "migration-invasion-preparation",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Realm
 			associated_data = associated_data
@@ -858,6 +872,12 @@ function load()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
+		fallback = function(self, associated_data)
+			---@type AttackData
+			associated_data = associated_data
+			local army = associated_data.army
+			realm_utils.disband_army(army)
+		end,
 		on_trigger = function(self, root, associated_data)
 			---@type AttackData
 			associated_data = associated_data
@@ -893,7 +913,7 @@ function load()
 			-- First, raise the defending army.
 			local def = realm_utils.raise_local_army(realm, province)
 			local attack_succeed, attack_losses, def_losses = military_effects.attack(army, def, spot_test)
-			realm_utils.disband_army(realm, def) -- disband the army after battle
+			realm_utils.disband_army(def) -- disband the army after battle
 
 			-- migrating
 			if attack_succeed then

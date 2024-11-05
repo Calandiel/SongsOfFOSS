@@ -11,6 +11,7 @@ local retrieve_use_case = require "game.raws.raws-utils".trade_good_use_case
 return function ()
     Event:new {
 		name = "request-loyalty",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
             ---@type Character
             associated_data = associated_data
@@ -44,19 +45,6 @@ return function ()
             if LOYAL_TO(character) ~= associated_data and LOYAL_TO(character) ~= INVALID_ID then
                 treason_flag = true
             end
-
-			if DEAD(associated_data) then
-				return {
-					text = "...",
-					tooltip = "No loyalty to dead people.",
-					viable = function() return true end,
-					outcome = function()
-					end,
-					ai_preference = function ()
-						return 1
-					end
-				}
-			end
 
 			return {
 				{
@@ -113,6 +101,7 @@ return function ()
 
 	Event:new {
 		name = "request-loyalty-payment",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
             ---@type Character
             associated_data = associated_data
@@ -175,6 +164,7 @@ return function ()
 
     Event:new {
 		name = "request-migration-colonize",
+		fallback = function(self, associated_data) end,
 		---@param associated_data MigrationData
 		event_text = function(self, character, associated_data)
 			local name = NAME(associated_data.leader)
@@ -200,7 +190,7 @@ return function ()
 		---@param associated_data MigrationData
 		options = function(self, character, associated_data)
 			if DEAD(associated_data.organizer) then
-				return {
+				return {{
 					text = "...",
 					tooltip = "No loyalty to dead people.",
 					viable = function() return true end,
@@ -209,7 +199,7 @@ return function ()
 					ai_preference = function ()
 						return 1
 					end
-				}
+				}}
 			end
 
 			return {

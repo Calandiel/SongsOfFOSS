@@ -13,32 +13,17 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
 		options = function(self, character, associated_data)
-
-			if DEAD(character) then
-				return {
-					{
-						text = "I am a dead tax collector...",
-						tooltip = "Continue being dead",
-						viable = function() return true end,
-						outcome = function()
-							UNSET_BUSY(character)
-						end,
-						ai_preference = function ()
-							return 1
-						end
-					}
-				}
-			end
-
 			local ai_profit = 0
 			if not WORLD:is_player(character) then
 				ai_profit = economic_effects.collect_tax(character)
 			end
-
 
 			return {
 				{

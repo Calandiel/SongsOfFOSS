@@ -25,13 +25,28 @@ local recruit = require "game.society.recruitment"
 
 local dbm              = require "game.economy.diet-breadth-model"
 
----@alias ActionData { [1]: string, [2]: POP, [3]: table, [4]: number}
----@alias ScheduledEvent { [1]: string, [2]: POP, [3]: table, [4]: number}
----@alias InstantEvent { [1]: string, [2]: POP, [3]: table|number}
+---@class (exact) DelayedEventData
+---@field event_tag string
+---@field root pop_id
+---@field root_unique_id number
+---@field event_data table|nil|number
+---@field delay number
+
+---@class (exact) PendingEventData
+---@field event_tag string
+---@field root pop_id
+---@field root_unique_id number
+---@field event_data table|nil|number
+
+---@class (exact) PendingEventDisplay
+---@field display_name string
+---@field delay number
+
 ---@alias Notification string
 
 ---@class (exact) World
 ---@field __index World
+---@field unique_id number
 ---@field player_character Character
 ---@field sub_hourly_tick number
 ---@field current_tick_in_month number
@@ -49,10 +64,10 @@ local dbm              = require "game.economy.diet-breadth-model"
 ---@field climate_grid_size number number of climate grid cells along a grid edge
 ---@field entity_counter number -- a global counter for entities...
 ---@field notification_queue Queue<Notification>
----@field events_queue Queue<InstantEvent>
----@field deferred_events_queue Queue<ScheduledEvent>
----@field deferred_actions_queue Queue<ActionData>
----@field player_deferred_actions table<ActionData, ActionData>
+---@field events_queue Queue<PendingEventData>
+---@field deferred_events_queue Queue<DelayedEventData>
+---@field deferred_actions_queue Queue<DelayedEventData>
+---@field player_deferred_actions PendingEventDisplay[]
 ---@field treasury_effects Queue<TreasuryEffectRecord>
 ---@field old_treasury_effects Queue<TreasuryEffectRecord>
 ---@field pending_player_event_reaction boolean
@@ -81,6 +96,7 @@ function world.reset_metatable(w)
 	setmetatable(w.treasury_effects, Queue)
 	setmetatable(w.old_treasury_effects, Queue)
 
+	--[[
 	---@param container Queue
 	---@param meta table
 	local function reset_container_metatable(container, meta)
@@ -88,6 +104,7 @@ function world.reset_metatable(w)
 			setmetatable(item, meta)
 		end
 	end
+	--]]
 end
 
 
@@ -107,6 +124,8 @@ function world.World:new()
 
 	-- Register classes and stuff...
 	local ws = DEFINES.world_size
+
+	w.unique_id = 1
 
 	w.player_character = INVALID_ID
 
@@ -219,23 +238,41 @@ end
 ---Schedules an event
 ---@param event string
 ---@param root Character
----@param associated_data table|nil
+---@param associated_data table|number|nil
 ---@param delay number|nil In days
-function world.World:emit_event(event, root, associated_data, delay)
+---@param root_unique_id number|nil
+function world.World:emit_event(event, root, associated_data, delay, root_unique_id)
 	---#logging LOGS:write("emit event " .. event .. "\n")
 	---#logging LOGS:flush()
+
+	local uid = DATA.pop_get_unique_id(root)
+	if root_unique_id ~= nil then
+		uid = root_unique_id
+	end
 
 	assert(root ~= INVALID_ID, "Attempt to call event for invalid root")
 	assert(root ~= nil, "Attempt to call event for nil root")
 
 	if delay then
-		self.deferred_events_queue:enqueue({
-			event, root, associated_data, delay
-		})
+		---@type DelayedEventData
+		local event_data = {
+			event_tag = event,
+			root = root,
+			root_unique_id = uid,
+			event_data = associated_data,
+			delay = delay
+		}
+
+		self.deferred_events_queue:enqueue(event_data)
 	else
-		self.events_queue:enqueue({
-			event, root, associated_data
-		})
+		---@type PendingEventData
+		local event_data = {
+			event_tag = event,
+			root = root,
+			root_unique_id = uid,
+			event_data = associated_data,
+		}
+		self.events_queue:enqueue(event_data)
 	end
 end
 
@@ -250,10 +287,17 @@ function world.World:emit_immediate_event(event, root, associated_data)
 	if root == self.player_character then
 		print('player event: ', event)
 	end
-	self.events_queue:enqueue_front({
-		event, root, associated_data
-	})
-	self:event_tick(event, root, associated_data)
+
+	---@type PendingEventData
+	local event_data = {
+		event_tag = event,
+		root = root,
+		root_unique_id = DATA.pop_get_unique_id(root),
+		event_data = associated_data,
+	}
+
+	self.events_queue:enqueue_front(event_data)
+	self:event_tick(event, root, event_data.root_unique_id, associated_data)
 end
 
 ---comment
@@ -280,41 +324,56 @@ function world.World:emit_action(event, root, associated_data, delay, hidden)
 		error("Cannot emit an action without a root!")
 	end
 
-	---@type ActionData
-	local action_data = {
-		event,
-		root,
-		associated_data,
-		delay
+	---@type DelayedEventData
+	local event_data = {
+		event_tag = event,
+		root = root,
+		root_unique_id = DATA.pop_get_unique_id(root),
+		event_data = associated_data,
+		delay = delay
 	}
+
 	-- print('add new action:' .. event)
-	self.deferred_actions_queue:enqueue(action_data)
+	self.deferred_actions_queue:enqueue(event_data)
 	if WORLD:does_player_see_realm_news(REALM(root)) and not hidden then
-		self.player_deferred_actions[action_data] = action_data
+		---@type PendingEventDisplay
+		local display = {
+			display_name = event,
+			delay = delay
+		}
+
+		table.insert(self.player_deferred_actions, display)
 	end
 end
 
 ---Handles events
 ---@param event string
----@param target_realm POP
+---@param root POP
+---@param unique_id number
 ---@param associated_data any
-local function handle_event(event, target_realm, associated_data)
+local function handle_event(event, root, unique_id, associated_data)
 	-- Handle the event here
 
-	LOGS:write(
-		"\n Handling event: " .. event .. "\n" ..
-		"root: " .. NAME(target_realm) .. "\n"
-	)
+	-- LOGS:write(
+	-- 	"\n Handling event: " .. event .. "\n" ..
+	-- 	"root: " .. NAME(root) .. "(".. tostring(root) .. ")" .. "\n"
+	-- )
 
 	-- assert(PROVINCE(target_realm) ~= INVALID_ID, "INVALID PROVINCE")
 	if RAWS_MANAGER.events_by_name[event] == nil then
 		error(event .. " is not a valid event!")
 	end
 
-	assert(target_realm ~= INVALID_ID, "CHARACTER DOES NOT EXIST")
+	assert(root ~= INVALID_ID, "CHARACTER DOES NOT EXIST")
+
+	-- sanity check to weed out dead characters:
+	if(DATA.pop_get_unique_id(root) ~= unique_id) then
+		RAWS_MANAGER.events_by_name[event]:fallback(associated_data)
+		return
+	end
 
 	-- First, find the best option
-	local opts = RAWS_MANAGER.events_by_name[event]:options(target_realm, associated_data)
+	local opts = RAWS_MANAGER.events_by_name[event]:options(root, associated_data)
 	local best = opts[1]
 	local best_am = nil
 	---#logging LOGS:write("choosing option")
@@ -346,13 +405,14 @@ end
 ---Returns true if player event and false otherwise
 ---@param eve string
 ---@param root Character
+---@param unique_id number
 ---@param dat any
 ---@return boolean
-function world.World:event_tick(eve, root, dat)
+function world.World:event_tick(eve, root, unique_id, dat)
 	---#logging LOGS:write("event tick " .. eve .. " " .. tostring(root) .. "\n")
 	---#logging LOGS:flush()
-
 	assert(root ~= INVALID_ID)
+
 	if WORLD.player_character == root then
 		-- This is a player event!
 		-- print("player event options: ", eve)
@@ -363,10 +423,10 @@ function world.World:event_tick(eve, root, dat)
 		---#logging LOGS:flush()
 
 		WORLD.events_queue:dequeue()
-		handle_event(eve, root, dat)
-		local dead = DATA.pop_get_dead(root)
-		if (not dead) then
-			assert(DATA.get_character_location_from_character(root), "character is alive but province is nil after event " .. eve)
+		handle_event(eve, root, unique_id, dat)
+
+		if DATA.pop_get_unique_id(root) == unique_id then
+			assert(PROVINCE(root) ~= INVALID_ID, "character is alive but province is nil after event " .. eve)
 		end
 		return false
 	end
@@ -385,11 +445,8 @@ function world.World:tick()
 		counter = counter + 1
 		-- Read the event data to check it
 		local ev = WORLD.events_queue:peek()
-		local eve = ev[1]
-		local root = ev[2]
-		local dat = ev[3]
 
-		if WORLD:event_tick(eve, root, dat) then
+		if WORLD:event_tick(ev.event_tag, ev.root, ev.root_unique_id, ev.event_data) then
 			return
 		end
 
@@ -612,10 +669,10 @@ function world.World:tick()
 			for i = 1, l do
 				-- print("def. event" .. tostring(i))
 				local check = WORLD.deferred_events_queue:dequeue()
-				check[4] = check[4] - 1
-				if check[4] <= 0 then
+				check.delay = check.delay - 1
+				if check.delay <= 0 then
 					-- Reemit the event as a "real" even!
-					WORLD:emit_event(check[1], check[2], check[3])
+					WORLD:emit_event(check.event_tag, check.root, check.event_data, nil, check.root_unique_id)
 					-- print("ontrig")
 				else
 					WORLD.deferred_events_queue:enqueue(check)
@@ -630,16 +687,20 @@ function world.World:tick()
 			for i = 1, l do
 				--print("def. action " .. tostring(i))
 				local check = WORLD.deferred_actions_queue:dequeue()
-				check[4] = check[4] - 1
-				if check[4] <= 0 then
-					local character = check[2]
-					local event = RAWS_MANAGER.events_by_name[check[1]]
+				check.delay = check.delay - 1
+				if check.delay <= 0 then
+					local character = check.root
+					local event = RAWS_MANAGER.events_by_name[check.event_tag]
 					---#logging LOGS:write(
 						-- "\n Handling action: " .. check[1] .. "\n" ..
 						-- "root: " .. NAME(character) .. "\n"
 					-- )
 					---#logging LOGS:flush()
-					event:on_trigger(character, check[3])
+					if DATA.pop_get_unique_id(character) ~= check.root_unique_id then
+						event:fallback(check.event_data)
+					else
+						event:on_trigger(character, check.event_data)
+					end
 					--print("ontrig")
 					self.player_deferred_actions[check] = nil
 				else

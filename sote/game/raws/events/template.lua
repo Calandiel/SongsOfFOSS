@@ -10,6 +10,8 @@ Event:new {
 	event_background_path = "data/gfx/backgrounds/background.png",
 	automatic = true,
 	base_probability = 1 / 24,
+	fallback = function (self, associated_data)
+	end,
 	trigger = function(self, realm)
 		---@type Realm
 		local realm

@@ -440,7 +440,7 @@ end
 ---@param realm Realm
 ---@param province Province
 ---@param race Race
----@param faith Faith
+---@param faith faith_id
 ---@param culture culture_id
 ---@return Character
 function PoliticalEffects.generate_new_noble(realm, province, race, faith, culture)

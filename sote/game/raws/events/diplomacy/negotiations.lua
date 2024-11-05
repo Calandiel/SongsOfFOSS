@@ -88,6 +88,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -100,6 +103,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -112,6 +118,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -193,6 +202,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -242,6 +254,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -293,6 +308,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -361,6 +379,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -432,6 +453,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -492,6 +516,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -553,6 +580,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -658,6 +688,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -776,6 +809,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,

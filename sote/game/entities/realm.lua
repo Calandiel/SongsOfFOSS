@@ -427,10 +427,9 @@ function realm_utils.Realm.raise_army(realm, warbands)
 end
 
 ---Disbands an army and returns pops to their provinces.
----@param realm Realm
 ---@param army Army
 ---@return table<Warband, Warband>
-function realm_utils.Realm.disband_army(realm, army)
+function realm_utils.Realm.disband_army(army)
 	---@type table<Warband, Warband>
 	local warbands = {}
 	DATA.for_each_army_membership_from_army(army, function (item)

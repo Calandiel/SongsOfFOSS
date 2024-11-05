@@ -260,6 +260,12 @@ relationship {
     }
 }
 object {
+    name { language }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+object {
     name { culture }
     storage_type { erasable }
     size { 10000 }
@@ -280,6 +286,11 @@ object {
         tag { scenario }
     }
     property{
+        name { language }
+        type { language_id }
+        tag { scenario }
+    }
+    property{
         name { traditional_units }
         type { array{unit_type_id}{float} }
         tag { scenario }
@@ -296,13 +307,95 @@ object {
     }
 }
 object {
+    name { culture_group }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+    property{
+        name { language }
+        type { language_id }
+        tag { scenario }
+    }
+}
+relationship {
+    name { cultural_union }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+    link {
+        object { culture_group }
+        name { culture_group }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { culture }
+        name { culture }
+        type { unique }
+    }
+}
+object {
+    name { faith }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+    property{
+        name { r }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { g }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { b }
+        type { float }
+        tag { scenario }
+    }
+}
+object {
+    name { religion }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+}
+relationship {
+    name { subreligion }
+    storage_type { erasable }
+    size { 10000 }
+    tag {scenario}
+    link {
+        object { religion }
+        name { religion }
+        type { many }
+        index_storage{array}
+    }
+    link {
+        object { faith }
+        name { faith }
+        type { unique }
+    }
+}
+object {
     name { pop }
     storage_type { erasable }
     size { 300000 }
     tag {scenario}
     property{
+        name { unique_id }
+        type { uint32_t }
+        tag { scenario }
+    }
+    property{
         name { race }
         type { race_id }
+        tag { scenario }
+    }
+    property{
+        name { faith }
+        type { faith_id }
         tag { scenario }
     }
     property{
@@ -777,6 +870,11 @@ object {
     property{
         name { primary_culture }
         type { culture_id }
+        tag { scenario }
+    }
+    property{
+        name { primary_faith }
+        type { faith_id }
         tag { scenario }
     }
     property{

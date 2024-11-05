@@ -156,6 +156,9 @@ end
 
 ---@param pop_id pop_id
 function DEAD(pop_id)
+	if not DCON.dcon_pop_is_valid(pop_id) then
+		return true
+	end
 	return DATA.pop_get_dead(pop_id)
 end
 
@@ -347,6 +350,9 @@ end
 ---@param leader pop_id
 ---@return warband_id
 function LEADER_OF_WARBAND(leader)
+	if LEADER == INVALID_ID then
+		return INVALID_ID
+	end
 	local leadership = DATA.get_warband_leader_from_leader(leader)
 	return DATA.warband_leader_get_warband(leadership)
 end

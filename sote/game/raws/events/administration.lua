@@ -10,6 +10,7 @@ local political_effects = require "game.raws.effects.politics"
 local function load()
 	Event:new {
 		name = "request-help-overseer",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
@@ -97,6 +98,7 @@ local function load()
 
 	Event:new {
 		name = "request-help-tribute-collection",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
@@ -204,6 +206,7 @@ local function load()
 
 	Event:new {
 		name = "request-help-guard-leader",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data

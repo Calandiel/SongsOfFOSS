@@ -14,6 +14,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
+		fallback = function(self, associated_data)
+
+		end,
 		on_trigger = function(self, root, associated_data)
 			---@type TributeCollection
 			associated_data = associated_data
@@ -63,6 +66,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		event_background_path = "",
+		fallback = function(self, associated_data)
+
+		end,
 		on_trigger = function(self, root, associated_data)
 			---@type TributeCollection
 			associated_data = associated_data

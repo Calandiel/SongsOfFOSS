@@ -66,11 +66,20 @@ local messages = require "game.raws.effects.messages"
 
 
 local function load()
+
+	-- TODO: use fallbacks to retrigger events for new roots
+	-- And we need rootless events with multiple actors...
+
+
 	Event:new {
 		name = "patrol-province",
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+
+		fallback = function (self, associated_data)
+        end,
+
 		on_trigger = function(self, root, associated_data)
 
 
@@ -118,6 +127,10 @@ local function load()
 
 	Event:new {
 		name = "request-tribute-raid",
+
+		fallback = function (self, associated_data)
+        end,
+
 		event_text = function(self, character, associated_data)
 			---@type Realm
 			associated_data = associated_data
@@ -173,10 +186,6 @@ local function load()
 			local gain_of_money = 0
 			if target_realm then
 				gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
-			end
-
-			if DEAD(character) then
-				return event_utils.dead_options
 			end
 
 			local my_warlords, my_power = pv.military_strength(character)
@@ -273,6 +282,8 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
 		on_trigger = function(self, root, associated_data)
 			---@type AttackData
 			associated_data = associated_data
@@ -299,7 +310,7 @@ local function load()
 			-- First, raise the defending army.
 			local def = realm_utils.raise_local_army(realm, province)
 			local attack_succeed, attack_losses, def_losses = me.attack(army, def, spot_test)
-			realm_utils.disband_army(realm, def) -- disband the army after battle
+			realm_utils.disband_army(def) -- disband the army after battle
 
 			-- Message handling
 			messages.tribute_raid(raider, PROVINCE_REALM(province), attack_succeed, attack_losses, def_losses)
@@ -319,11 +330,13 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+			local army = associated_data --[[@as Army]]
+			realm_utils.disband_army(army)
+        end,
 		on_trigger = function(self, root, associated_data)
 			local realm = REALM(root)
-
-			---@type Army
-			local army = associated_data
+			local army = associated_data --[[@as Army]]
 
 			if realm == nil then
 				return
@@ -332,7 +345,7 @@ local function load()
 			DATA.province_inc_mood(CAPITOL(realm), 0.05)
 			pe.small_popularity_boost(LEADER(realm), realm)
 
-			realm_utils.disband_army(realm, army)
+			realm_utils.disband_army(army)
 			DATA.realm_set_prepare_attack_flag(realm, false)
 			messages.tribute_raid_success(realm, PROVINCE_REALM(DATA.army_get_destination(army)))
 			WORLD:emit_event('request-tribute-army-returns-success-notification', root, army)
@@ -361,6 +374,11 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+			---@type Army
+			local army = associated_data
+			realm_utils.disband_army(army)
+        end,
 		on_trigger = function(self, root, associated_data)
 			local realm = REALM(root)
 
@@ -378,7 +396,7 @@ local function load()
 			DATA.province_set_mood(CAPITOL(realm), math.max(0, mood - 0.05))
 			pe.small_popularity_decrease(LEADER(realm), realm)
 
-			realm_utils.disband_army(realm, army)
+			realm_utils.disband_army(army)
 			DATA.realm_set_prepare_attack_flag(realm, false)
 			UNSET_BUSY(root)
 		end,
@@ -405,6 +423,8 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidData
 			associated_data = associated_data
@@ -436,7 +456,7 @@ local function load()
 					-- First, raise the defending army.
 					local def = realm_utils.raise_local_army(realm, province)
 					local attack_succeed, attack_losses, def_losses = me.attack(army, def, true)
-					realm_utils.disband_army(realm, def) -- disband the army after battle
+					realm_utils.disband_army(def) -- disband the army after battle
 					losses = attack_losses
 					if attack_succeed then
 						success = true
@@ -538,6 +558,14 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+			---@type RaidResultFail
+			associated_data = associated_data
+			local realm = associated_data.origin
+
+			local army = associated_data.army
+			realm_utils.disband_army(army)
+        end,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidResultFail
 			associated_data = associated_data
@@ -548,7 +576,7 @@ local function load()
 			local losses = associated_data.losses
 			local army = associated_data.army
 
-			realm_utils.disband_army(realm, army)
+			realm_utils.disband_army(army)
 			pe.mood_minor_decrease(CAPITOL(realm))
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Raid attempt of " .. NAME(raider) .. " in " ..
@@ -561,6 +589,14 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+			---@type RaidResultSuccess
+			associated_data = associated_data
+			local realm = associated_data.origin
+
+			local army = associated_data.army
+			realm_utils.disband_army(army)
+        end,
 		trigger = function(self, root) return false end,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidResultSuccess
@@ -586,7 +622,7 @@ local function load()
 			)
 			end
 
-			local warbands = realm_utils.disband_army(realm, army)
+			local warbands = realm_utils.disband_army(army)
 
 			pe.mood_shift_from_wealth_shift(CAPITOL(realm), loot)
 
@@ -649,6 +685,12 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+			---@type RaidResultRetreat
+			associated_data = associated_data
+			local army = associated_data.army
+			realm_utils.disband_army(army)
+        end,
 		on_trigger = function(self, root, associated_data)
 			---@type RaidResultRetreat
 			associated_data = associated_data
@@ -658,7 +700,7 @@ local function load()
 			local target = associated_data.target
 			pe.mood_minor_decrease(CAPITOL(realm))
 
-			realm_utils.disband_army(realm, army)
+			realm_utils.disband_army(army)
 			if WORLD:does_player_see_realm_news(realm) then
 				WORLD:emit_notification("Our raid attempt in " ..
 					PROVINCE_NAME(target) .. " failed. We were spotted but our warriors returned home safely")

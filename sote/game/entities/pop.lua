@@ -1,9 +1,11 @@
+local language_utils = require "game.entities.language".Language
+
 local rtab = {}
 rtab.POP = {}
 
 ---Creates a new POP
 ---@param race race_id
----@param faith Faith
+---@param faith faith_id
 ---@param culture culture_id
 ---@param female boolean
 ---@param age number
@@ -13,6 +15,9 @@ function rtab.POP.new(race, faith, culture, female, age)
 
 	assert(faith ~= nil)
 	assert(culture ~= nil)
+
+	r.unique_id = WORLD.unique_id
+	WORLD.unique_id = WORLD.unique_id + 1
 
 	r.rank = CHARACTER_RANK.POP
 
@@ -24,7 +29,7 @@ function rtab.POP.new(race, faith, culture, female, age)
 	r.female = female
 	r.age = age
 
-	r.name = DATA.culture_get_language(culture):get_random_name()
+	r.name = language_utils.get_random_name(DATA.culture_get_language(culture))
 	r.busy                     = false
 
 	local total_consumed, total_demanded = 0, 0

@@ -15,7 +15,7 @@ g float
 b float
 primary_race race_id
 primary_culture culture_id
-primary_faith Faith
+primary_faith faith_id
 capitol province_id
 trading_right_cost float
 building_right_cost float

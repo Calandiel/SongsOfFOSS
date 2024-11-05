@@ -46,10 +46,6 @@ function pg.growth(province_id)
 		local pop = DATA.pop_location_get_pop(item)
 		table.insert(pops_and_characters, pop)
 	end)
-	DATA.for_each_character_location_from_location(province_id, function (item)
-		local pop = DATA.character_location_get_character(item)
-		table.insert(pops_and_characters, pop)
-	end)
 
 	---maps pops eligible to breed to their satisfaction
 	---@type table<pop_id, number>

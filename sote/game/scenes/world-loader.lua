@@ -133,8 +133,6 @@ function wl.load_default()
 		---@type table<number, plate_id>
 		local found_plates = {}
 		DATA.for_each_tile(function (tile_id)
-			LOGS:write("reading tile " .. tostring(tile_id) .. " plate info\n")
-			LOGS:flush()
 			local r, g, b = read_pixel(tile_id, tect)
 
 			---@type number

@@ -13,6 +13,10 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
+        fallback = function (self, associated_data)
+            return
+        end,
+
         ---@param root Character
         ---@param associated_data Warband
         options = function(self, root, associated_data)

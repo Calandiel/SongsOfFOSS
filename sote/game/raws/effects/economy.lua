@@ -21,11 +21,11 @@ local EconomicEffects = {}
 function EconomicEffects.consume_supplies(warband, days)
 	local daily_consumption = warband_utils.daily_supply_consumption(warband)
 	local consumption = days * daily_consumption
-	local leader = DATA.get_warband_leader_from_warband(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
 
 	assert(leader ~= INVALID_ID, "ATTEMPT TO CONSUME SUPPLIES BY WARBAND WITHOUT LEADER")
 
-	local consumed = EconomicEffects.consume_use_case_from_inventory(DATA.warband_leader_get_leader(leader), CALORIES_USE_CASE, consumption)
+	local consumed = EconomicEffects.consume_use_case_from_inventory(leader, CALORIES_USE_CASE, consumption)
 
 	-- give some wiggle room for floats
 	if consumed > consumption + 0.01

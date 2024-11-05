@@ -1654,6 +1654,207 @@ function DATA.fatten_plate_tiles(id)
     local result = {id = id}
     setmetatable(result, fat_plate_tiles_id_metatable)    return result
 end
+----------language----------
+
+
+---language: LSP types---
+
+---Unique identificator for language entity
+---@class (exact) language_id : number
+---@field is_language nil
+
+---@class (exact) fat_language_id
+---@field id language_id Unique language id
+---@field syllables table<number,string> 
+---@field consonants table<number,string> 
+---@field vowels table<number,string> 
+---@field ending_province table<number,string> 
+---@field ending_realm table<number,string> 
+---@field ending_adj table<number,string> 
+---@field ranks table<number,string> 
+
+---@class struct_language
+
+
+ffi.cdef[[
+void dcon_delete_language(int32_t j);
+int32_t dcon_create_language();
+bool dcon_language_is_valid(int32_t);
+void dcon_language_resize(uint32_t sz);
+uint32_t dcon_language_size();
+]]
+
+---language: FFI arrays---
+---@type (table<number,string>)[]
+DATA.language_syllables= {}
+---@type (table<number,string>)[]
+DATA.language_consonants= {}
+---@type (table<number,string>)[]
+DATA.language_vowels= {}
+---@type (table<number,string>)[]
+DATA.language_ending_province= {}
+---@type (table<number,string>)[]
+DATA.language_ending_realm= {}
+---@type (table<number,string>)[]
+DATA.language_ending_adj= {}
+---@type (table<number,string>)[]
+DATA.language_ranks= {}
+
+---language: LUA bindings---
+
+DATA.language_size = 10000
+---@return language_id
+function DATA.create_language()
+    ---@type language_id
+    local i  = DCON.dcon_create_language() + 1
+    return i --[[@as language_id]] 
+end
+---@param i language_id
+function DATA.delete_language(i)
+    assert(DCON.dcon_language_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_language(i - 1)
+end
+---@param func fun(item: language_id) 
+function DATA.for_each_language(func)
+    ---@type number
+    local range = DCON.dcon_language_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_language_is_valid(i) then func(i + 1 --[[@as language_id]]) end
+    end
+end
+---@param func fun(item: language_id):boolean 
+---@return table<language_id, language_id> 
+function DATA.filter_language(func)
+    ---@type table<language_id, language_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_language_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_language_is_valid(i) and func(i + 1 --[[@as language_id]]) then t[i + 1 --[[@as language_id]]] = i + 1 --[[@as language_id]] end
+    end
+    return t
+end
+
+---@param language_id language_id valid language id
+---@return table<number,string> syllables 
+function DATA.language_get_syllables(language_id)
+    return DATA.language_syllables[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_syllables(language_id, value)
+    DATA.language_syllables[language_id] = value
+end
+---@param language_id language_id valid language id
+---@return table<number,string> consonants 
+function DATA.language_get_consonants(language_id)
+    return DATA.language_consonants[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_consonants(language_id, value)
+    DATA.language_consonants[language_id] = value
+end
+---@param language_id language_id valid language id
+---@return table<number,string> vowels 
+function DATA.language_get_vowels(language_id)
+    return DATA.language_vowels[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_vowels(language_id, value)
+    DATA.language_vowels[language_id] = value
+end
+---@param language_id language_id valid language id
+---@return table<number,string> ending_province 
+function DATA.language_get_ending_province(language_id)
+    return DATA.language_ending_province[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_ending_province(language_id, value)
+    DATA.language_ending_province[language_id] = value
+end
+---@param language_id language_id valid language id
+---@return table<number,string> ending_realm 
+function DATA.language_get_ending_realm(language_id)
+    return DATA.language_ending_realm[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_ending_realm(language_id, value)
+    DATA.language_ending_realm[language_id] = value
+end
+---@param language_id language_id valid language id
+---@return table<number,string> ending_adj 
+function DATA.language_get_ending_adj(language_id)
+    return DATA.language_ending_adj[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_ending_adj(language_id, value)
+    DATA.language_ending_adj[language_id] = value
+end
+---@param language_id language_id valid language id
+---@return table<number,string> ranks 
+function DATA.language_get_ranks(language_id)
+    return DATA.language_ranks[language_id]
+end
+---@param language_id language_id valid language id
+---@param value table<number,string> valid table<number,string>
+function DATA.language_set_ranks(language_id, value)
+    DATA.language_ranks[language_id] = value
+end
+
+local fat_language_id_metatable = {
+    __index = function (t,k)
+        if (k == "syllables") then return DATA.language_get_syllables(t.id) end
+        if (k == "consonants") then return DATA.language_get_consonants(t.id) end
+        if (k == "vowels") then return DATA.language_get_vowels(t.id) end
+        if (k == "ending_province") then return DATA.language_get_ending_province(t.id) end
+        if (k == "ending_realm") then return DATA.language_get_ending_realm(t.id) end
+        if (k == "ending_adj") then return DATA.language_get_ending_adj(t.id) end
+        if (k == "ranks") then return DATA.language_get_ranks(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "syllables") then
+            DATA.language_set_syllables(t.id, v)
+            return
+        end
+        if (k == "consonants") then
+            DATA.language_set_consonants(t.id, v)
+            return
+        end
+        if (k == "vowels") then
+            DATA.language_set_vowels(t.id, v)
+            return
+        end
+        if (k == "ending_province") then
+            DATA.language_set_ending_province(t.id, v)
+            return
+        end
+        if (k == "ending_realm") then
+            DATA.language_set_ending_realm(t.id, v)
+            return
+        end
+        if (k == "ending_adj") then
+            DATA.language_set_ending_adj(t.id, v)
+            return
+        end
+        if (k == "ranks") then
+            DATA.language_set_ranks(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id language_id
+---@return fat_language_id fat_id
+function DATA.fatten_language(id)
+    local result = {id = id}
+    setmetatable(result, fat_language_id_metatable)    return result
+end
 ----------culture----------
 
 
@@ -1669,14 +1870,14 @@ end
 ---@field r number 
 ---@field g number 
 ---@field b number 
----@field language Language 
----@field culture_group CultureGroup 
+---@field language language_id 
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
 
 ---@class struct_culture
 ---@field r number 
 ---@field g number 
 ---@field b number 
+---@field language language_id 
 ---@field traditional_units table<unit_type_id, number> -- Defines "traditional" ratios for units recruited from this culture.
 ---@field traditional_militarization number A fraction of the society that cultures will try to put in military
 ---@field traditional_forager_targets table<FORAGE_RESOURCE, number> a culture's prefered foraging targets
@@ -1689,6 +1890,8 @@ void dcon_culture_set_g(int32_t, float);
 float dcon_culture_get_g(int32_t);
 void dcon_culture_set_b(int32_t, float);
 float dcon_culture_get_b(int32_t);
+void dcon_culture_set_language(int32_t, int32_t);
+int32_t dcon_culture_get_language(int32_t);
 void dcon_culture_resize_traditional_units(uint32_t);
 void dcon_culture_set_traditional_units(int32_t, int32_t, float);
 float dcon_culture_get_traditional_units(int32_t, int32_t);
@@ -1707,10 +1910,6 @@ uint32_t dcon_culture_size();
 ---culture: FFI arrays---
 ---@type (string)[]
 DATA.culture_name= {}
----@type (Language)[]
-DATA.culture_language= {}
----@type (CultureGroup)[]
-DATA.culture_culture_group= {}
 
 ---culture: LUA bindings---
 
@@ -1811,24 +2010,14 @@ function DATA.culture_inc_b(culture_id, value)
     DCON.dcon_culture_set_b(culture_id - 1, current + value)
 end
 ---@param culture_id culture_id valid culture id
----@return Language language 
+---@return language_id language 
 function DATA.culture_get_language(culture_id)
-    return DATA.culture_language[culture_id]
+    return DCON.dcon_culture_get_language(culture_id - 1) + 1
 end
 ---@param culture_id culture_id valid culture id
----@param value Language valid Language
+---@param value language_id valid language_id
 function DATA.culture_set_language(culture_id, value)
-    DATA.culture_language[culture_id] = value
-end
----@param culture_id culture_id valid culture id
----@return CultureGroup culture_group 
-function DATA.culture_get_culture_group(culture_id)
-    return DATA.culture_culture_group[culture_id]
-end
----@param culture_id culture_id valid culture id
----@param value CultureGroup valid CultureGroup
-function DATA.culture_set_culture_group(culture_id, value)
-    DATA.culture_culture_group[culture_id] = value
+    DCON.dcon_culture_set_language(culture_id - 1, value - 1)
 end
 ---@param culture_id culture_id valid culture id
 ---@param index unit_type_id valid
@@ -1897,7 +2086,6 @@ local fat_culture_id_metatable = {
         if (k == "g") then return DATA.culture_get_g(t.id) end
         if (k == "b") then return DATA.culture_get_b(t.id) end
         if (k == "language") then return DATA.culture_get_language(t.id) end
-        if (k == "culture_group") then return DATA.culture_get_culture_group(t.id) end
         if (k == "traditional_militarization") then return DATA.culture_get_traditional_militarization(t.id) end
         return rawget(t, k)
     end,
@@ -1922,10 +2110,6 @@ local fat_culture_id_metatable = {
             DATA.culture_set_language(t.id, v)
             return
         end
-        if (k == "culture_group") then
-            DATA.culture_set_culture_group(t.id, v)
-            return
-        end
         if (k == "traditional_militarization") then
             DATA.culture_set_traditional_militarization(t.id, v)
             return
@@ -1939,6 +2123,868 @@ function DATA.fatten_culture(id)
     local result = {id = id}
     setmetatable(result, fat_culture_id_metatable)    return result
 end
+----------culture_group----------
+
+
+---culture_group: LSP types---
+
+---Unique identificator for culture_group entity
+---@class (exact) culture_group_id : number
+---@field is_culture_group nil
+
+---@class (exact) fat_culture_group_id
+---@field id culture_group_id Unique culture_group id
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field language language_id 
+---@field view_on_treason number 
+
+---@class struct_culture_group
+---@field language language_id 
+
+
+ffi.cdef[[
+void dcon_culture_group_set_language(int32_t, int32_t);
+int32_t dcon_culture_group_get_language(int32_t);
+void dcon_delete_culture_group(int32_t j);
+int32_t dcon_create_culture_group();
+bool dcon_culture_group_is_valid(int32_t);
+void dcon_culture_group_resize(uint32_t sz);
+uint32_t dcon_culture_group_size();
+]]
+
+---culture_group: FFI arrays---
+---@type (string)[]
+DATA.culture_group_name= {}
+---@type (number)[]
+DATA.culture_group_r= {}
+---@type (number)[]
+DATA.culture_group_g= {}
+---@type (number)[]
+DATA.culture_group_b= {}
+---@type (number)[]
+DATA.culture_group_view_on_treason= {}
+
+---culture_group: LUA bindings---
+
+DATA.culture_group_size = 10000
+---@return culture_group_id
+function DATA.create_culture_group()
+    ---@type culture_group_id
+    local i  = DCON.dcon_create_culture_group() + 1
+    return i --[[@as culture_group_id]] 
+end
+---@param i culture_group_id
+function DATA.delete_culture_group(i)
+    assert(DCON.dcon_culture_group_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_culture_group(i - 1)
+end
+---@param func fun(item: culture_group_id) 
+function DATA.for_each_culture_group(func)
+    ---@type number
+    local range = DCON.dcon_culture_group_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_culture_group_is_valid(i) then func(i + 1 --[[@as culture_group_id]]) end
+    end
+end
+---@param func fun(item: culture_group_id):boolean 
+---@return table<culture_group_id, culture_group_id> 
+function DATA.filter_culture_group(func)
+    ---@type table<culture_group_id, culture_group_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_culture_group_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_culture_group_is_valid(i) and func(i + 1 --[[@as culture_group_id]]) then t[i + 1 --[[@as culture_group_id]]] = i + 1 --[[@as culture_group_id]] end
+    end
+    return t
+end
+
+---@param culture_group_id culture_group_id valid culture_group id
+---@return string name 
+function DATA.culture_group_get_name(culture_group_id)
+    return DATA.culture_group_name[culture_group_id]
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@param value string valid string
+function DATA.culture_group_set_name(culture_group_id, value)
+    DATA.culture_group_name[culture_group_id] = value
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@return number r 
+function DATA.culture_group_get_r(culture_group_id)
+    return DATA.culture_group_r[culture_group_id]
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@param value number valid number
+function DATA.culture_group_set_r(culture_group_id, value)
+    DATA.culture_group_r[culture_group_id] = value
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@return number g 
+function DATA.culture_group_get_g(culture_group_id)
+    return DATA.culture_group_g[culture_group_id]
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@param value number valid number
+function DATA.culture_group_set_g(culture_group_id, value)
+    DATA.culture_group_g[culture_group_id] = value
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@return number b 
+function DATA.culture_group_get_b(culture_group_id)
+    return DATA.culture_group_b[culture_group_id]
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@param value number valid number
+function DATA.culture_group_set_b(culture_group_id, value)
+    DATA.culture_group_b[culture_group_id] = value
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@return language_id language 
+function DATA.culture_group_get_language(culture_group_id)
+    return DCON.dcon_culture_group_get_language(culture_group_id - 1) + 1
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@param value language_id valid language_id
+function DATA.culture_group_set_language(culture_group_id, value)
+    DCON.dcon_culture_group_set_language(culture_group_id - 1, value - 1)
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@return number view_on_treason 
+function DATA.culture_group_get_view_on_treason(culture_group_id)
+    return DATA.culture_group_view_on_treason[culture_group_id]
+end
+---@param culture_group_id culture_group_id valid culture_group id
+---@param value number valid number
+function DATA.culture_group_set_view_on_treason(culture_group_id, value)
+    DATA.culture_group_view_on_treason[culture_group_id] = value
+end
+
+local fat_culture_group_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.culture_group_get_name(t.id) end
+        if (k == "r") then return DATA.culture_group_get_r(t.id) end
+        if (k == "g") then return DATA.culture_group_get_g(t.id) end
+        if (k == "b") then return DATA.culture_group_get_b(t.id) end
+        if (k == "language") then return DATA.culture_group_get_language(t.id) end
+        if (k == "view_on_treason") then return DATA.culture_group_get_view_on_treason(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.culture_group_set_name(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.culture_group_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.culture_group_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.culture_group_set_b(t.id, v)
+            return
+        end
+        if (k == "language") then
+            DATA.culture_group_set_language(t.id, v)
+            return
+        end
+        if (k == "view_on_treason") then
+            DATA.culture_group_set_view_on_treason(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id culture_group_id
+---@return fat_culture_group_id fat_id
+function DATA.fatten_culture_group(id)
+    local result = {id = id}
+    setmetatable(result, fat_culture_group_id_metatable)    return result
+end
+----------cultural_union----------
+
+
+---cultural_union: LSP types---
+
+---Unique identificator for cultural_union entity
+---@class (exact) cultural_union_id : number
+---@field is_cultural_union nil
+
+---@class (exact) fat_cultural_union_id
+---@field id cultural_union_id Unique cultural_union id
+---@field culture_group culture_group_id 
+---@field culture culture_id 
+
+---@class struct_cultural_union
+
+
+ffi.cdef[[
+void dcon_delete_cultural_union(int32_t j);
+int32_t dcon_force_create_cultural_union(int32_t culture_group, int32_t culture);
+void dcon_cultural_union_set_culture_group(int32_t, int32_t);
+int32_t dcon_cultural_union_get_culture_group(int32_t);
+int32_t dcon_culture_group_get_range_cultural_union_as_culture_group(int32_t);
+int32_t dcon_culture_group_get_index_cultural_union_as_culture_group(int32_t, int32_t);
+void dcon_cultural_union_set_culture(int32_t, int32_t);
+int32_t dcon_cultural_union_get_culture(int32_t);
+int32_t dcon_culture_get_cultural_union_as_culture(int32_t);
+bool dcon_cultural_union_is_valid(int32_t);
+void dcon_cultural_union_resize(uint32_t sz);
+uint32_t dcon_cultural_union_size();
+]]
+
+---cultural_union: FFI arrays---
+
+---cultural_union: LUA bindings---
+
+DATA.cultural_union_size = 10000
+---@param culture_group culture_group_id
+---@param culture culture_id
+---@return cultural_union_id
+function DATA.force_create_cultural_union(culture_group, culture)
+    ---@type cultural_union_id
+    local i = DCON.dcon_force_create_cultural_union(culture_group - 1, culture - 1) + 1
+    return i --[[@as cultural_union_id]] 
+end
+---@param i cultural_union_id
+function DATA.delete_cultural_union(i)
+    assert(DCON.dcon_cultural_union_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_cultural_union(i - 1)
+end
+---@param func fun(item: cultural_union_id) 
+function DATA.for_each_cultural_union(func)
+    ---@type number
+    local range = DCON.dcon_cultural_union_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_cultural_union_is_valid(i) then func(i + 1 --[[@as cultural_union_id]]) end
+    end
+end
+---@param func fun(item: cultural_union_id):boolean 
+---@return table<cultural_union_id, cultural_union_id> 
+function DATA.filter_cultural_union(func)
+    ---@type table<cultural_union_id, cultural_union_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_cultural_union_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_cultural_union_is_valid(i) and func(i + 1 --[[@as cultural_union_id]]) then t[i + 1 --[[@as cultural_union_id]]] = i + 1 --[[@as cultural_union_id]] end
+    end
+    return t
+end
+
+---@param culture_group cultural_union_id valid culture_group_id
+---@return culture_group_id Data retrieved from cultural_union 
+function DATA.cultural_union_get_culture_group(culture_group)
+    return DCON.dcon_cultural_union_get_culture_group(culture_group - 1) + 1
+end
+---@param culture_group culture_group_id valid culture_group_id
+---@return cultural_union_id[] An array of cultural_union 
+function DATA.get_cultural_union_from_culture_group(culture_group)
+    local result = {}
+    DATA.for_each_cultural_union_from_culture_group(culture_group, function(item) 
+        table.insert(result, item)
+    end)
+    return result
+end
+---@param culture_group culture_group_id valid culture_group_id
+---@param func fun(item: cultural_union_id) valid culture_group_id
+function DATA.for_each_cultural_union_from_culture_group(culture_group, func)
+    ---@type number
+    local range = DCON.dcon_culture_group_get_range_cultural_union_as_culture_group(culture_group - 1)
+    for i = 0, range - 1 do
+        ---@type cultural_union_id
+        local accessed_element = DCON.dcon_culture_group_get_index_cultural_union_as_culture_group(culture_group - 1, i) + 1
+        if DCON.dcon_cultural_union_is_valid(accessed_element - 1) then func(accessed_element) end
+    end
+end
+---@param culture_group culture_group_id valid culture_group_id
+---@param func fun(item: cultural_union_id):boolean 
+---@return cultural_union_id[]
+function DATA.filter_array_cultural_union_from_culture_group(culture_group, func)
+    ---@type table<cultural_union_id, cultural_union_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_culture_group_get_range_cultural_union_as_culture_group(culture_group - 1)
+    for i = 0, range - 1 do
+        ---@type cultural_union_id
+        local accessed_element = DCON.dcon_culture_group_get_index_cultural_union_as_culture_group(culture_group - 1, i) + 1
+        if DCON.dcon_cultural_union_is_valid(accessed_element - 1) and func(accessed_element) then table.insert(t, accessed_element) end
+    end
+    return t
+end
+---@param culture_group culture_group_id valid culture_group_id
+---@param func fun(item: cultural_union_id):boolean 
+---@return table<cultural_union_id, cultural_union_id> 
+function DATA.filter_cultural_union_from_culture_group(culture_group, func)
+    ---@type table<cultural_union_id, cultural_union_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_culture_group_get_range_cultural_union_as_culture_group(culture_group - 1)
+    for i = 0, range - 1 do
+        ---@type cultural_union_id
+        local accessed_element = DCON.dcon_culture_group_get_index_cultural_union_as_culture_group(culture_group - 1, i) + 1
+        if DCON.dcon_cultural_union_is_valid(accessed_element - 1) and func(accessed_element) then t[accessed_element] = accessed_element end
+    end
+    return t
+end
+---@param cultural_union_id cultural_union_id valid cultural_union id
+---@param value culture_group_id valid culture_group_id
+function DATA.cultural_union_set_culture_group(cultural_union_id, value)
+    DCON.dcon_cultural_union_set_culture_group(cultural_union_id - 1, value - 1)
+end
+---@param culture cultural_union_id valid culture_id
+---@return culture_id Data retrieved from cultural_union 
+function DATA.cultural_union_get_culture(culture)
+    return DCON.dcon_cultural_union_get_culture(culture - 1) + 1
+end
+---@param culture culture_id valid culture_id
+---@return cultural_union_id cultural_union 
+function DATA.get_cultural_union_from_culture(culture)
+    return DCON.dcon_culture_get_cultural_union_as_culture(culture - 1) + 1
+end
+---@param cultural_union_id cultural_union_id valid cultural_union id
+---@param value culture_id valid culture_id
+function DATA.cultural_union_set_culture(cultural_union_id, value)
+    DCON.dcon_cultural_union_set_culture(cultural_union_id - 1, value - 1)
+end
+
+local fat_cultural_union_id_metatable = {
+    __index = function (t,k)
+        if (k == "culture_group") then return DATA.cultural_union_get_culture_group(t.id) end
+        if (k == "culture") then return DATA.cultural_union_get_culture(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "culture_group") then
+            DATA.cultural_union_set_culture_group(t.id, v)
+            return
+        end
+        if (k == "culture") then
+            DATA.cultural_union_set_culture(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id cultural_union_id
+---@return fat_cultural_union_id fat_id
+function DATA.fatten_cultural_union(id)
+    local result = {id = id}
+    setmetatable(result, fat_cultural_union_id_metatable)    return result
+end
+----------faith----------
+
+
+---faith: LSP types---
+
+---Unique identificator for faith entity
+---@class (exact) faith_id : number
+---@field is_faith nil
+
+---@class (exact) fat_faith_id
+---@field id faith_id Unique faith id
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+---@field burial_rites BURIAL_RITES 
+
+---@class struct_faith
+---@field r number 
+---@field g number 
+---@field b number 
+
+
+ffi.cdef[[
+void dcon_faith_set_r(int32_t, float);
+float dcon_faith_get_r(int32_t);
+void dcon_faith_set_g(int32_t, float);
+float dcon_faith_get_g(int32_t);
+void dcon_faith_set_b(int32_t, float);
+float dcon_faith_get_b(int32_t);
+void dcon_delete_faith(int32_t j);
+int32_t dcon_create_faith();
+bool dcon_faith_is_valid(int32_t);
+void dcon_faith_resize(uint32_t sz);
+uint32_t dcon_faith_size();
+]]
+
+---faith: FFI arrays---
+---@type (string)[]
+DATA.faith_name= {}
+---@type (BURIAL_RITES)[]
+DATA.faith_burial_rites= {}
+
+---faith: LUA bindings---
+
+DATA.faith_size = 10000
+---@return faith_id
+function DATA.create_faith()
+    ---@type faith_id
+    local i  = DCON.dcon_create_faith() + 1
+    return i --[[@as faith_id]] 
+end
+---@param i faith_id
+function DATA.delete_faith(i)
+    assert(DCON.dcon_faith_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_faith(i - 1)
+end
+---@param func fun(item: faith_id) 
+function DATA.for_each_faith(func)
+    ---@type number
+    local range = DCON.dcon_faith_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_faith_is_valid(i) then func(i + 1 --[[@as faith_id]]) end
+    end
+end
+---@param func fun(item: faith_id):boolean 
+---@return table<faith_id, faith_id> 
+function DATA.filter_faith(func)
+    ---@type table<faith_id, faith_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_faith_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_faith_is_valid(i) and func(i + 1 --[[@as faith_id]]) then t[i + 1 --[[@as faith_id]]] = i + 1 --[[@as faith_id]] end
+    end
+    return t
+end
+
+---@param faith_id faith_id valid faith id
+---@return string name 
+function DATA.faith_get_name(faith_id)
+    return DATA.faith_name[faith_id]
+end
+---@param faith_id faith_id valid faith id
+---@param value string valid string
+function DATA.faith_set_name(faith_id, value)
+    DATA.faith_name[faith_id] = value
+end
+---@param faith_id faith_id valid faith id
+---@return number r 
+function DATA.faith_get_r(faith_id)
+    return DCON.dcon_faith_get_r(faith_id - 1)
+end
+---@param faith_id faith_id valid faith id
+---@param value number valid number
+function DATA.faith_set_r(faith_id, value)
+    DCON.dcon_faith_set_r(faith_id - 1, value)
+end
+---@param faith_id faith_id valid faith id
+---@param value number valid number
+function DATA.faith_inc_r(faith_id, value)
+    ---@type number
+    local current = DCON.dcon_faith_get_r(faith_id - 1)
+    DCON.dcon_faith_set_r(faith_id - 1, current + value)
+end
+---@param faith_id faith_id valid faith id
+---@return number g 
+function DATA.faith_get_g(faith_id)
+    return DCON.dcon_faith_get_g(faith_id - 1)
+end
+---@param faith_id faith_id valid faith id
+---@param value number valid number
+function DATA.faith_set_g(faith_id, value)
+    DCON.dcon_faith_set_g(faith_id - 1, value)
+end
+---@param faith_id faith_id valid faith id
+---@param value number valid number
+function DATA.faith_inc_g(faith_id, value)
+    ---@type number
+    local current = DCON.dcon_faith_get_g(faith_id - 1)
+    DCON.dcon_faith_set_g(faith_id - 1, current + value)
+end
+---@param faith_id faith_id valid faith id
+---@return number b 
+function DATA.faith_get_b(faith_id)
+    return DCON.dcon_faith_get_b(faith_id - 1)
+end
+---@param faith_id faith_id valid faith id
+---@param value number valid number
+function DATA.faith_set_b(faith_id, value)
+    DCON.dcon_faith_set_b(faith_id - 1, value)
+end
+---@param faith_id faith_id valid faith id
+---@param value number valid number
+function DATA.faith_inc_b(faith_id, value)
+    ---@type number
+    local current = DCON.dcon_faith_get_b(faith_id - 1)
+    DCON.dcon_faith_set_b(faith_id - 1, current + value)
+end
+---@param faith_id faith_id valid faith id
+---@return BURIAL_RITES burial_rites 
+function DATA.faith_get_burial_rites(faith_id)
+    return DATA.faith_burial_rites[faith_id]
+end
+---@param faith_id faith_id valid faith id
+---@param value BURIAL_RITES valid BURIAL_RITES
+function DATA.faith_set_burial_rites(faith_id, value)
+    DATA.faith_burial_rites[faith_id] = value
+end
+
+local fat_faith_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.faith_get_name(t.id) end
+        if (k == "r") then return DATA.faith_get_r(t.id) end
+        if (k == "g") then return DATA.faith_get_g(t.id) end
+        if (k == "b") then return DATA.faith_get_b(t.id) end
+        if (k == "burial_rites") then return DATA.faith_get_burial_rites(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.faith_set_name(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.faith_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.faith_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.faith_set_b(t.id, v)
+            return
+        end
+        if (k == "burial_rites") then
+            DATA.faith_set_burial_rites(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id faith_id
+---@return fat_faith_id fat_id
+function DATA.fatten_faith(id)
+    local result = {id = id}
+    setmetatable(result, fat_faith_id_metatable)    return result
+end
+----------religion----------
+
+
+---religion: LSP types---
+
+---Unique identificator for religion entity
+---@class (exact) religion_id : number
+---@field is_religion nil
+
+---@class (exact) fat_religion_id
+---@field id religion_id Unique religion id
+---@field name string 
+---@field r number 
+---@field g number 
+---@field b number 
+
+---@class struct_religion
+
+
+ffi.cdef[[
+void dcon_delete_religion(int32_t j);
+int32_t dcon_create_religion();
+bool dcon_religion_is_valid(int32_t);
+void dcon_religion_resize(uint32_t sz);
+uint32_t dcon_religion_size();
+]]
+
+---religion: FFI arrays---
+---@type (string)[]
+DATA.religion_name= {}
+---@type (number)[]
+DATA.religion_r= {}
+---@type (number)[]
+DATA.religion_g= {}
+---@type (number)[]
+DATA.religion_b= {}
+
+---religion: LUA bindings---
+
+DATA.religion_size = 10000
+---@return religion_id
+function DATA.create_religion()
+    ---@type religion_id
+    local i  = DCON.dcon_create_religion() + 1
+    return i --[[@as religion_id]] 
+end
+---@param i religion_id
+function DATA.delete_religion(i)
+    assert(DCON.dcon_religion_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_religion(i - 1)
+end
+---@param func fun(item: religion_id) 
+function DATA.for_each_religion(func)
+    ---@type number
+    local range = DCON.dcon_religion_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_religion_is_valid(i) then func(i + 1 --[[@as religion_id]]) end
+    end
+end
+---@param func fun(item: religion_id):boolean 
+---@return table<religion_id, religion_id> 
+function DATA.filter_religion(func)
+    ---@type table<religion_id, religion_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_religion_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_religion_is_valid(i) and func(i + 1 --[[@as religion_id]]) then t[i + 1 --[[@as religion_id]]] = i + 1 --[[@as religion_id]] end
+    end
+    return t
+end
+
+---@param religion_id religion_id valid religion id
+---@return string name 
+function DATA.religion_get_name(religion_id)
+    return DATA.religion_name[religion_id]
+end
+---@param religion_id religion_id valid religion id
+---@param value string valid string
+function DATA.religion_set_name(religion_id, value)
+    DATA.religion_name[religion_id] = value
+end
+---@param religion_id religion_id valid religion id
+---@return number r 
+function DATA.religion_get_r(religion_id)
+    return DATA.religion_r[religion_id]
+end
+---@param religion_id religion_id valid religion id
+---@param value number valid number
+function DATA.religion_set_r(religion_id, value)
+    DATA.religion_r[religion_id] = value
+end
+---@param religion_id religion_id valid religion id
+---@return number g 
+function DATA.religion_get_g(religion_id)
+    return DATA.religion_g[religion_id]
+end
+---@param religion_id religion_id valid religion id
+---@param value number valid number
+function DATA.religion_set_g(religion_id, value)
+    DATA.religion_g[religion_id] = value
+end
+---@param religion_id religion_id valid religion id
+---@return number b 
+function DATA.religion_get_b(religion_id)
+    return DATA.religion_b[religion_id]
+end
+---@param religion_id religion_id valid religion id
+---@param value number valid number
+function DATA.religion_set_b(religion_id, value)
+    DATA.religion_b[religion_id] = value
+end
+
+local fat_religion_id_metatable = {
+    __index = function (t,k)
+        if (k == "name") then return DATA.religion_get_name(t.id) end
+        if (k == "r") then return DATA.religion_get_r(t.id) end
+        if (k == "g") then return DATA.religion_get_g(t.id) end
+        if (k == "b") then return DATA.religion_get_b(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "name") then
+            DATA.religion_set_name(t.id, v)
+            return
+        end
+        if (k == "r") then
+            DATA.religion_set_r(t.id, v)
+            return
+        end
+        if (k == "g") then
+            DATA.religion_set_g(t.id, v)
+            return
+        end
+        if (k == "b") then
+            DATA.religion_set_b(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id religion_id
+---@return fat_religion_id fat_id
+function DATA.fatten_religion(id)
+    local result = {id = id}
+    setmetatable(result, fat_religion_id_metatable)    return result
+end
+----------subreligion----------
+
+
+---subreligion: LSP types---
+
+---Unique identificator for subreligion entity
+---@class (exact) subreligion_id : number
+---@field is_subreligion nil
+
+---@class (exact) fat_subreligion_id
+---@field id subreligion_id Unique subreligion id
+---@field religion religion_id 
+---@field faith faith_id 
+
+---@class struct_subreligion
+
+
+ffi.cdef[[
+void dcon_delete_subreligion(int32_t j);
+int32_t dcon_force_create_subreligion(int32_t religion, int32_t faith);
+void dcon_subreligion_set_religion(int32_t, int32_t);
+int32_t dcon_subreligion_get_religion(int32_t);
+int32_t dcon_religion_get_range_subreligion_as_religion(int32_t);
+int32_t dcon_religion_get_index_subreligion_as_religion(int32_t, int32_t);
+void dcon_subreligion_set_faith(int32_t, int32_t);
+int32_t dcon_subreligion_get_faith(int32_t);
+int32_t dcon_faith_get_subreligion_as_faith(int32_t);
+bool dcon_subreligion_is_valid(int32_t);
+void dcon_subreligion_resize(uint32_t sz);
+uint32_t dcon_subreligion_size();
+]]
+
+---subreligion: FFI arrays---
+
+---subreligion: LUA bindings---
+
+DATA.subreligion_size = 10000
+---@param religion religion_id
+---@param faith faith_id
+---@return subreligion_id
+function DATA.force_create_subreligion(religion, faith)
+    ---@type subreligion_id
+    local i = DCON.dcon_force_create_subreligion(religion - 1, faith - 1) + 1
+    return i --[[@as subreligion_id]] 
+end
+---@param i subreligion_id
+function DATA.delete_subreligion(i)
+    assert(DCON.dcon_subreligion_is_valid(i - 1), " ATTEMPT TO DELETE INVALID OBJECT " .. tostring(i))
+    return DCON.dcon_delete_subreligion(i - 1)
+end
+---@param func fun(item: subreligion_id) 
+function DATA.for_each_subreligion(func)
+    ---@type number
+    local range = DCON.dcon_subreligion_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_subreligion_is_valid(i) then func(i + 1 --[[@as subreligion_id]]) end
+    end
+end
+---@param func fun(item: subreligion_id):boolean 
+---@return table<subreligion_id, subreligion_id> 
+function DATA.filter_subreligion(func)
+    ---@type table<subreligion_id, subreligion_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_subreligion_size()
+    for i = 0, range - 1 do
+        if DCON.dcon_subreligion_is_valid(i) and func(i + 1 --[[@as subreligion_id]]) then t[i + 1 --[[@as subreligion_id]]] = i + 1 --[[@as subreligion_id]] end
+    end
+    return t
+end
+
+---@param religion subreligion_id valid religion_id
+---@return religion_id Data retrieved from subreligion 
+function DATA.subreligion_get_religion(religion)
+    return DCON.dcon_subreligion_get_religion(religion - 1) + 1
+end
+---@param religion religion_id valid religion_id
+---@return subreligion_id[] An array of subreligion 
+function DATA.get_subreligion_from_religion(religion)
+    local result = {}
+    DATA.for_each_subreligion_from_religion(religion, function(item) 
+        table.insert(result, item)
+    end)
+    return result
+end
+---@param religion religion_id valid religion_id
+---@param func fun(item: subreligion_id) valid religion_id
+function DATA.for_each_subreligion_from_religion(religion, func)
+    ---@type number
+    local range = DCON.dcon_religion_get_range_subreligion_as_religion(religion - 1)
+    for i = 0, range - 1 do
+        ---@type subreligion_id
+        local accessed_element = DCON.dcon_religion_get_index_subreligion_as_religion(religion - 1, i) + 1
+        if DCON.dcon_subreligion_is_valid(accessed_element - 1) then func(accessed_element) end
+    end
+end
+---@param religion religion_id valid religion_id
+---@param func fun(item: subreligion_id):boolean 
+---@return subreligion_id[]
+function DATA.filter_array_subreligion_from_religion(religion, func)
+    ---@type table<subreligion_id, subreligion_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_religion_get_range_subreligion_as_religion(religion - 1)
+    for i = 0, range - 1 do
+        ---@type subreligion_id
+        local accessed_element = DCON.dcon_religion_get_index_subreligion_as_religion(religion - 1, i) + 1
+        if DCON.dcon_subreligion_is_valid(accessed_element - 1) and func(accessed_element) then table.insert(t, accessed_element) end
+    end
+    return t
+end
+---@param religion religion_id valid religion_id
+---@param func fun(item: subreligion_id):boolean 
+---@return table<subreligion_id, subreligion_id> 
+function DATA.filter_subreligion_from_religion(religion, func)
+    ---@type table<subreligion_id, subreligion_id> 
+    local t = {}
+    ---@type number
+    local range = DCON.dcon_religion_get_range_subreligion_as_religion(religion - 1)
+    for i = 0, range - 1 do
+        ---@type subreligion_id
+        local accessed_element = DCON.dcon_religion_get_index_subreligion_as_religion(religion - 1, i) + 1
+        if DCON.dcon_subreligion_is_valid(accessed_element - 1) and func(accessed_element) then t[accessed_element] = accessed_element end
+    end
+    return t
+end
+---@param subreligion_id subreligion_id valid subreligion id
+---@param value religion_id valid religion_id
+function DATA.subreligion_set_religion(subreligion_id, value)
+    DCON.dcon_subreligion_set_religion(subreligion_id - 1, value - 1)
+end
+---@param faith subreligion_id valid faith_id
+---@return faith_id Data retrieved from subreligion 
+function DATA.subreligion_get_faith(faith)
+    return DCON.dcon_subreligion_get_faith(faith - 1) + 1
+end
+---@param faith faith_id valid faith_id
+---@return subreligion_id subreligion 
+function DATA.get_subreligion_from_faith(faith)
+    return DCON.dcon_faith_get_subreligion_as_faith(faith - 1) + 1
+end
+---@param subreligion_id subreligion_id valid subreligion id
+---@param value faith_id valid faith_id
+function DATA.subreligion_set_faith(subreligion_id, value)
+    DCON.dcon_subreligion_set_faith(subreligion_id - 1, value - 1)
+end
+
+local fat_subreligion_id_metatable = {
+    __index = function (t,k)
+        if (k == "religion") then return DATA.subreligion_get_religion(t.id) end
+        if (k == "faith") then return DATA.subreligion_get_faith(t.id) end
+        return rawget(t, k)
+    end,
+    __newindex = function (t,k,v)
+        if (k == "religion") then
+            DATA.subreligion_set_religion(t.id, v)
+            return
+        end
+        if (k == "faith") then
+            DATA.subreligion_set_faith(t.id, v)
+            return
+        end
+        rawset(t, k, v)
+    end
+}
+---@param id subreligion_id
+---@return fat_subreligion_id fat_id
+function DATA.fatten_subreligion(id)
+    local result = {id = id}
+    setmetatable(result, fat_subreligion_id_metatable)    return result
+end
 ----------pop----------
 
 
@@ -1950,8 +2996,9 @@ end
 
 ---@class (exact) fat_pop_id
 ---@field id pop_id Unique pop id
+---@field unique_id number 
 ---@field race race_id 
----@field faith Faith 
+---@field faith faith_id 
 ---@field culture culture_id 
 ---@field female boolean 
 ---@field age number 
@@ -1968,7 +3015,9 @@ end
 ---@field former_pop boolean 
 
 ---@class struct_pop
+---@field unique_id number 
 ---@field race race_id 
+---@field faith faith_id 
 ---@field culture culture_id 
 ---@field female boolean 
 ---@field age number 
@@ -1990,8 +3039,12 @@ end
 
 
 ffi.cdef[[
+void dcon_pop_set_unique_id(int32_t, uint32_t);
+uint32_t dcon_pop_get_unique_id(int32_t);
 void dcon_pop_set_race(int32_t, int32_t);
 int32_t dcon_pop_get_race(int32_t);
+void dcon_pop_set_faith(int32_t, int32_t);
+int32_t dcon_pop_get_faith(int32_t);
 void dcon_pop_set_culture(int32_t, int32_t);
 int32_t dcon_pop_get_culture(int32_t);
 void dcon_pop_set_female(int32_t, bool);
@@ -2040,8 +3093,6 @@ uint32_t dcon_pop_size();
 ]]
 
 ---pop: FFI arrays---
----@type (Faith)[]
-DATA.pop_faith= {}
 ---@type (string)[]
 DATA.pop_name= {}
 
@@ -2086,6 +3137,23 @@ function DATA.filter_pop(func)
 end
 
 ---@param pop_id pop_id valid pop id
+---@return number unique_id 
+function DATA.pop_get_unique_id(pop_id)
+    return DCON.dcon_pop_get_unique_id(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_set_unique_id(pop_id, value)
+    DCON.dcon_pop_set_unique_id(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_unique_id(pop_id, value)
+    ---@type number
+    local current = DCON.dcon_pop_get_unique_id(pop_id - 1)
+    DCON.dcon_pop_set_unique_id(pop_id - 1, current + value)
+end
+---@param pop_id pop_id valid pop id
 ---@return race_id race 
 function DATA.pop_get_race(pop_id)
     return DCON.dcon_pop_get_race(pop_id - 1) + 1
@@ -2096,14 +3164,14 @@ function DATA.pop_set_race(pop_id, value)
     DCON.dcon_pop_set_race(pop_id - 1, value - 1)
 end
 ---@param pop_id pop_id valid pop id
----@return Faith faith 
+---@return faith_id faith 
 function DATA.pop_get_faith(pop_id)
-    return DATA.pop_faith[pop_id]
+    return DCON.dcon_pop_get_faith(pop_id - 1) + 1
 end
 ---@param pop_id pop_id valid pop id
----@param value Faith valid Faith
+---@param value faith_id valid faith_id
 function DATA.pop_set_faith(pop_id, value)
-    DATA.pop_faith[pop_id] = value
+    DCON.dcon_pop_set_faith(pop_id - 1, value - 1)
 end
 ---@param pop_id pop_id valid pop id
 ---@return culture_id culture 
@@ -2441,6 +3509,7 @@ end
 
 local fat_pop_id_metatable = {
     __index = function (t,k)
+        if (k == "unique_id") then return DATA.pop_get_unique_id(t.id) end
         if (k == "race") then return DATA.pop_get_race(t.id) end
         if (k == "faith") then return DATA.pop_get_faith(t.id) end
         if (k == "culture") then return DATA.pop_get_culture(t.id) end
@@ -2460,6 +3529,10 @@ local fat_pop_id_metatable = {
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
+        if (k == "unique_id") then
+            DATA.pop_set_unique_id(t.id, v)
+            return
+        end
         if (k == "race") then
             DATA.pop_set_race(t.id, v)
             return
@@ -4319,7 +5392,7 @@ end
 ---@field b number 
 ---@field primary_race race_id 
 ---@field primary_culture culture_id 
----@field primary_faith Faith 
+---@field primary_faith faith_id 
 ---@field capitol province_id 
 ---@field trading_right_cost number 
 ---@field building_right_cost number 
@@ -4364,6 +5437,7 @@ end
 ---@field b number 
 ---@field primary_race race_id 
 ---@field primary_culture culture_id 
+---@field primary_faith faith_id 
 ---@field capitol province_id 
 ---@field trading_right_cost number 
 ---@field building_right_cost number 
@@ -4426,6 +5500,8 @@ void dcon_realm_set_primary_race(int32_t, int32_t);
 int32_t dcon_realm_get_primary_race(int32_t);
 void dcon_realm_set_primary_culture(int32_t, int32_t);
 int32_t dcon_realm_get_primary_culture(int32_t);
+void dcon_realm_set_primary_faith(int32_t, int32_t);
+int32_t dcon_realm_get_primary_faith(int32_t);
 void dcon_realm_set_capitol(int32_t, int32_t);
 int32_t dcon_realm_get_capitol(int32_t);
 void dcon_realm_set_trading_right_cost(int32_t, float);
@@ -4494,8 +5570,6 @@ uint32_t dcon_realm_size();
 DATA.realm_exists= {}
 ---@type (string)[]
 DATA.realm_name= {}
----@type (Faith)[]
-DATA.realm_primary_faith= {}
 ---@type (table<province_id,nil|number>)[]
 DATA.realm_quests_raid= {}
 ---@type (table<province_id,nil|number>)[]
@@ -4891,14 +5965,14 @@ function DATA.realm_set_primary_culture(realm_id, value)
     DCON.dcon_realm_set_primary_culture(realm_id - 1, value - 1)
 end
 ---@param realm_id realm_id valid realm id
----@return Faith primary_faith 
+---@return faith_id primary_faith 
 function DATA.realm_get_primary_faith(realm_id)
-    return DATA.realm_primary_faith[realm_id]
+    return DCON.dcon_realm_get_primary_faith(realm_id - 1) + 1
 end
 ---@param realm_id realm_id valid realm id
----@param value Faith valid Faith
+---@param value faith_id valid faith_id
 function DATA.realm_set_primary_faith(realm_id, value)
-    DATA.realm_primary_faith[realm_id] = value
+    DCON.dcon_realm_set_primary_faith(realm_id - 1, value - 1)
 end
 ---@param realm_id realm_id valid realm id
 ---@return province_id capitol 
@@ -21067,17 +22141,31 @@ end
 ---@field plate_plate_neighbors (table<number,plate_id>)[]
 ---@field plate_plate_edge (table<number,tile_id>)[]
 ---@field plate_plate_boundaries (table<number,tile_id>)[]
+---@field language_syllables (table<number,string>)[]
+---@field language_consonants (table<number,string>)[]
+---@field language_vowels (table<number,string>)[]
+---@field language_ending_province (table<number,string>)[]
+---@field language_ending_realm (table<number,string>)[]
+---@field language_ending_adj (table<number,string>)[]
+---@field language_ranks (table<number,string>)[]
 ---@field culture_name (string)[]
----@field culture_language (Language)[]
----@field culture_culture_group (CultureGroup)[]
----@field pop_faith (Faith)[]
+---@field culture_group_name (string)[]
+---@field culture_group_r (number)[]
+---@field culture_group_g (number)[]
+---@field culture_group_b (number)[]
+---@field culture_group_view_on_treason (number)[]
+---@field faith_name (string)[]
+---@field faith_burial_rites (BURIAL_RITES)[]
+---@field religion_name (string)[]
+---@field religion_r (number)[]
+---@field religion_g (number)[]
+---@field religion_b (number)[]
 ---@field pop_name (string)[]
 ---@field province_name (string)[]
 ---@field warband_name (string)[]
 ---@field warband_guard_of (Realm?)[]
 ---@field realm_exists (boolean)[]
 ---@field realm_name (string)[]
----@field realm_primary_faith (Faith)[]
 ---@field realm_quests_raid (table<province_id,nil|number>)[]
 ---@field realm_quests_explore (table<province_id,nil|number>)[]
 ---@field realm_quests_patrol (table<province_id,nil|number>)[]
@@ -21093,17 +22181,31 @@ function DATA.save_state()
     current_lua_state.plate_plate_neighbors = DATA.plate_plate_neighbors
     current_lua_state.plate_plate_edge = DATA.plate_plate_edge
     current_lua_state.plate_plate_boundaries = DATA.plate_plate_boundaries
+    current_lua_state.language_syllables = DATA.language_syllables
+    current_lua_state.language_consonants = DATA.language_consonants
+    current_lua_state.language_vowels = DATA.language_vowels
+    current_lua_state.language_ending_province = DATA.language_ending_province
+    current_lua_state.language_ending_realm = DATA.language_ending_realm
+    current_lua_state.language_ending_adj = DATA.language_ending_adj
+    current_lua_state.language_ranks = DATA.language_ranks
     current_lua_state.culture_name = DATA.culture_name
-    current_lua_state.culture_language = DATA.culture_language
-    current_lua_state.culture_culture_group = DATA.culture_culture_group
-    current_lua_state.pop_faith = DATA.pop_faith
+    current_lua_state.culture_group_name = DATA.culture_group_name
+    current_lua_state.culture_group_r = DATA.culture_group_r
+    current_lua_state.culture_group_g = DATA.culture_group_g
+    current_lua_state.culture_group_b = DATA.culture_group_b
+    current_lua_state.culture_group_view_on_treason = DATA.culture_group_view_on_treason
+    current_lua_state.faith_name = DATA.faith_name
+    current_lua_state.faith_burial_rites = DATA.faith_burial_rites
+    current_lua_state.religion_name = DATA.religion_name
+    current_lua_state.religion_r = DATA.religion_r
+    current_lua_state.religion_g = DATA.religion_g
+    current_lua_state.religion_b = DATA.religion_b
     current_lua_state.pop_name = DATA.pop_name
     current_lua_state.province_name = DATA.province_name
     current_lua_state.warband_name = DATA.warband_name
     current_lua_state.warband_guard_of = DATA.warband_guard_of
     current_lua_state.realm_exists = DATA.realm_exists
     current_lua_state.realm_name = DATA.realm_name
-    current_lua_state.realm_primary_faith = DATA.realm_primary_faith
     current_lua_state.realm_quests_raid = DATA.realm_quests_raid
     current_lua_state.realm_quests_explore = DATA.realm_quests_explore
     current_lua_state.realm_quests_patrol = DATA.realm_quests_patrol
@@ -21187,17 +22289,31 @@ function DATA.load_state()
     DATA.plate_plate_neighbors = loaded_lua_state.plate_plate_neighbors
     DATA.plate_plate_edge = loaded_lua_state.plate_plate_edge
     DATA.plate_plate_boundaries = loaded_lua_state.plate_plate_boundaries
+    DATA.language_syllables = loaded_lua_state.language_syllables
+    DATA.language_consonants = loaded_lua_state.language_consonants
+    DATA.language_vowels = loaded_lua_state.language_vowels
+    DATA.language_ending_province = loaded_lua_state.language_ending_province
+    DATA.language_ending_realm = loaded_lua_state.language_ending_realm
+    DATA.language_ending_adj = loaded_lua_state.language_ending_adj
+    DATA.language_ranks = loaded_lua_state.language_ranks
     DATA.culture_name = loaded_lua_state.culture_name
-    DATA.culture_language = loaded_lua_state.culture_language
-    DATA.culture_culture_group = loaded_lua_state.culture_culture_group
-    DATA.pop_faith = loaded_lua_state.pop_faith
+    DATA.culture_group_name = loaded_lua_state.culture_group_name
+    DATA.culture_group_r = loaded_lua_state.culture_group_r
+    DATA.culture_group_g = loaded_lua_state.culture_group_g
+    DATA.culture_group_b = loaded_lua_state.culture_group_b
+    DATA.culture_group_view_on_treason = loaded_lua_state.culture_group_view_on_treason
+    DATA.faith_name = loaded_lua_state.faith_name
+    DATA.faith_burial_rites = loaded_lua_state.faith_burial_rites
+    DATA.religion_name = loaded_lua_state.religion_name
+    DATA.religion_r = loaded_lua_state.religion_r
+    DATA.religion_g = loaded_lua_state.religion_g
+    DATA.religion_b = loaded_lua_state.religion_b
     DATA.pop_name = loaded_lua_state.pop_name
     DATA.province_name = loaded_lua_state.province_name
     DATA.warband_name = loaded_lua_state.warband_name
     DATA.warband_guard_of = loaded_lua_state.warband_guard_of
     DATA.realm_exists = loaded_lua_state.realm_exists
     DATA.realm_name = loaded_lua_state.realm_name
-    DATA.realm_primary_faith = loaded_lua_state.realm_primary_faith
     DATA.realm_quests_raid = loaded_lua_state.realm_quests_raid
     DATA.realm_quests_explore = loaded_lua_state.realm_quests_explore
     DATA.realm_quests_patrol = loaded_lua_state.realm_quests_patrol
@@ -21413,16 +22529,22 @@ function DATA.test_set_get_0()
     if not test_passed then print("expansion_rate", 11, fat_id.expansion_rate) end
     print("SET_GET_TEST_0_plate:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_language()
+    local fat_id = DATA.fatten_language(id)
+    local test_passed = true
+    print("SET_GET_TEST_0_language:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_culture()
     local fat_id = DATA.fatten_culture(id)
     fat_id.r = 4
     fat_id.g = 6
     fat_id.b = -18
+    fat_id.language = -4
     for j = 1, 20 do
-        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  -4)    end
-    fat_id.traditional_militarization = 12
+        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  12)    end
+    fat_id.traditional_militarization = 11
     for j = 1, 10 do
-        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  11)    end
+        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  5)    end
     local test_passed = true
     test_passed = test_passed and fat_id.r == 4
     if not test_passed then print("r", 4, fat_id.r) end
@@ -21430,115 +22552,150 @@ function DATA.test_set_get_0()
     if not test_passed then print("g", 6, fat_id.g) end
     test_passed = test_passed and fat_id.b == -18
     if not test_passed then print("b", -18, fat_id.b) end
+    test_passed = test_passed and fat_id.language == -4
+    if not test_passed then print("language", -4, fat_id.language) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == -4
+        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == 12
     end
-    if not test_passed then print("traditional_units", -4, DATA.culture[id].traditional_units[0]) end
-    test_passed = test_passed and fat_id.traditional_militarization == 12
-    if not test_passed then print("traditional_militarization", 12, fat_id.traditional_militarization) end
+    if not test_passed then print("traditional_units", 12, DATA.culture[id].traditional_units[0]) end
+    test_passed = test_passed and fat_id.traditional_militarization == 11
+    if not test_passed then print("traditional_militarization", 11, fat_id.traditional_militarization) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == 11
+        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == 5
     end
-    if not test_passed then print("traditional_forager_targets", 11, DATA.culture[id].traditional_forager_targets[0]) end
+    if not test_passed then print("traditional_forager_targets", 5, DATA.culture[id].traditional_forager_targets[0]) end
     print("SET_GET_TEST_0_culture:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_culture_group()
+    local fat_id = DATA.fatten_culture_group(id)
+    fat_id.language = 4
+    local test_passed = true
+    test_passed = test_passed and fat_id.language == 4
+    if not test_passed then print("language", 4, fat_id.language) end
+    print("SET_GET_TEST_0_culture_group:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_faith()
+    local fat_id = DATA.fatten_faith(id)
+    fat_id.r = 4
+    fat_id.g = 6
+    fat_id.b = -18
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == 4
+    if not test_passed then print("r", 4, fat_id.r) end
+    test_passed = test_passed and fat_id.g == 6
+    if not test_passed then print("g", 6, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -18
+    if not test_passed then print("b", -18, fat_id.b) end
+    print("SET_GET_TEST_0_faith:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_religion()
+    local fat_id = DATA.fatten_religion(id)
+    local test_passed = true
+    print("SET_GET_TEST_0_religion:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
-    fat_id.race = 4
-    fat_id.culture = 6
-    fat_id.female = true
-    fat_id.age = 8
-    fat_id.savings = 12
-    fat_id.life_needs_satisfaction = 11
-    fat_id.basic_needs_satisfaction = 5
+    fat_id.unique_id = 12
+    fat_id.race = 6
+    fat_id.faith = -18
+    fat_id.culture = -4
+    fat_id.female = false
+    fat_id.age = 12
+    fat_id.savings = -1
+    fat_id.life_needs_satisfaction = 10
+    fat_id.basic_needs_satisfaction = 2
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 4)
+        DATA.pop_set_need_satisfaction_need(id, j, 3)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 10)
+        DATA.pop_set_need_satisfaction_use_case(id, j, 12)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, 2)
+        DATA.pop_set_need_satisfaction_consumed(id, j, -12)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, 17)
+        DATA.pop_set_need_satisfaction_demanded(id, j, -2)
     end
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  3)    end
+        DATA.pop_set_traits(id, j --[[@as number]],  2)    end
     for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  12)    end
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -14)    end
     for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  -12)    end
-    fat_id.pending_economy_income = -2
-    fat_id.forage_ratio = -12
-    fat_id.work_ratio = -14
-    fat_id.busy = false
-    fat_id.dead = true
-    fat_id.rank = 2
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  19)    end
+    fat_id.pending_economy_income = -4
+    fat_id.forage_ratio = 14
+    fat_id.work_ratio = 18
+    fat_id.busy = true
+    fat_id.dead = false
+    fat_id.rank = 0
     fat_id.former_pop = true
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  -16)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  1)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.race == 4
-    if not test_passed then print("race", 4, fat_id.race) end
-    test_passed = test_passed and fat_id.culture == 6
-    if not test_passed then print("culture", 6, fat_id.culture) end
-    test_passed = test_passed and fat_id.female == true
-    if not test_passed then print("female", true, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 8
-    if not test_passed then print("age", 8, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == 12
-    if not test_passed then print("savings", 12, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 11
-    if not test_passed then print("life_needs_satisfaction", 11, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 5
-    if not test_passed then print("basic_needs_satisfaction", 5, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.unique_id == 12
+    if not test_passed then print("unique_id", 12, fat_id.unique_id) end
+    test_passed = test_passed and fat_id.race == 6
+    if not test_passed then print("race", 6, fat_id.race) end
+    test_passed = test_passed and fat_id.faith == -18
+    if not test_passed then print("faith", -18, fat_id.faith) end
+    test_passed = test_passed and fat_id.culture == -4
+    if not test_passed then print("culture", -4, fat_id.culture) end
+    test_passed = test_passed and fat_id.female == false
+    if not test_passed then print("female", false, fat_id.female) end
+    test_passed = test_passed and fat_id.age == 12
+    if not test_passed then print("age", 12, fat_id.age) end
+    test_passed = test_passed and fat_id.savings == -1
+    if not test_passed then print("savings", -1, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 10
+    if not test_passed then print("life_needs_satisfaction", 10, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 2
+    if not test_passed then print("basic_needs_satisfaction", 2, fat_id.basic_needs_satisfaction) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 4
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 3
     end
-    if not test_passed then print("need_satisfaction.need", 4, DATA.pop[id].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 10
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 12
     end
-    if not test_passed then print("need_satisfaction.use_case", 10, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 12, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 2
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -12
     end
-    if not test_passed then print("need_satisfaction.consumed", 2, DATA.pop[id].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -12, DATA.pop[id].need_satisfaction[0].consumed) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 17
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -2
     end
-    if not test_passed then print("need_satisfaction.demanded", 17, DATA.pop[id].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", -2, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 3
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 2
     end
-    if not test_passed then print("traits", 3, DATA.pop[id].traits[0]) end
+    if not test_passed then print("traits", 2, DATA.pop[id].traits[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 12
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -14
     end
-    if not test_passed then print("inventory", 12, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", -14, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == -12
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 19
     end
-    if not test_passed then print("price_memory", -12, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == -2
-    if not test_passed then print("pending_economy_income", -2, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == -12
-    if not test_passed then print("forage_ratio", -12, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -14
-    if not test_passed then print("work_ratio", -14, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.busy == false
-    if not test_passed then print("busy", false, fat_id.busy) end
-    test_passed = test_passed and fat_id.dead == true
-    if not test_passed then print("dead", true, fat_id.dead) end
-    test_passed = test_passed and fat_id.rank == 2
-    if not test_passed then print("rank", 2, fat_id.rank) end
+    if not test_passed then print("price_memory", 19, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.pending_economy_income == -4
+    if not test_passed then print("pending_economy_income", -4, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == 14
+    if not test_passed then print("forage_ratio", 14, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 18
+    if not test_passed then print("work_ratio", 18, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.busy == true
+    if not test_passed then print("busy", true, fat_id.busy) end
+    test_passed = test_passed and fat_id.dead == false
+    if not test_passed then print("dead", false, fat_id.dead) end
+    test_passed = test_passed and fat_id.rank == 0
+    if not test_passed then print("rank", 0, fat_id.rank) end
     test_passed = test_passed and fat_id.former_pop == true
     if not test_passed then print("former_pop", true, fat_id.former_pop) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -16
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 1
     end
-    if not test_passed then print("dna", -16, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 1, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_0_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -21860,36 +23017,37 @@ function DATA.test_set_get_0()
     fat_id.b = -12
     fat_id.primary_race = -14
     fat_id.primary_culture = 19
-    fat_id.capitol = -4
-    fat_id.trading_right_cost = 14
-    fat_id.building_right_cost = 18
-    fat_id.law_trade = 1
-    fat_id.law_building = 2
+    fat_id.primary_faith = -4
+    fat_id.capitol = 14
+    fat_id.trading_right_cost = 18
+    fat_id.building_right_cost = -11
+    fat_id.law_trade = 2
+    fat_id.law_building = 0
     fat_id.prepare_attack_flag = true
-    fat_id.coa_base_r = -16
-    fat_id.coa_base_g = 1
-    fat_id.coa_base_b = 10
-    fat_id.coa_background_r = 15
-    fat_id.coa_background_g = -14
-    fat_id.coa_background_b = 2
-    fat_id.coa_foreground_r = 7
-    fat_id.coa_foreground_g = 0
-    fat_id.coa_foreground_b = 19
-    fat_id.coa_emblem_r = 20
-    fat_id.coa_emblem_g = -7
-    fat_id.coa_emblem_b = 15
-    fat_id.coa_background_image = 15
-    fat_id.coa_foreground_image = 14
-    fat_id.coa_emblem_image = 16
+    fat_id.coa_base_r = 1
+    fat_id.coa_base_g = 10
+    fat_id.coa_base_b = 15
+    fat_id.coa_background_r = -14
+    fat_id.coa_background_g = 2
+    fat_id.coa_background_b = 7
+    fat_id.coa_foreground_r = 0
+    fat_id.coa_foreground_g = 19
+    fat_id.coa_foreground_b = 20
+    fat_id.coa_emblem_r = -7
+    fat_id.coa_emblem_g = 15
+    fat_id.coa_emblem_b = 10
+    fat_id.coa_background_image = 14
+    fat_id.coa_foreground_image = 16
+    fat_id.coa_emblem_image = 8
     for j = 1, 100 do
-        DATA.realm_set_resources(id, j --[[@as trade_good_id]],  -4)    end
+        DATA.realm_set_resources(id, j --[[@as trade_good_id]],  -17)    end
     for j = 1, 100 do
-        DATA.realm_set_production(id, j --[[@as trade_good_id]],  -17)    end
+        DATA.realm_set_production(id, j --[[@as trade_good_id]],  15)    end
     for j = 1, 100 do
-        DATA.realm_set_bought(id, j --[[@as trade_good_id]],  15)    end
+        DATA.realm_set_bought(id, j --[[@as trade_good_id]],  -20)    end
     for j = 1, 100 do
-        DATA.realm_set_sold(id, j --[[@as trade_good_id]],  -20)    end
-    fat_id.expected_food_consumption = -15
+        DATA.realm_set_sold(id, j --[[@as trade_good_id]],  -15)    end
+    fat_id.expected_food_consumption = 5
     local test_passed = true
     test_passed = test_passed and fat_id.budget_change == 4
     if not test_passed then print("budget_change", 4, fat_id.budget_change) end
@@ -21941,66 +23099,68 @@ function DATA.test_set_get_0()
     if not test_passed then print("primary_race", -14, fat_id.primary_race) end
     test_passed = test_passed and fat_id.primary_culture == 19
     if not test_passed then print("primary_culture", 19, fat_id.primary_culture) end
-    test_passed = test_passed and fat_id.capitol == -4
-    if not test_passed then print("capitol", -4, fat_id.capitol) end
-    test_passed = test_passed and fat_id.trading_right_cost == 14
-    if not test_passed then print("trading_right_cost", 14, fat_id.trading_right_cost) end
-    test_passed = test_passed and fat_id.building_right_cost == 18
-    if not test_passed then print("building_right_cost", 18, fat_id.building_right_cost) end
-    test_passed = test_passed and fat_id.law_trade == 1
-    if not test_passed then print("law_trade", 1, fat_id.law_trade) end
-    test_passed = test_passed and fat_id.law_building == 2
-    if not test_passed then print("law_building", 2, fat_id.law_building) end
+    test_passed = test_passed and fat_id.primary_faith == -4
+    if not test_passed then print("primary_faith", -4, fat_id.primary_faith) end
+    test_passed = test_passed and fat_id.capitol == 14
+    if not test_passed then print("capitol", 14, fat_id.capitol) end
+    test_passed = test_passed and fat_id.trading_right_cost == 18
+    if not test_passed then print("trading_right_cost", 18, fat_id.trading_right_cost) end
+    test_passed = test_passed and fat_id.building_right_cost == -11
+    if not test_passed then print("building_right_cost", -11, fat_id.building_right_cost) end
+    test_passed = test_passed and fat_id.law_trade == 2
+    if not test_passed then print("law_trade", 2, fat_id.law_trade) end
+    test_passed = test_passed and fat_id.law_building == 0
+    if not test_passed then print("law_building", 0, fat_id.law_building) end
     test_passed = test_passed and fat_id.prepare_attack_flag == true
     if not test_passed then print("prepare_attack_flag", true, fat_id.prepare_attack_flag) end
-    test_passed = test_passed and fat_id.coa_base_r == -16
-    if not test_passed then print("coa_base_r", -16, fat_id.coa_base_r) end
-    test_passed = test_passed and fat_id.coa_base_g == 1
-    if not test_passed then print("coa_base_g", 1, fat_id.coa_base_g) end
-    test_passed = test_passed and fat_id.coa_base_b == 10
-    if not test_passed then print("coa_base_b", 10, fat_id.coa_base_b) end
-    test_passed = test_passed and fat_id.coa_background_r == 15
-    if not test_passed then print("coa_background_r", 15, fat_id.coa_background_r) end
-    test_passed = test_passed and fat_id.coa_background_g == -14
-    if not test_passed then print("coa_background_g", -14, fat_id.coa_background_g) end
-    test_passed = test_passed and fat_id.coa_background_b == 2
-    if not test_passed then print("coa_background_b", 2, fat_id.coa_background_b) end
-    test_passed = test_passed and fat_id.coa_foreground_r == 7
-    if not test_passed then print("coa_foreground_r", 7, fat_id.coa_foreground_r) end
-    test_passed = test_passed and fat_id.coa_foreground_g == 0
-    if not test_passed then print("coa_foreground_g", 0, fat_id.coa_foreground_g) end
-    test_passed = test_passed and fat_id.coa_foreground_b == 19
-    if not test_passed then print("coa_foreground_b", 19, fat_id.coa_foreground_b) end
-    test_passed = test_passed and fat_id.coa_emblem_r == 20
-    if not test_passed then print("coa_emblem_r", 20, fat_id.coa_emblem_r) end
-    test_passed = test_passed and fat_id.coa_emblem_g == -7
-    if not test_passed then print("coa_emblem_g", -7, fat_id.coa_emblem_g) end
-    test_passed = test_passed and fat_id.coa_emblem_b == 15
-    if not test_passed then print("coa_emblem_b", 15, fat_id.coa_emblem_b) end
-    test_passed = test_passed and fat_id.coa_background_image == 15
-    if not test_passed then print("coa_background_image", 15, fat_id.coa_background_image) end
-    test_passed = test_passed and fat_id.coa_foreground_image == 14
-    if not test_passed then print("coa_foreground_image", 14, fat_id.coa_foreground_image) end
-    test_passed = test_passed and fat_id.coa_emblem_image == 16
-    if not test_passed then print("coa_emblem_image", 16, fat_id.coa_emblem_image) end
+    test_passed = test_passed and fat_id.coa_base_r == 1
+    if not test_passed then print("coa_base_r", 1, fat_id.coa_base_r) end
+    test_passed = test_passed and fat_id.coa_base_g == 10
+    if not test_passed then print("coa_base_g", 10, fat_id.coa_base_g) end
+    test_passed = test_passed and fat_id.coa_base_b == 15
+    if not test_passed then print("coa_base_b", 15, fat_id.coa_base_b) end
+    test_passed = test_passed and fat_id.coa_background_r == -14
+    if not test_passed then print("coa_background_r", -14, fat_id.coa_background_r) end
+    test_passed = test_passed and fat_id.coa_background_g == 2
+    if not test_passed then print("coa_background_g", 2, fat_id.coa_background_g) end
+    test_passed = test_passed and fat_id.coa_background_b == 7
+    if not test_passed then print("coa_background_b", 7, fat_id.coa_background_b) end
+    test_passed = test_passed and fat_id.coa_foreground_r == 0
+    if not test_passed then print("coa_foreground_r", 0, fat_id.coa_foreground_r) end
+    test_passed = test_passed and fat_id.coa_foreground_g == 19
+    if not test_passed then print("coa_foreground_g", 19, fat_id.coa_foreground_g) end
+    test_passed = test_passed and fat_id.coa_foreground_b == 20
+    if not test_passed then print("coa_foreground_b", 20, fat_id.coa_foreground_b) end
+    test_passed = test_passed and fat_id.coa_emblem_r == -7
+    if not test_passed then print("coa_emblem_r", -7, fat_id.coa_emblem_r) end
+    test_passed = test_passed and fat_id.coa_emblem_g == 15
+    if not test_passed then print("coa_emblem_g", 15, fat_id.coa_emblem_g) end
+    test_passed = test_passed and fat_id.coa_emblem_b == 10
+    if not test_passed then print("coa_emblem_b", 10, fat_id.coa_emblem_b) end
+    test_passed = test_passed and fat_id.coa_background_image == 14
+    if not test_passed then print("coa_background_image", 14, fat_id.coa_background_image) end
+    test_passed = test_passed and fat_id.coa_foreground_image == 16
+    if not test_passed then print("coa_foreground_image", 16, fat_id.coa_foreground_image) end
+    test_passed = test_passed and fat_id.coa_emblem_image == 8
+    if not test_passed then print("coa_emblem_image", 8, fat_id.coa_emblem_image) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_resources(id, j --[[@as trade_good_id]]) == -4
+        test_passed = test_passed and DATA.realm_get_resources(id, j --[[@as trade_good_id]]) == -17
     end
-    if not test_passed then print("resources", -4, DATA.realm[id].resources[0]) end
+    if not test_passed then print("resources", -17, DATA.realm[id].resources[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_production(id, j --[[@as trade_good_id]]) == -17
+        test_passed = test_passed and DATA.realm_get_production(id, j --[[@as trade_good_id]]) == 15
     end
-    if not test_passed then print("production", -17, DATA.realm[id].production[0]) end
+    if not test_passed then print("production", 15, DATA.realm[id].production[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_bought(id, j --[[@as trade_good_id]]) == 15
+        test_passed = test_passed and DATA.realm_get_bought(id, j --[[@as trade_good_id]]) == -20
     end
-    if not test_passed then print("bought", 15, DATA.realm[id].bought[0]) end
+    if not test_passed then print("bought", -20, DATA.realm[id].bought[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_sold(id, j --[[@as trade_good_id]]) == -20
+        test_passed = test_passed and DATA.realm_get_sold(id, j --[[@as trade_good_id]]) == -15
     end
-    if not test_passed then print("sold", -20, DATA.realm[id].sold[0]) end
-    test_passed = test_passed and fat_id.expected_food_consumption == -15
-    if not test_passed then print("expected_food_consumption", -15, fat_id.expected_food_consumption) end
+    if not test_passed then print("sold", -15, DATA.realm[id].sold[0]) end
+    test_passed = test_passed and fat_id.expected_food_consumption == 5
+    if not test_passed then print("expected_food_consumption", 5, fat_id.expected_food_consumption) end
     print("SET_GET_TEST_0_realm:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_building()
@@ -22250,16 +23410,22 @@ function DATA.test_set_get_1()
     if not test_passed then print("expansion_rate", 11, fat_id.expansion_rate) end
     print("SET_GET_TEST_1_plate:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_language()
+    local fat_id = DATA.fatten_language(id)
+    local test_passed = true
+    print("SET_GET_TEST_1_language:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_culture()
     local fat_id = DATA.fatten_culture(id)
     fat_id.r = -12
     fat_id.g = 16
     fat_id.b = -16
+    fat_id.language = -4
     for j = 1, 20 do
-        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  -4)    end
-    fat_id.traditional_militarization = -13
+        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  -13)    end
+    fat_id.traditional_militarization = 11
     for j = 1, 10 do
-        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  11)    end
+        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  8)    end
     local test_passed = true
     test_passed = test_passed and fat_id.r == -12
     if not test_passed then print("r", -12, fat_id.r) end
@@ -22267,115 +23433,150 @@ function DATA.test_set_get_1()
     if not test_passed then print("g", 16, fat_id.g) end
     test_passed = test_passed and fat_id.b == -16
     if not test_passed then print("b", -16, fat_id.b) end
+    test_passed = test_passed and fat_id.language == -4
+    if not test_passed then print("language", -4, fat_id.language) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == -4
+        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == -13
     end
-    if not test_passed then print("traditional_units", -4, DATA.culture[id].traditional_units[0]) end
-    test_passed = test_passed and fat_id.traditional_militarization == -13
-    if not test_passed then print("traditional_militarization", -13, fat_id.traditional_militarization) end
+    if not test_passed then print("traditional_units", -13, DATA.culture[id].traditional_units[0]) end
+    test_passed = test_passed and fat_id.traditional_militarization == 11
+    if not test_passed then print("traditional_militarization", 11, fat_id.traditional_militarization) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == 11
+        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == 8
     end
-    if not test_passed then print("traditional_forager_targets", 11, DATA.culture[id].traditional_forager_targets[0]) end
+    if not test_passed then print("traditional_forager_targets", 8, DATA.culture[id].traditional_forager_targets[0]) end
     print("SET_GET_TEST_1_culture:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_culture_group()
+    local fat_id = DATA.fatten_culture_group(id)
+    fat_id.language = -12
+    local test_passed = true
+    test_passed = test_passed and fat_id.language == -12
+    if not test_passed then print("language", -12, fat_id.language) end
+    print("SET_GET_TEST_1_culture_group:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_faith()
+    local fat_id = DATA.fatten_faith(id)
+    fat_id.r = -12
+    fat_id.g = 16
+    fat_id.b = -16
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == -12
+    if not test_passed then print("r", -12, fat_id.r) end
+    test_passed = test_passed and fat_id.g == 16
+    if not test_passed then print("g", 16, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -16
+    if not test_passed then print("b", -16, fat_id.b) end
+    print("SET_GET_TEST_1_faith:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_religion()
+    local fat_id = DATA.fatten_religion(id)
+    local test_passed = true
+    print("SET_GET_TEST_1_religion:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
-    fat_id.race = -12
-    fat_id.culture = 16
+    fat_id.unique_id = 4
+    fat_id.race = 16
+    fat_id.faith = -16
+    fat_id.culture = -4
     fat_id.female = true
-    fat_id.age = 8
-    fat_id.savings = -13
-    fat_id.life_needs_satisfaction = 11
-    fat_id.basic_needs_satisfaction = 8
+    fat_id.age = 15
+    fat_id.savings = 8
+    fat_id.life_needs_satisfaction = 10
+    fat_id.basic_needs_satisfaction = 4
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 7)
+        DATA.pop_set_need_satisfaction_need(id, j, 3)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 4)
+        DATA.pop_set_need_satisfaction_use_case(id, j, -14)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, -7)
+        DATA.pop_set_need_satisfaction_consumed(id, j, 11)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, -14)
+        DATA.pop_set_need_satisfaction_demanded(id, j, -19)
     end
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  7)    end
+        DATA.pop_set_traits(id, j --[[@as number]],  6)    end
     for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -19)    end
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  7)    end
     for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  4)    end
-    fat_id.pending_economy_income = 7
-    fat_id.forage_ratio = 18
-    fat_id.work_ratio = -20
-    fat_id.busy = false
-    fat_id.dead = false
-    fat_id.rank = 1
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  18)    end
+    fat_id.pending_economy_income = -20
+    fat_id.forage_ratio = 8
+    fat_id.work_ratio = -3
+    fat_id.busy = true
+    fat_id.dead = true
+    fat_id.rank = 2
     fat_id.former_pop = true
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  0)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  -19)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.race == -12
-    if not test_passed then print("race", -12, fat_id.race) end
-    test_passed = test_passed and fat_id.culture == 16
-    if not test_passed then print("culture", 16, fat_id.culture) end
+    test_passed = test_passed and fat_id.unique_id == 4
+    if not test_passed then print("unique_id", 4, fat_id.unique_id) end
+    test_passed = test_passed and fat_id.race == 16
+    if not test_passed then print("race", 16, fat_id.race) end
+    test_passed = test_passed and fat_id.faith == -16
+    if not test_passed then print("faith", -16, fat_id.faith) end
+    test_passed = test_passed and fat_id.culture == -4
+    if not test_passed then print("culture", -4, fat_id.culture) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 8
-    if not test_passed then print("age", 8, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -13
-    if not test_passed then print("savings", -13, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 11
-    if not test_passed then print("life_needs_satisfaction", 11, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 8
-    if not test_passed then print("basic_needs_satisfaction", 8, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.age == 15
+    if not test_passed then print("age", 15, fat_id.age) end
+    test_passed = test_passed and fat_id.savings == 8
+    if not test_passed then print("savings", 8, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 10
+    if not test_passed then print("life_needs_satisfaction", 10, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 4
+    if not test_passed then print("basic_needs_satisfaction", 4, fat_id.basic_needs_satisfaction) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 7
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 3
     end
-    if not test_passed then print("need_satisfaction.need", 7, DATA.pop[id].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 4
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == -14
     end
-    if not test_passed then print("need_satisfaction.use_case", 4, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", -14, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -7
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 11
     end
-    if not test_passed then print("need_satisfaction.consumed", -7, DATA.pop[id].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", 11, DATA.pop[id].need_satisfaction[0].consumed) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -14
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -19
     end
-    if not test_passed then print("need_satisfaction.demanded", -14, DATA.pop[id].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", -19, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 7
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 6
     end
-    if not test_passed then print("traits", 7, DATA.pop[id].traits[0]) end
+    if not test_passed then print("traits", 6, DATA.pop[id].traits[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -19
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 7
     end
-    if not test_passed then print("inventory", -19, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", 7, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 4
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 18
     end
-    if not test_passed then print("price_memory", 4, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == 7
-    if not test_passed then print("pending_economy_income", 7, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 18
-    if not test_passed then print("forage_ratio", 18, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -20
-    if not test_passed then print("work_ratio", -20, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.busy == false
-    if not test_passed then print("busy", false, fat_id.busy) end
-    test_passed = test_passed and fat_id.dead == false
-    if not test_passed then print("dead", false, fat_id.dead) end
-    test_passed = test_passed and fat_id.rank == 1
-    if not test_passed then print("rank", 1, fat_id.rank) end
+    if not test_passed then print("price_memory", 18, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.pending_economy_income == -20
+    if not test_passed then print("pending_economy_income", -20, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == 8
+    if not test_passed then print("forage_ratio", 8, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == -3
+    if not test_passed then print("work_ratio", -3, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.busy == true
+    if not test_passed then print("busy", true, fat_id.busy) end
+    test_passed = test_passed and fat_id.dead == true
+    if not test_passed then print("dead", true, fat_id.dead) end
+    test_passed = test_passed and fat_id.rank == 2
+    if not test_passed then print("rank", 2, fat_id.rank) end
     test_passed = test_passed and fat_id.former_pop == true
     if not test_passed then print("former_pop", true, fat_id.former_pop) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 0
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -19
     end
-    if not test_passed then print("dna", 0, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", -19, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_1_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -22697,36 +23898,37 @@ function DATA.test_set_get_1()
     fat_id.b = 18
     fat_id.primary_race = -20
     fat_id.primary_culture = 8
-    fat_id.capitol = -3
-    fat_id.trading_right_cost = -6
-    fat_id.building_right_cost = 17
-    fat_id.law_trade = 0
-    fat_id.law_building = 2
+    fat_id.primary_faith = -3
+    fat_id.capitol = -6
+    fat_id.trading_right_cost = 17
+    fat_id.building_right_cost = -14
+    fat_id.law_trade = 2
+    fat_id.law_building = 0
     fat_id.prepare_attack_flag = true
     fat_id.coa_base_r = -19
-    fat_id.coa_base_g = -19
-    fat_id.coa_base_b = 14
-    fat_id.coa_background_r = -20
-    fat_id.coa_background_g = 4
-    fat_id.coa_background_b = -7
-    fat_id.coa_foreground_r = 7
-    fat_id.coa_foreground_g = -19
-    fat_id.coa_foreground_b = 13
-    fat_id.coa_emblem_r = -6
-    fat_id.coa_emblem_g = 8
-    fat_id.coa_emblem_b = 11
-    fat_id.coa_background_image = 17
-    fat_id.coa_foreground_image = 7
-    fat_id.coa_emblem_image = 11
+    fat_id.coa_base_g = 14
+    fat_id.coa_base_b = -20
+    fat_id.coa_background_r = 4
+    fat_id.coa_background_g = -7
+    fat_id.coa_background_b = 7
+    fat_id.coa_foreground_r = -19
+    fat_id.coa_foreground_g = 13
+    fat_id.coa_foreground_b = -6
+    fat_id.coa_emblem_r = 8
+    fat_id.coa_emblem_g = 11
+    fat_id.coa_emblem_b = 15
+    fat_id.coa_background_image = 7
+    fat_id.coa_foreground_image = 11
+    fat_id.coa_emblem_image = 7
     for j = 1, 100 do
         DATA.realm_set_resources(id, j --[[@as trade_good_id]],  -6)    end
     for j = 1, 100 do
-        DATA.realm_set_production(id, j --[[@as trade_good_id]],  -6)    end
+        DATA.realm_set_production(id, j --[[@as trade_good_id]],  9)    end
     for j = 1, 100 do
-        DATA.realm_set_bought(id, j --[[@as trade_good_id]],  9)    end
+        DATA.realm_set_bought(id, j --[[@as trade_good_id]],  -2)    end
     for j = 1, 100 do
-        DATA.realm_set_sold(id, j --[[@as trade_good_id]],  -2)    end
-    fat_id.expected_food_consumption = -19
+        DATA.realm_set_sold(id, j --[[@as trade_good_id]],  -19)    end
+    fat_id.expected_food_consumption = 6
     local test_passed = true
     test_passed = test_passed and fat_id.budget_change == -12
     if not test_passed then print("budget_change", -12, fat_id.budget_change) end
@@ -22778,66 +23980,68 @@ function DATA.test_set_get_1()
     if not test_passed then print("primary_race", -20, fat_id.primary_race) end
     test_passed = test_passed and fat_id.primary_culture == 8
     if not test_passed then print("primary_culture", 8, fat_id.primary_culture) end
-    test_passed = test_passed and fat_id.capitol == -3
-    if not test_passed then print("capitol", -3, fat_id.capitol) end
-    test_passed = test_passed and fat_id.trading_right_cost == -6
-    if not test_passed then print("trading_right_cost", -6, fat_id.trading_right_cost) end
-    test_passed = test_passed and fat_id.building_right_cost == 17
-    if not test_passed then print("building_right_cost", 17, fat_id.building_right_cost) end
-    test_passed = test_passed and fat_id.law_trade == 0
-    if not test_passed then print("law_trade", 0, fat_id.law_trade) end
-    test_passed = test_passed and fat_id.law_building == 2
-    if not test_passed then print("law_building", 2, fat_id.law_building) end
+    test_passed = test_passed and fat_id.primary_faith == -3
+    if not test_passed then print("primary_faith", -3, fat_id.primary_faith) end
+    test_passed = test_passed and fat_id.capitol == -6
+    if not test_passed then print("capitol", -6, fat_id.capitol) end
+    test_passed = test_passed and fat_id.trading_right_cost == 17
+    if not test_passed then print("trading_right_cost", 17, fat_id.trading_right_cost) end
+    test_passed = test_passed and fat_id.building_right_cost == -14
+    if not test_passed then print("building_right_cost", -14, fat_id.building_right_cost) end
+    test_passed = test_passed and fat_id.law_trade == 2
+    if not test_passed then print("law_trade", 2, fat_id.law_trade) end
+    test_passed = test_passed and fat_id.law_building == 0
+    if not test_passed then print("law_building", 0, fat_id.law_building) end
     test_passed = test_passed and fat_id.prepare_attack_flag == true
     if not test_passed then print("prepare_attack_flag", true, fat_id.prepare_attack_flag) end
     test_passed = test_passed and fat_id.coa_base_r == -19
     if not test_passed then print("coa_base_r", -19, fat_id.coa_base_r) end
-    test_passed = test_passed and fat_id.coa_base_g == -19
-    if not test_passed then print("coa_base_g", -19, fat_id.coa_base_g) end
-    test_passed = test_passed and fat_id.coa_base_b == 14
-    if not test_passed then print("coa_base_b", 14, fat_id.coa_base_b) end
-    test_passed = test_passed and fat_id.coa_background_r == -20
-    if not test_passed then print("coa_background_r", -20, fat_id.coa_background_r) end
-    test_passed = test_passed and fat_id.coa_background_g == 4
-    if not test_passed then print("coa_background_g", 4, fat_id.coa_background_g) end
-    test_passed = test_passed and fat_id.coa_background_b == -7
-    if not test_passed then print("coa_background_b", -7, fat_id.coa_background_b) end
-    test_passed = test_passed and fat_id.coa_foreground_r == 7
-    if not test_passed then print("coa_foreground_r", 7, fat_id.coa_foreground_r) end
-    test_passed = test_passed and fat_id.coa_foreground_g == -19
-    if not test_passed then print("coa_foreground_g", -19, fat_id.coa_foreground_g) end
-    test_passed = test_passed and fat_id.coa_foreground_b == 13
-    if not test_passed then print("coa_foreground_b", 13, fat_id.coa_foreground_b) end
-    test_passed = test_passed and fat_id.coa_emblem_r == -6
-    if not test_passed then print("coa_emblem_r", -6, fat_id.coa_emblem_r) end
-    test_passed = test_passed and fat_id.coa_emblem_g == 8
-    if not test_passed then print("coa_emblem_g", 8, fat_id.coa_emblem_g) end
-    test_passed = test_passed and fat_id.coa_emblem_b == 11
-    if not test_passed then print("coa_emblem_b", 11, fat_id.coa_emblem_b) end
-    test_passed = test_passed and fat_id.coa_background_image == 17
-    if not test_passed then print("coa_background_image", 17, fat_id.coa_background_image) end
-    test_passed = test_passed and fat_id.coa_foreground_image == 7
-    if not test_passed then print("coa_foreground_image", 7, fat_id.coa_foreground_image) end
-    test_passed = test_passed and fat_id.coa_emblem_image == 11
-    if not test_passed then print("coa_emblem_image", 11, fat_id.coa_emblem_image) end
+    test_passed = test_passed and fat_id.coa_base_g == 14
+    if not test_passed then print("coa_base_g", 14, fat_id.coa_base_g) end
+    test_passed = test_passed and fat_id.coa_base_b == -20
+    if not test_passed then print("coa_base_b", -20, fat_id.coa_base_b) end
+    test_passed = test_passed and fat_id.coa_background_r == 4
+    if not test_passed then print("coa_background_r", 4, fat_id.coa_background_r) end
+    test_passed = test_passed and fat_id.coa_background_g == -7
+    if not test_passed then print("coa_background_g", -7, fat_id.coa_background_g) end
+    test_passed = test_passed and fat_id.coa_background_b == 7
+    if not test_passed then print("coa_background_b", 7, fat_id.coa_background_b) end
+    test_passed = test_passed and fat_id.coa_foreground_r == -19
+    if not test_passed then print("coa_foreground_r", -19, fat_id.coa_foreground_r) end
+    test_passed = test_passed and fat_id.coa_foreground_g == 13
+    if not test_passed then print("coa_foreground_g", 13, fat_id.coa_foreground_g) end
+    test_passed = test_passed and fat_id.coa_foreground_b == -6
+    if not test_passed then print("coa_foreground_b", -6, fat_id.coa_foreground_b) end
+    test_passed = test_passed and fat_id.coa_emblem_r == 8
+    if not test_passed then print("coa_emblem_r", 8, fat_id.coa_emblem_r) end
+    test_passed = test_passed and fat_id.coa_emblem_g == 11
+    if not test_passed then print("coa_emblem_g", 11, fat_id.coa_emblem_g) end
+    test_passed = test_passed and fat_id.coa_emblem_b == 15
+    if not test_passed then print("coa_emblem_b", 15, fat_id.coa_emblem_b) end
+    test_passed = test_passed and fat_id.coa_background_image == 7
+    if not test_passed then print("coa_background_image", 7, fat_id.coa_background_image) end
+    test_passed = test_passed and fat_id.coa_foreground_image == 11
+    if not test_passed then print("coa_foreground_image", 11, fat_id.coa_foreground_image) end
+    test_passed = test_passed and fat_id.coa_emblem_image == 7
+    if not test_passed then print("coa_emblem_image", 7, fat_id.coa_emblem_image) end
     for j = 1, 100 do
         test_passed = test_passed and DATA.realm_get_resources(id, j --[[@as trade_good_id]]) == -6
     end
     if not test_passed then print("resources", -6, DATA.realm[id].resources[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_production(id, j --[[@as trade_good_id]]) == -6
+        test_passed = test_passed and DATA.realm_get_production(id, j --[[@as trade_good_id]]) == 9
     end
-    if not test_passed then print("production", -6, DATA.realm[id].production[0]) end
+    if not test_passed then print("production", 9, DATA.realm[id].production[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_bought(id, j --[[@as trade_good_id]]) == 9
+        test_passed = test_passed and DATA.realm_get_bought(id, j --[[@as trade_good_id]]) == -2
     end
-    if not test_passed then print("bought", 9, DATA.realm[id].bought[0]) end
+    if not test_passed then print("bought", -2, DATA.realm[id].bought[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_sold(id, j --[[@as trade_good_id]]) == -2
+        test_passed = test_passed and DATA.realm_get_sold(id, j --[[@as trade_good_id]]) == -19
     end
-    if not test_passed then print("sold", -2, DATA.realm[id].sold[0]) end
-    test_passed = test_passed and fat_id.expected_food_consumption == -19
-    if not test_passed then print("expected_food_consumption", -19, fat_id.expected_food_consumption) end
+    if not test_passed then print("sold", -19, DATA.realm[id].sold[0]) end
+    test_passed = test_passed and fat_id.expected_food_consumption == 6
+    if not test_passed then print("expected_food_consumption", 6, fat_id.expected_food_consumption) end
     print("SET_GET_TEST_1_realm:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_building()
@@ -23087,16 +24291,22 @@ function DATA.test_set_get_2()
     if not test_passed then print("expansion_rate", -1, fat_id.expansion_rate) end
     print("SET_GET_TEST_2_plate:")
     if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_language()
+    local fat_id = DATA.fatten_language(id)
+    local test_passed = true
+    print("SET_GET_TEST_2_language:")
+    if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_culture()
     local fat_id = DATA.fatten_culture(id)
     fat_id.r = -17
     fat_id.g = -15
     fat_id.b = -15
+    fat_id.language = 3
     for j = 1, 20 do
-        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  3)    end
-    fat_id.traditional_militarization = -10
+        DATA.culture_set_traditional_units(id, j --[[@as unit_type_id]],  -10)    end
+    fat_id.traditional_militarization = -1
     for j = 1, 10 do
-        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  -1)    end
+        DATA.culture_set_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]],  -4)    end
     local test_passed = true
     test_passed = test_passed and fat_id.r == -17
     if not test_passed then print("r", -17, fat_id.r) end
@@ -23104,115 +24314,150 @@ function DATA.test_set_get_2()
     if not test_passed then print("g", -15, fat_id.g) end
     test_passed = test_passed and fat_id.b == -15
     if not test_passed then print("b", -15, fat_id.b) end
+    test_passed = test_passed and fat_id.language == 3
+    if not test_passed then print("language", 3, fat_id.language) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == 3
+        test_passed = test_passed and DATA.culture_get_traditional_units(id, j --[[@as unit_type_id]]) == -10
     end
-    if not test_passed then print("traditional_units", 3, DATA.culture[id].traditional_units[0]) end
-    test_passed = test_passed and fat_id.traditional_militarization == -10
-    if not test_passed then print("traditional_militarization", -10, fat_id.traditional_militarization) end
+    if not test_passed then print("traditional_units", -10, DATA.culture[id].traditional_units[0]) end
+    test_passed = test_passed and fat_id.traditional_militarization == -1
+    if not test_passed then print("traditional_militarization", -1, fat_id.traditional_militarization) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == -1
+        test_passed = test_passed and DATA.culture_get_traditional_forager_targets(id, j --[[@as FORAGE_RESOURCE]]) == -4
     end
-    if not test_passed then print("traditional_forager_targets", -1, DATA.culture[id].traditional_forager_targets[0]) end
+    if not test_passed then print("traditional_forager_targets", -4, DATA.culture[id].traditional_forager_targets[0]) end
     print("SET_GET_TEST_2_culture:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_culture_group()
+    local fat_id = DATA.fatten_culture_group(id)
+    fat_id.language = -17
+    local test_passed = true
+    test_passed = test_passed and fat_id.language == -17
+    if not test_passed then print("language", -17, fat_id.language) end
+    print("SET_GET_TEST_2_culture_group:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_faith()
+    local fat_id = DATA.fatten_faith(id)
+    fat_id.r = -17
+    fat_id.g = -15
+    fat_id.b = -15
+    local test_passed = true
+    test_passed = test_passed and fat_id.r == -17
+    if not test_passed then print("r", -17, fat_id.r) end
+    test_passed = test_passed and fat_id.g == -15
+    if not test_passed then print("g", -15, fat_id.g) end
+    test_passed = test_passed and fat_id.b == -15
+    if not test_passed then print("b", -15, fat_id.b) end
+    print("SET_GET_TEST_2_faith:")
+    if test_passed then print("PASSED") else print("ERROR") end
+    local id = DATA.create_religion()
+    local fat_id = DATA.fatten_religion(id)
+    local test_passed = true
+    print("SET_GET_TEST_2_religion:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_pop()
     local fat_id = DATA.fatten_pop(id)
-    fat_id.race = -17
-    fat_id.culture = -15
+    fat_id.unique_id = 1
+    fat_id.race = -15
+    fat_id.faith = -15
+    fat_id.culture = 3
     fat_id.female = true
-    fat_id.age = 11
-    fat_id.savings = -10
-    fat_id.life_needs_satisfaction = -1
-    fat_id.basic_needs_satisfaction = -4
+    fat_id.age = 9
+    fat_id.savings = -4
+    fat_id.life_needs_satisfaction = 18
+    fat_id.basic_needs_satisfaction = -7
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 3)
+        DATA.pop_set_need_satisfaction_need(id, j, 0)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 18)
+        DATA.pop_set_need_satisfaction_use_case(id, j, 17)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, -18)
+        DATA.pop_set_need_satisfaction_consumed(id, j, -10)
     end
     for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, 17)
+        DATA.pop_set_need_satisfaction_demanded(id, j, 7)
     end
     for j = 1, 10 do
         DATA.pop_set_traits(id, j --[[@as number]],  10)    end
     for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -10)    end
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  5)    end
     for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  7)    end
-    fat_id.pending_economy_income = 20
-    fat_id.forage_ratio = 5
-    fat_id.work_ratio = 12
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  12)    end
+    fat_id.pending_economy_income = 3
+    fat_id.forage_ratio = 14
+    fat_id.work_ratio = 8
     fat_id.busy = false
-    fat_id.dead = false
-    fat_id.rank = 2
-    fat_id.former_pop = true
+    fat_id.dead = true
+    fat_id.rank = 0
+    fat_id.former_pop = false
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  -19)    end
+        DATA.pop_set_dna(id, j --[[@as number]],  9)    end
     local test_passed = true
-    test_passed = test_passed and fat_id.race == -17
-    if not test_passed then print("race", -17, fat_id.race) end
-    test_passed = test_passed and fat_id.culture == -15
-    if not test_passed then print("culture", -15, fat_id.culture) end
+    test_passed = test_passed and fat_id.unique_id == 1
+    if not test_passed then print("unique_id", 1, fat_id.unique_id) end
+    test_passed = test_passed and fat_id.race == -15
+    if not test_passed then print("race", -15, fat_id.race) end
+    test_passed = test_passed and fat_id.faith == -15
+    if not test_passed then print("faith", -15, fat_id.faith) end
+    test_passed = test_passed and fat_id.culture == 3
+    if not test_passed then print("culture", 3, fat_id.culture) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 11
-    if not test_passed then print("age", 11, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -10
-    if not test_passed then print("savings", -10, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == -1
-    if not test_passed then print("life_needs_satisfaction", -1, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == -4
-    if not test_passed then print("basic_needs_satisfaction", -4, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.age == 9
+    if not test_passed then print("age", 9, fat_id.age) end
+    test_passed = test_passed and fat_id.savings == -4
+    if not test_passed then print("savings", -4, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 18
+    if not test_passed then print("life_needs_satisfaction", 18, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == -7
+    if not test_passed then print("basic_needs_satisfaction", -7, fat_id.basic_needs_satisfaction) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 3
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 0
     end
-    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[id].need_satisfaction[0].need) end
+    if not test_passed then print("need_satisfaction.need", 0, DATA.pop[id].need_satisfaction[0].need) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 18
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 17
     end
-    if not test_passed then print("need_satisfaction.use_case", 18, DATA.pop[id].need_satisfaction[0].use_case) end
+    if not test_passed then print("need_satisfaction.use_case", 17, DATA.pop[id].need_satisfaction[0].use_case) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -18
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -10
     end
-    if not test_passed then print("need_satisfaction.consumed", -18, DATA.pop[id].need_satisfaction[0].consumed) end
+    if not test_passed then print("need_satisfaction.consumed", -10, DATA.pop[id].need_satisfaction[0].consumed) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 17
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 7
     end
-    if not test_passed then print("need_satisfaction.demanded", 17, DATA.pop[id].need_satisfaction[0].demanded) end
+    if not test_passed then print("need_satisfaction.demanded", 7, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 10 do
         test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 10
     end
     if not test_passed then print("traits", 10, DATA.pop[id].traits[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -10
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 5
     end
-    if not test_passed then print("inventory", -10, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", 5, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 7
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 12
     end
-    if not test_passed then print("price_memory", 7, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == 20
-    if not test_passed then print("pending_economy_income", 20, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 5
-    if not test_passed then print("forage_ratio", 5, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 12
-    if not test_passed then print("work_ratio", 12, fat_id.work_ratio) end
+    if not test_passed then print("price_memory", 12, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.pending_economy_income == 3
+    if not test_passed then print("pending_economy_income", 3, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == 14
+    if not test_passed then print("forage_ratio", 14, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 8
+    if not test_passed then print("work_ratio", 8, fat_id.work_ratio) end
     test_passed = test_passed and fat_id.busy == false
     if not test_passed then print("busy", false, fat_id.busy) end
-    test_passed = test_passed and fat_id.dead == false
-    if not test_passed then print("dead", false, fat_id.dead) end
-    test_passed = test_passed and fat_id.rank == 2
-    if not test_passed then print("rank", 2, fat_id.rank) end
-    test_passed = test_passed and fat_id.former_pop == true
-    if not test_passed then print("former_pop", true, fat_id.former_pop) end
+    test_passed = test_passed and fat_id.dead == true
+    if not test_passed then print("dead", true, fat_id.dead) end
+    test_passed = test_passed and fat_id.rank == 0
+    if not test_passed then print("rank", 0, fat_id.rank) end
+    test_passed = test_passed and fat_id.former_pop == false
+    if not test_passed then print("former_pop", false, fat_id.former_pop) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -19
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 9
     end
-    if not test_passed then print("dna", -19, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 9, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_2_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -23534,36 +24779,37 @@ function DATA.test_set_get_2()
     fat_id.b = 5
     fat_id.primary_race = 12
     fat_id.primary_culture = 3
-    fat_id.capitol = 14
-    fat_id.trading_right_cost = 8
-    fat_id.building_right_cost = 12
-    fat_id.law_trade = 2
+    fat_id.primary_faith = 14
+    fat_id.capitol = 8
+    fat_id.trading_right_cost = 12
+    fat_id.building_right_cost = -3
+    fat_id.law_trade = 0
     fat_id.law_building = 0
-    fat_id.prepare_attack_flag = true
-    fat_id.coa_base_r = 3
-    fat_id.coa_base_g = 9
-    fat_id.coa_base_b = 0
-    fat_id.coa_background_r = 4
-    fat_id.coa_background_g = 7
-    fat_id.coa_background_b = 13
-    fat_id.coa_foreground_r = -10
-    fat_id.coa_foreground_g = 15
-    fat_id.coa_foreground_b = -9
-    fat_id.coa_emblem_r = -5
-    fat_id.coa_emblem_g = -6
-    fat_id.coa_emblem_b = -19
-    fat_id.coa_background_image = 5
-    fat_id.coa_foreground_image = 10
-    fat_id.coa_emblem_image = 5
+    fat_id.prepare_attack_flag = false
+    fat_id.coa_base_r = 9
+    fat_id.coa_base_g = 0
+    fat_id.coa_base_b = 4
+    fat_id.coa_background_r = 7
+    fat_id.coa_background_g = 13
+    fat_id.coa_background_b = -10
+    fat_id.coa_foreground_r = 15
+    fat_id.coa_foreground_g = -9
+    fat_id.coa_foreground_b = -5
+    fat_id.coa_emblem_r = -6
+    fat_id.coa_emblem_g = -19
+    fat_id.coa_emblem_b = -9
+    fat_id.coa_background_image = 10
+    fat_id.coa_foreground_image = 5
+    fat_id.coa_emblem_image = 4
     for j = 1, 100 do
-        DATA.realm_set_resources(id, j --[[@as trade_good_id]],  -12)    end
+        DATA.realm_set_resources(id, j --[[@as trade_good_id]],  12)    end
     for j = 1, 100 do
         DATA.realm_set_production(id, j --[[@as trade_good_id]],  12)    end
     for j = 1, 100 do
-        DATA.realm_set_bought(id, j --[[@as trade_good_id]],  12)    end
+        DATA.realm_set_bought(id, j --[[@as trade_good_id]],  3)    end
     for j = 1, 100 do
-        DATA.realm_set_sold(id, j --[[@as trade_good_id]],  3)    end
-    fat_id.expected_food_consumption = 12
+        DATA.realm_set_sold(id, j --[[@as trade_good_id]],  12)    end
+    fat_id.expected_food_consumption = 15
     local test_passed = true
     test_passed = test_passed and fat_id.budget_change == -17
     if not test_passed then print("budget_change", -17, fat_id.budget_change) end
@@ -23615,66 +24861,68 @@ function DATA.test_set_get_2()
     if not test_passed then print("primary_race", 12, fat_id.primary_race) end
     test_passed = test_passed and fat_id.primary_culture == 3
     if not test_passed then print("primary_culture", 3, fat_id.primary_culture) end
-    test_passed = test_passed and fat_id.capitol == 14
-    if not test_passed then print("capitol", 14, fat_id.capitol) end
-    test_passed = test_passed and fat_id.trading_right_cost == 8
-    if not test_passed then print("trading_right_cost", 8, fat_id.trading_right_cost) end
-    test_passed = test_passed and fat_id.building_right_cost == 12
-    if not test_passed then print("building_right_cost", 12, fat_id.building_right_cost) end
-    test_passed = test_passed and fat_id.law_trade == 2
-    if not test_passed then print("law_trade", 2, fat_id.law_trade) end
+    test_passed = test_passed and fat_id.primary_faith == 14
+    if not test_passed then print("primary_faith", 14, fat_id.primary_faith) end
+    test_passed = test_passed and fat_id.capitol == 8
+    if not test_passed then print("capitol", 8, fat_id.capitol) end
+    test_passed = test_passed and fat_id.trading_right_cost == 12
+    if not test_passed then print("trading_right_cost", 12, fat_id.trading_right_cost) end
+    test_passed = test_passed and fat_id.building_right_cost == -3
+    if not test_passed then print("building_right_cost", -3, fat_id.building_right_cost) end
+    test_passed = test_passed and fat_id.law_trade == 0
+    if not test_passed then print("law_trade", 0, fat_id.law_trade) end
     test_passed = test_passed and fat_id.law_building == 0
     if not test_passed then print("law_building", 0, fat_id.law_building) end
-    test_passed = test_passed and fat_id.prepare_attack_flag == true
-    if not test_passed then print("prepare_attack_flag", true, fat_id.prepare_attack_flag) end
-    test_passed = test_passed and fat_id.coa_base_r == 3
-    if not test_passed then print("coa_base_r", 3, fat_id.coa_base_r) end
-    test_passed = test_passed and fat_id.coa_base_g == 9
-    if not test_passed then print("coa_base_g", 9, fat_id.coa_base_g) end
-    test_passed = test_passed and fat_id.coa_base_b == 0
-    if not test_passed then print("coa_base_b", 0, fat_id.coa_base_b) end
-    test_passed = test_passed and fat_id.coa_background_r == 4
-    if not test_passed then print("coa_background_r", 4, fat_id.coa_background_r) end
-    test_passed = test_passed and fat_id.coa_background_g == 7
-    if not test_passed then print("coa_background_g", 7, fat_id.coa_background_g) end
-    test_passed = test_passed and fat_id.coa_background_b == 13
-    if not test_passed then print("coa_background_b", 13, fat_id.coa_background_b) end
-    test_passed = test_passed and fat_id.coa_foreground_r == -10
-    if not test_passed then print("coa_foreground_r", -10, fat_id.coa_foreground_r) end
-    test_passed = test_passed and fat_id.coa_foreground_g == 15
-    if not test_passed then print("coa_foreground_g", 15, fat_id.coa_foreground_g) end
-    test_passed = test_passed and fat_id.coa_foreground_b == -9
-    if not test_passed then print("coa_foreground_b", -9, fat_id.coa_foreground_b) end
-    test_passed = test_passed and fat_id.coa_emblem_r == -5
-    if not test_passed then print("coa_emblem_r", -5, fat_id.coa_emblem_r) end
-    test_passed = test_passed and fat_id.coa_emblem_g == -6
-    if not test_passed then print("coa_emblem_g", -6, fat_id.coa_emblem_g) end
-    test_passed = test_passed and fat_id.coa_emblem_b == -19
-    if not test_passed then print("coa_emblem_b", -19, fat_id.coa_emblem_b) end
-    test_passed = test_passed and fat_id.coa_background_image == 5
-    if not test_passed then print("coa_background_image", 5, fat_id.coa_background_image) end
-    test_passed = test_passed and fat_id.coa_foreground_image == 10
-    if not test_passed then print("coa_foreground_image", 10, fat_id.coa_foreground_image) end
-    test_passed = test_passed and fat_id.coa_emblem_image == 5
-    if not test_passed then print("coa_emblem_image", 5, fat_id.coa_emblem_image) end
+    test_passed = test_passed and fat_id.prepare_attack_flag == false
+    if not test_passed then print("prepare_attack_flag", false, fat_id.prepare_attack_flag) end
+    test_passed = test_passed and fat_id.coa_base_r == 9
+    if not test_passed then print("coa_base_r", 9, fat_id.coa_base_r) end
+    test_passed = test_passed and fat_id.coa_base_g == 0
+    if not test_passed then print("coa_base_g", 0, fat_id.coa_base_g) end
+    test_passed = test_passed and fat_id.coa_base_b == 4
+    if not test_passed then print("coa_base_b", 4, fat_id.coa_base_b) end
+    test_passed = test_passed and fat_id.coa_background_r == 7
+    if not test_passed then print("coa_background_r", 7, fat_id.coa_background_r) end
+    test_passed = test_passed and fat_id.coa_background_g == 13
+    if not test_passed then print("coa_background_g", 13, fat_id.coa_background_g) end
+    test_passed = test_passed and fat_id.coa_background_b == -10
+    if not test_passed then print("coa_background_b", -10, fat_id.coa_background_b) end
+    test_passed = test_passed and fat_id.coa_foreground_r == 15
+    if not test_passed then print("coa_foreground_r", 15, fat_id.coa_foreground_r) end
+    test_passed = test_passed and fat_id.coa_foreground_g == -9
+    if not test_passed then print("coa_foreground_g", -9, fat_id.coa_foreground_g) end
+    test_passed = test_passed and fat_id.coa_foreground_b == -5
+    if not test_passed then print("coa_foreground_b", -5, fat_id.coa_foreground_b) end
+    test_passed = test_passed and fat_id.coa_emblem_r == -6
+    if not test_passed then print("coa_emblem_r", -6, fat_id.coa_emblem_r) end
+    test_passed = test_passed and fat_id.coa_emblem_g == -19
+    if not test_passed then print("coa_emblem_g", -19, fat_id.coa_emblem_g) end
+    test_passed = test_passed and fat_id.coa_emblem_b == -9
+    if not test_passed then print("coa_emblem_b", -9, fat_id.coa_emblem_b) end
+    test_passed = test_passed and fat_id.coa_background_image == 10
+    if not test_passed then print("coa_background_image", 10, fat_id.coa_background_image) end
+    test_passed = test_passed and fat_id.coa_foreground_image == 5
+    if not test_passed then print("coa_foreground_image", 5, fat_id.coa_foreground_image) end
+    test_passed = test_passed and fat_id.coa_emblem_image == 4
+    if not test_passed then print("coa_emblem_image", 4, fat_id.coa_emblem_image) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_resources(id, j --[[@as trade_good_id]]) == -12
+        test_passed = test_passed and DATA.realm_get_resources(id, j --[[@as trade_good_id]]) == 12
     end
-    if not test_passed then print("resources", -12, DATA.realm[id].resources[0]) end
+    if not test_passed then print("resources", 12, DATA.realm[id].resources[0]) end
     for j = 1, 100 do
         test_passed = test_passed and DATA.realm_get_production(id, j --[[@as trade_good_id]]) == 12
     end
     if not test_passed then print("production", 12, DATA.realm[id].production[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_bought(id, j --[[@as trade_good_id]]) == 12
+        test_passed = test_passed and DATA.realm_get_bought(id, j --[[@as trade_good_id]]) == 3
     end
-    if not test_passed then print("bought", 12, DATA.realm[id].bought[0]) end
+    if not test_passed then print("bought", 3, DATA.realm[id].bought[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.realm_get_sold(id, j --[[@as trade_good_id]]) == 3
+        test_passed = test_passed and DATA.realm_get_sold(id, j --[[@as trade_good_id]]) == 12
     end
-    if not test_passed then print("sold", 3, DATA.realm[id].sold[0]) end
-    test_passed = test_passed and fat_id.expected_food_consumption == 12
-    if not test_passed then print("expected_food_consumption", 12, fat_id.expected_food_consumption) end
+    if not test_passed then print("sold", 12, DATA.realm[id].sold[0]) end
+    test_passed = test_passed and fat_id.expected_food_consumption == 15
+    if not test_passed then print("expected_food_consumption", 15, fat_id.expected_food_consumption) end
     print("SET_GET_TEST_2_realm:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_building()

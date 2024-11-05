@@ -13,6 +13,7 @@ local calculate_power_base = require "game.raws.values.politics".power_base
 return function()
     Event:new {
         name = "attempt-coup",
+        fallback = function(self, associated_data) end,
         event_text = function(self, character, associated_data)
             local province = PROVINCE(character)
             if province == INVALID_ID then return "No coup target." end
@@ -116,6 +117,7 @@ return function()
 
     Event:new {
 		name = "coup",
+        fallback = function(self, associated_data) end,
 		automatic = false,
         event_background_path = "data/gfx/backgrounds/background.png",
 		base_probability = 0,

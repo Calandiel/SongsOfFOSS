@@ -1,0 +1,5 @@
+name string
+r float
+g float
+b float
+burial_rites BURIAL_RITES

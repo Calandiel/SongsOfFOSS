@@ -23,6 +23,9 @@ local function load()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
+
 		on_trigger = function(self, character, associated_data)
 			assert(DCON.dcon_pop_is_valid(character - 1))
 

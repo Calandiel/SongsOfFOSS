@@ -19,6 +19,10 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
+        fallback = function (self, associated_data)
+            return
+        end,
+
         on_trigger = function (self, root, associated_data)
             ---@type TravelData
             associated_data = associated_data
@@ -35,6 +39,10 @@ local function load()
         automatic = false,
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
+
+        fallback = function (self, associated_data)
+            return
+        end,
 
         event_text = function (self, root, associated_data)
             ---@type TravelData
@@ -88,21 +96,18 @@ local function load()
 		automatic = false,
         base_probability = 0,
         event_background_path = "data/gfx/backgrounds/background.png",
+
+        fallback = function (self, associated_data)
+        end,
+
 		on_trigger = function(self, root, associated_data)
 			---@type Province
 			associated_data = associated_data
-
-            if DEAD(root) then
-                return
-            end
-
             ge.travel(root, associated_data)
-
             if LEADER_OF_WARBAND(root) ~= INVALID_ID then
                 DATA.warband_set_current_status(LEADER_OF_WARBAND(root), WARBAND_STATUS.IDLE)
             end
             UNSET_BUSY(root)
-
             if root == WORLD.player_character and OPTIONS["travel-end"] == 0 then
                 WORLD:emit_immediate_event('travel-end-notification', root, associated_data)
             end
@@ -137,24 +142,12 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
+        fallback = function (self, associated_data)
+        end,
+
         options = function(self, root, associated_data)
             local options_list = {}
             local province = PROVINCE(root)
-
-            if province == nil then
-                return {
-                    {
-                        text = "Something is wrong",
-                        tooltip = "Province is nil",
-                        viable = function() return true end,
-                        outcome = function()
-                        end,
-                        ai_preference = function()
-                            return 0.5
-                        end
-                    }
-                }
-            end
 
             local function generate_option(trade_good)
                 local price = economy_values.get_local_price(province, trade_good)
@@ -213,24 +206,12 @@ local function load()
         event_background_path = "data/gfx/backgrounds/background.png",
         base_probability = 0,
 
+        fallback = function (self, associated_data)
+        end,
+
         options = function(self, root, associated_data)
             local options_list = {}
             local province = PROVINCE(root)
-
-            if province == nil then
-                return {
-                    {
-                        text = "Something is wrong",
-                        tooltip = "Province is nil",
-                        viable = function() return true end,
-                        outcome = function()
-                        end,
-                        ai_preference = function()
-                            return 0.5
-                        end
-                    }
-                }
-            end
 
             local function generate_option(trade_good)
                 local price = economy_values.get_pessimistic_local_price(province, trade_good, 1, true)

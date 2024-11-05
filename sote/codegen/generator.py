@@ -1486,7 +1486,15 @@ Race = EntityDescription("race", 15, True)
 POPS_MAX_COUNT = 300000
 REALMS_MAX_COUNT = 15000
 
+Language = EntityDescription("language", 10000, False)
+
 Culture = EntityDescription("culture", 10000, False)
+CultureGroup = EntityDescription("culture_group", 10000, False)
+CultureGroupMembership = EntityDescription("cultural_union", 10000, False)
+Faith = EntityDescription("faith", 10000, False)
+Religion = EntityDescription("religion", 10000, False)
+Subreligion = EntityDescription("subreligion", 10000, False)
+
 
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
 Province = EntityDescription("province", 20000, False)

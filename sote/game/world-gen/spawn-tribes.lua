@@ -2,6 +2,7 @@ local realm_utils = require "game.entities.realm".Realm
 local cult = require "game.entities.culture"
 local rel = require "game.entities.religion"
 local pop_utils = require "game.entities.pop".POP
+local language_utils = require "game.entities.language".Language
 local tabb = require "engine.table"
 local tile      = require "game.entities.tile"
 
@@ -19,7 +20,7 @@ local st = {}
 ---@param capitol_id Province
 ---@param race_id race_id
 ---@param culture culture_id
----@param faith Faith
+---@param faith faith_id
 local function make_new_realm(capitol_id, race_id, culture, faith)
 	-- print("new realm")
 
@@ -42,7 +43,7 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	fat.g = math.max(0, math.min(1, (DATA.culture_get_g(culture) + (love.math.random() * 0.4 - 0.2))))
 	fat.b = math.max(0, math.min(1, (DATA.culture_get_b(culture) + (love.math.random() * 0.4 - 0.2))))
 
-	fat.name = DATA.culture_get_language(culture):get_random_realm_name()
+	fat.name = language_utils.get_random_realm_name(DATA.culture_get_language(culture))
 
 
 	--[[
@@ -92,7 +93,7 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 	end
 
 	-- set up capitol
-	capitol.name = DATA.culture_get_language(culture):get_random_province_name()
+	capitol.name = language_utils.get_random_province_name(DATA.culture_get_language(culture))
 	province_utils.research(capitol_id, tec('paleolithic-knowledge')) -- initialize technology...
 
 	-- give some stuff to capitol
@@ -273,20 +274,20 @@ function st.run()
 
 			local rg = rel.Religion:new(culture)
 			local faith = rel.Faith:new(rg, culture)
-			faith.burial_rites = tabb.select_one(love.math.random(), {
+			DATA.faith_set_burial_rites(faith, tabb.select_one(love.math.random(), {
 				{
 					weight = 1,
-					entry = 'burial'
+					entry = BURIAL_RIGHTS.BURIAL
 				},
 				{
 					weight = 0.8,
-					entry = 'cremation'
+					entry = BURIAL_RIGHTS.CREMATION
 				},
 				{
 					weight = 0.2,
-					entry = 'none'
+					entry = BURIAL_RIGHTS.NONE
 				}
-			})
+			}))
 			make_new_realm(prov, r, culture, faith)
 			queue:enqueue(prov)
 		end

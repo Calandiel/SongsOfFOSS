@@ -85,15 +85,54 @@ for file in os.listdir(common_include):
     copyfile(common_include.joinpath(file), generation_folder.joinpath(file))
 
 dll_folder = codegen_path.joinpath("dll")
+
+O2 = "-inline -mldst-motion -gvn -elim-avail-extern -slp-vectorizer -constmerge".split()
+O3 = "-callsite-splitting -argpromotion"
+
+COMPILATION_FLAGS = [
+    # O0 part
+    "-tti", "-verify", "-ee-instrument", "-targetlibinfo",
+    "-assumption-cache-tracker", "-profile-summary-info",
+    "-forceattrs", "-basiccg", "-always-inline", "-barrier"
+    # O1 part
+    "-tbaa", "-scoped-noalias", "-inferattrs", "-ipsccp", "-called-value-propagation",
+    "-globalopt", "-domtree", "-mem2reg", "-deadargelim", "-basicaa", "-aa",
+    "-loops", "-lazy-branch-prob", "-lazy-block-freq", "-opt-remark-emitter",
+    "-instcombine", "-simplifycfg",
+    "-globals-aa", "-prune-eh",
+    "-functionattrs", "-sroa", "-memoryssa",
+    "-early-cse-memssa", "-speculative-execution", "-lazy-value-info",
+    "-jump-threading", "-correlated-propagation", "-libcalls-shrinkwrap",
+    "-branch-prob", "-block-freq", "-pgo-memop-opt", "-tailcallelim",
+    "-reassociate", "-loop-simplify", "-lcssa-verification", "-lcssa",
+    "-scalar-evolution",
+    # "-loop-rotate", "-licm", # they are slow because of the giant serialisation loop
+    "-loop-unswitch", "-indvars", "-loop-idiom", "-loop-deletion", "-loop-unroll",
+    "-memdep", "-memcpyopt", "sccp", "demanded-bits", "bdce", "dse",
+    "postdomtree", "adce", "barrier", "rpo-functionattrs",
+    "globaldce", "float2int", "loop-accesses", "loop-distribute",
+    "loop-vectorize", "loop-load-elim", "alignment-from-assumptions",
+    "strip-dead-prototypes", "loop-sink", "instsimplify", "div-rem-pairs",
+    "verify", "ee-instrument", "early-cse", "lower-expect"
+    # O2 part
+    # todo
+    # O3 part
+    # todo
+]
+
 if os.name == 'nt':
     print("compiling dll")
     now = time.time()
     subprocess.run([ \
         "clang++",
         "-O3",
-        "-std=c++20",
+        # "-O1",
+        # "-O0"
+        ] \
+        +["-std=c++20",
         "-msse4.1",
         "-shared",
+        # "-ftime-report",
         # "-DDCON_LUADLL_EXPORTS",
         generation_folder.joinpath("lua_objs.cpp"),
         generation_folder.joinpath("common_types.cpp"),
@@ -108,9 +147,16 @@ if os.name == 'nt':
     time.sleep(0.1)
 
     dll_folder = dll_folder.joinpath("win")
-    move("./dcon.dll", dll_folder.joinpath("dcon.dll"))
-    move("./dcon.exp", dll_folder.joinpath("dcon.exp"))
-    move("./dcon.lib", dll_folder.joinpath("dcon.lib"))
+
+    # dire times require dire solutions
+    for i in range(10):
+        try:
+            move("./dcon.dll", dll_folder.joinpath("dcon.dll"))
+            move("./dcon.exp", dll_folder.joinpath("dcon.exp"))
+            move("./dcon.lib", dll_folder.joinpath("dcon.lib"))
+            break
+        except PermissionError:
+            time.sleep(0.5)
 else:
     # TODO
     dll_folder = dll_folder.joinpath("linux")

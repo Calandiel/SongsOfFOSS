@@ -1,5 +1,6 @@
+unique_id uint32_t
 race race_id
-faith Faith
+faith faith_id
 culture culture_id
 female bool
 age uint32_t
