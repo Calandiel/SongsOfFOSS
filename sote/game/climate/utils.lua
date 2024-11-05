@@ -176,7 +176,9 @@ end
 ---@param lon number
 ---@return number january_humidity
 ---@return number july_humidity
-function ut.get_humidity(lat, lon)
+---@return number january_wind_speed
+---@return number july_wind_speed
+function ut.get_humidity_and_wind_speed(lat, lon)
 	local ac, acf, bc, bcf, cc, ccf, dc, dcf = get_tile_lerp_factors(lat, lon)
 
 	local a = WORLD.climate_cells[ac]
@@ -184,8 +186,11 @@ function ut.get_humidity(lat, lon)
 	local c = WORLD.climate_cells[cc]
 	local d = WORLD.climate_cells[dc]
 
-	return a.january_humidity * acf + b.january_humidity * bcf + c.january_humidity * ccf + d.january_humidity * dcf,
-		a.july_humidity * acf + b.july_humidity * bcf + c.july_humidity * ccf + d.july_humidity * dcf
+	return
+		a.january_humidity * acf + b.january_humidity * bcf + c.january_humidity * ccf + d.january_humidity * dcf,
+		a.july_humidity * acf + b.july_humidity * bcf + c.july_humidity * ccf + d.july_humidity * dcf,
+		a.january_wind_speed * acf + b.january_wind_speed * bcf + c.january_wind_speed * ccf + d.january_wind_speed * dcf,
+		a.july_wind_speed * acf + b.july_wind_speed * bcf + c.july_wind_speed * ccf + d.july_wind_speed * dcf
 end
 
 return ut

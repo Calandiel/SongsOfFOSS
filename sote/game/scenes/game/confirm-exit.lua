@@ -58,7 +58,7 @@ function window.draw(game)
 		local to_save = require "game.minimap".make_minimap_image_data(
 			game,
 			1600, 800,
-			game.map_mode_data[game.map_mode][5] == mmut.MAP_MODE_GRANULARITY.PROVINCE
+			game.map_mode_data[game.map_mode].granularity == mmut.MAP_MODE_GRANULARITY.PROVINCE
 		)
 		to_save:encode("png", game.map_mode .. ".png")
 		-- game.click_callback = callback.nothing()

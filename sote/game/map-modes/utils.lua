@@ -18,6 +18,12 @@ ut.MAP_MODE_UPDATES_TYPE= {
 	DYNAMIC_PROVINCE_STATIC_TILE = 3
 }
 
+---@enum MAP_MODE_TERRAIN_TEXTURE_INTERACTION
+ut.MAP_MODE_TERRAIN_TEXTURE_INTERACTION = {
+	HIDE_TERRAIN = 0,
+	SHOW_TERRAIN = 1
+}
+
 ---@class (exact) FastMapModeEntry
 ---@field r number
 ---@field g number

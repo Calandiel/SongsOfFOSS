@@ -11,26 +11,18 @@ local function process(tile_index, world)
 
 	-- "no ice" check is skipped for now
 
-	local new_waterbody_id = world:create_new_waterbody()
+	local new_wb = world:create_new_waterbody_from_tile(tile_index)
 	waterbodies_created = waterbodies_created + 1
 
-	local waterbody = world.waterbodies[new_waterbody_id]
-	waterbody.id = new_waterbody_id
-	waterbody.tiles[1] = tile_index
-
-	world.waterbody_id_by_tile[tile_index] = new_waterbody_id
 	queue:enqueue(tile_index)
 
 	while not queue:is_empty() do
 		local ti = queue:dequeue()
 
 		world:for_each_neighbor(ti, function(nti)
-			if world.is_land[nti] then return end
+			if world.is_land[nti] or world:is_tile_waterbody_valid(nti) then return end
 
-			if world:is_tile_waterbody_valid(nti) then return end
-
-			world.waterbody_id_by_tile[nti] = new_waterbody_id
-			waterbody.tiles[#waterbody.tiles + 1] = nti
+			world:add_tile_to_waterbody(new_wb, nti)
 
 			queue:enqueue(nti)
 		end)
@@ -39,7 +31,7 @@ end
 
 function giw.run(world)
 	world:for_each_tile(process)
-	print("Waterbodies created: " .. waterbodies_created)
+	-- print("Waterbodies created: " .. waterbodies_created)
 end
 
 return giw
