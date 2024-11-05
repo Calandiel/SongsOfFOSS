@@ -125,13 +125,13 @@ return function(rect, base_unit, province)
             {
                 header = "faith",
                 render_closure = function (rect, k, v)
-                    ui.centered_text(DATA.pop_get_faith(v).name, rect)
+                    ui.centered_text(DATA.faith_get_name(DATA.pop_get_faith(v)), rect)
                 end,
                 width = 4,
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return DATA.pop_get_faith(v).name
+                    return DATA.faith_get_name(DATA.pop_get_faith(v))
                 end
             },
             {

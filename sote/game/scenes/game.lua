@@ -115,6 +115,7 @@ local gam = {}
 require "game.scenes.global-style"
 
 local ui = require "engine.ui"
+local uit = require "game.ui-utils"
 
 local cpml = require "cpml"
 local world = require "game.entities.world"
@@ -164,7 +165,87 @@ local tile_inspectors = {
 	["character"] = true
 }
 
+---@type TableColumn<unknown>
+local profiler_column_name = {
+	header = "Timer name",
+	active = false,
+	render_closure = function (rect, k, v)
+		uit.data_entry("", k, rect, nil, true, "left")
+	end,
+	value = function (k, v)
+		return k
+	end,
+	width = 200
+}
+---@type TableColumn<unknown>
+local profiler_column_raw_value = {
+	header = "Total",
+	active = false,
+	render_closure = function (rect, k, v)
+		uit.generic_number_field("", PROFILER.data[k], rect, "s", uit.NUMBER_MODE.NUMBER, uit.NAME_MODE.NAME, true, true)
+	end,
+	value = function (k, v)
+		return PROFILER.data[k]
+	end,
+	width = 100
+}
+---@type TableColumn<unknown>
+local profiler_column_calls = {
+	header = "Total/calls",
+	active = false,
+	render_closure = function (rect, k, v)
+		uit.sqrt_number_entry("", PROFILER.mean[k] * 1000 * 1000, rect, "μs/call")
+	end,
+	value = function (k, v)
+		return PROFILER.mean[k]
+	end,
+	width = 100
+}
+---@type TableColumn<unknown>
+local profiler_column_average = {
+	header = "Calls",
+	active = false,
+	render_closure = function (rect, k, v)
+		uit.log_number_entry("", PROFILER.count[k] / 100, rect, "hundreds", true)
+	end,
+	value = function (k, v)
+		return PROFILER.count[k]
+	end,
+	width = 100
+}
+---@type TableColumn<unknown>
+local profiler_column_average_global = {
+	header = "Total/ticks",
+	active = false,
+	render_closure = function (rect, k, v)
+		uit.sqrt_number_entry("", PROFILER.data[k] / (PROFILER.count["tick"] or 1) * 1000 * 1000, rect, "μs/tick")
+	end,
+	value = function (k, v)
+		return PROFILER.data[k] / (PROFILER.count["tick"] or 1)
+	end,
+	width = 100
+}
+---@type TableColumn<unknown>
+local profiler_column_ratio = {
+	header = "ratio",
+	active = false,
+	render_closure = function (rect, k, v)
+		uit.color_coded_percentage((PROFILER.data[k] or 0) / (PROFILER.data["tick"] or 1), rect, false, nil, true)
+	end,
+	value = function (k, v)
+		return (PROFILER.data[k] or 0) / (PROFILER.data["tick"] or 1)
+	end,
+	width = 100
+}
 
+local profiler_state = {
+	header_height = uit.BASE_HEIGHT,
+	individual_height = uit.BASE_HEIGHT,
+	slider_level = 0,
+	slider_width = uit.BASE_HEIGHT,
+	sorted_field = 1,
+	sorting_order = true
+}
 
 ---@class (exact) Selection
 ---@field character Character
@@ -923,15 +1004,13 @@ function gam.draw()
 			local pointer_province_color = require("ffi").cast("uint8_t*", frequency_image_data:getFFIPointer())
 			local id = 0
 
-			for _, province in ipairs(WORLD.ordered_provinces_list) do
-
-				pointer_province_color[id * 4 + 0] = 255 * math.min(1, province:local_population() / 200)
+			DATA.for_each_province(function (item)
+				pointer_province_color[id * 4 + 0] = 255 * math.min(1, province_utils.local_population(item) / 200)
 				pointer_province_color[id * 4 + 1] = 255 * 0
 				pointer_province_color[id * 4 + 2] = 255 * 0
 				pointer_province_color[id * 4 + 3] = 255 * 0
-
 				id = id + 1
-			end
+			end)
 
 			local frequency_image = love.graphics.newImage(frequency_image_data)
 			frequency_image:setFilter("nearest", "nearest")
@@ -957,28 +1036,35 @@ function gam.draw()
 
 			local image = love.image.newImageData(WORLD.world_size * 3, WORLD.world_size * 3, "rgba8")
 
-			for _, current_tile in pairs(WORLD.tiles) do
-				local temp_i, temp_j = gam.tile_id_to_color_coords(current_tile)
+
+			DATA.for_each_tile(function (tile_id)
+				local temp_i, temp_j = gam.tile_id_to_color_coords(tile_id)
 
 				local sprawl_heat = 0
-				local local_province = current_tile:province()
+				local local_province = DATA.tile_province_membership_get_province(
+					DATA.get_tile_province_membership_from_tile(tile_id)
+				)
 
-				if local_province ~= nil then
-					local center = local_province.center
-					local distance = current_tile:distance_to(center)
+				if local_province ~= INVALID_ID then
+					local center = DATA.province_get_center(local_province)
+					local distance = tile.distance_to(tile_id, center)
 					sprawl_heat = math.min(1, 1 / distance)
 				end
 
+				local biome = DATA.tile_get_biome(tile_id)
+				local biome_name = DATA.biome_get_name(biome)
 
-				if (current_tile.biome ~= nil) then
+				if (biome ~= INVALID_ID) then
 
 					local is_peak = false
-					if current_tile.biome.name == "barren-mountainside" or
-						current_tile.biome.name == "rugged-mountainside" or
-						current_tile.biome.name == "mountainside-scrub" then
+					if biome_name == "barren-mountainside" or
+						biome_name == "rugged-mountainside" or
+						biome_name == "mountainside-scrub" then
 						is_peak = true
-						for neigh in current_tile:iter_neighbors() do
-							if current_tile.elevation < neigh.elevation then
+
+						local elevation = DATA.tile_get_elevation(tile_id)
+						for neigh in tile.iter_neighbors(tile_id) do
+							if elevation < DATA.tile_get_elevation(neigh) then
 								is_peak = false
 							end
 						end
@@ -991,93 +1077,93 @@ function gam.draw()
 
 					local is_sea = 0
 
-					if current_tile.biome.name == "tundra" then
+					if biome_name == "tundra" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_TUNDRA
-					elseif current_tile.biome.name == "glacier" or
-						current_tile.biome.name == "glaciated-sea" then
+					elseif biome_name == "glacier" or
+						biome_name == "glaciated-sea" then
 						texture_index = TERRAIN_ATLAS_INDEX.GLACIER_BROKEN
-					elseif current_tile.biome.name == "bog" or
-							current_tile.biome.name == "marsh" or
-							current_tile.biome.name == "swamp" then
+					elseif biome_name == "bog" or
+							biome_name == "marsh" or
+							biome_name == "swamp" then
 						texture_index = TERRAIN_ATLAS_INDEX.BOG
-					elseif current_tile.biome.name == "badlands" then
+					elseif biome_name == "badlands" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_WASTELAND
-					elseif current_tile.biome.name == "xeric-shrubland" then
+					elseif biome_name == "xeric-shrubland" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_XERIC_SHRUBS
-					elseif current_tile.biome.name == "xeric-desert" then
+					elseif biome_name == "xeric-desert" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_XERIC_DESERT
-					elseif current_tile.biome.name == "mixed-scrubland" then
+					elseif biome_name == "mixed-scrubland" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_GRASS_SHRUBS_TREES
-					elseif current_tile.biome.name == "grassy-scrubland" then
+					elseif biome_name == "grassy-scrubland" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_GRASS_SHRUBS
-					elseif current_tile.biome.name == "woody-scrubland" then
+					elseif biome_name == "woody-scrubland" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_SHRUBS_TREES
-					elseif current_tile.biome.name == "shrubland" then
+					elseif biome_name == "shrubland" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_SHRUBS
-					elseif current_tile.biome.name == "savanna" then
+					elseif biome_name == "savanna" then
 						texture_index = TERRAIN_ATLAS_INDEX.SAVANNA
-					elseif current_tile.biome.name == "rocky-wasteland" then
+					elseif biome_name == "rocky-wasteland" then
 						texture_index = TERRAIN_ATLAS_INDEX.ROCKS_WASTELAND
-					elseif current_tile.biome.name == "abyssal-plains" or
-							current_tile.biome.name == "trench" then
+					elseif biome_name == "abyssal-plains" or
+							biome_name == "trench" then
 						texture_index = TERRAIN_ATLAS_INDEX.SEA
 						is_sea = 1
-					elseif current_tile.biome.name == "continental-shelf" then
+					elseif biome_name == "continental-shelf" then
 						texture_index = TERRAIN_ATLAS_INDEX.SHELF
 						is_sea = 1
-					elseif current_tile.biome.name == "mixed-forest" then
+					elseif biome_name == "mixed-forest" then
 						texture_index = TERRAIN_ATLAS_INDEX.FOREST_MIXED
-					elseif current_tile.biome.name == "broadleaf-forest" then
+					elseif biome_name == "broadleaf-forest" then
 						texture_index = TERRAIN_ATLAS_INDEX.FOREST_BROADLEAF
-					elseif current_tile.biome.name == "wet-jungle" then
+					elseif biome_name == "wet-jungle" then
 						texture_index = TERRAIN_ATLAS_INDEX.JUNGLE_WET
-					elseif current_tile.biome.name == "dry-jungle" then
+					elseif biome_name == "dry-jungle" then
 						texture_index = TERRAIN_ATLAS_INDEX.JUNGLE_DRY
-					elseif current_tile.biome.name == "jungle" then
+					elseif biome_name == "jungle" then
 						texture_index = TERRAIN_ATLAS_INDEX.JUNGLE
-					elseif current_tile.biome.name == "coniferous-forest" or
-							current_tile.biome.name == "taiga" then
+					elseif biome_name == "coniferous-forest" or
+							biome_name == "taiga" then
 						texture_index = TERRAIN_ATLAS_INDEX.FOREST_CONIFER
-					elseif current_tile.biome.name == "mixed-woodland" then
+					elseif biome_name == "mixed-woodland" then
 						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_MIXED
-					elseif current_tile.biome.name == "broadleaf-woodland" then
+					elseif biome_name == "broadleaf-woodland" then
 						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_BROADLEAF
-					elseif current_tile.biome.name == "warm-dry-broadleaf-forest" then
+					elseif biome_name == "warm-dry-broadleaf-forest" then
 						texture_index = TERRAIN_ATLAS_INDEX.FOREST_BROADLEAF_DRY_WARM
-					elseif current_tile.biome.name == "warm-wet-broadleaf-woodland" then
+					elseif biome_name == "warm-wet-broadleaf-woodland" then
 						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_BROADLEAF_WET_WARM
-					elseif current_tile.biome.name == "warm-dry-broadleaf-woodland" then
+					elseif biome_name == "warm-dry-broadleaf-woodland" then
 						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_BROADLEAF_DRY_WARM
-					elseif current_tile.biome.name == "coniferous-woodland" or
-							current_tile.biome.name == "woodland-taiga" then
+					elseif biome_name == "coniferous-woodland" or
+							biome_name == "woodland-taiga" then
 						texture_index = TERRAIN_ATLAS_INDEX.WOODLAND_CONIFER
-					elseif current_tile.biome.name == "grassland" then
+					elseif biome_name == "grassland" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_GRASS
 					elseif is_peak then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_PEAK
-					elseif current_tile.biome.name == "barren-mountainside" then
+					elseif biome_name == "barren-mountainside" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN
-					elseif current_tile.biome.name == "barren-mountainside-low-altitude" then
+					elseif biome_name == "barren-mountainside-low-altitude" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_LOW
-					elseif current_tile.biome.name == "barren-mountainside-high-altitude" then
+					elseif biome_name == "barren-mountainside-high-altitude" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_PEAK
-					elseif current_tile.biome.name == "mountainside-scrub" then
+					elseif biome_name == "mountainside-scrub" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_SCRUB
-					elseif current_tile.biome.name == "mountainside-scrub-low-altitude" then
+					elseif biome_name == "mountainside-scrub-low-altitude" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_SCRUB_LOW
-					elseif current_tile.biome.name == "rugged-mountainside" then
+					elseif biome_name == "rugged-mountainside" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_GRASS
-					elseif current_tile.biome.name == "rugged-mountainside-low-altitude" then
+					elseif biome_name == "rugged-mountainside-low-altitude" then
 						texture_index = TERRAIN_ATLAS_INDEX.MOUNTAIN_GRASS_LOW
-					elseif current_tile.biome.name == "barren-desert" then
+					elseif biome_name == "barren-desert" then
 						texture_index = TERRAIN_ATLAS_INDEX.PLAIN_DESERT
-					elseif current_tile.biome.name == "sand-dunes" then
+					elseif biome_name == "sand-dunes" then
 						texture_index = TERRAIN_ATLAS_INDEX.HILLS_DESERT
 					end
 
 					image:setPixel(temp_i, temp_j, texture_index * image_index_scaler, sprawl_heat, is_sea, 0)
 				end
-			end
+			end)
 
 			local cubemap = love.graphics.newImage(image)
 			cubemap:setFilter("nearest", "nearest")
@@ -1832,30 +1918,32 @@ function gam.draw()
 
 	if PROFILE_FLAG then
 		local profile_rect = ui.fullscreen():subrect(0, 0, 800, 300, "center", "center")
+		local reset_rect = profile_rect:subrect(0, 0, 50, 20, "left", "up")
 		ui.panel(profile_rect)
+		profile_rect.y = profile_rect.y + 20
+		profile_rect.height = profile_rect.height - 20
 
-		local layout = ui.layout_builder()
-			:position(profile_rect.x, profile_rect.y)
-			:spacing(0)
-			:grid(4)
-			:build()
+		uit.table(
+			profile_rect,
+			PROFILER.data,
+			{
+				profiler_column_name,
+				profiler_column_calls,
+				profiler_column_raw_value,
+				profiler_column_average,
+				profiler_column_average_global,
+				profiler_column_ratio
+			},
+			profiler_state
+		)
 
-		local tick_time = PROFILER.data["tick"] or 1
-
-		for tag, value in pairs(PROFILER.data) do
-			if value / tick_time > 0.005 then
-				ut.data_entry_percentage(tag, value / tick_time, layout:next(profile_rect.width / 4, 25), nil, false)
-			end
-		end
-
-		ut.sqrt_number_entry("average tick", (PROFILER.mean["tick"] or 0) * 1000 * 1000,
-			layout:next(profile_rect.width / 4, 25))
-
-		if ut.text_button("RESET", layout:next(profile_rect.width / 4, 25)) then
+		if ut.text_button("RESET", reset_rect) then
 			PROFILER:clear()
 		end
 	end
 end
+
+
 
 -- #################
 -- ### MAP MODES ###
@@ -1898,6 +1986,7 @@ function gam.tile_id_to_color_coords(tile_id)
 
 	return x + fx, y + fy
 end
+
 
 ---Changes the map mode to a new one
 ---@param new_map_mode string Valid map mode ID
