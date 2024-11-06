@@ -5,9 +5,18 @@ local ut = require "game.ui-utils"
 ---@param rect Rect
 ---@param character_id Character
 return function(rect, character_id)
+    if character_id == INVALID_ID then
+        return
+    end
+
     local character = DATA.fatten_pop(character_id)
 
+    if character.race == INVALID_ID then
+        return
+    end
+
     local race = DATA.fatten_race(character.race)
+
 
     local style = ui.style.panel_outline
     if character.rank == CHARACTER_RANK.NOBLE then

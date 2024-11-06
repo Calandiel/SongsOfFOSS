@@ -39,8 +39,8 @@ function ProductionMethod:new(o)
 
 	local output_index = 1
 	for good, amount in pairs(o.outputs) do
-		DATA.production_method_set_outputs_amount(new_id, input_index, amount)
-		DATA.production_method_set_outputs_good(new_id, input_index, good)
+		DATA.production_method_set_outputs_amount(new_id, output_index, amount)
+		DATA.production_method_set_outputs_good(new_id, output_index, good)
 		output_index = output_index + 1
 	end
 

@@ -491,10 +491,10 @@ function world.World:tick()
 			-- update targets from accumulated foraging data
 			local amounts = dbm.total_foraging_amounts(settled_province)
 			dbm.set_foraging_targets(settled_province, amounts)
-			local weight = WORLD.current_tick_in_month % 10
-			if (weight == WORLD.month and weight == (WORLD.year % 12)) then
-				dbm.cultural_foragable_targets(settled_province)
-			end
+			-- local weight = WORLD.current_tick_in_month % 10
+			-- if (weight == WORLD.month and weight == (WORLD.year % 12)) then
+			-- 	dbm.cultural_foragable_targets(settled_province)
+			-- end
 		end
 
 		PROFILER:end_timer("dbm")
@@ -796,7 +796,7 @@ end
 ---@param character Character?
 ---@return boolean
 function world.World:is_player(character)
-	if character == nil then
+	if character == INVALID_ID then
 		return false
 	end
 	if WORLD.player_character == character then

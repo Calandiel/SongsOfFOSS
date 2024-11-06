@@ -675,6 +675,11 @@ object {
         tag { scenario }
     }
     property{
+        name { forage_efficiency }
+        type { float }
+        tag { scenario }
+    }
+    property{
         name { foragers_targets }
         type { array{uint32_t}{base_types::forage_container} }
         tag { scenario }
@@ -1077,7 +1082,17 @@ object {
         tag { scenario }
     }
     property{
+        name { input_scale }
+        type { float }
+        tag { scenario }
+    }
+    property{
         name { production_scale }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { output_scale }
         type { float }
         tag { scenario }
     }

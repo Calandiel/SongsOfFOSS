@@ -35,7 +35,7 @@ function bld.run(province)
 			DATA.building_set_unused(building_id, 0)
 		end
 
-		if DATA.building_get_unused(building_id) > 12 then
+		if DATA.building_get_unused(building_id) > 24 then
 			table.insert(to_destroy, building_id)
 		end
 	end)
@@ -44,6 +44,8 @@ function bld.run(province)
 		-- print(building.type.description .. " was destroyed due to being unused for a long time")
 		economy_effects.destroy_building(building)
 	end
+
+	local primary_race = DATA.realm_get_primary_race(PROVINCE_REALM(province))
 
 	---@type CandidateBuilding[]
 	local candidate_targets_for_replacement = {}
@@ -54,9 +56,11 @@ function bld.run(province)
 
 		local cost = DATA.building_type_get_construction_cost(candidate)
 
-		local potential_income = economy_values.projected_income_building_type_unknown_pop(
+		local potential_income = economy_values.projected_income_building_type(
 			province,
-			candidate
+			candidate,
+			primary_race,
+			false
 		)
 		if potential_income < 0 then
 			return
@@ -81,11 +85,11 @@ function bld.run(province)
 		local production_method = DATA.building_type_get_production_method(building_type)
 		local unused = DATA.building_get_unused(building_id)
 		local old_cost = DATA.building_type_get_construction_cost(building_type)
-		if unused > 6 and number_of_candidates > 0 then
+		if unused > 12 and number_of_candidates > 0 then
 			local _, candidate = tabb.random_select_from_set(candidate_targets_for_replacement)
 			local cost = candidate.cost
 			if old_cost > cost then
-				DATA.building_set_type(building_id, candidate.type)
+				DATA.building_set_current_type(building_id, candidate.type)
 			end
 		end
 	end)

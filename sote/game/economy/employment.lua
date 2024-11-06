@@ -77,17 +77,12 @@ function emp.run(province)
 					end
 				end
 			else
-				local shortage_modifier = economy_values.estimate_shortage(
-					province,
-					production_method
-				)
 				profit =
 					economy_values.projected_income(
 						building_id,
 						DATA.pop_get_race(pop),
 						DATA.pop_get_female(pop),
-						prices,
-						shortage_modifier
+						1
 					)
 				profit = profit + building.subsidy
 			end

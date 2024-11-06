@@ -393,8 +393,6 @@ local function serialize_async(value)
 	-- callback_stack:enqueue_front({ callback = serialize_value, value = value, seen = seen })
 	local first = serialize_value(value, seen)
 	callback_stack:enqueue_front(first)
-	print(first:length())
-	print(callback_stack:length())
 
 
 	local objects_counter = {
@@ -736,19 +734,13 @@ local function deserialize(seen, verbose)
 			tables_queue:dequeue()
 			local prev = tables_queue:peek()
 			if tables_queue:length() <= 0 then
-				print('table is final, returning it ' .. tostring(current_table.data))
 				if current_table.classname then
-					print("there is a classname")
 					if current_table.classkey then
 						current_table.data[current_table.classkey] = current_table.class
 					end
 					coroutine.yield("finished", current_table.deserializer(current_table.data, current_table.class))
 					return "finished", current_table.deserializer(current_table.data, current_table.class)
 				else
-					print("no classname")
-					for k, v in pairs(current_table.data) do
-						print(k, v)
-					end
 					coroutine.yield("finished", current_table.data)
 					return "finished", current_table.data
 				end

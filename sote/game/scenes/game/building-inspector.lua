@@ -457,7 +457,7 @@ function re.draw(gam)
 				---@param k string
 				---@param v number
 				render_closure = function(rect, k, v)
-					ui.centered_text(k, rect)
+					ui.centered_text(DATA.use_case_get_name(k), rect)
 				end,
 				width = 8,
 				---@param k use_case_id
@@ -517,8 +517,14 @@ function re.draw(gam)
 				---@param v number
 				render_closure = function(rect, k, v)
 					local spendings = spent_inputs[k] or 0
-					ut.money_entry("", spendings, rect, ut.to_fixed_point2(spendings)
-					.. MONEY_SYMBOL .. " spent on " .. k .. " inputs", true)
+					ut.money_entry(
+						"",
+						spendings,
+						rect,
+						ut.to_fixed_point2(spendings) .. MONEY_SYMBOL
+						.. " spent on " .. DATA.use_case_get_name(k) .. " inputs\n",
+						true
+					)
 				end,
 				width = 2,
 				---@param k use_case_id

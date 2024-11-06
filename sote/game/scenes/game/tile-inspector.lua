@@ -1142,7 +1142,7 @@ function re.draw(gam)
 
 	local tile_id = gam.clicked_tile_id
 
-	if tile_id == nil then
+	if tile_id == INVALID_ID then
 		return
 	end
 

@@ -138,7 +138,6 @@ local function make_new_realm(capitol_id, race_id, culture, faith)
 			return
 		end
 
-
 		---@type pop_id[]
 		local parents = {}
 

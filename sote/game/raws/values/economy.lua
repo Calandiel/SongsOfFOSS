@@ -75,55 +75,12 @@ function eco_values.get_local_price(province, trade_good)
     return DATA.province_get_local_prices(province, trade_good)
 end
 
----commenting
----@param province province_id
----@param use use_case_id
----@return number sum_of_exponents
----@return number min_price
-local function soft_max_data_for_use(province, use)
-    local min_price = nil
-    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
-        local trade_good = DATA.use_weight_get_trade_good(weight_id)
-        local price = eco_values.get_local_price(province, trade_good)
-        if min_price == nil then
-            min_price = price
-        elseif min_price > price then
-            min_price = price
-        end
-    end)
-
-    local sum = 0
-    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
-        local trade_good = DATA.use_weight_get_trade_good(weight_id)
-        local price = eco_values.get_local_price(province, trade_good)
-        sum = sum + math.exp(-price + min_price)
-    end)
-
-    return sum, min_price
-end
-
 ---calculates price estimation of unit of use
 ---@param province province_id
 ---@param use use_case_id
 ---@return number price
 function eco_values.get_local_price_of_use(province, use)
-    -- local sold = (province.local_production[trade_good] or 0) + (province.local_storage[trade_good] or 0) / 12
-    -- local bought = province.local_consumption[trade_good] or 0
-
-    local sum_of_exponents, min_price = soft_max_data_for_use(province, use)
-
-    -- calculate cost
-    local total_cost = 0
-    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
-        local trade_good = DATA.use_weight_get_trade_good(weight_id)
-        local weight = DATA.use_weight_get_weight(weight_id)
-        local price = eco_values.get_local_price(province, trade_good)
-        local prob_density = math.exp(-price + min_price) / sum_of_exponents
-        local bought = 1 / weight * prob_density
-        total_cost = total_cost + bought * price
-    end)
-
-    return total_cost
+    return DCON.estimate_province_use_price(province, use)
 end
 
 ---calculates price estimation of unit of use given a price table
@@ -221,159 +178,24 @@ end
 
 ---@param province province_id
 ---@param building_type BuildingType
-function eco_values.projected_income_building_type_unknown_pop(province, building_type)
-    local method = DATA.building_type_get_production_method(building_type)
-    local shortage_modifier = eco_values.estimate_shortage(province, method)
-    local income = 0
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local input = DATA.production_method_get_inputs_use(method, i)
-        if input == INVALID_ID then
-            break
-        end
-        local amount = DATA.production_method_get_inputs_amount(method, i)
-        local price = eco_values.get_local_price_of_use(province, input)
-        ---@type number
-        income = income - amount * price
-    end
-
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local output = DATA.production_method_get_outputs_good(method, i)
-        if output == INVALID_ID then
-            break
-        end
-        local amount = DATA.production_method_get_outputs_amount(method, i)
-        local price = eco_values.get_local_price(province, output)
-        ---@type number
-        income = income + amount * price
-    end
-
-    return income * shortage_modifier
-end
-
----@param province province_id
----@param building_type BuildingType
 ---@param race race_id
 ---@param female boolean
+---@return number
 function eco_values.projected_income_building_type(province, building_type, race, female)
-    local method = DATA.building_type_get_production_method(building_type)
-    local shortage_modifier = eco_values.estimate_shortage(province, method)
-
-    local throughput_boost =
-        (1 + DATA.province_get_throughput_boosts(province, method))
-        * eco_values.race_throughput_multiplier(race, female, building_type)
-
-    local input_boost =
-        math.max(0, 1 - DATA.province_get_input_efficiency_boosts(province, method))
-
-    local output_boost =
-        (1 + DATA.province_get_output_efficiency_boosts(province, method))
-        * eco_values.race_output_multiplier(race, female, building_type)
-
-    local income = 0
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local input = DATA.production_method_get_inputs_use(method, i)
-        if input == INVALID_ID then
-            break
-        end
-        local amount = DATA.production_method_get_inputs_amount(method, i) * input_boost
-        local price = eco_values.get_local_price_of_use(province, input)
-        ---@type number
-        income = income - amount * price
-    end
-
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local output = DATA.production_method_get_outputs_good(method, i)
-        if output == INVALID_ID then
-            break
-        end
-        local amount = DATA.production_method_get_outputs_amount(method, i)
-        amount = amount * output_boost
-        local price = eco_values.get_local_price(province, output)
-        ---@type number
-        income = income + amount * price
-    end
-
-    return income * shortage_modifier * throughput_boost
+    return DCON.estimate_building_type_income(province, building_type, race, female)
 end
-
 
 ---Does not account for shortages: displays info based only on prices
 ---@param building Building
 ---@param race race_id
 ---@param female boolean
----@param prices table<trade_good_id, number>
 ---@param throughput_multiplier number
----@return number income, number input_boost, number output_boost, number throughput_boost
-function eco_values.projected_income(building, race, female, prices, throughput_multiplier)
+---@return number income
+function eco_values.projected_income(building, race, female, throughput_multiplier)
     local province = DATA.building_location_get_location(DATA.get_building_location_from_building(building))
     local building_type = DATA.building_get_current_type(building)
-    local method = DATA.building_type_get_production_method(building_type)
 
-    local throughput_boost =
-        (1 + DATA.province_get_throughput_boosts(province, method))
-        * eco_values.race_throughput_multiplier(race, female, building_type)
-    local input_boost =
-        math.max(0, 1 - DATA.province_get_input_efficiency_boosts(province, method))
-    local output_boost =
-        (1 + DATA.province_get_output_efficiency_boosts(province, method))
-        * eco_values.race_output_multiplier(race, female, building_type)
-
-    local income = 0
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local input = DATA.production_method_get_inputs_use(method, i)
-        if input == INVALID_ID then
-            break
-        end
-        local amount = DATA.production_method_get_inputs_amount(method, i)
-        amount = amount * throughput_multiplier * throughput_boost * input_boost
-        local price = eco_values.get_local_price_of_use(province, input)
-        ---@type number
-        income = income - amount * price
-    end
-
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local output = DATA.production_method_get_outputs_good(method, i)
-        if output == INVALID_ID then
-            break
-        end
-        local amount = DATA.production_method_get_outputs_amount(method, i)
-        amount = amount * throughput_multiplier * throughput_boost * output_boost
-        local price = eco_values.get_local_price(province, output)
-        ---@type number
-        income = income + amount * price
-    end
-
-    return income, input_boost, output_boost, throughput_boost
-end
-
----commenting
----@param province province_id
----@param use use_case_id
----@return number
-function eco_values.available_use(province, use)
-    -- calculate min of prices:
-    local sum_of_exponents, min_price = soft_max_data_for_use(province, use)
-
-    -- calculate total amount available for this distribution
-    local available_use = 0
-    -- use is divided between
-    DATA.for_each_use_weight_from_use_case(use, function (weight_id)
-        local trade_good = DATA.use_weight_get_trade_good(weight_id)
-        local weight = DATA.use_weight_get_weight(weight_id)
-
-        local price = eco_values.get_local_price(province, trade_good)
-        local ratio_of_good = math.exp(-price + min_price) / sum_of_exponents
-        local available = (DATA.province_get_local_production(province, trade_good))
-                        - (DATA.province_get_local_consumption(province, trade_good))
-                        + (DATA.province_get_local_storage(province, trade_good))
-
-        local upped_bound = available * weight / ratio_of_good
-
-
-        available_use = available_use + upped_bound
-    end)
-
-    return available_use
+    return eco_values.projected_income_building_type(province, building_type, race, female)
 end
 
 ---returns total amount of unit of use in local stockpile
@@ -389,24 +211,6 @@ function eco_values.get_local_amount_of_use(province, use)
     end
 
     return total_amount
-end
-
----Estimates shortage_modifier
----@param method production_method_id
-function eco_values.estimate_shortage(province, method)
-    local input_satisfaction = 1
-    for i = 1, MAX_SIZE_ARRAYS_PRODUCTION_METHOD - 1 do
-        local input = DATA.production_method_get_inputs_use(method, i)
-        if input == INVALID_ID then
-            break
-        end
-        local required_input = DATA.production_method_get_inputs_amount(method, i)
-        local available = eco_values.available_use(province, input)
-        local ratio = math.max(0, available) / required_input
-        input_satisfaction = math.min(input_satisfaction, ratio)
-    end
-
-    return math.min(1, input_satisfaction)
 end
 
 ---Returns total food supply from warband

@@ -11,9 +11,9 @@ function ev.draw(gam)
 	if WORLD.pending_player_event_reaction then
 		local peek = WORLD.events_queue:peek()
 
-		local event_string = peek[1]
-		local character = peek[2]
-		local dat = peek[3]
+		local event_string = peek.event_tag
+		local character = peek.root
+		local dat = peek.event_data
 
 		-- print(event_string)
 		-- print(NAME(character))

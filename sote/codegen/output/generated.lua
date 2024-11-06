@@ -2062,21 +2062,21 @@ end
 ---@return number traditional_forager_targets a culture's prefered foraging targets
 function DATA.culture_get_traditional_forager_targets(culture_id, index)
     assert(index ~= 0)
-    return DCON.dcon_culture_get_traditional_forager_targets(culture_id - 1, index - 1)
+    return DCON.dcon_culture_get_traditional_forager_targets(culture_id - 1, index)
 end
 ---@param culture_id culture_id valid culture id
 ---@param index FORAGE_RESOURCE valid index
 ---@param value number valid number
 function DATA.culture_set_traditional_forager_targets(culture_id, index, value)
-    DCON.dcon_culture_set_traditional_forager_targets(culture_id - 1, index - 1, value)
+    DCON.dcon_culture_set_traditional_forager_targets(culture_id - 1, index, value)
 end
 ---@param culture_id culture_id valid culture id
 ---@param index FORAGE_RESOURCE valid index
 ---@param value number valid number
 function DATA.culture_inc_traditional_forager_targets(culture_id, index, value)
     ---@type number
-    local current = DCON.dcon_culture_get_traditional_forager_targets(culture_id - 1, index - 1)
-    DCON.dcon_culture_set_traditional_forager_targets(culture_id - 1, index - 1, current + value)
+    local current = DCON.dcon_culture_get_traditional_forager_targets(culture_id - 1, index)
+    DCON.dcon_culture_set_traditional_forager_targets(culture_id - 1, index, current + value)
 end
 
 local fat_culture_id_metatable = {
@@ -3638,6 +3638,7 @@ end
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
+---@field forage_efficiency number 
 ---@field mood number how local population thinks about the state
 ---@field on_a_river boolean 
 ---@field on_a_forest boolean 
@@ -3679,6 +3680,7 @@ end
 ---@field foragers number Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 ---@field foragers_water number amount foraged by pops and characters
 ---@field foragers_limit number amount of calories foraged by pops and characters
+---@field forage_efficiency number 
 ---@field foragers_targets table<number, struct_forage_container> 
 ---@field local_resources table<number, struct_resource_location> An array of local resources and their positions
 ---@field mood number how local population thinks about the state
@@ -3779,6 +3781,8 @@ void dcon_province_set_foragers_water(int32_t, float);
 float dcon_province_get_foragers_water(int32_t);
 void dcon_province_set_foragers_limit(int32_t, float);
 float dcon_province_get_foragers_limit(int32_t);
+void dcon_province_set_forage_efficiency(int32_t, float);
+float dcon_province_get_forage_efficiency(int32_t);
 void dcon_province_resize_foragers_targets(uint32_t);
 forage_container* dcon_province_get_foragers_targets(int32_t, int32_t);
 void dcon_province_resize_local_resources(uint32_t);
@@ -4542,6 +4546,23 @@ function DATA.province_inc_foragers_limit(province_id, value)
     DCON.dcon_province_set_foragers_limit(province_id - 1, current + value)
 end
 ---@param province_id province_id valid province id
+---@return number forage_efficiency 
+function DATA.province_get_forage_efficiency(province_id)
+    return DCON.dcon_province_get_forage_efficiency(province_id - 1)
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_set_forage_efficiency(province_id, value)
+    DCON.dcon_province_set_forage_efficiency(province_id - 1, value)
+end
+---@param province_id province_id valid province id
+---@param value number valid number
+function DATA.province_inc_forage_efficiency(province_id, value)
+    ---@type number
+    local current = DCON.dcon_province_get_forage_efficiency(province_id - 1)
+    DCON.dcon_province_set_forage_efficiency(province_id - 1, current + value)
+end
+---@param province_id province_id valid province id
 ---@param index number valid
 ---@return trade_good_id foragers_targets 
 function DATA.province_get_foragers_targets_output_good(province_id, index)
@@ -4780,6 +4801,7 @@ local fat_province_id_metatable = {
         if (k == "foragers") then return DATA.province_get_foragers(t.id) end
         if (k == "foragers_water") then return DATA.province_get_foragers_water(t.id) end
         if (k == "foragers_limit") then return DATA.province_get_foragers_limit(t.id) end
+        if (k == "forage_efficiency") then return DATA.province_get_forage_efficiency(t.id) end
         if (k == "mood") then return DATA.province_get_mood(t.id) end
         if (k == "on_a_river") then return DATA.province_get_on_a_river(t.id) end
         if (k == "on_a_forest") then return DATA.province_get_on_a_forest(t.id) end
@@ -4868,6 +4890,10 @@ local fat_province_id_metatable = {
         end
         if (k == "foragers_limit") then
             DATA.province_set_foragers_limit(t.id, v)
+            return
+        end
+        if (k == "forage_efficiency") then
+            DATA.province_set_forage_efficiency(t.id, v)
             return
         end
         if (k == "mood") then
@@ -5683,63 +5709,63 @@ end
 ---@return number budget_spending_by_category 
 function DATA.realm_get_budget_spending_by_category(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget_spending_by_category(realm_id - 1, index - 1)
+    return DCON.dcon_realm_get_budget_spending_by_category(realm_id - 1, index)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid index
 ---@param value number valid number
 function DATA.realm_set_budget_spending_by_category(realm_id, index, value)
-    DCON.dcon_realm_set_budget_spending_by_category(realm_id - 1, index - 1, value)
+    DCON.dcon_realm_set_budget_spending_by_category(realm_id - 1, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_spending_by_category(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget_spending_by_category(realm_id - 1, index - 1)
-    DCON.dcon_realm_set_budget_spending_by_category(realm_id - 1, index - 1, current + value)
+    local current = DCON.dcon_realm_get_budget_spending_by_category(realm_id - 1, index)
+    DCON.dcon_realm_set_budget_spending_by_category(realm_id - 1, index, current + value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
 ---@return number budget_income_by_category 
 function DATA.realm_get_budget_income_by_category(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget_income_by_category(realm_id - 1, index - 1)
+    return DCON.dcon_realm_get_budget_income_by_category(realm_id - 1, index)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid index
 ---@param value number valid number
 function DATA.realm_set_budget_income_by_category(realm_id, index, value)
-    DCON.dcon_realm_set_budget_income_by_category(realm_id - 1, index - 1, value)
+    DCON.dcon_realm_set_budget_income_by_category(realm_id - 1, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_income_by_category(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget_income_by_category(realm_id - 1, index - 1)
-    DCON.dcon_realm_set_budget_income_by_category(realm_id - 1, index - 1, current + value)
+    local current = DCON.dcon_realm_get_budget_income_by_category(realm_id - 1, index)
+    DCON.dcon_realm_set_budget_income_by_category(realm_id - 1, index, current + value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid
 ---@return number budget_treasury_change_by_category 
 function DATA.realm_get_budget_treasury_change_by_category(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget_treasury_change_by_category(realm_id - 1, index - 1)
+    return DCON.dcon_realm_get_budget_treasury_change_by_category(realm_id - 1, index)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid index
 ---@param value number valid number
 function DATA.realm_set_budget_treasury_change_by_category(realm_id, index, value)
-    DCON.dcon_realm_set_budget_treasury_change_by_category(realm_id - 1, index - 1, value)
+    DCON.dcon_realm_set_budget_treasury_change_by_category(realm_id - 1, index, value)
 end
 ---@param realm_id realm_id valid realm id
 ---@param index ECONOMY_REASON valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_treasury_change_by_category(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget_treasury_change_by_category(realm_id - 1, index - 1)
-    DCON.dcon_realm_set_budget_treasury_change_by_category(realm_id - 1, index - 1, current + value)
+    local current = DCON.dcon_realm_get_budget_treasury_change_by_category(realm_id - 1, index)
+    DCON.dcon_realm_set_budget_treasury_change_by_category(realm_id - 1, index, current + value)
 end
 ---@param realm_id realm_id valid realm id
 ---@return number budget_treasury 
@@ -5780,84 +5806,84 @@ end
 ---@return number budget 
 function DATA.realm_get_budget_ratio(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].ratio
+    return DCON.dcon_realm_get_budget(realm_id - 1, index)[0].ratio
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
 ---@return number budget 
 function DATA.realm_get_budget_budget(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].budget
+    return DCON.dcon_realm_get_budget(realm_id - 1, index)[0].budget
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
 ---@return number budget 
 function DATA.realm_get_budget_to_be_invested(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].to_be_invested
+    return DCON.dcon_realm_get_budget(realm_id - 1, index)[0].to_be_invested
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid
 ---@return number budget 
 function DATA.realm_get_budget_target(realm_id, index)
     assert(index ~= 0)
-    return DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].target
+    return DCON.dcon_realm_get_budget(realm_id - 1, index)[0].target
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_set_budget_ratio(realm_id, index, value)
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].ratio = value
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].ratio = value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_ratio(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].ratio
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].ratio = current + value
+    local current = DCON.dcon_realm_get_budget(realm_id - 1, index)[0].ratio
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].ratio = current + value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_set_budget_budget(realm_id, index, value)
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].budget = value
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].budget = value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_budget(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].budget
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].budget = current + value
+    local current = DCON.dcon_realm_get_budget(realm_id - 1, index)[0].budget
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].budget = current + value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_set_budget_to_be_invested(realm_id, index, value)
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].to_be_invested = value
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].to_be_invested = value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_to_be_invested(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].to_be_invested
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].to_be_invested = current + value
+    local current = DCON.dcon_realm_get_budget(realm_id - 1, index)[0].to_be_invested
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].to_be_invested = current + value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_set_budget_target(realm_id, index, value)
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].target = value
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].target = value
 end
 ---@param realm_id realm_id valid realm id
 ---@param index BUDGET_CATEGORY valid index
 ---@param value number valid number
 function DATA.realm_inc_budget_target(realm_id, index, value)
     ---@type number
-    local current = DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].target
-    DCON.dcon_realm_get_budget(realm_id - 1, index - 1)[0].target = current + value
+    local current = DCON.dcon_realm_get_budget(realm_id - 1, index)[0].target
+    DCON.dcon_realm_get_budget(realm_id - 1, index)[0].target = current + value
 end
 ---@param realm_id realm_id valid realm id
 ---@return number budget_tax_target 
@@ -6911,7 +6937,9 @@ end
 ---@field last_donation_to_owner number 
 ---@field unused number 
 ---@field work_ratio number 
+---@field input_scale number 
 ---@field production_scale number 
+---@field output_scale number 
 
 ---@class struct_building
 ---@field current_type building_type_id 
@@ -6923,7 +6951,9 @@ end
 ---@field last_donation_to_owner number 
 ---@field unused number 
 ---@field work_ratio number 
+---@field input_scale number 
 ---@field production_scale number 
+---@field output_scale number 
 ---@field spent_on_inputs table<number, struct_use_case_container> 
 ---@field earn_from_outputs table<number, struct_trade_good_container> 
 ---@field amount_of_inputs table<number, struct_use_case_container> 
@@ -6950,8 +6980,12 @@ void dcon_building_set_unused(int32_t, float);
 float dcon_building_get_unused(int32_t);
 void dcon_building_set_work_ratio(int32_t, float);
 float dcon_building_get_work_ratio(int32_t);
+void dcon_building_set_input_scale(int32_t, float);
+float dcon_building_get_input_scale(int32_t);
 void dcon_building_set_production_scale(int32_t, float);
 float dcon_building_get_production_scale(int32_t);
+void dcon_building_set_output_scale(int32_t, float);
+float dcon_building_get_output_scale(int32_t);
 void dcon_building_resize_spent_on_inputs(uint32_t);
 use_case_container* dcon_building_get_spent_on_inputs(int32_t, int32_t);
 void dcon_building_resize_earn_from_outputs(uint32_t);
@@ -7159,6 +7193,23 @@ function DATA.building_inc_work_ratio(building_id, value)
     DCON.dcon_building_set_work_ratio(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
+---@return number input_scale 
+function DATA.building_get_input_scale(building_id)
+    return DCON.dcon_building_get_input_scale(building_id - 1)
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_input_scale(building_id, value)
+    DCON.dcon_building_set_input_scale(building_id - 1, value)
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_inc_input_scale(building_id, value)
+    ---@type number
+    local current = DCON.dcon_building_get_input_scale(building_id - 1)
+    DCON.dcon_building_set_input_scale(building_id - 1, current + value)
+end
+---@param building_id building_id valid building id
 ---@return number production_scale 
 function DATA.building_get_production_scale(building_id)
     return DCON.dcon_building_get_production_scale(building_id - 1)
@@ -7174,6 +7225,23 @@ function DATA.building_inc_production_scale(building_id, value)
     ---@type number
     local current = DCON.dcon_building_get_production_scale(building_id - 1)
     DCON.dcon_building_set_production_scale(building_id - 1, current + value)
+end
+---@param building_id building_id valid building id
+---@return number output_scale 
+function DATA.building_get_output_scale(building_id)
+    return DCON.dcon_building_get_output_scale(building_id - 1)
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_set_output_scale(building_id, value)
+    DCON.dcon_building_set_output_scale(building_id - 1, value)
+end
+---@param building_id building_id valid building id
+---@param value number valid number
+function DATA.building_inc_output_scale(building_id, value)
+    ---@type number
+    local current = DCON.dcon_building_get_output_scale(building_id - 1)
+    DCON.dcon_building_set_output_scale(building_id - 1, current + value)
 end
 ---@param building_id building_id valid building id
 ---@param index number valid
@@ -7344,7 +7412,9 @@ local fat_building_id_metatable = {
         if (k == "last_donation_to_owner") then return DATA.building_get_last_donation_to_owner(t.id) end
         if (k == "unused") then return DATA.building_get_unused(t.id) end
         if (k == "work_ratio") then return DATA.building_get_work_ratio(t.id) end
+        if (k == "input_scale") then return DATA.building_get_input_scale(t.id) end
         if (k == "production_scale") then return DATA.building_get_production_scale(t.id) end
+        if (k == "output_scale") then return DATA.building_get_output_scale(t.id) end
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
@@ -7384,8 +7454,16 @@ local fat_building_id_metatable = {
             DATA.building_set_work_ratio(t.id, v)
             return
         end
+        if (k == "input_scale") then
+            DATA.building_set_input_scale(t.id, v)
+            return
+        end
         if (k == "production_scale") then
             DATA.building_set_production_scale(t.id, v)
+            return
+        end
+        if (k == "output_scale") then
+            DATA.building_set_output_scale(t.id, v)
             return
         end
         rawset(t, k, v)
@@ -21793,42 +21871,42 @@ end
 ---@return number female_efficiency 
 function DATA.race_get_female_efficiency(race_id, index)
     assert(index ~= 0)
-    return DCON.dcon_race_get_female_efficiency(race_id - 1, index - 1)
+    return DCON.dcon_race_get_female_efficiency(race_id - 1, index)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid index
 ---@param value number valid number
 function DATA.race_set_female_efficiency(race_id, index, value)
-    DCON.dcon_race_set_female_efficiency(race_id - 1, index - 1, value)
+    DCON.dcon_race_set_female_efficiency(race_id - 1, index, value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid index
 ---@param value number valid number
 function DATA.race_inc_female_efficiency(race_id, index, value)
     ---@type number
-    local current = DCON.dcon_race_get_female_efficiency(race_id - 1, index - 1)
-    DCON.dcon_race_set_female_efficiency(race_id - 1, index - 1, current + value)
+    local current = DCON.dcon_race_get_female_efficiency(race_id - 1, index)
+    DCON.dcon_race_set_female_efficiency(race_id - 1, index, current + value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid
 ---@return number male_efficiency 
 function DATA.race_get_male_efficiency(race_id, index)
     assert(index ~= 0)
-    return DCON.dcon_race_get_male_efficiency(race_id - 1, index - 1)
+    return DCON.dcon_race_get_male_efficiency(race_id - 1, index)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid index
 ---@param value number valid number
 function DATA.race_set_male_efficiency(race_id, index, value)
-    DCON.dcon_race_set_male_efficiency(race_id - 1, index - 1, value)
+    DCON.dcon_race_set_male_efficiency(race_id - 1, index, value)
 end
 ---@param race_id race_id valid race id
 ---@param index JOBTYPE valid index
 ---@param value number valid number
 function DATA.race_inc_male_efficiency(race_id, index, value)
     ---@type number
-    local current = DCON.dcon_race_get_male_efficiency(race_id - 1, index - 1)
-    DCON.dcon_race_set_male_efficiency(race_id - 1, index - 1, current + value)
+    local current = DCON.dcon_race_get_male_efficiency(race_id - 1, index)
+    DCON.dcon_race_set_male_efficiency(race_id - 1, index, current + value)
 end
 ---@param race_id race_id valid race id
 ---@return number female_infrastructure_needs 
@@ -22752,33 +22830,34 @@ function DATA.test_set_get_0()
     fat_id.foragers = 20
     fat_id.foragers_water = -7
     fat_id.foragers_limit = 15
+    fat_id.forage_efficiency = 10
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_good(id, j, 10)
+        DATA.province_set_foragers_targets_output_good(id, j, 8)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_value(id, j, 8)
+        DATA.province_set_foragers_targets_output_value(id, j, 13)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_amount(id, j, 13)
+        DATA.province_set_foragers_targets_amount(id, j, -4)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_forage(id, j, 4)
+        DATA.province_set_foragers_targets_forage(id, j, 0)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_resource(id, j, -17)
+        DATA.province_set_local_resources_resource(id, j, 15)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_location(id, j, 15)
+        DATA.province_set_local_resources_location(id, j, -20)
     end
-    fat_id.mood = -20
+    fat_id.mood = -15
     for j = 1, 20 do
-        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  2)    end
+        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  12)    end
     for j = 1, 250 do
-        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  5)    end
+        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  20)    end
     for j = 1, 250 do
-        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  20)    end
+        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  -20)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  -20)    end
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  19)    end
     fat_id.on_a_river = false
     fat_id.on_a_forest = false
     local test_passed = true
@@ -22886,48 +22965,50 @@ function DATA.test_set_get_0()
     if not test_passed then print("foragers_water", -7, fat_id.foragers_water) end
     test_passed = test_passed and fat_id.foragers_limit == 15
     if not test_passed then print("foragers_limit", 15, fat_id.foragers_limit) end
+    test_passed = test_passed and fat_id.forage_efficiency == 10
+    if not test_passed then print("forage_efficiency", 10, fat_id.forage_efficiency) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 10
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 8
     end
-    if not test_passed then print("foragers_targets.output_good", 10, DATA.province[id].foragers_targets[0].output_good) end
+    if not test_passed then print("foragers_targets.output_good", 8, DATA.province[id].foragers_targets[0].output_good) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 8
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 13
     end
-    if not test_passed then print("foragers_targets.output_value", 8, DATA.province[id].foragers_targets[0].output_value) end
+    if not test_passed then print("foragers_targets.output_value", 13, DATA.province[id].foragers_targets[0].output_value) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == 13
+        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == -4
     end
-    if not test_passed then print("foragers_targets.amount", 13, DATA.province[id].foragers_targets[0].amount) end
+    if not test_passed then print("foragers_targets.amount", -4, DATA.province[id].foragers_targets[0].amount) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 4
+        test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 0
     end
-    if not test_passed then print("foragers_targets.forage", 4, DATA.province[id].foragers_targets[0].forage) end
+    if not test_passed then print("foragers_targets.forage", 0, DATA.province[id].foragers_targets[0].forage) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == -17
+        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 15
     end
-    if not test_passed then print("local_resources.resource", -17, DATA.province[id].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 15, DATA.province[id].local_resources[0].resource) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 15
+        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == -20
     end
-    if not test_passed then print("local_resources.location", 15, DATA.province[id].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == -20
-    if not test_passed then print("mood", -20, fat_id.mood) end
+    if not test_passed then print("local_resources.location", -20, DATA.province[id].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == -15
+    if not test_passed then print("mood", -15, fat_id.mood) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 2
+        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 12
     end
-    if not test_passed then print("unit_types", 2, DATA.province[id].unit_types[0]) end
+    if not test_passed then print("unit_types", 12, DATA.province[id].unit_types[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == 5
+        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == 20
     end
-    if not test_passed then print("throughput_boosts", 5, DATA.province[id].throughput_boosts[0]) end
+    if not test_passed then print("throughput_boosts", 20, DATA.province[id].throughput_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == 20
+        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == -20
     end
-    if not test_passed then print("input_efficiency_boosts", 20, DATA.province[id].input_efficiency_boosts[0]) end
+    if not test_passed then print("input_efficiency_boosts", -20, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == -20
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 19
     end
-    if not test_passed then print("output_efficiency_boosts", -20, DATA.province[id].output_efficiency_boosts[0]) end
+    if not test_passed then print("output_efficiency_boosts", 19, DATA.province[id].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == false
     if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == false
@@ -23174,33 +23255,35 @@ function DATA.test_set_get_0()
     fat_id.last_donation_to_owner = 5
     fat_id.unused = -1
     fat_id.work_ratio = 10
-    fat_id.production_scale = 2
+    fat_id.input_scale = 2
+    fat_id.production_scale = 17
+    fat_id.output_scale = -7
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_use(id, j, 17)
+        DATA.building_set_spent_on_inputs_use(id, j, 12)
     end
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_amount(id, j, -7)
+        DATA.building_set_spent_on_inputs_amount(id, j, -12)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_good(id, j, 12)
+        DATA.building_set_earn_from_outputs_good(id, j, -2)
     end
     for j = 1, 8 do
         DATA.building_set_earn_from_outputs_amount(id, j, -12)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_use(id, j, -2)
+        DATA.building_set_amount_of_inputs_use(id, j, -14)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_amount(id, j, -12)
+        DATA.building_set_amount_of_inputs_amount(id, j, 19)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_good(id, j, -14)
+        DATA.building_set_amount_of_outputs_good(id, j, -4)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_amount(id, j, 19)
+        DATA.building_set_amount_of_outputs_amount(id, j, 14)
     end
     for j = 1, 100 do
-        DATA.building_set_inventory(id, j --[[@as trade_good_id]],  -4)    end
+        DATA.building_set_inventory(id, j --[[@as trade_good_id]],  18)    end
     local test_passed = true
     test_passed = test_passed and fat_id.current_type == 4
     if not test_passed then print("current_type", 4, fat_id.current_type) end
@@ -23220,44 +23303,48 @@ function DATA.test_set_get_0()
     if not test_passed then print("unused", -1, fat_id.unused) end
     test_passed = test_passed and fat_id.work_ratio == 10
     if not test_passed then print("work_ratio", 10, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.production_scale == 2
-    if not test_passed then print("production_scale", 2, fat_id.production_scale) end
+    test_passed = test_passed and fat_id.input_scale == 2
+    if not test_passed then print("input_scale", 2, fat_id.input_scale) end
+    test_passed = test_passed and fat_id.production_scale == 17
+    if not test_passed then print("production_scale", 17, fat_id.production_scale) end
+    test_passed = test_passed and fat_id.output_scale == -7
+    if not test_passed then print("output_scale", -7, fat_id.output_scale) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == 17
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == 12
     end
-    if not test_passed then print("spent_on_inputs.use", 17, DATA.building[id].spent_on_inputs[0].use) end
+    if not test_passed then print("spent_on_inputs.use", 12, DATA.building[id].spent_on_inputs[0].use) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == -7
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == -12
     end
-    if not test_passed then print("spent_on_inputs.amount", -7, DATA.building[id].spent_on_inputs[0].amount) end
+    if not test_passed then print("spent_on_inputs.amount", -12, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 12
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == -2
     end
-    if not test_passed then print("earn_from_outputs.good", 12, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", -2, DATA.building[id].earn_from_outputs[0].good) end
     for j = 1, 8 do
         test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == -12
     end
     if not test_passed then print("earn_from_outputs.amount", -12, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == -2
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == -14
     end
-    if not test_passed then print("amount_of_inputs.use", -2, DATA.building[id].amount_of_inputs[0].use) end
+    if not test_passed then print("amount_of_inputs.use", -14, DATA.building[id].amount_of_inputs[0].use) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == -12
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == 19
     end
-    if not test_passed then print("amount_of_inputs.amount", -12, DATA.building[id].amount_of_inputs[0].amount) end
+    if not test_passed then print("amount_of_inputs.amount", 19, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == -14
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == -4
     end
-    if not test_passed then print("amount_of_outputs.good", -14, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", -4, DATA.building[id].amount_of_outputs[0].good) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 19
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 14
     end
-    if not test_passed then print("amount_of_outputs.amount", 19, DATA.building[id].amount_of_outputs[0].amount) end
+    if not test_passed then print("amount_of_outputs.amount", 14, DATA.building[id].amount_of_outputs[0].amount) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.building_get_inventory(id, j --[[@as trade_good_id]]) == -4
+        test_passed = test_passed and DATA.building_get_inventory(id, j --[[@as trade_good_id]]) == 18
     end
-    if not test_passed then print("inventory", -4, DATA.building[id].inventory[0]) end
+    if not test_passed then print("inventory", 18, DATA.building[id].inventory[0]) end
     print("SET_GET_TEST_0_building:")
     if test_passed then print("PASSED") else print("ERROR") end
 end
@@ -23633,35 +23720,36 @@ function DATA.test_set_get_1()
     fat_id.foragers = -6
     fat_id.foragers_water = 8
     fat_id.foragers_limit = 11
+    fat_id.forage_efficiency = 15
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_good(id, j, 15)
+        DATA.province_set_foragers_targets_output_good(id, j, -6)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_value(id, j, -6)
+        DATA.province_set_foragers_targets_output_value(id, j, 2)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_amount(id, j, 2)
+        DATA.province_set_foragers_targets_amount(id, j, -6)
     end
     for j = 1, 25 do
         DATA.province_set_foragers_targets_forage(id, j, 3)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_resource(id, j, -6)
+        DATA.province_set_local_resources_resource(id, j, 9)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_location(id, j, 9)
+        DATA.province_set_local_resources_location(id, j, -2)
     end
-    fat_id.mood = -2
+    fat_id.mood = -19
     for j = 1, 20 do
-        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  0)    end
+        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  13)    end
     for j = 1, 250 do
-        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  6)    end
+        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  15)    end
     for j = 1, 250 do
-        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  15)    end
+        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  -14)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  -14)    end
-    fat_id.on_a_river = true
-    fat_id.on_a_forest = false
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  -9)    end
+    fat_id.on_a_river = false
+    fat_id.on_a_forest = true
     local test_passed = true
     test_passed = test_passed and fat_id.r == -12
     if not test_passed then print("r", -12, fat_id.r) end
@@ -23767,52 +23855,54 @@ function DATA.test_set_get_1()
     if not test_passed then print("foragers_water", 8, fat_id.foragers_water) end
     test_passed = test_passed and fat_id.foragers_limit == 11
     if not test_passed then print("foragers_limit", 11, fat_id.foragers_limit) end
+    test_passed = test_passed and fat_id.forage_efficiency == 15
+    if not test_passed then print("forage_efficiency", 15, fat_id.forage_efficiency) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 15
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == -6
     end
-    if not test_passed then print("foragers_targets.output_good", 15, DATA.province[id].foragers_targets[0].output_good) end
+    if not test_passed then print("foragers_targets.output_good", -6, DATA.province[id].foragers_targets[0].output_good) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == -6
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 2
     end
-    if not test_passed then print("foragers_targets.output_value", -6, DATA.province[id].foragers_targets[0].output_value) end
+    if not test_passed then print("foragers_targets.output_value", 2, DATA.province[id].foragers_targets[0].output_value) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == 2
+        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == -6
     end
-    if not test_passed then print("foragers_targets.amount", 2, DATA.province[id].foragers_targets[0].amount) end
+    if not test_passed then print("foragers_targets.amount", -6, DATA.province[id].foragers_targets[0].amount) end
     for j = 1, 25 do
         test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 3
     end
     if not test_passed then print("foragers_targets.forage", 3, DATA.province[id].foragers_targets[0].forage) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == -6
+        test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 9
     end
-    if not test_passed then print("local_resources.resource", -6, DATA.province[id].local_resources[0].resource) end
+    if not test_passed then print("local_resources.resource", 9, DATA.province[id].local_resources[0].resource) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 9
+        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == -2
     end
-    if not test_passed then print("local_resources.location", 9, DATA.province[id].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == -2
-    if not test_passed then print("mood", -2, fat_id.mood) end
+    if not test_passed then print("local_resources.location", -2, DATA.province[id].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == -19
+    if not test_passed then print("mood", -19, fat_id.mood) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 0
+        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 13
     end
-    if not test_passed then print("unit_types", 0, DATA.province[id].unit_types[0]) end
+    if not test_passed then print("unit_types", 13, DATA.province[id].unit_types[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == 6
+        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == 15
     end
-    if not test_passed then print("throughput_boosts", 6, DATA.province[id].throughput_boosts[0]) end
+    if not test_passed then print("throughput_boosts", 15, DATA.province[id].throughput_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == 15
+        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == -14
     end
-    if not test_passed then print("input_efficiency_boosts", 15, DATA.province[id].input_efficiency_boosts[0]) end
+    if not test_passed then print("input_efficiency_boosts", -14, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == -14
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == -9
     end
-    if not test_passed then print("output_efficiency_boosts", -14, DATA.province[id].output_efficiency_boosts[0]) end
-    test_passed = test_passed and fat_id.on_a_river == true
-    if not test_passed then print("on_a_river", true, fat_id.on_a_river) end
-    test_passed = test_passed and fat_id.on_a_forest == false
-    if not test_passed then print("on_a_forest", false, fat_id.on_a_forest) end
+    if not test_passed then print("output_efficiency_boosts", -9, DATA.province[id].output_efficiency_boosts[0]) end
+    test_passed = test_passed and fat_id.on_a_river == false
+    if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
+    test_passed = test_passed and fat_id.on_a_forest == true
+    if not test_passed then print("on_a_forest", true, fat_id.on_a_forest) end
     print("SET_GET_TEST_1_province:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_army()
@@ -24055,33 +24145,35 @@ function DATA.test_set_get_1()
     fat_id.last_donation_to_owner = 8
     fat_id.unused = 10
     fat_id.work_ratio = 4
-    fat_id.production_scale = -7
+    fat_id.input_scale = -7
+    fat_id.production_scale = -14
+    fat_id.output_scale = 11
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_use(id, j, -14)
+        DATA.building_set_spent_on_inputs_use(id, j, -19)
     end
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_amount(id, j, 11)
+        DATA.building_set_spent_on_inputs_amount(id, j, 4)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_good(id, j, -19)
+        DATA.building_set_earn_from_outputs_good(id, j, 7)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_amount(id, j, 4)
+        DATA.building_set_earn_from_outputs_amount(id, j, 18)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_use(id, j, 7)
+        DATA.building_set_amount_of_inputs_use(id, j, -20)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_amount(id, j, 18)
+        DATA.building_set_amount_of_inputs_amount(id, j, 8)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_good(id, j, -20)
+        DATA.building_set_amount_of_outputs_good(id, j, -3)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_amount(id, j, 8)
+        DATA.building_set_amount_of_outputs_amount(id, j, -6)
     end
     for j = 1, 100 do
-        DATA.building_set_inventory(id, j --[[@as trade_good_id]],  -3)    end
+        DATA.building_set_inventory(id, j --[[@as trade_good_id]],  17)    end
     local test_passed = true
     test_passed = test_passed and fat_id.current_type == -12
     if not test_passed then print("current_type", -12, fat_id.current_type) end
@@ -24101,44 +24193,48 @@ function DATA.test_set_get_1()
     if not test_passed then print("unused", 10, fat_id.unused) end
     test_passed = test_passed and fat_id.work_ratio == 4
     if not test_passed then print("work_ratio", 4, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.production_scale == -7
-    if not test_passed then print("production_scale", -7, fat_id.production_scale) end
+    test_passed = test_passed and fat_id.input_scale == -7
+    if not test_passed then print("input_scale", -7, fat_id.input_scale) end
+    test_passed = test_passed and fat_id.production_scale == -14
+    if not test_passed then print("production_scale", -14, fat_id.production_scale) end
+    test_passed = test_passed and fat_id.output_scale == 11
+    if not test_passed then print("output_scale", 11, fat_id.output_scale) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == -14
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == -19
     end
-    if not test_passed then print("spent_on_inputs.use", -14, DATA.building[id].spent_on_inputs[0].use) end
+    if not test_passed then print("spent_on_inputs.use", -19, DATA.building[id].spent_on_inputs[0].use) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == 11
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == 4
     end
-    if not test_passed then print("spent_on_inputs.amount", 11, DATA.building[id].spent_on_inputs[0].amount) end
+    if not test_passed then print("spent_on_inputs.amount", 4, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == -19
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 7
     end
-    if not test_passed then print("earn_from_outputs.good", -19, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", 7, DATA.building[id].earn_from_outputs[0].good) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == 4
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == 18
     end
-    if not test_passed then print("earn_from_outputs.amount", 4, DATA.building[id].earn_from_outputs[0].amount) end
+    if not test_passed then print("earn_from_outputs.amount", 18, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == 7
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == -20
     end
-    if not test_passed then print("amount_of_inputs.use", 7, DATA.building[id].amount_of_inputs[0].use) end
+    if not test_passed then print("amount_of_inputs.use", -20, DATA.building[id].amount_of_inputs[0].use) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == 18
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == 8
     end
-    if not test_passed then print("amount_of_inputs.amount", 18, DATA.building[id].amount_of_inputs[0].amount) end
+    if not test_passed then print("amount_of_inputs.amount", 8, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == -20
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == -3
     end
-    if not test_passed then print("amount_of_outputs.good", -20, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", -3, DATA.building[id].amount_of_outputs[0].good) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 8
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == -6
     end
-    if not test_passed then print("amount_of_outputs.amount", 8, DATA.building[id].amount_of_outputs[0].amount) end
+    if not test_passed then print("amount_of_outputs.amount", -6, DATA.building[id].amount_of_outputs[0].amount) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.building_get_inventory(id, j --[[@as trade_good_id]]) == -3
+        test_passed = test_passed and DATA.building_get_inventory(id, j --[[@as trade_good_id]]) == 17
     end
-    if not test_passed then print("inventory", -3, DATA.building[id].inventory[0]) end
+    if not test_passed then print("inventory", 17, DATA.building[id].inventory[0]) end
     print("SET_GET_TEST_1_building:")
     if test_passed then print("PASSED") else print("ERROR") end
 end
@@ -24514,33 +24610,34 @@ function DATA.test_set_get_2()
     fat_id.foragers = -5
     fat_id.foragers_water = -6
     fat_id.foragers_limit = -19
+    fat_id.forage_efficiency = -9
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_good(id, j, -9)
+        DATA.province_set_foragers_targets_output_good(id, j, 0)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_output_value(id, j, 0)
+        DATA.province_set_foragers_targets_output_value(id, j, -9)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_amount(id, j, -9)
+        DATA.province_set_foragers_targets_amount(id, j, -12)
     end
     for j = 1, 25 do
-        DATA.province_set_foragers_targets_forage(id, j, 2)
+        DATA.province_set_foragers_targets_forage(id, j, 8)
     end
     for j = 1, 25 do
         DATA.province_set_local_resources_resource(id, j, 12)
     end
     for j = 1, 25 do
-        DATA.province_set_local_resources_location(id, j, 12)
+        DATA.province_set_local_resources_location(id, j, 3)
     end
-    fat_id.mood = 3
+    fat_id.mood = 12
     for j = 1, 20 do
-        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  16)    end
+        DATA.province_set_unit_types(id, j --[[@as unit_type_id]],  17)    end
     for j = 1, 250 do
-        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  15)    end
+        DATA.province_set_throughput_boosts(id, j --[[@as production_method_id]],  -9)    end
     for j = 1, 250 do
-        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  -9)    end
+        DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  8)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  8)    end
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  6)    end
     fat_id.on_a_river = false
     fat_id.on_a_forest = false
     local test_passed = true
@@ -24648,48 +24745,50 @@ function DATA.test_set_get_2()
     if not test_passed then print("foragers_water", -6, fat_id.foragers_water) end
     test_passed = test_passed and fat_id.foragers_limit == -19
     if not test_passed then print("foragers_limit", -19, fat_id.foragers_limit) end
+    test_passed = test_passed and fat_id.forage_efficiency == -9
+    if not test_passed then print("forage_efficiency", -9, fat_id.forage_efficiency) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == -9
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_good(id, j) == 0
     end
-    if not test_passed then print("foragers_targets.output_good", -9, DATA.province[id].foragers_targets[0].output_good) end
+    if not test_passed then print("foragers_targets.output_good", 0, DATA.province[id].foragers_targets[0].output_good) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == 0
+        test_passed = test_passed and DATA.province_get_foragers_targets_output_value(id, j) == -9
     end
-    if not test_passed then print("foragers_targets.output_value", 0, DATA.province[id].foragers_targets[0].output_value) end
+    if not test_passed then print("foragers_targets.output_value", -9, DATA.province[id].foragers_targets[0].output_value) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == -9
+        test_passed = test_passed and DATA.province_get_foragers_targets_amount(id, j) == -12
     end
-    if not test_passed then print("foragers_targets.amount", -9, DATA.province[id].foragers_targets[0].amount) end
+    if not test_passed then print("foragers_targets.amount", -12, DATA.province[id].foragers_targets[0].amount) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 2
+        test_passed = test_passed and DATA.province_get_foragers_targets_forage(id, j) == 8
     end
-    if not test_passed then print("foragers_targets.forage", 2, DATA.province[id].foragers_targets[0].forage) end
+    if not test_passed then print("foragers_targets.forage", 8, DATA.province[id].foragers_targets[0].forage) end
     for j = 1, 25 do
         test_passed = test_passed and DATA.province_get_local_resources_resource(id, j) == 12
     end
     if not test_passed then print("local_resources.resource", 12, DATA.province[id].local_resources[0].resource) end
     for j = 1, 25 do
-        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 12
+        test_passed = test_passed and DATA.province_get_local_resources_location(id, j) == 3
     end
-    if not test_passed then print("local_resources.location", 12, DATA.province[id].local_resources[0].location) end
-    test_passed = test_passed and fat_id.mood == 3
-    if not test_passed then print("mood", 3, fat_id.mood) end
+    if not test_passed then print("local_resources.location", 3, DATA.province[id].local_resources[0].location) end
+    test_passed = test_passed and fat_id.mood == 12
+    if not test_passed then print("mood", 12, fat_id.mood) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 16
+        test_passed = test_passed and DATA.province_get_unit_types(id, j --[[@as unit_type_id]]) == 17
     end
-    if not test_passed then print("unit_types", 16, DATA.province[id].unit_types[0]) end
+    if not test_passed then print("unit_types", 17, DATA.province[id].unit_types[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == 15
+        test_passed = test_passed and DATA.province_get_throughput_boosts(id, j --[[@as production_method_id]]) == -9
     end
-    if not test_passed then print("throughput_boosts", 15, DATA.province[id].throughput_boosts[0]) end
+    if not test_passed then print("throughput_boosts", -9, DATA.province[id].throughput_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == -9
+        test_passed = test_passed and DATA.province_get_input_efficiency_boosts(id, j --[[@as production_method_id]]) == 8
     end
-    if not test_passed then print("input_efficiency_boosts", -9, DATA.province[id].input_efficiency_boosts[0]) end
+    if not test_passed then print("input_efficiency_boosts", 8, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 8
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 6
     end
-    if not test_passed then print("output_efficiency_boosts", 8, DATA.province[id].output_efficiency_boosts[0]) end
+    if not test_passed then print("output_efficiency_boosts", 6, DATA.province[id].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == false
     if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == false
@@ -24936,33 +25035,35 @@ function DATA.test_set_get_2()
     fat_id.last_donation_to_owner = -4
     fat_id.unused = 18
     fat_id.work_ratio = -7
-    fat_id.production_scale = 18
+    fat_id.input_scale = 18
+    fat_id.production_scale = -18
+    fat_id.output_scale = 17
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_use(id, j, -18)
+        DATA.building_set_spent_on_inputs_use(id, j, -10)
     end
     for j = 1, 8 do
-        DATA.building_set_spent_on_inputs_amount(id, j, 17)
+        DATA.building_set_spent_on_inputs_amount(id, j, 7)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_good(id, j, -10)
+        DATA.building_set_earn_from_outputs_good(id, j, 20)
     end
     for j = 1, 8 do
-        DATA.building_set_earn_from_outputs_amount(id, j, 7)
+        DATA.building_set_earn_from_outputs_amount(id, j, 5)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_use(id, j, 20)
+        DATA.building_set_amount_of_inputs_use(id, j, 12)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_inputs_amount(id, j, 5)
+        DATA.building_set_amount_of_inputs_amount(id, j, 3)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_good(id, j, 12)
+        DATA.building_set_amount_of_outputs_good(id, j, 14)
     end
     for j = 1, 8 do
-        DATA.building_set_amount_of_outputs_amount(id, j, 3)
+        DATA.building_set_amount_of_outputs_amount(id, j, 8)
     end
     for j = 1, 100 do
-        DATA.building_set_inventory(id, j --[[@as trade_good_id]],  14)    end
+        DATA.building_set_inventory(id, j --[[@as trade_good_id]],  12)    end
     local test_passed = true
     test_passed = test_passed and fat_id.current_type == -17
     if not test_passed then print("current_type", -17, fat_id.current_type) end
@@ -24982,44 +25083,48 @@ function DATA.test_set_get_2()
     if not test_passed then print("unused", 18, fat_id.unused) end
     test_passed = test_passed and fat_id.work_ratio == -7
     if not test_passed then print("work_ratio", -7, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.production_scale == 18
-    if not test_passed then print("production_scale", 18, fat_id.production_scale) end
+    test_passed = test_passed and fat_id.input_scale == 18
+    if not test_passed then print("input_scale", 18, fat_id.input_scale) end
+    test_passed = test_passed and fat_id.production_scale == -18
+    if not test_passed then print("production_scale", -18, fat_id.production_scale) end
+    test_passed = test_passed and fat_id.output_scale == 17
+    if not test_passed then print("output_scale", 17, fat_id.output_scale) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == -18
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_use(id, j) == -10
     end
-    if not test_passed then print("spent_on_inputs.use", -18, DATA.building[id].spent_on_inputs[0].use) end
+    if not test_passed then print("spent_on_inputs.use", -10, DATA.building[id].spent_on_inputs[0].use) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == 17
+        test_passed = test_passed and DATA.building_get_spent_on_inputs_amount(id, j) == 7
     end
-    if not test_passed then print("spent_on_inputs.amount", 17, DATA.building[id].spent_on_inputs[0].amount) end
+    if not test_passed then print("spent_on_inputs.amount", 7, DATA.building[id].spent_on_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == -10
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_good(id, j) == 20
     end
-    if not test_passed then print("earn_from_outputs.good", -10, DATA.building[id].earn_from_outputs[0].good) end
+    if not test_passed then print("earn_from_outputs.good", 20, DATA.building[id].earn_from_outputs[0].good) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == 7
+        test_passed = test_passed and DATA.building_get_earn_from_outputs_amount(id, j) == 5
     end
-    if not test_passed then print("earn_from_outputs.amount", 7, DATA.building[id].earn_from_outputs[0].amount) end
+    if not test_passed then print("earn_from_outputs.amount", 5, DATA.building[id].earn_from_outputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == 20
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_use(id, j) == 12
     end
-    if not test_passed then print("amount_of_inputs.use", 20, DATA.building[id].amount_of_inputs[0].use) end
+    if not test_passed then print("amount_of_inputs.use", 12, DATA.building[id].amount_of_inputs[0].use) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == 5
+        test_passed = test_passed and DATA.building_get_amount_of_inputs_amount(id, j) == 3
     end
-    if not test_passed then print("amount_of_inputs.amount", 5, DATA.building[id].amount_of_inputs[0].amount) end
+    if not test_passed then print("amount_of_inputs.amount", 3, DATA.building[id].amount_of_inputs[0].amount) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == 12
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_good(id, j) == 14
     end
-    if not test_passed then print("amount_of_outputs.good", 12, DATA.building[id].amount_of_outputs[0].good) end
+    if not test_passed then print("amount_of_outputs.good", 14, DATA.building[id].amount_of_outputs[0].good) end
     for j = 1, 8 do
-        test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 3
+        test_passed = test_passed and DATA.building_get_amount_of_outputs_amount(id, j) == 8
     end
-    if not test_passed then print("amount_of_outputs.amount", 3, DATA.building[id].amount_of_outputs[0].amount) end
+    if not test_passed then print("amount_of_outputs.amount", 8, DATA.building[id].amount_of_outputs[0].amount) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.building_get_inventory(id, j --[[@as trade_good_id]]) == 14
+        test_passed = test_passed and DATA.building_get_inventory(id, j --[[@as trade_good_id]]) == 12
     end
-    if not test_passed then print("inventory", 14, DATA.building[id].inventory[0]) end
+    if not test_passed then print("inventory", 12, DATA.building[id].inventory[0]) end
     print("SET_GET_TEST_2_building:")
     if test_passed then print("PASSED") else print("ERROR") end
 end

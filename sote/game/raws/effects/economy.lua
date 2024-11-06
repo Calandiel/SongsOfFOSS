@@ -221,16 +221,15 @@ end
 
 ---@param building Building
 function EconomicEffects.unset_ownership(building)
-	local ownership = DATA.get_ownership_from_building(building)
+	local owner = DATA.ownership_get_owner(DATA.get_ownership_from_building(building))
 
-	if ownership == INVALID_ID then
+	if owner == INVALID_ID then
 		return
 	end
 
-	local owner = DATA.ownership_get_owner(ownership)
 	local province = building_utils.province(building)
 
-	DATA.delete_ownership(ownership)
+	DATA.delete_ownership(DATA.get_ownership_from_building(building))
 
 	if WORLD:does_player_see_province_news(province) then
 		local building_type = DATA.building_get_current_type(building)
@@ -369,6 +368,12 @@ function EconomicEffects.change_local_stockpile(province, good, x)
 			.. tostring(x)
 			.. "\n province.local_storage ['" .. DATA.trade_good_get_name(good) .. "'] = "
 			.. tostring(current_stockpile)
+			.. "\n province.local_production ['" .. DATA.trade_good_get_name(good) .. "'] = "
+			.. tostring(DATA.province_get_local_production(province, good))
+			.. "\n province.local_demand ['" .. DATA.trade_good_get_name(good) .. "'] = "
+			.. tostring(DATA.province_get_local_demand(province, good))
+			.. "\n province.local_consumption ['" .. DATA.trade_good_get_name(good) .. "'] = "
+			.. tostring(DATA.province_get_local_consumption(province, good))
 		)
 	end
 	if x ~= x or current_stockpile ~= current_stockpile then
@@ -560,6 +565,7 @@ function EconomicEffects.character_buy_use(character, use, amount)
 
 	local total_bought = 0
 	local spendings = 0
+	local budget = DATA.pop_get_savings(character)
 
 	---@type {good: trade_good_id, weight: number, price: number, available: number}[]
 	local goods = {}
@@ -610,7 +616,13 @@ function EconomicEffects.character_buy_use(character, use, amount)
 			)
 		end
 
-		-- we need to get back to use "units" so we multiplay consumed amount back by weight
+		if budget < consumed_amount * values.price then
+			consumed_amount = budget / values.price
+		end
+
+		budget = budget - consumed_amount * values.price
+
+		-- we need to get back to use "units" so we multiply consumed amount back by weight
 		total_bought = total_bought + consumed_amount * values.weight
 
 		local costs = consumed_amount * values.price

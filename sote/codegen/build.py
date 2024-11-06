@@ -11,6 +11,9 @@ from shutil import copyfile, move
 COMPILE_DCON_GEN = False
 COMPILE_LUA_GEN = False
 
+CODEGEN_DCON = False
+CODEGEN_LUA = False
+
 codegen_path = Path().absolute().joinpath("sote").joinpath("codegen")
 
 description_path = \
@@ -65,7 +68,8 @@ if COMPILE_DCON_GEN:
     ], check=True, shell=True)
     move("a.exe", generator_exe)
 
-subprocess.run([generator_exe, description_destination], check=True)
+if CODEGEN_DCON:
+    subprocess.run([generator_exe, description_destination], check=True)
 
 if COMPILE_LUA_GEN:
     print("compiling dll source code generator")
@@ -78,7 +82,8 @@ if COMPILE_LUA_GEN:
     ], check=True, shell=True)
     move("a.exe", dll_generator_exe)
 
-subprocess.run([dll_generator_exe, description_destination], check=True)
+if CODEGEN_LUA:
+    subprocess.run([dll_generator_exe, description_destination], check=True)
 
 # compile dll itself
 for file in os.listdir(common_include):
@@ -89,45 +94,45 @@ dll_folder = codegen_path.joinpath("dll")
 O2 = "-inline -mldst-motion -gvn -elim-avail-extern -slp-vectorizer -constmerge".split()
 O3 = "-callsite-splitting -argpromotion"
 
-COMPILATION_FLAGS = [
-    # O0 part
-    "-tti", "-verify", "-ee-instrument", "-targetlibinfo",
-    "-assumption-cache-tracker", "-profile-summary-info",
-    "-forceattrs", "-basiccg", "-always-inline", "-barrier"
-    # O1 part
-    "-tbaa", "-scoped-noalias", "-inferattrs", "-ipsccp", "-called-value-propagation",
-    "-globalopt", "-domtree", "-mem2reg", "-deadargelim", "-basicaa", "-aa",
-    "-loops", "-lazy-branch-prob", "-lazy-block-freq", "-opt-remark-emitter",
-    "-instcombine", "-simplifycfg",
-    "-globals-aa", "-prune-eh",
-    "-functionattrs", "-sroa", "-memoryssa",
-    "-early-cse-memssa", "-speculative-execution", "-lazy-value-info",
-    "-jump-threading", "-correlated-propagation", "-libcalls-shrinkwrap",
-    "-branch-prob", "-block-freq", "-pgo-memop-opt", "-tailcallelim",
-    "-reassociate", "-loop-simplify", "-lcssa-verification", "-lcssa",
-    "-scalar-evolution",
-    # "-loop-rotate", "-licm", # they are slow because of the giant serialisation loop
-    "-loop-unswitch", "-indvars", "-loop-idiom", "-loop-deletion", "-loop-unroll",
-    "-memdep", "-memcpyopt", "sccp", "demanded-bits", "bdce", "dse",
-    "postdomtree", "adce", "barrier", "rpo-functionattrs",
-    "globaldce", "float2int", "loop-accesses", "loop-distribute",
-    "loop-vectorize", "loop-load-elim", "alignment-from-assumptions",
-    "strip-dead-prototypes", "loop-sink", "instsimplify", "div-rem-pairs",
-    "verify", "ee-instrument", "early-cse", "lower-expect"
-    # O2 part
-    # todo
-    # O3 part
-    # todo
-]
+# COMPILATION_FLAGS = [
+#     # O0 part
+#     "-tti", "-verify", "-ee-instrument", "-targetlibinfo",
+#     "-assumption-cache-tracker", "-profile-summary-info",
+#     "-forceattrs", "-basiccg", "-always-inline", "-barrier"
+#     # O1 part
+#     "-tbaa", "-scoped-noalias", "-inferattrs", "-ipsccp", "-called-value-propagation",
+#     "-globalopt", "-domtree", "-mem2reg", "-deadargelim", "-basicaa", "-aa",
+#     "-loops", "-lazy-branch-prob", "-lazy-block-freq", "-opt-remark-emitter",
+#     "-instcombine", "-simplifycfg",
+#     "-globals-aa", "-prune-eh",
+#     "-functionattrs", "-sroa", "-memoryssa",
+#     "-early-cse-memssa", "-speculative-execution", "-lazy-value-info",
+#     "-jump-threading", "-correlated-propagation", "-libcalls-shrinkwrap",
+#     "-branch-prob", "-block-freq", "-pgo-memop-opt", "-tailcallelim",
+#     "-reassociate", "-loop-simplify", "-lcssa-verification", "-lcssa",
+#     "-scalar-evolution",
+#     # "-loop-rotate", "-licm", # they are slow because of the giant serialisation loop
+#     "-loop-unswitch", "-indvars", "-loop-idiom", "-loop-deletion", "-loop-unroll",
+#     "-memdep", "-memcpyopt", "sccp", "demanded-bits", "bdce", "dse",
+#     "postdomtree", "adce", "barrier", "rpo-functionattrs",
+#     "globaldce", "float2int", "loop-accesses", "loop-distribute",
+#     "loop-vectorize", "loop-load-elim", "alignment-from-assumptions",
+#     "strip-dead-prototypes", "loop-sink", "instsimplify", "div-rem-pairs",
+#     "verify", "ee-instrument", "early-cse", "lower-expect"
+#     # O2 part
+#     # todo
+#     # O3 part
+#     # todo
+# ]
 
 if os.name == 'nt':
     print("compiling dll")
     now = time.time()
     subprocess.run([ \
         "clang++",
-        "-O3",
+        # "-O3",
         # "-O1",
-        # "-O0"
+        "-O0"
         ] \
         +["-std=c++20",
         "-msse4.1",

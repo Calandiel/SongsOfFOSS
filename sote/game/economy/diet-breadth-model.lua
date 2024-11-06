@@ -173,6 +173,9 @@ function dbm.total_foraging_amounts(province)
 	return accumulate
 end
 
+-- todo: ask squealing to rebalance the thing
+local global_multiplier = 3
+
 ---commenting
 ---@param province province_id
 ---@param forage FORAGE_RESOURCE
@@ -183,14 +186,15 @@ local function set_province_data(province, index, forage, output, output_value, 
 	DATA.province_set_foragers_targets_forage(province, index, forage)
 	DATA.province_set_foragers_targets_amount(province, index, available_amount)
 	DATA.province_set_foragers_targets_output_good(province, index, output)
-	DATA.province_set_foragers_targets_output_value(province, index, output_value)
+	DATA.province_set_foragers_targets_output_value(province, index, output_value * global_multiplier)
 end
 
 ---@param province province_id
 ---@param amounts {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
 ---Calculate and set a province's forager limit (CC) and foraging targets
 function dbm.set_foraging_targets(province, amounts)
-	set_province_data(province, 1, FORAGE_RESOURCE.WATER, retrieve_good("water"), 8, DATA.province_get_hydration(province))
+	local hydration = DATA.province_get_hydration(province)
+	set_province_data(province, 1, FORAGE_RESOURCE.WATER, retrieve_good("water"), 8, hydration)
 	set_province_data(province, 2, FORAGE_RESOURCE.FRUIT, retrieve_good("berries"), 1.6, amounts.fruit)
 	set_province_data(province, 3, FORAGE_RESOURCE.GRAIN, retrieve_good("grain"), 2, amounts.seeds)
 	set_province_data(province, 4, FORAGE_RESOURCE.WOOD, retrieve_good("bark"), 1.25, amounts.wood)
@@ -251,6 +255,11 @@ end
 ---@field average_energy_return_per_unit_of_time number
 ---@field data_per_forage_target TargetResourceTable[]
 
+---commenting
+---@param good trade_good_id
+---@param use_case use_case_id
+---@param amount number
+---@return number
 local function turn_output_to_energy(good, use_case, amount)
 	local weight = USE_WEIGHT[good][use_case]
 	return weight * amount
@@ -341,7 +350,7 @@ end
 local function use_case_data_to_weights(forage_targets_data)
 	---@type number[]
 	local weights = {}
-	local return_average = forage_targets_data.average_energy_return_per_unit_of_time
+
 
 	for i, data in pairs(forage_targets_data.data_per_forage_target) do
 		local return_this = data.energy_return_per_unit_of_time
@@ -362,68 +371,129 @@ local function use_case_data_to_weights(forage_targets_data)
 end
 
 ---@param use_cases_data TargetNeedsTable[]
----@param weights number[][]
-local function normalize_weights(use_cases_data, weights)
+---@return number[][] weights
+local function calculate_weights(use_cases_data)
+
+	---@type number[][]
+	local weights = {}
+
+	-- init weights with filtered returns + smoothing:
+	local sum_of_weights = 0
+	for i, targets_table in pairs(use_cases_data) do
+		weights[i] = {}
+		local return_average = targets_table.average_energy_return_per_unit_of_time
+		for j, target_data in pairs(targets_table.data_per_forage_target) do
+			local return_this = target_data.energy_return_per_unit_of_time
+			-- if return_this < return_average * 0.5 then
+			-- 	weights[i][j] = 0 + 0.01
+			-- else
+			-- 	weights[i][j] = return_this + 0.01
+			-- end
+			-- sum_of_weights = sum_of_weights + weights[i][j]
+			weights[i][j] = 0
+		end
+	end
+
+	local smoothing = 0.00001
+
 	--- do several epochs to get close to solution: writing proper solver of such equations is out of question... for now
-	local num_of_iterations = 10
-	for iteration = 1, num_of_iterations do
-		--- calculate norm: total time required to gather according to weights
-		-- print("iteration", iteration)
+	local num_of_iterations = 100000
+	LOGS:write("?????????????\n")
+	for i, targets_table in pairs(use_cases_data) do
+		LOGS:write(DATA.use_case_get_name(targets_table.use_case) .. "\n")
+		local step = 0.1
+		---@type nil|number
+		local last = nil
+		for iteration = 1, num_of_iterations do
+			--- we want to maximize needs satisfaction and avoid overproduction
+			--- so we use this pretty dumb "walk"
+			--- decide if we want to reduce production or increase it:
 
-		local norm = 0
-		for i, targets_table in pairs(use_cases_data) do
-			for j, target_data in pairs(targets_table.data_per_forage_target) do
-				-- -@type number
-				-- print(i, j, weights[i][j])
-				norm = norm + weights[i][j] * (target_data.handle_time + target_data.search_time)
-			end
-		end
-
-		assert(norm > 0)
-
-		--- convert to ratio of day time
-
-		for i, targets_table in pairs(use_cases_data) do
-			for j, target_data in pairs(targets_table.data_per_forage_target) do
-				---@type number
-				weights[i][j] = weights[i][j] / norm
-			end
-		end
-
-		if iteration == num_of_iterations then
-			break
-		end
-
-		--- now we can cut down/increase weights according to needed amount of use
-
-		-- print("cutting down weights")
-		for i, targets_table in pairs(use_cases_data) do
-			---@type number
-			local total_energy = 0
-			for j, target_data in pairs(targets_table.data_per_forage_target) do
-				local day_ratio = weights[i][j]
-
-				---@type number
-				total_energy = total_energy + target_data.energy_return_per_unit_of_time * day_ratio
-
-				-- print(i, j, target_data.energy_return_per_unit_of_time, weights[i][j], total_energy)
-			end
-
-			-- print(total_energy)
-			-- assert(total_energy > 0)
-
-			---@type number
-			local scale = 0
-			if total_energy > 0 then
-				scale = targets_table.required_amount_of_use / total_energy
-			end
+			local required = targets_table.required_amount_of_use
+			local provided = 0
 
 			for j, target_data in pairs(targets_table.data_per_forage_target) do
-				---@type number
-				weights[i][j] = weights[i][j] * scale
+				provided = provided + weights[i][j] * (target_data.handle_time + target_data.search_time) * target_data.energy_return_per_unit_of_time
+			end
+
+			LOGS:write(tostring(iteration) .. "\t" .. tostring(required - provided) .. "\n")
+			--- next we reduce/increase weights depending on their efficiency
+			--- obviously we want to get rid of weak sources and increase reliance on strong
+			--- but without being overzealous
+			local current_loss = required - provided
+			if last == nil then
+				last = current_loss
+			else
+				if math.abs(math.abs(current_loss) - math.abs(last)) < 0.001 then
+					step = 2 * step
+				elseif math.abs(math.abs(current_loss) - math.abs(last)) < 0.01 then
+					step = 1.2 * step
+				elseif current_loss * last < 0 then
+					step = step / 2
+				end
+			end
+
+			last = current_loss
+
+			if math.abs(current_loss) < 0.001 then
+				break
+			end
+
+			if provided < required then
+				for j, target_data in pairs(targets_table.data_per_forage_target) do
+					weights[i][j] =
+						weights[i][j]
+						+ math.min(0.01,
+							(required - provided)
+							* step
+							/ (target_data.handle_time + target_data.search_time + 1)
+							/ (target_data.energy_return_per_unit_of_time + 1)
+							* target_data.output_energy
+						)
+				end
+			else
+				for j, target_data in pairs(targets_table.data_per_forage_target) do
+					weights[i][j] = math.max(
+						0,
+						weights[i][j]
+						- math.min(0.01,
+							(provided - required)
+							* step
+							/ (target_data.handle_time + target_data.search_time + 1)
+							/ (target_data.energy_return_per_unit_of_time + 1)
+							* math.exp(-target_data.output_energy / 1000)
+						)
+					)
+				end
 			end
 		end
 	end
+
+	--- calculate norm: total time required to gather according to weights
+	--- and then normalize out timetable
+	--- spice up with smoothing so it's not too boring
+
+	local norm = 0
+	local smooth_sum = 0
+	for i, targets_table in pairs(use_cases_data) do
+		for j, target_data in pairs(targets_table.data_per_forage_target) do
+			---@type number
+			norm = norm + (weights[i][j] + smoothing) * (target_data.handle_time + target_data.search_time)
+		end
+	end
+
+	-- tabb.deep_print(weights)
+	assert(norm > 0, norm)
+	sum_of_weights = 0
+	for i, targets_table in pairs(use_cases_data) do
+		for j, target_data in pairs(targets_table.data_per_forage_target) do
+			---@type number
+			weights[i][j] = (weights[i][j] + smoothing) / norm
+			sum_of_weights = sum_of_weights + weights[i][j]
+		end
+	end
+
+	return weights
 end
 
 ---@param use_cases_data TargetNeedsTable[]
@@ -465,9 +535,7 @@ function dbm.cultural_foragable_targets(province)
 		end
 	)
 
-	-- find average return for each use target and filter by greater than or equal to average
-	local weights = tabb.map_array(food_use_cases_data, use_case_data_to_weights)
-	normalize_weights(food_use_cases_data, weights)
+	local weights = calculate_weights(food_use_cases_data)
 	return weights_to_forage_time_distribution(food_use_cases_data, weights)
 end
 

@@ -58,23 +58,12 @@ function rea.run(realm_id)
 			local amount = DATA.province_get_local_production(province, trade_good)
 			DATA.realm_inc_production(realm_id, trade_good, amount)
 			DATA.realm_inc_sold(realm_id, trade_good, amount)
-
-			local category = DATA.trade_good_get_belongs_to_category(trade_good)
-			if category == TRADE_GOOD_CATEGORY.GOOD then
-				economic_effects.change_local_stockpile(province, trade_good, amount)
-			end
 		end)
 
 		DATA.for_each_trade_good(function (trade_good)
 			local amount = DATA.province_get_local_consumption(province, trade_good)
 			DATA.realm_inc_production(realm_id, trade_good, -amount)
 			DATA.realm_inc_bought(realm_id, trade_good, amount)
-
-			local category = DATA.trade_good_get_belongs_to_category(trade_good)
-			if category == TRADE_GOOD_CATEGORY.GOOD then
-				economic_effects.change_local_stockpile(province, trade_good, -amount)
-			end
-
 			local weight = USE_WEIGHT[trade_good][use_case("calories")]
 			DATA.realm_inc_expected_food_consumption(realm_id, weight * amount)
 		end)
@@ -155,123 +144,7 @@ function rea.run(realm_id)
 				end
 			end)
 		end
-
-		---#logging LOGS:write("decay goods province\n")
-		---#logging LOGS:flush()
-
-		DATA.for_each_trade_good(function (trade_good)
-			local category = DATA.trade_good_get_belongs_to_category(trade_good)
-			if category == TRADE_GOOD_CATEGORY.GOOD then
-				-- decay local stockpiles
-				economic_effects.decay_local_stockpile(province_id, trade_good)
-			end
-		end)
 	end)
-
-
-	---#logging LOGS:write("decay goods realm \n")
-	---#logging LOGS:flush()
-
-	-- decay realm stockpiles
-	DATA.for_each_trade_good(function (trade_good)
-		local category = DATA.trade_good_get_belongs_to_category(trade_good)
-		if category == TRADE_GOOD_CATEGORY.GOOD then
-			local amount = DATA.realm_get_resources(realm_id, trade_good)
-			DATA.realm_set_resources(realm_id, trade_good, amount * 0.95)
-		end
-	end)
-
-	-- price updates
-	-- this fake price update is more harmful than helpful: sharing goods should provide similar effect already
-
-	-- DATA.for_each_realm_provinces_from_realm(realm_id, function (item)
-	-- 	local province_id = DATA.realm_provinces_get_province(item)
-
-	-- 	DATA.for_each_trade_good(function(trade_good)
-	-- 		local current_price = economic_values.get_local_price(province_id, trade_good)
-	-- 		local supply = DATA.province_get_local_production(province_id, trade_good)
-	-- 		local demand = DATA.province_get_local_demand(province_id, trade_good)
-	-- 		local stockpile = DATA.province_get_local_storage(province_id, trade_good)
-
-	-- 		local trade_volume = math.sqrt(demand + supply + stockpile) + 1
-	-- 		local change_rate = math.sqrt(current_price)
-
-	-- 		local balance = demand - supply
-
-	-- 		local balance_power = 0
-	-- 		if balance > 0.1 then
-	-- 			balance_power = balance - 0.1
-	-- 		elseif balance < 0 then
-	-- 			balance_power = balance
-	-- 		end
-
-	-- 		if trade_volume > 0.1 then
-	-- 			local inversed_price =  math.max(0, 1 / (current_price + 1) - 0.5)
-
-	-- 			local average_price_neighbours = 0
-	-- 			local neighbours = 0
-	-- 			for _, neighbor in pairs(province.neighbors) do
-	-- 				if neighbor.realm then
-	-- 					neighbours = neighbours + 1
-	-- 					average_price_neighbours = average_price_neighbours + economic_values.get_local_price(neighbor, trade_good)
-	-- 				end
-	-- 			end
-	-- 			if neighbours > 0 then
-	-- 				average_price_neighbours = average_price_neighbours / neighbours
-	-- 			end
-
-	-- 			local price_derivative =
-	-- 				balance_power / trade_volume * PRICE_SIGNAL_PER_UNIT * change_rate
-	-- 				- stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * change_rate
-	-- 				+ inversed_price / trade_volume * PRICE_SIGNAL_PER_UNIT
-	-- 				+ average_price_neighbours - current_price
-
-
-	-- 			-- if WORLD.player_character  then
-	-- 			-- 	if WORLD.player_character.province == province then
-	-- 			-- 		print(good_reference)
-	-- 			-- 		print("current_price " .. current_price)
-	-- 			-- 		print('sqrt_trade_volume: ' .. tostring(trade_volume))
-	-- 			-- 		print("total price_change: " .. tostring(price_change + base_price_growth))
-	-- 			-- 		print("demand supply price_change: " .. tostring((demand - supply) / trade_volume * PRICE_SIGNAL_PER_UNIT))
-	-- 			-- 		print("base price growth " .. tostring(base_price_growth))
-	-- 			-- 	end
-	-- 			-- end
-
-	-- 			if price_derivative ~= price_derivative or price_derivative == math.huge then
-	-- 				error(
-	-- 					"ERROR!"
-	-- 					.. "\n good_reference"
-	-- 					.. trade_good
-	-- 					.. "\n price_derivative = "
-	-- 					.. tostring(price_derivative)
-	-- 					.. "\n change_rate = "
-	-- 					.. tostring(change_rate)
-	-- 					.. "\n current_price = "
-	-- 					.. tostring(current_price)
-	-- 					.. "\n supply = "
-	-- 					.. tostring(supply)
-	-- 					.. "\n demand = "
-	-- 					.. tostring(demand)
-	-- 					.. "\n stockpile = "
-	-- 					.. tostring(stockpile)
-	-- 					.. "\n trade_volume = "
-	-- 					.. tostring(trade_volume)
-	-- 					.. "\n balance_power / trade_volume * PRICE_SIGNAL_PER_UNIT * change_rate = "
-	-- 					.. tostring(balance_power / trade_volume * PRICE_SIGNAL_PER_UNIT * change_rate)
-	-- 					.. "\n stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * change_rate"
-	-- 					.. tostring(stockpile / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * change_rate)
-	-- 					.. "\n inversed_price / trade_volume * PRICE_SIGNAL_PER_UNIT"
-	-- 					.. tostring(inversed_price / trade_volume * PRICE_SIGNAL_PER_UNIT)
-	-- 					.. "\n (average_price_neighbours - current_price)"
-	-- 					.. tostring(average_price_neighbours - current_price)
-	-- 				)
-	-- 			end
-
-	-- 			economic_effects.change_local_price(province, trade_good, price_derivative * INTEGRATION_STEP)
-	-- 		end
-	-- 	end)
-	-- end
 
 	-- #############################
 	-- ## ACTIVE MONTHLY SPENDING ##

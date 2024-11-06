@@ -250,6 +250,11 @@ class Field:
         if self.value.lsp_type in REGISTERED_ID_NAMES:
             adjust_value = " + 1"
 
+        adjust_index = " - 1"
+        if self.array_size > 1:
+            if self.index.lsp_type in REGISTERED_ENUMS:
+                adjust_index = ""
+
         if self.value.c_type:
             if self.array_size == 1:
                 if self.value.c_type in REGISTERED_STRUCTS:
@@ -279,7 +284,7 @@ class Field:
                         f"---@return {field.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}_{field.name}({arg}, index)\n" \
                         f"    assert(index ~= 0)\n"\
-                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, index - 1)[0].{field.name}{adjust_value}\n" \
+                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, index{adjust_index})[0].{field.name}{adjust_value}\n" \
                         f"end\n"
                     return result
                 return  f"---@param {arg} {prefix_to_id_name(self.prefix)} valid {self.prefix} id\n" \
@@ -287,7 +292,7 @@ class Field:
                         f"---@return {self.value.lsp_type} {self.name} {self.description}\n" \
                         f"function {self.getter_name()}({arg}, index)\n" \
                         f"    assert(index ~= 0)\n"\
-                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, index - 1){adjust_value}\n" \
+                        f"    return DCON.dcon_{self.prefix}_get_{self.name}({arg} - 1, index{adjust_index}){adjust_value}\n" \
                         f"end\n"
         else:
             if self.array_size > 1:
@@ -311,6 +316,11 @@ class Field:
         """
         if self.value.ignore_in_data_layout:
             return ""
+
+        adjust_index = " - 1"
+        if self.array_size > 1:
+            if self.index.lsp_type in REGISTERED_ENUMS:
+                adjust_index = ""
 
         arg = prefix_to_id_name(self.prefix)
         if self.value.c_type:
@@ -358,7 +368,7 @@ class Field:
                                 f"end\n"
                 return result
             else:
-                index = "index - 1"
+                index = f"index{adjust_index}"
 
                 value_suffix = ""
                 if self.value.lsp_type in REGISTERED_ID_NAMES:

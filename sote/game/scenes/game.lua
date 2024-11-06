@@ -871,7 +871,7 @@ function gam.draw()
 	end
 	if gam.planet_shader:hasUniform("player_tile") then
 		local character = WORLD.player_character
-		if character then
+		if character ~= INVALID_ID then
 			local province = PROVINCE(WORLD.player_character)
 			if province ~= INVALID_ID then
 				gam.planet_shader:send('player_tile', DATA.province_get_center(province) - 1)
@@ -1401,7 +1401,7 @@ function gam.draw()
 		-- drawing provinces
 		if gam.inspector == 'macrodecision' then
 			local character = WORLD.player_character
-			if character then
+			if character ~= INVALID_ID then
 				for _, province in pairs(DATA.realm_get_known_provinces(WORLD:player_realm())) do
 					draw_province(province, 'path')
 				end
@@ -1411,7 +1411,7 @@ function gam.draw()
 			end
 		elseif gam.inspector == 'macrobuilder' then
 			local character = WORLD.player_character
-			if character then
+			if character ~= INVALID_ID then
 				for _, province in pairs(DATA.realm_get_known_provinces(WORLD:player_realm())) do
 					draw_province(province, 'macrobuilder')
 				end

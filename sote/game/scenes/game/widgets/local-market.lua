@@ -113,7 +113,12 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.sqrt_number_entry("", v.demand or 0, rect)
+                ut.sqrt_number_entry(
+                    "",
+                    v.demand or 0,
+                    rect,
+                    "Demand satisfaction: " .. ut.to_fixed_point2(DATA.province_get_local_satisfaction(province, v.item) * 100) .. "%"
+                )
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -372,7 +377,7 @@ return function(province, ui_panel, base_unit, gam)
             local good_demand = DATA.province_get_local_demand(province, good_id)
             local good_consumption = DATA.province_get_local_consumption(province, good_id)
             local inventory = 0
-            if character then
+            if character ~= INVALID_ID then
                 inventory =  DATA.pop_get_inventory(character, good_id)
             end
             local local_storage = DATA.province_get_local_storage(province, good_id)

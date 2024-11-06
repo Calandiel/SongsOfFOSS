@@ -35,6 +35,7 @@ local_building_upkeep float
 foragers float Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
 foragers_water float amount foraged by pops and characters
 foragers_limit float amount of calories foraged by pops and characters
+forage_efficiency float
 foragers_targets forage_container[25]
 local_resources resource_location[25] An array of local resources and their positions
 mood float how local population thinks about the state

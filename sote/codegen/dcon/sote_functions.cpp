@@ -1,4 +1,7 @@
+#include <cstdint>
 #include <iostream>
+#include <limits>
+#include <ppl.h>
 #include "objs.hpp"
 #include "sote_types.hpp"
 #define DCON_LUADLL_EXPORTS
@@ -10,7 +13,17 @@
 // 	state.make_s
 // }
 
-static auto GOOD_CATEGORY = (uint8_t)((int)(base_types::TRADE_GOOD_CATEGORY::GOOD) - 1);
+static auto GOOD_CATEGORY = (uint8_t)((base_types::TRADE_GOOD_CATEGORY::GOOD));
+
+constexpr inline float MAX_INDUCED_DEMAND = 100.f;
+
+float forage_efficiency(float foragers, float carrying_capacity) {
+	if (foragers > carrying_capacity) {
+		return carrying_capacity / (foragers + 1);
+	} else {
+		return 2 - expf(-0.7*(carrying_capacity - foragers)/carrying_capacity);
+	}
+}
 
 float age_multiplier(dcon::pop_id pop) {
 	auto age_multiplier = 1.f;
@@ -40,14 +53,19 @@ float age_multiplier(dcon::pop_id pop) {
 	return age_multiplier;
 }
 
-float job_efficiency(dcon::pop_id pop, uint8_t jobtype) {
-	auto female = state.pop_get_female(pop);
-	auto race = state.pop_get_race(pop);
-	auto multiplier = age_multiplier(pop);
+float job_efficiency(dcon::race_id race, bool female, uint8_t jobtype) {
 	if (female) {
-		return state.race_get_female_efficiency(race, jobtype) * multiplier;
+		return state.race_get_female_efficiency(race, jobtype) ;
 	}
-	return state.race_get_male_efficiency(race, jobtype) * multiplier;
+	return state.race_get_male_efficiency(race, jobtype);
+}
+
+float job_efficiency(dcon::pop_id pop, uint8_t jobtype) {
+	return job_efficiency(
+		state.pop_get_race(pop),
+		state.pop_get_female(pop),
+		jobtype
+	) * age_multiplier(pop);
 }
 
 void update_vegetation(float speed) {
@@ -351,7 +369,32 @@ void record_use_demand(dcon::province_id province, dcon::use_case_id use_case, f
 }
 
 void pops_produce() {
-	// std::cout << "forage" << "\n";
+	// recalculate buildings-based foragers
+
+	state.for_each_province([&](auto province) {
+		state.province_set_foragers(province, 0);
+	});
+
+	state.for_each_building([&](auto building) {
+		auto btype = state.building_get_current_type(building);
+		auto production_method = state.building_type_get_production_method(btype);
+
+		if (state.production_method_get_foraging(production_method)){
+			auto province = state.building_get_location_from_building_location(building);
+			state.province_get_foragers(province) += state.building_get_production_scale(building);
+		}
+	});
+	state.for_each_pop([&](auto ids) {
+		auto province = state.pop_get_location_from_pop_location(ids);
+		state.province_get_foragers(province) += state.pop_get_forage_ratio(ids);
+	});
+
+	state.for_each_province([&](auto province) {
+		state.province_set_forage_efficiency(province, forage_efficiency(
+			state.province_get_foragers(province),
+			state.province_get_foragers_limit(province)
+		));
+	});
 
 	state.for_each_pop([&](auto ids) {
 		auto province = state.pop_get_location_from_pop_location(ids);
@@ -391,7 +434,8 @@ void pops_produce() {
 			}
 
 			auto output_value = forage_case.output_value;
-			auto efficiency = job_efficiency(ids, state.forage_resource_get_handle(resource));
+			auto efficiency =
+				job_efficiency(ids, state.forage_resource_get_handle(resource));
 
 			auto speed = 10.f;
 			// time to find a resource
@@ -414,30 +458,67 @@ void pops_produce() {
 				/ total_time_per_unit
 				* forage_time
 				* cultural_priority
+				* state.province_get_forage_efficiency(province)
 			);
 		}
+	});
+}
+
+void update_building_scale() {
+	state.for_each_building([&](auto ids){
+		auto province = state.building_get_location_from_building_location(ids);
+
+		float scale = 0.f;
+		float input_scale = 0.f;
+		float output_scale = 0.f;
+
+		auto btype = state.building_get_current_type(ids);
+		auto production_method = state.building_type_get_production_method(btype);
+		auto associated_job = state.production_method_get_job_type(production_method);
+
+		state.building_for_each_employment(ids, [&](auto employment){
+			auto worker = state.employment_get_worker(employment);
+			auto worktime = state.pop_get_work_ratio(worker);
+			auto efficiency = job_efficiency(worker, associated_job);
+			scale += worktime * efficiency;
+			output_scale += worktime * efficiency * efficiency;
+			input_scale += worktime * efficiency;
+		});
+
+
+		state.building_set_production_scale(ids, scale * state.province_get_throughput_boosts(province, production_method));
+		state.building_set_output_scale(ids,
+			output_scale
+			* (1 + state.province_get_output_efficiency_boosts(province, production_method))
+		);
+		state.building_set_input_scale(ids,
+			input_scale
+			* (1 - state.province_get_input_efficiency_boosts(province, production_method))
+		);
 	});
 }
 
 void building_produce() {
 	static auto inputs_buffer = state.trade_good_make_vectorizable_float_buffer();
 	state.for_each_building([&](auto ids){
-		state.execute_serial_over_trade_good([&](auto trade_good){
-			inputs_buffer.set(trade_good, 0.f);
-		});
-
 		auto building_type = state.building_get_current_type(ids);
 		auto production_method = state.building_type_get_production_method(building_type);
-		auto current_power = state.building_get_production_scale(ids);
+		auto input_scale = state.building_get_input_scale(ids);
+		auto output_scale = state.building_get_output_scale(ids);
 		auto province = state.building_get_location_from_building_location(ids);
 
 		auto min_input = 1.f;
+
+		// actual consumption:
 
 		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
 			base_types::use_case_container input = state.production_method_get_inputs(production_method, i);
 			if (input.use == 0) break;
 
-			auto have_to_satisfy = input.amount * current_power;
+			float use_required = input_scale * input.amount;
+
+			// auto have_to_satisfy = input.amount * input_scale;
+			float use_in_inventory = 0.f;
 
 			state.use_case_for_each_use_weight_as_use_case(dcon::use_case_id{(uint8_t)(input.use - 1)}, [&](auto weight_id){
 				auto weight = state.use_weight_get_weight(weight_id);
@@ -446,54 +527,19 @@ void building_produce() {
 				// try to consume and write consumption to the buffer
 				auto inventory = state.building_get_inventory(ids, trade_good) - inputs_buffer.get(trade_good);
 
-				auto can_satisfy = inventory * weight;
-
-				if (have_to_satisfy < can_satisfy) {
-					have_to_satisfy = 0.f;
-					inputs_buffer.set(trade_good, inputs_buffer.get(trade_good) + inventory * can_satisfy / have_to_satisfy);
+				if (use_in_inventory + inventory * weight < use_required) {
+					state.building_set_inventory(ids, trade_good, 0.f);
+					use_in_inventory += inventory * weight;
 				} else {
-					have_to_satisfy = have_to_satisfy - can_satisfy;
-					inputs_buffer.set(trade_good, inputs_buffer.get(trade_good) + inventory);
+					state.building_set_inventory(ids, trade_good, inventory - (use_required - use_in_inventory) / weight);
+					use_in_inventory = use_required;
 				}
 			});
 
-			min_input = std::max(0.f, std::min(min_input, 1.f - have_to_satisfy / input.amount));
-		}
-
-		// actual consumption:
-
-		auto true_min_input = 1.f;
-
-		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
-			base_types::use_case_container& input = state.production_method_get_inputs(production_method, i);
-			if(!input.use) {
-				break;
-			}
-
-			auto have_to_satisfy = input.amount * min_input * current_power;
-			auto use = dcon::use_case_id {(uint8_t)input.use};
-			state.use_case_for_each_use_weight_as_use_case(use, [&](auto weight_id){
-				auto weight = state.use_weight_get_weight(weight_id);
-				auto trade_good = state.use_weight_get_trade_good(weight_id);
-
-				// try to consume and write consumption to the buffer
-				auto inventory = state.building_get_inventory(ids, trade_good);
-
-				auto can_satisfy = inventory * weight;
-
-				if (have_to_satisfy < can_satisfy) {
-					state.building_set_inventory(ids, trade_good, std::max(0.f, inventory - have_to_satisfy / weight));
-					have_to_satisfy = 0.f;
-				} else {
-					have_to_satisfy = have_to_satisfy - can_satisfy;
-					state.building_set_inventory(ids, trade_good, std::max(0.f, 0.f));
-				}
-			});
-
-			true_min_input = std::max(0.f, std::min(true_min_input, 1.f - have_to_satisfy / input.amount));
+			min_input = std::min(min_input, use_in_inventory / input.amount);
 
 			base_types::use_case_container& stats = state.building_get_amount_of_inputs(ids, i);
-			stats.amount = true_min_input * current_power * input.amount;
+			stats.amount = min_input * input_scale * input.amount;
 		}
 
 		// actual production
@@ -506,22 +552,16 @@ void building_produce() {
 			auto good = dcon::trade_good_id{dcon::trade_good_id::value_base_t(output.good - 1)};
 			auto inventory = state.building_get_inventory(ids, good);
 
-			// assert(inventory >= 0.f);
-			// assert(output.amount >= 0.f);
-			// assert(current_power >= 0.f);
-			// assert(true_min_input >= 0.f);
 
-			// std::cout << "output: " << good.index() << " amount: " << output.amount << " power " << current_power << " min_input " << true_min_input << "\n";
-
-			state.building_set_inventory(ids, good, inventory + output.amount * current_power * true_min_input);
+			state.building_set_inventory(ids, good, inventory + output.amount * output_scale * min_input);
 
 			base_types::trade_good_container& stats = state.building_get_amount_of_outputs(ids, i);
-			stats.amount = true_min_input * current_power * output.amount;
+			stats.amount = min_input * input_scale * output.amount;
 			stats.good = output.good;
 
 			base_types::trade_good_container& stats_earning = state.building_get_earn_from_outputs(ids, i);
 			stats_earning.good = output.good;
-			stats_earning.amount = stats.amount * state.province_get_local_prices(province, good);
+			stats_earning.amount = output_scale * stats.amount * state.province_get_local_prices(province, good);
 		}
 	});
 }
@@ -573,7 +613,6 @@ void pops_consume() {
 			auto satisfaction = consumed / demanded;
 
 			need.consumed = need.demanded * satisfaction;
-			// std::cout << need.consumed << " " << need.demanded;
 			state.pop_for_each_parent_child_relation_as_parent(pop, [&](auto child_rel) {
 				auto child = state.parent_child_relation_get_child(child_rel);
 				base_types::need_satisfaction& need_child = state.pop_get_need_satisfaction(child, i);
@@ -625,8 +664,9 @@ void buildings_sell() {
 			record_production(province, trade_good, inventory * sell_ratio);
 		});
 
-		// std::cout << "income: " << income << " \n";
 		state.building_set_savings(building, state.building_get_savings(building) + income);
+
+		state.building_get_last_income(building) += income;
 	});
 }
 
@@ -665,13 +705,12 @@ void pops_demand() {
 
 		auto scale = 1.f;
 		if (total_cost > 0.f) {
-			scale = std::min(1.f, budget / total_cost);
+			scale = std::min(MAX_INDUCED_DEMAND, budget / total_cost);
 		}
 
 		for (uint32_t i = 0; i < state.pop_get_need_satisfaction_size(); i++) {
 			base_types::need_satisfaction& need = state.pop_get_need_satisfaction(pop, i);
 			auto use = dcon::use_case_id{dcon::use_case_id::value_base_t(need.use_case - 1)};
-			// std::cout << " use " << need.use_case << "\n";
 			if (!use)	break;
 			state.use_case_for_each_use_weight_as_use_case(use, [&](auto weight_id){
 				auto weight = state.use_weight_get_weight(weight_id);
@@ -683,21 +722,6 @@ void pops_demand() {
 				auto distribution = score / total_score;
 
 				auto demand = need.demanded * distribution * scale;
-
-				// std::cout << " trade good " << trade_good.index() << "\n";
-				// std::cout << " demand " << demand << "\n";
-				// std::cout << " base demand " << need.demanded << "\n";
-
-				// if (!(demand >= 0.f)) {
-				// 	std::cout << need.demanded << " " << distribution << " " << scale << "\n";
-				// }
-
-				// assert(score >= 0.f);
-				// assert(total_score > 0.f);
-				// assert(scale >= 0.f);
-				// assert(need.demanded >= 0.f);
-				// assert(distribution >= 0.f);
-				// assert(demand >= 0.f);
 
 				record_demand(province, trade_good, demand);
 			});
@@ -815,7 +839,7 @@ void pops_buy() {
 		auto scale = 0.f;
 		if (total_cost > 0.f) {
 			// buy a lot if price is low
-			scale = std::min(100.f, budget / total_cost);
+			scale = std::min(MAX_INDUCED_DEMAND, budget / total_cost);
 		}
 
 		for (uint32_t i = 0; i < state.pop_get_need_satisfaction_size(); i++) {
@@ -893,14 +917,21 @@ void pops_update_stats() {
 // same as for pops
 void buildings_buy() {
 	state.for_each_building([&](auto building){
+		// std::cout << "update building " << building.index() << "\n";
+
 		auto building_type = state.building_get_current_type(building);
 		auto production_method = state.building_type_get_production_method(building_type);
 
 		auto province = state.building_get_location_from_building_location(building);
 
 		auto budget = state.building_get_savings(building) * 0.1f;
+
+		// std::cout << "budget: " << budget << "\n";
+
 		auto total_score = 0.01f;
 		auto total_cost = 0.f;
+
+		// std::cout << "calculate total costs and score: " << "\n";
 
 		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
 			base_types::use_case_container& input = state.production_method_get_inputs(production_method, i);
@@ -916,8 +947,20 @@ void buildings_buy() {
 				auto score = input.amount * price_score(price / weight) * demand_satisfaction;
 				total_score += score;
 				total_cost = input.amount * score * price * POP_BUY_PRICE_MULTIPLIER;
+
+				// std::cout
+				// 	<< "\t"
+				// 	<< price << " "
+				// 	<< input.amount << " "
+				// 	<< price_score(price / weight) << " "
+				// 	<< demand_satisfaction << " => "
+				// 	<< score << " "
+				// 	<< weight << "\n";
 			});
 		};
+
+		// std::cout << "total score: " << total_score << "\n";
+		// std::cout << "total cost: " << total_cost << "\n";
 
 		if (total_score == 0.f) return ;
 
@@ -954,17 +997,31 @@ void buildings_buy() {
 					- demand * demand_satisfaction * price * POP_BUY_PRICE_MULTIPLIER)
 				);
 
+				// std::cout
+				// 	<< "\t"
+				// 	<< budget << " "
+				// 	<< total_cost << " "
+				// 	<< input.amount << " "
+				// 	<< price_score(price / weight) << " "
+				// 	<< demand_satisfaction << " => "
+				// 	<< demand << " "
+				// 	<< price << "\n";
+
 				total_cost += demand * demand_satisfaction * price * POP_BUY_PRICE_MULTIPLIER;
 				total_amount += demand * demand_satisfaction;
 			});
 
-			base_types::use_case_container stats = state.building_get_amount_of_inputs(building, i);
+			// std::cout << input.use << " " << total_amount << " " << total_cost << "\n";
+
+			base_types::use_case_container& stats = state.building_get_amount_of_inputs(building, i);
 			stats.use = input.use;
 			stats.amount = total_amount;
 
-			base_types::use_case_container stats_spent = state.building_get_amount_of_inputs(building, i);
-			stats.use = input.use;
-			stats.amount = total_cost;
+			base_types::use_case_container& stats_spent = state.building_get_spent_on_inputs(building, i);
+			stats_spent.use = input.use;
+			stats_spent.amount = total_cost;
+
+			state.building_get_last_income(building) -= total_cost;
 		};
 	});
 }
@@ -976,16 +1033,17 @@ constexpr inline float LEFTOVERS_SHARE = 1.f - WORKERS_SHARE - OWNER_SHARE;
 
 void buildings_pay() {
 	state.for_each_building([&](auto ids) {
-		state.building_set_production_scale(ids, 1.f);
-
 		auto savings = state.building_get_savings(ids);
 
 		auto donation = savings * OWNER_SHARE;
 		auto wage_budget = savings * WORKERS_SHARE;
 
+		state.building_get_last_income(ids) -= wage_budget;
+
 		state.building_set_last_donation_to_owner(ids, donation);
 		auto owner = state.building_get_owner_from_ownership(ids);
 		auto subsidy = state.building_get_subsidy(ids);
+		state.building_set_subsidy_last(ids, subsidy);
 
 		if (owner) {
 			state.pop_get_pending_economy_income(owner) += donation - subsidy;
@@ -1017,48 +1075,91 @@ void buildings_pay() {
 	});
 }
 
+// TODO: rewrite more stuff to parallel loops, as there are a lot of opportunities for parallelisation
 void update_economy() {
+	uint32_t trade_goods_count = state.trade_good_size();
+
+	state.execute_serial_over_building([&](auto ids){
+		auto last_income = state.building_get_last_income(ids);
+		auto mean_income = state.building_get_income_mean(ids);
+		state.building_set_income_mean(ids, last_income * 0.1f + mean_income * 0.9f);
+		state.building_set_last_income(ids, 0.f);
+	});
+
 	auto eps = 0.001;
+
+	update_building_scale();
 
 	state.execute_serial_over_pop([&](auto ids){
 		state.pop_set_pending_economy_income(ids, 0.f);
 	});
 
 	// demand stage
-	state.execute_serial_over_province([&](auto ids){
-		state.for_each_trade_good([&](auto good){
-			state.province_set_local_demand(ids, good, 0.f);
+	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
+		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
+		state.execute_serial_over_province([&](auto ids){
+				state.province_set_local_demand(ids, trade_good, 0.f);
 		});
 	});
 	pops_demand();
 	buildings_demand();
 
-	state.execute_serial_over_province([&](auto ids){
-		state.for_each_trade_good([&](auto good){
-			state.province_set_local_production(ids, good, 0.f);
+	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
+		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
+		state.execute_serial_over_province([&](auto ids){
+				state.province_set_local_production(ids, trade_good, 0.f);
 		});
 	});
 	pops_sell();
 	buildings_sell();
 
+	// decay inventories of producers
+	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
+		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
+		float inventory_decay = 0.f;
+		if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
+			inventory_decay = 0.999f;
+		}
+		state.execute_serial_over_pop([&](auto ids){
+			auto inventory = state.pop_get_inventory(ids, trade_good);
+			state.pop_set_inventory(ids, trade_good, inventory * inventory_decay);
+		});
+		state.execute_serial_over_building([&](auto ids){
+			auto inventory = state.building_get_inventory(ids, trade_good);
+			state.building_set_inventory(ids, trade_good, inventory * inventory_decay);
+		});
+	});
+
+	// decay inventories in provinces and realms:
+	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
+		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
+		float inventory_decay = 0.f;
+		if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
+			inventory_decay = 0.999f;
+		}
+		state.execute_serial_over_province([&](auto ids){
+			auto stockpiles = state.province_get_local_storage(ids, trade_good);
+			state.province_set_local_storage(ids, trade_good, stockpiles * inventory_decay);
+		});
+		state.execute_serial_over_realm([&](auto ids){
+			auto stockpiles = state.realm_get_resources(ids, trade_good);
+			state.realm_set_resources(ids, trade_good, stockpiles * inventory_decay);
+		});
+	});
+
 	// supply: calculated
 	// demand: calculated
 	// update demand satisfaction
-
-	state.execute_serial_over_province([&](auto ids){
-		state.for_each_trade_good([&](auto good){
-			auto demand = state.province_get_local_demand(ids, good);
-			auto supply = state.province_get_local_production(ids, good);
+	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
+		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
+		state.execute_serial_over_province([&](auto ids){
+			auto demand = state.province_get_local_demand(ids, trade_good);
+			auto stockpiles = state.province_get_local_storage(ids, trade_good);
+			auto production = state.province_get_local_production(ids, trade_good);
+			auto supply = stockpiles + production;
 			auto satisfaction = ve::select(demand <= supply, 1.f, supply / demand);
-
-			ve::apply([&](float demand, float supply, float satisfaction){
-				if(!std::isfinite(satisfaction)) {
-					std::cout << demand << " " << supply << " " << satisfaction << "n";
-				}
-				assert(std::isfinite(satisfaction));
-			}, demand, supply, satisfaction);
-
-			state.province_set_local_satisfaction(ids, good, satisfaction);
+			state.province_set_local_satisfaction(ids, trade_good, satisfaction);
+			state.province_set_local_storage(ids, trade_good, ve::max(0.f, stockpiles + production - satisfaction * demand));
 		});
 	});
 
@@ -1086,10 +1187,12 @@ void update_economy() {
 
 			auto result = ve::select(balance + wealth > 0.f, balance + wealth, 0.f);
 			state.province_set_trade_wealth(province, result);
+			state.province_set_local_consumption(province, trade_good, demanded * satisfied);
 		});
 	});
 
-	state.for_each_trade_good([&](auto trade_good){
+	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
+		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
 		state.execute_serial_over_province([&](auto ids){
 			auto supply = state.province_get_local_production(ids, trade_good) + state.province_get_local_storage(ids, trade_good);
 			auto demand = state.province_get_local_demand(ids, trade_good);
@@ -1109,4 +1212,83 @@ void update_economy() {
 
 	buildings_pay();
 	pops_update_stats();
+}
+
+float estimate_province_use_price(dcon::province_id province, dcon::use_case_id use) {
+	auto min_adjusted_price = std::numeric_limits<float>::max();
+
+	state.use_case_for_each_use_weight_as_use_case(use, [&](auto weight_id) {
+		auto good = state.use_weight_get_trade_good(weight_id);
+		auto weight = state.use_weight_get_weight(weight_id);
+		auto price = state.province_get_local_prices(province, good);
+
+		auto adjusted_price = price / weight;
+
+		if (adjusted_price < min_adjusted_price) {
+			min_adjusted_price = adjusted_price;
+		}
+	});
+
+	float integral = 0;
+	float integral_of_identity = 0;
+
+	state.use_case_for_each_use_weight_as_use_case(use, [&](auto weight_id) {
+		auto good = state.use_weight_get_trade_good(weight_id);
+		auto weight = state.use_weight_get_weight(weight_id);
+		auto price = state.province_get_local_prices(province, good);
+
+		auto adjusted_price = price / weight;
+		auto predensity = expf(-adjusted_price + min_adjusted_price);
+
+		integral_of_identity = integral_of_identity + predensity;
+		integral = integral + adjusted_price * predensity;
+	});
+
+	return integral / integral_of_identity;
+}
+
+// uses softmax of adjusted prices to calculate distribution used in estimation
+float estimate_province_use_price(uint32_t province_lua_id, uint32_t use_lua_id) {
+	dcon::province_id province {dcon::province_id::value_base_t(province_lua_id - 1)};
+	dcon::use_case_id use {dcon::use_case_id::value_base_t(use_lua_id - 1)};
+
+	return estimate_province_use_price(province, use);
+}
+
+float estimate_building_type_income(int32_t province_lua, int32_t building_type_lua, int32_t race_lua, bool female) {
+	dcon::province_id province {dcon::province_id::value_base_t(province_lua - 1)};
+	dcon::building_type_id building_type {dcon::building_type_id::value_base_t(building_type_lua - 1)};
+	dcon::race_id race {dcon::race_id::value_base_t(race_lua - 1)};
+	auto method = state.building_type_get_production_method(building_type);
+	auto associated_job = state.production_method_get_job_type(method);
+	auto efficiency = job_efficiency(race, female, associated_job);
+
+	float throughput_boost =
+		(1 + state.province_get_throughput_boosts(province, method))
+		* efficiency;
+	float input_modifier = std::max(0.f, 1 - state.province_get_input_efficiency_boosts(province, method));
+	float output_modifier =
+		(1 + state.province_get_output_efficiency_boosts(province, method))
+		* efficiency;
+
+	float income = 0;
+	for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
+		base_types::use_case_container& input = state.production_method_get_inputs(method, i);
+		if(!input.use) {
+			break;
+		}
+
+		auto use = dcon::use_case_id {dcon::use_case_id::value_base_t(input.use - 1)};
+		income -= input_modifier * estimate_province_use_price(province, use) * input.amount;
+	}
+	for (uint32_t i = 0; i < state.production_method_get_outputs_size(); i++) {
+		base_types::trade_good_container& output = state.production_method_get_outputs(method, i);
+		if(!output.good) {
+			break;
+		}
+		auto good = dcon::trade_good_id{dcon::trade_good_id::value_base_t(output.good - 1)};
+		income += output.amount * output_modifier * state.province_get_local_prices(province, good);
+	}
+
+    return income * throughput_boost;
 }

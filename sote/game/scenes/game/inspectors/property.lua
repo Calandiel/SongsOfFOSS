@@ -15,7 +15,7 @@ local BUILDING_SUBSIDY_AMOUNT = 0.125
 ---@return Rect
 local function get_main_panel()
 	local fs = ui.fullscreen()
-    return fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 45, fs.height / 2, "left", "up")
+    return fs:subrect(ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 2, ut.BASE_HEIGHT * 33, fs.height / 2, "left", "up")
 end
 
 ---Returns whether or not clicks on the planet can be registered.
@@ -190,7 +190,7 @@ function inspector.draw(gamescene)
                         break
                     end
 
-                    total_spent = total_spent + DATA.building_get_spent_on_inputs_use(v, i)
+                    total_spent = total_spent + DATA.building_get_spent_on_inputs_amount(v, i)
                 end
                 ut.balance_entry(
                     "",
@@ -198,7 +198,7 @@ function inspector.draw(gamescene)
                     input_rect
                 )
             end,
-            width = base_unit * 9,
+            width = base_unit * 3,
             ---@param v Building
             value = function(k, v)
 
@@ -209,7 +209,7 @@ function inspector.draw(gamescene)
                         break
                     end
 
-                    total_spent = total_spent + DATA.building_get_spent_on_inputs_use(v, i)
+                    total_spent = total_spent + DATA.building_get_spent_on_inputs_amount(v, i)
                 end
 
                 return total_spent
@@ -235,7 +235,7 @@ function inspector.draw(gamescene)
                     input_rect
                 )
             end,
-            width = base_unit * 9,
+            width = base_unit * 3,
             ---@param v Building
             value = function(k, v)
 

@@ -14,6 +14,8 @@ ffi.cdef[[
     void update_vegetation(float);
     void update_economy();
     void apply_biome(int32_t);
+    float estimate_province_use_price(uint32_t, uint32_t);
+    float estimate_building_type_income(int32_t, int32_t, int32_t, bool);
     void dcon_everything_write_file(char const* name);
     void dcon_everything_read_file(char const* name);
 ]]
@@ -29,11 +31,19 @@ function SAVE_GAME_STATE()
 end
 function LOAD_GAME_STATE()
     print("loading dll state")
+    local start = love.timer.getTime()
     DCON.dcon_everything_read_file(state_save_path)
+    print(tostring(love.timer.getTime() - start) .. " seconds")
+
     print("loading lua state")
+    start = love.timer.getTime()
     DATA.load_state()
-    print("state loaded")
+    print(tostring(love.timer.getTime() - start) .. " seconds")
+
+    print("state loaded, restoring unsaved data")
+    start = love.timer.getTime()
     RESTORE_UNSAVED_TILES_DATA()
     REGENERATE_RAWS()
     RECALCULATE_WEIGHTS_TABLE()
+    print(tostring(love.timer.getTime() - start) .. " seconds")
 end

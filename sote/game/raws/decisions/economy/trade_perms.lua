@@ -16,7 +16,7 @@ return function ()
 		'start-negotiations-trade-permission',
 		"Ask for trade permissions in this land",
 		function(root, primary_target)
-			return "Start trade rights negotiations with a ruler of " .. DATA.province_name(primary_target)
+			return "Start trade rights negotiations with a ruler of " .. DATA.province_get_name(primary_target)
 		end,
 		1 / 12, -- once per year
 		{

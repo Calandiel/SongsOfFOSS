@@ -325,7 +325,7 @@ function window.draw(gamescene)
 		else
 			ui.panel(bottom_rect, 1, true)
 		end
-		if character then
+		if character ~= INVALID_ID and character ~= nil then
 			ib.icon_button_to_realm(gam, REALM(character), realm_rect)
 			ib.icon_button_to_character(gam, character, portrait_rect)
 			ib.text_button_to_character(gam, character, button_rect,
@@ -341,7 +341,7 @@ function window.draw(gamescene)
 	---@param rect Rect
 	---@param character Character
 	local function render_character_unit_name(rect, character)
-			if character then
+		if character ~= INVALID_ID then
 			local unit_name = "officer"
 			local icon_rect = rect:subrect(0, 0, rect.height, rect.height, "left", "center")
 			local text_rect = rect:subrect(0, 0, rect.width - rect.height, rect.height, "right", "center")
@@ -362,7 +362,7 @@ function window.draw(gamescene)
 	---@param rect Rect
 	---@param character Character
 	local function render_character_unit_stat(rect, character)
-		if character then
+		if character ~= INVALID_ID then
 			local width_fraction = rect.width / 5
 			local layout = ui.layout_builder()
 				:horizontal()
@@ -593,7 +593,7 @@ function window.draw(gamescene)
 			"horizon-road.png",
 			days_of_supply_consumption,
 			rect:subrect(0, 0, rect_width / 2, rect_height / 3, "left", "down"),
-			"With " .. ut.to_fixed_point2(warband_utils.get_supply_available(warband)) .. " units of food available,"
+			"With " .. ut.to_fixed_point2(economy_values.get_supply_available(warband)) .. " units of food available,"
 				.. " this warband has enough supplies for " .. ut.to_fixed_point2(days_of_supply_consumption) .. " days of travel"
 				.. " while using " .. ut.to_fixed_point2(daily_supply_consumption) .. " units each day.",
 			ut.NUMBER_MODE.NUMBER,

@@ -75,7 +75,7 @@ end
 ---@param character Character
 ---@return number, number
 function PoliticalValues.military_strength(character)
-    if character == nil then
+    if character == INVALID_ID then
         return 0, 0
     end
     if DATA.pop_get_dead(character) then

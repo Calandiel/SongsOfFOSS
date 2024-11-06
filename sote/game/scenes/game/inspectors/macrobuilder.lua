@@ -51,7 +51,7 @@ function inspector.draw(gam)
 
 	local character = WORLD.player_character
 
-	if character then
+	if character ~= INVALID_ID then
 		if LEADER(REALM(character)) == character then
 			public_mode = ui.named_checkbox(
 				"Use realm treasury: ",
@@ -74,7 +74,7 @@ function inspector.draw(gam)
 	local overseer = character
 	local funds = 0
 
-	if character then
+	if character ~= INVALID_ID then
 		funds = SAVINGS(character)
 		if gam.macrobuilder_public_mode then
 			overseer = pv.overseer(REALM(character))
