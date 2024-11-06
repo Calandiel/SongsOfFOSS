@@ -6,13 +6,7 @@ function ts.run(world)
 	world:for_each_tile(function(ti)
 		if not world.is_land[ti] then return end
 
-		local water_movement_contribution = math.max(0, math.sqrt(world.water_movement[ti]) - 10)
-		local true_water_calc = world.jan_rainfall[ti] + world.jul_rainfall[ti] + water_movement_contribution
-		local wind_factor = world.jan_wind_speed[ti] --*+ world.jul_wind_speed[ti]
-		wind_factor = math.min(25, wind_factor)
-		wind_factor = (1 - wind_factor / 25) * 0.65 + 0.35
-		local permeability = wgu.permiation_calc(world.sand[ti], world.silt[ti], world.clay[ti])
-		true_water_calc = true_water_calc * wind_factor * permeability
+		local true_water_calc = wgu.true_water_for_tile(world, ti)
 
 		local new_silt = world.silt[ti]
 

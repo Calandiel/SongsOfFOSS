@@ -81,4 +81,31 @@ function wgu.permiation_calc_dune(tile_sand, tile_silt, tile_clay)
 	return tile_perm
 end
 
+---@param world table
+---@param ti number
+function wgu.true_water_for_tile(world, ti)
+	local water_movement_contribution = math.max(0, math.sqrt(world.water_movement[ti]) - 10)
+	local true_water_calc = world.jan_rainfall[ti] + world.jul_rainfall[ti] + water_movement_contribution
+	local wind_factor = world.jan_wind_speed[ti] --*+ world.jul_wind_speed[ti]
+	wind_factor = math.min(25, wind_factor)
+	wind_factor = (1 - wind_factor / 25) * 0.65 + 0.35
+	local permeability = wgu.permiation_calc(world.sand[ti], world.silt[ti], world.clay[ti])
+	return true_water_calc * wind_factor * permeability
+end
+
+---@param world table
+---@param ti number
+function wgu.temperature_factor_for_tile(world, ti)
+	if world.ice[ti] > 0 then return 0 end
+
+	local temp_factor = (world.jan_temperature[ti] + world.jul_temperature[ti]) / 2
+	if temp_factor > 15 then
+		temp_factor = 1
+	else
+		temp_factor = math.max(0, temp_factor / 15)
+	end
+
+	return temp_factor + 0.1
+end
+
 return wgu
