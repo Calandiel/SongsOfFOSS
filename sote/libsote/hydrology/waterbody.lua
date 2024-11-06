@@ -25,6 +25,11 @@ function waterbody:new(id)
 	obj.source = {}
 	obj.drain = {}
 	obj.tmp_float_1 = 0
+	obj.sand_load = 0
+	obj.silt_load = 0
+	obj.clay_load = 0
+	obj.mineral_load = 0
+	obj.organic_load = 0
 
 	setmetatable(obj, self)
 	self.__index = self

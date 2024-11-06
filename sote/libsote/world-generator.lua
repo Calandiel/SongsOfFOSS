@@ -87,7 +87,8 @@ local function override_glacial_data()
 end
 
 local function override_soils_data()
-	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_01.csv")
+	-- local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_after_ThinningSilts.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_after_GenBedrockBuffer.csv")
 
 	wg.world:for_each_tile(function(ti, _)
 		local row = generator()
@@ -138,11 +139,6 @@ local function initial_waterflow()
 
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
 	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
-
-	if debug.use_sote_climate_data then
-		table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
-	end
-
 	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.world_gen) end, "calculate-waterflow", 1) })
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(0, 0, 0) end, "clear_soils", 1) })
 
@@ -164,6 +160,9 @@ local function gen_phase_02()
 
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
+	if debug.use_sote_climate_data then
+		run_with_profiling(function() override_climate_data() end, "override_climate_data")
+	end
 	initial_waterbodies()
 	initial_waterflow()
 	glaciers()
@@ -194,16 +193,17 @@ local function gen_phase_02()
 	print("\tRiver count: " .. river_count)
 	print("\tWetland count: " .. wetland_count)
 
-	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
-	if debug.use_sote_soils_data then
-		run_with_profiling(function() override_soils_data() end, "override_soils_data")
-	end
+	-- run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
+	-- run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
+	-- run_with_profiling(function() require "libsote.soils.thinning-silts".run(wg.world) end, "thinning_silts")
+	-- run_with_profiling(function() require "libsote.soils.gen-bedrock-buffer".run(wg.world) end, "gen-bedrock-buffer")
 	if debug.use_sote_water_movement then
 		run_with_profiling(function() override_water_movement_data() end, "override_waterflow_data")
 	end
-	run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
-	run_with_profiling(function() require "libsote.soils.thinning-silts".run(wg.world) end, "thinning_silts")
-	run_with_profiling(function() require "libsote.soils.gen-bedrock-buffer".run(wg.world) end, "gen-bedrock-buffer")
+	if debug.use_sote_soils_data then
+		run_with_profiling(function() override_soils_data() end, "override_soils_data")
+	end
+	run_with_profiling(function() require "libsote.soils.load-waterbodies".run(wg.world) end, "load-waterbodies")
 end
 
 local libsote_cpp = require "libsote.libsote"

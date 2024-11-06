@@ -12,4 +12,10 @@ function oi.sand_clay_bias(world, ti)
 	return world.tmp_float_2[ti]
 end
 
+-- original repeats the previous threshold of 15000, which is probably a copy paste mistake
+-- Demian said 1500 should be fine
+function oi.lowest_wetland_thresh()
+	return 1500
+end
+
 return oi
