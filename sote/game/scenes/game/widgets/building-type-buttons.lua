@@ -16,7 +16,10 @@ local pv = require "game.raws.values.politics"
 local function validate_building_tooltip(rect, reason, funds, cost)
 	local icon = nil
 	local tooltip = ""
-	if reason == "unique_duplicate" then
+	if reason == "no_permission" then
+		icon = ASSETS.icons["triangle-target.png"]
+		tooltip = "You don't have permission to build there"
+	elseif reason == "unique_duplicate" then
 		icon = ASSETS.icons["triangle-target.png"]
 		tooltip = "There can be at most a single building of this type per province!"
 	elseif reason == "not_enough_funds" then

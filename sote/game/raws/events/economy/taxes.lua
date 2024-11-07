@@ -36,9 +36,9 @@ return function ()
 							tax = economic_effects.collect_tax(character)
 						end
 
-						political_effects.small_popularity_decrease(character, character.realm)
+						political_effects.small_popularity_decrease(character, REALM(character))
 
-						economic_effects.register_income(character.realm, tax * 0.9, ECONOMY_REASON.TAX)
+						economic_effects.register_income(REALM(character), tax * 0.9, ECONOMY_REASON.TAX)
 						economic_effects.add_pop_savings(character, tax * 0.1, ECONOMY_REASON.TAX)
 
 						UNSET_BUSY(character)
@@ -56,9 +56,9 @@ return function ()
 						end
 						tax = tax + economic_effects.collect_tax(character)
 
-						political_effects.medium_popularity_decrease(character, character.realm)
+						political_effects.medium_popularity_decrease(character, REALM(character))
 
-						economic_effects.register_income(character.realm, tax / 2 * 0.9, ECONOMY_REASON.TAX)
+						economic_effects.register_income(REALM(character), tax / 2 * 0.9, ECONOMY_REASON.TAX)
 						economic_effects.add_pop_savings(character, tax / 2 * 1.1, ECONOMY_REASON.TAX)
 
 						UNSET_BUSY(character)

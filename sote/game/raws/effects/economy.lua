@@ -993,7 +993,7 @@ function EconomicEffects.grant_trade_rights(character, realm)
 	DATA.for_each_personal_rights_from_person(character, function (item)
 		local item_realm = DATA.personal_rights_get_realm(item)
 		if item_realm == realm then
-			rights = item_realm
+			rights = item
 		end
 	end)
 
@@ -1009,11 +1009,12 @@ end
 ---@param character Character
 ---@param realm Realm
 function EconomicEffects.grant_building_rights(character, realm)
+	---@type personal_rights_id
 	local rights = INVALID_ID
 	DATA.for_each_personal_rights_from_person(character, function (item)
 		local item_realm = DATA.personal_rights_get_realm(item)
 		if item_realm == realm then
-			rights = item_realm
+			rights = item
 		end
 	end)
 

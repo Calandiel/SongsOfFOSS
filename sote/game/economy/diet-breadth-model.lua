@@ -10,13 +10,13 @@ local dbm = {}
 ---@return string tooltip
 function dbm.culture_target_tooltip(culture)
 	local ut = require "game.ui-utils"
-	local result = "\n · Traditional Foraging Targets: \n"
+	local result = "\n · Gathering (in % of total foraging time): \n"
 
 	DATA.for_each_forage_resource(function (item)
 		local ratio = DATA.culture_get_traditional_forager_targets(culture, item)
-		result = result .. "\n    · Foraging "
+		result = result .. "\n    · "
 			.. DATA.forage_resource_get_description(item)
-			.. " (during " .. ut.to_fixed_point2(ratio * 100) .. "% of total foraging time)"
+			.. " (" .. ut.to_fixed_point2(ratio * 100) .. "%)"
 	end)
 
 	return result

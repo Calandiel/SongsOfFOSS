@@ -11,8 +11,8 @@ from shutil import copyfile, move
 COMPILE_DCON_GEN = False
 COMPILE_LUA_GEN = False
 
-CODEGEN_DCON = False
-CODEGEN_LUA = False
+CODEGEN_DCON = True
+CODEGEN_LUA = True
 
 codegen_path = Path().absolute().joinpath("sote").joinpath("codegen")
 

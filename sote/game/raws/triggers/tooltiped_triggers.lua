@@ -394,7 +394,7 @@ end
 ---@type TriggerProvince
 Trigger.Targeted.has_no_local_building_permit = {
 	tooltip_on_condition_failure = function(root, primary_target)
-		return { "You are not allowed to trade in this province" }
+		return { "You are not allowed to build in this province" }
 	end,
 	condition = function(root, primary_target)
 		if PROVINCE_REALM(primary_target) == INVALID_ID then return false end

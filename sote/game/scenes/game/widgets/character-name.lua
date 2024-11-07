@@ -6,6 +6,10 @@ local string = require "engine.string"
 ---@param rect Rect
 ---@param character_id Character
 local function name(rect, character_id)
+    if character_id == INVALID_ID then
+        return "Invalid character"
+    end
+
     -- rect = rect:shrink(5)
     local realm = REALM(character_id)
 

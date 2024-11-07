@@ -15,7 +15,7 @@
 
 static auto GOOD_CATEGORY = (uint8_t)((base_types::TRADE_GOOD_CATEGORY::GOOD));
 
-constexpr inline float MAX_INDUCED_DEMAND = 100.f;
+constexpr inline float MAX_INDUCED_DEMAND = 10.f;
 
 float forage_efficiency(float foragers, float carrying_capacity) {
 	if (foragers > carrying_capacity) {
@@ -480,6 +480,9 @@ void update_building_scale() {
 			auto worker = state.employment_get_worker(employment);
 			auto worktime = state.pop_get_work_ratio(worker);
 			auto efficiency = job_efficiency(worker, associated_job);
+
+			assert(efficiency > 0);
+
 			scale += worktime * efficiency;
 			output_scale += worktime * efficiency * efficiency;
 			input_scale += worktime * efficiency;

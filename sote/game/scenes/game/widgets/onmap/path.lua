@@ -9,14 +9,14 @@ local pathfinding = require "game.ai.pathfinding"
 ---@param rect Rect rect for hover detection to draw path
 ---@param length number
 ---@param path Province[]
----@param tile_to_x_y fun(tile: Tile): number, number, number
+---@param tile_to_x_y fun(tile: tile_id): number, number, number
 local function path(gam, rect, length, path, tile_to_x_y)
 	if ui.hover_clicking_status(rect) then
 		local previous = nil
 		local prev_screen_x = 0
 		local prev_screen_y = 0
 		for index, current in ipairs(path) do
-			local center = current.center
+			local center = DATA.province_get_center(current)
 			local current_x, current_y, _ = tile_to_x_y(center)
 			local screen_x, screen_y = ui.ui_coord_to_screen_coord(current_x, current_y)
 

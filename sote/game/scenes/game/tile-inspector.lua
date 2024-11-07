@@ -827,11 +827,10 @@ local function buildings_construction_tab(gam, tile_id, panel)
 		panel,
 		function(number, rect)
 			if number > 0 then
-				local building_type = tabb.nth(building_types, number)
 				btb.building_type_buttons(
 					gam,
 					rect,
-					building_type,
+					building_types[number],
 					tile_id
 				)
 			end
