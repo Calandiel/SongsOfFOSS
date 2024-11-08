@@ -5,6 +5,7 @@ local wgu = require "libsote.world-gen-utils"
 local sun = require "game.climate.sun"
 local open_issues = require "libsote.soils.open-issues"
 
+local enable_debug = false
 -- local logger = require("libsote.debug-loggers").get_soils_logger("d:/temp")
 
 local world
@@ -267,6 +268,11 @@ function lw.run(world_obj)
 	world:fill_ffi_array(clay_stash, 0)
 	world:fill_ffi_array(mineral_stash, 0)
 
+	if enable_debug then
+		world:adjust_debug_channels(1)
+		world:reset_debug_all()
+	end
+
 	--* Prep all surviving waterbodies for material load
 	world:for_each_waterbody(function(wb)
 		wb.sand_load = 0
@@ -292,6 +298,28 @@ function lw.run(world_obj)
 			table.insert(water_flow_now, ti)
 		end
 		water_flow_later = {}
+	end
+
+	if enable_debug then
+		local max_sand = 0
+		local max_silt = 0
+		local max_clay = 0
+		local max_mineral = 0
+		world:for_each_tile(function(ti)
+			max_sand = math.max(max_sand, math.log(1 + sand_stash[ti]))
+			max_silt = math.max(max_silt, math.log(1 + silt_stash[ti]))
+			max_clay = math.max(max_clay, math.log(1 + clay_stash[ti]))
+			max_mineral = math.max(max_mineral, math.log(1 + mineral_stash[ti]))
+		end)
+
+		world:for_each_tile(function(ti)
+			-- local fraction = math.log(sand_stash[ti] + 1) / max_sand
+			-- local fraction = math.log(silt_stash[ti] + 1) / max_silt
+			-- local fraction = math.log(clay_stash[ti] + 1) / max_clay
+			local fraction = math.log(mineral_stash[ti] + 1) / max_mineral
+			local color = math.floor(fraction * 255)
+			world:set_debug_rgba(1, ti, color, 0, 0, 255)
+		end)
 	end
 
 	apply_dropped_material()
