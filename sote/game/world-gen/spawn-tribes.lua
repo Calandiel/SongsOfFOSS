@@ -138,9 +138,16 @@ function ProvinceCheck(race, province)
 	if province.realm ~= nil then return false end
 	if (not province.on_a_river) and race.requires_large_river then return false end
 	if (not province.on_a_forest) and race.requires_large_forest then return false end
-	local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
-	if race.minimum_comfortable_temperature > (ja_t + ju_t) / 2 then return false end
-	if race.minimum_absolute_temperature > ja_r then return false end
+	local average_temp, avg_min_temp = 0, 0
+	for tile, _ in pairs(province.tiles) do
+		local ja_r, ja_t, ju_r, ju_t = province.center:get_climate_data()
+		average_temp = average_temp + (ja_t + ju_t) / 2
+		avg_min_temp = avg_min_temp + math.min(ja_t, ju_t)
+	end
+	average_temp = average_temp / province.size
+	avg_min_temp = avg_min_temp / province.size
+	if race.minimum_comfortable_temperature > average_temp then return false end
+	if race.minimum_absolute_temperature > avg_min_temp then return false end
 	local elev = province.center.elevation
 	if race.minimum_comfortable_elevation > elev then return false end
 
@@ -260,15 +267,22 @@ function st.run()
 	end
 
 	-- At the end, print the amount of spawned tribes
-	print("Spawned tribes:", tabb.size(WORLD.realms))
-	local pops = 0
-	local characters = 0
+	local pops, characters = 0, 0
+	local tribes, land_count = 0, 0
 	for _, prov in pairs(WORLD.provinces) do
-		pops = pops + prov:local_population()
-		characters = characters + tabb.size(prov.characters)
+		if prov.is_land then
+			land_count = land_count + 1
+			if prov.realm then
+				tribes = tribes + 1
+				pops = pops + prov:local_population()
+				characters = characters + tabb.size(prov.characters)
+			end
+		end
 	end
-	print("Spawned population: " .. tostring(pops))
-	print("Spawned characters: " .. tostring(characters))
+	local total_count = pops + characters
+	print("Spawned tribes:", tostring(tribes), "/ " .. tostring(land_count))
+	print("Spawned population: ", tostring(pops), "/ " .. tostring(total_count))
+	print("Spawned characters: ", tostring(characters), "/ " .. tostring(total_count))
 end
 
 return st
