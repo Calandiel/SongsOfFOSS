@@ -92,7 +92,6 @@ function world.reset_metatable(w)
 	setmetatable(w.events_queue, Queue)
 	setmetatable(w.deferred_events_queue, Queue)
 	setmetatable(w.deferred_actions_queue, Queue)
-	setmetatable(w.player_deferred_actions, Queue)
 	setmetatable(w.treasury_effects, Queue)
 	setmetatable(w.old_treasury_effects, Queue)
 

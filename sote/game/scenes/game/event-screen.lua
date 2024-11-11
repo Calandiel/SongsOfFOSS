@@ -14,13 +14,32 @@ function ev.draw(gam)
 		local event_string = peek.event_tag
 		local character = peek.root
 		local dat = peek.event_data
-
-		-- print(event_string)
-		-- print(NAME(character))
-		-- print(WORLD.player_NAME(character))
+		local uid = peek.root_unique_id
 
 		if WORLD.player_character == character then
+
 			local fs = ui.fullscreen()
+
+			local portrait = fs:subrect(0, fs.height * 2/3, fs.height / 5, fs.height / 5, "left", "up")
+			portrait:shrink(15)
+			require "game.scenes.game.widgets.portrait"(portrait, character)
+
+			local name = portrait:copy()
+			name.y = name.y + portrait.height
+			name.height = name.height / 2
+			local wealth = name:copy()
+			wealth.height = wealth.height / 2
+			wealth.y = wealth.y + name.height
+
+			name:shrink(0)
+			ui.panel(name)
+			wealth:shrink(0)
+			ui.panel(wealth)
+
+			require "game.scenes.game.widgets.character-name"(name, character)
+			uit.money_entry_icon(SAVINGS(character), wealth, "My savings")
+
+
 			local event = RAWS_MANAGER.events_by_name[event_string]
 			local opts = event:options(character, dat)
 
@@ -58,29 +77,10 @@ function ev.draw(gam)
 						opt.outcome()
 						print(opt.text)
 						gam.refresh_map_mode()
+						return
 					end
 				end
 			end, uit.BASE_HEIGHT, #opts, uit.BASE_HEIGHT, gam.event_scrollbar)
-
-			local portrait = fs:subrect(0, fs.height * 2/3, fs.height / 5, fs.height / 5, "left", "up")
-			portrait:shrink(15)
-			require "game.scenes.game.widgets.portrait"(portrait, character)
-
-			local name = portrait:copy()
-			name.y = name.y + portrait.height
-			name.height = name.height / 2
-			local wealth = name:copy()
-			wealth.height = wealth.height / 2
-			wealth.y = wealth.y + name.height
-
-			name:shrink(0)
-			ui.panel(name)
-			wealth:shrink(0)
-			ui.panel(wealth)
-
-			require "game.scenes.game.widgets.character-name"(name, character)
-			uit.money_entry_icon(SAVINGS(character), wealth, "My savings")
-
 		else
 			print("We're trying to draw the event screen but the next event isn't meant for the player!")
 			love.event.quit()

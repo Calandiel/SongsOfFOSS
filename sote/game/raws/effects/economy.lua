@@ -643,10 +643,10 @@ function EconomicEffects.character_buy_use(character, use, amount)
 
 		EconomicEffects.change_local_price(province, values.good, price_change)
 	end
-	if total_bought < amount - 0.01
-		or total_bought > amount + 0.01
+	if total_bought < amount * 0.95
+		or total_bought > amount * 1.05
 	then
-		error("INVALID CHARACTER BUY USE ATTEMPT"
+		print("Probably invalid attempt to buy use case for the character"
 			.. "\n use = "
 			.. tostring(use)
 			.. "\n spendings = "

@@ -4,7 +4,7 @@ local ut = require "game.ui-utils"
 
 local function render_action(index, rect)
     ---@type PendingEventDisplay
-    local action = tabb.nth(WORLD.player_deferred_actions, index)
+    local action = WORLD.player_deferred_actions[index]
     if action == nil then
         return
     end

@@ -1089,9 +1089,32 @@ void update_economy() {
 		state.building_set_last_income(ids, 0.f);
 	});
 
-	auto eps = 0.001;
+	auto eps = 0.001f;
 
 	update_building_scale();
+
+	const float pop_donation = 0.05f;
+
+	concurrency::parallel_for(uint32_t(0), state.province_size(), [&](auto province_raw_id) {
+		dcon::province_id province{ dcon::trade_good_id::value_base_t(province_raw_id) };
+		if (!state.province_is_valid(province)) return;
+		float donation = 0.f;
+		state.province_for_each_pop_location_as_location(province, [&](auto pop_location) {
+			auto pop = state.pop_location_get_pop(pop_location);
+			auto character_location = state.pop_get_location_from_character_location(pop);
+			if (character_location) return;
+
+			donation += state.pop_get_savings(pop) * pop_donation;
+			state.pop_get_savings(pop) *= (1.f - pop_donation);
+		});
+		state.province_get_local_wealth(province) += donation * 0.8f;
+		state.province_get_trade_wealth(province) += donation * 0.2f;
+
+		float local_wealth = state.province_get_local_wealth(province);
+		float trade_wealth = state.province_get_trade_wealth(province);
+		state.province_set_local_wealth(province, local_wealth * 0.9f + trade_wealth * 0.1f);
+		state.province_set_trade_wealth(province, local_wealth * 0.1f + trade_wealth * 0.9f);
+	});
 
 	state.execute_serial_over_pop([&](auto ids){
 		state.pop_set_pending_economy_income(ids, 0.f);
