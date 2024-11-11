@@ -131,7 +131,7 @@ end
 ---Checks if province is eligible for spawn
 ---@param race Race
 ---@param province Province
-function ProvinceCheck(race, province)
+local function province_check(race, province)
 	local dbm = require "game.economy.diet-breadth-model"
 	if not province.center.is_land then return false end
 	if province.foragers_limit < (5 * race.carrying_capacity_weight) then return false end
@@ -192,7 +192,7 @@ function st.run()
 		for _, r in ipairs(order) do
 			-- First, find a land province that isn't owned by any realm...
 			local prov = WORLD:random_tile():province()
-			while not ProvinceCheck(r, prov) do prov = WORLD:random_tile():province() end
+			while not province_check(r, prov) do prov = WORLD:random_tile():province() end
 
 			-- An unowned province -- it means we can spawn a new realm here!
 			local cg = cult.CultureGroup:new()
@@ -280,9 +280,9 @@ function st.run()
 		end
 	end
 	local total_count = pops + characters
-	print("Spawned tribes:", tostring(tribes), "/ " .. tostring(land_count))
-	print("Spawned population: ", tostring(pops), "/ " .. tostring(total_count))
-	print("Spawned characters: ", tostring(characters), "/ " .. tostring(total_count))
+	print("Spawned tribes: ", tostring(tribes), "/", tostring(land_count), tostring(tribes/land_count*100) .. "%")
+	print("Spawned population:", tostring(pops), "/", tostring(total_count), tostring(pops/total_count*100) .. "%")
+	print("Spawned characters:", tostring(characters), "/", tostring(total_count), tostring(characters/total_count*100) .. "%")
 end
 
 return st
