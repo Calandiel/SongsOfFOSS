@@ -5,6 +5,7 @@ local plate = require "game.entities.plate"
 local color = require "game.color"
 local tabb = require "engine.table"
 local tile = require "game.entities.tile"
+local method_utils = require "game.raws.production-methods"
 
 WORLD_PROGRESS = {total = 0, max = 0, is_loading = false}
 
@@ -567,6 +568,19 @@ function wl.generate()
 	do
 		local time = love.timer.getTime()
 		require "game.world-gen.resource-gen".run()
+		print(love.timer.getTime() - time)
+	end
+
+	wl.message = "Updating local production method efficiency..."
+	coroutine.yield()
+	coroutine.yield()
+	do
+		local time = love.timer.getTime()
+		DATA.for_each_province(function (item)
+			DATA.for_each_production_method(function (method)
+				DATA.province_set_local_efficiency_boosts(item, method, method_utils.get_efficiency(method, item))
+			end)
+		end)
 		print(love.timer.getTime() - time)
 	end
 end

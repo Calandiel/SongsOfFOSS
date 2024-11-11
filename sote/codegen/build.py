@@ -130,9 +130,9 @@ if os.name == 'nt':
     now = time.time()
     subprocess.run([ \
         "clang++",
-        # "-O3",
+        "-O3",
         # "-O1",
-        "-O0"
+        # "-O0"
         ] \
         +["-std=c++20",
         "-msse4.1",

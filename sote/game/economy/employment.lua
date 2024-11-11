@@ -177,7 +177,7 @@ function emp.run(province)
 			-- 	end
 			-- end
 
-			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > pop_current_income) then
+			if (love.math.random() < likelihood_of_changing_job) and (recalculater_hire_profit > 2 * pop_current_income) then
 				-- change job!
 				province_utils.employ_pop(province, pop, hire_building)
 			end

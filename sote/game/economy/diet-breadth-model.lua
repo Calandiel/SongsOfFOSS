@@ -174,7 +174,7 @@ function dbm.total_foraging_amounts(province)
 end
 
 -- todo: ask squealing to rebalance the thing
-local global_multiplier = 3
+local global_multiplier = 5
 
 ---commenting
 ---@param province province_id

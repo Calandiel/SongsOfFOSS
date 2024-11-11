@@ -8,9 +8,6 @@ local pro = {}
 function pro.run_fast()
 	DATA.for_each_province(function (item)
 		DATA.province_set_infrastructure_efficiency(item, province_utils.get_infrastructure_efficiency(item));
-		DATA.for_each_production_method(function (method)
-			DATA.province_set_local_efficiency_boosts(item, method, method_utils.get_efficiency(method, item))
-		end)
 	end)
 
 	DCON.update_economy()
