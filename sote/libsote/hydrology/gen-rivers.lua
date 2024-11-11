@@ -396,7 +396,9 @@ local function connect_all_waterbodies()
 
 			if wb.drain.type == wb.TYPES.freshwater_lake then
 				local lowest_shore_tile_wb = world:get_waterbody_by_tile(wb.drain.lowest_shore_tile)
-				wb.drain = lowest_shore_tile_wb and lowest_shore_tile_wb:is_valid() and lowest_shore_tile_wb or nil
+				if lowest_shore_tile_wb and lowest_shore_tile_wb:is_valid() then
+					wb.drain = lowest_shore_tile_wb
+				end
 			end
 		end
 
@@ -404,7 +406,7 @@ local function connect_all_waterbodies()
 			--* Receive water from sources
 			for ti, _ in pairs(wb.perimeter) do
 				--* Check for higher elevation than waterlevel... check for waterbody ID to make sure it is not zero and not different.
-				if world:true_elevation_for_waterflow(ti) <= wb.water_level then return end
+				if world:true_elevation_for_waterflow(ti) <= wb.water_level then goto cont_loop2 end
 
 				--* If criteria is met, add as source
 				local nwb = world:get_waterbody_by_tile(ti)
@@ -431,6 +433,8 @@ local function connect_all_waterbodies()
 				wb.drain = nil
 			end
 		end
+
+		-- logger:log(wb.id .. ", " .. wb.type .. ", " .. tostring(wb.lake_open) .. ": " .. (wb.drain and wb.drain.id or "nil"))
 	end)
 end
 
