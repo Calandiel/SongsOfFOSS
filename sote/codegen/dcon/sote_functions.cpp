@@ -493,6 +493,7 @@ void update_building_scale() {
 		state.building_set_output_scale(ids,
 			output_scale
 			* (1 + state.province_get_output_efficiency_boosts(province, production_method))
+			* (state.province_get_local_efficiency_boosts(province, production_method))
 		);
 		state.building_set_input_scale(ids,
 			input_scale

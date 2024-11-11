@@ -710,6 +710,11 @@ object {
         tag { scenario }
     }
     property{
+        name { local_efficiency_boosts }
+        type { array{production_method_id}{float} }
+        tag { scenario }
+    }
+    property{
         name { output_efficiency_boosts }
         type { array{production_method_id}{float} }
         tag { scenario }

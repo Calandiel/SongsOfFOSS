@@ -3687,6 +3687,7 @@ end
 ---@field unit_types table<unit_type_id, number> 
 ---@field throughput_boosts table<production_method_id, number> 
 ---@field input_efficiency_boosts table<production_method_id, number> 
+---@field local_efficiency_boosts table<production_method_id, number> 
 ---@field output_efficiency_boosts table<production_method_id, number> 
 ---@field on_a_river boolean 
 ---@field on_a_forest boolean 
@@ -3798,6 +3799,9 @@ float dcon_province_get_throughput_boosts(int32_t, int32_t);
 void dcon_province_resize_input_efficiency_boosts(uint32_t);
 void dcon_province_set_input_efficiency_boosts(int32_t, int32_t, float);
 float dcon_province_get_input_efficiency_boosts(int32_t, int32_t);
+void dcon_province_resize_local_efficiency_boosts(uint32_t);
+void dcon_province_set_local_efficiency_boosts(int32_t, int32_t, float);
+float dcon_province_get_local_efficiency_boosts(int32_t, int32_t);
 void dcon_province_resize_output_efficiency_boosts(uint32_t);
 void dcon_province_set_output_efficiency_boosts(int32_t, int32_t, float);
 float dcon_province_get_output_efficiency_boosts(int32_t, int32_t);
@@ -3840,6 +3844,7 @@ DCON.dcon_province_resize_local_resources(26)
 DCON.dcon_province_resize_unit_types(21)
 DCON.dcon_province_resize_throughput_boosts(251)
 DCON.dcon_province_resize_input_efficiency_boosts(251)
+DCON.dcon_province_resize_local_efficiency_boosts(251)
 DCON.dcon_province_resize_output_efficiency_boosts(251)
 ---@return province_id
 function DATA.create_province()
@@ -4735,6 +4740,27 @@ function DATA.province_inc_input_efficiency_boosts(province_id, index, value)
     ---@type number
     local current = DCON.dcon_province_get_input_efficiency_boosts(province_id - 1, index - 1)
     DCON.dcon_province_set_input_efficiency_boosts(province_id - 1, index - 1, current + value)
+end
+---@param province_id province_id valid province id
+---@param index production_method_id valid
+---@return number local_efficiency_boosts 
+function DATA.province_get_local_efficiency_boosts(province_id, index)
+    assert(index ~= 0)
+    return DCON.dcon_province_get_local_efficiency_boosts(province_id - 1, index - 1)
+end
+---@param province_id province_id valid province id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_set_local_efficiency_boosts(province_id, index, value)
+    DCON.dcon_province_set_local_efficiency_boosts(province_id - 1, index - 1, value)
+end
+---@param province_id province_id valid province id
+---@param index production_method_id valid index
+---@param value number valid number
+function DATA.province_inc_local_efficiency_boosts(province_id, index, value)
+    ---@type number
+    local current = DCON.dcon_province_get_local_efficiency_boosts(province_id - 1, index - 1)
+    DCON.dcon_province_set_local_efficiency_boosts(province_id - 1, index - 1, current + value)
 end
 ---@param province_id province_id valid province id
 ---@param index production_method_id valid
@@ -22857,9 +22883,11 @@ function DATA.test_set_get_0()
     for j = 1, 250 do
         DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  -20)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  19)    end
+        DATA.province_set_local_efficiency_boosts(id, j --[[@as production_method_id]],  19)    end
+    for j = 1, 250 do
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  11)    end
     fat_id.on_a_river = false
-    fat_id.on_a_forest = false
+    fat_id.on_a_forest = true
     local test_passed = true
     test_passed = test_passed and fat_id.r == 4
     if not test_passed then print("r", 4, fat_id.r) end
@@ -23006,13 +23034,17 @@ function DATA.test_set_get_0()
     end
     if not test_passed then print("input_efficiency_boosts", -20, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 19
+        test_passed = test_passed and DATA.province_get_local_efficiency_boosts(id, j --[[@as production_method_id]]) == 19
     end
-    if not test_passed then print("output_efficiency_boosts", 19, DATA.province[id].output_efficiency_boosts[0]) end
+    if not test_passed then print("local_efficiency_boosts", 19, DATA.province[id].local_efficiency_boosts[0]) end
+    for j = 1, 250 do
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 11
+    end
+    if not test_passed then print("output_efficiency_boosts", 11, DATA.province[id].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == false
     if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
-    test_passed = test_passed and fat_id.on_a_forest == false
-    if not test_passed then print("on_a_forest", false, fat_id.on_a_forest) end
+    test_passed = test_passed and fat_id.on_a_forest == true
+    if not test_passed then print("on_a_forest", true, fat_id.on_a_forest) end
     print("SET_GET_TEST_0_province:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_army()
@@ -23747,7 +23779,9 @@ function DATA.test_set_get_1()
     for j = 1, 250 do
         DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  -14)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  -9)    end
+        DATA.province_set_local_efficiency_boosts(id, j --[[@as production_method_id]],  -9)    end
+    for j = 1, 250 do
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  20)    end
     fat_id.on_a_river = false
     fat_id.on_a_forest = true
     local test_passed = true
@@ -23896,9 +23930,13 @@ function DATA.test_set_get_1()
     end
     if not test_passed then print("input_efficiency_boosts", -14, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == -9
+        test_passed = test_passed and DATA.province_get_local_efficiency_boosts(id, j --[[@as production_method_id]]) == -9
     end
-    if not test_passed then print("output_efficiency_boosts", -9, DATA.province[id].output_efficiency_boosts[0]) end
+    if not test_passed then print("local_efficiency_boosts", -9, DATA.province[id].local_efficiency_boosts[0]) end
+    for j = 1, 250 do
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 20
+    end
+    if not test_passed then print("output_efficiency_boosts", 20, DATA.province[id].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == false
     if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == true
@@ -24637,7 +24675,9 @@ function DATA.test_set_get_2()
     for j = 1, 250 do
         DATA.province_set_input_efficiency_boosts(id, j --[[@as production_method_id]],  8)    end
     for j = 1, 250 do
-        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  6)    end
+        DATA.province_set_local_efficiency_boosts(id, j --[[@as production_method_id]],  6)    end
+    for j = 1, 250 do
+        DATA.province_set_output_efficiency_boosts(id, j --[[@as production_method_id]],  13)    end
     fat_id.on_a_river = false
     fat_id.on_a_forest = false
     local test_passed = true
@@ -24786,9 +24826,13 @@ function DATA.test_set_get_2()
     end
     if not test_passed then print("input_efficiency_boosts", 8, DATA.province[id].input_efficiency_boosts[0]) end
     for j = 1, 250 do
-        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 6
+        test_passed = test_passed and DATA.province_get_local_efficiency_boosts(id, j --[[@as production_method_id]]) == 6
     end
-    if not test_passed then print("output_efficiency_boosts", 6, DATA.province[id].output_efficiency_boosts[0]) end
+    if not test_passed then print("local_efficiency_boosts", 6, DATA.province[id].local_efficiency_boosts[0]) end
+    for j = 1, 250 do
+        test_passed = test_passed and DATA.province_get_output_efficiency_boosts(id, j --[[@as production_method_id]]) == 13
+    end
+    if not test_passed then print("output_efficiency_boosts", 13, DATA.province[id].output_efficiency_boosts[0]) end
     test_passed = test_passed and fat_id.on_a_river == false
     if not test_passed then print("on_a_river", false, fat_id.on_a_river) end
     test_passed = test_passed and fat_id.on_a_forest == false

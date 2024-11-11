@@ -42,6 +42,7 @@ mood float how local population thinks about the state
 unit_types uint8_t[unit_type_id]
 throughput_boosts float[production_method_id]
 input_efficiency_boosts float[production_method_id]
+local_efficiency_boosts float[production_method_id]
 output_efficiency_boosts float[production_method_id]
 on_a_river bool
 on_a_forest bool

@@ -1,11 +1,16 @@
 local province_utils = require "game.entities.province".Province
+local method_utils = require "game.raws.production-methods"
 local economic_effects = require "game.raws.effects.economy"
+
 
 local pro = {}
 
 function pro.run_fast()
 	DATA.for_each_province(function (item)
 		DATA.province_set_infrastructure_efficiency(item, province_utils.get_infrastructure_efficiency(item));
+		DATA.for_each_production_method(function (method)
+			DATA.province_set_local_efficiency_boosts(item, method, method_utils.get_efficiency(method, item))
+		end)
 	end)
 
 	DCON.update_economy()
