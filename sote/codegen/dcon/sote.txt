@@ -733,7 +733,7 @@ object {
 object {
     name { army }
     storage_type { erasable }
-    size { 5000 }
+    size { 50000 }
     tag {scenario}
     property{
         name { destination }

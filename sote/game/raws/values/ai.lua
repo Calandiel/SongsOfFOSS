@@ -43,7 +43,7 @@ end
 function AiPreferences.money_utility(character)
 	local base = 0.1
 	if HAS_TRAIT(character, TRAIT.GREEDY) then
-		base = 1
+		base = 0.2
 	end
 	return base / AiPreferences.percieved_inflation(character)
 end

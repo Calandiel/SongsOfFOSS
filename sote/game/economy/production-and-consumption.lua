@@ -15,6 +15,12 @@ function pro.run_fast()
 	DATA.for_each_pop(function (item)
 		local pending = DATA.pop_get_pending_economy_income(item);
 		economic_effects.add_pop_savings(item, pending, ECONOMY_REASON.TRADE)
+
+		if not IS_CHARACTER(item) then
+			local savings = DATA.pop_get_savings(item)
+			DATA.pop_set_savings(item, savings * 0.9)
+			economic_effects.register_income(LOCAL_REALM(item), savings, ECONOMY_REASON.DONATION)
+		end
 	end)
 end
 

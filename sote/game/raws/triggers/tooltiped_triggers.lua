@@ -40,6 +40,19 @@ Trigger.Pretrigger.not_busy = {
 	end
 }
 
+---@type Pretrigger
+Trigger.Pretrigger.not_ai_or_is_trader = {
+	tooltip_on_condition_failure = function(root, primary_target)
+		return { "AI specific pretrigger" }
+	end,
+	condition = function(root)
+		if root == WORLD.player_character then
+			return true
+		end
+		return HAS_TRAIT(root, TRAIT.TRADER)
+	end
+}
+
 ---Prepares a trigger which is true if one of list_of_pretriggers is true
 ---@param list_of_pretriggers Pretrigger[]
 ---@return Pretrigger
@@ -131,7 +144,7 @@ Trigger.Pretrigger.no_guard_at_local_realm = {
 		return { "Guard is already established here" }
 	end,
 	condition = function(root)
-		local guard = DATA.get_realm_guard_from_realm(province_utils.realm(PROVINCE(root)))
+		local guard = DATA.realm_guard_get_guard(DATA.get_realm_guard_from_realm(province_utils.realm(PROVINCE(root))))
 		return guard == INVALID_ID
 	end
 }
@@ -142,7 +155,7 @@ Trigger.Pretrigger.guard_at_local_realm = {
 		return { "Guard is not established here yet" }
 	end,
 	condition = function(root)
-		local guard = DATA.get_realm_guard_from_realm(province_utils.realm(PROVINCE(root)))
+		local guard = DATA.realm_guard_get_guard(DATA.get_realm_guard_from_realm(province_utils.realm(PROVINCE(root))))
 		return guard ~= INVALID_ID
 	end
 }
@@ -153,12 +166,11 @@ Trigger.Pretrigger.local_guard_exists_and_has_no_officer = {
 		return { "Guard is not established yet or it already has guard leader" }
 	end,
 	condition = function(root)
-		local guard = DATA.get_realm_guard_from_realm(province_utils.realm(PROVINCE(root)))
+		local guard = DATA.realm_guard_get_guard(DATA.get_realm_guard_from_realm(province_utils.realm(PROVINCE(root))))
 		if guard == INVALID_ID then
 			return false
 		end
-		local warband = DATA.realm_guard_get_guard(guard)
-		local guard_leadership = DATA.get_warband_recruiter_from_warband(warband)
+		local guard_leadership = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(guard))
 		return guard_leadership == INVALID_ID
 	end
 }
@@ -242,8 +254,8 @@ Trigger.Targeted.target_is_tax_collector = {
 		return { "Target is not a tax collector" }
 	end,
 	condition = function(root, primary_target)
-		local collector = DATA.get_tax_collector_from_collector(primary_target)
-		return collector ~= INVALID_ID
+		local collector_for = DATA.tax_collector_get_realm(DATA.get_tax_collector_from_collector(primary_target))
+		return collector_for ~= INVALID_ID
 	end
 }
 

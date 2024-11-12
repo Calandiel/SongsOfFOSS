@@ -14,8 +14,9 @@ end
 function car.calculate()
 	DATA.for_each_province(function (province_id)
 		if DATA.tile_get_is_land(DATA.province_get_center(province_id)) then
-			local amounts = dbm.total_foraging_amounts(province_id)
-			dbm.set_foraging_targets(province_id, amounts)
+			dbm.update_foraging_targets(province_id)
+			-- local amounts = dbm.total_foraging_amounts(province_id)
+			-- dbm.set_foraging_targets(province_id, amounts)
 		else
 			DATA.province_set_foragers_limit(province_id, 0)
 		end

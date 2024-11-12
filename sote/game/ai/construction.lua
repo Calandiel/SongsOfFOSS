@@ -194,7 +194,10 @@ local function construction_in_province(province, funds, excess, owner, overseer
 			local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
 			-- We can build! But only build if we have enough excess money to pay for the upkeep...
 			if excess >= DATA.building_type_get_upkeep(to_build) then
-				economy_effects.construct_building(to_build, province, owner)
+				local building = economy_effects.construct_building(to_build, province, owner)
+				DATA.building_inc_subsidy(building, 0.125)
+				DATA.building_inc_savings(building, construction_cost * 0.1)
+
 				funds = math.max(0, funds - construction_cost)
 			end
 		end
@@ -211,41 +214,50 @@ function co.run(realm)
 	local excess = base_tick_spending -- Treat monthly education investments as an indicator of "free" income
 	local funds = DATA.realm_get_budget_treasury(realm)
 
-	if excess > 0 then
-		DATA.for_each_realm_provinces_from_realm(realm, function (membership)
-			local province = DATA.realm_provinces_get_province(membership)
-			if WORLD:does_player_control_realm(realm) then
-				-- Player realms shouldn't run their AI for building construction... unless...
-			else
+	DATA.for_each_realm_provinces_from_realm(realm, function (membership)
+		local province = DATA.realm_provinces_get_province(membership)
+		if WORLD:does_player_control_realm(realm) then
+			-- Player realms shouldn't run their AI for building construction... unless...
+		else
+			if excess > 0 then
 				funds = construction_in_province(province, funds, excess, INVALID_ID, pv.overseer(realm))
 			end
+		end
 
-			-- Run construction using the AI for local wealth too!
-			local wealth = DATA.province_get_local_wealth(province)
+		-- Run construction using the AI for local wealth too!
+		local wealth = DATA.province_get_local_wealth(province)
 
-			local province_funds = construction_in_province(province, wealth, 0, INVALID_ID, INVALID_ID) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
-			local change = province_funds - wealth
-			economy_effects.change_local_wealth(province, change, ECONOMY_REASON.BUILDING)
+		local province_funds = construction_in_province(province, wealth, 0, INVALID_ID, INVALID_ID) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
+		local change = province_funds - wealth
+		economy_effects.change_local_wealth(province, change, ECONOMY_REASON.BUILDING)
 
-			-- local characters want to build too!
-			-- select random character:
-			local builder_location = tabb.random_select_from_set(DATA.filter_character_location_from_location(province, ACCEPT_ALL))
-
-			if builder_location == nil then
-				return
+		-- local characters want to build too!
+		-- select random character:
+		local builder_location = tabb.random_select_from_array(DATA.filter_array_character_location_from_location(province, function (item)
+			local candidate = DATA.character_location_get_character(item)
+			if ai.construction_funds(candidate) > 150 then
+				return true
 			end
+			return false
+		end))
 
-			local builder = DATA.character_location_get_character(builder_location)
+		if builder_location == nil then
+			return
+		end
 
-			if WORLD.player_character ~= builder then
-				local char_funds = ai.construction_funds(builder)
-				local result = construction_in_province(province, char_funds, 0, builder, builder)
+		local builder = DATA.character_location_get_character(builder_location)
 
-				local spendings = char_funds - result
-				economy_effects.add_pop_savings(builder, -spendings, ECONOMY_REASON.BUILDING)
-			end
-		end)
-	end
+		if WORLD.player_character ~= builder then
+			local char_funds = ai.construction_funds(builder)
+			-- print("consider building")
+			-- print(builder, char_funds)
+			local result = construction_in_province(province, char_funds, 0, builder, builder)
+			-- print(result)
+
+			local spendings = char_funds - result
+			economy_effects.add_pop_savings(builder, -spendings, ECONOMY_REASON.BUILDING)
+		end
+	end)
 
 	local old_treasury = DATA.realm_get_budget_treasury(realm)
 	economy_effects.change_treasury(realm, funds - old_treasury, ECONOMY_REASON.BUILDING)

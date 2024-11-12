@@ -174,7 +174,7 @@ function dbm.total_foraging_amounts(province)
 end
 
 -- todo: ask squealing to rebalance the thing
-local global_multiplier = 5
+local global_multiplier = 1.0
 
 ---commenting
 ---@param province province_id
@@ -194,7 +194,7 @@ end
 ---Calculate and set a province's forager limit (CC) and foraging targets
 function dbm.set_foraging_targets(province, amounts)
 	local hydration = DATA.province_get_hydration(province)
-	set_province_data(province, 1, FORAGE_RESOURCE.WATER, retrieve_good("water"), 8, hydration)
+	set_province_data(province, 1, FORAGE_RESOURCE.WATER, retrieve_good("water"), 80, hydration)
 	set_province_data(province, 2, FORAGE_RESOURCE.FRUIT, retrieve_good("berries"), 1.6, amounts.fruit)
 	set_province_data(province, 3, FORAGE_RESOURCE.GRAIN, retrieve_good("grain"), 2, amounts.seeds)
 	set_province_data(province, 4, FORAGE_RESOURCE.WOOD, retrieve_good("bark"), 1.25, amounts.wood)
@@ -206,6 +206,25 @@ function dbm.set_foraging_targets(province, amounts)
 	set_province_data(province, 10, FORAGE_RESOURCE.SHELL, retrieve_good("seaweed"), 2, amounts.shell)
 	set_province_data(province, 11, FORAGE_RESOURCE.FISH, retrieve_good("fish"), 1.25, amounts.fish)
 	DATA.province_set_foragers_limit(province, amounts.net_pp)
+end
+
+---@param province Province
+function dbm.update_foraging_targets(province)
+	DCON.update_foraging_data(
+		province,
+		retrieve_good("water"),
+		retrieve_good("berries"),
+		retrieve_good("grain"),
+		retrieve_good("bark"),
+		retrieve_good("timber"),
+		retrieve_good("meat"),
+		retrieve_good("hide"),
+		retrieve_good("mushrooms"),
+		retrieve_good("shellfish"),
+		retrieve_good("seaweed"),
+		retrieve_good("fish"),
+		WORLD.world_size
+	)
 end
 
 ---@alias NeedUseCaseAmount {need: NEED, use_case: use_case_id, amount: number}
@@ -229,6 +248,11 @@ function dbm.cultural_food_needs(race)
 			local average_gendered_use_case_need =
 				male_value * male_to_female_ratio
 				+ (1 - male_to_female_ratio) * female_value
+
+			-- overestimate needed water:
+			if use_case == WATER_USE_CASE then
+				average_gendered_use_case_need = average_gendered_use_case_need * 80
+			end
 
 			table.insert(food_needs, {use_case = use_case, need = need, amount = average_gendered_use_case_need})
 		end
@@ -413,10 +437,13 @@ local function calculate_weights(use_cases_data)
 			local provided = 0
 
 			for j, target_data in pairs(targets_table.data_per_forage_target) do
-				provided = provided + weights[i][j] * (target_data.handle_time + target_data.search_time) * target_data.energy_return_per_unit_of_time
+				provided = provided
+					+ weights[i][j]
+					* (target_data.handle_time + target_data.search_time)
+					* target_data.energy_return_per_unit_of_time
 			end
 
-			LOGS:write(tostring(iteration) .. "\t" .. tostring(required - provided) .. "\n")
+			LOGS:write(tostring(iteration) .. "\t" .. tostring(required - provided).. "\t" .. tostring(provided) .. "/" .. tostring(required) .. "\n")
 			--- next we reduce/increase weights depending on their efficiency
 			--- obviously we want to get rid of weak sources and increase reliance on strong
 			--- but without being overzealous
@@ -435,7 +462,7 @@ local function calculate_weights(use_cases_data)
 
 			last = current_loss
 
-			if math.abs(current_loss) < 0.001 then
+			if math.abs(current_loss) < 0.01 then
 				break
 			end
 
@@ -450,6 +477,8 @@ local function calculate_weights(use_cases_data)
 							/ (target_data.energy_return_per_unit_of_time + 1)
 							* target_data.output_energy
 						)
+
+					-- assert(weights[i][j] == weights[i][j])
 				end
 			else
 				for j, target_data in pairs(targets_table.data_per_forage_target) do
@@ -464,6 +493,14 @@ local function calculate_weights(use_cases_data)
 							* math.exp(-target_data.output_energy / 1000)
 						)
 					)
+
+					-- assert(weights[i][j] == weights[i][j],
+					-- 	"(provided - required) " .. tostring(provided - required) ..
+					-- 	"\n* step " .. tostring(step) ..
+					-- 	"\n/ (target_data.handle_time + target_data.search_time + 1)" .. tostring((target_data.handle_time + target_data.search_time + 1)) ..
+					-- 	"\n/ (target_data.energy_return_per_unit_of_time + 1)" .. tostring(target_data.energy_return_per_unit_of_time + 1)..
+					-- 	"\n* math.exp(-target_data.output_energy / 1000)" .. tostring(math.exp(-target_data.output_energy / 1000)).. "\n"
+					-- )
 				end
 			end
 		end

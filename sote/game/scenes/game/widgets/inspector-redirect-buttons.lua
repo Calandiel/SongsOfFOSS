@@ -73,7 +73,7 @@ end
 function ib.text_button_to_province(gamescene, province, rect, text, tooltip, potential, active)
     if ut.text_button(text, rect, tooltip, potential, active) then
         gamescene.selected.province = province
-        gamescene.selected.tile = province.center
+        gamescene.selected.tile = DATA.province_get_center(province)
         gamescene.inspector = "tile"
     end
 end

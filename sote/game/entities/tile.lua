@@ -5,14 +5,10 @@ local ll_utils = require "game.latlon"
 
 tile.Tile = {}
 
----@param tile_world_id number
 ---@return tile_id
-function tile.Tile:new(tile_world_id)
+function tile.Tile:new()
 	local tile_dcon_id = DATA.create_tile()
 	local tt = DATA.fatten_tile(tile_dcon_id)
-	tt.world_id = tile_world_id
-
-	TILE_FROM_WORLD_ID[tile_world_id --[[@as world_tile_id]]] = tile_dcon_id
 
 	tt.is_land = false
 	tt.is_fresh = false
@@ -333,7 +329,7 @@ function tile.get_neighbor(tile_id, neighbor_index)
 	end
 
 	local ret_id = tile.coords_to_index(rx, ry, rf)
-	return TILE_FROM_WORLD_ID[ret_id]
+	return ret_id
 end
 
 ---Returns an iterator over all neighbors
@@ -461,7 +457,7 @@ end
 ---@return number y
 ---@return number f
 function tile.index_to_coords(tile_id)
-	local world_id = DATA.tile_get_world_id(tile_id)
+	local world_id = tile_id
 	world_id = world_id - 1
 	local ws = WORLD.world_size
 	local f = math.floor(world_id / (ws * ws))

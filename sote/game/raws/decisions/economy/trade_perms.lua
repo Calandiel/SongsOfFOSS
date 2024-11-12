@@ -5,6 +5,7 @@ local pretriggers = require "game.raws.triggers.tooltiped_triggers".Pretrigger
 local triggers = require "game.raws.triggers.tooltiped_triggers".Targeted
 
 local NOT_BUSY = pretriggers.not_busy
+local AI_IS_TRADER = pretriggers.not_ai_or_is_trader
 
 local economic_values = require "game.raws.values.economy"
 local character_values = require "game.raws.values.character"
@@ -21,6 +22,7 @@ return function ()
 		1 / 12, -- once per year
 		{
 			NOT_BUSY,
+			AI_IS_TRADER
 		},
 		{
 			triggers.settled
@@ -151,6 +153,7 @@ return function ()
 		0, -- for now never
 		{
 			NOT_BUSY,
+			AI_IS_TRADER
 		},
 		{
 			triggers.settled

@@ -489,6 +489,19 @@ function wl.load_default()
 	coroutine.yield()
 	coroutine.yield()
 
+	coroutine.yield()
+	coroutine.yield()
+	do
+		local time = love.timer.getTime()
+		print("Updating local production method efficiency...")
+		DATA.for_each_province(function (item)
+			DATA.for_each_production_method(function (method)
+				DATA.province_set_local_efficiency_boosts(item, method, method_utils.get_efficiency(method, item))
+			end)
+		end)
+		print(love.timer.getTime() - time)
+	end
+
 
 	print("All maps loaded!")
 	--]]
@@ -568,19 +581,6 @@ function wl.generate()
 	do
 		local time = love.timer.getTime()
 		require "game.world-gen.resource-gen".run()
-		print(love.timer.getTime() - time)
-	end
-
-	wl.message = "Updating local production method efficiency..."
-	coroutine.yield()
-	coroutine.yield()
-	do
-		local time = love.timer.getTime()
-		DATA.for_each_province(function (item)
-			DATA.for_each_production_method(function (method)
-				DATA.province_set_local_efficiency_boosts(item, method, method_utils.get_efficiency(method, item))
-			end)
-		end)
 		print(love.timer.getTime() - time)
 	end
 end

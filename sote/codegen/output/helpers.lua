@@ -170,9 +170,10 @@ function DEAD(pop_id)
 	return DATA.pop_get_dead(pop_id)
 end
 
+---@alias world_tile_id tile_id
 
----@class world_tile_id : number
----@field is_world_tile_id nil
+-- -@class world_tile_id : number
+-- -@field is_world_tile_id nil
 
 ---Returns province of a pop
 ---@param pop_id pop_id

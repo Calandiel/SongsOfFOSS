@@ -4974,7 +4974,7 @@ uint32_t dcon_army_size();
 
 ---army: LUA bindings---
 
-DATA.army_size = 5000
+DATA.army_size = 50000
 ---@return army_id
 function DATA.create_army()
     ---@type army_id

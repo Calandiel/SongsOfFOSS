@@ -71,11 +71,11 @@ function de.run_character(character)
 		-- local decision = RAWS_MANAGER.decisions_characters_by_name[dec_name]
 		-- local d = decision
 
-		PROFILER:start_timer(d.name)
 
 		-- 3. Check base probability (AI only) << base_probability >>
 		if love.math.random() < d.base_probability then
-		-- if true then
+			PROFILER:start_timer(d.name)
+			-- if true then
 			-- 4. Check pretrigger << pretrigger >>
 
 			---#logging LOGS:write("check pretrigger " .. decision.name .. "\n")
@@ -130,9 +130,8 @@ function de.run_character(character)
 					fails = fails + 1
 				end
 			end
+			PROFILER:end_timer(d.name)
 		end
-
-		PROFILER:end_timer(d.name)
 	end
 end
 

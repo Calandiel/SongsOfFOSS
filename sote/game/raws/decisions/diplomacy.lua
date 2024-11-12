@@ -626,14 +626,14 @@ local function load()
 			if not DATA.province_get_is_land(primary_target) then
 				return false
 			end
-			local _, valid_family_count, _ = valid_home_family_units(CAPITOL(REALM(root)))
-			if valid_family_count < 11 then
-				return false
-			end
 			if province_utils.realm(primary_target) ~= INVALID_ID then
 				return false
 			end
 			if not realm_utils.neighbors_realm_tributary(primary_target, REALM(root)) then
+				return false
+			end
+			local _, valid_family_count, _ = valid_home_family_units(CAPITOL(REALM(root)))
+			if valid_family_count < 11 then
 				return false
 			end
 			return true

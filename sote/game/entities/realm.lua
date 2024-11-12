@@ -460,6 +460,8 @@ function realm_utils.Realm.disband_army(army)
 		warbands[warband] = warband
 	end)
 
+	DATA.delete_army(army)
+
 	return warbands
 end
 

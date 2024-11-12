@@ -182,9 +182,24 @@ local function load()
 			---@type Realm
 			local target_realm = associated_data
 
+			if PROVINCE_REALM(PROVINCE(character)) == INVALID_ID then
+				return {
+					text = "Back down",
+					tooltip = "We are in invalid state",
+					viable = function() return true end,
+					outcome = function()
+						if WORLD.player_character == character then
+							WORLD:emit_notification("I decided to not attack " .. NAME(LEADER(target_realm)))
+						end
+						UNSET_BUSY(character)
+					end,
+					ai_preference = AI_VALUE.generic_event_option(character, LEADER(target_realm), 0, {})
+				}
+			end
+
 			-- character assumes that realm will gain money at least for a year
 			local gain_of_money = 0
-			if target_realm then
+			if target_realm ~= INVALID_ID then
 				gain_of_money = ev.potential_monthly_tribute_size(target_realm) * 12
 			end
 
@@ -240,6 +255,7 @@ local function load()
 						return base_value
 					end
 				},
+				--[[
 				{
 					text = "Wait for 10 days",
 					tooltip = "Wait for our warlords to gather.",
@@ -261,6 +277,7 @@ local function load()
 						return base_value
 					end
 				},
+				--]]
 				{
 					text = "Back down",
 					tooltip = "We are not ready to fight",

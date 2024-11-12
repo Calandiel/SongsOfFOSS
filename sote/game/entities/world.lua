@@ -157,7 +157,7 @@ function world.World:new()
 	w.realms_changed = false
 	w.provinces_to_update_on_map = {}
 	for tile_id = 1, 6 * ws * ws do
-		tile_t.Tile:new(tile_id)
+		tile_t.Tile:new()
 	end
 	for cell = 1, w.climate_grid_size * w.climate_grid_size do
 		table.insert(w.climate_cells, cells.ClimateCell:new(cell))
@@ -219,7 +219,7 @@ end
 function world.World:random_tile()
 	local tc = self:tile_count()
 
-	return TILE_FROM_WORLD_ID[love.math.random(tc)]
+	return love.math.random(tc) --[[@as tile_id]]
 end
 
 ---Creates and returns a new plate
@@ -488,11 +488,13 @@ function world.World:tick()
 		-- tiles update in settled_province:
 		for _, settled_province in pairs(ta) do
 			-- update targets from accumulated foraging data
-			local amounts = dbm.total_foraging_amounts(settled_province)
-			dbm.set_foraging_targets(settled_province, amounts)
+			dbm.update_foraging_targets(settled_province)
+			-- local amounts = dbm.total_foraging_amounts(settled_province)
+			-- dbm.set_foraging_targets(settled_province, amounts)
+
 			-- local weight = WORLD.current_tick_in_month % 10
 			-- if (weight == WORLD.month and weight == (WORLD.year % 12)) then
-			-- 	dbm.cultural_foragable_targets(settled_province)
+				-- 	dbm.cultural_foragable_targets(settled_province)
 			-- end
 		end
 
@@ -568,7 +570,7 @@ function world.World:tick()
 			assert(overseer ~= INVALID_ID, province_utils.local_population(settled_province))
 			local capitol = DATA.realm_get_capitol(realm)
 
-			if realm ~= nil and capitol == settled_province then
+			if realm ~= INVALID_ID and capitol == settled_province then
 				PROFILER:start_timer("realm")
 
 				-- Run the realm AI once a month

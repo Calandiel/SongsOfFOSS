@@ -9,20 +9,17 @@ local warband_utils = {}
 function warband_utils.get_officers(warband)
 	---@type table<Character, Character>
 	local officers = {}
-	local leader_link = DATA.get_warband_leader_from_warband(warband)
-	local commander_link = DATA.get_warband_commander_from_warband(warband)
-	local recruiter_link = DATA.get_warband_recruiter_from_warband(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	local commander = DATA.warband_commander_get_commander(DATA.get_warband_commander_from_warband(warband))
+	local recruiter = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(warband))
 
-	if leader_link then
-		local leader = DATA.warband_leader_get_leader(leader_link)
+	if leader ~= INVALID_ID then
 		officers[leader] = leader
 	end
-	if commander_link then
-		local commander = DATA.warband_commander_get_commander(commander_link)
+	if commander ~= INVALID_ID then
 		officers[commander] = commander
 	end
-	if recruiter_link then
-		local recruiter = DATA.warband_recruiter_get_recruiter(recruiter_link)
+	if recruiter ~= INVALID_ID then
 		officers[recruiter] = recruiter
 	end
 	return officers
@@ -32,22 +29,19 @@ end
 ---@param warband warband_id
 ---@return Character officer
 function warband_utils.active_leader(warband)
-	local leader_link = DATA.get_warband_leader_from_warband(warband)
-	local commander_link = DATA.get_warband_commander_from_warband(warband)
-	local recruiter_link = DATA.get_warband_recruiter_from_warband(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	local commander = DATA.warband_commander_get_commander(DATA.get_warband_commander_from_warband(warband))
+	local recruiter = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(warband))
 
-	if leader_link then
-		local leader = DATA.warband_leader_get_leader(leader_link)
+	if leader ~= INVALID_ID then
 		return leader
 	end
 
-	if recruiter_link then
-		local recruiter = DATA.warband_recruiter_get_recruiter(recruiter_link)
+	if recruiter ~= INVALID_ID then
 		return recruiter
 	end
 
-	if commander_link then
-		local commander = DATA.warband_commander_get_commander(commander_link)
+	if commander ~= INVALID_ID then
 		return commander
 	end
 
@@ -58,22 +52,19 @@ end
 ---@param warband warband_id
 ---@return Character? officers
 function warband_utils.active_commander(warband)
-	local leader_link = DATA.get_warband_leader_from_warband(warband)
-	local commander_link = DATA.get_warband_commander_from_warband(warband)
-	local recruiter_link = DATA.get_warband_recruiter_from_warband(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	local commander = DATA.warband_commander_get_commander(DATA.get_warband_commander_from_warband(warband))
+	local recruiter = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(warband))
 
-	if commander_link then
-		local commander = DATA.warband_commander_get_commander(commander_link)
+	if commander ~= INVALID_ID then
 		return commander
 	end
 
-	if recruiter_link then
-		local recruiter = DATA.warband_recruiter_get_recruiter(recruiter_link)
+	if recruiter ~= INVALID_ID then
 		return recruiter
 	end
 
-	if leader_link then
-		local leader = DATA.warband_leader_get_leader(leader_link)
+	if leader ~= INVALID_ID then
 		return leader
 	end
 
@@ -97,11 +88,11 @@ function warband_utils.realm(warband)
 		return REALM(DATA.warband_leader_get_leader(leadership))
 	else
 		-- TODO
-		local guard_of = DATA.get_realm_guard_from_guard(warband)
+		local guard_of = DATA.realm_guard_get_realm(DATA.get_realm_guard_from_guard(warband))
 		if guard_of == INVALID_ID then
 			return INVALID_ID
 		end
-		return DATA.realm_guard_get_realm(guard_of)
+		return guard_of
 	end
 end
 
@@ -117,8 +108,8 @@ function warband_utils.loot_capacity(warband)
 		cap = cap + pop_utils.get_supply_capacity(pop, unit_type)
 	end
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			cap = cap + pop_utils.get_supply_capacity(pop, 0)
 		end
 	end
@@ -144,8 +135,8 @@ function warband_utils.spotting(warband)
 		result = result + pop_utils.get_spotting(pop, unit_type)
 	end
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			result = result + pop_utils.get_spotting(pop, 0)
 		end
 	end
@@ -176,8 +167,8 @@ function warband_utils.visibility(warband)
 		result = result + pop_utils.get_visibility(pop, unit_type)
 	end
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			result = result + pop_utils.get_spotting(pop, 0)
 		end
 	end
@@ -220,8 +211,8 @@ function warband_utils.speed(warband)
 		result = result + pop_utils.get_speed(pop, unit_type)
 	end
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership =  DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			result = result + pop_utils.get_speed(pop, 0)
 		end
 	end
@@ -234,8 +225,8 @@ end
 function warband_utils.size(warband)
 	local result = tabb.size(DATA.get_warband_unit_from_warband(warband))
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			result = result + 1
 		end
 	end
@@ -252,8 +243,8 @@ function warband_utils.target_size(warband)
 	end)
 
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			---@type number
 			result = result + 1
 		end
@@ -294,7 +285,7 @@ function warband_utils.hire_unit(warband, pop, unit)
 		error("ATTEMPT TO HIRE POP WITHOUT PROVINCE")
 	end
 
-	local warband_membership = DATA.get_warband_unit_from_unit(pop)
+	local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
 	if warband_membership ~= INVALID_ID then
 		error("ATTEMPT TO HIRE POP ATTACHED TO WARBAND")
 	end
@@ -456,8 +447,8 @@ function warband_utils.daily_supply_consumption(warband)
 		result = result + pop_utils.get_supply_use(pop, unit_type)
 	end
 	for _, pop in pairs(warband_utils.get_officers(warband)) do
-		local warband_membership = DATA.get_warband_unit_from_unit(pop)
-		if not warband_membership then
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
 			result = result + pop_utils.get_supply_use(pop, 0)
 		end
 	end

@@ -28,7 +28,7 @@ function r.run(province)
 	end
 
 	-- From buildings
-	DATA.for_each_building_location(function (item)
+	DATA.for_each_building_location_from_location(province, function (item)
 		local building = DATA.building_location_get_building(item)
 		local building_type = DATA.building_get_current_type(building)
 		local infrastructure_needs = DATA.building_type_get_needed_infrastructure(building_type)

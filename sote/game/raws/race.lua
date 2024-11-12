@@ -63,16 +63,16 @@ function Race:new(o)
 		local need = male_needs[i].need
 		local use_case = male_needs[i].use_case
 
-		print(i - 1, need, use_case)
+		print(i, need, use_case)
 
-		DATA.race_set_male_needs_need(r, i - 1, need)
-		DATA.race_set_female_needs_need(r, i - 1, need)
+		DATA.race_set_male_needs_need(r, i, need)
+		DATA.race_set_female_needs_need(r, i, need)
 
-		DATA.race_set_male_needs_use_case(r, i - 1, use_case)
-		DATA.race_set_female_needs_use_case(r, i - 1, use_case)
+		DATA.race_set_male_needs_use_case(r, i, use_case)
+		DATA.race_set_female_needs_use_case(r, i, use_case)
 
-		DATA.race_set_male_needs_required(r, i - 1, male_needs[i].required)
-		DATA.race_set_female_needs_required(r, i - 1, female_needs[i].required)
+		DATA.race_set_male_needs_required(r, i, male_needs[i].required)
+		DATA.race_set_female_needs_required(r, i, female_needs[i].required)
 	end
 
 	DATA.setup_race(r, o)

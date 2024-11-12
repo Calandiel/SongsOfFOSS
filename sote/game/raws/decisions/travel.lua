@@ -117,7 +117,6 @@ local function load()
 				end
 			end)
 
-
 			DATA.for_each_realm_subject_relation_from_subject(REALM(root), function (item)
 				local overlord = DATA.realm_subject_relation_get_overlord(item)
 				if economy_triggers.allowed_to_trade(root, overlord) then
@@ -149,15 +148,15 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			local reward = DATA.realm_get_quests_explore(REALM(root))[primary_target] or 0
+			if HAS_TRAIT(root, TRAIT.TRADER) then
+				return 1
+			end
 
 			if RANK(root) == CHARACTER_RANK.CHIEF then
 				return 0
 			end
 
-			if HAS_TRAIT(root, TRAIT.TRADER) then
-				return 1
-			end
+			-- local reward = DATA.realm_get_quests_explore(REALM(root))[primary_target] or 0
 
 			return 0
 		end,

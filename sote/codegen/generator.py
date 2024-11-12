@@ -1508,7 +1508,7 @@ Subreligion = EntityDescription("subreligion", 10000, False)
 
 Pop = EntityDescription("pop", POPS_MAX_COUNT, False)
 Province = EntityDescription("province", 20000, False)
-Army = EntityDescription("army", 5000, False)
+Army = EntityDescription("army", 50000, False)
 Warband = EntityDescription("warband", 50000, False)
 Realm = EntityDescription("realm", REALMS_MAX_COUNT, False)
 

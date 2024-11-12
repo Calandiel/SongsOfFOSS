@@ -276,7 +276,7 @@ return function ()
 			end
 
 			local fat = DATA.fatten_warband(warband)
-			if fat.status ~= WARBAND_STATUS.IDLE then
+			if fat.current_status ~= WARBAND_STATUS.IDLE then
 				return "Your warband is busy."
 			end
 
@@ -301,7 +301,7 @@ return function ()
 			if BUSY(root) then return false end
 			if LEADER_OF_WARBAND(root) == INVALID_ID then return false end
 			local fat = DATA.fatten_warband(LEADER_OF_WARBAND(root))
-			if fat.status ~= WARBAND_STATUS.IDLE then
+			if fat.current_status ~= WARBAND_STATUS.IDLE then
 				return false
 			end
 			return true

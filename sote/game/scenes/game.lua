@@ -839,7 +839,6 @@ function gam.draw()
 	if coll_point then
 		if ui.is_mouse_released(1) then
 			new_clicked_tile = tile.cart_to_index(coll_point.x, coll_point.y, coll_point.z)
-			print(new_clicked_tile)
 			click_detected = true
 		end
 	else
@@ -1288,7 +1287,7 @@ function gam.draw()
 		local qq = require "engine.queue":new()
 		local to_draw = flood_fill
 		local world_id = tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)
-		local center_tile = TILE_FROM_WORLD_ID[world_id]
+		local center_tile = world_id
 		local prov = tile.province(center_tile)
 		visited[prov] = prov
 		qq:enqueue(prov)
@@ -1426,7 +1425,7 @@ function gam.draw()
 			local qq = require "engine.queue":new()
 			local to_draw = flood_fill
 			local index = tile.cart_to_index(starting_call_point.x, starting_call_point.y, starting_call_point.z)
-			local center_tile = TILE_FROM_WORLD_ID[index]
+			local center_tile = index
 
 			local prov = tile.province(center_tile)
 			visited[prov] = prov

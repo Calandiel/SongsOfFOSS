@@ -61,12 +61,13 @@ function pg.growth(province_id)
 				break
 			end
 			local need = DATA.pop_get_need_satisfaction_need(pop, index)
-			local demanded = DATA.pop_get_need_satisfaction_demanded(pop, index)
-			local consumed = DATA.pop_get_need_satisfaction_consumed(pop, index)
-
-			local ratio = consumed / demanded
-			if min_life_satisfaction > ratio then
-				min_life_satisfaction = ratio
+			if DATA.need_get_life_need(need) then
+				local demanded = DATA.pop_get_need_satisfaction_demanded(pop, index)
+				local consumed = DATA.pop_get_need_satisfaction_consumed(pop, index)
+				local ratio = consumed / demanded
+				if min_life_satisfaction > ratio then
+					min_life_satisfaction = ratio
+				end
 			end
 		end
 

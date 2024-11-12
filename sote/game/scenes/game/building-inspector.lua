@@ -230,6 +230,12 @@ function re.draw(gam)
 		local last_donation = DATA.building_get_last_donation_to_owner(building)
 		local mean_income = DATA.building_get_income_mean(building)
 
+		-- prepare inventory tooltip:
+		local inventory_tooltip = "Current inventory: "
+		DATA.for_each_trade_good(function (item)
+			inventory_tooltip = inventory_tooltip .. "\n" .. DATA.trade_good_get_name(item) .. ": " .. ut.to_fixed_point2(DATA.building_get_inventory(building, item))
+		end)
+
 		ut.money_entry_icon(last_subsidy, left_value_rect, ut.to_fixed_point2(last_subsidy)
 			.. MONEY_SYMBOL .. " paid to each worker last month.", true)
 		-- last_donation_to_owner
@@ -274,7 +280,7 @@ function re.draw(gam)
 
 		ui.centered_text("Input costs", left_text_rect)
 		ut.money_entry_icon(input_spent_total, left_value_rect, ut.to_fixed_point2(input_spent_total)
-			.. MONEY_SYMBOL  .. " spent on inputs last month.", true)
+			.. MONEY_SYMBOL  .. " spent on inputs last month.\n" .. inventory_tooltip, true)
 
 
 
@@ -308,8 +314,8 @@ function re.draw(gam)
 
 		-- average revenue per worker
 		ui.centered_text("Total profits", right_text_rect)
-		ut.money_entry_icon(output_earn_total, right_value_rect,ut.to_fixed_point2((output_earn_total - input_spent_total))
-			..  MONEY_SYMBOL .. " earned after paying for inputs.")
+		ut.money_entry_icon(output_earn_total, right_value_rect, ut.to_fixed_point2((output_earn_total - input_spent_total))
+			..  MONEY_SYMBOL .. " earned after paying for inputs. " .. ut.to_fixed_point2(DATA.building_get_savings(building)) .. MONEY_SYMBOL .. " currently saved by a building")
 
 		-- INPUT OUTPUT AND WORKER TABLES
 
@@ -486,6 +492,7 @@ function re.draw(gam)
 				---@param v number
 				render_closure = function(rect, k, v)
 					ui.centered_text(ut.to_fixed_point2(amount_inputs[k] or 0), rect)
+					ui.tooltip(inventory_tooltip, rect)
 				end,
 				width = 3,
 				---@param k string

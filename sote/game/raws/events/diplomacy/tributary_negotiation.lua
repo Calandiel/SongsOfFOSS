@@ -137,7 +137,7 @@ return function ()
 						DATA.realm_set_prepare_attack_flag(realm, true)
 						SET_BUSY(character)
 
-						WORLD:emit_event("request-tribute-raid", character, target_realm, 10)
+						WORLD:emit_immediate_event("request-tribute-raid", character, target_realm)
 					end,
 
 					ai_preference = function ()

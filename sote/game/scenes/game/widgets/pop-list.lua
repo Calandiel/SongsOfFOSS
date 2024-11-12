@@ -169,12 +169,22 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ---@type POP
                     v = v
+
+                    local inventory_tooltip = "\n Character's inventory: \t"
+                    DATA.for_each_trade_good(function (item)
+                        inventory_tooltip =
+                            inventory_tooltip
+                            .. DATA.trade_good_get_name(item)
+                            .. " " .. DATA.pop_get_inventory(v, item) .. "\t"
+                    end)
+
                     ut.money_entry(
                         "",
                         DATA.pop_get_savings(v),
                         rect,
                         "Savings of this character. "
                         .. "Characters spend them on buying food and other commodities."
+                        .. inventory_tooltip
                     )
                 end,
                 width = 3,
