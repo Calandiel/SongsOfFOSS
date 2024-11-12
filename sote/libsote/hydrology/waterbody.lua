@@ -19,11 +19,12 @@ function waterbody:new(id)
 	obj.type = waterbody.TYPES.invalid
 	obj.basin = nil
 	obj.water_level = 0
+	obj.river_slope = 0
 	obj.perimeter = {}
 	obj.lowest_shore_tile = nil
 	obj.lake_open = false
 	obj.source = {}
-	obj.drain = {}
+	obj.drain = nil
 	obj.tmp_float_1 = 0
 	obj.sand_load = 0
 	obj.silt_load = 0
@@ -43,11 +44,12 @@ function waterbody:kill()
 	-- self.type = waterbody.TYPES.invalid
 	self.basin = nil
 	-- self.water_level = 0
+	-- self.river_slope = 0
 	self.perimeter = {}
 	-- self.lowest_shore_tile = nil
 	-- self.lake_open = false
 	self.source = {}
-	self.drain = {}
+	self.drain = nil
 	-- self.tmp_float_1 = 0
 end
 
