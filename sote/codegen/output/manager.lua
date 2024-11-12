@@ -9,6 +9,9 @@ DCON = ffi.load(dll_path .. "dcon.dll")
 
 assert(DCON, "FAILED_TO_LOAD_DLL")
 
+-- SHOULD BE CHANGED TOGETHER WITH ACCORDING VALUE IN cpp FILE
+POP_BUY_PRICE_MULTIPLIER = 3
+
 ffi.cdef[[
     void* calloc( size_t num, size_t size );
     void update_vegetation(float);

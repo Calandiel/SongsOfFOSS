@@ -56,8 +56,9 @@ end
 ---@param target Character
 function InterpersonalEffects.set_successor(character, target)
 	local succession = DATA.get_succession_from_successor_of(character)
+	local successor = DATA.succession_get_successor(succession)
 
-	if succession == INVALID_ID then
+	if successor == INVALID_ID then
 		DATA.force_create_succession(character, target)
 	else
 		DATA.succession_set_successor(succession, target)

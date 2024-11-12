@@ -14887,6 +14887,7 @@ DATA.law_building_set_name(index_law_building, "PERMISSION_ONLY")
 ---@field b number 
 ---@field belongs_to_category TRADE_GOOD_CATEGORY 
 ---@field base_price number 
+---@field decay number 
 
 ---@class struct_trade_good
 ---@field r number 
@@ -14894,6 +14895,7 @@ DATA.law_building_set_name(index_law_building, "PERMISSION_ONLY")
 ---@field b number 
 ---@field belongs_to_category TRADE_GOOD_CATEGORY 
 ---@field base_price number 
+---@field decay number 
 
 ---@class (exact) trade_good_id_data_blob_definition
 ---@field name string 
@@ -14904,6 +14906,7 @@ DATA.law_building_set_name(index_law_building, "PERMISSION_ONLY")
 ---@field b number 
 ---@field belongs_to_category TRADE_GOOD_CATEGORY 
 ---@field base_price number 
+---@field decay number 
 ---Sets values of trade_good for given id
 ---@param id trade_good_id
 ---@param data trade_good_id_data_blob_definition
@@ -14916,6 +14919,7 @@ function DATA.setup_trade_good(id, data)
     DATA.trade_good_set_b(id, data.b)
     DATA.trade_good_set_belongs_to_category(id, data.belongs_to_category)
     DATA.trade_good_set_base_price(id, data.base_price)
+    DATA.trade_good_set_decay(id, data.decay)
 end
 
 ffi.cdef[[
@@ -14929,6 +14933,8 @@ void dcon_trade_good_set_belongs_to_category(int32_t, uint8_t);
 uint8_t dcon_trade_good_get_belongs_to_category(int32_t);
 void dcon_trade_good_set_base_price(int32_t, float);
 float dcon_trade_good_get_base_price(int32_t);
+void dcon_trade_good_set_decay(int32_t, float);
+float dcon_trade_good_get_decay(int32_t);
 int32_t dcon_create_trade_good();
 bool dcon_trade_good_is_valid(int32_t);
 void dcon_trade_good_resize(uint32_t sz);
@@ -15081,6 +15087,23 @@ function DATA.trade_good_inc_base_price(trade_good_id, value)
     local current = DCON.dcon_trade_good_get_base_price(trade_good_id - 1)
     DCON.dcon_trade_good_set_base_price(trade_good_id - 1, current + value)
 end
+---@param trade_good_id trade_good_id valid trade_good id
+---@return number decay 
+function DATA.trade_good_get_decay(trade_good_id)
+    return DCON.dcon_trade_good_get_decay(trade_good_id - 1)
+end
+---@param trade_good_id trade_good_id valid trade_good id
+---@param value number valid number
+function DATA.trade_good_set_decay(trade_good_id, value)
+    DCON.dcon_trade_good_set_decay(trade_good_id - 1, value)
+end
+---@param trade_good_id trade_good_id valid trade_good id
+---@param value number valid number
+function DATA.trade_good_inc_decay(trade_good_id, value)
+    ---@type number
+    local current = DCON.dcon_trade_good_get_decay(trade_good_id - 1)
+    DCON.dcon_trade_good_set_decay(trade_good_id - 1, current + value)
+end
 
 local fat_trade_good_id_metatable = {
     __index = function (t,k)
@@ -15092,6 +15115,7 @@ local fat_trade_good_id_metatable = {
         if (k == "b") then return DATA.trade_good_get_b(t.id) end
         if (k == "belongs_to_category") then return DATA.trade_good_get_belongs_to_category(t.id) end
         if (k == "base_price") then return DATA.trade_good_get_base_price(t.id) end
+        if (k == "decay") then return DATA.trade_good_get_decay(t.id) end
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
@@ -15125,6 +15149,10 @@ local fat_trade_good_id_metatable = {
         end
         if (k == "base_price") then
             DATA.trade_good_set_base_price(t.id, v)
+            return
+        end
+        if (k == "decay") then
+            DATA.trade_good_set_decay(t.id, v)
             return
         end
         rawset(t, k, v)

@@ -290,27 +290,27 @@ function re.draw(gam)
 								{
 									header = "faith",
 									render_closure = function (rect, k, v)
-										ui.centered_text(DATA.pop_get_faith(v).name, rect)
+										ui.centered_text(DATA.faith_get_name(DATA.pop_get_faith(v)), rect)
 									end,
 									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return DATA.pop_get_faith(v).name
+										return DATA.faith_get_name(DATA.pop_get_faith(v))
 									end,
 									active = true
 								},
 								{
 									header = "culture",
 									render_closure = function (rect, k, v)
-										ui.centered_text(DATA.pop_get_culture(v).name, rect)
-										ui.tooltip(NAME(v) .. " follows the customs of " .. DATA.pop_get_culture(v).name .. "." .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.pop_get_culture(v)), rect)
+										ui.centered_text(DATA.culture_get_name(DATA.pop_get_culture(v)), rect)
+										ui.tooltip(NAME(v) .. " follows the customs of " .. DATA.culture_get_name(DATA.pop_get_culture(v)) .. "." .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.pop_get_culture(v)), rect)
 									end,
 									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return DATA.pop_get_culture(v).name
+										return DATA.culture_get_name(DATA.pop_get_culture(v))
 									end,
 									active = true
 								},

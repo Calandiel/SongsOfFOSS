@@ -173,41 +173,6 @@ function dbm.total_foraging_amounts(province)
 	return accumulate
 end
 
--- todo: ask squealing to rebalance the thing
-local global_multiplier = 1.0
-
----commenting
----@param province province_id
----@param forage FORAGE_RESOURCE
----@param output trade_good_id
----@param output_value number
----@param available_amount number
-local function set_province_data(province, index, forage, output, output_value, available_amount)
-	DATA.province_set_foragers_targets_forage(province, index, forage)
-	DATA.province_set_foragers_targets_amount(province, index, available_amount)
-	DATA.province_set_foragers_targets_output_good(province, index, output)
-	DATA.province_set_foragers_targets_output_value(province, index, output_value * global_multiplier)
-end
-
----@param province province_id
----@param amounts {net_pp: number, fruit: number, seeds: number, wood: number, shell: number, fish: number, game: number, fungi: number}
----Calculate and set a province's forager limit (CC) and foraging targets
-function dbm.set_foraging_targets(province, amounts)
-	local hydration = DATA.province_get_hydration(province)
-	set_province_data(province, 1, FORAGE_RESOURCE.WATER, retrieve_good("water"), 80, hydration)
-	set_province_data(province, 2, FORAGE_RESOURCE.FRUIT, retrieve_good("berries"), 1.6, amounts.fruit)
-	set_province_data(province, 3, FORAGE_RESOURCE.GRAIN, retrieve_good("grain"), 2, amounts.seeds)
-	set_province_data(province, 4, FORAGE_RESOURCE.WOOD, retrieve_good("bark"), 1.25, amounts.wood)
-	set_province_data(province, 5, FORAGE_RESOURCE.WOOD, retrieve_good("timber"), 0.25, amounts.wood)
-	set_province_data(province, 6, FORAGE_RESOURCE.GAME, retrieve_good("meat"), 1, amounts.game)
-	set_province_data(province, 7, FORAGE_RESOURCE.GAME, retrieve_good("hide"), 0.25, amounts.game)
-	set_province_data(province, 8, FORAGE_RESOURCE.FUNGI, retrieve_good("mushrooms"), 1.25, amounts.fungi)
-	set_province_data(province, 9, FORAGE_RESOURCE.SHELL, retrieve_good("shellfish"), 1, amounts.shell)
-	set_province_data(province, 10, FORAGE_RESOURCE.SHELL, retrieve_good("seaweed"), 2, amounts.shell)
-	set_province_data(province, 11, FORAGE_RESOURCE.FISH, retrieve_good("fish"), 1.25, amounts.fish)
-	DATA.province_set_foragers_limit(province, amounts.net_pp)
-end
-
 ---@param province Province
 function dbm.update_foraging_targets(province)
 	DCON.update_foraging_data(
@@ -251,7 +216,7 @@ function dbm.cultural_food_needs(race)
 
 			-- overestimate needed water:
 			if use_case == WATER_USE_CASE then
-				average_gendered_use_case_need = average_gendered_use_case_need * 80
+				average_gendered_use_case_need = average_gendered_use_case_need * 1.5
 			end
 
 			table.insert(food_needs, {use_case = use_case, need = need, amount = average_gendered_use_case_need})
@@ -443,7 +408,7 @@ local function calculate_weights(use_cases_data)
 					* target_data.energy_return_per_unit_of_time
 			end
 
-			LOGS:write(tostring(iteration) .. "\t" .. tostring(required - provided).. "\t" .. tostring(provided) .. "/" .. tostring(required) .. "\n")
+			LOGS:write(tostring(iteration) .. "\t" .. tostring(required - provided) .. "\t" .. step .. "\t" .. tostring(provided) .. "/" .. tostring(required) .. "\n")
 			--- next we reduce/increase weights depending on their efficiency
 			--- obviously we want to get rid of weak sources and increase reliance on strong
 			--- but without being overzealous
@@ -455,6 +420,8 @@ local function calculate_weights(use_cases_data)
 					step = 2 * step
 				elseif math.abs(math.abs(current_loss) - math.abs(last)) < 0.01 then
 					step = 1.2 * step
+				elseif math.abs(math.abs(current_loss) - math.abs(last)) / math.abs(current_loss) < 0.01 then
+					step = step * 2
 				elseif current_loss * last < 0 then
 					step = step / 2
 				end

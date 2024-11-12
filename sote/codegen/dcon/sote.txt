@@ -1831,6 +1831,11 @@ object {
         type { float }
         tag { scenario }
     }
+    property{
+        name { decay }
+        type { float }
+        tag { scenario }
+    }
 }
 object {
     name { use_case }

@@ -51,7 +51,7 @@ function re.draw(gam)
 	end
 
 	local bbuild = gam.selected.building
-	if bbuild ~= nil then
+	if bbuild ~= nil and bbuild ~= INVALID_ID and DCON.dcon_building_is_valid(gam.selected.building) then
 		---@type Building
 		local building = bbuild
 		local panel = get_main_panel()

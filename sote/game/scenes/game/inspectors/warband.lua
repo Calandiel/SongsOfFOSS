@@ -1203,7 +1203,7 @@ function window.draw(gamescene)
 					width = end_width,
 					---@param v unit_type_id
 					value = function (k, v)
-						return warband.units_current[v] or 0
+						return DATA.warband_get_units_current(warband, v)
 					end
 				},
 			},

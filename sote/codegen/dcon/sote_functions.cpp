@@ -15,7 +15,19 @@
 
 static auto GOOD_CATEGORY = (uint8_t)((base_types::TRADE_GOOD_CATEGORY::GOOD));
 
-constexpr inline float MAX_INDUCED_DEMAND = 100.f;
+constexpr inline float MAX_INDUCED_DEMAND = 3.f;
+constexpr inline float BASE_POP_BUDGET_RATIO = 0.05f;
+
+// how much of income is siphoned to local wealth pool
+constexpr inline float INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.125f / 4.f;
+
+// buying prices for pops are multiplied on this number
+constexpr inline float POP_BUY_PRICE_MULTIPLIER = 3.0f;
+
+// pops work at least this time
+constexpr inline float MINIMAL_WORKING_RATIO = 0.2f;
+
+constexpr inline float spending_ratio = 0.1f;
 
 float forage_efficiency(float foragers, float carrying_capacity) {
 	if (foragers > carrying_capacity) {
@@ -295,16 +307,7 @@ void apply_biome(int32_t biome_index) {
 }
 
 
-// how much of income is siphoned to local wealth pool
-constexpr inline float INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.125f / 4.f;
 
-// buying prices for pops are multiplied on this number
-constexpr inline float POP_BUY_PRICE_MULTIPLIER = 1.5f;
-
-// pops work at least this time
-constexpr inline float MINIMAL_WORKING_RATIO = 0.2f;
-
-constexpr inline float spending_ratio = 0.1f;
 
 float price_score(float price) {
 	return expf(-price);
@@ -522,6 +525,36 @@ void building_produce() {
 
 		auto min_input = 1.f;
 
+		// shadow consumption
+
+		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
+			if (input_scale == 0) break;
+
+			base_types::use_case_container input = state.production_method_get_inputs(production_method, i);
+			if (input.use == 0) break;
+
+			float use_required = input_scale * input.amount;
+
+			// auto have_to_satisfy = input.amount * input_scale;
+			float use_in_inventory = 0.f;
+
+			state.use_case_for_each_use_weight_as_use_case(dcon::use_case_id{(uint8_t)(input.use - 1)}, [&](auto weight_id){
+				auto weight = state.use_weight_get_weight(weight_id);
+				auto trade_good = state.use_weight_get_trade_good(weight_id);
+
+				auto inventory = state.building_get_inventory(ids, trade_good);
+
+				if (use_in_inventory + inventory * weight < use_required) {
+					use_in_inventory += inventory * weight;
+				} else {
+					use_in_inventory = use_required;
+				}
+
+			});
+
+			min_input = std::min(min_input, use_in_inventory / use_required);
+		}
+
 		// actual consumption:
 
 		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
@@ -676,7 +709,7 @@ void buildings_sell() {
 			auto inventory = state.building_get_inventory(building, trade_good);
 			auto sell_ratio = 1.f;
 			if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
-				sell_ratio = 0.1f;
+				sell_ratio = std::min(1.f, 0.1f / (state.trade_good_get_decay(trade_good) + 0.001f));
 			}
 
 			income += inventory * sell_ratio * state.province_get_local_prices(province, trade_good);
@@ -700,7 +733,7 @@ void pops_demand() {
 			province = state.pop_get_location_from_pop_location(pop);
 		}
 
-		auto budget = state.pop_get_savings(pop) * 0.1f;
+		auto budget = state.pop_get_savings(pop) * BASE_POP_BUDGET_RATIO;
 		auto total_score = 0.01f;
 		auto total_cost = 0.f;
 
@@ -787,6 +820,8 @@ void buildings_demand() {
 			scale = std::min(1.f, budget / total_cost);
 		}
 
+		assert(scale >= 0);
+
 		for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
 			base_types::use_case_container& input = state.production_method_get_inputs(production_method, i);
 			if(!input.use) break;
@@ -820,7 +855,7 @@ void pops_buy() {
 			province = state.pop_get_location_from_pop_location(pop);
 		}
 
-		auto budget = state.pop_get_savings(pop) * 0.1f;
+		auto budget = state.pop_get_savings(pop) * BASE_POP_BUDGET_RATIO;
 		auto total_score = 0.01f;
 		auto total_cost = 0.f;
 
@@ -1015,8 +1050,14 @@ void buildings_buy() {
 				state.building_set_inventory(building, trade_good, state.building_get_inventory(building, trade_good) + demand * demand_satisfaction);
 				state.building_set_savings(
 					building,
-					std::max(0.f, state.building_get_savings(building)
-					- demand * demand_satisfaction * price * POP_BUY_PRICE_MULTIPLIER)
+					std::max(
+						0.f,
+						state.building_get_savings(building)
+						- demand
+						* demand_satisfaction
+						* price
+						* POP_BUY_PRICE_MULTIPLIER
+					)
 				);
 
 				// std::cout
@@ -1064,7 +1105,10 @@ void buildings_pay() {
 
 		state.building_set_last_donation_to_owner(ids, donation);
 		auto owner = state.building_get_owner_from_ownership(ids);
-		auto subsidy = state.building_get_subsidy(ids);
+		auto subsidy = std::min(
+			state.building_get_subsidy(ids),
+			std::max(0.f, (state.pop_get_savings(owner) + state.pop_get_pending_economy_income(owner)))
+		);
 		state.building_set_subsidy_last(ids, subsidy);
 
 		if (owner) {
@@ -1101,11 +1145,33 @@ void buildings_pay() {
 void update_economy() {
 	uint32_t trade_goods_count = state.trade_good_size();
 
-	state.execute_serial_over_building([&](auto ids){
+	state.execute_parallel_over_building([&](auto ids) {
 		auto last_income = state.building_get_last_income(ids);
 		auto mean_income = state.building_get_income_mean(ids);
 		state.building_set_income_mean(ids, last_income * 0.1f + mean_income * 0.9f);
 		state.building_set_last_income(ids, 0.f);
+
+		ve::apply([&](dcon::building_id building) {
+			for (uint32_t i = 0; i < state.production_method_get_inputs_size(); i++) {
+				base_types::trade_good_container& output = state.building_get_amount_of_outputs(building, i);
+				base_types::use_case_container& input = state.building_get_amount_of_inputs(building, i);
+
+				base_types::trade_good_container& output_earn = state.building_get_earn_from_outputs(building, i);
+				base_types::use_case_container& input_spent = state.building_get_spent_on_inputs(building, i);
+
+				output.amount = 0.f;
+				output.good = 0.f;
+
+				input.amount = 0.f;
+				input.use = 0.f;
+
+				output_earn.amount = 0.f;
+				output_earn.good = 0.f;
+
+				input_spent.amount = 0.f;
+				input_spent.use = 0.f;
+			}
+		},ids);
 	});
 
 	auto eps = 0.001f;
@@ -1161,10 +1227,7 @@ void update_economy() {
 	// decay inventories of producers
 	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
 		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
-		float inventory_decay = 0.f;
-		if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
-			inventory_decay = 0.99f;
-		}
+		float inventory_decay = state.trade_good_get_decay(trade_good);
 		state.execute_serial_over_pop([&](auto ids){
 			auto inventory = state.pop_get_inventory(ids, trade_good);
 			state.pop_set_inventory(ids, trade_good, inventory * inventory_decay);
@@ -1178,13 +1241,10 @@ void update_economy() {
 	// decay inventories in provinces and realms:
 	concurrency::parallel_for(uint32_t(0), trade_goods_count, [&](auto good_id){
 		dcon::trade_good_id trade_good{ dcon::trade_good_id::value_base_t(good_id) };
-		float inventory_decay = 0.f;
-		if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
-			inventory_decay = 0.6f;
-		}
+		float inventory_decay = state.trade_good_get_decay(trade_good);
 		state.execute_serial_over_province([&](auto ids){
 			auto stockpiles = state.province_get_local_storage(ids, trade_good);
-			state.province_set_local_storage(ids, trade_good, stockpiles * inventory_decay * 0.5f);
+			state.province_set_local_storage(ids, trade_good, stockpiles * inventory_decay);
 		});
 		state.execute_serial_over_realm([&](auto ids){
 			auto stockpiles = state.realm_get_resources(ids, trade_good);
@@ -1244,12 +1304,12 @@ void update_economy() {
 
 			auto current_price = state.province_get_local_prices(ids, trade_good);
 
-			auto oversupply = (supply + 1.f) / (demand + 1.f);
-			auto overdemand = (demand + 1.f) / (supply + 1.f);
+			auto oversupply = (supply + 0.001f) / (demand + 0.001f);
+			auto overdemand = (demand + 0.001f) / (supply + 0.001f);
 
 			auto speed = 0.01f * (overdemand - oversupply);
 
-			auto new_price = ve::max(0.001f, current_price + speed);
+			auto new_price = ve::min(1000.f, ve::max(0.001f, current_price + speed));
 
 			state.province_set_local_prices(ids, trade_good, new_price);
 		});
@@ -1324,7 +1384,7 @@ float estimate_building_type_income(int32_t province_lua, int32_t building_type_
 		}
 
 		auto use = dcon::use_case_id {dcon::use_case_id::value_base_t(input.use - 1)};
-		income -= input_modifier * estimate_province_use_price(province, use) * input.amount;
+		income -= input_modifier * estimate_province_use_price(province, use) * input.amount * POP_BUY_PRICE_MULTIPLIER;
 	}
 	for (uint32_t i = 0; i < state.production_method_get_outputs_size(); i++) {
 		base_types::trade_good_container& output = state.production_method_get_outputs(method, i);
@@ -1346,7 +1406,7 @@ void set_province_data(dcon::province_id province, uint8_t index, base_types::FO
 	forage_data.forage = forage;
 	forage_data.amount = available_amount;
 	forage_data.output_good = output_raw_id;
-	forage_data.output_value = output_value * 0.1f;
+	forage_data.output_value = output_value * 4;
 }
 
 struct tile_cube_coord {
@@ -1640,7 +1700,7 @@ void update_foraging_data(
 	// determine energy available in decomposers
 	auto fungi = net_production * 0.125f;
 
-	set_province_data(province, 1, base_types::FORAGE_RESOURCE::WATER, water_raw_id, 80, hydration);
+	set_province_data(province, 1, base_types::FORAGE_RESOURCE::WATER, water_raw_id, 8, hydration);
 	set_province_data(province, 2, base_types::FORAGE_RESOURCE::FRUIT, berries_raw_id, 1.6, fruit);
 	set_province_data(province, 3, base_types::FORAGE_RESOURCE::GRAIN, grain_raw_id, 2, seeds);
 	set_province_data(province, 4, base_types::FORAGE_RESOURCE::WOOD, bark_raw_id, 1.25, wood);

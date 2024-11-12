@@ -90,6 +90,14 @@ end
 ---@param x number
 ---@param reason ECONOMY_REASON
 function EconomicEffects.add_pop_savings(pop, x, reason)
+	local savings = DATA.pop_get_savings(pop)
+
+	if DATA.pop_get_savings(pop) + x < 0 then
+		print("Attempt to reduce savings below zero. Probably a rounding error? Preventing it anyway.", savings, x)
+		-- print(debug.traceback())
+		x = -savings
+	end
+
 	DATA.pop_inc_savings(pop, x)
 
 	if DATA.pop_get_savings(pop) ~= DATA.pop_get_savings(pop) then
@@ -350,7 +358,8 @@ function EconomicEffects.change_local_price(province, good, x)
 		error(
 			"INVALID PRICE CHANGE"
 			.. "\n change = "
-			.. tostring(x)
+			.. tostring(x) .. " "
+			.. tostring(current_price)
 		)
 	end
 end
@@ -616,16 +625,20 @@ function EconomicEffects.character_buy_use(character, use, amount)
 			)
 		end
 
-		if budget < consumed_amount * values.price then
+		local costs = consumed_amount * values.price
+
+		if budget <= costs then
 			consumed_amount = budget / values.price
+			costs = budget
+			budget = 0
+		else
+			budget = budget - costs
 		end
 
-		budget = budget - consumed_amount * values.price
-
-		-- we need to get back to use "units" so we multiply consumed amount back by weight
 		total_bought = total_bought + consumed_amount * values.weight
 
-		local costs = consumed_amount * values.price
+		-- we need to get back to use "units" so we multiply consumed amount back by weight
+
 		spendings = spendings + costs
 
 		--MAKE TRANSACTION
@@ -636,17 +649,16 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		EconomicEffects.change_local_stockpile(province, values.good, -consumed_amount)
 
 		local trade_volume =
-			DATA.province_get_local_consumption(province, values.good)
-			+ DATA.province_get_local_production(province, values.good)
-			+ consumed_amount
+			DATA.province_get_local_production(province, values.good)
+			+ DATA.province_get_local_demand(province, values.good)
+			+ DATA.province_get_local_storage(province, values.good)
+			+ consumed_amount + 0.01
 		local price_change = consumed_amount / trade_volume * PRICE_SIGNAL_PER_STOCKPILED_UNIT * values.price
 
 		EconomicEffects.change_local_price(province, values.good, price_change)
 	end
-	if total_bought < amount * 0.95
-		or total_bought > amount * 1.05
-	then
-		print("Probably invalid attempt to buy use case for the character"
+	if total_bought < amount * 0.7 or total_bought > amount * 1.3 then
+		print("Potentially invalid attempt to buy use case for the character"
 			.. "\n use = "
 			.. tostring(use)
 			.. "\n spendings = "
@@ -662,7 +674,7 @@ function EconomicEffects.character_buy_use(character, use, amount)
 		)
 	end
 
-	EconomicEffects.add_pop_savings(character, -spendings, ECONOMY_REASON.TRADE)
+	EconomicEffects.add_pop_savings(character, -math.min(spendings, DATA.pop_get_savings(character)), ECONOMY_REASON.TRADE)
 
 	if WORLD:does_player_see_province_news(province) then
 		WORLD:emit_notification(
@@ -835,7 +847,7 @@ function EconomicEffects.sell(character, good, amount)
 	end
 
 	EconomicEffects.add_pop_savings(character, cost, ECONOMY_REASON.TRADE)
-	DATA.province_inc_trade_wealth(province, cost)
+	DATA.province_inc_trade_wealth(province, -cost)
 
 	DATA.pop_inc_inventory(character, good, -amount)
 	EconomicEffects.change_local_stockpile(province, good, amount)

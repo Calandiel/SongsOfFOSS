@@ -191,7 +191,7 @@ function triggers.can_sell(character, good, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
     end
 
-    if province then
+    if province ~= INVALID_ID then
         local price = ev.get_pessimistic_local_price(province, good, amount, true)
         local cost = price * amount
 
