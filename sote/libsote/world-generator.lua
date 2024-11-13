@@ -204,7 +204,7 @@ local function gen_phase_02()
 	if debug.use_sote_soils_data then
 		run_with_profiling(function() override_soils_data() end, "override_soils_data")
 	end
-	run_with_profiling(function() require "libsote.soils.load-waterbodies".run(wg.world) end, "load-waterbodies")
+	run_with_profiling(function() require "libsote.soils.gen-sediment-load".run(wg.world) end, "gen-sediment-load")
 	run_with_profiling(function() require "libsote.soils.weather_alluvial_texture".run(wg.world) end, "weather_alluvial_texture")
 end
 

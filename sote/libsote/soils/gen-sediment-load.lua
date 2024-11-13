@@ -1,4 +1,4 @@
-local lw = {}
+local gsl = {}
 
 local waterbody = require "libsote.hydrology.waterbody"
 local wgu = require "libsote.world-gen-utils"
@@ -243,7 +243,7 @@ local function apply_dropped_material()
 	end)
 end
 
-function lw.run(world_obj)
+function gsl.run(world_obj)
 	world = world_obj
 
 	already_added = world.tmp_bool_1
@@ -356,4 +356,4 @@ end
 --* Phase 3 will involve "flooding" the banks of our rivers so that we finally produce alluvial soils based on the sediment load of that particular river
 --* tributary.
 
-return lw
+return gsl
