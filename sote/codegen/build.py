@@ -179,7 +179,7 @@ else:
     subprocess.run(" ".join(["clang++", "-O3", 
                                             "-std=c++20", "-msse4.1", "-shared", "-fdeclspec",
                                             "-mavx2", "-fPIC",
-                                            "-L" + str(codegen_path.joinpath("dll").joinpath("linux")),
+                                            "-L./sote/codegen/dll/linux",
                                             "-Wl,-R" + str(codegen_path.joinpath("dll").joinpath("linux")),
                                             "-DPREFER_ONE_TBB", f'-I{str(codegen_path.joinpath("include"))}',
                                             str(generation_folder.joinpath("lua_objs.cpp")),
