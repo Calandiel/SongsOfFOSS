@@ -8,8 +8,8 @@ import subprocess
 from pathlib import Path
 from shutil import copyfile, move
 
-COMPILE_DCON_GEN = False
-COMPILE_LUA_GEN = False
+COMPILE_DCON_GEN = True
+COMPILE_LUA_GEN = True
 
 CODEGEN_DCON = True
 CODEGEN_LUA = True
@@ -59,13 +59,22 @@ copyfile(additional_functions_header, additional_functions_header_destination)
 
 if COMPILE_DCON_GEN:
     print("compiling datacontainer")
-    subprocess.run([ \
-        "clang++",
-        "-std=c++20",
-        dcon_generator_folder.joinpath("*.cpp"),
-        "-o", "a.exe",
-        # f"-o \"{generation_folder.joinpath('dll_code_gen.exe')}\"",
-    ], check=True, shell=True)
+    try:
+        subprocess.run(subprocess.list2cmdline([ \
+            "clang++",
+            "-std=c++20",
+            dcon_generator_folder.joinpath("code_fragments.cpp"),
+            dcon_generator_folder.joinpath("DataContainerGenerator.cpp"),
+            dcon_generator_folder.joinpath("object_member_fragments.cpp"),
+            dcon_generator_folder.joinpath("parsing.cpp"),
+            dcon_generator_folder.joinpath("query_fragments.cpp"),
+            dcon_generator_folder.joinpath("serialize_fragments.cpp"),
+            "-o", "a.exe",
+        ]), check=True, shell=True)
+    except subprocess.CalledProcessError as command_line_error:
+        print("executed command:")
+        print(subprocess.list2cmdline(command_line_error.cmd))
+        raise
     move("a.exe", generator_exe)
 
 if CODEGEN_DCON:
@@ -73,13 +82,13 @@ if CODEGEN_DCON:
 
 if COMPILE_LUA_GEN:
     print("compiling dll source code generator")
-    subprocess.run([ \
+    subprocess.run(subprocess.list2cmdline([ \
         "clang++",
         "-std=c++20",
-        dll_generator_folder.joinpath("*.cpp"),
+        dll_generator_folder.joinpath("LuaDLLGenerator.cpp"),
+        dll_generator_folder.joinpath("parsing.cpp"),
         "-o", "a.exe",
-        # f"-o \"{generation_folder.joinpath('dll_code_gen.exe')}\"",
-    ], check=True, shell=True)
+    ]), check=True, shell=True)
     move("a.exe", dll_generator_exe)
 
 if CODEGEN_LUA:
@@ -128,7 +137,7 @@ O3 = "-callsite-splitting -argpromotion"
 if os.name == 'nt':
     print("compiling dll")
     now = time.time()
-    subprocess.run([ \
+    subprocess.run(subprocess.list2cmdline([ \
         "clang++",
         "-O3",
         # "-O1",
@@ -137,13 +146,14 @@ if os.name == 'nt':
         +["-std=c++20",
         "-msse4.1",
         "-shared",
+        "-mavx2",
         # "-ftime-report",
         # "-DDCON_LUADLL_EXPORTS",
         generation_folder.joinpath("lua_objs.cpp"),
         generation_folder.joinpath("common_types.cpp"),
         additional_functions_src_destination,
         "-o", "dcon.dll",
-    ], check=True, shell=True)
+    ]), check=True, shell=True)
 
 
     print("compilation completed")
@@ -163,6 +173,27 @@ if os.name == 'nt':
         except PermissionError:
             time.sleep(0.5)
 else:
-    # TODO
+    print("compile linux library")
+    now = time.time()
+
+    subprocess.run(" ".join(["clang++", "-O3", 
+                                            "-std=c++20", "-msse4.1", "-shared", "-fdeclspec",
+                                            "-mavx2", "-fPIC",
+                                            "-L" + str(codegen_path.joinpath("dll").joinpath("linux")),
+                                            "-Wl,-R" + str(codegen_path.joinpath("dll").joinpath("linux")),
+                                            "-DPREFER_ONE_TBB", f'-I{str(codegen_path.joinpath("include"))}',
+                                            str(generation_folder.joinpath("lua_objs.cpp")),
+                                            str(generation_folder.joinpath("common_types.cpp")),
+                                            str(additional_functions_src_destination),
+                                            "-o", "dcon.so", "-ltbb",
+                                            #str(codegen_path.joinpath("dll").joinpath("linux").joinpath("libtbb.so")),
+                                            #str(codegen_path.joinpath("dll").joinpath("linux").joinpath("libtbb.so.12")),
+
+                             ]),
+                   check = True, shell = True)
+
+    print("compilation completed")
+    print("it took " + str(time.time() - now) + " seconds")
     dll_folder = dll_folder.joinpath("linux")
-    # move("dcon.so")
+    move("./dcon.so", dll_folder.joinpath("dcon.so"))
+

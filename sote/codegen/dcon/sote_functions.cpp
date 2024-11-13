@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
-#include <ppl.h>
 #include "objs.hpp"
 #include "sote_types.hpp"
 #define DCON_LUADLL_EXPORTS
