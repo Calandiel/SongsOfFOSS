@@ -16,7 +16,6 @@
 #include <fcntl.h>
 #endif
 
-
 // void save_to_file() {
 // 	state.make_s
 // }
@@ -1790,4 +1789,41 @@ void update_foraging_data(
 	set_province_data(province, 10, base_types::FORAGE_RESOURCE::SHELL, seaweed_raw_id, 2, shell);
 	set_province_data(province, 11, base_types::FORAGE_RESOURCE::FISH, fish_raw_id, 1.25, fish);
 	state.province_set_foragers_limit(province, net_production);
+}
+
+struct image_coord {
+	uint32_t x;
+	uint32_t y;
+};
+
+const image_coord face_to_offset[6] = {
+	{0, 0},
+	{1, 0},
+	{2, 0},
+	{0, 1},
+	{1, 1},
+	{2, 1}
+};
+
+image_coord tile_id_to_color_coords(dcon::tile_id tile, uint32_t world_size) {
+	auto cube_coord = id_to_coords(tile.index() + 1, world_size);
+	uint32_t fx = face_to_offset[cube_coord.f].x * world_size;
+	uint32_t fy = face_to_offset[cube_coord.f].y * world_size;
+	return {cube_coord.x + fx, cube_coord.y + fy};
+}
+
+void update_map_mode_pointer(uint8_t* map, uint32_t world_size) {
+	state.for_each_tile([&](dcon::tile_id tile) {
+		auto pixel = tile_id_to_color_coords(tile, world_size);
+		auto pixel_index = pixel.x + pixel.y * world_size * 3;
+
+		auto r = state.tile_get_real_r(tile);
+		auto g = state.tile_get_real_g(tile);
+		auto b = state.tile_get_real_b(tile);
+
+		map[pixel_index * 4 + 0] = uint8_t(255 * r);
+		map[pixel_index * 4 + 1] = uint8_t(255 * g);
+		map[pixel_index * 4 + 2] = uint8_t(255 * b);
+		map[pixel_index * 4 + 3] = uint8_t(255 * 1);
+	});
 }

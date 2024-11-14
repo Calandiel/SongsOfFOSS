@@ -41,4 +41,6 @@ extern "C" {
 	);
 
 	DCON_LUADLL_API void load_state(char const*);
+	DCON_LUADLL_API void update_map_mode_pointer(uint8_t* map, uint32_t world_size);
+	DCON_LUADLL_API int32_t get_neighbor(int32_t tile_id, uint8_t neighbor_index, uint32_t world_size);
 }

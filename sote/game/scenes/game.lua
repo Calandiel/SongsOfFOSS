@@ -2750,11 +2750,15 @@ end
 ---Refreshes the map mode
 ---@param async_flag boolean?
 function gam._refresh_map_mode(async_flag)
+	local timer_update = 0
+	local timer_start_3 = 0
+
 	if async_flag == nil then
 		async_flag = true
 	end
 
 	local tim = love.timer.getTime()
+
 
 	-- Sanity check in case the function is called before init
 	if gam.tile_neighbor_realm_data == nil then
@@ -2792,12 +2796,15 @@ function gam._refresh_map_mode(async_flag)
 		end
 	end
 
+	timer_start_3 = love.timer.getTime()
+
 	do
 		local func = dat.recalculation
 		func(gam.clicked_tile_id) -- set "real color" on tiles
-
 		-- Apply the color
+		DCON.update_map_mode_pointer(pointer_tile_color, WORLD.world_size)
 
+		--[[
 		DATA.for_each_province(function (province)
 			-- TODO: we should loop over provinces first so that visibility checks can happen for multiple provinces at once...
 			local can_set = is_known(province)
@@ -2832,6 +2839,7 @@ function gam._refresh_map_mode(async_flag)
 				end
 			end)
 		end)
+		--]]
 		-- Update the texture
 		gam.tile_color_texture = love.graphics.newImage(gam.tile_color_image_data)
 		gam.tile_color_texture:setFilter("nearest", "nearest")
@@ -2843,11 +2851,14 @@ function gam._refresh_map_mode(async_flag)
 			gam.TILE_MAP_MODE_CACHE[gam.map_mode] = gam.tile_color_texture
 		end
 	end
+	timer_update = love.timer.getTime() - timer_start_3
 
 	::finalize::
 
 	local time = love.timer.getTime() - tim
-	print("Map mode update time: " .. tostring(time * 1000) .. "ms")
+	print("Map mode update time: " .. tostring(time * 1000) .. "ms: "
+		.. tostring(timer_update * 1000) .. "ms"
+	)
 
 	if async_flag then
 		coroutine.yield(true)

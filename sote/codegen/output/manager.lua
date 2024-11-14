@@ -46,6 +46,9 @@ ffi.cdef[[
 
     void load_state(char const*);
     int32_t dcon_reset();
+
+    void update_map_mode_pointer(uint8_t* map, uint32_t world_size);
+    int32_t get_neighbor(int32_t tile_id, uint8_t neighbor_index, uint32_t world_size);
 ]]
 
 
