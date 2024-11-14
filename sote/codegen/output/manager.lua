@@ -45,6 +45,7 @@ ffi.cdef[[
 	);
 
     void load_state(char const*);
+    int32_t dcon_reset();
 ]]
 
 

@@ -599,11 +599,11 @@ function wl.load_save()
 	coroutine.yield()
 	coroutine.yield()
 	coroutine.yield()
+	DCON.dcon_reset()
 	world.empty()
-
 	-- print('loading raws')
 	-- require "game.raws.raws" ()
-
+	print("Load game state")
 	LOAD_GAME_STATE()
 	assert(WORLD)
 	require "game.entities.world".reset_metatable(WORLD)

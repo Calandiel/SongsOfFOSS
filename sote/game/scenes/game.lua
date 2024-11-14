@@ -1822,6 +1822,7 @@ function gam.draw()
 		if response == true then
 			---@type World|nil
 			WORLD = nil -- drop the world so that it gets garbage collected..
+			DCON.dcon_reset()
 			local manager = require "game.scene-manager"
 			manager.transition("main-menu")
 			return
