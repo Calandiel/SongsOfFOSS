@@ -43,6 +43,8 @@ ffi.cdef[[
 		int32_t fish_raw_id,
 		int32_t world_size
 	);
+
+    void load_state(char const*);
 ]]
 
 
@@ -57,7 +59,8 @@ end
 function LOAD_GAME_STATE()
     print("loading dll state")
     local start = love.timer.getTime()
-    DCON.dcon_everything_read_file(state_save_path)
+    --DCON.dcon_everything_read_file(state_save_path)
+    DCON.load_state(state_save_path)
     print(tostring(love.timer.getTime() - start) .. " seconds")
 
     print("loading lua state")

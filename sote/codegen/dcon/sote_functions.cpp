@@ -7,6 +7,14 @@
 #include "sote_functions.hpp"
 #include "lua_objs.hpp"
 
+#ifdef _WIN32
+
+#else
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 
 // void save_to_file() {
 // 	state.make_s
@@ -34,6 +42,43 @@ float forage_efficiency(float foragers, float carrying_capacity) {
 	} else {
 		return 2 - expf(-0.7*(carrying_capacity - foragers)/carrying_capacity);
 	}
+}
+
+void load_state(char const* name) {
+#ifdef _WIN32
+
+#else
+	int file_descriptor = open(name, O_RDONLY | O_NONBLOCK);
+	if (file_descriptor != -1) {
+		struct stat sb;
+		if(fstat(file_descriptor, &sb) != -1) {
+			auto file_size = sb.st_size;
+#if _POSIX_C_SOURCE >= 200112L
+			posix_fadvise(file_descriptor, 0, static_cast<off_t>(file_size), POSIX_FADV_WILLNEED);
+#endif
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
+			void* mapping_handle = mmap(0, file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
+			assert(mapping_handle != MAP_FAILED);
+			std::byte const* content = static_cast<std::byte const*>(mapping_handle);
+			dcon::load_record loaded;
+			dcon::load_record selection = state.make_serialize_record_everything();
+			state.deserialize(content, content + file_size, loaded, selection);
+			if(munmap(mapping_handle, file_size) == -1) {
+				assert(false);
+			}
+#else
+			void* buffer = malloc(file_size);
+			read(file_descriptor, buffer, file_size);
+			std::byte const* content = static_cast<std::byte const*>(buffer);
+			dcon::load_record loaded;
+			dcon::load_record selection = state.make_serialize_record_everything();
+			state.deserialize(content, content + file_size, loaded, selection);
+			free(buffer);
+#endif
+		}
+		close(file_descriptor);
+	}
+#endif
 }
 
 float age_multiplier(dcon::pop_id pop) {

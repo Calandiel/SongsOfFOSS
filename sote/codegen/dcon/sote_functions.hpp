@@ -39,4 +39,6 @@ extern "C" {
 		int32_t fish_raw_id,
 		int32_t world_size
 	);
+
+	DCON_LUADLL_API void load_state(char const*);
 }
