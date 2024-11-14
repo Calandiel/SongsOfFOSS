@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -8,7 +9,7 @@
 #include "lua_objs.hpp"
 
 #ifdef _WIN32
-
+#include <fileapi.h>
 #else
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -46,7 +47,40 @@ float forage_efficiency(float foragers, float carrying_capacity) {
 
 void load_state(char const* name) {
 #ifdef _WIN32
+	int wchars_num = MultiByteToWideChar( CP_UTF8 , 0 , name , -1, NULL , 0 );
+	wchar_t* w_name = new wchar_t[wchars_num];
+	MultiByteToWideChar( CP_UTF8 , 0 , name , -1, w_name , wchars_num );
 
+	auto file_handle = CreateFileW(
+		w_name,
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		nullptr,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
+		nullptr
+	);
+
+	if(file_handle != INVALID_HANDLE_VALUE) {
+		auto mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
+		if(mapping_handle) {
+			auto data = (std::byte const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
+			if(data) {
+				_LARGE_INTEGER pvalue;
+				GetFileSizeEx(file_handle, &pvalue);
+				auto file_size = uint32_t(pvalue.QuadPart);
+
+				dcon::load_record loaded;
+				dcon::load_record selection = state.make_serialize_record_everything();
+				state.deserialize(data, data + file_size, loaded, selection);
+
+				UnmapViewOfFile(data);
+			}
+			CloseHandle(mapping_handle);
+		}
+		CloseHandle(file_handle);
+	}
+	delete[] w_name;
 #else
 	int file_descriptor = open(name, O_RDONLY | O_NONBLOCK);
 	if (file_descriptor != -1) {

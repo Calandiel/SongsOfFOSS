@@ -144,7 +144,7 @@ if os.name == 'nt':
         # "-O0"
         ] \
         +["-std=c++20",
-        "-msse4.1",
+        # "-msse4.1",
         "-shared",
         "-mavx2",
         # "-ftime-report",
@@ -176,7 +176,7 @@ else:
     print("compile linux library")
     now = time.time()
 
-    subprocess.run(" ".join(["clang++", "-O3", 
+    subprocess.run(" ".join(["clang++", "-O3",
                                             "-std=c++20", "-msse4.1", "-shared", "-fdeclspec",
                                             "-mavx2", "-fPIC",
                                             "-L./sote/codegen/dll/linux",
