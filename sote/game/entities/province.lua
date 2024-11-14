@@ -747,9 +747,9 @@ function prov.Province.get_dominant_culture(province)
 end
 
 ---@param province province_id
----@return Faith|nil
+---@return faith_id|nil
 function prov.Province.get_dominant_faith(province)
-	---@type table<Faith, number>
+	---@type table<faith_id, number>
 	local e = {}
 	for _, p in pairs(DATA.get_pop_location_from_location(province)) do
 		local pop_id = DATA.pop_location_get_pop(p)

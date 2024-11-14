@@ -15,7 +15,7 @@ function dem.culture()
 		ut.set_default_color(center)
 		local e = province_utils.get_dominant_culture(province)
 		if e ~= nil then
-			tile.set_real_color(center, e.r, e.g, e.b)
+			tile.set_real_color(center, DATA.culture_get_r(e), DATA.culture_get_g(e), DATA.culture_get_b(e))
 		end
 	end)
 end
@@ -26,7 +26,7 @@ function dem.faith()
 		ut.set_default_color(center)
 		local e = province_utils.get_dominant_faith(province)
 		if e ~= nil then
-			tile.set_real_color(center, e.r, e.g, e.b)
+			tile.set_real_color(center, DATA.faith_get_r(e), DATA.faith_get_g(e), DATA.faith_get_b(e))
 		end
 	end)
 end
