@@ -297,3 +297,12 @@ end
 function love.wheelmoved(x, y)
 	ui.on_wheelmoved(x, y)
 end
+
+function love.quit()
+	print("Thanks for playing! Come back soon!")
+	if GAME_STATE.scene[2] then
+		if GAME_STATE.scene[2].paused ~= nil then
+			GAME_STATE.scene[2].paused = true
+		end
+	end
+end
