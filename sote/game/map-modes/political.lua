@@ -15,7 +15,7 @@ function pol.diplomacy(clicked_tile_id)
 	local clicked_tile = clicked_tile_id
 	local clicked_realm = tile.realm(clicked_tile)
 
-	if clicked_realm then
+	if clicked_realm ~= INVALID_ID then
 		DATA.for_each_province(function (province)
 			local checked_realm = province_utils.realm(province)
 			local center = DATA.province_get_center(province)
