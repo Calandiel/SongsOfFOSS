@@ -180,7 +180,7 @@ else:
                                             "-std=c++20", "-msse4.1", "-shared", "-fdeclspec",
                                             "-mavx2", "-fPIC",
                                             "-L./sote/codegen/dll/linux",
-                                            "-Wl,-R" + str(codegen_path.joinpath("dll").joinpath("linux")),
+                                            "-Wl,-R./sote/codegen/dll/linux",
                                             "-DPREFER_ONE_TBB", f'-I{str(codegen_path.joinpath("include"))}',
                                             str(generation_folder.joinpath("lua_objs.cpp")),
                                             str(generation_folder.joinpath("common_types.cpp")),
