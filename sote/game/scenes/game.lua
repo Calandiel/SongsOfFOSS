@@ -420,10 +420,11 @@ function gam.init()
 
 	-- Setup render textures for map modes
 	local ws = WORLD.world_size
-	local dim = ws * 3
-	local imd = love.image.newImageData(dim, dim, "rgba8")
-	for x = 1, dim do
-		for y = 1, dim do
+	local dim_w = ws * 3
+	local dim_h = ws * 2
+	local imd = love.image.newImageData(dim_w, dim_h, "rgba8")
+	for x = 1, dim_w do
+		for y = 1, dim_h do
 			imd:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
 		end
 	end
@@ -432,9 +433,9 @@ function gam.init()
 	gam.tile_color_texture = love.graphics.newImage(imd)
 
 	-- Empty texture for faster map mode switching
-	gam.empty_texture_image_data = love.image.newImageData(dim, dim, "rgba8")
-	for x = 1, dim do
-		for y = 1, dim do
+	gam.empty_texture_image_data = love.image.newImageData(dim_w, dim_h, "rgba8")
+	for x = 1, dim_w do
+		for y = 1, dim_h do
 			gam.empty_texture_image_data:setPixel(x - 1, y - 1, 1, 1, 1, 1)
 		end
 	end
@@ -459,7 +460,7 @@ function gam.init()
 	end
 	gam.province_empty_texture = love.graphics.newImage(gam.province_empty_data)
 
-	gam.tile_province_id_data = love.image.newImageData(dim, dim, "rgba8")
+	gam.tile_province_id_data = love.image.newImageData(dim_w, dim_h, "rgba8")
 	gam.tile_province_id_texture = love.graphics.newImage(gam.tile_province_id_data)
 	gam.tile_province_id_texture:setFilter("nearest", "nearest")
 
@@ -1033,7 +1034,7 @@ function gam.draw()
 	if gam.planet_shader:hasUniform("texture_index_cubemap") then
 		if gam.DATA_TEXTURES_CACHE["texture_index_cubemap"] == nil then
 
-			local image = love.image.newImageData(WORLD.world_size * 3, WORLD.world_size * 3, "rgba8")
+			local image = love.image.newImageData(WORLD.world_size * 3, WORLD.world_size * 2, "rgba8")
 
 
 			DATA.for_each_tile(function (tile_id)
@@ -1955,35 +1956,25 @@ gam.map_mode_tabs.all = {}
 gam.map_mode_tabs.debug = {}
 require "game.scenes.game.map-modes".set_up_map_modes(gam)
 
+---@type {[1]: number, [2]: number}[]
+local face_to_offset = {
+	{0, 0},
+	{1, 0},
+	{2, 0},
+	{0, 1},
+	{1, 1},
+	{2, 1}
+};
+
 ---Given a tile coordinate, returns x/y coordinates on a texture to write!
 ---@param tile_id tile_id
 ---@return number, number
 function gam.tile_id_to_color_coords(tile_id)
 	local ws = WORLD.world_size
 	local tile_utils = require "game.entities.tile"
-
 	local x, y, f = tile_utils.index_to_coords(tile_id)
-
-	local fx = 0
-	local fy = 0
-	if f == 0 then
-		-- nothing to do!
-	elseif f == 1 then
-		fx = ws
-	elseif f == 2 then
-		fx = 2 * ws
-	elseif f == 3 then
-		fy = ws
-	elseif f == 4 then
-		fy = ws
-		fx = ws
-	elseif f == 5 then
-		fy = ws
-		fx = 2 * ws
-	else
-		error("Invalid face: " .. tostring(f))
-	end
-
+	local fx = face_to_offset[f + 1][1] * ws
+	local fy = face_to_offset[f + 1][2] * ws
 	return x + fx, y + fy
 end
 
@@ -2168,10 +2159,11 @@ function gam.recalculate_province_map()
 	---@type table<tile_id, tile_id>
 	gam.BORDER_TILES_CACHE = {}
 
-	local dim = WORLD.world_size * 3
+	local dim_w = WORLD.world_size * 3
+	local dim_h = WORLD.world_size * 2
 
-	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim, dim, "rgba8")
-	gam.tile_neighbor_provinces_data = gam.tile_neighbor_provinces_data or love.image.newImageData(dim, dim, "rgba8")
+	gam.tile_province_image_data = gam.tile_province_image_data or love.image.newImageData(dim_w, dim_h, "rgba8")
+	gam.tile_neighbor_provinces_data = gam.tile_neighbor_provinces_data or love.image.newImageData(dim_w, dim_h, "rgba8")
 
 	---@type number[]
 	local pointer = require("ffi").cast("uint8_t*", gam.tile_province_image_data:getFFIPointer())
@@ -2180,7 +2172,7 @@ function gam.recalculate_province_map()
 
 	DATA.for_each_tile(function (tile_id)
 		local x, y = gam.tile_id_to_color_coords(tile_id)
-		local pixel_index = x + y * dim
+		local pixel_index = x + y * dim_w
 
 		local prov = tile.province(tile_id)
 		local fat_prov = DATA.fatten_province(prov)
@@ -2274,7 +2266,8 @@ end
 ---@param secondary_neighbour_weight number?
 ---@param filter (fun(tile_id: tile_id): boolean)|nil
 function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_update, direct_neigbours_weight, secondary_neighbour_weight, filter)
-	local dim = WORLD.world_size * 3
+	local dim_w = WORLD.world_size * 3
+	local dim_h = WORLD.world_size * 2
 
 	if direct_neigbours_weight == nil then
 		direct_neigbours_weight = 1
@@ -2292,7 +2285,7 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 
 	local data = gam.DATA_CACHE[data_id]
 	if data == nil then
-		data = love.image.newImageData(dim, dim, "rgba8")
+		data = love.image.newImageData(dim_w, dim_h, "rgba8")
 		gam.DATA_CACHE[data_id] = data
 	end
 
@@ -2318,7 +2311,7 @@ function gam.recalculate_smooth_data_map(data_function, data_id, provinces_to_up
 			local current_tile_data = {0, 0, 0, 0}
 
 			local x, y = gam.tile_id_to_color_coords(tile_id)
-			local pixel_index = x + y * dim
+			local pixel_index = x + y * dim_w
 
 			if filter ~= nil then
 				if not filter(tile_id) then
@@ -2486,8 +2479,10 @@ function gam.recalculate_realm_map(update_all)
 		gam.recalculate_province_map()
 	end
 
-	local dim = WORLD.world_size * 3
-	gam.tile_neighbor_realm_data = gam.tile_neighbor_realm_data or love.image.newImageData(dim, dim, "rgba8")
+	local dim_w = WORLD.world_size * 3
+	local dim_h = WORLD.world_size * 2
+
+	gam.tile_neighbor_realm_data = gam.tile_neighbor_realm_data or love.image.newImageData(dim_w, dim_h, "rgba8")
 
 	-- imageData has one byte per channel per pixel.
 	---@type number[]
@@ -2527,7 +2522,7 @@ function gam.recalculate_realm_map(update_all)
 			end
 
 			local x, y = gam.tile_id_to_color_coords(tile_id)
-			local pixel_index = x + y * dim
+			local pixel_index = x + y * dim_w
 
 			local r2, g2, b2, a2 = realm_neighbor_data(tile_id)
 			if (math.max(r2, g2, b2, a2) < 0.1) then
@@ -2614,7 +2609,8 @@ function gam._recalculate_province_texture()
 	---@type number[]
 	local pointer_province_id = require("ffi").cast("uint8_t*", gam.tile_province_id_data:getFFIPointer())
 
-	local dim = WORLD.world_size * 3
+	local dim_w = WORLD.world_size * 3
+	local dim_h = WORLD.world_size * 2
 	local id_r = 0
 	local id_g = 0
 	local id_b = 0
@@ -2623,7 +2619,7 @@ function gam._recalculate_province_texture()
 		DATA.for_each_tile_province_membership_from_province(province, function (tile_member)
 			local tile_id = DATA.tile_province_membership_get_tile(tile_member)
 			local x, y = gam.tile_id_to_color_coords(tile_id)
-			local pixel_index = x + y * dim
+			local pixel_index = x + y * dim_w
 			pointer_province_id[pixel_index * 4 + 0] = id_r
 			pointer_province_id[pixel_index * 4 + 1] = id_g
 			pointer_province_id[pixel_index * 4 + 2] = id_b
@@ -2765,7 +2761,8 @@ function gam._refresh_map_mode(async_flag)
 		gam.recalculate_realm_map(true)
 	end
 
-	local dim = WORLD.world_size * 3
+	local dim_w = WORLD.world_size * 3
+	local dim_h = WORLD.world_size * 2
 	---@type number[]
 	local pointer_tile_color = require("ffi").cast("uint8_t*", gam.tile_color_image_data_temp:getFFIPointer())
 	gam.tile_color_image_data = gam.tile_color_image_data_temp
@@ -2779,9 +2776,9 @@ function gam._refresh_map_mode(async_flag)
 	then
 		if gam.TILE_MAP_MODE_CACHE[gam.map_mode] == nil then
 			print("static map mode but not found in cache: recalculating tile colors...")
-			local imd = love.image.newImageData(dim, dim, "rgba8")
-			for x = 1, dim do
-				for y = 1, dim do
+			local imd = love.image.newImageData(dim_w, dim_h, "rgba8")
+			for x = 1, dim_w do
+				for y = 1, dim_h do
 					imd:setPixel(x - 1, y - 1, 0.1, 0.1, 0.1, 1)
 				end
 			end

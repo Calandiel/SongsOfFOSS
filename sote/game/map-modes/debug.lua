@@ -31,7 +31,7 @@ function dbg.selected_tile(clicked_tile_id)
 	local clicked = clicked_tile_id
 	if clicked then
 		local clicked_province = tile.province(clicked)
-		if clicked_province then
+		if clicked_province ~= INVALID_ID then
 			for _, t in pairs(clicked_province.tiles) do
 				for n in tile.iter_neighbors(t) do
 					local neighbour_province = tile.province(n)
