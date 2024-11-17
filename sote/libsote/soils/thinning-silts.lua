@@ -14,10 +14,10 @@ function ts.run(world)
 			new_silt = new_silt * (true_water_calc / 60)
 		end
 		if true_water_calc <= 30 then
-			new_silt = new_silt * math.pow(true_water_calc / 30, 2)
+			new_silt = new_silt * (true_water_calc / 30) ^ 2
 		end
 		if true_water_calc <= 15 then
-			new_silt = new_silt * math.pow(true_water_calc / 15, 2)
+			new_silt = new_silt * (true_water_calc / 15) ^ 2
 		end
 
 		local total_material = world.sand[ti] + world.silt[ti] + world.clay[ti]

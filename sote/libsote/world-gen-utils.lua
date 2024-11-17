@@ -83,6 +83,7 @@ end
 
 ---@param world table
 ---@param ti number
+---@return number
 function wgu.true_water_for_tile(world, ti)
 	local water_movement_contribution = math.max(0, math.sqrt(world.water_movement[ti]) - 10)
 	local true_water_calc = world.jan_rainfall[ti] + world.jul_rainfall[ti] + water_movement_contribution
@@ -95,6 +96,7 @@ end
 
 ---@param world table
 ---@param ti number
+---@return number
 function wgu.temperature_factor_for_tile(world, ti)
 	if world.ice[ti] > 0 then return 0 end
 
@@ -106,6 +108,28 @@ function wgu.temperature_factor_for_tile(world, ti)
 	end
 
 	return temp_factor + 0.1
+end
+
+---@param world table
+---@param ti number
+---@return number, number
+function wgu.elev_diff_and_steepest_face(world, ti)
+	local true_elev = world:true_elevation_for_waterflow(ti)
+
+	local total_elev_diff = 0
+	local steepest_face = 0
+	for i = 0, world:neighbors_count(ti) - 1 do
+		local nti = world.neighbors[ti * 6 + i]
+
+		local elev_diff = true_elev - world:true_elevation_for_waterflow(nti)
+
+		if elev_diff > 0 then
+			total_elev_diff = total_elev_diff + elev_diff
+			steepest_face = math.max(steepest_face, elev_diff)
+		end
+	end
+
+	return total_elev_diff, steepest_face
 end
 
 return wgu

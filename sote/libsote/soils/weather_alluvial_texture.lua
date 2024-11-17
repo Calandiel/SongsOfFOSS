@@ -74,7 +74,7 @@ local function process_waterbody_drainage_and_degradation(waterbody_count)
 			-- local weathering_value = wb.river_slope * wb:size() --* The total sand weathering value of the river
 
 			--* Each tile gets its turn to weather down the sand
-			for _, ti in ipairs(wb.tiles) do
+			for _ = 1, #wb.tiles do
 				local sand_friction = temp_sand / wb.water_level --* Determines amount of weathering due to load of sand
 				local sand_converted = (temp_sand * sand_friction * wb.river_slope) / BASE_SILTATION_TUNER
 				temp_sand = temp_sand - sand_converted

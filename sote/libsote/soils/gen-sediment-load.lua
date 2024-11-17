@@ -1,6 +1,6 @@
 local gsl = {}
 
-local waterbody = require "libsote.hydrology.waterbody"
+local wb_types = require("libsote.hydrology.waterbody").TYPES
 local wgu = require "libsote.world-gen-utils"
 local sun = require "game.climate.sun"
 local open_issues = require "libsote.soils.open-issues"
@@ -49,7 +49,7 @@ local function calculate_organics()
 		local wetland_modifier = 1
 		local wb = world:get_waterbody_by_tile(ti)
 		if wb and wb:is_valid() then
-			if wb.type == waterbody.TYPES.wetland or wb.type == waterbody.TYPES.river then
+			if wb.type == wb_types.wetland or wb.type == wb_types.river then
 				if world.water_movement[ti] > 1000000 then
 					wetland_modifier = wetland_modifier * 3
 				elseif world.water_movement[ti] > 100000 then
@@ -76,19 +76,7 @@ local function calculate_material_to_move()
 		--* Calculate material in tile, done by amount of water moving into tile times slope
 		local true_elev = world:true_elevation_for_waterflow(ti)
 
-		local total_elevation_difference = 0
-		local steepest_face = 0
-		for i = 0, world:neighbors_count(ti) - 1 do
-			local nti = world.neighbors[ti * 6 + i]
-
-			local elev_diff = true_elev - world:true_elevation_for_waterflow(nti)
-
-			--* If tile under scrutiny is higher, we know material is transported
-			if elev_diff > 0 then
-				total_elevation_difference = total_elevation_difference + elev_diff
-				steepest_face = math.max(steepest_face, elev_diff)
-			end
-		end
+		local total_elev_diff, steepest_face = wgu.elev_diff_and_steepest_face(world, ti)
 
 		local gross_material_to_grab = 0
 		for i = 0, world:neighbors_count(ti) - 1 do
@@ -98,7 +86,7 @@ local function calculate_material_to_move()
 
 			--* If tile under scrutiny is higher, we know material is transported
 			if elev_diff > 0 then
-				local water_flow_share = world.water_movement[ti] * (elev_diff / total_elevation_difference)
+				local water_flow_share = world.water_movement[ti] * (elev_diff / total_elev_diff)
 				gross_material_to_grab = gross_material_to_grab + water_flow_share * (elev_diff / MATERIAL_SLOPE)
 			end
 		end
@@ -155,7 +143,7 @@ end
 
 local function drain_tile(ti)
 	local giving_tile_body = world:get_waterbody_by_tile(ti)
-	if giving_tile_body and giving_tile_body.type ~= waterbody.TYPES.wetland then return end
+	if giving_tile_body and giving_tile_body.type ~= wb_types.wetland then return end
 
 	--* If waterbody ID is 0, it means we're on land and we want to keep transferring material
 
@@ -170,7 +158,7 @@ local function drain_tile(ti)
 		local wb = world:get_waterbody_by_tile(nti)
 
 		--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
-		if wb and wb.type ~= waterbody.TYPES.river and wb.type ~= waterbody.TYPES.wetland then
+		if wb and wb.type ~= wb_types.river and wb.type ~= wb_types.wetland then
 			elevation_to_check = wb.water_level
 		end
 
@@ -186,7 +174,7 @@ local function drain_tile(ti)
 		local wb = world:get_waterbody_by_tile(nti)
 
 		--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
-		if wb and wb.type ~= waterbody.TYPES.river and wb.type ~= waterbody.TYPES.wetland then
+		if wb and wb.type ~= wb_types.river and wb.type ~= wb_types.wetland then
 			elevation_to_check = wb.water_level
 		end
 
