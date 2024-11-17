@@ -17,7 +17,6 @@ dcp.align_to_sote_coords =
  -- these will align RNG seed to match original SotE seed
 dcp.glaciation = {
 	align_rng = false
-	-- don't forget to align the neighbor random picking in process_ice_expansion as well!
 }
 dcp.soils = {
 	align_rng = false

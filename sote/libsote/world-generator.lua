@@ -197,10 +197,10 @@ local function gen_phase_02()
 	print("\tRiver count: " .. river_count)
 	print("\tWetland count: " .. wetland_count)
 
-	-- run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
-	-- run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
-	-- run_with_profiling(function() require "libsote.soils.thinning-silts".run(wg.world) end, "thinning_silts")
-	-- run_with_profiling(function() require "libsote.soils.gen-bedrock-buffer".run(wg.world) end, "gen-bedrock-buffer")
+	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
+	run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
+	run_with_profiling(function() require "libsote.soils.thinning-silts".run(wg.world) end, "thinning_silts")
+	run_with_profiling(function() require "libsote.soils.gen-bedrock-buffer".run(wg.world) end, "gen-bedrock-buffer")
 	if debug.use_sote_soils_data then
 		run_with_profiling(function() override_soils_data() end, "override_soils_data")
 	end

@@ -3,7 +3,7 @@ local gas = {}
 local wgu = require "libsote.world-gen-utils"
 local wb_types = require("libsote.hydrology.waterbody").TYPES
 
-local enable_debug = true
+local enable_debug = false
 -- local logger = require("libsote.debug-loggers").get_soils_logger("d:/temp")
 
 local world
