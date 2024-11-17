@@ -206,6 +206,7 @@ local function gen_phase_02()
 	end
 	run_with_profiling(function() require "libsote.soils.gen-sediment-load".run(wg.world) end, "gen-sediment-load")
 	run_with_profiling(function() require "libsote.soils.weather_alluvial_texture".run(wg.world) end, "weather_alluvial_texture")
+	run_with_profiling(function() require "libsote.soils.gen-alluvial-soils".run(wg.world) end, "gen-alluvial-soils")
 end
 
 local libsote_cpp = require "libsote.libsote"
