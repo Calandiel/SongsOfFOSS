@@ -451,7 +451,7 @@ end
 function world:create_elevation_list()
 	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(
 		function(i) return self:true_elevation(i) end,
-		function(i) return self.colatitude[i] end,
+		nil, -- function(i) return self.colatitude[i] end,
 		self.tile_count,
 		true, false)
 end
@@ -722,8 +722,7 @@ end
 function world:sort_by_elevation_for_waterflow()
 	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(
 		function(i) return self:true_elevation_for_waterflow(i) end,
-		nil,
-		-- function(i) return self.colatitude[i] end,
+		nil, -- function(i) return self.colatitude[i] end,
 		self.tile_count,
 		true, false)
 end
