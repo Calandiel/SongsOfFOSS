@@ -157,7 +157,7 @@ local function glaciers()
 end
 
 local function gen_phase_02()
-	run_with_profiling(function() wg.world:sort_by_elevation_for_waterflow() end, "sort_by_elevation_for_waterflow")
+	-- run_with_profiling(function() wg.world:sort_by_elevation_for_waterflow() end, "sort_by_elevation_for_waterflow")
 
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
