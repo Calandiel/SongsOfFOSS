@@ -772,6 +772,8 @@ function gf.run(world_obj)
 	world:fill_ffi_array(mineral_storage, 0)
 	world:fill_ffi_array(slope_retention_factor_storage, 0)
 
+	world:update_true_elevation_for_glaciation()
+
 	process_age(AGE_TYPES.ice_age)
 
 	if enable_debug then

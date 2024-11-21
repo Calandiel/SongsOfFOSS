@@ -61,6 +61,7 @@ function world:new(world_size, seed)
 	obj.colatitude        = allocate_array("colatitude",        obj.tile_count, "float")
 	obj.minus_longitude   = allocate_array("minus_longitude",   obj.tile_count, "float")
 	obj.elevation         = allocate_array("elevation",         obj.tile_count, "float")
+	obj.true_elevation    = allocate_array("true_elevation",    obj.tile_count, "float")
 	obj.hilliness         = allocate_array("hilliness",         obj.tile_count, "float")
 	obj.rock_type         = allocate_array("rock_type",         obj.tile_count, "uint8_t")
 	obj.volcanic_activity = allocate_array("volcanic_activity", obj.tile_count, "int16_t")
@@ -438,22 +439,36 @@ end
 
 -- We want to determine whether we are measuring waterlevel or elevation. Then we add ice on top of that if there is ice.
 ---@param ti number 0-based tile index
-function world:true_elevation(ti)
+function world:get_true_elevation(ti)
 	if self.is_land[ti] then -- If land, consider elevation and ice
 		return self:true_elevation_for_waterflow(ti)
-	elseif self:is_tile_waterbody_valid(ti) then -- If lake or ocean, consider water level of the lake + ice
-		return self.waterbodies[self.waterbody_id_by_tile[ti]].water_level + self.ice[ti] + 0.0001
 	else
-		return 0
+		local wb_id = self.waterbody_id_by_tile[ti]
+		return wb_id == 0 and 0 or self.waterbodies[wb_id].water_level + self.ice[ti] + 0.0001 -- If lake or ocean, consider water level of the lake + ice
+	end
+end
+
+function world:update_true_elevation()
+	for ti = 0, self.tile_count - 1 do
+		self.true_elevation[ti] = self:get_true_elevation(ti)
+	end
+end
+
+function world:update_true_elevation_for_waterflow()
+	for ti = 0, self.tile_count - 1 do
+		self.true_elevation[ti] = self:true_elevation_for_waterflow(ti)
+	end
+end
+
+function world:update_true_elevation_for_glaciation()
+	for ti = 0, self.tile_count - 1 do
+		self.true_elevation[ti] = self.is_land[ti] and self.elevation[ti] or 0
 	end
 end
 
 function world:create_elevation_list()
-	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(
-		function(i) return self:true_elevation(i) end,
-		nil, -- function(i) return self.colatitude[i] end,
-		self.tile_count,
-		true, false)
+	self:update_true_elevation()
+	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(self.true_elevation, self.tile_count, true)
 end
 
 ---@param callback fun(tile_index:number, world:table)
@@ -719,13 +734,13 @@ end
 -- 	end
 -- end
 
-function world:sort_by_elevation_for_waterflow()
-	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(
-		function(i) return self:true_elevation_for_waterflow(i) end,
-		nil, -- function(i) return self.colatitude[i] end,
-		self.tile_count,
-		true, false)
-end
+-- function world:sort_by_elevation_for_waterflow()
+-- 	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(
+-- 		function(i) return self:true_elevation_for_waterflow(i) end,
+-- 		nil, -- function(i) return self.colatitude[i] end,
+-- 		self.tile_count,
+-- 		true, false)
+-- end
 
 -- ---@param callback fun(tile_index:number, world:table)
 -- function world:for_each_tile_by_elevation_for_waterflow(callback)

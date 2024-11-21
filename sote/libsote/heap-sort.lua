@@ -12,7 +12,7 @@ end
 ---@param i number
 ---@param desc_primary boolean
 ---@param desc_secondary boolean
-local function heapify_iterative(get_primary, get_secondary, indices, n, i, desc_primary, desc_secondary)
+local function heapify_iterative_with_lambdas2(get_primary, get_secondary, indices, n, i, desc_primary, desc_secondary)
 	while true do
 		local largest = i
 		local left = 2 * i + 1
@@ -61,14 +61,54 @@ local function heapify_iterative(get_primary, get_secondary, indices, n, i, desc
 	end
 end
 
-local ffi = require("ffi")
+---@param n number
+---@param i number
+---@param desc boolean
+local function heapify_iterative(ffi_array, indices, n, i, desc)
+	while true do
+		local largest = i
+		local left = 2 * i + 1
+		local right = 2 * i + 2
+
+		if left < n then
+			local l_index = indices[left]
+			local i_index = indices[largest]
+			local left_elem = ffi_array[l_index]
+			local curr_elem = ffi_array[i_index]
+
+			if (desc and left_elem < curr_elem) or (not desc and left_elem > curr_elem) then
+				largest = left
+			end
+		end
+
+		if right < n then
+			local r_index = indices[right]
+			local l_index = indices[largest]
+			local right_elem = ffi_array[r_index]
+			local left_elem = ffi_array[l_index]
+
+			if (desc and right_elem < left_elem) or (not desc and right_elem > left_elem) then
+				largest = right
+			end
+		end
+
+		if largest == i then
+			break
+		end
+
+		swap(indices, i, largest)
+		i = largest
+	end
+end
+
+local ffi = require "ffi"
 
 ---@param get_primary fun(i:number):any
 ---@param get_secondary nil|fun(i:number):any
 ---@param n number
 ---@param desc_primary boolean
 ---@param desc_secondary boolean|nil
-function hs.heap_sort_indices(get_primary, get_secondary, n, desc_primary, desc_secondary)
+function hs.heap_sort_indices_with_lambdas2(get_primary, get_secondary, n, desc_primary, desc_secondary)
 	desc_primary = desc_primary or false
 	desc_secondary = desc_secondary or false
 	local indices = ffi.new("uint32_t[?]", n)
@@ -77,12 +117,33 @@ function hs.heap_sort_indices(get_primary, get_secondary, n, desc_primary, desc_
 	end
 
 	for i = math.floor(n / 2) - 1, 0, -1 do
-		heapify_iterative(get_primary, get_secondary, indices, n, i, desc_primary, desc_secondary)
+		heapify_iterative_with_lambdas2(get_primary, get_secondary, indices, n, i, desc_primary, desc_secondary)
 	end
 
 	for i = n - 1, 0, -1 do
 		swap(indices, 0, i)
-		heapify_iterative(get_primary, get_secondary, indices, i, 0, desc_primary, desc_secondary)
+		heapify_iterative_with_lambdas2(get_primary, get_secondary, indices, i, 0, desc_primary, desc_secondary)
+	end
+
+	return indices
+end
+
+---@param n number
+---@param desc boolean|nil
+function hs.heap_sort_indices(ffi_array, n, desc)
+	desc = desc or false
+	local indices = ffi.new("uint32_t[?]", n)
+	for i = 0, n - 1 do
+		indices[i] = i
+	end
+
+	for i = math.floor(n / 2) - 1, 0, -1 do
+		heapify_iterative(ffi_array, indices, n, i, desc)
+	end
+
+	for i = n - 1, 0, -1 do
+		swap(indices, 0, i)
+		heapify_iterative(ffi_array, indices, i, 0, desc)
 	end
 
 	return indices

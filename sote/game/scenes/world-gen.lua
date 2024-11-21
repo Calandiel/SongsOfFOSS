@@ -93,6 +93,7 @@ function wg.generate_coro()
 	if debug.fixed_seed then
 		seed = debug.fixed_seed
 	end
+	print("Seed: " .. seed)
 
 	local worldgen_coro = coroutine.create(world_generator.get_gen_coro)
 	while coroutine.status(worldgen_coro) ~= "dead" do

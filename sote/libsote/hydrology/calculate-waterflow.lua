@@ -67,7 +67,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 	local clay_percent = clay / total_soil
 
 	-- local log_str =  ""
-	-- log_str = log_str .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; te: " .. world:true_elevation(ti) .. "; "
+	-- log_str = log_str .. world.colatitude[ti] .. "," .. world.minus_longitude[ti] .. "; te: " .. world:get_true_elevation(ti) .. "; "
 	-- if is_land then
 	-- 	log_str = log_str .. "land\n"
 	-- else
@@ -103,7 +103,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 		elseif flow_type == cwf.TYPES.current then
 			local x = world:is_in_northern_hemisphere(ti) and month or (month + 5) % 12;
 			if x >= month_of_first_melt and x < month_of_first_melt + 6 then
-				world.tmp_float_2[ti] = (250 + math.pow(x, 3)) * 6 * (jan_rainfall + jul_rainfall) * (math.sin(math.pi * (x - month_of_first_melt + 1) / 7) / 946)
+				world.tmp_float_2[ti] = (250 + x ^ 3) * 6 * (jan_rainfall + jul_rainfall) * (math.sin(math.pi * (x - month_of_first_melt + 1) / 7) / 946)
 			end
 		end
 
@@ -206,7 +206,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			capacity = capacity * 5000
 			world.tmp_float_3[ti] = capacity
 
-			local organic_factor = math.pow((world.soil_organics[ti] / 1000), 0.5) + 1 -- Test factor so far to see the effects of organics on water retention.
+			local organic_factor = (world.soil_organics[ti] / 1000) ^ 0.5 + 1 -- Test factor so far to see the effects of organics on water retention.
 
 			-- Do we just want to look at temperature at the specific time of month and prevent water loss at that time?
 			-- Or do we want to consider the total range of temperature throughout the year?
@@ -235,7 +235,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			local rain_in = (world.tmp_float_2[ti] * infiltration) * soil_moisture_multiplier
 			local moving_water_in = 0
 			if world.tmp_float_1[ti] > 0 then
-				moving_water_in = (math.pow(world.tmp_float_1[ti], 0.6) / 4) * infiltration * soil_moisture_multiplier;
+				moving_water_in = (world.tmp_float_1[ti] ^ 0.6 / 4) * infiltration * soil_moisture_multiplier;
 			end
 			local total_water_added = rain_in + moving_water_in;
 
@@ -276,7 +276,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			local nti = world.neighbors[ti * 6 + i]
 
 			if world.tmp_bool_1[nti] then
-				local elev_diff = world:true_elevation(ti) - world:true_elevation(nti)
+				local elev_diff = world.true_elevation[ti] - world.true_elevation[nti]
 				total_elevation_difference = total_elevation_difference + elev_diff
 			end
 		end
@@ -286,7 +286,7 @@ local function process_tile_waterflow(ti, world, flow_type, month, year)
 			if world.tmp_bool_1[nti] then
 				if total_elevation_difference == 0 then error("Total elevation difference is 0!") end
 
-				local elev_diff = world:true_elevation(ti) - world:true_elevation(nti)
+				local elev_diff = world.true_elevation[ti] - world.true_elevation[nti]
 				world.tmp_float_1[nti] = world.tmp_float_1[nti] + (elev_diff / total_elevation_difference) * world.tmp_float_1[ti]
 			end
 		end
@@ -359,6 +359,7 @@ function cwf.test_tile(ti, world, flow_type, month, year)
 	process_tile_waterflow(ti, world, flow_type, month, year)
 end
 
+-- precondition: update_true_elevation (fullfilled by create_elevation_list)
 ---@param flow_type flow_type
 ---@param month? number
 ---@param year? number

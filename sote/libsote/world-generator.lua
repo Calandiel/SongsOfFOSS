@@ -140,7 +140,7 @@ local function initial_waterflow()
 
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
 	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
-	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.world_gen) end, "calculate-waterflow", 1) })
+	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.world_gen) end, "calculate-waterflow", 1) }) -- #1 true_elev
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(0, 0, 0) end, "clear_soils", 1) })
 
 	log_profiling_data(prof_output, "initial_waterflow")
@@ -151,14 +151,12 @@ local function glaciers()
 
 	table.insert(prof_output, { profile_and_get(function() require "libsote.soils.gen-bias-matrix".run(wg.world) end, "gen-bias-matrix", 1) })
 	table.insert(prof_output, { profile_and_get(function() require "libsote.soils.gen-parent-material".run(wg.world) end, "gen-parent-material", 1) })
-	table.insert(prof_output, { profile_and_get(function() require "libsote.glaciation.glacial-formation".run(wg.world) end, "glacial-formation", 1) })
+	table.insert(prof_output, { profile_and_get(function() require "libsote.glaciation.glacial-formation".run(wg.world) end, "glacial-formation", 1) }) -- #2 true_elev_for_glaciation
 
 	log_profiling_data(prof_output, "glaciers")
 end
 
 local function gen_phase_02()
-	-- run_with_profiling(function() wg.world:sort_by_elevation_for_waterflow() end, "sort_by_elevation_for_waterflow")
-
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
 	if debug.use_sote_climate_data then
@@ -170,9 +168,9 @@ local function gen_phase_02()
 	if debug.use_sote_water_movement then
 		run_with_profiling(function() override_water_movement_data() end, "override_waterflow_data")
 	end
-	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
+	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes") -- #3 true_elev_for_waterflow, can be pre-computed until is_land is changed
 
-	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers")
+	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers") -- #4 true_elev_for_waterflow, must be pre-computed because lakes change is_land
 	local ocean_count = 0
 	local freshwater_lake_count = 0
 	local saltwater_lake_count = 0
@@ -204,9 +202,9 @@ local function gen_phase_02()
 	if debug.use_sote_soils_data then
 		run_with_profiling(function() override_soils_data() end, "override_soils_data")
 	end
-	run_with_profiling(function() require "libsote.soils.gen-sediment-load".run(wg.world) end, "gen-sediment-load")
+	run_with_profiling(function() require "libsote.soils.gen-sediment-load".run(wg.world) end, "gen-sediment-load") -- #5 true_elev_for_waterflow
 	run_with_profiling(function() require "libsote.soils.weather_alluvial_texture".run(wg.world) end, "weather_alluvial_texture")
-	run_with_profiling(function() require "libsote.soils.gen-alluvial-soils".run(wg.world) end, "gen-alluvial-soils")
+	run_with_profiling(function() require "libsote.soils.gen-alluvial-soils".run(wg.world) end, "gen-alluvial-soils") -- #6 true_elev_for_waterflow
 end
 
 local libsote_cpp = require "libsote.libsote"

@@ -70,14 +70,14 @@ local function process_drainage_basins(coast_ti)
 	while num_tiles > 0 do
 		--* At some point we will need to run a check which evaluated whether we have run into a freshwater lake
 		for _, ti in ipairs(old_layer) do
-			local true_elev = world:true_elevation_for_waterflow(ti)
+			local true_elev = world.true_elevation[ti]
 
 			for i = 0, world:neighbors_count(ti) - 1 do
 				local nti = world.neighbors[ti * 6 + i]
 				local nwb = world:get_waterbody_by_tile(nti)
 
 				if not world:is_tile_waterbody_valid(nti) then
-					if world.water_movement[nti] > 2000 and world:true_elevation_for_waterflow(nti) > true_elev then
+					if world.water_movement[nti] > 2000 and world.true_elevation[nti] > true_elev then
 						world:add_tile_to_waterbody(nti, wb)
 						table.insert(new_layer, nti)
 					end
@@ -109,7 +109,7 @@ local function construct_drainage_basins()
 end
 
 local function find_path_using_waterbodies(ti, wb)
-	local true_elev = world:true_elevation_for_waterflow(ti)
+	local true_elev = world.true_elevation[ti]
 	local lowest_elev = 100000
 	local lowest_nti = -1
 
@@ -118,7 +118,7 @@ local function find_path_using_waterbodies(ti, wb)
 		local nwb = world:get_waterbody_by_tile(nti)
 		if not nwb or not nwb:is_valid() then goto cont_loop1 end
 
-		local actual_neigh_elev = world:true_elevation_for_waterflow(nti)
+		local actual_neigh_elev = world.true_elevation[nti]
 
 		local is_freshwater_lake_with_standing_water = false
 		local swb = stored_bodies[nti]
@@ -129,7 +129,7 @@ local function find_path_using_waterbodies(ti, wb)
 
 		if actual_neigh_elev >= true_elev then goto cont_loop1 end
 
-		if is_freshwater_lake_with_standing_water then
+		if is_freshwater_lake_with_standing_water and swb.lowest_shore_tile ~= ti then
 			lowest_nti = swb.lowest_shore_tile
 		elseif nwb.id == wb.id and world.water_movement[nti] >= 2000 and lowest_elev > actual_neigh_elev then
 			lowest_elev = actual_neigh_elev
@@ -158,7 +158,7 @@ local function tag_and_prep_all_tributaries()
 			local nwb = world:get_waterbody_by_tile(nti)
 			if not nwb or not nwb:is_valid() then goto cont_loop2 end
 
-			if nwb.id == wb.id and world.water_movement[nti] >= 6000 and world:true_elevation_for_waterflow(nti) > world:true_elevation_for_waterflow(ti) then
+			if nwb.id == wb.id and world.water_movement[nti] >= 6000 and world.true_elevation[nti] > world.true_elevation[ti] then
 				ellibigle_candidate = false
 			end
 
@@ -182,8 +182,8 @@ local function tag_and_prep_all_tributaries()
 	end)
 
 	--* Sort candidates by elevation
-	sorted_candidates = require("libsote.heap-sort").heap_sort_indices(
-		function(i) return world:true_elevation_for_waterflow(initial_candidates[i + 1]) end,
+	sorted_candidates = require("libsote.heap-sort").heap_sort_indices_with_lambdas2(
+		function(i) return world.true_elevation[initial_candidates[i + 1]] end,
 		nil,
 		#initial_candidates,
 		true
@@ -229,14 +229,14 @@ local function kill_old_basins()
 end
 
 local function find_path_using_watershed(ti, wb)
-	local true_elev = world:true_elevation_for_waterflow(ti)
+	local true_elev = world.true_elevation[ti]
 	local lowest_elevation = 100000
 	local lowest_nti = -1
 
 	for i = 0, world:neighbors_count(ti) - 1 do --* Here we count candidates and determine who has the lowest elevation. Lowest elevation neighbor will be next tile in the path
 		local nti = world.neighbors[ti * 6 + i]
 
-		local actual_neigh_elev = world:true_elevation_for_waterflow(nti) --* Will function as either the elevation of the tile or the water level of the tile (if it is a lake)
+		local actual_neigh_elev = world.true_elevation[nti] --* Will function as either the elevation of the tile or the water level of the tile (if it is a lake)
 
 		local is_freshwater_lake_with_standing_water = false
 		local swb = stored_bodies[nti]
@@ -250,7 +250,7 @@ local function find_path_using_watershed(ti, wb)
 		local nwb = swb or watershed[nti] or world:get_waterbody_by_tile(nti)
 		if not nwb then goto cont_loop3 end
 
-		if is_freshwater_lake_with_standing_water then
+		if is_freshwater_lake_with_standing_water and swb.lowest_shore_tile ~= ti then
 			--* We need to terminate expansion and start the next tributary on the drain tile
 			lowest_nti = swb.lowest_shore_tile
 		elseif nwb.type == nwb.TYPES.saltwater_lake or nwb.type == nwb.TYPES.ocean then -- found river end
@@ -355,13 +355,13 @@ local function connect_all_waterbodies()
 		if wb.type == wb.TYPES.river then
 			--* Check first tile first to determine whether there are waterbody sources feeding into the current waterbody
 			local first_ti = wb.tiles[1]
-			local first_tile_elev = world:true_elevation_for_waterflow(first_ti)
+			local first_tile_elev = world.true_elevation[first_ti]
 			for i = 0, world:neighbors_count(first_ti) - 1 do
 				local nti = world.neighbors[first_ti * 6 + i]
 				local nwb = world:get_waterbody_by_tile(nti)
 				if not nwb or not nwb:is_valid() then goto cont_loop4 end
 
-				if world:true_elevation_for_waterflow(nti) > first_tile_elev then
+				if world.true_elevation[nti] > first_tile_elev then
 					wb:add_source(nwb)
 				end
 
@@ -378,7 +378,7 @@ local function connect_all_waterbodies()
 				local nwb = world:get_waterbody_by_tile(nti)
 				if not nwb or not nwb:is_valid() then goto cont_loop5 end
 
-				local elev_to_check = world:true_elevation_for_waterflow(nti)
+				local elev_to_check = world.true_elevation[nti]
 
 				if nwb:is_lake_or_ocean() then
 					elev_to_check = nwb.water_level
@@ -406,7 +406,7 @@ local function connect_all_waterbodies()
 			--* Receive water from sources
 			for ti, _ in pairs(wb.perimeter) do
 				--* Check for higher elevation than waterlevel... check for waterbody ID to make sure it is not zero and not different.
-				if world:true_elevation_for_waterflow(ti) <= wb.water_level then goto cont_loop2 end
+				if world.true_elevation[ti] <= wb.water_level then goto cont_loop2 end
 
 				--* If criteria is met, add as source
 				local nwb = world:get_waterbody_by_tile(ti)
@@ -528,10 +528,11 @@ function rivers.run(world_obj)
 		world:reset_debug_all()
 	end
 
+	run_with_profiling(function() world:update_true_elevation_for_waterflow() end, "update_true_elevation_for_waterflow")
 	run_with_profiling(function() construct_start_locations() end, "construct_start_locations")
 	run_with_profiling(function()
-		sorted_candidates = require("libsote.heap-sort").heap_sort_indices(
-			function(i) return world:true_elevation_for_waterflow(initial_candidates[i + 1]) end,
+		sorted_candidates = require("libsote.heap-sort").heap_sort_indices_with_lambdas2(
+			function(i) return world.true_elevation[initial_candidates[i + 1]] end,
 			nil,
 			#initial_candidates,
 			false
