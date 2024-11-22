@@ -141,6 +141,8 @@ end
 
 ---@type trade_good_id
 HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = INVALID_ID
+---@type use_case_id
+HACKY_MAP_MODE_CONTEXT_USE_CASE = INVALID_ID
 
 function dem.prices()
 	local c = HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY
@@ -149,7 +151,7 @@ function dem.prices()
 		local total = 0
 		local mean = 0
 
-		print("calculate prices map mode")
+		print("calculate use prices map mode")
 
 		---@type table<number, Province> | table<Province, Province>
 		local provinces = DATA.filter_province(function (item)
@@ -194,6 +196,69 @@ function dem.prices()
 			if DATA.tile_get_is_land(center) then
 				if province_utils.realm(province) ~= INVALID_ID then
 					local price = ev.get_local_price(province, c)
+					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)
+					local normalized = (price - mean) / std
+					ut.hue_from_value(center, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
+				end
+			end
+		end)
+	else
+		print("Nil for " .. tostring(c))
+	end
+end
+
+function dem.use_prices()
+	local c = HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY
+	if c ~= INVALID_ID then
+		-- calculate stats
+		local total = 0
+		local mean = 0
+
+		print("calculate prices map mode")
+
+		---@type table<number, Province> | table<Province, Province>
+		local provinces = DATA.filter_province(function (item)
+			return true
+		end)
+
+		print("Province_count", tabb.size(provinces))
+
+		print("WORLD.player_character", WORLD.player_character)
+
+		if WORLD.player_character ~= INVALID_ID then
+			local realm = REALM(WORLD.player_character)
+			provinces = DATA.realm_get_known_provinces(realm)
+		end
+
+		print("Province_count", tabb.size(provinces))
+
+
+		for _, province in pairs(provinces) do
+			if province_utils.realm(province) ~= INVALID_ID then
+				local price = ev.get_local_price_of_use(province, c)
+				total = total + 1
+				mean = mean + price
+			end
+		end
+		mean = mean / total
+		print("mean of price: ", mean)
+
+		local std = 0
+		for _, province in pairs(provinces) do
+			if province_utils.realm(province) ~= INVALID_ID then
+				local price = ev.get_local_price_of_use(province, c)
+				std = std + (price - mean) * (price - mean)
+			end
+		end
+		std = math.sqrt(std / (total - 1)) + 0.001 -- to avoid division by zero
+		print("std of price: ", std)
+
+		DATA.for_each_province(function (province)
+			local center = DATA.province_get_center(province)
+			ut.set_default_color(center)
+			if DATA.tile_get_is_land(center) then
+				if province_utils.realm(province) ~= INVALID_ID then
+					local price = ev.get_local_price_of_use(province, c)
 					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)
 					local normalized = (price - mean) / std
 					ut.hue_from_value(center, 0.5 * (1 + normalized / (1 + math.abs(normalized))))

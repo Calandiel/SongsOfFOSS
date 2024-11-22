@@ -29,30 +29,37 @@ function dbg.selected_tile(clicked_tile_id)
 	end)
 
 	local clicked = clicked_tile_id
-	if clicked then
+	if clicked ~= INVALID_ID and clicked then
 		local clicked_province = tile.province(clicked)
 		if clicked_province ~= INVALID_ID then
-			for _, t in pairs(clicked_province.tiles) do
+			DATA.for_each_tile_province_membership_from_province(clicked_province, function (item)
+				local t = DATA.tile_province_membership_get_tile(item)
 				for n in tile.iter_neighbors(t) do
 					local neighbour_province = tile.province(n)
 
 					if neighbour_province ~= clicked_province then
 						tile.set_real_color(n, 1, 1, 0)
 
-						if clicked_province.neighbors[neighbour_province] == nil then
-							print("???? A neighboring province wasn't assigned correctly")
-						end
+						-- if clicked_province.neighbors[neighbour_province] == nil then
+						-- 	print("???? A neighboring province wasn't assigned correctly")
+						-- end
 					end
 				end
-			end
-			for _, owo in pairs(clicked_province.neighbors) do
-				for _, t in pairs(owo.tiles) do
+			end)
+
+
+			DATA.for_each_province_neighborhood_from_origin(clicked_province, function (item)
+				local owo = DATA.province_neighborhood_get_target(clicked_province)
+				DATA.for_each_tile_province_membership_from_province(owo, function (item)
+					local t = DATA.tile_province_membership_get_tile(item)
 					tile.set_real_color(t, 0, 0, 0.5)
-				end
-			end
-			for _, t in pairs(clicked_province.tiles) do
+				end)
+			end)
+
+			DATA.for_each_tile_province_membership_from_province(clicked_province, function (item)
+				local t = DATA.tile_province_membership_get_tile(item)
 				tile.set_real_color(t, 0, 0, 1)
-			end
+			end)
 		end
 		tile.set_real_color(clicked, 1, 1, 1)
 		for n in tile.iter_neighbors(clicked) do tile.set_real_color(n, 0.5, 0.5, 0.5) end

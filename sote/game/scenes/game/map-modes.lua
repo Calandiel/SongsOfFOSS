@@ -154,6 +154,14 @@ function mm.set_up_map_modes(game_thingy)
 			mmut.MAP_MODE_GRANULARITY.PROVINCE,
 			mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC
 		),
+		prices_use = new_map_mode(
+			"Prices",
+			"coins.png",
+			"Shows prices of the currently selected trade good",
+			demographic_map_modes.use_prices,
+			mmut.MAP_MODE_GRANULARITY.PROVINCE,
+			mmut.MAP_MODE_UPDATES_TYPE.DYNAMIC
+		),
 		population = new_map_mode(
 			"Population (100)",
 			"minions.png",
