@@ -5,8 +5,14 @@ local wgu = require "libsote.world-gen-utils"
 local sun = require "game.climate.sun"
 local open_issues = require "libsote.soils.open-issues"
 
-local enable_debug = false
+local enable_debug = true
 -- local logger = require("libsote.debug-loggers").get_soils_logger("d:/temp")
+
+local prof = require "libsote.profiling-helper"
+local prof_prefix = "[gen-sediment-load]"
+local function run_with_profiling(func, log_txt)
+	prof.run_with_profiling(func, prof_prefix, log_txt)
+end
 
 local world
 local already_added
@@ -74,7 +80,7 @@ local function calculate_material_to_move()
 		if not world.is_land[ti] then goto cont_loop1 end
 
 		--* Calculate material in tile, done by amount of water moving into tile times slope
-		local true_elev = world:true_elevation_for_waterflow(ti)
+		local true_elev = world.true_elevation[ti]
 
 		local total_elev_diff, steepest_face = wgu.elev_diff_and_steepest_face(world, ti)
 
@@ -82,7 +88,7 @@ local function calculate_material_to_move()
 		for i = 0, world:neighbors_count(ti) - 1 do
 			local nti = world.neighbors[ti * 6 + i]
 
-			local elev_diff = true_elev - world:true_elevation_for_waterflow(nti)
+			local elev_diff = true_elev - world.true_elevation[nti]
 
 			--* If tile under scrutiny is higher, we know material is transported
 			if elev_diff > 0 then
@@ -120,7 +126,7 @@ end
 
 local function identify_start_location()
 	world:for_each_tile(function(ti)
-		local true_elev = world:true_elevation_for_waterflow(ti)
+		local true_elev = world.true_elevation[ti]
 		if true_elev <= 0 then goto cont_loop2 end
 
 		--* This section locates all of our starting tiles for waterflow
@@ -129,7 +135,7 @@ local function identify_start_location()
 		for i = 0, world:neighbors_count(ti) - 1 do
 			local nti = world.neighbors[ti * 6 + i]
 
-			if world:true_elevation_for_waterflow(nti) > true_elev then
+			if world.true_elevation[nti] > true_elev then
 				has_higher_neigh = true
 			end
 		end
@@ -141,69 +147,83 @@ local function identify_start_location()
 	end)
 end
 
-local function drain_tile(ti)
-	local giving_tile_body = world:get_waterbody_by_tile(ti)
-	if giving_tile_body and giving_tile_body.type ~= wb_types.wetland then return end
+local function propagate_drainage()
+	while #water_flow_now > 0 do
+		for _, ti in ipairs(water_flow_now) do
+			local giving_tile_body = world.waterbodies[world.waterbody_id_by_tile[ti]]
+			if giving_tile_body and giving_tile_body.type ~= wb_types.wetland then goto cont_loop3 end
 
-	--* If waterbody ID is 0, it means we're on land and we want to keep transferring material
+			--* If waterbody ID is 0, it means we're on land and we want to keep transferring material
 
-	local true_elev = world:true_elevation_for_waterflow(ti)
-	local num_neighs = world:neighbors_count(ti)
+			local true_elev = world.true_elevation[ti]
+			local num_neighs = world:neighbors_count(ti)
 
-	--* Here we sum the elevation difference of all neighbor tiles
-	local total_elevation_difference = 0
-	for ni = 0, num_neighs - 1 do
-		local nti = world.neighbors[ti * 6 + ni]
-		local elevation_to_check = world:true_elevation_for_waterflow(nti)
-		local wb = world:get_waterbody_by_tile(nti)
+			--* Here we sum the elevation difference of all neighbor tiles
+			local total_elevation_difference = 0
+			for ni = 0, num_neighs - 1 do
+				local nti = world.neighbors[ti * 6 + ni]
+				local elevation_to_check = world.true_elevation[nti]
+				local wb = world.waterbodies[world.waterbody_id_by_tile[nti]]
 
-		--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
-		if wb and wb.type ~= wb_types.river and wb.type ~= wb_types.wetland then
-			elevation_to_check = wb.water_level
-		end
+				--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
+				if wb and wb.type ~= wb_types.river and wb.type ~= wb_types.wetland then
+					elevation_to_check = wb.water_level
+				end
 
-		if elevation_to_check < true_elev then
-			total_elevation_difference = total_elevation_difference + (true_elev - elevation_to_check)
-		end
-	end
-
-	--* Now we decide share value to be distributed based on elevation disparities
-	for ni = 0, num_neighs - 1 do
-		local nti = world.neighbors[ti * 6 + ni]
-		local elevation_to_check = world:true_elevation_for_waterflow(nti)
-		local wb = world:get_waterbody_by_tile(nti)
-
-		--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
-		if wb and wb.type ~= wb_types.river and wb.type ~= wb_types.wetland then
-			elevation_to_check = wb.water_level
-		end
-
-		if elevation_to_check < true_elev then
-			local material_share = (true_elev - elevation_to_check) / total_elevation_difference
-
-			moving_sand[nti] = moving_sand[nti] + material_share * moving_sand[ti]
-			moving_silt[nti] = moving_silt[nti] + material_share * moving_silt[ti]
-			moving_clay[nti] = moving_clay[nti] + material_share * moving_clay[ti]
-			moving_minerals[nti] = moving_minerals[nti] + material_share * moving_minerals[ti]
-
-			if not already_added[nti] then
-				table.insert(water_flow_later, nti)
-				already_added[nti] = true
+				if elevation_to_check < true_elev then
+					total_elevation_difference = total_elevation_difference + (true_elev - elevation_to_check)
+				end
 			end
+
+			--* Now we decide share value to be distributed based on elevation disparities
+			for ni = 0, num_neighs - 1 do
+				local nti = world.neighbors[ti * 6 + ni]
+				local elevation_to_check = world.true_elevation[nti]
+				local wb = world.waterbodies[world.waterbody_id_by_tile[nti]]
+
+				--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
+				if wb and wb.type ~= wb_types.river and wb.type ~= wb_types.wetland then
+					elevation_to_check = wb.water_level
+				end
+
+				if elevation_to_check < true_elev then
+					local material_share = (true_elev - elevation_to_check) / total_elevation_difference
+
+					moving_sand[nti] = moving_sand[nti] + material_share * moving_sand[ti]
+					moving_silt[nti] = moving_silt[nti] + material_share * moving_silt[ti]
+					moving_clay[nti] = moving_clay[nti] + material_share * moving_clay[ti]
+					moving_minerals[nti] = moving_minerals[nti] + material_share * moving_minerals[ti]
+
+					if not already_added[nti] then
+						table.insert(water_flow_later, nti)
+						already_added[nti] = true
+					end
+				end
+			end
+
+			if world.ice[ti] == 0 then
+				sand_stash[ti] = sand_stash[ti] + math.floor(moving_sand[ti] * 0.05)
+				silt_stash[ti] = silt_stash[ti] + math.floor(moving_silt[ti] * 0.05)
+				clay_stash[ti] = clay_stash[ti] + math.floor(moving_clay[ti] * 0.05)
+				mineral_stash[ti] = mineral_stash[ti] + math.floor(moving_minerals[ti] * 0.05)
+			end
+
+			moving_sand[ti] = 0
+			moving_silt[ti] = 0
+			moving_clay[ti] = 0
+			moving_minerals[ti] = 0
+
+			::cont_loop3::
 		end
-	end
 
-	if world.ice[ti] == 0 then
-		sand_stash[ti] = sand_stash[ti] + math.floor(moving_sand[ti] * 0.05)
-		silt_stash[ti] = silt_stash[ti] + math.floor(moving_silt[ti] * 0.05)
-		clay_stash[ti] = clay_stash[ti] + math.floor(moving_clay[ti] * 0.05)
-		mineral_stash[ti] = mineral_stash[ti] + math.floor(moving_minerals[ti] * 0.05)
-	end
+		world:fill_ffi_array(already_added, false)
 
-	moving_sand[ti] = 0
-	moving_silt[ti] = 0
-	moving_clay[ti] = 0
-	moving_minerals[ti] = 0
+		water_flow_now = {}
+		for _, ti in ipairs(water_flow_later) do
+			table.insert(water_flow_now, ti)
+		end
+		water_flow_later = {}
+	end
 end
 
 local function apply_dropped_material()
@@ -231,6 +251,7 @@ local function apply_dropped_material()
 	end)
 end
 
+-- precondition: update_true_elevation_for_waterflow (fullfilled by gen-rivers)
 function gsl.run(world_obj)
 	world = world_obj
 
@@ -270,23 +291,10 @@ function gsl.run(world_obj)
 		wb.organic_load = 0
 	end)
 
-	calculate_organics()
-	calculate_material_to_move()
-	identify_start_location()
-
-	while #water_flow_now > 0 do
-		for _, ti in ipairs(water_flow_now) do
-			drain_tile(ti)
-		end
-
-		world:fill_ffi_array(already_added, false)
-
-		water_flow_now = {}
-		for _, ti in ipairs(water_flow_later) do
-			table.insert(water_flow_now, ti)
-		end
-		water_flow_later = {}
-	end
+	run_with_profiling(function() calculate_organics() end, "calculate_organics")
+	run_with_profiling(function() calculate_material_to_move() end, "calculate_material_to_move")
+	run_with_profiling(function() identify_start_location() end, "identify_start_location")
+	run_with_profiling(function() propagate_drainage() end, "propagate_drainage")
 
 	if enable_debug then
 		local max_sand = 0
@@ -310,7 +318,7 @@ function gsl.run(world_obj)
 		end)
 	end
 
-	apply_dropped_material()
+	run_with_profiling(function() apply_dropped_material() end, "apply_dropped_material")
 
 	world:for_each_waterbody(function(wb)
 		for _, ti in ipairs(wb.tiles) do

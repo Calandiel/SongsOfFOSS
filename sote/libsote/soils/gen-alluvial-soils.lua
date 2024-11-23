@@ -41,13 +41,13 @@ local all_influenced = {}
 local function process_ring_tile(ti, water_height, ring_num)
 	local penetration = tile_penetration[ti]
 	local raiseable_water = water_height - penetration
-	local true_elev = world:true_elevation_for_waterflow(ti)
+	local true_elev = world.true_elevation[ti]
 
 	for ni = 0, world:neighbors_count(ti) - 1 do
 		local nti = world.neighbors[ti * 6 + ni]
 		if not world.is_land[nti] then goto cont_loop1 end
 
-		local elev_diff = math.max(0, world:true_elevation_for_waterflow(nti) - true_elev)
+		local elev_diff = math.max(0, world.true_elevation[nti] - true_elev)
 
 		local wb = world:get_waterbody_by_tile(nti)
 		local is_wetland_or_river = wb and (wb.type == wb_types.river or wb.type == wb_types.wetland)
@@ -211,6 +211,7 @@ end
 --* As each tile attempts to "invade" a new tile, it must spend ticker points based on the elevation its trying to expand.
 --* How much we deposit can be based on how much elevation penetration remains.
 
+-- precondition: update_true_elevation_for_waterflow (fullfilled by gen-rivers)
 function gas.run(world_obj)
 	world = world_obj
 	rng = world.rng

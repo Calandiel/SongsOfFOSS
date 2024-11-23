@@ -513,6 +513,7 @@ local function construct_wetlands()
 	end)
 end
 
+-- precondition: update_true_elevation_for_waterflow (fullfilled by gen-dynamic-lakes)
 function rivers.run(world_obj)
 	world = world_obj
 	true_lake = world.tmp_bool_1
@@ -528,7 +529,6 @@ function rivers.run(world_obj)
 		world:reset_debug_all()
 	end
 
-	run_with_profiling(function() world:update_true_elevation_for_waterflow() end, "update_true_elevation_for_waterflow")
 	run_with_profiling(function() construct_start_locations() end, "construct_start_locations")
 	run_with_profiling(function()
 		sorted_candidates = require("libsote.heap-sort").heap_sort_indices_with_lambdas2(
