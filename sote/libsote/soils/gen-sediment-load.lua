@@ -5,7 +5,7 @@ local wgu = require "libsote.world-gen-utils"
 local sun = require "game.climate.sun"
 local open_issues = require "libsote.soils.open-issues"
 
-local enable_debug = true
+local enable_debug = false
 -- local logger = require("libsote.debug-loggers").get_soils_logger("d:/temp")
 
 local prof = require "libsote.profiling-helper"
