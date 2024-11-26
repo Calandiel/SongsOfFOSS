@@ -81,6 +81,22 @@ local function color_from_rank(rank)
 	end
 end
 
+local function color_for_water_movement(world, ti, water_movement)
+	local col_r, col_g, col_b = 2, 8, 209
+	if world.is_land[ti] then
+		local rank = gen_water_movement_rank(water_movement)
+		col_r, col_g, col_b = color_from_rank(rank)
+	else
+		local wb = world:get_waterbody_by_tile(ti)
+		if wb and wb.type == wb.TYPES.freshwater_lake then
+			col_r, col_g, col_b = 15, 239, 255
+		elseif wb and wb.type == wb.TYPES.saltwater_lake then
+			col_r, col_g, col_b = 30, 125, 255
+		end
+	end
+	return col_r, col_g, col_b
+end
+
 -- local function map_ice(ice)
 -- 	if ice <= 0 then return 0 end
 
@@ -260,7 +276,7 @@ function wl.dump_maps_from(world)
 	local image_elevation_data
 	local image_rocks_data
 	local image_jan_rainfall_data
-	local image_jan_waterflow_data
+	local image_waterflow_data, image_jan_waterflow_data, image_jul_waterflow_data
 	local image_waterbodies_data
 	local image_watersheds_data
 	local image_debug_data_1
@@ -276,7 +292,9 @@ function wl.dump_maps_from(world)
 		image_jan_rainfall_data = love.image.newImageData(width, height)
 	end
 	if debug_ms.waterflow then
+		image_waterflow_data = love.image.newImageData(width, height)
 		image_jan_waterflow_data = love.image.newImageData(width, height)
+		image_jul_waterflow_data = love.image.newImageData(width, height)
 	end
 	if debug_ms.waterbodies then
 		image_waterbodies_data = love.image.newImageData(width, height)
@@ -351,20 +369,12 @@ function wl.dump_maps_from(world)
 
 			-- water movement ------------------------------------------------
 			if debug_ms.waterflow then
-				col_r, col_g, col_b = 2, 8, 209
-				if is_land then
-					local water_movement = world.water_movement[ti]
-					local rank = gen_water_movement_rank(water_movement)
-					col_r, col_g, col_b = color_from_rank(rank)
-				else
-					if wb and wb.type == wb.TYPES.freshwater_lake then
-						col_r, col_g, col_b = 15, 239, 255
-					elseif wb and wb.type == wb.TYPES.saltwater_lake then
-						col_r, col_g, col_b = 30, 125, 255
-					end
-				end
-
+				col_r, col_g, col_b = color_for_water_movement(world, ti, world.water_movement[ti])
+				image_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+				col_r, col_g, col_b = color_for_water_movement(world, ti, world.jan_water_movement[ti])
 				image_jan_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
+				col_r, col_g, col_b = color_for_water_movement(world, ti, world.jul_water_movement[ti])
+				image_jul_waterflow_data:setPixel(x, y, col_r / 255, col_g / 255, col_b / 255, 1)
 			end
 
 			-- waterbodies ---------------------------------------------------
@@ -414,8 +424,12 @@ function wl.dump_maps_from(world)
 		love.filesystem.write(world.seed .. '_jan_rain.png', jan_rainfall_file_data)
 	end
 	if debug_ms.waterflow then
+		local waterflow_file_data = image_waterflow_data:encode('png')
+		love.filesystem.write(world.seed .. '_waterflow.png', waterflow_file_data)
 		local jan_waterflow_file_data = image_jan_waterflow_data:encode('png')
-		love.filesystem.write(world.seed .. '_waterflow.png', jan_waterflow_file_data)
+		love.filesystem.write(world.seed .. '_jan_waterflow.png', jan_waterflow_file_data)
+		local jul_waterflow_file_data = image_jul_waterflow_data:encode('png')
+		love.filesystem.write(world.seed .. '_jul_waterflow.png', jul_waterflow_file_data)
 	end
 	if debug_ms.waterbodies then
 		local waterbodies_file_data = image_waterbodies_data:encode('png')

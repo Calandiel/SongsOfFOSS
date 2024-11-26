@@ -30,4 +30,9 @@ function oi.set_water_movement_for_lakes(world, ti)
 	world.water_movement[ti] = 0
 end
 
+-- soil_organics is a ushort in the original implementation, so division by '1000' will be truncated, which is odd when computing a factor
+function oi.calc_organic_factor(soil_organics)
+	return math.floor(soil_organics / 1000) ^ 0.5 + 1
+end
+
 return oi

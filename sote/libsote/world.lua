@@ -299,12 +299,12 @@ end
 
 ---@param ti number 0-based tile index
 function world:is_in_northern_hemisphere(ti)
-	return -llu.colat_to_lat(self.colatitude[ti]) >= 0
+	return llu.colat_to_lat(self.colatitude[ti]) >= 0
 end
 
 ---@param ti number 0-based tile index
 function world:is_in_southern_hemisphere(ti)
-	return -llu.colat_to_lat(self.colatitude[ti]) < 0
+	return llu.colat_to_lat(self.colatitude[ti]) < 0
 end
 
 function world:get_elevation(q, r, face)
@@ -471,10 +471,10 @@ function world:create_elevation_list()
 	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(self.true_elevation, self.tile_count, true)
 end
 
----@param callback fun(tile_index:number, world:table)
+---@param callback fun(tile_index:number)
 function world:for_each_tile_by_elevation(callback)
 	for ti = 0, self.tile_count - 1 do
-		callback(self.tiles_by_elevation[ti], self)
+		callback(self.tiles_by_elevation[ti])
 	end
 end
 
