@@ -8,8 +8,8 @@ import subprocess
 from pathlib import Path
 from shutil import copyfile, move
 
-COMPILE_DCON_GEN = True
-COMPILE_LUA_GEN = True
+COMPILE_DCON_GEN = False
+COMPILE_LUA_GEN = False
 
 CODEGEN_DCON = True
 CODEGEN_LUA = True

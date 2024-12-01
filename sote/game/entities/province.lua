@@ -356,6 +356,10 @@ function prov.Province.employ_pop(province, pop, building)
 		return
 	end
 	-- Now that we know that the job is needed, employ the pop!
+
+	DATA.pop_set_forage_ratio(pop, 0.5)
+	DATA.pop_set_work_ratio(pop, 0.5)
+
 	-- ... but fire them first to update the previous building if needed
 	local employment = DATA.get_employment_from_worker(pop)
 	if DATA.employment_get_building(employment) == INVALID_ID then

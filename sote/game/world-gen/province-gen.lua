@@ -292,48 +292,98 @@ function pro.run()
 		end
 	end
 
-	print('creating river-like provinces')
-	local riverlike_prov_count = math.floor(prov_count / 8)
-	for _ = 1, riverlike_prov_count do
-		-- if _ % 100 == 0 then
-		-- 	print(_ / riverlike_prov_count * 100)
-		-- end
-		-- Get a random soil rich tile with no province assigned to it
-		local tile_id = WORLD:random_tile()
-		local failsafe = 0
-		while not DATA.tile_get_is_land(tile_id) or (tile.average_waterflow(tile_id) < water_thre) or tile.province(tile_id) ~= INVALID_ID or not check_neighs(tile_id) do
-			tile_id = WORLD:random_tile()
-			failsafe = failsafe + 1
-			if failsafe > WORLD:tile_count() / 2 then
-				break
+	local used_provs = 0
+
+	do
+		print('creating river-like provinces')
+		local start = love.timer.getTime()
+
+		---@type table<tile_id>
+		local candidates = {}
+
+		DATA.for_each_tile(function (tile_id)
+			if
+				DATA.tile_get_is_land(tile_id)
+				and tile.average_waterflow(tile_id) > water_thre
+				and tile.province(tile_id) == INVALID_ID
+				and check_neighs(tile_id)
+			then
+				table.insert(candidates,  tile_id)
+			end
+		end)
+
+		local amount_of_candidates = #candidates
+		local riverlike_prov_count = math.min(math.floor(prov_count / 8), amount_of_candidates / expected_land_province_size / 2)
+
+		local amount = 0
+		for _ = 1, riverlike_prov_count do
+			---@type tile_id
+			local tile_id = candidates[0]
+			local index = love.math.random(amount_of_candidates)
+			tile_id =  candidates[index]
+
+			if tile.province(tile_id) == INVALID_ID then
+				river_gen_province_recursion(tile_id)
+				amount = amount + 1
 			end
 		end
-		river_gen_province_recursion(tile_id)
+
+		print(tostring(amount) .. ' river-like provinces were generated')
+		print(tostring(love.timer.getTime() - start) .. " seconds")
+
+		---@type number
+		used_provs = used_provs + amount
 	end
 
-	print('creating coastal provinces')
-	local coastal_count = math.floor(prov_count / 5)
-	for _ = 1, coastal_count do
-		-- if _ % 100 == 0 then
-		-- 	print(_ / coastal_count * 100)
-		-- end
+	do
+		print('creating coastal provinces')
+		local start = love.timer.getTime()
 
-		-- Get a random coastal tile with no province assigned to it
-		local tile_id = WORLD:random_tile()
-		local failsafe = 0
-		while not DATA.tile_get_is_land(tile_id) or not tile.is_coast(tile_id) or tile.province(tile_id) ~= INVALID_ID or not check_neighs(tile_id) do
-			tile_id = WORLD:random_tile()
-			failsafe = failsafe + 1
-			if failsafe > WORLD:tile_count() / 2 then break end
+		---@type table<tile_id>
+		local candidates = {}
+
+		DATA.for_each_tile(function (tile_id)
+			if
+				DATA.tile_get_is_land(tile_id)
+				and tile.is_coast(tile_id)
+				and tile.province(tile_id) == INVALID_ID
+				and check_neighs(tile_id)
+			then
+				table.insert(candidates,  tile_id)
+			end
+		end)
+
+		local amount_of_candidates = #candidates
+		local coastal_count = math.min(math.floor(prov_count / 5), amount_of_candidates / expected_land_province_size);
+
+		local amount = 0
+		for _ = 1, coastal_count do
+			-- Get a random coastal tile with no province assigned to it
+
+			---@type tile_id
+			local tile_id = candidates[0]
+			local index = love.math.random(amount_of_candidates)
+			tile_id =  candidates[index]
+
+			if tile.province(tile_id) == INVALID_ID then
+				local new_province = pp.Province.new()
+				local fat_province = DATA.fatten_province(new_province)
+				fat_province.center = tile_id
+				coastal_recursion(tile_id, 60, new_province)
+				amount = amount + 1
+			end
 		end
-		local new_province = pp.Province.new()
-		local fat_province = DATA.fatten_province(new_province)
-		fat_province.center = tile_id
-		coastal_recursion(tile_id, 60, new_province)
+
+		print(tostring(amount) .. ' coastal provinces were generated')
+
+		---@type number
+		used_provs = used_provs + amount
+
+		print(tostring(love.timer.getTime() - start) .. " seconds")
 	end
 
 	print('create rest of provinces')
-	for _ = 1, prov_count - coastal_count - riverlike_prov_count do
+	for _ = 1, prov_count - used_provs do
 		-- if _ % 100 == 0 then
 		-- 	print(_ / (prov_count - coastal_count - riverlike_prov_count) * 100)
 		-- end
@@ -387,32 +437,6 @@ function pro.run()
 			fill_out(false)
 		end
 	end)
-
-	do
-		print("removing empty provinces")
-
-		local old_count = 0
-		---@type province_id[]
-		local to_wipe = {}
-		DATA.for_each_province(function (item)
-			if #DATA.get_tile_province_membership_from_province(item) == 0 then
-				table.insert(to_wipe, item)
-			end
-			old_count = old_count + 1
-		end)
-
-		for _, item in pairs(to_wipe) do
-			DATA.delete_province(item)
-		end
-
-		local province_count = 0
-
-		DATA.for_each_province(function (item)
-			province_count = province_count + 1
-		end)
-
-		print("provinces left: ", province_count,  " out of ", old_count)
-	end
 
 	do
 		print("removing empty provinces")
@@ -622,14 +646,26 @@ function pro.run()
 	--]]
 
 	-- Recalculate neighbors!
-	print("recalculate neighbors")
-	DATA.for_each_province(calculate_province_neighbors)
+	do
+		print("recalculate neighbors")
+		local start = love.timer.getTime()
+		DATA.for_each_province(calculate_province_neighbors)
+		print(tostring(love.timer.getTime() - start) .. " seconds")
+	end
 
-	print("recalculate centers")
-	recalculate_provincial_centers()
+	do
+		local start = love.timer.getTime()
+		print("recalculate centers")
+		recalculate_provincial_centers()
+		print(tostring(love.timer.getTime() - start) .. " seconds")
+	end
 
-	print("recalculate size")
-	DATA.for_each_province(pp.Province.update_size)
+	do
+		local start = love.timer.getTime()
+		print("recalculate size")
+		DATA.for_each_province(pp.Province.update_size)
+		print(tostring(love.timer.getTime() - start) .. " seconds")
+	end
 
 	print("recalculate flags")
 	DATA.for_each_province(function (province)

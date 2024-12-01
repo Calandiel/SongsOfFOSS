@@ -51,7 +51,7 @@ function re.draw(gam)
 	end
 
 	local bbuild = gam.selected.building
-	if bbuild ~= nil and bbuild ~= INVALID_ID and DCON.dcon_building_is_valid(gam.selected.building) then
+	if bbuild ~= nil and bbuild ~= INVALID_ID and DCON.dcon_building_is_valid(bbuild - 1) then
 		---@type Building
 		local building = bbuild
 		local panel = get_main_panel()
@@ -772,7 +772,8 @@ function re.draw(gam)
 				end
 			}
 		}, worker_list_state, "Workers:")()
-
+	else
+		gam.selected.building = INVALID_ID
 	end
 end
 

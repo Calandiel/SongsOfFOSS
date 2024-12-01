@@ -44,7 +44,7 @@ function d.load()
 		g = 1,
 		b = 1,
 		inputs = { [retrieve_use_case("tools-like")] = 0.125 },
-		outputs = { [retrieve_good("healthcare")] = 5 },
+		outputs = { [retrieve_good("healthcare")] = 1 },
 		jobs = { [job("shamans")] = 1 },
 		job_type = JOBTYPE.CLERK,
 		foraging = true,
@@ -187,7 +187,7 @@ function d.load()
 		r = 0.1,
 		g = 1,
 		b = 0.1,
-		inputs = { [retrieve_use_case("blanks-core")] = 1 / 8 }, -- one blank can make 8 tools - made up value
+		inputs = { [retrieve_use_case("blanks-core")] = 1 / 4 }, -- one blank can make 4 tools - made up value
 		outputs = { [retrieve_good("tools-blanks")] = 1 },
 		jobs = { [job("knappers")] = 1 },
 		job_type = JOBTYPE.ARTISAN,

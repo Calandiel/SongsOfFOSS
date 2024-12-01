@@ -26,6 +26,21 @@ object {
         tag { scenario }
     }
     property{
+        name { is_coast }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { has_river }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { has_marsh }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
         name { elevation }
         type { float }
         tag { scenario }
@@ -133,16 +148,6 @@ object {
     property{
         name { waterlevel }
         type { float }
-        tag { scenario }
-    }
-    property{
-        name { has_river }
-        type { bitfield }
-        tag { scenario }
-    }
-    property{
-        name { has_marsh }
-        type { bitfield }
         tag { scenario }
     }
     property{
@@ -404,13 +409,28 @@ object {
         tag { scenario }
     }
     property{
-        name { female }
-        type { bitfield }
+        name { age }
+        type { uint32_t }
         tag { scenario }
     }
     property{
-        name { age }
-        type { uint32_t }
+        name { traits }
+        type { array{uint32_t}{uint8_t} }
+        tag { scenario }
+    }
+    property{
+        name { need_satisfaction }
+        type { array{uint32_t}{base_types::need_satisfaction} }
+        tag { scenario }
+    }
+    property{
+        name { inventory }
+        type { array{trade_good_id}{float} }
+        tag { scenario }
+    }
+    property{
+        name { price_memory }
+        type { array{trade_good_id}{float} }
         tag { scenario }
     }
     property{
@@ -429,26 +449,6 @@ object {
         tag { scenario }
     }
     property{
-        name { need_satisfaction }
-        type { array{uint32_t}{base_types::need_satisfaction} }
-        tag { scenario }
-    }
-    property{
-        name { traits }
-        type { array{uint32_t}{uint8_t} }
-        tag { scenario }
-    }
-    property{
-        name { inventory }
-        type { array{trade_good_id}{float} }
-        tag { scenario }
-    }
-    property{
-        name { price_memory }
-        type { array{trade_good_id}{float} }
-        tag { scenario }
-    }
-    property{
         name { pending_economy_income }
         type { float }
         tag { scenario }
@@ -464,7 +464,22 @@ object {
         tag { scenario }
     }
     property{
+        name { spend_savings_ratio }
+        type { float }
+        tag { scenario }
+    }
+    property{
+        name { female }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
         name { busy }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { former_pop }
         type { bitfield }
         tag { scenario }
     }
@@ -474,13 +489,18 @@ object {
         tag { scenario }
     }
     property{
-        name { rank }
-        type { uint8_t }
+        name { free_will }
+        type { bitfield }
         tag { scenario }
     }
     property{
-        name { former_pop }
+        name { is_player }
         type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { rank }
+        type { uint8_t }
         tag { scenario }
     }
     property{
@@ -2236,6 +2256,26 @@ object {
     property{
         name { base_frequency }
         type { float }
+        tag { scenario }
+    }
+    property{
+        name { coastal }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { land }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { water }
+        type { bitfield }
+        tag { scenario }
+    }
+    property{
+        name { ice_age }
+        type { bitfield }
         tag { scenario }
     }
     property{

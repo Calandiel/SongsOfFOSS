@@ -40,7 +40,7 @@ function d.load()
 		b = 1,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('witch-doctor'),
-		construction_cost = COST_AREA * 1.5,
+		construction_cost = COST_AREA * 10,
 		archetype = BUILDING_ARCHETYPE.FARM,
 		needed_infrastructure = 1,
 		ai_weight = 1,

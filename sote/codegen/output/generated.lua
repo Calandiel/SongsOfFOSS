@@ -106,6 +106,9 @@ ffi.cdef[[
 ---@field is_land boolean 
 ---@field is_fresh boolean 
 ---@field is_border boolean 
+---@field is_coast boolean 
+---@field has_river boolean 
+---@field has_marsh boolean 
 ---@field elevation number 
 ---@field slope number 
 ---@field grass number 
@@ -128,8 +131,6 @@ ffi.cdef[[
 ---@field july_rain number 
 ---@field july_temperature number 
 ---@field waterlevel number 
----@field has_river boolean 
----@field has_marsh boolean 
 ---@field ice number 
 ---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
@@ -148,6 +149,9 @@ ffi.cdef[[
 ---@field is_land boolean 
 ---@field is_fresh boolean 
 ---@field is_border boolean 
+---@field is_coast boolean 
+---@field has_river boolean 
+---@field has_marsh boolean 
 ---@field elevation number 
 ---@field slope number 
 ---@field grass number 
@@ -170,8 +174,6 @@ ffi.cdef[[
 ---@field july_rain number 
 ---@field july_temperature number 
 ---@field waterlevel number 
----@field has_river boolean 
----@field has_marsh boolean 
 ---@field ice number 
 ---@field ice_age_ice number 
 ---@field debug_r number between 0 and 1, as per Love2Ds convention...
@@ -195,6 +197,12 @@ void dcon_tile_set_is_fresh(int32_t, bool);
 bool dcon_tile_get_is_fresh(int32_t);
 void dcon_tile_set_is_border(int32_t, bool);
 bool dcon_tile_get_is_border(int32_t);
+void dcon_tile_set_is_coast(int32_t, bool);
+bool dcon_tile_get_is_coast(int32_t);
+void dcon_tile_set_has_river(int32_t, bool);
+bool dcon_tile_get_has_river(int32_t);
+void dcon_tile_set_has_marsh(int32_t, bool);
+bool dcon_tile_get_has_marsh(int32_t);
 void dcon_tile_set_elevation(int32_t, float);
 float dcon_tile_get_elevation(int32_t);
 void dcon_tile_set_slope(int32_t, float);
@@ -239,10 +247,6 @@ void dcon_tile_set_july_temperature(int32_t, float);
 float dcon_tile_get_july_temperature(int32_t);
 void dcon_tile_set_waterlevel(int32_t, float);
 float dcon_tile_get_waterlevel(int32_t);
-void dcon_tile_set_has_river(int32_t, bool);
-bool dcon_tile_get_has_river(int32_t);
-void dcon_tile_set_has_marsh(int32_t, bool);
-bool dcon_tile_get_has_marsh(int32_t);
 void dcon_tile_set_ice(int32_t, float);
 float dcon_tile_get_ice(int32_t);
 void dcon_tile_set_ice_age_ice(int32_t, float);
@@ -351,6 +355,36 @@ end
 ---@param value boolean valid boolean
 function DATA.tile_set_is_border(tile_id, value)
     DCON.dcon_tile_set_is_border(tile_id - 1, value)
+end
+---@param tile_id tile_id valid tile id
+---@return boolean is_coast 
+function DATA.tile_get_is_coast(tile_id)
+    return DCON.dcon_tile_get_is_coast(tile_id - 1)
+end
+---@param tile_id tile_id valid tile id
+---@param value boolean valid boolean
+function DATA.tile_set_is_coast(tile_id, value)
+    DCON.dcon_tile_set_is_coast(tile_id - 1, value)
+end
+---@param tile_id tile_id valid tile id
+---@return boolean has_river 
+function DATA.tile_get_has_river(tile_id)
+    return DCON.dcon_tile_get_has_river(tile_id - 1)
+end
+---@param tile_id tile_id valid tile id
+---@param value boolean valid boolean
+function DATA.tile_set_has_river(tile_id, value)
+    DCON.dcon_tile_set_has_river(tile_id - 1, value)
+end
+---@param tile_id tile_id valid tile id
+---@return boolean has_marsh 
+function DATA.tile_get_has_marsh(tile_id)
+    return DCON.dcon_tile_get_has_marsh(tile_id - 1)
+end
+---@param tile_id tile_id valid tile id
+---@param value boolean valid boolean
+function DATA.tile_set_has_marsh(tile_id, value)
+    DCON.dcon_tile_set_has_marsh(tile_id - 1, value)
 end
 ---@param tile_id tile_id valid tile id
 ---@return number elevation 
@@ -727,26 +761,6 @@ function DATA.tile_inc_waterlevel(tile_id, value)
     DCON.dcon_tile_set_waterlevel(tile_id - 1, current + value)
 end
 ---@param tile_id tile_id valid tile id
----@return boolean has_river 
-function DATA.tile_get_has_river(tile_id)
-    return DCON.dcon_tile_get_has_river(tile_id - 1)
-end
----@param tile_id tile_id valid tile id
----@param value boolean valid boolean
-function DATA.tile_set_has_river(tile_id, value)
-    DCON.dcon_tile_set_has_river(tile_id - 1, value)
-end
----@param tile_id tile_id valid tile id
----@return boolean has_marsh 
-function DATA.tile_get_has_marsh(tile_id)
-    return DCON.dcon_tile_get_has_marsh(tile_id - 1)
-end
----@param tile_id tile_id valid tile id
----@param value boolean valid boolean
-function DATA.tile_set_has_marsh(tile_id, value)
-    DCON.dcon_tile_set_has_marsh(tile_id - 1, value)
-end
----@param tile_id tile_id valid tile id
 ---@return number ice 
 function DATA.tile_get_ice(tile_id)
     return DCON.dcon_tile_get_ice(tile_id - 1)
@@ -936,6 +950,9 @@ local fat_tile_id_metatable = {
         if (k == "is_land") then return DATA.tile_get_is_land(t.id) end
         if (k == "is_fresh") then return DATA.tile_get_is_fresh(t.id) end
         if (k == "is_border") then return DATA.tile_get_is_border(t.id) end
+        if (k == "is_coast") then return DATA.tile_get_is_coast(t.id) end
+        if (k == "has_river") then return DATA.tile_get_has_river(t.id) end
+        if (k == "has_marsh") then return DATA.tile_get_has_marsh(t.id) end
         if (k == "elevation") then return DATA.tile_get_elevation(t.id) end
         if (k == "slope") then return DATA.tile_get_slope(t.id) end
         if (k == "grass") then return DATA.tile_get_grass(t.id) end
@@ -958,8 +975,6 @@ local fat_tile_id_metatable = {
         if (k == "july_rain") then return DATA.tile_get_july_rain(t.id) end
         if (k == "july_temperature") then return DATA.tile_get_july_temperature(t.id) end
         if (k == "waterlevel") then return DATA.tile_get_waterlevel(t.id) end
-        if (k == "has_river") then return DATA.tile_get_has_river(t.id) end
-        if (k == "has_marsh") then return DATA.tile_get_has_marsh(t.id) end
         if (k == "ice") then return DATA.tile_get_ice(t.id) end
         if (k == "ice_age_ice") then return DATA.tile_get_ice_age_ice(t.id) end
         if (k == "debug_r") then return DATA.tile_get_debug_r(t.id) end
@@ -989,6 +1004,18 @@ local fat_tile_id_metatable = {
         end
         if (k == "is_border") then
             DATA.tile_set_is_border(t.id, v)
+            return
+        end
+        if (k == "is_coast") then
+            DATA.tile_set_is_coast(t.id, v)
+            return
+        end
+        if (k == "has_river") then
+            DATA.tile_set_has_river(t.id, v)
+            return
+        end
+        if (k == "has_marsh") then
+            DATA.tile_set_has_marsh(t.id, v)
             return
         end
         if (k == "elevation") then
@@ -1077,14 +1104,6 @@ local fat_tile_id_metatable = {
         end
         if (k == "waterlevel") then
             DATA.tile_set_waterlevel(t.id, v)
-            return
-        end
-        if (k == "has_river") then
-            DATA.tile_set_has_river(t.id, v)
-            return
-        end
-        if (k == "has_marsh") then
-            DATA.tile_set_has_marsh(t.id, v)
             return
         end
         if (k == "ice") then
@@ -3000,7 +3019,6 @@ end
 ---@field race race_id 
 ---@field faith faith_id 
 ---@field culture culture_id 
----@field female boolean 
 ---@field age number 
 ---@field name string 
 ---@field savings number 
@@ -3009,32 +3027,39 @@ end
 ---@field pending_economy_income number 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
+---@field spend_savings_ratio number a number in (0, 1) interval representing a ratio of savings pop spends on satisfaction of needs
+---@field female boolean 
 ---@field busy boolean 
----@field dead boolean 
----@field rank CHARACTER_RANK 
 ---@field former_pop boolean 
+---@field dead boolean 
+---@field free_will boolean 
+---@field is_player boolean 
+---@field rank CHARACTER_RANK 
 
 ---@class struct_pop
 ---@field unique_id number 
 ---@field race race_id 
 ---@field faith faith_id 
 ---@field culture culture_id 
----@field female boolean 
 ---@field age number 
+---@field traits table<number, TRAIT> 
+---@field need_satisfaction table<number, struct_need_satisfaction> 
+---@field inventory table<trade_good_id, number> 
+---@field price_memory table<trade_good_id, number> 
 ---@field savings number 
 ---@field life_needs_satisfaction number from 0 to 1
 ---@field basic_needs_satisfaction number from 0 to 1
----@field need_satisfaction table<number, struct_need_satisfaction> 
----@field traits table<number, TRAIT> 
----@field inventory table<trade_good_id, number> 
----@field price_memory table<trade_good_id, number> 
 ---@field pending_economy_income number 
 ---@field forage_ratio number a number in (0, 1) interval representing a ratio of time pop spends to forage
 ---@field work_ratio number a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
+---@field spend_savings_ratio number a number in (0, 1) interval representing a ratio of savings pop spends on satisfaction of needs
+---@field female boolean 
 ---@field busy boolean 
----@field dead boolean 
----@field rank CHARACTER_RANK 
 ---@field former_pop boolean 
+---@field dead boolean 
+---@field free_will boolean 
+---@field is_player boolean 
+---@field rank CHARACTER_RANK 
 ---@field dna table<number, number> 
 
 
@@ -3047,41 +3072,47 @@ void dcon_pop_set_faith(int32_t, int32_t);
 int32_t dcon_pop_get_faith(int32_t);
 void dcon_pop_set_culture(int32_t, int32_t);
 int32_t dcon_pop_get_culture(int32_t);
-void dcon_pop_set_female(int32_t, bool);
-bool dcon_pop_get_female(int32_t);
 void dcon_pop_set_age(int32_t, uint32_t);
 uint32_t dcon_pop_get_age(int32_t);
-void dcon_pop_set_savings(int32_t, float);
-float dcon_pop_get_savings(int32_t);
-void dcon_pop_set_life_needs_satisfaction(int32_t, float);
-float dcon_pop_get_life_needs_satisfaction(int32_t);
-void dcon_pop_set_basic_needs_satisfaction(int32_t, float);
-float dcon_pop_get_basic_needs_satisfaction(int32_t);
-void dcon_pop_resize_need_satisfaction(uint32_t);
-need_satisfaction* dcon_pop_get_need_satisfaction(int32_t, int32_t);
 void dcon_pop_resize_traits(uint32_t);
 void dcon_pop_set_traits(int32_t, int32_t, uint8_t);
 uint8_t dcon_pop_get_traits(int32_t, int32_t);
+void dcon_pop_resize_need_satisfaction(uint32_t);
+need_satisfaction* dcon_pop_get_need_satisfaction(int32_t, int32_t);
 void dcon_pop_resize_inventory(uint32_t);
 void dcon_pop_set_inventory(int32_t, int32_t, float);
 float dcon_pop_get_inventory(int32_t, int32_t);
 void dcon_pop_resize_price_memory(uint32_t);
 void dcon_pop_set_price_memory(int32_t, int32_t, float);
 float dcon_pop_get_price_memory(int32_t, int32_t);
+void dcon_pop_set_savings(int32_t, float);
+float dcon_pop_get_savings(int32_t);
+void dcon_pop_set_life_needs_satisfaction(int32_t, float);
+float dcon_pop_get_life_needs_satisfaction(int32_t);
+void dcon_pop_set_basic_needs_satisfaction(int32_t, float);
+float dcon_pop_get_basic_needs_satisfaction(int32_t);
 void dcon_pop_set_pending_economy_income(int32_t, float);
 float dcon_pop_get_pending_economy_income(int32_t);
 void dcon_pop_set_forage_ratio(int32_t, float);
 float dcon_pop_get_forage_ratio(int32_t);
 void dcon_pop_set_work_ratio(int32_t, float);
 float dcon_pop_get_work_ratio(int32_t);
+void dcon_pop_set_spend_savings_ratio(int32_t, float);
+float dcon_pop_get_spend_savings_ratio(int32_t);
+void dcon_pop_set_female(int32_t, bool);
+bool dcon_pop_get_female(int32_t);
 void dcon_pop_set_busy(int32_t, bool);
 bool dcon_pop_get_busy(int32_t);
-void dcon_pop_set_dead(int32_t, bool);
-bool dcon_pop_get_dead(int32_t);
-void dcon_pop_set_rank(int32_t, uint8_t);
-uint8_t dcon_pop_get_rank(int32_t);
 void dcon_pop_set_former_pop(int32_t, bool);
 bool dcon_pop_get_former_pop(int32_t);
+void dcon_pop_set_dead(int32_t, bool);
+bool dcon_pop_get_dead(int32_t);
+void dcon_pop_set_free_will(int32_t, bool);
+bool dcon_pop_get_free_will(int32_t);
+void dcon_pop_set_is_player(int32_t, bool);
+bool dcon_pop_get_is_player(int32_t);
+void dcon_pop_set_rank(int32_t, uint8_t);
+uint8_t dcon_pop_get_rank(int32_t);
 void dcon_pop_resize_dna(uint32_t);
 void dcon_pop_set_dna(int32_t, int32_t, float);
 float dcon_pop_get_dna(int32_t, int32_t);
@@ -3099,8 +3130,8 @@ DATA.pop_name= {}
 ---pop: LUA bindings---
 
 DATA.pop_size = 300000
-DCON.dcon_pop_resize_need_satisfaction(21)
 DCON.dcon_pop_resize_traits(11)
+DCON.dcon_pop_resize_need_satisfaction(21)
 DCON.dcon_pop_resize_inventory(101)
 DCON.dcon_pop_resize_price_memory(101)
 DCON.dcon_pop_resize_dna(21)
@@ -3184,16 +3215,6 @@ function DATA.pop_set_culture(pop_id, value)
     DCON.dcon_pop_set_culture(pop_id - 1, value - 1)
 end
 ---@param pop_id pop_id valid pop id
----@return boolean female 
-function DATA.pop_get_female(pop_id)
-    return DCON.dcon_pop_get_female(pop_id - 1)
-end
----@param pop_id pop_id valid pop id
----@param value boolean valid boolean
-function DATA.pop_set_female(pop_id, value)
-    DCON.dcon_pop_set_female(pop_id - 1, value)
-end
----@param pop_id pop_id valid pop id
 ---@return number age 
 function DATA.pop_get_age(pop_id)
     return DCON.dcon_pop_get_age(pop_id - 1)
@@ -3221,55 +3242,17 @@ function DATA.pop_set_name(pop_id, value)
     DATA.pop_name[pop_id] = value
 end
 ---@param pop_id pop_id valid pop id
----@return number savings 
-function DATA.pop_get_savings(pop_id)
-    return DCON.dcon_pop_get_savings(pop_id - 1)
+---@param index number valid
+---@return TRAIT traits 
+function DATA.pop_get_traits(pop_id, index)
+    assert(index ~= 0)
+    return DCON.dcon_pop_get_traits(pop_id - 1, index - 1)
 end
 ---@param pop_id pop_id valid pop id
----@param value number valid number
-function DATA.pop_set_savings(pop_id, value)
-    DCON.dcon_pop_set_savings(pop_id - 1, value)
-end
----@param pop_id pop_id valid pop id
----@param value number valid number
-function DATA.pop_inc_savings(pop_id, value)
-    ---@type number
-    local current = DCON.dcon_pop_get_savings(pop_id - 1)
-    DCON.dcon_pop_set_savings(pop_id - 1, current + value)
-end
----@param pop_id pop_id valid pop id
----@return number life_needs_satisfaction from 0 to 1
-function DATA.pop_get_life_needs_satisfaction(pop_id)
-    return DCON.dcon_pop_get_life_needs_satisfaction(pop_id - 1)
-end
----@param pop_id pop_id valid pop id
----@param value number valid number
-function DATA.pop_set_life_needs_satisfaction(pop_id, value)
-    DCON.dcon_pop_set_life_needs_satisfaction(pop_id - 1, value)
-end
----@param pop_id pop_id valid pop id
----@param value number valid number
-function DATA.pop_inc_life_needs_satisfaction(pop_id, value)
-    ---@type number
-    local current = DCON.dcon_pop_get_life_needs_satisfaction(pop_id - 1)
-    DCON.dcon_pop_set_life_needs_satisfaction(pop_id - 1, current + value)
-end
----@param pop_id pop_id valid pop id
----@return number basic_needs_satisfaction from 0 to 1
-function DATA.pop_get_basic_needs_satisfaction(pop_id)
-    return DCON.dcon_pop_get_basic_needs_satisfaction(pop_id - 1)
-end
----@param pop_id pop_id valid pop id
----@param value number valid number
-function DATA.pop_set_basic_needs_satisfaction(pop_id, value)
-    DCON.dcon_pop_set_basic_needs_satisfaction(pop_id - 1, value)
-end
----@param pop_id pop_id valid pop id
----@param value number valid number
-function DATA.pop_inc_basic_needs_satisfaction(pop_id, value)
-    ---@type number
-    local current = DCON.dcon_pop_get_basic_needs_satisfaction(pop_id - 1)
-    DCON.dcon_pop_set_basic_needs_satisfaction(pop_id - 1, current + value)
+---@param index number valid index
+---@param value TRAIT valid TRAIT
+function DATA.pop_set_traits(pop_id, index, value)
+    DCON.dcon_pop_set_traits(pop_id - 1, index - 1, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
@@ -3340,19 +3323,6 @@ function DATA.pop_inc_need_satisfaction_demanded(pop_id, index, value)
     DCON.dcon_pop_get_need_satisfaction(pop_id - 1, index - 1)[0].demanded = current + value
 end
 ---@param pop_id pop_id valid pop id
----@param index number valid
----@return TRAIT traits 
-function DATA.pop_get_traits(pop_id, index)
-    assert(index ~= 0)
-    return DCON.dcon_pop_get_traits(pop_id - 1, index - 1)
-end
----@param pop_id pop_id valid pop id
----@param index number valid index
----@param value TRAIT valid TRAIT
-function DATA.pop_set_traits(pop_id, index, value)
-    DCON.dcon_pop_set_traits(pop_id - 1, index - 1, value)
-end
----@param pop_id pop_id valid pop id
 ---@param index trade_good_id valid
 ---@return number inventory 
 function DATA.pop_get_inventory(pop_id, index)
@@ -3393,6 +3363,57 @@ function DATA.pop_inc_price_memory(pop_id, index, value)
     ---@type number
     local current = DCON.dcon_pop_get_price_memory(pop_id - 1, index - 1)
     DCON.dcon_pop_set_price_memory(pop_id - 1, index - 1, current + value)
+end
+---@param pop_id pop_id valid pop id
+---@return number savings 
+function DATA.pop_get_savings(pop_id)
+    return DCON.dcon_pop_get_savings(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_set_savings(pop_id, value)
+    DCON.dcon_pop_set_savings(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_savings(pop_id, value)
+    ---@type number
+    local current = DCON.dcon_pop_get_savings(pop_id - 1)
+    DCON.dcon_pop_set_savings(pop_id - 1, current + value)
+end
+---@param pop_id pop_id valid pop id
+---@return number life_needs_satisfaction from 0 to 1
+function DATA.pop_get_life_needs_satisfaction(pop_id)
+    return DCON.dcon_pop_get_life_needs_satisfaction(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_set_life_needs_satisfaction(pop_id, value)
+    DCON.dcon_pop_set_life_needs_satisfaction(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_life_needs_satisfaction(pop_id, value)
+    ---@type number
+    local current = DCON.dcon_pop_get_life_needs_satisfaction(pop_id - 1)
+    DCON.dcon_pop_set_life_needs_satisfaction(pop_id - 1, current + value)
+end
+---@param pop_id pop_id valid pop id
+---@return number basic_needs_satisfaction from 0 to 1
+function DATA.pop_get_basic_needs_satisfaction(pop_id)
+    return DCON.dcon_pop_get_basic_needs_satisfaction(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_set_basic_needs_satisfaction(pop_id, value)
+    DCON.dcon_pop_set_basic_needs_satisfaction(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_basic_needs_satisfaction(pop_id, value)
+    ---@type number
+    local current = DCON.dcon_pop_get_basic_needs_satisfaction(pop_id - 1)
+    DCON.dcon_pop_set_basic_needs_satisfaction(pop_id - 1, current + value)
 end
 ---@param pop_id pop_id valid pop id
 ---@return number pending_economy_income 
@@ -3446,6 +3467,33 @@ function DATA.pop_inc_work_ratio(pop_id, value)
     DCON.dcon_pop_set_work_ratio(pop_id - 1, current + value)
 end
 ---@param pop_id pop_id valid pop id
+---@return number spend_savings_ratio a number in (0, 1) interval representing a ratio of savings pop spends on satisfaction of needs
+function DATA.pop_get_spend_savings_ratio(pop_id)
+    return DCON.dcon_pop_get_spend_savings_ratio(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_set_spend_savings_ratio(pop_id, value)
+    DCON.dcon_pop_set_spend_savings_ratio(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@param value number valid number
+function DATA.pop_inc_spend_savings_ratio(pop_id, value)
+    ---@type number
+    local current = DCON.dcon_pop_get_spend_savings_ratio(pop_id - 1)
+    DCON.dcon_pop_set_spend_savings_ratio(pop_id - 1, current + value)
+end
+---@param pop_id pop_id valid pop id
+---@return boolean female 
+function DATA.pop_get_female(pop_id)
+    return DCON.dcon_pop_get_female(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value boolean valid boolean
+function DATA.pop_set_female(pop_id, value)
+    DCON.dcon_pop_set_female(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
 ---@return boolean busy 
 function DATA.pop_get_busy(pop_id)
     return DCON.dcon_pop_get_busy(pop_id - 1)
@@ -3454,6 +3502,16 @@ end
 ---@param value boolean valid boolean
 function DATA.pop_set_busy(pop_id, value)
     DCON.dcon_pop_set_busy(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@return boolean former_pop 
+function DATA.pop_get_former_pop(pop_id)
+    return DCON.dcon_pop_get_former_pop(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value boolean valid boolean
+function DATA.pop_set_former_pop(pop_id, value)
+    DCON.dcon_pop_set_former_pop(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@return boolean dead 
@@ -3466,6 +3524,26 @@ function DATA.pop_set_dead(pop_id, value)
     DCON.dcon_pop_set_dead(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
+---@return boolean free_will 
+function DATA.pop_get_free_will(pop_id)
+    return DCON.dcon_pop_get_free_will(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value boolean valid boolean
+function DATA.pop_set_free_will(pop_id, value)
+    DCON.dcon_pop_set_free_will(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
+---@return boolean is_player 
+function DATA.pop_get_is_player(pop_id)
+    return DCON.dcon_pop_get_is_player(pop_id - 1)
+end
+---@param pop_id pop_id valid pop id
+---@param value boolean valid boolean
+function DATA.pop_set_is_player(pop_id, value)
+    DCON.dcon_pop_set_is_player(pop_id - 1, value)
+end
+---@param pop_id pop_id valid pop id
 ---@return CHARACTER_RANK rank 
 function DATA.pop_get_rank(pop_id)
     return DCON.dcon_pop_get_rank(pop_id - 1)
@@ -3474,16 +3552,6 @@ end
 ---@param value CHARACTER_RANK valid CHARACTER_RANK
 function DATA.pop_set_rank(pop_id, value)
     DCON.dcon_pop_set_rank(pop_id - 1, value)
-end
----@param pop_id pop_id valid pop id
----@return boolean former_pop 
-function DATA.pop_get_former_pop(pop_id)
-    return DCON.dcon_pop_get_former_pop(pop_id - 1)
-end
----@param pop_id pop_id valid pop id
----@param value boolean valid boolean
-function DATA.pop_set_former_pop(pop_id, value)
-    DCON.dcon_pop_set_former_pop(pop_id - 1, value)
 end
 ---@param pop_id pop_id valid pop id
 ---@param index number valid
@@ -3513,7 +3581,6 @@ local fat_pop_id_metatable = {
         if (k == "race") then return DATA.pop_get_race(t.id) end
         if (k == "faith") then return DATA.pop_get_faith(t.id) end
         if (k == "culture") then return DATA.pop_get_culture(t.id) end
-        if (k == "female") then return DATA.pop_get_female(t.id) end
         if (k == "age") then return DATA.pop_get_age(t.id) end
         if (k == "name") then return DATA.pop_get_name(t.id) end
         if (k == "savings") then return DATA.pop_get_savings(t.id) end
@@ -3522,10 +3589,14 @@ local fat_pop_id_metatable = {
         if (k == "pending_economy_income") then return DATA.pop_get_pending_economy_income(t.id) end
         if (k == "forage_ratio") then return DATA.pop_get_forage_ratio(t.id) end
         if (k == "work_ratio") then return DATA.pop_get_work_ratio(t.id) end
+        if (k == "spend_savings_ratio") then return DATA.pop_get_spend_savings_ratio(t.id) end
+        if (k == "female") then return DATA.pop_get_female(t.id) end
         if (k == "busy") then return DATA.pop_get_busy(t.id) end
-        if (k == "dead") then return DATA.pop_get_dead(t.id) end
-        if (k == "rank") then return DATA.pop_get_rank(t.id) end
         if (k == "former_pop") then return DATA.pop_get_former_pop(t.id) end
+        if (k == "dead") then return DATA.pop_get_dead(t.id) end
+        if (k == "free_will") then return DATA.pop_get_free_will(t.id) end
+        if (k == "is_player") then return DATA.pop_get_is_player(t.id) end
+        if (k == "rank") then return DATA.pop_get_rank(t.id) end
         return rawget(t, k)
     end,
     __newindex = function (t,k,v)
@@ -3543,10 +3614,6 @@ local fat_pop_id_metatable = {
         end
         if (k == "culture") then
             DATA.pop_set_culture(t.id, v)
-            return
-        end
-        if (k == "female") then
-            DATA.pop_set_female(t.id, v)
             return
         end
         if (k == "age") then
@@ -3581,20 +3648,36 @@ local fat_pop_id_metatable = {
             DATA.pop_set_work_ratio(t.id, v)
             return
         end
+        if (k == "spend_savings_ratio") then
+            DATA.pop_set_spend_savings_ratio(t.id, v)
+            return
+        end
+        if (k == "female") then
+            DATA.pop_set_female(t.id, v)
+            return
+        end
         if (k == "busy") then
             DATA.pop_set_busy(t.id, v)
+            return
+        end
+        if (k == "former_pop") then
+            DATA.pop_set_former_pop(t.id, v)
             return
         end
         if (k == "dead") then
             DATA.pop_set_dead(t.id, v)
             return
         end
-        if (k == "rank") then
-            DATA.pop_set_rank(t.id, v)
+        if (k == "free_will") then
+            DATA.pop_set_free_will(t.id, v)
             return
         end
-        if (k == "former_pop") then
-            DATA.pop_set_former_pop(t.id, v)
+        if (k == "is_player") then
+            DATA.pop_set_is_player(t.id, v)
+            return
+        end
+        if (k == "rank") then
+            DATA.pop_set_rank(t.id, v)
             return
         end
         rawset(t, k, v)
@@ -17642,6 +17725,10 @@ end
 ---@field required_biome table<number, biome_id> 
 ---@field required_bedrock table<number, bedrock_id> 
 ---@field base_frequency number number of tiles per which this resource is spawned
+---@field coastal boolean 
+---@field land boolean 
+---@field water boolean 
+---@field ice_age boolean requires presence of ice age ice
 ---@field minimum_trees number 
 ---@field maximum_trees number 
 ---@field minimum_elevation number 
@@ -17734,6 +17821,14 @@ void dcon_resource_set_required_bedrock(int32_t, int32_t, int32_t);
 int32_t dcon_resource_get_required_bedrock(int32_t, int32_t);
 void dcon_resource_set_base_frequency(int32_t, float);
 float dcon_resource_get_base_frequency(int32_t);
+void dcon_resource_set_coastal(int32_t, bool);
+bool dcon_resource_get_coastal(int32_t);
+void dcon_resource_set_land(int32_t, bool);
+bool dcon_resource_get_land(int32_t);
+void dcon_resource_set_water(int32_t, bool);
+bool dcon_resource_get_water(int32_t);
+void dcon_resource_set_ice_age(int32_t, bool);
+bool dcon_resource_get_ice_age(int32_t);
 void dcon_resource_set_minimum_trees(int32_t, float);
 float dcon_resource_get_minimum_trees(int32_t);
 void dcon_resource_set_maximum_trees(int32_t, float);
@@ -17755,14 +17850,6 @@ DATA.resource_name= {}
 DATA.resource_icon= {}
 ---@type (string)[]
 DATA.resource_description= {}
----@type (boolean)[]
-DATA.resource_coastal= {}
----@type (boolean)[]
-DATA.resource_land= {}
----@type (boolean)[]
-DATA.resource_water= {}
----@type (boolean)[]
-DATA.resource_ice_age= {}
 
 ---resource: LUA bindings---
 
@@ -17923,42 +18010,42 @@ end
 ---@param resource_id resource_id valid resource id
 ---@return boolean coastal 
 function DATA.resource_get_coastal(resource_id)
-    return DATA.resource_coastal[resource_id]
+    return DCON.dcon_resource_get_coastal(resource_id - 1)
 end
 ---@param resource_id resource_id valid resource id
 ---@param value boolean valid boolean
 function DATA.resource_set_coastal(resource_id, value)
-    DATA.resource_coastal[resource_id] = value
+    DCON.dcon_resource_set_coastal(resource_id - 1, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@return boolean land 
 function DATA.resource_get_land(resource_id)
-    return DATA.resource_land[resource_id]
+    return DCON.dcon_resource_get_land(resource_id - 1)
 end
 ---@param resource_id resource_id valid resource id
 ---@param value boolean valid boolean
 function DATA.resource_set_land(resource_id, value)
-    DATA.resource_land[resource_id] = value
+    DCON.dcon_resource_set_land(resource_id - 1, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@return boolean water 
 function DATA.resource_get_water(resource_id)
-    return DATA.resource_water[resource_id]
+    return DCON.dcon_resource_get_water(resource_id - 1)
 end
 ---@param resource_id resource_id valid resource id
 ---@param value boolean valid boolean
 function DATA.resource_set_water(resource_id, value)
-    DATA.resource_water[resource_id] = value
+    DCON.dcon_resource_set_water(resource_id - 1, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@return boolean ice_age requires presence of ice age ice
 function DATA.resource_get_ice_age(resource_id)
-    return DATA.resource_ice_age[resource_id]
+    return DCON.dcon_resource_get_ice_age(resource_id - 1)
 end
 ---@param resource_id resource_id valid resource id
 ---@param value boolean valid boolean
 function DATA.resource_set_ice_age(resource_id, value)
-    DATA.resource_ice_age[resource_id] = value
+    DCON.dcon_resource_set_ice_age(resource_id - 1, value)
 end
 ---@param resource_id resource_id valid resource id
 ---@return number minimum_trees 
@@ -22377,10 +22464,6 @@ function DATA.save_state()
     current_lua_state.resource_name = DATA.resource_name
     current_lua_state.resource_icon = DATA.resource_icon
     current_lua_state.resource_description = DATA.resource_description
-    current_lua_state.resource_coastal = DATA.resource_coastal
-    current_lua_state.resource_land = DATA.resource_land
-    current_lua_state.resource_water = DATA.resource_water
-    current_lua_state.resource_ice_age = DATA.resource_ice_age
     current_lua_state.unit_type_name = DATA.unit_type_name
     current_lua_state.unit_type_icon = DATA.unit_type_icon
     current_lua_state.unit_type_description = DATA.unit_type_description
@@ -22485,10 +22568,6 @@ function DATA.load_state()
     DATA.resource_name = loaded_lua_state.resource_name
     DATA.resource_icon = loaded_lua_state.resource_icon
     DATA.resource_description = loaded_lua_state.resource_description
-    DATA.resource_coastal = loaded_lua_state.resource_coastal
-    DATA.resource_land = loaded_lua_state.resource_land
-    DATA.resource_water = loaded_lua_state.resource_water
-    DATA.resource_ice_age = loaded_lua_state.resource_ice_age
     DATA.unit_type_name = loaded_lua_state.unit_type_name
     DATA.unit_type_icon = loaded_lua_state.unit_type_icon
     DATA.unit_type_description = loaded_lua_state.unit_type_description
@@ -22519,42 +22598,43 @@ function DATA.test_set_get_0()
     fat_id.is_land = false
     fat_id.is_fresh = true
     fat_id.is_border = false
-    fat_id.elevation = 12
-    fat_id.slope = 11
-    fat_id.grass = 5
-    fat_id.shrub = -1
-    fat_id.conifer = 10
-    fat_id.broadleaf = 2
-    fat_id.ideal_grass = 17
-    fat_id.ideal_shrub = -7
-    fat_id.ideal_conifer = 12
-    fat_id.ideal_broadleaf = -12
-    fat_id.silt = -2
-    fat_id.clay = -12
-    fat_id.sand = -14
-    fat_id.soil_minerals = 19
-    fat_id.soil_organics = -4
-    fat_id.january_waterflow = 14
-    fat_id.january_rain = 18
-    fat_id.january_temperature = -11
-    fat_id.july_waterflow = -1
-    fat_id.july_rain = -14
-    fat_id.july_temperature = -16
-    fat_id.waterlevel = 1
+    fat_id.is_coast = false
     fat_id.has_river = false
-    fat_id.has_marsh = true
-    fat_id.ice = 2
-    fat_id.ice_age_ice = 7
-    fat_id.debug_r = 0
-    fat_id.debug_g = 19
-    fat_id.debug_b = 20
-    fat_id.real_r = -7
-    fat_id.real_g = 15
-    fat_id.real_b = 10
-    fat_id.pathfinding_index = 14
-    fat_id.resource = 13
-    fat_id.bedrock = -4
-    fat_id.biome = -17
+    fat_id.has_marsh = false
+    fat_id.elevation = 10
+    fat_id.slope = 2
+    fat_id.grass = 17
+    fat_id.shrub = -7
+    fat_id.conifer = 12
+    fat_id.broadleaf = -12
+    fat_id.ideal_grass = -2
+    fat_id.ideal_shrub = -12
+    fat_id.ideal_conifer = -14
+    fat_id.ideal_broadleaf = 19
+    fat_id.silt = -4
+    fat_id.clay = 14
+    fat_id.sand = 18
+    fat_id.soil_minerals = -11
+    fat_id.soil_organics = -1
+    fat_id.january_waterflow = -14
+    fat_id.january_rain = -16
+    fat_id.january_temperature = 1
+    fat_id.july_waterflow = 10
+    fat_id.july_rain = 15
+    fat_id.july_temperature = -14
+    fat_id.waterlevel = 2
+    fat_id.ice = 7
+    fat_id.ice_age_ice = 0
+    fat_id.debug_r = 19
+    fat_id.debug_g = 20
+    fat_id.debug_b = -7
+    fat_id.real_r = 15
+    fat_id.real_g = 10
+    fat_id.real_b = 8
+    fat_id.pathfinding_index = 16
+    fat_id.resource = -4
+    fat_id.bedrock = -17
+    fat_id.biome = 15
     local test_passed = true
     test_passed = test_passed and fat_id.world_id == 12
     if not test_passed then print("world_id", 12, fat_id.world_id) end
@@ -22564,78 +22644,80 @@ function DATA.test_set_get_0()
     if not test_passed then print("is_fresh", true, fat_id.is_fresh) end
     test_passed = test_passed and fat_id.is_border == false
     if not test_passed then print("is_border", false, fat_id.is_border) end
-    test_passed = test_passed and fat_id.elevation == 12
-    if not test_passed then print("elevation", 12, fat_id.elevation) end
-    test_passed = test_passed and fat_id.slope == 11
-    if not test_passed then print("slope", 11, fat_id.slope) end
-    test_passed = test_passed and fat_id.grass == 5
-    if not test_passed then print("grass", 5, fat_id.grass) end
-    test_passed = test_passed and fat_id.shrub == -1
-    if not test_passed then print("shrub", -1, fat_id.shrub) end
-    test_passed = test_passed and fat_id.conifer == 10
-    if not test_passed then print("conifer", 10, fat_id.conifer) end
-    test_passed = test_passed and fat_id.broadleaf == 2
-    if not test_passed then print("broadleaf", 2, fat_id.broadleaf) end
-    test_passed = test_passed and fat_id.ideal_grass == 17
-    if not test_passed then print("ideal_grass", 17, fat_id.ideal_grass) end
-    test_passed = test_passed and fat_id.ideal_shrub == -7
-    if not test_passed then print("ideal_shrub", -7, fat_id.ideal_shrub) end
-    test_passed = test_passed and fat_id.ideal_conifer == 12
-    if not test_passed then print("ideal_conifer", 12, fat_id.ideal_conifer) end
-    test_passed = test_passed and fat_id.ideal_broadleaf == -12
-    if not test_passed then print("ideal_broadleaf", -12, fat_id.ideal_broadleaf) end
-    test_passed = test_passed and fat_id.silt == -2
-    if not test_passed then print("silt", -2, fat_id.silt) end
-    test_passed = test_passed and fat_id.clay == -12
-    if not test_passed then print("clay", -12, fat_id.clay) end
-    test_passed = test_passed and fat_id.sand == -14
-    if not test_passed then print("sand", -14, fat_id.sand) end
-    test_passed = test_passed and fat_id.soil_minerals == 19
-    if not test_passed then print("soil_minerals", 19, fat_id.soil_minerals) end
-    test_passed = test_passed and fat_id.soil_organics == -4
-    if not test_passed then print("soil_organics", -4, fat_id.soil_organics) end
-    test_passed = test_passed and fat_id.january_waterflow == 14
-    if not test_passed then print("january_waterflow", 14, fat_id.january_waterflow) end
-    test_passed = test_passed and fat_id.january_rain == 18
-    if not test_passed then print("january_rain", 18, fat_id.january_rain) end
-    test_passed = test_passed and fat_id.january_temperature == -11
-    if not test_passed then print("january_temperature", -11, fat_id.january_temperature) end
-    test_passed = test_passed and fat_id.july_waterflow == -1
-    if not test_passed then print("july_waterflow", -1, fat_id.july_waterflow) end
-    test_passed = test_passed and fat_id.july_rain == -14
-    if not test_passed then print("july_rain", -14, fat_id.july_rain) end
-    test_passed = test_passed and fat_id.july_temperature == -16
-    if not test_passed then print("july_temperature", -16, fat_id.july_temperature) end
-    test_passed = test_passed and fat_id.waterlevel == 1
-    if not test_passed then print("waterlevel", 1, fat_id.waterlevel) end
+    test_passed = test_passed and fat_id.is_coast == false
+    if not test_passed then print("is_coast", false, fat_id.is_coast) end
     test_passed = test_passed and fat_id.has_river == false
     if not test_passed then print("has_river", false, fat_id.has_river) end
-    test_passed = test_passed and fat_id.has_marsh == true
-    if not test_passed then print("has_marsh", true, fat_id.has_marsh) end
-    test_passed = test_passed and fat_id.ice == 2
-    if not test_passed then print("ice", 2, fat_id.ice) end
-    test_passed = test_passed and fat_id.ice_age_ice == 7
-    if not test_passed then print("ice_age_ice", 7, fat_id.ice_age_ice) end
-    test_passed = test_passed and fat_id.debug_r == 0
-    if not test_passed then print("debug_r", 0, fat_id.debug_r) end
-    test_passed = test_passed and fat_id.debug_g == 19
-    if not test_passed then print("debug_g", 19, fat_id.debug_g) end
-    test_passed = test_passed and fat_id.debug_b == 20
-    if not test_passed then print("debug_b", 20, fat_id.debug_b) end
-    test_passed = test_passed and fat_id.real_r == -7
-    if not test_passed then print("real_r", -7, fat_id.real_r) end
-    test_passed = test_passed and fat_id.real_g == 15
-    if not test_passed then print("real_g", 15, fat_id.real_g) end
-    test_passed = test_passed and fat_id.real_b == 10
-    if not test_passed then print("real_b", 10, fat_id.real_b) end
-    test_passed = test_passed and fat_id.pathfinding_index == 14
-    if not test_passed then print("pathfinding_index", 14, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.resource == 13
-    if not test_passed then print("resource", 13, fat_id.resource) end
-    test_passed = test_passed and fat_id.bedrock == -4
-    if not test_passed then print("bedrock", -4, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == -17
-    if not test_passed then print("biome", -17, fat_id.biome) end
+    test_passed = test_passed and fat_id.has_marsh == false
+    if not test_passed then print("has_marsh", false, fat_id.has_marsh) end
+    test_passed = test_passed and fat_id.elevation == 10
+    if not test_passed then print("elevation", 10, fat_id.elevation) end
+    test_passed = test_passed and fat_id.slope == 2
+    if not test_passed then print("slope", 2, fat_id.slope) end
+    test_passed = test_passed and fat_id.grass == 17
+    if not test_passed then print("grass", 17, fat_id.grass) end
+    test_passed = test_passed and fat_id.shrub == -7
+    if not test_passed then print("shrub", -7, fat_id.shrub) end
+    test_passed = test_passed and fat_id.conifer == 12
+    if not test_passed then print("conifer", 12, fat_id.conifer) end
+    test_passed = test_passed and fat_id.broadleaf == -12
+    if not test_passed then print("broadleaf", -12, fat_id.broadleaf) end
+    test_passed = test_passed and fat_id.ideal_grass == -2
+    if not test_passed then print("ideal_grass", -2, fat_id.ideal_grass) end
+    test_passed = test_passed and fat_id.ideal_shrub == -12
+    if not test_passed then print("ideal_shrub", -12, fat_id.ideal_shrub) end
+    test_passed = test_passed and fat_id.ideal_conifer == -14
+    if not test_passed then print("ideal_conifer", -14, fat_id.ideal_conifer) end
+    test_passed = test_passed and fat_id.ideal_broadleaf == 19
+    if not test_passed then print("ideal_broadleaf", 19, fat_id.ideal_broadleaf) end
+    test_passed = test_passed and fat_id.silt == -4
+    if not test_passed then print("silt", -4, fat_id.silt) end
+    test_passed = test_passed and fat_id.clay == 14
+    if not test_passed then print("clay", 14, fat_id.clay) end
+    test_passed = test_passed and fat_id.sand == 18
+    if not test_passed then print("sand", 18, fat_id.sand) end
+    test_passed = test_passed and fat_id.soil_minerals == -11
+    if not test_passed then print("soil_minerals", -11, fat_id.soil_minerals) end
+    test_passed = test_passed and fat_id.soil_organics == -1
+    if not test_passed then print("soil_organics", -1, fat_id.soil_organics) end
+    test_passed = test_passed and fat_id.january_waterflow == -14
+    if not test_passed then print("january_waterflow", -14, fat_id.january_waterflow) end
+    test_passed = test_passed and fat_id.january_rain == -16
+    if not test_passed then print("january_rain", -16, fat_id.january_rain) end
+    test_passed = test_passed and fat_id.january_temperature == 1
+    if not test_passed then print("january_temperature", 1, fat_id.january_temperature) end
+    test_passed = test_passed and fat_id.july_waterflow == 10
+    if not test_passed then print("july_waterflow", 10, fat_id.july_waterflow) end
+    test_passed = test_passed and fat_id.july_rain == 15
+    if not test_passed then print("july_rain", 15, fat_id.july_rain) end
+    test_passed = test_passed and fat_id.july_temperature == -14
+    if not test_passed then print("july_temperature", -14, fat_id.july_temperature) end
+    test_passed = test_passed and fat_id.waterlevel == 2
+    if not test_passed then print("waterlevel", 2, fat_id.waterlevel) end
+    test_passed = test_passed and fat_id.ice == 7
+    if not test_passed then print("ice", 7, fat_id.ice) end
+    test_passed = test_passed and fat_id.ice_age_ice == 0
+    if not test_passed then print("ice_age_ice", 0, fat_id.ice_age_ice) end
+    test_passed = test_passed and fat_id.debug_r == 19
+    if not test_passed then print("debug_r", 19, fat_id.debug_r) end
+    test_passed = test_passed and fat_id.debug_g == 20
+    if not test_passed then print("debug_g", 20, fat_id.debug_g) end
+    test_passed = test_passed and fat_id.debug_b == -7
+    if not test_passed then print("debug_b", -7, fat_id.debug_b) end
+    test_passed = test_passed and fat_id.real_r == 15
+    if not test_passed then print("real_r", 15, fat_id.real_r) end
+    test_passed = test_passed and fat_id.real_g == 10
+    if not test_passed then print("real_g", 10, fat_id.real_g) end
+    test_passed = test_passed and fat_id.real_b == 8
+    if not test_passed then print("real_b", 8, fat_id.real_b) end
+    test_passed = test_passed and fat_id.pathfinding_index == 16
+    if not test_passed then print("pathfinding_index", 16, fat_id.pathfinding_index) end
+    test_passed = test_passed and fat_id.resource == -4
+    if not test_passed then print("resource", -4, fat_id.resource) end
+    test_passed = test_passed and fat_id.bedrock == -17
+    if not test_passed then print("bedrock", -17, fat_id.bedrock) end
+    test_passed = test_passed and fat_id.biome == 15
+    if not test_passed then print("biome", 15, fat_id.biome) end
     print("SET_GET_TEST_0_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_plate()
@@ -22731,38 +22813,41 @@ function DATA.test_set_get_0()
     fat_id.race = 6
     fat_id.faith = -18
     fat_id.culture = -4
-    fat_id.female = false
-    fat_id.age = 12
-    fat_id.savings = -1
-    fat_id.life_needs_satisfaction = 10
-    fat_id.basic_needs_satisfaction = 2
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 3)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 12)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, -12)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, -2)
-    end
+    fat_id.age = 16
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  2)    end
-    for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -14)    end
-    for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  19)    end
-    fat_id.pending_economy_income = -4
-    fat_id.forage_ratio = 14
-    fat_id.work_ratio = 18
-    fat_id.busy = true
-    fat_id.dead = false
-    fat_id.rank = 0
-    fat_id.former_pop = true
+        DATA.pop_set_traits(id, j --[[@as number]],  7)    end
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  1)    end
+        DATA.pop_set_need_satisfaction_need(id, j, 6)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_use_case(id, j, -1)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_consumed(id, j, 10)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_demanded(id, j, 2)
+    end
+    for j = 1, 100 do
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  17)    end
+    for j = 1, 100 do
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  -7)    end
+    fat_id.savings = 12
+    fat_id.life_needs_satisfaction = -12
+    fat_id.basic_needs_satisfaction = -2
+    fat_id.pending_economy_income = -12
+    fat_id.forage_ratio = -14
+    fat_id.work_ratio = 19
+    fat_id.spend_savings_ratio = -4
+    fat_id.female = true
+    fat_id.busy = false
+    fat_id.former_pop = true
+    fat_id.dead = true
+    fat_id.free_will = false
+    fat_id.is_player = false
+    fat_id.rank = 0
+    for j = 1, 20 do
+        DATA.pop_set_dna(id, j --[[@as number]],  2)    end
     local test_passed = true
     test_passed = test_passed and fat_id.unique_id == 12
     if not test_passed then print("unique_id", 12, fat_id.unique_id) end
@@ -22772,62 +22857,68 @@ function DATA.test_set_get_0()
     if not test_passed then print("faith", -18, fat_id.faith) end
     test_passed = test_passed and fat_id.culture == -4
     if not test_passed then print("culture", -4, fat_id.culture) end
-    test_passed = test_passed and fat_id.female == false
-    if not test_passed then print("female", false, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 12
-    if not test_passed then print("age", 12, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -1
-    if not test_passed then print("savings", -1, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 10
-    if not test_passed then print("life_needs_satisfaction", 10, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 2
-    if not test_passed then print("basic_needs_satisfaction", 2, fat_id.basic_needs_satisfaction) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 3
-    end
-    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[id].need_satisfaction[0].need) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 12
-    end
-    if not test_passed then print("need_satisfaction.use_case", 12, DATA.pop[id].need_satisfaction[0].use_case) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -12
-    end
-    if not test_passed then print("need_satisfaction.consumed", -12, DATA.pop[id].need_satisfaction[0].consumed) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -2
-    end
-    if not test_passed then print("need_satisfaction.demanded", -2, DATA.pop[id].need_satisfaction[0].demanded) end
+    test_passed = test_passed and fat_id.age == 16
+    if not test_passed then print("age", 16, fat_id.age) end
     for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 2
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 7
     end
-    if not test_passed then print("traits", 2, DATA.pop[id].traits[0]) end
+    if not test_passed then print("traits", 7, DATA.pop[id].traits[0]) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 6
+    end
+    if not test_passed then print("need_satisfaction.need", 6, DATA.pop[id].need_satisfaction[0].need) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == -1
+    end
+    if not test_passed then print("need_satisfaction.use_case", -1, DATA.pop[id].need_satisfaction[0].use_case) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 10
+    end
+    if not test_passed then print("need_satisfaction.consumed", 10, DATA.pop[id].need_satisfaction[0].consumed) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 2
+    end
+    if not test_passed then print("need_satisfaction.demanded", 2, DATA.pop[id].need_satisfaction[0].demanded) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -14
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 17
     end
-    if not test_passed then print("inventory", -14, DATA.pop[id].inventory[0]) end
+    if not test_passed then print("inventory", 17, DATA.pop[id].inventory[0]) end
     for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 19
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == -7
     end
-    if not test_passed then print("price_memory", 19, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == -4
-    if not test_passed then print("pending_economy_income", -4, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 14
-    if not test_passed then print("forage_ratio", 14, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 18
-    if not test_passed then print("work_ratio", 18, fat_id.work_ratio) end
-    test_passed = test_passed and fat_id.busy == true
-    if not test_passed then print("busy", true, fat_id.busy) end
-    test_passed = test_passed and fat_id.dead == false
-    if not test_passed then print("dead", false, fat_id.dead) end
-    test_passed = test_passed and fat_id.rank == 0
-    if not test_passed then print("rank", 0, fat_id.rank) end
+    if not test_passed then print("price_memory", -7, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.savings == 12
+    if not test_passed then print("savings", 12, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == -12
+    if not test_passed then print("life_needs_satisfaction", -12, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == -2
+    if not test_passed then print("basic_needs_satisfaction", -2, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.pending_economy_income == -12
+    if not test_passed then print("pending_economy_income", -12, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == -14
+    if not test_passed then print("forage_ratio", -14, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 19
+    if not test_passed then print("work_ratio", 19, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.spend_savings_ratio == -4
+    if not test_passed then print("spend_savings_ratio", -4, fat_id.spend_savings_ratio) end
+    test_passed = test_passed and fat_id.female == true
+    if not test_passed then print("female", true, fat_id.female) end
+    test_passed = test_passed and fat_id.busy == false
+    if not test_passed then print("busy", false, fat_id.busy) end
     test_passed = test_passed and fat_id.former_pop == true
     if not test_passed then print("former_pop", true, fat_id.former_pop) end
+    test_passed = test_passed and fat_id.dead == true
+    if not test_passed then print("dead", true, fat_id.dead) end
+    test_passed = test_passed and fat_id.free_will == false
+    if not test_passed then print("free_will", false, fat_id.free_will) end
+    test_passed = test_passed and fat_id.is_player == false
+    if not test_passed then print("is_player", false, fat_id.is_player) end
+    test_passed = test_passed and fat_id.rank == 0
+    if not test_passed then print("rank", 0, fat_id.rank) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 1
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 2
     end
-    if not test_passed then print("dna", 1, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 2, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_0_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -23415,42 +23506,43 @@ function DATA.test_set_get_1()
     fat_id.is_land = true
     fat_id.is_fresh = false
     fat_id.is_border = true
-    fat_id.elevation = 11
-    fat_id.slope = 8
-    fat_id.grass = 10
-    fat_id.shrub = 4
-    fat_id.conifer = -7
-    fat_id.broadleaf = -14
-    fat_id.ideal_grass = 11
-    fat_id.ideal_shrub = -19
-    fat_id.ideal_conifer = 4
-    fat_id.ideal_broadleaf = 7
-    fat_id.silt = 18
-    fat_id.clay = -20
-    fat_id.sand = 8
-    fat_id.soil_minerals = -3
-    fat_id.soil_organics = -6
-    fat_id.january_waterflow = 17
-    fat_id.january_rain = -14
-    fat_id.january_temperature = 0
-    fat_id.july_waterflow = -19
-    fat_id.july_rain = -19
-    fat_id.july_temperature = -19
-    fat_id.waterlevel = 14
-    fat_id.has_river = true
+    fat_id.is_coast = false
+    fat_id.has_river = false
     fat_id.has_marsh = false
-    fat_id.ice = -7
-    fat_id.ice_age_ice = 7
-    fat_id.debug_r = -19
-    fat_id.debug_g = 13
-    fat_id.debug_b = -6
-    fat_id.real_r = 8
-    fat_id.real_g = 11
-    fat_id.real_b = 15
-    fat_id.pathfinding_index = 7
-    fat_id.resource = 2
+    fat_id.elevation = 4
+    fat_id.slope = -7
+    fat_id.grass = -14
+    fat_id.shrub = 11
+    fat_id.conifer = -19
+    fat_id.broadleaf = 4
+    fat_id.ideal_grass = 7
+    fat_id.ideal_shrub = 18
+    fat_id.ideal_conifer = -20
+    fat_id.ideal_broadleaf = 8
+    fat_id.silt = -3
+    fat_id.clay = -6
+    fat_id.sand = 17
+    fat_id.soil_minerals = -14
+    fat_id.soil_organics = 0
+    fat_id.january_waterflow = -19
+    fat_id.january_rain = -19
+    fat_id.january_temperature = -19
+    fat_id.july_waterflow = 14
+    fat_id.july_rain = -20
+    fat_id.july_temperature = 4
+    fat_id.waterlevel = -7
+    fat_id.ice = 7
+    fat_id.ice_age_ice = -19
+    fat_id.debug_r = 13
+    fat_id.debug_g = -6
+    fat_id.debug_b = 8
+    fat_id.real_r = 11
+    fat_id.real_g = 15
+    fat_id.real_b = -6
+    fat_id.pathfinding_index = 11
+    fat_id.resource = -6
     fat_id.bedrock = -6
-    fat_id.biome = -6
+    fat_id.biome = 9
     local test_passed = true
     test_passed = test_passed and fat_id.world_id == 4
     if not test_passed then print("world_id", 4, fat_id.world_id) end
@@ -23460,78 +23552,80 @@ function DATA.test_set_get_1()
     if not test_passed then print("is_fresh", false, fat_id.is_fresh) end
     test_passed = test_passed and fat_id.is_border == true
     if not test_passed then print("is_border", true, fat_id.is_border) end
-    test_passed = test_passed and fat_id.elevation == 11
-    if not test_passed then print("elevation", 11, fat_id.elevation) end
-    test_passed = test_passed and fat_id.slope == 8
-    if not test_passed then print("slope", 8, fat_id.slope) end
-    test_passed = test_passed and fat_id.grass == 10
-    if not test_passed then print("grass", 10, fat_id.grass) end
-    test_passed = test_passed and fat_id.shrub == 4
-    if not test_passed then print("shrub", 4, fat_id.shrub) end
-    test_passed = test_passed and fat_id.conifer == -7
-    if not test_passed then print("conifer", -7, fat_id.conifer) end
-    test_passed = test_passed and fat_id.broadleaf == -14
-    if not test_passed then print("broadleaf", -14, fat_id.broadleaf) end
-    test_passed = test_passed and fat_id.ideal_grass == 11
-    if not test_passed then print("ideal_grass", 11, fat_id.ideal_grass) end
-    test_passed = test_passed and fat_id.ideal_shrub == -19
-    if not test_passed then print("ideal_shrub", -19, fat_id.ideal_shrub) end
-    test_passed = test_passed and fat_id.ideal_conifer == 4
-    if not test_passed then print("ideal_conifer", 4, fat_id.ideal_conifer) end
-    test_passed = test_passed and fat_id.ideal_broadleaf == 7
-    if not test_passed then print("ideal_broadleaf", 7, fat_id.ideal_broadleaf) end
-    test_passed = test_passed and fat_id.silt == 18
-    if not test_passed then print("silt", 18, fat_id.silt) end
-    test_passed = test_passed and fat_id.clay == -20
-    if not test_passed then print("clay", -20, fat_id.clay) end
-    test_passed = test_passed and fat_id.sand == 8
-    if not test_passed then print("sand", 8, fat_id.sand) end
-    test_passed = test_passed and fat_id.soil_minerals == -3
-    if not test_passed then print("soil_minerals", -3, fat_id.soil_minerals) end
-    test_passed = test_passed and fat_id.soil_organics == -6
-    if not test_passed then print("soil_organics", -6, fat_id.soil_organics) end
-    test_passed = test_passed and fat_id.january_waterflow == 17
-    if not test_passed then print("january_waterflow", 17, fat_id.january_waterflow) end
-    test_passed = test_passed and fat_id.january_rain == -14
-    if not test_passed then print("january_rain", -14, fat_id.january_rain) end
-    test_passed = test_passed and fat_id.january_temperature == 0
-    if not test_passed then print("january_temperature", 0, fat_id.january_temperature) end
-    test_passed = test_passed and fat_id.july_waterflow == -19
-    if not test_passed then print("july_waterflow", -19, fat_id.july_waterflow) end
-    test_passed = test_passed and fat_id.july_rain == -19
-    if not test_passed then print("july_rain", -19, fat_id.july_rain) end
-    test_passed = test_passed and fat_id.july_temperature == -19
-    if not test_passed then print("july_temperature", -19, fat_id.july_temperature) end
-    test_passed = test_passed and fat_id.waterlevel == 14
-    if not test_passed then print("waterlevel", 14, fat_id.waterlevel) end
-    test_passed = test_passed and fat_id.has_river == true
-    if not test_passed then print("has_river", true, fat_id.has_river) end
+    test_passed = test_passed and fat_id.is_coast == false
+    if not test_passed then print("is_coast", false, fat_id.is_coast) end
+    test_passed = test_passed and fat_id.has_river == false
+    if not test_passed then print("has_river", false, fat_id.has_river) end
     test_passed = test_passed and fat_id.has_marsh == false
     if not test_passed then print("has_marsh", false, fat_id.has_marsh) end
-    test_passed = test_passed and fat_id.ice == -7
-    if not test_passed then print("ice", -7, fat_id.ice) end
-    test_passed = test_passed and fat_id.ice_age_ice == 7
-    if not test_passed then print("ice_age_ice", 7, fat_id.ice_age_ice) end
-    test_passed = test_passed and fat_id.debug_r == -19
-    if not test_passed then print("debug_r", -19, fat_id.debug_r) end
-    test_passed = test_passed and fat_id.debug_g == 13
-    if not test_passed then print("debug_g", 13, fat_id.debug_g) end
-    test_passed = test_passed and fat_id.debug_b == -6
-    if not test_passed then print("debug_b", -6, fat_id.debug_b) end
-    test_passed = test_passed and fat_id.real_r == 8
-    if not test_passed then print("real_r", 8, fat_id.real_r) end
-    test_passed = test_passed and fat_id.real_g == 11
-    if not test_passed then print("real_g", 11, fat_id.real_g) end
-    test_passed = test_passed and fat_id.real_b == 15
-    if not test_passed then print("real_b", 15, fat_id.real_b) end
-    test_passed = test_passed and fat_id.pathfinding_index == 7
-    if not test_passed then print("pathfinding_index", 7, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.resource == 2
-    if not test_passed then print("resource", 2, fat_id.resource) end
+    test_passed = test_passed and fat_id.elevation == 4
+    if not test_passed then print("elevation", 4, fat_id.elevation) end
+    test_passed = test_passed and fat_id.slope == -7
+    if not test_passed then print("slope", -7, fat_id.slope) end
+    test_passed = test_passed and fat_id.grass == -14
+    if not test_passed then print("grass", -14, fat_id.grass) end
+    test_passed = test_passed and fat_id.shrub == 11
+    if not test_passed then print("shrub", 11, fat_id.shrub) end
+    test_passed = test_passed and fat_id.conifer == -19
+    if not test_passed then print("conifer", -19, fat_id.conifer) end
+    test_passed = test_passed and fat_id.broadleaf == 4
+    if not test_passed then print("broadleaf", 4, fat_id.broadleaf) end
+    test_passed = test_passed and fat_id.ideal_grass == 7
+    if not test_passed then print("ideal_grass", 7, fat_id.ideal_grass) end
+    test_passed = test_passed and fat_id.ideal_shrub == 18
+    if not test_passed then print("ideal_shrub", 18, fat_id.ideal_shrub) end
+    test_passed = test_passed and fat_id.ideal_conifer == -20
+    if not test_passed then print("ideal_conifer", -20, fat_id.ideal_conifer) end
+    test_passed = test_passed and fat_id.ideal_broadleaf == 8
+    if not test_passed then print("ideal_broadleaf", 8, fat_id.ideal_broadleaf) end
+    test_passed = test_passed and fat_id.silt == -3
+    if not test_passed then print("silt", -3, fat_id.silt) end
+    test_passed = test_passed and fat_id.clay == -6
+    if not test_passed then print("clay", -6, fat_id.clay) end
+    test_passed = test_passed and fat_id.sand == 17
+    if not test_passed then print("sand", 17, fat_id.sand) end
+    test_passed = test_passed and fat_id.soil_minerals == -14
+    if not test_passed then print("soil_minerals", -14, fat_id.soil_minerals) end
+    test_passed = test_passed and fat_id.soil_organics == 0
+    if not test_passed then print("soil_organics", 0, fat_id.soil_organics) end
+    test_passed = test_passed and fat_id.january_waterflow == -19
+    if not test_passed then print("january_waterflow", -19, fat_id.january_waterflow) end
+    test_passed = test_passed and fat_id.january_rain == -19
+    if not test_passed then print("january_rain", -19, fat_id.january_rain) end
+    test_passed = test_passed and fat_id.january_temperature == -19
+    if not test_passed then print("january_temperature", -19, fat_id.january_temperature) end
+    test_passed = test_passed and fat_id.july_waterflow == 14
+    if not test_passed then print("july_waterflow", 14, fat_id.july_waterflow) end
+    test_passed = test_passed and fat_id.july_rain == -20
+    if not test_passed then print("july_rain", -20, fat_id.july_rain) end
+    test_passed = test_passed and fat_id.july_temperature == 4
+    if not test_passed then print("july_temperature", 4, fat_id.july_temperature) end
+    test_passed = test_passed and fat_id.waterlevel == -7
+    if not test_passed then print("waterlevel", -7, fat_id.waterlevel) end
+    test_passed = test_passed and fat_id.ice == 7
+    if not test_passed then print("ice", 7, fat_id.ice) end
+    test_passed = test_passed and fat_id.ice_age_ice == -19
+    if not test_passed then print("ice_age_ice", -19, fat_id.ice_age_ice) end
+    test_passed = test_passed and fat_id.debug_r == 13
+    if not test_passed then print("debug_r", 13, fat_id.debug_r) end
+    test_passed = test_passed and fat_id.debug_g == -6
+    if not test_passed then print("debug_g", -6, fat_id.debug_g) end
+    test_passed = test_passed and fat_id.debug_b == 8
+    if not test_passed then print("debug_b", 8, fat_id.debug_b) end
+    test_passed = test_passed and fat_id.real_r == 11
+    if not test_passed then print("real_r", 11, fat_id.real_r) end
+    test_passed = test_passed and fat_id.real_g == 15
+    if not test_passed then print("real_g", 15, fat_id.real_g) end
+    test_passed = test_passed and fat_id.real_b == -6
+    if not test_passed then print("real_b", -6, fat_id.real_b) end
+    test_passed = test_passed and fat_id.pathfinding_index == 11
+    if not test_passed then print("pathfinding_index", 11, fat_id.pathfinding_index) end
+    test_passed = test_passed and fat_id.resource == -6
+    if not test_passed then print("resource", -6, fat_id.resource) end
     test_passed = test_passed and fat_id.bedrock == -6
     if not test_passed then print("bedrock", -6, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == -6
-    if not test_passed then print("biome", -6, fat_id.biome) end
+    test_passed = test_passed and fat_id.biome == 9
+    if not test_passed then print("biome", 9, fat_id.biome) end
     print("SET_GET_TEST_1_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_plate()
@@ -23627,38 +23721,41 @@ function DATA.test_set_get_1()
     fat_id.race = 16
     fat_id.faith = -16
     fat_id.culture = -4
-    fat_id.female = true
-    fat_id.age = 15
-    fat_id.savings = 8
-    fat_id.life_needs_satisfaction = 10
-    fat_id.basic_needs_satisfaction = 4
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 3)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, -14)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, 11)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, -19)
-    end
+    fat_id.age = 3
     for j = 1, 10 do
-        DATA.pop_set_traits(id, j --[[@as number]],  6)    end
-    for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  7)    end
-    for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  18)    end
-    fat_id.pending_economy_income = -20
-    fat_id.forage_ratio = 8
-    fat_id.work_ratio = -3
-    fat_id.busy = true
-    fat_id.dead = true
-    fat_id.rank = 2
-    fat_id.former_pop = true
+        DATA.pop_set_traits(id, j --[[@as number]],  7)    end
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  -19)    end
+        DATA.pop_set_need_satisfaction_need(id, j, 7)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_use_case(id, j, 10)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_consumed(id, j, 4)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_demanded(id, j, -7)
+    end
+    for j = 1, 100 do
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  -14)    end
+    for j = 1, 100 do
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  11)    end
+    fat_id.savings = -19
+    fat_id.life_needs_satisfaction = 4
+    fat_id.basic_needs_satisfaction = 7
+    fat_id.pending_economy_income = 18
+    fat_id.forage_ratio = -20
+    fat_id.work_ratio = 8
+    fat_id.spend_savings_ratio = -3
+    fat_id.female = true
+    fat_id.busy = true
+    fat_id.former_pop = false
+    fat_id.dead = true
+    fat_id.free_will = true
+    fat_id.is_player = true
+    fat_id.rank = 0
+    for j = 1, 20 do
+        DATA.pop_set_dna(id, j --[[@as number]],  4)    end
     local test_passed = true
     test_passed = test_passed and fat_id.unique_id == 4
     if not test_passed then print("unique_id", 4, fat_id.unique_id) end
@@ -23668,62 +23765,68 @@ function DATA.test_set_get_1()
     if not test_passed then print("faith", -16, fat_id.faith) end
     test_passed = test_passed and fat_id.culture == -4
     if not test_passed then print("culture", -4, fat_id.culture) end
+    test_passed = test_passed and fat_id.age == 3
+    if not test_passed then print("age", 3, fat_id.age) end
+    for j = 1, 10 do
+        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 7
+    end
+    if not test_passed then print("traits", 7, DATA.pop[id].traits[0]) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 7
+    end
+    if not test_passed then print("need_satisfaction.need", 7, DATA.pop[id].need_satisfaction[0].need) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 10
+    end
+    if not test_passed then print("need_satisfaction.use_case", 10, DATA.pop[id].need_satisfaction[0].use_case) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 4
+    end
+    if not test_passed then print("need_satisfaction.consumed", 4, DATA.pop[id].need_satisfaction[0].consumed) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -7
+    end
+    if not test_passed then print("need_satisfaction.demanded", -7, DATA.pop[id].need_satisfaction[0].demanded) end
+    for j = 1, 100 do
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == -14
+    end
+    if not test_passed then print("inventory", -14, DATA.pop[id].inventory[0]) end
+    for j = 1, 100 do
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 11
+    end
+    if not test_passed then print("price_memory", 11, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.savings == -19
+    if not test_passed then print("savings", -19, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == 4
+    if not test_passed then print("life_needs_satisfaction", 4, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 7
+    if not test_passed then print("basic_needs_satisfaction", 7, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.pending_economy_income == 18
+    if not test_passed then print("pending_economy_income", 18, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == -20
+    if not test_passed then print("forage_ratio", -20, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 8
+    if not test_passed then print("work_ratio", 8, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.spend_savings_ratio == -3
+    if not test_passed then print("spend_savings_ratio", -3, fat_id.spend_savings_ratio) end
     test_passed = test_passed and fat_id.female == true
     if not test_passed then print("female", true, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 15
-    if not test_passed then print("age", 15, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == 8
-    if not test_passed then print("savings", 8, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 10
-    if not test_passed then print("life_needs_satisfaction", 10, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == 4
-    if not test_passed then print("basic_needs_satisfaction", 4, fat_id.basic_needs_satisfaction) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 3
-    end
-    if not test_passed then print("need_satisfaction.need", 3, DATA.pop[id].need_satisfaction[0].need) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == -14
-    end
-    if not test_passed then print("need_satisfaction.use_case", -14, DATA.pop[id].need_satisfaction[0].use_case) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 11
-    end
-    if not test_passed then print("need_satisfaction.consumed", 11, DATA.pop[id].need_satisfaction[0].consumed) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -19
-    end
-    if not test_passed then print("need_satisfaction.demanded", -19, DATA.pop[id].need_satisfaction[0].demanded) end
-    for j = 1, 10 do
-        test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 6
-    end
-    if not test_passed then print("traits", 6, DATA.pop[id].traits[0]) end
-    for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 7
-    end
-    if not test_passed then print("inventory", 7, DATA.pop[id].inventory[0]) end
-    for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 18
-    end
-    if not test_passed then print("price_memory", 18, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == -20
-    if not test_passed then print("pending_economy_income", -20, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 8
-    if not test_passed then print("forage_ratio", 8, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == -3
-    if not test_passed then print("work_ratio", -3, fat_id.work_ratio) end
     test_passed = test_passed and fat_id.busy == true
     if not test_passed then print("busy", true, fat_id.busy) end
+    test_passed = test_passed and fat_id.former_pop == false
+    if not test_passed then print("former_pop", false, fat_id.former_pop) end
     test_passed = test_passed and fat_id.dead == true
     if not test_passed then print("dead", true, fat_id.dead) end
-    test_passed = test_passed and fat_id.rank == 2
-    if not test_passed then print("rank", 2, fat_id.rank) end
-    test_passed = test_passed and fat_id.former_pop == true
-    if not test_passed then print("former_pop", true, fat_id.former_pop) end
+    test_passed = test_passed and fat_id.free_will == true
+    if not test_passed then print("free_will", true, fat_id.free_will) end
+    test_passed = test_passed and fat_id.is_player == true
+    if not test_passed then print("is_player", true, fat_id.is_player) end
+    test_passed = test_passed and fat_id.rank == 0
+    if not test_passed then print("rank", 0, fat_id.rank) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == -19
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 4
     end
-    if not test_passed then print("dna", -19, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 4, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_1_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()
@@ -24311,42 +24414,43 @@ function DATA.test_set_get_2()
     fat_id.is_land = true
     fat_id.is_fresh = true
     fat_id.is_border = false
-    fat_id.elevation = -10
-    fat_id.slope = -1
-    fat_id.grass = -4
-    fat_id.shrub = 18
-    fat_id.conifer = -7
-    fat_id.broadleaf = 18
-    fat_id.ideal_grass = -18
-    fat_id.ideal_shrub = 17
-    fat_id.ideal_conifer = -10
-    fat_id.ideal_broadleaf = 7
-    fat_id.silt = 20
-    fat_id.clay = 5
-    fat_id.sand = 12
-    fat_id.soil_minerals = 3
-    fat_id.soil_organics = 14
-    fat_id.january_waterflow = 8
-    fat_id.january_rain = 12
-    fat_id.january_temperature = -3
-    fat_id.july_waterflow = -18
-    fat_id.july_rain = -19
-    fat_id.july_temperature = 3
-    fat_id.waterlevel = 9
+    fat_id.is_coast = true
     fat_id.has_river = false
     fat_id.has_marsh = false
-    fat_id.ice = 7
-    fat_id.ice_age_ice = 13
-    fat_id.debug_r = -10
-    fat_id.debug_g = 15
-    fat_id.debug_b = -9
-    fat_id.real_r = -5
-    fat_id.real_g = -6
-    fat_id.real_b = -19
-    fat_id.pathfinding_index = 5
-    fat_id.resource = 0
-    fat_id.bedrock = -9
-    fat_id.biome = -12
+    fat_id.elevation = 18
+    fat_id.slope = -7
+    fat_id.grass = 18
+    fat_id.shrub = -18
+    fat_id.conifer = 17
+    fat_id.broadleaf = -10
+    fat_id.ideal_grass = 7
+    fat_id.ideal_shrub = 20
+    fat_id.ideal_conifer = 5
+    fat_id.ideal_broadleaf = 12
+    fat_id.silt = 3
+    fat_id.clay = 14
+    fat_id.sand = 8
+    fat_id.soil_minerals = 12
+    fat_id.soil_organics = -3
+    fat_id.january_waterflow = -18
+    fat_id.january_rain = -19
+    fat_id.january_temperature = 3
+    fat_id.july_waterflow = 9
+    fat_id.july_rain = 0
+    fat_id.july_temperature = 4
+    fat_id.waterlevel = 7
+    fat_id.ice = 13
+    fat_id.ice_age_ice = -10
+    fat_id.debug_r = 15
+    fat_id.debug_g = -9
+    fat_id.debug_b = -5
+    fat_id.real_r = -6
+    fat_id.real_g = -19
+    fat_id.real_b = -9
+    fat_id.pathfinding_index = 10
+    fat_id.resource = -9
+    fat_id.bedrock = -12
+    fat_id.biome = 12
     local test_passed = true
     test_passed = test_passed and fat_id.world_id == 1
     if not test_passed then print("world_id", 1, fat_id.world_id) end
@@ -24356,78 +24460,80 @@ function DATA.test_set_get_2()
     if not test_passed then print("is_fresh", true, fat_id.is_fresh) end
     test_passed = test_passed and fat_id.is_border == false
     if not test_passed then print("is_border", false, fat_id.is_border) end
-    test_passed = test_passed and fat_id.elevation == -10
-    if not test_passed then print("elevation", -10, fat_id.elevation) end
-    test_passed = test_passed and fat_id.slope == -1
-    if not test_passed then print("slope", -1, fat_id.slope) end
-    test_passed = test_passed and fat_id.grass == -4
-    if not test_passed then print("grass", -4, fat_id.grass) end
-    test_passed = test_passed and fat_id.shrub == 18
-    if not test_passed then print("shrub", 18, fat_id.shrub) end
-    test_passed = test_passed and fat_id.conifer == -7
-    if not test_passed then print("conifer", -7, fat_id.conifer) end
-    test_passed = test_passed and fat_id.broadleaf == 18
-    if not test_passed then print("broadleaf", 18, fat_id.broadleaf) end
-    test_passed = test_passed and fat_id.ideal_grass == -18
-    if not test_passed then print("ideal_grass", -18, fat_id.ideal_grass) end
-    test_passed = test_passed and fat_id.ideal_shrub == 17
-    if not test_passed then print("ideal_shrub", 17, fat_id.ideal_shrub) end
-    test_passed = test_passed and fat_id.ideal_conifer == -10
-    if not test_passed then print("ideal_conifer", -10, fat_id.ideal_conifer) end
-    test_passed = test_passed and fat_id.ideal_broadleaf == 7
-    if not test_passed then print("ideal_broadleaf", 7, fat_id.ideal_broadleaf) end
-    test_passed = test_passed and fat_id.silt == 20
-    if not test_passed then print("silt", 20, fat_id.silt) end
-    test_passed = test_passed and fat_id.clay == 5
-    if not test_passed then print("clay", 5, fat_id.clay) end
-    test_passed = test_passed and fat_id.sand == 12
-    if not test_passed then print("sand", 12, fat_id.sand) end
-    test_passed = test_passed and fat_id.soil_minerals == 3
-    if not test_passed then print("soil_minerals", 3, fat_id.soil_minerals) end
-    test_passed = test_passed and fat_id.soil_organics == 14
-    if not test_passed then print("soil_organics", 14, fat_id.soil_organics) end
-    test_passed = test_passed and fat_id.january_waterflow == 8
-    if not test_passed then print("january_waterflow", 8, fat_id.january_waterflow) end
-    test_passed = test_passed and fat_id.january_rain == 12
-    if not test_passed then print("january_rain", 12, fat_id.january_rain) end
-    test_passed = test_passed and fat_id.january_temperature == -3
-    if not test_passed then print("january_temperature", -3, fat_id.january_temperature) end
-    test_passed = test_passed and fat_id.july_waterflow == -18
-    if not test_passed then print("july_waterflow", -18, fat_id.july_waterflow) end
-    test_passed = test_passed and fat_id.july_rain == -19
-    if not test_passed then print("july_rain", -19, fat_id.july_rain) end
-    test_passed = test_passed and fat_id.july_temperature == 3
-    if not test_passed then print("july_temperature", 3, fat_id.july_temperature) end
-    test_passed = test_passed and fat_id.waterlevel == 9
-    if not test_passed then print("waterlevel", 9, fat_id.waterlevel) end
+    test_passed = test_passed and fat_id.is_coast == true
+    if not test_passed then print("is_coast", true, fat_id.is_coast) end
     test_passed = test_passed and fat_id.has_river == false
     if not test_passed then print("has_river", false, fat_id.has_river) end
     test_passed = test_passed and fat_id.has_marsh == false
     if not test_passed then print("has_marsh", false, fat_id.has_marsh) end
-    test_passed = test_passed and fat_id.ice == 7
-    if not test_passed then print("ice", 7, fat_id.ice) end
-    test_passed = test_passed and fat_id.ice_age_ice == 13
-    if not test_passed then print("ice_age_ice", 13, fat_id.ice_age_ice) end
-    test_passed = test_passed and fat_id.debug_r == -10
-    if not test_passed then print("debug_r", -10, fat_id.debug_r) end
-    test_passed = test_passed and fat_id.debug_g == 15
-    if not test_passed then print("debug_g", 15, fat_id.debug_g) end
-    test_passed = test_passed and fat_id.debug_b == -9
-    if not test_passed then print("debug_b", -9, fat_id.debug_b) end
-    test_passed = test_passed and fat_id.real_r == -5
-    if not test_passed then print("real_r", -5, fat_id.real_r) end
-    test_passed = test_passed and fat_id.real_g == -6
-    if not test_passed then print("real_g", -6, fat_id.real_g) end
-    test_passed = test_passed and fat_id.real_b == -19
-    if not test_passed then print("real_b", -19, fat_id.real_b) end
-    test_passed = test_passed and fat_id.pathfinding_index == 5
-    if not test_passed then print("pathfinding_index", 5, fat_id.pathfinding_index) end
-    test_passed = test_passed and fat_id.resource == 0
-    if not test_passed then print("resource", 0, fat_id.resource) end
-    test_passed = test_passed and fat_id.bedrock == -9
-    if not test_passed then print("bedrock", -9, fat_id.bedrock) end
-    test_passed = test_passed and fat_id.biome == -12
-    if not test_passed then print("biome", -12, fat_id.biome) end
+    test_passed = test_passed and fat_id.elevation == 18
+    if not test_passed then print("elevation", 18, fat_id.elevation) end
+    test_passed = test_passed and fat_id.slope == -7
+    if not test_passed then print("slope", -7, fat_id.slope) end
+    test_passed = test_passed and fat_id.grass == 18
+    if not test_passed then print("grass", 18, fat_id.grass) end
+    test_passed = test_passed and fat_id.shrub == -18
+    if not test_passed then print("shrub", -18, fat_id.shrub) end
+    test_passed = test_passed and fat_id.conifer == 17
+    if not test_passed then print("conifer", 17, fat_id.conifer) end
+    test_passed = test_passed and fat_id.broadleaf == -10
+    if not test_passed then print("broadleaf", -10, fat_id.broadleaf) end
+    test_passed = test_passed and fat_id.ideal_grass == 7
+    if not test_passed then print("ideal_grass", 7, fat_id.ideal_grass) end
+    test_passed = test_passed and fat_id.ideal_shrub == 20
+    if not test_passed then print("ideal_shrub", 20, fat_id.ideal_shrub) end
+    test_passed = test_passed and fat_id.ideal_conifer == 5
+    if not test_passed then print("ideal_conifer", 5, fat_id.ideal_conifer) end
+    test_passed = test_passed and fat_id.ideal_broadleaf == 12
+    if not test_passed then print("ideal_broadleaf", 12, fat_id.ideal_broadleaf) end
+    test_passed = test_passed and fat_id.silt == 3
+    if not test_passed then print("silt", 3, fat_id.silt) end
+    test_passed = test_passed and fat_id.clay == 14
+    if not test_passed then print("clay", 14, fat_id.clay) end
+    test_passed = test_passed and fat_id.sand == 8
+    if not test_passed then print("sand", 8, fat_id.sand) end
+    test_passed = test_passed and fat_id.soil_minerals == 12
+    if not test_passed then print("soil_minerals", 12, fat_id.soil_minerals) end
+    test_passed = test_passed and fat_id.soil_organics == -3
+    if not test_passed then print("soil_organics", -3, fat_id.soil_organics) end
+    test_passed = test_passed and fat_id.january_waterflow == -18
+    if not test_passed then print("january_waterflow", -18, fat_id.january_waterflow) end
+    test_passed = test_passed and fat_id.january_rain == -19
+    if not test_passed then print("january_rain", -19, fat_id.january_rain) end
+    test_passed = test_passed and fat_id.january_temperature == 3
+    if not test_passed then print("january_temperature", 3, fat_id.january_temperature) end
+    test_passed = test_passed and fat_id.july_waterflow == 9
+    if not test_passed then print("july_waterflow", 9, fat_id.july_waterflow) end
+    test_passed = test_passed and fat_id.july_rain == 0
+    if not test_passed then print("july_rain", 0, fat_id.july_rain) end
+    test_passed = test_passed and fat_id.july_temperature == 4
+    if not test_passed then print("july_temperature", 4, fat_id.july_temperature) end
+    test_passed = test_passed and fat_id.waterlevel == 7
+    if not test_passed then print("waterlevel", 7, fat_id.waterlevel) end
+    test_passed = test_passed and fat_id.ice == 13
+    if not test_passed then print("ice", 13, fat_id.ice) end
+    test_passed = test_passed and fat_id.ice_age_ice == -10
+    if not test_passed then print("ice_age_ice", -10, fat_id.ice_age_ice) end
+    test_passed = test_passed and fat_id.debug_r == 15
+    if not test_passed then print("debug_r", 15, fat_id.debug_r) end
+    test_passed = test_passed and fat_id.debug_g == -9
+    if not test_passed then print("debug_g", -9, fat_id.debug_g) end
+    test_passed = test_passed and fat_id.debug_b == -5
+    if not test_passed then print("debug_b", -5, fat_id.debug_b) end
+    test_passed = test_passed and fat_id.real_r == -6
+    if not test_passed then print("real_r", -6, fat_id.real_r) end
+    test_passed = test_passed and fat_id.real_g == -19
+    if not test_passed then print("real_g", -19, fat_id.real_g) end
+    test_passed = test_passed and fat_id.real_b == -9
+    if not test_passed then print("real_b", -9, fat_id.real_b) end
+    test_passed = test_passed and fat_id.pathfinding_index == 10
+    if not test_passed then print("pathfinding_index", 10, fat_id.pathfinding_index) end
+    test_passed = test_passed and fat_id.resource == -9
+    if not test_passed then print("resource", -9, fat_id.resource) end
+    test_passed = test_passed and fat_id.bedrock == -12
+    if not test_passed then print("bedrock", -12, fat_id.bedrock) end
+    test_passed = test_passed and fat_id.biome == 12
+    if not test_passed then print("biome", 12, fat_id.biome) end
     print("SET_GET_TEST_2_tile:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_plate()
@@ -24523,38 +24629,41 @@ function DATA.test_set_get_2()
     fat_id.race = -15
     fat_id.faith = -15
     fat_id.culture = 3
-    fat_id.female = true
-    fat_id.age = 9
-    fat_id.savings = -4
-    fat_id.life_needs_satisfaction = 18
-    fat_id.basic_needs_satisfaction = -7
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_need(id, j, 0)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_use_case(id, j, 17)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_consumed(id, j, -10)
-    end
-    for j = 1, 20 do
-        DATA.pop_set_need_satisfaction_demanded(id, j, 7)
-    end
+    fat_id.age = 5
     for j = 1, 10 do
         DATA.pop_set_traits(id, j --[[@as number]],  10)    end
-    for j = 1, 100 do
-        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  5)    end
-    for j = 1, 100 do
-        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  12)    end
-    fat_id.pending_economy_income = 3
-    fat_id.forage_ratio = 14
-    fat_id.work_ratio = 8
-    fat_id.busy = false
-    fat_id.dead = true
-    fat_id.rank = 0
-    fat_id.former_pop = false
     for j = 1, 20 do
-        DATA.pop_set_dna(id, j --[[@as number]],  9)    end
+        DATA.pop_set_need_satisfaction_need(id, j, 4)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_use_case(id, j, -4)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_consumed(id, j, 18)
+    end
+    for j = 1, 20 do
+        DATA.pop_set_need_satisfaction_demanded(id, j, -7)
+    end
+    for j = 1, 100 do
+        DATA.pop_set_inventory(id, j --[[@as trade_good_id]],  18)    end
+    for j = 1, 100 do
+        DATA.pop_set_price_memory(id, j --[[@as trade_good_id]],  -18)    end
+    fat_id.savings = 17
+    fat_id.life_needs_satisfaction = -10
+    fat_id.basic_needs_satisfaction = 7
+    fat_id.pending_economy_income = 20
+    fat_id.forage_ratio = 5
+    fat_id.work_ratio = 12
+    fat_id.spend_savings_ratio = 3
+    fat_id.female = false
+    fat_id.busy = false
+    fat_id.former_pop = true
+    fat_id.dead = true
+    fat_id.free_will = false
+    fat_id.is_player = false
+    fat_id.rank = 2
+    for j = 1, 20 do
+        DATA.pop_set_dna(id, j --[[@as number]],  4)    end
     local test_passed = true
     test_passed = test_passed and fat_id.unique_id == 1
     if not test_passed then print("unique_id", 1, fat_id.unique_id) end
@@ -24564,62 +24673,68 @@ function DATA.test_set_get_2()
     if not test_passed then print("faith", -15, fat_id.faith) end
     test_passed = test_passed and fat_id.culture == 3
     if not test_passed then print("culture", 3, fat_id.culture) end
-    test_passed = test_passed and fat_id.female == true
-    if not test_passed then print("female", true, fat_id.female) end
-    test_passed = test_passed and fat_id.age == 9
-    if not test_passed then print("age", 9, fat_id.age) end
-    test_passed = test_passed and fat_id.savings == -4
-    if not test_passed then print("savings", -4, fat_id.savings) end
-    test_passed = test_passed and fat_id.life_needs_satisfaction == 18
-    if not test_passed then print("life_needs_satisfaction", 18, fat_id.life_needs_satisfaction) end
-    test_passed = test_passed and fat_id.basic_needs_satisfaction == -7
-    if not test_passed then print("basic_needs_satisfaction", -7, fat_id.basic_needs_satisfaction) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 0
-    end
-    if not test_passed then print("need_satisfaction.need", 0, DATA.pop[id].need_satisfaction[0].need) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == 17
-    end
-    if not test_passed then print("need_satisfaction.use_case", 17, DATA.pop[id].need_satisfaction[0].use_case) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == -10
-    end
-    if not test_passed then print("need_satisfaction.consumed", -10, DATA.pop[id].need_satisfaction[0].consumed) end
-    for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == 7
-    end
-    if not test_passed then print("need_satisfaction.demanded", 7, DATA.pop[id].need_satisfaction[0].demanded) end
+    test_passed = test_passed and fat_id.age == 5
+    if not test_passed then print("age", 5, fat_id.age) end
     for j = 1, 10 do
         test_passed = test_passed and DATA.pop_get_traits(id, j --[[@as number]]) == 10
     end
     if not test_passed then print("traits", 10, DATA.pop[id].traits[0]) end
-    for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 5
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_need(id, j) == 4
     end
-    if not test_passed then print("inventory", 5, DATA.pop[id].inventory[0]) end
-    for j = 1, 100 do
-        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == 12
+    if not test_passed then print("need_satisfaction.need", 4, DATA.pop[id].need_satisfaction[0].need) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_use_case(id, j) == -4
     end
-    if not test_passed then print("price_memory", 12, DATA.pop[id].price_memory[0]) end
-    test_passed = test_passed and fat_id.pending_economy_income == 3
-    if not test_passed then print("pending_economy_income", 3, fat_id.pending_economy_income) end
-    test_passed = test_passed and fat_id.forage_ratio == 14
-    if not test_passed then print("forage_ratio", 14, fat_id.forage_ratio) end
-    test_passed = test_passed and fat_id.work_ratio == 8
-    if not test_passed then print("work_ratio", 8, fat_id.work_ratio) end
+    if not test_passed then print("need_satisfaction.use_case", -4, DATA.pop[id].need_satisfaction[0].use_case) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_consumed(id, j) == 18
+    end
+    if not test_passed then print("need_satisfaction.consumed", 18, DATA.pop[id].need_satisfaction[0].consumed) end
+    for j = 1, 20 do
+        test_passed = test_passed and DATA.pop_get_need_satisfaction_demanded(id, j) == -7
+    end
+    if not test_passed then print("need_satisfaction.demanded", -7, DATA.pop[id].need_satisfaction[0].demanded) end
+    for j = 1, 100 do
+        test_passed = test_passed and DATA.pop_get_inventory(id, j --[[@as trade_good_id]]) == 18
+    end
+    if not test_passed then print("inventory", 18, DATA.pop[id].inventory[0]) end
+    for j = 1, 100 do
+        test_passed = test_passed and DATA.pop_get_price_memory(id, j --[[@as trade_good_id]]) == -18
+    end
+    if not test_passed then print("price_memory", -18, DATA.pop[id].price_memory[0]) end
+    test_passed = test_passed and fat_id.savings == 17
+    if not test_passed then print("savings", 17, fat_id.savings) end
+    test_passed = test_passed and fat_id.life_needs_satisfaction == -10
+    if not test_passed then print("life_needs_satisfaction", -10, fat_id.life_needs_satisfaction) end
+    test_passed = test_passed and fat_id.basic_needs_satisfaction == 7
+    if not test_passed then print("basic_needs_satisfaction", 7, fat_id.basic_needs_satisfaction) end
+    test_passed = test_passed and fat_id.pending_economy_income == 20
+    if not test_passed then print("pending_economy_income", 20, fat_id.pending_economy_income) end
+    test_passed = test_passed and fat_id.forage_ratio == 5
+    if not test_passed then print("forage_ratio", 5, fat_id.forage_ratio) end
+    test_passed = test_passed and fat_id.work_ratio == 12
+    if not test_passed then print("work_ratio", 12, fat_id.work_ratio) end
+    test_passed = test_passed and fat_id.spend_savings_ratio == 3
+    if not test_passed then print("spend_savings_ratio", 3, fat_id.spend_savings_ratio) end
+    test_passed = test_passed and fat_id.female == false
+    if not test_passed then print("female", false, fat_id.female) end
     test_passed = test_passed and fat_id.busy == false
     if not test_passed then print("busy", false, fat_id.busy) end
+    test_passed = test_passed and fat_id.former_pop == true
+    if not test_passed then print("former_pop", true, fat_id.former_pop) end
     test_passed = test_passed and fat_id.dead == true
     if not test_passed then print("dead", true, fat_id.dead) end
-    test_passed = test_passed and fat_id.rank == 0
-    if not test_passed then print("rank", 0, fat_id.rank) end
-    test_passed = test_passed and fat_id.former_pop == false
-    if not test_passed then print("former_pop", false, fat_id.former_pop) end
+    test_passed = test_passed and fat_id.free_will == false
+    if not test_passed then print("free_will", false, fat_id.free_will) end
+    test_passed = test_passed and fat_id.is_player == false
+    if not test_passed then print("is_player", false, fat_id.is_player) end
+    test_passed = test_passed and fat_id.rank == 2
+    if not test_passed then print("rank", 2, fat_id.rank) end
     for j = 1, 20 do
-        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 9
+        test_passed = test_passed and DATA.pop_get_dna(id, j --[[@as number]]) == 4
     end
-    if not test_passed then print("dna", 9, DATA.pop[id].dna[0]) end
+    if not test_passed then print("dna", 4, DATA.pop[id].dna[0]) end
     print("SET_GET_TEST_2_pop:")
     if test_passed then print("PASSED") else print("ERROR") end
     local id = DATA.create_province()

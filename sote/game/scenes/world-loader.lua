@@ -209,6 +209,11 @@ function wl.load_default()
 				DATA.tile_set_has_river(tile_id, true)
 			end
 		end)
+
+		DATA.for_each_tile(function (tile_id)
+			DATA.tile_set_is_coast(tile_id, tile.is_coast(tile_id))
+		end)
+
 		print(love.timer.getTime() - time)
 	end
 	print("Hydrology maps loaded!")

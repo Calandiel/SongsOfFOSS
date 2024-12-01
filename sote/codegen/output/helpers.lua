@@ -359,7 +359,7 @@ end
 ---@param leader pop_id
 ---@return warband_id
 function LEADER_OF_WARBAND(leader)
-	if LEADER == INVALID_ID then
+	if leader == INVALID_ID then
 		return INVALID_ID
 	end
 	local leadership = DATA.get_warband_leader_from_leader(leader)
@@ -432,7 +432,7 @@ end
 
 ---commenting
 ---@param pop_id pop_id
----@return Culture
+---@return culture_id
 function CULTURE(pop_id)
 	return DATA.pop_get_culture(pop_id)
 end

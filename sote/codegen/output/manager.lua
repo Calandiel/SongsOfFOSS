@@ -23,7 +23,10 @@ ffi.cdef[[
     void* calloc( size_t num, size_t size );
     void update_vegetation(float);
     void update_economy();
+
     void apply_biome(int32_t);
+    void apply_resource(int32_t);
+
     float estimate_province_use_price(uint32_t, uint32_t);
     float estimate_building_type_income(int32_t, int32_t, int32_t, bool);
     void dcon_everything_write_file(char const* name);

@@ -65,6 +65,9 @@ function rtab.POP.new(race, faith, culture, female, age)
 
 	r.forage_ratio = 0.75
 	r.work_ratio = 0.25
+	r.spend_savings_ratio = 0.05
+	r.free_will = true
+	r.is_player = false
 
 	r.basic_needs_satisfaction = total_consumed / total_demanded
 	r.life_needs_satisfaction = 0.5

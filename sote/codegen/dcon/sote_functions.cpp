@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <random>
 #include "objs.hpp"
 #include "sote_types.hpp"
 #define DCON_LUADLL_EXPORTS
@@ -20,10 +21,200 @@
 // 	state.make_s
 // }
 
+
+struct tile_cube_coord {
+	int32_t x;
+	int32_t y;
+	int32_t f;
+};
+
+// Given a tile ID, returns x/y/f coordinates.
+tile_cube_coord id_to_coords(int32_t tile_id, uint32_t world_size) {
+	auto adjusted_id = (double)(tile_id - 1);
+	auto ws = (double)world_size;
+	auto f = floor(adjusted_id / (ws * ws));
+	auto remaining = adjusted_id - f * ws * ws;
+	auto y = floor(remaining / ws);
+	auto x = remaining - y * ws;
+	return {
+		(int32_t)x, (int32_t)y, (int32_t)f
+	};
+}
+
+int32_t coords_to_id(int32_t x, int32_t y, int32_t f, uint32_t world_size) {
+	return 1 + (x + y * world_size + f * world_size * world_size);
+}
+
+constexpr inline uint8_t NEIGH_TOP = 1;
+constexpr inline uint8_t NEIGH_BOTTOM = 2;
+constexpr inline uint8_t NEIGH_RIGHT = 3;
+constexpr inline uint8_t NEIGH_LEFT = 4;
+
+constexpr inline uint8_t cube_FRONT = 0;
+constexpr inline uint8_t cube_LEFT = 1;
+constexpr inline uint8_t cube_BACK = 2;
+constexpr inline uint8_t cube_RIGHT = 3;
+constexpr inline uint8_t cube_TOP = 4;
+constexpr inline uint8_t cube_BOTTOM = 5;
+
+int32_t get_neighbor(int32_t tile_id, uint8_t neighbor_index, uint32_t world_size) {
+	auto cube_coords = id_to_coords(tile_id, world_size);
+	auto x = cube_coords.x;
+	auto y = cube_coords.y;
+	auto f = cube_coords.f;
+
+	auto wsmo = world_size - 1;
+
+	int32_t rx = 0;
+	int32_t ry = 0;
+	int32_t rf = 0;
+
+	if (neighbor_index == NEIGH_TOP) {
+		if (y == wsmo) {
+			if (f == cube_TOP) {
+				rf = cube_RIGHT;
+				rx = wsmo - x;
+				ry = wsmo;
+			} else if (f == cube_BOTTOM) {
+				rf = cube_RIGHT;
+				rx = x;
+				ry = 0;
+			} else if (f == cube_FRONT) {
+				rf = cube_TOP;
+				rx = wsmo;
+				ry = x;
+			} else if (f == cube_BACK) {
+				rf = cube_TOP;
+				rx = 0;
+				ry = wsmo - x;
+			} else if (f == cube_LEFT) {
+				rf = cube_TOP;
+				rx = x;
+				ry = 0;
+			} else if (f == cube_RIGHT) {
+				rf = cube_TOP;
+				rx = wsmo - x;
+				ry = wsmo;
+			} else {
+				assert(false);
+			}
+		} else {
+			rf = f;
+			rx = x;
+			ry = y + 1;
+		}
+	} else if (neighbor_index == NEIGH_BOTTOM) {
+		if (y == 0) {
+			if (f == cube_TOP) {
+				rf = cube_LEFT;
+				rx = x;
+				ry = wsmo;
+			} else if (f == cube_BOTTOM) {
+				rf = cube_LEFT;
+				rx = wsmo - x;
+				ry = 0;
+			} else if (f == cube_FRONT) {
+				rf = cube_BOTTOM;
+				rx = 0;
+				ry = x;
+			} else if (f == cube_BACK) {
+				rf = cube_BOTTOM;
+				rx = wsmo;
+				ry = wsmo - x;
+			} else if (f == cube_LEFT) {
+				rf = cube_BOTTOM;
+				rx = wsmo - x;
+				ry = 0;
+			} else if (f == cube_RIGHT) {
+				rf = cube_BOTTOM;
+				rx = x;
+				ry = wsmo;
+			} else {
+				assert(false);
+			}
+		} else {
+			rf = f;
+			rx = x;
+			ry = y - 1;
+		}
+	} else if (neighbor_index == NEIGH_LEFT) {
+		if (x == 0) {
+			if (f == cube_TOP) {
+				rf = cube_BACK;
+				rx = wsmo - y;
+				ry = wsmo;
+			} else if (f == cube_BOTTOM) {
+				rf = cube_FRONT;
+				rx = y;
+				ry = 0;
+			} else if (f == cube_FRONT) {
+				rf = cube_LEFT;
+				rx = wsmo;
+				ry = y;
+			} else if (f == cube_BACK) {
+				rf = cube_RIGHT;
+				rx = wsmo;
+				ry = y;
+			} else if (f == cube_LEFT) {
+				rf = cube_BACK;
+				rx = wsmo;
+				ry = y;
+			} else if (f == cube_RIGHT) {
+				rf = cube_FRONT;
+				rx = wsmo;
+				ry = y;
+			} else {
+				assert(false);
+			}
+		} else {
+			rf = f;
+			rx = x - 1;
+			ry = y;
+		}
+	} else if (neighbor_index == NEIGH_RIGHT) {
+		if (x == wsmo) {
+			if (f == cube_TOP) {
+				rf = cube_FRONT;
+				rx = y;
+				ry = wsmo;
+			} else if (f == cube_BOTTOM) {
+				rf = cube_BACK;
+				rx = wsmo - y;
+				ry = 0;
+			} else if (f == cube_FRONT) {
+				rf = cube_RIGHT;
+				rx = 0;
+				ry = y;
+			} else if (f == cube_BACK) {
+				rf = cube_LEFT;
+				rx = 0;
+				ry = y;
+			} else if (f == cube_LEFT) {
+				rf = cube_FRONT;
+				rx = 0;
+				ry = y;
+			} else if (f == cube_RIGHT) {
+				rf = cube_BACK;
+				rx = 0;
+				ry = y;
+			} else
+				assert(false);
+			}
+		else {
+			rf = f;
+			rx = x + 1;
+			ry = y;
+		}
+	} else {
+		assert(false);
+	}
+
+	return coords_to_id(rx, ry, rf, world_size);
+}
+
 static auto GOOD_CATEGORY = (uint8_t)((base_types::TRADE_GOOD_CATEGORY::GOOD));
 
 constexpr inline float MAX_INDUCED_DEMAND = 3.f;
-constexpr inline float BASE_POP_BUDGET_RATIO = 0.05f;
 
 // how much of income is siphoned to local wealth pool
 constexpr inline float INCOME_TO_LOCAL_WEALTH_MULTIPLIER = 0.125f / 4.f;
@@ -188,6 +379,108 @@ ve::fp_vector get_permeability(T tile_id) {
 	tile_perm = ve::select(clay > 0.2f, tile_perm - 1.25f * (clay - 0.2f) / (1.0f - 0.2f), tile_perm);
 
 	return tile_perm / 2.5f;
+}
+
+
+void apply_resource(int32_t resource_index) {
+	dcon::resource_fat_id res = dcon::fatten(state, dcon::resource_id{(dcon::resource_id::value_base_t)resource_index});
+
+	auto rng_engine = std::default_random_engine();
+	auto distribution = std::uniform_real_distribution<float> {0, 1};
+
+	auto generator = std::bind(distribution, rng_engine);
+
+	state.execute_parallel_over_tile([&](auto tiles) {
+		auto tile_is_land = state.tile_get_is_land(tiles);
+
+		ve::mask_vector land_check {false};
+
+		if (res.get_land()) {
+			land_check = land_check || tile_is_land;
+		}
+		if (res.get_water()) {
+			land_check = land_check || (!tile_is_land);
+		}
+
+		auto coast_check = state.tile_get_is_coast(tiles);
+
+		auto conifers = state.tile_get_conifer(tiles);
+		auto broadleaf = state.tile_get_broadleaf(tiles);
+		auto trees = conifers + broadleaf;
+
+
+		ve::mask_vector base_check =
+		(
+			(
+				(
+						land_check
+					&&
+						(
+								coast_check
+							||
+								!res.get_coastal()
+						)
+				)
+			&&
+				(
+					state.tile_get_elevation(tiles) <= res.get_maximum_elevation()
+					&&
+					state.tile_get_elevation(tiles) >= res.get_minimum_elevation()
+				)
+			)
+		&&
+			(
+				(
+					trees <= res.get_maximum_trees()
+					&&
+					trees >= res.get_minimum_trees()
+				)
+				&&
+				(
+					(state.tile_get_ice_age_ice(tiles) > 0)
+					||
+					!res.get_ice_age()
+				)
+			)
+		);
+
+		ve::mask_vector bedrock_check {false};
+		if (!res.get_required_bedrock(0)) {
+			bedrock_check = ve::mask_vector{true};
+		}
+
+		for (int i = 0; i <  state.resource_get_required_bedrock_size(); i++) {
+			auto requirement = res.get_required_bedrock(i);
+			if (!requirement) {
+				break;
+			}
+			bedrock_check = bedrock_check || (state.tile_get_bedrock(tiles) == requirement);
+		}
+
+		ve::mask_vector biome_check {false};
+		if (!res.get_required_biome(0)) {
+			biome_check = ve::mask_vector{true};
+		}
+
+		for (int i = 0; i <  state.resource_get_required_biome_size(); i++) {
+			auto requirement = res.get_required_biome(i);
+			if (!requirement) {
+				break;
+			}
+			biome_check = biome_check || (state.tile_get_biome(tiles) == requirement);
+		}
+
+		auto result = base_check && bedrock_check && biome_check;
+
+		auto dice_roll = ve::apply([&](auto tile) {
+			return generator() < 1.f / res.get_base_frequency();
+		}, tiles);
+
+		ve::value_to_vector_type<dcon::resource_id> current = state.tile_get_resource(tiles);
+		ve::value_to_vector_type<dcon::resource_id> candidate = res.id;
+
+		state.tile_set_resource(tiles, ve::select(result && dice_roll, candidate, current));
+	});
 }
 
 void apply_biome(int32_t biome_index) {
@@ -478,14 +771,19 @@ void pops_produce() {
 
 	state.for_each_pop([&](auto ids) {
 		auto province = state.pop_get_location_from_pop_location(ids);
-
 		auto size = state.province_get_size(province);
-
 		auto forage_time = state.pop_get_forage_ratio(ids);
 
-		// std::cout<< "update pop " << ids.index() << "\n";
+		auto estimated_profit = 0.f;
 
-		// std::cout << "forage ratio: " << forage_time << "\n";
+		auto work_profit = 0.f;
+		auto employment = state.pop_get_employment(ids);
+		if (state.employment_get_building(employment)) {
+			work_profit = state.employment_get_worker_income(employment);
+		} else {
+			forage_time = 1.f;
+		}
+
 
 		for (uint32_t i = 0; i < state.province_get_foragers_targets_size(); i++){
 			base_types::forage_container& forage_case = state.province_get_foragers_targets(province, i);
@@ -532,6 +830,13 @@ void pops_produce() {
 			// how many units of goods one unit of resource yields
 			auto output_per_unit = forage_case.output_value;
 
+
+			auto output_total = output_per_unit
+				/ total_time_per_unit
+				* forage_time
+				* cultural_priority
+				* state.province_get_forage_efficiency(province);
+
 			// std::cout << int(forage_case.forage) << " "
 			// 	<< current << " "
 			// 	<< output_per_unit << " "
@@ -540,16 +845,29 @@ void pops_produce() {
 			// 	<< cultural_priority << " "
 			// 	<< state.province_get_forage_efficiency(province) << " \n";
 
+			estimated_profit += output_total * state.province_get_local_prices(province, output);
+
 			state.pop_set_inventory(
 				ids,
 				output,
 				current
-				+ output_per_unit
-				/ total_time_per_unit
-				* forage_time
-				* cultural_priority
-				* state.province_get_forage_efficiency(province)
+				+ output_total
 			);
+		}
+
+		if (state.employment_get_building(employment)) {
+
+			auto work_time = state.pop_get_work_ratio(ids);
+
+			if(state.pop_get_free_will(ids) && !state.pop_get_is_player(ids)) {
+				if (work_profit / work_time > estimated_profit / forage_time * 1.05f && forage_time > 0.05f) {
+					state.pop_set_forage_ratio(ids, forage_time - 0.01f);
+					state.pop_set_work_ratio(ids, state.pop_get_work_ratio(ids) + 0.01f);
+				} else if (work_profit / work_time < estimated_profit / forage_time * 0.95f && forage_time < 0.95f) {
+					state.pop_set_forage_ratio(ids, forage_time + 0.01f);
+					state.pop_set_work_ratio(ids, state.pop_get_work_ratio(ids) - 0.01f);
+				}
+			}
 		}
 	});
 }
@@ -569,7 +887,9 @@ void update_building_scale() {
 		state.building_for_each_employment(ids, [&](auto employment){
 			auto worker = state.employment_get_worker(employment);
 			auto worktime = state.pop_get_work_ratio(worker);
-			auto efficiency = job_efficiency(worker, associated_job);
+
+			// efficiency of working falls with increased workload
+			auto efficiency = job_efficiency(worker, associated_job) * (2 - worktime);
 
 			assert(efficiency > 0);
 
@@ -656,7 +976,7 @@ void building_produce() {
 					state.building_set_inventory(ids, trade_good, 0.f);
 					use_in_inventory += inventory * weight;
 				} else {
-					state.building_set_inventory(ids, trade_good, inventory - (use_required - use_in_inventory) / weight);
+					state.building_set_inventory(ids, trade_good, std::max(0.f, inventory - (use_required - use_in_inventory) / weight));
 					use_in_inventory = use_required;
 				}
 
@@ -730,10 +1050,12 @@ void pops_consume() {
 				auto inventory = state.pop_get_inventory(pop, trade_good);
 				auto can_consume = inventory * weight;
 
-				if (consumed + can_consume > demanded) {
-					assert(inventory >= std::max(0.f, (demanded - consumed) / weight));
+				if (consumed >= demanded) {
+					return;
+				} else if (consumed + can_consume > demanded) {
+					state.pop_set_inventory(pop, trade_good, std::max(0.f, inventory - (demanded - consumed) / weight));
 					consumed = demanded;
-					state.pop_set_inventory(pop, trade_good, inventory - std::max(0.f, (demanded - consumed) / weight));
+					return;
 				} else {
 					consumed += can_consume;
 					state.pop_set_inventory(pop, trade_good, 0.f);
@@ -770,7 +1092,7 @@ void pops_sell() {
 		auto max_age = state.race_get_max_age(race);
 		auto age = state.pop_get_age(pop);
 
-		auto base_income = age / max_age;
+		auto base_income = 10.f * age / max_age;
 
 		state.pop_set_pending_economy_income(pop, state.pop_get_pending_economy_income(pop) + income + base_income);
 	});
@@ -786,7 +1108,7 @@ void buildings_sell() {
 			auto inventory = state.building_get_inventory(building, trade_good);
 			auto sell_ratio = 1.f;
 			if (state.trade_good_get_belongs_to_category(trade_good) == GOOD_CATEGORY) {
-				sell_ratio = std::min(1.f, 0.1f / (state.trade_good_get_decay(trade_good) + 0.001f));
+				sell_ratio = std::min(1.f, 0.5f / (state.trade_good_get_decay(trade_good) + 0.001f));
 			}
 
 			income += inventory * sell_ratio * state.province_get_local_prices(province, trade_good);
@@ -810,7 +1132,7 @@ void pops_demand() {
 			province = state.pop_get_location_from_pop_location(pop);
 		}
 
-		auto budget = state.pop_get_savings(pop) * BASE_POP_BUDGET_RATIO;
+		auto budget = state.pop_get_savings(pop) * state.pop_get_spend_savings_ratio(pop);
 		auto total_score = 0.01f;
 		auto total_cost = 0.f;
 
@@ -932,7 +1254,7 @@ void pops_buy() {
 			province = state.pop_get_location_from_pop_location(pop);
 		}
 
-		auto budget = state.pop_get_savings(pop) * BASE_POP_BUDGET_RATIO;
+		auto budget = state.pop_get_savings(pop) * state.pop_get_spend_savings_ratio(pop);
 		auto total_score = 0.01f;
 		auto total_cost = 0.f;
 
@@ -1486,195 +1808,6 @@ void set_province_data(dcon::province_id province, uint8_t index, base_types::FO
 	forage_data.output_value = output_value * 4;
 }
 
-struct tile_cube_coord {
-	int32_t x;
-	int32_t y;
-	int32_t f;
-};
-
-// Given a tile ID, returns x/y/f coordinates.
-tile_cube_coord id_to_coords(int32_t tile_id, uint32_t world_size) {
-	auto adjusted_id = (double)(tile_id - 1);
-	auto ws = (double)world_size;
-	auto f = floor(adjusted_id / (ws * ws));
-	auto remaining = adjusted_id - f * ws * ws;
-	auto y = floor(remaining / ws);
-	auto x = remaining - y * ws;
-	return {
-		(int32_t)x, (int32_t)y, (int32_t)f
-	};
-}
-
-int32_t coords_to_id(int32_t x, int32_t y, int32_t f, uint32_t world_size) {
-	return 1 + (x + y * world_size + f * world_size * world_size);
-}
-
-constexpr inline uint8_t NEIGH_TOP = 1;
-constexpr inline uint8_t NEIGH_BOTTOM = 2;
-constexpr inline uint8_t NEIGH_RIGHT = 3;
-constexpr inline uint8_t NEIGH_LEFT = 4;
-
-constexpr inline uint8_t cube_FRONT = 0;
-constexpr inline uint8_t cube_LEFT = 1;
-constexpr inline uint8_t cube_BACK = 2;
-constexpr inline uint8_t cube_RIGHT = 3;
-constexpr inline uint8_t cube_TOP = 4;
-constexpr inline uint8_t cube_BOTTOM = 5;
-
-int32_t get_neighbor(int32_t tile_id, uint8_t neighbor_index, uint32_t world_size) {
-	auto cube_coords = id_to_coords(tile_id, world_size);
-	auto x = cube_coords.x;
-	auto y = cube_coords.y;
-	auto f = cube_coords.f;
-
-	auto wsmo = world_size - 1;
-
-	int32_t rx = 0;
-	int32_t ry = 0;
-	int32_t rf = 0;
-
-	if (neighbor_index == NEIGH_TOP) {
-		if (y == wsmo) {
-			if (f == cube_TOP) {
-				rf = cube_RIGHT;
-				rx = wsmo - x;
-				ry = wsmo;
-			} else if (f == cube_BOTTOM) {
-				rf = cube_RIGHT;
-				rx = x;
-				ry = 0;
-			} else if (f == cube_FRONT) {
-				rf = cube_TOP;
-				rx = wsmo;
-				ry = x;
-			} else if (f == cube_BACK) {
-				rf = cube_TOP;
-				rx = 0;
-				ry = wsmo - x;
-			} else if (f == cube_LEFT) {
-				rf = cube_TOP;
-				rx = x;
-				ry = 0;
-			} else if (f == cube_RIGHT) {
-				rf = cube_TOP;
-				rx = wsmo - x;
-				ry = wsmo;
-			} else {
-				assert(false);
-			}
-		} else {
-			rf = f;
-			rx = x;
-			ry = y + 1;
-		}
-	} else if (neighbor_index == NEIGH_BOTTOM) {
-		if (y == 0) {
-			if (f == cube_TOP) {
-				rf = cube_LEFT;
-				rx = x;
-				ry = wsmo;
-			} else if (f == cube_BOTTOM) {
-				rf = cube_LEFT;
-				rx = wsmo - x;
-				ry = 0;
-			} else if (f == cube_FRONT) {
-				rf = cube_BOTTOM;
-				rx = 0;
-				ry = x;
-			} else if (f == cube_BACK) {
-				rf = cube_BOTTOM;
-				rx = wsmo;
-				ry = wsmo - x;
-			} else if (f == cube_LEFT) {
-				rf = cube_BOTTOM;
-				rx = wsmo - x;
-				ry = 0;
-			} else if (f == cube_RIGHT) {
-				rf = cube_BOTTOM;
-				rx = x;
-				ry = wsmo;
-			} else {
-				assert(false);
-			}
-		} else {
-			rf = f;
-			rx = x;
-			ry = y - 1;
-		}
-	} else if (neighbor_index == NEIGH_LEFT) {
-		if (x == 0) {
-			if (f == cube_TOP) {
-				rf = cube_BACK;
-				rx = wsmo - y;
-				ry = wsmo;
-			} else if (f == cube_BOTTOM) {
-				rf = cube_FRONT;
-				rx = y;
-				ry = 0;
-			} else if (f == cube_FRONT) {
-				rf = cube_LEFT;
-				rx = wsmo;
-				ry = y;
-			} else if (f == cube_BACK) {
-				rf = cube_RIGHT;
-				rx = wsmo;
-				ry = y;
-			} else if (f == cube_LEFT) {
-				rf = cube_BACK;
-				rx = wsmo;
-				ry = y;
-			} else if (f == cube_RIGHT) {
-				rf = cube_FRONT;
-				rx = wsmo;
-				ry = y;
-			} else {
-				assert(false);
-			}
-		} else {
-			rf = f;
-			rx = x - 1;
-			ry = y;
-		}
-	} else if (neighbor_index == NEIGH_RIGHT) {
-		if (x == wsmo) {
-			if (f == cube_TOP) {
-				rf = cube_FRONT;
-				rx = y;
-				ry = wsmo;
-			} else if (f == cube_BOTTOM) {
-				rf = cube_BACK;
-				rx = wsmo - y;
-				ry = 0;
-			} else if (f == cube_FRONT) {
-				rf = cube_RIGHT;
-				rx = 0;
-				ry = y;
-			} else if (f == cube_BACK) {
-				rf = cube_LEFT;
-				rx = 0;
-				ry = y;
-			} else if (f == cube_LEFT) {
-				rf = cube_FRONT;
-				rx = 0;
-				ry = y;
-			} else if (f == cube_RIGHT) {
-				rf = cube_BACK;
-				rx = 0;
-				ry = y;
-			} else
-				assert(false);
-			}
-		else {
-			rf = f;
-			rx = x + 1;
-			ry = y;
-		}
-	} else {
-		assert(false);
-	}
-
-	return coords_to_id(rx, ry, rf, world_size);
-}
 
 void update_foraging_data(
 	int32_t province_raw_id,

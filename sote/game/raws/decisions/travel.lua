@@ -252,6 +252,9 @@ local function load()
 			if BUSY(root) then
 				return "You are too busy to consider it."
 			end
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
+				return "You have to be a leader of a party to explore."
+			end
 			return "Explore province"
 		end,
 		sorting = 2,
@@ -260,6 +263,10 @@ local function load()
 		base_probability = 0.5,
 		pretrigger = function(root)
 			if BUSY(root) then return false end
+
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
+				return false
+			end
 
 			local potential_to_explore = false
 

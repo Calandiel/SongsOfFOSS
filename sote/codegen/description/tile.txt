@@ -2,6 +2,9 @@ world_id uint32_t
 is_land bool
 is_fresh bool
 is_border bool
+is_coast bool
+has_river bool
+has_marsh bool
 elevation float
 slope float
 grass float
@@ -24,8 +27,6 @@ july_waterflow float
 july_rain float
 july_temperature float
 waterlevel float
-has_river bool
-has_marsh bool
 ice float
 ice_age_ice float
 debug_r float between 0 and 1, as per Love2Ds convention...
