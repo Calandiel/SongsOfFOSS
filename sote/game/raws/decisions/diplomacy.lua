@@ -49,7 +49,7 @@ local function load()
 			if DATA.pop_get_busy(root) then
 				return "You are busy."
 			end
-			return "Suggest " .. primary_target.name .. " to become your tributary."
+			return "Suggest " .. NAME(primary_target) .. " to become your tributary."
 		end,
 		sorting = 1,
 		primary_target = 'character',

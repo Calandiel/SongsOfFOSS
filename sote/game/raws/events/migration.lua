@@ -23,6 +23,7 @@ local character_values  = require "game.raws.values.character"
 
 local messages          = require "game.raws.effects.messages"
 
+
 function load()
 	---@class (exact) MigrationData
 	---@field organizer Character?
@@ -366,7 +367,7 @@ function load()
 			fat.g = math.max(0, math.min(1, (DATA.culture_get_g(fat_col.primary_culture) + (love.math.random() * 0.4 - 0.2))))
 			fat.b = math.max(0, math.min(1, (DATA.culture_get_b(fat_col.primary_culture) + (love.math.random() * 0.4 - 0.2))))
 
-			fat.name = DATA.culture_get_language(fat_col.primary_culture):get_random_realm_name()
+			fat.name = language_utils.get_random_realm_name(DATA.culture_get_language(fat_col.primary_culture))
 
 			realm_utils.explore(new_realm, associated_data.target_province)
 
@@ -954,7 +955,7 @@ function load()
 			---@type Army
 			associated_data = associated_data
 
-			realm_utils.disband_army(REALM(root), associated_data)
+			realm_utils.disband_army(associated_data)
 		end
 	)
 
@@ -973,7 +974,7 @@ function load()
 			---@type Army
 			associated_data = associated_data
 
-			realm_utils.disband_army(REALM(root), associated_data)
+			realm_utils.disband_army(associated_data)
 		end
 	)
 
