@@ -83,9 +83,9 @@ end
 ---@param warband warband_id
 ---@return Realm
 function warband_utils.realm(warband)
-	local leadership = DATA.get_warband_leader_from_warband(warband)
-	if leadership then
-		return REALM(DATA.warband_leader_get_leader(leadership))
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	if leader ~= INVALID_ID then
+		return REALM(leader)
 	else
 		-- TODO
 		local guard_of = DATA.realm_guard_get_realm(DATA.get_realm_guard_from_guard(warband))
