@@ -2,76 +2,88 @@ local ut = require "game.map-modes.utils"
 local tabb = require "engine.table"
 local csu = require "game.map-modes._color-space-utils"
 
-local ev = require "game.raws.values.economical"
+local ev = require "game.raws.values.economy"
+local tile = require "game.entities.tile"
+local province_utils = require "game.entities.province".Province
+local production_utils = require "game.raws.production-methods"
 
 local dem = {}
 
 function dem.culture()
-	for _, p in pairs(WORLD.provinces) do
-		ut.set_default_color(p.center)
-		local e = p:get_dominant_culture()
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		ut.set_default_color(center)
+		local e = province_utils.get_dominant_culture(province)
 		if e ~= nil then
-			p.center:set_real_color(e.r, e.g, e.b)
+			tile.set_real_color(center, DATA.culture_get_r(e), DATA.culture_get_g(e), DATA.culture_get_b(e))
 		end
-	end
+	end)
 end
 
 function dem.faith()
-	for _, p in pairs(WORLD.provinces) do
-		ut.set_default_color(p.center)
-		local e = p:get_dominant_faith()
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		ut.set_default_color(center)
+		local e = province_utils.get_dominant_faith(province)
 		if e ~= nil then
-			p.center:set_real_color(e.r, e.g, e.b)
+			tile.set_real_color(center, DATA.faith_get_r(e), DATA.faith_get_g(e), DATA.faith_get_b(e))
 		end
-	end
+	end)
 end
 
 function dem.race()
-	for _, p in pairs(WORLD.provinces) do
-		ut.set_default_color(p.center)
-		local e = p:get_dominant_race()
-		if e ~= nil then
-			p.center:set_real_color(e.r, e.g, e.b)
+	DATA.for_each_province(function (province)
+		local center = DATA.province_get_center(province)
+		ut.set_default_color(center)
+		local e = province_utils.get_dominant_race(province)
+		if e ~= INVALID_ID then
+			local fat = DATA.fatten_race(e)
+			tile.set_real_color(DATA.province_get_center(province), fat.r, fat.g, fat.b)
 		end
-	end
+	end)
 end
 
 function dem.population()
 	ut.provincial_hue_map_mode(function(province)
-		if (province.size == 0) then return 0 end
-		return math.min(1, province:local_population() / 100)
+		if (DATA.province_get_size(province) == 0) then return 0 end
+		return math.min(1, province_utils.local_population(province) / 100)
 	end)
 end
 
 function dem.population_1000()
 	ut.provincial_hue_map_mode(function(province)
-		if (province.size == 0) then return 0 end
-		return math.min(1, province:local_population() / 1000)
+		if (DATA.province_get_size(province) == 0) then return 0 end
+		return math.min(1, province_utils.local_population(province) / 1000)
 	end)
 end
 
 function dem.population_density()
 	ut.provincial_hue_map_mode(function(province)
-		if (province.size == 0) then return 0 end
-		return math.min(1, math.max(0, province:local_population() - 10) / province.size)
+		if (DATA.province_get_size(province) == 0) then return 0 end
+		return math.min(1, math.max(0, province_utils.local_population(province) / DATA.province_get_size(province)))
 	end)
 end
 
 function dem.military()
 	ut.provincial_hue_map_mode(function(province)
-		return math.max(0, province:military()) / 15
+		return math.max(0, province_utils.military(province)) / 15
 	end)
 end
 
 function dem.military_target()
 	ut.provincial_hue_map_mode(function(province)
-		return math.max(0, province:military_target()) / 15
+		return math.max(0, province_utils.military_target(province)) / 15
 	end)
 end
 
 function dem.technologies()
 	ut.provincial_hue_map_mode(function(province)
-		local count = tabb.size(province.technologies_present)
+		local count = 0
+		DATA.for_each_technology(function (item)
+			if DATA.province_get_technologies_present(province, item) == 1 then
+				count = count + 1
+			end
+		end)
 		return math.max(0, count) / 10
 	end)
 end
@@ -83,66 +95,83 @@ function dem.selected_technology()
 		print("Nil tech")
 		error("Tried to recalculate the selected technology map mode but cached tech is nil!")
 	else
-		print(tt.name)
+		print(DATA.technology_get_description(tt))
 	end
 
 	ut.clear_color_provinces()
 	if tt then
-		for _, prov in pairs(WORLD.provinces) do
-			if prov.is_land and prov.realm then
-				if prov.technologies_present[tt] then
-					prov.center:set_real_color(0, 0, 1)
-				elseif prov.technologies_researchable[tt] then
-					prov.center:set_real_color(0, 1, 1)
+		DATA.for_each_province(function (province)
+			local fat_province = DATA.fatten_province(province)
+			local realm = province_utils.realm(province)
+			if fat_province.is_land and realm ~= INVALID_ID then
+				if DATA.province_get_technologies_present(province, tt) == 1 then
+					tile.set_real_color(fat_province.center, 0, 0, 1)
+				elseif DATA.province_get_technologies_researchable(province, tt) == 1 then
+					tile.set_real_color(fat_province.center, 0, 1, 1)
 				else
-					prov.center:set_real_color(1, 0, 0)
+					tile.set_real_color(fat_province.center, 1, 0, 0)
 				end
 			else
-				ut.set_default_color(prov.center)
+				ut.set_default_color(fat_province.center)
 			end
-		end
+		end)
 	end
 end
 
 ---@type BuildingType?
 CACHED_BUILDING_TYPE = nil
 
-
 function dem.selected_building_efficiency()
 	if CACHED_BUILDING_TYPE == nil then
 		print("Nil tech")
 	else
-		print(CACHED_BUILDING_TYPE.name)
+		print(DATA.building_type_get_name(CACHED_BUILDING_TYPE))
 	end
 
 	ut.clear_color_provinces()
 	if CACHED_BUILDING_TYPE ~= nil then
-		for _, province in pairs(WORLD.provinces) do
-			local eff = CACHED_BUILDING_TYPE.production_method:get_efficiency(province)
+		local method = DATA.building_type_get_production_method(CACHED_BUILDING_TYPE)
+		DATA.for_each_province(function (province)
+			local eff = production_utils.get_efficiency(method, province)
 			local r, g, b = csu.hsv_to_rgb(eff * 90, 0.4, math.min(eff / 3 + 0.2))
-			province.center:set_real_color(r, g, b)
-		end
+			tile.set_real_color(DATA.province_get_center(province), r, g, b)
+		end)
 	end
 end
 
----@type TradeGoodReference?
-HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = nil
+---@type trade_good_id
+HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = INVALID_ID
+---@type use_case_id
+HACKY_MAP_MODE_CONTEXT_USE_CASE = INVALID_ID
 
 function dem.prices()
 	local c = HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY
-	if c ~= nil then
+	if c ~= INVALID_ID then
 		-- calculate stats
 		local total = 0
 		local mean = 0
 
+		print("calculate use prices map mode")
+
 		---@type table<number, Province> | table<Province, Province>
-		local provinces = WORLD.provinces
-		if WORLD.player_character then
-			provinces = WORLD.player_character.realm.known_provinces
+		local provinces = DATA.filter_province(function (item)
+			return true
+		end)
+
+		print("Province_count", tabb.size(provinces))
+
+		print("WORLD.player_character", WORLD.player_character)
+
+		if WORLD.player_character ~= INVALID_ID then
+			local realm = REALM(WORLD.player_character)
+			provinces = DATA.realm_get_known_provinces(realm)
 		end
 
+		print("Province_count", tabb.size(provinces))
+
+
 		for _, province in pairs(provinces) do
-			if province.realm ~= nil then
+			if province_utils.realm(province) ~= INVALID_ID then
 				local price = ev.get_local_price(province, c)
 				total = total + 1
 				mean = mean + price
@@ -153,7 +182,7 @@ function dem.prices()
 
 		local std = 0
 		for _, province in pairs(provinces) do
-			if province.realm ~= nil then
+			if province_utils.realm(province) ~= INVALID_ID then
 				local price = ev.get_local_price(province, c)
 				std = std + (price - mean) * (price - mean)
 			end
@@ -161,17 +190,81 @@ function dem.prices()
 		std = math.sqrt(std / (total - 1)) + 0.001 -- to avoid division by zero
 		print("std of price: ", std)
 
-		for _, province in pairs(WORLD.provinces) do
-			ut.set_default_color(province.center)
-			if province.center.is_land then
-				if province.realm ~= nil then
+		DATA.for_each_province(function (province)
+			local center = DATA.province_get_center(province)
+			ut.set_default_color(center)
+			if DATA.tile_get_is_land(center) then
+				if province_utils.realm(province) ~= INVALID_ID then
 					local price = ev.get_local_price(province, c)
 					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)
 					local normalized = (price - mean) / std
-					ut.hue_from_value(province.center, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
+					ut.hue_from_value(center, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
 				end
 			end
+		end)
+	else
+		print("Nil for " .. tostring(c))
+	end
+end
+
+function dem.use_prices()
+	local c = HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY
+	if c ~= INVALID_ID then
+		-- calculate stats
+		local total = 0
+		local mean = 0
+
+		print("calculate prices map mode")
+
+		---@type table<number, Province> | table<Province, Province>
+		local provinces = DATA.filter_province(function (item)
+			return true
+		end)
+
+		print("Province_count", tabb.size(provinces))
+
+		print("WORLD.player_character", WORLD.player_character)
+
+		if WORLD.player_character ~= INVALID_ID then
+			local realm = REALM(WORLD.player_character)
+			provinces = DATA.realm_get_known_provinces(realm)
 		end
+
+		print("Province_count", tabb.size(provinces))
+
+
+		for _, province in pairs(provinces) do
+			if province_utils.realm(province) ~= INVALID_ID then
+				local price = ev.get_local_price_of_use(province, c)
+				total = total + 1
+				mean = mean + price
+			end
+		end
+		mean = mean / total
+		print("mean of price: ", mean)
+
+		local std = 0
+		for _, province in pairs(provinces) do
+			if province_utils.realm(province) ~= INVALID_ID then
+				local price = ev.get_local_price_of_use(province, c)
+				std = std + (price - mean) * (price - mean)
+			end
+		end
+		std = math.sqrt(std / (total - 1)) + 0.001 -- to avoid division by zero
+		print("std of price: ", std)
+
+		DATA.for_each_province(function (province)
+			local center = DATA.province_get_center(province)
+			ut.set_default_color(center)
+			if DATA.tile_get_is_land(center) then
+				if province_utils.realm(province) ~= INVALID_ID then
+					local price = ev.get_local_price_of_use(province, c)
+					-- ut.hue_from_value(tile, 1 - math.log(1 + (price - mean) / std, 2) / 10)
+					local normalized = (price - mean) / std
+					ut.hue_from_value(center, 0.5 * (1 + normalized / (1 + math.abs(normalized))))
+				end
+			end
+		end)
 	else
 		print("Nil for " .. tostring(c))
 	end

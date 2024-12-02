@@ -1,0 +1,17 @@
+current_type building_type_id
+savings float
+subsidy float=0
+subsidy_last float=0
+income_mean float=0
+last_income float=0
+last_donation_to_owner float=0
+unused float=0
+work_ratio float=1
+input_scale float=1
+production_scale float=1
+output_scale float=1
+spent_on_inputs use_case_container[8]
+earn_from_outputs trade_good_container[8]
+amount_of_inputs use_case_container[8]
+amount_of_outputs trade_good_container[8]
+inventory float[trade_good_id]

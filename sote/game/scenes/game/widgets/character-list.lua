@@ -32,7 +32,7 @@ local function init_state(compact)
 end
 
 local function render_name(rect, k, v)
-    if ut.text_button(v.name, rect) then
+    if ut.text_button(DATA.pop_get_name(v), rect) then
         return v
     end
 end
@@ -41,14 +41,17 @@ local function render_race(rect, k, v)
     ui.centered_text(v.race.name, rect)
 end
 
+---commenting
+---@param pop pop_id
+---@return string
 local function pop_sex(pop)
     local f = "m"
-    if pop.female then f = "f" end
+    if DATA.pop_get_female(pop) then f = "f" end
     return f
 end
 
 ---@param rect Rect
----@param table table<POP, POP>
+---@param table POP[]
 ---@param title string?
 ---@param compact boolean?
 return function(rect, table, title, compact)
@@ -64,7 +67,7 @@ return function(rect, table, title, compact)
     local rest_width = rect.width - portrait_width
     local width_unit = rest_width / 12
     return function()
-        ---@type TableColumn[]
+        ---@type TableColumn<pop_id>[]
         local columns = {
             {
                 header = ".",
@@ -75,7 +78,8 @@ return function(rect, table, title, compact)
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return v.race.name
+                    local race = DATA.pop_get_race(v)
+                    return DATA.race_get_name(race)
                 end
             },
             {
@@ -85,18 +89,18 @@ return function(rect, table, title, compact)
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return v.name
+                    return DATA.pop_get_name(v)
                 end,
                 active = true
             },
             {
                 header = "age",
                 render_closure = function (rect, k, v)
-                    ui.right_text(tostring(v.age), rect)
+                    ui.right_text(tostring(DATA.pop_get_age(v)), rect)
                 end,
                 width = width_unit * 3,
                 value = function(k, v)
-                    return v.age
+                    return DATA.pop_get_age(v)
                 end
             },
             {

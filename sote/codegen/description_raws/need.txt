@@ -1,0 +1,7 @@
+name string
+age_independent bool
+life_need bool
+tool bool can we use satisfaction of this need in calculations related to production
+container bool can we use satisfaction of this need in calculations related to gathering
+time_to_satisfy float Represents amount of time a pop should spend to satisfy a unit of this need.
+job_to_satisfy JOBTYPE represents a job type required to satisfy the need on your own

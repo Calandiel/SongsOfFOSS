@@ -2,9 +2,9 @@ local Event = require "game.raws.events"
 local event_utils = require "game.raws.events._utils"
 local ut = require "game.ui-utils"
 local text = require "game.raws.events._localisation"
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
 return function()
 
@@ -25,6 +25,9 @@ return function()
 
 	Event:new {
 		name = "exploration-help",
+		fallback = function(self, associated_data)
+
+		end,
 		event_text = text.exploration_ask_locals_local,
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
@@ -70,6 +73,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			---@type ExplorationData
 			associated_data = associated_data
@@ -82,17 +88,17 @@ return function()
 			end
 
 			local function outcome_accept()
-				economic_effects.add_pop_savings(character, -price, economic_effects.reasons.Exploration)
-				economic_effects.add_pop_savings(partner, price, economic_effects.reasons.Exploration)
+				economic_effects.add_pop_savings(character, -price, ECONOMY_REASON.EXPLORATION)
+				economic_effects.add_pop_savings(partner, price, ECONOMY_REASON.EXPLORATION)
 				help_outcome(character, associated_data)
 				WORLD:emit_immediate_event("exploration-help-payment-received", partner, associated_data)
 			end
 
-			if price > character.savings then
+			if price > SAVINGS(character) then
 				return {
 					{
 						text = "I do not have enough money",
-						tooltip = "I lack " .. ut.to_fixed_point2(price - character.savings),
+						tooltip = "I lack " .. ut.to_fixed_point2(price - SAVINGS(character)),
 						viable = function() return true end,
 						outcome = outcome_refuse,
 						ai_preference = function() return 1 end
@@ -126,6 +132,9 @@ return function()
 		automatic = false,
 		base_probability = 0,
 		trigger = event_utils.constant_false,
+		fallback = function(self, associated_data)
+
+		end,
 		options = function(self, character, associated_data)
 			---@type ExplorationData
 			associated_data = associated_data

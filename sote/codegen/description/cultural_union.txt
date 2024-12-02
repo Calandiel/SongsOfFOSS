@@ -1,0 +1,2 @@
+link many culture_group culture_group
+link one culture culture

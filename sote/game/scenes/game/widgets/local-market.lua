@@ -3,8 +3,8 @@ local tabb = require "engine.table"
 local ui = require "engine.ui"
 local ut = require "game.ui-utils"
 
-local ev = require "game.raws.values.economical"
-local ef = require "game.raws.effects.economic"
+local ev = require "game.raws.values.economy"
+local ef = require "game.raws.effects.economy"
 local et = require "game.raws.triggers.economy"
 
 local TRADE_AMOUNT = 1
@@ -30,9 +30,9 @@ local function init_state(base_unit)
 end
 
 
----@class ItemData
+---@class (exact) ItemData
 ---@field name string
----@field tag string
+---@field item trade_good_id
 ---@field r number
 ---@field g number
 ---@field b number
@@ -53,7 +53,7 @@ end
 ---@param gam GameScene
 ---@return function
 return function(province, ui_panel, base_unit, gam)
-    ---@type TableColumn[]
+    ---@type TableColumn<ItemData>[]
     local columns = {
         {
             header = ".",
@@ -65,7 +65,7 @@ return function(province, ui_panel, base_unit, gam)
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.tag
+                return v.item
             end
         },
         {
@@ -113,7 +113,12 @@ return function(province, ui_panel, base_unit, gam)
             render_closure = function(rect, k, v)
                 ---@type ItemData
                 v = v
-                ut.sqrt_number_entry("", v.demand or 0, rect)
+                ut.sqrt_number_entry(
+                    "",
+                    v.demand or 0,
+                    rect,
+                    "Demand satisfaction: " .. ut.to_fixed_point2(DATA.province_get_local_satisfaction(province, v.item) * 100) .. "%"
+                )
             end,
             width = base_unit * 4,
             value = function(k, v)
@@ -171,9 +176,9 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
                 local tooltip = "Shows the diffence between buy price in your current position and sell price in selected one"
                 if WORLD.player_character then
-                    local player_province = WORLD.player_character.province
+                    local player_province = WORLD:player_province()
                     if player_province then
-                        local price_at_player = ev.get_local_price(player_province, v.tag)
+                        local price_at_player = ev.get_local_price(player_province, v.item)
                         local data = 1
                         if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 0
@@ -203,9 +208,9 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
 
                 if WORLD.player_character then
-                    local local_province = WORLD.player_character.province
-                    if local_province then
-                        local price_at_player = ev.get_local_price(local_province, v.tag)
+                    local local_province = WORLD:player_province()
+                    if local_province ~= INVALID_ID then
+                        local price_at_player = ev.get_local_price(local_province, v.item)
                         local data = 1
                         if price_at_player == 0 and (v.sell_price or 0) == 0 then
                             data = 1
@@ -241,67 +246,76 @@ return function(province, ui_panel, base_unit, gam)
         },
         {
             header = "Buy " .. TRADE_AMOUNT,
+            ---commenting
+            ---@param rect Rect
+            ---@param k any
+            ---@param v ItemData
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character == nil then
+                if player_character == INVALID_ID then
                     return
                 end
 
                 ---@type string
                 local tooltip = "Buy " .. tostring(TRADE_AMOUNT) .. ". \n"
 
-                local valid_province = player_character.province == province
+                local valid_province = WORLD:player_province() == province
                 if not valid_province then
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
-                local can_buy, reasons = et.can_buy(player_character, v.tag, TRADE_AMOUNT)
+                local can_buy, reasons = et.can_buy(player_character, v.item, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
+                    ---@type string
                     tooltip = tooltip .. reason .. "\n"
                 end
 
                 if ut.text_button("+", rect, tooltip, can_buy and valid_province) then
-                    ef.buy(player_character, v.tag, TRADE_AMOUNT)
+                    ef.buy(player_character, v.item, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.tag
+                return v.item
             end,
             active = true
         },
         {
             header = "Sell " .. TRADE_AMOUNT,
+            ---@param rect Rect
+            ---@param k any
+            ---@param v ItemData
             render_closure = function (rect, k, v)
                 local player_character = WORLD.player_character
-                if player_character == nil then
+                if player_character == INVALID_ID then
                     return
                 end
 
                 ---@type string
                 local tooltip = "Sell " .. tostring(TRADE_AMOUNT) .. ". \n"
 
-                local valid_province = player_character.province == province
+                local valid_province = WORLD:player_province() == province
                 if not valid_province then
                     tooltip = tooltip .. "You are too far away \n"
                 end
 
-                local can_buy, reasons = et.can_sell(player_character, v.tag, TRADE_AMOUNT)
+                local can_buy, reasons = et.can_sell(player_character, v.item, TRADE_AMOUNT)
                 for _, reason in pairs(reasons) do
+                    ---@type string
                     tooltip = tooltip .. reason .. "\n"
                 end
 
                 if ut.text_button("-", rect, tooltip, can_buy and valid_province) then
-                    ef.sell(player_character, v.tag, TRADE_AMOUNT)
+                    ef.sell(player_character, v.item, TRADE_AMOUNT)
                 end
             end,
             width = base_unit * 2,
             value = function(k, v)
                 ---@type ItemData
                 v = v
-                return v.tag
+                return v.item
             end,
             active = true
         },
@@ -326,7 +340,7 @@ return function(province, ui_panel, base_unit, gam)
                 v = v
 
                 if ut.icon_button(ASSETS.icons['mesh-ball.png'], rect, "Show price on map") then
-                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.tag
+                    HACKY_MAP_MODE_CONTEXT_TRADE_CATEGORY = v.item
                     gam.update_map_mode("prices")
                 end
             end,
@@ -348,10 +362,6 @@ return function(province, ui_panel, base_unit, gam)
         ---@type table<string, ItemData>
         local data_blob = {}
 
-        local consumption = province.local_consumption
-        local production = province.local_production
-        local demand = province.local_demand
-
         local character = WORLD.player_character
 
         if ui.is_key_held("lshift") or ui.is_key_held("rshift") then
@@ -362,22 +372,27 @@ return function(province, ui_panel, base_unit, gam)
             TRADE_AMOUNT = 1
         end
 
-        for good_reference, good in pairs(RAWS_MANAGER.trade_goods_by_name) do
-            local good_supply = production[good_reference] or 0
-            local good_demand = demand[good_reference] or 0
-            local good_consumption = consumption[good_reference] or 0
+        for good_name, good_id in pairs(RAWS_MANAGER.trade_goods_by_name) do
+            local good_supply = DATA.province_get_local_production(province, good_id)
+            local good_demand = DATA.province_get_local_demand(province, good_id)
+            local good_consumption = DATA.province_get_local_consumption(province, good_id)
             local inventory = 0
-            if character then
-                inventory = character.inventory[good_reference] or 0
+            if character ~= INVALID_ID then
+                inventory =  DATA.pop_get_inventory(character, good_id)
             end
-            if inventory > 0 or good_supply > 0 or good_consumption > 0
-                or (province.local_storage[good_reference] or 0) > 0
+            local local_storage = DATA.province_get_local_storage(province, good_id)
+            if
+                inventory > 0
+                or good_supply > 0
+                or good_consumption > 0
+                or local_storage > 0
+                or good_demand > 0
             then
-                data_blob[good_reference] = {
-                    data = good,
+                local good = DATA.fatten_trade_good(good_id)
+                data_blob[good_name] = {
                     name = good.description,
                     icon = good.icon,
-                    tag = good.name,
+                    item = good.id,
                     r = good.r,
                     g = good.g,
                     b = good.b,
@@ -385,9 +400,9 @@ return function(province, ui_panel, base_unit, gam)
                     demand = good_demand,
                     consumption = good_consumption,
                     balance = good_supply - good_consumption,
-                    stockpile = province.local_storage[good_reference] or 0,
-                    buy_price = ev.get_local_price(province, good_reference),
-                    sell_price = ev.get_pessimistic_local_price(province, good_reference, TRADE_AMOUNT, true),
+                    stockpile = local_storage,
+                    buy_price = ev.get_local_price(province, good_id),
+                    sell_price = ev.get_pessimistic_local_price(province, good_id, TRADE_AMOUNT, true),
                     inventory = inventory
                 }
             end

@@ -1,0 +1,13 @@
+name string="Warband"
+guard_of Realm?
+units_current float[unit_type_id] Current distribution of units in the warband
+units_target float[unit_type_id] Units to recruit
+current_status WARBAND_STATUS
+idle_stance WARBAND_STANCE
+current_free_time_ratio float=1.0 How much of "idle" free time they are actually idle. Set by events.
+treasury float=0
+total_upkeep float=0.0
+predicted_upkeep float=0.0
+supplies float=0.0
+supplies_target_days float=60
+morale float=0.5

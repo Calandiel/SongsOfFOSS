@@ -1,0 +1,2 @@
+use use_case_id
+amount float

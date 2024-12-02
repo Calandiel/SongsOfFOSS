@@ -1,0 +1,25 @@
+unique_id uint32_t
+race race_id
+faith faith_id
+culture culture_id
+age uint32_t
+name string
+traits TRAIT[10]
+need_satisfaction need_satisfaction[20]
+inventory float[trade_good_id]
+price_memory float[trade_good_id]
+savings float
+life_needs_satisfaction float from 0 to 1
+basic_needs_satisfaction float from 0 to 1
+pending_economy_income float
+forage_ratio float a number in (0, 1) interval representing a ratio of time pop spends to forage
+work_ratio float a number in (0, 1) interval representing a ratio of time workers spend on a job compared to maximal
+spend_savings_ratio float a number in (0, 1) interval representing a ratio of savings pop spends on satisfaction of needs
+female bool
+busy bool
+former_pop bool
+dead bool
+free_will bool
+is_player bool
+rank CHARACTER_RANK
+dna float[20]

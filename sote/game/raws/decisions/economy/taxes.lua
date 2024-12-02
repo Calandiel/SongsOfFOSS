@@ -3,6 +3,8 @@ local tabb = require "engine.table"
 local path = require "game.ai.pathfinding"
 
 local character_values = require "game.raws.values.character"
+local diplomacy_values = require "game.raws.values.diplomacy"
+
 local office_triggers = require "game.raws.triggers.offices"
 
 return function ()
@@ -11,7 +13,7 @@ return function ()
 		name = 'collect-tribute',
 		ui_name = "Collect tribute",
 		tooltip = function(root, primary_target)
-			if root.busy then
+			if DATA.pop_get_busy(root) then
 				return "I am too busy to do it."
 			end
 			return "Time to visit our tributary."
@@ -21,40 +23,28 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 25,
 		pretrigger = function(root)
-			if root.busy then return false end
-			if not office_triggers.tribute_collector(root, root.realm) then return false end
+			if DATA.pop_get_busy(root) then return false end
+			if not office_triggers.tribute_collector(root, REALM(root)) then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if primary_target.realm == nil then
-				return false
-			end
-			if primary_target.realm.paying_tribute_to[root.realm] == nil then
-				return false
-			end
-			return true
+			return diplomacy_values.province_pays_taxes(REALM(root), primary_target)
 		end,
 		available = function(root, primary_target)
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			return primary_target.realm.budget.tribute.budget / 10
+			return DATA.realm_get_budget_budget(PROVINCE_REALM(primary_target), BUDGET_CATEGORY.TRIBUTE) / 20
 		end,
 		ai_targetting_attempts = 2,
 		ai_target = function(root)
-			local p = root.province
-			if p then
-				-- Once you target a province, try selecting a random neighbor
-				local s = tabb.size(p.neighbors)
-				---@type Province
-				local ne = tabb.nth(p.neighbors, love.math.random(s))
-				if ne then
-					if ne.realm and ne.realm ~= p.realm then
-						return ne.realm.capitol, true
-					end
-				end
+			local target = diplomacy_values.sample_tributary(REALM(root))
+
+			if target == nil then
+				return nil, false
 			end
-			return nil, false
+
+			return CAPITOL(target), true
 		end,
 		ai_secondary_target = function(root, primary_target)
 			--print("ais")
@@ -63,22 +53,22 @@ return function ()
 		effect = function(root, primary_target, secondary_target)
 			local travel_time, _ = path.hours_to_travel_days(
 				path.pathfind(
-					root.realm.capitol,
-					primary_target.realm.capitol,
-					character_values.travel_speed_race(root.realm.primary_race),
-					root.realm.known_provinces
+					CAPITOL(REALM(root)),
+					primary_target,
+					character_values.travel_speed_race(RACE(root)),
+					DATA.realm_get_known_provinces(REALM(root))
 				)
 			)
 			if travel_time == math.huge then
 				travel_time = 150
 			end
 
-			root.busy = true
+			DATA.pop_set_busy(root, true)
 
 			---@type TributeCollection
 			local associated_data = {
-				origin = root.realm,
-				target = primary_target.realm,
+				origin = REALM(root),
+				target = PROVINCE_REALM(primary_target),
 				tribute = 0,
 				travel_time = travel_time,
 				trade_goods_tribute = {}
@@ -100,7 +90,7 @@ return function ()
 		name = 'collect-tax',
 		ui_name = "Collect tax from local province",
 		tooltip = function(root, primary_target)
-			if root.busy then
+			if BUSY(root) then
 				return "I am too busy to do it."
 			end
 			return "Time to visit collect some taxes."
@@ -110,12 +100,14 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 2,
 		pretrigger = function(root)
-			if root.busy then return false end
-			if not office_triggers.tribute_collector(root, root.realm) then return false end
+			if BUSY(root) then return false end
+			if not office_triggers.tribute_collector(root, REALM(root)) then return false end
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			return root.realm.tax_target - root.realm.tax_collected_this_year
+			local tax_target = DATA.realm_get_budget_tax_target(REALM(root))
+			local tax_collected = DATA.realm_get_budget_tax_collected_this_year(REALM(root))
+			return tax_target - tax_collected
 		end,
 		ai_targetting_attempts = 2,
 		ai_target = function(root)
@@ -126,7 +118,7 @@ return function ()
 			return nil, true
 		end,
 		effect = function(root, primary_target, secondary_target)
-			root.busy = true
+			SET_BUSY(root)
 
 			WORLD:emit_event(
 				'tax-collection-1',

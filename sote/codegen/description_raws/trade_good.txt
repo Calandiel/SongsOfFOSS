@@ -1,0 +1,9 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+belongs_to_category TRADE_GOOD_CATEGORY
+base_price float
+decay float

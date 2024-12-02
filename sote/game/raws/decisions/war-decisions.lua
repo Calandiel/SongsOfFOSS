@@ -1,6 +1,7 @@
 local Decision = require "game.raws.decisions"
 local utils = require "game.raws.raws-utils"
-local TRAIT = require "game.raws.traits.generic"
+
+local warband_utils = require "game.entities.warband"
 
 local function load()
 
@@ -9,7 +10,12 @@ local function load()
 		name = 'take-up-command-warband',
 		ui_name = "Take command of my warband",
 		tooltip = function(root, primary_target)
-			if root.recruiter_for_warband and root.recruiter_for_warband.leader and root ~= root.recruiter_for_warband.leader then
+			local candidate_warband = RECRUITER_OF_WARBAND(root)
+			if
+				candidate_warband ~= INVALID_ID
+				and WARBAND_LEADER(candidate_warband) ~= INVALID_ID
+				and root ~= WARBAND_LEADER(candidate_warband)
+			then
 				return "Since I am not the leader, I must seek permission to take up command of this warband."
 			end
 			return "I have decided take up command of my warband."
@@ -19,28 +25,47 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if root.busy then return false end
-			if not root.recruiter_for_warband and not root.leading_warband then return false end
-			if root.unit_of_warband then return false end
+			if BUSY(root) then return false end
+			if RECRUITER_OF_WARBAND(root) == INVALID_ID and LEADER_OF_WARBAND(root) == INVALID_ID then return false end
+			if UNIT_OF(root) ~= INVALID_ID then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if (not root.recruiter_for_warband and not root.leading_warband) or root.unit_of_warband then return false end
+			if
+				(RECRUITER_OF_WARBAND(root) == INVALID_ID and LEADER_OF_WARBAND(root) == INVALID_ID)
+				or UNIT_OF(root) ~= INVALID_ID
+			then
+				return false
+			end
 			return true
 		end,
 		available = function(root, primary_target)
-			if root.recruiter_for_warband and root.recruiter_for_warband.leader and root ~= root.recruiter_for_warband.leader then return false end
+			local candidate_warband = RECRUITER_OF_WARBAND(root)
+			if
+				candidate_warband ~= INVALID_ID
+				and WARBAND_LEADER(candidate_warband) ~= INVALID_ID
+				and root ~= WARBAND_LEADER(candidate_warband)
+			then
+				return false
+			end
 			return true
 		end,
 		ai_secondary_target = function(root, primary_target)
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.traits[TRAIT.WARLIKE] or root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.HARDWORKER] then
+			if
+				HAS_TRAIT(root, TRAIT.WARLIKE)
+				or HAS_TRAIT(root, TRAIT.AMBITIOUS)
+				or HAS_TRAIT(root, TRAIT.HARDWORKER)
+			then
 				return 1
 			end
 
-			if root.traits[TRAIT.CONTENT] or root.traits[TRAIT.LAZY] then
+			if
+				HAS_TRAIT(root, TRAIT.CONTENT)
+				or HAS_TRAIT(root, TRAIT.LAZY)
+			then
 				return 0
 			end
 
@@ -48,9 +73,9 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			-- for right now, one or the other
-			local warband = root.leading_warband
-			if not warband then
-				warband = root.recruiter_for_warband
+			local warband = LEADER_OF_WARBAND(root)
+			if warband == INVALID_ID then
+				warband = RECRUITER_OF_WARBAND(root)
 			end
 			WORLD:emit_immediate_event("pick-commander-unit", root, warband)
 		end
@@ -66,13 +91,13 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if root.busy then return false end
-			if not root.unit_of_warband then return false end
-			if root ~= root.unit_of_warband.commander then return false end
+			if BUSY(root) then return false end
+			if UNIT_OF(root) == INVALID_ID then return false end
+			if root ~= WARBAND_COMMANDER(UNIT_OF(root)) then return false end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if not root.unit_of_warband then return false end
+			if UNIT_OF(root) == INVALID_ID then return false end
 			return true
 		end,
 		available = function(root, primary_target)
@@ -83,11 +108,11 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.traits[TRAIT.WARLIKE] or root.traits[TRAIT.AMBITIOUS] or root.traits[TRAIT.HARDWORKER] then
+			if HAS_TRAIT(root, TRAIT.WARLIKE) or HAS_TRAIT(root, TRAIT.AMBITIOUS) or HAS_TRAIT(root, TRAIT.HARDWORKER) then
 				return 0
 			end
 
-			if root.traits[TRAIT.CONTENT] or root.traits[TRAIT.LAZY] then
+			if HAS_TRAIT(root, TRAIT.CONTENT) or HAS_TRAIT(root, TRAIT.LAZY) then
 				return 1
 			end
 
@@ -95,15 +120,14 @@ local function load()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			-- commander is always a unit
-			local warband = root.unit_of_warband
-			warband:unset_commander()
+			warband_utils.unset_commander(UNIT_OF(root))
 		end
 	}
 
 	for _, unit in pairs(RAWS_MANAGER.unit_types_by_name) do
 		Decision.Character:new {
-			name = 'recruit-' .. unit.name,
-			ui_name = "(AI) Recruit " .. unit.name,
+			name = 'recruit-' .. DATA.unit_type_get_name(unit),
+			ui_name = "(AI) Recruit " .. DATA.unit_type_get_name(unit),
 			tooltip = utils.constant_string("I will hire a new unit."),
 			sorting = 5,
 			primary_target = "none",
@@ -117,12 +141,12 @@ local function load()
 						return false
 					end
 				end
-
-				local warband = root.recruiter_for_warband
+				local recruiter = DATA.get_warband_recruiter_from_recruiter(root)
+				local warband = DATA.warband_recruiter_get_warband(recruiter)
 				if warband == nil then
 					return false
 				end
-				if (warband.units_current[unit] or 0) < (warband.units_target[unit] or 0) then
+				if DATA.warband_get_units_current(warband, unit) <  DATA.warband_get_units_target(warband, unit) then
 					return false
 				end
 
@@ -145,31 +169,33 @@ local function load()
 				return nil, true
 			end,
 			ai_will_do = function(root, primary_target, secondary_target)
-				local warband = root.recruiter_for_warband
-				if warband == nil then
+				local warband = RECRUITER_OF_WARBAND(root)
+				if warband == INVALID_ID then
 					return 0
 				end
 
-				local predicted_upkeep = warband:predict_upkeep() + unit.upkeep
+				local predicted_upkeep = warband_utils.predict_upkeep(warband) + DATA.unit_type_get_upkeep(unit)
 
-				if warband.treasury < predicted_upkeep * 12 * 5 then
+				if DATA.warband_get_treasury(warband) < predicted_upkeep * 12 * 5 then
 					return 0
 				end
 
-				return root.culture.traditional_units[unit.name]
+				local culture = DATA.pop_get_culture(root)
+				return DATA.culture_get_traditional_units(culture, unit)
 			end,
 			effect = function(root, primary_target, secondary_target)
-				local warband = root.recruiter_for_warband
-				if warband == nil then
+				local warband = RECRUITER_OF_WARBAND(root)
+				if warband == INVALID_ID then
 					return
 				end
-				warband.units_target[unit] = (warband.units_target[unit] or 0) + 1
+
+				DATA.warband_inc_units_target(warband, unit, 1)
 			end
 		}
 
 		Decision.Character:new {
-			name = 'fire-' .. unit.name,
-			ui_name = "Fire " .. unit.name,
+			name = 'fire-' .. DATA.unit_type_get_name(unit),
+			ui_name = "Fire " .. DATA.unit_type_get_name(unit),
 			tooltip = utils.constant_string("I will fire a unit."),
 			sorting = 5,
 			primary_target = "none",
@@ -184,11 +210,11 @@ local function load()
 					end
 				end
 
-				local warband = root.recruiter_for_warband
-				if warband == nil then
+				local warband = RECRUITER_OF_WARBAND(root)
+				if warband == INVALID_ID then
 					return false
 				end
-				if (warband.units_target[unit] or 0) == 0 then
+				if DATA.warband_get_units_target(warband, unit) == 0 then
 					return false
 				end
 				return true
@@ -210,25 +236,26 @@ local function load()
 				return nil, true
 			end,
 			ai_will_do = function(root, primary_target, secondary_target)
-				local warband = root.recruiter_for_warband
-				if warband == nil then
+				local warband = RECRUITER_OF_WARBAND(root)
+				if warband == INVALID_ID then
 					return 0
 				end
 
-				local predicted_upkeep = warband:predict_upkeep()
+				local predicted_upkeep = warband_utils.predict_upkeep(warband)
 
-				if warband.treasury / 12 > predicted_upkeep * 2 then
+				if DATA.warband_get_treasury(warband) / 12 > predicted_upkeep * 2 then
 					return 0
 				end
 
-				return 1 - root.culture.traditional_units[unit.name]
+				local culture = DATA.pop_get_culture(root)
+				return 1 - DATA.culture_get_traditional_units(culture, unit)
 			end,
 			effect = function(root, primary_target, secondary_target)
-				local warband = root.recruiter_for_warband
-				if warband == nil then
+				local warband = RECRUITER_OF_WARBAND(root)
+				if warband == INVALID_ID then
 					return
 				end
-				warband.units_target[unit] = (warband.units_target[unit] or 0) - 1
+				DATA.warband_inc_units_target(warband, unit, -1)
 			end
 		}
 	end

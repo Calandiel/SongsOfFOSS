@@ -23,6 +23,8 @@ function utils.notification_event(name, text, option_name, tooltip, effect)
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function (self, associated_data)
+        end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -66,10 +68,10 @@ function utils.option_stop(text, tooltip, ai_preference, root)
 			return ai_preference
 		end,
 		outcome = function ()
-			root.busy = false
+			UNSET_BUSY(root)
 
-			if root.leading_warband then
-				root.leading_warband.current_free_time_ratio = 1.0
+			if LEADER_OF_WARBAND(root) ~= INVALID_ID then
+				DATA.warband_set_current_free_time_ratio(LEADER_OF_WARBAND(root), 1.0)
 			end
 		end
 	}

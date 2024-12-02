@@ -1,32 +1,53 @@
-local economic_effects = require "game.raws.effects.economic"
+local building_utils = require "game.entities.building".Building
+local province_utils = require "game.entities.province".Province
+
+local economic_effects = require "game.raws.effects.economy"
 local upk = {}
 
 ---Runs upkeep on buildings in a province and destroys buildings if upkeep needs aren't met!
----@param province Province
-function upk.run(province)
+---@param province_id province_id
+function upk.run(province_id)
+	---#logging LOGS:write("province upkeep " .. tostring(province_id).."\n")
+	---#logging LOGS:flush()
+
+	local province = DATA.fatten_province(province_id)
 	province.local_building_upkeep = 0
 
-	---@type table<POP, number>
+	local local_realm = province_utils.realm(province_id)
+	assert(local_realm ~= INVALID_ID)
+
+	---@type table<pop_id, number>
 	local upkeep_owners = {}
 	local government_upkeep = 0
 
-	for _, building in pairs(province.buildings) do
-		local up = building.type.upkeep
+	---@type building_id[]
+	local building_to_remove = {}
 
-		if building.type.government then
+	for _, building_location in pairs(DATA.get_building_location_from_location(province_id)) do
+		local building = DATA.building_location_get_building(building_location)
+		local fat = DATA.fatten_building(building)
+		local building_type = fat.current_type
+		local fat_type = DATA.fatten_building_type(building_type)
+
+		local up = fat_type.upkeep
+
+		if fat_type.government then
 			government_upkeep = government_upkeep + up
 			-- Destroy this building if necessary...
-			if province.realm.budget.treasury < 0 then
+			local budget = DATA.realm_get_budget_treasury(local_realm)
+			if budget < 0 then
 				if love.math.random() < 0.1 then
-					building:remove_from_province()
+					table.insert(building_to_remove, building)
 				end
 			end
 		else
-			if building.owner == nil then
+			local ownership = DATA.get_ownership_from_building(building)
+			local owner = DATA.ownership_get_owner(ownership)
+			if owner == INVALID_ID then
 				economic_effects.change_local_wealth(
-					province,
+					province_id,
 					-up,
-					economic_effects.reasons.Upkeep
+					ECONOMY_REASON.UPKEEP
 				)
 				province.local_building_upkeep = province.local_building_upkeep + up
 
@@ -34,17 +55,18 @@ function upk.run(province)
 				if province.local_wealth < 0 then
 					province.local_wealth = 0
 					if love.math.random() < 0.1 then
-						building:remove_from_province()
+						table.insert(building_to_remove, building)
 					end
 				end
 			else
-				if upkeep_owners[building.owner] == nil then
-					upkeep_owners[building.owner] = 0
+				if upkeep_owners[owner] == nil then
+					upkeep_owners[owner] = 0
 				end
-				upkeep_owners[building.owner] = upkeep_owners[building.owner] + up
-				if building.owner.savings < upkeep_owners[building.owner] then
+				upkeep_owners[owner] = upkeep_owners[owner] + up
+				local savings = DATA.pop_get_savings(owner)
+				if savings < upkeep_owners[owner] then
 					if love.math.random() < 0.1 then
-						building:remove_from_province()
+						table.insert(building_to_remove, building)
 					end
 				end
 			end
@@ -52,10 +74,14 @@ function upk.run(province)
 	end
 
 	for owner, upkeep in pairs(upkeep_owners) do
-		economic_effects.add_pop_savings(owner, -upkeep, economic_effects.reasons.Upkeep)
+		economic_effects.add_pop_savings(owner, -upkeep, ECONOMY_REASON.UPKEEP)
 	end
 
-	economic_effects.change_treasury(province.realm, -government_upkeep, economic_effects.reasons.Upkeep)
+	for _, item in pairs(building_to_remove) do
+		building_utils.remove_from_province(item)
+	end
+
+	economic_effects.change_treasury(local_realm, -government_upkeep, ECONOMY_REASON.UPKEEP)
 end
 
 return upk

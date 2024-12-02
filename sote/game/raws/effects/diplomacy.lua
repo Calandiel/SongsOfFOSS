@@ -1,5 +1,6 @@
-local economy_effects = require "game.raws.effects.economic"
-local politics_effects = require "game.raws.effects.political"
+local economy_effects = require "game.raws.effects.economy"
+local politics_effects = require "game.raws.effects.politics"
+local realm_utils = require "game.entities.realm".Realm
 
 local effects = {}
 
@@ -7,46 +8,54 @@ local effects = {}
 ---@param overlord Realm
 ---@param tributary Realm
 function effects.set_tributary(overlord, tributary)
-	if overlord.paying_tribute_to[tributary] then
-		overlord.paying_tribute_to[tributary] = nil
-		tributary.tributaries[overlord] = nil
+
+	local tributary_is_overlord_of_overlord = false
+	local to_delete = INVALID_ID
+
+	DATA.for_each_realm_subject_relation_from_subject(overlord, function (item)
+		local overlord_of_overlord = DATA.realm_subject_relation_get_overlord(item)
+
+		if overlord_of_overlord == tributary then
+			to_delete = item
+		end
+	end)
+
+	if to_delete ~= INVALID_ID then
+		DATA.delete_realm_subject_relation(to_delete)
 	end
 
-	tributary.paying_tribute_to[overlord] = overlord
-	overlord.tributaries[tributary] = tributary
+	local new_rel = DATA.force_create_realm_subject_relation(overlord, tributary)
+	DATA.realm_subject_relation_set_wealth_transfer(new_rel, true)
 
-	overlord.tributary_status[tributary] = {
-		warriors_contribution = false,
-		wealth_transfer = true,
-		goods_transfer = false,
-		local_ruler = false,
-		protection = false
-	}
+	realm_utils.explore(overlord, CAPITOL(tributary))
 
-	for k, v in pairs(tributary.provinces) do
-		overlord:explore(v)
-	end
+	DATA.province_inc_mood(CAPITOL(tributary), -0.05)
+	DATA.province_inc_mood(CAPITOL(overlord), -0.05)
 
-	tributary.capitol.mood = tributary.capitol.mood - 0.05
-	overlord.capitol.mood = overlord.capitol.mood + 0.05
 
 	if WORLD:does_player_see_realm_news(overlord) then
-		WORLD:emit_notification(tributary.name .. " now pays tribute to our tribe! Our people are rejoicing!")
+		WORLD:emit_notification(REALM_NAME(tributary) .. " now pays tribute to our tribe! Our people are rejoicing!")
 	end
 
 	if WORLD:does_player_see_realm_news(tributary) then
-		WORLD:emit_notification("Our tribe now pays tribute to " .. overlord.name .. ". Outrageous!")
+		WORLD:emit_notification("Our tribe now pays tribute to " .. REALM_NAME(overlord) .. ". Outrageous!")
 	end
 
-	local reward_overlord = overlord.quests_raid[tributary] or 0
-	overlord.quests_raid[tributary.capitol] = 0
-	overlord.quests_patrol[tributary.capitol] = (overlord.quests_patrol[tributary.capitol] or 0) + reward_overlord
+	-- clean up raiding rewards
 
-	local reward_tributary = tributary.quests_raid[tributary] or 0
-	tributary.quests_raid[overlord.capitol] = 0
-	tributary.quests_patrol[tributary.capitol] = (tributary.quests_patrol[tributary.capitol] or 0) + reward_tributary
 
-	for _, item in pairs(overlord.known_provinces) do
+
+	local old_reward_raid_overlord = DATA.realm_get_quests_raid(overlord)[CAPITOL(tributary)] or 0
+	local old_patrol_reward_overlord = DATA.realm_get_quests_patrol(overlord)[CAPITOL(tributary)] or 0
+	DATA.realm_get_quests_raid(overlord)[CAPITOL(tributary)] = 0
+	DATA.realm_get_quests_patrol(overlord)[CAPITOL(tributary)] = old_patrol_reward_overlord + old_reward_raid_overlord
+
+	local old_reward_raid_tributary = DATA.realm_get_quests_raid(tributary)[CAPITOL(overlord)] or 0
+	local old_patrol_reward_tributary = DATA.realm_get_quests_patrol(overlord)[CAPITOL(tributary)] or 0
+	DATA.realm_get_quests_raid(tributary)[CAPITOL(overlord)] = 0
+	DATA.realm_get_quests_patrol(overlord)[CAPITOL(overlord)] = old_patrol_reward_tributary + old_reward_raid_tributary
+
+	for _, item in pairs(DATA.realm_get_known_provinces(overlord)) do
 		WORLD.provinces_to_update_on_map[item] = item
 	end
 	WORLD.realms_changed = true
@@ -56,51 +65,37 @@ end
 ---@param overlord Realm
 ---@param tributary Realm
 function effects.unset_tributary(overlord, tributary)
-	for _, item in pairs(overlord.known_provinces) do
+	local to_delete = INVALID_ID
+
+	DATA.for_each_realm_subject_relation_from_subject(tributary, function (item)
+		local overlord_of_tributary = DATA.realm_subject_relation_get_overlord(item)
+
+		if overlord_of_tributary == overlord then
+			to_delete = item
+		end
+	end)
+
+	if to_delete ~= INVALID_ID then
+		DATA.delete_realm_subject_relation(to_delete)
+	end
+
+	for _, item in pairs(DATA.realm_get_known_provinces(overlord)) do
 		WORLD.provinces_to_update_on_map[item] = item
 	end
 	WORLD.realms_changed = true
-
-	overlord.tributaries[tributary] = nil
-	overlord.tributary_status[tributary] = nil
-	tributary.paying_tribute_to[overlord] = nil
 end
-
----Clears diplomatic relationships of the realms
----@param realm Realm
-function effects.clear_diplomacy(realm)
-	for _, item in pairs(realm.known_provinces) do
-		WORLD.provinces_to_update_on_map[item] = item
-	end
-	WORLD.realms_changed = true
-
-	for _, tributary_realm in pairs(realm.tributaries) do
-		tributary_realm.paying_tribute_to[realm] = nil
-	end
-	for _, overlord_realm in pairs(realm.paying_tribute_to) do
-		overlord_realm.tributaries[realm] = nil
-		overlord_realm.tributary_status[realm] = nil
-	end
-
-	realm.paying_tribute_to = {}
-	realm.tributaries = {}
-end
-
 
 ---Clears realm and its diplomatic status.
 ---Does not handle characters because it's very context-dependent
 ---and it's better to do it separately
 ---@param realm Realm
 function effects.dissolve_realm_and_clear_diplomacy(realm)
-	for _, item in pairs(realm.known_provinces) do
+	for _, item in pairs(DATA.realm_get_known_provinces(realm)) do
 		WORLD.provinces_to_update_on_map[item] = item
 	end
 	WORLD.realms_changed = true
 
-	effects.clear_diplomacy(realm)
 	politics_effects.dissolve_realm(realm)
-
-
 end
 
 return effects

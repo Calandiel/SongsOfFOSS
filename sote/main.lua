@@ -32,6 +32,8 @@ VERSION_STRING = "v0.3.0 (Midgard)"
 
 SILENT_ASSET_LOADING = false
 
+require "codegen.output.manager"
+
 --if WORLD == nil then
 ---@type World|nil
 WORLD = nil
@@ -88,8 +90,8 @@ function PROFILER.clear(self)
 	end
 end
 
--- LOGS = love.filesystem.newFile("logs.txt")
--- LOGS:open("w")
+LOGS = love.filesystem.newFile("logs.txt")
+LOGS:open("w")
 
 --- this constant is used in vegetation growth
 --- vegetation = old_vegetation * (1 - VEGETATION_GROWTH) + ideal_vegetation * VEGETATION_GROWTH
@@ -103,37 +105,18 @@ DISPLAY_INCOME_OWNER_RATIO = 0
 local bs = require "engine.bitser"
 -- Extra classes
 bs.registerClass('Queue', require "engine.queue")
--- Raws
-bs.registerClass("Bedrock", require "game.raws.bedrocks")
-bs.registerClass("BiogeographicRealm", require "game.raws.biogeographic-realms")
-bs.registerClass("Biome", require "game.raws.biomes")
-bs.registerClass("BuildingType", require "game.raws.building-types")
-bs.registerClass("Job", require "game.raws.jobs")
-bs.registerClass("ProductionMethod", require "game.raws.production-methods")
-bs.registerClass("Race", require "game.raws.race")
-bs.registerClass("UnitType", require "game.raws.unit-types")
-bs.registerClass("Resource", require "game.raws.resources")
-bs.registerClass("Technology", require "game.raws.technologies")
-bs.registerClass("TradeGood", require "game.raws.trade-goods")
-bs.registerClass("TradeGoodUseCase", require "game.raws.trade-goods-use-case")
--- Entities
-bs.registerClass("Building", require "game.entities.building".Building)
-bs.registerClass("ClimateCell", require "game.entities.climate-cell".ClimateCell)
-bs.registerClass("Culture", require "game.entities.culture".Culture)
-bs.registerClass("CultureGroup", require "game.entities.culture".CultureGroup)
-bs.registerClass("Language", require "game.entities.language".Language)
-bs.registerClass("Plate", require "game.entities.plate".Plate)
-bs.registerClass("POP", require "game.entities.pop".POP)
-bs.registerClass("Province", require "game.entities.province".Province)
-bs.registerClass("Realm", require "game.entities.realm".Realm)
-bs.registerClass("Religion", require "game.entities.religion".Religion)
-bs.registerClass("Faith", require "game.entities.religion".Faith)
-bs.registerClass("Tile", require "game.entities.tile".Tile)
-bs.registerClass("World", require "game.entities.world".World)
-bs.registerClass("Warband", require "game.entities.warband")
-bs.registerClass('Army', require "game.entities.army")
 
-local lovetest = require "test/lovetest"
+-- bs.registerClass("BiogeographicRealm", require "game.raws.biogeographic-realms")
+-- bs.registerClass("Biome", require "game.raws.biomes")
+-- Entities
+-- bs.registerClass("ClimateCell", require "game.entities.climate-cell".ClimateCell)
+-- bs.registerClass("CultureGroup", require "game.entities.culture".CultureGroup)
+-- bs.registerClass("Language", require "game.entities.language".Language)
+-- bs.registerClass("Religion", require "game.entities.religion".Religion)
+-- bs.registerClass("World", require "game.entities.world".World)
+
+local lovetest = require "test.lovetest"
+
 
 function love.load(args)
 	tab.print(args)
@@ -149,6 +132,8 @@ Songs of the Eons, version ]] .. VERSION_STRING .. [[
 Possible command line arguments:
 -h/-help/--h/--help -- displays this message
 --dev -- dev mode, uses the default world and ignores options, even if they exist
+--nopreload -- disables preloading of map modes
+--simpletests -- runs a few sanity tests
 --windowed -- starts in windowed mode, regardless of settings
 ]])
 		love.event.quit()
@@ -166,9 +151,23 @@ Possible command line arguments:
 		print("\n")
 	end
 
+	if (tab.contains(ARGS, "--simpletests")) then
+		print("RUNNING TESTS")
+		require "simple-tests.main"()
+		love.event.quit()
+		return
+	end
+
 	if tab.contains(ARGS, "--profile") then
 		print("Profiling enabled")
 		PROFILE_FLAG = true
+	end
+
+	if tab.contains(ARGS, "--nopreload") then
+		print("Profiling enabled")
+		PRELOAD_FLAG = false
+	else
+		PRELOAD_FLAG = true
 	end
 
 	-- Update the load path for "require"!
@@ -297,4 +296,13 @@ end
 
 function love.wheelmoved(x, y)
 	ui.on_wheelmoved(x, y)
+end
+
+function love.quit()
+	print("Thanks for playing!")
+	if GAME_STATE.scene[2] then
+		if GAME_STATE.scene[2].paused ~= nil then
+			GAME_STATE.scene[2].paused = true
+		end
+	end
 end

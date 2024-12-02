@@ -1,13 +1,13 @@
 local ui = require "engine.ui";
 local uit = require "game.ui-utils"
 
-local ef = require "game.raws.effects.economic"
+local ef = require "game.raws.effects.economy"
 
 ---comment
 ---@param rect Rect
 ---@param name string
 ---@param realm Realm
----@param budget_category BudgetCategory
+---@param budget_category BUDGET_CATEGORY
 ---@param disable_control boolean
 ---@param bg boolean
 return function (rect, name, realm, budget_category, disable_control, bg)
@@ -28,23 +28,23 @@ return function (rect, name, realm, budget_category, disable_control, bg)
     rect.width = uit.BASE_HEIGHT * 4
 
     -- second part - current spendings
-    uit.money_entry("", budget_category.to_be_invested, rect, "To be invested")
+    uit.money_entry("", DATA.realm_get_budget_to_be_invested(realm, budget_category), rect, "To be invested")
     rect.x = rect.x + rect.width
 
 
     -- third part - current incomes
-    uit.money_entry("", budget_category.budget, rect, "Current investments")
+    uit.money_entry("", DATA.realm_get_budget_budget(realm, budget_category), rect, "Current investments")
     rect.x = rect.x + rect.width
 
     -- fourth part - target spendings
-    uit.money_entry("", budget_category.target, rect, "Target investments")
+    uit.money_entry("", DATA.realm_get_budget_target(realm, budget_category), rect, "Target investments")
     rect.x = rect.x + rect.width
 
 
 
     local satisfactio_ratio = 1
-    if budget_category.target ~= 0 then
-        satisfactio_ratio = budget_category.budget / budget_category.target
+    if DATA.realm_get_budget_target(realm, budget_category) > 0 then
+        satisfactio_ratio = DATA.realm_get_budget_budget(realm, budget_category) / DATA.realm_get_budget_target(realm, budget_category)
     end
     local satisfaction_explanation = ""
     if name == "Education" then
@@ -64,7 +64,7 @@ return function (rect, name, realm, budget_category, disable_control, bg)
     rect.x = rect.x + rect.width
 
     -- fifth part - current ratio of income spent on it
-    uit.data_entry_percentage("", budget_category.ratio, rect, "Income ratio spent on " .. name, false)
+    uit.data_entry_percentage("", DATA.realm_get_budget_ratio(realm, budget_category), rect, "Income ratio spent on " .. name, false)
     rect.x = rect.x + rect.width
 
     if disable_control then
@@ -85,8 +85,8 @@ return function (rect, name, realm, budget_category, disable_control, bg)
             pr,
             "Change monthly investment by " .. tostring(percentage) .. "%"
         ) then
-            local current = budget_category.ratio
-            ef.set_budget(budget_category, budget_category.ratio + percentage / 100)
+            local current = DATA.realm_get_budget_ratio(realm, budget_category)
+            ef.set_budget(realm, budget_category, current + percentage / 100)
         end
         pr.x = pr.x + uit.BASE_HEIGHT * 2
     end

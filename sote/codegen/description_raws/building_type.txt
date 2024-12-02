@@ -1,0 +1,18 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+production_method production_method_id
+archetype #BUILDING_ARCHETYPE
+unlocked_by #technology_id
+construction_cost float
+upkeep float=0
+required_biome biome_id[20]
+required_resource resource_id[20]
+unique bool=false only one per province!
+movable bool=false is it possible to migrate with this building?
+government bool=false only the government can build this building!
+needed_infrastructure float=0
+spotting float=0 The amount of "spotting" a building provides. Spotting is used in warfare. Higher spotting makes it more difficult for foreign armies to sneak in.

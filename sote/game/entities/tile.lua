@@ -3,51 +3,13 @@ local tile = {}
 local cube = require "game.cube"
 local ll_utils = require "game.latlon"
 
----@class (exact) Tile
----@field __index Tile
----@field tile_id number
----@field is_land boolean
----@field is_fresh boolean
----@field elevation number
----@field grass number
----@field shrub number
----@field conifer number
----@field broadleaf number
----@field ideal_grass number
----@field ideal_shrub number
----@field ideal_conifer number
----@field ideal_broadleaf number
----@field silt number
----@field clay number
----@field sand number
----@field soil_minerals number
----@field soil_organics number
----@field january_waterflow number
----@field july_waterflow number
----@field waterlevel number
----@field has_river boolean
----@field has_marsh boolean
----@field ice number
----@field ice_age_ice number
----@field bedrock Bedrock?
----@field biome Biome?
----@field debug_r number between 0 and 1, as per Love2Ds convention...
----@field debug_g number between 0 and 1, as per Love2Ds convention...
----@field debug_b number between 0 and 1, as per Love2Ds convention...
----@field real_r number between 0 and 1, as per Love2Ds convention...
----@field real_g number between 0 and 1, as per Love2Ds convention...
----@field real_b number between 0 and 1, as per Love2Ds convention...
----@field pathfinding_index number
----@field resource Resource?
-
----@class Tile
 tile.Tile = {}
-tile.Tile.__index = tile.Tile
-function tile.Tile:new(tile_id)
-	---@type Tile
-	local tt = {}
 
-	tt.tile_id = tile_id
+---@return tile_id
+function tile.Tile:new()
+	local tile_dcon_id = DATA.create_tile()
+	local tt = DATA.fatten_tile(tile_dcon_id)
+
 	tt.is_land = false
 	tt.is_fresh = false
 	tt.elevation = 0
@@ -70,8 +32,8 @@ function tile.Tile:new(tile_id)
 	tt.has_marsh = false
 	tt.ice = 0
 	tt.ice_age_ice = 0
-	tt.bedrock = nil
-	tt.biome = nil
+	tt.bedrock = 0
+	tt.biome = 0
 	tt.debug_r = 0.1
 	tt.debug_g = 0.1
 	tt.debug_b = 0.1
@@ -80,61 +42,77 @@ function tile.Tile:new(tile_id)
 	tt.real_b = 0.1
 	tt.pathfinding_index = 0
 
-	setmetatable(tt, self)
-	return tt
+	return tile_dcon_id
 end
 
-function tile.Tile:province()
-	return WORLD.tile_to_province[self]
+---@param id tile_id
+---@return province_id
+function tile.province(id)
+	local membership = DATA.get_tile_province_membership_from_tile(id)
+	if membership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.tile_province_membership_get_province(membership)
 end
 
-function tile.Tile:set_province(province)
-	WORLD.tile_to_province[self] = province
+---@param id tile_id
+---@return Realm
+function tile.realm(id)
+	if id < 1 then
+		return INVALID_ID
+	end
+	local province = tile.province(id)
+	local membership = DATA.get_realm_provinces_from_province(province)
+	if membership == INVALID_ID then
+		return INVALID_ID
+	end
+	return DATA.realm_provinces_get_realm(membership)
 end
 
-function tile.Tile:plate()
-	return WORLD.tile_to_plate[self]
+---@param id tile_id
+function tile.plate(id)
+	return DATA.plate_tiles_get_plate(DATA.get_plate_tiles_from_tile(id))
 end
 
-function tile.Tile:set_plate(plate)
-	WORLD.tile_to_plate[self] = plate
-end
 
 ---Sets this tile's debug color
+---@param tile_id tile_id
 ---@param r number between 0 and 1
 ---@param g number between 0 and 1
 ---@param b number between 0 and 1
-function tile.Tile:set_debug_color(r, g, b)
-	self.debug_r = r
-	self.debug_g = g
-	self.debug_b = b
+function tile.set_debug_color(tile_id, r, g, b)
+	DATA.tile_set_debug_r(tile_id, r);
+	DATA.tile_set_debug_g(tile_id, g);
+	DATA.tile_set_debug_b(tile_id, b);
 end
 
 ---Sets this tile's real color
+---@param tile_id tile_id
 ---@param r number between 0 and 1
 ---@param g number between 0 and 1
 ---@param b number between 0 and 1
-function tile.Tile:set_real_color(r, g, b)
-	self.real_r = r
-	self.real_g = g
-	self.real_b = b
+function tile.set_real_color(tile_id, r, g, b)
+	DATA.tile_set_real_r(tile_id, r);
+	DATA.tile_set_real_g(tile_id, g);
+	DATA.tile_set_real_b(tile_id, b);
 end
 
 ---Returns latitude [-pi/2, pi/2] and longitude [-pi, pi]
+---@param tile_id tile_id
 ---@return number, number
-function tile.Tile:latlon()
-	local tile_id = self.tile_id
+function tile.latlon(tile_id)
 	local lat, lon = tile.get_lat_lon(tile_id)
 	return lat, lon
 end
 
 ---Returns a perlin noise value
+---@param tile_id tile_id
 ---@param frequency number
 ---@param seed number
 ---@return number perlin_noise_value between 0 and 1
-function tile.Tile:perlin(frequency, seed)
+function tile.perlin(tile_id, frequency, seed)
 	-- Get cartesian coordinates on a sphere in a cube [0, 1]^3
-	local x, y, z = tile.get_cartesian(self.tile_id)
+	local x, y, z = tile.get_cartesian(tile_id)
 	x = (x + 1) / 2
 	y = (y + 1) / 2
 	z = (z + 1) / 2
@@ -151,19 +129,36 @@ function tile.Tile:perlin(frequency, seed)
 end
 
 ---Returns average waterflow
+---@param tile_id tile_id
 ---@return number average_yearly_waterflow
-function tile.Tile:average_waterflow()
-	return (self.january_waterflow + self.july_waterflow) / 2
+function tile.average_waterflow(tile_id)
+	return (DATA.tile_get_january_waterflow(tile_id) + DATA.tile_get_july_waterflow(tile_id)) / 2
+end
+
+---Updates climate data
+---@param tile_id tile_id
+function tile.update_climate_data(tile_id)
+	local lat, lon = tile.latlon(tile_id)
+	local r_ja, t_ja, r_ju, t_ju = require "game.climate.utils".get_climate_data(lat, lon, DATA.tile_get_elevation(tile_id))
+
+	DATA.tile_set_january_rain(tile_id, r_ja)
+	DATA.tile_set_january_temperature(tile_id, t_ja)
+
+	DATA.tile_set_july_rain(tile_id, r_ju)
+	DATA.tile_set_july_temperature(tile_id, t_ju)
 end
 
 ---Returns climate data
+---@param tile_id tile_id
 ---@return number january_rainfall
 ---@return number january_temperature
 ---@return number july_rainfall
 ---@return number july_temperature
-function tile.Tile:get_climate_data()
-	local lat, lon = self:latlon()
-	return require "game.climate.utils".get_climate_data(lat, lon, self.elevation)
+function tile.get_climate_data(tile_id)
+	return DATA.tile_get_january_rain(tile_id),
+		DATA.tile_get_january_temperature(tile_id),
+		DATA.tile_get_july_rain(tile_id),
+		DATA.tile_get_july_temperature(tile_id)
 end
 
 ---@alias neighbourID
@@ -177,190 +172,39 @@ local NEIGH_TOP = 1
 local NEIGH_BOTTOM = 2
 local NEIGH_RIGHT = 3
 local NEIGH_LEFT = 4
----Returns a neighbor tile (as a reference!)
----@param self Tile
+
+---Returns a neighbors tile_id
+---@param tile_id tile_id
 ---@param neighbor_index neighbourID Ranges from 1 to 4 (both inclusive)
----@return Tile neigbhbor
-function tile.Tile:get_neighbor(neighbor_index)
-	local id = self.tile_id
-	local x, y, f = tile.index_to_coords(id)
-	local wsmo = WORLD.world_size - 1
-
-	-- Return coordinates
-	local rx = 0
-	local ry = 0
-	local rf = 0
-
-	if neighbor_index == NEIGH_TOP then
-		if y == wsmo then
-			if f == cube.TOP then
-				rf = cube.RIGHT
-				rx = wsmo - x
-				ry = wsmo
-			elseif f == cube.BOTTOM then
-				rf = cube.RIGHT
-				rx = x
-				ry = 0
-			elseif f == cube.FRONT then
-				rf = cube.TOP
-				rx = wsmo
-				ry = x
-			elseif f == cube.BACK then
-				rf = cube.TOP
-				rx = 0
-				ry = wsmo - x
-			elseif f == cube.LEFT then
-				rf = cube.TOP
-				rx = x
-				ry = 0
-			elseif f == cube.RIGHT then
-				rf = cube.TOP
-				rx = wsmo - x
-				ry = wsmo
-			else
-				error("UNKNOWN FACE: " .. tostring(f))
-			end
-		else
-			rf = f
-			rx = x
-			ry = y + 1
-		end
-	elseif neighbor_index == NEIGH_BOTTOM then
-		if y == 0 then
-			if f == cube.TOP then
-				rf = cube.LEFT
-				rx = x
-				ry = wsmo
-			elseif f == cube.BOTTOM then
-				rf = cube.LEFT
-				rx = wsmo - x
-				ry = 0
-			elseif f == cube.FRONT then
-				rf = cube.BOTTOM
-				rx = 0
-				ry = x
-			elseif f == cube.BACK then
-				rf = cube.BOTTOM
-				rx = wsmo
-				ry = wsmo - x
-			elseif f == cube.LEFT then
-				rf = cube.BOTTOM
-				rx = wsmo - x
-				ry = 0
-			elseif f == cube.RIGHT then
-				rf = cube.BOTTOM
-				rx = x
-				ry = wsmo
-			else
-				error("UNKNOWN FACE: " .. tostring(f))
-			end
-		else
-			rf = f
-			rx = x
-			ry = y - 1
-		end
-	elseif neighbor_index == NEIGH_LEFT then
-		if x == 0 then
-			if f == cube.TOP then
-				rf = cube.BACK
-				rx = wsmo - y
-				ry = wsmo
-			elseif f == cube.BOTTOM then
-				rf = cube.FRONT
-				rx = y
-				ry = 0
-			elseif f == cube.FRONT then
-				rf = cube.LEFT
-				rx = wsmo
-				ry = y
-			elseif f == cube.BACK then
-				rf = cube.RIGHT
-				rx = wsmo
-				ry = y
-			elseif f == cube.LEFT then
-				rf = cube.BACK
-				rx = wsmo
-				ry = y
-			elseif f == cube.RIGHT then
-				rf = cube.FRONT
-				rx = wsmo
-				ry = y
-			else
-				error("UNKNOWN FACE: " .. tostring(f))
-			end
-		else
-			rf = f
-			rx = x - 1
-			ry = y
-		end
-	elseif neighbor_index == NEIGH_RIGHT then
-		if x == wsmo then
-			if f == cube.TOP then
-				rf = cube.FRONT
-				rx = y
-				ry = wsmo
-			elseif f == cube.BOTTOM then
-				rf = cube.BACK
-				rx = wsmo - y
-				ry = 0
-			elseif f == cube.FRONT then
-				rf = cube.RIGHT
-				rx = 0
-				ry = y
-			elseif f == cube.BACK then
-				rf = cube.LEFT
-				rx = 0
-				ry = y
-			elseif f == cube.LEFT then
-				rf = cube.FRONT
-				rx = 0
-				ry = y
-			elseif f == cube.RIGHT then
-				rf = cube.BACK
-				rx = 0
-				ry = y
-			else
-				error("UNKNOWN FACE: " .. tostring(f))
-			end
-		else
-			rf = f
-			rx = x + 1
-			ry = y
-		end
-	else
-		local msg = "Invalid neighbor index: " .. tostring(neighbor_index)
-		print(msg)
-		error(msg)
-	end
-
-	local ret_id = tile.coords_to_index(rx, ry, rf)
-	return WORLD.tiles[ret_id]
+---@return tile_id neigbhbor
+function tile.get_neighbor(tile_id, neighbor_index)
+	return DCON.get_neighbor(tile_id, neighbor_index, WORLD.world_size);
 end
 
 ---Returns an iterator over all neighbors
----@return fun():Tile
-function tile.Tile:iter_neighbors()
+---@param tile_id tile_id
+---@return fun():(tile_id|nil)
+function tile.iter_neighbors(tile_id)
 	local neigh = 0
 	return function()
 		neigh = neigh + 1
 		if neigh > 4 then
 			return nil
 		else
-			return self:get_neighbor(neigh)
+			return tile.get_neighbor(tile_id, neigh)
 		end
 	end
 end
 
 ---Given a neighbor index, returns a new direction that can be iterated again and the neighbor
----@param self Tile
+---@param tile_id tile_id
 ---@param neighbor_index number
----@return Tile
----@return number
-function tile.Tile:move_across_face(neighbor_index)
-	local nn = self:get_neighbor(neighbor_index)
+---@return tile_id, number
+function tile.move_across_face(tile_id, neighbor_index)
+	local nn = tile.get_neighbor(tile_id, neighbor_index)
 
-	local _, _, old_face = tile.index_to_coords(self.tile_id)
-	local _, _, new_face = tile.index_to_coords(nn.tile_id)
+	local _, _, old_face = tile.index_to_coords(tile_id)
+	local _, _, new_face = tile.index_to_coords(nn)
 	local new_dir = neighbor_index
 
 	if old_face == cube.LEFT then
@@ -409,57 +253,64 @@ function tile.Tile:move_across_face(neighbor_index)
 end
 
 ---Iterates a line of a given length
----@param self Tile
+---@param tile_id tile_id
 ---@param direction number neighbor index
 ---@param length number
-function tile.Tile:line_iterator(direction, length)
+function tile.line_iterator(tile_id, direction, length)
 	local curr = 0
-	local tt = self
+	local tt = tile_id
 	local dir = direction
 	return function()
 		curr = curr + 1
 		if curr == length then
 			return nil
 		else
-			tt, dir = tt:move_across_face(dir)
+			tt, dir = tile.move_across_face(tile_id, dir)
 			return tt
 		end
 	end
 end
 
 ---Returns the soil depth, in meters
+---@param tile_id tile_id
 ---@return number
-function tile.Tile:soil_depth()
-	return self.sand + self.silt + self.clay
+function tile.soil_depth(tile_id)
+	return DATA.tile_get_sand(tile_id) + DATA.tile_get_silt(tile_id) + DATA.tile_get_clay(tile_id)
 end
 
 ---Returns soil permeability, as an abstract D-value (Demian value)
-function tile.Tile:soil_permeability()
+---@param tile_id tile_id
+function tile.soil_permeability(tile_id)
 	local tile_perm = 2.5
 
-	if self.sand > 0.15 then
-		tile_perm = tile_perm - 2 * (self.sand - 0.15) / (1.0 - 0.15)
+	local sand = DATA.tile_get_sand(tile_id)
+	local silt = DATA.tile_get_silt(tile_id)
+	local clay = DATA.tile_get_clay(tile_id)
+
+	if sand > 0.15 then
+		tile_perm = tile_perm - 2 * (sand - 0.15) / (1.0 - 0.15)
 	end
-	if self.silt > 0.85 then
-		tile_perm = tile_perm - 0.25 * (self.silt - 0.85) / (1.0 - 0.85)
+	if silt > 0.85 then
+		tile_perm = tile_perm - 0.25 * (silt - 0.85) / (1.0 - 0.85)
 	end
-	if self.clay > 0.2 then
-		tile_perm = tile_perm - 1.25 * (self.clay - 0.2) / (1.0 - 0.2)
+	if clay > 0.2 then
+		tile_perm = tile_perm - 1.25 * (clay - 0.2) / (1.0 - 0.2)
 	end
 
 	return tile_perm / 2.5
 end
 
 ---Given a tile ID, returns x/y/f coordinates.
----@param tile_id number
+---@param tile_id tile_id
 ---@return number x
 ---@return number y
 ---@return number f
 function tile.index_to_coords(tile_id)
-	tile_id = tile_id - 1
+	local world_id = tile_id
+	world_id = world_id - 1
 	local ws = WORLD.world_size
-	local f = math.floor(tile_id / (ws * ws))
-	local remaining = tile_id - f * ws * ws
+	local f = math.floor(world_id / (ws * ws))
+	local remaining = world_id - f * ws * ws
 	local y = math.floor(remaining / ws)
 	local x = remaining - y * ws
 	return x, y, f
@@ -469,24 +320,23 @@ end
 ---@param x number
 ---@param y number
 ---@param f number
----@return number tile_id
+---@return world_tile_id world_tile_id
 function tile.coords_to_index(x, y, f)
 	local ws = WORLD.world_size
-	return 1 + (x + y * ws + f * ws * ws)
+	return 1 + (x + y * ws + f * ws * ws) --[[@as world_tile_id]]
 end
 
 ---Given a 3d point on the surface of a sphere with radius one, return the tile_id for that point
 ---@param x number
 ---@param y number
 ---@param z number
----@return number
+---@return world_tile_id
 function tile.cart_to_index(x, y, z)
 	local fx, fy, ff = cube.pos_to_cube(x, y, z)
 	local ws = WORLD.world_size
 	fx = math.floor(ws * fx)
 	fy = math.floor(ws * fy)
-	local clicked_tile = tile.coords_to_index(fx, fy, ff)
-	return clicked_tile
+	return tile.coords_to_index(fx, fy, ff)
 end
 
 ---Given latitude [-pi/2, pi/2] and longitude [-pi,pi], return the tile ID
@@ -499,7 +349,7 @@ function tile.lat_lont_to_index(lat, lon)
 end
 
 ---Given a tile ID, returns latitude [-pi/2, pi/2] and longitude [-pi, pi]
----@param tile_id number
+---@param tile_id tile_id
 ---@return number latitude
 ---@return number longitude
 function tile.get_lat_lon(tile_id)
@@ -509,7 +359,7 @@ function tile.get_lat_lon(tile_id)
 end
 
 ---Returns cartesian coordinates of the tile, on a sphere of radius 1
----@param tile_id number
+---@param tile_id tile_id
 ---@return number x
 ---@return number y
 ---@return number z
@@ -535,11 +385,12 @@ function tile.get_cartesian(tile_id)
 end
 
 ---Returns great circle distance to a tile.
----@param other Tile
+---@param origin tile_id
+---@param target tile_id
 ---@return number
-function tile.Tile:distance_to(other)
-	local slat, slon = self:latlon()
-	local olat, olon = other:latlon()
+function tile.distance_to(origin, target)
+	local slat, slon = tile.latlon(origin)
+	local olat, olon = tile.latlon(target)
 	--[[ Spherical law of cosines
 	local angle = math.acos(math.sin(slat) * math.sin(olat) +
 		math.cos(slat) * math.cos(olat) * math.cos(math.abs(slon - olon)))
@@ -566,17 +417,18 @@ function tile.Tile:distance_to(other)
 	return angle * 6371
 end
 
+---@param tile_id tile_id
 ---@return boolean
-function tile.Tile:is_coast()
-	if self.is_land then
-		for n in self:iter_neighbors() do
-			if not n.is_land then
+function tile.is_coast(tile_id)
+	if DATA.tile_get_is_land(tile_id) then
+		for n in tile.iter_neighbors(tile_id) do
+			if not DATA.tile_get_is_land(n) then
 				return true
 			end
 		end
 	else
-		for n in self:iter_neighbors() do
-			if n.is_land then
+		for n in tile.iter_neighbors(tile_id) do
+			if DATA.tile_get_is_land(n) then
 				return true
 			end
 		end

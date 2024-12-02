@@ -1,0 +1,48 @@
+name string
+r float
+g float
+b float
+is_land bool
+province_id float
+size float
+hydration float Number of humans that can live of off this provinces innate water
+movement_cost float
+center tile_id The tile which contains this province's settlement, if there is any.
+infrastructure_needed float
+infrastructure float
+infrastructure_investment float
+infrastructure_efficiency float
+technologies_present uint8_t[technology_id]
+technologies_researchable uint8_t[technology_id]
+buildable_buildings uint8_t[building_type_id]
+local_production float[trade_good_id]
+temp_buffer_0 float[trade_good_id]
+local_consumption float[trade_good_id]
+local_demand float[trade_good_id]
+local_satisfaction float[trade_good_id]
+temp_buffer_use_0 float[use_case_id]
+temp_buffer_use_grad float[use_case_id]
+local_use_satisfaction float[use_case_id]
+local_use_buffer_demand float[use_case_id]
+local_use_buffer_supply float[use_case_id]
+local_use_buffer_cost float[use_case_id]
+local_storage float[trade_good_id]
+local_prices float[trade_good_id]
+local_wealth float
+trade_wealth float
+local_income float
+local_building_upkeep float
+foragers float Keeps track of the number of foragers in the province. Used to calculate yields of independent foraging.
+foragers_water float amount foraged by pops and characters
+foragers_limit float amount of calories foraged by pops and characters
+forage_efficiency float
+foragers_targets forage_container[25]
+local_resources resource_location[25] An array of local resources and their positions
+mood float how local population thinks about the state
+unit_types uint8_t[unit_type_id]
+throughput_boosts float[production_method_id]
+input_efficiency_boosts float[production_method_id]
+local_efficiency_boosts float[production_method_id]
+output_efficiency_boosts float[production_method_id]
+on_a_river bool
+on_a_forest bool

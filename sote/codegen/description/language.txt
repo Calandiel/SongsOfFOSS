@@ -1,0 +1,7 @@
+syllables table<number,string>
+consonants table<number,string>
+vowels table<number,string>
+ending_province table<number,string>
+ending_realm table<number,string>
+ending_adj table<number,string>
+ranks table<number,string>

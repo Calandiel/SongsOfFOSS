@@ -3,14 +3,14 @@ local tabb = require "engine.table"
 local pathfinding = require "game.ai.pathfinding"
 local Decision = require "game.raws.decisions"
 
-local TRAIT = require "game.raws.traits.generic"
-local RANK = require "game.raws.ranks.character_ranks"
-
+local warband_utils = require "game.entities.warband"
+local pop_utils = require "game.entities.pop".POP
 
 local character_values = require "game.raws.values.character"
 local military_values = require "game.raws.values.military"
-local economy_values = require "game.raws.values.economical"
-local economy_effects = require "game.raws.effects.economic"
+local economy_values = require "game.raws.values.economy"
+
+local economy_effects = require "game.raws.effects.economy"
 local economy_triggers = require "game.raws.triggers.economy"
 
 
@@ -20,20 +20,20 @@ local function load()
 	---@param primary_target Province
 	---@return number, Province[]|nil
 	local function path_property(root, primary_target)
-		local warband = root.leading_warband
+		local warband = LEADER_OF_WARBAND(root)
 		if warband then
 			return pathfinding.pathfind(
-				root.province,
+				PROVINCE(root),
 				primary_target,
 				military_values.warband_speed(warband),
-				root.realm.known_provinces
+				DATA.realm_get_known_provinces(REALM(root))
 			)
 		end
 		return pathfinding.pathfind(
-			root.province,
+			PROVINCE(root),
 			primary_target,
 			character_values.travel_speed(root),
-			root.realm.known_provinces
+			DATA.realm_get_known_provinces(REALM(root))
 		)
 	end
 
@@ -48,7 +48,10 @@ local function load()
 		name = 'travel',
 		ui_name = "Travel",
 		tooltip = function(root, primary_target)
-			if root.leading_warband == nil then
+			local warband = LEADER_OF_WARBAND(root)
+			local status = DATA.warband_get_current_status(warband)
+
+			if warband == INVALID_ID then
 				return "You have to gather a party and supplies in order to travel."
 			end
 			local hours, path = path_property(root, primary_target)
@@ -56,16 +59,16 @@ local function load()
 				return "Impossible to reach"
 			end
 			local days = pathfinding.hours_to_travel_days(hours)
-			if root.leading_warband:days_of_travel() < days then
+			if economy_values.days_of_travel(warband) < days then
 				return "Not enough supplies to reach this province."
 			end
-			if root.leading_warband.status ~= "idle" then
-				return "Your party is busy with " .. root.leading_warband.status
+			if status ~= WARBAND_STATUS.IDLE then
+				return "Your party is busy with " .. DATA.warband_status_get_name(status)
 			end
-			if root.busy then
+			if BUSY(root) then
 				return "You are too busy to consider it."
 			end
-			return "Travel to " .. primary_target.name
+			return "Travel to " .. PROVINCE_NAME(primary_target)
 		end,
 		path = path_property,
 		sorting = 1,
@@ -73,30 +76,30 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12, -- Almost every yeaer
 		pretrigger = function(root)
-			if root.busy then return false end
-			if root.leading_warband == nil then return false end
+			if BUSY(root) then return false end
+			if LEADER_OF_WARBAND(root) == INVALID_ID then return false end
 
 			-- check is expensive so limit it to traders and players
-			if (not root.traits[TRAIT.TRADER]) and (WORLD.player_character ~= root) then
+			if (not HAS_TRAIT(root, TRAIT.TRADER)) and (WORLD.player_character ~= root) then
 				return false
 			end
 			return true
 		end,
 		clickable = function(root, primary_target)
-			if primary_target.realm == nil then return false end
-			if primary_target == root.province then return false end
+			if PROVINCE_REALM(primary_target) == nil then return false end
+			if primary_target == PROVINCE(root) then return false end
 
 			return true
 		end,
 		available = function(root, primary_target)
-			if root.busy then return false end
+			if BUSY(root) then return false end
 			local hours, path = path_property(root, primary_target)
 			if path == nil then
 				return false
 			end
 			local days = pathfinding.hours_to_travel_days(hours)
 
-			if root.leading_warband:days_of_travel() < days then
+			if economy_values.days_of_travel(LEADER_OF_WARBAND(root)) < days then
 				return false
 			end
 
@@ -105,22 +108,30 @@ local function load()
 		ai_target = function(root)
 			---@type Province[]
 			local targets = {}
-			for _, province in pairs(root.realm.capitol.neighbors) do
-				if province.realm and economy_triggers.allowed_to_trade(root, province.realm) then
+
+			DATA.for_each_province_neighborhood_from_origin(CAPITOL(REALM(root)), function (item)
+				local province = DATA.province_neighborhood_get_target(item)
+				local realm = PROVINCE_REALM(province)
+				if realm ~= INVALID_ID and economy_triggers.allowed_to_trade(root, realm) then
 					targets[province] = province
 				end
-			end
-			for _, overlord in pairs(root.realm.paying_tribute_to) do
+			end)
+
+			DATA.for_each_realm_subject_relation_from_subject(REALM(root), function (item)
+				local overlord = DATA.realm_subject_relation_get_overlord(item)
 				if economy_triggers.allowed_to_trade(root, overlord) then
-					targets[overlord.capitol] = overlord.capitol
+					targets[CAPITOL(overlord)] = CAPITOL(overlord)
 				end
-			end
-			for _, tributary in pairs(root.realm.tributaries) do
-				if economy_triggers.allowed_to_trade(root, tributary) then
-					targets[tributary.capitol] = tributary.capitol
+			end)
+
+			DATA.for_each_realm_subject_relation_from_overlord(REALM(root), function (item)
+				local subject = DATA.realm_subject_relation_get_subject(item)
+				if economy_triggers.allowed_to_trade(root, subject) then
+					targets[CAPITOL(subject)] = CAPITOL(subject)
 				end
-			end
-			for _, reward in pairs(root.realm.quests_explore) do
+			end)
+
+			for _, reward in pairs(DATA.realm_get_quests_explore(REALM(root))) do
 				targets[_] = _
 			end
 
@@ -137,15 +148,15 @@ local function load()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			local reward = root.realm.quests_explore[primary_target] or 0
+			if HAS_TRAIT(root, TRAIT.TRADER) then
+				return 1
+			end
 
-			if root.rank == RANK.CHIEF then
+			if RANK(root) == CHARACTER_RANK.CHIEF then
 				return 0
 			end
 
-			if root.traits[TRAIT.TRADER] then
-				return 1
-			end
+			-- local reward = DATA.realm_get_quests_explore(REALM(root))[primary_target] or 0
 
 			return 0
 		end,
@@ -161,7 +172,7 @@ local function load()
 			if days > 150 then
 				days = 150
 			end
-			root.busy = true
+			SET_BUSY(root)
 
 			---@type TravelData
 			local data = {
@@ -183,7 +194,7 @@ local function load()
 		name = 'travel-capital',
 		ui_name = "Travel to capital province",
 		tooltip = function(root, primary_target)
-			if root.busy then
+			if BUSY(root) then
 				return "You are too busy to consider it."
 			end
 			return "Travel to the capital of your realm"
@@ -193,8 +204,8 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 36, -- travel home once a few years
 		pretrigger = function(root)
-			if root.busy then return false end
-			if root.province == root.realm.capitol then
+			if BUSY(root) then return false end
+			if PROVINCE(root) == CAPITOL(REALM(root)) then
 				return false
 			end
 			return true
@@ -203,14 +214,14 @@ local function load()
 			return true
 		end,
 		available = function(root)
-			if root.busy then return false end
+			if BUSY(root) then return false end
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.traits[TRAIT.CHIEF] and root.province ~= root.realm.capitol then
+			if RANK(root) == CHARACTER_RANK.CHIEF and PROVINCE(root) ~= CAPITOL(REALM(root)) then
 				return 1
 			end
-			if root.traits[TRAIT.TRADER] then
+			if HAS_TRAIT(root, TRAIT.TRADER) then
 				return 1
 			end
 			return 0
@@ -218,19 +229,19 @@ local function load()
 		effect = function(root, primary_target, secondary_target)
 			local travel_time, _ = pathfinding.hours_to_travel_days(
 				pathfinding.pathfind(
-					root.province,
-					root.realm.capitol,
+					PROVINCE(root),
+					CAPITOL(REALM(root)),
 					character_values.travel_speed(root),
-					root.realm.known_provinces
+					DATA.realm_get_known_provinces(REALM(root))
 				)
 			)
 
 			if travel_time == math.huge then
 				travel_time = 150
 			end
-			root.busy = true
+			SET_BUSY(root)
 
-			WORLD:emit_action("travel", root, root.realm.capitol, travel_time, true)
+			WORLD:emit_action("travel", root, CAPITOL(REALM(root)), travel_time, true)
 		end
 	}
 
@@ -238,8 +249,11 @@ local function load()
 		name = 'explore-province',
 		ui_name = "Explore local province",
 		tooltip = function(root, primary_target)
-			if root.busy then
+			if BUSY(root) then
 				return "You are too busy to consider it."
+			end
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
+				return "You have to be a leader of a party to explore."
 			end
 			return "Explore province"
 		end,
@@ -248,13 +262,22 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.5,
 		pretrigger = function(root)
-			if root.busy then return false end
-			for _, neighbor in pairs(root.province.neighbors) do
-				if root.realm.known_provinces[neighbor] == nil then
-					return true
-				end
+			if BUSY(root) then return false end
+
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
+				return false
 			end
-			return false
+
+			local potential_to_explore = false
+
+			DATA.for_each_province_neighborhood_from_origin(PROVINCE(root), function (item)
+				local neighbor = DATA.province_neighborhood_get_target(item)
+				if DATA.realm_get_known_provinces(REALM(root))[neighbor] == nil then
+					potential_to_explore = true
+				end
+			end)
+
+			return potential_to_explore
 		end,
 		clickable = function(root, primary_target)
 			return true
@@ -263,24 +286,24 @@ local function load()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			local reward = root.realm.quests_explore[root.province] or 0
+			local reward = DATA.realm_get_quests_explore(REALM(root))[PROVINCE(root)] or 0
 
-			if root.traits[TRAIT.TRADER] then
+			if HAS_TRAIT(root, TRAIT.TRADER) then
 				return 1 / 36 + reward / 40 -- explore sometimes
 			end
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			root.busy = true
+			SET_BUSY(root)
 
 			if WORLD.player_character ~= root then
-				WORLD:emit_immediate_event("exploration-preparation", root, root.province)
+				WORLD:emit_immediate_event("exploration-preparation", root, PROVINCE(root))
 			elseif OPTIONS["exploration"] == 0 then
-				WORLD:emit_immediate_event("exploration-preparation", root, root.province)
+				WORLD:emit_immediate_event("exploration-preparation", root, PROVINCE(root))
 			elseif OPTIONS["exploration"] == 1 then
-				WORLD:emit_immediate_action("exploration-preparation-by-yourself", root, root.province)
+				WORLD:emit_immediate_action("exploration-preparation-by-yourself", root, PROVINCE(root))
 			elseif OPTIONS["exploration"] == 2 then
-				WORLD:emit_immediate_action("exploration-preparation-ask-for-help", root, root.province)
+				WORLD:emit_immediate_action("exploration-preparation-ask-for-help", root, PROVINCE(root))
 			end
 		end
 	}
@@ -289,10 +312,10 @@ local function load()
 		name = 'ai-party-forage',
 		ui_name = "(AI) Set party to forage stance",
 		tooltip = function(root, primary_target)
-			if root.leading_warband == nil then
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
 				return "You are not leading any party"
 			end
-			if root.busy then
+			if BUSY(root) then
 				return "You are too busy to consider it."
 			end
 			return "Explore province"
@@ -302,7 +325,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.2,
 		pretrigger = function(root)
-			if root.leading_warband == nil then
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
 				return false
 			end
 
@@ -330,8 +353,8 @@ local function load()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.leading_warband then
-				if root.leading_warband:days_of_travel() < 15 then
+			if LEADER_OF_WARBAND(root) ~= INVALID_ID then
+				if economy_values.days_of_travel(LEADER_OF_WARBAND(root)) < 15 then
 					return 1
 				end
 			end
@@ -339,7 +362,7 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			root.leading_warband.idle_stance = "forage"
+			DATA.warband_set_idle_stance(LEADER_OF_WARBAND(root), WARBAND_STANCE.FORAGE)
 		end
 	}
 
@@ -348,10 +371,10 @@ local function load()
 		name = 'ai-party-supplies',
 		ui_name = "(AI) Buy supplies",
 		tooltip = function(root, primary_target)
-			if root.leading_warband == nil then
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
 				return "You are not leading any party"
 			end
-			if root.busy then
+			if BUSY(root) then
 				return "You are too busy to consider it."
 			end
 			return "Explore province"
@@ -361,7 +384,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1,
 		pretrigger = function(root)
-			if root.leading_warband == nil then
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
 				return false
 			end
 			if WORLD:is_player(root) then
@@ -372,11 +395,11 @@ local function load()
 				end
 			end
 
-			if not economy_triggers.can_buy_use(root.province, root.savings, 'calories', 1) then
+			if not economy_triggers.can_buy_use(PROVINCE(root), SAVINGS(root), CALORIES_USE_CASE, 1) then
 				return false
 			end
 
-			if (root.leading_warband:days_of_travel() > 30) then
+			if (economy_values.days_of_travel(LEADER_OF_WARBAND(root)) > 30) then
 				return false
 			end
 
@@ -399,8 +422,8 @@ local function load()
 			return 1
 		end,
 		effect = function(root, primary_target, secondary_target)
-			economy_effects.character_buy_use(root, 'calories', 1)
-			root.leading_warband.idle_stance = "forage"
+			economy_effects.character_buy_use(root, CALORIES_USE_CASE, 1)
+			DATA.warband_set_idle_stance(LEADER_OF_WARBAND(root), WARBAND_STANCE.FORAGE)
 		end
 	}
 
@@ -408,10 +431,10 @@ local function load()
 		name = 'ai-party-work',
 		ui_name = "(AI) Set party to work stance",
 		tooltip = function(root, primary_target)
-			if root.leading_warband == nil then
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
 				return "You are not leading any party"
 			end
-			if root.busy then
+			if BUSY(root) then
 				return "You are too busy to consider it."
 			end
 			return "Explore province"
@@ -421,7 +444,7 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 0.2,
 		pretrigger = function(root)
-			if root.leading_warband == nil then
+			if LEADER_OF_WARBAND(root) == INVALID_ID then
 				return false
 			end
 
@@ -449,12 +472,12 @@ local function load()
 			return true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			if root.recruiter_for_warband then
+			if RECRUITER_OF_WARBAND(root) ~= INVALID_ID then
 				return 1
 			end
 
-			if root.leading_warband then
-				if root.leading_warband:days_of_travel() > 50 then
+			if LEADER_OF_WARBAND(root) ~= INVALID_ID then
+				if economy_values.days_of_travel(LEADER_OF_WARBAND(root)) > 50 then
 					return 1
 				end
 			end
@@ -462,7 +485,7 @@ local function load()
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			root.leading_warband.idle_stance = "work"
+			DATA.warband_set_idle_stance(LEADER_OF_WARBAND(root), WARBAND_STANCE.WORK)
 		end
 	}
 end

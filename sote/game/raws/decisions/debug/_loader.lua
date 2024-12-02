@@ -35,12 +35,11 @@ return function()
 		effect = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-			local province = root.province
-			if province == nil then return end
-
-			root.savings = root.savings + 1000
-			if WORLD:does_player_see_realm_news(province.realm) then
-				WORLD:emit_notification(root.name .. " conjured money out of thin air.")
+			local province = PROVINCE(root)
+			if province == INVALID_ID then return end
+			DATA.pop_inc_savings(root, 1000)
+			if WORLD:does_player_see_realm_news(PROVINCE_REALM(province)) then
+				WORLD:emit_notification(NAME(root) .. " conjured money out of thin air.")
 			end
 		end
 	}
@@ -77,7 +76,7 @@ return function()
 		end,
 		effect = function(root, primary_target, secondary_target)
 			WORLD:emit_immediate_event('death', primary_target, {})
-			WORLD:emit_notification(root.name .. " kills " .. primary_target.name)
+			WORLD:emit_notification(NAME(root) .. " kills " .. primary_target.name)
 		end
 	}
 end

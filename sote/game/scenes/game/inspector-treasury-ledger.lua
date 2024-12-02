@@ -46,7 +46,7 @@ function window.draw(game, realm)
 
     local treasury_tab = nil
 
-    if WORLD.player_character.rank == require "game.raws.ranks.character_ranks".CHIEF then
+    if RANK(WORLD.player_character) == CHARACTER_RANK.CHIEF then
         treasury_tab = {
             text = "Treasury",
             tooltip = "Realm treasury ledger",

@@ -1,0 +1,12 @@
+r float
+g float
+b float
+speed float
+direction float
+expansion_rate float
+done_expanding boolean
+current_tiles table<number,tile_id>
+next_tiles table<number,tile_id>
+plate_neighbors table<number,plate_id>
+plate_edge table<number,tile_id>
+plate_boundaries table<number,tile_id>

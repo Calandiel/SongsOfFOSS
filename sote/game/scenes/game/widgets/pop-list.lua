@@ -23,10 +23,17 @@ local function init_state(base_unit)
 end
 
 local function render_name(rect, k, v)
-    local children = tabb.size(v.children)
-    local name = v.name
-    if v.parent then
-        name = name .. " [" .. v.parent.name .. "]"
+    local fat = DATA.fatten_pop(v)
+    local name = fat.name
+    local children = 0
+    DATA.for_each_parent_child_relation_from_parent(v, function (item)
+        children = children + 1
+    end)
+
+    local has_parent = DATA.get_parent_child_relation_from_child(v)
+    local parent = DATA.parent_child_relation_get_parent(has_parent)
+    if parent ~= INVALID_ID then
+        name = name .. " [" .. DATA.pop_get_name(parent) .. "]"
     end
     if children > 0 then
         name = name .. " (" .. children .. ")"
@@ -38,20 +45,28 @@ end
 ---@param pop POP
 ---@return string
 local function pop_display_occupation(pop)
-    local job = "unemployed"
-    if pop.job then
-        job = pop.job.name
-    elseif pop.age < pop.race.teen_age then
-        job = "child"
-    elseif pop.unit_of_warband then
-        job = "warrior"
+    local occupation = DATA.get_employment_from_worker(pop)
+    local job = DATA.employment_get_job(occupation)
+    local employer = DATA.employment_get_building(occupation)
+    if employer == INVALID_ID then
+        local age = DATA.pop_get_age(pop)
+        local race = DATA.pop_get_race(pop)
+        local teen_age = DATA.race_get_teen_age(race)
+        if age < teen_age then
+            return "child"
+        end
+        local unit_of = UNIT_OF(pop)
+        if unit_of == INVALID_ID then
+            return "unemployed"
+        end
+        return "warrior"
     end
-    return job
+    return DATA.job_get_name(job)
 end
 
 local function pop_sex(pop)
     local f = "m"
-    if pop.female then f = "f" end
+    if DATA.pop_get_female(pop) then f = "f" end
     return f
 end
 
@@ -69,58 +84,54 @@ return function(rect, base_unit, province)
                     require "game.scenes.game.widgets.portrait"(rect, v)
                 end,
                 width = 1,
-                value = function(k, v)
-                    ---@type POP
-                    v = v
-                    return v.name
+                value = function (k, v)
+                    return DATA.pop_get_name(v)
                 end
             },
             {
                 header = "name",
                 render_closure = render_name,
                 width = 6,
-                value = function(k, v)
-                    ---@type POP
-                    v = v
-                    return v.name
+                value = function (k, v)
+                    return DATA.pop_get_name(v)
                 end
             },
             {
                 header = "race",
                 render_closure = function (rect, k, v)
-                    ui.centered_text(v.race.name, rect)
+                    ui.centered_text(DATA.race_get_name(DATA.pop_get_race(v)), rect)
                 end,
                 width = 4,
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return v.race.name
+                    return DATA.race_get_name(DATA.pop_get_race(v))
                 end
             },
             {
                 header = "culture",
                 render_closure = function (rect, k, v)
-                    ui.centered_text(v.culture.name, rect)
-                    ui.tooltip("This character follows the customs of " .. v.culture.name .. "."
-                        .. require "game.economy.diet-breadth-model".culture_target_tooltip(v.culture), rect)
+                    ui.centered_text(DATA.culture_get_name(DATA.pop_get_culture(v)), rect)
+                    ui.tooltip("This character follows the customs of " .. DATA.culture_get_name(DATA.pop_get_culture(v)) .. "."
+                        .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.pop_get_culture(v)), rect)
                 end,
                 width = 4,
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return v.culture.name
+                    return DATA.culture_get_name(DATA.pop_get_culture(v))
                 end
             },
             {
                 header = "faith",
                 render_closure = function (rect, k, v)
-                    ui.centered_text(v.faith.name, rect)
+                    ui.centered_text(DATA.faith_get_name(DATA.pop_get_faith(v)), rect)
                 end,
                 width = 4,
                 value = function(k, v)
                     ---@type POP
                     v = v
-                    return v.faith.name
+                    return DATA.faith_get_name(DATA.pop_get_faith(v))
                 end
             },
             {
@@ -136,11 +147,11 @@ return function(rect, base_unit, province)
             {
                 header = "age",
                 render_closure = function (rect, k, v)
-                    ui.right_text(tostring(v.age), rect)
+                    ui.right_text(tostring(DATA.pop_get_age(v)), rect)
                 end,
                 width = 2,
                 value = function(k, v)
-                    return v.age
+                    return DATA.pop_get_age(v)
                 end
             },
             {
@@ -158,25 +169,37 @@ return function(rect, base_unit, province)
                 render_closure = function (rect, k, v)
                     ---@type POP
                     v = v
+
+                    local inventory_tooltip = "\n Character's inventory: \t"
+                    DATA.for_each_trade_good(function (item)
+                        inventory_tooltip =
+                            inventory_tooltip
+                            .. DATA.trade_good_get_name(item)
+                            .. " " .. DATA.pop_get_inventory(v, item) .. "\t"
+                    end)
+
                     ut.money_entry(
                         "",
-                        v.savings,
+                        DATA.pop_get_savings(v),
                         rect,
                         "Savings of this character. "
                         .. "Characters spend them on buying food and other commodities."
+                        .. inventory_tooltip
                     )
                 end,
                 width = 3,
-                value = function(k, v)
-                    return v.savings
+                value = function (k, v)
+                    return DATA.pop_get_savings(v)
                 end
             },
             {
                 header = "satisfac.",
-                render_closure = ut.render_pop_satsifaction,
+                render_closure = function (rect, k, v)
+                    ut.render_pop_satsifaction(rect, v)
+                end,
                 width = 2,
-                value = function(k, v)
-                    return v.basic_needs_satisfaction
+                value = function (k, v)
+                    return DATA.pop_get_basic_needs_satisfaction(v)
                 end
             },
             {
@@ -186,32 +209,41 @@ return function(rect, base_unit, province)
                     v = v
 
                     local needs_tooltip = ""
-                    for need, values in pairs(v.need_satisfaction) do
-                        local tooltip = ""
-                        if NEEDS[need].life_need then
-                            for case, value in pairs(values) do
-                                if value.demanded > 0 then
-                                    tooltip = tooltip .. "\n  " .. case .. ": "
-                                        .. ut.to_fixed_point2(value.consumed) .. " / " .. ut.to_fixed_point2(value.demanded)
-                                        .. " (" .. ut.to_fixed_point2(value.consumed / value.demanded * 100) .. "%)"
-                                end
-                            end
+
+                    for index = 1, MAX_NEED_SATISFACTION_POSITIONS_INDEX do
+                        local use_case = DATA.pop_get_need_satisfaction_use_case(v, index)
+                        if use_case == 0 then
+                            break
                         end
-                        if tooltip ~= "" then
-                            needs_tooltip = needs_tooltip .. "\n".. NEED_NAME[need] .. ": " .. tooltip
+                        local need = DATA.pop_get_need_satisfaction_need(v, index)
+
+                        if DATA.need_get_life_need(need) then
+                            local demanded = DATA.pop_get_need_satisfaction_demanded(v, index)
+                            local consumed = DATA.pop_get_need_satisfaction_consumed(v, index)
+
+                            ---@type string
+                            needs_tooltip = needs_tooltip
+                                .. "\n  "
+                                .. DATA.use_case_get_name(use_case)
+                                .. "(" .. DATA.need_get_name(need) .. ")"
+                                .. ": "
+                                .. ut.to_fixed_point2(consumed)
+                                .. " / "
+                                .. ut.to_fixed_point2(demanded)
+                                .. " (" .. ut.to_fixed_point2(consumed / demanded * 100) .. "%)"
                         end
                     end
 
                     ut.data_entry_percentage(
                         "",
-                        v.life_needs_satisfaction,
+                        DATA.pop_get_life_needs_satisfaction(v),
                         rect,
                         "Satisfaction of life needs of this character. " .. needs_tooltip
                     )
                 end,
                 width = 2,
-                value = function(k, v)
-                    return v.life_needs_satisfaction
+                value = function (k, v)
+                    return DATA.pop_get_life_needs_satisfaction(v)
                 end
             }
         }
@@ -219,6 +251,10 @@ return function(rect, base_unit, province)
         local top = rect:subrect(0, 0, rect.width, base_unit, "left", "up")
         local bottom = rect:subrect(0, base_unit, rect.width, rect.height - base_unit, "left", "up")
         ui.centered_text("Population", top)
-        ut.table(bottom, province.all_pops, columns, state)
+        local locations = DATA.filter_array_pop_location_from_location(province, function (item)
+            return true
+        end)
+
+        ut.table(bottom, tabb.map_array(locations, DATA.pop_location_get_pop), columns, state)
     end
 end

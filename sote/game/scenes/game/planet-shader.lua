@@ -50,7 +50,7 @@ function pla.get_shader()
 			// 3 4 5
 			// - - -
 			vec2 base_step_x = vec2(1, 0) / 3;
-			vec2 base_step_y = vec2(0, 1) / 3;
+			vec2 base_step_y = vec2(0, 1) / 2;
 			vec2 face_offset = vec2(0, 0);
 			if (abs(face_value - 1.0) < 0.5) {
 				face_offset += base_step_x;
@@ -239,7 +239,7 @@ function pla.get_shader()
 
 		vec2 uvface_to_texcoord(vec2 uv, float face) {
 			vec2 offset = get_face_offset(face);
-			return uv / 3 + offset;
+			return vec2(uv.x / 3, uv.y / 2) + offset;
 		}
 
 
@@ -366,15 +366,15 @@ function pla.get_shader()
 			vec2 playercoords = vec2(player_x, player_y);
 
 
-			vec2 clicked = clickedcoords / 3;
-			vec2 player = playercoords / 3;
+			vec2 clicked = clickedcoords * vec2(1.0/3.0, 1.0/2.0);
+			vec2 player = playercoords * vec2(1.0/3.0, 1.0/2.0);
 
 			clicked += get_face_offset(clicked_face);
 			player += get_face_offset(player_face);
 
-			vec2 face_offset = get_face_offset(shifted_face) + shifted_texcoord / 3;
-			vec2 slightly_shifted_face_offset = get_face_offset(slightly_shifted_face) + slightly_shifted_texcoord / 3;
-			vec2 original_face_offset = get_face_offset(original_face) + original_texcoord / 3;
+			vec2 face_offset = get_face_offset(shifted_face) + shifted_texcoord * vec2(1.0/3.0, 1.0/2.0);
+			vec2 slightly_shifted_face_offset = get_face_offset(slightly_shifted_face) + slightly_shifted_texcoord * vec2(1.0/3.0, 1.0/2.0);
+			vec2 original_face_offset = get_face_offset(original_face) + original_texcoord * vec2(1.0/3.0, 1.0/2.0);
 
 			vec2 province_index_uv = Texel(province_index, slightly_shifted_face_offset).rg;
 			vec4 fog_of_war_rgba = Texel(fog_of_war, province_index_uv);
@@ -397,8 +397,7 @@ function pla.get_shader()
 				//float shift_unit = 0.0005;
 				float shift_unit = 0.0010;
 
-				//vec2 origin_pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-				vec2 origin_new_uv = shifted_texcoord; //+ origin_pixel_center_shift;
+				vec2 origin_new_uv = shifted_texcoord;
 				vec2 origin_texcoord = uvface_to_texcoord(origin_new_uv, shifted_face);
 				float origin_is_sea = Texel(texture_index_cubemap, origin_texcoord).b;
 
@@ -412,8 +411,7 @@ function pla.get_shader()
 					for (int j = -N; j <= N; j++) {
 						vec3 new_position = shifted_position + vec3(0, j, 0) * shift_unit + tangent * i * shift_unit;
 						float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
-						//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-						vec2 new_uv = cartesian_to_uv(new_position, new_face); //+ pixel_center_shift;
+						vec2 new_uv = cartesian_to_uv(new_position, new_face);
 						vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
 
 						float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;
@@ -461,8 +459,7 @@ function pla.get_shader()
 						for (int j = -N; j <= N; j++) {
 							vec3 new_position = shifted_position + vec3(0, j, 0) * shift_unit + tangent * i * shift_unit;
 							float new_face = Texel(face_id_cubemap, new_position).r * 6.0;
-							//vec2 pixel_center_shift = vec2(0.5 / world_size / 3.0, -0.5 / world_size / 3.0);
-							vec2 new_uv = cartesian_to_uv(new_position, new_face);// + pixel_center_shift;
+							vec2 new_uv = cartesian_to_uv(new_position, new_face);
 							vec2 new_texcoord = uvface_to_texcoord(new_uv, new_face);
 
 							float target_is_sea = Texel(texture_index_cubemap, new_texcoord).b;

@@ -1,0 +1,2 @@
+link many location province location of warband
+link one warband warband

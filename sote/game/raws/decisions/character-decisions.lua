@@ -1,6 +1,7 @@
 local Decision = require "game.raws.decisions"
 local utils = require "game.raws.raws-utils"
-local TRAIT = require "game.raws.traits.generic"
+
+local realm_utils = require "game.entities.realm".Realm
 
 local function load()
 	Decision.Character:new {
@@ -12,17 +13,17 @@ local function load()
 		secondary_target = 'none',
 		base_probability = 1 / 12,
 		pretrigger = function(root)
-			if root.busy then return false end
-			if root.province.realm == nil then
+			if BUSY(root) then return false end
+			if LOCAL_REALM(root)== nil then
 				return false
 			end
-			if root.province.realm.leader == root then
+			if LEADER(LOCAL_REALM(root)) == root then
 				return false
 			end
-			if root.province.realm.capitol ~= root.province then
+			if CAPITOL(LOCAL_REALM(root)) ~= PROVINCE(root) then
 				return false
 			end
-			if root.province.realm ~= root.realm then
+			if LOCAL_REALM(root)~= REALM(root)then
 				return false
 			end
 			return true
@@ -30,8 +31,8 @@ local function load()
 		ai_will_do = function(root, primary_target, secondary_target)
 			---@type Character
 			local root = root
-			local court_efficiency = root.province.realm:get_court_efficiency()
-			if root.traits[TRAIT.AMBITIOUS] then
+			local court_efficiency = realm_utils.get_court_efficiency(LOCAL_REALM(root))
+			if HAS_TRAIT(root, TRAIT.AMBITIOUS) then
 				return 0.8 - court_efficiency / 2
 			end
 			return 0

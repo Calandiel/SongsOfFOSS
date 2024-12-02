@@ -1,25 +1,23 @@
 ---@class (exact) RawsManager
 ---@field __index RawsManager
----@field biomes_by_name table<string, Biome>
----@field biomes_load_order table<number, Biome>
----@field bedrocks_by_name table<string, Bedrock>
----@field bedrocks_by_color table<number, Bedrock>
+---@field biomes_by_name table<string, biome_id>
+---@field biomes_load_order table<number, biome_id>
+---@field bedrocks_by_name table<string, bedrock_id>
+---@field bedrocks_by_color_id table<number, bedrock_id>
 ---@field biogeographic_realms_by_name table<string, BiogeographicRealm>
 ---@field biogeographic_realms_by_color table<number, BiogeographicRealm>
----@field races_by_name table<string, Race>
----@field building_types_by_name table<string, BuildingType>
----@field trade_goods_by_name table<TradeGoodReference, TradeGood>
----@field trade_good_to_index table<TradeGoodReference, number>
----@field trade_goods_list TradeGoodReference[]
----@field trade_goods_use_cases_by_name table<string, TradeGoodUseCase>
----@field jobs_by_name table<string, Job>
----@field technologies_by_name table<string, Technology>
----@field production_methods_by_name table<string, ProductionMethod>
----@field resources_by_name table<string, Resource>
+---@field races_by_name table<string, race_id>
+---@field building_types_by_name table<string, building_type_id>
+---@field trade_goods_by_name table<string, trade_good_id>
+---@field use_cases_by_name table<string, use_case_id>
+---@field jobs_by_name table<string, job_id>
+---@field technologies_by_name table<string, technology_id>
+---@field production_methods_by_name table<string, production_method_id>
+---@field resources_by_name table<string, resource_id>
 ---@field decisions_by_name table<string, DecisionRealm>
 ---@field decisions_characters_by_name table<string, DecisionCharacter>
 ---@field events_by_name table<string, Event>
----@field unit_types_by_name table<string, UnitType>
+---@field unit_types_by_name table<string, unit_type_id>
 ---@field do_logging boolean
 local raws_manager = {}
 
@@ -33,14 +31,12 @@ function raws_manager:new()
 	w.biomes_by_name = {}
 	w.biomes_load_order = {}
 	w.bedrocks_by_name = {}
-	w.bedrocks_by_color = {}
+	w.bedrocks_by_color_id = {}
 	w.biogeographic_realms_by_name = {}
 	w.biogeographic_realms_by_color = {}
 	w.races_by_name = {}
 	w.trade_goods_by_name = {}
-	w.trade_good_to_index = {}
-	w.trade_goods_list = {}
-	w.trade_goods_use_cases_by_name = {}
+	w.use_cases_by_name = {}
 	w.jobs_by_name = {}
 	w.technologies_by_name = {}
 	w.production_methods_by_name = {}

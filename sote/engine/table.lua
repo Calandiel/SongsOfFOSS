@@ -143,6 +143,20 @@ function tab.random_select_from_set(items)
 	return k, v
 end
 
+---Given an array of objects, return a randomly selected value according to uniform distribution
+---@generic V
+---@param items V[]
+---@return V|nil
+function tab.random_select_from_array(items)
+	local size = #items
+
+	if size == 0 then
+		return nil
+	end
+
+	return items[love.math.random(size)]
+end
+
 ---Given a table and a function with parameter of table value type that resolves to a boolean,
 ---return a new table with all values that resolve to true
 ---@generic K, V
@@ -155,6 +169,34 @@ function tab.filter(items, filter)
 		if filter(v) then
 			r[k] = v
 		end
+	end
+	return r
+end
+
+---Given a array and a function with parameter of table value type that resolves to a boolean,
+---return a new table with all values that resolve to true
+---@generic V
+---@param items V[]
+---@param filter fun(a: V):boolean
+---@return V[]
+function tab.filter_array(items, filter)
+	local r = {}
+	for k, v in pairs(items) do
+		if filter(v) then
+			table.insert(r, v)
+		end
+	end
+	return r
+end
+
+---@generic V, K
+---@param items V[]
+---@param mapping fun(a: V):K
+---@return K[]
+function tab.map_array(items, mapping)
+	local r = {}
+	for k, v in pairs(items) do
+		table.insert(r, mapping(v))
 	end
 	return r
 end
@@ -175,6 +217,20 @@ function tab.accumulate(items, accumulable, accumulator)
 	return a
 end
 
+---Maps values of a given table to according to a given mapping
+---@generic S, T, V
+---@param items table<S, T>
+---@param mapping fun(k: T):V
+---@return table<S, V>
+function tab.map(items, mapping)
+	---@type table
+	local a = {}
+	for k, v in pairs(items) do
+		a[k] = mapping(items)
+	end
+	return a
+end
+
 ---Given two tables of similar key-value pairs, insert all values from the second table into the first.
 ---Returns the first table with all values in both tables, where the second overwrites the first
 ---@generic K, V
@@ -184,6 +240,19 @@ end
 function tab.join(first, second)
 	for k,v in pairs(second) do
 		first[k] = v
+	end
+	return first
+end
+
+---Given two arrays of similar value, insert all values from the second array into the first.
+---Returns the first array with all values in both arrays
+---@generic V
+---@param first V[]
+---@param second V[]
+---@return V[]
+function tab.join_arrays(first, second)
+	for k, v in pairs(second) do
+		table.insert(first, v)
 	end
 	return first
 end

@@ -1,7 +1,7 @@
 local ut = {}
 
 ---@param id string
----@return Job
+---@return job_id
 function ut.job(id)
 	local r = RAWS_MANAGER.jobs_by_name[id]
 	if r == nil then
@@ -9,12 +9,12 @@ function ut.job(id)
 		error("Job " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
----@param id TradeGoodReference
----@return TradeGood
+---@param id string
+---@return trade_good_id
 function ut.trade_good(id)
 	local r = RAWS_MANAGER.trade_goods_by_name[id]
 	if r == nil then
@@ -22,25 +22,25 @@ function ut.trade_good(id)
 		error("Trade good " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
-	return r
-end
 
----@param id TradeGoodUseCaseReference
----@return TradeGoodUseCase
-function ut.trade_good_use_case(id)
-	local r = RAWS_MANAGER.trade_goods_use_cases_by_name[id]
-	if r == nil then
-		print("Trade good use case " .. id .. " doesn't exist!")
-		error("Trade good use case " .. id .. " doesn't exist!")
-		love.event.quit()
-	end
-	---@diagnostic disable-next-line: return-type-mismatch
 	return r
 end
 
 ---@param id string
----@return Technology
+---@return use_case_id
+function ut.trade_good_use_case(id)
+	local r = RAWS_MANAGER.use_cases_by_name[id]
+	if r == nil then
+		print("Use case " .. id .. " doesn't exist!")
+		error("Use case " .. id .. " doesn't exist!")
+		love.event.quit()
+	end
+
+	return r
+end
+
+---@param id string
+---@return technology_id
 function ut.technology(id)
 	local r = RAWS_MANAGER.technologies_by_name[id]
 	if r == nil then
@@ -48,12 +48,12 @@ function ut.technology(id)
 		error("Technology " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return Race
+---@return race_id
 function ut.race(id)
 	local r = RAWS_MANAGER.races_by_name[id]
 	if r == nil then
@@ -61,12 +61,12 @@ function ut.race(id)
 		error("Race " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return ProductionMethod
+---@return production_method_id
 function ut.production_method(id)
 	local r = RAWS_MANAGER.production_methods_by_name[id]
 	if r == nil then
@@ -74,12 +74,12 @@ function ut.production_method(id)
 		error("Production method " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return Biome
+---@return biome_id
 function ut.biome(id)
 	local r = RAWS_MANAGER.biomes_by_name[id]
 	if r == nil then
@@ -87,12 +87,11 @@ function ut.biome(id)
 		error("Biome " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
 	return r
 end
 
 ---@param id string
----@return Bedrock
+---@return bedrock_id
 function ut.bedrock(id)
 	local r = RAWS_MANAGER.bedrocks_by_name[id]
 	if r == nil then
@@ -100,7 +99,6 @@ function ut.bedrock(id)
 		error("Bedrock " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
 	return r
 end
 
@@ -113,12 +111,12 @@ function ut.biogeographic_realm(id)
 		error("Biogeographic realm " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return Resource
+---@return resource_id
 function ut.resource(id)
 	local r = RAWS_MANAGER.resources_by_name[id]
 	if r == nil then
@@ -126,12 +124,12 @@ function ut.resource(id)
 		error("Resource " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
 ---@param id string
----@return UnitType
+---@return unit_type_id
 function ut.unit_type(id)
 	local r = RAWS_MANAGER.unit_types_by_name[id]
 	if r == nil then
@@ -139,7 +137,7 @@ function ut.unit_type(id)
 		error("Unit Type " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 
@@ -152,7 +150,7 @@ function ut.event(id)
 		error("Event " .. id .. " doesn't exist!")
 		love.event.quit()
 	end
-	---@diagnostic disable-next-line: return-type-mismatch
+
 	return r
 end
 

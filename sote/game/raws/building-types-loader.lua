@@ -27,6 +27,9 @@ function d.load()
 		upkeep = 0.05,
 		needed_infrastructure = 3,
 		ai_weight = 2,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
+		required_biome = {},
+		required_resource = {}
 	}
 	BuildingType:new {
 		name = "witch-doctor-garden",
@@ -37,10 +40,12 @@ function d.load()
 		b = 1,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('witch-doctor'),
-		construction_cost = COST_AREA * 1.5,
-		building_group = BUILDING_GROUP.GROUNDS,
+		construction_cost = COST_AREA * 10,
+		archetype = BUILDING_ARCHETYPE.FARM,
 		needed_infrastructure = 1,
-		ai_weight = 1
+		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "water-carrier",
@@ -55,6 +60,9 @@ function d.load()
 		upkeep = 0.01,
 		needed_infrastructure = 1,
 		ai_weight = 0.05,
+		required_resource = {},
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.GROUNDS
 	}
 	BuildingType:new {
 		name = "hunting-grounds-0",
@@ -66,9 +74,11 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('hunting-0'),
 		construction_cost = COST_AREA,
-		building_group = BUILDING_GROUP.GROUNDS,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "hunting-grounds-1",
@@ -80,9 +90,11 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('hunting-1'),
 		construction_cost = COST_AREA,
-		building_group = BUILDING_GROUP.GROUNDS,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "hunting-grounds-2",
@@ -94,9 +106,11 @@ function d.load()
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('hunting-2'),
 		construction_cost = COST_AREA,
-		building_group = BUILDING_GROUP.GROUNDS,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "gathering-grounds-0",
@@ -107,10 +121,12 @@ function d.load()
 		b = 0.3,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('gathering-0'),
-		building_group = BUILDING_GROUP.GROUNDS,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
 		construction_cost = COST_AREA,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "gathering-grounds-1",
@@ -121,10 +137,12 @@ function d.load()
 		b = 0.3,
 		unlocked_by = tec('paleolithic-knowledge'),
 		production_method = prod('gathering-1'),
-		building_group = BUILDING_GROUP.GROUNDS,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
 		construction_cost = COST_AREA,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "gathering-grounds-2",
@@ -135,10 +153,12 @@ function d.load()
 		b = 0.3,
 		unlocked_by = tec('ground-stone-tools'),
 		production_method = prod('gathering-2'),
-		building_group = BUILDING_GROUP.GROUNDS,
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
 		construction_cost = COST_AREA,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = "flint-extraction",
@@ -154,6 +174,8 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 1,
 		ai_weight = 20,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 	BuildingType:new {
 		name = "blanks-knapping",
@@ -168,6 +190,8 @@ function d.load()
 		construction_cost = COST_WORKSHOP,
 		needed_infrastructure = 1,
 		ai_weight = 1,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.WORKSHOP
 	}
 	BuildingType:new {
 		name = "obsidian-extraction",
@@ -183,6 +207,8 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 1,
 		ai_weight = 20,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 	BuildingType:new {
 		name = "stone-extraction",
@@ -198,6 +224,8 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 1,
 		ai_weight = 20,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 	BuildingType:new {
 		name = 'brewery-grain',
@@ -209,9 +237,11 @@ function d.load()
 		unlocked_by = tec('basic-fermentation'),
 		production_method = prod('brewing-grain'),
 		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP,
+		archetype = BUILDING_ARCHETYPE.WORKSHOP,
 		needed_infrastructure = 15,
-		ai_weight = 3.5
+		ai_weight = 3.5,
+		required_resource = {},
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = 'brewery-fruit',
@@ -223,9 +253,11 @@ function d.load()
 		unlocked_by = tec('basic-fermentation'),
 		production_method = prod('brewing-fruit'),
 		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP,
+		archetype = BUILDING_ARCHETYPE.WORKSHOP,
 		needed_infrastructure = 15,
-		ai_weight = 3.5
+		ai_weight = 3.5,
+		required_biome = {},
+		required_resource = {}
 	}
 
 	-- ###################
@@ -246,7 +278,9 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 10,
 		construction_cost = COST_MINE,
-		ai_weight = 10
+		ai_weight = 10,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 	BuildingType:new {
 		name = 'surface-copper-mining',
@@ -261,7 +295,9 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 30,
 		construction_cost = COST_MINE,
-		ai_weight = 10
+		ai_weight = 10,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 	BuildingType:new {
 		name = 'copper-mining',
@@ -276,7 +312,9 @@ function d.load()
 		unique = true,
 		needed_infrastructure = 30,
 		construction_cost = COST_MINE,
-		ai_weight = 10
+		ai_weight = 10,
+		required_biome = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 
 	-- SMELT ORE
@@ -291,7 +329,10 @@ function d.load()
 		production_method = prod('copper-smelting'),
 		needed_infrastructure = 10,
 		construction_cost = COST_WORKSHOP,
-		ai_weight = 10
+		ai_weight = 10,
+		required_biome = {},
+		required_resource = {},
+		archetype = BUILDING_ARCHETYPE.WORKSHOP
 	}
 
 	-- MAKING TOOLS
@@ -306,7 +347,10 @@ function d.load()
 		production_method = prod('smith-tools-native-copper'),
 		needed_infrastructure = 15,
 		construction_cost = COST_WORKSHOP,
-		ai_weight = 10
+		ai_weight = 10,
+		required_biome = {},
+		required_resource = {},
+		archetype = BUILDING_ARCHETYPE.WORKSHOP
 	}
 	BuildingType:new {
 		name = 'copper-smith-tools',
@@ -319,7 +363,10 @@ function d.load()
 		production_method = prod('smith-tools-cast-copper'),
 		needed_infrastructure = 15,
 		construction_cost = COST_WORKSHOP,
-		ai_weight = 10
+		ai_weight = 10,
+		required_biome = {},
+		required_resource = {},
+		archetype = BUILDING_ARCHETYPE.WORKSHOP
 	}
 	BuildingType:new {
 		name = 'watchtower',
@@ -331,6 +378,7 @@ function d.load()
 		unlocked_by = tec('watchtowers'),
 		production_method = prod('none'),
 		required_resource = {},
+		required_biome = {},
 		unique = true,
 		government = true,
 		needed_infrastructure = 10,
@@ -338,6 +386,7 @@ function d.load()
 		spotting = 500,
 		construction_cost = 150,
 		upkeep = 0.15,
+		archetype = BUILDING_ARCHETYPE.DEFENSE
 	}
 	BuildingType:new {
 		name = 'clay-pit',
@@ -351,6 +400,9 @@ function d.load()
 		needed_infrastructure = 3.5,
 		ai_weight = 50,
 		construction_cost = COST_MINE,
+		required_biome = {},
+		required_resource = {},
+		archetype = BUILDING_ARCHETYPE.MINE
 	}
 	BuildingType:new {
 		name = 'potterer',
@@ -364,7 +416,9 @@ function d.load()
 		needed_infrastructure = 10,
 		ai_weight = 70,
 		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP
+		archetype = BUILDING_ARCHETYPE.WORKSHOP,
+		required_biome = {},
+		required_resource = {},
 	}
 	BuildingType:new {
 		name = 'woodcutters',
@@ -378,7 +432,9 @@ function d.load()
 		needed_infrastructure = 5,
 		ai_weight = 20,
 		construction_cost = COST_AREA,
-		building_group = BUILDING_GROUP.GROUNDS
+		archetype = BUILDING_ARCHETYPE.GROUNDS,
+		required_biome = {},
+		required_resource = {},
 	}
 	BuildingType:new {
 		name = 'furniture-crafters',
@@ -392,7 +448,9 @@ function d.load()
 		needed_infrastructure = 25,
 		ai_weight = 50,
 		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP
+		archetype = BUILDING_ARCHETYPE.WORKSHOP,
+		required_biome = {},
+		required_resource = {},
 	}
 	BuildingType:new {
 		name = 'tanners',
@@ -406,7 +464,9 @@ function d.load()
 		needed_infrastructure = 25,
 		ai_weight = 35,
 		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP
+		archetype = BUILDING_ARCHETYPE.WORKSHOP,
+		required_biome = {},
+		required_resource = {},
 	}
 	BuildingType:new {
 		name = 'leather-workers',
@@ -420,7 +480,9 @@ function d.load()
 		needed_infrastructure = 25,
 		ai_weight = 50,
 		construction_cost = COST_WORKSHOP,
-		building_group = BUILDING_GROUP.WORKSHOP
+		archetype = BUILDING_ARCHETYPE.WORKSHOP,
+		required_biome = {},
+		required_resource = {},
 	}
 	BuildingType:new {
 		name = 'rye-farm',
@@ -435,7 +497,8 @@ function d.load()
 		needed_infrastructure = 2.5,
 		ai_weight = 50,
 		construction_cost = COST_FARM,
-		building_group = BUILDING_GROUP.FARM
+		archetype = BUILDING_ARCHETYPE.FARM,
+		required_biome = {},
 	}
 	BuildingType:new {
 		name = 'beehive',
@@ -450,7 +513,8 @@ function d.load()
 		needed_infrastructure = 0.5,
 		ai_weight = 150,
 		construction_cost = COST_FARM,
-		building_group = BUILDING_GROUP.FARM
+		archetype = BUILDING_ARCHETYPE.FARM,
+		required_biome = {},
 	}
 end
 

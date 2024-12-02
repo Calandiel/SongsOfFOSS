@@ -1,6 +1,9 @@
 local ut = require "game.ui-utils"
 
-local political_values = require "game.raws.values.political"
+local warband_utils = require "game.entities.warband"
+
+local political_values = require "game.raws.values.politics"
+local economy_values = require "game.raws.values.economy"
 
 local text = {}
 
@@ -11,7 +14,7 @@ local text = {}
 ---@param associated_data Province
 function text.exploration_preparation(self, character, associated_data)
 	return "I plan to explore the province "
-		.. associated_data.name
+		.. PROVINCE_NAME(associated_data)
 		.. ". We have following options:"
 end
 
@@ -22,13 +25,13 @@ end
 ---@param associated_data ExplorationData
 function text.exploration_progress(self, character, associated_data)
 	return "I am currently exploring the province "
-		.. associated_data.explored_province.name
+		.. PROVINCE_NAME(associated_data.explored_province)
 		.. "."
 		.. " I estimate that exploration will take roughly "
-		.. tostring(math.floor(associated_data._exploration_days_left / character.leading_warband:size()))
+		.. tostring(math.floor(associated_data._exploration_days_left / warband_utils.size(LEADER_OF_WARBAND(character))))
 		.. " days."
 		.. " We have enough supplies for "
-		.. ut.to_fixed_point2(character.leading_warband:days_of_travel())
+		.. ut.to_fixed_point2(economy_values.days_of_travel(LEADER_OF_WARBAND(character)))
 		.. " days of exploration"
 end
 
@@ -46,7 +49,7 @@ end
 ---@param character Character
 ---@param associated_data ExplorationData
 function text.exploration_ask_locals_local(self, character, associated_data)
-	return associated_data.explorer.name .. " asked me about local area."
+	return NAME(associated_data.explorer) .. " asked me about local area."
 end
 
 
@@ -78,7 +81,7 @@ function text.exploration_ask_locals_explorer_help_received(self, character, ass
 		error("Conversation was not set")
 	end
 
-	return "Local person " .. conversation.partner.name .. " provided me with directions."
+	return "Local person " .. NAME(conversation.partner) .. " provided me with directions."
 end
 
 
@@ -109,10 +112,10 @@ end
 ---@param associated_data nil
 ---@return string
 function text.tax_collection_1(self, character, associated_data)
-	return "I was collecting taxes on behalf of " .. character.realm.leader.name .. ". " ..
+	return "I was collecting taxes on behalf of " .. NAME(LEADER(REALM(character))) .. ". " ..
 		"I have already collected a sizable amount but I can collect even more taxes and keep them myself." ..
 		" My reputation among our people will suffer even more but as long I am on a good side of "
-		.. character.realm.leader.name .. " it's probably fine."
+		.. NAME(LEADER(REALM(character))) .. " it's probably fine."
 end
 
 
@@ -120,9 +123,9 @@ function text.request_tribute(self, character, associated_data)
 	---@type Character
 	associated_data = associated_data
 
-	local name = associated_data.name
+	local name = NAME(associated_data)
 	local temp = "him"
-	if associated_data.female then
+	if DATA.pop_get_female(associated_data) then
 		temp = "her"
 	end
 
@@ -141,7 +144,7 @@ function text.request_tribute_refusal(self, character, associated_data)
 	---@type Character
 	associated_data = associated_data
 
-	local name = associated_data.name
+	local name = NAME(associated_data)
 	local my_warlords, my_power = political_values.military_strength(character)
 	local their_warlords, their_power = political_values.military_strength(associated_data)
 
@@ -177,11 +180,11 @@ function text.negotiation_string(negotiation)
 
 	local trade_string_initiator = ""
 	if negotiation.negotiations_terms_characters then
-		trade_string_initiator = negotiation.initiator.name .. " will: \n"
+		trade_string_initiator = NAME(negotiation.initiator) .. " will: \n"
 		for good, amount in pairs(negotiation.negotiations_terms_characters.trade.goods_transfer_from_initiator_to_target) do
 			if amount > 0 then
 				trade_string_initiator = trade_string_initiator ..
-					"- Transfer " .. tostring(amount) .. " of " .. good .. "\n"
+					"- Transfer " .. tostring(amount) .. " of " .. DATA.trade_good_get_name(good) .. "\n"
 			end
 		end
 
@@ -195,11 +198,11 @@ function text.negotiation_string(negotiation)
 
 	local trade_string_target = ""
 	if negotiation.negotiations_terms_characters then
-		trade_string_target = negotiation.target.name .. " will: \n"
+		trade_string_target = NAME(negotiation.target) .. " will: \n"
 		for good, amount in pairs(negotiation.negotiations_terms_characters.trade.goods_transfer_from_initiator_to_target) do
 			if amount < 0 then
 				trade_string_target = trade_string_target ..
-					"- Transfer " .. tostring(-amount) .. " of " .. good .. "\n"
+					"- Transfer " .. tostring(-amount) .. " of " .. DATA.trade_good_get_name(good) .. "\n"
 			end
 		end
 
@@ -218,20 +221,20 @@ function text.negotiation_string(negotiation)
 
 		if item.free then
 			realm_string = realm_string ..
-			"- ".. item.root.name .. " will set " .. item.target.name .. " free. \n"
+			"- ".. REALM_NAME(item.root) .. " will set " .. REALM_NAME(item.target) .. " free. \n"
 		end
 
 		if item.subjugate then
 			realm_string = realm_string ..
-			"- ".. item.target.name .. " will recognise " .. item.root.name .. " as an overlord. \n"
+			"- ".. REALM_NAME(item.target) .. " will recognise " .. REALM_NAME(item.root) .. " as an overlord. \n"
 		end
 
 		realm_string = realm_string .. "These realms will will negotiate a following trade agreement \n"
-		local trade_realm_string_initiator = negotiation.initiator.name .. " will: \n"
+		local trade_realm_string_initiator = NAME(negotiation.initiator) .. " will: \n"
 		for good, amount in pairs(item.trade.goods_transfer_from_initiator_to_target) do
 			if amount > 0 then
 				trade_realm_string_initiator = trade_realm_string_initiator ..
-					"- Transfer " .. tostring(amount) .. " of " .. good .. "\n"
+					"- Transfer " .. tostring(amount) .. " of " .. DATA.trade_good_get_name(good) .. "\n"
 			end
 		end
 		if item.trade.wealth_transfer_from_initiator_to_target > 0 then
@@ -240,11 +243,11 @@ function text.negotiation_string(negotiation)
 				.. tostring(item.trade.wealth_transfer_from_initiator_to_target)
 				.. " of wealth \n"
 		end
-		local trade_realm_string_target = negotiation.target.name .. " will: \n"
+		local trade_realm_string_target = NAME(negotiation.target) .. " will: \n"
 		for good, amount in pairs(item.trade.goods_transfer_from_initiator_to_target) do
 			if amount < 0 then
 				trade_realm_string_target = trade_realm_string_target ..
-					"- Transfer " .. tostring(-amount) .. " of " .. good .. "\n"
+					"- Transfer " .. tostring(-amount) .. " of " .. DATA.trade_good_get_name(good) .. "\n"
 			end
 		end
 		if item.trade.wealth_transfer_from_initiator_to_target < 0 then
@@ -262,17 +265,17 @@ function text.negotiation_string(negotiation)
 	for _, item in ipairs(negotiation.negotiations_terms_character_to_realm) do
 		if item.trade_permission then
 			character_realm_string = character_realm_string
-			.. negotiation.initiator.name
+			.. NAME(negotiation.initiator)
 			.. " will be allowed to trade in lands of "
-			.. item.target.name
+			.. REALM_NAME(item.target)
 			.. "\n"
 		end
 
 		if item.building_permission then
 			character_realm_string = character_realm_string
-			.. negotiation.initiator.name
+			.. NAME(negotiation.initiator)
 			.. " will be allowed to build in lands of "
-			.. item.target.name
+			.. REALM_NAME(item.target)
 			.. "\n"
 		end
 	end
@@ -312,7 +315,7 @@ function text.negotiate(self, character, associated_data)
 	---@type NegotiationData
 	associated_data = associated_data
 
-	local intro = "INITIATOR: " .. associated_data.initiator.name .. " NEGOTIATION PARTNER: " .. associated_data.target.name .. ".\n"
+	local intro = "INITIATOR: " .. NAME(associated_data.initiator) .. " NEGOTIATION PARTNER: " .. NAME(associated_data.target) .. ".\n"
 
 	return intro .. "Current negotiation draft: \n" .. text.negotiation_string(associated_data)
 end
@@ -324,7 +327,7 @@ function text.negotiate_adjustment(self, character, associated_data)
 	---@type NegotiationData
 	associated_data = associated_data
 
-	local intro = "We got response from " .. associated_data.target.name .. ".\n"
+	local intro = "We got response from " .. NAME(associated_data.target) .. ".\n"
 
 
 	return intro .. "He presented us with a following adjusted negotiation draft: \n" .. text.negotiation_string(associated_data)
@@ -347,7 +350,7 @@ end
 ---@param negotiation_data NegotiationData
 ---@return string
 function text.target_accepts(self, character, negotiation_data)
-	return character.name .. " accepted our offer"
+	return NAME(character) .. " accepted our offer"
 end
 
 function text.negotiation_back_down(self, character, negotiation_data)
@@ -359,7 +362,7 @@ end
 ---@param negotiation_data NegotiationData
 ---@return string
 function text.target_declines(self, character, negotiation_data)
-	return character.name .. " declined our offer"
+	return NAME(character) .. " declined our offer"
 end
 
 

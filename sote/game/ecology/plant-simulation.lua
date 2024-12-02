@@ -1,5 +1,6 @@
 local gen = {}
 local sun = require "game.climate.sun"
+local tile= require "game.entities.tile"
 
 --[[
 SHRUB_COUNT = {}
@@ -38,7 +39,7 @@ KILL = {} --grass_kill
 function gen.run()
 	print("Running plant generation...")
 	-- Loop over all land tiles (there's also iter_all and iter_water)
-	for _, tile in pairs(WORLD.tiles) do
+	DATA.for_each_tile(function (tile_id)
 		-- Do cool things here!
 
 		-- "iter" refers to the ID of the tile, retrieved from the iterator over all land tiles
@@ -51,25 +52,30 @@ function gen.run()
 		local permafrost_threshold = -20
 		local soil_depth_tuner = 0.5 --- higher = higher soil depth penalty for thin soils
 
-		local latitude, _ = tile:latlon()
+		local latitude, _ = tile.latlon(tile_id)
+
 		latitude = latitude / math.pi * 180
 		--local waterflow = tile:average_waterflow()
 		--local elevation = tile.elevation
-		local ice = tile.ice
+		local ice = DATA.tile_get_ice(tile_id)
 
-		local soil_depth = tile:soil_depth()
-		local sand = tile.sand
-		local clay = tile.clay
-		local silt = tile.silt
+		local soil_depth = tile.soil_depth(tile_id)
+		local sand = DATA.tile_get_sand(tile_id)
+		local clay = DATA.tile_get_clay(tile_id)
+		local silt = DATA.tile_get_silt(tile_id)
 		if soil_depth > 0 then
 			sand = sand / soil_depth
 			clay = clay / soil_depth
 			silt = silt / soil_depth
 		end
 		--local organics = tile.soil_organics
-		local minerals = tile.soil_minerals
+		local minerals = DATA.tile_get_soil_minerals(tile_id)
 
-		local jan_rain, jan_temp, jul_rain, jul_temp = tile:get_climate_data()
+		local jan_temp = DATA.tile_get_january_temperature(tile_id)
+		local jul_temp = DATA.tile_get_july_temperature(tile_id)
+		local jan_rain = DATA.tile_get_january_rain(tile_id)
+		local jul_rain = DATA.tile_get_july_rain(tile_id)
+
 		--print(tostring(jan_temp) .. " , " .. tostring(jul_temp))
 		local annual_average_temp = (jan_temp + jul_temp) / 2
 		local adjusted_annual_temperature = annual_average_temp - permafrost_threshold
@@ -181,10 +187,11 @@ function gen.run()
 			color = 250
 		end
 		--SOIL_ORGANICS[tile] = soil_organics
-		tile.grass = 0
-		tile.shrub = 0
-		tile.conifer = 0
-		tile.broadleaf = 0
+
+		DATA.tile_set_grass(tile_id, 0)
+		DATA.tile_set_shrub(tile_id, 0)
+		DATA.tile_set_conifer(tile_id, 0)
+		DATA.tile_set_broadleaf(tile_id, 0)
 
 		--- Shrub Defines ---
 		local shrub_base_growth = 30000
@@ -522,21 +529,21 @@ function gen.run()
 		broadleaf_percent = math.max(0, broadleaf_percent)
 		local total_plants = grass_percent + shrub_percent + conifer_percent + broadleaf_percent
 		if total_plants > 1 then
-			tile.grass = grass_percent / total_plants
-			tile.shrub = shrub_percent / total_plants
-			tile.conifer = conifer_percent / total_plants
-			tile.broadleaf = broadleaf_percent / total_plants
+			DATA.tile_set_grass(tile_id, grass_percent / total_plants)
+			DATA.tile_set_shrub(tile_id, shrub_percent / total_plants)
+			DATA.tile_set_conifer(tile_id, conifer_percent / total_plants)
+			DATA.tile_set_broadleaf(tile_id, broadleaf_percent / total_plants)
 		else
-			tile.grass = grass_percent
-			tile.shrub = shrub_percent
-			tile.conifer = conifer_percent
-			tile.broadleaf = broadleaf_percent
+			DATA.tile_set_grass(tile_id, grass_percent)
+			DATA.tile_set_shrub(tile_id, shrub_percent)
+			DATA.tile_set_conifer(tile_id, conifer_percent)
+			DATA.tile_set_broadleaf(tile_id, broadleaf_percent)
 		end
 
-		tile.ideal_grass = tile.grass
-		tile.ideal_shrub = tile.shrub
-		tile.ideal_conifer = tile.conifer
-		tile.ideal_broadleaf = tile.broadleaf
+		DATA.tile_set_ideal_grass(tile_id, DATA.tile_get_grass(tile_id))
+		DATA.tile_set_ideal_shrub(tile_id, DATA.tile_get_shrub(tile_id))
+		DATA.tile_set_ideal_conifer(tile_id, DATA.tile_get_conifer(tile_id))
+		DATA.tile_set_ideal_broadleaf(tile_id, DATA.tile_get_broadleaf(tile_id))
 
 		--[[
 		SHRUB_COUNT[tile] = shrubs
@@ -571,7 +578,7 @@ function gen.run()
 		AERATION_LOSS[tile] = 2 - sand_aeration_loss - silt_aeration_loss - clay_aeration_loss
 		SOIL_AERATION[tile] = soil_organic_aeration_factor
 		--]]
-	end
+	end)
 end
 
 return gen

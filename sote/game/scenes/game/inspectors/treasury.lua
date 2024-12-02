@@ -3,7 +3,7 @@ local uit = require "game.ui-utils"
 
 local bc = require "game.scenes.game.widgets.budget-category"
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 
 local TREASURY_TARGET_CHANGE = 1
 
@@ -24,29 +24,37 @@ return function(ui_panel, realm)
 
         -- current treasury
         local panel_rect = ui_panel:subrect(0, 0, column_width, uit.BASE_HEIGHT, "left", "up")
-        uit.money_entry("Realm treasury", realm.budget.treasury, panel_rect, "Treasury")
+        uit.money_entry("Realm treasury", DATA.realm_get_budget_treasury(realm), panel_rect, "Treasury")
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- current spending
         local spendings_rect = panel_rect:subrect(0, 0, column_width - uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up")
-        for category, spendings in pairs(realm.budget.spending_by_category) do
-            uit.money_entry(category, spendings, spendings_rect, "Spending", true)
-            spendings_rect.y = spendings_rect.y + uit.BASE_HEIGHT
-        end
+        DATA.for_each_economy_reason(function (item)
+            local name = DATA.economy_reason_get_description(item)
+            local spendings = DATA.realm_get_budget_spending_by_category(realm, item)
+            if spendings > 0 then
+                uit.money_entry(name, spendings, spendings_rect, "Spending", true)
+                spendings_rect.y = spendings_rect.y + uit.BASE_HEIGHT
+            end
+        end)
 
         -- current incomes
         local incomes_rect = panel_rect:subrect(column_width, 0, column_width - uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up")
-        for category, incomes in pairs(realm.budget.income_by_category) do
-            uit.money_entry(category, incomes, incomes_rect, "Income")
-            incomes_rect.y = incomes_rect.y + uit.BASE_HEIGHT
-        end
+        DATA.for_each_economy_reason(function (item)
+            local name = DATA.economy_reason_get_description(item)
+            local income = DATA.realm_get_budget_income_by_category(realm, item)
+            if income > 0 then
+                uit.money_entry(name, income, incomes_rect, "Income", true)
+                incomes_rect.y = incomes_rect.y + uit.BASE_HEIGHT
+            end
+        end)
 
         -- treasury changes
-        local treasury_changes = panel_rect:subrect(2 * column_width, 0, column_width, uit.BASE_HEIGHT, "left", "up")
-        for category, spendings in pairs(realm.budget.spending_by_category) do
-            uit.money_entry(category, spendings, treasury_changes, "Treasury changes", true)
-            treasury_changes.y = treasury_changes.y + uit.BASE_HEIGHT
-        end
+        -- local treasury_changes = panel_rect:subrect(2 * column_width, 0, column_width, uit.BASE_HEIGHT, "left", "up")
+        -- for category, spendings in pairs(realm.budget.spending_by_category) do
+        --     uit.money_entry(category, spendings, treasury_changes, "Treasury changes", true)
+        --     treasury_changes.y = treasury_changes.y + uit.BASE_HEIGHT
+        -- end
 
         -- current budget
         panel_rect = ui_panel:subrect(0, ui_panel.height / 2, ui_panel.width, ui_panel.height / 2, "left", "up")
@@ -55,27 +63,27 @@ return function(ui_panel, realm)
 
 
         bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
-            "Education", realm, realm.budget.education, false, true)
+            "Education", realm, BUDGET_CATEGORY.EDUCATION, false, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
-            "Military", realm, realm.budget.military, false, false)
+            "Military", realm, BUDGET_CATEGORY.MILITARY, false, false)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
-            "Court", realm, realm.budget.court, false, true)
+            "Court", realm, BUDGET_CATEGORY.COURT, false, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
-            "Infrastructure", realm, realm.budget.infrastructure, false, false)
+            "Infrastructure", realm, BUDGET_CATEGORY.INFRASTRUCTURE, false, false)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         bc(panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
-            "Tribute", realm, realm.budget.tribute, true, true)
+            "Tribute", realm, BUDGET_CATEGORY.TRIBUTE, true, true)
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
         -- treasury target
-        uit.money_entry("Target budget", realm.budget.treasury_target,
+        uit.money_entry("Target budget", DATA.realm_get_budget_treasury_target(realm),
             panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", "up"),
             "We try to save up at least this amount of wealth in treasury"
         )
@@ -97,7 +105,7 @@ return function(ui_panel, realm)
                     .. "If this amount is reached, excess money are reinvested across budget categories. "
                     .. "Press Ctrl or Shift to modify invested amount."
                 ) then
-                    realm.budget.treasury_target = math.max(0, realm.budget.treasury_target + amount)
+                    DATA.realm_set_budget_treasury_target(realm, math.max(0, DATA.realm_get_budget_treasury_target(realm) + amount))
                 end
                 treasury_button_rect.x = treasury_button_rect.x + uit.BASE_HEIGHT * 6
             end
@@ -108,7 +116,7 @@ return function(ui_panel, realm)
 
         panel_rect.y = panel_rect.y + uit.BASE_HEIGHT
 
-        uit.money_entry("Target yearly tax", realm.tax_target,
+        uit.money_entry("Target yearly tax", DATA.realm_get_budget_tax_target(realm),
             panel_rect:subrect(0, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", "up"),
             "We try to collect this amount of wealth per year from our population"
         )
@@ -127,7 +135,7 @@ return function(ui_panel, realm)
                     .. uit.to_fixed_point2(amount) .. MONEY_SYMBOL
                     .. "Press Ctrl or Shift to modify invested amount."
                 ) then
-                    realm.tax_target = math.max(0, realm.tax_target + amount)
+                    DATA.realm_set_budget_tax_target(realm, math.max(0, DATA.realm_get_budget_tax_target(realm) + amount))
                 end
                 tax_button_rect.x = tax_button_rect.x + uit.BASE_HEIGHT * 6
             end
@@ -136,7 +144,7 @@ return function(ui_panel, realm)
             change_tax_target(1)
         end
 
-        uit.money_entry("Collected tax", realm.tax_collected_this_year,
+        uit.money_entry("Collected tax", DATA.realm_get_budget_tax_collected_this_year(realm),
         panel_rect:subrect(tax_button_rect.x, 0, uit.BASE_HEIGHT * 8, uit.BASE_HEIGHT, "left", "up"),
         "We try to collect this amount of wealth per year from our population")
 
@@ -145,7 +153,7 @@ return function(ui_panel, realm)
         -- current change
         uit.money_entry(
             "Previous total income",
-            realm.budget.saved_change,
+            DATA.realm_get_budget_saved_change(realm),
             panel_rect:subrect(0, 0, panel_rect.width, uit.BASE_HEIGHT, "left", "up"),
             "Previous total income"
         )

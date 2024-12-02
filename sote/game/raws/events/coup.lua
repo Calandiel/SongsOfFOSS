@@ -1,44 +1,44 @@
 local Event = require "game.raws.events"
 local E_ut = require "game.raws.events._utils"
 
-local economic_effects = require "game.raws.effects.economic"
+local economic_effects = require "game.raws.effects.economy"
 local InterpersonalEffects = require "game.raws.effects.interpersonal"
-local TRAIT = require "game.raws.traits.generic"
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 local uit = require "game.ui-utils"
-local PoliticalEffects = require "game.raws.effects.political"
+local PoliticalEffects = require "game.raws.effects.politics"
 
-local calculate_power_base = require "game.raws.values.political".power_base
+local calculate_power_base = require "game.raws.values.politics".power_base
 
 
 return function()
     Event:new {
         name = "attempt-coup",
+        fallback = function(self, associated_data) end,
         event_text = function(self, character, associated_data)
-            local province = character.province
-            if province == nil then return "No coup target." end
-            local realm = character.province.realm
-            if realm == nil then return "No coup target." end
-            if realm.capitol ~= province then return "No coup target." end
+            local province = PROVINCE(character)
+            if province == INVALID_ID then return "No coup target." end
+            local realm = LOCAL_REALM(character)
+            if realm == INVALID_ID then return "No coup target." end
+            if CAPITOL(realm) ~= province then return "No coup target." end
 
-            local introduction = "I am going to become a chief of " .. realm.name .. '.'
+            local introduction = "I am going to become a chief of " .. REALM_NAME(realm) .. '.'
 
             local pretender_power = calculate_power_base(character, province)
-            local target_power = calculate_power_base(realm.leader, province)
+            local target_power = calculate_power_base(LEADER(realm), province)
 
-            local power_estimation_string = "I do not know the power of " .. realm.leader.name
+            local power_estimation_string = "I do not know the power of " .. NAME(LEADER(realm))
 
             if target_power >= pretender_power then
                 if target_power < pretender_power + 10  then
-                    power_estimation_string = realm.leader.name .. " is slightly more powerful than me."
+                    power_estimation_string = NAME(LEADER(realm)) .. " is slightly more powerful than me."
                 else
-                    power_estimation_string = realm.leader.name .. " is more powerful than me."
+                    power_estimation_string = NAME(LEADER(realm)) .. " is more powerful than me."
                 end
             else
                 if target_power > pretender_power - 10  then
-                    power_estimation_string = realm.leader.name .. " is slightly less powerful than me."
+                    power_estimation_string = NAME(LEADER(realm)) .. " is slightly less powerful than me."
                 else
-                    power_estimation_string = realm.leader.name .. " is less powerful than me."
+                    power_estimation_string = NAME(LEADER(realm)) .. " is less powerful than me."
                 end
             end
 
@@ -54,7 +54,7 @@ return function()
 		end,
 		options = function(self, character, associated_data)
             local treason_flag = true
-            local province = character.province
+            local province = PROVINCE(character)
             if province == nil then return
                 {
                     {
@@ -68,8 +68,8 @@ return function()
                     }
                 }
             end
-            local realm = character.province.realm
-            if realm == nil then return
+            local realm = LOCAL_REALM(character)
+            if realm == INVALID_ID then return
                 {
                     {
                         text = "No target",
@@ -84,12 +84,12 @@ return function()
             end
 
             local pretender_power = calculate_power_base(character, province)
-            local target_power = calculate_power_base(realm.leader, province)
+            local target_power = calculate_power_base(LEADER(realm), province)
 
 			return {
 				{
 					text = "Start",
-					tooltip = "I will challenge " .. realm.leader.name .. '!',
+					tooltip = "I will challenge " .. NAME(LEADER(realm)) .. '!',
 					viable = function() return true end,
 					outcome = function()
                         WORLD:emit_action("coup", character, associated_data, 0, true)
@@ -117,9 +117,12 @@ return function()
 
     Event:new {
 		name = "coup",
+        fallback = function(self, associated_data) end,
 		automatic = false,
+        event_background_path = "data/gfx/backgrounds/background.png",
+		base_probability = 0,
 		on_trigger = function(self, root, associated_data)
-			local realm = root.realm
+			local realm = REALM(root)
 
             if realm == nil then
                 return

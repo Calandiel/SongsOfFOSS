@@ -1,166 +1,30 @@
-local pv = require "game.raws.values.political"
-
-
----@class (exact) BudgetCategory
----@field ratio number
----@field budget number
----@field to_be_invested number
----@field target number
-
-local function budget_category()
-	return {
-		ratio = 0,
-		budget = 0,
-		to_be_invested = 0,
-		target = 0,
-	}
-end
-
----@alias BudgetCategoryReference 'education'|'court'|'infrastructure'|'military'|'tribute'
-
----@alias WealthByCategory table<EconomicReason, number?>
-
----@class (exact) Budget
----@field change number
----@field saved_change number
----@field spending_by_category WealthByCategory
----@field income_by_category WealthByCategory
----@field treasury_change_by_category WealthByCategory
----@field treasury number
----@field treasury_target number
----@field education BudgetCategory
----@field court BudgetCategory
----@field infrastructure BudgetCategory
----@field military BudgetCategory
----@field tribute BudgetCategory
-
-
----Generates empty budget
----@return Budget
-local function generate_empty_budget()
-	return {
-		treasury = 0,
-		treasury_history = {},
-		change = 0,
-		saved_change = 0,
-		treasury_target = 0,
-		spending_by_category = {},
-		income_by_category = {},
-		treasury_change_by_category = {},
-		education = budget_category(),
-		court = budget_category(),
-		infrastructure = budget_category(),
-		military = budget_category(),
-		tribute = budget_category(),
-	}
-end
-
----@class (exact) Realm
----@field __index Realm
----@field realm_id number
----@field exists boolean
----@field name string
----@field budget Budget
----@field tax_target number
----@field tax_collected_this_year number
----@field r number
----@field g number
----@field b number
----@field primary_race Race
----@field primary_culture Culture
----@field primary_faith Faith
----@field capitol Province
----@field leader Character?
----@field overseer Character?
----@field trading_right_given_to table<Character, Character>
----@field trading_right_cost number
----@field trading_right_law TradingRightLaw
----@field building_right_given_to table<Character, Character>
----@field building_right_cost number
----@field building_right_law BuildingRightLaw
----@field tribute_collectors table<Character, Character>
----@field paying_tribute_to table<Realm, Realm>
----@field tributaries table<Realm, Realm>
----@field tributary_status table<Realm, TributaryStatus>
----@field provinces table<Province, Province>
----@field quests_raid table<Province, nil|number> reward for raid
----@field quests_explore table<Province, nil|number> reward for exploration
----@field quests_patrol table<Province, nil|number> reward for patrol
----@field patrols table<Province, table<Warband, Warband>>
----@field capitol_guard Warband?
----@field prepare_attack_flag boolean?
----@field known_provinces table<Province, Province> For terra incognita.
----@field coa_base_r number
----@field coa_base_g number
----@field coa_base_b number
----@field coa_background_r number
----@field coa_background_g number
----@field coa_background_b number
----@field coa_foreground_r number
----@field coa_foreground_g number
----@field coa_foreground_b number
----@field coa_emblem_r number
----@field coa_emblem_g number
----@field coa_emblem_b number
----@field coa_background_image number
----@field coa_foreground_image number
----@field coa_emblem_image number
----@field resources table<TradeGoodReference, number> Currently stockpiled resources
----@field production table<TradeGoodReference, number> A "balance" of resource creation
----@field bought table<TradeGoodReference, number>
----@field sold table<TradeGoodReference, number>
----@field expected_food_consumption number
----@field armies table<Army, Army>
----@field wars table<War, War> Wars
-
-local realm = {}
+local realm_utils = {}
 local tabb = require "engine.table"
 
----@class (exact) TributaryStatus
----@field wealth_transfer boolean
----@field goods_transfer boolean
----@field warriors_contribution boolean
----@field protection boolean
----@field local_ruler boolean
+local province_utils = require "game.entities.province".Province
+local army_utils = require "game.entities.army"
 
----@class Realm
-realm.Realm = {}
-realm.Realm.__index = realm.Realm
----@return Realm
-function realm.Realm:new()
-	---@type Realm
-	local o = {}
+realm_utils.Realm = {}
+
+function realm_utils.Realm.new()
+	local realm_id = DATA.create_realm()
+	local o = DATA.fatten_realm(realm_id)
+
+	DATA.realm_set_quests_explore(realm_id, {})
+	DATA.realm_set_quests_patrol(realm_id, {})
+	DATA.realm_set_quests_raid(realm_id, {})
+	DATA.realm_set_patrols(realm_id, {})
 
 	-- print("new realm")
 
 	o.name = "<realm>"
-	o.wars = {}
 	o.r = love.math.random()
 	o.g = love.math.random()
 	o.b = love.math.random()
-	o.expected_food_consumption = 0
-	o.budget = generate_empty_budget()
-
-	o.tribute_collectors = {}
-	o.tributaries = {}
-	o.tributary_status = {}
-	o.paying_tribute_to = {}
-
-	o.tax_target = 0
-	o.tax_collected_this_year = 0
-
-
-	o.trading_right_given_to = {}
 	o.trading_right_cost = 10
-	o.trading_right_law = require "game.raws.laws.economy".TRADE_RIGHT.NOBLES
-
-	o.building_right_given_to = {}
+	o.law_trade = LAW_TRADE.LOCALS_ONLY
 	o.building_right_cost = 50
-	o.building_right_law = require "game.raws.laws.economy".BUILDING_RIGHT.NOBLES
-
-	o.provinces = {}
-	o.bought = {}
-	o.sold = {}
+	o.law_building = LAW_BUILDING.LOCALS_ONLY
 	o.known_provinces = {}
 	o.coa_base_r = love.math.random()
 	o.coa_base_g = love.math.random()
@@ -177,9 +41,6 @@ function realm.Realm:new()
 	-- print("bbb")
 	o.coa_background_image = love.math.random(#ASSETS.coas)
 	o.coa_foreground_image = love.math.random(#ASSETS.coas)
-	o.resources = {}
-	o.production = {}
-	o.armies = {}
 	o.patrols = {}
 
 	o.quests_explore = {}
@@ -195,389 +56,513 @@ function realm.Realm:new()
 		o.coa_emblem_image = 0 -- have a lot of "empty" emblems so that not everything is a frog
 	end
 
-	-- print("b")
-	o.realm_id = WORLD.entity_counter
-	WORLD.entity_counter = WORLD.entity_counter + 1
-	WORLD.realms[o.realm_id] = o
-	-- print("c")
-	setmetatable(o, realm.Realm)
-	return o
+	return realm_id
+end
+
+function realm_utils.Realm.size(realm)
+	local result = 0
+	DATA.for_each_realm_provinces_from_realm(realm, function (item)
+		result = result + 1
+	end)
+
+	return result
 end
 
 ---Adds a province to the realm. Handles removal of the province from the previous owner.
+---@param realm Realm
 ---@param prov Province
-function realm.Realm:add_province(prov)
-	if prov.realm ~= nil then
-		prov.realm.provinces[prov] = nil
+function realm_utils.Realm.add_province(realm, prov)
+	local membership = DATA.get_realm_provinces_from_province(prov)
+	if membership ~= INVALID_ID then
+		DATA.realm_provinces_set_realm(membership, realm)
+	else
+		DATA.force_create_realm_provinces(prov, realm)
 	end
-	self.provinces[prov] = prov
-	prov.realm = self
 end
 
 ---Removes province from realm. Does not handle any additional logic!
+---@param realm Realm
 ---@param prov Province
-function realm.Realm:remove_province(prov)
-	self.provinces[prov] = nil
-	if prov.realm == self then
-		prov.realm = nil
+function realm_utils.Realm.remove_province(realm, prov)
+	local membeship = DATA.get_realm_provinces_from_province(prov)
+	if membeship ~= INVALID_ID then
+		DATA.delete_realm_provinces(membeship)
 	end
 end
 
-function realm.Realm:get_random_province()
-	local n = tabb.size(self.provinces)
-	return tabb.nth(self.provinces, love.math.random(n))
+
+---@param realm Realm
+---@return province_id
+function realm_utils.Realm.get_random_province(realm)
+	local n = #DATA.get_realm_provinces_from_realm(realm)
+	local membership = DATA.get_realm_provinces_from_realm(realm)[love.math.random(n)]
+	if membership then
+		return DATA.realm_provinces_get_province(membership)
+	else
+		return INVALID_ID
+	end
 end
 
----Adds warband as potential raider of province
+---Adds warband as potential patrol of province
+---@param realm Realm
 ---@param prov Province
 ---@param warband Warband
-function realm.Realm:add_patrol(prov, warband)
-	if warband.status ~= 'idle' then return end
-	if self.patrols[prov] then
-		self.patrols[prov][warband] = warband
-		warband.status = 'preparing_patrol'
+function realm_utils.Realm.add_patrol(realm, prov, warband)
+	if DATA.warband_get_current_status(warband) ~= WARBAND_STATUS.IDLE then return end
+	if DATA.realm_get_patrols(realm)[prov] then
+		DATA.realm_get_patrols(realm)[prov][warband] = warband
 	else
-		self.patrols[prov] = {}
-		self.patrols[prov][warband] = warband
-		warband.status = 'preparing_patrol'
+		DATA.realm_get_patrols(realm)[prov]  = {}
+		DATA.realm_get_patrols(realm)[prov][warband] = warband
 	end
+	DATA.warband_set_current_status(warband, WARBAND_STATUS.PREPARING_PATROL)
 end
 
 ---Removes warband as potential patrol of province
+---@param realm Realm
 ---@param prov Province
 ---@param warband Warband
-function realm.Realm:remove_patrol(prov, warband)
-	if self.patrols[prov] then
-		self.patrols[prov][warband] = nil
-		warband.status = "idle"
+function realm_utils.Realm.remove_patrol(realm, prov, warband)
+	if DATA.realm_get_patrols(realm)[prov] then
+		DATA.realm_get_patrols(realm)[prov][warband] = nil
+		DATA.warband_set_current_status(warband, WARBAND_STATUS.IDLE)
 	end
 end
 
 ---Adds a province to the explored provinces list.
+---@param realm Realm
 ---@param province Province
-function realm.Realm:explore(province)
-	self.known_provinces[province] = province
-	for _, n in pairs(province.neighbors) do
-		self.known_provinces[n] = n
-	end
+function realm_utils.Realm.explore(realm, province)
+	DATA.realm_get_known_provinces(realm)[province] = province
+	DATA.for_each_province_neighborhood_from_origin(province, function (item)
+		local n = DATA.province_neighborhood_get_target(item)
+		DATA.realm_get_known_provinces(realm)[n] = n
+	end)
 end
 
 ---Returns a percentage describing the education investments
+---@param realm Realm
 ---@return number
-function realm.Realm:get_education_efficiency()
-	local ed = 0
-	if self.budget.education.target > 0 then
-		ed = self.budget.education.budget / self.budget.education.target
+function realm_utils.Realm.get_education_efficiency(realm)
+	local result = 0
+	local target = DATA.realm_get_budget_target(realm, BUDGET_CATEGORY.EDUCATION)
+	if target > 0 then
+		local budget = DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.EDUCATION)
+		result = budget / target
 	end
-	return ed
+	return result
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_court_efficiency()
-	local co = 0
-	if self.budget.court.target > 0 then
-		co = self.budget.court.budget / self.budget.court.target
+function realm_utils.Realm.get_court_efficiency(realm)
+	local result = 0
+	local target = DATA.realm_get_budget_target(realm, BUDGET_CATEGORY.COURT)
+	if target > 0 then
+		local budget = DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.COURT)
+		result = budget / target
 	end
-	return co
+	return result
 end
 
+---@param realm Realm
 ---@param province Province
 ---@return number
-function realm.Realm:get_explore_cost(province)
+function realm_utils.Realm.get_explore_cost(realm, province)
 	-- We don't want movement cost to ACTUALLY cost nigh infinite amounts on land
 	-- So we'll reduce it by this amount instead.
 	local mulp = 0.1
-	if province.center.is_land then
+	local fat_target = DATA.fatten_province(province)
+	if DATA.tile_get_is_land(fat_target.center) then
 		local path = require "game.ai.pathfinding"
-		local cost, r = path.pathfind(self.capitol, province, nil, self.known_provinces)
+		local cost, r = path.pathfind(DATA.realm_get_capitol(realm), province, nil, DATA.realm_get_known_provinces(realm))
 		if r then
 			return cost * mulp
 		else
 			return math.huge
 		end
 	else
-		return province.movement_cost
+		return fat_target.movement_cost
 	end
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_speechcraft_efficiency()
-	local cc = 0.5 + self:get_court_efficiency()
+function realm_utils.Realm.get_speechcraft_efficiency(realm)
+	local cc = 0.5 + realm_utils.Realm.get_court_efficiency(realm)
 	return cc
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_average_mood()
+function realm_utils.Realm.get_average_mood(realm)
 	local mood = 0
 	local pop = 0
-	for _, p in pairs(self.provinces) do
-		local po = p:local_population()
-		mood = mood + p.mood * po
+	DATA.for_each_realm_provinces_from_realm(realm, function (item)
+		local province = DATA.realm_provinces_get_province(item)
+		local po = province_utils.local_population(province)
+		mood = mood + DATA.province_get_mood(province) * po
 		pop = pop + po
-	end
+	end)
 	return mood / pop
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_average_needs_satisfaction()
+function realm_utils.Realm.get_average_needs_satisfaction(realm)
 	local sum = 0
-	local total_population = 0
-	for _, province in pairs(self.provinces) do
-		for _, pop in pairs(province.all_pops) do
-			sum = sum + pop.basic_needs_satisfaction + pop.life_needs_satisfaction
+	local total_population = 1
+	DATA.for_each_realm_provinces_from_realm(realm, function (location)
+		local province = DATA.realm_provinces_get_province(location)
+		DATA.for_each_pop_location_from_location(province, function (item)
+			local pop = DATA.pop_location_get_pop(item)
+			local fat = DATA.fatten_pop(pop)
+			sum = sum + fat.basic_needs_satisfaction + fat.life_needs_satisfaction
 			total_population = total_population + 1
-		end
-	end
+		end)
+	end)
 	return sum / total_population
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_realm_population()
+function realm_utils.Realm.get_realm_population(realm)
 	local total = 0
-	for _, p in pairs(self.provinces) do
-		total = total + p:home_population()
-	end
+	DATA.for_each_realm_provinces_from_realm(realm, function (location)
+		local province = DATA.realm_provinces_get_province(location)
+		total = total + province_utils.home_population(province)
+	end)
 	return total
 end
 
----@return number
-function realm.Realm:get_realm_military()
+function realm_utils.Realm.get_active_armies_size(realm)
 	local total = 0
-	for _, p in pairs(self.provinces) do
-		---@type number
-		total = total + p:military()
-	end
-	for _, a in pairs(self.armies) do
-		total = total + tabb.size(a:pops())
-	end
+	DATA.for_each_realm_armies_from_realm(realm, function (item)
+		local army = DATA.realm_armies_get_army(item)
+		total = total + army_utils.size(army)
+	end)
 	return total
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_realm_ready_military()
+function realm_utils.Realm.get_realm_ready_military(realm)
 	local total = 0
-	for _, p in pairs(self.provinces) do
-		total = total + p:military()
-	end
+	DATA.for_each_realm_provinces_from_realm(realm, function (location)
+		local province = DATA.realm_provinces_get_province(location)
+		total = total + province_utils.military(province)
+	end)
 	return total
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_realm_military_target()
+function realm_utils.Realm.get_realm_military(realm)
+	return realm_utils.Realm.get_realm_ready_military(realm) + realm_utils.Realm.get_active_armies_size(realm)
+end
+
+---@param realm Realm
+---@return number
+function realm_utils.Realm.get_realm_military_target(realm)
 	local total = 0
-	for _, p in pairs(self.provinces) do
-		total = total + p:military_target()
-	end
+	DATA.for_each_realm_provinces_from_realm(realm, function (location)
+		local province = DATA.realm_provinces_get_province(location)
+		total = total + province_utils.military_target(province)
+	end)
 	return total
 end
 
+
+---@param realm Realm
 ---@return number
-function realm.Realm:get_realm_active_army_size()
+function realm_utils.Realm.get_realm_active_army_size(realm)
 	local total = 0
-	for _, a in pairs(self.armies) do
-		total = total + tabb.size(a:pops())
-	end
+	DATA.for_each_realm_armies_from_realm(realm, function (item)
+		local army = DATA.realm_armies_get_army(item)
+		total = total + army_utils.size(army)
+	end)
 	return total
 end
 
-function realm.Realm:get_top_realm(sources, depth)
+---Checks is this realm is a subject
+---@param realm Realm
+---@return boolean
+function realm_utils.Realm.is_subject(realm)
+	local pays_tribute = false
+	DATA.for_each_realm_subject_relation_from_subject(realm, function (item)
+		pays_tribute = true
+	end)
+	return pays_tribute
+end
+
+---@param realm Realm
+---@param sources? table<Realm, Realm>
+---@param depth? number
+function realm_utils.Realm.get_top_realm(realm, sources, depth)
 	local depth = depth or 0
+	---@type table<Realm, Realm>
 	local sources = sources or {}
-	if tabb.size(sources) == 0 then sources[self] = self end
+
+	if tabb.size(sources) == 0 then sources[realm] = realm end
+
 	---@type table<Realm, Realm>
 	local result = {}
 
-	if (tabb.size(self.paying_tribute_to) == 0) or (sources[self] and depth > 0) then
-		result[self] = self
+	local pays_tribute = realm_utils.Realm.is_subject(realm)
+
+	if not pays_tribute or (sources[realm] and depth > 0) then
+		result[realm] = realm
 		return result
 	else
-		sources[self] = self
-		for _, overlord in pairs(self.paying_tribute_to) do
-			local top_dogs = overlord:get_top_realm(sources, depth + 1)
+		sources[realm] = realm
+		DATA.for_each_realm_subject_relation_from_subject(realm, function (item)
+			local top_dog = DATA.realm_subject_relation_get_overlord(item)
+			local top_dogs = realm_utils.Realm.get_top_realm(top_dog, sources, depth + 1)
 			for k, v in pairs(top_dogs) do
 				result[k] = v
 			end
-		end
+		end)
 		return result
 	end
 end
 
-function realm.Realm:is_realm_in_hierarchy(realm_to_check_for, sources, depth)
-	if self == realm_to_check_for then
+---@param realm Realm
+---@param realm_to_check_for Realm
+---@param sources? table<Realm, Realm>
+---@param depth? number
+function realm_utils.Realm.is_realm_in_hierarchy(realm, realm_to_check_for, sources, depth)
+	if realm == realm_to_check_for then
 		return true
 	end
 
 	local depth = depth or 0
 	local sources = sources or {}
-	if tabb.size(sources) == 0 then sources[self] = self end
+	if tabb.size(sources) == 0 then sources[realm] = realm end
 
-	if (tabb.size(self.paying_tribute_to) == 0) or (sources[self] and depth > 0) then
+	local pays_tribute = realm_utils.Realm.is_subject(realm)
+
+	if not pays_tribute or (sources[realm] and depth > 0) then
 		return false
 	else
-		sources[self] = self
+		sources[realm] = realm
 
 		local result = false
 
-		for _, realm in pairs(self.paying_tribute_to) do
-			result = result or realm:is_realm_in_hierarchy(realm_to_check_for, sources, depth + 1)
-		end
+		DATA.for_each_realm_subject_relation_from_subject(realm, function (item)
+			local top_dog = DATA.realm_subject_relation_get_overlord(item)
+			result = result or realm_utils.Realm.is_realm_in_hierarchy(top_dog, realm_to_check_for, sources, depth + 1)
+		end)
 
 		return result
 	end
 end
 
+---@param realm Realm
 ---@return number
-function realm.Realm:get_realm_militarization()
-	return self:get_realm_military() / self:get_realm_population()
+function realm_utils.Realm.get_realm_militarization(realm)
+	local population = realm_utils.Realm.get_realm_population(realm)
+	if population then
+		return 0
+	end
+	return realm_utils.Realm.get_realm_military(realm) / population
 end
 
-function realm.Realm:raise_warband(warband)
-	for _, pop in pairs(warband.pops) do
+---@param realm Realm
+---@param warband Warband
+function realm_utils.Realm.raise_warband(realm, warband)
+	DATA.for_each_warband_unit_from_warband(warband, function (item)
+		local pop = DATA.warband_unit_get_unit(item)
 		-- print(pop.name, "raised from province")
-		local province = pop.province
-		province:take_away_pop(pop)
-	end
+		local location = DATA.get_pop_location_from_pop(pop)
+		local province = DATA.pop_location_get_location(location)
+
+		if not IS_CHARACTER(pop) then
+			province_utils.take_away_pop(province, pop)
+		end
+	end)
 end
 
 ---Raise local army
+---@param realm Realm
 ---@param province Province
 ---@return Army
-function realm.Realm:raise_local_army(province)
-	local army = require "game.entities.army":new()
+function realm_utils.Realm.raise_local_army(realm, province)
+	local army = DATA.create_army()
+	DATA.force_create_realm_armies(realm, army)
 
-	if self.provinces[province] == nil then
+	if realm_utils.Realm.size(realm) == 0 then
 		return army
 	end
 
-	for _, w in pairs(province.warbands) do
-		if w.status == 'idle' then
-			self:raise_warband(w)
-			army.warbands[w] = w
+	DATA.for_each_warband_location_from_location(province, function (item)
+		local warband = DATA.warband_location_get_warband(item)
+		local status = DATA.warband_get_current_status(warband)
+		if status == WARBAND_STATUS.IDLE then
+			DATA.force_create_army_membership(army, warband)
+			realm_utils.Realm.raise_warband(realm, warband)
 		end
-		if w.status == 'patrol' then
-			self:raise_warband(w)
-			army.warbands[w] = w
+		if status == WARBAND_STATUS.PATROL then
+			DATA.force_create_army_membership(army, warband)
+			realm_utils.Realm.raise_warband(realm, warband)
 		end
-	end
+	end)
 
 	return army
 end
 
+---@param realm Realm
 ---@param warbands table<Warband, Warband>
 ---@return Army
-function realm.Realm:raise_army(warbands)
+function realm_utils.Realm.raise_army(realm, warbands)
 	--print("army")
-	local army = require "game.entities.army":new()
-	for _, w in pairs(warbands) do
-		self:raise_warband(w)
-		army.warbands[w] = w
+	local army = DATA.create_army()
+	DATA.force_create_realm_armies(realm, army)
+
+	for _, warband in pairs(warbands) do
+		DATA.force_create_army_membership(army, warband)
+		realm_utils.Realm.raise_warband(realm, warband)
 	end
-	self.armies[army] = army
+
 	return army
 end
 
 ---Disbands an army and returns pops to their provinces.
 ---@param army Army
 ---@return table<Warband, Warband>
-function realm.Realm:disband_army(army)
-	self.armies[army] = nil
+function realm_utils.Realm.disband_army(army)
+	---@type table<Warband, Warband>
+	local warbands = {}
+	DATA.for_each_army_membership_from_army(army, function (item)
+		local warband = DATA.army_membership_get_member(item)
 
-	for _, warband in pairs(army.warbands) do
-		-- if warband was patrolling, let it continue
+		---@type pop_id[]
+		local to_return = {}
 
-		for _, pop in pairs(warband.pops) do
-			local unit = warband.units[pop]
-			pop.province:return_pop_from_army(pop, unit)
+		DATA.for_each_warband_unit_from_warband(warband, function (unit_membership)
+			local pop = DATA.warband_unit_get_unit(unit_membership)
+			table.insert(to_return, pop)
+		end)
+
+		for _, pop in pairs(to_return) do
+			local pop_location = DATA.get_pop_location_from_pop(pop)
+			local province = DATA.pop_location_get_location(pop_location)
+			if not IS_CHARACTER(pop) then
+				province_utils.return_pop_from_army(province, pop)
+			end
 		end
 
-		if warband.status ~= 'patrol' then
-			warband.status = 'idle'
+		-- if warband was patrolling, keep the patrol status
+		local fat = DATA.fatten_warband(warband)
+		if fat.current_status ~= WARBAND_STATUS.PATROL then
+			fat.current_status = WARBAND_STATUS.IDLE
 		end
-	end
 
-	return army.warbands
+		warbands[warband] = warband
+	end)
+
+	DATA.delete_army(army)
+
+	return warbands
 end
 
----@return table<Province, number>
-function realm.Realm:get_province_pop_weights()
-	---@type table<Province, number>
-	local weights = {}
-	local total = 0
-	for _, p in pairs(self.provinces) do
-		local po = p:home_population()
-		total = total + po
-		weights[p] = po
-	end
-	for p, v in pairs(weights) do
-		weights[p] = v / total
-	end
-	return weights
-end
+-- commenting as unused
 
-function realm.Realm:get_province_from_weights(weights)
-	local w = love.math.random()
-	local sum = 0
-	for k, v in pairs(weights) do
-		sum = sum + v
-		if sum > w then
-			return k
-		end
-	end
-	return tabb.nth(self.provinces, 1)
-end
+-- ---@param realm Realm
+-- ---@return table<Province, number>
+-- function realm_utils.Realm.get_province_pop_weights(realm)
+-- 	---@type table<Province, number>
+-- 	local weights = {}
+-- 	local total = 0
+-- 	for _, p in pairs(self.provinces) do
+-- 		local po = p:home_population()
+-- 		total = total + po
+-- 		weights[p] = po
+-- 	end
+-- 	for p, v in pairs(weights) do
+-- 		weights[p] = v / total
+-- 	end
+-- 	return weights
+-- end
 
----@return Province
-function realm.Realm:get_random_pop_weighted_province()
-	local ws = self:get_province_pop_weights()
-	return self:get_province_from_weights(ws)
-end
+-- ---@param realm Realm
+-- function realm_utils.Realm.get_province_from_weights(realm, weights)
+-- 	local w = love.math.random()
+-- 	local sum = 0
+-- 	for k, v in pairs(weights) do
+-- 		sum = sum + v
+-- 		if sum > w then
+-- 			return k
+-- 		end
+-- 	end
+-- 	return tabb.nth(self.provinces, 1)
+-- end
 
----@return table<number, Province>
-function realm.Realm:get_n_random_pop_weighted_provinces(n)
-	---@type table<number, Province>
-	local returns = {}
-	local ws = self:get_province_pop_weights()
-	for i = 1, n do
-		returns[#returns + 1] = self:get_province_from_weights(ws)
-	end
-	return returns
-end
+-- ---@param realm Realm
+-- ---@return Province
+-- function realm_utils.Realm.get_random_pop_weighted_province(realm)
+-- 	local ws = self:get_province_pop_weights()
+-- 	return self:get_province_from_weights(ws)
+-- end
 
+-- ---@param realm Realm
+-- ---@return table<number, Province>
+-- function realm_utils.Realm.get_n_random_pop_weighted_provinces(realm, n)
+-- 	---@type table<number, Province>
+-- 	local returns = {}
+-- 	local ws = self:get_province_pop_weights()
+-- 	for i = 1, n do
+-- 		returns[#returns + 1] = self:get_province_from_weights(ws)
+-- 	end
+-- 	return returns
+-- end
+
+---@param realm Realm
 ---@return number
-function realm.Realm:get_total_population()
-	---@type number
-	local pop = 0
-
-	for _, army in pairs(self.armies) do
-		pop = pop + tabb.size(army:pops())
-	end
-	for _, prov in pairs(self.provinces) do
-		---@type number
-		pop = pop + tabb.size(prov.all_pops)
-	end
-
-	return pop
+function realm_utils.Realm.get_total_population(realm)
+	return realm_utils.Realm.get_realm_population(realm) + realm_utils.Realm.get_realm_ready_military(realm)
 end
 
+---@param realm Realm
 ---@return Warband[]
-function realm.Realm:get_warbands()
+function realm_utils.Realm.get_warbands(realm)
 	local res = {}
 
-	for _, prov in pairs(self.provinces) do
-		for _, warband in pairs(prov.warbands) do
-			table.insert(res, warband)
-		end
-	end
+	DATA.for_each_realm_provinces_from_realm(realm, function (item)
+		local part_of_the_realm = DATA.realm_provinces_get_province(item)
+		DATA.get_warband_location_from_location(part_of_the_realm)
+		DATA.for_each_warband_location_from_location(part_of_the_realm, function (location)
+			table.insert(res, DATA.warband_location_get_warband(location))
+		end)
+	end)
 
 	return res
 end
 
 ---Returns true if the realm neighbors other
+---@param realm Realm
 ---@param other Realm
 ---@return boolean
-function realm.Realm:neighbors_realm(other)
-	for p, _ in pairs(self.provinces) do
-		if p:neighbors_realm(other) then
+function realm_utils.Realm.neighbors_realm(realm, other)
+	local check = false
+	DATA.for_each_realm_provinces_from_realm(realm, function (item)
+		local part_of_the_realm = DATA.realm_provinces_get_province(item)
+		if province_utils.neighbors_realm(part_of_the_realm, other) then
+			check = true
+		end
+	end)
+	return check
+end
+
+---Returns whether or not a province borders a given realm
+---@param province province_id
+---@param realm Realm
+---@return boolean
+function realm_utils.Realm.neighbors_realm_tributary(province, realm)
+	for _, n in pairs(DATA.get_province_neighborhood_from_origin(province)) do
+		local neighbor = DATA.province_neighborhood_get_target(n)
+		local neighbor_realm = province_utils.realm(neighbor)
+
+		if neighbor_realm and realm_utils.Realm.is_realm_in_hierarchy(neighbor_realm, realm) then
 			return true
 		end
 	end
@@ -585,33 +570,35 @@ function realm.Realm:neighbors_realm(other)
 end
 
 ---Returns whether or not a realm is at war with another.
+---@param realm Realm
 ---@param other Realm
 ---@return boolean
-function realm.Realm:at_war_with(other)
-	for war, _ in pairs(self.wars) do
-		-- Find if we're attacking or defending
-		local attacking = false
-		for r, _ in pairs(war.attackers) do
-			if r == self then
-				attacking = true
-				break
-			end
-		end
-		if attacking then
-			for r, _ in pairs(war.defenders) do
-				if r == other then
-					return true
-				end
-			end
-		else
-			for r, _ in pairs(war.attackers) do
-				if r == other then
-					return true
-				end
-			end
-		end
-	end
+function realm_utils.Realm.at_war_with(realm, other)
 	return false
+	-- for war, _ in pairs(self.wars) do
+	-- 	-- Find if we're attacking or defending
+	-- 	local attacking = false
+	-- 	for r, _ in pairs(war.attackers) do
+	-- 		if r == self then
+	-- 			attacking = true
+	-- 			break
+	-- 		end
+	-- 	end
+	-- 	if attacking then
+	-- 		for r, _ in pairs(war.defenders) do
+	-- 			if r == other then
+	-- 				return true
+	-- 			end
+	-- 		end
+	-- 	else
+	-- 		for r, _ in pairs(war.attackers) do
+	-- 			if r == other then
+	-- 				return true
+	-- 			end
+	-- 		end
+	-- 	end
+	-- end
+	-- return false
 end
 
-return realm
+return realm_utils

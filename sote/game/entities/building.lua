@@ -1,73 +1,34 @@
----@class (exact) Building
----@field __index Building
----@field type BuildingType
----@field x number?
----@field y number?
----@field workers table<POP, POP>
----@field worker_income table<POP, number>
----@field owner POP?
----@field province Province
----@field subsidy number
----@field subsidy_last number
----@field income_mean number
----@field last_income number
----@field spent_on_inputs table<TradeGoodReference, number>
----@field earn_from_outputs table<TradeGoodReference, number>
----@field amount_of_inputs table<TradeGoodReference, number>
----@field amount_of_outputs table<TradeGoodReference, number>
----@field last_donation_to_owner number
----@field unused number
-------@field employ fun(self:Building, pop:POP, province:Province)
-
 local bld = {}
-
----@class Building
 bld.Building = {}
-bld.Building.__index = bld.Building
----@param province Province province to build the building in
----@param building_type BuildingType
----@return Building
-function bld.Building:new(province, building_type)
-	---@type Building
-	local o = {}
 
-	o.type = building_type
-	o.workers = {}
-	o.worker_income = {}
-
-	o.income_mean = 0
-	o.last_income = 0
-	o.last_donation_to_owner = 0
-	o.spent_on_inputs = {}
-	o.earn_from_outputs = {}
-	o.amount_of_inputs = {}
-	o.amount_of_outputs = {}
-	o.unused = 0
-
-	o.subsidy = 0
-	o.subsidy_last = 0
-
-	o.work_ratio = 1
-
-	setmetatable(o, bld.Building)
-
-	o.province = province
-	province.buildings[o] = o -- add a new building!
-
-	return o
+---@param province province_id province to build the building in
+---@param building_type building_type_id
+---@return building_id
+function bld.Building.new(province, building_type)
+	local new_id = DATA.create_building()
+	DATA.building_set_current_type(new_id, building_type)
+	DATA.force_create_building_location(province, new_id)
+	return new_id
 end
 
 ---Removes a building from the province and other relevant data structures.
-function bld.Building:remove_from_province()
-	local province = self.province
+---@param building building_id
+function bld.Building.remove_from_province(building)
+	DATA.delete_building(building)
+end
 
-	-- Fire current workers
-	for _, pop in pairs(self.workers) do
-		province:fire_pop(pop)
-	end
+function bld.Building.amount_of_workers(building)
+	local amount = 0
+	DATA.for_each_employment_from_building(building, function (item)
+		amount = amount + 1
+	end)
+	return amount
+end
 
-	-- Remove yourself from provincial data structures
-	province.buildings[self] = nil
+function bld.Building.province(building)
+	local location = DATA.get_building_location_from_building(building)
+	assert(location ~= INVALID_ID, "BUILDING DOESN'T BELONG TO THIS WORLD?")
+	return DATA.building_location_get_location(location)
 end
 
 return bld

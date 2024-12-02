@@ -3,10 +3,15 @@ local trade_good = require "game.raws.raws-utils".trade_good
 local tabb = require "engine.table"
 local ui = require "engine.ui"
 local uit = require "game.ui-utils"
+
+local realm_utils = require "game.entities.realm".Realm
+
 local ib = require "game.scenes.game.widgets.inspector-redirect-buttons"
 
-local economic_effects = require "game.raws.effects.economic"
-local ev = require "game.raws.values.economical"
+local politics_values = require "game.raws.values.politics"
+local economy_values = require "game.raws.values.economy"
+
+local economic_effects = require "game.raws.effects.economy"
 
 local list_widget = require "game.scenes.game.widgets.list-widget"
 
@@ -50,14 +55,14 @@ function re.draw(gam)
 		ui.panel(panel)
 
 		if uit.icon_button(ASSETS.icons["cancel.png"], panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "right", "up")) then
-			gam.click_tile(-1)
+			gam.click_tile(0)
 			gam.selected.realm = nil
 			gam.inspector = nil
 		end
 
 		-- COA
 		uit.coa(realm, panel:subrect(0, 0, uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up"))
-		ui.left_text(realm.name,
+		ui.left_text(REALM_NAME(realm),
 			panel:subrect(uit.BASE_HEIGHT + 5, 0, 10 * uit.BASE_HEIGHT, uit.BASE_HEIGHT, "left", "up"))
 
 		local ui_panel = panel:subrect(5, uit.BASE_HEIGHT * 2, panel.width - 10, panel.height - 10 - uit.BASE_HEIGHT * 2,
@@ -65,7 +70,7 @@ function re.draw(gam)
 		gam.realm_inspector_tab = gam.realm_inspector_tab or "GEN"
 
 		local treasury_tab = nil
-		if WORLD.player_character == realm.leader then
+		if WORLD.player_character == LEADER(realm) then
 			treasury_tab = {
 				text = "TRE",
 				tooltip = "Realm treasury",
@@ -84,30 +89,32 @@ function re.draw(gam)
 				text = "STO",
 				tooltip = "Stockpiles",
 				closure = function()
+					---@type table<trade_good_id, number>
 					local goods = {}
-					for good, amount in pairs(realm.resources) do
-						local resource = trade_good(good)
-						if resource.category == "good" then
-							goods[good] = amount
+
+					DATA.for_each_trade_good(function (item)
+						local category = DATA.trade_good_get_belongs_to_category(item);
+						if category == TRADE_GOOD_CATEGORY.GOOD then
+							goods[item] = DATA.realm_get_resources(realm, item)
 						end
-					end
+					end)
+
 					gam.realm_stockpile_scrollbar = gam.realm_stockpile_scrollbar or 0
 					gam.realm_stockpile_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGoodReference
+							---@type trade_good_id, number
 							local good, amount = tabb.nth(goods, entry)
-							local delta = realm.production[good] or 0
-							local resource = trade_good(good)
+							local delta = DATA.realm_get_production(realm, good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(resource.icon), rect)
+							ui.image(ASSETS.get_icon(DATA.trade_good_get_icon(good)), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
 							uit.sqrt_number_entry(
-								good,
+								DATA.trade_good_get_description(good),
 								amount or 0,
 								rect
 							)
@@ -119,28 +126,28 @@ function re.draw(gam)
 				text = "ADM",
 				tooltip = "Administration",
 				closure = function()
+					---@type table<trade_good_id, number>
 					local goods = {}
-					for good, amount in pairs(realm.production) do
-						local resource = trade_good(good)
-						if resource.category == "capacity" then
-							goods[good] = amount
+					DATA.for_each_trade_good(function (item)
+						local category = DATA.trade_good_get_belongs_to_category(item);
+						if category == TRADE_GOOD_CATEGORY.CAPACITY then
+							goods[item] = DATA.realm_get_production(realm, item)
 						end
-					end
+					end)
 					gam.realm_capacities_scrollbar = gam.realm_capacities_scrollbar or 0
 					gam.realm_capacities_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
 						if entry > 0 then
-							---@type TradeGoodReference
+							---@type trade_good_id, number
 							local good, amount = tabb.nth(goods, entry)
-							local resource = trade_good(good)
 
 							local w = rect.width
 							rect.width = rect.height
-							ui.image(ASSETS.get_icon(resource.icon), rect)
+							ui.image(ASSETS.get_icon(DATA.trade_good_get_icon(good)), rect)
 
 							rect.width = w
 							rect.x = rect.x + rect.height
 							rect.width = rect.width - rect.height
-							ui.left_text(good, rect)
+							ui.left_text(DATA.trade_good_get_description(good), rect)
 							ui.right_text(tostring(math.floor(100 * amount) / 100), rect)
 						end
 					end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_capacities_scrollbar)
@@ -151,11 +158,11 @@ function re.draw(gam)
 				tooltip = "Court",
 				closure = function()
 					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", "up")
-					uit.money_entry("Court wealth: ", realm.budget.court.budget, a,
+					uit.money_entry("Court wealth: ", DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.COURT), a,
 						"Investment.")
 					a.y = a.y + uit.BASE_HEIGHT
 
-					uit.money_entry("Court wealth. needed: ", realm.budget.court.target
+					uit.money_entry("Court wealth. needed: ", DATA.realm_get_budget_target(realm, BUDGET_CATEGORY.COURT)
 						, a,
 						"Needed court wealth.")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -164,7 +171,7 @@ function re.draw(gam)
 						local p = a:copy()
 						p.width = p.height * 4
 
-						local possible = realm.budget.treasury > TREASURY_GIFT_AMOUNT
+						local possible = DATA.realm_get_budget_treasury(realm) > TREASURY_GIFT_AMOUNT
 						if uit.money_button(
 							"Invest ",
 							TREASURY_GIFT_AMOUNT,
@@ -174,9 +181,9 @@ function re.draw(gam)
 						) then
 							economic_effects.direct_investment(
 								realm,
-								realm.budget.court,
+								BUDGET_CATEGORY.COURT,
 								TREASURY_GIFT_AMOUNT,
-								economic_effects.reasons.Court
+								ECONOMY_REASON.COURT
 							)
 						end
 						a.y = a.y + uit.BASE_HEIGHT
@@ -184,9 +191,10 @@ function re.draw(gam)
 					a.y = a.y + uit.BASE_HEIGHT
 
 					local function render_name(rect, k, v)
-						local children = tabb.size(v.children)
-						local name = v.name
-						local tooltip = v.name
+						-- local children = tabb.size(v.children)
+						local name = NAME(v)
+						local tooltip = name
+						--[[
 						if v.parent then
 							name = name .. " [" .. v.parent.name .. "]"
 							tooltip = tooltip .. "'s parent is " .. v.parent.name
@@ -204,14 +212,15 @@ function re.draw(gam)
 							end)
 							tooltip = tooltip .. "."
 						end
+						--]]
 						ib.text_button_to_character(gam, k, rect, name, tooltip)
 					end
 					local function render_province(rect, k, v)
-						ib.text_button_to_province(gam,k.province, rect, k.province.name)
+						ib.text_button_to_province(gam, PROVINCE(k), rect, PROVINCE_NAME(PROVINCE(v)))
 					end
 					local function pop_sex(pop)
 						local f = "m"
-						if pop.female then f = "f" end
+						if DATA.pop_get_female(pop) then f = "f" end
 						return f
 					end
 					local noble_list = a:copy()
@@ -219,10 +228,13 @@ function re.draw(gam)
 					noble_list.height = ui_panel.height - ui_panel.y
 					character_list_state = list_widget(
 						noble_list,
-						tabb.filter(realm.capitol.home_to,
-							function(a)
-								return a:is_character()
-							end),
+						tabb.filter(
+							tabb.map_array(
+								DATA.get_character_location_from_location(CAPITOL(realm)),
+								DATA.character_location_get_character
+							),
+							IS_CHARACTER
+						),
 							{
 								{
 									header = ".",
@@ -233,7 +245,7 @@ function re.draw(gam)
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.race.name
+										return DATA.race_get_name(DATA.pop_get_race(v))
 									end
 								},
 								{
@@ -243,7 +255,7 @@ function re.draw(gam)
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.name
+										return NAME(v)
 									end,
 									active = true
 								},
@@ -252,64 +264,64 @@ function re.draw(gam)
 									render_closure = function (rect, k, v)
 										---@type POP
 										v = v
-										ui.centered_text(uit.to_fixed_point2(v.popularity[realm] or 0), rect)
+										ui.centered_text(uit.to_fixed_point2(politics_values.popularity(v, realm)), rect)
 									end,
 									width = 2,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.popularity[realm] or 0
+										return politics_values.popularity(v, realm)
 									end,
 									active = true
 								},
 								{
 									header = "race",
 									render_closure = function (rect, k, v)
-										ui.centered_text(v.race.name, rect)
+										ui.centered_text(DATA.race_get_name(DATA.pop_get_race(v)), rect)
 									end,
 									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.race.name
+										return DATA.race_get_name(DATA.pop_get_race(v))
 									end,
 									active = true
 								},
 								{
 									header = "faith",
 									render_closure = function (rect, k, v)
-										ui.centered_text(v.faith.name, rect)
+										ui.centered_text(DATA.faith_get_name(DATA.pop_get_faith(v)), rect)
 									end,
 									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.faith.name
+										return DATA.faith_get_name(DATA.pop_get_faith(v))
 									end,
 									active = true
 								},
 								{
 									header = "culture",
 									render_closure = function (rect, k, v)
-										ui.centered_text(v.culture.name, rect)
-										ui.tooltip(v.name .. " follows the customs of " .. v.culture.name .. "." .. require "game.economy.diet-breadth-model".culture_target_tooltip(v.culture), rect)
+										ui.centered_text(DATA.culture_get_name(DATA.pop_get_culture(v)), rect)
+										ui.tooltip(NAME(v) .. " follows the customs of " .. DATA.culture_get_name(DATA.pop_get_culture(v)) .. "." .. require "game.economy.diet-breadth-model".culture_target_tooltip(DATA.pop_get_culture(v)), rect)
 									end,
 									width = 3,
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.culture.name
+										return DATA.culture_get_name(DATA.pop_get_culture(v))
 									end,
 									active = true
 								},
 								{
 									header = "age",
 									render_closure = function (rect, k, v)
-										ui.centered_text(tostring(v.age), rect)
+										ui.centered_text(tostring(AGE(v)), rect)
 									end,
 									width = 2,
 									value = function(k, v)
-										return v.age
+										return AGE(v)
 									end
 								},
 								{
@@ -329,7 +341,7 @@ function re.draw(gam)
 									value = function(k, v)
 										---@type POP
 										v = v
-										return v.province.name
+										return PROVINCE_NAME(PROVINCE(v))
 									end,
 									active = true
 								},
@@ -340,7 +352,7 @@ function re.draw(gam)
 										v = v
 										uit.money_entry(
 											"",
-											v.savings,
+											DATA.pop_get_savings(v),
 											rect,
 											"Savings of this character. "
 											.. "Characters spend them on buying food and other commodities."
@@ -348,52 +360,23 @@ function re.draw(gam)
 									end,
 									width = 3,
 									value = function(k, v)
-										return v.savings
+										return DATA.pop_get_savings(v)
 									end
 								},
 								{
 									header = "satisfac.",
-									render_closure = uit.render_pop_satsifaction,
+									render_closure = function (rect, k, v)
+										uit.render_pop_satsifaction(rect, v)
+									end,
 									width = 2,
 									value = function(k, v)
-										return v.basic_needs_satisfaction
+										return DATA.pop_get_basic_needs_satisfaction(v)
 									end
 								}
 							},
 						character_list_state)()
 				end
 			},
-			-- {
-			-- 	text = "MAR",
-			-- 	tooltip = "Market",
-			-- 	closure = function()
-			-- 		---@type table<TradeGoodReference, number>
-			-- 		local goods = {}
-			-- 		for good, _ in pairs(realm.bought) do
-			-- 			goods[good] = ev.get_realm_price(realm, good)
-			-- 		end
-			-- 		for good, _ in pairs(realm.sold) do
-			-- 			goods[good] = ev.get_realm_price(realm, good)
-			-- 		end
-			-- 		gam.realm_market_scrollbar = gam.realm_market_scrollbar or 0
-			-- 		gam.realm_market_scrollbar = uit.scrollview(ui_panel, function(entry, rect)
-			-- 			if entry > 0 then
-			-- 				---@type TradeGoodReference
-			-- 				local good, price = tabb.nth(goods, entry)
-			-- 				local resource = trade_good(good)
-
-			-- 				local w = rect.width
-			-- 				rect.width = rect.height
-			-- 				ui.image(ASSETS.get_icon(resource.icon), rect)
-
-			-- 				rect.width = w
-			-- 				rect.x = rect.x + rect.height
-			-- 				rect.width = rect.width - rect.height
-			-- 				uit.money_entry(good, price, rect, "price")
-			-- 			end
-			-- 		end, uit.BASE_HEIGHT, tabb.size(goods), uit.BASE_HEIGHT, gam.realm_market_scrollbar)
-			-- 	end
-			-- },
 			{
 				text = "EDU",
 				tooltip = "Education and research",
@@ -401,7 +384,7 @@ function re.draw(gam)
 					local a = ui_panel:subrect(0, 0, uit.BASE_HEIGHT * 12, uit.BASE_HEIGHT, "left", "up")
 					uit.money_entry(
 						"Endowment: ",
-						realm.budget.education.budget,
+						DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.EDUCATION),
 						a,
 						"Investment."
 					)
@@ -410,8 +393,7 @@ function re.draw(gam)
 
 					uit.money_entry(
 						"Endwm. needed: ",
-						realm.budget.education.target
-						,
+						DATA.realm_get_budget_target(realm, BUDGET_CATEGORY.EDUCATION),
 						a,
 						"Needed endowment to support current technologies."
 					)
@@ -422,7 +404,7 @@ function re.draw(gam)
 						local p = a:copy()
 						p.width = p.height * 4
 
-						local possible = realm.budget.treasury > TREASURY_GIFT_AMOUNT
+						local possible = DATA.realm_get_budget_treasury(realm) > TREASURY_GIFT_AMOUNT
 						if uit.money_button(
 							"Invest ",
 							TREASURY_GIFT_AMOUNT,
@@ -432,15 +414,15 @@ function re.draw(gam)
 						) then
 							economic_effects.direct_investment(
 								realm,
-								realm.budget.education,
+								DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.EDUCATION),
 								TREASURY_GIFT_AMOUNT,
-								economic_effects.reasons.Education
+								ECONOMY_REASON.EDUCATION
 							)
 						end
 					end
 					a.y = a.y + uit.BASE_HEIGHT
 					uit.data_entry_percentage("Education efficiency: ",
-						realm:get_education_efficiency()
+						realm_utils.get_education_efficiency(realm)
 						, a,
 						"A percentage value. Endowment present over endowment needed")
 					a.y = a.y + uit.BASE_HEIGHT
@@ -449,7 +431,7 @@ function re.draw(gam)
 			{
 				text = "DEM",
 				tooltip = "Demographics",
-				closure = require "game.scenes.game.widgets.demography"(realm.provinces, ui_panel)
+				closure = require "game.scenes.game.widgets.demography"(tabb.map_array(DATA.get_realm_provinces_from_realm(realm), DATA.realm_provinces_get_province), ui_panel)
 			},
 			{
 				text = "DIP",
@@ -466,40 +448,40 @@ function re.draw(gam)
 					require "game.scenes.game.widgets.decision-tab" (ui_panel, realm, "realm", gam)
 				end
 			},
-			{
-				text = "WAR",
-				tooltip = "Warfare",
-				closure = function()
-					--ui_panel
-					ui.panel(ui_panel)
-					local sl = gam.wars_slider_level or 0
-					gam.wars_slider_level = uit.scrollview(ui_panel, function(i, rect)
-						if i > 0 then
-							---@type Rect
-							local r = rect
-							---@type War
-							local war = tabb.nth(realm.wars, i)
-							local w = r.width
-							r.width = r.height
-							if uit.icon_button(ASSETS.get_icon("guards.png"), r) then
-								-- Select the war
-								gam.inspector = "war"
-								gam.selected.war = war
-							end
-							r.width = w - r.height
-							r.x = r.x + r.height
-							ui.panel(r)
-							r.x = r.x + 5
-							r.width = r.width - 5
-							---@type Realm
-							local att = tabb.nth(war.attackers, 1)
-							---@type Realm
-							local def = tabb.nth(war.defenders, 1)
-							ui.left_text(att.name .. " vs " .. def.name, r)
-						end
-					end, uit.BASE_HEIGHT, tabb.size(realm.wars), uit.BASE_HEIGHT, sl)
-				end
-			},
+			-- {
+			-- 	text = "WAR",
+			-- 	tooltip = "Warfare",
+			-- 	closure = function()
+			-- 		--ui_panel
+			-- 		ui.panel(ui_panel)
+			-- 		local sl = gam.wars_slider_level or 0
+			-- 		gam.wars_slider_level = uit.scrollview(ui_panel, function(i, rect)
+			-- 			if i > 0 then
+			-- 				---@type Rect
+			-- 				local r = rect
+			-- 				---@type War
+			-- 				local war = tabb.nth(realm.wars, i)
+			-- 				local w = r.width
+			-- 				r.width = r.height
+			-- 				if uit.icon_button(ASSETS.get_icon("guards.png"), r) then
+			-- 					-- Select the war
+			-- 					gam.inspector = "war"
+			-- 					gam.selected.war = war
+			-- 				end
+			-- 				r.width = w - r.height
+			-- 				r.x = r.x + r.height
+			-- 				ui.panel(r)
+			-- 				r.x = r.x + 5
+			-- 				r.width = r.width - 5
+			-- 				---@type Realm
+			-- 				local att = tabb.nth(war.attackers, 1)
+			-- 				---@type Realm
+			-- 				local def = tabb.nth(war.defenders, 1)
+			-- 				ui.left_text(att.name .. " vs " .. def.name, r)
+			-- 			end
+			-- 		end, uit.BASE_HEIGHT, tabb.size(realm.wars), uit.BASE_HEIGHT, sl)
+			-- 	end
+			-- },
 		}
 		local layout = ui.layout_builder()
 			:position(panel.x, panel.y + uit.BASE_HEIGHT)

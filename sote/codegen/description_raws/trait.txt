@@ -1,0 +1,9 @@
+name string
+ambition float
+greed float
+admin float
+traveller float
+aggression float
+short_description string
+full_description string
+icon string

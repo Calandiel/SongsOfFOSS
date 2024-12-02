@@ -3,20 +3,21 @@ local tabb = require "engine.table"
 local Event = require "game.raws.events"
 local E_ut = require "game.raws.events._utils"
 
-local AI_VALUE = require "game.raws.values.ai_preferences"
+local AI_VALUE = require "game.raws.values.ai"
 
-local political_effects = require "game.raws.effects.political"
+local political_effects = require "game.raws.effects.politics"
 
 local function load()
 	Event:new {
 		name = "request-help-overseer",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
 
-			local name = associated_data.name
+			local name = NAME(associated_data)
 			local temp = 'his'
-			if associated_data.female then
+			if DATA.pop_get_female(associated_data) then
 				temp = 'her'
 			end
 			return name .. " requested my participation in " .. temp .. " administration. My task would be overseering construction and other public activities. What should I do?"
@@ -37,7 +38,7 @@ local function load()
 					tooltip = "Accept the request",
 					viable = function() return true end,
 					outcome = function()
-						political_effects.set_overseer(associated_data.province.realm, character)
+						political_effects.set_overseer(LOCAL_REALM(associated_data), character)
 						WORLD:emit_immediate_event("request-help-overseer-success-notification", associated_data, character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
@@ -52,10 +53,10 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(NAME(character) .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
-							WORLD:emit_notification("I refused to assist " .. associated_data.name)
+							WORLD:emit_notification("I refused to assist " .. NAME(associated_data))
 						end
 						WORLD:emit_immediate_event("request-help-overseer-failure-notification", associated_data, character)
 					end,
@@ -70,7 +71,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			local associated_data = associated_data
-			return associated_data.name .. " agreed to assist me and became an overseer."
+			return NAME(associated_data) .. " agreed to assist me and became an overseer."
 		end,
 		function (root, associated_data)
 			return "Good!"
@@ -85,7 +86,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			local associated_data = associated_data
-			return associated_data.name .. " refused to assist me."
+			return NAME(associated_data) .. " refused to assist me."
 		end,
 		function (root, associated_data)
 			return "Good!"
@@ -97,13 +98,14 @@ local function load()
 
 	Event:new {
 		name = "request-help-tribute-collection",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
 
-			local name = associated_data.name
+			local name = NAME(associated_data)
 			local temp = 'his'
-			if associated_data.female then
+			if DATA.pop_get_female(associated_data) then
 				temp = 'her'
 			end
 			return name .. " requested my participation in " .. temp .. " administration. My task would be collection of tribute from our subjects. What is my response?"
@@ -118,13 +120,24 @@ local function load()
 			---@type Character
 			associated_data = associated_data
 
-			local realm = character.realm
+			local realm = REALM(character)
 
 			if not realm then
 				return {}
 			end
 
-			local share_of_tribute_per_tributary = tabb.size(realm.tributaries) / tabb.size(realm.tribute_collectors)
+			local tributary_count = 0
+			local tax_collectors = 1
+
+			DATA.for_each_tax_collector_from_realm(realm, function (item)
+				tax_collectors = tax_collectors + 1
+			end)
+
+			DATA.for_each_realm_subject_relation_from_overlord(realm, function (item)
+				tributary_count = tributary_count + 1
+			end)
+
+			local share_of_tribute_per_tributary = tributary_count / tax_collectors
 			local expected_income = share_of_tribute_per_tributary * 24
 
 			return {
@@ -133,7 +146,7 @@ local function load()
 					tooltip = "Accept the request",
 					viable = function() return true end,
 					outcome = function()
-						political_effects.set_tribute_collector(associated_data.province.realm, character)
+						political_effects.set_tribute_collector(LOCAL_REALM(associated_data), character)
 						WORLD:emit_immediate_event("request-help-tribute-collection-success-notification", associated_data, character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, expected_income, {
@@ -147,10 +160,10 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(NAME(character) .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
-							WORLD:emit_notification("I refused to assist " .. associated_data.name)
+							WORLD:emit_notification("I refused to assist " .. NAME(associated_data))
 						end
 						WORLD:emit_immediate_event("request-help-tribute-collection-failure-notification", associated_data, character)
 					end,
@@ -165,7 +178,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			local associated_data = associated_data
-			return associated_data.name .. " agreed to assist me and became a tribute collector."
+			return NAME(associated_data) .. " agreed to assist me and became a tribute collector."
 		end,
 		function (root, associated_data)
 			return "Good!"
@@ -180,7 +193,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			local associated_data = associated_data
-			return associated_data.name .. " refused to assist me."
+			return NAME(associated_data) .. " refused to assist me."
 		end,
 		function (root, associated_data)
 			return "Oh well.."
@@ -193,13 +206,14 @@ local function load()
 
 	Event:new {
 		name = "request-help-guard-leader",
+		fallback = function(self, associated_data) end,
 		event_text = function(self, character, associated_data)
 			---@type Character
 			associated_data = associated_data
 
-			local name = associated_data.name
+			local name = NAME(associated_data)
 			local temp = 'his'
-			if associated_data.female then
+			if DATA.pop_get_female(associated_data) then
 				temp = 'her'
 			end
 			return name .. " requested my participation in " .. temp .. " guard. My task would be patrolling our lands and protecting them from intruders. What should I do?"
@@ -220,7 +234,7 @@ local function load()
 					tooltip = "Accept the request",
 					viable = function() return true end,
 					outcome = function()
-						political_effects.set_guard_leader(associated_data.province.realm, character)
+						political_effects.set_guard_leader(LOCAL_REALM(associated_data), character)
 						WORLD:emit_immediate_event("request-help-guard-leader-success-notification", associated_data, character)
 					end,
 					ai_preference = AI_VALUE.generic_event_option(character, associated_data, 0, {
@@ -235,10 +249,10 @@ local function load()
 					viable = function() return true end,
 					outcome = function()
 						if associated_data == WORLD.player_character then
-							WORLD:emit_notification(character.name .. " refused to assist me.")
+							WORLD:emit_notification(NAME(character) .. " refused to assist me.")
 						end
 						if character == WORLD.player_character then
-							WORLD:emit_notification("I refused to assist " .. associated_data.name)
+							WORLD:emit_notification("I refused to assist " .. NAME(associated_data))
 						end
 						WORLD:emit_immediate_event("request-help-guard-leader-failure-notification", associated_data, character)
 					end,
@@ -253,7 +267,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			local associated_data = associated_data
-			return associated_data.name .. " agreed to assist me and became a leader of our guards."
+			return NAME(associated_data) .. " agreed to assist me and became a leader of our guards."
 		end,
 		function (root, associated_data)
 			return "Good!"
@@ -268,7 +282,7 @@ local function load()
 		function(self, character, associated_data)
 			---@type Character
 			local associated_data = associated_data
-			return associated_data.name .. " refused to assist me."
+			return NAME(associated_data) .. " refused to assist me."
 		end,
 		function (root, associated_data)
 			return "Good!"

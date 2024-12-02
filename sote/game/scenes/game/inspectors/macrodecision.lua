@@ -42,7 +42,7 @@ function inspector.draw(gam)
         "up"
     )
 
-    if WORLD.player_character == nil then
+    if WORLD.player_character == INVALID_ID then
         return
     end
 

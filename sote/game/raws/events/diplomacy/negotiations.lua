@@ -1,19 +1,22 @@
 local tabb = require "engine.table"
-
 local Event = require "game.raws.events"
 local EventUtils = require "game.raws.events._utils"
 
-local diplomacy_effects = require "game.raws.effects.diplomacy"
-local political_values = require "game.raws.values.political"
-local economy_values = require "game.raws.values.economical"
-local economy_effects = require "game.raws.effects.economic"
+local realm_utils = require "game.entities.realm".Realm
+
 local economy_triggers = require "game.raws.triggers.economy"
+local diplomacy_trigggers = require "game.raws.triggers.diplomacy"
+
+local political_values = require "game.raws.values.politics"
+local economy_values = require "game.raws.values.economy"
+local ai_values = require "game.raws.values.ai"
+
+local economy_effects = require "game.raws.effects.economy"
+local diplomacy_effects = require "game.raws.effects.diplomacy"
+
 local localisation = require "game.raws.events._localisation"
-local AI_VALUE = require "game.raws.values.ai_preferences"
 
-local RANK = require "game.raws.ranks.character_ranks"
 
-local TRAIT = require "game.raws.traits.generic"
 
 local function negotiation_options(self, character, associated_data)
 	---@type NegotiationData
@@ -85,6 +88,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -97,6 +103,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -109,6 +118,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -190,6 +202,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -211,10 +226,11 @@ return function ()
 				}
 			}
 
-			for _, realm in pairs(character.leader_of) do
+			DATA.for_each_realm_leadership_from_leader(character, function (item)
+				local realm = DATA.realm_leadership_get_realm(item)
 				table.insert(options_list, {
-					text = realm.name,
-					tooltip = "Choose " .. realm.name,
+					text = REALM_NAME(realm),
+					tooltip = "Choose " .. REALM_NAME(realm),
 					viable = function ()
 						return true
 					end,
@@ -226,7 +242,7 @@ return function ()
 						return 0
 					end
 				})
-			end
+			end)
 
 			return options_list
 		end
@@ -238,6 +254,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -259,10 +278,11 @@ return function ()
 				}
 			}
 
-			for _, realm in pairs(associated_data.target.leader_of) do
+			DATA.for_each_realm_leadership_from_leader(associated_data.target, function (item)
+				local realm = DATA.realm_leadership_get_realm(item)
 				table.insert(options_list, {
-					text = realm.name,
-					tooltip = "Choose " .. realm.name,
+					text = REALM_NAME(realm),
+					tooltip = "Choose " .. REALM_NAME(realm),
 					viable = function ()
 						return realm ~= associated_data.selected_realm_origin
 					end,
@@ -274,7 +294,7 @@ return function ()
 						return 0
 					end
 				})
-			end
+			end)
 
 			return options_list
 		end
@@ -288,6 +308,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -356,6 +379,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -381,14 +407,14 @@ return function ()
 			local trade_table = associated_data.negotiations_terms_characters.trade
 
 			--- from initiator
-			for name, trade_good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+			local function personal_goods_option(trade_good)
 				table.insert(options_list, {
-					text = "Transfer " .. trade_good.description,
+					text = "Transfer " .. DATA.trade_good_description[trade_good],
 					tooltip = "I will additionally transfer a unit of this good to target",
 					viable = function() return true end,
 					outcome = function()
-						trade_table.goods_transfer_from_initiator_to_target[name] =
-							(trade_table.goods_transfer_from_initiator_to_target[name] or 0) + 1
+						trade_table.goods_transfer_from_initiator_to_target[trade_good] =
+							(trade_table.goods_transfer_from_initiator_to_target[trade_good] or 0) + 1
 						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-goods", character, associated_data)
 					end,
 					ai_preference = function ()
@@ -397,15 +423,17 @@ return function ()
 				})
 			end
 
+			DATA.for_each_trade_good(personal_goods_option)
+
 			--- to initiator
-			for name, trade_good in pairs(RAWS_MANAGER.trade_goods_by_name) do
+			local function trade_good_request_option(trade_good)
 				table.insert(options_list, {
-					text = "Demand " .. trade_good.description,
+					text = "Demand " .. DATA.trade_good_get_description(trade_good),
 					tooltip = "I will additionally require a unit of this good from target",
 					viable = function() return true end,
 					outcome = function()
-						trade_table.goods_transfer_from_initiator_to_target[name] =
-							(trade_table.goods_transfer_from_initiator_to_target[name] or 0) - 1
+						trade_table.goods_transfer_from_initiator_to_target[trade_good] =
+							(trade_table.goods_transfer_from_initiator_to_target[trade_good] or 0) - 1
 						WORLD:emit_immediate_event("negotiation-initiator-add-personal-term-goods", character, associated_data)
 					end,
 					ai_preference = function ()
@@ -413,6 +441,7 @@ return function ()
 					end
 				})
 			end
+			DATA.for_each_trade_good(trade_good_request_option)
 
 			return options_list
 		end
@@ -424,6 +453,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -445,10 +477,11 @@ return function ()
 				}
 			}
 
-			for _, realm in pairs(associated_data.target.leader_of) do
+			DATA.for_each_realm_leadership_from_leader(associated_data.target, function (item)
+				local realm = DATA.realm_leadership_get_realm(item)
 				table.insert(options_list, {
-					text = realm.name,
-					tooltip = "Choose " .. realm.name,
+					text = REALM_NAME(realm),
+					tooltip = "Choose " .. REALM_NAME(realm),
 					viable = function ()
 						-- if we are already allowed to trade there, we can't buy permission
 						if economy_triggers.allowed_to_trade(character, realm) then
@@ -471,7 +504,7 @@ return function ()
 						return 0
 					end
 				})
-			end
+			end)
 
 			return options_list
 		end
@@ -483,6 +516,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -504,10 +540,11 @@ return function ()
 				}
 			}
 
-			for _, realm in pairs(associated_data.target.leader_of) do
+			DATA.for_each_realm_leadership_from_leader(associated_data.target, function (item)
+				local realm = DATA.realm_leadership_get_realm(item)
 				table.insert(options_list, {
-					text = realm.name,
-					tooltip = "Choose " .. realm.name,
+					text = REALM_NAME(realm),
+					tooltip = "Choose " .. REALM_NAME(realm),
 					viable = function ()
 						-- if we are already allowed to trade there, we can't buy permission
 						if economy_triggers.allowed_to_trade(character, realm) then
@@ -530,7 +567,7 @@ return function ()
 						return 0
 					end
 				})
-			end
+			end)
 
 			return options_list
 		end
@@ -543,6 +580,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -596,8 +636,7 @@ return function ()
 				table.insert(associated_data.negotiations_terms_realms, negotiation)
 			end
 
-
-			if origin.tributaries[target] == nil then
+			if not diplomacy_trigggers.pays_tribute_to(target, origin) then
 				table.insert(options_list, {
 					text = "Demand tribute",
 					tooltip = "Demand that the target become my tributary",
@@ -611,7 +650,7 @@ return function ()
 				})
 			end
 
-			if origin.tributaries[target] == target then
+			if not diplomacy_trigggers.pays_tribute_to(origin, target) then
 				table.insert(options_list, {
 					text = "Set free",
 					tooltip = "Set your subject free",
@@ -625,7 +664,7 @@ return function ()
 				})
 			end
 
-			if target.tributaries[origin] == origin then
+			if diplomacy_trigggers.pays_tribute_to(origin, target) then
 				table.insert(options_list, {
 					text = "Demand freedom",
 					tooltip = "Demand freedom from overlord",
@@ -649,6 +688,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -670,7 +712,7 @@ return function ()
 			end
 
 			for good, amount in pairs(trade_agreement.goods_transfer_from_initiator_to_target) do
-				local change = amount * character.price_memory[good]
+				local change = amount * DATA.pop_get_price_memory(character, good)
 
 				if change > 0 then
 					wealth_gain = wealth_gain + change
@@ -686,6 +728,7 @@ return function ()
 				local realm = item.target
 
 				if item.subjugate then
+					---@type number
 					realm_wealth_gain = realm_wealth_gain - economy_values.realm_independence_price(realm)
 				end
 
@@ -702,18 +745,18 @@ return function ()
 
 			for _, item in ipairs(associated_data.negotiations_terms_character_to_realm) do
 				if item.trade_permission then
-					desired_gift = desired_gift + item.target.trading_right_cost
+					desired_gift = desired_gift + DATA.realm_get_trading_right_cost(item.target)
 				end
 
 				if item.building_permission then
-					desired_gift = desired_gift + item.target.building_right_cost
+					desired_gift = desired_gift + DATA.realm_get_building_right_cost(item.target)
 				end
 			end
 
 			local perceived_change = wealth_gain + wealth_reduction - desired_gift + realm_wealth_gain
 
 			--- greedy characters desire far more money
-			if character.traits[TRAIT.GREEDY] then
+			if HAS_TRAIT(character, TRAIT.GREEDY) then
 				perceived_change = wealth_gain + wealth_reduction * 2 - desired_gift * 2 + realm_wealth_gain
 			end
 
@@ -766,6 +809,9 @@ return function ()
 		event_background_path = "data/gfx/backgrounds/background.png",
 		automatic = false,
 		base_probability = 0,
+		fallback = function(self, associated_data)
+
+		end,
 		trigger = function(self, character)
 			return false
 		end,
@@ -785,12 +831,12 @@ return function ()
 			local invalid_conditions = ""
 
 			if trade.wealth_transfer_from_initiator_to_target > 0 then
-				if initiator.savings < trade.wealth_transfer_from_initiator_to_target then
+				if SAVINGS(initiator) < trade.wealth_transfer_from_initiator_to_target then
 					valid = false
 					invalid_conditions = invalid_conditions .. "Initiator doesn't have enough wealth \n"
 				end
 			else
-				if target.savings < -trade.wealth_transfer_from_initiator_to_target then
+				if SAVINGS(target) < -trade.wealth_transfer_from_initiator_to_target then
 					valid = false
 					invalid_conditions = invalid_conditions .. "Target doesn't have enough wealth \n"
 				end
@@ -798,14 +844,14 @@ return function ()
 
 			for good, amount in pairs(trade.goods_transfer_from_initiator_to_target) do
 				if amount > 0 then
-					if initiator.inventory[good] < amount then
+					if INVENTORY(initiator, good) < amount then
 						valid = false
-						invalid_conditions = invalid_conditions .. "Initiator doesn't have enough " .. good .. "\n"
+						invalid_conditions = invalid_conditions .. "Initiator doesn't have enough " .. DATA.trade_good_get_name(good) .. "\n"
 					end
 				else
-					if target.inventory[good] < -amount then
+					if INVENTORY(target, good) < -amount then
 						valid = false
-						invalid_conditions = invalid_conditions .. "Target doesn't have enough " .. good .. "\n"
+						invalid_conditions = invalid_conditions .. "Target doesn't have enough " .. DATA.trade_good_get_name(good) .. "\n"
 					end
 				end
 			end
@@ -839,13 +885,13 @@ return function ()
 						--- enforce negotiation
 
 						--- transfer wealth
-						economy_effects.add_pop_savings(initiator, -trade.wealth_transfer_from_initiator_to_target, economy_effects.reasons.Negotiations)
-						economy_effects.add_pop_savings(target, trade.wealth_transfer_from_initiator_to_target, economy_effects.reasons.Negotiations)
+						economy_effects.add_pop_savings(initiator, -trade.wealth_transfer_from_initiator_to_target, ECONOMY_REASON.NEGOTIATIONS)
+						economy_effects.add_pop_savings(target, trade.wealth_transfer_from_initiator_to_target, ECONOMY_REASON.NEGOTIATIONS)
 
 						--- transfer goods
 						for good, amount in pairs(trade.goods_transfer_from_initiator_to_target) do
-							initiator.inventory[good] = (initiator.inventory[good] or 0) - amount
-							target.inventory[good] = (target.inventory[good] or 0) + amount
+							DATA.pop_inc_inventory(initiator, good, -amount)
+							DATA.pop_inc_inventory(target, good, amount)
 						end
 
 						--- enforce diplomatic stance
@@ -893,8 +939,7 @@ return function ()
 			---@type NegotiationData
 			associated_data = associated_data
 
-			root.current_negotiations[associated_data.target] = nil
-			associated_data.target.current_negotiations[root] = nil
+			DATA.delete_negotiation(associated_data.id)
 		end
 	)
 
@@ -907,9 +952,7 @@ return function ()
 			---@type NegotiationData
 			associated_data = associated_data
 
-
-			root.current_negotiations[associated_data.target] = nil
-			associated_data.target.current_negotiations[root] = nil
+			DATA.delete_negotiation(associated_data.id)
 		end
 	)
 
@@ -922,8 +965,7 @@ return function ()
 			---@type NegotiationData
 			associated_data = associated_data
 
-			root.current_negotiations[associated_data.target] = nil
-			associated_data.target.current_negotiations[root] = nil
+			DATA.delete_negotiation(associated_data.id)
 		end
 	)
 end

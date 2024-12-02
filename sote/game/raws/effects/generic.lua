@@ -1,33 +1,40 @@
+local province_utils = require "game.entities.province".Province
+
+local demography_effects = require "game.raws.effects.demography"
+
 local effects = {}
 
 ---comment
 ---@param character Character
 ---@param province Province
 function effects.travel(character, province)
-    ---@type Province
-    local initial_province = character.province
+	---@type Province
+	local initial_province = PROVINCE(character)
 
-    character.province:transfer_character(character, province)
+	province_utils.transfer_pop(character, province)
 
-    local party = character.leading_warband
+	local leader_of = DATA.get_warband_leader_from_leader(character)
 
-    if party then
-        for _, pop in pairs(party.pops) do
-            initial_province:fire_pop(pop)
-            initial_province:transfer_pop(pop, province)
-        end
+	if leader_of ~= INVALID_ID then
+		local warband = DATA.warband_leader_get_warband(leader_of)
 
-        initial_province.warbands[party] = nil
-        province.warbands[party] = party
-    end
+		local location = DATA.get_warband_location_from_warband(warband)
+		DATA.warband_location_set_location(location, province)
 
-    if WORLD.player_character == character then
-        WORLD:emit_notification('I had arrived to ' .. province.name)
-    end
+		DATA.for_each_warband_unit_from_warband(warband, function (item)
+			local pop = DATA.warband_unit_get_unit(item)
 
-    if WORLD:does_player_see_realm_news(province.realm) then
-        WORLD:emit_notification(character.name .. " had arrived to " .. province.name)
-    end
+			demography_effects.fire_pop(character)
+			province_utils.transfer_pop(pop, province)
+		end)
+	end
+
+	if WORLD.player_character == character then
+		WORLD:emit_notification('I had arrived to ' .. PROVINCE_NAME(province))
+	end
+	if WORLD:does_player_see_realm_news(PROVINCE_REALM(province)) then
+		WORLD:emit_notification(NAME(character) .. " had arrived to " .. PROVINCE_NAME(province))
+	end
 end
 
 return effects

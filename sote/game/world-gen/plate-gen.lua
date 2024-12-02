@@ -38,10 +38,10 @@ function plate_gen.run()
 	--- Prep world tiles for plate expansion ---
 	--------------------------------------------
 
-	for _, tile in pairs(WORLD.tiles) do
+	for _, tile_id in pairs(WORLD.tiles) do
 		local perlin_variable = (2000 * tile:perlin(20, perlin_seed) ^ 2.5) + 100 -- value of 40 seems best so far
 		tile.elevation = perlin_variable
-		tile.is_land = true
+		DATA.tile_set_is_land(tile_id, true)
 		tile.value_to_overcome = 1
 		tile.expansion_potential = 0
 		tile.already_added = false
@@ -375,7 +375,7 @@ function plate_gen.run()
 				for _, tile in pairs(plate.tiles) do
 					local has_foreign_neighbor = false
 					for n in tile:iter_neighbors() do -- Check valid neighbors first to determine how much we need to divide expansion value
-						if n:plate() ~= tile:plate() then
+						if n:plate() ~= tile.plate(tile_id) then
 							has_foreign_neighbor = true
 							local plate_already_in_list = false
 							if #plate.plate_neighbors == 0 then

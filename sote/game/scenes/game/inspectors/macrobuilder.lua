@@ -3,8 +3,10 @@ local tabb = require "engine.table"
 local ui = require "engine.ui";
 local ut = require "game.ui-utils"
 
-local pv = require "game.raws.values.political"
-local ev = require "game.raws.values.economical"
+local province_utils = require "game.entities.province".Province
+
+local pv = require "game.raws.values.politics"
+local ev = require "game.raws.values.economy"
 
 local inspector = {}
 
@@ -49,8 +51,8 @@ function inspector.draw(gam)
 
 	local character = WORLD.player_character
 
-	if character then
-		if character.realm.leader == character then
+	if character ~= INVALID_ID then
+		if LEADER(REALM(character)) == character then
 			public_mode = ui.named_checkbox(
 				"Use realm treasury: ",
 				public_flag_rect,
@@ -63,33 +65,40 @@ function inspector.draw(gam)
 
 
 	local available_buildings = {}
+	---@type table<BuildingType, boolean>
 	local seen = {}
+	---@type table<BuildingType, boolean>
 	local buildable = {}
 
 	local public_flag = false
 	local overseer = character
 	local funds = 0
 
-	if character then
-		funds = character.savings
+	if character ~= INVALID_ID then
+		funds = SAVINGS(character)
 		if gam.macrobuilder_public_mode then
-			overseer = pv.overseer(character.realm)
+			overseer = pv.overseer(REALM(character))
 			public_flag = true
-			funds = character.realm.budget.treasury
+			funds = DATA.realm_get_budget_treasury(REALM(character))
 		end
 
-		for _, building in pairs(character.province.buildable_buildings) do
-			if not seen[building] then
-				table.insert(available_buildings, building)
-				buildable[building] = false
-			else
-				seen[building] = true
+		DATA.for_each_building_type(function (item)
+			local potential = DATA.province_get_buildable_buildings(PROVINCE(character), item) == 1
+			if potential then
+				if not seen[item] then
+					table.insert(available_buildings, item)
+					buildable[item] = false
+				else
+					seen[item] = true
+				end
+				if province_utils.can_build(
+					PROVINCE(character),
+					funds, item, overseer, public_flag
+				) then
+					buildable[item] = true
+				end
 			end
-
-			if character.province:can_build(funds, building, overseer, public_flag) then
-				buildable[building] = true
-			end
-		end
+		end)
 	end
 
 	rect.height = rr - base_unit
@@ -101,7 +110,7 @@ function inspector.draw(gam)
 			rect = rect
 			rect.height = rect.height - 1
 			if number > 0 then
-				local name, building_type = tabb.nth(available_buildings, number)
+				local _, building_type = tabb.nth(available_buildings, number)
 				if building_type == nil then
 					return
 				end
@@ -110,7 +119,7 @@ function inspector.draw(gam)
 				building_type = building_type
 
 				-- drawing icons
-				local icon = building_type.icon
+				local icon = DATA.building_type_get_icon(building_type)
 				local image_padding = 3
 				local icon_rect = rect:subrect(image_padding, image_padding, base_unit - image_padding * 2,
 					base_unit - image_padding * 2, "left", "up")
@@ -134,7 +143,7 @@ function inspector.draw(gam)
 
 				local negative_flag = construction_cost > funds
 
-				ut.money_entry(building_type.description, construction_cost, rect_data, nil, negative_flag, false)
+				ut.money_entry(DATA.building_type_get_description(building_type), construction_cost, rect_data, nil, negative_flag, false)
 			end
 		end,
 		UI_STYLE.scrollable_list_item_height,

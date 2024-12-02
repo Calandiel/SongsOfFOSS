@@ -131,6 +131,31 @@ function d.load()
 		g = 0.45,
 		b = 0.45,
 	}
+
+	UNEMPLOYED = Job:new {
+		name = "Unemployed",
+		icon = "beer-stein.png",
+		description = "Unemployed",
+		r = 0.23,
+		g = 0.23,
+		b = 0.23,
+	}
+	WARRIORS = Job:new {
+		name = "Warriors",
+		icon = "beer-stein.png",
+		description = "Warriors",
+		r = 0.43,
+		g = 0.23,
+		b = 0.13,
+	}
+	CHILDREN = Job:new {
+		name = "Children",
+		icon = "beer-stein.png",
+		description = "Children",
+		r = 0.83,
+		g = 0.83,
+		b = 0.83,
+	}
 end
 
 return d

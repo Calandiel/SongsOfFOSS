@@ -1,0 +1,41 @@
+name string
+r float
+g float
+b float
+aquatic bool=false
+marsh bool=false
+icy bool=false
+minimum_slope float=-99999999 m
+maximum_slope float=99999999 m
+minimum_elevation float=-99999999 m
+maximum_elevation float=99999999 m
+minimum_temperature float=-99999999 C
+maximum_temperature float=99999999 C
+minimum_summer_temperature float=-99999999 C
+maximum_summer_temperature float=99999999 C
+minimum_winter_temperature float=-99999999 C
+maximum_winter_temperature float=99999999 C
+minimum_rain float=-99999999 mm
+maximum_rain float=99999999 mm
+minimum_available_water float=-99999999 abstract, adjusted for permeability
+maximum_available_water float=99999999 abstract, adjusted for permeability
+minimum_trees float=-99999999 %
+maximum_trees float=99999999 %
+minimum_grass float=-99999999 %
+maximum_grass float=99999999 %
+minimum_shrubs float=-99999999 %
+maximum_shrubs float=99999999 %
+minimum_conifer_fraction float=-99999999 %
+maximum_conifer_fraction float=99999999 %
+minimum_dead_land float=-99999999 %
+maximum_dead_land float=99999999 %
+minimum_soil_depth float=-99999999 m
+maximum_soil_depth float=99999999 m
+minimum_soil_richness float=-99999999 %
+maximum_soil_richness float=99999999 %
+minimum_sand float=-99999999 %
+maximum_sand float=99999999 %
+minimum_clay float=-99999999 %
+maximum_clay float=99999999 %
+minimum_silt float=-99999999 %
+maximum_silt float=99999999 %

@@ -106,13 +106,20 @@ function window.draw(game)
         vertical_layout:next(width, 2 * unit), OPTIONS["needs-savings"], 0, 1, unit)
     if OPTIONS["needs-savings"] ~= old_needs_savings then
         save()
+        if WORLD.player_character ~= INVALID_ID then
+            DATA.pop_set_spend_savings_ratio(WORLD.player_character, OPTIONS["needs-savings"])
+        end
     end
     -- slider to determine time spent hunting
     local old_needs_hunt = OPTIONS["needs-hunt"]
-    OPTIONS["needs-hunt"] = ui.named_slider("Minimum time to spend hunting: " .. ut.to_fixed_point2(OPTIONS["needs-hunt"] * 100)  .. "%",
+    OPTIONS["needs-hunt"] = ui.named_slider("Minimum time to spend hunting/foraging: " .. ut.to_fixed_point2(OPTIONS["needs-hunt"] * 100)  .. "%",
         vertical_layout:next(width, 2 * unit), OPTIONS["needs-hunt"], 0, 1, unit)
     if OPTIONS["needs-hunt"] ~= old_needs_hunt then
         save()
+        if WORLD.player_character ~= INVALID_ID then
+            DATA.pop_set_forage_ratio(WORLD.player_character, OPTIONS["needs-hunt"])
+            DATA.pop_set_work_ratio(WORLD.player_character, 1 - OPTIONS["needs-hunt"])
+        end
     end
 end
 

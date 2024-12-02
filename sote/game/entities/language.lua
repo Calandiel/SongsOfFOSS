@@ -16,7 +16,7 @@ local MIN_S = 2
 local SAMPLES_ending_province = 10
 local SAMPLES_ending_realm = 10
 local SAMPLES_ending_adj = 5
-local SAMPLES_ranks = 2
+local SAMPLES_ranks = 5
 
 -- sort phonemes by frequency; ie. common phonemes first, then rarer ones
 local VOWELS = {
@@ -29,24 +29,16 @@ local CONSONANTS = {
 local SyllableType = {
 	'V', 'CV', 'CVn', 'CVr', 'CVl', 'CVC', 'VC' } -- , 'CrV', 'CnV', 'ClV'
 
----@class (exact) Language
----@field __index Language
----@field syllables table<number, string>
----@field consonants table<number, string>
----@field vowels table<number, string>
----@field ending_province table<number, string>
----@field ending_realm table<number, string>
----@field ending_adj table<number, string>
----@field ranks table<number, string>
 
----@class Language
 lang.Language = {}
 lang.Language.__index = lang.Language
----Returns a new language
----@return Language
-function lang.Language:new()
-	local o = {}
 
+---Returns a new language
+---@return language_id
+function lang.Language:new()
+	local language = DATA.create_language()
+
+	local o = DATA.fatten_language(language)
 	o.syllables = {}
 	o.consonants = {}
 	o.vowels = {}
@@ -55,18 +47,19 @@ function lang.Language:new()
 	o.ending_adj = {}
 	o.ranks = {}
 
-	setmetatable(o, lang.Language)
-	return o
+	return language
 end
 
 ---Returns a randomized language
----@return Language
+---@return language_id
 function lang.random()
-	local l = lang.Language:new()
+	local language = lang.Language:new()
+
+	local fat = DATA.fatten_language(language)
 
 	for _, v in ipairs(VOWELS) do
 		if _ <= MIN_V or love.math.random() < DROPOFF_V then
-			table.insert(l.vowels, v)
+			table.insert(fat.vowels, v)
 		else
 			break
 		end
@@ -74,7 +67,7 @@ function lang.random()
 
 	for _, v in ipairs(CONSONANTS) do
 		if _ <= MIN_C or love.math.random() < DROPOFF_C then
-			table.insert(l.consonants, v)
+			table.insert(fat.consonants, v)
 		else
 			break
 		end
@@ -82,7 +75,7 @@ function lang.random()
 
 	for _, v in ipairs(SyllableType) do
 		if _ <= MIN_S or love.math.random() < DROPOFF_S then
-			table.insert(l.syllables, v)
+			table.insert(fat.syllables, v)
 		else
 			break
 		end
@@ -90,97 +83,110 @@ function lang.random()
 
 	-- generate several random province suffixes, and ditto for realms
 	for _ = 1, SAMPLES_ending_province do
-		table.insert(l.ending_province, l:random_word(1))
+		table.insert(fat.ending_province, lang.Language.random_word(language, 1))
 	end
 	for _ = 1, SAMPLES_ending_realm do
-		table.insert(l.ending_realm, l:random_word(1))
+		table.insert(fat.ending_realm, lang.Language.random_word(language, 1))
 	end
 	for _ = 1, SAMPLES_ending_adj do
-		table.insert(l.ending_adj, l:random_word(1))
+		table.insert(fat.ending_adj, lang.Language.random_word(language, 1))
 	end
 	for _ = 1, SAMPLES_ending_adj do
-		table.insert(l.ending_adj, l:random_word(1))
+		table.insert(fat.ending_adj, lang.Language.random_word(language, 1))
 	end
 	for _ = 1, SAMPLES_ranks do
-		table.insert(l.ranks, l:random_word(3))
+		table.insert(fat.ranks, lang.Language.random_word(language, 3))
 	end
 
-	return l
+	return language
 end
 
+---@param language language_id
 ---@return string
-function lang.Language:random_vowel()
-	return self.vowels[love.math.random(#self.vowels)]
+function lang.Language.random_vowel(language)
+	local fat_language = DATA.fatten_language(language)
+	return fat_language.vowels[love.math.random(#fat_language.vowels)]
 end
 
+---@param language language_id
 ---@return string
-function lang.Language:random_consonant()
-	return self.consonants[love.math.random(#self.consonants)]
+function lang.Language.random_consonant(language)
+	local fat_language = DATA.fatten_language(language)
+	return fat_language.consonants[love.math.random(#fat_language.consonants)]
 end
 
+---@param language language_id
 ---@return string
-function lang.Language:random_syllable()
-	return self.syllables[love.math.random(#self.syllables)]
+function lang.Language.random_syllable(language)
+	local fat_language = DATA.fatten_language(language)
+	return fat_language.syllables[love.math.random(#fat_language.syllables)]
 end
 
+---@param language language_id
 ---@param word_length number
 ---@return string
-function lang.Language:random_word(word_length)
+function lang.Language.random_word(language, word_length)
+	local fat_language = DATA.fatten_language(language)
 	local w = ""
 	for _ = 1, word_length do
-		local syl = self:random_syllable()
+		local syl = lang.Language.random_syllable(language)
 		if syl == 'V' then
-			w = w .. self:random_vowel()
+			w = w .. lang.Language.random_vowel(language)
 		elseif syl == 'CV' then
-			w = w .. self:random_consonant() .. self:random_vowel()
+			w = w .. lang.Language.random_consonant(language) .. lang.Language.random_vowel(language)
 		elseif syl == 'CrV' then
-			w = w .. self:random_consonant() .. 'r' .. self:random_vowel()
+			w = w .. lang.Language.random_consonant(language) .. 'r' .. lang.Language.random_vowel(language)
 		elseif syl == 'CVn' then
-			w = w .. self:random_consonant() .. self:random_vowel() .. 'n'
+			w = w .. lang.Language.random_consonant(language) .. lang.Language.random_vowel(language) .. 'n'
 		elseif syl == 'CnV' then
-			w = w .. self:random_consonant() .. 'n' .. self:random_vowel()
+			w = w .. lang.Language.random_consonant(language) .. 'n' .. lang.Language.random_vowel(language)
 		elseif syl == 'ClV' then
-			w = w .. self:random_consonant() .. 'l' .. self:random_vowel()
+			w = w .. lang.Language.random_consonant(language) .. 'l' .. lang.Language.random_vowel(language)
 		elseif syl == 'CVl' then
-			w = w .. self:random_consonant() .. self:random_vowel() .. 'l'
+			w = w .. lang.Language.random_consonant(language) .. lang.Language.random_vowel(language) .. 'l'
 		elseif syl == 'CVr' then
-			w = w .. self:random_consonant() .. self:random_vowel() .. 'r'
+			w = w .. lang.Language.random_consonant(language) .. lang.Language.random_vowel(language) .. 'r'
 		elseif syl == 'CVC' then
-			w = w .. self:random_consonant() .. self:random_vowel() .. self:random_consonant()
+			w = w .. lang.Language.random_consonant(language) .. lang.Language.random_vowel(language) .. lang.Language.random_consonant(language)
 		elseif syl == 'VC' then
-			w = w .. self:random_vowel() .. self:random_consonant()
+			w = w .. lang.Language.random_vowel(language) .. lang.Language.random_consonant(language)
 		end
 	end
 	return w
 end
-
-function lang.Language:get_random_culture_name()
+---@param language language_id
+function lang.Language.get_random_culture_name(language)
+	local fat_language = DATA.fatten_language(language)
 	local ll = love.math.random(3)
-	local n = self:random_word(ll)
-	return string.title(n .. self.ending_adj[love.math.random(#self.ending_adj)])
+	local n = lang.Language.random_word(language, ll)
+	return string.title(n .. fat_language.ending_adj[love.math.random(#fat_language.ending_adj)])
 end
-
-function lang.Language:get_random_faith_name()
+---@param language language_id
+function lang.Language.get_random_faith_name(language)
+	local fat_language = DATA.fatten_language(language)
 	local ll = love.math.random(3)
-	local n = self:random_word(ll)
-	return string.title(n .. self.ending_adj[love.math.random(#self.ending_adj)])
+	local n = lang.Language.random_word(language, ll)
+	return string.title(n .. fat_language.ending_adj[love.math.random(#fat_language.ending_adj)])
 end
-
-function lang.Language:get_random_realm_name()
+---@param language language_id
+function lang.Language.get_random_realm_name(language)
+	local fat_language = DATA.fatten_language(language)
 	local ll = love.math.random(3)
-	local n = self:random_word(ll)
-	return string.title(n .. self.ending_realm[love.math.random(#self.ending_realm)])
+	local n = lang.Language.random_word(language, ll)
+	return string.title(n .. fat_language.ending_realm[love.math.random(#fat_language.ending_realm)])
 end
-
-function lang.Language:get_random_province_name()
+---@param language language_id
+function lang.Language.get_random_province_name(language)
+	local fat_language = DATA.fatten_language(language)
 	local ll = love.math.random(3)
-	local n = self:random_word(ll)
-	return string.title(n .. self.ending_province[love.math.random(#self.ending_province)])
+	local n = lang.Language.random_word(language, ll)
+	return string.title(n .. fat_language.ending_province[love.math.random(#fat_language.ending_province)])
 end
-
-function lang.Language:get_random_name()
+---@param language language_id
+function lang.Language.get_random_name(language)
+	local fat_language = DATA.fatten_language(language)
 	local ll = love.math.random(4)
-	local n = self:random_word(ll)
+	local n = lang.Language.random_word(language, ll)
 	return string.title(n)
 end
 

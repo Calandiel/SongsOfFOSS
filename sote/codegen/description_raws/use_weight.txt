@@ -1,0 +1,3 @@
+link many trade_good trade_good index of trade good
+link many use_case use_case index of use case
+weight float efficiency of this relation

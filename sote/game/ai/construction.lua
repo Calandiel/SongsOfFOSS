@@ -1,28 +1,28 @@
 local tabb = require "engine.table"
-local ai = require "game.raws.values.ai_preferences"
-local effects = require "game.raws.effects.economic"
-local eco_values = require "game.raws.values.economical"
-local economic_effects = require "game.raws.effects.economic"
-local pv = require "game.raws.values.political"
+local province_utils = require "game.entities.province".Province
+local ai = require "game.raws.values.ai"
+local eco_values = require "game.raws.values.economy"
+local demography_values = require "game.raws.values.demography"
+local economy_effects = require "game.raws.effects.economy"
+local pv = require "game.raws.values.politics"
 
 local co = {}
 
 ---@param province Province
 ---@param funds number
 ---@param excess number
----@param owner POP?
----@param overseer POP?
+---@param owner pop_id
+---@param overseer pop_id
 ---@return number
 local function construction_in_province(province, funds, excess, owner, overseer)
-	if funds < 50 then
+	if funds < 100 then
 		return funds
 	end
 
-
 	-- if infrastructure is too low, do not build, invest into infra instead
-	if province:get_infrastructure_efficiency() < 0.75 then
+	if province_utils.get_infrastructure_efficiency(province) < 0.75 then
 		if funds - excess > 20 then
-			province.infrastructure_investment = province.infrastructure_investment + 20
+			DATA.province_inc_infrastructure_investment(province, 20)
 			funds = funds - 20
 		end
 		return funds
@@ -36,22 +36,29 @@ local function construction_in_province(province, funds, excess, owner, overseer
 	end
 
 
-	local random_pop = tabb.random_select_from_set(province.all_pops)
+	local random_pop = demography_values.sample_non_character_pop_from_province(province)
+
 	-- if pop is nil, then buildings are the last thing we need
 	if random_pop == nil then
 		return funds
 	end
 
-	-- calculate ROI
+
+	-- calculate time to get back your investments
 	---@type table<BuildingType, number>
-	local ROI_per_building_type = {}
-	local min_ROI = nil
-	for _, building_type in pairs(province.buildable_buildings) do
+	local time_per_building_type = {}
+	local min_time = math.huge
+
+	DATA.for_each_building_type(function (building_type)
+		if DATA.province_get_buildable_buildings(province, building_type) == 0 then
+			return
+		end
+
 		local predicted_profit = eco_values.projected_income_building_type(
 			province,
 			building_type,
-			random_pop.race,
-			random_pop.female
+			DATA.pop_get_race(random_pop),
+			DATA.pop_get_female(random_pop)
 		)
 
 		-- sanity scaling + clamping
@@ -59,51 +66,57 @@ local function construction_in_province(province, funds, excess, owner, overseer
 
 		-- select random tile because it's cheaper
 		-- and check if building is possible:
-		local can_build, reason = province:can_build(funds, building_type, overseer, public_flag)
+		local can_build, reason = province_utils.can_build(province, funds, building_type, overseer, public_flag)
 		if (not can_build) and (reason ~= 'not_enough_funds') then
 			predicted_profit = 0.001
 		end
 
-		if excess < building_type.upkeep then
+		local upkeep = DATA.building_type_get_upkeep(building_type)
+		if excess < upkeep then
 			predicted_profit = 0.001
 		end
 
-		ROI = building_type.construction_cost / predicted_profit
+		local construction_cost = DATA.building_type_get_construction_cost(building_type)
+		local payback_time = construction_cost / predicted_profit
 
-		ROI_per_building_type[building_type] = ROI
+		time_per_building_type[building_type] = payback_time
 
-		if min_ROI == nil or ROI < min_ROI then
-			min_ROI = ROI
+		if payback_time < min_time then
+			min_time = payback_time
 		end
+	end)
+
+
+	local race = DATA.pop_get_race(owner)
+	local max_age = DATA.race_get_max_age(race)
+
+	if max_age / 2 * 12 < min_time then
+		return funds
 	end
+
+	-- print("min time to pay back")
+	-- print(min_time)
 
 	-- set weigths based on predicted profits
 	---@type table<BuildingType, number>
 	local exp_feature = {}
 	local sum_of_exponents = 0
-	for _, building_type in pairs(province.buildable_buildings) do
-		local ROI = ROI_per_building_type[building_type]
+	DATA.for_each_building_type(function (building_type)
+		-- print(building_type)
+		if DATA.province_get_buildable_buildings(province, building_type) == 0 then
+			return
+		end
+		-- print("potential yes")
+
+		local time = time_per_building_type[building_type]
+		-- print("time ", time)
 
 		local feature = nil
-		-- do not consider buildings with ROI over half of your life...
-		if random_pop.race.max_age / 2 * 12 > ROI then
-			feature = -ROI + min_ROI
-		end
 
-		-- if WORLD.player_character then
-		-- 	if WORLD.player_character.province == province then
-		-- 		print(building_type.name)
-		-- 		print(feature)
-		-- 		print(ROI)
-		-- 		print(min_ROI)
-		-- 		print(eco_values.projected_income_building_type(
-		-- 			province,
-		-- 			building_type,
-		-- 			random_pop.race,
-		-- 			random_pop.female
-		-- 		))
-		-- 	end
-		-- end
+		-- do not consider buildings with expected time to return investments over half of your life...
+		if max_age / 2 * 12 > time then
+			feature = -time + min_time
+		end
 
 		if feature then
 			sum_of_exponents = sum_of_exponents + math.exp(feature)
@@ -116,8 +129,8 @@ local function construction_in_province(province, funds, excess, owner, overseer
 		if sum_of_exponents ~= sum_of_exponents then
 			error(
 				"INVALID EXP IN CONSTRUCTION LOGIC: "
-				.. "\n ROI = "
-				.. tostring(ROI)
+				.. "\n time = "
+				.. tostring(time)
 				.. "\n exp_feature[building_type] = "
 				.. tostring(exp_feature[building_type])
 				.. "\n feature = "
@@ -126,53 +139,66 @@ local function construction_in_province(province, funds, excess, owner, overseer
 				.. tostring(sum_of_exponents)
 			)
 		end
-	end
+	end)
+
+	-- print("weights ")
+	-- tabb.print(exp_feature)
 
 	---@type number
 	local total_weight = sum_of_exponents
 
-	if total_weight > 0 then
+	if total_weight == 0 then
+		return funds
+	end
+
+	-- print("total weight ", total_weight)
+
+	do
 		local w = love.math.random() * total_weight
 		local acc = 0
 		---@type BuildingType
-		local to_build = tabb.nth(province.buildable_buildings, 1) -- default to the first building
-		for _, ty in pairs(province.buildable_buildings) do
-			---@type number
-			acc = acc + exp_feature[ty]
-			if acc >= w then
-				to_build = ty
-				break
-			end
-		end
+		local to_build = INVALID_ID -- default to the invalid id
 
-		-- if WORLD.player_character then
-		-- 	if WORLD.player_character.province == province then
-		-- 		print('____')
-		-- 		print("building target: ")
-		-- 		print(to_build.name)
-		-- 		print(exp_feature[to_build])
-		-- 		print(ROI_per_building_type[to_build])
-		-- 	end
-		-- end
+		DATA.for_each_building_type(function (building_type)
+			if exp_feature[building_type] == nil then
+				return
+			end
+
+			---@type number
+			acc = acc + exp_feature[building_type]
+
+			if acc >= w and to_build == INVALID_ID then
+				to_build = building_type
+			end
+		end)
+
 
 		-- if there's nothing to build, do not build
-		if to_build == nil then
+		if to_build == INVALID_ID then
 			return funds
 		end
 
+
+		local is_gov = DATA.building_type_get_government(to_build)
+
 		-- pops should not be able to build government buildings
-		if to_build.government and owner then
+		if is_gov and owner ~= INVALID_ID then
 			return funds
 		end
+
 
 		-- Only build if there are unemployed pops...
 		-- Actually let's build anyway, because simulation is much more robust now
 
-		if province:can_build(funds, to_build, overseer, public_flag) then
+		if province_utils.can_build(province, funds, to_build, overseer, public_flag) then
 			local construction_cost = eco_values.building_cost(to_build, overseer, public_flag)
+
 			-- We can build! But only build if we have enough excess money to pay for the upkeep...
-			if excess >= to_build.upkeep then
-				economic_effects.construct_building(to_build, province, owner)
+			if excess >= DATA.building_type_get_upkeep(to_build) then
+				local building = economy_effects.construct_building(to_build, province, owner)
+				DATA.building_inc_subsidy(building, 1)
+				DATA.building_inc_savings(building, construction_cost)
+
 				funds = math.max(0, funds - construction_cost)
 			end
 		end
@@ -182,41 +208,60 @@ end
 
 ---@param realm Realm
 function co.run(realm)
-	local excess = realm.budget.education.budget -- Treat monthly education investments as an indicator of "free" income
-	local funds = realm.budget.treasury
+	---#logging LOGS:write("construction " .. tostring(realm) .."\n")
+	---#logging LOGS:flush()
+	local base_tick_spending = DATA.realm_get_budget_budget(realm, BUDGET_CATEGORY.EDUCATION)
 
-	if excess > 0 then
-		-- disabled for now, dunno if its worth making realm construction rare again
-		if true or love.math.random() < 1.0 / 6.0 then
-			for province in pairs(realm.provinces) do
-				if WORLD:does_player_control_realm(realm) then
-					-- Player realms shouldn't run their AI for building construction... unless...
-				else
-					funds = construction_in_province(province, funds, excess, nil, pv.overseer(realm))
-				end
+	local excess = base_tick_spending -- Treat monthly education investments as an indicator of "free" income
+	local funds = DATA.realm_get_budget_treasury(realm)
 
-				-- Run construction using the AI for local wealth too!
-				local prov = province.local_wealth
-
-				local province_funds = construction_in_province(province, prov, 0) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
-				local change = province_funds - province.local_wealth
-				effects.change_local_wealth(province, change, "building")
-
-				-- local characters want to build too!
-				-- select random character:
-				local builder = tabb.random_select_from_set(province.characters)
-				if builder and (WORLD.player_character ~= builder) then
-					local char_funds = ai.construction_funds(builder)
-					local result = construction_in_province(province, char_funds, 0, builder, builder)
-
-					local spendings = char_funds - result
-					effects.add_pop_savings(builder, -spendings, effects.reasons.Building)
-				end
+	DATA.for_each_realm_provinces_from_realm(realm, function (membership)
+		local province = DATA.realm_provinces_get_province(membership)
+		if WORLD:does_player_control_realm(realm) then
+			-- Player realms shouldn't run their AI for building construction... unless...
+		else
+			if excess > 0 then
+				funds = construction_in_province(province, funds, excess, INVALID_ID, pv.overseer(realm))
 			end
 		end
-	end
 
-	economic_effects.change_treasury(realm, funds - realm.budget.treasury, economic_effects.reasons.Building)
+		-- Run construction using the AI for local wealth too!
+		local wealth = DATA.province_get_local_wealth(province)
+
+		local province_funds = construction_in_province(province, wealth, 0, INVALID_ID, INVALID_ID) -- 0 "excess" so that pops dont bankrupt player controlled states with building upkeep...
+		local change = province_funds - wealth
+		economy_effects.change_local_wealth(province, change, ECONOMY_REASON.BUILDING)
+
+		-- local characters want to build too!
+		-- select random character:
+		local builder_location = tabb.random_select_from_array(DATA.filter_array_character_location_from_location(province, function (item)
+			local candidate = DATA.character_location_get_character(item)
+			if ai.construction_funds(candidate) > 150 then
+				return true
+			end
+			return false
+		end))
+
+		if builder_location == nil then
+			return
+		end
+
+		local builder = DATA.character_location_get_character(builder_location)
+
+		if WORLD.player_character ~= builder then
+			local char_funds = ai.construction_funds(builder)
+			-- print("consider building")
+			-- print(builder, char_funds)
+			local result = construction_in_province(province, char_funds, 0, builder, builder)
+			-- print(result)
+
+			local spendings = char_funds - result
+			economy_effects.add_pop_savings(builder, -spendings, ECONOMY_REASON.BUILDING)
+		end
+	end)
+
+	local old_treasury = DATA.realm_get_budget_treasury(realm)
+	economy_effects.change_treasury(realm, funds - old_treasury, ECONOMY_REASON.BUILDING)
 end
 
 return co

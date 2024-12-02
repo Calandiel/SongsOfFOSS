@@ -1,0 +1,8 @@
+name;age_independent;life_need;tool;container;time_to_satisfy_one_unit;required_job_to_satisfy
+food;false;true;false;false;1.5;JOBTYPE.FORAGER
+tools;false;false;true;false;1.0;JOBTYPE.ARTISAN
+container;false;false;false;true;1.0;JOBTYPE.ARTISAN
+clothing;false;false;false;false;0.5;JOBTYPE.LABOURER
+furniture;false;false;false;false;2.0;JOBTYPE.LABOURER
+healthcare;false;false;false;false;1.0;JOBTYPE.CLERK
+luxury;false;false;false;false;3.0;JOBTYPE.ARTISAN

@@ -1,0 +1,7 @@
+link many overlord realm
+link many subject realm
+wealth_transfer bool
+goods_transfer bool
+warriors_contribution bool
+protection bool
+local_ruler bool

@@ -1,0 +1,27 @@
+name string
+icon string
+description string
+r float
+g float
+b float
+job_type JOBTYPE
+jobs job_container[8]
+inputs use_case_container[8]
+outputs trade_good_container[8]
+foraging bool=false If true, worktime counts towards the foragers count
+hydration bool=false If true, worktime counts towards the foragers_water count
+nature_yield_dependence float=0 How much does the local flora and fauna impact this buildings yield? Defaults to 0
+forest_dependence float=0 Set to 1 if building consumes local forests
+crop bool=false If true, the building will periodically change its yield for a season.
+temperature_ideal_min float=10
+temperature_ideal_max float=30
+temperature_extreme_min float=0
+temperature_extreme_max float=50
+rainfall_ideal_min float=50
+rainfall_ideal_max float=100
+rainfall_extreme_min float=5
+rainfall_extreme_max float=350
+clay_ideal_min float=0
+clay_ideal_max float=1
+clay_extreme_min float=0
+clay_extreme_max float=1

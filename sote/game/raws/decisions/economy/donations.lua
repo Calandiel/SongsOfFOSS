@@ -1,10 +1,6 @@
 local utils = require "game.raws.raws-utils"
-
 local Decision = require "game.raws.decisions"
-local TRAIT = require "game.raws.traits.generic"
-
-local economic_effects = require "game.raws.effects.economic"
-local political_effects = require "game.raws.effects.political"
+local economic_effects = require "game.raws.effects.economy"
 
 local base_gift_size = 20
 
@@ -19,8 +15,9 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if root.busy then return false end
-			if root.savings < base_gift_size then
+			local fat = DATA.fatten_pop(root)
+			if fat.busy then return false end
+			if fat.savings < base_gift_size then
 				return false
 			end
 			return true
@@ -35,28 +32,16 @@ return function ()
 			return nil, true
 		end,
 		ai_will_do = function(root, primary_target, secondary_target)
-			---@type Character
-			local root = root
-			if root.savings > base_gift_size * 20 then
+			local fat = DATA.fatten_pop(root)
+			if fat.savings > base_gift_size * 20 then
 				return 0.1
 			end
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			--print("eff")
-			---@type Character
-			local root = root
-			local province = root.province
-			if province == nil then return end
-
-			province.mood = math.min(10, province.mood + base_gift_size / province:home_population() / 2)
-			economic_effects.change_local_wealth(province, base_gift_size, economic_effects.reasons.Donation)
-			economic_effects.add_pop_savings(root, -base_gift_size, economic_effects.reasons.Donation)
-			political_effects.small_popularity_boost(root, province.realm)
-
-			if WORLD:does_player_see_realm_news(province.realm) then
-				WORLD:emit_notification(root.name .. " donates money to population of " .. province.name .. "! His popularity grows...")
-			end
+			local province = PROVINCE(root)
+			if province == INVALID_ID then return end
+			economic_effects.gift_to_province(root, province, base_gift_size)
 		end
 	}
 
@@ -70,8 +55,9 @@ return function ()
 		secondary_target = 'none',
 		base_probability = 1 / 12 , -- Once every year on average
 		pretrigger = function(root)
-			if root.busy then return false end
-			if root.savings < base_gift_size then
+			local fat = DATA.fatten_pop(root)
+			if fat.busy then return false end
+			if fat.savings < base_gift_size then
 				return false
 			end
 			return true
@@ -80,16 +66,12 @@ return function ()
 			return true
 		end,
 		available = function(root, primary_target)
-			--print("avl")
-			---@type Character
-			local root = root
+			local realm = LOCAL_REALM(root)
+			if realm == INVALID_ID then
+				return false
+			end
 
-			local province = root.province
-			if province == nil then return false end
-			local realm = province.realm
-			if realm == nil then return false end
-
-			if root.savings < base_gift_size then
+			if DATA.pop_get_savings(root) < base_gift_size then
 				return false
 			end
 			return true
@@ -102,27 +84,14 @@ return function ()
 			local root = root
 
 			--- rich characters want to donate money to the state more
-			if root.savings > base_gift_size then
-				return ((root.savings / base_gift_size) - 1) * 0.001
+			if DATA.pop_get_savings(root) > base_gift_size then
+				return ((DATA.pop_get_savings(root)  / base_gift_size) - 1) * 0.001
 			end
 
 			return 0
 		end,
 		effect = function(root, primary_target, secondary_target)
-			--print("eff")
-			---@type Character
-			local root = root
-			local province = root.province
-			if province == nil then return end
-			local realm = province.realm
-			if realm == nil then return end
-
-			economic_effects.gift_to_tribe(root, realm, base_gift_size)
-			political_effects.small_popularity_boost(root, province.realm)
-
-			if WORLD:does_player_see_realm_news(realm) then
-				WORLD:emit_notification(root.name .. " donates money to the tribe of " .. realm.name .. "!")
-			end
+			economic_effects.gift_to_tribe(root, LOCAL_REALM(root), base_gift_size)
 		end
 	}
 end

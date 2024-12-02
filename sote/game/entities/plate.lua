@@ -1,68 +1,32 @@
----@class (exact) Plate
----@field __index Plate
----@field tiles table<Tile, Tile> Table containing tile references
----@field plate_id number ID of this plate
----@field r number
----@field g number
----@field b number
----@field speed number
----@field direction number
----@field done_expanding boolean
----@field current_tiles table
----@field next_tiles table
----@field expansion_rate number
----@field plate_neighbors Plate[]
----@field plate_edge Tile[]
----@field plate_boundaries Tile[]
-
 local plate = {}
 
 plate.Plate = {}
-plate.Plate.__index = plate.Plate
----Creates a new plate. Requires "WORLD" to exist
----@return Plate
+
+---Creates a new plate.
+---@return plate_id
 function plate.Plate:new()
-	local ne = {}
+	local id = DATA.create_plate()
+	print(id)
+	local fat = DATA.fatten_plate(id)
 
-	ne.r = love.math.random()
-	ne.g = love.math.random()
-	ne.b = love.math.random()
-	ne.plate_id = WORLD.entity_counter
-	WORLD.entity_counter = WORLD.entity_counter + 1
-	WORLD.plates[ne.plate_id] = ne
+	fat.r = love.math.random()
+	fat.g = love.math.random()
+	fat.b = love.math.random()
 
-	ne.tiles = {}
-
-	ne.done_expanding = false
-	ne.speed = 0
-	ne.direction = 1
-	ne.current_tiles = {}
-	ne.next_tiles = {}
-
-	setmetatable(ne, plate.Plate)
-
-	return ne
+	fat.done_expanding = false
+	fat.speed = 0
+	fat.direction = 1
+	fat.current_tiles = {}
+	fat.next_tiles = {}
+	print("plate created")
+	return id
 end
 
 ---Adds a tile to the plate, removing it from the previous plate...
----@param tile Tile ID of the tile to add!
-function plate.Plate:add_tile(tile)
-	-- First, remove the tile from the previous plate...
-
-	-- ID of the plate that the tile is currently assigned to
-	local old_plate = tile:plate()
-	if old_plate ~= nil then
-		-- remove the tile from the plate...
-		old_plate.tiles[tile] = nil
-	else
-		-- the plate doesn't exist, proceed
-	end
-
-	-- Set the reference on the tile...
-	tile:set_plate(self)
-
-	-- Set the reference on yourself
-	self.tiles[tile] = tile
+---@param plate_id plate_id
+---@param tile_id tile_id ID of the tile to add!
+function plate.Plate.add_tile(plate_id, tile_id)
+	DATA.force_create_plate_tiles(plate_id, tile_id)
 end
 
 return plate

@@ -1,0 +1,32 @@
+name string
+icon string
+female_portrait nil|PortraitSet
+male_portrait nil|PortraitSet
+description string
+r float
+g float
+b float
+carrying_capacity_weight float
+fecundity float
+spotting float How good is this unit at scouting
+visibility float How visible is this unit in battles
+males_per_hundred_females float
+child_age float
+teen_age float
+adult_age float
+middle_age float
+elder_age float
+max_age float
+minimum_comfortable_temperature float
+minimum_absolute_temperature float
+minimum_comfortable_elevation float=0.0
+female_body_size float
+male_body_size float
+female_efficiency float[JOBTYPE]
+male_efficiency float[JOBTYPE]
+female_infrastructure_needs float
+male_infrastructure_needs float
+female_needs need_definition[20]
+male_needs need_definition[20]
+requires_large_river bool=false
+requires_large_forest bool=false

@@ -1,5 +1,4 @@
-local ev = require "game.raws.values.economical"
-local ECONOMY_LAW = require "game.raws.laws.economy"
+local ev = require "game.raws.values.economy"
 
 local triggers = {}
 
@@ -19,60 +18,75 @@ triggers.TRADE_FAILURE_REASONS = {
 ---@param realm Realm
 ---@return boolean
 function triggers.allowed_to_trade(character, realm)
-    if realm == nil then
+    if realm == INVALID_ID then
         return true
     end
 
-    if realm.trading_right_law == ECONOMY_LAW.TRADE_RIGHT.GUESTS then
+    local fat = DATA.fatten_realm(realm)
+
+    if fat.law_trade == LAW_TRADE.NO_REGULATION then
         return true
     end
 
-    if realm.trading_right_law == ECONOMY_LAW.TRADE_RIGHT.NOBLES then
-        if character.realm == realm or realm.trading_right_given_to[character] then
+    if fat.law_trade == LAW_TRADE.LOCALS_ONLY then
+        if REALM(character) == realm then
             return true
         end
     end
 
-    if realm.trading_right_law == ECONOMY_LAW.TRADE_RIGHT.PERMISSION_ONLY then
-        if realm.trading_right_given_to[character] then
-            return true
-        end
-    end
+    local result = false
 
-    return false
+    DATA.for_each_personal_rights_from_person(character, function (item)
+        local checked_realm = DATA.personal_rights_get_realm(item)
+        if checked_realm == realm then
+            ---@type boolean
+            result = result or DATA.personal_rights_get_can_trade(item)
+        end
+    end)
+
+    return result
 end
 
+---commenting
+---@param character Character
+---@param realm Realm
+---@return boolean
 function triggers.allowed_to_build(character, realm)
-    if realm == nil then
+    if realm == INVALID_ID then
         return true
     end
-
-    if character == nil then
+    if character == INVALID_ID then
         return true --- when population tries to build stuff with local wealth
     end
 
-    if realm.building_gright_law == ECONOMY_LAW.BUILDING_RIGHT.GUESTS then
+    local fat = DATA.fatten_realm(realm)
+
+    if fat.law_building == LAW_BUILDING.NO_REGULATION then
         return true
     end
 
-    if realm.building_right_law == ECONOMY_LAW.BUILDING_RIGHT.NOBLES then
-        if character.realm == realm or realm.building_right_given_to[character] then
+    if fat.law_building == LAW_BUILDING.LOCALS_ONLY then
+        if REALM(character) == realm then
             return true
         end
     end
 
-    if realm.building_right_law == ECONOMY_LAW.BUILDING_RIGHT.PERMISSION_ONLY then
-        if realm.building_right_given_to[character] then
-            return true
-        end
-    end
+    local result = false
 
-    return false
+    DATA.for_each_personal_rights_from_person(character, function (item)
+        local checked_realm = DATA.personal_rights_get_realm(item)
+        if checked_realm == realm then
+            ---@type boolean
+            result = result or DATA.personal_rights_get_can_build(item)
+        end
+    end)
+
+    return result
 end
 
 ---performs a check if character can buy amount of goods locally
 ---@param character Character
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
 function triggers.can_buy(character, good, amount)
@@ -84,14 +98,15 @@ function triggers.can_buy(character, good, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_AMOUNT)
     end
 
-    local province = character.province
-    if province == nil then
+    local province = PROVINCE(character)
+
+    if province == INVALID_ID then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
     end
 
-    if province then
-        if (province.local_storage[good] or 0) < amount then
+    if PROVINCE ~= INVALID_ID then
+        if DATA.province_get_local_storage(province, good) < amount then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.LOCAL_GOODS_IS_TOO_LOW)
         end
@@ -99,12 +114,12 @@ function triggers.can_buy(character, good, amount)
         local price = ev.get_local_price(province, good)
         local cost = price * amount
 
-        if character.savings < cost then
+        if DATA.pop_get_savings(character) < cost then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.CHARACTER_WEALTH_IS_TO_LOW)
         end
 
-        if not triggers.allowed_to_trade(character, province.realm) then
+        if not triggers.allowed_to_trade(character, LOCAL_REALM(character)) then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.NO_PERMISSION)
         end
@@ -116,7 +131,7 @@ end
 ---performs a check if character can buy amount of goods locally
 ---@param province Province
 ---@param savings number
----@param use TradeGoodReference
+---@param use use_case_id
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
 function triggers.can_buy_use(province, savings, use, amount)
@@ -128,12 +143,12 @@ function triggers.can_buy_use(province, savings, use, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_AMOUNT)
     end
 
-    if province == nil then
+    if province == INVALID_ID then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
     end
 
-    if province then
+    if province ~= INVALID_ID then
         if ev.get_local_amount_of_use(province, use) < amount then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.LOCAL_GOODS_IS_TOO_LOW)
@@ -153,14 +168,14 @@ end
 
 ---performs a check if character can sell amount of goods locally
 ---@param character Character
----@param good TradeGoodReference
+---@param good trade_good_id
 ---@param amount number
 ---@return boolean, TRADE_FAILURE_REASONS[]
 function triggers.can_sell(character, good, amount)
     local response = true;
     local reasons = {}
 
-    if (character.inventory[good] or 0) < amount then
+    if DATA.pop_get_inventory(character, good) < amount then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.CHARACTER_GOODS_IS_TOO_LOW)
     end
@@ -170,22 +185,22 @@ function triggers.can_sell(character, good, amount)
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_AMOUNT)
     end
 
-    local province = character.province
-    if province == nil then
+    local province = PROVINCE(character)
+    if province == INVALID_ID then
         response = false
         table.insert(reasons, triggers.TRADE_FAILURE_REASONS.INVALID_PROVINCE)
     end
 
-    if province then
+    if province ~= INVALID_ID then
         local price = ev.get_pessimistic_local_price(province, good, amount, true)
         local cost = price * amount
 
-        if province.trade_wealth < cost then
+        if DATA.province_get_trade_wealth(province) < cost then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.LOCAL_WEALTH_IS_TOO_LOW)
         end
 
-        if not triggers.allowed_to_trade(character, province.realm) then
+        if not triggers.allowed_to_trade(character, LOCAL_REALM(character)) then
             response = false
             table.insert(reasons, triggers.TRADE_FAILURE_REASONS.NO_PERMISSION)
         end

@@ -1,40 +1,46 @@
 local ut = require "game.map-modes.utils"
+local tile = require "game.entities.tile"
 
 local ec = {}
 
 function ec.carrying_capacity()
 	ut.provincial_hue_map_mode(function(prov)
-		return (prov.foragers_limit - 5) / 50
+		return (DATA.province_get_foragers_limit(prov) - 5) / 50
 	end)
 end
 
 function ec.tile_carrying_capacity()
 	local cc = require "game.ecology.carrying-capacity".get_tile_carrying_capacity
-	ut.simple_hue_map_mode(function(tile)
-		---@type Tile
-		local t = tile
-		return cc(t) / 0.7
+	ut.simple_hue_map_mode(function(tile_id)
+		return cc(tile_id) / 0.7
 	end)
 end
 
 function ec.plants()
-	for _, tile in pairs(WORLD.tiles) do
-		if tile.is_land then
-			tile:set_real_color(tile.shrub, tile.grass, tile.conifer + tile.broadleaf)
+	DATA.for_each_tile(function (tile_id)
+		if DATA.tile_get_is_land(tile_id) then
+			tile.set_real_color(
+				tile_id,
+				DATA.tile_get_shrub(tile_id),
+				DATA.tile_get_grass(tile_id),
+				DATA.tile_get_conifer(tile_id) + DATA.tile_get_broadleaf(tile_id)
+			)
 		else
-			ut.set_default_color(tile)
+			ut.set_default_color(tile_id)
 		end
-	end
+	end)
 end
 
 function ec.biomes()
-	for _, tile in pairs(WORLD.tiles) do
-		if tile.biome ~= nil then
-			tile:set_real_color(tile.biome.r, tile.biome.g, tile.biome.b)
+	DATA.for_each_tile(function (tile_id)
+		local biome = DATA.tile_get_biome(tile_id)
+		if biome ~= INVALID_ID then
+			local fat = DATA.fatten_biome(biome)
+			tile.set_real_color(tile_id, fat.r, fat.g, fat.b)
 		else
-			ut.set_default_color(tile)
+			ut.set_default_color(tile_id)
 		end
-	end
+	end)
 end
 
 return ec

@@ -1,170 +1,153 @@
-local JOBTYPE = require "game.raws.job_types"
-local economic_effects = require "game.raws.effects.economic"
+local tabb = require "engine.table"
+local pop_utils = require "game.entities.pop".POP
 
----@alias WarbandStatus "idle" | "raiding" | "preparing_raid" | "preparing_patrol" | "patrol" | "attacking" | "travelling" | "off_duty"
----@alias WarbandIdleStance "work"|"forage"
-
----@class (exact) Warband
----@field __index Warband
----@field name string
----@field treasury number
----@field guard_of Realm?
----@field leader Character?
----@field recruiter Character?
----@field commander Character?
----@field pops table<POP, POP> A set of pops
----@field units table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
----@field units_current table<UnitType, number> Units currently in the warband
----@field units_target table<UnitType, number> Units to recruit
----@field status WarbandStatus
----@field idle_stance WarbandIdleStance
----@field current_free_time_ratio number How much of "idle" free time they are actually idle. Set by events.
----@field total_upkeep number
----@field predicted_upkeep number
----@field supplies number
----@field supplies_target_days number
----@field morale number
-local warband = {
-	name = "Warband", ---@type string
-	treasury = 0, ---@type number
-	leader = nil, ---@type Character?
-	pops = {}, ---@type table<POP, Province> A table mapping pops to their home provinces.
-	units = {}, ---@type table<POP, UnitType> A table mapping pops to their unit types (as we don't store them on pops)
-	units_current = {},
-	units_target = {},
-	status = "idle", ---@type WarbandStatus
-	supplies_target_days = 60,
-	morale = 0.5,
-	current_free_time_ratio = 1.0,
-	total_upkeep = 0,
-	predicted_upkeep = 0,
-	idle_stance = "forage",
-}
-warband.__index = warband
-
----@return Warband
-function warband:new()
-	local o = {}
-	for k, v in pairs(self) do
-		if type(v) == "table" then
-			o[k] = {}
-		elseif type(v) == "function" then
-			-- nothing to do, we're setting a metatable
-		else
-			o[k] = v
-		end
-	end
-	setmetatable(o, warband)
-	return o
-end
+local warband_utils = {}
 
 ---Returns a list of all officers
+---@param warband warband_id
 ---@return table<Character, Character> officers
-function warband:get_officers()
+function warband_utils.get_officers(warband)
+	---@type table<Character, Character>
 	local officers = {}
-	if self.leader then
-		officers[self.leader] = self.leader
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	local commander = DATA.warband_commander_get_commander(DATA.get_warband_commander_from_warband(warband))
+	local recruiter = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(warband))
+
+	if leader ~= INVALID_ID then
+		officers[leader] = leader
 	end
-	if self.commander then
-		officers[self.commander] = self.commander
+	if commander ~= INVALID_ID then
+		officers[commander] = commander
 	end
-	if self.recruiter then
-		officers[self.recruiter] = self.recruiter
+	if recruiter ~= INVALID_ID then
+		officers[recruiter] = recruiter
 	end
 	return officers
 end
 
 ---Returns a the highest ranking officer
----@return Character? officers
-function warband:active_leader()
-	if self.leader then
-		return self.leader
+---@param warband warband_id
+---@return Character officer
+function warband_utils.active_leader(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	local commander = DATA.warband_commander_get_commander(DATA.get_warband_commander_from_warband(warband))
+	local recruiter = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(warband))
+
+	if leader ~= INVALID_ID then
+		return leader
 	end
-	if self.recruiter then
-		return self.recruiter
+
+	if recruiter ~= INVALID_ID then
+		return recruiter
 	end
-	if self.commander then
-		return self.commander
+
+	if commander ~= INVALID_ID then
+		return commander
 	end
-	return nil
+
+	return INVALID_ID
 end
 
 ---Returns a the lowest ranking officer
+---@param warband warband_id
 ---@return Character? officers
-function warband:active_commander()
-	if self.commander then
-		return self.commander
+function warband_utils.active_commander(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	local commander = DATA.warband_commander_get_commander(DATA.get_warband_commander_from_warband(warband))
+	local recruiter = DATA.warband_recruiter_get_recruiter(DATA.get_warband_recruiter_from_warband(warband))
+
+	if commander ~= INVALID_ID then
+		return commander
 	end
-	if self.recruiter then
-		return self.recruiter
+
+	if recruiter ~= INVALID_ID then
+		return recruiter
 	end
-	if self.leader then
-		return self.leader
+
+	if leader ~= INVALID_ID then
+		return leader
 	end
+
 	return nil
 end
 
----Returns location of province, either the leader's province or the guard realm
----@return Province
-function warband:location()
-	if self.leader then
-		return self.leader.province
-	else
-		return self.guard_of.capitol
-	end
+---Returns location of warband, either the leader's province or the guard realm
+---@param warband warband_id
+---@return province_id
+function warband_utils.location(warband)
+	local location = DATA.get_warband_location_from_warband(warband)
+	return DATA.warband_location_get_location(location)
 end
 
----Returns realm of province, either the leader's province or the guard realm
+---Returns realm of warband, either the leader's realm or the realm it's a guard of
+---@param warband warband_id
 ---@return Realm
-function warband:realm()
-	if self.leader then
-		return self.leader.realm
+function warband_utils.realm(warband)
+	local leader = DATA.warband_leader_get_leader(DATA.get_warband_leader_from_warband(warband))
+	if leader ~= INVALID_ID then
+		return REALM(leader)
 	else
-		return self.guard_of
+		-- TODO
+		local guard_of = DATA.realm_guard_get_realm(DATA.get_realm_guard_from_guard(warband))
+		if guard_of == INVALID_ID then
+			return INVALID_ID
+		end
+		return guard_of
 	end
 end
 
 ---comment
+---@param warband warband_id
 ---@return number
-function warband:get_loot_capacity()
+function warband_utils.loot_capacity(warband)
 	local cap = 0.01
-	for pop, unit in pairs(self.units) do
-		cap = cap + pop:get_supply_capacity(unit)
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local pop = DATA.warband_unit_get_unit(membership)
+		local unit_type = DATA.warband_unit_get_type(membership)
+		---@type number
+		cap = cap + pop_utils.get_supply_capacity(pop, unit_type)
 	end
-	for _, pop in pairs(self:get_officers()) do
-		if not self.units[pop] then
-			local c = pop:job_efficiency(JOBTYPE.HAULING)
-			cap = cap + c
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			cap = cap + pop_utils.get_supply_capacity(pop, 0)
 		end
 	end
 	return cap
 end
 
-function warband:total_hauling()
-	return self:get_loot_capacity()
+---@param warband warband_id
+function warband_utils.total_hauling(warband)
+	return warband_utils.loot_capacity(warband)
 end
 
 ---Returns warbands current spotting bonus
+---@param warband warband_id
 ---@return number
-function warband:spotting()
+function warband_utils.spotting(warband)
 	---@type number
 	local result = 0
-	for p, ut in pairs(self.units) do
-		---@type number
-		result = result + p:get_spotting(ut)
-	end
 
-	for _, pop in pairs(self:get_officers()) do
-		if not self.units[pop] then
-			result = result + pop.race.spotting
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local pop = DATA.warband_unit_get_unit(membership)
+		local unit_type = DATA.warband_unit_get_type(membership)
+		---@type number
+		result = result + pop_utils.get_spotting(pop, unit_type)
+	end
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			result = result + pop_utils.get_spotting(pop, 0)
 		end
 	end
 
-	if self.status == "idle" then
+	local status = DATA.warband_get_current_status(warband)
+
+	if status == WARBAND_STATUS.IDLE then
 		result = result * 5
 	end
 
-	if self.status == "patrol" then
+	if status == WARBAND_STATUS.PATROL then
 		result = result * 10
 	end
 
@@ -172,18 +155,21 @@ function warband:spotting()
 end
 
 ---Returns warbands current visibility
+---@param warband warband_id
 ---@return number
-function warband:visibility()
+function warband_utils.visibility(warband)
 	---@type number
 	local result = 0
-	for p, ut in pairs(self.units) do
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local pop = DATA.warband_unit_get_unit(membership)
+		local unit_type = DATA.warband_unit_get_type(membership)
 		---@type number
-		result = result + p:get_visibility(ut)
+		result = result + pop_utils.get_visibility(pop, unit_type)
 	end
-
-	for _, pop in pairs(self:get_officers()) do
-		if not self.units[pop] then
-			result = result + pop.race.spotting
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			result = result + pop_utils.get_spotting(pop, 0)
 		end
 	end
 
@@ -191,15 +177,18 @@ function warband:visibility()
 end
 
 ---Returns the sum of all units health, attack, armor, and speed along with count
+---@param warband warband_id
 ---@return number total_health
 ---@return number total_attack
 ---@return number total_armor
 ---@return number total_speed
 ---@return number total_count
-function warband:get_total_strength()
+function warband_utils.total_strength(warband)
 	local total_health, total_attack, total_armor,total_speed, total_count = 0, 0, 0, 0 ,0
-	for pop, unit in pairs(self.units) do
-		local health, attack, armor, speed = pop:get_strength(unit)
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local pop = DATA.warband_unit_get_unit(membership)
+		local unit_type = DATA.warband_unit_get_type(membership)
+		local health, attack, armor, speed = pop_utils.get_strength(pop, unit_type)
 		total_health = total_health + health
 		total_attack = total_attack + attack
 		total_armor = total_armor + armor
@@ -210,250 +199,288 @@ function warband:get_total_strength()
 end
 
 ---Returns average speed of warband, noncombatants included
+---@param warband warband_id
 ---@return number total_speed
 ---@return number mean_speed
-function warband:speed()
-	local tabb = require "engine.table"
-	local total_speed = tabb.accumulate(self.units, 0, function (a, k, v)
-		return a + k:get_speed(v)
-	end)
-	total_speed = total_speed + tabb.accumulate(self:get_officers(), 0, function (a, k, v)
-		if self.units[k] == nil then
-			return a + 1 -- TODO have racial speeds or something
+function warband_utils.speed(warband)
+	local result = 0
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local pop = DATA.warband_unit_get_unit(membership)
+		local unit_type = DATA.warband_unit_get_type(membership)
+		---@type number
+		result = result + pop_utils.get_speed(pop, unit_type)
+	end
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership =  DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			result = result + pop_utils.get_speed(pop, 0)
 		end
-		return a
-	end)
-	return total_speed, math.max(total_speed / self:size(), 0)
+	end
+	return result, math.max(result / warband_utils.size(warband), 0)
 end
 
 ---Total size of warband
+---@param warband warband_id
 ---@return integer
-function warband:size()
-	local tabb = require "engine.table"
-
-	return tabb.size(self.pops) + tabb.size(self:get_officers())
+function warband_utils.size(warband)
+	local result = tabb.size(DATA.get_warband_unit_from_warband(warband))
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			result = result + 1
+		end
+	end
+	return result
 end
 
 ---Target size of warband
+---@param warband warband_id
 ---@return integer
-function warband:target_size()
-	local tabb = require "engine.table"
-
-	return tabb.accumulate(self.units_target, 0, function (a, k, v)
-		return a + v
-	end) + tabb.size(tabb.filter(self:get_officers(), function (a)
-		return self.units[a] ~= nil
-	end))
-end
-
----Returns the number of non character pops
----@return integer
-function warband:pop_size()
-	local tabb = require "engine.table"
-	local size = tabb.size(self.pops)
-	return size
-end
-
----Return the number of combat units
----@return integer
-function warband:war_size()
-	local tabb = require "engine.table"
-	local size = tabb.size(self.units)
-	return size
-end
-
-function warband:decimate()
-	self.pops = {}
-	self.units = {}
-end
-
----Handles hiring logic on warband's side
----@param province Province
----@param pop POP
----@param unit UnitType
-function warband:hire_unit(province, pop, unit)
-	if pop.province == nil then
-		error("ATTEMPT TO HIRE POP WITHOUT PROVINCE")
-	end
-
-	self.units[pop] = unit
-	self.pops[pop] = pop
-	self.units_current[unit] = (self.units_current[unit] or 0) + 1
-	self.total_upkeep = self.total_upkeep + unit.upkeep
-	pop.unit_of_warband = self
-end
-
----Handles pop firing logic on warband's side
----@param pop POP
-function warband:fire_unit(pop)
-	-- print(pop.name, "leaves warband")
-
-	local unit = self.units[pop]
-
-	pop.unit_of_warband = nil
-	self.units[pop] = nil
-	self.pops[pop] = nil
-	self.units_current[unit] = (self.units_current[unit] or 0) - 1
-	self.total_upkeep = self.total_upkeep - unit.upkeep
-end
-
---- sets a character as commander office and adds unit type to units table
----@param character Character
----@param unit UnitType
-function warband:set_commander(character, unit)
-	self:unset_commander()
-	self.commander = character
-	self:set_character_as_unit(character, unit)
-end
-
---- clears commander from office and units table
-function warband:unset_commander()
-	local commander = self.commander
-	if commander then
-		self:unset_character_as_unit(commander)
-		self.commander = nil
-	end
-end
-
-function warband:set_character_as_unit(character, unit)
-	self.units[character] = unit
-	self.units_current[unit] = (self.units_current[unit] or 0) + 1
-	self.total_upkeep = self.total_upkeep + unit.upkeep
-	character.unit_of_warband = self
-end
-
----Handles pop firing logic on warband's side
----@param character POP
-function warband:unset_character_as_unit(character)
-	local unit = self.units[character]
-	character.unit_of_warband = nil
-	if unit then
-		self.units[character] = nil
-		self.units_current[unit] = (self.units_current[unit] or 0) - 1
-		self.total_upkeep = self.total_upkeep - unit.upkeep
-	end
-end
-
----Predicts upkeep given the current units target of warbands
----@return number
-function warband:predict_upkeep()
+function warband_utils.target_size(warband)
 	local result = 0
+	DATA.for_each_unit_type(function (item)
+		result = result + DATA.warband_get_units_target(warband, item)
+	end)
 
-	for unit, target in pairs(self.units_target) do
-		result = result + target * unit.upkeep
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			---@type number
+			result = result + 1
+		end
 	end
 
 	return result
 end
 
----Kills ratio of army
----@param ratio number
-function warband:kill_off(ratio)
-	local losses = 0
-	---@type POP[]
-	local pops_to_kill = {}
-
-	for pop, _ in pairs(self.units) do
-		if not pop:is_character() and love.math.random() < ratio then
-			table.insert(pops_to_kill, pop)
-			losses = losses + 1
-		end
-	end
-
-	for i, pop in ipairs(pops_to_kill) do
-		pop.province:kill_pop(pop)
-	end
-
-	return losses
+---Returns the number of non character pops
+---@param warband warband_id
+---@return integer
+function warband_utils.pop_size(warband)
+	return tabb.size(DATA.get_warband_unit_from_warband(warband))
 end
 
----comment
----@return boolean
-function warband:vacant()
-	for unit, amount in pairs(self.units_target) do
-		if amount > (self.units_current[unit] or 0) then
-			return true
-		end
+---Return the number of combat units
+---@param warband warband_id
+---@return integer
+function warband_utils.war_size(warband)
+	return tabb.size(DATA.get_warband_unit_from_warband(warband))
+end
+
+---@param warband warband_id
+function warband_utils.decimate(warband)
+	local pops_to_delete = tabb.map_array(DATA.get_warband_unit_from_warband(warband), DATA.warband_unit_get_unit)
+	for _, pop in ipairs(pops_to_delete) do
+		DATA.delete_pop(pop)
+	end
+end
+
+---Handles hiring logic on warband's side
+---@param warband warband_id
+---@param pop POP
+---@param unit unit_type_id
+function warband_utils.hire_unit(warband, pop, unit)
+	local location = DATA.get_pop_location_from_pop(pop)
+	if location == INVALID_ID then
+		error("ATTEMPT TO HIRE POP WITHOUT PROVINCE")
 	end
 
-	return false
+	local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+	if warband_membership ~= INVALID_ID then
+		error("ATTEMPT TO HIRE POP ATTACHED TO WARBAND")
+	end
+
+	local new_membership = DATA.fatten_warband_unit(DATA.force_create_warband_unit(pop, warband))
+	new_membership.type = unit
+
+	DATA.warband_inc_units_current(warband, unit, 1)
+	DATA.warband_inc_total_upkeep(warband, DATA.unit_type_get_upkeep(unit))
+end
+
+---Handles pop firing logic on warband's side
+---@param warband warband_id
+---@param pop pop_id
+function warband_utils.fire_unit(warband, pop)
+	-- print(pop.name, "leaves warband")
+	local membership = DATA.get_warband_unit_from_unit(pop)
+	local fat_membership = DATA.fatten_warband_unit(membership)
+
+	assert(warband == fat_membership.warband, "INVALID OPERATION: POP WAS IN A WRONG WARBAND")
+
+	DATA.warband_inc_units_current(warband, fat_membership.type, -1)
+	DATA.warband_inc_total_upkeep(warband, -DATA.unit_type_get_upkeep(fat_membership.type))
+
+	DATA.delete_warband_unit(membership)
+end
+
+--- sets a character as commander office and adds unit type to units table
+---@param warband warband_id
+---@param character Character
+---@param unit unit_type_id
+function warband_utils.set_commander(warband, character, unit)
+	warband_utils.set_character_as_unit(warband, character, unit)
+end
+
+--- clears commander from office and units table
+---@param warband warband_id
+function warband_utils.unset_commander(warband)
+	local current_commander = DATA.get_warband_commander_from_warband(warband)
+	if current_commander == INVALID_ID then
+		return
+	end
+	DATA.delete_warband_commander(current_commander)
+end
+
+---@param warband warband_id
+---@param character Character
+---@param unit unit_type_id
+function warband_utils.set_character_as_unit(warband, character, unit)
+	---#logging LOGS:write("set character as a unit \n")
+	---#logging LOGS:flush()
+	local current_unit = DATA.get_warband_unit_from_unit(character)
+	local current_warband = DATA.warband_unit_get_warband(current_unit)
+
+	local fat_warband = DATA.fatten_warband(warband)
+	local fat_unit = DATA.fatten_unit_type(unit)
+
+	local new_upkeep = DATA.unit_type_get_upkeep(unit)
+
+	if current_warband == INVALID_ID then
+		---#logging LOGS:write("no current warband\n")
+		---#logging LOGS:flush()
+
+		local new_membership = DATA.fatten_warband_unit(DATA.force_create_warband_unit(character, warband))
+		new_membership.type = unit
+	elseif current_warband ~= warband then
+		---#logging LOGS:write("there is current warband but it's different\n")
+		---#logging LOGS:flush()
+
+		local current_type = DATA.warband_unit_get_type(current_unit)
+		local current_upkeep = DATA.unit_type_get_upkeep(current_type)
+
+		DATA.warband_inc_units_current(current_warband, unit, -1)
+		DATA.warband_inc_total_upkeep(current_warband, -current_upkeep)
+
+		DATA.warband_unit_set_warband(current_unit, warband)
+		DATA.warband_unit_set_type(current_unit, unit)
+	else
+		---#logging LOGS:write("there is current warband and it's the same\n")
+		---#logging LOGS:flush()
+
+		local current_type = DATA.warband_unit_get_type(current_unit)
+		local current_upkeep = DATA.unit_type_get_upkeep(current_type)
+
+		DATA.warband_inc_units_current(current_warband, unit, -1)
+		DATA.warband_inc_total_upkeep(current_warband, -current_upkeep)
+
+		DATA.warband_unit_set_type(current_unit, unit)
+	end
+
+	fat_warband.total_upkeep = fat_warband.total_upkeep + fat_unit.upkeep
+	DATA.warband_inc_units_current(warband, unit, 1)
+
+	---#logging LOGS:write("taking up command was successful\n")
+	---#logging LOGS:flush()
+end
+
+---Handles pop firing logic on warband's side
+---@param warband warband_id
+---@param character POP
+function warband_utils.unset_character_as_unit(warband, character)
+	local current_warband = DATA.get_warband_unit_from_unit(character)
+
+	if current_warband ~= INVALID_ID then
+		local fat_membership = DATA.fatten_warband_unit(current_warband)
+		local old_warband = DATA.fatten_warband(fat_membership.warband)
+		assert(old_warband.id == warband, "INVALID OPERATION")
+
+		local old_unit = DATA.fatten_unit_type(fat_membership.type)
+		old_warband.total_upkeep = old_warband.total_upkeep - old_unit.upkeep
+		DATA.warband_inc_units_current(old_warband.id, old_unit.id, -1)
+		DATA.delete_warband_unit(current_warband)
+	end
+end
+
+---Predicts upkeep given the current units target of warbands
+---@param warband warband_id
+---@return number
+function warband_utils.predict_upkeep(warband)
+	local result = 0
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local unit_type = DATA.warband_unit_get_type(membership)
+		---@type number
+		result = result + DATA.unit_type_get_upkeep(unit_type)
+	end
+	return result
+end
+
+
+---comment
+---@param warband warband_id
+---@return boolean
+function warband_utils.vacant(warband)
+	local vacant = false
+	DATA.for_each_unit_type(function (item)
+		if DATA.warband_get_units_target(warband, item) > DATA.warband_get_units_current(warband, item) then
+			vacant = true
+		end
+	end)
+	return vacant
 end
 
 ---Returns monthly budget
+---@param warband warband_id
 ---@return number
-function warband:monthly_budget()
-	return self.treasury / 12
+function warband_utils.monthly_budget(warband)
+	return DATA.warband_get_treasury(warband) / 12
 end
 
 ---Returs daily consumption of supplies.
+---@param warband warband_id
 ---@return number
-function warband:daily_supply_consumption()
-	local total = 0
-	for pop, unit in pairs(self.units) do
-		total = total + pop:get_supply_use(unit)
+function warband_utils.daily_supply_consumption(warband)
+	local result = 0
+	for _, membership in ipairs(DATA.get_warband_unit_from_warband(warband)) do
+		local pop = DATA.warband_unit_get_unit(membership)
+		local unit_type = DATA.warband_unit_get_type(membership)
+		---@type number
+		result = result + pop_utils.get_supply_use(pop, unit_type)
 	end
-
-	for _, pop in pairs(self:get_officers()) do
-		if not self.units[pop] then
-			total = total + pop:get_supply_use(nil)
+	for _, pop in pairs(warband_utils.get_officers(warband)) do
+		local warband_membership = DATA.warband_unit_get_warband(DATA.get_warband_unit_from_unit(pop))
+		if warband_membership == INVALID_ID then
+			result = result + pop_utils.get_supply_use(pop, 0)
 		end
 	end
 
-	return total * 0.10 --- made up value: raw value leads to VERY expensive trading
+	return result * 0.05 --- made up value. raw value leads to VERY expensive trading
 end
 
-function warband:supplies_target()
-	return self:daily_supply_consumption() * self.supplies_target_days
+---@param warband warband_id
+function warband_utils.supplies_target(warband)
+	return warband_utils.daily_supply_consumption(warband) * DATA.warband_get_supplies_target_days(warband)
 end
 
----consumes `days` worth amount of supplies
----@param days number
----@return number
-function warband:consume_supplies(days)
-	local daily_consumption = self:daily_supply_consumption()
-	local consumption = days * daily_consumption
-	local consumed = economic_effects.consume_use_case_from_inventory(self.leader.inventory, 'calories', consumption)
-
-	-- give some wiggle room for floats
-	if consumed > consumption + 0.01
-		or consumed < consumption - 0.01 then
-		error("CONSUMED WRONG AMOUNT: "
-			.. "\n consumed = "
-			.. tostring(consumed)
-			.. "\n consumption = "
-			.. tostring(consumption)
-			.. "\n daily_consumption = "
-			.. tostring(daily_consumption)
-			.. "\n days = "
-			.. tostring(days))
-	end
-	return consumed
-end
-
----Returns total food supply from warband
----@return number
-function warband:get_supply_available()
-	return (self.leader and economic_effects.available_use_case_from_inventory(self.leader.inventory, 'calories')) or 0
-end
-
----Returns amount of days warband can travel depending on collected supplies
----@return number
-function warband:days_of_travel()
-	local supplies = self:get_supply_available()
-	local per_day = self:daily_supply_consumption()
-
-	if per_day == 0 then
-		return 9999
-	end
-
-	return supplies / per_day
-end
 
 ---Returns speed of exploration
+---@param warband warband_id
 ---@return number
-function warband:exploration_speed()
-	return self:size() * (1 - self.current_free_time_ratio)
+function warband_utils.exploration_speed(warband)
+	return warband_utils.size(warband) * (1 - DATA.warband_get_current_free_time_ratio(warband))
+end
+
+---Unregisters a pop as a military pop.  \
+---The "fire" routine for soldiers. Also used in some other contexts?
+---@param pop pop_id
+function warband_utils.unregister_military(pop)
+	local unit_of = DATA.get_warband_unit_from_unit(pop)
+	local warband = DATA.warband_unit_get_warband(unit_of)
+	if warband == INVALID_ID then
+		return
+	end
+
+	warband_utils.fire_unit(warband, pop)
 end
 
 
-return warband
+return warband_utils
