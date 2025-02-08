@@ -17,7 +17,7 @@ end
 -- the concept of "true elevation" seems to have various definitions throughout the original code
 -- for example, for water tiles, it might look at waterbody's waterlevel and ice, while the version used in glacial formation simply returns 0
 function oi.true_elevation(world, ti)
-	return world.is_land[ti] and world.elevation[ti] or 0
+	return world.true_elevation[ti]
 end
 
 -- strange one, it has a bunch of code that does nothing, so the initial intention is unclear
@@ -36,24 +36,29 @@ end
 -- in the neighbors, the material will still be pushed to the melt zones, by the same amount as the ice moved, for each neighbor that qualifies
 -- This one does not seem to have a significant impact on silt storage
 function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_material, material_richness, already_added, use_original)
+	local num_neighs = world:neighbors_count(ti)
+
 	if use_original then
 		local total_ice_movement = 1
 
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, num_neighs - 1 do
+			local nti = world.neighbors[ti * 6 + i]
 			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
-			if not is_closer_to_edge then return end
-			total_ice_movement = total_ice_movement + ice_moved[nti]
-		end)
+			if is_closer_to_edge then
+				total_ice_movement = total_ice_movement + ice_moved[nti]
+			end
+		end
 
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, num_neighs - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+
 			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
-			if not is_closer_to_edge then return end
-
-			texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
-			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
-
-			already_added[nti] = true
-		end)
+			if is_closer_to_edge then
+				texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
+				material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
+				already_added[nti] = true
+			end
+		end
 
 		if total_ice_movement > 0 then
 			texture_material[ti] = 0
@@ -62,23 +67,26 @@ function oi.move_material(world, ti, distance_from_edge, ice_moved, texture_mate
 	else
 		local total_ice_movement = 0
 
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, num_neighs - 1 do
+			local nti = world.neighbors[ti * 6 + i]
 			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
-			if not is_closer_to_edge then return end
-			total_ice_movement = total_ice_movement + ice_moved[nti]
-		end)
+			if is_closer_to_edge then
+				total_ice_movement = total_ice_movement + ice_moved[nti]
+			end
+		end
 
 		if total_ice_movement == 0 then return end
 
-		world:for_each_neighbor(ti, function(nti)
+		for i = 0, num_neighs - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+
 			local is_closer_to_edge = distance_from_edge[nti] < distance_from_edge[ti]
-			if not is_closer_to_edge then return end
-
-			texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
-			material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
-
-			already_added[nti] = true
-		end)
+			if is_closer_to_edge then
+				texture_material[nti] = texture_material[nti] + texture_material[ti] * (ice_moved[ti] / total_ice_movement)
+				material_richness[nti] = material_richness[nti] + material_richness[ti] * (ice_moved[ti] / total_ice_movement)
+				already_added[nti] = true
+			end
+		end
 
 		texture_material[ti] = 0
 		material_richness[ti] = 0

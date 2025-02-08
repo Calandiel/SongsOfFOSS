@@ -23,31 +23,25 @@ local function map_tiles_to_hex()
 		local lat, lon = tile:latlon()
 		local q, r, face = hex.latlon_to_hex_coords(lat, lon, wg.world.size)
 
-		wg.world:cache_tile_coord(tile.tile_id, q, r, face)
+		wg.world:cache_square_ti_by_hex_coords(q, r, face)
 	end
 end
 
 local function load_mapping_from_file(file)
 	for row in require("game.file-utils").csv_rows(file) do
-		local tile_id = tonumber(row[1])
-		local q = tonumber(row[2])
-		local r = tonumber(row[3])
-		local face = tonumber(row[4])
-
-		wg.world:cache_tile_coord(tile_id, q, r, face)
+		wg.world:cache_square_ti_by_hex_ti(tonumber(row[2]))
 	end
 end
 
-local function cache_tile_coord()
+local function cache_cube_world_tiles()
 	print("Caching tile coordinates...")
 
 	if debug.map_tiles_from_file then
 		-- it's faster to load the pre-calculated coordinates from a file than to calculate them on the fly
-		load_mapping_from_file("d:\\temp\\hex_mapping.csv")
+		load_mapping_from_file("d:\\temp\\hex_mapping2.csv")
 	else
 		map_tiles_to_hex()
 	end
-	-- wg.world:map_hex_coords()
 
 	print("Done caching tile coordinates")
 end
@@ -99,6 +93,7 @@ function wg.generate_coro()
 	if debug.fixed_seed then
 		seed = debug.fixed_seed
 	end
+	print("Seed: " .. seed)
 
 	local worldgen_coro = coroutine.create(world_generator.get_gen_coro)
 	while coroutine.status(worldgen_coro) ~= "dead" do
@@ -119,7 +114,7 @@ function wg.generate_coro()
 			coroutine.yield()
 
 			wg.message = "Caching tile coordinates"
-			prof.run_with_profiling(function() cache_tile_coord() end, "[scenes.world-gen]", "cache_tile_coord")
+			prof.run_with_profiling(function() cache_cube_world_tiles() end, "[scenes.world-gen]", "cache_cube_world_tiles")
 			coroutine.yield()
 		end
 

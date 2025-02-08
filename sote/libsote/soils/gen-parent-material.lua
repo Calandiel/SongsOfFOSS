@@ -40,9 +40,12 @@ end
 
 local function calculate_slope_weathering(ti, world)
 	local max_elevation_drop = 0
-	world:for_each_neighbor(ti, function(nti)
+
+	for i = 0, world:neighbors_count(ti) - 1 do
+		local nti = world.neighbors[ti * 6 + i]
 		max_elevation_drop = math.max(max_elevation_drop, world.elevation[ti] - world.elevation[nti])
-	end)
+	end
+
 	return math.max(math.pow((max_elevation_drop / 100), 0.5), 0.75)
 end
 

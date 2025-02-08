@@ -1,11 +1,9 @@
 local ph = {}
 
 local function profile(func)
-	local start = love.timer.getTime()
+	local start = os.clock()
 	func()
-	local duration = love.timer.getTime() - start
-
-	return duration
+	return os.clock() - start
 end
 
 local function profiling_log(depth, prefix, log_text, duration)

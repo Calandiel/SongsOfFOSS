@@ -1,12 +1,5 @@
 local world = {}
 
--- local transform = {
---     -0.86615, 0,       -0.49979, 0,
---     -0.17829, 0.93420,  0.30899, 0,
---      0.46690, 0.35674, -0.80916, 0,
---      0,       0,        0,       1
--- }
-
 local ffi = require("ffi")
 local ffi_mem_tally = 0
 
@@ -53,10 +46,11 @@ function world:new(world_size, seed)
 	obj.tile_count = obj.size * obj.size * 30 + 2
 	print("[world allocation] tile count: " .. obj.tile_count)
 	obj.coord = {}
-	obj.coord_by_tile_id = {} -- tile_id -> { q, r, face }, this is using cube world tile IDs
+	obj.square_to_hex = {} -- square tile id -> hex tile id, so map cube world tiles to hex world tiles
 	obj.coord_by_ti = {}      -- tile index -> { q, r, face }, this is using hex world 0-based tile indices
 	obj.climate_cells = {}
 	obj.waterbodies = {}
+	obj.killed_waterbodies = {}
 
 	obj.neighbors               = allocate_array("neighbors",               obj.tile_count * 6, "int32_t")
 	obj.waterbody_id_by_tile    = allocate_array("waterbody_id_by_tile",    obj.tile_count,     "uint32_t")
@@ -67,6 +61,7 @@ function world:new(world_size, seed)
 	obj.colatitude        = allocate_array("colatitude",        obj.tile_count, "float")
 	obj.minus_longitude   = allocate_array("minus_longitude",   obj.tile_count, "float")
 	obj.elevation         = allocate_array("elevation",         obj.tile_count, "float")
+	obj.true_elevation    = allocate_array("true_elevation",    obj.tile_count, "float")
 	obj.hilliness         = allocate_array("hilliness",         obj.tile_count, "float")
 	obj.rock_type         = allocate_array("rock_type",         obj.tile_count, "uint8_t")
 	obj.volcanic_activity = allocate_array("volcanic_activity", obj.tile_count, "int16_t")
@@ -95,18 +90,20 @@ function world:new(world_size, seed)
 	obj.soil_moisture      = allocate_array("soil_moisture",      obj.tile_count, "float")
 	obj.mineral_richness   = allocate_array("mineral_richness",   obj.tile_count, "uint16_t")
 
-	obj.tmp_float_1       = allocate_array("tmp_float_1", obj.tile_count, "float")
-	obj.tmp_float_2       = allocate_array("tmp_float_2", obj.tile_count, "float")
-	obj.tmp_float_3       = allocate_array("tmp_float_3", obj.tile_count, "float")
-	obj.tmp_float_4       = allocate_array("tmp_float_4", obj.tile_count, "float")
-	obj.tmp_float_5       = allocate_array("tmp_float_5", obj.tile_count, "float")
-	-- obj.tmp_float_6       = allocate_array("tmp_float_6", obj.tile_count, "float")
-	obj.tmp_bool_1        = allocate_array("tmp_bool_1",  obj.tile_count, "bool")
-	obj.tmp_bool_2        = allocate_array("tmp_bool_2",  obj.tile_count, "bool")
-	obj.tmp_int_1         = allocate_array("tmp_int_1",   obj.tile_count, "int")
-	obj.tmp_int_2         = allocate_array("tmp_int_2",   obj.tile_count, "int")
-	obj.tmp_int_3         = allocate_array("tmp_int_3",   obj.tile_count, "int")
-	obj.tmp_int_4         = allocate_array("tmp_int_4",   obj.tile_count, "int")
+	obj.tmp_float_1       = allocate_array("tmp_float_1",   obj.tile_count, "float")
+	obj.tmp_float_2       = allocate_array("tmp_float_2",   obj.tile_count, "float")
+	obj.tmp_float_3       = allocate_array("tmp_float_3",   obj.tile_count, "float")
+	obj.tmp_float_4       = allocate_array("tmp_float_4",   obj.tile_count, "float")
+	obj.tmp_float_5       = allocate_array("tmp_float_5",   obj.tile_count, "float")
+	-- obj.tmp_float_6       = allocate_array("tmp_float_6",   obj.tile_count, "float")
+	obj.carry_float_1     = allocate_array("carry_float_1", obj.tile_count, "float")
+	obj.tmp_bool_1        = allocate_array("tmp_bool_1",    obj.tile_count, "bool")
+	obj.tmp_bool_2        = allocate_array("tmp_bool_2",    obj.tile_count, "bool")
+	obj.tmp_bool_3        = allocate_array("tmp_bool_3",    obj.tile_count, "bool")
+	obj.tmp_int_1         = allocate_array("tmp_int_1",     obj.tile_count, "int")
+	obj.tmp_int_2         = allocate_array("tmp_int_2",     obj.tile_count, "int")
+	obj.tmp_int_3         = allocate_array("tmp_int_3",     obj.tile_count, "int")
+	obj.tmp_int_4         = allocate_array("tmp_int_4",     obj.tile_count, "int")
 
 	print("[world allocation] ffi mem TOTAL: " .. string.format("%.2f", ffi_mem_tally) .. " MB")
 
@@ -209,35 +206,35 @@ function world:neighbors_count(index)
 	return self.neighbors[index * 6 + 5] == -1 and 5 or 6
 end
 
----@param index number 0-based index
----@param callback fun(neighbor_tile_index:number)
-function world:for_each_neighbor(index, callback)
-	local neighbor_count = self:neighbors_count(index)
-	index = index * 6
+-- ---@param index number 0-based index
+-- ---@param callback fun(neighbor_tile_index:number)
+-- function world:for_each_neighbor(index, callback)
+-- 	local neighbor_count = self:neighbors_count(index)
+-- 	index = index * 6
 
-	for i = 0, neighbor_count - 1 do
-		callback(self.neighbors[index + i])
-	end
-end
+-- 	for i = 0, neighbor_count - 1 do
+-- 		callback(self.neighbors[index + i])
+-- 	end
+-- end
 
----@param index number 0-based index
----@param start number 0-based start index
----@param callback fun(neighbor_tile_index:number)
-function world:for_each_neighbor_starting_at(index, start, callback)
-	local neighbor_count = self:neighbors_count(index)
-	index = index * 6
-	for i = 0, neighbor_count - 1 do
-		local j = (start + i) % neighbor_count
-		callback(self.neighbors[index + j])
-	end
-end
+-- ---@param index number 0-based index
+-- ---@param start number 0-based start index
+-- ---@param callback fun(neighbor_tile_index:number)
+-- function world:for_each_neighbor_starting_at(index, start, callback)
+-- 	local neighbor_count = self:neighbors_count(index)
+-- 	index = index * 6
+-- 	for i = 0, neighbor_count - 1 do
+-- 		local j = (start + i) % neighbor_count
+-- 		callback(self.neighbors[index + j])
+-- 	end
+-- end
 
----@param index number 0-based index
----@param callback fun(neighbor_tile_index:number)
-function world:for_each_neighbor_random_start(index, callback)
-	local start = self.rng:random_int_max(self:neighbors_count(index))
-	self:for_each_neighbor_starting_at(index, start, callback)
-end
+-- ---@param index number 0-based index
+-- ---@param callback fun(neighbor_tile_index:number)
+-- function world:for_each_neighbor_random_start(index, callback)
+-- 	local start = self.rng:random_int_max(self:neighbors_count(index))
+-- 	self:for_each_neighbor_starting_at(index, start, callback)
+-- end
 
 -- function world:_set_latlon(index, colatitude, minus_longitude)
 -- 	self.colatitude[index] = colatitude
@@ -272,13 +269,16 @@ function world:get_hex_coords(ti)
 	return coord[1], coord[2], coord[3]
 end
 
-function world:cache_tile_coord(tile_id, q, r, face)
-	self.coord_by_tile_id[tile_id] = { q, r, face }
+function world:cache_square_ti_by_hex_ti(hex_ti)
+	table.insert(self.square_to_hex, hex_ti)
 end
 
-function world:get_tile_coord(tile_id)
-	local coord = self.coord_by_tile_id[tile_id]
-	return coord[1], coord[2], coord[3]
+function world:cache_square_ti_by_hex_coords(q, r, face)
+	table.insert(self.square_to_hex, self.coord[self:_key_from_coord(q, r, face)])
+end
+
+function world:get_tile_coord(square_ti)
+	return self.square_to_hex[square_ti]
 end
 
 function world:get_raw_colatitude(q, r, face)
@@ -299,12 +299,12 @@ end
 
 ---@param ti number 0-based tile index
 function world:is_in_northern_hemisphere(ti)
-	return -llu.colat_to_lat(self.colatitude[ti]) >= 0
+	return llu.colat_to_lat(self.colatitude[ti]) >= 0
 end
 
 ---@param ti number 0-based tile index
 function world:is_in_southern_hemisphere(ti)
-	return -llu.colat_to_lat(self.colatitude[ti]) < 0
+	return llu.colat_to_lat(self.colatitude[ti]) < 0
 end
 
 function world:get_elevation(q, r, face)
@@ -439,28 +439,42 @@ end
 
 -- We want to determine whether we are measuring waterlevel or elevation. Then we add ice on top of that if there is ice.
 ---@param ti number 0-based tile index
-function world:true_elevation(ti)
+function world:get_true_elevation(ti)
 	if self.is_land[ti] then -- If land, consider elevation and ice
 		return self:true_elevation_for_waterflow(ti)
-	elseif self:is_tile_waterbody_valid(ti) then -- If lake or ocean, consider water level of the lake + ice
-		return self.waterbodies[self.waterbody_id_by_tile[ti]].water_level + self.ice[ti] + 0.0001
 	else
-		return 0
+		local wb_id = self.waterbody_id_by_tile[ti]
+		return wb_id == 0 and 0 or self.waterbodies[wb_id].water_level + self.ice[ti] + 0.0001 -- If lake or ocean, consider water level of the lake + ice
+	end
+end
+
+function world:update_true_elevation()
+	for ti = 0, self.tile_count - 1 do
+		self.true_elevation[ti] = self:get_true_elevation(ti)
+	end
+end
+
+function world:update_true_elevation_for_waterflow()
+	for ti = 0, self.tile_count - 1 do
+		self.true_elevation[ti] = self:true_elevation_for_waterflow(ti)
+	end
+end
+
+function world:update_true_elevation_for_glaciation()
+	for ti = 0, self.tile_count - 1 do
+		self.true_elevation[ti] = self.is_land[ti] and self.elevation[ti] or 0
 	end
 end
 
 function world:create_elevation_list()
-	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(
-		function(i) return self:true_elevation(i) end,
-		function(i) return self.colatitude[i] end,
-		self.tile_count,
-		true, false)
+	self:update_true_elevation()
+	self.tiles_by_elevation = require("libsote.heap-sort").heap_sort_indices(self.true_elevation, self.tile_count, true)
 end
 
----@param callback fun(tile_index:number, world:table)
+---@param callback fun(tile_index:number)
 function world:for_each_tile_by_elevation(callback)
 	for ti = 0, self.tile_count - 1 do
-		callback(self.tiles_by_elevation[ti], self)
+		callback(self.tiles_by_elevation[ti])
 	end
 end
 
@@ -468,24 +482,60 @@ end
 
 local waterbody = require "libsote.hydrology.waterbody"
 
----@param wb table waterbody
 ---@param ti number 0-based tile index
-function world:add_tile_to_waterbody(wb, ti)
+---@param wb table waterbody
+function world:add_tile_to_waterbody(ti, wb)
 	wb:add_tile(ti)
 	self.waterbody_id_by_tile[ti] = wb.id
 end
 
 ---@param ti number 0-based tile index
+---@param wb table waterbody
+function world:reassign_tile_to_waterbody(ti, wb)
+	self.waterbody_id_by_tile[ti] = wb.id
+end
+
+---@param wb_type waterbody_type
 ---@return table waterbody
-function world:create_new_waterbody_from_tile(ti)
-	-- no reuse of killed waterbodies for now
+function world:create_waterbody(wb_type)
+	if #self.killed_waterbodies > 0 then
+		local id = table.remove(self.killed_waterbodies, 1)
+		local wb = self.waterbodies[id]
+		wb.id = id
+		wb.type = wb_type
+		return wb
+	end
+
 	local id = #self.waterbodies + 1
 	local new_wb = waterbody:new(id)
-	self:add_tile_to_waterbody(new_wb, ti)
-	self.waterbodies[id] = new_wb
+	new_wb.type = wb_type
+	table.insert(self.waterbodies, new_wb)
 	return new_wb
 end
 
+---@param ti number 0-based tile index
+---@param wb_type waterbody_type
+---@return table waterbody
+function world:create_waterbody_from_tile(ti, wb_type)
+	local wb = self:create_waterbody(wb_type)
+	self:add_tile_to_waterbody(ti, wb)
+	return wb
+end
+
+---@param wb table waterbody
+function world:kill_waterbody(wb)
+	for _, ti in ipairs(wb.tiles) do
+		self.waterbody_id_by_tile[ti] = 0
+	end
+
+	table.insert(self.killed_waterbodies, wb.id)
+	table.sort(self.killed_waterbodies)
+	wb:kill()
+end
+
+---@param q number
+---@param r number
+---@param face number
 function world:get_waterbody(q, r, face)
 	return self.waterbodies[self.waterbody_id_by_tile[self.coord[self:_key_from_coord(q, r, face)]]]
 end
@@ -513,7 +563,7 @@ end
 ---@param callback fun(waterbody:table)
 function world:for_each_waterbody(callback)
 	for _, wb in ipairs(self.waterbodies) do
-		if wb and wb:is_valid() then callback(wb) end
+		if wb:is_valid() then callback(wb) end
 	end
 end
 
@@ -521,14 +571,15 @@ end
 ---@param from_wb table waterbody to merge from
 function world:merge_waterbodies(to_wb, from_wb)
 	for _, ti in ipairs(from_wb.tiles) do
-		self:add_tile_to_waterbody(to_wb, ti)
+		self:add_tile_to_waterbody(ti, to_wb)
 	end
 	for ti, _ in pairs(from_wb.perimeter) do
 		to_wb:add_to_perimeter(ti)
 	end
 
+	table.insert(self.killed_waterbodies, from_wb.id)
+	table.sort(self.killed_waterbodies)
 	from_wb:kill()
-	-- no reuse of killed waterbodies for now, they are just left in the array
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -683,20 +734,20 @@ end
 -- 	end
 -- end
 
-function world:sort_by_elevation_for_waterflow()
-	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(
-		function(i) return self:true_elevation_for_waterflow(i) end,
-		function(i) return self.colatitude[i] end,
-		self.tile_count,
-		true, false)
-end
+-- function world:sort_by_elevation_for_waterflow()
+-- 	self.tiles_by_elevation_for_waterflow = require("libsote.heap-sort").heap_sort_indices(
+-- 		function(i) return self:true_elevation_for_waterflow(i) end,
+-- 		nil, -- function(i) return self.colatitude[i] end,
+-- 		self.tile_count,
+-- 		true, false)
+-- end
 
----@param callback fun(tile_index:number, world:table)
-function world:for_each_tile_by_elevation_for_waterflow(callback)
-	for ti = 0, self.tile_count - 1 do
-		callback(self.tiles_by_elevation_for_waterflow[ti], self)
-	end
-end
+-- ---@param callback fun(tile_index:number, world:table)
+-- function world:for_each_tile_by_elevation_for_waterflow(callback)
+-- 	for ti = 0, self.tile_count - 1 do
+-- 		callback(self.tiles_by_elevation_for_waterflow[ti], self)
+-- 	end
+-- end
 
 ---------------------------------------------------------------------------------------------------
 

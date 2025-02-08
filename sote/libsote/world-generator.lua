@@ -40,11 +40,10 @@ end
 local fu = require "game.file-utils"
 
 local function override_climate_data()
-	local climate_generator = fu.csv_rows("d:\\temp\\sote\\12177\\sote_climate_data_by_elev.csv")
-	-- local logger = require("libsote.debug-loggers").get_climate_logger("d:/temp")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_climate_data.csv")
 
-	wg.world:for_each_tile_by_elevation_for_waterflow(function(ti, _)
-		local row = climate_generator()
+	wg.world:for_each_tile(function(ti, _)
+		local row = generator()
 		if row == nil then
 			error("Not enough rows in climate data")
 		end
@@ -57,9 +56,54 @@ local function override_climate_data()
 		wg.world.jul_humidity[ti] = tonumber(row[8])
 		wg.world.jan_wind_speed[ti] = tonumber(row[9])
 		wg.world.jul_wind_speed[ti] = tonumber(row[10])
+	end)
+end
 
-		-- local log_str = row[1] .. "," .. row[2] .. " --- " .. wg.world.colatitude[ti] .. "," .. wg.world.minus_longitude[ti] .. " --- " .. wg.world:true_elevation_for_waterflow(ti) .. " <-> " .. tonumber(row[11])
-		-- logger:log(log_str)
+local function override_water_movement_data()
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_climate_data.csv")
+
+	wg.world:for_each_tile(function(ti, _)
+		local row = generator()
+		if row == nil then
+			error("Not enough rows in climate data")
+		end
+
+		wg.world.water_movement[ti] = tonumber(row[12])
+	end)
+end
+
+local function override_glacial_data()
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_glacial_data.csv")
+
+	wg.world:for_each_tile(function(ti, _)
+		local row = generator()
+		if row == nil then
+			error("Not enough rows in climate data")
+		end
+
+		wg.world.ice[ti] = tonumber(row[2])
+		wg.world.ice_age_ice[ti] = tonumber(row[3])
+	end)
+end
+
+local function override_soils_data()
+	-- local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_after_ThinningSilts.csv")
+	-- local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_after_GenBedrockBuffer.csv")
+	-- local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_after_LoadWaterbodies.csv")
+	local generator = fu.csv_rows("d:\\temp\\sote\\" .. wg.world.seed .. "\\sote_soils_data_after_GenAlluvialSoils.csv")
+
+	wg.world:for_each_tile(function(ti, _)
+		local row = generator()
+		if row == nil then
+			error("Not enough rows in soils data")
+		end
+
+		wg.world.sand[ti] = tonumber(row[1])
+		wg.world.silt[ti] = tonumber(row[2])
+		wg.world.clay[ti] = tonumber(row[3])
+		wg.world.mineral_richness[ti] = tonumber(row[4])
+		wg.world.soil_organics[ti] = tonumber(row[5])
+		wg.world.is_land[ti] = tonumber(row[6]) == 1
 	end)
 end
 
@@ -97,15 +141,21 @@ local function initial_waterflow()
 
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(333, 334, 333) end, "intial_soils_texture", 1) })
 	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
-
-	if debug.use_sote_climate_data then
-		table.insert(prof_output, { profile_and_get(override_climate_data, "override_climate_data", 1) })
-	end
-
 	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.world_gen) end, "calculate-waterflow", 1) })
 	table.insert(prof_output, { profile_and_get(function() set_soils_texture(0, 0, 0) end, "clear_soils", 1) })
 
 	log_profiling_data(prof_output, "initial_waterflow")
+end
+
+local function recalc_waterflow()
+	local prof_output = {}
+
+	table.insert(prof_output, { profile_and_get(function() wg.world:create_elevation_list() end, "create_elevation_list", 1) })
+	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.current) end, "calculate-waterflow current", 1) })
+	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.january) end, "calculate-waterflow jan", 1) })
+	table.insert(prof_output, { profile_and_get(function() waterflow.run(wg.world, waterflow.TYPES.july) end, "calculate-waterflow jul", 1) })
+
+	log_profiling_data(prof_output, "recalc_waterflow")
 end
 
 local function glaciers()
@@ -119,14 +169,59 @@ local function glaciers()
 end
 
 local function gen_phase_02()
-	run_with_profiling(function() wg.world:sort_by_elevation_for_waterflow() end, "sort_by_elevation_for_waterflow")
-
 	run_with_profiling(function() require "libsote.gen-rocks".run(wg.world) end, "gen-rocks")
 	run_with_profiling(function() require "libsote.gen-climate".run(wg.world) end, "gen-climate")
+	if debug.use_sote_climate_data then
+		run_with_profiling(function() override_climate_data() end, "override_climate_data")
+	end
 	initial_waterbodies()
 	initial_waterflow()
 	glaciers()
-	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes")
+	if debug.use_sote_ice_data then
+		run_with_profiling(function() override_glacial_data() end, "override_glacial_data")
+	end
+	if debug.use_sote_water_movement then
+		run_with_profiling(function() override_water_movement_data() end, "override_waterflow_data")
+	end
+	run_with_profiling(function() require "libsote.hydrology.gen-dynamic-lakes".run(wg.world) end, "gen-dynamic-lakes") -- #3 true_elev_for_waterflow, can be pre-computed until is_land is changed
+
+	run_with_profiling(function() require "libsote.hydrology.gen-rivers".run(wg.world) end, "gen-rivers")
+	local ocean_count = 0
+	local freshwater_lake_count = 0
+	local saltwater_lake_count = 0
+	local river_count = 0
+	local wetland_count = 0
+	wg.world:for_each_waterbody(function(wb)
+		if wb.type == wb.TYPES.ocean then
+			ocean_count = ocean_count + 1
+		elseif wb.type == wb.TYPES.freshwater_lake then
+			freshwater_lake_count = freshwater_lake_count + 1
+		elseif wb.type == wb.TYPES.saltwater_lake then
+			saltwater_lake_count = saltwater_lake_count + 1
+		elseif wb.type == wb.TYPES.river then
+			river_count = river_count + 1
+		elseif wb.type == wb.TYPES.wetland then
+			wetland_count = wetland_count + 1
+		end
+	end)
+	print("\tOcean count: " .. ocean_count)
+	print("\tFreshwater lake count: " .. freshwater_lake_count)
+	print("\tSaltwater lake count: " .. saltwater_lake_count)
+	print("\tRiver count: " .. river_count)
+	print("\tWetland count: " .. wetland_count)
+
+	run_with_profiling(function() require "libsote.soils.gen-volcanic-silt".run(wg.world) end, "gen-volcanic-silt")
+	run_with_profiling(function() require "libsote.soils.gen-sand-dunes".run(wg.world) end, "gen-sand-dunes")
+	run_with_profiling(function() require "libsote.soils.thinning-silts".run(wg.world) end, "thinning_silts")
+	run_with_profiling(function() require "libsote.soils.gen-bedrock-buffer".run(wg.world) end, "gen-bedrock-buffer")
+	run_with_profiling(function() require "libsote.soils.gen-sediment-load".run(wg.world) end, "gen-sediment-load")
+	run_with_profiling(function() require "libsote.soils.weather_alluvial_texture".run(wg.world) end, "weather_alluvial_texture")
+	run_with_profiling(function() require "libsote.soils.gen-alluvial-soils".run(wg.world) end, "gen-alluvial-soils")
+
+	if debug.use_sote_soils_data then
+		run_with_profiling(function() override_soils_data() end, "override_soils_data")
+	end
+	recalc_waterflow()
 end
 
 local libsote_cpp = require "libsote.libsote"

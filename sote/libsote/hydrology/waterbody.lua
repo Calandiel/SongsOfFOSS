@@ -17,11 +17,20 @@ function waterbody:new(id)
 	obj.id = id or 0
 	obj.tiles = {}
 	obj.type = waterbody.TYPES.invalid
+	obj.basin = nil
 	obj.water_level = 0
+	obj.river_slope = 0
 	obj.perimeter = {}
 	obj.lowest_shore_tile = nil
 	obj.lake_open = false
+	obj.source = {}
+	obj.drain = nil
 	obj.tmp_float_1 = 0
+	obj.sand_load = 0
+	obj.silt_load = 0
+	obj.clay_load = 0
+	obj.mineral_load = 0
+	obj.organic_load = 0
 
 	setmetatable(obj, self)
 	self.__index = self
@@ -32,12 +41,16 @@ end
 function waterbody:kill()
 	self.id = 0
 	self.tiles = {}
-	self.type = waterbody.TYPES.invalid
-	self.water_level = 0
+	-- self.type = waterbody.TYPES.invalid
+	self.basin = nil
+	-- self.water_level = 0
+	-- self.river_slope = 0
 	self.perimeter = {}
-	self.lowest_shore_tile = nil
-	self.lake_open = false
-	self.tmp_float_1 = 0
+	-- self.lowest_shore_tile = nil
+	-- self.lake_open = false
+	self.source = {}
+	self.drain = nil
+	-- self.tmp_float_1 = 0
 end
 
 ---@return number
@@ -50,12 +63,24 @@ function waterbody:add_tile(ti)
 	table.insert(self.tiles, ti)
 end
 
----@param callback fun(tile_index:number)
-function waterbody:for_each_tile(callback)
-	for _, ti in ipairs(self.tiles) do
-		callback(ti)
-	end
+---@param wb table
+function waterbody:add_source(wb)
+	table.insert(self.source, wb)
 end
+
+-- ---@param callback fun(tile_index:number)
+-- function waterbody:for_each_tile(callback)
+-- 	for _, ti in ipairs(self.tiles) do
+-- 		callback(ti)
+-- 	end
+-- end
+
+-- ---@param callback fun(tile_index:number)
+-- function waterbody:for_each_tile_in_perimeter(callback)
+-- 	for ti, _ in pairs(self.perimeter) do
+-- 		callback(ti)
+-- 	end
+-- end
 
 ---@param ti number
 function waterbody:add_to_perimeter(ti)
@@ -71,13 +96,14 @@ end
 function waterbody:build_perimeter(world)
 	self.perimeter = {}
 
-	self:for_each_tile(function(ti)
-		world:for_each_neighbor(ti, function(nti)
-			if not world.is_land[nti] then return end
-
-			self:add_to_perimeter(nti)
-		end)
-	end)
+	for _, ti in ipairs(self.tiles) do
+		for i = 0, world:neighbors_count(ti) - 1 do
+			local nti = world.neighbors[ti * 6 + i]
+			if world.is_land[nti] then
+				self:add_to_perimeter(nti)
+			end
+		end
+	end
 end
 
 ---@param world table
@@ -98,6 +124,15 @@ end
 ---@return boolean
 function waterbody:is_valid()
 	return self.id > 0
+end
+
+---@return boolean
+function waterbody:is_lake_or_ocean()
+	return self.type == waterbody.TYPES.freshwater_lake or self.type == waterbody.TYPES.saltwater_lake or self.type == waterbody.TYPES.ocean
+end
+
+function waterbody:is_salty()
+	return self.type == waterbody.TYPES.saltwater_lake or self.type == waterbody.TYPES.ocean
 end
 
 return waterbody

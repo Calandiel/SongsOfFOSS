@@ -22,4 +22,8 @@ function sun.yearly_irradiance(latitude_in_degrees)
 	end
 end
 
+function sun.yearly_irradiance_from_colat(colat)
+	return math.max(0.0, (-1.0) * colat * (colat - 3.1415) + 1.7)
+end
+
 return sun

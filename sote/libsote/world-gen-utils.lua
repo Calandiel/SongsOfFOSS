@@ -47,4 +47,89 @@ function wgu.permiation_calc(tile_sand, tile_silt, tile_clay)
 	return tile_perm / 2.5
 end
 
+---@param tile_sand number
+---@param tile_silt number
+---@param tile_clay number
+---@return number
+function wgu.permiation_calc_dune(tile_sand, tile_silt, tile_clay)
+	local tile_perm = 1
+
+	local total_material = tile_sand + tile_silt + tile_clay
+	local sand_percent = 100 * tile_sand / total_material
+	local silt_percent = 100 * tile_silt / total_material
+	local clay_percent = 100 * tile_clay / total_material
+
+	if silt_percent > 50 then tile_perm = tile_perm * 0.9 end
+	if silt_percent > 70 then tile_perm = tile_perm * 0.9 end
+	if silt_percent > 80 then tile_perm = tile_perm * 0.9 end
+	if silt_percent > 90 then tile_perm = tile_perm * 0.9 end
+
+	if sand_percent > 50 then tile_perm = tile_perm * 0.7 end
+	if sand_percent > 65 then tile_perm = tile_perm * 0.7 end
+	if sand_percent > 80 then tile_perm = tile_perm * 0.7 end
+	if sand_percent > 90 then tile_perm = tile_perm * 0.7 end
+
+	if clay_percent > 50 then tile_perm = tile_perm * 0.8 end
+	if clay_percent > 65 then tile_perm = tile_perm * 0.8 end
+	if clay_percent > 80 then tile_perm = tile_perm * 0.8 end
+	if clay_percent > 90 then tile_perm = tile_perm * 0.8 end
+
+	if silt_percent < 30 then tile_perm = tile_perm * 0.9 end
+	if silt_percent < 20 then tile_perm = tile_perm * 0.9 end
+	if silt_percent < 10 then tile_perm = tile_perm * 0.9 end
+
+	return tile_perm
+end
+
+---@param world table
+---@param ti number
+---@return number
+function wgu.true_water_for_tile(world, ti)
+	local water_movement_contribution = math.max(0, math.sqrt(world.water_movement[ti]) - 10)
+	local true_water_calc = world.jan_rainfall[ti] + world.jul_rainfall[ti] + water_movement_contribution
+	local wind_factor = world.jan_wind_speed[ti] --*+ world.jul_wind_speed[ti]
+	wind_factor = math.min(25, wind_factor)
+	wind_factor = (1 - wind_factor / 25) * 0.65 + 0.35
+	local permeability = wgu.permiation_calc(world.sand[ti], world.silt[ti], world.clay[ti])
+	return true_water_calc * wind_factor * permeability
+end
+
+---@param world table
+---@param ti number
+---@return number
+function wgu.temperature_factor_for_tile(world, ti)
+	if world.ice[ti] > 0 then return 0 end
+
+	local temp_factor = (world.jan_temperature[ti] + world.jul_temperature[ti]) / 2
+	if temp_factor > 15 then
+		temp_factor = 1
+	else
+		temp_factor = math.max(0, temp_factor / 15)
+	end
+
+	return temp_factor + 0.1
+end
+
+---@param world table
+---@param ti number
+---@return number, number
+function wgu.elev_diff_and_steepest_face(world, ti)
+	local true_elev = world:true_elevation_for_waterflow(ti)
+
+	local total_elev_diff = 0
+	local steepest_face = 0
+	for i = 0, world:neighbors_count(ti) - 1 do
+		local nti = world.neighbors[ti * 6 + i]
+
+		local elev_diff = true_elev - world:true_elevation_for_waterflow(nti)
+
+		if elev_diff > 0 then
+			total_elev_diff = total_elev_diff + elev_diff
+			steepest_face = math.max(steepest_face, elev_diff)
+		end
+	end
+
+	return total_elev_diff, steepest_face
+end
+
 return wgu

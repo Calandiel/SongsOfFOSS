@@ -1,8 +1,26 @@
 local dcp = {}
 
-dcp.align_to_sote_coords = false -- this will align hex world storage to match the order from original sote, very useful when debugging/validating port
-dcp.map_tiles_from_file = false -- this will load cube world tile IDs mapping to hex coordinates from a file, as it's faster than computing them from lat lon
-dcp.use_sote_climate_data = false -- climate model was ported from sote, but with some changes; this will enable import of original sote climate data from a csv file, to aid in debugging/validating port
+-- these will load cube world tile IDs mapping to hex from a file, as it's faster than computing them from lat lon
+dcp.map_tiles_from_file = false
+dcp.use_sote_climate_data = false
+dcp.use_sote_ice_data = false
+dcp.use_sote_soils_data = false
+dcp.use_sote_water_movement = false
+
+-- this will align hex world storage to match the order from original SotE, very useful when debugging/validating port
+dcp.align_to_sote_coords =
+	dcp.use_sote_climate_data
+	or dcp.use_sote_ice_data
+	or dcp.use_sote_soils_data
+	or dcp.use_sote_water_movement
+
+ -- these will align RNG seed to match original SotE seed
+dcp.glaciation = {
+	align_rng = false
+}
+dcp.soils = {
+	align_rng = false
+}
 
 dcp.save_maps = false -- this will export maps to PNG
 dcp.maps_selection = {
@@ -11,7 +29,9 @@ dcp.maps_selection = {
 	climate = false,
 	waterflow = false,
 	waterbodies = false,
-	debug = false
+	watersheds = false,
+	debug1 = false,
+	debug2 = false
 }
 
 -- seed = 58738 -- climate integration was done on this one
@@ -20,7 +40,7 @@ dcp.maps_selection = {
 -- seed = 6618 -- tiny islands?
 -- seed = 49597 -- interesting looking one, huge northern ice cap (with lua climate model)
 -- seed = 91170 -- huge lake
-dcp.fixed_seed = nil
 -- dcp.fixed_seed = 12177
+-- dcp.fixed_seed = 53104 -- got sand dunes
 
 return dcp

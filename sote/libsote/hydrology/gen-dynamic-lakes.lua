@@ -2,12 +2,13 @@ local dl = {}
 
 local world
 
+local waterbody = require "libsote.hydrology.waterbody"
 local open_issues = require "libsote.hydrology.open-issues"
 
 -- local logger = require("libsote.debug-loggers").get_lakes_logger("d:/temp")
+
 local prof = require "libsote.profiling-helper"
 local prof_prefix = "[gen-dynamic-lakes]"
-
 local function run_with_profiling(func, log_txt)
 	prof.run_with_profiling(func, prof_prefix, log_txt)
 end
@@ -25,16 +26,17 @@ local function find_start_tiles()
 
 		open_issues.set_water_movement_for_lakes(world, ti)
 
-		if world:true_elevation_for_waterflow(ti) < 0 then return end
+		if world.true_elevation[ti] < 0 then return end
 
 		--* This section locates all of our starting tiles for waterflow
 		local has_higher_neighbor = false
-		world:for_each_neighbor(ti, function(nti)
-			if world:true_elevation_for_waterflow(nti) > world:true_elevation_for_waterflow(ti) then
+		for i = 0, world:neighbors_count(ti) - 1 do
+			if world.true_elevation[world.neighbors[ti * 6 + i]] > world.true_elevation[ti] then
 				has_higher_neighbor = true
-				return
+				goto exit_loop1
 			end
-		end)
+		end
+		::exit_loop1::
 
 		if not has_higher_neighbor then
 			table.insert(water_flow_now, ti)
@@ -65,30 +67,36 @@ local function water_flow_from_tile_to_tile()
 		end
 		world.tmp_float_2[ti] = 0
 
-		local true_elevation_for_waterflow = world:true_elevation_for_waterflow(ti)
+		local true_elevation_for_waterflow = world.true_elevation[ti]
 
 		if water_to_give <= 0.1 or true_elevation_for_waterflow < 0 then goto continue1 end
 
+		local num_neighs = world:neighbors_count(ti)
+
 		local total_elevation_difference = 0
-		world:for_each_neighbor(ti, function(nti) --* Here we sum the elevation difference of all neighbor tiles
-			local elevation_to_check = world:true_elevation_for_waterflow(nti)
+		for ni = 0, num_neighs - 1 do --* Here we sum the elevation difference of all neighbor tiles
+			local nti = world.neighbors[ti * 6 + ni]
+
+			local elevation_to_check = world.true_elevation[nti]
 			local wb = world:get_waterbody_by_tile(nti)
 			if wb then elevation_to_check = wb.water_level end --* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
 
 			if elevation_to_check < true_elevation_for_waterflow then
 				total_elevation_difference = total_elevation_difference + (true_elevation_for_waterflow - elevation_to_check)
 			end
-		end)
+		end
 
 		if total_elevation_difference > 0 then --* Now we actually distribute water if the tile has at least 1 lower neighbor
-			world:for_each_neighbor(ti, function(nti)
-				local elevation_to_check = world:true_elevation_for_waterflow(nti)
+			for ni = 0, num_neighs - 1 do
+				local nti = world.neighbors[ti * 6 + ni]
+
+				local elevation_to_check = world.true_elevation[nti]
 				local nwb = world:get_waterbody_by_tile(nti)
 				if nwb then --* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
 					elevation_to_check = nwb.water_level
 				end
 
-				if elevation_to_check >= true_elevation_for_waterflow then return end
+				if elevation_to_check >= true_elevation_for_waterflow then goto cont_loop1 end
 
 				--* Neighbor needs to be lower in elevation to get water
 				local water_to_neighbor = (true_elevation_for_waterflow - elevation_to_check) / total_elevation_difference * water_to_give
@@ -99,12 +107,14 @@ local function water_flow_from_tile_to_tile()
 					world.tmp_float_3[nti] = world.tmp_float_3[nti] + water_to_neighbor --* Water to add is the water that will run next round
 
 					--* We only add into this list once per "round" if tile is elligible for water movement
-					if world.tmp_bool_1[nti] then return end
+					if world.tmp_bool_1[nti] then goto cont_loop1 end
 
 					table.insert(water_flow_later, nti)
 					world.tmp_bool_1[nti] = true
 				end
-			end)
+
+				::cont_loop1::
+			end
 
 			goto continue1
 		end
@@ -112,20 +122,19 @@ local function water_flow_from_tile_to_tile()
 		if world:get_waterbody_by_tile(ti) then goto continue1 end
 
 		--* If elevation difference is 0, it can be inferred that we have no tiles lower than the target tile, therefore it should construct a lake.
-		local new_wb = world:create_new_waterbody_from_tile(ti)
+		local new_wb = world:create_waterbody_from_tile(ti, waterbody.TYPES.saltwater_lake)
 
 		--* Mark the tile as water
 		world.is_land[ti] = false
 
 		--* Now we build the shoreline
-		world:for_each_neighbor(ti, function(nti)
-			new_wb:add_to_perimeter(nti)
-		end)
+		for ni = 0, num_neighs - 1 do
+			new_wb:add_to_perimeter(world.neighbors[ti * 6 + ni])
+		end
 
 		new_wb:set_lowest_shore_tile(world)
 		new_wb.tmp_float_1 = new_wb.tmp_float_1 + water_to_give
 		new_wb.water_level = true_elevation_for_waterflow
-		new_wb.type = new_wb.TYPES.saltwater_lake
 
 		-- logger:log("\tlake " .. new_wb.id .. " created at " .. ti)
 
@@ -139,17 +148,21 @@ local function add_lowest_shore_tile_to_waterbody(wb, lsti)
 	wb.tmp_float_1 = wb.tmp_float_1 + world.tmp_float_2[lsti] / lake_divisor --* If a tile gets eaten by a lake, we automatically move any water that was in the tile to the lake
 	world.tmp_float_2[lsti] = 0
 
-	world:add_tile_to_waterbody(wb, lsti)
+	world:add_tile_to_waterbody(lsti, wb)
 
-	local true_elevation_for_waterflow = world:true_elevation_for_waterflow(lsti)
-	world:for_each_neighbor(lsti, function(nti)
-		if true_elevation_for_waterflow >= world:true_elevation_for_waterflow(nti) then return end
+	local true_elevation_for_waterflow = world.true_elevation[lsti]
+	for i = 0, world:neighbors_count(lsti) - 1 do
+		local nti = world.neighbors[lsti * 6 + i]
+
+		if true_elevation_for_waterflow >= world.true_elevation[nti] then goto cont_loop2 end
 
 		local nwb = world:get_waterbody_by_tile(nti)
-		if nwb and nwb.id == wb.id then return end
+		if nwb and nwb.id == wb.id then goto cont_loop2 end
 
 		wb:add_to_perimeter(nti)
-	end)
+
+		::cont_loop2::
+	end
 
 	wb:remove_from_perimeter(lsti)
 	wb:set_lowest_shore_tile(world)
@@ -157,9 +170,9 @@ end
 
 local function manage_expansion_and_drainage(wb, water_to_disburse)
 	local lowest_shore_ti = wb.lowest_shore_tile
-	local true_elevation_for_waterflow = world:true_elevation_for_waterflow(lowest_shore_ti)
+	local true_elevation_for_waterflow = world.true_elevation[lowest_shore_ti]
 	local volume_to_fill = (true_elevation_for_waterflow - wb.water_level) * wb:size()
-	-- logger:log("\t\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. lowest_shore_ti .. ", " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile) .. ") has volume to fill: " .. volume_to_fill .. " and water to disburse: " .. water_to_disburse)
+	-- logger:log("\t\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. lowest_shore_ti .. ", " .. world.true_elevation[wb.lowest_shore_tile] .. ") has volume to fill: " .. volume_to_fill .. " and water to disburse: " .. water_to_disburse)
 
 	--* If true, simply add water to watervolume
 	if water_to_disburse < volume_to_fill then
@@ -177,11 +190,13 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 	local body_to_kill = nil
 	local has_lower_neigh = false --* This will inform us as to whether we need to add the tile to the lake or drain into this tile
 
-	world:for_each_neighbor(lowest_shore_ti, function(nti)
-		local nwb = world:get_waterbody_by_tile(nti)
-		if nwb and nwb.id == wb.id then return end --* Excluding tiles which belong to the current water body being checked.
+	for i = 0, world:neighbors_count(lowest_shore_ti) - 1 do
+		local nti = world.neighbors[lowest_shore_ti * 6 + i]
 
-		local elevation_to_check = world:true_elevation_for_waterflow(nti)
+		local nwb = world:get_waterbody_by_tile(nti)
+		if nwb and nwb.id == wb.id then goto cont_loop3 end --* Excluding tiles which belong to the current water body being checked.
+
+		local elevation_to_check = world.true_elevation[nti]
 
 		if nwb and nwb.id > 0 then
 			--* If there is water at the location, check the waterlevel instead of the elevation since waterlevel will be higher
@@ -195,7 +210,9 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 		if true_elevation_for_waterflow > elevation_to_check then
 			has_lower_neigh = true
 		end
-	end)
+
+		::cont_loop3::
+	end
 
 	--* Kill neighbor waterbody and combine it with current waterbody
 	if body_to_kill then
@@ -210,13 +227,12 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* Drain lake into shore tile with low neighbor that is not the same waterbody
 	if has_lower_neigh then
-		-- local log_str = "\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti
-		local lsti_wb = world:get_waterbody_by_tile(lowest_shore_ti)
-		if lsti_wb then
-			-- logger:log(log_str .. " which belongs to lake " .. lsti_wb.id)
+		-- local lsti_wb = world:get_waterbody_by_tile(lowest_shore_ti)
+		-- if lsti_wb then
+		-- 	logger:log("\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti .. " which belongs to lake " .. lsti_wb.id)
 		-- else
-		-- 	logger:log(log_str)
-		end
+		-- 	logger:log("\t\t\tlake " .. wb.id .. " draining into tile " .. lowest_shore_ti)
+		-- end
 
 		wb.lake_open = true
 		wb.type = wb.TYPES.freshwater_lake
@@ -232,7 +248,7 @@ local function manage_expansion_and_drainage(wb, water_to_disburse)
 
 	--* if false, add tile to lake
 	add_lowest_shore_tile_to_waterbody(wb, lowest_shore_ti)
-	-- logger:log("\t\t\tlake " .. wb.id .. " added tile " .. lowest_shore_ti .. ": " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile))
+	-- logger:log("\t\t\tlake " .. wb.id .. " added tile " .. lowest_shore_ti .. ": " .. world.true_elevation[wb.lowest_shore_tile])
 
 	return water_to_disburse
 end
@@ -241,15 +257,13 @@ local function resize_lakes()
 	--* Loop through all waterbodies. Check for active, and check for tempWater.
 
 	world:for_each_waterbody(function(wb)
-		-- if not wb:is_valid() then return end -- do we really need this check?
-
 		if wb.tmp_float_1 <= 0 or wb.type == wb.TYPES.ocean then return end
 		--* Only resize lakes and seas
 
 		local water_to_disburse = wb.tmp_float_1 / lake_divisor
 		wb.tmp_float_1 = 0
 
-		-- logger:log("\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. world:true_elevation_for_waterflow(wb.lowest_shore_tile) .. ") has water to disburse: " .. water_to_disburse)
+		-- logger:log("\tlake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ", " .. world.true_elevation[wb.lowest_shore_tile] .. ") has water to disburse: " .. water_to_disburse)
 
 		--* Continue to grow lake until all water is used up
 		while water_to_disburse > 0 do
@@ -311,6 +325,8 @@ function dl.run(world_obj)
 		end
 	end)
 
+	run_with_profiling(function() world:update_true_elevation_for_waterflow() end, "update_true_elevation_for_waterflow")
+
 	run_with_profiling(function() find_start_tiles() end, "find_start_tiles")
 
 	--* ---Now we want to generate a new rivergen model that doesn't actively generate erosion but which still determines sediment load. Variables that need to 
@@ -333,13 +349,15 @@ function dl.run(world_obj)
 	run_with_profiling(function() water_flow_phase() end, "water_flow_phase")
 
 	world:for_each_waterbody(function(wb)
-		if not wb:is_valid() then return end
 		-- logger:log("lake " .. wb.id .. " (" .. wb:size() .. ", " .. wb.water_level .. ")")
+
 		for _, ti in ipairs(wb.tiles) do
 			world.is_land[ti] = false
 		end
 	end)
 end
+
+return dl
 
 --* River Plan ///
 --* Possibly generate wetlands first, so that when rivers flow through them, they can then have an "out tile" similar to a lake. The difference is that you don't
@@ -359,5 +377,3 @@ end
 --* Check all endoric waterbodies, including oceans, seas, and saltwater lakes
 --* Check shoreline of those waterbodies and check for tiles with watermovement reaching a particular threshold.
 --* Build a list and follow the waterflow backward from low elevation to high. Stop once the river forks.
-
-return dl

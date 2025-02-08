@@ -142,4 +142,13 @@ function rq.get_characteristics_for_rock(rock_type, def_sand, def_silt, def_clay
 	return characteristics.sand, characteristics.silt, characteristics.clay, characteristics.mineral_nutrients, characteristics.mass_conversion, characteristics.weathering_rate
 end
 
+function rq.mineral_nutrients(rock_type)
+	local characteristics = rock_characteristics_by_rock_type[rock_type]
+	if characteristics == nil then
+		return 0
+	end
+
+	return characteristics.mineral_nutrients
+end
+
 return rq

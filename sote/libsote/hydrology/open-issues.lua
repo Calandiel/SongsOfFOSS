@@ -24,8 +24,15 @@ function oi.waterflow_for_rank_7()
 end
 
 -- odd thing to do, wiping out water movement that was calculated in 'calculate-waterflow'
+-- 2024.09.28: might be ok, according to original authors;
+--             water movement might have been calculated and used in intermediary step(s) (like gen-parent-material), then wiped out and re-calculated
 function oi.set_water_movement_for_lakes(world, ti)
 	world.water_movement[ti] = 0
+end
+
+-- soil_organics is a ushort in the original implementation, so division by '1000' will be truncated, which is odd when computing a factor
+function oi.calc_organic_factor(soil_organics)
+	return math.floor(soil_organics / 1000) ^ 0.5 + 1
 end
 
 return oi
